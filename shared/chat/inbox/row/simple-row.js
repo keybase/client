@@ -37,6 +37,7 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 }
 
 type TopLineProps = {
+  filter: string,
   hasUnread: boolean,
   participants: List<string>,
   teamname: ?string,
@@ -48,9 +49,24 @@ type TopLineProps = {
 
 class TopLine extends PureComponent<void, TopLineProps, void> {
   render() {
-    const {hasUnread, showBold, participants, subColor, timestamp, usernameColor, teamname} = this.props
+    const {filter, hasUnread, showBold, participants, subColor, timestamp, usernameColor, teamname} = this.props
     const height = isMobile ? 19 : 17
     const boldOverride = showBold ? globalStyles.fontBold : null
+    let details = []
+    if (!filter) {
+      details = [
+        <Text
+          key="0"
+          type="BodySmall"
+          style={{...boldOverride, color: subColor, lineHeight: lineHeight(height)}}
+        >
+          {timestamp}
+        </Text>,
+      ]
+      if (hasUnread) {
+        details.push(<Box key="1" style={unreadDotStyle} />)
+      }
+    }
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: height, minHeight: height}}>
         <Box
@@ -84,10 +100,7 @@ class TopLine extends PureComponent<void, TopLineProps, void> {
             />
           </Box>
         </Box>
-        <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: lineHeight(height)}}>
-          {timestamp}
-        </Text>
-        {hasUnread && <Box style={unreadDotStyle} />}
+        {details}
       </Box>
     )
   }
@@ -348,6 +361,7 @@ class Row extends PureComponent<void, Props, void> {
             }}
           >
             <TopLine
+              filter={props.filter}
               hasUnread={props.hasUnread}
               participants={props.participants}
               showBold={props.showBold}
