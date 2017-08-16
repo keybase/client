@@ -213,7 +213,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		uires, err := h.presentUnverifiedInbox(ctx, chat1.GetInboxLocalRes{
 			ConversationsUnverified: lres.InboxRes.ConvsUnverified,
 			Pagination:              lres.InboxRes.Pagination,
-			Offline:                 h.G().InboxSource.IsOffline(),
+			Offline:                 h.G().InboxSource.IsOffline(ctx),
 		})
 		if err != nil {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
@@ -274,7 +274,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	}
 	wg.Wait()
 
-	res.Offline = h.G().InboxSource.IsOffline()
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	res.IdentifyFailures = breaks
 	return res, nil
 }
@@ -337,7 +337,7 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	res = chat1.GetInboxAndUnboxLocalRes{
 		Conversations:    ib.Convs,
 		Pagination:       ib.Pagination,
-		Offline:          h.G().InboxSource.IsOffline(),
+		Offline:          h.G().InboxSource.IsOffline(ctx),
 		RateLimits:       utils.AggRateLimitsP([]*chat1.RateLimit{rl}),
 		IdentifyFailures: identBreaks,
 	}
@@ -364,7 +364,7 @@ func (h *Server) GetCachedThread(ctx context.Context, arg chat1.GetCachedThreadA
 
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
-		Offline:          h.G().ConvSource.IsOffline(),
+		Offline:          h.G().ConvSource.IsOffline(ctx),
 		IdentifyFailures: identBreaks,
 	}, nil
 }
@@ -389,7 +389,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 	return chat1.GetThreadLocalRes{
 		Thread:           thread,
-		Offline:          h.G().ConvSource.IsOffline(),
+		Offline:          h.G().ConvSource.IsOffline(ctx),
 		RateLimits:       utils.AggRateLimitsP(rl),
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -510,7 +510,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	// Clean up context
 	cancel()
 
-	res.Offline = h.G().ConvSource.IsOffline()
+	res.Offline = h.G().ConvSource.IsOffline(ctx)
 	return res, fullErr
 }
 
@@ -747,7 +747,7 @@ func (h *Server) GetMessagesLocal(ctx context.Context, arg chat1.GetMessagesLoca
 
 	return chat1.GetMessagesLocalRes{
 		Messages:         messages,
-		Offline:          h.G().ConvSource.IsOffline(),
+		Offline:          h.G().ConvSource.IsOffline(ctx),
 		RateLimits:       utils.AggRateLimits(rlimits),
 		IdentifyFailures: identBreaks,
 	}, nil

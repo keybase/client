@@ -736,7 +736,7 @@ func (s *Deliverer) disconnectedTime() time.Duration {
 	return s.clock.Now().Sub(s.disconnTime)
 }
 
-func (s *Deliverer) IsOffline() bool {
+func (s *Deliverer) IsOffline(ctx context.Context) bool {
 	return !s.connected
 }
 
