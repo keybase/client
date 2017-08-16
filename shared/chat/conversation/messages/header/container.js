@@ -11,9 +11,14 @@ import type {OwnProps} from './container'
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   const conversationState = Constants.getSelectedConversationStates(state)
   const moreToLoad = conversationState && conversationState.get('moreToLoad')
-
   const inbox = Constants.getSelectedInbox(state)
-  const showTeamOffer = inbox && inbox.info && inbox.membersType !== CommonConversationMembersType.team && inbox.get('participants').size > 2
+
+  // If it's a multi-user chat that isn't a team, offer to make a new team.
+  const showTeamOffer =
+    inbox &&
+    inbox.info &&
+    inbox.membersType !== CommonConversationMembersType.team &&
+    inbox.get('participants').size > 2
 
   return {
     showTeamOffer,

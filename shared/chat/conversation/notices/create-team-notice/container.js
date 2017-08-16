@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import CreateTeamNotice from '.'
-import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../../actions/route-tree'
 
