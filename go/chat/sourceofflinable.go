@@ -30,7 +30,7 @@ func newSourceOfflinable(labeler utils.DebugLabeler) *sourceOfflinable {
 }
 
 func (s *sourceOfflinable) Connected(ctx context.Context) {
-	s.Debug(ctx, "connected")
+	defer s.Trace(ctx, func() error { return nil }, "Connected")()
 	s.Lock()
 	defer s.Unlock()
 
@@ -40,7 +40,7 @@ func (s *sourceOfflinable) Connected(ctx context.Context) {
 }
 
 func (s *sourceOfflinable) Disconnected(ctx context.Context) {
-	s.Debug(ctx, "disconnected")
+	defer s.Trace(ctx, func() error { return nil }, "Disconnected")()
 	s.Lock()
 	defer s.Unlock()
 
@@ -65,8 +65,10 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 			s.Debug(ctx, "IsOffline: waited and got %v", s.offline)
 			return s.offline
 		case <-time.After(4 * time.Second):
+			s.Lock()
+			defer s.Unlock()
 			s.Debug(ctx, "IsOffline: timed out")
-			return true
+			return s.offline
 		}
 	}
 
