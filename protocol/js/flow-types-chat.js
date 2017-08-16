@@ -1240,6 +1240,7 @@ export type InboxUIItem = {
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
@@ -1862,6 +1863,7 @@ export type UnverifiedInboxUIItem = {
   visibility: TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
 }
 

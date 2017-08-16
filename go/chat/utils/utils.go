@@ -590,6 +590,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.SupersededBy = rawConv.SupersededBy
 	res.Supersedes = rawConv.Supersedes
 	res.IsEmpty = rawConv.IsEmpty
+	res.Notifications = rawConv.Notifications
 	return res
 }
 
