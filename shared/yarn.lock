@@ -7080,9 +7080,9 @@ react-native@0.47.1:
     xtend ">=4.0.0 <4.1.0-0"
     yargs "^6.4.0"
 
-react-navigation@1.0.0-beta.12:
+"react-navigation@git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12":
   version "1.0.0-beta.12"
-  resolved "https://registry.yarnpkg.com/react-navigation/-/react-navigation-1.0.0-beta.12.tgz#cf0f04ffbf9fefe41f5c5a1dab92106b48a29f0a"
+  resolved "git://github.com/keybase/react-navigation#0a74880ed5079e7c714affaa24457674d13a0402"
   dependencies:
     clamp "^1.0.1"
     hoist-non-react-statics "^2.2.0"

@@ -38,7 +38,7 @@ type CardStackShimProps = {
 }
 
 class CardStackShim extends Component<*, CardStackShimProps, *> {
-  getScreenOptions = () => ({transitionInteractivityThreshold: 0.9})
+  getScreenOptions = () => ({})
   getStateForAction = emptyObj
   getActionForPathAndParams = emptyObj
   getPathAndParamsForState = emptyObj
