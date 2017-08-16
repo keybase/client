@@ -27,7 +27,7 @@
       "name": "IncomingMessage",
       "fields": [
         {
-          "type": "MessageUnboxed",
+          "type": "UIMessage",
           "name": "message"
         },
         {

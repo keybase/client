@@ -155,6 +155,148 @@
           "name": "offline"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessageValid",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "outboxID"
+        },
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        },
+        {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceType"
+        },
+        {
+          "type": "boolean",
+          "name": "superseded"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "senderDeviceRevokedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessageOutbox",
+      "fields": [
+        {
+          "type": "OutboxState",
+          "name": "state"
+        },
+        {
+          "type": "string",
+          "name": "outboxID"
+        },
+        {
+          "type": "MessageType",
+          "name": "messageType"
+        },
+        {
+          "type": "string",
+          "name": "body"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MessageUnboxedState",
+      "symbols": [
+        "VALID_1",
+        "ERROR_2",
+        "OUTBOX_3",
+        "PLACEHOLDER_4"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMessage",
+      "switch": {
+        "type": "MessageUnboxedState",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "VALID",
+            "def": false
+          },
+          "body": "UIMessageValid"
+        },
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "MessageUnboxedError"
+        },
+        {
+          "label": {
+            "name": "OUTBOX",
+            "def": false
+          },
+          "body": "UIMessageOutbox"
+        },
+        {
+          "label": {
+            "name": "PLACEHOLDER",
+            "def": false
+          },
+          "body": "MessageUnboxedPlaceholder"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessages",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "messages"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        }
+      ]
     }
   ],
   "messages": {
@@ -328,7 +470,7 @@
           "name": "thread",
           "type": [
             null,
-            "ThreadView"
+            "string"
           ]
         }
       ],
@@ -343,7 +485,7 @@
         },
         {
           "name": "thread",
-          "type": "ThreadView"
+          "type": "string"
         }
       ],
       "response": null,

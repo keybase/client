@@ -265,13 +265,6 @@ protocol local {
     MessageBody messageBody;
   }
 
-  enum MessageUnboxedState {
-    VALID_1,
-    ERROR_2,
-    OUTBOX_3,
-    PLACEHOLDER_4
-  }
-
   record MessageUnboxedValid {
     MessageClientHeaderVerified clientHeader;
     MessageServerHeader serverHeader;
@@ -323,6 +316,7 @@ protocol local {
     MessageID messageID;
   }
 
+  // If a new case is needed here, make sure to update UIMessage in chat_ui.avdl as well.
   variant MessageUnboxed switch (MessageUnboxedState state) {
     case VALID: MessageUnboxedValid;
     case ERROR: MessageUnboxedError;

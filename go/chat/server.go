@@ -395,6 +395,14 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}, nil
 }
 
+func (h *Server) presentThreadView(tv chat1.ThreadView) (res chat1.UIMessages) {
+	res.Pagination = tv.Pagination
+	for _, msg := range tv.Messages {
+		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(msg))
+	}
+	return res
+}
+
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -471,10 +479,24 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			return
 		default:
 		}
-		h.Debug(ctx, "GetThreadNonblock: cached thread sent")
+		var pthread *string
+		if resThread != nil {
+			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
+			var jsonPt []byte
+			var err error
+			pt := h.presentThreadView(*resThread)
+			if jsonPt, err = json.Marshal(pt); err != nil {
+				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
+				return
+			}
+			sJSONPt := string(jsonPt)
+			pthread = &sJSONPt
+		} else {
+			h.Debug(ctx, "GetThreadNonblock: sending nil cached response")
+		}
 		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
-			Thread:    resThread,
+			Thread:    pthread,
 		})
 	}()
 
@@ -494,12 +516,18 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		res.RateLimits = utils.AggRateLimitsP(rl)
 
 		// Acquire lock and send up actual response
+		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
-		h.Debug(ctx, "GetThreadNonblock: full thread sent")
+		uires := h.presentThreadView(remoteThread)
+		var jsonUIRes []byte
+		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
+			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
+			return
+		}
 		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
-			Thread:    remoteThread,
+			Thread:    string(jsonUIRes),
 		})
 
 		// This means we transmitted with success, so cancel local thread

@@ -184,6 +184,53 @@ func (m MessageUnboxed) IsValid() bool {
 	return false
 }
 
+func (m UIMessage) IsValid() bool {
+	if state, err := m.State(); err == nil {
+		return state == MessageUnboxedState_VALID
+	}
+	return false
+}
+
+func (m UIMessage) GetMessageID() MessageID {
+	if state, err := m.State(); err == nil {
+		if state == MessageUnboxedState_VALID {
+			return m.Valid().MessageID
+		}
+		if state == MessageUnboxedState_ERROR {
+			return m.Error().MessageID
+		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			return m.Placeholder().MessageID
+		}
+	}
+	return 0
+}
+
+func (m UIMessage) GetMessageType() MessageType {
+	if state, err := m.State(); err == nil {
+		if state == MessageUnboxedState_VALID {
+			body := m.Valid().MessageBody
+			typ, err := body.MessageType()
+			if err != nil {
+				return MessageType_NONE
+			}
+			return typ
+		}
+		if state == MessageUnboxedState_ERROR {
+			return m.Error().MessageType
+		}
+		if state == MessageUnboxedState_OUTBOX {
+			return m.Outbox().MessageType
+		}
+		if state == MessageUnboxedState_PLACEHOLDER {
+			// All we know about a place holder is the ID, so just
+			// call it type NONE
+			return MessageType_NONE
+		}
+	}
+	return MessageType_NONE
+}
+
 func (m MessageBoxed) GetMessageID() MessageID {
 	return m.ServerHeader.MessageID
 }

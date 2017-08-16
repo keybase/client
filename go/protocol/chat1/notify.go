@@ -55,7 +55,7 @@ func (e ChatActivityType) String() string {
 }
 
 type IncomingMessage struct {
-	Message                    MessageUnboxed `codec:"message" json:"message"`
+	Message                    UIMessage      `codec:"message" json:"message"`
 	ConvID                     ConversationID `codec:"convID" json:"convID"`
 	DisplayDesktopNotification bool           `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
 	Conv                       *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`

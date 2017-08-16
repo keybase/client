@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -449,6 +450,19 @@ func (m *ChatRemoteMock) promoteWriter(ctx context.Context, sender gregor1.UID, 
 	return res
 }
 
+func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBody {
+	return chat1.MessageBody{
+		MessageType__:        typ,
+		Text__:               &chat1.MessageText{},
+		Edit__:               &chat1.MessageEdit{},
+		Attachment__:         &chat1.MessageAttachment{},
+		Delete__:             &chat1.MessageDelete{},
+		Attachmentuploaded__: &chat1.MessageAttachmentUploaded{},
+		Join__:               &chat1.MessageJoin{},
+		Leave__:              &chat1.MessageLeave{},
+	}
+}
+
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
@@ -471,10 +485,11 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	// hit notify router with new message
 	if m.world.TcsByID[uid.String()].G.NotifyRouter != nil {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+			Message: utils.PresentMessageUnboxed(chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 				ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
 				ServerHeader: *inserted.ServerHeader,
-			}),
+				MessageBody:  m.createBogusBody(inserted.GetMessageType()),
+			})),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
 			keybase1.UID(uid.String()), &activity)
@@ -728,7 +743,7 @@ type NonblockInboxResult struct {
 }
 
 type NonblockThreadResult struct {
-	Thread *chat1.ThreadView
+	Thread *chat1.UIMessages
 	Full   bool
 }
 
@@ -807,16 +822,31 @@ func (c *ChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnv
 }
 
 func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
-	c.threadCb <- NonblockThreadResult{
-		Thread: arg.Thread,
-		Full:   false,
+	var thread chat1.UIMessages
+	if arg.Thread == nil {
+		c.threadCb <- NonblockThreadResult{
+			Thread: nil,
+			Full:   false,
+		}
+	} else {
+		if err := json.Unmarshal([]byte(*arg.Thread), &thread); err != nil {
+			return err
+		}
+		c.threadCb <- NonblockThreadResult{
+			Thread: &thread,
+			Full:   false,
+		}
 	}
 	return nil
 }
 
 func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	var thread chat1.UIMessages
+	if err := json.Unmarshal([]byte(arg.Thread), &thread); err != nil {
+		return err
+	}
 	c.threadCb <- NonblockThreadResult{
-		Thread: &arg.Thread,
+		Thread: &thread,
 		Full:   true,
 	}
 	return nil

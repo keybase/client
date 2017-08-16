@@ -4,6 +4,7 @@
 package chat1
 
 import (
+	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -141,6 +142,255 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 			return &tmp
 		})(o.Pagination),
 		Offline: o.Offline,
+	}
+}
+
+type UIMessageValid struct {
+	MessageID             MessageID     `codec:"messageID" json:"messageID"`
+	Ctime                 gregor1.Time  `codec:"ctime" json:"ctime"`
+	OutboxID              *string       `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	MessageBody           MessageBody   `codec:"messageBody" json:"messageBody"`
+	SenderUsername        string        `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName      string        `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType      string        `codec:"senderDeviceType" json:"senderDeviceType"`
+	Superseded            bool          `codec:"superseded" json:"superseded"`
+	SenderDeviceRevokedAt *gregor1.Time `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+}
+
+func (o UIMessageValid) DeepCopy() UIMessageValid {
+	return UIMessageValid{
+		MessageID: o.MessageID.DeepCopy(),
+		Ctime:     o.Ctime.DeepCopy(),
+		OutboxID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.OutboxID),
+		MessageBody:      o.MessageBody.DeepCopy(),
+		SenderUsername:   o.SenderUsername,
+		SenderDeviceName: o.SenderDeviceName,
+		SenderDeviceType: o.SenderDeviceType,
+		Superseded:       o.Superseded,
+		SenderDeviceRevokedAt: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SenderDeviceRevokedAt),
+	}
+}
+
+type UIMessageOutbox struct {
+	State       OutboxState  `codec:"state" json:"state"`
+	OutboxID    string       `codec:"outboxID" json:"outboxID"`
+	MessageType MessageType  `codec:"messageType" json:"messageType"`
+	Body        string       `codec:"body" json:"body"`
+	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
+}
+
+func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
+	return UIMessageOutbox{
+		State:       o.State.DeepCopy(),
+		OutboxID:    o.OutboxID,
+		MessageType: o.MessageType.DeepCopy(),
+		Body:        o.Body,
+		Ctime:       o.Ctime.DeepCopy(),
+	}
+}
+
+type MessageUnboxedState int
+
+const (
+	MessageUnboxedState_VALID       MessageUnboxedState = 1
+	MessageUnboxedState_ERROR       MessageUnboxedState = 2
+	MessageUnboxedState_OUTBOX      MessageUnboxedState = 3
+	MessageUnboxedState_PLACEHOLDER MessageUnboxedState = 4
+)
+
+func (o MessageUnboxedState) DeepCopy() MessageUnboxedState { return o }
+
+var MessageUnboxedStateMap = map[string]MessageUnboxedState{
+	"VALID":       1,
+	"ERROR":       2,
+	"OUTBOX":      3,
+	"PLACEHOLDER": 4,
+}
+
+var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
+	1: "VALID",
+	2: "ERROR",
+	3: "OUTBOX",
+	4: "PLACEHOLDER",
+}
+
+func (e MessageUnboxedState) String() string {
+	if v, ok := MessageUnboxedStateRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UIMessage struct {
+	State__       MessageUnboxedState        `codec:"state" json:"state"`
+	Valid__       *UIMessageValid            `codec:"valid,omitempty" json:"valid,omitempty"`
+	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
+	Outbox__      *UIMessageOutbox           `codec:"outbox,omitempty" json:"outbox,omitempty"`
+	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
+}
+
+func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
+	switch o.State__ {
+	case MessageUnboxedState_VALID:
+		if o.Valid__ == nil {
+			err = errors.New("unexpected nil value for Valid__")
+			return ret, err
+		}
+	case MessageUnboxedState_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	case MessageUnboxedState_OUTBOX:
+		if o.Outbox__ == nil {
+			err = errors.New("unexpected nil value for Outbox__")
+			return ret, err
+		}
+	case MessageUnboxedState_PLACEHOLDER:
+		if o.Placeholder__ == nil {
+			err = errors.New("unexpected nil value for Placeholder__")
+			return ret, err
+		}
+	}
+	return o.State__, nil
+}
+
+func (o UIMessage) Valid() (res UIMessageValid) {
+	if o.State__ != MessageUnboxedState_VALID {
+		panic("wrong case accessed")
+	}
+	if o.Valid__ == nil {
+		return
+	}
+	return *o.Valid__
+}
+
+func (o UIMessage) Error() (res MessageUnboxedError) {
+	if o.State__ != MessageUnboxedState_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return
+	}
+	return *o.Error__
+}
+
+func (o UIMessage) Outbox() (res UIMessageOutbox) {
+	if o.State__ != MessageUnboxedState_OUTBOX {
+		panic("wrong case accessed")
+	}
+	if o.Outbox__ == nil {
+		return
+	}
+	return *o.Outbox__
+}
+
+func (o UIMessage) Placeholder() (res MessageUnboxedPlaceholder) {
+	if o.State__ != MessageUnboxedState_PLACEHOLDER {
+		panic("wrong case accessed")
+	}
+	if o.Placeholder__ == nil {
+		return
+	}
+	return *o.Placeholder__
+}
+
+func NewUIMessageWithValid(v UIMessageValid) UIMessage {
+	return UIMessage{
+		State__: MessageUnboxedState_VALID,
+		Valid__: &v,
+	}
+}
+
+func NewUIMessageWithError(v MessageUnboxedError) UIMessage {
+	return UIMessage{
+		State__: MessageUnboxedState_ERROR,
+		Error__: &v,
+	}
+}
+
+func NewUIMessageWithOutbox(v UIMessageOutbox) UIMessage {
+	return UIMessage{
+		State__:  MessageUnboxedState_OUTBOX,
+		Outbox__: &v,
+	}
+}
+
+func NewUIMessageWithPlaceholder(v MessageUnboxedPlaceholder) UIMessage {
+	return UIMessage{
+		State__:       MessageUnboxedState_PLACEHOLDER,
+		Placeholder__: &v,
+	}
+}
+
+func (o UIMessage) DeepCopy() UIMessage {
+	return UIMessage{
+		State__: o.State__.DeepCopy(),
+		Valid__: (func(x *UIMessageValid) *UIMessageValid {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Valid__),
+		Error__: (func(x *MessageUnboxedError) *MessageUnboxedError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Error__),
+		Outbox__: (func(x *UIMessageOutbox) *UIMessageOutbox {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Outbox__),
+		Placeholder__: (func(x *MessageUnboxedPlaceholder) *MessageUnboxedPlaceholder {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Placeholder__),
+	}
+}
+
+type UIMessages struct {
+	Messages   []UIMessage `codec:"messages" json:"messages"`
+	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+func (o UIMessages) DeepCopy() UIMessages {
+	return UIMessages{
+		Messages: (func(x []UIMessage) []UIMessage {
+			var ret []UIMessage
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Messages),
+		Pagination: (func(x *Pagination) *Pagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
 	}
 }
 
@@ -289,32 +539,32 @@ func (o ChatInboxFailedArg) DeepCopy() ChatInboxFailedArg {
 }
 
 type ChatThreadCachedArg struct {
-	SessionID int         `codec:"sessionID" json:"sessionID"`
-	Thread    *ThreadView `codec:"thread,omitempty" json:"thread,omitempty"`
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	Thread    *string `codec:"thread,omitempty" json:"thread,omitempty"`
 }
 
 func (o ChatThreadCachedArg) DeepCopy() ChatThreadCachedArg {
 	return ChatThreadCachedArg{
 		SessionID: o.SessionID,
-		Thread: (func(x *ThreadView) *ThreadView {
+		Thread: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := (*x)
 			return &tmp
 		})(o.Thread),
 	}
 }
 
 type ChatThreadFullArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	Thread    ThreadView `codec:"thread" json:"thread"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Thread    string `codec:"thread" json:"thread"`
 }
 
 func (o ChatThreadFullArg) DeepCopy() ChatThreadFullArg {
 	return ChatThreadFullArg{
 		SessionID: o.SessionID,
-		Thread:    o.Thread.DeepCopy(),
+		Thread:    o.Thread,
 	}
 }
 

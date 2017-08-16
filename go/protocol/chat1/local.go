@@ -1730,38 +1730,6 @@ func (o MessagePlaintext) DeepCopy() MessagePlaintext {
 	}
 }
 
-type MessageUnboxedState int
-
-const (
-	MessageUnboxedState_VALID       MessageUnboxedState = 1
-	MessageUnboxedState_ERROR       MessageUnboxedState = 2
-	MessageUnboxedState_OUTBOX      MessageUnboxedState = 3
-	MessageUnboxedState_PLACEHOLDER MessageUnboxedState = 4
-)
-
-func (o MessageUnboxedState) DeepCopy() MessageUnboxedState { return o }
-
-var MessageUnboxedStateMap = map[string]MessageUnboxedState{
-	"VALID":       1,
-	"ERROR":       2,
-	"OUTBOX":      3,
-	"PLACEHOLDER": 4,
-}
-
-var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
-	1: "VALID",
-	2: "ERROR",
-	3: "OUTBOX",
-	4: "PLACEHOLDER",
-}
-
-func (e MessageUnboxedState) String() string {
-	if v, ok := MessageUnboxedStateRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
 type MessageUnboxedValid struct {
 	ClientHeader          MessageClientHeaderVerified `codec:"clientHeader" json:"clientHeader"`
 	ServerHeader          MessageServerHeader         `codec:"serverHeader" json:"serverHeader"`

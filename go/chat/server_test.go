@@ -1449,7 +1449,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		tc := ctc.as(t, users[0])
 		res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 		require.NoError(t, err)
-		var unboxed chat1.MessageUnboxed
+		var unboxed chat1.UIMessage
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			// pass
@@ -1471,7 +1471,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
 				}
 				require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
-				require.Nil(t, unboxed.Valid().ClientHeader.OutboxID, "surprise outbox ID on JOIN")
+				require.Nil(t, unboxed.Valid().OutboxID, "surprise outbox ID on JOIN")
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -1482,8 +1482,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1506,9 +1506,9 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, genOutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, genOutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1529,8 +1529,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1550,8 +1550,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1665,7 +1665,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 	})
 }
 
-func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.ThreadView) {
+func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.UIMessages) {
 	var tres kbtest.NonblockThreadResult
 	select {
 	case tres = <-cb:

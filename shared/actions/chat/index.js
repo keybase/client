@@ -96,8 +96,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         // private one, which is what we were doing before this change.
         if (
           incomingMessage.conv &&
-          incomingMessage.conv.info &&
-          incomingMessage.conv.info.visibility !== ChatTypes.CommonTLFVisibility.private
+          incomingMessage.conv.visibility !== ChatTypes.CommonTLFVisibility.private
         ) {
           return
         }
@@ -106,7 +105,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           yield call(Inbox.processConversation, incomingMessage.conv)
         }
 
-        const messageUnboxed: ChatTypes.MessageUnboxed = incomingMessage.message
+        const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
@@ -311,7 +310,10 @@ function* _updateThread({
 
 function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
   return function*({thread}) {
-    yield put(Creators.updateThread(thread, yourName, yourDeviceName, conversationIDKey))
+    if (thread) {
+      const decThread: ChatTypes.UIMessages = JSON.parse(thread)
+      yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey))
+    }
     return EngineRpc.rpcResult()
   }
 }
@@ -466,26 +468,25 @@ function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
 }
 
 function _unboxedToMessage(
-  message: ChatTypes.MessageUnboxed,
+  message: ChatTypes.UIMessage,
   yourName,
   yourDeviceName,
   conversationIDKey: Constants.ConversationIDKey
 ): Constants.Message {
-  if (message && message.state === ChatTypes.LocalMessageUnboxedState.outbox && message.outbox) {
+  if (message && message.state === ChatTypes.ChatUiMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
-    const payload: ChatTypes.OutboxRecord = message.outbox
+    const payload: ChatTypes.UIMessageOutbox = message.outbox
     const messageState: Constants.MessageState = payload &&
       payload.state &&
       payload.state.state === ChatTypes.LocalOutboxStateType.error
       ? 'failed'
       : 'pending'
-    const messageBody: ChatTypes.MessageBody = payload.Msg.messageBody
     const failureDescription = messageState === 'failed' // prettier-ignore $FlowIssue
       ? _decodeFailureDescription(payload.state.error.typ)
       : null
     // $FlowIssue
-    const messageText: ChatTypes.MessageText = messageBody.text
-    const outboxIDKey = Constants.outboxIDToKey(payload.outboxID)
+    const messageText: ChatTypes.MessageText = message.outbox.body
+    const outboxIDKey = payload.outboxID
 
     return {
       author: yourName,
@@ -505,7 +506,7 @@ function _unboxedToMessage(
     }
   }
 
-  if (message.state === ChatTypes.LocalMessageUnboxedState.valid) {
+  if (message.state === ChatTypes.ChatUiMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
       const common = {
@@ -514,16 +515,15 @@ function _unboxedToMessage(
         deviceName: payload.senderDeviceName,
         deviceType: toDeviceType(payload.senderDeviceType),
         failureDescription: null,
-        messageID: payload.serverHeader.messageID,
+        messageID: payload.messageID,
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
-        timestamp: payload.serverHeader.ctime,
+        timestamp: payload.ctime,
         you: yourName,
       }
 
       switch (payload.messageBody.messageType) {
         case ChatTypes.CommonMessageType.text:
-          const outboxID =
-            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.outboxID
           const p: any = payload
           const message = new HiddenString(
             (p.messageBody && p.messageBody.text && p.messageBody.text.body) || ''
@@ -532,15 +532,14 @@ function _unboxedToMessage(
           return {
             type: 'Text',
             ...common,
-            editedCount: payload.serverHeader.supersededBy ? 1 : 0, // mark it as edited if it's been superseded
+            editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
-          const outboxID =
-            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.outboxID
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
@@ -598,8 +597,8 @@ function _unboxedToMessage(
           const deletedIDs = (payload.messageBody.delete && payload.messageBody.delete.messageIDs) || []
           return {
             type: 'Deleted',
-            timestamp: payload.serverHeader.ctime,
-            messageID: payload.serverHeader.messageID,
+            timestamp: payload.ctime,
+            messageID: payload.messageID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDDeleted', common.messageID),
             deletedIDs,
           }
@@ -607,8 +606,7 @@ function _unboxedToMessage(
           const message = new HiddenString(
             (payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body) || ''
           )
-          const outboxID =
-            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.outboxID
           const targetMessageID = payload.messageBody.edit ? payload.messageBody.edit.messageID : 0
           return {
             key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
@@ -653,7 +651,7 @@ function _unboxedToMessage(
     }
   }
 
-  if (message.state === ChatTypes.LocalMessageUnboxedState.error) {
+  if (message.state === ChatTypes.ChatUiMessageUnboxedState.error) {
     const error = message.error
     if (error) {
       switch (error.errType) {
