@@ -1,6 +1,6 @@
 // @flow
 import React, {Component, PureComponent} from 'react'
-import {CSSTransitionGroup} from 'react-transition-group'
+import {TransitionGroup, CSSTransition} from 'react-transition-group'
 import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
@@ -193,15 +193,13 @@ class ProofsRender extends Component<void, Props, void> {
     `
     return (
       <Box style={{...styleContainer(loading), ...style}}>
-        <CSSTransitionGroup
-          transitionName="fade-anim"
-          transitionEnterTimeout={250}
-          transitionLeaveTimeout={250}
-        >
+        <TransitionGroup>
           {loading
-            ? <Box key="loading" style={{...styleLoading, ...loadingStyle}}>
-                {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
-              </Box>
+            ? <CSSTransition classNames="fade-anim" timeout={{exit: 250, enter: 250}}>
+                <Box key="loading" style={{...styleLoading, ...loadingStyle}}>
+                  {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
+                </Box>
+              </CSSTransition>
             : <Box key="non-loading">
                 {this.props.type === 'proofs' &&
                   this.props.proofs.map((p, idx) => (
@@ -223,7 +221,7 @@ class ProofsRender extends Component<void, Props, void> {
                   ))}
                 {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
               </Box>}
-        </CSSTransitionGroup>
+        </TransitionGroup>
       </Box>
     )
   }

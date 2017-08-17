@@ -3121,9 +3121,11 @@ emoji-datasource@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/emoji-datasource/-/emoji-datasource-3.0.0.tgz#3c46c5aa4c39bb7a0c8e6877ae02cc94dbc1b12f"
 
-emoji-mart@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-1.0.0.tgz#6b9bef3c35ae7b2373cf978e692569fa85f02c78"
+emoji-mart@1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/emoji-mart/-/emoji-mart-1.0.1.tgz#0ef2fd2bf4b6762aab7486c26c574387f034e392"
+  dependencies:
+    measure-scrollbar "^0.1.0"
 
 emojis-list@^2.0.0:
   version "2.1.0"
@@ -5577,6 +5579,10 @@ math-expression-evaluator@^1.2.14:
   version "1.2.17"
   resolved "https://registry.yarnpkg.com/math-expression-evaluator/-/math-expression-evaluator-1.2.17.tgz#de819fdbcd84dccd8fae59c6aeb79615b9d266ac"
 
+measure-scrollbar@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/measure-scrollbar/-/measure-scrollbar-0.1.0.tgz#2bbfac6773bcbb98d814e6890554c0b92846fe6f"
+
 media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
@@ -7307,7 +7313,18 @@ react-transform-hmr@^1.0.4:
     global "^4.3.0"
     react-proxy "^1.1.7"
 
-react-transition-group@1.x, react-transition-group@^1.1.2:
+react-transition-group@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-2.2.0.tgz#793bf8cb15bfe91b3101b24bce1c1d2891659575"
+  dependencies:
+    chain-function "^1.0.0"
+    classnames "^2.2.5"
+    dom-helpers "^3.2.0"
+    loose-envify "^1.3.1"
+    prop-types "^15.5.8"
+    warning "^3.0.0"
+
+react-transition-group@^1.1.2:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/react-transition-group/-/react-transition-group-1.2.0.tgz#b51fc921b0c3835a7ef7c571c79fc82c73e9204f"
   dependencies:
