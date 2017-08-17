@@ -10,16 +10,77 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (err error) {
-	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
+func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamName) (res keybase1.TeamID, err error) {
+	defer g.CTrace(ctx, "CreateImplicitTeam", func() error { return err })()
 
-	g.Log.CDebugf(ctx, "CreateRootTeam load me")
+	name, err := NewImplicitTeamName()
+	if err != nil {
+		return res, err
+	}
+	teamID := ImplicitTeamIDFromNameString(name, !impTeam.IsPrivate)
+
+	// Load all the Keybase users
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
-		return err
+		return res, err
+	}
+	var kbusers []*libkb.User
+	for _, kbu := range impTeam.KeybaseUsers {
+		var user *libkb.User
+		if kbu == me.GetName() {
+			user = me
+		} else {
+			user, err = libkb.LoadUser(libkb.LoadUserArg{
+				Name: kbu,
+			})
+			if err != nil {
+				g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", kbu, err)
+				return res, err
+			}
+		}
+		kbusers = append(kbusers, user)
 	}
 
-	g.Log.CDebugf(ctx, "CreateRootTeam get device keys")
+	// Form secret boxes and make invites for KB users with no PUKs
+	var invites []SCTeamInvite
+	secretboxRecipients := make(map[keybase1.UserVersion]keybase1.PerUserKey)
+	for _, kbu := range kbusers {
+		puk := kbu.GetComputedKeyFamily().GetLatestPerUserKey()
+		if puk == nil {
+			// Add this person as an invite if they do not have a puk
+			invites = append(invites, SCTeamInvite{
+				Type: "keybase",
+				Name: kbu.ToUserVersion().PercentForm(),
+				ID:   NewInviteID(),
+			})
+		} else {
+			secretboxRecipients[kbu.ToUserVersion()] = *puk
+		}
+	}
+
+	// Add invites for assertions
+	for _, assertion := range impTeam.UnresolvedUsers {
+		invites = append(invites, SCTeamInvite{
+			Type: string(assertion.Service),
+			Name: assertion.User,
+			ID:   NewInviteID(),
+		})
+	}
+	var teamMembers []SCTeamMember
+	for _, kbu := range kbusers {
+		teamMembers = append(teamMembers, SCTeamMember(kbu.ToUserVersion()))
+	}
+
+	// Post the team
+	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, invites, secretboxRecipients, name, teamID,
+		!impTeam.IsPrivate, true)
+}
+
+func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, users []SCTeamMember,
+	invites []SCTeamInvite, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
+	teamID keybase1.TeamID, public, implicit bool) error {
+
+	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam get device keys")
 	deviceSigningKey, err := g.ActiveDevice.SigningKey()
 	if err != nil {
 		return err
@@ -27,14 +88,6 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	deviceEncryptionKey, err := g.ActiveDevice.EncryptionKey()
 	if err != nil {
 		return err
-	}
-
-	ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
-	if ownerLatest == nil {
-		return errors.New("can't create a new team without having provisioned a per-user key")
-	}
-	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
-		me.ToUserVersion(): *ownerLatest,
 	}
 
 	// These boxes will get posted along with the sig below.
@@ -56,8 +109,9 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "CreateRootTeam make sigs")
-	teamSection, err := makeRootTeamSection(name, me, perTeamSigningKey.GetKID(), perTeamEncryptionKey.GetKID())
+	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam make sigs")
+	teamSection, err := makeRootTeamSection(name, teamID, users, invites, perTeamSigningKey.GetKID(),
+		perTeamEncryptionKey.GetKID(), public, implicit)
 	if err != nil {
 		return err
 	}
@@ -67,7 +121,6 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	// sign it, *twice*. The first time with the per-team signing key, to
 	// produce the reverse sig, and the second time with the device signing
 	// key, after the reverse sig has been written in.
-
 	sigBodyBeforeReverse, err := TeamRootSig(me, deviceSigningKey, teamSection)
 	if err != nil {
 		return err
@@ -107,14 +160,14 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		SigningKID: deviceSigningKey.GetKID(),
 		Type:       string(libkb.LinkTypeTeamRoot),
 		SigInner:   string(sigJSONAfterReverse),
-		TeamID:     RootTeamIDFromNameString(name),
+		TeamID:     teamID,
 		PublicKeys: &libkb.SigMultiItemPublicKeys{
 			Encryption: perTeamEncryptionKey.GetKID(),
 			Signing:    perTeamSigningKey.GetKID(),
 		},
 	}
 
-	g.Log.CDebugf(ctx, "CreateRootTeam post sigs")
+	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam post sigs")
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	payload["per_team_key"] = secretboxes
@@ -125,6 +178,27 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		JSONPayload: payload,
 	})
 	return err
+}
+
+func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (err error) {
+	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
+
+	g.Log.CDebugf(ctx, "CreateRootTeam load me")
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	if err != nil {
+		return err
+	}
+
+	ownerLatest := me.GetComputedKeyFamily().GetLatestPerUserKey()
+	if ownerLatest == nil {
+		return errors.New("can't create a new team without having provisioned a per-user key")
+	}
+	secretboxRecipients := map[keybase1.UserVersion]keybase1.PerUserKey{
+		me.ToUserVersion(): *ownerLatest,
+	}
+
+	return makeSigAndPostRootTeam(ctx, g, me, []SCTeamMember{SCTeamMember(me.ToUserVersion())}, nil,
+		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false)
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
@@ -200,24 +274,29 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	return &subteamID, nil
 }
 
-func makeRootTeamSection(teamName string, owner *libkb.User, perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID) (SCTeamSection, error) {
-	ownerUserVersion := owner.ToUserVersion()
-
-	teamID := RootTeamIDFromNameString(teamName)
-
+func makeRootTeamSection(teamName string, teamID keybase1.TeamID, owners []SCTeamMember, invites []SCTeamInvite,
+	perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, public bool, implicit bool) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
-		Name: (*SCTeamName)(&teamName),
-		ID:   (SCTeamID)(teamID),
+		Name:     (*SCTeamName)(&teamName),
+		ID:       (SCTeamID)(teamID),
+		Public:   public,
+		Implicit: implicit,
 		PerTeamKey: &SCPerTeamKey{
 			Generation: 1,
 			SigKID:     perTeamSigningKID,
 			EncKID:     perTeamEncryptionKID,
 		},
 		Members: &SCTeamMembers{
-			Owners:  &[]SCTeamMember{SCTeamMember(ownerUserVersion)},
+			Owners:  &owners,
 			Admins:  &[]SCTeamMember{},
 			Writers: &[]SCTeamMember{},
 			Readers: &[]SCTeamMember{},
+		},
+		Invites: &SCTeamInvites{
+			Owners:  &invites,
+			Admins:  &[]SCTeamInvite{},
+			Writers: &[]SCTeamInvite{},
+			Readers: &[]SCTeamInvite{},
 		},
 	}
 

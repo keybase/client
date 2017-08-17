@@ -1323,7 +1323,7 @@
       "request": [
         {
           "name": "name",
-          "type": "ImplicitTeamName"
+          "type": "string"
         }
       ],
       "response": "TeamID"
@@ -1332,7 +1332,7 @@
       "request": [
         {
           "name": "name",
-          "type": "ImplicitTeamName"
+          "type": "string"
         }
       ],
       "response": "TeamID"

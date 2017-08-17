@@ -199,10 +199,10 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }
 
-func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, name keybase1.ImplicitTeamName) (keybase1.TeamID, error) {
-	return teams.LookupImplicitTeam(ctx, name)
+func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, name string) (keybase1.TeamID, error) {
+	return teams.LookupImplicitTeam(ctx, h.G().ExternalG(), name)
 }
 
-func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, name keybase1.ImplicitTeamName) (keybase1.TeamID, error) {
-	return teams.LookupOrCreateImplicitTeam(ctx, name)
+func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, name string) (keybase1.TeamID, error) {
+	return teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), name)
 }

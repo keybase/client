@@ -621,7 +621,9 @@ const (
 )
 
 const (
-	RootTeamIDTag byte = 0x24
-	SubteamIDTag       = 0x25
-	InviteIDTag        = 0x27
+	RootTeamIDTag          byte = 0x24
+	SubteamIDTag                = 0x25
+	InviteIDTag                 = 0x27
+	PrivateImplicitTeamTag      = 0x29
+	PublicImplicitTeamTag       = 0x2a
 )
