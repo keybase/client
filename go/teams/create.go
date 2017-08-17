@@ -66,18 +66,24 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 			ID:   NewInviteID(),
 		})
 	}
+	teamInvites := SCTeamInvites{
+		Owners:  &invites,
+		Admins:  &[]SCTeamInvite{},
+		Writers: &[]SCTeamInvite{},
+		Readers: &[]SCTeamInvite{},
+	}
 	var teamMembers []SCTeamMember
 	for _, kbu := range kbusers {
 		teamMembers = append(teamMembers, SCTeamMember(kbu.ToUserVersion()))
 	}
 
 	// Post the team
-	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, invites, secretboxRecipients, name, teamID,
-		!impTeam.IsPrivate, true)
+	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, &teamInvites, secretboxRecipients, name,
+		teamID, !impTeam.IsPrivate, true)
 }
 
 func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, users []SCTeamMember,
-	invites []SCTeamInvite, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
+	invites *SCTeamInvites, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
 	teamID keybase1.TeamID, public, implicit bool) error {
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam get device keys")
@@ -274,7 +280,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	return &subteamID, nil
 }
 
-func makeRootTeamSection(teamName string, teamID keybase1.TeamID, owners []SCTeamMember, invites []SCTeamInvite,
+func makeRootTeamSection(teamName string, teamID keybase1.TeamID, owners []SCTeamMember, invites *SCTeamInvites,
 	perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, public bool, implicit bool) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
 		Name:     (*SCTeamName)(&teamName),
@@ -292,12 +298,7 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, owners []SCTea
 			Writers: &[]SCTeamMember{},
 			Readers: &[]SCTeamMember{},
 		},
-		Invites: &SCTeamInvites{
-			Owners:  &invites,
-			Admins:  &[]SCTeamInvite{},
-			Writers: &[]SCTeamInvite{},
-			Readers: &[]SCTeamInvite{},
-		},
+		Invites: invites,
 	}
 
 	// At this point the team section has every field filled out except the
