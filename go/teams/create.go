@@ -17,7 +17,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	if err != nil {
 		return res, err
 	}
-	teamID := ImplicitTeamIDFromNameString(name, !impTeam.IsPrivate)
+	teamID := RootTeamIDFromNameString(name)
 
 	// Load all the Keybase users
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))

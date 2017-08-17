@@ -66,19 +66,6 @@ func NewImplicitTeamName() (string, error) {
 	return fmt.Sprintf("__keybase_implicit_team__%s", hex.EncodeToString(dat)), nil
 }
 
-func ImplicitTeamIDFromNameString(name string, public bool) keybase1.TeamID {
-	sum := sha256.Sum256([]byte(strings.ToLower(name)))
-	idBytes := sum[0:16]
-	var tag byte
-	if public {
-		tag = libkb.PublicImplicitTeamTag
-	} else {
-		tag = libkb.PrivateImplicitTeamTag
-	}
-	idBytes[15] = tag
-	return keybase1.TeamID(hex.EncodeToString(idBytes))
-}
-
 func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
 	prevLinkID, err := libkb.ImportLinkID(parentTeam.GetLatestLinkID())
 	if err != nil {
