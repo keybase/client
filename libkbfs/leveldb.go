@@ -4,7 +4,14 @@
 
 package libkbfs
 
-import "github.com/syndtr/goleveldb/leveldb/opt"
+import (
+	"io"
+
+	"github.com/syndtr/goleveldb/leveldb"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb/storage"
+)
 
 var leveldbOptions = &opt.Options{
 	Compression: opt.NoCompression,
@@ -13,4 +20,35 @@ var leveldbOptions = &opt.Options{
 	// X, and >=1024 on (most?) Linux machines. So set to a low
 	// number since we have multiple leveldb instances.
 	OpenFilesCacheCapacity: 10,
+}
+
+type levelDb struct {
+	*leveldb.DB
+	closer io.Closer
+}
+
+func (ldb *levelDb) Close() (err error) {
+	err = ldb.DB.Close()
+	// Hide the closer error
+	_ = ldb.closer.Close()
+	return err
+}
+
+// openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
+// as its underlying storage layer.
+func openLevelDB(stor storage.Storage) (*levelDb, error) {
+	db, err := leveldb.Open(stor, leveldbOptions)
+	if ldberrors.IsCorrupted(err) {
+		// There's a possibility that if the leveldb wasn't closed properly
+		// last time while it was being written, then the manifest is corrupt.
+		// This means leveldb must rebuild its manifest, which takes longer
+		// than a simple `Open`.
+		// TODO: log here
+		db, err = leveldb.Recover(stor, leveldbOptions)
+	}
+	if err != nil {
+		stor.Close()
+		return nil, err
+	}
+	return &levelDb{db, stor}, nil
 }

@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -23,7 +24,6 @@ import (
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/syndtr/goleveldb/leveldb"
-	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
@@ -69,13 +69,15 @@ type DiskBlockCacheStandard struct {
 	// Protect the disk caches from being shutdown while they're being
 	// accessed.
 	lock    sync.RWMutex
-	blockDb *leveldb.DB
-	metaDb  *leveldb.DB
-	tlfDb   *leveldb.DB
+	blockDb *levelDb
+	metaDb  *levelDb
+	tlfDb   *levelDb
 
 	startedCh  chan struct{}
 	startErrCh chan struct{}
 	shutdownCh chan struct{}
+
+	closer func()
 }
 
 var _ DiskBlockCache = (*DiskBlockCacheStandard)(nil)
@@ -114,21 +116,6 @@ type DiskBlockCacheStatus struct {
 	SizeDeleted     MeterStatus
 }
 
-// openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
-// as its underlying storage layer.
-func openLevelDB(stor storage.Storage) (db *leveldb.DB, err error) {
-	db, err = leveldb.Open(stor, leveldbOptions)
-	if ldberrors.IsCorrupted(err) {
-		// There's a possibility that if the leveldb wasn't closed properly
-		// last time while it was being written, then the manifest is corrupt.
-		// This means leveldb must rebuild its manifest, which takes longer
-		// than a simple `Open`.
-		// TODO: log here
-		return leveldb.Recover(stor, leveldbOptions)
-	}
-	return db, err
-}
-
 // newDiskBlockCacheStandardFromStorage creates a new *DiskBlockCacheStandard
 // with the passed-in storage.Storage interfaces as storage layers for each
 // cache.
@@ -136,41 +123,40 @@ func newDiskBlockCacheStandardFromStorage(
 	config diskBlockCacheConfig, cacheType diskLimitTrackerType,
 	blockStorage, metadataStorage, tlfStorage storage.Storage) (
 	cache *DiskBlockCacheStandard, err error) {
+	log := config.MakeLogger("KBC")
+	closers := make([]io.Closer, 0, 3)
+	closer := func() {
+		for _, c := range closers {
+			closeErr := c.Close()
+			if closeErr != nil {
+				log.Warning("Error closing leveldb or storage: %+v", closeErr)
+			}
+		}
+	}
 	defer func() {
 		if err != nil {
 			err = errors.WithStack(err)
+			closer()
 		}
 	}()
-	log := config.MakeLogger("KBC")
 	blockDb, err := openLevelDB(blockStorage)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err != nil {
-			blockDb.Close()
-		}
-	}()
+	closers = append(closers, blockDb)
 
 	metaDb, err := openLevelDB(metadataStorage)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err != nil {
-			metaDb.Close()
-		}
-	}()
+	closers = append(closers, metaDb)
 
 	tlfDb, err := openLevelDB(tlfStorage)
 	if err != nil {
 		return nil, err
 	}
-	defer func() {
-		if err != nil {
-			tlfDb.Close()
-		}
-	}()
+	closers = append(closers, tlfDb)
+
 	maxBlockID, err := kbfshash.HashFromRaw(kbfshash.DefaultHashType,
 		kbfshash.MaxDefaultHash[:])
 	if err != nil {
@@ -199,6 +185,7 @@ func newDiskBlockCacheStandardFromStorage(
 		startedCh:        startedCh,
 		startErrCh:       startErrCh,
 		shutdownCh:       make(chan struct{}),
+		closer:           closer,
 	}
 	// Sync the block counts asynchronously so syncing doesn't block init.
 	// Since this method blocks, any Get or Put requests to the disk block
@@ -208,6 +195,7 @@ func newDiskBlockCacheStandardFromStorage(
 		err := cache.syncBlockCountsFromDb()
 		if err != nil {
 			close(startErrCh)
+			closer()
 			log.Warning("Disabling disk block cache due to error syncing the "+
 				"block counts from DB: %+v", err)
 			return
@@ -975,20 +963,9 @@ func (cache *DiskBlockCacheStandard) Shutdown(ctx context.Context) {
 	if cache.blockDb == nil {
 		return
 	}
-	err := cache.blockDb.Close()
-	if err != nil {
-		cache.log.CWarningf(ctx, "Error closing blockDb: %+v", err)
-	}
+	cache.closer()
 	cache.blockDb = nil
-	err = cache.metaDb.Close()
-	if err != nil {
-		cache.log.CWarningf(ctx, "Error closing metaDb: %+v", err)
-	}
 	cache.metaDb = nil
-	err = cache.tlfDb.Close()
-	if err != nil {
-		cache.log.CWarningf(ctx, "Error closing tlfDb: %+v", err)
-	}
 	cache.tlfDb = nil
 	cache.config.DiskLimiter().onSimpleByteTrackerDisable(ctx,
 		cache.cacheType, int64(cache.currBytes))
