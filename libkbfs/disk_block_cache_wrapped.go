@@ -42,38 +42,59 @@ type diskBlockCacheWrapped struct {
 
 var _ DiskBlockCache = (*diskBlockCacheWrapped)(nil)
 
-func newDiskBlockCacheWrapped(config diskBlockCacheConfig, storageRoot string) (
-	cache *diskBlockCacheWrapped, err error) {
-	workingSetCacheRoot := filepath.Join(storageRoot, workingSetCacheFolderName)
-	workingSetCache, err := newDiskBlockCacheStandard(config,
-		workingSetCacheLimitTrackerType, workingSetCacheRoot)
+func (cache *diskBlockCacheWrapped) enableCache(
+	typ diskLimitTrackerType, cacheFolder string) (err error) {
+	cache.mtx.Lock()
+	defer cache.mtx.Unlock()
+	var cachePtr *DiskBlockCache
+	switch typ {
+	case syncCacheLimitTrackerType:
+		cachePtr = &cache.syncCache
+	case workingSetCacheLimitTrackerType:
+		cachePtr = &cache.workingSetCache
+	default:
+		return errors.New("invalid disk cache type")
+	}
+	if *cachePtr != nil {
+		// We already have a cache of the desired type. Thus, this method is
+		// idempotent.
+		return nil
+	}
+	if cache.storageRoot == "" {
+		*cachePtr, err = newDiskBlockCacheStandardForTest(
+			cache.config, typ)
+	} else {
+		cacheStorageRoot := filepath.Join(cache.storageRoot, cacheFolder)
+		*cachePtr, err = newDiskBlockCacheStandard(cache.config, typ,
+			cacheStorageRoot)
+	}
+	return err
+}
+
+func newDiskBlockCacheWrapped(config diskBlockCacheConfig,
+	storageRoot string) (cache *diskBlockCacheWrapped, err error) {
+	cache = &diskBlockCacheWrapped{
+		config:      config,
+		storageRoot: storageRoot,
+	}
+	err = cache.enableCache(workingSetCacheLimitTrackerType,
+		workingSetCacheFolderName)
 	if err != nil {
 		return nil, err
 	}
-	cache = &diskBlockCacheWrapped{
-		config:          config,
-		storageRoot:     storageRoot,
-		workingSetCache: workingSetCache,
-		syncCache:       nil,
+	syncCacheErr := cache.enableCache(syncCacheLimitTrackerType,
+		syncCacheFolderName)
+	if syncCacheErr != nil {
+		log := config.MakeLogger("KBC")
+		log.Warning("Could not initialize sync block cache.")
+		// We still return success because the working set cache successfully
+		// initialized.
 	}
-	// TODO: enable sync cache in a subsequent PR.
-	// _ = cache.enableSyncCache()
 	return cache, nil
 }
 
-func (cache *diskBlockCacheWrapped) enableSyncCache() (err error) {
-	cache.mtx.Lock()
-	defer cache.mtx.Unlock()
-	if cache.syncCache != nil {
-		return nil
-	}
-	syncCacheRoot := filepath.Join(cache.storageRoot, syncCacheFolderName)
-	cache.syncCache, err = newDiskBlockCacheStandard(cache.config,
-		syncCacheLimitTrackerType, syncCacheRoot)
-	if err != nil {
-		return err
-	}
-	return nil
+func (cache *diskBlockCacheWrapped) IsSyncCacheEnabled() bool {
+	return cache.syncCache != nil
 }
 
 // Get implements the DiskBlockCache interface for diskBlockCacheWrapped.

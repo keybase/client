@@ -335,7 +335,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 
 	// Don't bother creating the registry if UseNilMetrics is set, or
 	// if we're in minimal mode.
-	if !metrics.UseNilMetrics && mode != InitMinimal {
+	if !metrics.UseNilMetrics && config.Mode() != InitMinimal {
 		registry := metrics.NewRegistry()
 		config.SetMetricsRegistry(registry)
 	}
@@ -736,7 +736,7 @@ func (c *ConfigLocal) DataVersion() DataVer {
 
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DoBackgroundFlushes() bool {
-	if c.mode == InitMinimal {
+	if c.Mode() == InitMinimal {
 		// Don't do background flushes when in minimal mode, since
 		// there shouldn't be any data writes.
 		return false
@@ -772,7 +772,13 @@ func (c *ConfigLocal) SetRekeyWithPromptWaitTime(d time.Duration) {
 
 // Mode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Mode() InitMode {
-	return c.mode
+	// We return the mode with the test flag masked out.
+	return c.mode.Mode()
+}
+
+// IsTestMode implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) IsTestMode() bool {
+	return c.mode.IsTestMode()
 }
 
 // DelayedCancellationGracePeriod implements the Config interface for ConfigLocal.
@@ -840,7 +846,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	}
 	c.bcache = NewBlockCacheStandard(10000, capacity)
 
-	if c.mode == InitMinimal {
+	if c.Mode() == InitMinimal {
 		// No blocks will be dirtied in minimal mode, so don't bother
 		// with the dirty block cache.
 		return nil
@@ -1254,10 +1260,10 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	if isSynced {
 		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 		if !ok {
-			return errors.Errorf("Invalid disk cache type to set TLF sync state.")
+			return errors.New("invalid disk cache type to set TLF sync state")
 		}
-		if err := diskCacheWrapped.enableSyncCache(); err != nil {
-			return err
+		if !diskCacheWrapped.IsSyncCacheEnabled() {
+			return errors.New("sync block cache is not enabled")
 		}
 	}
 	c.syncedTlfs[tlfID] = isSynced

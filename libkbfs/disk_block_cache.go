@@ -334,6 +334,13 @@ func newDiskBlockCacheStandard(config diskBlockCacheConfig,
 		blockStorage, metadataStorage, tlfStorage)
 }
 
+func newDiskBlockCacheStandardForTest(config diskBlockCacheConfig,
+	cacheType diskLimitTrackerType) (*DiskBlockCacheStandard, error) {
+	return newDiskBlockCacheStandardFromStorage(
+		config, cacheType, storage.NewMemStorage(),
+		storage.NewMemStorage(), storage.NewMemStorage())
+}
+
 // WaitUntilStarted waits until this cache has started.
 func (cache *DiskBlockCacheStandard) WaitUntilStarted() {
 	<-cache.startedCh

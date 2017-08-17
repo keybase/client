@@ -1742,6 +1742,9 @@ type Config interface {
 	// Mode indicates how KBFS is configured to run.
 	Mode() InitMode
 
+	// IsTestMode() inidicates whether KBFS is running in a test.
+	IsTestMode() bool
+
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving
 	// critical portion of a slow remote operation some extra time to finish as

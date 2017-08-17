@@ -801,6 +801,7 @@ type RekeyResult struct {
 type InitMode int
 
 const (
+	InitModeMask InitMode = 0xffff
 	// InitDefault is the normal mode for when KBFS data will be read
 	// and written.
 	InitDefault InitMode = iota
@@ -812,7 +813,17 @@ const (
 	// needed, and some naming restrictions are lifted (e.g., `.kbfs_`
 	// filenames are allowed).
 	InitSingleOp
+
+	InitTest InitMode = 1 << 16
 )
+
+func (im InitMode) Mode() InitMode {
+	return im & InitModeMask
+}
+
+func (im InitMode) IsTestMode() bool {
+	return im&InitTest > 0
+}
 
 func (im InitMode) String() string {
 	switch im {
@@ -820,6 +831,8 @@ func (im InitMode) String() string {
 		return InitDefaultString
 	case InitMinimal:
 		return InitMinimalString
+	case InitSingleOp:
+		return InitSingleOpString
 	default:
 		return "unknown"
 	}
