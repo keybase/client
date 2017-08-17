@@ -24,17 +24,9 @@ const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
   }
 
   const names = i.get('participants').toArray()
-  // TODO team and channels
-  let regexp
-  try {
-    regexp = new RegExp(filter, 'i')
-  } catch (e) {
-    // TODO: Handle this better.
-    console.log('Error when parsing "' + filter + '": ' + e)
-    return true
-  }
-
-  return names.some(n => n.match(regexp))
+  // No need to worry about Unicode issues with toLowerCase(), since
+  // names can only be ASCII.
+  return names.some(n => n.toLowerCase().indexOf(filter.toLowerCase()) >= 0)
 }
 
 const filteredInbox = createImmutableEqualSelector(
