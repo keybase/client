@@ -30,7 +30,6 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 		g := libkb.PGPGenArg{}
 		g.PGPUids = ctx.StringSlice("pgp-uid")
 		v.arg.DoExport = !ctx.Bool("no-export")
-		v.arg.ExportEncrypted = !ctx.Bool("unencrypted")
 		v.arg.AllowMulti = ctx.Bool("multi")
 		if ctx.Bool("debug") {
 			g.PrimaryBits = SmallKey
@@ -65,6 +64,12 @@ func (v *CmdPGPGen) Run() (err error) {
 	v.arg.PushSecret, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenPushSecret, "Push an encrypted copy of your new secret key to the Keybase.io server?", libkb.PromptDefaultYes)
 	if err != nil {
 		return err
+	}
+	if v.arg.DoExport {
+		v.arg.ExportEncrypted, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenEncryptSecret, "When exporting to the GnuPG keychain, encrypt private keys with a passphrase?", libkb.PromptDefaultYes)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = cli.PGPKeyGen(context.TODO(), v.arg.Export())
@@ -169,10 +174,6 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 			cli.BoolFlag{
 				Name:  "no-export",
 				Usage: "Disable exporting of new keys to GPG keychain.",
-			},
-			cli.BoolFlag{
-				Name:  "unencrypted",
-				Usage: "When exporting to GPG keychain, do not encrypt keys.",
 			},
 		},
 		Description: `"keybase pgp gen" generates a new PGP key for this account.
