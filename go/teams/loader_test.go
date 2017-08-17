@@ -563,7 +563,7 @@ func TestHiddenSubteam(t *testing.T) {
 	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 
-func TestParseImplicitTeamName(t *testing.T) {
+func TestParseImplicitTeamBackingName(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -575,11 +575,54 @@ func TestParseImplicitTeamName(t *testing.T) {
 		"__keybase_implicit_team__12345678901234567801234567890",
 	}
 	for _, badName := range badNames {
-		_, err := keybase1.ImplicitTeamNameFromString(badName)
+		_, err := keybase1.ImplicitTeamBackingNameFromString(badName)
 		require.Error(t, err)
 	}
 	goodName := "__keybase_implicit_team__0123456789abcdef0123456789abcdef"
-	name, err := keybase1.ImplicitTeamNameFromString(goodName)
+	name, err := keybase1.ImplicitTeamBackingNameFromString(goodName)
 	require.NoError(t, err)
 	require.Equal(t, name.Suffix, "0123456789abcdef0123456789abcdef")
+}
+
+func containsString(xs []string, target string) bool {
+	for _, x := range xs {
+		if x == target {
+			return true
+		}
+	}
+	return false
+}
+
+func TestParseImplicitTeamTLFName(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	badNames := []string{
+		"foobar",
+		"/keybas/public/foo,bar",
+		"/keybase/publi/foo,bar",
+		"/keybase/public/foobar,foo:@bar",
+		"/keybase/public/foobar,foobar::",
+	}
+	for _, badName := range badNames {
+		_, err := keybase1.ParseImplicitTeamTLFName(badName)
+		require.Error(t, err)
+	}
+	goodName := "/keybase/public/foobar,twitter:alice,bob@facebook,carol@keybase,dave"
+	name, err := keybase1.ParseImplicitTeamTLFName(goodName)
+	require.NoError(t, err)
+	require.Equal(t, name.IsPrivate, false)
+	require.Equal(t, len(name.KeybaseUsers), 3)
+	require.Equal(t, len(name.UnresolvedUsers), 2)
+	require.True(t, containsString(name.KeybaseUsers, "foobar"))
+	require.True(t, containsString(name.KeybaseUsers, "carol"))
+	require.True(t, containsString(name.KeybaseUsers, "dave"))
+
+	firstSocial := name.UnresolvedUsers[0]
+	secondSocial := name.UnresolvedUsers[1]
+	aliceExpected := keybase1.SocialAssertion{User: "alice", Service: keybase1.SocialAssertionService("twitter")}
+	bobExpected := keybase1.SocialAssertion{User: "bob", Service: keybase1.SocialAssertionService("facebook")}
+	require.True(t, firstSocial != secondSocial)
+	require.True(t, firstSocial == aliceExpected || firstSocial == bobExpected)
+	require.True(t, secondSocial == aliceExpected || secondSocial == bobExpected)
 }

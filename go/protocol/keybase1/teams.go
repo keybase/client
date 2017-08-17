@@ -799,12 +799,12 @@ func (o TeamName) DeepCopy() TeamName {
 	}
 }
 
-type ImplicitTeamName struct {
+type ImplicitTeamBackingName struct {
 	Suffix string `codec:"suffix" json:"suffix"`
 }
 
-func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
-	return ImplicitTeamName{
+func (o ImplicitTeamBackingName) DeepCopy() ImplicitTeamBackingName {
+	return ImplicitTeamBackingName{
 		Suffix: o.Suffix,
 	}
 }

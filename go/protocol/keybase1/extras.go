@@ -1652,7 +1652,63 @@ func (t ImplicitTeamBackingName) ToTeamID() TeamID {
 	return res
 }
 
-func ParseImplicitTeamName(s) (ImplicitTeamName, error) {
+func parseImplicitTeamPart(s string) (typ string, name string, err error) {
+	nColons := strings.Count(s, ":")
+	nAts := strings.Count(s, "@")
+	nDelimiters := nColons + nAts
+	if nDelimiters > 1 {
+		return "", "", fmt.Errorf("Invalid implicit team part, can have at most one ':' xor '@'")
+	}
+	if nDelimiters == 0 {
+		return "keybase", s, nil
+	}
+	if nColons == 1 {
+		parts := strings.Split(s, ":")
+		typ = parts[0]
+		name = parts[1]
+	} else {
+		parts := strings.Split(s, "@")
+		name = parts[0]
+		typ = parts[1]
+	}
+	return typ, name, nil
+}
+
+func ParseImplicitTeamTLFName(s string) (ImplicitTeamName, error) {
+	ret := ImplicitTeamName{}
+	s = strings.ToLower(s)
+	parts := strings.Split(s, "/")
+	if len(parts) != 4 {
+		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
+	}
+	if parts[0] != "" || parts[1] != "keybase" || (parts[2] != "private" && parts[2] != "public") {
+		return ret, fmt.Errorf("Invalid team TLF name")
+	}
+	isPrivate := parts[2] == "private"
+
+	keybaseUsers := make([]string, 0)
+	unresolvedUsers := make([]SocialAssertion, 0)
+	for _, part := range strings.Split(parts[3], ",") {
+		typ, name, err := parseImplicitTeamPart(part)
+		if err != nil {
+			return ret, err
+		} else if typ == "keybase" {
+			keybaseUsers = append(keybaseUsers, name)
+		} else {
+			unresolvedUsers = append(unresolvedUsers, SocialAssertion{
+				User:    name,
+				Service: SocialAssertionService(typ),
+			})
+		}
+	}
+
+	ret = ImplicitTeamName{
+		IsPrivate:       isPrivate,
+		KeybaseUsers:    keybaseUsers,
+		UnresolvedUsers: unresolvedUsers,
+		ConflictInfo:    nil,
+	}
+	return ret, nil
 }
 
 func (u UserPlusKeys) ToUserVersion() UserVersion {

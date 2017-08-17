@@ -666,7 +666,7 @@
     },
     {
       "type": "record",
-      "name": "ImplicitTeamName",
+      "name": "ImplicitTeamBackingName",
       "fields": [
         {
           "type": "string",

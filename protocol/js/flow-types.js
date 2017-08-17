@@ -3206,13 +3206,20 @@ export type ImplicitRole = {
   ancestor: TeamID,
 }
 
+export type ImplicitTeamBackingName = {
+  suffix: string,
+}
+
 export type ImplicitTeamConflictInfo = {
   generation: int,
   time: Time,
 }
 
 export type ImplicitTeamName = {
-  suffix: string,
+  isPrivate: boolean,
+  keybaseUsers?: ?Array<string>,
+  unresolvedUsers?: ?Array<SocialAssertion>,
+  conflictInfo?: ?ImplicitTeamConflictInfo,
 }
 
 export type InstallAction =
