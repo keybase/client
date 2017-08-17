@@ -2,6 +2,7 @@
 import {Map, Record, List, Set} from 'immutable'
 import * as SearchConstants from './search'
 import * as ChatConstants from './chat'
+import HiddenString from '../util/hidden-string'
 
 import type {KBRecord, KBOrderedSet} from './types/more'
 import type {NoErrorTypedAction} from './types/flux'
@@ -34,6 +35,13 @@ export type State = KBRecord<{
     ChatConstants.ConversationIDKey,
     Map<ChatConstants.MessageID, KBOrderedSet<ChatConstants.MessageKey>>
   >,
+  convIDToSnippet: Map<ChatConstants.ConversationIDKey, ?HiddenString>,
+  attachmentSavedPath: Map<ChatConstants.MessageKey, ?string>,
+  attachmentDownloadedPath: Map<ChatConstants.MessageKey, ?string>,
+  attachmentPreviewPath: Map<ChatConstants.MessageKey, ?string>,
+  attachmentPreviewProgress: Map<ChatConstants.MessageKey, ?number>,
+  attachmentDownloadProgress: Map<ChatConstants.MessageKey, ?number>,
+  attachmentUploadProgress: Map<ChatConstants.MessageKey, ?number>,
 }>
 
 const StateRecord = Record({
@@ -44,6 +52,13 @@ const StateRecord = Record({
   conversationMessages: Map(),
   deletedIDs: Map(),
   messageUpdates: Map(),
+  convIDToSnippet: Map(),
+  attachmentSavedPath: Map(),
+  attachmentDownloadedPath: Map(),
+  attachmentPreviewPath: Map(),
+  attachmentPreviewProgress: Map(),
+  attachmentDownloadProgress: Map(),
+  attachmentUploadProgress: Map(),
 })
 
 export {StateRecord}

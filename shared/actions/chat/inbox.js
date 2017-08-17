@@ -16,6 +16,7 @@ import {onIdlePromise} from '../../util/idle-callback'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
+import HiddenString from '../../util/hidden-string'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -135,7 +136,6 @@ function* onInboxStale(): SagaGenerator<any, any> {
             info: null,
             membersType: c.membersType,
             participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
-            snippet: ' ',
             state: 'untrusted',
             status: Constants.ConversationStatusByEnum[c.status || 0],
             time: c.time,
@@ -207,6 +207,13 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
 
   const inboxState = _conversationLocalToInboxState(c)
 
+  if (c && c.snippet) {
+    const snippet = c.snippet
+    yield put(
+      Creators.updateSnippet(conversationIDKey, new HiddenString(Constants.makeSnippet(snippet) || ''))
+    )
+  }
+
   if (inboxState) {
     yield put(Creators.updateInbox(inboxState))
 
@@ -267,12 +274,12 @@ function* _chatInboxFailedSubSaga(params) {
     participants: error.rekeyInfo
       ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
       : List(error.unverifiedTLFName.split(',')),
-    snippet: error.message,
     state: 'error',
     status: 'unfiled',
     time: error.remoteConv.readerInfo.mtime,
   })
 
+  yield put(Creators.updateSnippet(conversationIDKey, new HiddenString(error.message)))
   yield put(Creators.updateInbox(conversation))
 
   // Mark the conversation as read, to avoid a state where there's a
@@ -379,7 +386,6 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     isEmpty: c.isEmpty,
     membersType: c.membersType,
     participants: parts || [],
-    snippet: Constants.makeSnippet(c.snippet),
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
     time: c.time,

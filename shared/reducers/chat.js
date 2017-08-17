@@ -104,93 +104,6 @@ function updateConversation(
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-type MessageUpdateFn = (message: $Subtype<Constants.Message>) => Constants.Message
-type MessageFindPredFn = (message: Constants.Message) => boolean
-function updateConversationMessage(
-  conversationStates: ConversationsStates,
-  conversationIDKey: Constants.ConversationIDKey,
-  pred: MessageFindPredFn,
-  messageUpdateFn: MessageUpdateFn
-): ConversationsStates {
-  return updateConversation(conversationStates, conversationIDKey, conversation => {
-    const index = conversation.get('messages').findIndex(pred)
-    if (index < 0) {
-      console.warn("Couldn't find a message to update")
-      return conversation
-    }
-    // $FlowIssue
-    return conversation.updateIn(['messages', index], messageUpdateFn)
-  })
-}
-
-function updateStateWithMessageChanged(
-  state: Constants.State,
-  conversationIDKey: Constants.ConversationIDKey,
-  pred: MessageFindPredFn,
-  toMerge: $Shape<Constants.Message>
-) {
-  let messageKey
-
-  let newState = state.update('conversationStates', conversationStates =>
-    updateConversationMessage(conversationStates, conversationIDKey, pred, m => {
-      messageKey = m.key
-      return {
-        ...m,
-        ...toMerge,
-      }
-    })
-  )
-
-  // Note: this may be overly conservative: it updates messageMap with the
-  // latest key only, and does not remove the old key in case of a key change.
-  // We may find that deleting the old key is appropriate in the future.
-  const newKey = toMerge.key || messageKey
-  if (newKey) {
-    newState = newState.set(
-      'messageMap',
-      state.get('messageMap').update(newKey, message => ({
-        ...message,
-        ...toMerge,
-      }))
-    )
-  }
-
-  return newState
-}
-
-function updateStateWithMessageIDChanged(
-  state: Constants.State,
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID,
-  toMerge: $Shape<Constants.Message>
-) {
-  const pred = item => !!item.messageID && item.messageID === messageID
-  return updateStateWithMessageChanged(state, conversationIDKey, pred, toMerge)
-}
-
-function updateStateWithMessageOutboxIDChanged(
-  state: Constants.State,
-  conversationIDKey: Constants.ConversationIDKey,
-  outboxID: Constants.OutboxIDKey,
-  toMerge: $Shape<Constants.Message>
-) {
-  const pred = item => !!item.outboxID && item.outboxID === outboxID
-  return updateStateWithMessageChanged(state, conversationIDKey, pred, toMerge)
-}
-
-function updateLocalMessageState(
-  state: Constants.State,
-  messageKey: Constants.MessageKey,
-  toMerge: $Shape<Constants.LocalMessageStateProps>
-) {
-  // $FlowIssue updateIn
-  return state.updateIn(
-    ['localMessageStates', messageKey],
-    Constants.defaultLocalMessageState,
-    localMessageState => localMessageState.merge(toMerge)
-  )
-}
-
 function sortInbox(inbox: List<Constants.InboxState>): List<Constants.InboxState> {
   return inbox.sort((a, b) => {
     return b.get('time') - a.get('time')
@@ -324,37 +237,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         .set('conversationStates', newConversationStates)
         .set('messageMap', state.get('messageMap').merge(toMerge))
     }
-    case 'chat:updateTempMessage': {
-      if (action.error) {
-        console.warn('Error in updateTempMessage')
-        const {conversationIDKey, outboxID} = action.payload
-        return updateStateWithMessageOutboxIDChanged(state, conversationIDKey, outboxID, {
-          messageState: 'failed',
-        })
-      } else {
-        const {outboxID, message, conversationIDKey} = action.payload
-        return updateStateWithMessageOutboxIDChanged(
-          state,
-          conversationIDKey,
-          outboxID,
-          message
-        ).update('inbox', inbox =>
-          inbox.map((i, inboxIdx) => {
-            // Update snippetKey to message.messageID so we can clear deleted message snippets
-            if (i.get('conversationIDKey') === conversationIDKey) {
-              if (i.get('snippetKey') === outboxID && message.messageID) {
-                return i.set('snippetKey', message.messageID)
-              }
-            }
-            return i
-          })
-        )
-      }
-    }
-    case 'chat:updateMessage': {
-      const {messageID, message, conversationIDKey} = action.payload
-      return updateStateWithMessageIDChanged(state, conversationIDKey, messageID, message)
-    }
     case 'chat:markSeenMessage': {
       const {messageKey, conversationIDKey} = action.payload
       return state.update('conversationStates', conversationStates =>
@@ -370,40 +252,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           conversation.set('typing', Set(typing))
         )
       )
-    }
-    case 'chat:attachmentLoaded': {
-      const {messageKey, path, isPreview} = action.payload
-      let toMerge
-      if (isPreview) {
-        toMerge = {previewPath: path, previewProgress: null}
-      } else {
-        toMerge = {downloadedPath: path, downloadProgress: null}
-      }
-      return updateLocalMessageState(state, messageKey, toMerge)
-    }
-    case 'chat:attachmentSaveStart': {
-      const {messageKey} = action.payload
-      return updateLocalMessageState(state, messageKey, {savedPath: false})
-    }
-    case 'chat:attachmentSaved': {
-      const {messageKey, path} = action.payload
-      return updateLocalMessageState(state, messageKey, {savedPath: path})
-    }
-    case 'chat:attachmentSaveFailed': {
-      const {messageKey} = action.payload
-      return updateLocalMessageState(state, messageKey, {savedPath: null})
-    }
-    case 'chat:downloadProgress': {
-      const {messageKey, isPreview, progress} = action.payload
-      const progressField = isPreview ? 'previewProgress' : 'downloadProgress'
-      const toMerge = {
-        [progressField]: progress,
-      }
-      return updateLocalMessageState(state, messageKey, toMerge)
-    }
-    case 'chat:uploadProgress': {
-      const {messageKey, progress} = action.payload
-      return updateLocalMessageState(state, messageKey, {uploadProgress: progress})
     }
     case 'chat:outboxMessageBecameReal': {
       const {oldMessageKey, newMessageKey} = action.payload

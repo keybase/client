@@ -280,8 +280,6 @@ export const InboxStateRecord = Record({
   isEmpty: false,
   membersType: 0,
   participants: List(),
-  snippet: '',
-  snippetKey: null,
   state: 'untrusted',
   status: 'unfiled',
   time: 0,
@@ -295,8 +293,6 @@ export type InboxState = KBRecord<{
   isEmpty: boolean,
   membersType: ConversationMembersType,
   participants: List<string>,
-  snippet: string,
-  snippetKey: any,
   state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
   time: number,
@@ -338,7 +334,7 @@ export type RekeyInfo = KBRecord<{
   youCanRekey: boolean,
 }>
 
-export type LocalMessageStateProps = {
+export type LocalMessageState = {
   previewProgress: number | null /* between 0 - 1 */,
   downloadProgress: number | null /* between 0 - 1 */,
   uploadProgress: number | null /* between 0 - 1 */,
@@ -346,22 +342,6 @@ export type LocalMessageStateProps = {
   downloadedPath: ?string,
   savedPath: string | null | false,
 }
-
-const LocalMessageState: (
-  props: $Shape<LocalMessageStateProps>
-) => KBRecord<LocalMessageStateProps> = Record({
-  previewProgress: null,
-  downloadProgress: null,
-  uploadProgress: null,
-  previewPath: null,
-  downloadedPath: null,
-  savedPath: null,
-})
-
-const defaultLocalMessageState = new LocalMessageState({})
-
-const getLocalMessageStateFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
-  state.chat.localMessageStates.get(messageKey, defaultLocalMessageState)
 
 // $FlowIssue with cast
 export const StateRecord: KBRecord<T> = Record({
@@ -601,14 +581,6 @@ export type UpdateLatestMessage = NoErrorTypedAction<
   'chat:updateLatestMessage',
   {conversationIDKey: ConversationIDKey}
 >
-export type UpdateMessage = NoErrorTypedAction<
-  'chat:updateMessage',
-  {
-    conversationIDKey: ConversationIDKey,
-    message: $Shape<AttachmentMessage> | $Shape<TextMessage>,
-    messageID: MessageID,
-  }
->
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatePaginationNext = NoErrorTypedAction<
   'chat:updatePaginationNext',
@@ -763,6 +735,14 @@ export type UpdateThread = NoErrorTypedAction<
     yourName: string,
     yourDeviceName: string,
     conversationIDKey: string,
+  }
+>
+
+export type UpdateSnippet = NoErrorTypedAction<
+  'chat:updateSnippet',
+  {
+    snippet: HiddenString,
+    conversationIDKey: ConversationIDKey,
   }
 >
 
@@ -1140,6 +1120,50 @@ function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?M
   return state.entities.messages.get(messageKey)
 }
 
+const getDownloadProgress = ({entities: {attachmentDownloadProgress}}: TypedState, messageKey: MessageKey) =>
+  attachmentDownloadProgress.get(messageKey, null)
+
+const getUploadProgress = ({entities: {attachmentUploadProgress}}: TypedState, messageKey: MessageKey) =>
+  attachmentUploadProgress.get(messageKey, null)
+
+const getPreviewProgress = ({entities: {attachmentPreviewProgress}}: TypedState, messageKey: MessageKey) =>
+  attachmentPreviewProgress.get(messageKey, null)
+
+const getAttachmentSavedPath = ({entities: {attachmentSavedPath}}: TypedState, messageKey: MessageKey) =>
+  attachmentSavedPath.get(messageKey, null)
+
+const getAttachmentDownloadedPath = (
+  {entities: {attachmentDownloadedPath}}: TypedState,
+  messageKey: MessageKey
+) => attachmentDownloadedPath.get(messageKey, null)
+
+const getAttachmentPreviewPath = ({entities: {attachmentPreviewPath}}: TypedState, messageKey: MessageKey) =>
+  attachmentPreviewPath.get(messageKey, null)
+
+const getLocalMessageStateFromMessageKey = createSelector(
+  [
+    getDownloadProgress,
+    getPreviewProgress,
+    getUploadProgress,
+    getAttachmentDownloadedPath,
+    getAttachmentPreviewPath,
+    getAttachmentSavedPath,
+  ],
+  (downloadProgress, previewProgress, uploadProgress, downloadedPath, previewPath, savedPath) => ({
+    downloadProgress,
+    downloadedPath,
+    previewPath,
+    previewProgress,
+    savedPath,
+    uploadProgress,
+  })
+)
+
+function getSnippet(state: TypedState, conversationIDKey: ConversationIDKey): string {
+  const snippet = state.entities.convIDToSnippet.get(conversationIDKey, null)
+  return snippet ? snippet.stringValue() : ''
+}
+
 function applyMessageUpdates(message: Message, updates: KBOrderedSet<EditingMessage | UpdatingAttachment>) {
   return updates.reduce((message, update) => {
     if (!update) {
@@ -1162,14 +1186,21 @@ function applyMessageUpdates(message: Message, updates: KBOrderedSet<EditingMess
 export {
   applyMessageUpdates,
   getBrokenUsers,
+  getConversationMessages,
+  getDeletedMessageIDs,
   getEditingMessage,
   getMessageFromMessageKey,
+  getMessageUpdates,
   getSelectedConversation,
   getSelectedConversationStates,
   getSupersedes,
-  getConversationMessages,
-  getDeletedMessageIDs,
-  getMessageUpdates,
+  getAttachmentDownloadedPath,
+  getAttachmentPreviewPath,
+  getAttachmentSavedPath,
+  getDownloadProgress,
+  getPreviewProgress,
+  getUploadProgress,
+  getSnippet,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,
@@ -1201,8 +1232,6 @@ export {
   getTLF,
   getMuted,
   getUserItems,
-  LocalMessageState,
-  defaultLocalMessageState,
   getLocalMessageStateFromMessageKey,
   isImageFileName,
 }

@@ -481,12 +481,15 @@ function _unboxedToMessage(
   if (message && message.state === ChatTypes.ChatUiMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: ChatTypes.UIMessageOutbox = message.outbox
+    // prettier-ignore
     const messageState: Constants.MessageState = payload &&
       payload.state &&
       payload.state.state === ChatTypes.LocalOutboxStateType.error
       ? 'failed'
       : 'pending'
-    const failureDescription = messageState === 'failed' // prettier-ignore $FlowIssue
+    // prettier-ignore
+    const failureDescription = messageState === 'failed'
+      // $FlowIssue
       ? _decodeFailureDescription(payload.state.error.typ)
       : null
     // $FlowIssue
@@ -741,6 +744,7 @@ function* _openFolder(): SagaGenerator<any, any> {
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
+    // prettier-ignore
     const helper = inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
       ? publicFolderWithUsers
       : privateFolderWithUsers
@@ -933,24 +937,43 @@ function* _storeMessageToEntity(action: Constants.AppendMessages | Constants.Pre
   yield put(EntityCreators.mergeEntity(['messages'], Map(newMessages.map(m => [m.key, m]))))
 }
 
-function* _updateMessageEntity(action: Constants.UpdateMessage | Constants.UpdateTempMessage) {
+function _updateMessageEntity(action: Constants.UpdateTempMessage) {
   if (!action.error) {
     const {payload: {message}} = action
     // You have to wrap this in Map(...) because otherwise the merge will turn message into an immutable struct
     // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
-    yield put(EntityCreators.mergeEntity(['messages'], Map({[message.key]: message})))
+    return put(EntityCreators.mergeEntity(['messages'], Map({[message.key]: message})))
   } else {
     console.warn('error in updating temp message', action.payload)
   }
 }
 
+function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.UpdateSnippet) {
+  return put(EntityCreators.replaceEntity(['convIDToSnippet'], {[conversationIDKey]: snippet}))
+}
+
 function* _updateOutboxMessageToReal({
   payload: {oldMessageKey, newMessageKey},
 }: Constants.OutboxMessageBecameReal) {
+  const localMessageState = yield select(Constants.getLocalMessageStateFromMessageKey, oldMessageKey)
   const conversationIDKey = Constants.messageKeyConversationIDKey(newMessageKey)
   const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
   const nextMessages = currentMessages.map(k => (k === oldMessageKey ? newMessageKey : k))
-  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+  yield all([
+    put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages})),
+    put(
+      EntityCreators.mergeEntity(
+        [],
+        Map({
+          attachmentDownloadedPath: Map({[newMessageKey]: localMessageState.downloadedPath}),
+          attachmentPreviewPath: Map({[newMessageKey]: localMessageState.previewPath}),
+          attachmentPreviewProgress: Map({[newMessageKey]: localMessageState.previewProgress}),
+          attachmentDownloadProgress: Map({[newMessageKey]: localMessageState.downloadProgress}),
+          attachmentUploadProgress: Map({[newMessageKey]: localMessageState.uploadProgress}),
+        })
+      )
+    ),
+  ])
 }
 
 function* _findMessagesToDelete(action: Constants.AppendMessages | Constants.PrependMessages) {
@@ -1147,6 +1170,45 @@ function* _createNewTeam(action: Constants.CreateNewTeam) {
   }
 }
 
+function updateProgress(action: Constants.DownloadProgress | Constants.UploadProgress) {
+  const {type, payload: {progress, messageKey}} = action
+  if (type === 'downloadProgress') {
+    if (action.payload.isPreview) {
+      return put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], {[messageKey]: progress}))
+    }
+    return put(EntityCreators.replaceEntity(['attachmentDownloadedProgress'], {[messageKey]: progress}))
+  }
+  return put(EntityCreators.replaceEntity(['attachmentUploadProgress'], {[messageKey]: progress}))
+}
+
+function updateAttachmentSavePath(
+  action: Constants.AttachmentSaveStart | Constants.AttachmentSaveFailed | Constants.AttachmentSaved
+) {
+  const {messageKey} = action.payload
+  switch (action.type) {
+    case 'chat:attachmentSaveFailed':
+    case 'chat:attachmentSaveStart':
+      return put(EntityCreators.replaceEntity(['attachmentSavedPath'], {[messageKey]: null}))
+    case 'chat:attachmentSaved':
+      const {path} = action.payload
+      return put(EntityCreators.replaceEntity(['attachmentSavedPath'], {[messageKey]: path}))
+  }
+}
+
+function attachmentLoaded(action: Constants.AttachmentLoaded) {
+  const {payload: {messageKey, path, isPreview}} = action
+  if (isPreview) {
+    return all([
+      put(EntityCreators.replaceEntity(['attachmentPreviewPath'], {[messageKey]: path})),
+      put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], {[messageKey]: null})),
+    ])
+  }
+  return all([
+    put(EntityCreators.replaceEntity(['attachmentDownloadedPath'], {[messageKey]: path})),
+    put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], {[messageKey]: null})),
+  ])
+}
+
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
@@ -1154,7 +1216,14 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _storeMessageToEntity)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _findMessagesToDelete)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _findMessageUpdates)
-  yield Saga.safeTakeEvery(['chat:updateMessage', 'chat:updateTempMessage'], _updateMessageEntity)
+  yield Saga.safeTakeEveryPure('chat:attachmentLoaded', attachmentLoaded)
+  yield Saga.safeTakeEveryPure(['chat:downloadProgress', 'chat:uploadProgress'], updateProgress)
+  yield Saga.safeTakeEveryPure(
+    ['chat:attachmentSaveStart', 'chat:attachmentSaveFailed', 'chat:attachmentSaved'],
+    updateAttachmentSavePath
+  )
+  yield Saga.safeTakeEveryPure('chat:updateSnippet', _updateSnippet)
+  yield Saga.safeTakeEvery('chat:updateTempMessage', _updateMessageEntity)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
