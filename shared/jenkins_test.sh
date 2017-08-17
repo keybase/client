@@ -47,6 +47,7 @@ js_tests() {
     has_js_files
 
     echo 'yarn install'
+    yarn cache clean
     yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress
     check_rc $? 'yarn install fail' 1
     echo 'yarn run flow'
@@ -79,6 +80,7 @@ visdiff_install() {
         echo 'No $change_target, skipping visdiff'
     else
         cd ../visdiff
+        yarn cache clean
         yarn install --pure-lockfile
         cd ../shared
         check_rc $? 'visdiff fail' 1
