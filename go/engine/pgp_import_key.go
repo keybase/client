@@ -214,7 +214,7 @@ func (e *PGPKeyImportEngine) Run(ctx *Context) error {
 		}
 
 		if err := e.exportToGPG(ctx); err != nil {
-			return err
+			return GPGExportingError{err, true /* inPGPGen */}
 		}
 	}
 
@@ -261,7 +261,8 @@ func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
 
 	if e.arg.ExportEncrypted {
 		e.G().Log.Debug("Encrypting key with passphrase before exporting")
-		pRes, err := GetPGPExportPassphrase(e.G(), ctx.SecretUI)
+		desc := "Exporting key to GPG keychain. Enter passphrase to protect the key. Secure passphrases have at least 8 characters."
+		pRes, err := GetPGPExportPassphrase(e.G(), ctx.SecretUI, desc)
 		if err != nil {
 			return err
 		}
