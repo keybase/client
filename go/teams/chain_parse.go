@@ -40,6 +40,7 @@ type SCTeamMembers struct {
 }
 
 type SCTeamInvites struct {
+	Owners  *[]SCTeamInvite   `json:"owner,omitempty"`
 	Admins  *[]SCTeamInvite   `json:"admin,omitempty"`
 	Writers *[]SCTeamInvite   `json:"writer,omitempty"`
 	Readers *[]SCTeamInvite   `json:"reader,omitempty"`

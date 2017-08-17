@@ -182,7 +182,6 @@ protocol teams {
     TeamID id;
 
     // Whether this is an implicit team.
-    // Implicits teams are more restricted.
     boolean implicit;
 
     // Name of the root ancestor. For A.B.C this is 'A'.
