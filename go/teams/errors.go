@@ -216,3 +216,24 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n s
 	}
 	return e
 }
+
+type KeyMaskNotFoundError struct {
+	app keybase1.TeamApplication
+	gen keybase1.PerTeamKeyGeneration
+}
+
+func (e KeyMaskNotFoundError) Error() string {
+	msg := fmt.Sprintf("You don't have access to %s for this team", e.app)
+	if e.gen != keybase1.PerTeamKeyGeneration(0) {
+		msg += fmt.Sprintf(" (at generation %d)", int(e.gen))
+	}
+	return msg
+}
+
+func NewKeyMaskNotFoundErrorForApplication(a keybase1.TeamApplication) KeyMaskNotFoundError {
+	return KeyMaskNotFoundError{app: a}
+}
+
+func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplication, g keybase1.PerTeamKeyGeneration) KeyMaskNotFoundError {
+	return KeyMaskNotFoundError{app: a, gen: g}
+}
