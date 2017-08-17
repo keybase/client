@@ -2,8 +2,6 @@
 import React, {Component} from 'react'
 import Render from './render'
 import pausableConnect from '../util/pausable-connect'
-import Install from './install'
-import {connect} from 'react-redux'
 import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
