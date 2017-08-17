@@ -86,7 +86,7 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 type offlineErrorKind int
 
 const (
-	offlineErrorKindOnline offlineErrorKind = 0
+	offlineErrorKindOnline offlineErrorKind = iota
 	offlineErrorKindOfflineBasic
 	offlineErrorKindOfflineReconnect
 )
