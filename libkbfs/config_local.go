@@ -778,7 +778,7 @@ func (c *ConfigLocal) Mode() InitMode {
 
 // IsTestMode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) IsTestMode() bool {
-	return c.mode.IsTestMode()
+	return c.mode.HasFlags(InitTest)
 }
 
 // DelayedCancellationGracePeriod implements the Config interface for ConfigLocal.
