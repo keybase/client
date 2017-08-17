@@ -3206,6 +3206,18 @@ export type ImplicitRole = {
   ancestor: TeamID,
 }
 
+export type ImplicitTeamConflictInfo = {
+  generation: int,
+  time: Time,
+}
+
+export type ImplicitTeamName = {
+  isPrivate: boolean,
+  keybaseUsers?: ?Array<string>,
+  unresolvedUsers?: ?Array<SocialAssertion>,
+  conflictInfo?: ?ImplicitTeamConflictInfo,
+}
+
 export type InstallAction =
     0 // UNKNOWN_0
   | 1 // NONE_1

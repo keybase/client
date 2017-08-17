@@ -401,14 +401,29 @@ protocol teams {
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
   void teamAcceptInvite(int sessionID, string token);
-  void teamRequestAccess(int sessionID, string name); 
+  void teamRequestAccess(int sessionID, string name);
   array<TeamJoinRequest> teamListRequests(int sessionID);
   void teamIgnoreRequest(int sessionID, string name, string username);
   // Get a list of all recursive subteams recursively. Sorted alphabetically like a tree.
   // Team must be a root team.
   // Example: a -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   TeamTreeResult teamTree(int sessionID, TeamName name);
-  void teamDelete(int sessionID, string name); 
+  void teamDelete(int sessionID, string name);
+
+  /**
+   * iTeams
+  */
+  record ImplicitTeamName {
+    boolean isPrivate;
+    array<string> keybaseUsers;
+    array<SocialAssertion> unresolvedUsers;
+    union { null, ImplicitTeamConflictInfo } conflictInfo;
+  }
+
+  record ImplicitTeamConflictInfo {
+    int generation;
+    Time time;
+  }
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
