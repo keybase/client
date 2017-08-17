@@ -66,11 +66,14 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 			ID:   NewInviteID(),
 		})
 	}
-	teamInvites := SCTeamInvites{
-		Owners:  &invites,
-		Admins:  &[]SCTeamInvite{},
-		Writers: &[]SCTeamInvite{},
-		Readers: &[]SCTeamInvite{},
+	var teamInvites *SCTeamInvites
+	if len(invites) > 0 {
+		teamInvites = &SCTeamInvites{
+			Owners:  &invites,
+			Admins:  &[]SCTeamInvite{},
+			Writers: &[]SCTeamInvite{},
+			Readers: &[]SCTeamInvite{},
+		}
 	}
 	var teamMembers []SCTeamMember
 	for _, kbu := range kbusers {
@@ -78,7 +81,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	// Post the team
-	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, &teamInvites, secretboxRecipients, name,
+	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, teamInvites, secretboxRecipients, name,
 		teamID, !impTeam.IsPrivate, true)
 }
 

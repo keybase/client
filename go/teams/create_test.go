@@ -126,3 +126,25 @@ func TestCreateSubSubteam(t *testing.T) {
 
 	assertRole(tc, subsubteamName.String(), u.Username, keybase1.TeamRole_NONE)
 }
+
+func TestCreateImplicitTeam(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	numKBUsers := 3
+	var users []*kbtest.FakeUser
+	var impTeam keybase1.ImplicitTeamName
+	for i := 0; i < numKBUsers; i++ {
+		u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+		require.NoError(t, err)
+		users = append(users, u)
+	}
+
+	// Simple imp team
+	for _, u := range users {
+		impTeam.KeybaseUsers = append(impTeam.KeybaseUsers, u.Username)
+	}
+	impTeam.IsPrivate = true
+	_, err := CreateImplicitTeam(context.TODO(), tc.G, impTeam)
+	require.NoError(t, err)
+}
