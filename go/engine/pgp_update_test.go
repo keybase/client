@@ -68,7 +68,7 @@ func TestPGPUpdate(t *testing.T) {
 	}
 
 	// Add the modified key to the gpg keyring
-	if err := gpgCLI.ExportKey(*bundle, false /* export public key only */); err != nil {
+	if err := gpgCLI.ExportKey(*bundle, false /* export public key only */, false /* no batch mode */); err != nil {
 		t.Fatal(err)
 	}
 
