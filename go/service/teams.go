@@ -198,3 +198,11 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg k
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }
+
+func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, name keybase1.ImplicitTeamName) (keybase1.TeamID, error) {
+	return teams.LookupImplicitTeam(ctx, name)
+}
+
+func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, name keybase1.ImplicitTeamName) (keybase1.TeamID, error) {
+	return teams.LookupOrCreateImplicitTeam(ctx, name)
+}
