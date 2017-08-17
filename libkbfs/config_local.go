@@ -56,6 +56,10 @@ const (
 	// batch to fill up before syncing a set of changes to the servers.
 	bgFlushPeriodDefault         = 1 * time.Second
 	keyBundlesCacheCapacityBytes = 10 * cache.MB
+	// folder name for persisted config parameters.
+	persistedConfigFolderName = "config_leveldb"
+	// the persisted config key prefix for representing synced TLFs.
+	syncedTlfsConfigKeyPrefix = "syncedTlfs_"
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -311,6 +315,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 		mode:        mode,
 		syncedTlfs:  make(map[tlf.ID]bool),
 	}
+	config.loadSyncedTlfs()
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
@@ -1210,6 +1215,7 @@ func (c *ConfigLocal) EnableJournaling(
 }
 
 func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
+	// TODO: create in-memory databases for tests instead of on-disk
 	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot)
 	if err != nil {
 		return err
@@ -1227,6 +1233,11 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 		return nil
 	}
 	return c.resetDiskBlockCacheLocked()
+}
+
+func (c *ConfigLocal) loadSyncedTlfs() error {
+	// TODO: implement
+	return nil
 }
 
 // IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
