@@ -4520,6 +4520,7 @@ export type TeamNamePart = string
 export type TeamPlusApplicationKeys = {
   id: TeamID,
   name: string,
+  implicit: boolean,
   application: TeamApplication,
   writers?: ?Array<UserVersion>,
   onlyReaders?: ?Array<UserVersion>,
@@ -4548,6 +4549,7 @@ export type TeamSBSMsg = {
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
+  implicit: boolean,
   rootAncestor: TeamName,
   nameDepth: int,
   nameLog?: ?Array<TeamNameLogPoint>,
