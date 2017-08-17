@@ -26,7 +26,7 @@ type GPGExportingError struct {
 
 func (e GPGExportingError) Error() string {
 	if e.inPGPGen {
-		const msg string = "PGP key has been generated and added to your account, but exporting to GPG keychain has failed. You can export again using `keybase pgp export -s`."
+		const msg string = "A PGP key has been generated and added to your account, but exporting to the GPG keychain has failed. You can try to export again using `keybase pgp export -s`."
 		return fmt.Sprintf("%s Error during GPG exporting: %s", msg, e.err.Error())
 	}
 	return e.err.Error()

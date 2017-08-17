@@ -39,13 +39,14 @@ func NewCmdPGPExport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 			cli.BoolFlag{
 				Name:  "unencrypted",
-				Usage: "When exporting secret key, do not protect key with a passphrase.",
+				Usage: "When exporting private keys, do not protect with a passphrase.",
 			},
 		},
 		Description: `"keybase pgp export" exports public (and optionally private) 
    PGP keys from Keybase, and into a file or to standard output.
-   It doesn't access the GnuPG keychain at all. By default, when exporting secret
-   key, you will be asked for passphrase to protect exported key.`,
+   It doesn't access the GnuPG keychain at all. By default, when
+   exporting private keys, you will be asked for passphrase to encrypt
+   the exported keys.`,
 	}
 }
 
