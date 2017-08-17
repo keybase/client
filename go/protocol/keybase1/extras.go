@@ -1521,8 +1521,8 @@ var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
 var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", implicitTeamPrefix, implicitSuffixLengthBytes*2)
 var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
-var implicitTeamPrefix = "__keybase_implicit_team__"
-var implicitSuffixLengthBytes = 16
+const implicitTeamPrefix = "__keybase_implicit_team__"
+const implicitSuffixLengthBytes = 16
 
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
