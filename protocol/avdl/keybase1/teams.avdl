@@ -252,7 +252,7 @@ protocol teams {
     array<TeamNamePart> parts;
   }
 
-  record ImplicitTeamName {
+  record ImplicitTeamBackingName {
     string suffix;
   }
 

@@ -1624,24 +1624,24 @@ var implicitSuffixLengthBytes = 16
 var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", implicitTeamPrefix, implicitSuffixLengthBytes*2)
 var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
-func ImplicitTeamNameFromString(s string) (ret ImplicitTeamName, err error) {
+func ImplicitTeamBackingNameFromString(s string) (ret ImplicitTeamBackingName, err error) {
 	if !implicitNameRxx.MatchString(s) {
 		return ret, fmt.Errorf("Bad implicit team name.")
 	}
-	return ImplicitTeamName{
+	return ImplicitTeamBackingName{
 		s[len(implicitTeamPrefix):],
 	}, nil
 }
 
-func (t ImplicitTeamName) String() string {
+func (t ImplicitTeamBackingName) String() string {
 	return implicitTeamPrefix + t.Suffix
 }
 
-func (t ImplicitTeamName) Eq(t2 ImplicitTeamName) bool {
+func (t ImplicitTeamBackingName) Eq(t2 ImplicitTeamBackingName) bool {
 	return t.String() == t2.String()
 }
 
-func (t ImplicitTeamName) ToTeamID() TeamID {
+func (t ImplicitTeamBackingName) ToTeamID() TeamID {
 	low := strings.ToLower(t.String())
 	sum := sha256.Sum256([]byte(low))
 	bs := append(sum[:15], TEAMID_SUFFIX)
@@ -1650,6 +1650,9 @@ func (t ImplicitTeamName) ToTeamID() TeamID {
 		panic(err)
 	}
 	return res
+}
+
+func ParseImplicitTeamName(s) (ImplicitTeamName, error) {
 }
 
 func (u UserPlusKeys) ToUserVersion() UserVersion {
