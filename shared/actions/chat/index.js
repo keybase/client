@@ -952,6 +952,22 @@ function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.Updat
   return put(EntityCreators.replaceEntity(['convIDToSnippet'], {[conversationIDKey]: snippet}))
 }
 
+function _removeOutboxMessage(
+  {payload: {conversationIDKey, outboxID}}: Constants.RemoveOutboxMessage,
+  msgKeys: KBOrderedSet<Constants.MessageKey>
+) {
+  const nextMessages = msgKeys.filter(k => {
+    const {messageID} = Constants.splitMessageIDKey(k)
+    return messageID !== outboxID
+  })
+
+  // $FlowIssue Iterable<K,V> apparently doesn't apply to Set
+  if (nextMessages.equals(msgKeys)) {
+    return
+  }
+  return put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+}
+
 function* _updateOutboxMessageToReal({
   payload: {oldMessageKey, newMessageKey},
 }: Constants.OutboxMessageBecameReal) {
@@ -1223,6 +1239,12 @@ function* chatSaga(): SagaGenerator<any, any> {
     updateAttachmentSavePath
   )
   yield Saga.safeTakeEveryPure('chat:updateSnippet', _updateSnippet)
+  yield Saga.safeTakeEveryPure(
+    'chat:removeOutboxMessage',
+    _removeOutboxMessage,
+    (s: TypedState, a: Constants.RemoveOutboxMessage) =>
+      Constants.getConversationMessages(s, a.payload.conversationIDKey)
+  )
   yield Saga.safeTakeEvery('chat:updateTempMessage', _updateMessageEntity)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)

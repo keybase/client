@@ -7,93 +7,6 @@ import {ReachabilityReachable} from '../constants/types/flow-types'
 const initialState: Constants.State = new Constants.StateRecord()
 const initialConversation: Constants.ConversationState = new Constants.ConversationStateRecord()
 
-// dedupes and removed deleted messages. Applies edits
-function _processMessages(
-  seenMessages: Set<any>,
-  messages: List<Constants.Message> = List(),
-  prepend: List<Constants.Message> = List(),
-  append: List<Constants.Message> = List(),
-  deletedIDs: Set<any>
-): {nextSeenMessages: Set<any>, nextMessages: List<Constants.Message>} {
-  const filteredPrepend = prepend.filter(m => !seenMessages.has(m.key))
-  const filteredAppendGroups = append
-    .filter(m => !seenMessages.has(m.key))
-    .groupBy(m => (m.type === 'Edit' || m.type === 'UpdateAttachment' ? m.type : 'Append'))
-  const filteredAppend = filteredAppendGroups.get('Append') || List()
-
-  const messagesToUpdate = Map(
-    prepend.concat(append).filter(m => seenMessages.has(m.key)).map(m => [m.key, m])
-  )
-  const updatedMessages = messages.map(m => (messagesToUpdate.has(m.key) ? messagesToUpdate.get(m.key) : m))
-  // We have to check for m.messageID being falsey and set.has(undefined) is true!. We shouldn't ever have a zero messageID
-  let nextMessages: List<Constants.Message> = filteredPrepend
-    .concat(updatedMessages, filteredAppend)
-    .filter(m => !m.messageID || !deletedIDs.has(m.messageID))
-  let didSomething = filteredPrepend.count() > 0 || filteredAppend.count() > 0
-
-  filteredAppendGroups.get('Edit', List()).forEach(edit => {
-    if (edit.type !== 'Edit') {
-      return
-    }
-    const targetMessageID = edit.targetMessageID
-    // $TemporarilyNotAFlowIssue TODO ServerMessage -> Message change
-    const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
-    if (entry) {
-      const [idx: number, message: Constants.TextMessage] = entry
-      // $TemporarilyNotAFlowIssue doesn't like the intersection types
-      nextMessages = nextMessages.set(idx, {
-        ...message,
-        message: edit.message,
-        editedCount: message.editedCount + 1,
-      })
-      didSomething = true
-    }
-  })
-  filteredAppendGroups.get('UpdateAttachment', List()).forEach(update => {
-    if (update.type !== 'UpdateAttachment') {
-      return
-    }
-    const targetMessageID = update.targetMessageID
-    // $TemporarilyNotAFlowIssue TODO ServerMessage -> Message change
-    const entry = nextMessages.findEntry(m => m.messageID === targetMessageID)
-    if (entry) {
-      const [idx: number, message: AttachmentMessage] = entry
-      // $TemporarilyNotAFlowIssue doesn't like the intersection types
-      nextMessages = nextMessages.set(idx, {...message, ...update.updates})
-      didSomething = true
-    }
-  })
-
-  if (didSomething) {
-    const nextSeenMessages = Set(nextMessages.map(m => m.key))
-    return {
-      nextMessages,
-      nextSeenMessages,
-    }
-  } else {
-    return {
-      nextMessages: messages,
-      nextSeenMessages: seenMessages,
-    }
-  }
-}
-
-// _filterTypes separates out deleted message types and returns their ID's
-function _filterTypes(
-  inMessages: Array<Constants.Message>
-): {messages: Array<Constants.Message>, deletedIDs: Array<any>} {
-  const messages = []
-  const deletedIDs = []
-  inMessages.forEach((message, idx) => {
-    if (message.type === 'Deleted') {
-      deletedIDs.push(...message.deletedIDs)
-    } else {
-      messages.push(message)
-    }
-  })
-  return {messages, deletedIDs}
-}
-
 type ConversationsStates = Map<Constants.ConversationIDKey, Constants.ConversationState>
 type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
 function updateConversation(
@@ -114,17 +27,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
   switch (action.type) {
     case CommonConstants.resetStore:
       return new Constants.StateRecord()
-    case 'chat:removeOutboxMessage': {
-      const {conversationIDKey, outboxID} = action.payload
-      const messageKey = Constants.messageKey(conversationIDKey, 'outboxIDText', outboxID)
-      return state
-        .update('conversationStates', conversationStates =>
-          updateConversation(conversationStates, conversationIDKey, conversation =>
-            conversation.update('messages', messages => messages.filter(m => m.outboxID !== outboxID))
-          )
-        )
-        .set('messageMap', state.get('messageMap').filter((v, k) => k !== messageKey))
-    }
     case 'chat:clearMessages': {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
@@ -133,16 +35,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         return state
       }
 
-      const newMessages = origConversationState
-        .get('messages')
-        .filter(m => m.messageState === 'pending' || m.messageState === 'failed')
-      const newSeenMessages = Set(newMessages.map(m => m.key))
-
       // $FlowIssue
       const clearedConversationState = initialConversation.merge({
         firstNewMessageID: origConversationState.get('firstNewMessageID'),
-        messages: newMessages,
-        seenMessages: newSeenMessages,
       })
       return state.update('conversationStates', conversationStates =>
         conversationStates.set(conversationIDKey, clearedConversationState)
@@ -163,54 +58,22 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('conversationStates', newConversationStates)
     }
     case 'chat:prependMessages': {
-      const {messages: prependMessages, moreToLoad, paginationNext, conversationIDKey} = action.payload
-      const {messages, deletedIDs} = _filterTypes(prependMessages)
-
+      const {moreToLoad, paginationNext, conversationIDKey} = action.payload
       const newConversationStates = state
         .get('conversationStates')
         .update(conversationIDKey, initialConversation, conversation => {
-          const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _processMessages(
-            conversation.seenMessages,
-            conversation.messages,
-            List(messages),
-            List(),
-            nextDeletedIDs
-          )
-
-          return conversation
-            .set('messages', nextMessages)
-            .set('seenMessages', nextSeenMessages)
-            .set('moreToLoad', moreToLoad)
-            .set('paginationNext', paginationNext)
-            .set('deletedIDs', nextDeletedIDs)
+          return conversation.set('moreToLoad', moreToLoad).set('paginationNext', paginationNext)
         })
 
-      const toMerge = Map(
-        newConversationStates.getIn([conversationIDKey, 'messages']).map(val => [val.key, val])
-      )
-      return state
-        .set('conversationStates', newConversationStates)
-        .set('messageMap', state.get('messageMap').merge(toMerge))
+      return state.set('conversationStates', newConversationStates)
     }
     case 'chat:appendMessages': {
       const appendAction: Constants.AppendMessages = action
       const {messages: appendMessages, isSelected, conversationIDKey, isAppFocused} = appendAction.payload
 
-      const {messages, deletedIDs} = _filterTypes(appendMessages)
-
       const newConversationStates = state
         .get('conversationStates')
         .update(conversationIDKey, initialConversation, conversation => {
-          const nextDeletedIDs = conversation.get('deletedIDs').add(...deletedIDs)
-          const {nextMessages, nextSeenMessages} = _processMessages(
-            conversation.seenMessages,
-            conversation.messages,
-            List(),
-            List(messages),
-            nextDeletedIDs
-          )
-
           const firstMessage = appendMessages[0]
           const inConversationFocused = isSelected && isAppFocused
           if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
@@ -225,25 +88,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           }
 
           return conversation
-            .set('messages', nextMessages)
-            .set('seenMessages', nextSeenMessages)
-            .set('deletedIDs', nextDeletedIDs)
         })
 
-      const toMerge = newConversationStates
-        .getIn([conversationIDKey, 'messages'])
-        .reduce((map, val) => map.set(val.key, val), Map())
-      return state
-        .set('conversationStates', newConversationStates)
-        .set('messageMap', state.get('messageMap').merge(toMerge))
-    }
-    case 'chat:markSeenMessage': {
-      const {messageKey, conversationIDKey} = action.payload
-      return state.update('conversationStates', conversationStates =>
-        updateConversation(conversationStates, conversationIDKey, conversation =>
-          conversation.update('seenMessages', seenMessages => seenMessages.add(messageKey))
-        )
-      )
+      return state.set('conversationStates', newConversationStates)
     }
     case 'chat:setTypers': {
       const {conversationIDKey, typing} = action.payload
@@ -252,14 +99,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           conversation.set('typing', Set(typing))
         )
       )
-    }
-    case 'chat:outboxMessageBecameReal': {
-      const {oldMessageKey, newMessageKey} = action.payload
-      const localMessageState = state.getIn(['localMessageStates', oldMessageKey])
-      // $FlowIssue deleteIn
-      return state
-        .deleteIn(['localMessageStates', oldMessageKey])
-        .setIn(['localMessageStates', newMessageKey], localMessageState)
     }
     case 'chat:markThreadsStale': {
       const {updates} = action.payload

@@ -230,10 +230,6 @@ export type MaybeTimestamp = TimestampMessage | null
 export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 
 export const ConversationStateRecord = Record({
-  // Is this used?
-  messageKeys: List(),
-  messages: List(),
-  seenMessages: Set(),
   moreToLoad: undefined,
   isLoaded: false,
   isRequesting: false,
@@ -242,15 +238,10 @@ export const ConversationStateRecord = Record({
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
-  deletedIDs: Set(),
   typing: Set(),
 })
 
 export type ConversationState = KBRecord<{
-  messageKeys: List<MessageKey>,
-  // TODO del
-  messages: List<Message>,
-  seenMessages: Set<MessageID>,
   moreToLoad: ?boolean,
   isRequesting: boolean,
   isStale: boolean,
@@ -258,7 +249,6 @@ export type ConversationState = KBRecord<{
   paginationNext: ?Buffer,
   paginationPrevious: ?Buffer,
   firstNewMessageID: ?MessageID,
-  deletedIDs: Set<MessageID>,
   typing: Set<Username>,
 }>
 
