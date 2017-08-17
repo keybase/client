@@ -31,6 +31,7 @@ type FS struct {
 	root     libkbfs.Node
 	h        *libkbfs.TlfHandle
 	subdir   string
+	uniqID   string
 	log      logger.Logger
 	deferLog logger.Logger
 }
@@ -43,9 +44,12 @@ const (
 
 // NewFS returns a new FS instance, chroot'd to the given TLF and
 // subdir within that TLF.  `subdir` must exist, and point to a
-// directory, before this function is called.
+// directory, before this function is called.  `uniqID` needs to
+// uniquely identify this instance among all users of this TLF
+// globally; for example, a device ID combined with a local tempfile
+// name is recommended.
 func NewFS(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, subdir string) (*FS, error) {
+	tlfHandle *libkbfs.TlfHandle, subdir string, uniqID string) (*FS, error) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, tlfHandle, libkbfs.MasterBranch)
 	if err != nil {
@@ -80,6 +84,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 		root:     n,
 		h:        tlfHandle,
 		subdir:   subdir,
+		uniqID:   uniqID,
 		log:      log,
 		deferLog: log.CloneWithAddedDepth(1),
 	}, nil
@@ -382,10 +387,14 @@ func (fs *FS) Join(elem ...string) string {
 
 // TempFile implements the billy.Filesystem interface for FS.
 func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
+	// We'd have to turn off journaling to support TempFile perfectly,
+	// but the given uniq ID and a random number should be good
+	// enough.  Especially since most users will end up renaming the
+	// temp file before journal flushing even happens.
 	r := rand.Int63()
-	return fs.OpenFile(path.Join(dir, prefix+string(r)), os.O_CREATE|os.O_EXCL, 0600)
-	// We'd have to turn off journaling to support TempFile fully.
-	//return nil, errors.New("TempFile is not currently supported")
+	suffix := fs.uniqID + "-" + string(r)
+	return fs.OpenFile(path.Join(dir, prefix+suffix),
+		os.O_CREATE|os.O_EXCL, 0600)
 }
 
 // ReadDir implements the billy.Filesystem interface for FS.

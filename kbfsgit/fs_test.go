@@ -27,7 +27,7 @@ func makeFS(t *testing.T, subdir string) (
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
-	fs, err := libfs.NewFS(ctx, config, h, subdir)
+	fs, err := libfs.NewFS(ctx, config, h, subdir, "")
 	require.NoError(t, err)
 	return ctx, h, fs
 }

@@ -24,7 +24,7 @@ func makeFS(t *testing.T, subdir string) (
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
-	fs, err := NewFS(ctx, config, h, subdir)
+	fs, err := NewFS(ctx, config, h, subdir, "")
 	require.NoError(t, err)
 	return ctx, h, fs
 }
@@ -216,7 +216,7 @@ func TestStat(t *testing.T) {
 	h2, err := libkbfs.ParseTlfHandle(
 		ctx, config2.KBPKI(), "user2#user1", tlf.Private)
 	require.NoError(t, err)
-	fs2U2, err := NewFS(ctx, config2, h2, "")
+	fs2U2, err := NewFS(ctx, config2, h2, "", "")
 	require.NoError(t, err)
 	rootNode2, _, err := fs2U2.config.KBFSOps().GetRootNode(
 		ctx, h2, libkbfs.MasterBranch)
@@ -226,7 +226,7 @@ func TestStat(t *testing.T) {
 	testCreateFile(t, ctx, fs2U2, "a/foo", aNode2)
 
 	// Read as the reader.
-	fs2U1, err := NewFS(ctx, fs.config, h2, "")
+	fs2U1, err := NewFS(ctx, fs.config, h2, "", "")
 	require.NoError(t, err)
 
 	fi, err = fs2U1.Stat("a")
