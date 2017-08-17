@@ -6983,9 +6983,9 @@ react-native-image-picker@0.26.4:
   version "0.26.4"
   resolved "https://registry.yarnpkg.com/react-native-image-picker/-/react-native-image-picker-0.26.4.tgz#e53b0564bef44cb3c96ff81594e1e874daa1f0b3"
 
-react-native-push-notification@3.0.0:
+"react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-300":
   version "3.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-push-notification/-/react-native-push-notification-3.0.0.tgz#00282ea656443e89df6057f14b10500e7b89551f"
+  resolved "git://github.com/keybase/react-native-push-notification#c54bb0e5ec30b36afbd8f937f2c5c48b28f0c876"
 
 react-native-tab-view@^0.0.67:
   version "0.0.67"
