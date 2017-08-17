@@ -733,7 +733,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(true),
 			hasAdmin(false),
-			hasInvites(false),
 			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
