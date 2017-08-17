@@ -14,7 +14,7 @@ class FollowButton extends Component<void, Props, void> {
           label="Following"
           onClick={onUnfollow}
           style={style}
-          disabled={waiting}
+          waiting={waiting}
           {...otherProps}
         />
       )
@@ -25,7 +25,7 @@ class FollowButton extends Component<void, Props, void> {
           label="Follow"
           onClick={onFollow}
           style={style}
-          disabled={waiting}
+          waiting={waiting}
           {...otherProps}
         />
       )

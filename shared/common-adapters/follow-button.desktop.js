@@ -25,7 +25,7 @@ class FollowButton extends Component<void, Props, State> {
           type={this.state.mouseOver ? 'Unfollow' : 'Following'}
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
-          disabled={waiting}
+          waiting={waiting}
           onMouseEnter={() => this.setState({mouseOver: true})}
           onMouseLeave={() => this.setState({mouseOver: false})}
           style={{...styleButton, ...style}}
@@ -38,7 +38,7 @@ class FollowButton extends Component<void, Props, State> {
           type="Follow"
           label="Follow"
           onClick={onFollow}
-          disabled={waiting}
+          waiting={waiting}
           style={{...styleButton, ...style}}
           {...otherProps}
         />
