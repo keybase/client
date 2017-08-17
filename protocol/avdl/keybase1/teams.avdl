@@ -425,8 +425,8 @@ protocol teams {
     Time time;
   }
 
-  TeamID lookupImplicitTeam(ImplicitTeamName name);
-  TeamID lookupOrCreateImplicitTeam(ImplicitTeamName name);
+  TeamID lookupImplicitTeam(string name);
+  TeamID lookupOrCreateImplicitTeam(string name);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.

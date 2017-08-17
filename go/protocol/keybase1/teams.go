@@ -1350,22 +1350,22 @@ func (o TeamDeleteArg) DeepCopy() TeamDeleteArg {
 }
 
 type LookupImplicitTeamArg struct {
-	Name ImplicitTeamName `codec:"name" json:"name"`
+	Name string `codec:"name" json:"name"`
 }
 
 func (o LookupImplicitTeamArg) DeepCopy() LookupImplicitTeamArg {
 	return LookupImplicitTeamArg{
-		Name: o.Name.DeepCopy(),
+		Name: o.Name,
 	}
 }
 
 type LookupOrCreateImplicitTeamArg struct {
-	Name ImplicitTeamName `codec:"name" json:"name"`
+	Name string `codec:"name" json:"name"`
 }
 
 func (o LookupOrCreateImplicitTeamArg) DeepCopy() LookupOrCreateImplicitTeamArg {
 	return LookupOrCreateImplicitTeamArg{
-		Name: o.Name.DeepCopy(),
+		Name: o.Name,
 	}
 }
 
@@ -1412,8 +1412,8 @@ type TeamsInterface interface {
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
-	LookupImplicitTeam(context.Context, ImplicitTeamName) (TeamID, error)
-	LookupOrCreateImplicitTeam(context.Context, ImplicitTeamName) (TeamID, error)
+	LookupImplicitTeam(context.Context, string) (TeamID, error)
+	LookupOrCreateImplicitTeam(context.Context, string) (TeamID, error)
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
@@ -1834,13 +1834,13 @@ func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err e
 	return
 }
 
-func (c TeamsClient) LookupImplicitTeam(ctx context.Context, name ImplicitTeamName) (res TeamID, err error) {
+func (c TeamsClient) LookupImplicitTeam(ctx context.Context, name string) (res TeamID, err error) {
 	__arg := LookupImplicitTeamArg{Name: name}
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, name ImplicitTeamName) (res TeamID, err error) {
+func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, name string) (res TeamID, err error) {
 	__arg := LookupOrCreateImplicitTeamArg{Name: name}
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
 	return

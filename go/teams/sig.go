@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
@@ -54,6 +55,27 @@ func RootTeamIDFromNameString(name string) keybase1.TeamID {
 	sum := sha256.Sum256([]byte(strings.ToLower(name)))
 	idBytes := sum[0:16]
 	idBytes[15] = libkb.RootTeamIDTag
+	return keybase1.TeamID(hex.EncodeToString(idBytes))
+}
+
+func NewImplicitTeamName() (string, error) {
+	dat, err := libkb.RandBytes(16)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("__keybase_implicit_team__%s", hex.EncodeToString(dat)), nil
+}
+
+func ImplicitTeamIDFromNameString(name string, public bool) keybase1.TeamID {
+	sum := sha256.Sum256([]byte(strings.ToLower(name)))
+	idBytes := sum[0:16]
+	var tag byte
+	if public {
+		tag = libkb.PublicImplicitTeamTag
+	} else {
+		tag = libkb.PrivateImplicitTeamTag
+	}
+	idBytes[15] = tag
 	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
