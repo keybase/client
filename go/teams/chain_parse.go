@@ -29,8 +29,8 @@ type SCTeamSection struct {
 	Admin            *SCTeamAdmin                           `json:"admin,omitempty"`
 	Invites          *SCTeamInvites                         `json:"invites,omitempty"`
 	CompletedInvites map[keybase1.TeamInviteID]keybase1.UID `json:"completed_invites,omitempty"`
-	Implicit         bool                                   `json:"is_implicit"`
-	Public           bool                                   `json:"is_public"`
+	Implicit         bool                                   `json:"is_implicit,omitempty"`
+	Public           bool                                   `json:"is_public,omitempty"`
 }
 
 type SCTeamMembers struct {
