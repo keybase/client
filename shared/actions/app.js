@@ -18,7 +18,7 @@ function mobileAppStateChanged(nextAppState: string): Constants.MobileAppState {
   return {payload: {nextAppState}, type: 'app:mobileAppState'}
 }
 
-function* _onMobileAppStateChanged(action: Constants.MobileAppState): SagaGenerator<any, any> {
+const _onMobileAppStateChanged = function*(action: Constants.MobileAppState): SagaGenerator<any, any> {
   const nextAppState = action.payload.nextAppState
 
   const focusState = {
@@ -39,7 +39,7 @@ function* _onMobileAppStateChanged(action: Constants.MobileAppState): SagaGenera
   yield call(Types.appStateUpdateAppStateRpc, {param: {state}})
 }
 
-function* appStateSaga(): SagaGenerator<any, any> {
+const appStateSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('app:mobileAppState', _onMobileAppStateChanged)
 }
 

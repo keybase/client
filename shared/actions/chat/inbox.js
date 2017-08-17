@@ -35,7 +35,7 @@ const _getInboxQuery = {
 let _backgroundLoopTask
 
 // Load the inbox if we haven't yet, mostly done by the UI
-function* onInitialInboxLoad(): SagaGenerator<any, any> {
+const onInitialInboxLoad = function*(): SagaGenerator<any, any> {
   try {
     yield put(Creators.inboxStale())
     if (!isMobile) {
@@ -51,7 +51,7 @@ function* onInitialInboxLoad(): SagaGenerator<any, any> {
 }
 
 // On desktop we passively unbox inbox items
-function* _backgroundUnboxLoop() {
+const _backgroundUnboxLoop = function*() {
   try {
     while (true) {
       yield call(delay, 10 * 1000)
@@ -74,7 +74,7 @@ function* _backgroundUnboxLoop() {
 }
 
 // Update inboxes that have been reset
-function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
+const _updateFinalized = function*(inbox: ChatTypes.GetInboxLocalRes) {
   const finalizedState: Constants.FinalizedState = Map(
     (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
       Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
@@ -89,7 +89,7 @@ function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
 }
 
 // Loads the untrusted inbox only
-function* onInboxStale(): SagaGenerator<any, any> {
+const onInboxStale = function*(): SagaGenerator<any, any> {
   try {
     yield put(Creators.setInboxUntrustedState('loading'))
 
@@ -187,7 +187,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
   }
 }
 
-function* onGetInboxAndUnbox({
+const onGetInboxAndUnbox = function*({
   payload: {conversationIDKeys},
 }: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
   yield call(unboxConversations, conversationIDKeys)
@@ -207,7 +207,7 @@ function _toSupersedeInfo(
 }
 
 // Update an inbox item
-function* processConversation(c: ChatTypes.ConversationLocal): SagaGenerator<any, any> {
+const processConversation = function*(c: ChatTypes.ConversationLocal): SagaGenerator<any, any> {
   const conversationIDKey = Constants.conversationIDToKey(c.info.id)
 
   const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
@@ -242,7 +242,7 @@ function* processConversation(c: ChatTypes.ConversationLocal): SagaGenerator<any
 }
 
 // Gui is showing boxed content, find some rows to unbox
-function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
+const untrustedInboxVisible = function*(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
   const {conversationIDKey, rowsVisible} = action.payload
   const inboxes = yield select(state => state.chat.get('inbox'))
 
@@ -264,7 +264,7 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
   }
 }
 
-function* _chatInboxConversationSubSaga({conv}) {
+const _chatInboxConversationSubSaga = function*({conv}) {
   // Wait for an idle
   yield call(onIdlePromise, 100)
   // TODO might be better to make this a put with an associated takeEvery
@@ -272,7 +272,7 @@ function* _chatInboxConversationSubSaga({conv}) {
   return EngineRpc.rpcResult()
 }
 
-function* _chatInboxFailedSubSaga(params) {
+const _chatInboxFailedSubSaga = function*(params) {
   const {convID, error} = params
   console.log('chatInboxFailed', params)
   yield call(onIdlePromise, 100)
@@ -342,7 +342,7 @@ const unboxConversationsSagaMap = {
 }
 
 // Loads the trusted inbox segments
-function* unboxConversations(
+const unboxConversations = function*(
   conversationIDKeys: Array<Constants.ConversationIDKey>
 ): Generator<any, any, any> {
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
