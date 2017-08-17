@@ -4,7 +4,6 @@ import {app, screen} from 'electron'
 import fs from 'fs'
 import path from 'path'
 import {appBundlePath} from './paths'
-import jsonfile from 'jsonfile'
 import isEqual from 'lodash/isEqual'
 
 export type State = {
@@ -81,13 +80,17 @@ export default class AppState {
   }
 
   saveState() {
-    let configPath = this.config.path
-    let stateToSave = this.state
-    jsonfile.writeFile(configPath, stateToSave, function(err) {
-      if (err) {
-        console.log('Error saving file:', err)
-      }
-    })
+    try {
+      let configPath = this.config.path
+      let stateToSave = this.state
+      fs.writeFile(configPath, JSON.stringify(stateToSave), err => {
+        if (err) {
+          throw err
+        }
+      })
+    } catch (err) {
+      console.log(`Error saving file: ${err}`)
+    }
   }
 
   checkOpenAtLogin() {
@@ -193,7 +196,9 @@ export default class AppState {
       return
     }
     try {
-      let stateLoaded = jsonfile.readFileSync(configPath)
+      console.log('aaaa loading')
+      const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
+      console.log('aaa', stateLoaded)
       if (this._isValidState(stateLoaded)) {
         this.state = stateLoaded
       }
