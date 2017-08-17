@@ -57,7 +57,7 @@ const makeCommonConfig = () => {
               exclude: ['transform-regenerator'],
               modules: false,
               targets: {
-                electron: '1.6.10',
+                electron: '1.7.5',
               },
               useBuiltIns: false,
             },
