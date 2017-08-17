@@ -28,7 +28,6 @@ import type {
 } from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {InstallResult, UninstallResult} from '../../constants/types/flow-types'
-import regedit from 'regedit'
 import {execFile} from 'child_process'
 
 // pathToURL takes path and converts to (file://) url.
@@ -141,6 +140,7 @@ function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpda
 
 function installCachedDokan(): Promise<*> {
   return new Promise((resolve, reject) => {
+    const regedit = require('regedit')
     regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
       if (err) {
         reject(err)
