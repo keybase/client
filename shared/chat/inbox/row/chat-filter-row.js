@@ -35,10 +35,13 @@ class _ChatFilterRow extends Component<void, Props, State> {
     this.setState({isEditing: true})
   }
 
-  // TODO: Bind esc to clear the filter.
-
   _stopEditing = () => {
     this.setState({isEditing: false})
+  }
+
+  _clearFilterAndStopEditing = () => {
+    this.props.onSetFilter('')
+    this._stopEditing()
   }
 
   render() {
@@ -65,6 +68,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
           onChangeText={this.props.onSetFilter}
           onFocus={this._startEditing}
           onBlur={this._stopEditing}
+          onEscapeKeyDown={this._clearFilterAndStopEditing}
         />,
       ]
     } else {
