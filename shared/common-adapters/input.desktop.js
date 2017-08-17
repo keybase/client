@@ -119,6 +119,10 @@ class Input extends Component<void, Props, State> {
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       this.props.onEnterKeyDown(e)
     }
+
+    if (this.props.onEscapeKeyDown && e.key === 'Escape' && !this._isComposingIME) {
+      this.props.onEscapeKeyDown(e)
+    }
   }
 
   _onFocus = () => {
