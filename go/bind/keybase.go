@@ -99,10 +99,11 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		return err
 	}
 	config := libkb.AppConfig{
-		HomeDir:                     homeDir,
-		LogFile:                     logFile,
-		RunMode:                     runMode,
-		Debug:                       true,
+		HomeDir: homeDir,
+		LogFile: logFile,
+		RunMode: runMode,
+		// Debug:   true,
+		Debug:                       false,
 		LocalRPCDebug:               "",
 		SecurityAccessGroupOverride: accessGroupOverride,
 	}
@@ -143,7 +144,8 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
 		// Setting this flag will enable KBFS debug logging to alway be
 		// true in a mobile setting. Kill this setting if too spammy.
-		kbfsParams.Debug = true
+		// kbfsParams.Debug = true
+		kbfsParams.Debug = false
 		kbfsParams.Mode = libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
 			context.Background(), kbCtx, kbfsParams, serviceCn{}, func() {},

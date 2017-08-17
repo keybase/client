@@ -4,6 +4,7 @@
 package logger
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -52,7 +53,8 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 	}
 
 	if first {
-		fileBackend := logging.NewLogBackend(w, "", 0)
+		bw := bufio.NewWriterSize(w, 40000)
+		fileBackend := logging.NewLogBackend(bw, "", 0)
 		logging.SetBackend(fileBackend)
 
 		stderrIsTerminal = false
