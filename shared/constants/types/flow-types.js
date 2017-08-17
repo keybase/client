@@ -3212,10 +3212,7 @@ export type ImplicitTeamConflictInfo = {
 }
 
 export type ImplicitTeamName = {
-  isPrivate: boolean,
-  keybaseUsers?: ?Array<string>,
-  unresolvedUsers?: ?Array<SocialAssertion>,
-  conflictInfo?: ?ImplicitTeamConflictInfo,
+  suffix: string,
 }
 
 export type InstallAction =

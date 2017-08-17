@@ -252,6 +252,10 @@ protocol teams {
     array<TeamNamePart> parts;
   }
 
+  record ImplicitTeamName {
+    string suffix;
+  }
+
   // team.clkr gregor message body
   @lint("ignore")
   record TeamCLKRMsg {

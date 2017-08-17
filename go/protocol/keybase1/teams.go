@@ -799,6 +799,16 @@ func (o TeamName) DeepCopy() TeamName {
 	}
 }
 
+type ImplicitTeamName struct {
+	Suffix string `codec:"suffix" json:"suffix"`
+}
+
+func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
+	return ImplicitTeamName{
+		Suffix: o.Suffix,
+	}
+}
+
 type TeamCLKRMsg struct {
 	TeamID     TeamID               `codec:"teamID" json:"team_id"`
 	Generation PerTeamKeyGeneration `codec:"generation" json:"generation"`
