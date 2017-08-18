@@ -21,7 +21,7 @@ const inlineProps = isMobile ? {lineClamp: 1} : {}
 class PlaintextUsernames extends Component<void, Props, void> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-      if (['style', 'containerStyle', 'users'].includes(key)) {
+      if (['containerStyle', 'users'].includes(key)) {
         return shallowEqual(obj, oth)
       }
       return undefined
