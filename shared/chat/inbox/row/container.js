@@ -10,7 +10,7 @@ import {
   participantFilter,
   getSelectedConversation,
 } from '../../../constants/chat'
-import {selectConversation} from '../../../actions/chat/creators'
+import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 import SimpleRow from './simple-row'
 import {TeamRow, ChannelRow} from './team-row'
 import {compose, renderComponent, branch} from 'recompose'
@@ -129,7 +129,10 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channe
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
+  _onSelectConversation: (key: ConversationIDKey) => {
+    dispatch(setInboxFilter(''))
+    dispatch(selectConversation(key, true))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

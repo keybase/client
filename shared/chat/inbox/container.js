@@ -4,7 +4,7 @@ import * as Constants from '../../constants/chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
-import {loadInbox, newChat, untrustedInboxVisible} from '../../actions/chat/creators'
+import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
 import {compose, lifecycle} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
@@ -25,9 +25,9 @@ const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
   }
 
   const names = i.get('participants').toArray()
-  // TODO team and channels
-  const regexp = new RegExp(filter, 'i')
-  return names.some(n => n.match(regexp))
+  // No need to worry about Unicode issues with toLowerCase(), since
+  // names can only be ASCII.
+  return names.some(n => n.toLowerCase().indexOf(filter.toLowerCase()) >= 0)
 }
 
 const filteredInbox = createImmutableEqualSelector(
@@ -102,6 +102,7 @@ const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox
 })
 
 const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
+  filter: getFilter(state),
   isActiveRoute,
   isLoading: state.chat.get('inboxUntrustedState') === 'loading',
   rows: getRows(state),
@@ -111,6 +112,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadInbox: () => dispatch(loadInbox()),
   onNewChat: () => dispatch(newChat([])),
+  onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })

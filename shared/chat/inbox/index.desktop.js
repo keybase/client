@@ -4,7 +4,7 @@ import ReactList from 'react-list'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
-import AddNewRow from './row/add-new-row'
+import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 
 import type {Props} from './'
@@ -104,8 +104,11 @@ class Inbox extends PureComponent<void, Props, void> {
   render() {
     return (
       <div style={containerStyle}>
-        <AddNewRow
+        <ChatFilterRow
+          isLoading={this.props.isLoading}
+          filter={this.props.filter}
           onNewChat={this.props.onNewChat}
+          onSetFilter={this.props.onSetFilter}
           hotkeys={['ctrl+n', 'command+n']}
           onHotkey={this.props.onNewChat}
         />

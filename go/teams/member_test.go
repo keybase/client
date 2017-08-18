@@ -435,6 +435,39 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 }
 
+func TestMemberListInviteUsername(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_ellen"
+	res, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+	if res.User.Username != username {
+		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
+	}
+
+	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(annotatedTeamList.AnnotatedActiveInvites) != 1 {
+		t.Fatalf("active invites: %d, expected 1", len(annotatedTeamList.AnnotatedActiveInvites))
+	}
+	for _, invite := range annotatedTeamList.AnnotatedActiveInvites {
+		if invite.TeamName != name {
+			t.Errorf("invite team name: %q, expected %q", invite.TeamName, name)
+		}
+		if string(invite.Name) != username {
+			t.Errorf("invite username: %q, expected %q", invite.Name, username)
+		}
+	}
+}
+
 func TestMemberAddAsImplicitAdmin(t *testing.T) {
 	tc, owner, otherA, otherB, _, subteamName := memberSetupSubteam(t)
 	defer tc.Cleanup()
