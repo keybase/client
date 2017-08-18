@@ -4,22 +4,20 @@ import engine from '../engine'
 import type {AsyncAction} from '../constants/types/flux'
 import type {GUIEntryFeatures} from '../constants/types/flow-types'
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
-import {ConstantsStatusCode, delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
+import {ConstantsStatusCode, delegateUiCtlRegisterSecretUIRpcPromise} from '../constants/types/flow-types'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
 
 export function registerPinentryListener(): AsyncAction {
   return dispatch => {
     engine().listenOnConnect('registerSecretUI', () => {
-      delegateUiCtlRegisterSecretUIRpc({
-        callback: (error, response) => {
-          if (error != null) {
-            console.warn('error in registering secret ui: ', error)
-          } else {
-            console.log('Registered secret ui')
-          }
-        },
-      })
+      delegateUiCtlRegisterSecretUIRpcPromise()
+        .then(response => {
+          console.log('Registered secret ui')
+        })
+        .catch(error => {
+          console.warn('error in registering secret ui: ', error)
+        })
     })
 
     dispatch(

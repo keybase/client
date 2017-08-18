@@ -1,7 +1,5 @@
 // @flow
-import React, {Component} from 'react'
-import UpdatePassphrase from './index'
-import {navigateUp} from '../../actions/route-tree'
+import UpdatePassphrase from '.'
 import {
   onChangeNewPassphrase,
   onChangeNewPassphraseConfirm,
@@ -9,48 +7,39 @@ import {
   onSubmitNewPassphrase,
   onUpdatePGPSettings,
 } from '../../actions/settings'
+import {connect} from 'react-redux'
+import {compose, lifecycle} from 'recompose'
 
-import type {Props} from './index'
-import type {TypedDispatch} from '../../constants/types/flux'
 import type {TypedState} from '../../constants/reducer'
-import {TypedConnector} from '../../util/typed-connect'
 
-class UpdatePassphraseContainer extends Component<void, Props, void> {
-  componentWillMount() {
-    this.props.onUpdatePGPSettings()
-  }
+const mapStateToProps = (state: TypedState) => ({
+  error: state.settings.passphrase.error,
+  hasPGPKeyOnServer: !!state.settings.passphrase.hasPGPKeyOnServer,
+  newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError
+    ? state.settings.passphrase.newPassphraseConfirmError.stringValue()
+    : null,
+  newPassphraseError: state.settings.passphrase.newPassphraseError
+    ? state.settings.passphrase.newPassphraseError.stringValue()
+    : null,
+  waitingForResponse: state.settings.waitingForResponse,
+})
 
-  render() {
-    return <UpdatePassphrase {...this.props} />
-  }
-}
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  onBack: () => dispatch(navigateUp()),
+  onChangeShowPassphrase: () => dispatch(onChangeShowPassphrase()),
+  onSave: (passphrase, passphraseConfirm) => {
+    dispatch(onChangeNewPassphrase(passphrase))
+    dispatch(onChangeNewPassphraseConfirm(passphraseConfirm))
+    dispatch(onSubmitNewPassphrase())
+  },
+  onUpdatePGPSettings: () => dispatch(onUpdatePGPSettings()),
+})
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
-
-export default connector.connect((state, dispatch, ownProps) => {
-  return {
-    error: state.settings.passphrase.error,
-    newPassphraseError: state.settings.passphrase.newPassphraseError
-      ? state.settings.passphrase.newPassphraseError.stringValue()
-      : null,
-    newPassphraseConfirmError: state.settings.passphrase.newPassphraseConfirmError
-      ? state.settings.passphrase.newPassphraseConfirmError.stringValue()
-      : null,
-    hasPGPKeyOnServer: !!state.settings.passphrase.hasPGPKeyOnServer,
-    waitingForResponse: state.settings.waitingForResponse,
-    onUpdatePGPSettings: () => {
-      dispatch(onUpdatePGPSettings())
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentWillMount: function() {
+      this.props.onUpdatePGPSettings()
     },
-    onChangeShowPassphrase: () => {
-      dispatch(onChangeShowPassphrase())
-    },
-    onBack: () => {
-      dispatch(navigateUp())
-    },
-    onSave: (passphrase, passphraseConfirm) => {
-      dispatch(onChangeNewPassphrase(passphrase))
-      dispatch(onChangeNewPassphraseConfirm(passphraseConfirm))
-      dispatch(onSubmitNewPassphrase())
-    },
-  }
-})(UpdatePassphraseContainer)
+  })
+)(UpdatePassphrase)

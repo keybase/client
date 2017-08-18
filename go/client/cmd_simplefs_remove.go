@@ -28,6 +28,7 @@ func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Usage:        "remove one or more directory elements",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSRemove{Contextified: libkb.NewContextified(g)}, "rm", c)
+			cl.SetNoStandalone()
 		},
 	}
 }

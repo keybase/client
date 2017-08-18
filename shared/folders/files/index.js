@@ -54,6 +54,12 @@ class Files extends Component<void, Props, State> {
     this._checkFolderExistence(nextProps)
   }
 
+  componentDidMount() {
+    if (this.props.folder && !this.props.folder.ignored && this.props.folder.meta === 'new') {
+      this.props.favoriteFolder(this.props.path)
+    }
+  }
+
   render() {
     const {folder, username} = this.props
     if (!folder) return null // Protect from state where the folder to be displayed was removed
@@ -66,9 +72,11 @@ class Files extends Component<void, Props, State> {
     }
     const ignoreCurrentFolder = () => {
       this.props.ignoreFolder(this.props.path)
+      this.props.navigateUp()
     }
     const unIgnoreCurrentFolder = () => {
       this.props.favoriteFolder(this.props.path)
+      this.props.navigateUp()
     }
     const allowIgnore = folder.users.some(f => !f.you)
 

@@ -9,6 +9,7 @@ import Feedback from './feedback-container'
 import Push from '../app/push/push.native'
 import DevicesRoute from '../devices/routes'
 import WebLinks from './web-links'
+import Passphrase from './passphrase/container'
 
 import About from './about-container'
 import NotificationsContainer from './notifications/container'
@@ -35,6 +36,9 @@ const routeTree = new RouteDefNode({
         privacyPolicy: {component: WebLinks},
         terms: {component: WebLinks},
       },
+    },
+    [Constants.passphraseTab]: {
+      component: Passphrase,
     },
     [Constants.feedbackTab]: {component: Feedback},
     [Constants.landingTab]: {component: About},

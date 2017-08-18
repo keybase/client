@@ -84,6 +84,7 @@ const stylePgpKeyString = {
 
 const styleUploadContainer = {
   ...globalStyles.flexBoxColumn,
+  flexShrink: 0,
   textAlign: 'left',
   marginTop: globalMargins.small,
 }

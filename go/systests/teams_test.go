@@ -199,7 +199,6 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	add.Team = team
 	add.Username = username
 	add.Role = role
-	add.SkipChatNotification = true // kbfs client currently required to do this...
 	if err := add.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
@@ -210,7 +209,6 @@ func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.Te
 	add.Team = team
 	add.Email = email
 	add.Role = role
-	add.SkipChatNotification = true // kbfs client currently required to do this...
 	if err := add.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}

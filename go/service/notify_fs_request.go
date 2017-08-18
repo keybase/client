@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -19,7 +18,7 @@ type notifyFSRequestHandler struct {
 func (h *notifyFSRequestHandler) client() (*keybase1.NotifyFSRequestClient, error) {
 	xp := h.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
 	if xp == nil {
-		return nil, errors.New("KBFS client wasn't found")
+		return nil, libkb.KBFSNotRunningError{}
 	}
 	return &keybase1.NotifyFSRequestClient{
 		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),

@@ -1084,6 +1084,55 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 	}
 }
 
+// * iTeams
+type ImplicitTeamName struct {
+	IsPrivate       bool                      `codec:"isPrivate" json:"isPrivate"`
+	KeybaseUsers    []string                  `codec:"keybaseUsers" json:"keybaseUsers"`
+	UnresolvedUsers []SocialAssertion         `codec:"unresolvedUsers" json:"unresolvedUsers"`
+	ConflictInfo    *ImplicitTeamConflictInfo `codec:"conflictInfo,omitempty" json:"conflictInfo,omitempty"`
+}
+
+func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
+	return ImplicitTeamName{
+		IsPrivate: o.IsPrivate,
+		KeybaseUsers: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.KeybaseUsers),
+		UnresolvedUsers: (func(x []SocialAssertion) []SocialAssertion {
+			var ret []SocialAssertion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.UnresolvedUsers),
+		ConflictInfo: (func(x *ImplicitTeamConflictInfo) *ImplicitTeamConflictInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConflictInfo),
+	}
+}
+
+type ImplicitTeamConflictInfo struct {
+	Generation int  `codec:"generation" json:"generation"`
+	Time       Time `codec:"time" json:"time"`
+}
+
+func (o ImplicitTeamConflictInfo) DeepCopy() ImplicitTeamConflictInfo {
+	return ImplicitTeamConflictInfo{
+		Generation: o.Generation,
+		Time:       o.Time.DeepCopy(),
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      TeamName `codec:"name" json:"name"`

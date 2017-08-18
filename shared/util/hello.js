@@ -2,7 +2,7 @@
 // Send helloIAm message to service
 
 import engine from '../engine'
-import {CommonClientType, configHelloIAmRpc} from '../constants/types/flow-types'
+import {CommonClientType, configHelloIAmRpcPromise} from '../constants/types/flow-types'
 
 export default function(
   pid: number,
@@ -21,17 +21,16 @@ export default function(
 
   return new Promise((resolve, reject) => {
     engine().listenOnConnect('hello', () => {
-      configHelloIAmRpc({
+      configHelloIAmRpcPromise({
         param: {details},
-        callback: (err, resp) => {
-          if (err != null) {
-            console.warn('error in helloIAm', err)
-            reject(err)
-          } else {
-            resolve()
-          }
-        },
       })
+        .then(reps => {
+          resolve()
+        })
+        .catch(err => {
+          console.warn('error in helloIAm', err)
+          reject(err)
+        })
     })
   })
 }

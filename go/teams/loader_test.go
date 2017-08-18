@@ -520,3 +520,64 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 	t.Logf("U0 sees the 3 implicit admins")
 	assertImpAdmins(tcs[0].G, *subteamID, []keybase1.UserVersion{fus[0].GetUserVersion(), fus[1].GetUserVersion(), fus[2].GetUserVersion()})
 }
+
+// Subteams should be invisible to writers.
+// U0 creates a subteam
+// U0 adds U1 to the root team
+// U1 should not see any subteams
+func TestHiddenSubteam(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	parentName, parentID := createTeam2(*tcs[0])
+
+	subteamName1 := createTeamName(t, parentName.String(), "bbb")
+
+	t.Logf("U0 creates A.B")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	require.NoError(t, err)
+
+	t.Logf("U0 adds U1 to A as a WRITER")
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U0 loads A")
+	team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          parentID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	require.Len(t, team.chain().ListSubteams(), 1, "subteam list")
+	require.Equal(t, *subteamID, team.chain().ListSubteams()[0].ID, "subteam ID")
+	require.Equal(t, subteamName1.String(), team.chain().ListSubteams()[0].Name.String(), "subteam name")
+
+	t.Logf("U1 loads A")
+	team, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          parentID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
+}
+
+func TestParseImplicitTeamBackingName(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	badNames := []string{
+		"__keybase_implicit_team__",
+		"__keybase_implicit_team__12345678901234567801234567890q",
+		"__keybase_implicit_team__12345678901234567801234567890",
+	}
+	for _, badName := range badNames {
+		_, err := keybase1.TeamNameFromString(badName)
+		require.Error(t, err)
+	}
+	goodName := "__keybase_implicit_team__0123456789abcdef0123456789abcdef"
+	name, err := keybase1.TeamNameFromString(goodName)
+	require.NoError(t, err)
+	require.Equal(t, string(name.Parts[0]), "__keybase_implicit_team__0123456789abcdef0123456789abcdef")
+}

@@ -20,22 +20,25 @@ const (
 
 type RevokeEngine struct {
 	libkb.Contextified
-	deviceID keybase1.DeviceID
-	kid      keybase1.KID
-	mode     RevokeMode
-	force    bool
+	deviceID  keybase1.DeviceID
+	kid       keybase1.KID
+	mode      RevokeMode
+	forceSelf bool
+	forceLast bool
 }
 
 type RevokeDeviceEngineArgs struct {
-	ID    keybase1.DeviceID
-	Force bool
+	ID        keybase1.DeviceID
+	ForceSelf bool
+	ForceLast bool
 }
 
 func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) *RevokeEngine {
 	return &RevokeEngine{
 		deviceID:     args.ID,
 		mode:         RevokeDevice,
-		force:        args.Force,
+		forceSelf:    args.ForceSelf,
+		forceLast:    args.ForceLast,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -105,18 +108,24 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 	e.G().LocalSigchainGuard().Set(ctx.GetNetContext(), "RevokeEngine")
 	defer e.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "RevokeEngine")
 
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	if err != nil {
+		return err
+	}
+
 	currentDevice := e.G().Env.GetDeviceID()
 	var deviceID keybase1.DeviceID
 	if e.mode == RevokeDevice {
 		deviceID = e.deviceID
-		if e.deviceID == currentDevice && !e.force {
-			return errors.New("Can't revoke the current device.")
-		}
-	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
-		return err
+		if len(me.GetComputedKeyFamily().GetAllActiveDevices()) == 1 && !e.forceLast {
+			return libkb.RevokeLastDeviceError{}
+		}
+
+		if e.deviceID == currentDevice && !(e.forceSelf || e.forceLast) {
+			return libkb.RevokeCurrentDeviceError{}
+		}
+
 	}
 
 	kidsToRevoke, err := e.getKIDsToRevoke(me)

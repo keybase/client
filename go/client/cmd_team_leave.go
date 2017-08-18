@@ -22,7 +22,7 @@ func newCmdTeamLeave(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 	return cli.Command{
 		Name:         "leave",
 		ArgumentHelp: "<team name> [--permanent]",
-		Usage:        "leave a team",
+		Usage:        "Leave a team.",
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamLeave{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "leave", c)

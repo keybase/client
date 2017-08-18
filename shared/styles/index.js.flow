@@ -16,6 +16,9 @@ declare export var globalMargins: {
 declare export var statusBarHeight: number
 declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
+declare export function styleSheetCreate(obj: Object): Object
+declare export function collapseStyles(styles: Array<Object> | Object): Array<Object> | Object
+declare export function lineHeight(h: number): string | number
 
 declare export var windowStyle: {
   minWidth: number,

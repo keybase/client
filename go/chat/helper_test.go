@@ -80,12 +80,12 @@ func TestSendTextByName(t *testing.T) {
 			name = u.Username
 		}
 
-		require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
+		require.NoError(t, SendTextByName(ctx, tc.Context(), name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
 		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
-		require.NoError(t, SendTextByName(ctx, tc.Context(), name, "",
+		require.NoError(t, SendTextByName(ctx, tc.Context(), name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2))
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
@@ -96,17 +96,19 @@ func TestSendTextByName(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 2, len(tv.Messages))
 
-		err = SendTextByName(ctx, tc.Context(), name, "MIKE",
+		t.Logf("sending into new topic name")
+		topicName := "MIKE"
+		err = SendTextByName(ctx, tc.Context(), name, &topicName,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", ri2)
+		require.NoError(t, err)
+		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
+		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
-			require.NoError(t, err)
-			inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
-			require.NoError(t, err)
 			require.Equal(t, 2, len(inbox.Convs))
 		default:
 			// No second topic name on KBFS chats
-			require.Error(t, err)
+			require.Equal(t, 1, len(inbox.Convs))
 		}
 	})
 }

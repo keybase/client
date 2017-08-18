@@ -24,7 +24,7 @@ type Props = {
   followIconType: ?IconType,
   followIconSize: number,
   loadingColor: ?string,
-  onClick?: ?() => void,
+  onClick?: ?(event: SyntheticEvent) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,
@@ -145,7 +145,7 @@ class AvatarRender extends PureComponent<void, Props, State> {
     } = this.props
 
     return (
-      <ClickableBox onClick={onClick} feedback={false}>
+      <ClickableBox onClick={onClick} feedback={false} style={boxStyle(size, style)}>
         <Box style={boxStyle(size, style)}>
           {!skipBackground &&
             <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />}

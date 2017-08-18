@@ -15,17 +15,20 @@ import (
 
 type CmdTeamRemoveMember struct {
 	libkb.Contextified
-	team     string
-	username string
-	role     keybase1.TeamRole
-	force    bool
+	Team     string
+	Username string
+	Force    bool
+}
+
+func NewCmdTeamRemoveMemberRunner(g *libkb.GlobalContext) *CmdTeamRemoveMember {
+	return &CmdTeamRemoveMember{Contextified: libkb.NewContextified(g)}
 }
 
 func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "remove-member",
 		ArgumentHelp: "<team name> --user=<username>",
-		Usage:        "remove a user from a team",
+		Usage:        "Remove a user from a team.",
 		Action: func(c *cli.Context) {
 			cmd := &CmdTeamRemoveMember{Contextified: libkb.NewContextified(g)}
 			cl.ChooseCommand(cmd, "remove-member", c)
@@ -45,17 +48,17 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 
 func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 	var err error
-	c.team, err = ParseOneTeamName(ctx)
+	c.Team, err = ParseOneTeamName(ctx)
 	if err != nil {
 		return err
 	}
 
-	c.username, err = ParseUser(ctx)
+	c.Username, err = ParseUser(ctx)
 	if err != nil {
 		return err
 	}
 
-	c.force = ctx.Bool("force")
+	c.Force = ctx.Bool("force")
 
 	return nil
 }
@@ -63,7 +66,7 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 func (c *CmdTeamRemoveMember) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	if !c.force {
+	if !c.Force {
 		configCLI, err := GetConfigClient(c.G())
 		if err != nil {
 			return err
@@ -74,8 +77,8 @@ func (c *CmdTeamRemoveMember) Run() error {
 		}
 
 		var prompt string
-		if curStatus.User != nil && libkb.NewNormalizedUsername(c.username).Eq(libkb.NewNormalizedUsername(curStatus.User.Username)) {
-			prompt = fmt.Sprintf("Are you sure you want to remove yourself from team %s?", c.team)
+		if curStatus.User != nil && libkb.NewNormalizedUsername(c.Username).Eq(libkb.NewNormalizedUsername(curStatus.User.Username)) {
+			prompt = fmt.Sprintf("Are you sure you want to remove yourself from team %s?", c.Team)
 		} else {
 			prompt = fmt.Sprint("Are you sure?")
 		}
@@ -94,15 +97,15 @@ func (c *CmdTeamRemoveMember) Run() error {
 	}
 
 	arg := keybase1.TeamRemoveMemberArg{
-		Name:     c.team,
-		Username: c.username,
+		Name:     c.Team,
+		Username: c.Username,
 	}
 
 	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {
 		return err
 	}
 
-	ui.Printf("Success! %s removed from team %s.\n", c.username, c.team)
+	ui.Printf("Success! %s removed from team %s.\n", c.Username, c.Team)
 
 	return nil
 }

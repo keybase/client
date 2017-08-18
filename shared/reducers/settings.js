@@ -19,7 +19,6 @@ const initialState: State = {
   },
   notifications: {
     allowEdit: false,
-    allowSave: false,
     groups: {
       email: {
         settings: null,
@@ -63,7 +62,6 @@ function reducer(state: State = initialState, action: Actions): State {
       }
 
       const {group, name} = action.payload
-
       const updateSubscribe = (setting, storeGroup) => {
         let subscribed = setting.subscribed
 
@@ -89,24 +87,15 @@ function reducer(state: State = initialState, action: Actions): State {
           unsubscribedFromAll: !name && !unsubscribedFromAll,
         },
       }
-
-      return {
-        ...state,
-        notifications: {
-          ...state.notifications,
-          allowSave: true,
-          groups: {
-            ...state.notifications.groups,
-            ...changed,
-          },
-        },
-      }
-    case Constants.notificationsSave:
       return {
         ...state,
         notifications: {
           ...state.notifications,
           allowEdit: false,
+          groups: {
+            ...state.notifications.groups,
+            ...changed,
+          },
         },
       }
     case Constants.notificationsSaved:
@@ -115,7 +104,6 @@ function reducer(state: State = initialState, action: Actions): State {
         notifications: {
           ...state.notifications,
           allowEdit: true,
-          allowSave: false,
         },
       }
     case Constants.notificationsRefreshed:
@@ -123,7 +111,6 @@ function reducer(state: State = initialState, action: Actions): State {
         ...state,
         notifications: {
           allowEdit: true,
-          allowSave: false,
           groups: {
             ...action.payload,
           },

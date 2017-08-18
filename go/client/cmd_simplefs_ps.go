@@ -28,6 +28,7 @@ func NewCmdSimpleFSPs(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 		Usage: "list running operations",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSPs{Contextified: libkb.NewContextified(g)}, "ps", c)
+			cl.SetNoStandalone()
 		},
 	}
 }

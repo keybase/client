@@ -27,7 +27,7 @@
       "name": "IncomingMessage",
       "fields": [
         {
-          "type": "MessageUnboxed",
+          "type": "UIMessage",
           "name": "message"
         },
         {
@@ -41,7 +41,7 @@
         {
           "type": [
             null,
-            "ConversationLocal"
+            "InboxUIItem"
           ],
           "name": "conv"
         },
@@ -69,7 +69,7 @@
         {
           "type": [
             null,
-            "ConversationLocal"
+            "InboxUIItem"
           ],
           "name": "conv"
         }
@@ -80,7 +80,7 @@
       "name": "NewConversationInfo",
       "fields": [
         {
-          "type": "ConversationLocal",
+          "type": "InboxUIItem",
           "name": "conv"
         }
       ]
@@ -100,7 +100,7 @@
         {
           "type": [
             null,
-            "ConversationLocal"
+            "InboxUIItem"
           ],
           "name": "conv"
         }
@@ -321,7 +321,7 @@
           "name": "conv",
           "type": [
             null,
-            "ConversationLocal"
+            "InboxUIItem"
           ]
         }
       ],
@@ -399,7 +399,7 @@
         },
         {
           "name": "conv",
-          "type": "ConversationLocal"
+          "type": "InboxUIItem"
         }
       ],
       "response": null,

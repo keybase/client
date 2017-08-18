@@ -4,6 +4,8 @@
 package client
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -11,17 +13,31 @@ import (
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
-	cli, err := GetTeamsClient(g)
-	if err != nil {
-		return nil, err
-	}
-	_, err = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
-	if err == nil {
-		ret := keybase1.UserOrTeamResult_TEAM
-		return &ret, nil
+	tlfCli, tlfError := GetTlfClient(g)
+	if tlfError == nil {
+		tlfQuery := keybase1.TLFQuery{
+			TlfName:          name,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		_, tlfError = tlfCli.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQuery)
+		if tlfError == nil {
+			ret := keybase1.UserOrTeamResult_USER
+			return &ret, nil
+		}
 	}
 
-	// Assume name is a User or a TLF
-	ret := keybase1.UserOrTeamResult_USER
-	return &ret, nil
+	cli, teamError := GetTeamsClient(g)
+	if teamError == nil {
+		_, teamError = cli.TeamGet(ctx, keybase1.TeamGetArg{Name: name, ForceRepoll: false})
+		if teamError == nil {
+			ret := keybase1.UserOrTeamResult_TEAM
+			return &ret, nil
+		}
+	}
+
+	msg := `Unable to find conversation.
+When considering %s as a username or a list of usernames, received error: %v.
+When considering %s as a team name, received error: %v.`
+
+	return nil, libkb.NotFoundError{Msg: fmt.Sprintf(msg, name, tlfError, name, teamError)}
 }

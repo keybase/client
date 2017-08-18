@@ -148,7 +148,6 @@ function* _addProof(action: AddProof): SagaGenerator<any, any> {
     case 'facebook':
     case 'reddit':
     case 'github':
-    case 'coinbase':
     case 'hackernews':
     case 'dns':
       yield call(_addServiceProof, action.payload.platform)

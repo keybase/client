@@ -15,10 +15,10 @@ export type Props = {|
   isSelected: boolean,
   isYou: boolean,
   messageKey: Constants.MessageKey,
-  onAction: (event: any) => void,
+  onAction: (event: SyntheticEvent) => void,
   onRetry: () => void,
-  onShowEditor: (event: any) => void,
-  onClick: (event: any) => void,
+  onShowEditor: (event: SyntheticEvent) => void,
+  onClick: (event: SyntheticEvent) => void,
   timestamp: ?string,
 |}
 
