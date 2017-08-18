@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, Usernames, Box} from '../../../common-adapters'
+import {Text, PlaintextUsernames, Box} from '../../../common-adapters'
 import {globalStyles, globalColors, lineHeight} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {List} from 'immutable'
@@ -42,11 +42,9 @@ class SimpleTopLine extends PureComponent<void, SimpleTopLineProps, void> {
               top: 0,
             }}
           >
-            <Usernames
-              inline={true}
-              plainText={true}
+            <PlaintextUsernames
               type="BodySemibold"
-              plainDivider={isMobile ? undefined : ',\u200a'}
+              divider={isMobile ? undefined : ',\u200a'}
               containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')}
@@ -82,6 +80,7 @@ class FilteredTopLine extends PureComponent<void, FilteredTopLineProps, void> {
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
           flex: 1,
+          justifyContent: 'flex-start',
           maxHeight: height,
           minHeight: height,
           position: 'relative',
@@ -98,11 +97,9 @@ class FilteredTopLine extends PureComponent<void, FilteredTopLineProps, void> {
             top: 0,
           }}
         >
-          <Usernames
-            inline={true}
-            plainText={true}
+          <PlaintextUsernames
             type="BodySemibold"
-            plainDivider={isMobile ? undefined : ',\u200a'}
+            divider={isMobile ? undefined : ',\u200a'}
             containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')}

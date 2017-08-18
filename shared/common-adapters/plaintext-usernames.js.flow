@@ -1,0 +1,17 @@
+// @flow
+import {Component} from 'react'
+import type {TextType, Background} from './text'
+import type {UserList} from './usernames'
+
+export type Props = {
+  type: TextType,
+  users: UserList,
+  backgroundMode?: Background,
+  containerStyle?: Object,
+  title?: string,
+  prefix?: ?string,
+  suffix?: ?string,
+  divider?: string,
+}
+
+declare export default class PlaintextUsernames extends Component<void, Props, void> {}
