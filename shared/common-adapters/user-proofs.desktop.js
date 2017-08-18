@@ -151,6 +151,9 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
   )
 }
 
+// CSSTransition injects foreign props so lets not just accept all props
+const IgnorePropsBox = ({children, onlyProps}) => <Box {...onlyProps}>{children}</Box>
+
 class ProofsRender extends Component<void, Props, void> {
   _rows: Array<React$Element<*>>
 
@@ -191,16 +194,17 @@ class ProofsRender extends Component<void, Props, void> {
         color: ${globalColors.black_60} !important;
       }
     `
+
     return (
       <Box style={{...styleContainer(loading), ...style}}>
         <TransitionGroup>
           {loading
             ? <CSSTransition classNames="fade-anim" timeout={{exit: 250, enter: 250}}>
-                <Box key="loading" style={{...styleLoading, ...loadingStyle}}>
+                <IgnorePropsBox key="loading" onlyProps={{style: {...styleLoading, ...loadingStyle}}}>
                   {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
-                </Box>
+                </IgnorePropsBox>
               </CSSTransition>
-            : <Box key="non-loading">
+            : <IgnorePropsBox key="non-loading">
                 {this.props.type === 'proofs' &&
                   this.props.proofs.map((p, idx) => (
                     <ProofRow
@@ -220,7 +224,7 @@ class ProofsRender extends Component<void, Props, void> {
                     <MissingProofRow key={mp.type} missingProof={mp} />
                   ))}
                 {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
-              </Box>}
+              </IgnorePropsBox>}
         </TransitionGroup>
       </Box>
     )
