@@ -39,9 +39,11 @@ class _ChatFilterRow extends Component<void, Props, State> {
     this.setState({isEditing: false})
   }
 
-  _clearFilterAndStopEditing = () => {
-    this.props.onSetFilter('')
-    this._stopEditing()
+  _onKeyDown = (e: SyntheticKeyboardEvent, isComposingIME: boolean) => {
+    if (e.key === 'Escape' && !isComposingIME) {
+      this.props.onSetFilter('')
+      this._stopEditing()
+    }
   }
 
   render() {
@@ -68,7 +70,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
           onChangeText={this.props.onSetFilter}
           onFocus={this._startEditing}
           onBlur={this._stopEditing}
-          onEscapeKeyDown={this._clearFilterAndStopEditing}
+          onKeyDown={this._onKeyDown}
         />,
       ]
     } else {
