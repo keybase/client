@@ -77,37 +77,36 @@ class FilteredTopLine extends PureComponent<void, FilteredTopLineProps, void> {
     const {participants, showBold, usernameColor} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
     return (
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: height, minHeight: height}}>
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flex: 1,
+          maxHeight: height,
+          minHeight: height,
+          position: 'relative',
+        }}
+      >
         <Box
           style={{
-            ...globalStyles.flexBoxRow,
-            flex: 1,
-            maxHeight: height,
-            minHeight: height,
-            position: 'relative',
+            ...globalStyles.flexBoxColumn,
+            bottom: 0,
+            justifyContent: 'flex-start',
+            left: 0,
+            position: 'absolute',
+            right: 0,
+            top: 0,
           }}
         >
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              bottom: 0,
-              justifyContent: 'flex-start',
-              left: 0,
-              position: 'absolute',
-              right: 0,
-              top: 0,
-            }}
-          >
-            <Usernames
-              inline={true}
-              plainText={true}
-              type="BodySemibold"
-              plainDivider={isMobile ? undefined : ',\u200a'}
-              containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-              users={participants.map(p => ({username: p})).toArray()}
-              title={participants.join(', ')}
-            />
-          </Box>
+          <Usernames
+            inline={true}
+            plainText={true}
+            type="BodySemibold"
+            plainDivider={isMobile ? undefined : ',\u200a'}
+            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
+            users={participants.map(p => ({username: p})).toArray()}
+            title={participants.join(', ')}
+          />
         </Box>
       </Box>
     )
