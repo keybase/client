@@ -116,8 +116,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	return &tl, nil
 }
 
-func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext,
-	invites map[keybase1.TeamInviteID]keybase1.TeamInvite, teamName string) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
+func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[keybase1.TeamInviteID]keybase1.TeamInvite, teamName string) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
 
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
 	upakLoader := g.GetUPAKLoader()
@@ -126,11 +125,29 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext,
 		if err != nil {
 			return annotatedInvites, err
 		}
+
+		name := invite.Name
+		category, err := invite.Type.C()
+		if err != nil {
+			return nil, err
+		}
+		if category == keybase1.TeamInviteCategory_KEYBASE {
+			// "keybase" invites (i.e. pukless users) have uid for name
+			uid, err := keybase1.UIDFromString(string(invite.Name))
+			if err != nil {
+				return nil, err
+			}
+			normalized, err := upakLoader.LookupUsername(context.Background(), uid)
+			if err != nil {
+				return nil, err
+			}
+			name = keybase1.TeamInviteName(normalized.String())
+		}
 		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
 			Role:            invite.Role,
 			Id:              invite.Id,
 			Type:            invite.Type,
-			Name:            invite.Name,
+			Name:            name,
 			InviterUsername: username.String(),
 			TeamName:        teamName,
 		}
