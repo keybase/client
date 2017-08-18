@@ -32,6 +32,20 @@ func makeFS(t *testing.T, subdir string) (
 	return ctx, h, fs
 }
 
+// This tests pushing code to a bare repo stored in KBFS, and pulling
+// code from that bare repo into a new working tree.  This is a simple
+// version of how the full KBFS Git system will work.  Specifically,
+// this test does the following:
+//
+// 1) Initializes a new repo on the local file system with one file.
+// 2) Initializes a new bare repo in KBFS.
+// 3) Simulates a user push by having the bare repo fetch from the
+//    local file system repo.  (This seems like the easiest way for
+//    the git remote helper to get data from the local repo into the
+//    server repo.)
+// 4) Initializes a second new repo on the local file system.
+// 5) Simulates a user pull by having the bare repo push into this
+// second repo onto a branch, and then checking out that branch.
 func TestBareRepoInKBFS(t *testing.T) {
 	ctx, _, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.Config())
