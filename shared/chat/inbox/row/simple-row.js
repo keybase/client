@@ -74,19 +74,12 @@ class SimpleRow extends PureComponent<void, SimpleProps, void> {
 
 type FilteredProps = {
   backgroundColor: string,
-  conversationIDKey: ConversationIDKey,
-  hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: List<string>,
-  rekeyInfo: any,
   showBold: boolean,
-  snippet: string,
-  subColor: string,
-  timestamp: string,
-  unreadCount: number,
   usernameColor: string,
   youNeedToRekey: boolean,
 }
