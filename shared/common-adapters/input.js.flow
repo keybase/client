@@ -18,7 +18,6 @@ export type Props = {
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: SyntheticKeyboardEvent) => void,
   onFocus?: () => void,
-  onEscapeKeyDown?: (event: SyntheticKeyboardEvent) => void,
   onKeyDown?: (event: SyntheticKeyboardEvent, isComposingIME: boolean) => void,
   rowsMax?: number,
   maxLength?: number,
