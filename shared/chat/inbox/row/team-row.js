@@ -12,7 +12,7 @@ class TeamRow extends PureComponent<void, TeamProps, void> {
   render() {
     return (
       <Box style={teamRowContainerStyle}>
-        <Avatar teamname={this.props.teamname} size={16} />
+        <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
       </Box>
     )
@@ -76,8 +76,8 @@ const teamRowContainerStyle = {
   ...globalStyles.clickable,
   alignItems: 'center',
   flexShrink: 0,
-  maxHeight: globalMargins.medium,
-  minHeight: globalMargins.medium,
+  maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
+  minHeight: isMobile ? globalMargins.large : globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
 }
