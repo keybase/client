@@ -196,9 +196,7 @@ export default class AppState {
       return
     }
     try {
-      console.log('aaaa loading')
       const stateLoaded = JSON.parse(fs.readFileSync(configPath, {encoding: 'utf8'}))
-      console.log('aaa', stateLoaded)
       if (this._isValidState(stateLoaded)) {
         this.state = stateLoaded
       }
