@@ -610,6 +610,7 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 		if CheckUsername.F(s) {
 			return "keybase", strings.ToLower(s), nil
 		}
+
 		return "", "", fmt.Errorf("Parsed part as keybase username, but invalid username")
 	}
 	assertion, err := ParseAssertionURL(ctx, s, true)
@@ -619,21 +620,11 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	return string(assertion.GetKey()), assertion.GetValue(), nil
 }
 
-func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamName, error) {
+func ParseImplicitTeamName(ctx AssertionContext, s string, isPrivate bool) (keybase1.ImplicitTeamName, error) {
 	ret := keybase1.ImplicitTeamName{}
-	s = strings.ToLower(s)
-	parts := strings.Split(s, "/")
-	if len(parts) != 4 {
-		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
-	}
-	if parts[0] != "" || parts[1] != "keybase" || (parts[2] != "private" && parts[2] != "public") {
-		return ret, fmt.Errorf("Invalid team TLF name")
-	}
-	isPrivate := parts[2] == "private"
-
 	keybaseUsers := make([]string, 0)
 	unresolvedUsers := make([]keybase1.SocialAssertion, 0)
-	for _, part := range strings.Split(parts[3], ",") {
+	for _, part := range strings.Split(s, ",") {
 		typ, name, err := parseImplicitTeamPart(ctx, part)
 		if err != nil {
 			return ret, err
@@ -654,4 +645,18 @@ func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.Implicit
 		ConflictInfo:    nil,
 	}
 	return ret, nil
+}
+
+func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamName, error) {
+	ret := keybase1.ImplicitTeamName{}
+	s = strings.ToLower(s)
+	parts := strings.Split(s, "/")
+	if len(parts) != 4 {
+		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
+	}
+	if parts[0] != "" || parts[1] != "keybase" || (parts[2] != "private" && parts[2] != "public") {
+		return ret, fmt.Errorf("Invalid team TLF name")
+	}
+	isPrivate := parts[2] == "private"
+	return ParseImplicitTeamName(ctx, parts[3], isPrivate)
 }

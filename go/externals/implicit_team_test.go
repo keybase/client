@@ -34,15 +34,15 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 		_, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(), badName)
 		require.Error(t, err)
 	}
-	goodName := "/keybase/public/foobar,twitter:alice,bob@facebook,carol@keybase,dave"
+	goodName := "/keybase/public/dave,twitter:alice,bob@facebook,carol@keybase,echo"
 	name, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(), goodName)
 	require.NoError(t, err)
 	require.Equal(t, name.IsPrivate, false)
 	require.Equal(t, len(name.KeybaseUsers), 3)
 	require.Equal(t, len(name.UnresolvedUsers), 2)
-	require.True(t, containsString(name.KeybaseUsers, "foobar"))
-	require.True(t, containsString(name.KeybaseUsers, "carol"))
 	require.True(t, containsString(name.KeybaseUsers, "dave"))
+	require.True(t, containsString(name.KeybaseUsers, "carol"))
+	require.True(t, containsString(name.KeybaseUsers, "echo"))
 
 	firstSocial := name.UnresolvedUsers[0]
 	secondSocial := name.UnresolvedUsers[1]
@@ -51,4 +51,16 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	require.True(t, firstSocial != secondSocial)
 	require.True(t, firstSocial == aliceExpected || firstSocial == bobExpected)
 	require.True(t, secondSocial == aliceExpected || secondSocial == bobExpected)
+}
+
+// TestParseImplicitTeamName is just a quick sanity check.
+// quick sanity test -- mostly redundant with TLFName test above
+func TestParseImplicitTeamName(t *testing.T) {
+	goodName := "twitter:alice,bob@facebook,carol@keybase,dave"
+	namePrivate, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, true)
+	require.NoError(t, err)
+	namePublic, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, false)
+	require.NoError(t, err)
+	require.True(t, namePrivate.IsPrivate)
+	require.True(t, !namePublic.IsPrivate)
 }

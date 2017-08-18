@@ -1526,22 +1526,15 @@ var implicitSuffixLengthBytes = 16
 
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
-	var regularErr, implicitErr error
+	var regularErr error
 
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("need >= 1 part, got 0")
 	}
 
-	if len(parts) != 1 || !implicitNameRxx.MatchString(s) {
-		implicitErr = fmt.Errorf("Bad implicit team name.")
-	}
-	if implicitErr == nil {
-		tmp := make([]TeamNamePart, len(parts))
-		tmp[0] = TeamNamePart(strings.ToLower(s))
-		return TeamName{
-			Parts: tmp,
-		}, nil
+	if len(parts) == 1 && implicitNameRxx.MatchString(s) {
+		return TeamName{Parts: []TeamNamePart{TeamNamePart(strings.ToLower(s))}}, nil
 	}
 
 	tmp := make([]TeamNamePart, len(parts))
@@ -1559,7 +1552,7 @@ func TeamNameFromString(s string) (TeamName, error) {
 	if regularErr == nil {
 		return TeamName{Parts: tmp}, nil
 	}
-	return ret, fmt.Errorf("Could not parse name as regular or implicit team name: %v, %v", regularErr, implicitErr)
+	return ret, fmt.Errorf("Could not parse name as team name: %v", regularErr)
 }
 
 func (t TeamName) String() string {
