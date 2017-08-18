@@ -190,6 +190,7 @@ type GetMetadataArg struct {
 	StartRevision int64             `codec:"startRevision" json:"startRevision"`
 	StopRevision  int64             `codec:"stopRevision" json:"stopRevision"`
 	LogTags       map[string]string `codec:"logTags" json:"logTags"`
+	LockBeforeGet *int64            `codec:"lockBeforeGet,omitempty" json:"lockBeforeGet,omitempty"`
 }
 
 func (o GetMetadataArg) DeepCopy() GetMetadataArg {
@@ -214,6 +215,13 @@ func (o GetMetadataArg) DeepCopy() GetMetadataArg {
 			}
 			return ret
 		})(o.LogTags),
+		LockBeforeGet: (func(x *int64) *int64 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.LockBeforeGet),
 	}
 }
 

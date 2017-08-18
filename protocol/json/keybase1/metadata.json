@@ -206,6 +206,13 @@
             "type": "map",
             "values": "string"
           }
+        },
+        {
+          "name": "lockBeforeGet",
+          "type": [
+            null,
+            "long"
+          ]
         }
       ],
       "response": "MetadataResponse"
