@@ -598,3 +598,60 @@ func CollectAssertions(e AssertionExpression) (remotes AssertionAnd, locals Asse
 func AssertionIsTeam(au AssertionURL) bool {
 	return au != nil && (au.IsTeamID() || au.IsTeamName())
 }
+
+func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name string, err error) {
+	nColons := strings.Count(s, ":")
+	nAts := strings.Count(s, "@")
+	nDelimiters := nColons + nAts
+	if nDelimiters > 1 {
+		return "", "", fmt.Errorf("Invalid implicit team part, can have at most one ':' xor '@'")
+	}
+	if nDelimiters == 0 {
+		if CheckUsername.F(s) {
+			return "keybase", s, nil
+		}
+		return "", "", fmt.Errorf("Parsed part as keybase username, but invalid username")
+	}
+	assertion, err := ParseAssertionURL(ctx, s, true)
+	if err != nil {
+		return "", "", fmt.Errorf("Could not parse part as SBS assertion")
+	}
+	return string(assertion.GetKey()), assertion.GetValue(), nil
+}
+
+func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamName, error) {
+	ret := keybase1.ImplicitTeamName{}
+	s = strings.ToLower(s)
+	parts := strings.Split(s, "/")
+	if len(parts) != 4 {
+		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
+	}
+	if parts[0] != "" || parts[1] != "keybase" || (parts[2] != "private" && parts[2] != "public") {
+		return ret, fmt.Errorf("Invalid team TLF name")
+	}
+	isPrivate := parts[2] == "private"
+
+	keybaseUsers := make([]string, 0)
+	unresolvedUsers := make([]keybase1.SocialAssertion, 0)
+	for _, part := range strings.Split(parts[3], ",") {
+		typ, name, err := parseImplicitTeamPart(ctx, part)
+		if err != nil {
+			return ret, err
+		} else if typ == "keybase" {
+			keybaseUsers = append(keybaseUsers, name)
+		} else {
+			unresolvedUsers = append(unresolvedUsers, keybase1.SocialAssertion{
+				User:    name,
+				Service: keybase1.SocialAssertionService(typ),
+			})
+		}
+	}
+
+	ret = keybase1.ImplicitTeamName{
+		IsPrivate:       isPrivate,
+		KeybaseUsers:    keybaseUsers,
+		UnresolvedUsers: unresolvedUsers,
+		ConflictInfo:    nil,
+	}
+	return ret, nil
+}

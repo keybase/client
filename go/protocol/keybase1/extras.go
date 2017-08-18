@@ -1518,23 +1518,48 @@ func (t TeamName) IsNil() bool {
 
 // underscores allowed, just not first or doubled
 var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
+var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", implicitTeamPrefix, implicitSuffixLengthBytes*2)
+var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
-func TeamNameFromString(s string) (ret TeamName, err error) {
+var implicitTeamPrefix = "__keybase_implicit_team__"
+var implicitSuffixLengthBytes = 16
+
+func TeamNameFromString(s string) (TeamName, error) {
+	ret := TeamName{}
+	var regularErr, implicitErr error
+
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("need >= 1 part, got 0")
 	}
+
+	if len(parts) != 1 || !implicitNameRxx.MatchString(s) {
+		implicitErr = fmt.Errorf("Bad implicit team name.")
+	}
+	if implicitErr == nil {
+		tmp := make([]TeamNamePart, len(parts))
+		tmp[0] = TeamNamePart(strings.ToLower(s))
+		return TeamName{
+			Parts: tmp,
+		}, nil
+	}
+
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !(len(part) >= 2 && len(part) <= 16) {
-			return ret, errors.New("team names must be between 2 and 16 characters long")
+			regularErr = errors.New("team names must be between 2 and 16 characters long")
+			break
 		}
 		if !namePartRxx.MatchString(part) {
-			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+			regularErr = fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+			break
 		}
 		tmp[i] = TeamNamePart(strings.ToLower(part))
 	}
-	return TeamName{Parts: tmp}, nil
+	if regularErr == nil {
+		return TeamName{Parts: tmp}, nil
+	}
+	return ret, fmt.Errorf("Could not parse name as regular or implicit team name: %v, %v", regularErr, implicitErr)
 }
 
 func (t TeamName) String() string {
@@ -1609,6 +1634,10 @@ func (t TeamName) SwapLastPart(newLast string) (TeamName, error) {
 	return parent.Append(newLast)
 }
 
+func (t TeamName) IsImplicit() bool {
+	return strings.HasPrefix(t.String(), implicitTeamPrefix)
+}
+
 // The number of parts in a team name.
 // Root teams have 1.
 func (t TeamName) Depth() int {
@@ -1617,98 +1646,6 @@ func (t TeamName) Depth() int {
 
 func (t TeamNamePart) Eq(t2 TeamNamePart) bool {
 	return string(t) == string(t2)
-}
-
-var implicitTeamPrefix = "__keybase_implicit_team__"
-var implicitSuffixLengthBytes = 16
-var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", implicitTeamPrefix, implicitSuffixLengthBytes*2)
-var implicitNameRxx = regexp.MustCompile(implicitRxxString)
-
-func ImplicitTeamBackingNameFromString(s string) (ret ImplicitTeamBackingName, err error) {
-	if !implicitNameRxx.MatchString(s) {
-		return ret, fmt.Errorf("Bad implicit team name.")
-	}
-	return ImplicitTeamBackingName{
-		s[len(implicitTeamPrefix):],
-	}, nil
-}
-
-func (t ImplicitTeamBackingName) String() string {
-	return implicitTeamPrefix + t.Suffix
-}
-
-func (t ImplicitTeamBackingName) Eq(t2 ImplicitTeamBackingName) bool {
-	return t.String() == t2.String()
-}
-
-func (t ImplicitTeamBackingName) ToTeamID() TeamID {
-	low := strings.ToLower(t.String())
-	sum := sha256.Sum256([]byte(low))
-	bs := append(sum[:15], TEAMID_SUFFIX)
-	res, err := TeamIDFromString(hex.EncodeToString(bs))
-	if err != nil {
-		panic(err)
-	}
-	return res
-}
-
-func parseImplicitTeamPart(s string) (typ string, name string, err error) {
-	nColons := strings.Count(s, ":")
-	nAts := strings.Count(s, "@")
-	nDelimiters := nColons + nAts
-	if nDelimiters > 1 {
-		return "", "", fmt.Errorf("Invalid implicit team part, can have at most one ':' xor '@'")
-	}
-	if nDelimiters == 0 {
-		return "keybase", s, nil
-	}
-	if nColons == 1 {
-		parts := strings.Split(s, ":")
-		typ = parts[0]
-		name = parts[1]
-	} else {
-		parts := strings.Split(s, "@")
-		name = parts[0]
-		typ = parts[1]
-	}
-	return typ, name, nil
-}
-
-func ParseImplicitTeamTLFName(s string) (ImplicitTeamName, error) {
-	ret := ImplicitTeamName{}
-	s = strings.ToLower(s)
-	parts := strings.Split(s, "/")
-	if len(parts) != 4 {
-		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
-	}
-	if parts[0] != "" || parts[1] != "keybase" || (parts[2] != "private" && parts[2] != "public") {
-		return ret, fmt.Errorf("Invalid team TLF name")
-	}
-	isPrivate := parts[2] == "private"
-
-	keybaseUsers := make([]string, 0)
-	unresolvedUsers := make([]SocialAssertion, 0)
-	for _, part := range strings.Split(parts[3], ",") {
-		typ, name, err := parseImplicitTeamPart(part)
-		if err != nil {
-			return ret, err
-		} else if typ == "keybase" {
-			keybaseUsers = append(keybaseUsers, name)
-		} else {
-			unresolvedUsers = append(unresolvedUsers, SocialAssertion{
-				User:    name,
-				Service: SocialAssertionService(typ),
-			})
-		}
-	}
-
-	ret = ImplicitTeamName{
-		IsPrivate:       isPrivate,
-		KeybaseUsers:    keybaseUsers,
-		UnresolvedUsers: unresolvedUsers,
-		ConflictInfo:    nil,
-	}
-	return ret, nil
 }
 
 func (u UserPlusKeys) ToUserVersion() UserVersion {
