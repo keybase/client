@@ -36,7 +36,8 @@ type ComputedKeyInfosVersion int
 
 const (
 	ComputedKeyInfosV1             ComputedKeyInfosVersion = ComputedKeyInfosVersion(1)
-	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV1
+	ComputedKeyInfosV2             ComputedKeyInfosVersion = ComputedKeyInfosVersion(2)
+	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV2
 )
 
 // refers to exactly one ServerKeyInfo.
@@ -368,11 +369,19 @@ func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un Norma
 }
 
 func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username NormalizedUsername) (err error) {
-	kid := tcl.GetKID()
 	ckf.G().Log.Debug("ComputedKeyFamily#InsertEldestLink %s", tcl.ToDebugString())
+
+	kid := tcl.GetKID()
+	tm := TclToKeybaseTime(tcl)
+
 	_, err = ckf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {
 		return
+	}
+
+	mhm, err := tcl.GetMerkleHashMeta()
+	if err != nil {
+		return err
 	}
 
 	// We don't need to check the signature on the first link, because
@@ -381,6 +390,19 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 	etime := tcl.GetETime().Unix()
 
 	eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
+	eldestCki.DelegatedAt = tm
+	eldestCki.DelegatedAtHashMeta = mhm
+	eldestCki.DelegatedAtSigChainLocation = tcl.ToSigChainLocation()
+
+	// Tricky legacy detail: Note that we have not inserted the eldest sig into
+	// the Delegations map here. verifySubchain() might go on to do that after
+	// we return if the link is of a delegating type (type:eldest or
+	// type:sibkey), but that's not always the case. Omitting the delegation
+	// from that map means that revoking the signature does *not* revoke the
+	// key it (implicitly) delegated. For example, Max's eldest link is a
+	// twitter proof, which is revoked. That *must not* count as a revocation
+	// of his eldest key. We have a copy of Max's sigchain as one of our test
+	// vectors, to cover this behavior.
 
 	ckf.cki.Insert(&eldestCki)
 	return nil
@@ -653,11 +675,17 @@ func (cki *ComputedKeyInfos) DelegatePerUserKey(perUserKey keybase1.PerUserKey) 
 	if perUserKey.Gen <= 0 {
 		return fmt.Errorf("invalid per-user-key generation %v", perUserKey.Gen)
 	}
+	if perUserKey.Seqno == 0 {
+		return fmt.Errorf("invalid per-user-key seqno: %v", perUserKey.Seqno)
+	}
 	if perUserKey.SigKID.IsNil() {
 		return errors.New("nil per-user-key sig kid")
 	}
 	if perUserKey.EncKID.IsNil() {
 		return errors.New("nil per-user-key enc kid")
+	}
+	if perUserKey.SignedByKID.IsNil() {
+		return errors.New("nil per-user-key signed-by kid")
 	}
 	cki.PerUserKeys[keybase1.PerUserKeyGeneration(perUserKey.Gen)] = perUserKey
 	return nil
@@ -732,6 +760,7 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
 	if info, found := ckf.cki.Sigs[sig]; !found {
+		// silently no-op if the signature doesn't exist
 	} else if _, found := info.Delegations[sig]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)

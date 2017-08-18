@@ -28,7 +28,6 @@ import type {
 } from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {InstallResult, UninstallResult} from '../../constants/types/flow-types'
-import {execFile} from 'child_process'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -136,62 +135,6 @@ function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpda
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
     yield call(installKBFSSaga)
   }
-}
-
-function installCachedDokan(): Promise<*> {
-  return new Promise((resolve, reject) => {
-    const regedit = require('regedit')
-    regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
-      if (err) {
-        reject(err)
-      } else {
-        var programKeyNames =
-          programKeys['HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'].keys
-
-        for (var keyName of programKeyNames) {
-          var programKey = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + keyName
-
-          regedit.list(programKey, (err, program) => {
-            if (err) {
-              reject(err)
-            } else {
-              for (var p in program) {
-                var vals = program[p]
-                var displayName, publisher
-                var modifyPath = ''
-                for (var v in vals) {
-                  if (vals[v]['DisplayName']) {
-                    displayName = vals[v]['DisplayName'].value
-                  }
-                  if (vals[v]['Publisher']) {
-                    publisher = vals[v]['Publisher'].value
-                  }
-                  if (vals[v]['ModifyPath']) {
-                    modifyPath = vals[v]['ModifyPath'].value
-                  }
-                }
-                if (displayName === 'Keybase' && publisher === 'Keybase, Inc.') {
-                  modifyPath = modifyPath.replace(/"/g, '')
-                  modifyPath = modifyPath.replace(' /modify', '')
-                  console.log(modifyPath)
-                  execFile(modifyPath, [
-                    '/modify',
-                    'driver=1',
-                    'modifyprompt=Click "Repair" to view files in Explorer',
-                  ])
-                  resolve()
-                }
-              }
-            }
-          })
-        }
-      }
-    })
-  })
-}
-
-function* installDokanSaga(): SagaGenerator<any, any> {
-  yield call(installCachedDokan)
 }
 
 function* installFuseSaga(): SagaGenerator<any, any> {
@@ -333,7 +276,6 @@ export {
   fuseStatusSaga,
   fuseStatusUpdateSaga,
   installFuseSaga,
-  installDokanSaga,
   installKBFSSaga,
   openInFileUISaga,
   openSaga,

@@ -18,7 +18,7 @@ export type Props = {
   followIconSize: number,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
-  onClick?: ?() => void,
+  onClick?: ?(event: SyntheticEvent) => void,
   opacity?: number,
   size: AvatarSize,
   style?: ?Object,

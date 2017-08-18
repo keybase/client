@@ -260,6 +260,8 @@ const (
 	SCTeamTarNotFound          = int(keybase1.StatusCode_SCTeamTarNotFound)
 	SCTeamMemberExists         = int(keybase1.StatusCode_SCTeamMemberExists)
 	SCLoginStateTimeout        = int(keybase1.StatusCode_SCLoginStateTimeout)
+	SCRevokeCurrentDevice      = int(keybase1.StatusCode_SCRevokeCurrentDevice)
+	SCRevokeLastDevice         = int(keybase1.StatusCode_SCRevokeLastDevice)
 )
 
 const (
@@ -516,6 +518,7 @@ const (
 const (
 	ServiceLogFileName = "keybase.service.log"
 	KBFSLogFileName    = "keybase.kbfs.log"
+	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"
 	DesktopLogFileName = "Keybase.app.log"
 	// StartLogFileName is where services can log to (on startup) before they handle their own logging

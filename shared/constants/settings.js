@@ -32,7 +32,6 @@ export type NotificationsGroupState = {
 }
 
 export type NotificationsState = {
-  allowSave: boolean,
   allowEdit: boolean,
   groups: {
     email?: NotificationsGroupState,
@@ -93,8 +92,6 @@ export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRef
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export type NotificationsRefreshed = NoErrorTypedAction<'settings:notificationsRefreshed', NotificationsState>
 
-export const notificationsSave = 'settings:notificationsSave'
-export type NotificationsSave = NoErrorTypedAction<'settings:notificationsSave', void>
 export const notificationsSaved = 'settings:notificationsSaved'
 export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved', void>
 
@@ -173,6 +170,8 @@ type DevicesTab = 'settingsTabs:devicesTab'
 export const devicesTab = 'settingsTabs:devicesTab'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
+type PassphraseTab = 'settingsTabs:passphrase'
+export const passphraseTab = 'settingsTabs:passphrase'
 
 export type Tab =
   | LandingTab
@@ -185,12 +184,12 @@ export type Tab =
   | AboutTab
   | DevicesTab
   | ScreenprotectorTab
+  | PassphraseTab
 
 export type Actions =
   | InvitesRefresh
   | NotificationsRefresh
   | NotificationsRefreshed
-  | NotificationsSave
   | NotificationsSaved
   | NotificationsToggle
   | SetAllowDeleteAccount
@@ -202,3 +201,5 @@ export function waiting(waiting: boolean): TypedAction<'settings:waitingForRespo
     payload: waiting,
   }
 }
+
+export const securityGroup = 'security'

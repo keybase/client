@@ -1003,6 +1003,52 @@
           "name": "admin"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamName",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPrivate"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "keybaseUsers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SocialAssertion"
+          },
+          "name": "unresolvedUsers"
+        },
+        {
+          "type": [
+            null,
+            "ImplicitTeamConflictInfo"
+          ],
+          "name": "conflictInfo"
+        }
+      ],
+      "doc": "* iTeams"
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamConflictInfo",
+      "fields": [
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "Time",
+          "name": "time"
+        }
+      ]
     }
   ],
   "messages": {

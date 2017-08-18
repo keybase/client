@@ -319,10 +319,11 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
     },
   })
 
-  const header = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.attachment, conversationIDKey)
+  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
-    clientHeader: header,
+    tlfName: inboxConvo.name,
+    visibility: inboxConvo.visibility,
     attachment: {filename},
     preview,
     title,

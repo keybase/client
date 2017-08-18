@@ -155,8 +155,6 @@ class Conversation extends Component<void, Props, State> {
                   {this.props.finalizeInfo
                     ? <OldProfileResetNotice />
                     : <Input
-                        text={this.props.chatText}
-                        setText={this.props.setChatText}
                         focusInputCounter={this.props.focusInputCounter}
                         onEditLastMessage={this.props.onEditLastMessage}
                         onScrollDown={this.props.onScrollDown}

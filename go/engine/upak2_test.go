@@ -86,4 +86,19 @@ func TestExportAllIncarnationsAfterReset(t *testing.T) {
 			t.Fatalf("found empty LinkID at seqno %d, that's pretty weird", seqno)
 		}
 	}
+
+	// Make sure the eldest key has delegation info populated correctly.
+	foundEldest := false
+	for _, key := range exported.Current.DeviceKeys {
+		if !key.Base.IsEldest {
+			continue
+		}
+		if foundEldest {
+			t.Fatal("found a second eldest key?!")
+		}
+		foundEldest = true
+		if key.Base.Provisioning.Time.IsZero() {
+			t.Fatal("eldest key provisioning info appears uninitialized")
+		}
+	}
 }

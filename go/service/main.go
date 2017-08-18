@@ -983,3 +983,14 @@ func (d *Service) stopProfile() {
 	}
 	d.G().Log.Debug("wrote memory profile %s", mem)
 }
+
+func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
+	g.ConnectionManager = libkb.NewConnectionManager()
+	g.NotifyRouter = libkb.NewNotifyRouter(g)
+
+	d.createChatModules()
+	d.startupGregor()
+	d.startChatModules()
+
+	return nil
+}

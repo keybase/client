@@ -62,9 +62,12 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ...dispatchProps,
   onAddParticipant: () =>
     dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.isYou).map(p => p.username)),
-  onMuteConversation: (muted: boolean) =>
-    stateProps.selectedConversationIDKey &&
-    dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted),
+  onMuteConversation: stateProps.selectedConversationIDKey &&
+    !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
+    ? (muted: boolean) =>
+        stateProps.selectedConversationIDKey &&
+        dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted)
+    : null,
   onShowBlockConversationDialog: () =>
     dispatchProps.onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,

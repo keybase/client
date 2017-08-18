@@ -227,21 +227,13 @@ function analyzeMessages(json, project) {
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
-    const rpc = isUIProtocol
-      ? ''
-      : `\nexport function ${name}Rpc (request: Exact<${['requestCommon', callbackType, innerParamType]
-          .filter(t => t)
-          .join(' & ')}>) {
-  engineRpcOutgoing(${methodName}, request)
-}`
-
     const rpcPromise = isUIProtocol
       ? ''
       : codeGenerators.rpcPromiseGen(methodName, name, callbackType, innerParamType, responseType)
     const rpcChannelMap = isUIProtocol
       ? ''
       : codeGenerators.rpcChannelMap(methodName, name, callbackType, innerParamType, responseType)
-    return [paramType, response, rpc, rpcPromise, rpcChannelMap]
+    return [paramType, response, rpcPromise, rpcChannelMap]
   })
 }
 
@@ -374,7 +366,7 @@ export type uint64 = number
 export type long = number
 export type double = number
 export type bytes = Buffer
-export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+export type WaitingHandlerType = (waiting: boolean) => void
 
 const engineRpcOutgoing = (method: string, params: any, callbackOverride: any, incomingCallMapOverride: any) => engine()._rpcOutgoing(method, params, callbackOverride, incomingCallMapOverride)
 

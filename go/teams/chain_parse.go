@@ -1,7 +1,6 @@
 package teams
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"errors"
 
@@ -108,18 +107,6 @@ type SCChainLink struct {
 	// uid of the signer
 	UID     keybase1.UID `json:"uid"`
 	Version int          `json:"version"`
-}
-
-func (link *SCChainLink) isStubbed() bool {
-	return link.Payload == ""
-}
-
-func (link *SCChainLink) PayloadHash() libkb.LinkID {
-	if link.Payload == "" {
-		return nil
-	}
-	h := sha256.Sum256([]byte(link.Payload))
-	return h[:]
 }
 
 func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) {

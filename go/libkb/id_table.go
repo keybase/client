@@ -25,6 +25,7 @@ type TypedChainLink interface {
 	ToDisplayString() string
 	IsRevocationIsh() bool
 	IsRevoked() bool
+	IsDirectlyRevoked() bool
 	GetRole() KeyRole
 	GetSeqno() keybase1.Seqno
 	GetCTime() time.Time
@@ -78,7 +79,15 @@ func (g *GenericChainLink) VerifyReverseSig(ckf ComputedKeyFamily) error { retur
 func (g *GenericChainLink) IsRevocationIsh() bool                        { return false }
 func (g *GenericChainLink) GetRole() KeyRole                             { return DLGNone }
 func (g *GenericChainLink) IsRevoked() bool                              { return g.revoked }
-func (g *GenericChainLink) GetSeqno() keybase1.Seqno                     { return g.unpacked.seqno }
+func (g *GenericChainLink) IsDirectlyRevoked() bool {
+	// Same as IsRevoked, but should not be overridden by subclasses (as
+	// TrackChainLink does with IsRevoked). E.g. if in the future
+	// SibkeyChainLink decides to return IsRevoked=true when the delegated
+	// sibkey has been revoked *by KID*, that could be fine, but
+	// IsDirectlyRevoked should still return false in that case.
+	return g.revoked
+}
+func (g *GenericChainLink) GetSeqno() keybase1.Seqno { return g.unpacked.seqno }
 func (g *GenericChainLink) GetPGPFingerprint() *PGPFingerprint {
 	return g.unpacked.pgpFingerprint
 }

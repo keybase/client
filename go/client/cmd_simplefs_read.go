@@ -31,6 +31,7 @@ func NewCmdSimpleFSRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "output file contents to standard output",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSRead{Contextified: libkb.NewContextified(g)}, "read", c)
+			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{
 			cli.IntFlag{

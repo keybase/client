@@ -4,7 +4,7 @@ import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect} from 'react-redux'
 import {fuseStatus, installFuse} from '../../actions/kbfs'
-import {fileUIName} from '../../constants/platform'
+
 import type {TypedState} from '../../constants/reducer'
 
 type Props = {
@@ -27,7 +27,7 @@ class InstallBanner extends Component<void, Props, void> {
     return (
       <Box style={stylesContainer}>
         <Text type="BodySemibold" style={{textAlign: 'center'}} backgroundMode="HighRisk">
-          Your Keybase folders are currently not showing up in your {fileUIName}.
+          Your Keybase folders are currently not showing up in your Finder.
           <br />
           <Text
             type="BodySemiboldLink"
@@ -35,7 +35,7 @@ class InstallBanner extends Component<void, Props, void> {
             onClick={!this.props.installing ? this._onSubmit : null}
             underline={true}
           >
-            Display in {fileUIName}
+            Display in Finder
           </Text>
         </Text>
       </Box>

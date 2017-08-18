@@ -19,7 +19,7 @@ type Props = {
   followIconStyle: ?Object,
   followIconType: ?IconType,
   loadingColor: ?string,
-  onClick?: ?() => void,
+  onClick?: ?(event: SyntheticEvent) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,

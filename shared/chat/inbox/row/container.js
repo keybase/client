@@ -1,19 +1,20 @@
 // @flow
 import * as I from 'immutable'
-import pausableConnect from '../../util/pausable-connect'
+import pausableConnect from '../../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
-import {formatTimeForConversationList} from '../../util/timestamp'
-import {globalColors} from '../../styles'
+import {formatTimeForConversationList} from '../../../util/timestamp'
+import {globalColors} from '../../../styles'
 import {
   isPendingConversationIDKey,
   newestConversationIDKey,
   participantFilter,
   getSelectedConversation,
-} from '../../constants/chat'
-import {selectConversation} from '../../actions/chat/creators'
+} from '../../../constants/chat'
+import {selectConversation} from '../../../actions/chat/creators'
+import Row from '.'
 
-import type {TypedState} from '../../constants/reducer'
-import type {ConversationIDKey} from '../../constants/chat'
+import type {TypedState} from '../../../constants/reducer'
+import type {ConversationIDKey} from '../../../constants/chat'
 
 function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected) {
   // Derived props
@@ -115,7 +116,7 @@ const makeSelector = conversationIDKey => {
 }
 
 // $FlowIssue
-const RowConnector = pausableConnect(
+const ConnectedRow = pausableConnect(
   (state: TypedState, {conversationIDKey}) => {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
@@ -123,6 +124,6 @@ const RowConnector = pausableConnect(
   dispatch => ({
     onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
   })
-)
+)(Row)
 
-export {RowConnector}
+export default ConnectedRow

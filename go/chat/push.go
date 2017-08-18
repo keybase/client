@@ -121,6 +121,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	// ordered update
 	deadline := g.clock.Now().Add(time.Second)
 	go func() {
+		defer close(res)
 		g.Lock()
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
@@ -129,6 +130,9 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		}
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
+		if len(waiters) == 0 {
+			return
+		}
 		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
@@ -141,7 +145,6 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
 		}
-		close(res)
 	}()
 	return res
 }
@@ -245,7 +248,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			if conv.GetTopicType() == chat1.TopicType_CHAT {
 				if g.shouldSendNotifications() {
 					g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
-						convID, update.FinalizeInfo, conv)
+						convID, update.FinalizeInfo, g.presentUIItem(conv))
 				} else {
 					supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 						ConvID:     convID,
@@ -364,6 +367,14 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 	return false
 }
 
+func (g *PushHandler) presentUIItem(conv *chat1.ConversationLocal) (res *chat1.InboxUIItem) {
+	if conv != nil {
+		pc := utils.PresentConversationLocal(*conv)
+		res = &pc
+	}
+	return res
+}
+
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -443,9 +454,9 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: decmsg,
+					Message: utils.PresentMessageUnboxed(decmsg),
 					ConvID:  nm.ConvID,
-					Conv:    conv,
+					Conv:    g.presentUIItem(conv),
 					DisplayDesktopNotification: desktopNotification,
 					Pagination:                 page,
 				})
@@ -491,7 +502,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
 				MsgID:  nm.MsgID,
 				ConvID: nm.ConvID,
-				Conv:   conv,
+				Conv:   g.presentUIItem(conv),
 			})
 
 			if g.badger != nil && nm.UnreadUpdate != nil {
@@ -514,7 +525,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
 				ConvID: nm.ConvID,
 				Status: nm.Status,
-				Conv:   conv,
+				Conv:   g.presentUIItem(conv),
 			})
 
 			if g.badger != nil && nm.UnreadUpdate != nil {
@@ -570,7 +581,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			conv = &inbox.Convs[0]
 
 			activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-				Conv: *conv,
+				Conv: *g.presentUIItem(conv),
 			})
 
 			if g.badger != nil && nm.UnreadUpdate != nil {
@@ -614,7 +625,7 @@ func (g *PushHandler) notifyJoinChannel(ctx context.Context, uid gregor1.UID,
 
 	kuid := keybase1.UID(uid.String())
 	if g.shouldSendNotifications() {
-		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, conv)
+		g.G().NotifyRouter.HandleChatJoinedConversation(ctx, kuid, *g.presentUIItem(&conv))
 	} else {
 		supdate := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 			ConvID:     conv.GetConvID(),
@@ -764,23 +775,23 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 	return nil
 }
 
-func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) error {
+func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (bool, error) {
 	if obm.System() == nil {
-		return errors.New("nil system in out of band message")
+		return false, errors.New("nil system in out of band message")
 	}
 
 	switch obm.System().String() {
 	case types.PushActivity:
-		return g.Activity(ctx, obm)
+		return true, g.Activity(ctx, obm)
 	case types.PushTLFFinalize:
-		return g.TlfFinalize(ctx, obm)
+		return true, g.TlfFinalize(ctx, obm)
 	case types.PushTLFResolve:
-		return g.TlfResolve(ctx, obm)
+		return true, g.TlfResolve(ctx, obm)
 	case types.PushTyping:
-		return g.Typing(ctx, obm)
+		return true, g.Typing(ctx, obm)
 	case types.PushMembershipUpdate:
-		return g.MembershipUpdate(ctx, obm)
+		return true, g.MembershipUpdate(ctx, obm)
 	}
 
-	return nil
+	return false, nil
 }

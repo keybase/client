@@ -77,8 +77,6 @@ const Conversation = (props: Props) => (
               {props.finalizeInfo
                 ? <OldProfileResetNotice />
                 : <Input
-                    text={props.chatText}
-                    setText={props.setChatText}
                     focusInputCounter={props.focusInputCounter}
                     onEditLastMessage={props.onEditLastMessage}
                     onScrollDown={props.onScrollDown}

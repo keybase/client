@@ -23,6 +23,10 @@ function configurePush() {
   throw new Error('Configure Push not needed on this platform')
 }
 
+function setNoPushPermissions(): Promise<*> {
+  throw new Error('Push permissions unsupported on this platform')
+}
+
 function showMainWindow(): AsyncAction {
   return () => {
     ipcRenderer && ipcRenderer.send('showMain')
@@ -39,5 +43,6 @@ export {
   configurePush,
   saveAttachmentDialog,
   showShareActionSheet,
+  setNoPushPermissions,
   displayNewMessageNotification,
 }

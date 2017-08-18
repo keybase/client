@@ -6,7 +6,6 @@ import {
   fuseStatusSaga,
   fuseStatusUpdateSaga,
   installFuseSaga,
-  installDokanSaga,
   installKBFSSaga,
   openSaga,
   openInFileUISaga,
@@ -77,11 +76,12 @@ function* kbfsSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)
   yield safeTakeLatest('fs:fuseStatus', fuseStatusSaga)
   yield safeTakeLatest('fs:fuseStatusUpdate', fuseStatusUpdateSaga)
-  if (isWindows) {
+  yield safeTakeLatest('fs:installFuse', installFuseSaga)
+ if (isWindows) {
     yield safeTakeLatest('fs:installFuse', installDokanSaga)
   } else {
     yield safeTakeLatest('fs:installFuse', installFuseSaga)
-  }
+  }  
   yield safeTakeLatest('fs:installKBFS', installKBFSSaga)
   yield safeTakeLatest('fs:uninstallKBFS', uninstallKBFSSaga)
 }

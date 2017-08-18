@@ -9,6 +9,10 @@ function permissionsRequest(): Constants.PushPermissionsRequest {
   return {type: Constants.permissionsRequest, payload: undefined}
 }
 
+function permissionsNo(): Constants.PushPermissionsNo {
+  return {type: Constants.permissionsNo, payload: undefined}
+}
+
 function permissionsRequesting(enabled: boolean): Constants.PushPermissionsRequesting {
   return {type: Constants.permissionsRequesting, payload: enabled}
 }
@@ -35,6 +39,7 @@ function updatePushToken(token: string, tokenType: Constants.TokenType): Constan
 
 export {
   configurePush,
+  permissionsNo,
   permissionsRequest,
   permissionsRequesting,
   permissionsPrompt,

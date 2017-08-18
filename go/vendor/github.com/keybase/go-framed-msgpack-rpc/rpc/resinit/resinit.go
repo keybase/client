@@ -2,7 +2,7 @@ package resinit
 
 import "net"
 
-// Work around a glibc bug where cached confics from /etc/resolv.conf can cause
+// Work around a glibc bug where cached configs from /etc/resolv.conf can cause
 // DNS failures after the network changes. This is a no-op on non-Linux
 // platforms. See implementation details in resinit_linux.go. The Rust standard
 // library contains a similar workaround:

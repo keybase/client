@@ -35,6 +35,7 @@ let config: {[key: string]: any} = {
   printRPC: false,
   printBridgeB64: false, // raw b64 going over the wire
   printRoutes: false,
+  filterActionLogs: null,
   reactPerf: false,
   reduxSagaLogger: false,
   reduxSagaLoggerMasked: true,
@@ -126,6 +127,7 @@ export const {
   reduxSagaLogger,
   showAllTrackers,
   showDevTools,
+  filterActionLogs,
 } = config
 
 export function setup(store: any) {

@@ -12,6 +12,7 @@ import {
   enableActionLogging,
   closureStoreCheck,
   immediateStateLogging,
+  filterActionLogs,
 } from '../local-debug'
 import {globalError} from '../constants/config'
 import {isMobile} from '../constants/platform'
@@ -40,8 +41,12 @@ if (enableStoreLogging) {
   const logger = setupLogger('storeLogger', 100, immediateStateLogging, immutableToJS, 50, true)
   loggerMiddleware = createLogger({
     actionTransformer: (...args) => {
-      console.log('Action:', ...args)
-      logger.log('Action:', ...args)
+      if (filterActionLogs) {
+        args[0].type.match(filterActionLogs) && console.log('Action:', ...args)
+      } else if (args[0] && args[0].type) {
+        console.log('Action:', ...args)
+        logger.log('Action:', ...args)
+      }
       return null
     },
     collapsed: true,
@@ -55,7 +60,8 @@ if (enableStoreLogging) {
       warn: () => {},
     },
     stateTransformer: (...args) => {
-      logger.log('State:', ...args)
+      // This is noisy, so let's not show it while filtering action logs
+      !filterActionLogs && logger.log('State:', ...args)
       return null
     },
     titleFormatter: () => null,

@@ -27,6 +27,7 @@ func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatList{Contextified: libkb.NewContextified(g)}, "list", c)
+			cl.SetNoStandalone()
 		},
 		Flags: getInboxFetcherActivitySortedFlags(),
 	}
@@ -38,10 +39,8 @@ func (c *cmdChatList) Run() error {
 		return err
 	}
 
-	if !c.fetcher.async {
-		if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
-			return err
-		}
+	if err = conversationListView(conversations).show(c.G(), string(c.G().Env.GetUsername()), c.showDeviceName); err != nil {
+		return err
 	}
 
 	// TODO: print summary of inbox. e.g.

@@ -368,6 +368,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 
 	// convID will be nil in makeFirstMessage
 	if conv != nil {
+		msg.ClientHeader.Conv = conv.Metadata.IdTriple
 		msg, err = s.addPrevPointersAndCheckConvID(ctx, msg, *conv)
 		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
@@ -735,7 +736,7 @@ func (s *Deliverer) disconnectedTime() time.Duration {
 	return s.clock.Now().Sub(s.disconnTime)
 }
 
-func (s *Deliverer) IsOffline() bool {
+func (s *Deliverer) IsOffline(ctx context.Context) bool {
 	return !s.connected
 }
 

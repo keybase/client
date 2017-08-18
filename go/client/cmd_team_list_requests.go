@@ -18,7 +18,7 @@ type CmdTeamListRequests struct {
 func newCmdTeamListRequests(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "list-requests",
-		Usage: "list requests to join teams",
+		Usage: "List requests to join teams.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamListRequestsRunner(g)
 			cl.ChooseCommand(cmd, "list-requests", c)

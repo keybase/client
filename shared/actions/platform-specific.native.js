@@ -16,6 +16,14 @@ function requestPushPermissions(): Promise<*> {
   return PushNotifications.requestPermissions()
 }
 
+function setNoPushPermissions(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    AsyncStorage.setItem('allowPush', 'false', e => {
+      resolve()
+    })
+  })
+}
+
 function showMainWindow() {
   return () => {
     // nothing
@@ -127,31 +135,35 @@ function configurePush() {
 
     console.log('Check push permissions')
     if (isIOS) {
-      PushNotifications.checkPermissions(permissions => {
-        console.log('Push checked permissions:', permissions)
-        if (!permissions.alert) {
-          // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
-          // in which case we should not show prompt or show different prompt about enabling
-          // in Settings (for iOS)
-          emitter(
-            ({
-              payload: true,
-              type: 'push:permissionsPrompt',
-              logTransformer: action => ({
-                payload: action.payload,
-                type: action.type,
-              }),
-            }: PushConstants.PushPermissionsPrompt)
-          )
-        } else {
-          // We have permissions, this triggers a token registration in
-          // case it changed.
-          emitter(
-            ({
-              payload: undefined,
-              type: 'push:permissionsRequest',
-            }: PushConstants.PushPermissionsRequest)
-          )
+      AsyncStorage.getItem('allowPush', (error, result) => {
+        if (error || result !== 'false') {
+          PushNotifications.checkPermissions(permissions => {
+            console.log('Push checked permissions:', permissions)
+            if (!permissions.alert) {
+              // TODO(gabriel): Detect if we already showed permissions prompt and were denied,
+              // in which case we should not show prompt or show different prompt about enabling
+              // in Settings (for iOS)
+              emitter(
+                ({
+                  payload: true,
+                  type: 'push:permissionsPrompt',
+                  logTransformer: action => ({
+                    payload: action.payload,
+                    type: action.type,
+                  }),
+                }: PushConstants.PushPermissionsPrompt)
+              )
+            } else {
+              // We have permissions, this triggers a token registration in
+              // case it changed.
+              emitter(
+                ({
+                  payload: undefined,
+                  type: 'push:permissionsRequest',
+                }: PushConstants.PushPermissionsRequest)
+              )
+            }
+          })
         }
       })
     }
@@ -231,5 +243,6 @@ export {
   showMainWindow,
   configurePush,
   saveAttachmentDialog,
+  setNoPushPermissions,
   showShareActionSheet,
 }

@@ -261,14 +261,14 @@
 		{
 			"checksumSHA1": "g4Yd6tX6RuRViC4A2XOU/RCPYec=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "16080c7f283459f93ee1ec504596558e3493618f",
-			"revisionTime": "2017-07-31T21:07:16Z"
+			"revision": "f1237b604d4114e15fab4f08fa5bed5f202f3eb7",
+			"revisionTime": "2017-08-09T21:37:52Z"
 		},
 		{
-			"checksumSHA1": "KrkV4WmgqMfu+OWlXgS9e82hjr0=",
+			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "79987ce55dfbc05181d830cb7eecc7e0e65b56a5",
-			"revisionTime": "2017-08-02T00:28:44Z"
+			"revision": "f1237b604d4114e15fab4f08fa5bed5f202f3eb7",
+			"revisionTime": "2017-08-09T21:37:52Z"
 		},
 		{
 			"checksumSHA1": "rvlJlCMLMSpfITBgFv6OdWxlhco=",
@@ -329,16 +329,16 @@
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
 		{
-			"checksumSHA1": "xm5+2OZUaEqW5gPr9DAu4uFd7hw=",
+			"checksumSHA1": "2dhlXqY/z//xieGJNGjMjL4X6Jw=",
 			"path": "github.com/keybase/keybase-test-vectors/go",
-			"revision": "a103dea04d3a0f3ee027b641b226b7fd760a8f53",
-			"revisionTime": "2017-07-18T14:33:06Z"
+			"revision": "2bfb94411295f18596046369f6bcb3a950ceb1b5",
+			"revisionTime": "2017-08-11T14:07:22Z"
 		},
 		{
-			"checksumSHA1": "ESMHYtwUVo21l8icFb9enPsfmQE=",
+			"checksumSHA1": "k1ObysVfDPTtUa2/qEFhx6lco5M=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "64eb98a5e1d741e42c253e435c351f91c7932965",
-			"revisionTime": "2017-08-04T19:29:02Z"
+			"revision": "2bfb94411295f18596046369f6bcb3a950ceb1b5",
+			"revisionTime": "2017-08-11T14:07:22Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",

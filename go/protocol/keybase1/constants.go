@@ -66,6 +66,8 @@ const (
 	StatusCode_SCDevicePrevProvisioned    StatusCode = 1413
 	StatusCode_SCDeviceNoProvision        StatusCode = 1414
 	StatusCode_SCDeviceProvisionViaDevice StatusCode = 1415
+	StatusCode_SCRevokeCurrentDevice      StatusCode = 1416
+	StatusCode_SCRevokeLastDevice         StatusCode = 1417
 	StatusCode_SCStreamExists             StatusCode = 1501
 	StatusCode_SCStreamNotFound           StatusCode = 1502
 	StatusCode_SCStreamWrongKind          StatusCode = 1503
@@ -175,6 +177,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCDevicePrevProvisioned":    1413,
 	"SCDeviceNoProvision":        1414,
 	"SCDeviceProvisionViaDevice": 1415,
+	"SCRevokeCurrentDevice":      1416,
+	"SCRevokeLastDevice":         1417,
 	"SCStreamExists":             1501,
 	"SCStreamNotFound":           1502,
 	"SCStreamWrongKind":          1503,
@@ -282,6 +286,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1413: "SCDevicePrevProvisioned",
 	1414: "SCDeviceNoProvision",
 	1415: "SCDeviceProvisionViaDevice",
+	1416: "SCRevokeCurrentDevice",
+	1417: "SCRevokeLastDevice",
 	1501: "SCStreamExists",
 	1502: "SCStreamNotFound",
 	1503: "SCStreamWrongKind",
