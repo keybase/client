@@ -365,36 +365,20 @@ func (t *implicitTeamLookup) GetAppStatus() *AppStatus {
 
 func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
 	r.G().Log.CDebugf(ctx, "resolveTeamViaServerLookup")
-
 	res.queriedByTeamID = au.IsTeamID()
 	key, val, err := au.ToLookup()
 	if err != nil {
 		res.err = err
 		return res
 	}
-
-	arg := NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
-	arg.SessionType = APISessionTypeREQUIRED
-	arg.Args = make(HTTPArgs)
-	arg.Args[key] = S{Val: val}
-	arg.Args["lookup_only"] = B{Val: true}
-
-	var lookup teamLookup
-	if err := r.G().API.GetDecode(arg, &lookup); err != nil {
-		res.err = err
-		return res
-	}
-
-	res.resolvedTeamName = lookup.Name
-	res.teamID = lookup.ID
-
-	return res
+	/* should query server using teams implicit endpoint
+	 * 		need to make helper in teams package that returns/sorts conflict info
+	 * pick the latest team ID from there
+	 */
 }
 
 func (r *Resolver) resolveImplicitTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
 	r.G().Log.CDebugf(ctx, "resolveImplicitTeamViaServerLookup")
-
 	res.queriedByTeamID = au.IsTeamID()
 	_, val, err := au.ToLookup()
 	if err != nil {
@@ -407,11 +391,9 @@ func (r *Resolver) resolveImplicitTeamViaServerLookup(ctx context.Context, au As
 	arg.SessionType = APISessionTypeREQUIRED
 	arg.Args = make(HTTPArgs)
 	arg.Args["tid"] = S{Val: val}
-
 	var lookup implicitTeamLookup
 	if err := r.G().API.GetDecode(arg, &lookup); err != nil {
 		res.err = err
-		return res
 	}
 
 	res.resolvedTeamName = lookup.DisplayName

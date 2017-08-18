@@ -4536,6 +4536,7 @@ export type TeamNamePart = string
 export type TeamPlusApplicationKeys = {
   id: TeamID,
   name: string,
+  implicit: boolean,
   application: TeamApplication,
   writers?: ?Array<UserVersion>,
   onlyReaders?: ?Array<UserVersion>,
@@ -4564,6 +4565,7 @@ export type TeamSBSMsg = {
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
+  implicit: boolean,
   rootAncestor: TeamName,
   nameDepth: int,
   nameLog?: ?Array<TeamNameLogPoint>,
@@ -5396,15 +5398,18 @@ export type pgpPgpEncryptRpcParam = Exact<{
 }>
 
 export type pgpPgpExportByFingerprintRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  encrypted: boolean
 }>
 
 export type pgpPgpExportByKIDRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  encrypted: boolean
 }>
 
 export type pgpPgpExportRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  encrypted: boolean
 }>
 
 export type pgpPgpImportRpcParam = Exact<{
@@ -5422,6 +5427,7 @@ export type pgpPgpKeyGenRpcParam = Exact<{
   createUids: PGPCreateUids,
   allowMulti: boolean,
   doExport: boolean,
+  exportEncrypted: boolean,
   pushSecret: boolean
 }>
 
@@ -5708,11 +5714,13 @@ export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
 }>
 
 export type teamsLookupImplicitTeamRpcParam = Exact<{
-  name: string
+  name: string,
+  public: boolean
 }>
 
 export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
-  name: string
+  name: string,
+  public: boolean
 }>
 
 export type teamsTeamAcceptInviteRpcParam = Exact<{
