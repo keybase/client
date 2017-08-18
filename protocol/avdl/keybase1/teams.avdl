@@ -429,6 +429,9 @@ protocol teams {
     Time time;
   }
 
+  TeamID lookupImplicitTeam(string name, boolean public);
+  TeamID lookupOrCreateImplicitTeam(string name, boolean public);
+
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
    * If refreshers are non-empty, then force a refresh of the cache if the requirements

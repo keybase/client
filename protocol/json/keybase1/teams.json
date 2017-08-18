@@ -1319,6 +1319,32 @@
       ],
       "response": null
     },
+    "lookupImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamID"
+    },
+    "lookupOrCreateImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamID"
+    },
     "loadTeamPlusApplicationKeys": {
       "request": [
         {

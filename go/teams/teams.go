@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -117,6 +119,47 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	members.Readers = x
 
 	return members, nil
+}
+
+func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (string, error) {
+	members, err := t.Members()
+	if err != nil {
+		return "", err
+	}
+	var usernames []string
+	for _, member := range members.Owners {
+		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
+		if err != nil {
+			return "", err
+		}
+		usernames = append(usernames, name.String())
+	}
+
+	var invites []string
+	chainInvites := t.chain().inner.ActiveInvites
+	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
+	if err != nil {
+		return "", err
+	}
+	for inviteID := range chainInvites {
+		invite := inviteMap[inviteID]
+		invtyp, err := invite.Type.C()
+		if err != nil {
+			continue
+		}
+		name := string(invite.Name)
+		if invtyp == keybase1.TeamInviteCategory_SBS {
+			name += "@" + string(invite.Type.Sbs())
+		}
+		invites = append(invites, name)
+	}
+	names := append(usernames, invites...)
+	sort.Slice(names, func(i, j int) bool { return names[i] < names[j] })
+	normalized, err := kbfs.NormalizeNamesInTLF(names, nil, "")
+	if err != nil {
+		return "", err
+	}
+	return normalized, nil
 }
 
 func (t *Team) NextSeqno() keybase1.Seqno {

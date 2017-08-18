@@ -3,7 +3,7 @@
 
 // This is all stuff copied from libkbfs.
 
-package utils
+package kbfs
 
 import (
 	"fmt"
@@ -29,7 +29,7 @@ const (
 	PublicUIDName = "_public"
 )
 
-func splitAndNormalizeTLFName(name string, public bool) (
+func SplitAndNormalizeTLFName(name string, public bool) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
 
@@ -57,7 +57,7 @@ func splitAndNormalizeTLFName(name string, public bool) (
 		return nil, nil, "", NoSuchNameError{Name: name}
 	}
 
-	normalizedName, err := normalizeNamesInTLF(
+	normalizedName, err := NormalizeNamesInTLF(
 		writerNames, readerNames, extensionSuffix)
 	if err != nil {
 		return nil, nil, "", err
@@ -72,12 +72,12 @@ func splitAndNormalizeTLFName(name string, public bool) (
 // normalizeNamesInTLF takes a split TLF name and, without doing any
 // resolutions or identify calls, normalizes all elements of the
 // name. It then returns the normalized name.
-func normalizeNamesInTLF(writerNames, readerNames []string,
+func NormalizeNamesInTLF(writerNames, readerNames []string,
 	extensionSuffix string) (string, error) {
 	sortedWriterNames := make([]string, len(writerNames))
 	var err error
 	for i, w := range writerNames {
-		sortedWriterNames[i], err = normalizeAssertionOrName(w)
+		sortedWriterNames[i], err = NormalizeAssertionOrName(w)
 		if err != nil {
 			return "", err
 		}
@@ -87,7 +87,7 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 	if len(readerNames) > 0 {
 		sortedReaderNames := make([]string, len(readerNames))
 		for i, r := range readerNames {
-			sortedReaderNames[i], err = normalizeAssertionOrName(r)
+			sortedReaderNames[i], err = NormalizeAssertionOrName(r)
 			if err != nil {
 				return "", err
 			}
@@ -106,7 +106,7 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 
 // TODO: this function can likely be replaced with a call to
 // AssertionParseAndOnly when CORE-2967 and CORE-2968 are fixed.
-func normalizeAssertionOrName(s string) (string, error) {
+func NormalizeAssertionOrName(s string) (string, error) {
 	if libkb.CheckUsername.F(s) {
 		return libkb.NewNormalizedUsername(s).String(), nil
 	}
