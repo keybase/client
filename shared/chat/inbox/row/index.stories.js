@@ -4,7 +4,7 @@ import * as I from 'immutable'
 import {Box} from '../../../common-adapters'
 import {storiesOf, action} from '../../../stories/storybook'
 import {globalColors} from '../../../styles'
-import SimpleRow from './simple-row'
+import {SimpleRow} from './simple-row'
 import {TeamRow, ChannelRow} from './team-row'
 
 const simpleCommon = {

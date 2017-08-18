@@ -10,10 +10,9 @@ import TopLine from './top-line'
 import BottomLine from './bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
 
-type Props = {
+type SimpleProps = {
   backgroundColor: string,
   conversationIDKey: ConversationIDKey,
-  filtered: boolean,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -31,7 +30,7 @@ type Props = {
   youNeedToRekey: boolean,
 }
 
-class Row extends PureComponent<void, Props, void> {
+class SimpleRow extends PureComponent<void, SimpleProps, void> {
   render() {
     const props = this.props
     return (
@@ -54,7 +53,7 @@ class Row extends PureComponent<void, Props, void> {
             }}
           >
             <TopLine
-              filtered={props.filtered}
+              filtered={false}
               hasUnread={props.hasUnread}
               participants={props.participants}
               showBold={props.showBold}
@@ -63,16 +62,73 @@ class Row extends PureComponent<void, Props, void> {
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
             />
-            {props.filtered
-              ? null
-              : <BottomLine
-                  backgroundColor={props.backgroundColor}
-                  participantNeedToRekey={props.participantNeedToRekey}
-                  showBold={props.showBold}
-                  snippet={props.snippet}
-                  subColor={props.subColor}
-                  youNeedToRekey={props.youNeedToRekey}
-                />}
+            <BottomLine
+              backgroundColor={props.backgroundColor}
+              participantNeedToRekey={props.participantNeedToRekey}
+              showBold={props.showBold}
+              snippet={props.snippet}
+              subColor={props.subColor}
+              youNeedToRekey={props.youNeedToRekey}
+            />
+          </Box>
+        </Box>
+      </ClickableBox>
+    )
+  }
+}
+
+type FilteredProps = {
+  backgroundColor: string,
+  conversationIDKey: ConversationIDKey,
+  hasUnread: boolean,
+  isMuted: boolean,
+  isSelected: boolean,
+  onSelectConversation: () => void,
+  participantNeedToRekey: boolean,
+  participants: List<string>,
+  rekeyInfo: any,
+  showBold: boolean,
+  snippet: string,
+  subColor: string,
+  teamname: ?string,
+  timestamp: string,
+  unreadCount: number,
+  usernameColor: string,
+  youNeedToRekey: boolean,
+}
+
+class FilteredRow extends PureComponent<void, FilteredProps, void> {
+  render() {
+    const props = this.props
+    return (
+      <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
+        <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
+          {props.teamname
+            ? <TeamAvatar teamname={props.teamname} />
+            : <Avatars
+                backgroundColor={props.backgroundColor}
+                isMuted={props.isMuted}
+                isSelected={props.isSelected}
+                participantNeedToRekey={props.participantNeedToRekey}
+                participants={props.participants}
+                youNeedToRekey={props.youNeedToRekey}
+              />}
+          <Box
+            style={{
+              ...conversationRowStyle,
+              backgroundColor: props.backgroundColor,
+            }}
+          >
+            <TopLine
+              filtered={true}
+              hasUnread={props.hasUnread}
+              participants={props.participants}
+              showBold={props.showBold}
+              subColor={props.subColor}
+              teamname={props.teamname}
+              timestamp={props.timestamp}
+              usernameColor={props.usernameColor}
+            />
           </Box>
         </Box>
       </ClickableBox>
@@ -96,4 +152,4 @@ const rowContainerStyle = {
   minHeight: 56,
 }
 
-export default Row
+export {SimpleRow, FilteredRow}

@@ -6,7 +6,7 @@ import {isMobile} from '../../../constants/platform'
 import {List} from 'immutable'
 
 type TopLineProps = {
-  filter: string,
+  filtered: boolean,
   hasUnread: boolean,
   participants: List<string>,
   teamname: ?string,
@@ -19,7 +19,7 @@ type TopLineProps = {
 class TopLine extends PureComponent<void, TopLineProps, void> {
   render() {
     const {
-      filter,
+      filtered,
       hasUnread,
       showBold,
       participants,
@@ -31,7 +31,7 @@ class TopLine extends PureComponent<void, TopLineProps, void> {
     const height = isMobile ? 19 : 17
     const boldOverride = showBold ? globalStyles.fontBold : null
     let details = []
-    if (!filter) {
+    if (!filtered) {
       details = [
         <Text
           key="0"
