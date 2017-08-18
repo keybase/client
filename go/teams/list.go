@@ -132,12 +132,12 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 			return nil, err
 		}
 		if category == keybase1.TeamInviteCategory_KEYBASE {
-			// "keybase" invites (i.e. pukless users) have uid for name
-			uid, err := keybase1.UIDFromString(string(invite.Name))
+			// "keybase" invites (i.e. pukless users) have user version for name
+			uv, err := ParseUserVersion(string(invite.Name))
 			if err != nil {
 				return nil, err
 			}
-			normalized, err := upakLoader.LookupUsername(context.Background(), uid)
+			normalized, err := upakLoader.LookupUsername(context.Background(), uv.Uid)
 			if err != nil {
 				return nil, err
 			}
