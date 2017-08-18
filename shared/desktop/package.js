@@ -36,7 +36,7 @@ const shouldBuildAnArch = argv.arch || false
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
-const appCopyright = 'Copyright (c) 2015, Keybase'
+const appCopyright = 'Copyright (c) 2017, Keybase'
 const companyName = 'Keybase, Inc.'
 
 const packagerOpts = {

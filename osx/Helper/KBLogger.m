@@ -3,7 +3,7 @@
 //  Keybase
 //
 //  Created by Gabriel on 7/22/16.
-//  Copyright © 2016 Keybase. All rights reserved.
+//  Copyright © 2017 Keybase. All rights reserved.
 //
 
 #import "KBLogger.h"

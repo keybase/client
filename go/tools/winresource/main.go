@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 // This is a utility which binds to libkb to get the correct version
@@ -192,7 +192,7 @@ func main() {
 			CompanyName:      "Keybase, Inc.",
 			FileDescription:  *fileDescriptionPtr,
 			InternalName:     "Keybase",
-			LegalCopyright:   "Copyright (c) 2015, Keybase",
+			LegalCopyright:   "Copyright (c) 2017, Keybase",
 			OriginalFilename: *originalFilenamePtr,
 			ProductName:      "Keybase",
 			ProductVersion:   libkb.VersionString(),

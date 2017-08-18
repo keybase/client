@@ -447,7 +447,7 @@ def header(filename) <<-EOS
 //
 //  #{filename}
 //  Keybase
-//  Copyright © 2016 Keybase. All rights reserved.
+//  Copyright © 2017 Keybase. All rights reserved.
 //
 
 import Foundation

@@ -3,7 +3,7 @@
 //  Keybase
 //
 //  Created by Chris Nojima on 8/29/16.
-//  Copyright © 2016 Keybase. All rights reserved.
+//  Copyright © 2017 Keybase. All rights reserved.
 //
 
 #import "Utils.h"

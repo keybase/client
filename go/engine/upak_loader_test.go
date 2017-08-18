@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 // There are two test files by this name. One in libkb, one in engine.
