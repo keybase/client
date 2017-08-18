@@ -11,6 +11,7 @@ type ImageProps = {
   opacity: ?number,
   size: AvatarSize,
   url: string,
+  borderRadius: any,
 }
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
   children: any,
   followIconStyle: ?Object,
   followIconType: ?IconType,
+  isTeam?: boolean,
   loadingColor: ?string,
   onClick?: ?(event: SyntheticEvent) => void,
   opacity: ?number,
@@ -31,72 +33,98 @@ type State = {
   loaded: boolean,
 }
 
+const sizeToTeamBorderRadius = {
+  '112': 12,
+  '12': 3,
+  '16': 4,
+  '176': 24,
+  '24': 4,
+  '32': 5,
+  '40': 6,
+  '48': 6,
+  '64': 8,
+  '80': 10,
+}
+
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
 const backgroundOffset = 1
-class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
+const BackgroundDiv = glamorous.div(
+  {
+    bottom: backgroundOffset,
+    left: backgroundOffset,
+    position: 'absolute',
+    right: backgroundOffset,
+    top: backgroundOffset,
+  },
+  props => ({
+    backgroundColor: props.loaded ? globalColors.white : props.loadingColor || globalColors.lightGrey,
+    borderRadius: props.borderRadius,
+  })
+)
+class Background
+  extends PureComponent<void, {loaded: boolean, loadingColor: ?string, borderRadius: any}, void> {
   render() {
-    const Div = glamorous.div(
-      {
-        borderRadius: '50%',
-        bottom: backgroundOffset,
-        left: backgroundOffset,
-        position: 'absolute',
-        right: backgroundOffset,
-        top: backgroundOffset,
-      },
-      props => ({
-        backgroundColor: props.loaded ? globalColors.white : props.loadingColor || globalColors.lightGrey,
-      })
+    return (
+      <BackgroundDiv
+        loaded={this.props.loaded}
+        loadingColor={this.props.loadingColor}
+        borderRadius={this.props.borderRadius}
+      />
     )
-    return <Div loaded={this.props.loaded} loadingColor={this.props.loadingColor} />
   }
 }
 
 // The actual image
+const UserImageDiv = glamorous.div(
+  {
+    backgroundSize: 'cover',
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  props => {
+    const {opacity = 1} = props
+    return {
+      backgroundImage: props.url,
+      borderRadius: props.borderRadius,
+      height: props.size,
+      maxWidth: props.size,
+      minWidth: props.size,
+      opacity,
+    }
+  }
+)
 class UserImage extends PureComponent<void, ImageProps, void> {
   render() {
-    const Div = glamorous.div(
-      {
-        backgroundSize: 'cover',
-        borderRadius: '50%',
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
-      props => {
-        const {opacity = 1} = props
-        return {
-          backgroundImage: props.url,
-          height: props.size,
-          maxWidth: props.size,
-          minWidth: props.size,
-          opacity,
-        }
-      }
+    return (
+      <UserImageDiv
+        opacity={this.props.opacity}
+        size={this.props.size}
+        url={this.props.url}
+        borderRadius={this.props.borderRadius}
+      />
     )
-
-    return <Div opacity={this.props.opacity} size={this.props.size} url={this.props.url} />
   }
 }
 
 const borderOffset = 1
 const borderSize = 2
 // Layer on top to extend outside of the image
-const Border = ({borderColor, size}) => (
+const Border = ({borderColor, size, borderRadius}) => (
   <div
     style={{
       background: globalColors.transparent,
-      borderRadius: '100%',
+      borderRadius,
       bottom: borderOffset,
       boxShadow: `0px 0px 0px ${borderSize}px ${borderColor}`,
       left: borderOffset,
+      maxWidth: size,
+      minWidth: size,
       position: 'absolute',
       right: borderOffset,
       top: borderOffset,
-      minWidth: size,
-      maxWidth: size,
     }}
   />
 )
@@ -168,37 +196,38 @@ class AvatarRender extends PureComponent<void, Props, State> {
   }
 
   render() {
-    const {
-      url,
-      onClick,
-      style,
-      size,
-      loadingColor,
-      borderColor,
-      opacity,
-      followIconType,
-      followIconStyle,
-      children,
-      skipBackground,
-    } = this.props
+    const borderRadius = this.props.isTeam ? sizeToTeamBorderRadius[String(this.props.size)] : '50%'
 
     return (
       <div
-        onClick={onClick}
+        onClick={this.props.onClick}
         style={{
           ...globalStyles.noSelect,
-          height: size,
+          height: this.props.size,
+          maxWidth: this.props.size,
+          minWidth: this.props.size,
           position: 'relative',
-          minWidth: size,
-          maxWidth: size,
-          ...style,
+          ...this.props.style,
         }}
       >
-        {!skipBackground && <Background loaded={this.state.loaded} loadingColor={loadingColor} />}
-        {url && <UserImage opacity={opacity} size={size} url={url} />}
-        {!!borderColor && <Border borderColor={borderColor} size={size} />}
-        {followIconType && <Icon type={followIconType} style={followIconStyle} />}
-        {children}
+        {!this.props.skipBackground &&
+          <Background
+            loaded={this.state.loaded}
+            loadingColor={this.props.loadingColor}
+            borderRadius={borderRadius}
+          />}
+        {this.props.url &&
+          <UserImage
+            opacity={this.props.opacity}
+            size={this.props.size}
+            url={this.props.url}
+            borderRadius={borderRadius}
+          />}
+        {!!this.props.borderColor &&
+          <Border borderColor={this.props.borderColor} size={this.props.size} borderRadius={borderRadius} />}
+        {this.props.followIconType &&
+          <Icon type={this.props.followIconType} style={this.props.followIconStyle} />}
+        {this.props.children}
       </div>
     )
   }
