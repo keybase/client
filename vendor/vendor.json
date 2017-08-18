@@ -406,6 +406,11 @@
 			"revisionTime": "2016-11-28T21:05:44Z"
 		},
 		{
+			"path": "github.com/sergi/go-diff/diffmatchpatch",
+			"revision": "feef008d51ad2b3778f85d387ccf91735543008d",
+			"revisionTime": "2017-04-09T09:17:39+02:00"
+		},
+		{
 			"checksumSHA1": "zJZyxS96XiEnDJSZkWwXtktziRY=",
 			"path": "github.com/shirou/gopsutil/internal/common",
 			"revision": "22a03b5be3f384f558742929065778aa26471033",
@@ -416,6 +421,26 @@
 			"path": "github.com/shirou/gopsutil/mem",
 			"revision": "22a03b5be3f384f558742929065778aa26471033",
 			"revisionTime": "2016-06-14T09:28:26Z"
+		},
+		{
+			"path": "github.com/src-d/gcfg",
+			"revision": "f187355171c936ac84a82793659ebb4936bc1c23",
+			"revisionTime": "2016-10-26T12:01:55+02:00"
+		},
+		{
+			"path": "github.com/src-d/gcfg/scanner",
+			"revision": "f187355171c936ac84a82793659ebb4936bc1c23",
+			"revisionTime": "2016-10-26T12:01:55+02:00"
+		},
+		{
+			"path": "github.com/src-d/gcfg/token",
+			"revision": "f187355171c936ac84a82793659ebb4936bc1c23",
+			"revisionTime": "2016-10-26T12:01:55+02:00"
+		},
+		{
+			"path": "github.com/src-d/gcfg/types",
+			"revision": "f187355171c936ac84a82793659ebb4936bc1c23",
+			"revisionTime": "2016-10-26T12:01:55+02:00"
 		},
 		{
 			"checksumSHA1": "kDPbDtntPM6hgITCDqxqBBKYVtQ=",
@@ -513,6 +538,11 @@
 			"revisionTime": "2013-09-23T14:52:12Z"
 		},
 		{
+			"path": "github.com/xanzy/ssh-agent",
+			"revision": "ba9c9e33906f58169366275e3450db66139a31a9",
+			"revisionTime": "2015-12-15T16:34:51+01:00"
+		},
+		{
 			"checksumSHA1": "TT1rac6kpQp2vz24m5yDGUNQ/QQ=",
 			"path": "golang.org/x/crypto/cast5",
 			"revision": "cbc3d0884eac986df6e78a039b8792e869bff863",
@@ -583,6 +613,21 @@
 			"path": "golang.org/x/crypto/scrypt",
 			"revision": "cbc3d0884eac986df6e78a039b8792e869bff863",
 			"revisionTime": "2017-04-09T18:29:52Z"
+		},
+		{
+			"path": "golang.org/x/crypto/ssh",
+			"revision": "2faea1465de239e4babd8f5905cc25b781712442",
+			"revisionTime": "2017-07-22T22:00:11-07:00"
+		},
+		{
+			"path": "golang.org/x/crypto/ssh/agent",
+			"revision": "2faea1465de239e4babd8f5905cc25b781712442",
+			"revisionTime": "2017-07-22T22:00:11-07:00"
+		},
+		{
+			"path": "golang.org/x/crypto/ssh/knownhosts",
+			"revision": "2faea1465de239e4babd8f5905cc25b781712442",
+			"revisionTime": "2017-07-22T22:00:11-07:00"
 		},
 		{
 			"checksumSHA1": "/qXTeb4Dp6W5qlttwaN+Yur36+A=",
@@ -881,6 +926,11 @@
 			"path": "gopkg.in/src-d/go-git.v4/utils/merkletrie/noder",
 			"revision": "c17627c5ee10ed6e9ef92dafb8d5b46160484e0d",
 			"revisionTime": "2017-07-27T18:06:13+02:00"
+		},
+		{
+			"path": "gopkg.in/warnings.v0",
+			"revision": "8a331561fe74dadba6edfc59f3be66c22c3b065d",
+			"revisionTime": "2016-08-15T20:11:09+02:00"
 		},
 		{
 			"path": "h12.me/socks",
