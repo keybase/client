@@ -132,7 +132,7 @@
     "del": "3.0.0",
     "devtron": "1.4.0",
     "electron": "1.7.5",
-    "electron-download": "git://github.com/keybase/electron-download#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d",
+    "electron-download": "git://github.com/keybase/electron-download#keybase-fixes-off-410",
     "electron-packager": "8.7.2",
     "eslint": "4.4.1",
     "eslint-config-standard": "10.2.1",
