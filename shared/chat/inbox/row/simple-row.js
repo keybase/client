@@ -91,7 +91,6 @@ class TopLine extends PureComponent<void, TopLineProps, void> {
           >
             <Usernames
               inline={true}
-              filter={filter}
               plainText={true}
               type="BodySemibold"
               plainDivider={isMobile ? undefined : ',\u200a'}
