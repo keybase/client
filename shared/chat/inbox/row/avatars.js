@@ -1,5 +1,5 @@
 // @flow
-import React, {PureComponent} from 'react'
+import React from 'react'
 import {Avatar, MultiAvatar, Icon, Box} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -27,59 +27,50 @@ type AvatarProps = {
   backgroundColor: string,
 }
 
-class Avatars extends PureComponent<void, AvatarProps, void> {
-  render() {
-    const {
-      participants,
-      youNeedToRekey,
-      participantNeedToRekey,
-      isMuted,
-      isSelected,
-      backgroundColor,
-    } = this.props
+function Avatars(props: AvatarProps) {
+  const {participants, youNeedToRekey, participantNeedToRekey, isMuted, isSelected, backgroundColor} = props
 
-    const avatarCount = Math.min(2, participants.count())
+  const avatarCount = Math.min(2, participants.count())
 
-    let icon
-    if (isMuted) {
-      const type = isSelected
-        ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
-        : isMobile ? 'icon-shh-24' : 'icon-shh-16'
-      icon = <Icon type={type} style={avatarMutedIconStyle} />
-    } else if (participantNeedToRekey || youNeedToRekey) {
-      const type = isSelected
-        ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
-        : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
-      icon = <Icon type={type} style={avatarLockIconStyle} />
-    }
-
-    const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
-    const avatarProps = participants
-      .slice(0, 2)
-      .map((username, idx) => ({
-        borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-        loadingColor: globalColors.lightGrey,
-        size: isMobile ? 24 : 32,
-        skipBackground: isMobile,
-        username,
-      }))
-      .toArray()
-
-    return (
-      <Box style={avatarBoxStyle(backgroundColor)}>
-        <Box style={avatarInnerBoxStyle}>
-          <MultiAvatar
-            singleSize={isMobile ? 48 : 40}
-            multiSize={32}
-            avatarProps={avatarProps}
-            multiPadding={isMobile ? 2 : 0}
-            style={{...multiStyle(backgroundColor), opacity}}
-          />
-          {icon}
-        </Box>
-      </Box>
-    )
+  let icon
+  if (isMuted) {
+    const type = isSelected
+      ? isMobile ? 'icon-shh-active-24' : 'icon-shh-active-16'
+      : isMobile ? 'icon-shh-24' : 'icon-shh-16'
+    icon = <Icon type={type} style={avatarMutedIconStyle} />
+  } else if (participantNeedToRekey || youNeedToRekey) {
+    const type = isSelected
+      ? isMobile ? 'icon-addon-lock-active-12' : 'icon-addon-lock-active-8'
+      : isMobile ? 'icon-addon-lock-12' : 'icon-addon-lock-8'
+    icon = <Icon type={type} style={avatarLockIconStyle} />
   }
+
+  const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
+  const avatarProps = participants
+    .slice(0, 2)
+    .map((username, idx) => ({
+      borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
+      loadingColor: globalColors.lightGrey,
+      size: isMobile ? 24 : 32,
+      skipBackground: isMobile,
+      username,
+    }))
+    .toArray()
+
+  return (
+    <Box style={avatarBoxStyle(backgroundColor)}>
+      <Box style={avatarInnerBoxStyle}>
+        <MultiAvatar
+          singleSize={isMobile ? 48 : 40}
+          multiSize={32}
+          avatarProps={avatarProps}
+          multiPadding={isMobile ? 2 : 0}
+          style={{...multiStyle(backgroundColor), opacity}}
+        />
+        {icon}
+      </Box>
+    </Box>
+  )
 }
 
 const multiStyle = memoize(backgroundColor => {
@@ -118,14 +109,12 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-class TeamAvatar extends PureComponent<void, {teamname: string}, void> {
-  render() {
-    return (
-      <Box style={_avatarBoxStyle}>
-        <Avatar teamname={this.props.teamname} size={40} />
-      </Box>
-    )
-  }
+function TeamAvatar(props: {teamname: string}) {
+  return (
+    <Box style={_avatarBoxStyle}>
+      <Avatar teamname={props.teamname} size={40} />
+    </Box>
+  )
 }
 
 const avatarMutedIconStyle = {
