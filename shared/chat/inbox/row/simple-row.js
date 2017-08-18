@@ -4,27 +4,22 @@ import {Box, ClickableBox} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 import {List} from 'immutable'
 
-import type {ConversationIDKey} from '../../../constants/chat'
-
 import {SimpleTopLine, FilteredTopLine} from './top-line'
 import BottomLine from './bottom-line'
 import {Avatars} from './avatars'
 
 type SimpleProps = {
   backgroundColor: string,
-  conversationIDKey: ConversationIDKey,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: List<string>,
-  rekeyInfo: any,
   showBold: boolean,
   snippet: string,
   subColor: string,
   timestamp: string,
-  unreadCount: number,
   usernameColor: string,
   youNeedToRekey: boolean,
 }
