@@ -3206,10 +3206,6 @@ export type ImplicitRole = {
   ancestor: TeamID,
 }
 
-export type ImplicitTeamBackingName = {
-  suffix: string,
-}
-
 export type ImplicitTeamConflictInfo = {
   generation: int,
   time: Time,

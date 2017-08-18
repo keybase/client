@@ -568,18 +568,16 @@ func TestParseImplicitTeamBackingName(t *testing.T) {
 	defer tc.Cleanup()
 
 	badNames := []string{
-		"t2423",
-		"hello.world",
 		"__keybase_implicit_team__",
 		"__keybase_implicit_team__12345678901234567801234567890q",
 		"__keybase_implicit_team__12345678901234567801234567890",
 	}
 	for _, badName := range badNames {
-		_, err := keybase1.ImplicitTeamBackingNameFromString(badName)
+		_, err := keybase1.TeamNameFromString(badName)
 		require.Error(t, err)
 	}
 	goodName := "__keybase_implicit_team__0123456789abcdef0123456789abcdef"
-	name, err := keybase1.ImplicitTeamBackingNameFromString(goodName)
+	name, err := keybase1.TeamNameFromString(goodName)
 	require.NoError(t, err)
-	require.Equal(t, name.Suffix, "0123456789abcdef0123456789abcdef")
+	require.Equal(t, string(name.Parts[0]), "__keybase_implicit_team__0123456789abcdef0123456789abcdef")
 }

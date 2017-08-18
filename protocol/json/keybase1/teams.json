@@ -666,16 +666,6 @@
     },
     {
       "type": "record",
-      "name": "ImplicitTeamBackingName",
-      "fields": [
-        {
-          "type": "string",
-          "name": "suffix"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "TeamCLKRMsg",
       "fields": [
         {
