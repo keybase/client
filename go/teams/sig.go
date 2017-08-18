@@ -59,7 +59,7 @@ func RootTeamIDFromNameString(name string) keybase1.TeamID {
 }
 
 func NewImplicitTeamName() (string, error) {
-	dat, err := libkb.RandBytes(16)
+	dat, err := libkb.RandBytes(keybase1.ImplicitSuffixLengthBytes)
 	if err != nil {
 		return "", err
 	}
