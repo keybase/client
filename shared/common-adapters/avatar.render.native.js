@@ -67,7 +67,8 @@ const BackgroundView = glamorous.view(
   })
 )
 
-class Background extends PureComponent<void, {loaded: boolean, loadingColor: any, size: number}, void> {
+class Background
+  extends PureComponent<void, {loaded: boolean, loadingColor: any, borderRadius: number}, void> {
   render() {
     return (
       <BackgroundView
