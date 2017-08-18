@@ -8,7 +8,7 @@ import type {ConversationIDKey} from '../../../constants/chat'
 
 import TopLine from './top-line'
 import BottomLine from './bottom-line'
-import {Avatars, TeamAvatar} from './avatars'
+import {Avatars} from './avatars'
 
 type SimpleProps = {
   backgroundColor: string,
@@ -23,7 +23,6 @@ type SimpleProps = {
   showBold: boolean,
   snippet: string,
   subColor: string,
-  teamname: ?string,
   timestamp: string,
   unreadCount: number,
   usernameColor: string,
@@ -36,16 +35,14 @@ class SimpleRow extends PureComponent<void, SimpleProps, void> {
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          {props.teamname
-            ? <TeamAvatar teamname={props.teamname} />
-            : <Avatars
-                backgroundColor={props.backgroundColor}
-                isMuted={props.isMuted}
-                isSelected={props.isSelected}
-                participantNeedToRekey={props.participantNeedToRekey}
-                participants={props.participants}
-                youNeedToRekey={props.youNeedToRekey}
-              />}
+          <Avatars
+            backgroundColor={props.backgroundColor}
+            isMuted={props.isMuted}
+            isSelected={props.isSelected}
+            participantNeedToRekey={props.participantNeedToRekey}
+            participants={props.participants}
+            youNeedToRekey={props.youNeedToRekey}
+          />
           <Box
             style={{
               ...conversationRowStyle,
@@ -103,16 +100,14 @@ class FilteredRow extends PureComponent<void, FilteredProps, void> {
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          {props.teamname
-            ? <TeamAvatar teamname={props.teamname} />
-            : <Avatars
-                backgroundColor={props.backgroundColor}
-                isMuted={props.isMuted}
-                isSelected={props.isSelected}
-                participantNeedToRekey={props.participantNeedToRekey}
-                participants={props.participants}
-                youNeedToRekey={props.youNeedToRekey}
-              />}
+          <Avatars
+            backgroundColor={props.backgroundColor}
+            isMuted={props.isMuted}
+            isSelected={props.isSelected}
+            participantNeedToRekey={props.participantNeedToRekey}
+            participants={props.participants}
+            youNeedToRekey={props.youNeedToRekey}
+          />
           <Box
             style={{
               ...conversationRowStyle,
