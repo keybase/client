@@ -9,13 +9,13 @@ import Icon from './icon'
 import Text from './text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-class TabBarItem extends Component<void, ItemProps, void> {
+class TabBarItem extends Component<ItemProps, void> {
   render() {
     return this.props.children
   }
 }
 
-class SimpleTabBarButton extends Component<void, ItemProps, void> {
+class SimpleTabBarButton extends Component<ItemProps, void> {
   render() {
     const selectedColor = this.props.selectedColor || globalColors.blue
     return (
@@ -85,8 +85,8 @@ const TabBarButton = (props: TabBarButtonProps) => {
   return content
 }
 
-class TabBar extends Component<void, Props, void> {
-  _labels(): Array<React$Element<*>> {
+class TabBar extends Component<Props, void> {
+  _labels(): Array<React.Element<any>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
       const key = item.props.label || get(item, 'props.tabBarButton.props.label') || i

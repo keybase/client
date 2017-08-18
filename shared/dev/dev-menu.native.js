@@ -7,7 +7,7 @@ import {navigateAppend} from '../actions/route-tree'
 import {Box, Text} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 
-class DevMenu extends Component {
+class DevMenu extends Component<$FlowFixMeProps> {
   render() {
     const menuItems = [
       {name: 'Dumb components', hasChildren: true, onClick: this.props.onDumbSheet},

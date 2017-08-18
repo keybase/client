@@ -8,11 +8,11 @@ export type OwnProps = {|
   onAction: (
     message: Constants.ServerMessage,
     localMessageState: Constants.LocalMessageState,
-    event: SyntheticEvent
+    event: SyntheticEvent<>
   ) => void,
-  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
-  innerClass: ReactClass<*>,
+  innerClass: React$ComponentType<*>,
   measure: ?() => void,
 |}
 
@@ -35,4 +35,4 @@ export type DispatchProps = {|
   _onUsernameClick: (username: string) => void,
 |}
 
-export default class Wrapper extends Component<void, OwnProps, void> {}
+export default class Wrapper extends Component<OwnProps, void> {}

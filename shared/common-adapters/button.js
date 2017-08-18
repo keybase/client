@@ -15,7 +15,7 @@ const Progress = ({small}) => (
   </Box>
 )
 
-class Button extends Component<void, Props, void> {
+class Button extends Component<Props, void> {
   render() {
     const backgroundModeName = this.props.backgroundMode
       ? {

@@ -18,7 +18,7 @@ type Props = {
   setRouteState: (path: Path, partialState: {}) => void,
 }
 
-class Main extends Component<void, Props, void> {
+class Main extends Component<Props, void> {
   _updateBadges = () => {
     ipcRenderer.send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
   }

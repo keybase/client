@@ -8,7 +8,7 @@ import {globalStyles} from '../../../styles'
 
 import type {Props} from '.'
 
-class ConversationList extends Component<void, Props, void> {
+class ConversationList extends Component<Props, void> {
   _scrollRef: ?any
 
   _onAction = (message: Constants.ServerMessage) => {

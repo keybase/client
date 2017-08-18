@@ -6,4 +6,4 @@ export type OwnProps = {
   messageKey: Constants.MessageKey,
 }
 
-export default class Header extends Component<void, OwnProps, void> {}
+export default class Header extends Component<OwnProps, void> {}

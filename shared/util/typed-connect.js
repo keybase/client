@@ -8,12 +8,12 @@ type TypedMergeProps<State, Dispatch, OwnProps, Props> = (
   ownProps: OwnProps
 ) => Props
 
-export class ConnectedComponent<OwnProps> extends Component<void, OwnProps, void> {}
+export class ConnectedComponent<OwnProps> extends Component<OwnProps, void> {}
 
 export class TypedConnector<State, Dispatch, OwnProps, Props> {
   connect(
     mergeProps: TypedMergeProps<State, Dispatch, OwnProps, Props>
-  ): (smartComponent: ReactClass<*>) => Class<ConnectedComponent<OwnProps>> {
+  ): (smartComponent: React$ComponentType<*>) => Class<ConnectedComponent<OwnProps>> {
     // $FlowIssue doesn't play nice with other typed connect
     return connect(
       state => ({state}),

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import ResultRow from './result-row'
 import ResultsList from './results-list'
 import ServicesFilter from './services-filter'

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import type {Props} from './clickable-box'
 import Box from './box'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'

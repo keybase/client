@@ -4,7 +4,7 @@ import {View as NativeView} from 'react-native'
 import {colorBoxes} from '../local-debug.native'
 
 // Has to be a class as we use refs to this sometimes apparently
-class ColorView extends Component<void, any, void> {
+class ColorView extends Component<any, void> {
   render() {
     return (
       <NativeView

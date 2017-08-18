@@ -11,7 +11,7 @@ import type {TypedState} from '../../constants/reducer'
 import type {TimerProps} from '../../common-adapters/hoc-timers'
 import type {Props} from './index'
 
-class DeleteConfirmContainer extends Component<void, Props & TimerProps, void> {
+class DeleteConfirmContainer extends Component<Props & TimerProps, void> {
   componentWillMount() {
     this.props.setAllowDeleteAccount(false)
   }

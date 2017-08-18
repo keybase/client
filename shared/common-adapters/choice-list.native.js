@@ -12,7 +12,7 @@ type State = {
   activeIndex: ?number,
 }
 
-class ChoiceList extends Component<void, Props, State> {
+class ChoiceList extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

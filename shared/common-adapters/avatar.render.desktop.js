@@ -19,7 +19,7 @@ type Props = {
   followIconStyle: ?Object,
   followIconType: ?IconType,
   loadingColor: ?string,
-  onClick?: ?(event: SyntheticEvent) => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,
@@ -33,7 +33,7 @@ type State = {
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
 const backgroundOffset = 1
-class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?string}, void> {
+class Background extends PureComponent<{loaded: boolean, loadingColor: ?string}, void> {
   render() {
     const Div = glamorous.div(
       {
@@ -53,7 +53,7 @@ class Background extends PureComponent<void, {loaded: boolean, loadingColor: ?st
 }
 
 // The actual image
-class UserImage extends PureComponent<void, ImageProps, void> {
+class UserImage extends PureComponent<ImageProps, void> {
   render() {
     const Div = glamorous.div(
       {
@@ -103,7 +103,7 @@ const Border = ({borderColor, size}) => (
 
 const _alreadyLoaded: {[name: string]: ?true} = {}
 
-class AvatarRender extends PureComponent<void, Props, State> {
+class AvatarRender extends PureComponent<Props, State> {
   state: State = {
     loaded: false,
   }

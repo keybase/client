@@ -31,8 +31,8 @@ export type Props = {
   rows: List<ConversationIDKey>,
   onNewChat: () => void,
   loadInbox: () => void,
-  children?: React$Element<*>,
+  children?: React$Element<any>,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
 }
 
-export default class Inbox extends Component<void, Props, void> {}
+export default class Inbox extends Component<Props, void> {}

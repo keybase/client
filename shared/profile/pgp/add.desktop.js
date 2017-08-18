@@ -4,7 +4,7 @@ import {Box, Button, Input, PlatformIcon, StandardScreen, Text} from '../../comm
 import {globalStyles, globalMargins} from '../../styles'
 import type {Props} from './add'
 
-class PgpAdd extends Component<void, Props, void> {
+class PgpAdd extends Component<Props, void> {
   render() {
     const nextDisabled = !this.props.email1 || !this.props.fullName || !!this.props.errorText
     return (

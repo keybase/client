@@ -1,6 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 // @flow
-import React from 'react'
+import * as React from 'react';
 import ScrollView from '../common-adapters/scroll-view'
 import {configure, addDecorator} from '@storybook/react'
 import stories from './stories'

@@ -33,4 +33,4 @@ export type Props = {
 
 declare export function usernameText(props: Props): void
 
-declare export default class Usernames extends Component<void, Props, void> {}
+declare export default class Usernames extends Component<Props> {}

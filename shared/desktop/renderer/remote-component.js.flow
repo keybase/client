@@ -13,4 +13,4 @@ export type Props = {
   ignoreNewProps?: boolean,
 }
 
-export default class RemoteComponent extends Component<void, Props, void> {}
+export default class RemoteComponent extends Component<Props, void> {}

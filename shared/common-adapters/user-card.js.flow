@@ -10,4 +10,4 @@ export type Props = {
   children?: Array<any>,
 }
 
-declare export default class UserCard extends Component<void, Props, void> {}
+declare export default class UserCard extends Component<Props> {}

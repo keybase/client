@@ -18,7 +18,7 @@ type State = {
   username: ?string,
 }
 
-class ProveEnterUsernameContainer extends Component<void, any, State> {
+class ProveEnterUsernameContainer extends Component<any, State> {
   state: State
   constructor() {
     super()

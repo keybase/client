@@ -84,7 +84,7 @@ const followSizeToStyle = {
   '80': {bottom: 0, left: 57, position: 'absolute'},
 }
 
-class Avatar extends Component<void, Props, State> {
+class Avatar extends Component<Props, State> {
   state: State
   _mounted: boolean = false
   _onURLLoaded = (username: string, urlMap: ?URLMap) => {

@@ -10,4 +10,4 @@ export type Props = {
   onBack: () => void,
 }
 
-export default class SelectOtherDevice extends Component<void, Props, void> {}
+export default class SelectOtherDevice extends Component<Props, void> {}

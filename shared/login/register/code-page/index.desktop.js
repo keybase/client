@@ -127,7 +127,7 @@ function _otherIsPhone(otherDeviceRole) {
   return [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(otherDeviceRole) !== -1
 }
 
-class CodePage extends Component<void, Props, void> {
+class CodePage extends Component<Props, void> {
   render() {
     switch (this.props.mode) {
       case codePageModeShowCode:

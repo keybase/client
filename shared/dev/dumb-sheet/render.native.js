@@ -9,7 +9,7 @@ import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './render'
 
-class DumbSheetRender extends Component<void, Props, any> {
+class DumbSheetRender extends Component<Props, any> {
   state: any
   _onFilterChange: (a: any) => void
   _onFilterChangeProp: (a: any) => void

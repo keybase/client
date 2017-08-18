@@ -5,11 +5,11 @@ export type Props = {
   onClose: () => void,
   allowClipBubbling?: boolean,
   fill?: boolean,
-  children?: React$Element<*>,
+  children?: React$Element<any>,
   styleCover?: Object,
   styleContainer?: Object,
   styleClose?: Object,
   styleClipContainer?: Object,
 }
 
-export default class PopupDialog extends Component<void, Props, void> {}
+export default class PopupDialog extends Component<Props, void> {}

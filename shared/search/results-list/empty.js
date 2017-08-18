@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import {Box, Text} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'

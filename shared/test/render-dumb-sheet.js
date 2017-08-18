@@ -1,6 +1,6 @@
 // @flow
 import {ipcRenderer} from 'electron'
-import React from 'react'
+import * as React from 'react';
 import ReactDOM from 'react-dom'
 import {GlobalEscapeHandler} from '../util/escape-handler'
 import dumbComponentMap from '../dev/dumb-sheet/component-map.desktop'

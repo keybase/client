@@ -7,7 +7,7 @@ import {notificationsRefresh, notificationsSave, notificationsToggle} from '../.
 
 import type {TypedState} from '../../constants/reducer'
 
-class NotificationsContainer extends Component {
+class NotificationsContainer extends Component<$FlowFixMeProps> {
   componentWillMount() {
     this.props.onRefresh()
   }

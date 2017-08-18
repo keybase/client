@@ -11,7 +11,7 @@ type Props = {
   open: boolean,
 }
 
-class RemotePurgeMessage extends Component<void, Props, void> {
+class RemotePurgeMessage extends Component<Props, void> {
   shouldComponentUpdate(nextProps, nextState) {
     return nextProps !== this.props
   }

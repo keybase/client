@@ -49,6 +49,6 @@ export type Props = {
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
 }
 
-declare export default class Input extends Component<void, Props, void> {
+declare export default class Input extends Component<Props> {
   setNativeProps(props: Object): {},
 }

@@ -9,7 +9,7 @@ type State = {
   measuredWidth: ?number,
 }
 
-class AutosizeInput extends Component<void, Props, State> {
+class AutosizeInput extends Component<Props, State> {
   _inputEl: HTMLElement
   _measureEl: HTMLElement
   _raf: number

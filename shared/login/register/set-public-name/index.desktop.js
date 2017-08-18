@@ -1,6 +1,6 @@
 // @flow
 import Container from '../../forms/container'
-import React from 'react'
+import * as React from 'react';
 import {Text, Button, Input, Icon} from '../../../common-adapters'
 import {globalMargins} from '../../../styles'
 

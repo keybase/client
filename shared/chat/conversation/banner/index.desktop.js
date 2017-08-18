@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import {Text, Header as CommonHeader} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'

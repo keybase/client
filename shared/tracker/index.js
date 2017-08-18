@@ -51,7 +51,7 @@ export function trackerPropsToRenderProps(tprops: TrackerProps): RenderPropsUnsh
   return {...tprops}
 }
 
-class Tracker extends Component<void, TrackerProps, void> {
+class Tracker extends Component<TrackerProps, void> {
   componentWillMount() {
     this.props.startTimer()
   }

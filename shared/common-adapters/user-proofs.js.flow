@@ -27,6 +27,6 @@ export type Props =
     type: 'missingProofs',
     missingProofs: Array<MissingProof>,
   } & CommonProps)
-export default class ProofsRender extends Component<void, Props, void> {
-  getRow: (idx: number) => React$Component<*, *, *>
+export default class ProofsRender extends Component<Props, void> {
+  getRow: (idx: number) => React$Component<*, *>
 }

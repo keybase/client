@@ -10,7 +10,7 @@ import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow({missingProof}: {missingProof: MissingProof}): React$Element<*> {
+function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Element<any> {
   const missingColor = globalColors.black_20
   return (
     <Box
@@ -52,7 +52,7 @@ type ProofRowState = {
   popupMenuPosition: {},
 }
 
-class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
+class ProofRow extends PureComponent<ProofRowProps, ProofRowState> {
   state: ProofRowState
   _onMouseEnter: () => void
   _onMouseLeave: () => void
@@ -154,8 +154,8 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
 // CSSTransition injects foreign props so lets not just accept all props
 const IgnorePropsBox = ({children, onlyProps}) => <Box {...onlyProps}>{children}</Box>
 
-class ProofsRender extends Component<void, Props, void> {
-  _rows: Array<React$Element<*>>
+class ProofsRender extends Component<Props, void> {
+  _rows: Array<React.Element<any>>
 
   constructor(props: Props) {
     super(props)

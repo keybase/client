@@ -5,4 +5,4 @@ export type Props = {
   children?: string,
 }
 
-export default class SubHeading extends Component<void, Props, void> {}
+export default class SubHeading extends Component<Props, void> {}

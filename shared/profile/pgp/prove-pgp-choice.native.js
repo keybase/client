@@ -4,7 +4,7 @@ import {StandardScreen, ChoiceList, Text} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 import type {Props} from './prove-pgp-choice'
 
-class ProvePgpChoice extends Component<void, Props, void> {
+class ProvePgpChoice extends Component<Props, void> {
   provePgpChoice() {
     // PGP generation is disabled on native for now.
     return (

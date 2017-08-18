@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import {Box, Icon} from '../common-adapters'
 import range from 'lodash/range'
 import {globalStyles, globalColors} from '../styles'

@@ -64,7 +64,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
   )
 }
 
-class UserAdd extends Component<void, Props, State> {
+class UserAdd extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

@@ -26,7 +26,7 @@ export type Props = {
   showingIgnored: boolean,
 }
 
-class Folders extends Component<void, Props, void> {
+class Folders extends Component<Props, void> {
   componentDidMount() {
     this.props.favoriteList()
   }

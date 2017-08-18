@@ -10,7 +10,7 @@ type State = {
   checked: boolean,
 }
 
-class SuccessRender extends Component<void, Props, State> {
+class SuccessRender extends Component<Props, State> {
   state = {
     checked: false,
   }

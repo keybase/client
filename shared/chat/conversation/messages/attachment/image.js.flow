@@ -6,5 +6,5 @@ export type ImageRenderProps = {
   style: Object,
 }
 
-declare export class ImageRender extends Component<void, ImageRenderProps, void> {}
+declare export class ImageRender extends Component<Props> {}
 declare export function imgMaxWidth(): number

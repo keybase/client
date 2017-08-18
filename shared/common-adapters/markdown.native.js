@@ -165,7 +165,7 @@ function messageCreateComponent(style, allowFontScaling) {
   }
 }
 
-class Markdown extends PureComponent<void, Props, void> {
+class Markdown extends PureComponent<Props, void> {
   render() {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)

@@ -20,7 +20,7 @@ export type Props = {
   followsYou?: ?boolean,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
-  onClick?: ?(event: SyntheticEvent) => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   opacity?: number,
   skipBackground?: boolean,
   size: AvatarSize,
@@ -30,7 +30,7 @@ export type Props = {
   username?: ?string,
 }
 
-export default class Avatar extends Component<void, Props, void> {}
+export default class Avatar extends Component<Props, void> {}
 
 export function initLookup(lookup: AvatarLookup) {}
 export function initLoad(load: AvatarLoad) {}

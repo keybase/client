@@ -10,4 +10,4 @@ export type Props = {
   imageStyle?: Object,
 }
 
-declare export default class QR extends Component<void, Props, void> {}
+declare export default class QR extends Component<Props> {}

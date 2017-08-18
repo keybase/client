@@ -25,7 +25,7 @@ export type Props = {
   onFinish: () => void,
 }
 
-class UnlockFolders extends Component<void, Props, void> {
+class UnlockFolders extends Component<Props, void> {
   render() {
     return (
       <Render

@@ -40,4 +40,4 @@ export type Props = {|
   setChatText: (nextText: string) => void,
 |}
 
-export default class Conversation extends Component<void, Props, void> {}
+export default class Conversation extends Component<Props, void> {}

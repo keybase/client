@@ -11,5 +11,5 @@ export type Props = {
   children?: any,
 }
 
-export default class Row extends Component<void, Props, void> {}
-export class RowCSS extends Component<void, {}, void> {}
+export default class Row extends Component<Props, void> {}
+export class RowCSS extends Component<{}, void> {}

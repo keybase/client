@@ -12,7 +12,7 @@ type State = {
   focused: boolean,
 }
 
-class Input extends Component<void, Props, State> {
+class Input extends Component<Props, State> {
   state: State
   _input: any
   _isComposingIME: boolean
@@ -111,7 +111,7 @@ class Input extends Component<void, Props, State> {
     this._isComposingIME = false
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent) => {
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e)
     }

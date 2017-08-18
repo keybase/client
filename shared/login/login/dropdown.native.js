@@ -37,7 +37,7 @@ type State = {
   value: ?string,
 }
 
-class Dropdown extends Component<void, Props, State> {
+class Dropdown extends Component<Props, State> {
   state: State
   showingPick: boolean
 
@@ -108,7 +108,7 @@ class Dropdown extends Component<void, Props, State> {
     )
   }
 
-  _renderLabelAndCaret(): Array<React$Element<any>> {
+  _renderLabelAndCaret(): Array<React.Element<any>> {
     return [
       <Text key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
         {this._label(this.state.value)}
@@ -117,7 +117,7 @@ class Dropdown extends Component<void, Props, State> {
     ]
   }
 
-  _renderPicker(style: Object, selectOnChange: boolean): React$Element<*> {
+  _renderPicker(style: Object, selectOnChange: boolean): React.Element<any> {
     const pickItem = this.showingPick
       ? [{key: pickItemValue, value: pickItemValue, label: this._label(pickItemValue)}]
       : []
@@ -146,7 +146,7 @@ class Dropdown extends Component<void, Props, State> {
     )
   }
 
-  _renderAndroid(): React$Element<*> {
+  _renderAndroid(): React.Element<any> {
     // MM: This is super tricky. _renderPicker is an invisible box that, when clicked, opens
     // the native picker. We need to make sure it's the last thing drawn so it lies on top of
     // everything else.
@@ -159,7 +159,7 @@ class Dropdown extends Component<void, Props, State> {
     )
   }
 
-  _renderIOS(): React$Element<*> {
+  _renderIOS(): React.Element<any> {
     return (
       <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
@@ -182,7 +182,7 @@ class Dropdown extends Component<void, Props, State> {
     )
   }
 
-  render(): React$Element<*> {
+  render(): React.Node {
     return isIOS ? this._renderIOS() : this._renderAndroid()
   }
 }

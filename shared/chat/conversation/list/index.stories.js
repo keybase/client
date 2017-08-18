@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import * as I from 'immutable'
 import * as Constants from '../../../constants/chat'
 import {Box} from '../../../common-adapters'

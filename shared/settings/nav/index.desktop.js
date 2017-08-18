@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
 import {landingTab, invitationsTab, notificationsTab, deleteMeTab, devMenuTab} from '../../constants/settings'

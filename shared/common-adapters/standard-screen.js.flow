@@ -9,7 +9,7 @@ export type Props = {
   onCancel?: ?(() => void),
   onBack?: ?() => void,
   notification?: ?{
-    message: string | React$Element<*>,
+    message: string | React$Element<any>,
     type: NotificationType,
   },
   style?: ?Object,
@@ -17,4 +17,4 @@ export type Props = {
   styleBanner?: ?Object,
 }
 
-export default class StandardScreen extends Component<void, Props, void> {}
+export default class StandardScreen extends Component<Props, void> {}

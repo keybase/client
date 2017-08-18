@@ -18,7 +18,7 @@ type ListState = Exact<{
   onClick?: (path: string) => void,
   onRekey?: (path: string) => void,
   onOpen?: (path: string) => void,
-  extraRows?: Array<React$Element<*>>,
+  extraRows?: Array<React$Element<any>>,
 }>
 
 export type FolderState = Exact<{

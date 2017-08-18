@@ -128,7 +128,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey,
   )
 }
 
-class FilesRender extends Component<void, Props, void> {
+class FilesRender extends Component<Props, void> {
   _renderContents(hasReadOnlyUsers: boolean, isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
     const backgroundMode = 'Normal'
 

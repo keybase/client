@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import {Box, Icon, Text, PopupDialog, ProgressIndicator} from '../../../common-adapters/index'
 import {AttachmentPopupMenu} from '../messages/popup'
 import {ProgressBar as AttachmentProgressBar, ImageIcon as AttachmentStatusIcon} from '../messages/attachment'

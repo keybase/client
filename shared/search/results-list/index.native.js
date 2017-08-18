@@ -7,7 +7,7 @@ import EmptyResults from './empty'
 
 import type {Props} from '.'
 
-class SearchResultsList extends Component<void, Props, void> {
+class SearchResultsList extends Component<Props, void> {
   _keyExtractor = id => id
 
   _renderItem = ({item: id}) => {

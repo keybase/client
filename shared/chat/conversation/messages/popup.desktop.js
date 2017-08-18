@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import {PopupMenu} from '../../../common-adapters'
 import {fileUIName} from '../../../constants/platform'
 

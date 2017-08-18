@@ -10,4 +10,4 @@ export type Props = {
   waitingForResponse?: ?boolean,
 }
 
-export default class PaperKey extends Component<void, Props, void> {}
+export default class PaperKey extends Component<Props, void> {}

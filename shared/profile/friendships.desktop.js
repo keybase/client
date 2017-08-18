@@ -12,7 +12,7 @@ type UserEntryProps = {|
   ...FriendshipUserInfo,
 |}
 
-class UserEntry extends PureComponent<void, UserEntryProps, void> {
+class UserEntry extends PureComponent<UserEntryProps, void> {
   _onClick: () => void
 
   constructor(props: UserEntryProps) {
@@ -70,7 +70,7 @@ const userEntryUsernameStyle = following => ({
   textAlign: 'center',
 })
 
-class FriendshipsRender extends Component<void, Props, void> {
+class FriendshipsRender extends Component<Props, void> {
   _itemRenderer(followers: boolean, index: number) {
     const user = followers ? this.props.followers[index] : this.props.following[index]
     // $FlowIssue todo

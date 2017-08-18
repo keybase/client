@@ -1,12 +1,12 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import {Avatar, Box} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
 export type Props = {
   bgColor: string,
   username: string,
-  children?: React$Element<*>,
+  children?: React.Element<any>,
   style?: ?Object,
 }
 

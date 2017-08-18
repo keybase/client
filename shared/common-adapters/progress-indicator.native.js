@@ -4,7 +4,7 @@ import type {Props} from './progress-indicator'
 import {NativeActivityIndicator} from './native-wrappers.native'
 import {globalColors} from '../styles'
 
-class ProgressIndicator extends Component<void, Props, void> {
+class ProgressIndicator extends Component<Props, void> {
   render() {
     const size = this.props.type === 'Large' ? 'large' : 'small'
 

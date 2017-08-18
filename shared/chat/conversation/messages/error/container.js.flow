@@ -6,4 +6,4 @@ export type OwnProps = {
   messageKey: Constants.MessageKey,
 }
 
-export default class Error extends Component<void, OwnProps, void> {}
+export default class Error extends Component<OwnProps, void> {}

@@ -30,7 +30,7 @@ function setupAvatar() {
   initAvatarLoad(loadUserImageMap)
 }
 
-class RemoteMenubar extends Component {
+class RemoteMenubar extends Component<{}> {
   constructor() {
     super()
     loadPerf()

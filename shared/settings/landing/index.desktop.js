@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import SubHeading from '../subheading'
 import {Box, Button, Divider, Text, Meta} from '../../common-adapters'
 import {Stars} from '../common.desktop.js'

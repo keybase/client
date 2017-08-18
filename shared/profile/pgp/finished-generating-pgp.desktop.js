@@ -10,7 +10,7 @@ type State = {
   shouldStoreKeyOnServer: boolean,
 }
 
-class FinishedGeneratedPgp extends Component<void, Props, State> {
+class FinishedGeneratedPgp extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

@@ -24,7 +24,7 @@ type State = {
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
 
-class BaseList extends Component<void, Props, State> {
+class BaseList extends Component<Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
     keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
@@ -288,7 +288,7 @@ class PopupEnabledList extends BaseList {
     localMessageState: Constants.LocalMessageState,
     style: Object,
     messageRect: any
-  ): ?React$Element<any> {
+  ): ?React.Element<any> {
     switch (message.type) {
       case 'Text':
         return (
@@ -360,7 +360,7 @@ class PopupEnabledList extends BaseList {
   _showPopup(
     message: Constants.TextMessage | Constants.AttachmentMessage,
     localMessageState: Constants.LocalMessageState,
-    event: SyntheticEvent
+    event: SyntheticEvent<>
   ) {
     const target = (event.target: any)
     const clientRect = target.getBoundingClientRect()
@@ -391,14 +391,14 @@ class PopupEnabledList extends BaseList {
   _onAction = (
     message: Constants.ServerMessage,
     localMessageState: Constants.LocalMessageState,
-    event: SyntheticEvent
+    event: SyntheticEvent<>
   ) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
       this._showPopup(message, localMessageState, event)
     }
   }
 
-  _onShowEditor = (message: Constants.Message, event: SyntheticEvent) => {
+  _onShowEditor = (message: Constants.Message, event: SyntheticEvent<>) => {
     if (message.type === 'Text') {
       const messageNode = this._findMessageFromDOMNode(event.target)
       const messageRect = messageNode && this._domNodeToRect(messageNode)

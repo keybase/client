@@ -15,11 +15,11 @@ export type Props = {|
   isSelected: boolean,
   isYou: boolean,
   messageKey: Constants.MessageKey,
-  onAction: (event: SyntheticEvent) => void,
+  onAction: (event: SyntheticEvent<>) => void,
   onRetry: () => void,
-  onShowEditor: (event: SyntheticEvent) => void,
-  onClick: (event: SyntheticEvent) => void,
+  onShowEditor: (event: SyntheticEvent<>) => void,
+  onClick: (event: SyntheticEvent<>) => void,
   timestamp: ?string,
 |}
 
-export default class Wrapper extends Component<void, Props, void> {}
+export default class Wrapper extends Component<Props, void> {}

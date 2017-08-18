@@ -8,7 +8,7 @@ import {globalStyles, globalColors, transition} from '../styles'
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
 
-class Checkbox extends Component<void, Props, void> {
+class Checkbox extends Component<Props, void> {
   render() {
     let borderColor = globalColors.blue
 

@@ -24,4 +24,4 @@ export type Props = {
   following: Array<FriendshipUserInfo>,
 }
 
-export default class Render extends Component<void, Props, void> {}
+export default class Render extends Component<Props, void> {}

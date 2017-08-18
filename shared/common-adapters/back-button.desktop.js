@@ -5,8 +5,8 @@ import Text from './text'
 import Icon from './icon'
 import {globalStyles} from '../styles'
 
-class BackButton extends Component<void, Props, void> {
-  onClick(event: SyntheticEvent) {
+class BackButton extends Component<Props, void> {
+  onClick(event: SyntheticEvent<>) {
     event.preventDefault()
     event.stopPropagation()
     if (this.props.onClick) {

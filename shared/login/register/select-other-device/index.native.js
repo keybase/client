@@ -1,6 +1,6 @@
 // @flow
 import Container from '../../forms/container'
-import React from 'react'
+import * as React from 'react';
 import {Box, Text, Icon, ClickableBox, NativeScrollView, Button} from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 

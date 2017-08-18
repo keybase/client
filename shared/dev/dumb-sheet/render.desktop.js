@@ -8,7 +8,7 @@ import type {Props} from './render'
 import {Box, Text, Input, BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class DumbSheetRender extends Component<void, Props, any> {
+class DumbSheetRender extends Component<Props, any> {
   _onFilterChange: (a: any) => void
   _onNext: (a: any, offset: 1 | -1) => void
   _box: any

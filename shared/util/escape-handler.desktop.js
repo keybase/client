@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 
 import type {GlobalProps, Props} from './escape-handler'
 
-class EscapeHandler extends Component<void, Props, void> {
+class EscapeHandler extends Component<Props, void> {
   static contextTypes = {
     addESCHandler: PropTypes.func,
     removeESCHandler: PropTypes.func,
@@ -27,7 +27,7 @@ class EscapeHandler extends Component<void, Props, void> {
   }
 }
 
-class GlobalEscapeHandler extends Component<void, GlobalProps, void> {
+class GlobalEscapeHandler extends Component<GlobalProps, void> {
   _stack: Array<EscapeHandler> = []
 
   componentDidMount() {

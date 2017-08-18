@@ -4,7 +4,7 @@ import Box from './box'
 import {globalStyles} from '../styles'
 import type {Props} from './list-item'
 
-class ListItem extends Component<void, Props, void> {
+class ListItem extends Component<Props, void> {
   render() {
     const clickable = !!this.props.onClick
     const minHeight = {Large: 48, Small: 40}[this.props.type]

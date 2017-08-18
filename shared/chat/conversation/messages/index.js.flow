@@ -7,10 +7,10 @@ declare function factory(
   onAction: (
     message: Constants.ServerMessage,
     localMessageState: Constants.LocalMessageState,
-    event: SyntheticEvent
+    event: SyntheticEvent<>
   ) => void,
-  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelectd: boolean,
   measure: () => void
-): React$Element<*>
+): React$Element<any>
 export default factory

@@ -12,7 +12,7 @@ import type {Props} from '.'
 // TODO we don't autocorrect the last word on submit. We had a solution using blur but this also dismisses they keyboard each time
 // See if there's a better workaround later
 
-class ConversationInput extends Component<void, Props, void> {
+class ConversationInput extends Component<Props, void> {
   _setEditing(props: Props) {
     if (!props.editingMessage || props.editingMessage.type !== 'Text') {
       return

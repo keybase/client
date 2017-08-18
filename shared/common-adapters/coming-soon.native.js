@@ -5,7 +5,7 @@ import Text from './text'
 import type {Props} from './coming-soon'
 import {globalStyles} from '../styles'
 
-class ComingSoon extends Component<void, Props, void> {
+class ComingSoon extends Component<Props, void> {
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', flex: 1}}>

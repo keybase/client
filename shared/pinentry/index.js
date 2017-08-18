@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import PinentryRender from './index.render'
 
-class Pinentry extends Component {
+class Pinentry extends Component<$FlowFixMeProps> {
   render() {
     if (!this.props.features) {
       return null

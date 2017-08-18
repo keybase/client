@@ -45,7 +45,7 @@ type State = {
   activeMenuProof: ?Proof,
 }
 
-class Profile extends Component<void, Props, State> {
+class Profile extends Component<Props, State> {
   state = {
     currentFriendshipsTab: 'Followers',
     activeMenuProof: null,

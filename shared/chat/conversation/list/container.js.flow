@@ -35,4 +35,4 @@ export type OwnProps = {|
   editLastMessageCounter: number,
 |}
 
-export default class ListContainer extends Component<void, OwnProps, void> {}
+export default class ListContainer extends Component<OwnProps, void> {}

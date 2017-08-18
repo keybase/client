@@ -6,7 +6,7 @@ import {Text} from '../../../common-adapters'
 
 import type {Props} from '.'
 
-class GPGSign extends Component<void, Props, void> {
+class GPGSign extends Component<Props, void> {
   render() {
     return (
       <Container style={styles.container} onBack={() => this.props.onBack()}>

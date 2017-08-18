@@ -7,11 +7,11 @@ export type Props = {
   placeholder: string,
   inputStyle?: Object,
   onChange: (text: string) => void,
-  onKeyDown?: (ev: SyntheticInputEvent) => void,
-  onFocus?: (ev: SyntheticInputEvent) => void,
-  onBlur?: (ev: SyntheticInputEvent) => void,
+  onKeyDown?: (ev: SyntheticInputEvent<>) => void,
+  onFocus?: (ev: SyntheticInputEvent<>) => void,
+  onBlur?: (ev: SyntheticInputEvent<>) => void,
 }
 
-export default class AutosizeInput extends Component<void, Props, void> {
+export default class AutosizeInput extends Component<Props, void> {
   focus: () => void
 }

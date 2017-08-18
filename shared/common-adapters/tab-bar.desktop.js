@@ -12,13 +12,13 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 // TODO this thing does 4 different things. a lot of the main nav logic is in here which isn't used by anything else. Split this apart!
 
-class TabBarItem extends Component<void, ItemProps, void> {
+class TabBarItem extends Component<ItemProps, void> {
   render() {
     return this.props.children
   }
 }
 
-class SimpleTabBarButton extends Component<void, ItemProps, void> {
+class SimpleTabBarButton extends Component<ItemProps, void> {
   shouldComponentUpdate(nextProps: ItemProps, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['style', 'styleContainer', 'children'].includes(key)) {
@@ -68,7 +68,7 @@ const HighlightLine = () => (
   />
 )
 
-class TabBarButton extends Component<void, TabBarButtonProps, void> {
+class TabBarButton extends Component<TabBarButtonProps, void> {
   shouldComponentUpdate(nextProps: TabBarButtonProps, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (
@@ -222,7 +222,7 @@ class TabBarButton extends Component<void, TabBarButtonProps, void> {
   }
 }
 
-class TabBar extends Component<void, Props, void> {
+class TabBar extends Component<Props, void> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['style', 'styleTabBar', 'children'].includes(key)) {
@@ -232,7 +232,7 @@ class TabBar extends Component<void, Props, void> {
     })
   }
 
-  _labels(): Array<React$Element<*>> {
+  _labels(): Array<React.Element<any>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
       const key = item.props.label || get(item, 'props.tabBarButton.props.label') || i

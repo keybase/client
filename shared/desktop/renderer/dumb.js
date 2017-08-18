@@ -1,14 +1,15 @@
 // @flow
 import './style.css'
 
-import React from 'react'
+import * as React from 'react';
 import ReactDOM from 'react-dom'
 import {AppContainer} from 'react-hot-loader'
 import {GlobalEscapeHandler} from '../../util/escape-handler'
 
 module.hot && module.hot.accept('../../dev/dumb-sheet/render.desktop', render)
 
-class Wrapper extends React.Component<any, any, any> {
+class Wrapper extends React.Component<any, any> {
+  static defaultProps: any;
   constructor() {
     super()
     this.state = {

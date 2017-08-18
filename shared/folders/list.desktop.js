@@ -63,7 +63,7 @@ const Rows = ({
   </Box>
 )
 
-class ListRender extends Component<void, Props, void> {
+class ListRender extends Component<Props, void> {
   _scrollContainer = null
 
   componentDidUpdate(prevProps: Props) {

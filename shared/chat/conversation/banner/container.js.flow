@@ -2,4 +2,4 @@
 import {Component} from 'react'
 export type OwnProps = {}
 
-export default class BannerContainer extends Component<void, OwnProps, void> {}
+export default class BannerContainer extends Component<OwnProps, void> {}

@@ -11,7 +11,7 @@ import {TypedConnector} from '../../util/typed-connect'
 import type {TypedDispatch} from '../../constants/types/flux'
 import type {TypedState} from '../../constants/reducer'
 
-class InvitationsContainer extends Component<void, Props, void> {
+class InvitationsContainer extends Component<Props, void> {
   componentWillMount() {
     this.props.onRefresh()
   }

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
@@ -8,7 +8,7 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../sty
 
 import type {Props} from './header-hoc'
 
-function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
+function HeaderHoc<P>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = ({
     onBack,
     onCancel,

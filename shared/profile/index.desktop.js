@@ -46,10 +46,10 @@ type State = {
   },
 }
 
-class ProfileRender extends PureComponent<void, Props, State> {
+class ProfileRender extends PureComponent<Props, State> {
   state: State
   _proofList: ?UserProofs
-  _scrollContainer: ?React$Component<*, *, *>
+  _scrollContainer: ?React.Component<*, *>
 
   constructor(props: Props) {
     super(props)

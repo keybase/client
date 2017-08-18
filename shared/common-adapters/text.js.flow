@@ -41,10 +41,10 @@ type TextType =
 
 type Props = {
   backgroundMode?: Background,
-  children?: React$Element<*>,
+  children?: React$Element<any>,
   className?: string,
   lineClamp?: number,
-  onClick?: ?(e: SyntheticEvent) => void,
+  onClick?: ?(e: SyntheticEvent<>) => void,
   onClickURL?: ?string,
   onPress?: void,
   onLongPress?: () => void,
@@ -63,7 +63,7 @@ type MetaType = {
   isTerminal?: true,
 }
 
-declare class Text extends Component<void, Props, void> {}
+declare class Text extends Component<Props> {}
 declare function getStyle(
   type: TextType,
   backgroundMode?: ?Background,

@@ -11,7 +11,7 @@ type Props = {
   registerRekeyListener: () => void,
 }
 
-class RemoteUnlockFolders extends Component<void, Props, void> {
+class RemoteUnlockFolders extends Component<Props, void> {
   componentWillMount() {
     this.props.registerRekeyListener()
   }

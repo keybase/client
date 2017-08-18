@@ -6,8 +6,8 @@ import Box from './box'
 type Props = {
   loading: boolean,
   style?: Object,
-  doneLoadingComponent: React$Element<*>,
-  loadingComponent: React$Element<*>,
+  doneLoadingComponent: React.Element<any>,
+  loadingComponent: React.Element<any>,
   duration: number,
 }
 
@@ -16,7 +16,7 @@ type State = {
   loadingActive: boolean,
 }
 
-class LoadingWrapper extends Component<void, Props, State> {
+class LoadingWrapper extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

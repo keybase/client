@@ -6,7 +6,7 @@ const tabBarProps = {
   name: 'TabBar',
 }
 
-class TabBarItem extends Component {
+class TabBarItem extends Component<$FlowFixMeProps> {
   render() {
     return this.props.children
   }
@@ -25,7 +25,7 @@ const NativeTabBar = requireNativeComponent('TabBar', tabBarProps, {
   },
 })
 
-export default class TabBar extends Component {
+export default class TabBar extends Component<any, any> {
   shouldComponentUpdate(nextProps: any, nextState: any) {
     // If the titles are the same, then we aren't going to rerender.
     const oldTabs = this.props.children

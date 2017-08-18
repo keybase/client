@@ -5,4 +5,4 @@ export type Props = {
   username: string,
 }
 
-export default class FollowNotice extends Component<void, Props, void> {}
+export default class FollowNotice extends Component<Props, void> {}

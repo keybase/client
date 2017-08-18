@@ -20,6 +20,6 @@ export type Props = {|
   you: string,
 |}
 
-export default class ConversationList extends Component<void, Props, void> {
+export default class ConversationList extends Component<Props, void> {
   onEditLastMessage: () => void
 }

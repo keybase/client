@@ -14,9 +14,9 @@ export type Props = {
   onClick?: (path: string) => void,
   onRekey?: (path: string) => void,
   onOpen?: (path: string) => void,
-  extraRows?: Array<React$Element<*>>,
+  extraRows?: Array<React$Element<any>>,
   onToggleShowIgnored: () => void,
   showIgnored: boolean,
 }
 
-export default class Render extends Component<void, Props, void> {}
+export default class Render extends Component<Props, void> {}

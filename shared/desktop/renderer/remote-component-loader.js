@@ -64,7 +64,7 @@ type State = {
   props?: any,
 }
 
-class RemoteComponentLoader extends Component<void, any, State> {
+class RemoteComponentLoader extends Component<any, State> {
   state: State
   store: any
   ComponentClass: any

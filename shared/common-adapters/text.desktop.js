@@ -10,7 +10,7 @@ import glamorous from 'glamorous'
 
 import type {Props, TextType, Background} from './text'
 
-class Text extends Component<void, Props, void> {
+class Text extends Component<Props, void> {
   _span: any
 
   highlightText() {

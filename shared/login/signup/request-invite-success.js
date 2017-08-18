@@ -5,7 +5,7 @@ import Render from './request-invite-success.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
-class RequestInviteSuccess extends Component {
+class RequestInviteSuccess extends Component<$FlowFixMeProps> {
   render() {
     return <Render onBack={this.props.restartSignup} />
   }

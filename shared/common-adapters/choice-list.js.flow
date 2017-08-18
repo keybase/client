@@ -5,7 +5,7 @@ import type {IconType} from './icon'
 export type Option = {
   title: string,
   description: string,
-  icon: IconType | React$Element<*>,
+  icon: IconType | React$Element<any>,
   onClick: () => void,
   onPress?: void,
 }
@@ -14,4 +14,4 @@ export type Props = {
   options: Array<Option>,
 }
 
-export default class ChoiceList extends Component<void, Props, void> {}
+export default class ChoiceList extends Component<Props, void> {}

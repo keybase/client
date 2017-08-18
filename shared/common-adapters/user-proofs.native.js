@@ -21,7 +21,7 @@ function MissingProofRow({
 }: {
   missingProof: MissingProof,
   style: Object,
-}): React$Element<*> {
+}): React.Element<any> {
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
@@ -60,7 +60,7 @@ type ProofRowProps = {
   style: Object,
 }
 
-function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofRowProps): React$Element<*> {
+function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofRowProps): React.Element<any> {
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
@@ -105,7 +105,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
   )
 }
 
-function LoadingProofRow({width}: {width: number}): React$Element<*> {
+function LoadingProofRow({width}: {width: number}): React.Element<any> {
   return (
     <Box style={styleRow}>
       <Box style={styleProofNameSection}>
@@ -131,7 +131,7 @@ function LoadingProofs() {
   )
 }
 
-class ProofsRender extends Component<void, Props, void> {
+class ProofsRender extends Component<Props, void> {
   _ensureUrlProtocal(url: string): string {
     return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
   }

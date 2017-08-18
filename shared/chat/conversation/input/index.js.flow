@@ -24,4 +24,4 @@ export type Props = {
   typing: Array<Constants.Username>,
 }
 
-export default class Input extends Component<void, Props, void> {}
+export default class Input extends Component<Props, void> {}

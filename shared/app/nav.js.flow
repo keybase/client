@@ -12,7 +12,7 @@ export type Props = {
   username: string,
   switchTab: (tab: Tab) => void,
   navigateUp: () => void,
-  children: React$Element<*>,
+  children: React$Element<any>,
   routeSelected: Tab,
   routeStack: RouteRenderStack,
   hideNav: boolean,
@@ -20,4 +20,4 @@ export type Props = {
   navBadges: Map<Tab, number>,
 }
 
-export default class Nav extends Component<void, Props, void> {}
+export default class Nav extends Component<Props, void> {}

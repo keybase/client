@@ -12,7 +12,7 @@ type State = {
   left: any,
 }
 
-class Checkbox extends Component<void, Props, State> {
+class Checkbox extends Component<Props, State> {
   state: State
 
   _getOffset(props: Props): number {

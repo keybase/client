@@ -4,7 +4,7 @@ import {PlatformIcon, Text, StandardScreen, Icon} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 import type {Props} from './generating-pgp'
 
-class GeneratingPgp extends Component<void, Props, void> {
+class GeneratingPgp extends Component<Props, void> {
   render() {
     return (
       <StandardScreen onCancel={this.props.onCancel} style={styleContainer}>

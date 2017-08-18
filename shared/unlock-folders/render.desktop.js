@@ -9,7 +9,7 @@ import {Header} from '../common-adapters'
 
 import type {Props} from './render'
 
-export default class UnlockFoldersRender extends Component<void, Props, void> {
+export default class UnlockFoldersRender extends Component<Props, void> {
   render() {
     let innerComponent
 

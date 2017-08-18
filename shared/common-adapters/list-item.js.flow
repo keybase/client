@@ -8,9 +8,9 @@ import {Component, Element} from 'react'
 
 export type Props = {
   type: 'Small' | 'Large',
-  icon: Element<*>,
-  body: Element<*>,
-  action: Element<*>,
+  icon: React$Element<any>,
+  body: React$Element<any>,
+  action: React$Element<any>,
   extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
   onClick?: () => void,
   onPress?: void,
@@ -19,4 +19,4 @@ export type Props = {
   swipeToAction?: boolean, // Do you have to swipe the list item to reveal an action?
 }
 
-export default class ListItem extends Component<void, Props, void> {}
+export default class ListItem extends Component<Props, void> {}

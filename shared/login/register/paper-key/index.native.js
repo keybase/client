@@ -6,7 +6,7 @@ import {globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
-class PaperKey extends Component<void, Props, void> {
+class PaperKey extends Component<Props, void> {
   render() {
     return (
       <Container style={stylesContainer} onBack={this.props.onBack}>

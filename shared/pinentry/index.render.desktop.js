@@ -13,7 +13,7 @@ type State = {
   showTyping: boolean,
 }
 
-export default class PinentryRender extends Component<DefaultProps, Props, State> {
+export default class PinentryRender extends Component<Props, State> {
   static defaultProps: DefaultProps
   state: State
 

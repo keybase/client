@@ -27,6 +27,6 @@ export type Props = {|
   onEnterEmptyText?: () => void,
 |}
 
-export default class UserInput extends Component<void, Props, void> {
+export default class UserInput extends Component<Props, void> {
   focus: () => void
 }

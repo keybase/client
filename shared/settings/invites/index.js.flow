@@ -36,4 +36,4 @@ export type Props = {
   error: ?Error,
 }
 
-export default class Invites extends Component<void, Props, void> {}
+export default class Invites extends Component<Props, void> {}

@@ -86,7 +86,7 @@ function messageCreateComponent(type, key, children, options) {
   }
 }
 
-class Markdown extends PureComponent<void, Props, void> {
+class Markdown extends PureComponent<Props, void> {
   render() {
     const content = parseMarkdown(
       this.props.children,

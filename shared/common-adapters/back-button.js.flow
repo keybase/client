@@ -11,4 +11,4 @@ export type Props = {
   title?: ?string,
 }
 
-declare export default class BackButton extends Component<void, Props, void> {}
+declare export default class BackButton extends Component<Props> {}

@@ -8,4 +8,4 @@ export type Props = {
   outerStyle?: ?Object,
 }
 
-declare export default class Container extends Component<void, Props, void> {}
+declare export default class Container extends Component<Props> {}

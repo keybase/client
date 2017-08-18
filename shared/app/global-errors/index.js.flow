@@ -9,4 +9,4 @@ export type Props = {
   clearTimeout: (id: any) => void,
 }
 
-export default class GlobalError extends Component<void, Props, void> {}
+export default class GlobalError extends Component<Props, void> {}

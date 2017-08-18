@@ -19,7 +19,7 @@ type Props = {
 
 const MAX_TRACKERS = 5
 
-class RemoteTracker extends Component<void, Props, void> {
+class RemoteTracker extends Component<Props, void> {
   shouldComponentUpdate(nextProps, nextState) {
     return nextProps.trackers !== this.props.trackers
   }

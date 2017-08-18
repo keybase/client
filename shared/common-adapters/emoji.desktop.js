@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react'
+import * as React from 'react';
 import {Emoji} from 'emoji-mart'
 
 // Just the single set we use

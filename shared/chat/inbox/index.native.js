@@ -57,18 +57,14 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 }
 
 class Avatars
-  extends PureComponent<
-    void,
-    {
-      participants: List<string>,
-      youNeedToRekey: boolean,
-      participantNeedToRekey: boolean,
-      isMuted: boolean,
-      isSelected: boolean,
-      backgroundColor: string,
-    },
-    void
-  > {
+  extends PureComponent<{
+  participants: List<string>,
+  youNeedToRekey: boolean,
+  participantNeedToRekey: boolean,
+  isMuted: boolean,
+  isSelected: boolean,
+  backgroundColor: string,
+}, void> {
   render() {
     const {
       participants,
@@ -148,18 +144,14 @@ const avatarInnerBoxStyle = {
 }
 
 class TopLine
-  extends PureComponent<
-    void,
-    {
-      hasUnread: boolean,
-      participants: List<string>,
-      showBold: boolean,
-      subColor: ?string,
-      timestamp: ?string,
-      usernameColor: ?string,
-    },
-    void
-  > {
+  extends PureComponent<{
+  hasUnread: boolean,
+  participants: List<string>,
+  showBold: boolean,
+  subColor: ?string,
+  timestamp: ?string,
+  usernameColor: ?string,
+}, void> {
   render() {
     const {hasUnread, showBold, participants, subColor, timestamp, usernameColor} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
@@ -197,18 +189,14 @@ class TopLine
 }
 
 class BottomLine
-  extends PureComponent<
-    void,
-    {
-      backgroundColor: ?string,
-      participantNeedToRekey: boolean,
-      showBold: boolean,
-      snippet: ?string,
-      subColor: ?string,
-      youNeedToRekey: boolean,
-    },
-    void
-  > {
+  extends PureComponent<{
+  backgroundColor: ?string,
+  participantNeedToRekey: boolean,
+  showBold: boolean,
+  snippet: ?string,
+  subColor: ?string,
+  youNeedToRekey: boolean,
+}, void> {
   render() {
     const {participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet, backgroundColor} = this.props
     let content
@@ -298,7 +286,7 @@ class BottomLine
   }
 }
 
-class _Row extends PureComponent<void, RowProps, void> {
+class _Row extends PureComponent<RowProps, void> {
   render() {
     const props = this.props
     return (
@@ -363,7 +351,7 @@ const NoChats = () => (
   </Box>
 )
 
-class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
+class Inbox extends PureComponent<Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {

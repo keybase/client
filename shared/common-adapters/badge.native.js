@@ -1,6 +1,6 @@
 // @flow
 import Box from './box'
-import React from 'react'
+import * as React from 'react';
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react';
 import type {Props} from './container'
 import {BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'

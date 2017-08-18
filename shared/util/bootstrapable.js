@@ -14,9 +14,9 @@ export type BootstrapableProp<P: Object> =
     }
 
 export default function Bootstrapable<P: Object>(
-  ComposedComponent: ReactClass<P>
-): ReactClass<BootstrapableProp<P>> {
-  return class extends Component<void, BootstrapableProp<P>, void> {
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentType<BootstrapableProp<P>> {
+  return class extends Component<BootstrapableProp<P>, void> {
     componentWillMount() {
       !this.props.bootstrapDone && this.props.onBootstrap()
     }
@@ -34,5 +34,5 @@ export default function Bootstrapable<P: Object>(
         </Box>
       )
     }
-  }
+  };
 }
