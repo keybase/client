@@ -18,6 +18,8 @@ const inlineStyle = isMobile
 
 const inlineProps = isMobile ? {lineClamp: 1} : {}
 
+const divider = isMobile ? ', ' : ',\u200a'
+
 class PlaintextUsernames extends Component<void, Props, void> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -40,9 +42,7 @@ class PlaintextUsernames extends Component<void, Props, void> {
         title={this.props.title}
         {...inlineProps}
       >
-        {this.props.prefix}
-        {rwers.map(u => u.username).join(this.props.divider || ', ')}
-        {this.props.suffix}
+        {rwers.map(u => u.username).join(divider)}
       </Text>
     )
   }

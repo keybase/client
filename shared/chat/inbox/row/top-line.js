@@ -44,7 +44,6 @@ class SimpleTopLine extends PureComponent<void, SimpleTopLineProps, void> {
           >
             <PlaintextUsernames
               type="BodySemibold"
-              divider={isMobile ? undefined : ',\u200a'}
               containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
               users={participants.map(p => ({username: p})).toArray()}
               title={participants.join(', ')}
@@ -99,7 +98,6 @@ class FilteredTopLine extends PureComponent<void, FilteredTopLineProps, void> {
         >
           <PlaintextUsernames
             type="BodySemibold"
-            divider={isMobile ? undefined : ',\u200a'}
             containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
             users={participants.map(p => ({username: p})).toArray()}
             title={participants.join(', ')}

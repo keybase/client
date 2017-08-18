@@ -9,9 +9,6 @@ export type Props = {
   backgroundMode?: Background,
   containerStyle?: Object,
   title?: string,
-  prefix?: ?string,
-  suffix?: ?string,
-  divider?: string,
 }
 
 declare export default class PlaintextUsernames extends Component<void, Props, void> {}
