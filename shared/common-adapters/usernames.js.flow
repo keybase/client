@@ -34,6 +34,4 @@ export type Props = {
 
 declare export function usernameText(props: Props): void
 
-declare export function matchesFilter(name: string, filter: string): boolean
-
 declare export default class Usernames extends Component<void, Props, void> {}

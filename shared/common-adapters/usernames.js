@@ -72,23 +72,6 @@ const nonInlineStyle = {
 }
 const inlineProps = isMobile ? {lineClamp: 1} : {}
 
-// TODO: team and channels
-function matchesFilter(name: string, filter: string): boolean {
-  if (!filter) {
-    return true
-  }
-
-  // No need to worry about Unicode issues with toLowerCase(), since
-  // names can only be ASCII.
-  return name.toLowerCase().indexOf(filter.toLowerCase()) >= 0
-}
-
-const sortNamesWithFilter = (names: Array<string>, filter: ?string): Array<string> => {
-  const matches = names.filter(n => matchesFilter(n, filter))
-  const nonMatches = names.filter(n => !matchesFilter(n, filter))
-  return matches.concat(nonMatches)
-}
-
 class Usernames extends Component<void, Props, void> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -105,8 +88,6 @@ class Usernames extends Component<void, Props, void> {
     const readers = this.props.users.filter(u => !!u.readOnly)
 
     if (this.props.plainText) {
-      // TODO: Apply filter when plainText is not set, if needed.
-      const names = sortNamesWithFilter(rwers.map(u => u.username), this.props.filter)
       return (
         <Text
           type={this.props.type}
@@ -116,7 +97,7 @@ class Usernames extends Component<void, Props, void> {
           {...(this.props.inline ? inlineProps : {})}
         >
           {this.props.prefix}
-          {names.join(this.props.plainDivider || ', ')}
+          {rwers.map(u => u.username).join(this.props.plainDivider || ', ')}
           {this.props.suffix}
         </Text>
       )
@@ -153,6 +134,6 @@ class Usernames extends Component<void, Props, void> {
   }
 }
 
-export {usernameText, matchesFilter}
+export {usernameText}
 
 export default Usernames
