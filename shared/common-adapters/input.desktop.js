@@ -113,7 +113,7 @@ class Input extends Component<void, Props, State> {
 
   _onKeyDown = (e: SyntheticKeyboardEvent) => {
     if (this.props.onKeyDown) {
-      this.props.onKeyDown(e)
+      this.props.onKeyDown(e, this._isComposingIME)
     }
 
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
