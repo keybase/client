@@ -12,6 +12,8 @@ import {
 } from '../../../constants/chat'
 import {selectConversation} from '../../../actions/chat/creators'
 import SimpleRow from './simple-row'
+import {TeamRow, ChannelRow} from './team-row'
+import {compose, renderComponent, branch} from 'recompose'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
@@ -117,15 +119,31 @@ const makeSelector = conversationIDKey => {
   }
 }
 
-// $FlowIssue
-const ConnectedRow = pausableConnect(
-  (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname}) => {
+  if (conversationIDKey) {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
-  },
-  dispatch => ({
-    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
-  })
+  } else {
+    return {teamname}
+  }
+}
+
+const mapDispatchToProps = dispatch => ({
+  _onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
+})
+
+const ConnectedRow = compose(
+  // $FlowIssue
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => props.teamname && !props.channelname, renderComponent(TeamRow)),
+  branch(props => props.teamname && props.channelname, renderComponent(ChannelRow))
 )(SimpleRow)
 
 export default ConnectedRow

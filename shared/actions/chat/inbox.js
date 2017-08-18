@@ -153,7 +153,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
           let channelname
           if (c.metadata.membersType === ChatTypes.CommonConversationMembersType.team) {
             teamname = msgMax.tlfName
-            channelname = ''
+            channelname = ' '
           }
           return new Constants.InboxStateRecord({
             conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
@@ -172,6 +172,12 @@ function* onInboxStale(): SagaGenerator<any, any> {
 
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
+
+    // Unbox teams so we can get their names
+    yield call(
+      unboxConversations,
+      conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
+    )
 
     const {
       initialConversation,
