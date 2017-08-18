@@ -137,13 +137,21 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (string, error) {
 
 	var invites []string
 	chainInvites := t.chain().inner.ActiveInvites
-	fmt.Printf("INVITES: %d\n", len(chainInvites))
 	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
 	if err != nil {
 		return "", err
 	}
 	for inviteID := range chainInvites {
-		invites = append(invites, string(inviteMap[inviteID].Name))
+		invite := inviteMap[inviteID]
+		invtyp, err := invite.Type.C()
+		if err != nil {
+			continue
+		}
+		name := string(invite.Name)
+		if invtyp == keybase1.TeamInviteCategory_SBS {
+			name += "@" + string(invite.Type.Sbs())
+		}
+		invites = append(invites, name)
 	}
 	sort.Slice(usernames, func(i, j int) bool { return usernames[i] < usernames[j] })
 	sort.Slice(invites, func(i, j int) bool { return invites[i] < invites[j] })
