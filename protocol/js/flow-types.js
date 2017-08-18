@@ -2177,6 +2177,22 @@ export function teamsLoadTeamPlusApplicationKeysRpcPromise (request: (requestCom
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsLookupImplicitTeamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsLookupImplicitTeamResult) => void} & {param: teamsLookupImplicitTeamRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupImplicitTeam', request)
+}
+
+export function teamsLookupImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsLookupImplicitTeamResult) => void} & {param: teamsLookupImplicitTeamRpcParam})): Promise<teamsLookupImplicitTeamResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsLookupOrCreateImplicitTeamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsLookupOrCreateImplicitTeamResult) => void} & {param: teamsLookupOrCreateImplicitTeamRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupOrCreateImplicitTeam', request)
+}
+
+export function teamsLookupOrCreateImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsLookupOrCreateImplicitTeamResult) => void} & {param: teamsLookupOrCreateImplicitTeamRpcParam})): Promise<teamsLookupOrCreateImplicitTeamResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamAcceptInviteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 }
@@ -5695,6 +5711,14 @@ export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
   refreshers: TeamRefreshers
 }>
 
+export type teamsLookupImplicitTeamRpcParam = Exact<{
+  name: string
+}>
+
+export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
+  name: string
+}>
+
 export type teamsTeamAcceptInviteRpcParam = Exact<{
   token: string
 }>
@@ -6015,6 +6039,8 @@ type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsGetTeamRootIDResult = TeamID
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
+type teamsLookupImplicitTeamResult = TeamID
+type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
