@@ -24,37 +24,32 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	if err != nil {
 		return res, err
 	}
-	var kbusers []*libkb.User
+	var kbusers []*keybase1.UserPlusKeysV2AllIncarnations
 	for _, kbu := range impTeam.KeybaseUsers {
-		var user *libkb.User
-		if kbu == me.GetName() {
-			user = me
-		} else {
-			user, err = libkb.LoadUser(libkb.LoadUserArg{
-				Name: kbu,
-			})
-			if err != nil {
-				g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", kbu, err)
-				return res, err
-			}
+		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{
+			Name: kbu,
+		})
+		if err != nil {
+			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", kbu, err)
+			return res, err
 		}
-		kbusers = append(kbusers, user)
+		kbusers = append(kbusers, upak)
 	}
 
 	// Form secret boxes and make invites for KB users with no PUKs
 	var invites []SCTeamInvite
 	secretboxRecipients := make(map[keybase1.UserVersion]keybase1.PerUserKey)
 	for _, kbu := range kbusers {
-		puk := kbu.GetComputedKeyFamily().GetLatestPerUserKey()
+		puk := kbu.Current.GetLatestPerUserKey()
 		if puk == nil {
 			// Add this person as an invite if they do not have a puk
 			invites = append(invites, SCTeamInvite{
 				Type: "keybase",
-				Name: kbu.ToUserVersion().PercentForm(),
+				Name: kbu.Current.ToUserVersion().PercentForm(),
 				ID:   NewInviteID(),
 			})
 		} else {
-			secretboxRecipients[kbu.ToUserVersion()] = *puk
+			secretboxRecipients[kbu.Current.ToUserVersion()] = *puk
 		}
 	}
 
@@ -77,7 +72,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 	var teamMembers []SCTeamMember
 	for _, kbu := range kbusers {
-		teamMembers = append(teamMembers, SCTeamMember(kbu.ToUserVersion()))
+		teamMembers = append(teamMembers, SCTeamMember(kbu.Current.ToUserVersion()))
 	}
 
 	// Post the team

@@ -63,7 +63,8 @@ func NewImplicitTeamName() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("__keybase_implicit_team__%s", hex.EncodeToString(dat)), nil
+	return fmt.Sprintf("%s%s", keybase1.ImplicitTeamPrefix, hex.EncodeToString(dat)),
+		nil
 }
 
 func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {
