@@ -5,7 +5,6 @@ import {
   Text,
   MultiAvatar,
   Icon,
-  Usernames,
   Markdown,
   Box,
   ClickableBox,
@@ -24,6 +23,8 @@ import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../../constants/chat'
 
+import TopLine from './top-line'
+
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
 // forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
 function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: string) {
@@ -34,76 +35,6 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 
   // We don't want a border if we're a single avatar
   return !idx && isLastParticipant ? undefined : backgroundColor
-}
-
-type TopLineProps = {
-  filter: string,
-  hasUnread: boolean,
-  participants: List<string>,
-  teamname: ?string,
-  showBold: boolean,
-  subColor: ?string,
-  timestamp: ?string,
-  usernameColor: ?string,
-}
-
-class TopLine extends PureComponent<void, TopLineProps, void> {
-  render() {
-    const {filter, hasUnread, showBold, participants, subColor, timestamp, usernameColor, teamname} = this.props
-    const height = isMobile ? 19 : 17
-    const boldOverride = showBold ? globalStyles.fontBold : null
-    let details = []
-    if (!filter) {
-      details = [
-        <Text
-          key="0"
-          type="BodySmall"
-          style={{...boldOverride, color: subColor, lineHeight: lineHeight(height)}}
-        >
-          {timestamp}
-        </Text>,
-      ]
-      if (hasUnread) {
-        details.push(<Box key="1" style={unreadDotStyle} />)
-      }
-    }
-    return (
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: height, minHeight: height}}>
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            flex: 1,
-            maxHeight: height,
-            minHeight: height,
-            position: 'relative',
-          }}
-        >
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              bottom: 0,
-              justifyContent: 'flex-start',
-              left: 0,
-              position: 'absolute',
-              right: 0,
-              top: 0,
-            }}
-          >
-            <Usernames
-              inline={true}
-              plainText={true}
-              type="BodySemibold"
-              plainDivider={isMobile ? undefined : ',\u200a'}
-              containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-              users={teamname ? [{username: teamname}] : participants.map(p => ({username: p})).toArray()}
-              title={teamname || participants.join(', ')}
-            />
-          </Box>
-        </Box>
-        {details}
-      </Box>
-    )
-  }
 }
 
 type BottomLineProps = {
@@ -385,14 +316,6 @@ class Row extends PureComponent<void, Props, void> {
       </ClickableBox>
     )
   }
-}
-
-const unreadDotStyle = {
-  backgroundColor: globalColors.orange,
-  borderRadius: 3,
-  height: 6,
-  marginLeft: 4,
-  width: 6,
 }
 
 const avatarMutedIconStyle = {
