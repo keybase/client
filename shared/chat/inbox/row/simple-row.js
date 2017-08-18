@@ -13,7 +13,7 @@ import {Avatars, TeamAvatar} from './avatars'
 type Props = {
   backgroundColor: string,
   conversationIDKey: ConversationIDKey,
-  filter: string,
+  filtered: boolean,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
@@ -54,7 +54,7 @@ class Row extends PureComponent<void, Props, void> {
             }}
           >
             <TopLine
-              filter={props.filter}
+              filtered={props.filtered}
               hasUnread={props.hasUnread}
               participants={props.participants}
               showBold={props.showBold}
@@ -63,7 +63,7 @@ class Row extends PureComponent<void, Props, void> {
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
             />
-            {props.filter
+            {props.filtered
               ? null
               : <BottomLine
                   backgroundColor={props.backgroundColor}

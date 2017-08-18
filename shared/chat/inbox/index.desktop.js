@@ -79,7 +79,7 @@ class Inbox extends PureComponent<void, Props, void> {
     return (
       <Row
         conversationIDKey={row.conversationIDKey}
-        filter={this.props.filter}
+        filtered={!!this.props.filter}
         key={row.conversationIDKey || row.teamname}
         isActiveRoute={true}
         teamname={row.teamname}
