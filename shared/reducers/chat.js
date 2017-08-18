@@ -17,12 +17,6 @@ function updateConversation(
   return conversationStates.update(conversationIDKey, initialConversation, conversationUpdateFn)
 }
 
-function sortInbox(inbox: List<Constants.InboxState>): List<Constants.InboxState> {
-  return inbox.sort((a, b) => {
-    return b.get('time') - a.get('time')
-  })
-}
-
 function reducer(state: Constants.State = initialState, action: Constants.Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
@@ -154,13 +148,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:loadedInbox':
       // Don't overwrite existing verified inbox data
       const existingRows = state.get('inbox')
-      const newInbox = sortInbox(
-        action.payload.inbox.map(newRow => {
-          const id = newRow.get('conversationIDKey')
-          const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
-          return existingRow || newRow
-        })
-      )
+      const newInbox = action.payload.inbox.map(newRow => {
+        const id = newRow.get('conversationIDKey')
+        const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
+        return existingRow || newRow
+      })
 
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
     case 'chat:setUnboxing':
@@ -185,10 +177,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       // If the convo's just been blocked, delete it from the inbox.
       if (existing && ['blocked', 'reported'].includes(convo.get('status'))) {
         updatedInbox = updatedInbox.delete(existing[0])
-      }
-      // time changed so we need to sort
-      if (!existing || existing[1].time !== convo.get('time')) {
-        updatedInbox = sortInbox(updatedInbox)
       }
       return state.set('inbox', updatedInbox)
     case 'chat:updateBrokenTracker':

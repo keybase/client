@@ -17,7 +17,7 @@ import routeDefs from '../../app/routes'
 import {AppContainer} from 'react-hot-loader'
 import {bootstrap} from '../../actions/config'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
+import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
 import {changedFocus} from '../../actions/app'
@@ -49,8 +49,8 @@ function setupStore() {
 }
 
 function setupAvatar() {
-  initAvatarLookup(getUserImageMap)
-  initAvatarLoad(loadUserImageMap)
+  initAvatarLookup(getUserImageMap, getTeamImageMap)
+  initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 }
 
 function setupApp(store) {

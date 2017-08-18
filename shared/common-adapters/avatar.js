@@ -10,24 +10,68 @@ import shallowEqual from 'shallowequal'
 import {requestIdleCallback} from '../util/idle-callback'
 import {globalStyles} from '../styles'
 
-import type {Props, AvatarLookup, AvatarLoad, URLMap, URLType} from './avatar'
 import type {IconType} from './icon'
+
+export type URLMap = {
+  '200': string,
+  '360': string,
+  '40': string,
+}
+
+export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 40 | 32 | 24 | 16 | 12
+export type UserPictureSize = 360 | 200 | 40
+export type AvatarLookupCallback = (username: string, urlMap: ?URLMap) => void
+export type AvatarLookup = (username: string) => ?URLMap
+export type AvatarLoad = (username: string, callback: AvatarLookupCallback) => void
+export type TeamAvatarLookup = (teamname: string) => ?URLMap
+export type TeamAvatarLoad = (teamname: string, callback: AvatarLookupCallback) => void
+export type URLType = ?(string | Array<{height: number, width: number, uri: string}>)
+export type Props = {
+  borderColor?: string,
+  children?: any,
+  following?: ?boolean,
+  followsYou?: ?boolean,
+  isTeam?: boolean,
+  loadingColor?: string,
+  onAvatarLoaded?: () => void,
+  onClick?: ?() => void,
+  opacity?: number,
+  skipBackground?: boolean,
+  size: AvatarSize,
+  style?: ?Object,
+  url?: ?string,
+  username?: ?string,
+  teamname?: ?string,
+}
 
 type State = {
   url: URLType,
 }
 
-const placeHolders: {[key: string]: IconType} = {
+const avatarPlaceHolders: {[key: string]: IconType} = {
   '112': 'icon-placeholder-avatar-112',
-  '12': 'icon-placeholder-avatar-24',
-  '16': 'icon-placeholder-avatar-24',
+  '12': 'icon-placeholder-avatar-12',
+  '16': 'icon-placeholder-avatar-16',
   '176': 'icon-placeholder-avatar-176',
   '24': 'icon-placeholder-avatar-24',
   '32': 'icon-placeholder-avatar-32',
-  '40': 'icon-placeholder-avatar-48',
+  '40': 'icon-placeholder-avatar-40',
   '48': 'icon-placeholder-avatar-48',
   '64': 'icon-placeholder-avatar-64',
   '80': 'icon-placeholder-avatar-80',
+}
+
+const teamPlaceHolders: {[key: string]: IconType} = {
+  '112': 'icon-team-placeholder-avatar-112',
+  '12': 'icon-team-placeholder-avatar-12',
+  '16': 'icon-team-placeholder-avatar-16',
+  '176': 'icon-team-placeholder-avatar-176',
+  '24': 'icon-team-placeholder-avatar-24',
+  '32': 'icon-team-placeholder-avatar-32',
+  '40': 'icon-team-placeholder-avatar-40',
+  '48': 'icon-team-placeholder-avatar-48',
+  '64': 'icon-team-placeholder-avatar-64',
+  '80': 'icon-team-placeholder-avatar-80',
 }
 
 const followStateToType = I.fromJS({
@@ -87,11 +131,11 @@ const followSizeToStyle = {
 class Avatar extends Component<void, Props, State> {
   state: State
   _mounted: boolean = false
-  _onURLLoaded = (username: string, urlMap: ?URLMap) => {
+  _onURLLoaded = (name: string, urlMap: ?URLMap) => {
     // Mounted and still looking at the same username?
     requestIdleCallback(
       () => {
-        if (this._mounted && this.props.username === username) {
+        if (this._mounted && (this.props.username === name || this.props.teamname === name)) {
           this.setState({url: this._urlMapsToUrl(urlMap)})
         }
       },
@@ -120,6 +164,8 @@ class Avatar extends Component<void, Props, State> {
     if (this.props.url) {
       this.setState(this._getRawURLState(this.props.url, this.props.size))
       // Just let it load the url, prefer this over username
+    } else if (this.props.teamname) {
+      this._loadTeamname(this.props.teamname)
     } else if (this.props.username) {
       this._loadUsername(this.props.username)
     } else {
@@ -137,7 +183,12 @@ class Avatar extends Component<void, Props, State> {
   }
 
   _noAvatar() {
-    return iconTypeToImgSet(placeHolders[String(this.props.size)], this.props.size)
+    return iconTypeToImgSet(
+      (this.props.isTeam || this.props.teamname ? teamPlaceHolders : avatarPlaceHolders)[
+        String(this.props.size)
+      ],
+      this.props.size
+    )
   }
 
   _urlMapsToUrl(urlMap: ?URLMap) {
@@ -155,15 +206,32 @@ class Avatar extends Component<void, Props, State> {
 
     if (!urlMap && _loadAvatarToURL) {
       // Have to load it
-      _loadAvatarToURL(username, (username: string, urlMap: ?URLMap) => {
+      _loadAvatarToURL(username, (teamname: string, urlMap: ?URLMap) => {
         this._onURLLoaded(username, urlMap)
       })
     }
   }
 
+  _loadTeamname(teamname: string) {
+    const urlMap = _teamAvatarToURL ? _teamAvatarToURL(teamname) : null
+    const url = this._urlMapsToUrl(urlMap)
+    this.setState({url})
+
+    if (!urlMap && _loadTeamAvatarToURL) {
+      // Have to load it
+      _loadTeamAvatarToURL(teamname, (teamname: string, urlMap: ?URLMap) => {
+        this._onURLLoaded(teamname, urlMap)
+      })
+    }
+  }
+
   componentWillReceiveProps(nextProps: Props) {
-    if (nextProps.url && nextProps.username) {
-      console.warn('Recieved both url and username to avatar!')
+    if (
+      (nextProps.url && nextProps.username) ||
+      (nextProps.url && nextProps.teamname) ||
+      (nextProps.username && nextProps.teamname)
+    ) {
+      console.warn('Recieved multiple url / username /teamname to avatar!')
       return
     }
     const url = this.props.url || this.props.username
@@ -176,6 +244,9 @@ class Avatar extends Component<void, Props, State> {
       } else if (nextProps.username) {
         // We need to convert a username to a url
         this._loadUsername(nextProps.username)
+      } else if (nextProps.teamname) {
+        // We need to convert a teamname to a url
+        this._loadTeamname(nextProps.teamname)
       } else {
         this.setState({url: this._noAvatar()})
       }
@@ -220,6 +291,7 @@ class Avatar extends Component<void, Props, State> {
         followIconType={this._followIconType()}
         followIconSize={this._followIconSize()}
         followIconStyle={followSizeToStyle[this.props.size]}
+        isTeam={!!this.props.teamname}
         loadingColor={this.props.loadingColor}
         onClick={this.props.onClick}
         opacity={this.props.opacity}
@@ -234,13 +306,17 @@ class Avatar extends Component<void, Props, State> {
 // To convert usernames/uids to avatarurls. This is setup on app start
 let _avatarToURL
 let _loadAvatarToURL
+let _teamAvatarToURL
+let _loadTeamAvatarToURL
 
-const initLookup = (lookup: AvatarLookup) => {
-  _avatarToURL = lookup
+const initLookup = (lookupAvatar: AvatarLookup, lookupTeam: TeamAvatarLookup) => {
+  _avatarToURL = lookupAvatar
+  _teamAvatarToURL = lookupTeam
 }
 
-const initLoad = (load: AvatarLoad) => {
-  _loadAvatarToURL = load
+const initLoad = (loadAvatar: AvatarLoad, loadTeam: TeamAvatarLoad) => {
+  _loadAvatarToURL = loadAvatar
+  _loadTeamAvatarToURL = loadTeam
 }
 
 export default Avatar

@@ -30,7 +30,13 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
 
   _renderItem = ({item, index}) => {
     return index
-      ? <Row conversationIDKey={item} key={item} isActiveRoute={this.props.isActiveRoute} />
+      ? <Row
+          conversationIDKey={item.conversationIDKey}
+          key={item.conversationIDKey || item.teamname}
+          isActiveRoute={this.props.isActiveRoute}
+          teamname={item.teamname}
+          channelname={item.channelname}
+        />
       : <ChatFilterRow
           isLoading={this.props.isLoading}
           filter={this.props.filter}
@@ -39,7 +45,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
         />
   }
 
-  _keyExtractor = (item, index) => item
+  _keyExtractor = (item, index) => (item ? item.conversationIDKey || item.teamname : 'filter')
 
   _setupDataSource = props => {
     this.setState({rows: [{}].concat(props.rows.toArray())})

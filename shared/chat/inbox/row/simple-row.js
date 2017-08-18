@@ -1,6 +1,15 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, MultiAvatar, Icon, Usernames, Markdown, Box, ClickableBox} from '../../../common-adapters'
+import {
+  Avatar,
+  Text,
+  MultiAvatar,
+  Icon,
+  Usernames,
+  Markdown,
+  Box,
+  ClickableBox,
+} from '../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -30,6 +39,7 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 type TopLineProps = {
   hasUnread: boolean,
   participants: List<string>,
+  teamname: ?string,
   showBold: boolean,
   subColor: ?string,
   timestamp: ?string,
@@ -38,7 +48,7 @@ type TopLineProps = {
 
 class TopLine extends PureComponent<void, TopLineProps, void> {
   render() {
-    const {hasUnread, showBold, participants, subColor, timestamp, usernameColor} = this.props
+    const {hasUnread, showBold, participants, subColor, timestamp, usernameColor, teamname} = this.props
     const height = isMobile ? 19 : 17
     const boldOverride = showBold ? globalStyles.fontBold : null
     return (
@@ -69,8 +79,8 @@ class TopLine extends PureComponent<void, TopLineProps, void> {
               type="BodySemibold"
               plainDivider={isMobile ? undefined : ',\u200a'}
               containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-              users={participants.map(p => ({username: p})).toArray()}
-              title={participants.join(', ')}
+              users={teamname ? [{username: teamname}] : participants.map(p => ({username: p})).toArray()}
+              title={teamname || participants.join(', ')}
             />
           </Box>
         </Box>
@@ -284,20 +294,30 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
+class TeamAvatar extends PureComponent<void, {teamname: string}, void> {
+  render() {
+    return (
+      <Box style={_avatarBoxStyle}>
+        <Avatar teamname={this.props.teamname} size={40} />
+      </Box>
+    )
+  }
+}
+
 type Props = {
   backgroundColor: string,
   conversationIDKey: ConversationIDKey,
   hasUnread: boolean,
   isMuted: boolean,
   isSelected: boolean,
-  onSelectConversation: (key: ConversationIDKey) => void,
-  marginRight: number,
+  onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: List<string>,
   rekeyInfo: any,
   showBold: boolean,
   snippet: string,
   subColor: string,
+  teamname: ?string,
   timestamp: string,
   unreadCount: number,
   usernameColor: string,
@@ -308,19 +328,18 @@ class Row extends PureComponent<void, Props, void> {
   render() {
     const props = this.props
     return (
-      <ClickableBox
-        onClick={() => props.onSelectConversation(props.conversationIDKey)}
-        style={{backgroundColor: props.backgroundColor}}
-      >
+      <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          <Avatars
-            backgroundColor={props.backgroundColor}
-            isMuted={props.isMuted}
-            isSelected={props.isSelected}
-            participantNeedToRekey={props.participantNeedToRekey}
-            participants={props.participants}
-            youNeedToRekey={props.youNeedToRekey}
-          />
+          {props.teamname
+            ? <TeamAvatar teamname={props.teamname} />
+            : <Avatars
+                backgroundColor={props.backgroundColor}
+                isMuted={props.isMuted}
+                isSelected={props.isSelected}
+                participantNeedToRekey={props.participantNeedToRekey}
+                participants={props.participants}
+                youNeedToRekey={props.youNeedToRekey}
+              />}
           <Box
             style={{
               ...conversationRowStyle,
@@ -332,6 +351,7 @@ class Row extends PureComponent<void, Props, void> {
               participants={props.participants}
               showBold={props.showBold}
               subColor={props.subColor}
+              teamname={props.teamname}
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
             />
