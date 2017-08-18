@@ -28,10 +28,10 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, err error) {
-	impTeamName, err := libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
+	impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
 	if err != nil {
-		return res, err
+		return res, impTeamName, err
 	}
 	impTeamMembers := make(map[string]bool)
 	for _, u := range impTeamName.KeybaseUsers {
@@ -47,40 +47,45 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 	}
 	var imp implicitTeam
 	if err = g.API.GetDecode(arg, &imp); err != nil {
-		return res, err
+		if aerr, ok := err.(libkb.AppStatusError); ok &&
+			keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError {
+			return res, impTeamName, NewTeamDoesNotExistError(name)
+		}
+		return res, impTeamName, err
 	}
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID: imp.TeamID,
 	})
 	if err != nil {
-		return res, err
+		return res, impTeamName, err
 	}
 	teamDisplayName, err := team.ImplicitTeamDisplayName(ctx)
 	if err != nil {
-		return res, err
+		return res, impTeamName, err
 	}
 	if teamDisplayName != FormatImplicitTeamName(ctx, g, impTeamName) {
-		return res, errors.New("implicit team name mismatch")
+		return res, impTeamName, errors.New("implicit team name mismatch")
 	}
 
-	return imp.TeamID, nil
+	return imp.TeamID, impTeamName, nil
 }
 
-func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, err error) {
-	teamID, err := LookupImplicitTeam(ctx, g, name, public)
+func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
+	res, impTeamName, err = LookupImplicitTeam(ctx, g, name, public)
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
 			// If the team does not exist, then let's create it
-			impTeamName, err := libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
+			impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
 			if err != nil {
-				return res, err
+				return res, impTeamName, err
 			}
-			return CreateImplicitTeam(ctx, g, impTeamName)
+			res, err = CreateImplicitTeam(ctx, g, impTeamName)
+			return res, impTeamName, err
 		}
-		return res, err
+		return res, impTeamName, err
 	}
-	return teamID, nil
+	return res, impTeamName, nil
 }
 
 func FormatImplicitTeamName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamName) string {
