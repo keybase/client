@@ -43,7 +43,7 @@ const (
 // TODO: Move more common code here.
 func newConfigForTest(mode InitMode,
 	loggerFn func(module string) logger.Logger) *ConfigLocal {
-	config := NewConfigLocal(mode, loggerFn, "")
+	config := NewConfigLocal(mode|InitTest, loggerFn, "")
 
 	bops := NewBlockOpsStandard(config,
 		testBlockRetrievalWorkerQueueSize, testPrefetchWorkerQueueSize)

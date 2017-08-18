@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +23,9 @@ import (
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
 )
@@ -313,9 +317,8 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 		loggerFn:    loggerFn,
 		storageRoot: storageRoot,
 		mode:        mode,
-		syncedTlfs:  make(map[tlf.ID]bool),
 	}
-	config.loadSyncedTlfs()
+	config.loadSyncedTlfsLocked()
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
@@ -1221,7 +1224,6 @@ func (c *ConfigLocal) EnableJournaling(
 }
 
 func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
-	// TODO: create in-memory databases for tests instead of on-disk
 	dbc, err := newDiskBlockCacheWrapped(c, c.storageRoot)
 	if err != nil {
 		return err
@@ -1241,9 +1243,46 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 	return c.resetDiskBlockCacheLocked()
 }
 
-func (c *ConfigLocal) loadSyncedTlfs() error {
-	// TODO: implement
-	return nil
+func (c *ConfigLocal) openConfigLevelDB() (*levelDb, error) {
+	dbPath := filepath.Join(c.storageRoot, persistedConfigFolderName)
+	stor, err := storage.OpenFile(dbPath, false)
+	if err != nil {
+		return nil, err
+	}
+	return openLevelDB(stor)
+}
+
+func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
+	syncedTlfs := make(map[tlf.ID]bool)
+	if c.IsTestMode() {
+		c.syncedTlfs = syncedTlfs
+		return nil
+	}
+	if c.storageRoot == "" {
+		return errors.New("empty storageRoot specified for non-test run")
+	}
+	ldb, err := c.openConfigLevelDB()
+	if err != nil {
+		return err
+	}
+	defer ldb.Close()
+	tlfPrefix := []byte(syncedTlfsConfigKeyPrefix)
+	rng := util.BytesPrefix([]byte(tlfPrefix))
+	iter := ldb.NewIterator(rng, nil)
+	defer iter.Release()
+
+	deleteBatch := new(leveldb.Batch)
+	for iter.Next() {
+		key := iter.Key()
+		tlfID, err := tlf.ParseID(string(key[len(tlfPrefix):]))
+		if err != nil {
+			deleteBatch.Delete(key)
+			continue
+		}
+		syncedTlfs[tlfID] = true
+	}
+	c.syncedTlfs = syncedTlfs
+	return ldb.Write(deleteBatch, nil)
 }
 
 // IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
@@ -1264,6 +1303,29 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 		}
 		if !diskCacheWrapped.IsSyncCacheEnabled() {
 			return errors.New("sync block cache is not enabled")
+		}
+	}
+	if !c.IsTestMode() {
+		if c.storageRoot == "" {
+			return errors.New("empty storageRoot specified for non-test run")
+		}
+		ldb, err := c.openConfigLevelDB()
+		if err != nil {
+			return err
+		}
+		defer ldb.Close()
+		tlfBytes, err := tlfID.MarshalText()
+		if err != nil {
+			return err
+		}
+		tlfKey := append([]byte(syncedTlfsConfigKeyPrefix), tlfBytes...)
+		if isSynced {
+			err = ldb.Put(tlfKey, nil, nil)
+		} else {
+			err = ldb.Delete(tlfKey, nil)
+		}
+		if err != nil {
+			return err
 		}
 	}
 	c.syncedTlfs[tlfID] = isSynced
