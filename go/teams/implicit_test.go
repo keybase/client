@@ -46,7 +46,9 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.NoError(t, err)
 		teamDisplay, err := team.ImplicitTeamDisplayName(context.TODO())
 		require.NoError(t, err)
-		require.Equal(t, teamDisplay, FormatImplicitTeamName(context.TODO(), tc.G, impTeamName))
+		formatName, err := FormatImplicitTeamName(context.TODO(), tc.G, impTeamName)
+		require.NoError(t, err)
+		require.Equal(t, teamDisplay, formatName)
 	}
 
 	displayName := strings.Join(usernames, ",")

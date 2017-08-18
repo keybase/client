@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -153,10 +153,13 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (string, error) {
 		}
 		invites = append(invites, name)
 	}
-	sort.Slice(usernames, func(i, j int) bool { return usernames[i] < usernames[j] })
-	sort.Slice(invites, func(i, j int) bool { return invites[i] < invites[j] })
-
-	return strings.Join(append(usernames, invites...), ","), nil
+	names := append(usernames, invites...)
+	sort.Slice(names, func(i, j int) bool { return names[i] < names[j] })
+	normalized, err := kbfs.NormalizeNamesInTLF(names, nil, "")
+	if err != nil {
+		return "", err
+	}
+	return normalized, nil
 }
 
 func (t *Team) NextSeqno() keybase1.Seqno {
