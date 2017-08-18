@@ -5714,11 +5714,13 @@ export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
 }>
 
 export type teamsLookupImplicitTeamRpcParam = Exact<{
-  name: string
+  name: string,
+  public: boolean
 }>
 
 export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
-  name: string
+  name: string,
+  public: boolean
 }>
 
 export type teamsTeamAcceptInviteRpcParam = Exact<{

@@ -1324,6 +1324,10 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
         }
       ],
       "response": "TeamID"
@@ -1333,6 +1337,10 @@
         {
           "name": "name",
           "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
         }
       ],
       "response": "TeamID"

@@ -1354,22 +1354,26 @@ func (o TeamDeleteArg) DeepCopy() TeamDeleteArg {
 }
 
 type LookupImplicitTeamArg struct {
-	Name string `codec:"name" json:"name"`
+	Name   string `codec:"name" json:"name"`
+	Public bool   `codec:"public" json:"public"`
 }
 
 func (o LookupImplicitTeamArg) DeepCopy() LookupImplicitTeamArg {
 	return LookupImplicitTeamArg{
-		Name: o.Name,
+		Name:   o.Name,
+		Public: o.Public,
 	}
 }
 
 type LookupOrCreateImplicitTeamArg struct {
-	Name string `codec:"name" json:"name"`
+	Name   string `codec:"name" json:"name"`
+	Public bool   `codec:"public" json:"public"`
 }
 
 func (o LookupOrCreateImplicitTeamArg) DeepCopy() LookupOrCreateImplicitTeamArg {
 	return LookupOrCreateImplicitTeamArg{
-		Name: o.Name,
+		Name:   o.Name,
+		Public: o.Public,
 	}
 }
 
@@ -1416,8 +1420,8 @@ type TeamsInterface interface {
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
-	LookupImplicitTeam(context.Context, string) (TeamID, error)
-	LookupOrCreateImplicitTeam(context.Context, string) (TeamID, error)
+	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (TeamID, error)
+	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (TeamID, error)
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
@@ -1696,7 +1700,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LookupImplicitTeamArg)(nil), args)
 						return
 					}
-					ret, err = i.LookupImplicitTeam(ctx, (*typedArgs)[0].Name)
+					ret, err = i.LookupImplicitTeam(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1712,7 +1716,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]LookupOrCreateImplicitTeamArg)(nil), args)
 						return
 					}
-					ret, err = i.LookupOrCreateImplicitTeam(ctx, (*typedArgs)[0].Name)
+					ret, err = i.LookupOrCreateImplicitTeam(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1838,14 +1842,12 @@ func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err e
 	return
 }
 
-func (c TeamsClient) LookupImplicitTeam(ctx context.Context, name string) (res TeamID, err error) {
-	__arg := LookupImplicitTeamArg{Name: name}
+func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res TeamID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, name string) (res TeamID, err error) {
-	__arg := LookupOrCreateImplicitTeamArg{Name: name}
+func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res TeamID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
 	return
 }

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -117,6 +119,35 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	members.Readers = x
 
 	return members, nil
+}
+
+func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (string, error) {
+	members, err := t.Members()
+	if err != nil {
+		return "", err
+	}
+	var usernames []string
+	for _, member := range members.Owners {
+		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
+		if err != nil {
+			return "", err
+		}
+		usernames = append(usernames, name.String())
+	}
+
+	var invites []string
+	chainInvites := t.chain().inner.ActiveInvites
+	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
+	if err != nil {
+		return "", err
+	}
+	for inviteID := range chainInvites {
+		invites = append(invites, string(inviteMap[inviteID].Name))
+	}
+	sort.Slice(usernames, func(i, j int) bool { return usernames[i] < usernames[j] })
+	sort.Slice(invites, func(i, j int) bool { return invites[i] < invites[j] })
+
+	return strings.Join(append(usernames, invites...), ","), nil
 }
 
 func (t *Team) NextSeqno() keybase1.Seqno {
