@@ -27,8 +27,6 @@ export type Props = {
   colorFollowing?: boolean,
   colorBroken?: boolean,
   onUsernameClicked?: (username: string) => void,
-  plainText?: boolean, // optimize if its just plaintext usernames
-  plainDivider?: string,
 }
 
 declare export function usernameText(props: Props): void

@@ -87,22 +87,6 @@ class Usernames extends Component<void, Props, void> {
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
-    if (this.props.plainText) {
-      return (
-        <Text
-          type={this.props.type}
-          backgroundMode={this.props.backgroundMode}
-          style={{...containerStyle, ...this.props.containerStyle}}
-          title={this.props.title}
-          {...(this.props.inline ? inlineProps : {})}
-        >
-          {this.props.prefix}
-          {rwers.map(u => u.username).join(this.props.plainDivider || ', ')}
-          {this.props.suffix}
-        </Text>
-      )
-    }
-
     return (
       <Text
         type={this.props.type}
