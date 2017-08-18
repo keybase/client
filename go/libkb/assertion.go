@@ -205,6 +205,7 @@ func (b AssertionURLBase) IsTeamName() bool                            { return 
 func (b AssertionURLBase) IsImplicitTeamName() bool                    { return false }
 func (b AssertionURLBase) ToTeamID() (ret keybase1.TeamID)             { return ret }
 func (b AssertionURLBase) ToImplicitTeamID() (ret keybase1.TeamID)     { return ret }
+func (b AssertionURLBase) ToTeamName() (ret keybase1.TeamName)         { return ret }
 func (b AssertionURLBase) ToImplicitTeamName() (ret keybase1.TeamName) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
@@ -458,7 +459,7 @@ func (a AssertionTeamName) CheckAndNormalize(_ AssertionContext) (AssertionURL, 
 	var err error
 	a.name, err = keybase1.TeamNameFromString(a.Value)
 	if a.IsImplicitTeamName() {
-		return fmt.Errorf("Parsed as implicit team name, wanted explicit team name.")
+		return nil, fmt.Errorf("Parsed as implicit team name, wanted explicit team name.")
 	}
 	a.Value = a.name.String()
 	return a, err
@@ -468,7 +469,7 @@ func (a AssertionImplicitTeamName) CheckAndNormalize(_ AssertionContext) (Assert
 	var err error
 	a.name, err = keybase1.TeamNameFromString(a.Value)
 	if a.IsTeamName() {
-		return fmt.Errorf("Parsed as explicit team name, wanted implicit team name.")
+		return nil, fmt.Errorf("Parsed as explicit team name, wanted implicit team name.")
 	}
 	a.Value = a.name.String()
 	return a, err
