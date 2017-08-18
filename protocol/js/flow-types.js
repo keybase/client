@@ -5380,15 +5380,18 @@ export type pgpPgpEncryptRpcParam = Exact<{
 }>
 
 export type pgpPgpExportByFingerprintRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  encrypted: boolean
 }>
 
 export type pgpPgpExportByKIDRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  encrypted: boolean
 }>
 
 export type pgpPgpExportRpcParam = Exact<{
-  options: PGPQuery
+  options: PGPQuery,
+  encrypted: boolean
 }>
 
 export type pgpPgpImportRpcParam = Exact<{
@@ -5406,6 +5409,7 @@ export type pgpPgpKeyGenRpcParam = Exact<{
   createUids: PGPCreateUids,
   allowMulti: boolean,
   doExport: boolean,
+  exportEncrypted: boolean,
   pushSecret: boolean
 }>
 

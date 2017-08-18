@@ -9,6 +9,7 @@ package engine
 //
 
 import (
+	"bytes"
 	"errors"
 	"strings"
 
@@ -36,7 +37,8 @@ type PGPKeyImportEngineArg struct {
 	PushSecret       bool
 	OnlySave         bool
 	AllowMulti       bool
-	DoExport         bool
+	DoExport         bool // export to GPG keychain?
+	ExportEncrypted  bool // encrypt secret key before exporting to GPG?
 	DoUnlock         bool
 	GPGFallback      bool
 	PreloadTsec      libkb.Triplesec
@@ -212,11 +214,27 @@ func (e *PGPKeyImportEngine) Run(ctx *Context) error {
 		}
 
 		if err := e.exportToGPG(ctx); err != nil {
-			return err
+			return GPGExportingError{err, true /* inPGPGen */}
 		}
 	}
 
 	return nil
+}
+
+// clonePGPKeyBundle returns an approximate deep copy of PGPKeyBundle
+// by exporting and re-importing PGPKeyBundle. If PGP key contains
+// something that is not supported by either go-crypto exporter or
+// importer, that information will be lost.
+func clonePGPKeyBundle(bundle *libkb.PGPKeyBundle) (*libkb.PGPKeyBundle, error) {
+	var buf bytes.Buffer
+	if err := bundle.SerializePrivate(&buf); err != nil {
+		return nil, err
+	}
+	res, _, err := libkb.ReadOneKeyFromBytes(buf.Bytes())
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
@@ -239,7 +257,27 @@ func (e *PGPKeyImportEngine) exportToGPG(ctx *Context) (err error) {
 		return nil
 	}
 
-	err = gpg.ExportKey(*e.bundle, true /* export private key */)
+	exportedBundle := e.bundle
+
+	if e.arg.ExportEncrypted {
+		e.G().Log.Debug("Encrypting key with passphrase before exporting")
+		desc := "Exporting key to GPG keychain. Enter passphrase to protect the key. Secure passphrases have at least 8 characters."
+		pRes, err := GetPGPExportPassphrase(e.G(), ctx.SecretUI, desc)
+		if err != nil {
+			return err
+		}
+		// Avoid mutating e.bundle.
+		if exportedBundle, err = clonePGPKeyBundle(e.bundle); err != nil {
+			return err
+		}
+		if err = libkb.EncryptPGPKey(exportedBundle.Entity, pRes.Passphrase); err != nil {
+			return err
+		}
+	}
+
+	// If key is encrypted, use batch mode in gpg so it does not ask
+	// for passphrase to re-encrypt to its internal representation.
+	err = gpg.ExportKey(*exportedBundle, true /* private */, e.arg.ExportEncrypted /* batch */)
 	if err == nil {
 		ctx.LogUI.Info("Exported new key to the local GPG keychain")
 	}
