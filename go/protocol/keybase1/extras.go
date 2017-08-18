@@ -1536,12 +1536,6 @@ func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
 	var regularErr error
 
-<<<<<<< HEAD
-=======
-var ImplicitTeamPrefix = "__keybase_implicit_team__"
-
-func TeamNameFromString(s string) (ret TeamName, err error) {
->>>>>>> expand test
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("need >= 1 part, got 0")
@@ -1553,14 +1547,9 @@ func TeamNameFromString(s string) (ret TeamName, err error) {
 
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
-<<<<<<< HEAD
 		if !(len(part) >= 2 && len(part) <= 16) {
 			regularErr = errors.New("team names must be between 2 and 16 characters long")
 			break
-=======
-		if !strings.HasPrefix(part, ImplicitTeamPrefix) && !(len(part) >= 2 && len(part) <= 16) {
-			return ret, errors.New("team names must be between 2 and 16 characters long")
->>>>>>> expand test
 		}
 		if !namePartRxx.MatchString(part) {
 			regularErr = fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
