@@ -54,6 +54,7 @@ const (
 	UPK2MinorVersion_V0 UPK2MinorVersion = 0
 	UPK2MinorVersion_V1 UPK2MinorVersion = 1
 	UPK2MinorVersion_V2 UPK2MinorVersion = 2
+	UPK2MinorVersion_V3 UPK2MinorVersion = 3
 )
 
 func (o UPK2MinorVersion) DeepCopy() UPK2MinorVersion { return o }
@@ -62,12 +63,14 @@ var UPK2MinorVersionMap = map[string]UPK2MinorVersion{
 	"V0": 0,
 	"V1": 1,
 	"V2": 2,
+	"V3": 3,
 }
 
 var UPK2MinorVersionRevMap = map[UPK2MinorVersion]string{
 	0: "V0",
 	1: "V1",
 	2: "V2",
+	3: "V3",
 }
 
 func (e UPK2MinorVersion) String() string {

@@ -135,20 +135,16 @@ class BioRender extends Component<void, Props, void> {
               <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>}
             {userInfo.followersCount !== -1 &&
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
-                <Text
-                  type="BodySmallSecondaryLink"
-                  style={globalStyles.fontBold}
-                  onClick={() => this.props.onClickFollowers(username)}
-                >
+                <Text type="BodySmall" style={globalStyles.fontBold}>
                   {userInfo.followersCount}
-                  <Text type="BodySmallSecondaryLink">
+                  <Text type="BodySmall">
                     &nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}
                   </Text>
                 </Text>
                 <Text type="BodySmall">&nbsp; &middot; &nbsp;</Text>
-                <Text type="BodySmallSecondaryLink" onClick={() => this.props.onClickFollowing(username)}>
+                <Text type="BodySmall">
                   Following&nbsp;
-                  <Text type="BodySmallSecondaryLink" style={globalStyles.fontBold}>
+                  <Text type="BodySmall" style={globalStyles.fontBold}>
                     {userInfo.followingCount}
                   </Text>
                 </Text>

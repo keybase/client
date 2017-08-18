@@ -40,6 +40,7 @@ func newCmdChatRenameChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 }
 
 func (c *CmdChatRenameChannel) Run() error {
+	c.g.StartStandaloneChat()
 	return chatSend(context.TODO(), c.g, ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		setTopicName:     c.setTopicName,

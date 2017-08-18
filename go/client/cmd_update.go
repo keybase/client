@@ -47,6 +47,8 @@ func newCmdUpdateCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			}
 
 			cmd := exec.Command(updaterPath, "check")
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
 			if err := cmd.Run(); err != nil {
 				g.Log.Errorf("Error running %q: %s", updaterPath, err)
 			}

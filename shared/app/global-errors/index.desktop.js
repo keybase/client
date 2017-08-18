@@ -80,7 +80,7 @@ class GlobalError extends Component<void, Props, State> {
     }[size]
   }
 
-  renderDeamonError() {
+  renderDaemonError() {
     if (ignoreDisconnectOverlay) {
       console.warn('Ignoring disconnect overlay')
       return null
@@ -125,7 +125,7 @@ class GlobalError extends Component<void, Props, State> {
 
   render() {
     if (this.props.daemonError) {
-      return this.renderDeamonError()
+      return this.renderDaemonError()
     }
     return this.renderError()
   }

@@ -21,7 +21,7 @@ type Props = {
   followIconType: ?IconType,
   isTeam?: boolean,
   loadingColor: ?string,
-  onClick?: ?() => void,
+  onClick?: ?(event: SyntheticEvent) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,

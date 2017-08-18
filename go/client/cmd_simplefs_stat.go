@@ -28,6 +28,7 @@ func NewCmdSimpleFSStat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "stat directory element",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSStat{Contextified: libkb.NewContextified(g)}, "stat", c)
+			cl.SetNoStandalone()
 		},
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -17,9 +18,14 @@ type MockLoaderContext struct {
 	t               *testing.T
 	unit            TestCase
 	defaultTeamName keybase1.TeamName
+	state           MockLoaderContextState
 }
 
 var _ LoaderContext = (*MockLoaderContext)(nil)
+
+type MockLoaderContextState struct {
+	loadSpec TestCaseLoad
+}
 
 func NewMockLoaderContext(t *testing.T, g *libkb.GlobalContext, unit TestCase) *MockLoaderContext {
 	defaultTeamName, err := keybase1.TeamNameFromString("cabal")
@@ -80,15 +86,25 @@ func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 		require.NoError(l.t, err)
 		var stub bool
 		var omit bool
-		for _, stubSeqno := range l.unit.Load.Stub {
+		for _, stubSeqno := range l.state.loadSpec.Stub {
+			// Stub if in stub list
 			if stubSeqno == keybase1.Seqno(seqno) {
 				stub = true
 			}
 		}
-		for _, omitSeqno := range l.unit.Load.Omit {
+		for _, omitSeqno := range l.state.loadSpec.Omit {
+			// Omit if in omit list
 			if omitSeqno == keybase1.Seqno(seqno) {
 				omit = true
 			}
+		}
+		if l.state.loadSpec.Upto > keybase1.Seqno(0) && keybase1.Seqno(seqno) > l.state.loadSpec.Upto {
+			// Omit if Upto blocks it
+			omit = true
+		}
+		if lows.Seqno >= keybase1.Seqno(seqno) && len(requestSeqnos) == 0 {
+			// Omit if the client already has it, only if requestSeqnos is not set.
+			omit = true
 		}
 		if omit {
 			// pass
@@ -103,6 +119,7 @@ func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 			links = append(links, link)
 		}
 	}
+	l.t.Logf("loadSpec: (returning %v links) %v", len(links), spew.Sdump(l.state.loadSpec))
 
 	return &rawTeam{
 		ID:             teamID,
@@ -176,9 +193,13 @@ func (l *MockLoaderContext) perUserEncryptionKey(ctx context.Context, userSeqno 
 }
 
 func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
-	x, ok := l.unit.TeamMerkle[teamID]
+	key := fmt.Sprintf("%s", teamID)
+	if l.state.loadSpec.Upto > 0 {
+		key = fmt.Sprintf("%s-seqno:%d", teamID, int64(l.state.loadSpec.Upto))
+	}
+	x, ok := l.unit.TeamMerkle[key]
 	if !ok {
-		return r1, r2, NewMockBoundsError("MerkleLookup", "team id", teamID)
+		return r1, r2, NewMockBoundsError("MerkleLookup", "team id (+?seqno)", key)
 	}
 	return x.Seqno, x.LinkID, nil
 }

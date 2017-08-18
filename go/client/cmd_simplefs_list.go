@@ -49,6 +49,7 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "list directory contents",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSList{Contextified: libkb.NewContextified(g)}, "ls", c)
+			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{

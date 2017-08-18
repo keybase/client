@@ -37,6 +37,7 @@ func NewCmdSimpleFSMove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Contextified: libkb.NewContextified(g),
 				opCanceler:   NewOpCanceler(g),
 			}, "mv", c)
+			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{

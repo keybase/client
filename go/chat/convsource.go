@@ -21,33 +21,21 @@ import (
 type baseConversationSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+	*sourceOfflinable
 
-	boxer   *Boxer
-	ri      func() chat1.RemoteInterface
-	offline bool
+	boxer *Boxer
+	ri    func() chat1.RemoteInterface
 }
 
 func newBaseConversationSource(g *globals.Context, ri func() chat1.RemoteInterface, boxer *Boxer) *baseConversationSource {
+	labeler := utils.NewDebugLabeler(g.GetLog(), "baseConversationSource", false)
 	return &baseConversationSource{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseConversationSource", false),
-		ri:           ri,
-		boxer:        boxer,
+		Contextified:     globals.NewContextified(g),
+		DebugLabeler:     labeler,
+		ri:               ri,
+		boxer:            boxer,
+		sourceOfflinable: newSourceOfflinable(labeler),
 	}
-}
-
-func (s *baseConversationSource) Connected(ctx context.Context) {
-	s.Debug(ctx, "connected")
-	s.offline = false
-}
-
-func (s *baseConversationSource) Disconnected(ctx context.Context) {
-	s.Debug(ctx, "disconnected")
-	s.offline = true
-}
-
-func (s *baseConversationSource) IsOffline() bool {
-	return s.offline
 }
 
 func (s *baseConversationSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
@@ -129,7 +117,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Insta fail if we are offline
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		return chat1.ThreadView{}, []*chat1.RateLimit{}, OfflineError{}
 	}
 
@@ -180,7 +168,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv chat1.C
 	uid gregor1.UID, msgIDs []chat1.MessageID) ([]chat1.MessageUnboxed, error) {
 
 	// Insta fail if we are offline
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		return nil, OfflineError{}
 	}
 
@@ -202,7 +190,7 @@ func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv chat1.C
 
 func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	conv chat1.Conversation, uid gregor1.UID, msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error) {
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		return nil, OfflineError{}
 	}
 	return s.boxer.UnboxMessages(ctx, msgs, conv)
@@ -379,7 +367,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 	uid gregor1.UID, msgs []chat1.MessageUnboxed) error {
 
 	// If we are offline, then bail out of here with no error
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		s.Debug(ctx, "identifyTLF: not performing identify because offline")
 		return nil
 	}
@@ -444,7 +432,7 @@ func (s *HybridConversationSource) resolveHoles(ctx context.Context, uid gregor1
 		// Nothing to do
 		return nil
 	}
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		// Don't attempt if we are offline
 		return OfflineError{}
 	}
@@ -518,7 +506,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		}
 		if err == nil {
 			// Do online only things
-			if !s.IsOffline() {
+			if !s.IsOffline(ctx) {
 
 				// Identify this TLF by running crypt keys
 				if ierr := s.identifyTLF(ctx, conv, uid, thread.Messages); ierr != nil {
@@ -565,7 +553,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Insta fail if we are offline
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		return chat1.ThreadView{}, rl, OfflineError{}
 	}
 
@@ -763,7 +751,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv chat1.C
 	if len(remoteMsgs) > 0 {
 
 		// Insta fail if we are offline
-		if s.IsOffline() {
+		if s.IsOffline(ctx) {
 			return nil, OfflineError{}
 		}
 
@@ -843,7 +831,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 			res = append(res, lmsg)
 		} else {
 			// Insta fail if we are offline
-			if s.IsOffline() {
+			if s.IsOffline(ctx) {
 				return nil, OfflineError{}
 			}
 

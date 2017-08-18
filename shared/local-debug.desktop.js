@@ -26,6 +26,7 @@ let config: {[key: string]: any} = {
   printOutstandingRPCs: false,
   printRPC: false,
   printRoutes: false,
+  filterActionLogs: null,
   reactPerf: false,
   redirectOnLogout: true,
   reduxSagaLogger: false,
@@ -45,8 +46,9 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.logStatFrequency = 0.8
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
-  config.printRPC = true
-  config.printRoutes = true
+  config.printRPC = false
+  config.printRoutes = false
+  config.filterActionLogs = null // '^chat|entity'
   config.redirectOnLogout = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
@@ -108,6 +110,7 @@ export const {
   showAllTrackers,
   showDevTools,
   skipSecondaryDevtools,
+  filterActionLogs,
 } = config
 
 export function envVarDebugJson() {

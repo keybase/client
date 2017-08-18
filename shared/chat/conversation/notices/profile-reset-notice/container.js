@@ -2,7 +2,6 @@
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import ProfileResetNotice from '.'
-import {compose} from 'recompose'
 import {connect} from 'react-redux'
 
 import type {TypedState} from '../../../../constants/reducer'
@@ -36,4 +35,4 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
   username: stateProps.username,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ProfileResetNotice)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProfileResetNotice)

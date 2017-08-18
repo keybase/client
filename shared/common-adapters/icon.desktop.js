@@ -107,6 +107,7 @@ class Icon extends Component<void, Exact<Props>, void> {
       return (
         <img
           className={this.props.className}
+          draggable="false"
           title={this.props.hint}
           style={{
             ...globalStyles.noSelect,
