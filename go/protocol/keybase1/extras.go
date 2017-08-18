@@ -1518,23 +1518,41 @@ func (t TeamName) IsNil() bool {
 
 // underscores allowed, just not first or doubled
 var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
+var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", implicitTeamPrefix, implicitSuffixLengthBytes*2)
+var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
-func TeamNameFromString(s string) (ret TeamName, err error) {
+var implicitTeamPrefix = "__keybase_implicit_team__"
+var implicitSuffixLengthBytes = 16
+
+func TeamNameFromString(s string) (TeamName, error) {
+	ret := TeamName{}
+	var regularErr error
+
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("need >= 1 part, got 0")
 	}
+
+	if len(parts) == 1 && implicitNameRxx.MatchString(s) {
+		return TeamName{Parts: []TeamNamePart{TeamNamePart(strings.ToLower(s))}}, nil
+	}
+
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !(len(part) >= 2 && len(part) <= 16) {
-			return ret, errors.New("team names must be between 2 and 16 characters long")
+			regularErr = errors.New("team names must be between 2 and 16 characters long")
+			break
 		}
 		if !namePartRxx.MatchString(part) {
-			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+			regularErr = fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+			break
 		}
 		tmp[i] = TeamNamePart(strings.ToLower(part))
 	}
-	return TeamName{Parts: tmp}, nil
+	if regularErr == nil {
+		return TeamName{Parts: tmp}, nil
+	}
+	return ret, fmt.Errorf("Could not parse name as team name: %v", regularErr)
 }
 
 func (t TeamName) String() string {
@@ -1607,6 +1625,10 @@ func (t TeamName) SwapLastPart(newLast string) (TeamName, error) {
 		return t, err
 	}
 	return parent.Append(newLast)
+}
+
+func (t TeamName) IsImplicit() bool {
+	return strings.HasPrefix(t.String(), implicitTeamPrefix)
 }
 
 // The number of parts in a team name.

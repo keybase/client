@@ -245,6 +245,7 @@ protocol Common {
     that the user posts a Keybase proof on the asserted service as the asserted
     user.
     */
+  
   record SocialAssertion {
       string user;
       SocialAssertionService service;
