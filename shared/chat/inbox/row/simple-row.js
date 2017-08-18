@@ -6,7 +6,7 @@ import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../../constants/chat'
 
-import TopLine from './top-line'
+import {SimpleTopLine, FilteredTopLine} from './top-line'
 import BottomLine from './bottom-line'
 import {Avatars} from './avatars'
 
@@ -49,13 +49,11 @@ class SimpleRow extends PureComponent<void, SimpleProps, void> {
               backgroundColor: props.backgroundColor,
             }}
           >
-            <TopLine
-              filtered={false}
+            <SimpleTopLine
               hasUnread={props.hasUnread}
               participants={props.participants}
               showBold={props.showBold}
               subColor={props.subColor}
-              teamname={props.teamname}
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
             />
@@ -87,7 +85,6 @@ type FilteredProps = {
   showBold: boolean,
   snippet: string,
   subColor: string,
-  teamname: ?string,
   timestamp: string,
   unreadCount: number,
   usernameColor: string,
@@ -114,14 +111,9 @@ class FilteredRow extends PureComponent<void, FilteredProps, void> {
               backgroundColor: props.backgroundColor,
             }}
           >
-            <TopLine
-              filtered={true}
-              hasUnread={props.hasUnread}
+            <FilteredTopLine
               participants={props.participants}
               showBold={props.showBold}
-              subColor={props.subColor}
-              teamname={props.teamname}
-              timestamp={props.timestamp}
               usernameColor={props.usernameColor}
             />
           </Box>
