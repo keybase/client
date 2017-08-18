@@ -608,7 +608,7 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	}
 	if nDelimiters == 0 {
 		if CheckUsername.F(s) {
-			return "keybase", s, nil
+			return "keybase", strings.ToLower(s), nil
 		}
 		return "", "", fmt.Errorf("Parsed part as keybase username, but invalid username")
 	}
