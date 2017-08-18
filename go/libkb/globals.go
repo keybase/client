@@ -313,8 +313,7 @@ func (g *GlobalContext) Logout() error {
 
 func (g *GlobalContext) ConfigureLogging() error {
 	style := g.Env.GetLogFormat()
-	// debug := g.Env.GetDebug()
-	debug := false
+	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
 	if logFile == "" {
 		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())

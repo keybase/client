@@ -27,10 +27,11 @@ func NewVDebugLog(l logger.Logger) *VDebugLog {
 }
 
 const (
-	VLog0 VDebugLevel = 0
-	VLog1 VDebugLevel = 1
-	VLog2 VDebugLevel = 2
-	VLog3 VDebugLevel = 3
+	VLogNone VDebugLevel = iota - 1
+	VLog0
+	VLog1
+	VLog2
+	VLog3
 )
 
 func (v *VDebugLog) Log(lev VDebugLevel, fs string, args ...interface{}) {
@@ -59,6 +60,7 @@ func (v *VDebugLog) DumpPayload() bool {
 
 func (v *VDebugLog) Configure(s string) {
 	if len(s) == 0 {
+		v.lev = VLog0
 		return
 	}
 	v.log.Debug("Setting Vdebug to %q", s)
@@ -66,6 +68,8 @@ func (v *VDebugLog) Configure(s string) {
 	v.lev = VLog0
 	for _, s := range parts {
 		switch s {
+		case "mobile":
+			v.lev = VLogNone
 		case "vlog0":
 			v.lev = VLog0
 		case "vlog1":
