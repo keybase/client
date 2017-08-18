@@ -324,6 +324,10 @@
           "name": "name"
         },
         {
+          "type": "boolean",
+          "name": "implicit"
+        },
+        {
           "type": "TeamApplication",
           "name": "application"
         },
@@ -516,6 +520,10 @@
         {
           "type": "TeamID",
           "name": "id"
+        },
+        {
+          "type": "boolean",
+          "name": "implicit"
         },
         {
           "type": "TeamName",

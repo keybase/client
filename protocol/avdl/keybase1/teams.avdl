@@ -106,6 +106,7 @@ protocol teams {
   record TeamPlusApplicationKeys {
       TeamID id;
       string name;
+      boolean implicit;
       TeamApplication application;
 
       array<UserVersion> writers;
@@ -179,6 +180,9 @@ protocol teams {
     UserVersion reader;
 
     TeamID id;
+
+    // Whether this is an implicit team.
+    boolean implicit;
 
     // Name of the root ancestor. For A.B.C this is 'A'.
     TeamName rootAncestor;
