@@ -2,6 +2,7 @@ package teams
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -29,7 +30,11 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 }
 
 func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
-	impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
+	actx := g.MakeAssertionContext()
+	if actx == nil {
+		return res, impTeamName, errors.New("DEAD")
+	}
+	impTeamName, err = libkb.ParseImplicitTeamName(actx, name, public)
 	if err != nil {
 		return res, impTeamName, err
 	}
@@ -53,7 +58,7 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 		}
 		return res, impTeamName, err
 	}
-
+	fmt.Printf("LOOKUP TEAMID: %s\n", imp.TeamID)
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID: imp.TeamID,
 	})
@@ -65,7 +70,8 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 		return res, impTeamName, err
 	}
 	if teamDisplayName != FormatImplicitTeamName(ctx, g, impTeamName) {
-		return res, impTeamName, errors.New("implicit team name mismatch")
+		return res, impTeamName, fmt.Errorf("implicit team name mismatch: %s != %s", teamDisplayName,
+			FormatImplicitTeamName(ctx, g, impTeamName))
 	}
 
 	return imp.TeamID, impTeamName, nil

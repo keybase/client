@@ -137,6 +137,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (string, error) {
 
 	var invites []string
 	chainInvites := t.chain().inner.ActiveInvites
+	fmt.Printf("INVITES: %d\n", len(chainInvites))
 	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
 	if err != nil {
 		return "", err
