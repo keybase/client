@@ -132,6 +132,7 @@ type AssertionURL interface {
 	ToUID() keybase1.UID
 	IsTeamID() bool
 	IsTeamName() bool
+	IsImplicitTeamName() bool
 	ToTeamID() keybase1.TeamID
 	ToTeamName() keybase1.TeamName
 	IsSocial() bool
@@ -200,6 +201,7 @@ func (b AssertionURLBase) IsUID() bool                         { return false }
 func (b AssertionURLBase) ToUID() (ret keybase1.UID)           { return ret }
 func (b AssertionURLBase) IsTeamID() bool                      { return false }
 func (b AssertionURLBase) IsTeamName() bool                    { return false }
+func (b AssertionURLBase) IsImplicitTeamName() bool            { return false }
 func (b AssertionURLBase) ToTeamID() (ret keybase1.TeamID)     { return ret }
 func (b AssertionURLBase) ToTeamName() (ret keybase1.TeamName) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
@@ -371,17 +373,18 @@ func parseToKVPair(s string) (key string, value string, err error) {
 	return
 }
 
-func (a AssertionKeybase) IsKeybase() bool         { return true }
-func (a AssertionSocial) IsSocial() bool           { return true }
-func (a AssertionSocial) IsRemote() bool           { return true }
-func (a AssertionWeb) IsRemote() bool              { return true }
-func (a AssertionFingerprint) IsFingerprint() bool { return true }
-func (a AssertionUID) IsUID() bool                 { return true }
-func (a AssertionTeamID) IsTeamID() bool           { return true }
-func (a AssertionTeamName) IsTeamName() bool       { return true }
-func (a AssertionHTTP) IsRemote() bool             { return true }
-func (a AssertionHTTPS) IsRemote() bool            { return true }
-func (a AssertionDNS) IsRemote() bool              { return true }
+func (a AssertionKeybase) IsKeybase() bool           { return true }
+func (a AssertionSocial) IsSocial() bool             { return true }
+func (a AssertionSocial) IsRemote() bool             { return true }
+func (a AssertionWeb) IsRemote() bool                { return true }
+func (a AssertionFingerprint) IsFingerprint() bool   { return true }
+func (a AssertionUID) IsUID() bool                   { return true }
+func (a AssertionTeamID) IsTeamID() bool             { return true }
+func (a AssertionTeamName) IsTeamName() bool         { return true }
+func (a AssertionTeamName) IsImplicitTeamName() bool { return true }
+func (a AssertionHTTP) IsRemote() bool               { return true }
+func (a AssertionHTTPS) IsRemote() bool              { return true }
+func (a AssertionDNS) IsRemote() bool                { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
@@ -553,7 +556,7 @@ func FindBestIdentifyComponentURL(e AssertionExpression) AssertionURL {
 
 		if u.IsKeybase() {
 			kb = u
-		} else if u.IsTeamName() {
+		} else if u.IsTeamName() || u.IsImplicitTeamName() {
 			team = u
 		} else if u.IsFingerprint() && fp == nil {
 			fp = u
@@ -597,7 +600,11 @@ func CollectAssertions(e AssertionExpression) (remotes AssertionAnd, locals Asse
 }
 
 func AssertionIsTeam(au AssertionURL) bool {
-	return au != nil && (au.IsTeamID() || au.IsTeamName())
+	return au != nil && (au.IsTeamID() && au.IsTeamName())
+}
+
+func AssertionIsImplicitTeam(au AssertionURL) bool {
+	return au != nil && (au.IsTeamID() && au.IsImplicitTeamName())
 }
 
 func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name string, err error) {

@@ -141,6 +141,14 @@ func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
 	} else if !res.Id.AsUserOrBust().Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
 		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
 	}
+
+	if res, err := cli.Resolve3(context.TODO(), "iteam:alice,bob@facebook,twitter:carol,dave"); err != nil {
+		t.Fatalf("Resolve failed: %v\n", err)
+	} else if res.Name != "iteam:alice,bob@facebook,twitter:carol,dave" {
+		t.Fatalf("Wrong username: %s != 'iteam:alice,bob@facebook,twitter:carol,dave'", res.Name)
+	} else if !res.Id.AsTeamOrBust().Equal(keybase1.UID("khoa")) {
+		t.Fatalf("Wrong uid for iteam: %s\n", res.Id)
+	}
 }
 
 func testCheckInvitationCode(t *testing.T, g *libkb.GlobalContext) {
