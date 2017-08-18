@@ -789,14 +789,15 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:    1,
-				LastLinkID:   link.LinkID().Export(),
-				ParentID:     nil,
-				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:  perTeamKeys,
-				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks: make(map[keybase1.Seqno]bool),
+				LastSeqno:     1,
+				LastLinkID:    link.LinkID().Export(),
+				ParentID:      nil,
+				UserLog:       make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:    make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:   perTeamKeys,
+				LinkIDs:       make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:  make(map[keybase1.Seqno]bool),
+				ActiveInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -883,7 +884,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 			// Check that the invites being completed are all active.
 			// For non-implicit teams we are more lenient, but here we need the counts to match up.
-			for inviteID, _ := range team.CompletedInvites {
+			for inviteID := range team.CompletedInvites {
 				_, ok := prevState.inner.ActiveInvites[inviteID]
 				if !ok {
 					return res, NewImplicitTeamOperationError("completed invite %v but was not active",
@@ -1142,14 +1143,15 @@ func (t *TeamSigChainPlayer) addInnerLink(
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:    1,
-				LastLinkID:   link.LinkID().Export(),
-				ParentID:     &parentID,
-				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:  perTeamKeys,
-				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks: make(map[keybase1.Seqno]bool),
+				LastSeqno:     1,
+				LastLinkID:    link.LinkID().Export(),
+				ParentID:      &parentID,
+				UserLog:       make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:    make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:   perTeamKeys,
+				LinkIDs:       make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:  make(map[keybase1.Seqno]bool),
+				ActiveInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1425,7 +1427,7 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 	var all []assignment
 	additions = make(map[keybase1.TeamRole][]keybase1.TeamInvite)
 
-	if invites.Owners != nil {
+	if invites.Owners != nil && len(*invites.Owners) > 0 {
 		if !options.implicitTeam {
 			return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
 		}
@@ -1435,9 +1437,9 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 		}
 	}
 
-	if invites.Admins != nil {
+	if invites.Admins != nil && len(*invites.Admins) > 0 {
 		if options.implicitTeam {
-			return nil, nil, NewImplicitTeamOperationError("encountered non-owner invite")
+			return nil, nil, NewImplicitTeamOperationError("encountered non-owner invite (admin)")
 		}
 		additions[keybase1.TeamRole_ADMIN] = nil
 		for _, i := range *invites.Admins {
@@ -1445,9 +1447,9 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 		}
 	}
 
-	if invites.Writers != nil {
+	if invites.Writers != nil && len(*invites.Writers) > 0 {
 		if options.implicitTeam {
-			return nil, nil, NewImplicitTeamOperationError("encountered non-owner invite")
+			return nil, nil, NewImplicitTeamOperationError("encountered non-owner invite (writer)")
 		}
 		additions[keybase1.TeamRole_WRITER] = nil
 		for _, i := range *invites.Writers {
@@ -1455,9 +1457,9 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 		}
 	}
 
-	if invites.Readers != nil {
+	if invites.Readers != nil && len(*invites.Readers) > 0 {
 		if options.implicitTeam {
-			return nil, nil, NewImplicitTeamOperationError("encountered non-owner invite")
+			return nil, nil, NewImplicitTeamOperationError("encountered non-owner invite (reader)")
 		}
 		additions[keybase1.TeamRole_READER] = nil
 		for _, i := range *invites.Readers {
@@ -1518,19 +1520,19 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 type chainRoleUpdates map[keybase1.TeamRole][]keybase1.UserVersion
 
 type sanityCheckMembersOptions struct {
-	requireOwners  bool
+	// At least one owner must be added
+	requireOwners bool
+	// Adding owners is blocked
 	disallowOwners bool
-	allowRemovals  bool
-	onlyOwners     bool
+	// Removals are allowed, blocked if false
+	allowRemovals bool
+	// No additions other than owners. Does not affect removals.
+	onlyOwners bool
 }
 
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
 // Do not check that all removals are members. That should be true, but not strictly enforced when reading.
-// `requireOwners` is whether owners must exist.
-// `allowRemovals` is whether removals are allowed.
-// Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
-// In other words, if the input has only `admin -> [...]` then the output will have only `admin` in the map.
 func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options sanityCheckMembersOptions) (chainRoleUpdates, error) {
 	type assignment struct {
 		m    SCTeamMember
@@ -1560,13 +1562,13 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 	// Map from roles to users.
 	res := make(map[keybase1.TeamRole][]keybase1.UserVersion)
 
-	if members.Owners != nil {
+	if members.Owners != nil && len(*members.Owners) > 0 {
 		res[keybase1.TeamRole_OWNER] = nil
 		for _, m := range *members.Owners {
 			all = append(all, assignment{m, keybase1.TeamRole_OWNER})
 		}
 	}
-	if members.Admins != nil {
+	if members.Admins != nil && len(*members.Admins) > 0 {
 		if options.onlyOwners {
 			return nil, NewImplicitTeamOperationError("encountered add admin")
 		}
@@ -1575,7 +1577,7 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 			all = append(all, assignment{m, keybase1.TeamRole_ADMIN})
 		}
 	}
-	if members.Writers != nil {
+	if members.Writers != nil && len(*members.Writers) > 0 {
 		if options.onlyOwners {
 			return nil, NewImplicitTeamOperationError("encountered add writer")
 		}
@@ -1584,7 +1586,7 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 			all = append(all, assignment{m, keybase1.TeamRole_WRITER})
 		}
 	}
-	if members.Readers != nil {
+	if members.Readers != nil && len(*members.Readers) > 0 {
 		if options.onlyOwners {
 			return nil, NewImplicitTeamOperationError("encountered add reader")
 		}
@@ -1593,7 +1595,7 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
 		}
 	}
-	if members.None != nil {
+	if members.None != nil && len(*members.None) > 0 {
 		res[keybase1.TeamRole_NONE] = nil
 		for _, m := range *members.None {
 			all = append(all, assignment{m, keybase1.TeamRole_NONE})
