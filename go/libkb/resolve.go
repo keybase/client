@@ -268,6 +268,10 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 		return r.resolveTeamViaServerLookup(ctx, au)
 	}
 
+	if au.IsImplicitTeamName() {
+		return r.resolveImplicitTeamViaServerLookup(ctx, au)
+	}
+
 	var key, val string
 	var ares *APIRes
 	var l int
@@ -345,7 +349,17 @@ type teamLookup struct {
 	Status AppStatus         `json:"status"`
 }
 
+type implicitTeamLookup struct {
+	TID         keybase1.TeamID   `json:"id"`
+	DisplayName keybase1.TeamName `json:"name"`
+	Status      AppStatus         `json:"status"`
+}
+
 func (t *teamLookup) GetAppStatus() *AppStatus {
+	return &t.Status
+}
+
+func (t *implicitTeamLookup) GetAppStatus() *AppStatus {
 	return &t.Status
 }
 
@@ -375,6 +389,33 @@ func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionU
 	res.resolvedTeamName = lookup.Name
 	res.teamID = lookup.ID
 
+	return res
+}
+
+func (r *Resolver) resolveImplicitTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
+	r.G().Log.CDebugf(ctx, "resolveImplicitTeamViaServerLookup")
+
+	res.queriedByTeamID = au.IsTeamID()
+	_, val, err := au.ToLookup()
+	if err != nil {
+		res.err = err
+		return res
+	}
+
+	arg := NewRetryAPIArg("team/implicit")
+	arg.NetContext = ctx
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.Args = make(HTTPArgs)
+	arg.Args["tid"] = S{Val: val}
+
+	var lookup implicitTeamLookup
+	if err := r.G().API.GetDecode(arg, &lookup); err != nil {
+		res.err = err
+		return res
+	}
+
+	res.resolvedTeamName = lookup.DisplayName
+	res.teamID = lookup.TID
 	return res
 }
 
