@@ -1,0 +1,15 @@
+// @flow
+import {Component} from 'react'
+import * as Constants from '../../../../constants/chat'
+
+export type StateProps = {|
+  conversationIDKey: string,
+  desktop: string,
+  mobile: string,
+|}
+
+export type DispatchProps = {|
+  onOpenConversation: (conversationIDKey: Constants.ConversationIDKey) => void,
+|}
+
+export default class Notifications extends Component<{}, void> {}
