@@ -69,6 +69,8 @@ export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
 
+export type MentionType = 'atmention' | 'generic'
+
 export type TextMessage = {
   type: 'Text',
   message: HiddenString,

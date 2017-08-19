@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Box, Button, Checkbox, Divider, Icon} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import Notifications from './notifications/container'
 import Participants from './participants'
 
 import type {Props} from '.'
@@ -37,6 +38,12 @@ const InfoPanel = (props: Props) => (
         />
         <Icon type="iconfont-shh" style={{marginLeft: globalMargins.tiny}} />
       </Box>
+    </Box>
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', borderLeft: border, borderRight: border}}>
+      <Notifications desktop={'atmention'} mobile={'atmention'} onSetDesktop={null} onSetMobile={null} />
     </Box>
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
