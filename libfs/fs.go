@@ -84,7 +84,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 
 // lookupOrCreateEntryNoFollow looks up the entry for a file in a
 // given parent node.  If the entry is a symlink, it will return a nil
-// Node and a nil error.  If the entry doesn't exist an O_CREATE is
+// Node and a nil error.  If the entry doesn't exist and O_CREATE is
 // set in `flag`, it will create the entry as a file.
 func (fs *FS) lookupOrCreateEntryNoFollow(
 	dir libkbfs.Node, filename string, flag int, perm os.FileMode) (
