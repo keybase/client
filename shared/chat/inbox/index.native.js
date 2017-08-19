@@ -101,7 +101,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}
-          getItemLayout={(data, index) => ({length: 64, offset: 64 * index, index})}
+          getItemLayout={(data, index) => ({index, length: 64, offset: 64 * index})}
           initialNumToRender={this._maxVisible}
           windowSize={this._maxVisible}
         />
