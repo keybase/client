@@ -29,6 +29,16 @@ export type Props = {
   onUsernameClicked?: (username: string) => void,
 }
 
+export type PlaintextProps = {
+  type: TextType,
+  users: UserList,
+  backgroundMode?: Background,
+  containerStyle?: Object,
+  title?: string,
+}
+
 declare export function usernameText(props: Props): void
 
-declare export default class Usernames extends Component<void, Props, void> {}
+declare export class Usernames extends Component<void, Props, void> {}
+
+declare export class PlaintextUsernames extends Component<void, PlaintextProps, void> {}

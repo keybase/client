@@ -5,7 +5,7 @@ import shallowEqual from 'shallowequal'
 import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 
-import type {Props} from './usernames'
+import type {Props, PlaintextProps} from './usernames'
 
 function usernameText({
   type,
@@ -118,6 +118,34 @@ class Usernames extends Component<void, Props, void> {
   }
 }
 
-export {usernameText}
+const divider = isMobile ? ', ' : ',\u200a'
 
-export default Usernames
+class PlaintextUsernames extends Component<void, PlaintextProps, void> {
+  shouldComponentUpdate(nextProps: PlaintextProps) {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (['containerStyle', 'users'].includes(key)) {
+        return shallowEqual(obj, oth)
+      }
+      return undefined
+    })
+  }
+
+  render() {
+    const containerStyle = inlineStyle
+    const rwers = this.props.users.filter(u => !u.readOnly)
+
+    return (
+      <Text
+        type={this.props.type}
+        backgroundMode={this.props.backgroundMode}
+        style={{...containerStyle, ...this.props.containerStyle}}
+        title={this.props.title}
+        {...inlineProps}
+      >
+        {rwers.map(u => u.username).join(divider)}
+      </Text>
+    )
+  }
+}
+
+export {usernameText, Usernames, PlaintextUsernames}
