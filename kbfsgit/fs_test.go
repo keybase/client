@@ -18,6 +18,8 @@ import (
 	"github.com/stretchr/testify/require"
 	gogit "gopkg.in/src-d/go-git.v4"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing/storer"
+	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
 
@@ -31,6 +33,30 @@ func makeFS(t *testing.T, subdir string) (
 	require.NoError(t, err)
 	return ctx, h, fs
 }
+
+// configInMemoryStorer keeps the git config in memory, to work around
+// a gcfg bug (used by go-git when reading configs from disk) that
+// causes a freakout when it sees backslashes in git file URLs.
+type configInMemoryStorer struct {
+	*filesystem.Storage
+	cfg *gogitcfg.Config
+}
+
+func (cims *configInMemoryStorer) Init() error {
+	return cims.Storage.Init()
+}
+
+func (cims *configInMemoryStorer) Config() (*gogitcfg.Config, error) {
+	return cims.cfg, nil
+}
+
+func (cims *configInMemoryStorer) SetConfig(c *gogitcfg.Config) error {
+	cims.cfg = c
+	return nil
+}
+
+var _ storage.Storer = (*configInMemoryStorer)(nil)
+var _ storer.Initializer = (*configInMemoryStorer)(nil)
 
 // This tests pushing code to a bare repo stored in KBFS, and pulling
 // code from that bare repo into a new working tree.  This is a simple
@@ -50,8 +76,11 @@ func TestBareRepoInKBFS(t *testing.T) {
 	ctx, _, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.Config())
 
-	storer, err := filesystem.NewStorage(fs)
+	fsStorer, err := filesystem.NewStorage(fs)
 	require.NoError(t, err)
+	cfg, err := fsStorer.Config()
+	require.NoError(t, err)
+	storer := &configInMemoryStorer{fsStorer, cfg}
 
 	repo, err := gogit.Init(storer, nil)
 	require.NoError(t, err)
@@ -70,30 +99,27 @@ func TestBareRepoInKBFS(t *testing.T) {
 	dotgit1 := filepath.Join(git1, ".git")
 	cmd := exec.Command(
 		"git", "--git-dir", dotgit1, "--work-tree", git1, "init")
-	cmd.Start()
-	err = cmd.Wait()
+	err = cmd.Run()
 	require.NoError(t, err)
 
 	cmd = exec.Command(
 		"git", "--git-dir", dotgit1, "--work-tree", git1, "add", "foo")
-	cmd.Start()
-	err = cmd.Wait()
+	err = cmd.Run()
 	require.NoError(t, err)
 
 	cmd = exec.Command(
-		"git", "--git-dir", dotgit1, "--work-tree", git1, "commit", "-a",
-		"-m", "foo")
-	cmd.Start()
-	err = cmd.Wait()
+		"git", "--git-dir", dotgit1, "--work-tree", git1, "-c", "user.name=Foo",
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "foo")
+	err = cmd.Run()
 	require.NoError(t, err)
 
-	_, err = repo.CreateRemote(&gogitcfg.RemoteConfig{
+	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: "git1",
 		URL:  git1,
 	})
 	require.NoError(t, err)
 
-	err = repo.Fetch(&gogit.FetchOptions{
+	err = remote.Fetch(&gogit.FetchOptions{
 		RemoteName: "git1",
 		RefSpecs:   []gogitcfg.RefSpec{"refs/heads/master:refs/heads/master"},
 	})
@@ -107,17 +133,16 @@ func TestBareRepoInKBFS(t *testing.T) {
 	dotgit2 := filepath.Join(git2, ".git")
 	cmd = exec.Command(
 		"git", "--git-dir", dotgit2, "--work-tree", git2, "init")
-	cmd.Start()
-	err = cmd.Wait()
+	err = cmd.Run()
 	require.NoError(t, err)
 
-	_, err = repo.CreateRemote(&gogitcfg.RemoteConfig{
+	remote, err = repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: "git2",
 		URL:  git2,
 	})
 	require.NoError(t, err)
 
-	err = repo.Push(&gogit.PushOptions{
+	err = remote.Push(&gogit.PushOptions{
 		RemoteName: "git2",
 		RefSpecs: []gogitcfg.RefSpec{
 			"refs/heads/master:refs/heads/kb/master",
@@ -128,8 +153,7 @@ func TestBareRepoInKBFS(t *testing.T) {
 	cmd = exec.Command(
 		"git", "--git-dir", dotgit2, "--work-tree", git2, "checkout",
 		"kb/master")
-	cmd.Start()
-	err = cmd.Wait()
+	err = cmd.Run()
 	require.NoError(t, err)
 
 	data, err := ioutil.ReadFile(filepath.Join(git2, "foo"))
