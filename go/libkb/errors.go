@@ -2065,3 +2065,17 @@ type RevokeLastDeviceError struct{}
 func (e RevokeLastDeviceError) Error() string {
 	return "cannot revoke the last device in your account without confirmation"
 }
+
+//=============================================================================
+
+type ImplictTeamNameError struct {
+	msg string
+}
+
+func (e ImplictTeamNameError) Error() string {
+	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
+}
+
+func NewImplicitTeamNameError(s string) ImplictTeamNameError {
+	return ImplictTeamNameError{s}
+}

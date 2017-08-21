@@ -1014,12 +1014,8 @@
     },
     {
       "type": "record",
-      "name": "ImplicitTeamName",
+      "name": "ImplicitTeamUserSet",
       "fields": [
-        {
-          "type": "boolean",
-          "name": "isPrivate"
-        },
         {
           "type": {
             "type": "array",
@@ -1033,6 +1029,24 @@
             "items": "SocialAssertion"
           },
           "name": "unresolvedUsers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamName",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPrivate"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "writers"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "readers"
         },
         {
           "type": [

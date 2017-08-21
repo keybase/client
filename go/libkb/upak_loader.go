@@ -89,7 +89,7 @@ const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V3
 func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, info *CachedUserLoadInfo) (*keybase1.UserPlusKeysV2AllIncarnations, bool) {
 
 	if u.Freshness == time.Duration(0) || u.noCache {
-		u.G().Log.CDebugf(ctx, "| cache miss since cache disabled")
+		u.G().VDL.CLogf(ctx, VLog0, "| cache miss since cache disabled")
 		return nil, false
 	}
 
@@ -101,7 +101,7 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	if upak != nil {
 		// Note that below we check the minor version and then discard the cached object if it's
 		// stale. But no need in memory, since we'll never have the old version in memory.
-		u.G().Log.CDebugf(ctx, "| hit memory cache")
+		u.G().VDL.CLogf(ctx, VLog0, "| hit memory cache")
 		if info != nil {
 			info.InCache = true
 		}
@@ -111,11 +111,11 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 		if err != nil {
 			u.G().Log.CWarningf(ctx, "trouble accessing UserPlusKeysV2AllIncarnations cache: %s", err)
 		} else if !found {
-			u.G().Log.CDebugf(ctx, "| missed disk cache")
+			u.G().VDL.CLogf(ctx, VLog0, "| missed disk cache")
 		} else if tmp.MinorVersion != UPK2MinorVersionCurrent {
-			u.G().Log.CDebugf(ctx, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
+			u.G().VDL.CLogf(ctx, VLog0, "| found old minor version %d, but wanted %d; will overwrite with fresh UPAK", tmp.MinorVersion, UPK2MinorVersionCurrent)
 		} else {
-			u.G().Log.CDebugf(ctx, "| hit disk cache")
+			u.G().VDL.CLogf(ctx, VLog0, "| hit disk cache")
 			upak = &tmp
 			if info != nil {
 				info.InDiskCache = true
@@ -128,15 +128,15 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 	}
 
 	if upak == nil {
-		u.G().Log.CDebugf(ctx, "| missed cache")
+		u.G().VDL.CLogf(ctx, VLog0, "| missed cache")
 		return nil, true
 	}
 	diff := u.G().Clock().Now().Sub(keybase1.FromTime(upak.Uvv.CachedAt))
 	fresh := (diff <= u.Freshness)
 	if fresh {
-		u.G().Log.CDebugf(ctx, "| cache hit was fresh (cached %s ago)", diff)
+		u.G().VDL.CLogf(ctx, VLog0, "| cache hit was fresh (cached %s ago)", diff)
 	} else {
-		u.G().Log.CDebugf(ctx, "| cache hit was stale (by %s)", u.Freshness-diff)
+		u.G().VDL.CLogf(ctx, VLog0, "| cache hit was stale (by %s)", u.Freshness-diff)
 	}
 	return upak, fresh
 }
@@ -186,12 +186,12 @@ func (u *CachedUPAKLoader) extractDeviceKey(upak keybase1.UserPlusAllKeys, devic
 func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.UserPlusKeysV2AllIncarnations) error {
 
 	if u.noCache {
-		u.G().Log.CDebugf(ctx, "| no cache enabled, so not putting UPAK")
+		u.G().VDL.CLogf(ctx, VLog0, "| no cache enabled, so not putting UPAK")
 		return nil
 	}
 
 	uid := obj.Current.Uid
-	u.G().Log.CDebugf(ctx, "| Caching UPAK for %s", uid)
+	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s", uid)
 
 	stale := false
 	u.Lock()
@@ -204,7 +204,7 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	u.Unlock()
 
 	if stale {
-		u.G().Log.CDebugf(ctx, "| CachedUpakLoader#putUPAKToCache: Refusing to overwrite with stale object")
+		u.G().VDL.CLogf(ctx, VLog0, "| CachedUpakLoader#putUPAKToCache: Refusing to overwrite with stale object")
 		return errors.New("stale object rejected")
 	}
 
@@ -244,7 +244,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	// Add a LU= tax to this context, for all subsequent debugging
 	ctx := arg.WithLogTag()
 
-	defer g.CTrace(ctx, culDebug(arg.UID), func() error { return err })()
+	defer g.CVTrace(ctx, VLog0, culDebug(arg.UID), func() error { return err })()
 
 	if arg.UID.IsNil() {
 		err = errors.New("need a UID to load UPAK from loader")
@@ -290,12 +290,12 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		upak, fresh = u.getCachedUPAK(ctx, arg.UID, info)
 	}
 	if arg.ForcePoll {
-		g.Log.CDebugf(ctx, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.UID), fresh)
+		g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.UID), fresh)
 		fresh = false
 	}
 
 	if upak != nil {
-		g.Log.CDebugf(ctx, "%s: cache-hit; fresh=%v", culDebug(arg.UID), fresh)
+		g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh=%v", culDebug(arg.UID), fresh)
 		if fresh || arg.StaleOK {
 			return returnUPAK(upak, true)
 		}
@@ -316,7 +316,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 
 		if leaf.eldest == "" {
-			g.Log.CDebugf(ctx, "%s: cache-hit; but user is nuked, evicting", culDebug(arg.UID))
+			g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; but user is nuked, evicting", culDebug(arg.UID))
 
 			// Our cached user turned out to be in reset state (without
 			// current sigchain), remove from cache, and then fall
@@ -332,7 +332,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			}
 			u.deleteV1UPAK(arg.UID)
 		} else if leaf.public != nil && leaf.public.Seqno == keybase1.Seqno(upak.Uvv.SigChain) {
-			g.Log.CDebugf(ctx, "%s: cache-hit; fresh after poll", culDebug(arg.UID))
+			g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh after poll", culDebug(arg.UID))
 
 			upak.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 			// This is only necessary to update the levelDB representation,
@@ -351,7 +351,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "no cached user found"}
 	}
 
-	g.Log.CDebugf(ctx, "%s: LoadUser", culDebug(arg.UID))
+	g.VDL.CLogf(ctx, VLog0, "%s: LoadUser", culDebug(arg.UID))
 	user, err = LoadUser(arg)
 	if info != nil {
 		info.LoadedUser = true
@@ -511,7 +511,7 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 
-	u.G().Log.Debug("| CachedUPAKLoader#Invalidate(%s)", uid)
+	u.G().VDL.CLogf(ctx, VLog0, "| CachedUPAKLoader#Invalidate(%s)", uid)
 
 	if u.noCache {
 		return
@@ -526,7 +526,7 @@ func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 
 	err := u.G().LocalDb.Delete(culDBKeyV2(uid))
 	if err != nil {
-		u.G().Log.Warning("Failed to remove %s from disk cache: %s", uid, err)
+		u.G().Log.CWarningf(ctx, "Failed to remove %s from disk cache: %s", uid, err)
 	}
 	u.deleteV1UPAK(uid)
 }

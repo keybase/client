@@ -4,6 +4,7 @@ import ReactList from 'react-list'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
+import Divider from './row/divider'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 
@@ -76,10 +77,24 @@ class Inbox extends PureComponent<void, Props, void> {
 
   _itemRenderer = index => {
     const row = this.props.rows.get(index)
+    if (row.type === 'divider') {
+      return (
+        <Divider
+          key="divider"
+          isExpanded={this.props.smallTeamsExpanded}
+          isBadged={row.isBadged}
+          toggle={this.props.toggleSmallTeamsExpanded}
+        />
+      )
+    }
+    const key =
+      (row.type === 'small' && row.conversationIDKey) ||
+      (row.type === 'bigHeader' && row.teamname) ||
+      (row.type === 'big' && `${row.teamname}:${row.channelname}`)
     return (
       <Row
         conversationIDKey={row.conversationIDKey}
-        key={row.conversationIDKey || row.teamname || 'divider'}
+        key={key}
         isActiveRoute={true}
         teamname={row.teamname}
         channelname={row.channelname}
@@ -93,8 +108,10 @@ class Inbox extends PureComponent<void, Props, void> {
     }
 
     const [first, end] = this._list.getVisibleRange()
-    const conversationIDKey = this.props.rows.get(first)
-    this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+    const row = this.props.rows.get(first)
+    if (row.type === 'small') {
+      this.props.onUntrustedInboxVisible(row.conversationIDKey, end - first)
+    }
   }, 200)
 
   _setRef = list => {

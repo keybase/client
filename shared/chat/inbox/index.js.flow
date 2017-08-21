@@ -4,9 +4,30 @@ import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../constants/chat'
 
+export type RowItem =
+  | {
+      type: 'small',
+      conversationIDKey: ConversationIDKey,
+    }
+  | {
+      type: 'bigHeader',
+      teamname: string,
+    }
+  | {
+      type: 'big',
+      conversationIDKey: ?ConversationIDKey,
+      teamname: string,
+      channelname: ?string,
+    }
+  | {
+      type: 'divider',
+      isBadged: boolean,
+    }
+
 export type Props = {
   isLoading: boolean,
   isActiveRoute: boolean,
+  smallTeamsExpanded: boolean,
   filter: string,
   nowOverride?: number, // just for dumb rendering
   rows: List<RowItem>,

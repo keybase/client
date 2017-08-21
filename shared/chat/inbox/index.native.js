@@ -32,7 +32,6 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
     return index
       ? <Row
           conversationIDKey={item.conversationIDKey}
-          key={item.conversationIDKey || item.teamname}
           isActiveRoute={this.props.isActiveRoute}
           teamname={item.teamname}
           channelname={item.channelname}
@@ -45,7 +44,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
         />
   }
 
-  _keyExtractor = (item, index) => (item ? item.conversationIDKey || item.teamname : 'filter')
+  _keyExtractor = (item, index) => item.conversationIDKey || item.teamname || 'filter'
 
   _setupDataSource = props => {
     this.setState({rows: [{}].concat(props.rows.toArray())})
@@ -56,14 +55,19 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
       this._setupDataSource(nextProps)
 
       if (nextProps.rows.count()) {
-        const conversationIDKey = nextProps.rows.get(0)
-        this.props.onUntrustedInboxVisible(conversationIDKey, 20)
+        const {conversationIDKey} = nextProps.rows.get(0)
+        if (conversationIDKey) {
+          this.props.onUntrustedInboxVisible(conversationIDKey, 20)
+        }
       }
     }
   }
 
-  _askForUnboxing = (id: any, count: number) => {
-    this.props.onUntrustedInboxVisible(id, count)
+  _askForUnboxing = (row: any, count: number) => {
+    const {conversationIDKey} = row
+    if (conversationIDKey) {
+      this.props.onUntrustedInboxVisible(conversationIDKey, count)
+    }
   }
 
   _onViewChanged = debounce(data => {

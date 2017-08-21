@@ -416,13 +416,13 @@ func merkleFirstSkipKey() DbKey {
 }
 
 func (mc *MerkleClient) dbLookup(ctx context.Context, k DbKey) (ret *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, fmt.Sprintf("MerkleClient#dbLookup(%+v)", k), func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("MerkleClient#dbLookup(%+v)", k), func() error { return err })()
 	curr, err := mc.G().LocalDb.Lookup(k)
 	if err != nil {
 		return nil, err
 	}
 	if curr == nil {
-		mc.G().Log.CDebugf(ctx, "| MerkleClient#dbLookup(%+v) found not results", k)
+		mc.G().VDL.CLogf(ctx, VLog0, "| MerkleClient#dbLookup(%+v) found not results", k)
 		return nil, nil
 	}
 
@@ -440,7 +440,7 @@ func (mc *MerkleClient) loadFirstSkip(ctx context.Context) (err error) {
 	if mc.G().Env.GetRunMode() == ProductionRunMode {
 		return nil
 	}
-	defer mc.G().CTrace(ctx, "MerkleClient#loadFirstSkip()", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#loadFirstSkip()", func() error { return err })()
 	var mr *MerkleRoot
 	mr, err = mc.dbLookup(ctx, merkleFirstSkipKey())
 	if mr == nil || err != nil {
@@ -453,7 +453,7 @@ func (mc *MerkleClient) loadFirstSkip(ctx context.Context) (err error) {
 }
 
 func (mc *MerkleClient) loadRoot(ctx context.Context) (err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#loadRoot()", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#loadRoot()", func() error { return err })()
 	var mr *MerkleRoot
 	mr, err = mc.dbLookup(ctx, merkleHeadKey())
 	if mr == nil || err != nil {
@@ -564,32 +564,32 @@ func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 }
 
 func (mc *MerkleClient) FetchRootFromServerBySeqno(ctx context.Context, lowerBound keybase1.Seqno) (mr *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#FetchRootFromServerBySeqno", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#FetchRootFromServerBySeqno", func() error { return err })()
 	root := mc.LastRoot()
 	if root != nil && *root.Seqno() >= lowerBound {
-		mc.G().Log.CDebugf(ctx, "seqno=%d, and was current enough, so returning non-nil previously fetched root", *root.Seqno())
+		mc.G().VDL.CLogf(ctx, VLog0, "seqno=%d, and was current enough, so returning non-nil previously fetched root", *root.Seqno())
 		return root, nil
 	}
 	return mc.fetchRootFromServer(ctx, root)
 }
 
 func (mc *MerkleClient) FetchRootFromServer(ctx context.Context, freshness time.Duration) (mr *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#FetchRootFromServer", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#FetchRootFromServer", func() error { return err })()
 	root := mc.LastRoot()
 	if freshness == 0 && root != nil {
-		mc.G().Log.CDebugf(ctx, "freshness=0, returning non-nil previously fetched root")
+		mc.G().VDL.CLogf(ctx, VLog0, "freshness=0, returning non-nil previously fetched root")
 		return root, nil
 	}
 	now := mc.G().Clock().Now()
 	if root != nil && freshness > 0 && now.Sub(root.fetched) < freshness {
-		mc.G().Log.CDebugf(ctx, "freshness=%d, and was current enough, so returning non-nil previously fetched root", freshness)
+		mc.G().VDL.CLogf(ctx, VLog0, "freshness=%d, and was current enough, so returning non-nil previously fetched root", freshness)
 		return root, nil
 	}
 	return mc.fetchRootFromServer(ctx, root)
 }
 
 func (mc *MerkleClient) fetchRootFromServer(ctx context.Context, lastRoot *MerkleRoot) (mr *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#fetchRootFromServer", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#fetchRootFromServer", func() error { return err })()
 	var ss SkipSequence
 	var apiRes *APIRes
 
@@ -682,7 +682,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(ctx context.Context, q HTT
 
 // `isUser` is true for loading a user and false for loading a team.
 func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, isUser bool) (apiRes *APIRes, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
 	// Poll for 10s and ask for a race-free state.
 	q.Add("poll", I{10})
@@ -747,25 +747,25 @@ func readRootFromAPIRes(g *GlobalContext, jw *jsonw.Wrapper) (*MerkleRoot, error
 // with the merkle root we last fetched from the DB. In verifySkipSequence, we walk over this Sequence
 // to make sure that it obeys proper construction.
 func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *APIRes, thisRoot *MerkleRoot, lastRoot *MerkleRoot) (ret SkipSequence, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#readSkipSequenceFromAPIRes", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#readSkipSequenceFromAPIRes", func() error { return err })()
 	if lastRoot == nil {
-		mc.G().Log.CDebugf(ctx, "| lastRoot==nil")
+		mc.G().VDL.CLogf(ctx, VLog0, "| lastRoot==nil")
 		return nil, nil
 	}
 	if !thisRoot.HasSkips() {
-		mc.G().Log.CDebugf(ctx, "| thisRoot has no skips")
+		mc.G().VDL.CLogf(ctx, VLog0, "| thisRoot has no skips")
 		return nil, nil
 	}
 	skips := res.Body.AtKey("skips")
 
 	if skips.IsNil() {
-		mc.G().Log.CDebugf(ctx, "| skip list from API server is nil")
+		mc.G().VDL.CLogf(ctx, VLog0, "| skip list from API server is nil")
 		return nil, nil
 	}
 
 	var v []string
 	if err = skips.UnmarshalAgain(&v); err != nil {
-		mc.G().Log.CDebugf(ctx, "| failed to unmarshal skip list as a list of strings")
+		mc.G().VDL.CLogf(ctx, VLog0, "| failed to unmarshal skip list as a list of strings")
 		return nil, err
 	}
 
@@ -827,7 +827,7 @@ func (mc *MerkleClient) readPathFromAPIResUser(ctx context.Context, res *APIRes)
 }
 
 func (mc *MerkleClient) readPathFromAPIRes(ctx context.Context, res *APIRes) (vp *VerificationPath, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#readPathFromAPIRes", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#readPathFromAPIRes", func() error { return err })()
 
 	vp = &VerificationPath{
 		Contextified: NewContextified(mc.G()),
@@ -889,7 +889,7 @@ func (mr MerkleRoot) ExportToAVDL(g *GlobalContext) keybase1.MerkleRootAndTime {
 // storeRoot stores the root in the db and mem.
 // Must be called from under a lock.
 func (mc *MerkleClient) storeRoot(ctx context.Context, root *MerkleRoot, storeFirstSkip bool) {
-	mc.G().Log.CDebugf(ctx, "storing merkling root: %d", *root.Seqno())
+	mc.G().VDL.CLogf(ctx, VLog0, "storing merkling root: %d", *root.Seqno())
 	err := root.Store(storeFirstSkip)
 	if err != nil {
 		mc.G().Log.Errorf("Cannot commit Merkle root to local DB: %s", err)
@@ -928,34 +928,34 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 }
 
 func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence, thisRoot *MerkleRoot, lastRoot *MerkleRoot, historical bool) (err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#verifySkipSequence", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#verifySkipSequence", func() error { return err })()
 
 	// In this case, the server did not return a skip sequence. It's OK if
 	// the last known root is too old. It's not OK if the last known root is
 	// from after the server starting providing skip pointers.
 	if ss == nil {
-		mc.G().Log.CDebugf(ctx, "| nil SkipSequence")
+		mc.G().VDL.CLogf(ctx, VLog0, "| nil SkipSequence")
 		fss := mc.FirstSeqnoWithSkips()
 		if lastRoot == nil {
-			mc.G().Log.CDebugf(ctx, "| lastRoot==nil, so OK")
+			mc.G().VDL.CLogf(ctx, VLog0, "| lastRoot==nil, so OK")
 			return nil
 		}
 		if fss == nil {
-			mc.G().Log.CDebugf(ctx, "| no known root with skips, so OK")
+			mc.G().VDL.CLogf(ctx, VLog0, "| no known root with skips, so OK")
 			return nil
 		}
 		if *fss > *lastRoot.Seqno() {
-			mc.G().Log.CDebugf(ctx, "| lastRoot (%d) is from before first known root with skips (%d), so OK", int(*lastRoot.Seqno()), int(*fss))
+			mc.G().VDL.CLogf(ctx, VLog0, "| lastRoot (%d) is from before first known root with skips (%d), so OK", int(*lastRoot.Seqno()), int(*fss))
 			return nil
 		}
 		if thisRoot != nil && *lastRoot.Seqno() == *thisRoot.Seqno() {
-			mc.G().Log.CDebugf(ctx, "| thisRoot is the same as lastRoot (%d), so OK", int(*lastRoot.Seqno()))
+			mc.G().VDL.CLogf(ctx, VLog0, "| thisRoot is the same as lastRoot (%d), so OK", int(*lastRoot.Seqno()))
 			return nil
 		}
 		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno())), merkleErrorNoSkipSequence}
 	}
 	if *thisRoot.Seqno() == *lastRoot.Seqno() {
-		mc.G().Log.CDebugf(ctx, "| No change since last check (seqno %d)", *thisRoot.Seqno())
+		mc.G().VDL.CLogf(ctx, VLog0, "| No change since last check (seqno %d)", *thisRoot.Seqno())
 		return nil
 	}
 	left := *thisRoot.Seqno()
@@ -971,12 +971,12 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 // it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
 // currently at Seqno=100.
 func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot keybase1.Seqno, lastRoot keybase1.Seqno) (err error) {
-	defer g.CTrace(ctx, "SkipSequence#verify", func() error { return err })()
+	defer g.CVTrace(ctx, VLog0, "SkipSequence#verify", func() error { return err })()
 
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
 		thisRoot, prevRoot := ss[index].seqno(), ss[nextIndex].seqno()
-		g.Log.CDebugf(ctx, "| Checking skip %d->%d", thisRoot, prevRoot)
+		g.VDL.CLogf(ctx, VLog0, "| Checking skip %d->%d", thisRoot, prevRoot)
 
 		// First check that the merkle Seqno sequence is strictly decreasing
 		if thisRoot <= prevRoot {
@@ -990,7 +990,7 @@ func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot ke
 			return MerkleClientError{fmt.Sprintf("Skip missing at %d->%d", thisRoot, prevRoot), merkleErrorSkipMissing}
 		}
 		if !hashEq(hash, ss[nextIndex].shortHash()) {
-			g.Log.CDebugf(ctx, "| Failure in hashes: %s != %s", hash.String(), ss[nextIndex].shortHash().String())
+			g.VDL.CLogf(ctx, VLog0, "| Failure in hashes: %s != %s", hash.String(), ss[nextIndex].shortHash().String())
 			return MerkleClientError{fmt.Sprintf("Skip pointer mismatch at %d->%d", thisRoot, prevRoot), merkleErrorSkipHashMismatch}
 		}
 	}
@@ -1017,7 +1017,7 @@ func (mc *MerkleClient) verifyRootHistorical(ctx context.Context, root *MerkleRo
 }
 
 func (mc *MerkleClient) verifyAndStoreRootHelper(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno, historical bool) (err error) {
-	defer mc.G().CTrace(ctx, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
 
 	// First make sure it's not a rollback. If we're doing an historical lookup, it's
 	// actual OK.
@@ -1039,7 +1039,7 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(ctx context.Context, root *Merk
 	if err != nil {
 		return err
 	}
-	mc.G().Log.CDebugf(ctx, "+ Merkle: using KID=%s for verifying server sig", kid)
+	mc.G().VDL.CLogf(ctx, VLog0, "+ Merkle: using KID=%s for verifying server sig", kid)
 
 	key, err := mc.keyring.Load(kid)
 	if err != nil {
@@ -1056,7 +1056,7 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(ctx context.Context, root *Merk
 		return err
 	}
 
-	mc.G().Log.CDebugf(ctx, "- Merkle: server sig verified")
+	mc.G().VDL.CLogf(ctx, VLog0, "- Merkle: server sig verified")
 
 	mc.verified[*root.Seqno()] = true
 
@@ -1157,10 +1157,10 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 }
 
 func parseMerkleUserLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContext) (user *MerkleUserLeaf, err error) {
-	g.Log.CDebugf(ctx, "+ ParsingMerkleUserLeaf")
+	g.VDL.CLogf(ctx, VLog0, "+ ParsingMerkleUserLeaf")
 
 	if jw == nil {
-		g.Log.CDebugf(ctx, "| empty leaf found; user wasn't in tree")
+		g.VDL.CLogf(ctx, VLog0, "| empty leaf found; user wasn't in tree")
 		user = &MerkleUserLeaf{}
 		return
 	}
@@ -1194,15 +1194,15 @@ func parseMerkleUserLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContex
 		err = fmt.Errorf("Unexpected version: %d", v)
 	}
 
-	g.Log.CDebugf(ctx, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
+	g.VDL.CLogf(ctx, VLog0, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
 	return
 }
 
 func parseMerkleTeamLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContext) (leaf *MerkleTeamLeaf, err error) {
-	g.Log.CDebugf(ctx, "+ ParsingMerkleUserLeaf")
+	g.VDL.CLogf(ctx, VLog0, "+ ParsingMerkleUserLeaf")
 
 	if jw == nil {
-		g.Log.CDebugf(ctx, "| empty leaf found; team wasn't in tree")
+		g.VDL.CLogf(ctx, VLog0, "| empty leaf found; team wasn't in tree")
 		leaf = &MerkleTeamLeaf{}
 		return
 	}
@@ -1236,7 +1236,7 @@ func parseMerkleTeamLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContex
 		return
 	}
 
-	g.Log.CDebugf(ctx, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
+	g.VDL.CLogf(ctx, VLog0, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
 	return &MerkleTeamLeaf{
 		// TeamID is filled in by the caller
 		Public:  public,
@@ -1246,17 +1246,17 @@ func parseMerkleTeamLeaf(ctx context.Context, jw *jsonw.Wrapper, g *GlobalContex
 
 func (vp *VerificationPath) verifyUsername(ctx context.Context, userInfo merkleUserInfoT) (username string, err error) {
 	if CheckUIDAgainstUsername(userInfo.uid, userInfo.username) == nil {
-		vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash", userInfo.username, userInfo.uid)
+		vp.G().VDL.CLogf(ctx, VLog0, "| Username %s mapped to %s via direct hash", userInfo.username, userInfo.uid)
 		username = userInfo.username
 		return
 	}
 
-	vp.G().Log.CDebugf(ctx, "| Failed to map Username %s -> UID %s via direct hash", userInfo.username, userInfo.uid)
+	vp.G().VDL.CLogf(ctx, VLog0, "| Failed to map Username %s -> UID %s via direct hash", userInfo.username, userInfo.uid)
 
 	if userInfo.usernameCased != userInfo.username && strings.ToLower(userInfo.usernameCased) == userInfo.username {
-		vp.G().Log.CDebugf(ctx, "| Checking cased username difference: %s v %s", userInfo.username, userInfo.usernameCased)
+		vp.G().VDL.CLogf(ctx, VLog0, "| Checking cased username difference: %s v %s", userInfo.username, userInfo.usernameCased)
 		if CheckUIDAgainstCasedUsername(userInfo.uid, userInfo.usernameCased) == nil {
-			vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via direct hash (w/ username casing)", userInfo.usernameCased, userInfo.uid)
+			vp.G().VDL.CLogf(ctx, VLog0, "| Username %s mapped to %s via direct hash (w/ username casing)", userInfo.usernameCased, userInfo.uid)
 			username = userInfo.username
 			return
 		}
@@ -1284,7 +1284,7 @@ func (vp *VerificationPath) verifyUsername(ctx context.Context, userInfo merkleU
 		return
 	}
 
-	vp.G().Log.CDebugf(ctx, "| Username %s mapped to %s via Merkle lookup", userInfo.username, userInfo.uid)
+	vp.G().VDL.CLogf(ctx, VLog0, "| Username %s mapped to %s via Merkle lookup", userInfo.username, userInfo.uid)
 	username = userInfo.username
 
 	return
@@ -1306,7 +1306,7 @@ func (vp *VerificationPath) verifyUser(ctx context.Context, uid keybase1.UID) (u
 	if err == nil {
 		// noop
 	} else if _, ok := err.(MerkleNotFoundError); ok {
-		vp.G().Log.CDebugf(ctx, fmt.Sprintf("In checking Merkle tree: %s", err))
+		vp.G().VDL.CLogf(ctx, VLog0, fmt.Sprintf("In checking Merkle tree: %s", err))
 	} else {
 		return
 	}
@@ -1334,7 +1334,7 @@ func (vp *VerificationPath) verifyTeam(ctx context.Context, teamID keybase1.Team
 	if err == nil {
 		// noop
 	} else if _, ok := err.(MerkleNotFoundError); ok {
-		vp.G().Log.CDebugf(ctx, fmt.Sprintf("In checking Merkle tree: %s", err))
+		vp.G().VDL.CLogf(ctx, VLog0, fmt.Sprintf("In checking Merkle tree: %s", err))
 	} else {
 		return
 	}
@@ -1415,7 +1415,7 @@ func (mc *MerkleClient) verifySkipSequenceAndRootHelper(ctx context.Context, ss 
 
 	defer func() {
 		if err != nil {
-			mc.G().Log.CDebugf(ctx, "| Full APIRes was: %s", apiRes.Body.MarshalToDebug())
+			mc.G().VDL.CLogf(ctx, VLog0, "| Full APIRes was: %s", apiRes.Body.MarshalToDebug())
 		}
 	}()
 
@@ -1432,7 +1432,7 @@ func (mc *MerkleClient) verifySkipSequenceAndRootHelper(ctx context.Context, ss 
 
 func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
 
-	mc.G().Log.CDebugf(ctx, "+ MerkleClient.LookupUser(%v)", q)
+	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupUser(%v)", q)
 
 	var path *VerificationPath
 	var ss SkipSequence
@@ -1472,7 +1472,7 @@ func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *Si
 
 	u.idVersion = userInfo.idVersion
 
-	mc.G().Log.CDebugf(ctx, "- MerkleClient.LookupUser(%v) -> OK", q)
+	mc.G().VDL.CLogf(ctx, VLog0, "- MerkleClient.LookupUser(%v) -> OK", q)
 	return u, nil
 }
 
@@ -1498,7 +1498,7 @@ func (vp *VerificationPath) verifyUserOrTeam(ctx context.Context, id keybase1.Us
 }
 
 func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (leaf *MerkleGenericLeaf, err error) {
-	mc.G().Log.CDebugf(ctx, "+ MerkleClient.LookupLeafAtHashMeta(%v)", leafID)
+	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupLeafAtHashMeta(%v)", leafID)
 
 	var path *VerificationPath
 	var ss SkipSequence
@@ -1541,7 +1541,7 @@ func (mc *MerkleClient) LookupLeafAtHashMeta(ctx context.Context, leafID keybase
 func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) (leaf *MerkleTeamLeaf, err error) {
 	// Copied from LookupUser. These methods should be kept relatively in sync.
 
-	mc.G().Log.CDebugf(ctx, "+ MerkleClient.LookupUser(%v)", teamID)
+	mc.G().VDL.CLogf(ctx, VLog0, "+ MerkleClient.LookupUser(%v)", teamID)
 
 	var path *VerificationPath
 	var ss SkipSequence
@@ -1573,7 +1573,7 @@ func (mc *MerkleClient) LookupTeam(ctx context.Context, teamID keybase1.TeamID) 
 		return nil, err
 	}
 
-	mc.G().Log.CDebugf(ctx, "- MerkleClient.LookupUser(%v) -> OK", teamID)
+	mc.G().VDL.CLogf(ctx, VLog0, "- MerkleClient.LookupUser(%v) -> OK", teamID)
 	return leaf, nil
 }
 
