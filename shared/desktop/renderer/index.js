@@ -53,6 +53,42 @@ function setupAvatar() {
   initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 }
 
+var timeoutID
+
+// Consider us inactive after a minute of no input
+// for the purpose of marking chat messages read
+function setTimeoutListeners() {
+  window.addEventListener('mousemove', resetTimer, false)
+  window.addEventListener('mousedown', resetTimer, false)
+  window.addEventListener('keypress', resetTimer, false)
+  window.addEventListener('DOMMouseScroll', resetTimer, false)
+  window.addEventListener('mousewheel', resetTimer, false)
+  window.addEventListener('touchmove', resetTimer, false)
+  window.addEventListener('MSPointerMove', resetTimer, false)
+
+  startTimer()
+}
+
+function startTimer() {
+  // wait 1 minute before calling goInactive
+  timeoutID = window.setTimeout(goInactive, 60000)
+}
+
+function resetTimer(e) {
+  window.clearTimeout(timeoutID)
+  goActive()
+}
+
+function goInactive() {
+  console.log('Going inactive due to 1 minute of no input')
+  window.clearTimeout(timeoutID)
+  setupStore().dispatch(changedFocus(false))
+}
+
+function goActive() {
+  startTimer()
+}
+
 function setupApp(store) {
   setupSource()
   disableDragDrop()
@@ -91,7 +127,10 @@ function setupApp(store) {
   })
   ipcRenderer.send('install-check')
 
+  setTimeoutListeners()
+
   window.addEventListener('focus', () => {
+    goActive()
     store.dispatch(changedFocus(true))
   })
   window.addEventListener('blur', () => {
