@@ -59,13 +59,12 @@ func (v *VDebugLog) DumpPayload() bool {
 }
 
 func (v *VDebugLog) Configure(s string) {
+	v.lev = VLog0
 	if len(s) == 0 {
-		v.lev = VLog0
 		return
 	}
 	v.log.Debug("Setting Vdebug to %q", s)
 	parts := strings.Split(s, ",")
-	v.lev = VLog0
 	for _, s := range parts {
 		switch s {
 		case "mobile":

@@ -44,7 +44,6 @@ public class MainActivity extends ReactActivity {
         }
 
         initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
-        // initOnce(this.getFilesDir().getPath(), null, "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 
