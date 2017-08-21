@@ -73,7 +73,7 @@ function setTimeoutListeners() {
 }
 
 function startTimer() {
-  if(!isMobile){
+  if (!isMobile) {
     // wait 1 minute before calling goInactive
     timeoutID = window.setTimeout(goInactive, 60000)
   }
