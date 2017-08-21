@@ -25,7 +25,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 		return res, err
 	}
 	var kbusers []*keybase1.UserPlusKeysV2AllIncarnations
-	for _, kbu := range impTeam.KeybaseUsers {
+	for _, kbu := range impTeam.Writers.KeybaseUsers {
 		uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(kbu))
 		if err != nil {
 			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load uid: %s msg: %s", kbu, err)
@@ -59,7 +59,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	// Add invites for assertions
-	for _, assertion := range impTeam.UnresolvedUsers {
+	for _, assertion := range impTeam.Writers.UnresolvedUsers {
 		invites = append(invites, SCTeamInvite{
 			Type: string(assertion.Service),
 			Name: assertion.User,

@@ -1774,3 +1774,7 @@ func (t TeamInviteType) String() (string, error) {
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
+
+func (i ImplicitTeamUserSet) NumTotalUsers() int {
+	return len(i.KeybaseUsers) + len(i.UnresolvedUsers)
+}

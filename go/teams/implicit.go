@@ -34,7 +34,7 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 		return res, impTeamName, err
 	}
 	impTeamMembers := make(map[string]bool)
-	for _, u := range impTeamName.KeybaseUsers {
+	for _, u := range impTeamName.Writers.KeybaseUsers {
 		impTeamMembers[u] = true
 	}
 
@@ -94,10 +94,10 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, nam
 
 func FormatImplicitTeamName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamName) (string, error) {
 	var names []string
-	for _, u := range impTeamName.KeybaseUsers {
+	for _, u := range impTeamName.Writers.KeybaseUsers {
 		names = append(names, u)
 	}
-	for _, u := range impTeamName.UnresolvedUsers {
+	for _, u := range impTeamName.Writers.UnresolvedUsers {
 		names = append(names, u.String())
 	}
 	sort.Slice(names, func(i, j int) bool {
