@@ -9,7 +9,7 @@ import KeyHandler from '../../util/key-handler.desktop'
 
 import type {Props, RowProps} from './'
 
-class _AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
+class _AddNewRow extends PureComponent<{onNewChat: () => void}, void> {
   render() {
     return (
       <div
@@ -39,7 +39,7 @@ class _AddNewRow extends PureComponent<void, {onNewChat: () => void}, void> {
 }
 const AddNewRow = KeyHandler(_AddNewRow)
 
-class NewConversation extends PureComponent<void, {}, void> {
+class NewConversation extends PureComponent<{}, void> {
   render() {
     return (
       <div
@@ -301,7 +301,7 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-class Inbox extends PureComponent<void, Props, void> {
+class Inbox extends PureComponent<Props> {
   _list: any
 
   componentWillReceiveProps(nextProps: Props) {

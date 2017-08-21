@@ -70,7 +70,11 @@ function messageCreateComponent(type, key, children, options) {
         <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
       )
     case 'text-block':
-      return <Text type="Body" key={key} style={textBlockStyle}>{children.length ? children : '\u200b'}</Text>
+      return (
+        <Text type="Body" key={key} style={textBlockStyle}>
+          {children && children.length ? children : '\u200b'}
+        </Text>
+      )
     case 'bold':
       return <Text type="BodySemibold" key={key} style={boldStyle}>{children}</Text>
     case 'italic':
@@ -86,7 +90,7 @@ function messageCreateComponent(type, key, children, options) {
   }
 }
 
-class Markdown extends PureComponent<void, Props, void> {
+class Markdown extends PureComponent<Props> {
   render() {
     const content = parseMarkdown(
       this.props.children,

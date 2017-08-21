@@ -16,7 +16,7 @@ type State = {
   value: string,
 }
 
-class Input extends Component<void, Props, State> {
+class Input extends Component<Props, State> {
   state: State
   _input: any
 
@@ -108,7 +108,7 @@ class Input extends Component<void, Props, State> {
     this._input && this._inputNode().blur()
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent) => {
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(e)
     }

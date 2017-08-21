@@ -28,4 +28,4 @@ export type Props = {
   numStars: number,
 }
 
-export default class PlanDetails extends Component<void, Props, void> {}
+export default class PlanDetails extends Component<Props> {}

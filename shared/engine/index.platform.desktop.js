@@ -14,6 +14,7 @@ class NativeTransport extends TransportShared {
 
   _connect_critical_section(cb: any) {
     // eslint-disable-line camelcase
+    // $FlowIssue
     super._connect_critical_section(cb)
     windowsHack()
   }

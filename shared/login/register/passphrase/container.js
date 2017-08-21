@@ -23,7 +23,7 @@ type Props = {
 }
 
 // TODO remove this class
-class _Passphrase extends Component<void, Props, State> {
+class _Passphrase extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

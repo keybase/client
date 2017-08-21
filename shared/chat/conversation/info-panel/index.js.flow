@@ -18,4 +18,4 @@ export type Props = {
   }>,
 }
 
-export default class InfoPanel extends Component<void, Props, void> {}
+export default class InfoPanel extends Component<Props> {}

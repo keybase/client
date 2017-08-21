@@ -12,7 +12,7 @@ type State = {
 }
 
 // Todo: type properly
-class UsernameEmailForm extends Component<void, any, State> {
+class UsernameEmailForm extends Component<any, State> {
   state: State
 
   constructor(props: Props) {

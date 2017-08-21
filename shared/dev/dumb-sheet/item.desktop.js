@@ -7,8 +7,8 @@ import {Box, Text} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 import {createStore} from 'redux'
 
-class DumbSheetItem extends Component<void, Props<*>, void> {
-  _component: Component<*, *, *>
+class DumbSheetItem extends Component<Props<*>, void> {
+  _component: Component<*, *>
   _mockStore: any
 
   componentDidMount() {

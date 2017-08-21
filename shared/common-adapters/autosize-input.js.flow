@@ -4,14 +4,14 @@ import {Component} from 'react'
 export type Props = {
   autoFocus?: boolean,
   value: string,
-  placeholder: string,
+  placeholder?: ?string,
   inputStyle?: Object,
   onChange: (text: string) => void,
-  onKeyDown?: (ev: SyntheticInputEvent) => void,
-  onFocus?: (ev: SyntheticInputEvent) => void,
-  onBlur?: (ev: SyntheticInputEvent) => void,
+  onKeyDown?: (ev: SyntheticInputEvent<>) => void,
+  onFocus?: (ev: SyntheticInputEvent<>) => void,
+  onBlur?: (ev: SyntheticInputEvent<>) => void,
 }
 
-export default class AutosizeInput extends Component<void, Props, void> {
+export default class AutosizeInput extends Component<Props> {
   focus: () => void
 }

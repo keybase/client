@@ -32,7 +32,7 @@ type ContainerProps = {
 }
 
 // TODO remove this class
-class _SetPublicName extends Component<void, ContainerProps, State> {
+class _SetPublicName extends Component<ContainerProps, State> {
   state: State
 
   constructor(props: ContainerProps) {

@@ -5,11 +5,7 @@ import {TypedConnector} from '../util/typed-connect'
 import {cancelAddProof, backToProfile} from '../actions/profile'
 import {globalColors} from '../styles'
 
-import type {Props} from './confirm-or-pending'
-import type {TypedDispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
-
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+const connector: any = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   const profile = state.profile

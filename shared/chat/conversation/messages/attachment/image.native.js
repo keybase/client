@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {NativeImage, NativeDimensions} from '../../../../common-adapters/native-wrappers.native'
 
 import type {ImageRenderProps} from './image'

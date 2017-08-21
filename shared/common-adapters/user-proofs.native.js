@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import Icon from './icon'
 import Meta from './meta'
 import ProgressIndicator from './progress-indicator'
-import React, {Component} from 'react'
+import * as React from 'react'
 import Text from './text'
 import openUrl from '../util/open-url'
 import type {IconType} from './icon.constants'
@@ -15,13 +15,7 @@ import {defaultColor} from './icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow({
-  missingProof,
-  style,
-}: {
-  missingProof: MissingProof,
-  style: Object,
-}): React$Element<*> {
+function MissingProofRow({missingProof, style}: {missingProof: MissingProof, style: Object}): React.Node {
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
@@ -60,7 +54,7 @@ type ProofRowProps = {
   style: Object,
 }
 
-function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofRowProps): React$Element<*> {
+function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofRowProps): React.Element<any> {
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
@@ -105,7 +99,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
   )
 }
 
-function LoadingProofRow({width}: {width: number}): React$Element<*> {
+function LoadingProofRow({width}: {width: number}): React.Element<any> {
   return (
     <Box style={styleRow}>
       <Box style={styleProofNameSection}>
@@ -131,7 +125,7 @@ function LoadingProofs() {
   )
 }
 
-class ProofsRender extends Component<void, Props, void> {
+class ProofsRender extends React.Component<Props> {
   _ensureUrlProtocal(url: string): string {
     return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
   }

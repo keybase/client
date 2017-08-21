@@ -120,7 +120,7 @@ function messageCreateComponent(style, allowFontScaling) {
             style={[neutralStyle, style, options.big ? bigStyle : null]}
             allowFontScaling={allowFontScaling}
           >
-            {children.length ? children : '\u200b'}
+            {children && children.length ? children : '\u200b'}
           </Text>
         )
       case 'bold':
@@ -165,7 +165,7 @@ function messageCreateComponent(style, allowFontScaling) {
   }
 }
 
-class Markdown extends PureComponent<void, Props, void> {
+class Markdown extends PureComponent<Props> {
   render() {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)

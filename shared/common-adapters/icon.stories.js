@@ -1,7 +1,7 @@
 // @flow
 import Box from './box'
 import Icon from './icon'
-import React from 'react'
+import * as React from 'react'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
@@ -12,7 +12,7 @@ import type {IconType} from './icon'
 
 const commonProps = {
   hint: 'hint text',
-  onClick: (event: SyntheticEvent) => action('onClick'),
+  onClick: (event: SyntheticEvent<>) => action('onClick'),
   onMouseEnter: () => action('onMouseEnter'),
   onMouseLeave: () => action('onMouseLeave'),
   style: {
