@@ -34,6 +34,7 @@ import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
+import {isMobile} from '../../constants/platform'
 
 let _store
 function setupStore() {
@@ -58,20 +59,24 @@ var timeoutID
 // Consider us inactive after a minute of no input
 // for the purpose of marking chat messages read
 function setTimeoutListeners() {
-  window.addEventListener('mousemove', resetTimer, false)
-  window.addEventListener('mousedown', resetTimer, false)
-  window.addEventListener('keypress', resetTimer, false)
-  window.addEventListener('DOMMouseScroll', resetTimer, false)
-  window.addEventListener('mousewheel', resetTimer, false)
-  window.addEventListener('touchmove', resetTimer, false)
-  window.addEventListener('MSPointerMove', resetTimer, false)
+  if (!isMobile) {
+    window.addEventListener('mousemove', resetTimer, false)
+    window.addEventListener('mousedown', resetTimer, false)
+    window.addEventListener('keypress', resetTimer, false)
+    window.addEventListener('DOMMouseScroll', resetTimer, false)
+    window.addEventListener('mousewheel', resetTimer, false)
+    window.addEventListener('touchmove', resetTimer, false)
+    window.addEventListener('MSPointerMove', resetTimer, false)
 
-  startTimer()
+    startTimer()
+  }
 }
 
 function startTimer() {
-  // wait 1 minute before calling goInactive
-  timeoutID = window.setTimeout(goInactive, 60000)
+  if(!isMobile){
+    // wait 1 minute before calling goInactive
+    timeoutID = window.setTimeout(goInactive, 60000)
+  }
 }
 
 function resetTimer(e) {
