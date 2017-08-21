@@ -676,7 +676,7 @@ func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bo
 			ret.UnresolvedUsers = append(ret.UnresolvedUsers, sa)
 		}
 	}
-	sort.Slice(ret.KeybaseUsers)
+	sort.Strings(ret.KeybaseUsers)
 	sort.Slice(ret.UnresolvedUsers, func(i, j int) bool { return ret.UnresolvedUsers[i].String() < ret.UnresolvedUsers[j].String() })
 	return ret, nil
 }
