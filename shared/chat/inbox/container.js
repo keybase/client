@@ -77,39 +77,36 @@ const filteredInbox = createImmutableEqualSelector(
     return [sortedSmallIds, bigTeamToChannels]
   }
 )
-const getRows = createImmutableEqualSelector(
-  [filteredInbox, getPending, (_, smallTeamsExpanded) => smallTeamsExpanded],
-  (inbox, pending, smallTeamsExpanded) => {
-    const [smallIds, bigTeamToChannels] = inbox
+const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
+  const [smallIds, bigTeamToChannels] = inbox
 
-    const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, type: 'small'})))
-    const sids = I.List(smallIds.map(s => ({conversationIDKey: s, type: 'small'})))
+  const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, type: 'small'})))
+  const sids = I.List(smallIds.map(s => ({conversationIDKey: s, type: 'small'})))
 
-    const bigTeams = I.List(
-      flatten(
-        Object.keys(bigTeamToChannels).sort().map(team => {
-          const channels = bigTeamToChannels[team]
-          return [
-            {
-              teamname: team,
-              type: 'bigHeader',
-            },
-          ].concat(
-            Object.keys(channels).sort().map(channel => ({
-              channelname: channel,
-              conversationIDKey: channels[channel].id,
-              teamname: team,
-              type: 'big',
-            }))
-          )
-        })
-      )
+  const bigTeams = I.List(
+    flatten(
+      Object.keys(bigTeamToChannels).sort().map(team => {
+        const channels = bigTeamToChannels[team]
+        return [
+          {
+            teamname: team,
+            type: 'bigHeader',
+          },
+        ].concat(
+          Object.keys(channels).sort().map(channel => ({
+            channelname: channel,
+            conversationIDKey: channels[channel].id,
+            teamname: team,
+            type: 'big',
+          }))
+        )
+      })
     )
+  )
 
-    const allSmallTeams = pids.concat(sids)
-    return [allSmallTeams, bigTeams]
-  }
-)
+  const allSmallTeams = pids.concat(sids)
+  return [allSmallTeams, bigTeams]
+})
 
 const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
   const [allSmallTeams, bigTeams] = getRows(state, smallTeamsExpanded)
