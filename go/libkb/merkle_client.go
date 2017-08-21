@@ -416,7 +416,7 @@ func merkleFirstSkipKey() DbKey {
 }
 
 func (mc *MerkleClient) dbLookup(ctx context.Context, k DbKey) (ret *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, fmt.Sprintf("MerkleClient#dbLookup(%+v)", k), func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("MerkleClient#dbLookup(%+v)", k), func() error { return err })()
 	curr, err := mc.G().LocalDb.Lookup(k)
 	if err != nil {
 		return nil, err
@@ -440,7 +440,7 @@ func (mc *MerkleClient) loadFirstSkip(ctx context.Context) (err error) {
 	if mc.G().Env.GetRunMode() == ProductionRunMode {
 		return nil
 	}
-	defer mc.G().CTrace(ctx, "MerkleClient#loadFirstSkip()", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#loadFirstSkip()", func() error { return err })()
 	var mr *MerkleRoot
 	mr, err = mc.dbLookup(ctx, merkleFirstSkipKey())
 	if mr == nil || err != nil {
@@ -453,7 +453,7 @@ func (mc *MerkleClient) loadFirstSkip(ctx context.Context) (err error) {
 }
 
 func (mc *MerkleClient) loadRoot(ctx context.Context) (err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#loadRoot()", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#loadRoot()", func() error { return err })()
 	var mr *MerkleRoot
 	mr, err = mc.dbLookup(ctx, merkleHeadKey())
 	if mr == nil || err != nil {
@@ -564,7 +564,7 @@ func importPathFromJSON(jw *jsonw.Wrapper) (out []*PathStep, err error) {
 }
 
 func (mc *MerkleClient) FetchRootFromServerBySeqno(ctx context.Context, lowerBound keybase1.Seqno) (mr *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#FetchRootFromServerBySeqno", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#FetchRootFromServerBySeqno", func() error { return err })()
 	root := mc.LastRoot()
 	if root != nil && *root.Seqno() >= lowerBound {
 		mc.G().VDL.CLogf(ctx, VLog0, "seqno=%d, and was current enough, so returning non-nil previously fetched root", *root.Seqno())
@@ -574,7 +574,7 @@ func (mc *MerkleClient) FetchRootFromServerBySeqno(ctx context.Context, lowerBou
 }
 
 func (mc *MerkleClient) FetchRootFromServer(ctx context.Context, freshness time.Duration) (mr *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#FetchRootFromServer", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#FetchRootFromServer", func() error { return err })()
 	root := mc.LastRoot()
 	if freshness == 0 && root != nil {
 		mc.G().VDL.CLogf(ctx, VLog0, "freshness=0, returning non-nil previously fetched root")
@@ -589,7 +589,7 @@ func (mc *MerkleClient) FetchRootFromServer(ctx context.Context, freshness time.
 }
 
 func (mc *MerkleClient) fetchRootFromServer(ctx context.Context, lastRoot *MerkleRoot) (mr *MerkleRoot, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#fetchRootFromServer", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#fetchRootFromServer", func() error { return err })()
 	var ss SkipSequence
 	var apiRes *APIRes
 
@@ -682,7 +682,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(ctx context.Context, q HTT
 
 // `isUser` is true for loading a user and false for loading a team.
 func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, isUser bool) (apiRes *APIRes, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
 	// Poll for 10s and ask for a race-free state.
 	q.Add("poll", I{10})
@@ -747,7 +747,7 @@ func readRootFromAPIRes(g *GlobalContext, jw *jsonw.Wrapper) (*MerkleRoot, error
 // with the merkle root we last fetched from the DB. In verifySkipSequence, we walk over this Sequence
 // to make sure that it obeys proper construction.
 func (mc *MerkleClient) readSkipSequenceFromAPIRes(ctx context.Context, res *APIRes, thisRoot *MerkleRoot, lastRoot *MerkleRoot) (ret SkipSequence, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#readSkipSequenceFromAPIRes", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#readSkipSequenceFromAPIRes", func() error { return err })()
 	if lastRoot == nil {
 		mc.G().VDL.CLogf(ctx, VLog0, "| lastRoot==nil")
 		return nil, nil
@@ -827,7 +827,7 @@ func (mc *MerkleClient) readPathFromAPIResUser(ctx context.Context, res *APIRes)
 }
 
 func (mc *MerkleClient) readPathFromAPIRes(ctx context.Context, res *APIRes) (vp *VerificationPath, err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#readPathFromAPIRes", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#readPathFromAPIRes", func() error { return err })()
 
 	vp = &VerificationPath{
 		Contextified: NewContextified(mc.G()),
@@ -928,7 +928,7 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 }
 
 func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence, thisRoot *MerkleRoot, lastRoot *MerkleRoot, historical bool) (err error) {
-	defer mc.G().CTrace(ctx, "MerkleClient#verifySkipSequence", func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#verifySkipSequence", func() error { return err })()
 
 	// In this case, the server did not return a skip sequence. It's OK if
 	// the last known root is too old. It's not OK if the last known root is
@@ -971,7 +971,7 @@ func (mc *MerkleClient) verifySkipSequence(ctx context.Context, ss SkipSequence,
 // it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
 // currently at Seqno=100.
 func (ss SkipSequence) verify(ctx context.Context, g *GlobalContext, thisRoot keybase1.Seqno, lastRoot keybase1.Seqno) (err error) {
-	defer g.CTrace(ctx, "SkipSequence#verify", func() error { return err })()
+	defer g.CVTrace(ctx, VLog0, "SkipSequence#verify", func() error { return err })()
 
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
@@ -1017,7 +1017,7 @@ func (mc *MerkleClient) verifyRootHistorical(ctx context.Context, root *MerkleRo
 }
 
 func (mc *MerkleClient) verifyAndStoreRootHelper(ctx context.Context, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno, historical bool) (err error) {
-	defer mc.G().CTrace(ctx, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
+	defer mc.G().CVTrace(ctx, VLog0, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
 
 	// First make sure it's not a rollback. If we're doing an historical lookup, it's
 	// actual OK.
