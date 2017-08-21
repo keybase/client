@@ -54,44 +54,55 @@ function setupAvatar() {
   initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 }
 
-var timeoutID
+var inactiveTimeoutID
+var activeTimeoutID
 
-// Consider us inactive after a minute of no input
+// 5 minutes after being active, consider us inactive after
+// an additional minute of no input
 // for the purpose of marking chat messages read
 function setTimeoutListeners() {
-  if (!isMobile) {
-    window.addEventListener('mousemove', resetTimer, false)
-    window.addEventListener('mousedown', resetTimer, false)
-    window.addEventListener('keypress', resetTimer, false)
-    window.addEventListener('DOMMouseScroll', resetTimer, false)
-    window.addEventListener('mousewheel', resetTimer, false)
-    window.addEventListener('touchmove', resetTimer, false)
-    window.addEventListener('MSPointerMove', resetTimer, false)
+  window.addEventListener('mousemove', resetTimer, true)
+  window.addEventListener('keypress', resetTimer, true)
 
-    startTimer()
+  startInactiveTimer()
+}
+
+function startActiveTimer() {
+  if (!isMobile) {
+    // wait 5 minutes before adding listeners
+    activeTimeoutID = window.setTimeout(goListening, 300000)
   }
 }
 
-function startTimer() {
-  if (!isMobile) {
-    // wait 1 minute before calling goInactive
-    timeoutID = window.setTimeout(goInactive, 60000)
-  }
+function startInactiveTimer() {
+  // wait 1 minute before calling goInactive
+  inactiveTimeoutID = window.setTimeout(goInactive, 60000)
 }
 
 function resetTimer(e) {
-  window.clearTimeout(timeoutID)
+  window.clearTimeout(inactiveTimeoutID)
   goActive()
 }
 
 function goInactive() {
   console.log('Going inactive due to 1 minute of no input')
-  window.clearTimeout(timeoutID)
+  window.clearTimeout(inactiveTimeoutID)
   setupStore().dispatch(changedFocus(false))
 }
 
+function goListening() {
+  console.log('Adding input listeners after 5 active minutes')
+  window.clearTimeout(activeTimeoutID)
+  setTimeoutListeners()
+}
+
 function goActive() {
-  startTimer()
+  if (!isMobile) {
+    window.removeEventListener('mousemove', resetTimer, true)
+    window.removeEventListener('keypress', resetTimer, true)
+
+    startActiveTimer()
+  }
 }
 
 function setupApp(store) {
@@ -132,7 +143,7 @@ function setupApp(store) {
   })
   ipcRenderer.send('install-check')
 
-  setTimeoutListeners()
+  startActiveTimer()
 
   window.addEventListener('focus', () => {
     goActive()
