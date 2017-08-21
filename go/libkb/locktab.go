@@ -4,8 +4,9 @@
 package libkb
 
 import (
-	"golang.org/x/net/context"
 	"sync"
+
+	"golang.org/x/net/context"
 )
 
 type NamedLock struct {
@@ -34,7 +35,7 @@ func (l *NamedLock) Release(ctx context.Context) {
 		delete(l.parent.locks, l.name)
 	}
 	l.parent.Unlock()
-	l.lctx.GetLog().CDebugf(ctx, "- LockTable.Unlock(%s)", l.name)
+	l.lctx.GetVDebugLog().CLogf(ctx, VLog0, "- LockTable.Unlock(%s)", l.name)
 }
 
 type LockTable struct {
@@ -49,7 +50,7 @@ func (t *LockTable) init() {
 }
 
 func (t *LockTable) AcquireOnName(ctx context.Context, g VLogContext, s string) (ret *NamedLock) {
-	g.GetLog().CDebugf(ctx, "+ LockTable.Lock(%s)", s)
+	g.GetVDebugLog().CLogf(ctx, VLog0, "+ LockTable.Lock(%s)", s)
 	t.Lock()
 	t.init()
 	if ret = t.locks[s]; ret == nil {
