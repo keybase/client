@@ -10,6 +10,9 @@ export type RowItem =
       conversationIDKey: ConversationIDKey,
     }
   | {
+      type: 'bigTeamsLabel',
+    }
+  | {
       type: 'bigHeader',
       teamname: string,
     }

@@ -1,10 +1,10 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon} from '../../common-adapters'
+import {Text, Icon, Box} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
-import {Divider, FloatingDivider} from './row/divider'
+import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 
@@ -57,21 +57,35 @@ class NewConversation extends PureComponent<void, {}, void> {
   }
 }
 
-class Inbox extends PureComponent<void, Props, void> {
+type State = {
+  showFloating: boolean,
+}
+
+class Inbox extends PureComponent<void, Props, State> {
+  state = {
+    showFloating: false,
+  }
+
   _list: any
 
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.rows !== nextProps.rows && nextProps.rows.count()) {
-      this._onScroll()
+      this._onScrollUnbox()
+      this._updateShowFloating()
     }
   }
 
   _itemSizeGetter = index => {
     const row = this.props.rows.get(index)
-    if (row.teamname) {
-      return 24
-    } else {
-      return 56
+    switch (row.type) {
+      case 'small':
+        return 56
+      case 'bigTeamsLabel': // fallthrough
+      case 'bigHeader': // fallthrough
+      case 'big': // fallthrough
+        return 24
+      case 'divider':
+        return 16
     }
   }
 
@@ -87,6 +101,15 @@ class Inbox extends PureComponent<void, Props, void> {
         />
       )
     }
+
+    if (row.type === 'bigTeamsLabel') {
+      return (
+        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
+          <BigTeamsLabel />
+        </Box>
+      )
+    }
+
     const key =
       (row.type === 'small' && row.conversationIDKey) ||
       (row.type === 'bigHeader' && row.teamname) ||
@@ -102,7 +125,28 @@ class Inbox extends PureComponent<void, Props, void> {
     )
   }
 
-  _onScroll = debounce(() => {
+  _updateShowFloating = () => {
+    let showFloating = true
+    if (this._list) {
+      const [, last] = this._list.getVisibleRange()
+      const row = this.props.rows.get(last)
+
+      if (!row || row.type !== 'small') {
+        showFloating = false
+      }
+    }
+
+    if (this.state.showFloating !== showFloating) {
+      this.setState({showFloating})
+    }
+  }
+
+  _onScroll = () => {
+    this._onScrollUnbox()
+    this._updateShowFloating()
+  }
+
+  _onScrollUnbox = debounce(() => {
     if (!this._list) {
       return
     }
@@ -120,7 +164,7 @@ class Inbox extends PureComponent<void, Props, void> {
 
   render() {
     return (
-      <div style={containerStyle}>
+      <div style={_containerStyle}>
         <ChatFilterRow
           isLoading={this.props.isLoading}
           filter={this.props.filter}
@@ -130,7 +174,7 @@ class Inbox extends PureComponent<void, Props, void> {
           onHotkey={this.props.onNewChat}
         />
         {this.props.showNewConversation && <NewConversation />}
-        <div style={scrollableStyle} onScroll={this._onScroll}>
+        <div style={_scrollableStyle} onScroll={this._onScroll}>
           <ReactList
             ref={this._setRef}
             useTranslate3d={true}
@@ -140,16 +184,18 @@ class Inbox extends PureComponent<void, Props, void> {
             itemSizeGetter={this._itemSizeGetter}
           />
         </div>
-        <FloatingDivider
-          toggle={this.props.toggleSmallTeamsExpanded}
-          badgeCount={this.props.bigTeamsBadgeCount}
-        />
+        {this.state.showFloating &&
+          this.props.showSmallTeamsExpandDivider &&
+          <FloatingDivider
+            toggle={this.props.toggleSmallTeamsExpanded}
+            badgeCount={this.props.bigTeamsBadgeCount}
+          />}
       </div>
     )
   }
 }
 
-const containerStyle = {
+const _containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   boxShadow: `inset -1px 0 0 ${globalColors.black_05}`,
@@ -159,10 +205,15 @@ const containerStyle = {
   position: 'relative',
 }
 
-const scrollableStyle = {
+const _scrollableStyle = {
   flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
+}
+
+const _bigTeamLabelStyle = {
+  height: 24,
+  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

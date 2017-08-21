@@ -12,7 +12,11 @@ type DividerProps = {
 // TODO hover color
 
 const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
-  <ClickableBox onClick={toggle} style={_dividerStyle}>
+  <ClickableBox
+    onClick={toggle}
+    style={_dividerStyle}
+    className={isExpanded ? 'smallTeamsDividerExpanded' : ''}
+  >
     <Box style={_boxStyle}>
       <Box style={_iconStyle}>
         <Icon type={isExpanded ? 'iconfont-keybase' : 'iconfont-down-arrow'} />
@@ -29,7 +33,7 @@ type FloatingDividerProps = {
 const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
   <ClickableBox onClick={toggle} style={_floatingStyle}>
     <Box style={_boxStyle}>
-      <Text type="BodySmallSemibold">Big teams</Text>
+      <BigTeamsLabel />
       {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}
       <Box style={_iconStyle}>
         <Icon type="iconfont-keybase" />
@@ -37,6 +41,18 @@ const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
     </Box>
   </ClickableBox>
 )
+
+const BigTeamsLabel = () => (
+  <Box style={_bigTeamsLabelBox}>
+    <Text type="BodySmallSemibold">Big teams</Text>
+  </Box>
+)
+
+const _bigTeamsLabelBox = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  minHeight: 24,
+}
 
 const _boxStyle = {
   ...globalStyles.flexBoxRow,
@@ -80,4 +96,4 @@ const _floatingStyle = {
   top: undefined,
 }
 
-export {Divider, FloatingDivider}
+export {Divider, FloatingDivider, BigTeamsLabel}
