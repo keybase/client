@@ -1455,6 +1455,14 @@ func (u UserVersion) Eq(v UserVersion) bool {
 	return u.Uid.Equal(v.Uid) && u.EldestSeqno.Eq(v.EldestSeqno)
 }
 
+type ByUserVersionID []UserVersion
+
+func (b ByUserVersionID) Len() int      { return len(b) }
+func (b ByUserVersionID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b ByUserVersionID) Less(i, j int) bool {
+	return b[i].String() < b[j].String()
+}
+
 func (k CryptKey) Material() Bytes32 {
 	return k.Key
 }
@@ -1519,11 +1527,11 @@ func (t TeamName) IsNil() bool {
 
 // underscores allowed, just not first or doubled
 var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
-var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", implicitTeamPrefix, implicitSuffixLengthBytes*2)
+var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", ImplicitTeamPrefix, ImplicitSuffixLengthBytes*2)
 var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
-var implicitTeamPrefix = "__keybase_implicit_team__"
-var implicitSuffixLengthBytes = 16
+const ImplicitTeamPrefix = "__keybase_implicit_team__"
+const ImplicitSuffixLengthBytes = 16
 
 func TeamNameFromString(s string) (TeamName, error) {
 	ret := TeamName{}
@@ -1629,7 +1637,7 @@ func (t TeamName) SwapLastPart(newLast string) (TeamName, error) {
 }
 
 func (t TeamName) IsImplicit() bool {
-	return strings.HasPrefix(t.String(), implicitTeamPrefix)
+	return strings.HasPrefix(t.String(), ImplicitTeamPrefix)
 }
 
 // The number of parts in a team name.
@@ -1654,6 +1662,13 @@ func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 		Uid:         u.Uid,
 		EldestSeqno: u.EldestSeqno,
 	}
+}
+
+func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
+	if len(u.PerUserKeys) > 0 {
+		return &u.PerUserKeys[len(u.PerUserKeys)-1]
+	}
+	return nil
 }
 
 func (s PerTeamKeySeed) ToBytes() []byte { return s[:] }
@@ -1759,6 +1774,10 @@ func (t TeamInviteType) String() (string, error) {
 
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
+}
+
+func (i ImplicitTeamUserSet) NumTotalUsers() int {
+	return len(i.KeybaseUsers) + len(i.UnresolvedUsers)
 }
 
 // LockIDFromBytes takes the first 8 bytes of the sha512 over data, and

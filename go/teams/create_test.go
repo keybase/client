@@ -5,6 +5,7 @@ package teams
 
 import (
 	"context"
+	"sort"
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
@@ -125,4 +126,62 @@ func TestCreateSubSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	assertRole(tc, subsubteamName.String(), u.Username, keybase1.TeamRole_NONE)
+}
+
+func TestCreateImplicitTeam(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	numKBUsers := 3
+	var users []*kbtest.FakeUser
+	var uvs []keybase1.UserVersion
+	var impTeam keybase1.ImplicitTeamName
+	for i := 0; i < numKBUsers; i++ {
+		u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+		require.NoError(t, err)
+		users = append(users, u)
+	}
+
+	// Simple imp team
+	for _, u := range users {
+		impTeam.Writers.KeybaseUsers = append(impTeam.Writers.KeybaseUsers, u.Username)
+		uvs = append(uvs, u.User.ToUserVersion())
+	}
+	sort.Sort(keybase1.ByUserVersionID(uvs))
+	impTeam.IsPrivate = true
+	teamID, err := CreateImplicitTeam(context.TODO(), tc.G, impTeam)
+	require.NoError(t, err)
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, team.ID, teamID)
+	members, err := team.Members()
+	require.NoError(t, err)
+	sort.Sort(keybase1.ByUserVersionID(members.Owners))
+	require.Equal(t, members.Owners, uvs)
+
+	// Imp team with invites
+	impTeam.Writers.UnresolvedUsers = []keybase1.SocialAssertion{
+		keybase1.SocialAssertion{
+			User:    "mike",
+			Service: keybase1.SocialAssertionService("twitter"),
+		},
+		keybase1.SocialAssertion{
+			User:    "mike",
+			Service: keybase1.SocialAssertionService("github"),
+		},
+	}
+	teamID, err = CreateImplicitTeam(context.TODO(), tc.G, impTeam)
+	require.NoError(t, err)
+	team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	members, err = team.Members()
+	require.NoError(t, err)
+	sort.Sort(keybase1.ByUserVersionID(members.Owners))
+	require.Equal(t, members.Owners, uvs)
+	chainInvites := team.chain().inner.ActiveInvites
+	require.Equal(t, 2, len(chainInvites))
 }

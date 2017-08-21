@@ -378,6 +378,7 @@ func (o UserVersion) DeepCopy() UserVersion {
 type TeamPlusApplicationKeys struct {
 	Id              TeamID               `codec:"id" json:"id"`
 	Name            string               `codec:"name" json:"name"`
+	Implicit        bool                 `codec:"implicit" json:"implicit"`
 	Application     TeamApplication      `codec:"application" json:"application"`
 	Writers         []UserVersion        `codec:"writers" json:"writers"`
 	OnlyReaders     []UserVersion        `codec:"onlyReaders" json:"onlyReaders"`
@@ -388,6 +389,7 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 	return TeamPlusApplicationKeys{
 		Id:          o.Id.DeepCopy(),
 		Name:        o.Name,
+		Implicit:    o.Implicit,
 		Application: o.Application.DeepCopy(),
 		Writers: (func(x []UserVersion) []UserVersion {
 			var ret []UserVersion
@@ -632,6 +634,7 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 type TeamSigChainState struct {
 	Reader        UserVersion                         `codec:"reader" json:"reader"`
 	Id            TeamID                              `codec:"id" json:"id"`
+	Implicit      bool                                `codec:"implicit" json:"implicit"`
 	RootAncestor  TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
 	NameDepth     int                                 `codec:"nameDepth" json:"nameDepth"`
 	NameLog       []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
@@ -650,6 +653,7 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 	return TeamSigChainState{
 		Reader:       o.Reader.DeepCopy(),
 		Id:           o.Id.DeepCopy(),
+		Implicit:     o.Implicit,
 		RootAncestor: o.RootAncestor.DeepCopy(),
 		NameDepth:    o.NameDepth,
 		NameLog: (func(x []TeamNameLogPoint) []TeamNameLogPoint {
@@ -1084,17 +1088,13 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 	}
 }
 
-// * iTeams
-type ImplicitTeamName struct {
-	IsPrivate       bool                      `codec:"isPrivate" json:"isPrivate"`
-	KeybaseUsers    []string                  `codec:"keybaseUsers" json:"keybaseUsers"`
-	UnresolvedUsers []SocialAssertion         `codec:"unresolvedUsers" json:"unresolvedUsers"`
-	ConflictInfo    *ImplicitTeamConflictInfo `codec:"conflictInfo,omitempty" json:"conflictInfo,omitempty"`
+type ImplicitTeamUserSet struct {
+	KeybaseUsers    []string          `codec:"keybaseUsers" json:"keybaseUsers"`
+	UnresolvedUsers []SocialAssertion `codec:"unresolvedUsers" json:"unresolvedUsers"`
 }
 
-func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
-	return ImplicitTeamName{
-		IsPrivate: o.IsPrivate,
+func (o ImplicitTeamUserSet) DeepCopy() ImplicitTeamUserSet {
+	return ImplicitTeamUserSet{
 		KeybaseUsers: (func(x []string) []string {
 			var ret []string
 			for _, v := range x {
@@ -1111,6 +1111,22 @@ func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
 			}
 			return ret
 		})(o.UnresolvedUsers),
+	}
+}
+
+// * iTeams
+type ImplicitTeamName struct {
+	IsPrivate    bool                      `codec:"isPrivate" json:"isPrivate"`
+	Writers      ImplicitTeamUserSet       `codec:"writers" json:"writers"`
+	Readers      ImplicitTeamUserSet       `codec:"readers" json:"readers"`
+	ConflictInfo *ImplicitTeamConflictInfo `codec:"conflictInfo,omitempty" json:"conflictInfo,omitempty"`
+}
+
+func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
+	return ImplicitTeamName{
+		IsPrivate: o.IsPrivate,
+		Writers:   o.Writers.DeepCopy(),
+		Readers:   o.Readers.DeepCopy(),
 		ConflictInfo: (func(x *ImplicitTeamConflictInfo) *ImplicitTeamConflictInfo {
 			if x == nil {
 				return nil
@@ -1349,6 +1365,30 @@ func (o TeamDeleteArg) DeepCopy() TeamDeleteArg {
 	}
 }
 
+type LookupImplicitTeamArg struct {
+	Name   string `codec:"name" json:"name"`
+	Public bool   `codec:"public" json:"public"`
+}
+
+func (o LookupImplicitTeamArg) DeepCopy() LookupImplicitTeamArg {
+	return LookupImplicitTeamArg{
+		Name:   o.Name,
+		Public: o.Public,
+	}
+}
+
+type LookupOrCreateImplicitTeamArg struct {
+	Name   string `codec:"name" json:"name"`
+	Public bool   `codec:"public" json:"public"`
+}
+
+func (o LookupOrCreateImplicitTeamArg) DeepCopy() LookupOrCreateImplicitTeamArg {
+	return LookupOrCreateImplicitTeamArg{
+		Name:   o.Name,
+		Public: o.Public,
+	}
+}
+
 type LoadTeamPlusApplicationKeysArg struct {
 	SessionID   int             `codec:"sessionID" json:"sessionID"`
 	Id          TeamID          `codec:"id" json:"id"`
@@ -1392,6 +1432,8 @@ type TeamsInterface interface {
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
+	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (TeamID, error)
+	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (TeamID, error)
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
@@ -1659,6 +1701,38 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"lookupImplicitTeam": {
+				MakeArg: func() interface{} {
+					ret := make([]LookupImplicitTeamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LookupImplicitTeamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LookupImplicitTeamArg)(nil), args)
+						return
+					}
+					ret, err = i.LookupImplicitTeam(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"lookupOrCreateImplicitTeam": {
+				MakeArg: func() interface{} {
+					ret := make([]LookupOrCreateImplicitTeamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LookupOrCreateImplicitTeamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LookupOrCreateImplicitTeamArg)(nil), args)
+						return
+					}
+					ret, err = i.LookupOrCreateImplicitTeam(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"loadTeamPlusApplicationKeys": {
 				MakeArg: func() interface{} {
 					ret := make([]LoadTeamPlusApplicationKeysArg, 1)
@@ -1777,6 +1851,16 @@ func (c TeamsClient) TeamTree(ctx context.Context, __arg TeamTreeArg) (res TeamT
 
 func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamDelete", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res TeamID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res TeamID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
 	return
 }
 

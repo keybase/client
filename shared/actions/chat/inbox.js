@@ -131,13 +131,13 @@ function* onInboxStale(): SagaGenerator<any, any> {
       (inbox.items || [])
         .map(c => {
           return new Constants.InboxStateRecord({
+            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? ' ' : undefined,
             conversationIDKey: c.convID,
             info: null,
             membersType: c.membersType,
             participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
-            snippet: ' ',
-            state: 'untrusted',
             status: Constants.ConversationStatusByEnum[c.status || 0],
+            teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
             time: c.time,
           })
         })
@@ -146,6 +146,12 @@ function* onInboxStale(): SagaGenerator<any, any> {
 
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
+
+    // Unbox teams so we can get their names
+    yield call(
+      unboxConversations,
+      conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
+    )
 
     const {
       initialConversation,
@@ -367,21 +373,27 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
   }
 
   const conversationIDKey = c.convID
-  // Temporary hack to make team convos easier to parse in inbox view
+
   let parts = List(c.participants || [])
+  let teamname = null
+  let channelname = null
+
   if (c.membersType === ChatTypes.CommonConversationMembersType.team) {
-    parts = List([`#${c.channel} ${c.name}`])
+    teamname = c.name
+    channelname = c.channel
   }
 
   return new Constants.InboxStateRecord({
+    channelname,
     conversationIDKey,
-    name: c.name,
     isEmpty: c.isEmpty,
     membersType: c.membersType,
-    participants: parts || [],
+    name: c.name,
+    participants: parts,
     snippet: Constants.makeSnippet(c.snippet),
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
+    teamname,
     time: c.time,
     visibility: c.visibility,
   })

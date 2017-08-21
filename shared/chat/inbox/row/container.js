@@ -10,8 +10,10 @@ import {
   participantFilter,
   getSelectedConversation,
 } from '../../../constants/chat'
-import {selectConversation} from '../../../actions/chat/creators'
-import Row from '.'
+import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
+import SimpleRow from './simple-row'
+import {TeamRow, ChannelRow} from './team-row'
+import {compose, renderComponent, branch} from 'recompose'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
@@ -30,13 +32,11 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const showBold = !isSelected && hasUnread
   const backgroundColor = isSelected ? globalColors.blue : globalColors.white
-  const marginRight = isSelected ? 0 : 1
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
 
   return {
     backgroundColor,
     hasUnread,
-    marginRight,
     participantNeedToRekey,
     showBold,
     subColor,
@@ -98,7 +98,10 @@ const makeSelector = conversationIDKey => {
         const participants = participantFilter(conversation.get('participants'), you)
         const snippet = conversation.get('snippet')
         const timestamp = formatTimeForConversationList(conversation.get('time'), nowOverride)
+        const channelname = conversation.get('channelname')
+        const teamname = conversation.get('teamname')
         return {
+          channelname,
           conversationIDKey,
           isError,
           isMuted,
@@ -106,6 +109,7 @@ const makeSelector = conversationIDKey => {
           participants,
           rekeyInfo,
           snippet,
+          teamname,
           timestamp,
           unreadCount: unreadCount || 0,
           ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected),
@@ -115,15 +119,34 @@ const makeSelector = conversationIDKey => {
   }
 }
 
-// $FlowIssue
-const ConnectedRow = pausableConnect(
-  (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname}) => {
+  if (conversationIDKey) {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
+  } else {
+    return {teamname}
+  }
+}
+
+const mapDispatchToProps = dispatch => ({
+  _onSelectConversation: (key: ConversationIDKey) => {
+    dispatch(setInboxFilter(''))
+    dispatch(selectConversation(key, true))
   },
-  dispatch => ({
-    onSelectConversation: (key: ConversationIDKey) => dispatch(selectConversation(key, true)),
-  })
-)(Row)
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
+})
+
+const ConnectedRow = compose(
+  // $FlowIssue
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => props.teamname && !props.channelname, renderComponent(TeamRow)),
+  branch(props => props.teamname && props.channelname, renderComponent(ChannelRow))
+)(SimpleRow)
 
 export default ConnectedRow

@@ -193,6 +193,18 @@ func NewTeamDoesNotExistError(descriptor string) error {
 	return TeamDoesNotExistError{descriptor}
 }
 
+type ImplicitTeamOperationError struct {
+	msg string
+}
+
+func (e ImplicitTeamOperationError) Error() string {
+	return fmt.Sprintf("Implicit team operation not allowed: %v", e.msg)
+}
+
+func NewImplicitTeamOperationError(format string, args ...interface{}) error {
+	return &ImplicitTeamOperationError{msg: fmt.Sprintf(format, args...)}
+}
+
 func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n string) error {
 	if e == nil {
 		return nil
