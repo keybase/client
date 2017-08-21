@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
   badgeNumber?: number,
@@ -11,4 +11,4 @@ export type Props = {
   title?: ?string,
 }
 
-declare export default class BackButton extends Component<Props> {}
+declare export default class BackButton extends React.Component<Props> {}

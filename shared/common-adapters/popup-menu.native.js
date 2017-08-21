@@ -79,7 +79,7 @@ const styleRowText = ({
 }
 
 // Popup Menu
-class PopupMenu extends Component<Props, void> {
+class PopupMenu extends Component<Props> {
   render() {
     // $ForceType
     const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter(mi => mi !== 'Divider')

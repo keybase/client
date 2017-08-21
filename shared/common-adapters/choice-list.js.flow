@@ -1,11 +1,11 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import type {IconType} from './icon'
 
 export type Option = {
   title: string,
   description: string,
-  icon: IconType | React$Element<any>,
+  icon: IconType | React.Node,
   onClick: () => void,
   onPress?: void,
 }
@@ -14,4 +14,4 @@ export type Props = {
   options: Array<Option>,
 }
 
-export default class ChoiceList extends Component<Props, void> {}
+export default class ChoiceList extends React.Component<Props> {}

@@ -6,12 +6,10 @@ import {HOCTimers} from '../../common-adapters'
 import DeleteConfirm from './index'
 import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
 
-import type {TypedDispatch} from '../../constants/types/flux'
-import type {TypedState} from '../../constants/reducer'
 import type {TimerProps} from '../../common-adapters/hoc-timers'
 import type {Props} from './index'
 
-class DeleteConfirmContainer extends Component<Props & TimerProps, void> {
+class DeleteConfirmContainer extends Component<Props & TimerProps> {
   componentWillMount() {
     this.props.setAllowDeleteAccount(false)
   }
@@ -31,7 +29,7 @@ class DeleteConfirmContainer extends Component<Props & TimerProps, void> {
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+const connector = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   if (!state.config.username) {

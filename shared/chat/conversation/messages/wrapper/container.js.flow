@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React  from 'react'
 import * as Constants from '../../../../constants/chat'
 
 export type OwnProps = {|
@@ -12,7 +12,7 @@ export type OwnProps = {|
   ) => void,
   onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
-  innerClass: React$ComponentType<*>,
+  innerClass: any,
   measure: ?() => void,
 |}
 
@@ -35,4 +35,4 @@ export type DispatchProps = {|
   _onUsernameClick: (username: string) => void,
 |}
 
-export default class Wrapper extends Component<OwnProps, void> {}
+export default class Wrapper extends React.Component<OwnProps> {}

@@ -8,7 +8,7 @@ import EmptyResults from './empty'
 
 import type {Props} from '.'
 
-class SearchResultsList extends Component<Props, void> {
+class SearchResultsList extends Component<Props> {
   _itemRenderer = index => {
     const id = this.props.items[index]
     const {onClick, onMouseOver, onShowTracker} = this.props

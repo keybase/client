@@ -61,6 +61,7 @@ class Input extends Component<Props, State> {
   selections() {
     const node = this._input && this._inputNode()
     if (node) {
+      // $FlowIssue
       const {selectionStart, selectionEnd} = node
       return {selectionStart, selectionEnd}
     }
@@ -79,11 +80,13 @@ class Input extends Component<Props, State> {
     }
 
     const node = this._inputNode()
-    if (!node) {
+    if (!node || !node.style) {
       return
     }
 
+    // $FlowIssue
     node.style.height = '1px'
+    // $FlowIssue
     node.style.height = `${node.scrollHeight}px`
   }
 
@@ -92,15 +95,21 @@ class Input extends Component<Props, State> {
   }
 
   focus() {
-    this._input && this._inputNode().focus()
+    const n = this._input && this._inputNode()
+    // $FlowIssue
+    n && n.focus()
   }
 
   select() {
-    this._input && this._inputNode().select()
+    const n = this._input && this._inputNode()
+    // $FlowIssue
+    n && n.select()
   }
 
   blur() {
-    this._input && this._inputNode().blur()
+    const n = this._input && this._inputNode()
+    // $FlowIssue
+    n && n.blur()
   }
 
   _onCompositionStart = () => {

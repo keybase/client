@@ -72,7 +72,7 @@ const nonInlineStyle = {
 }
 const inlineProps = isMobile ? {lineClamp: 1} : {}
 
-class Usernames extends Component<Props, void> {
+class Usernames extends Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['style', 'containerStyle', 'users'].includes(key)) {

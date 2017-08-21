@@ -7,7 +7,7 @@ import {navigateUp} from '../../actions/route-tree'
 
 import type {Props} from './index'
 
-class InviteGeneratedRender extends Component<Props, void> {
+class InviteGeneratedRender extends Component<Props> {
   render() {
     return (
       <Box

@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
   title?: ?string,
@@ -9,4 +9,4 @@ export type Props = {
   theme?: 'light' | 'dark', // defaults to light
 }
 
-declare export default function HeaderHoc<P>(WrappedComponent: React$ComponentType<P>): React$ComponentType<P & Props>
+declare export default function HeaderHoc<P>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P & Props>

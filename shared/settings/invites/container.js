@@ -8,10 +8,8 @@ import {navigateAppend} from '../../actions/route-tree'
 
 import type {Props, PendingInvite} from './index'
 import {TypedConnector} from '../../util/typed-connect'
-import type {TypedDispatch} from '../../constants/types/flux'
-import type {TypedState} from '../../constants/reducer'
 
-class InvitationsContainer extends Component<Props, void> {
+class InvitationsContainer extends Component<Props> {
   componentWillMount() {
     this.props.onRefresh()
   }
@@ -21,7 +19,7 @@ class InvitationsContainer extends Component<Props, void> {
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+const connector = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   return {

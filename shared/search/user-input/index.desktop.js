@@ -12,7 +12,7 @@ import type {UserDetails, Props} from './'
 
 type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
 
-class UserItem extends Component<UserItemProps, void> {
+class UserItem extends Component<UserItemProps> {
   _onRemoveUser = () => {
     this.props.onRemoveUser(this.props.id)
   }
@@ -54,14 +54,14 @@ class UserItem extends Component<UserItemProps, void> {
 type State = {isFocused: boolean}
 
 class UserInput extends Component<Props, State> {
-  _textInput: AutosizeInput
+  _textInput: ?AutosizeInput
 
   state = {
     isFocused: false,
   }
 
   focus = () => {
-    this._textInput.focus()
+    this._textInput && this._textInput.focus()
   }
 
   _onFocus = () => {

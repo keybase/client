@@ -47,7 +47,9 @@ class Checkbox extends Component<Props, State> {
       ...(this.props.disabled ? {} : globalStyles.clickable),
       opacity: this.props.disabled ? 0.4 : 1,
     }
-    const onClick = this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)
+    const onClick = this.props.disabled
+      ? undefined
+      : () => this.props.onCheck && this.props.onCheck(!this.props.checked)
 
     const animatedColor = this.state.left.interpolate({
       inputRange: [0, checkedOffset],

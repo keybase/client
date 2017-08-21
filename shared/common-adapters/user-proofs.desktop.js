@@ -1,5 +1,5 @@
 // @flow
-import React, {Component, PureComponent} from 'react'
+import * as React from 'react'
 import {TransitionGroup, CSSTransition} from 'react-transition-group'
 import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
@@ -10,7 +10,7 @@ import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Element<any> {
+function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Node {
   const missingColor = globalColors.black_20
   return (
     <Box
@@ -52,7 +52,7 @@ type ProofRowState = {
   popupMenuPosition: {},
 }
 
-class ProofRow extends PureComponent<ProofRowProps, ProofRowState> {
+class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
   state: ProofRowState
   _onMouseEnter: () => void
   _onMouseLeave: () => void
@@ -152,10 +152,12 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
 }
 
 // CSSTransition injects foreign props so lets not just accept all props
-const IgnorePropsBox = ({children, onlyProps}) => <Box {...onlyProps}>{children}</Box>
+const IgnorePropsBox = ({children, onlyProps}: {children?: any, onlyProps?: any}) => (
+  <Box {...onlyProps}>{children}</Box>
+)
 
-class ProofsRender extends Component<Props, void> {
-  _rows: Array<React.Element<any>>
+class ProofsRender extends React.Component<Props> {
+  _rows: Array<any>
 
   constructor(props: Props) {
     super(props)

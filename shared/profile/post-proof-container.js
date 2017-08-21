@@ -3,12 +3,9 @@ import PostProof from './post-proof'
 import {TypedConnector} from '../util/typed-connect'
 import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
 
-import type {Props} from './post-proof'
 import type {ProvablePlatformsType} from '../constants/types/more'
-import type {TypedDispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+const connector = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   const profile = state.profile

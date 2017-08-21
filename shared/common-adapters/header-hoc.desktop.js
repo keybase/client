@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import Text from './text'
 import BackButton from './back-button'
 import Box from './box'
@@ -29,6 +29,7 @@ function HeaderHoc<P>(WrappedComponent: React.ComponentType<P>) {
             <Text type="Header">{title}</Text>
           </Box>}
       </Box>
+      {/* $FlowIssue */}
       <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
     </Box>
   )

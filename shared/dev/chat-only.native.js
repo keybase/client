@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import range from 'lodash/range'
 import * as Immutable from 'immutable'
 import * as ChatConstants from '../constants/chat'
@@ -79,7 +79,7 @@ const mockListProps = (messages, metaDataMap, you, authorSeeds, moreToLoad) => (
 })
 
 const you = nameGen(0)
-class Main extends React.Component<$FlowFixMeProps, any> {
+class Main extends React.Component<any, any> {
   constructor() {
     super()
     this.state = {

@@ -5,9 +5,7 @@ import Render from '../register/set-public-name'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
-class DeviceName extends Component<$FlowFixMeProps, {
-  deviceName: ?string,
-}> {
+class DeviceName extends Component<any, {deviceName: ?string}> {
   constructor(props) {
     super(props)
     this.state = {deviceName: props.deviceName}

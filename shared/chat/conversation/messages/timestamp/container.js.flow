@@ -6,4 +6,4 @@ export type OwnProps = {
   messageKey: Constants.MessageKey,
 }
 
-export default class TimestampContainer extends Component<OwnProps, void> {}
+export default class TimestampContainer extends Component<OwnProps> {}

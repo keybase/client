@@ -3,7 +3,7 @@
 import * as Constants from '../../../constants/chat'
 import * as Virtualized from 'react-virtualized'
 import EditPopup from '../edit-popup.desktop'
-import React, {Component} from 'react'
+import * as React from 'react'
 import ReactDOM from 'react-dom'
 import messageFactory from '../messages'
 import {Icon} from '../../../common-adapters'
@@ -24,7 +24,7 @@ type State = {
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
 
-class BaseList extends Component<Props, State> {
+class BaseList extends React.Component<Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
     keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
@@ -272,6 +272,7 @@ class PopupEnabledList extends BaseList {
 
       const listNode = ReactDOM.findDOMNode(this._list)
       if (listNode) {
+        // $FlowIssue
         const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
         if (messageNodes) {
           const messageNode = messageNodes[0]
@@ -288,7 +289,7 @@ class PopupEnabledList extends BaseList {
     localMessageState: Constants.LocalMessageState,
     style: Object,
     messageRect: any
-  ): ?React.Element<any> {
+  ): ?React.Node {
     switch (message.type) {
       case 'Text':
         return (
@@ -385,6 +386,7 @@ class PopupEnabledList extends BaseList {
 
     const container = document.getElementById('popupContainer')
     // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+    // $FlowIssue
     ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 

@@ -5,7 +5,7 @@ import {globalMargins} from '../styles'
 
 import type {Props} from './prove-website-choice'
 
-class ProveWebsiteChoice extends Component<Props, void> {
+class ProveWebsiteChoice extends Component<Props> {
   render() {
     return (
       <StandardScreen onCancel={this.props.onCancel} style={{maxWidth: 512}}>

@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import type {FileSection, ParticipantUnlock, Folder as ConstantsFolder} from '../constants/folders'
 
 export type Folder = ConstantsFolder
@@ -14,9 +14,9 @@ export type Props = {
   onClick?: (path: string) => void,
   onRekey?: (path: string) => void,
   onOpen?: (path: string) => void,
-  extraRows?: Array<React$Element<any>>,
+  extraRows?: Array<React.Node>,
   onToggleShowIgnored: () => void,
   showIgnored: boolean,
 }
 
-export default class Render extends Component<Props, void> {}
+export default class Render extends React.Component<Props> {}

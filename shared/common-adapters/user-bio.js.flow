@@ -15,7 +15,7 @@ export type Props = {
   type: 'Tracker' | 'Profile',
   loading: boolean,
   avatarSize: AvatarSize,
-  style?: Object,
+  style?: any,
   username: ?string,
   userInfo: ?UserInfo,
   trackerState: SimpleProofState,
@@ -27,4 +27,4 @@ export type Props = {
   onClickFollowing: (username: ?string) => void,
 }
 
-export default class Render extends Component<Props, void> {}
+export default class Render extends Component<Props> {}

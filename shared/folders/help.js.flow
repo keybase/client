@@ -2,4 +2,4 @@
 import {Component} from 'react'
 
 export type Props = {}
-export default class Help extends Component<Props, void> {}
+export default class Help extends Component<Props> {}

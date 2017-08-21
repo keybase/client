@@ -55,7 +55,7 @@ const Background = ({loaded, loadingColor, size}) => {
   return <View loaded={loaded} loadingColor={loadingColor} size={size} />
 }
 
-class UserImage extends PureComponent<ImageProps, void> {
+class UserImage extends PureComponent<ImageProps> {
   render() {
     const {url, size, onLoadEnd, opacity = 1} = this.props
 

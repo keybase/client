@@ -6,7 +6,7 @@ const tabBarProps = {
   name: 'TabBar',
 }
 
-class TabBarItem extends Component<$FlowFixMeProps> {
+class TabBarItem extends Component<any> {
   render() {
     return this.props.children
   }

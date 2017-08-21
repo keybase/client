@@ -5,7 +5,7 @@ import type {Props} from './index.render'
 import {UserCard, Input, Button} from '../../../common-adapters'
 import {globalColors, globalMargins} from '../../../styles'
 
-class PassphraseRender extends Component<Props, void> {
+class PassphraseRender extends Component<Props> {
   render() {
     const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()
 

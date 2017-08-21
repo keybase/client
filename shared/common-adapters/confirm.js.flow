@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
   theme: 'public' | 'private',
@@ -7,8 +7,8 @@ export type Props = {
   submitLabel: string,
   onCancel: () => void,
   onSubmit: () => void,
-  header: React$Element<any>,
-  body: React$Element<any>,
+  header: React.Node,
+  body: React.Node,
 }
 
-declare export default class Confirm extends Component<Props> {}
+declare export default class Confirm extends React.Component<Props> {}

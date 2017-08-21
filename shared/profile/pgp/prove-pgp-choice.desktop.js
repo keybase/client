@@ -4,7 +4,7 @@ import {StandardScreen, ChoiceList, Text, Button} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 import type {Props} from './prove-pgp-choice'
 
-class ProvePgpChoice extends Component<Props, void> {
+class ProvePgpChoice extends Component<Props> {
   render() {
     return (
       <StandardScreen onCancel={this.props.onCancel} style={{maxWidth: 512}}>

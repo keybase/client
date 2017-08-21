@@ -30,7 +30,7 @@ class DeviceRow extends Component<{device: Device}, void> {
   }
 }
 
-export default class DeviceList extends Component<Props, void> {
+export default class DeviceList extends Component<Props> {
   render() {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>

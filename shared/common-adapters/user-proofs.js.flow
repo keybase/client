@@ -1,7 +1,7 @@
 // @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Proof, SimpleProofState, SimpleProofMeta} from '../constants/tracker'
-import {Component} from 'react'
+import * as React from 'react'
 
 export type MissingProof = {
   type: PlatformsExpandedType,
@@ -27,6 +27,6 @@ export type Props =
     type: 'missingProofs',
     missingProofs: Array<MissingProof>,
   } & CommonProps)
-export default class ProofsRender extends Component<Props, void> {
-  getRow: (idx: number) => React$Component<*, *>
+export default class ProofsRender extends React.Component<Props> {
+  getRow: (idx: number) => React.Node
 }

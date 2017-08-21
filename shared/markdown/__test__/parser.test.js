@@ -4,6 +4,7 @@ import parser, {isPlainText} from '../parser'
 
 function check(md) {
   const ast = parser.parse(md)
+  // $FlowIssue
   expect(ast).toMatchSnapshot()
 
   const plainText = isPlainText(md)

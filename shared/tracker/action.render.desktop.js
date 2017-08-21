@@ -6,7 +6,7 @@ import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'
 
-export default class ActionRender extends PureComponent<ActionProps, void> {
+export default class ActionRender extends PureComponent<ActionProps> {
   render() {
     const {loggedIn} = this.props
 

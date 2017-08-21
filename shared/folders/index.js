@@ -26,7 +26,7 @@ export type Props = {
   showingIgnored: boolean,
 }
 
-class Folders extends Component<Props, void> {
+class Folders extends Component<Props> {
   componentDidMount() {
     this.props.favoriteList()
   }
@@ -41,7 +41,7 @@ class Folders extends Component<Props, void> {
         onChat={tlf => this.props.openTlfInChat(tlf)}
         onSwitchTab={showingPrivate => this.props.switchTab(showingPrivate)}
         showingPrivate={this.props.showingPrivate}
-        username={this.props.username}
+        username={this.props.username || ''}
         onToggleShowIgnored={this.props.onToggleShowIgnored}
         showingIgnored={this.props.showingIgnored}
       />

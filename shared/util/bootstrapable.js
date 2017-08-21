@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles'
 
@@ -13,10 +13,8 @@ export type BootstrapableProp<P: Object> =
       originalProps: P,
     }
 
-export default function Bootstrapable<P: Object>(
-  ComposedComponent: React.ComponentType<P>
-): React.ComponentType<BootstrapableProp<P>> {
-  return class extends Component<BootstrapableProp<P>, void> {
+export default function Bootstrapable<P: Object>(ComposedComponent: React.ComponentType<P>): any {
+  return class extends React.Component<BootstrapableProp<P>, void> {
     componentWillMount() {
       !this.props.bootstrapDone && this.props.onBootstrap()
     }
@@ -34,5 +32,5 @@ export default function Bootstrapable<P: Object>(
         </Box>
       )
     }
-  };
+  }
 }

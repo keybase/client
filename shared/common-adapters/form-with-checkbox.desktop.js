@@ -8,7 +8,7 @@ import Box from './box'
 import Text from './text'
 import {globalStyles, globalMargins} from '../styles'
 
-class FormWithCheckbox extends Component<Props, void> {
+class FormWithCheckbox extends Component<Props> {
   render() {
     const {inputProps, checkboxesProps} = this.props
     const {errorText = ''} = inputProps

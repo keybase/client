@@ -6,6 +6,7 @@ import Text from './text'
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
+import type {IconType} from './icon'
 import type {Props} from './choice-list'
 
 type State = {
@@ -34,27 +35,31 @@ class ChoiceList extends Component<Props, State> {
     const {options} = this.props
     return (
       <Box>
-        {options.map((op, idx) => (
-          <ClickableBox
-            key={idx}
-            underlayColor={globalColors.blue4}
-            onClick={op.onClick}
-            onPressIn={() => this.setState({activeIndex: idx})}
-            onPressOut={() => this.setState({activeIndex: null})}
-          >
-            <Box style={styleEntry}>
-              <Box style={styleIconContainer(this.state.activeIndex === idx)}>
-                {typeof op.icon === 'string'
-                  ? <Icon style={styleIcon} type={op.icon} />
-                  : <Box style={styleIcon}>{op.icon}</Box>}
+        {options.map((op, idx) => {
+          // $FlowIssue
+          const iconType: IconType = op.icon
+          return (
+            <ClickableBox
+              key={idx}
+              underlayColor={globalColors.blue4}
+              onClick={op.onClick}
+              onPressIn={() => this.setState({activeIndex: idx})}
+              onPressOut={() => this.setState({activeIndex: null})}
+            >
+              <Box style={styleEntry}>
+                <Box style={styleIconContainer(this.state.activeIndex === idx)}>
+                  {typeof op.icon === 'string'
+                    ? <Icon style={styleIcon} type={iconType} />
+                    : <Box style={styleIcon}>{op.icon}</Box>}
+                </Box>
+                <Box style={styleInfoContainer}>
+                  <Text style={styleInfoTitle} type="Header">{op.title}</Text>
+                  <Text type="Body">{op.description}</Text>
+                </Box>
               </Box>
-              <Box style={styleInfoContainer}>
-                <Text style={styleInfoTitle} type="Header">{op.title}</Text>
-                <Text type="Body">{op.description}</Text>
-              </Box>
-            </Box>
-          </ClickableBox>
-        ))}
+            </ClickableBox>
+          )
+        })}
       </Box>
     )
   }

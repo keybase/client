@@ -5,7 +5,7 @@ import Container from '../../forms/container'
 import {Text, Button, Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
 
-class ErrorRender extends Component<Props, void> {
+class ErrorRender extends Component<Props> {
   render() {
     return (
       <Container onBack={this.props.restartSignup} style={stylesContainer}>

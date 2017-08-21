@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React  from 'react'
 
 type MarkdownComponentType =
   | 'inline-code'
@@ -16,9 +16,9 @@ type MarkdownComponentType =
 export type MarkdownCreateComponent = (
   type: MarkdownComponentType,
   key: string,
-  children: React$Element<any>,
+  children: React.Node,
   options: {href?: string}
-) => ?React$Element<any>
+) => ?React.Node
 
 export type Props = {
   children?: string,
@@ -27,4 +27,4 @@ export type Props = {
   allowFontScaling?: boolean,
 }
 
-export default class Markdown extends Component<Props, void> {}
+export default class Markdown extends React.Component<Props> {}

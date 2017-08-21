@@ -4,7 +4,7 @@ import {Button, Box, Text, StandardScreen, Icon} from '../../common-adapters'
 import {globalMargins, globalColors, globalStyles} from '../../styles'
 import type {Props} from './prove-pgp-import'
 
-class ProvePgpImport extends Component<Props, void> {
+class ProvePgpImport extends Component<Props> {
   render() {
     return (
       <StandardScreen onCancel={this.props.onCancel} style={styleContainer}>

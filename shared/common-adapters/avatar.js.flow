@@ -30,7 +30,7 @@ export type Props = {
   username?: ?string,
 }
 
-export default class Avatar extends Component<Props, void> {}
+export default class Avatar extends Component<Props> {}
 
 export function initLookup(lookup: AvatarLookup) {}
 export function initLoad(load: AvatarLoad) {}

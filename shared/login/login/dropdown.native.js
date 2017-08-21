@@ -7,7 +7,7 @@ import {
   NativePicker,
   NativeModal,
 } from '../../common-adapters/index.native'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {globalStyles, globalColors} from '../../styles'
 import {isIOS} from '../../constants/platform'
 
@@ -37,7 +37,7 @@ type State = {
   value: ?string,
 }
 
-class Dropdown extends Component<Props, State> {
+class Dropdown extends React.Component<Props, State> {
   state: State
   showingPick: boolean
 
@@ -108,7 +108,7 @@ class Dropdown extends Component<Props, State> {
     )
   }
 
-  _renderLabelAndCaret(): Array<React.Element<any>> {
+  _renderLabelAndCaret(): Array<React.Node> {
     return [
       <Text key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
         {this._label(this.state.value)}
@@ -117,7 +117,7 @@ class Dropdown extends Component<Props, State> {
     ]
   }
 
-  _renderPicker(style: Object, selectOnChange: boolean): React.Element<any> {
+  _renderPicker(style: Object, selectOnChange: boolean): React.Node {
     const pickItem = this.showingPick
       ? [{key: pickItemValue, value: pickItemValue, label: this._label(pickItemValue)}]
       : []
@@ -146,7 +146,7 @@ class Dropdown extends Component<Props, State> {
     )
   }
 
-  _renderAndroid(): React.Element<any> {
+  _renderAndroid(): React.Node {
     // MM: This is super tricky. _renderPicker is an invisible box that, when clicked, opens
     // the native picker. We need to make sure it's the last thing drawn so it lies on top of
     // everything else.
@@ -159,7 +159,7 @@ class Dropdown extends Component<Props, State> {
     )
   }
 
-  _renderIOS(): React.Element<any> {
+  _renderIOS(): React.Node {
     return (
       <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>

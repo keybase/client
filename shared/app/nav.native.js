@@ -31,14 +31,14 @@ type OwnProps = RouteProps<{}, {}>
 
 type CardStackShimProps = {
   mode?: 'modal',
-  renderRoute: (route: RenderRouteResult, isActiveRoute: boolean, shouldRender: boolean) => React.Element<any>,
+  renderRoute: (route: RenderRouteResult, isActiveRoute: boolean, shouldRender: boolean) => any,
   onNavigateBack: () => void,
   stack: RouteRenderStack,
   hidden?: boolean,
 }
 
 class CardStackShim extends Component<CardStackShimProps, *> {
-  static defaultProps: *;
+  static defaultProps: *
   getScreenOptions = () => ({})
   getStateForAction = emptyObj
   getActionForPathAndParams = emptyObj
@@ -150,7 +150,7 @@ const tabIsCached = {
   [settingsTab]: true,
 }
 
-class MainNavStack extends Component<$FlowFixMeProps, $FlowFixMeState> {
+class MainNavStack extends Component<any, any> {
   state = {
     stackCache: Map(),
   }

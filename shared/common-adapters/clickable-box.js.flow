@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 
-export type Props = {|
+export type Props = {
   hoverColor?: any,
   children?: any,
   style?: ?Object,
@@ -20,6 +20,6 @@ export type Props = {|
   onMouseLeave?: ?() => void,
   onMouseDown?: ?() => void,
   onMouseUp?: ?() => void,
-|}
+}
 
 declare export default class ClickableBox extends Component<Props> {}

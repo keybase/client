@@ -15,7 +15,7 @@ type Props = {
   pinentryStates: {[key: string]: PinentryState},
 }
 
-class RemotePinentry extends Component<Props, void> {
+class RemotePinentry extends Component<Props> {
   componentWillMount() {
     this.props.registerPinentryListener()
   }

@@ -41,7 +41,11 @@ class DumbSheetRender extends Component<Props, any> {
     // Scroll the screen to the top when you are arrowing around using the exact filter match. Kinda
     // hacky and just to make things simple.
     setImmediate(() => {
-      ReactDOM.findDOMNode(this.refs.scrollBox).scrollTop = 0
+      const node = ReactDOM.findDOMNode(this.refs.scrollBox)
+      if (node) {
+        // $FlowIssue
+        node.scrollTop = 0
+      }
     })
   }
 

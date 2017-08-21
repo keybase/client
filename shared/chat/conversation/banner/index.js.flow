@@ -20,7 +20,7 @@ export type InfoProps = {
   text: string,
 }
 
-export class BrokenTrackerBanner extends Component<BrokenTrackerProps, void> {}
-export class ErrorBanner extends Component<ErrorProps, void> {}
-export class InviteBanner extends Component<InviteProps, void> {}
-export class InfoBanner extends Component<InfoProps, void> {}
+export class BrokenTrackerBanner extends Component<BrokenTrackerProps> {}
+export class ErrorBanner extends Component<ErrorProps> {}
+export class InviteBanner extends Component<InviteProps> {}
+export class InfoBanner extends Component<InfoProps> {}

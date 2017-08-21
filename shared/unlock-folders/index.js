@@ -6,13 +6,6 @@ import React, {Component} from 'react'
 import Render from './render'
 import {TypedConnector} from '../util/typed-connect'
 
-import type {TypedState} from '../constants/reducer'
-import type {TypedDispatch} from '../constants/types/flux'
-
-type OwnProps = {
-  onCancel: () => void,
-}
-
 export type Props = {
   devices: ?Array<Constants.Device>,
   phase: $PropertyType<Constants.State, 'phase'>,
@@ -25,7 +18,7 @@ export type Props = {
   onFinish: () => void,
 }
 
-class UnlockFolders extends Component<Props, void> {
+class UnlockFolders extends Component<Props> {
   render() {
     return (
       <Render
@@ -43,12 +36,7 @@ class UnlockFolders extends Component<Props, void> {
   }
 }
 
-const connector: TypedConnector<
-  TypedState,
-  TypedDispatch<Constants.Actions>,
-  OwnProps,
-  Props
-> = new TypedConnector()
+const connector = new TypedConnector()
 
 export default connector.connect(
   ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({

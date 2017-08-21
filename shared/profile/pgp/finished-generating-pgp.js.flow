@@ -6,4 +6,4 @@ export type Props = {
   onDone: (shouldStoreKeyOnServer: boolean) => void,
 }
 
-export default class FinishedGeneratedPgp extends Component<Props, void> {}
+export default class FinishedGeneratedPgp extends Component<Props> {}

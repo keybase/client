@@ -5,7 +5,7 @@ import type {Props, DefaultProps} from './header'
 import {Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 
-class Header extends Component<Props, void> {
+class Header extends Component<Props> {
   static defaultProps: DefaultProps
 
   renderDefault() {

@@ -160,20 +160,26 @@ class ProfileRender extends PureComponent<Props, State> {
     if (!this._proofList) {
       return
     }
+    // $FlowIssue
     const target = findDOMNode(this._proofList.getRow(idx))
+    // $FlowIssue
     const targetBox = target.getBoundingClientRect()
 
     if (!this._scrollContainer) {
       return
     }
+
     const base = findDOMNode(this._scrollContainer)
+    // $FlowIssue
     const baseBox = base.getBoundingClientRect()
 
     this.setState({
       proofMenuIndex: idx,
       popupMenuPosition: {
         position: 'absolute',
+        // $FlowIssue
         top: targetBox.bottom - baseBox.top + base.scrollTop,
+        // $FlowIssue
         right: base.clientWidth - (targetBox.right - baseBox.left),
       },
     })

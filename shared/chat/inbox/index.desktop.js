@@ -301,7 +301,7 @@ const _Row = (props: RowProps) => {
 
 const Row = RowConnector(_Row)
 
-class Inbox extends PureComponent<Props, void> {
+class Inbox extends PureComponent<Props> {
   _list: any
 
   componentWillReceiveProps(nextProps: Props) {

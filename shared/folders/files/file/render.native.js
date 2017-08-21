@@ -4,7 +4,7 @@ import type {Props} from './render'
 import {Box, Text, Icon, ListItem} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 
-class FileRender extends Component<Props, void> {
+class FileRender extends Component<Props> {
   _renderIconPart() {
     const size = this.props.size === 'Small' ? 32 : 48
     return <Icon type={this.props.fileIcon} style={{height: size, width: size}} />

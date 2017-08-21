@@ -150,7 +150,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, onClickPaperkey, theme}) => {
   )
 }
 
-class FilesRender extends Component<Props, void> {
+class FilesRender extends Component<Props> {
   _renderSection(section: FileSection) {
     return (
       <Box key={section.name} style={{...globalStyles.flexBoxColumn}}>

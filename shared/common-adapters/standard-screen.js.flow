@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type NotificationType = 'error' | 'success'
 
@@ -9,7 +9,7 @@ export type Props = {
   onCancel?: ?(() => void),
   onBack?: ?() => void,
   notification?: ?{
-    message: string | React$Element<any>,
+    message: string | React.Node,
     type: NotificationType,
   },
   style?: ?Object,
@@ -17,4 +17,4 @@ export type Props = {
   styleBanner?: ?Object,
 }
 
-export default class StandardScreen extends Component<Props, void> {}
+export default class StandardScreen extends React.Component<Props> {}

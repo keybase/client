@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as Constants from '../../../constants/chat'
 
 declare function factory(
@@ -12,5 +13,5 @@ declare function factory(
   onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelectd: boolean,
   measure: () => void
-): React$Element<any>
+): React.Node
 export default factory

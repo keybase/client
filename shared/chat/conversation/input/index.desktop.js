@@ -19,7 +19,7 @@ type InputProps = {
   filePickerSetRef: (r: any) => void,
 } & Props
 
-class ConversationInput extends Component<InputProps, void> {
+class ConversationInput extends Component<InputProps> {
   componentDidMount() {
     this._registerBodyEvents(true)
   }

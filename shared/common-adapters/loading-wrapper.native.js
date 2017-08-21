@@ -1,13 +1,13 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Animated} from 'react-native'
 import Box from './box'
 
 type Props = {
   loading: boolean,
   style?: Object,
-  doneLoadingComponent: React.Element<any>,
-  loadingComponent: React.Element<any>,
+  doneLoadingComponent: React.Node,
+  loadingComponent: React.Node,
   duration: number,
 }
 
@@ -16,7 +16,7 @@ type State = {
   loadingActive: boolean,
 }
 
-class LoadingWrapper extends Component<Props, State> {
+class LoadingWrapper extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {

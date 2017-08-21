@@ -5,4 +5,4 @@ export type Props = {
   onCancel: () => void,
 }
 
-export default class ProvePgpImport extends Component<Props, void> {}
+export default class ProvePgpImport extends Component<Props> {}

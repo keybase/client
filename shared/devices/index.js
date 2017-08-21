@@ -83,7 +83,7 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
   </ClickableBox>
 ))
 
-class Devices extends PureComponent<Props, void> {
+class Devices extends PureComponent<Props> {
   _renderRow = (index, item) => {
     if (item.dummy) {
       if (item.dummy === 'revokedHeader') {

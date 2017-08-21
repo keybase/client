@@ -4,7 +4,7 @@ import type {Props} from './confirm'
 import {Box, Button, StandardScreen} from './'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-class Confirm extends Component<Props, void> {
+class Confirm extends Component<Props> {
   render() {
     return (
       <StandardScreen

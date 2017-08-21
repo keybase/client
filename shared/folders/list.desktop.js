@@ -63,11 +63,12 @@ const Rows = ({
   </Box>
 )
 
-class ListRender extends Component<Props, void> {
+class ListRender extends Component<Props> {
   _scrollContainer = null
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.showIgnored !== this.props.showIgnored && this._scrollContainer && this.props.showIgnored) {
+      // $FlowIssue
       ReactDOM.findDOMNode(this._scrollContainer).scrollTop += 100
     }
   }

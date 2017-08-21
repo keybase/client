@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {ComingSoon} from '../common-adapters'
 
-export default class PeopleRender extends Component<$FlowFixMeProps> {
+export default class PeopleRender extends Component<any> {
   _renderComingSoon() {
     return <ComingSoon />
   }

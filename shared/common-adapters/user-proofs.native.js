@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import Icon from './icon'
 import Meta from './meta'
 import ProgressIndicator from './progress-indicator'
-import React, {Component} from 'react'
+import * as React from 'react'
 import Text from './text'
 import openUrl from '../util/open-url'
 import type {IconType} from './icon.constants'
@@ -15,13 +15,7 @@ import {defaultColor} from './icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow({
-  missingProof,
-  style,
-}: {
-  missingProof: MissingProof,
-  style: Object,
-}): React.Element<any> {
+function MissingProofRow({missingProof, style}: {missingProof: MissingProof, style: Object}): React.Node {
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
@@ -131,7 +125,7 @@ function LoadingProofs() {
   )
 }
 
-class ProofsRender extends Component<Props, void> {
+class ProofsRender extends React.Component<Props> {
   _ensureUrlProtocal(url: string): string {
     return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
   }

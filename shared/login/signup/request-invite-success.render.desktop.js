@@ -5,7 +5,7 @@ import type {Props} from './request-invite-success.render'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class RequestInviteSuccessRender extends Component<Props, void> {
+class RequestInviteSuccessRender extends Component<Props> {
   render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
@@ -13,7 +13,7 @@ class RequestInviteSuccessRender extends Component<Props, void> {
         <Text style={stylesHeader} type="Header">Invite request sent</Text>
         <Text style={stylesBody} type="Body">
           Thanks for requesting an invite to Keybase. When one becomes available,
- we will send it to you via email.
+          we will send it to you via email.
         </Text>
       </Container>
     )

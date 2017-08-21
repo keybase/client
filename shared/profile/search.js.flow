@@ -30,4 +30,4 @@ export type Props = {
   userItems: Array<UserDetails>,
 }
 
-export default class Render extends Component<Props, void> {}
+export default class Render extends Component<Props> {}

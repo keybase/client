@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import {List} from 'immutable'
 import * as Constants from '../../../constants/chat'
 
@@ -20,6 +20,6 @@ export type Props = {|
   you: string,
 |}
 
-export default class ConversationList extends Component<Props, void> {
+export default class ConversationList extends React.Component<Props> {
   onEditLastMessage: () => void
 }

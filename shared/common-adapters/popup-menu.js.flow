@@ -1,9 +1,9 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type MenuItem = {
   title: string, // Only used as ID if view is provided for Header
-  view?: React$Element<any>, // Only used for Header
+  view?: React.Node, // Only used for Header
   subTitle?: string, // subTitle is not used on native
   danger?: boolean,
   disabled?: boolean,
@@ -23,10 +23,10 @@ export type HeaderTextProps = {
   color: string,
   backgroundColor: string,
   style?: Object,
-  children?: React$Element<any>,
+  children?: React.Node,
 }
 
-class PopupHeaderText extends Component<HeaderTextProps> {}
+class PopupHeaderText extends React.Component<HeaderTextProps> {}
 export {PopupHeaderText}
 
-declare export default class PopupMenu extends Component<Props> {}
+declare export default class PopupMenu extends React.Component<Props> {}

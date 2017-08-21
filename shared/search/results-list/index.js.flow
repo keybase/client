@@ -13,4 +13,4 @@ export type Props = {
   showSearchSuggestions: boolean,
 }
 
-export default class ResultsList extends Component<Props, void> {}
+export default class ResultsList extends Component<Props> {}

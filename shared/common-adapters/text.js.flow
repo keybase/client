@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 type Background =
   | 'Announcements'
@@ -41,7 +41,7 @@ type TextType =
 
 type Props = {
   backgroundMode?: Background,
-  children?: React$Element<any>,
+  children?: React.Node,
   className?: string,
   lineClamp?: number,
   onClick?: ?(e: SyntheticEvent<>) => void,
@@ -63,7 +63,9 @@ type MetaType = {
   isTerminal?: true,
 }
 
-declare class Text extends Component<Props> {}
+declare class Text extends React.Component<Props> {
+  highlightText: () => void
+}
 declare function getStyle(
   type: TextType,
   backgroundMode?: ?Background,

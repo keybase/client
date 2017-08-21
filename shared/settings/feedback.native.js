@@ -15,7 +15,7 @@ import {
 
 import type {Props} from './feedback'
 
-class Feedback extends Component<Props, void> {
+class Feedback extends Component<Props> {
   _scroll: any
 
   _onSubmit = () => {

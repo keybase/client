@@ -168,10 +168,12 @@ class RemoteComponentLoader extends Component<any, State> {
     if (this.state.unmounted) {
       return <div />
     }
+
+    const TheComponent = this.ComponentClass
     return (
       <div id="RemoteComponentRoot" style={styles.container}>
         <Root store={this.store}>
-          <this.ComponentClass {...this.state.props} />
+          <TheComponent {...this.state.props} />
         </Root>
       </div>
     )

@@ -11,7 +11,7 @@ import {stateColors} from '../util/tracker'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
 
-class BioLoading extends Component<{style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
+class BioLoading extends Component<{style: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
     const {avatarSize, loading} = this.props
 
@@ -70,7 +70,7 @@ class BioLoading extends Component<{style: Object, avatarSize: AvatarSize, loadi
   }
 }
 
-class BioRender extends Component<Props, void> {
+class BioRender extends Component<Props> {
   render() {
     const {avatarSize, currentlyFollowing, editFns, loading, userInfo, username} = this.props
     if (loading) {

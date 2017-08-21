@@ -53,7 +53,7 @@ class Background extends PureComponent<{loaded: boolean, loadingColor: ?string},
 }
 
 // The actual image
-class UserImage extends PureComponent<ImageProps, void> {
+class UserImage extends PureComponent<ImageProps> {
   render() {
     const Div = glamorous.div(
       {

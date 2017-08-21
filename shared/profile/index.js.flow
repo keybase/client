@@ -45,4 +45,4 @@ export type Props = {
   onClickFollowing: () => void,
 }
 
-export default class Render extends Component<Props, void> {}
+export default class Render extends Component<Props> {}

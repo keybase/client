@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {Box, Text, Button, Icon} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 import type {Props} from './non-user'
@@ -27,7 +27,9 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
             <Icon
               style={{color: globalColors.black_10, marginTop: 3}}
               type="iconfont-link"
-              onClick={() => textRef && textRef.highlightText()}
+              onClick={() => {
+                textRef && textRef.highlightText()
+              }}
             />
             <Text
               allowHighlightText={true}

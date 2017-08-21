@@ -8,10 +8,10 @@ import {isMobile} from '../../constants/platform'
 
 import type {IconType} from '../../common-adapters/icon'
 
-type Props = {|
+type Props = {
   selectedService: Constants.Service,
   onSelectService: (service: Constants.Service) => void,
-|}
+}
 
 const bubbleColors = {
   Facebook: '#3B5998',

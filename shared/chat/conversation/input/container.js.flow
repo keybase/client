@@ -7,4 +7,4 @@ export type OwnProps = {
   onScrollDown: () => void,
 }
 
-export default class InputContainer extends Component<OwnProps, void> {}
+export default class InputContainer extends Component<OwnProps> {}

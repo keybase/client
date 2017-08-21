@@ -10,8 +10,8 @@ type State = {
 }
 
 class AutosizeInput extends Component<Props, State> {
-  _inputEl: HTMLElement
-  _measureEl: HTMLElement
+  _inputEl: ?HTMLElement
+  _measureEl: ?HTMLElement
   _raf: number
 
   state = {
@@ -38,7 +38,8 @@ class AutosizeInput extends Component<Props, State> {
     // Defer until after rendered
     this._raf = window.requestAnimationFrame(() => {
       const fudgeFactor = 1 // Need an extra pixel of space to prevent scrolling
-      const measuredWidth = Math.ceil(this._measureEl.getBoundingClientRect().width) + fudgeFactor
+      const measuredWidth =
+        Math.ceil(this._measureEl ? this._measureEl.getBoundingClientRect().width : 0) + fudgeFactor
       if (measuredWidth !== this.state.measuredWidth) {
         this.setState({measuredWidth})
       }
@@ -46,7 +47,7 @@ class AutosizeInput extends Component<Props, State> {
   }
 
   focus() {
-    this._inputEl.focus()
+    this._inputEl && this._inputEl.focus()
   }
 
   render() {

@@ -7,7 +7,7 @@ import {globalColors, globalMargins} from '../styles'
 
 import type {RenderProps} from './render'
 
-export default class TrackerRender extends Component<RenderProps, void> {
+export default class TrackerRender extends Component<RenderProps> {
   props: RenderProps
 
   render() {

@@ -1,11 +1,11 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props<Item> = {
   items: Array<Item>,
   style?: any,
   fixedHeight?: ?number,
-  renderItem: (index: number, item: Item) => React$Element<any>,
+  renderItem: (index: number, item: Item) => React.Node,
 }
 
-export default class List<Item> extends Component<Props<Item>, void> {}
+export default class List<Item> extends React.Component<Props<Item>, void> {}

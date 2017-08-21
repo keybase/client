@@ -6,4 +6,4 @@ export type Props = {
   onBack: () => void,
 }
 
-export default class GPGSign extends Component<Props, void> {}
+export default class GPGSign extends Component<Props> {}

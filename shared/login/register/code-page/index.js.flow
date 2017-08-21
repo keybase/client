@@ -22,4 +22,4 @@ export type Props = {
   enterCodeErrorText: string,
 }
 
-export default class CodePageRender extends Component<Props, void> {}
+export default class CodePageRender extends Component<Props> {}

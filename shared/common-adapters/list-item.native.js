@@ -6,7 +6,7 @@ import ClickableBox from './clickable-box'
 import {globalStyles} from '../styles'
 
 // TODO Add swipe for action
-class ListItem extends Component<Props, void> {
+class ListItem extends Component<Props> {
   render() {
     const clickable = !!this.props.onClick
     const height = {Large: 64, Small: 48}[this.props.type] // minimum height

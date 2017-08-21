@@ -15,7 +15,7 @@ type Props = {
   },
 }
 
-class EditPopup extends Component<Props, void> {
+class EditPopup extends Component<Props> {
   _input: any
 
   _setRef = (r: any) => {

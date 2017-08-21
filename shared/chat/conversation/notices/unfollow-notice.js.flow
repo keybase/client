@@ -5,4 +5,4 @@ export type Props = {
   username: string,
 }
 
-export default class UnfollowNotice extends Component<Props, void> {}
+export default class UnfollowNotice extends Component<Props> {}

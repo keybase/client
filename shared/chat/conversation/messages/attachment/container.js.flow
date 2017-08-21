@@ -9,4 +9,4 @@ export type OwnProps = {
   onEnsurePreviewLoaded: () => void,
 }
 
-export default class Attachment extends Component<OwnProps, void> {}
+export default class Attachment extends Component<OwnProps> {}

@@ -10,4 +10,4 @@ export type Props = {
   autoIncrement: boolean,
 }
 
-export default class Render extends Component<Props, void> {}
+export default class Render extends Component<Props> {}
