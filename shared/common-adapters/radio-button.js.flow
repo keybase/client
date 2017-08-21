@@ -1,0 +1,13 @@
+// @flow
+
+import React, {Component} from 'react'
+
+export type Props = {
+  label: string,
+  onSelect: (newCheckedValue: boolean) => void,
+  selected: boolean,
+  style?: Object,
+  disabled?: boolean,
+}
+
+declare export default class RadioButton extends Component<void, Props, void> {}
