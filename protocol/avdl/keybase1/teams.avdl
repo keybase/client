@@ -414,13 +414,18 @@ protocol teams {
   TeamTreeResult teamTree(int sessionID, TeamName name);
   void teamDelete(int sessionID, string name);
 
+  record ImplicitTeamUserSet {
+    array<string> keybaseUsers;
+    array<SocialAssertion> unresolvedUsers;
+  }
+
   /**
    * iTeams
   */
   record ImplicitTeamName {
     boolean isPrivate;
-    array<string> keybaseUsers;
-    array<SocialAssertion> unresolvedUsers;
+    ImplicitTeamUserSet writers;
+    ImplicitTeamUserSet readers;
     union { null, ImplicitTeamConflictInfo } conflictInfo;
   }
 

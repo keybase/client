@@ -3229,9 +3229,14 @@ export type ImplicitTeamConflictInfo = {
 
 export type ImplicitTeamName = {
   isPrivate: boolean,
+  writers: ImplicitTeamUserSet,
+  readers: ImplicitTeamUserSet,
+  conflictInfo?: ?ImplicitTeamConflictInfo,
+}
+
+export type ImplicitTeamUserSet = {
   keybaseUsers?: ?Array<string>,
   unresolvedUsers?: ?Array<SocialAssertion>,
-  conflictInfo?: ?ImplicitTeamConflictInfo,
 }
 
 export type InstallAction =
