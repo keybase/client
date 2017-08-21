@@ -39,6 +39,7 @@ export type Props = {
   onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
   rows: List<RowItem>,
+  showBuildATeam: boolean,
   smallTeamsExpanded: boolean,
   toggleSmallTeamsExpanded: () => void,
 }

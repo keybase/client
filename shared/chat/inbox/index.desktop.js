@@ -71,6 +71,14 @@ class Inbox extends PureComponent<void, Props, State> {
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.rows !== nextProps.rows && nextProps.rows.count()) {
       this._onScrollUnbox()
+    }
+  }
+
+  componentDidUpdate(prevProps: Props) {
+    if (
+      (this.props.rows !== prevProps.rows && prevProps.rows.count()) ||
+      this.props.smallTeamsExpanded !== prevProps.smallTeamsExpanded
+    ) {
       this._updateShowFloating()
     }
   }
@@ -121,6 +129,7 @@ class Inbox extends PureComponent<void, Props, State> {
         isActiveRoute={true}
         teamname={row.teamname}
         channelname={row.channelname}
+        type={row.type}
       />
     )
   }
@@ -190,6 +199,11 @@ class Inbox extends PureComponent<void, Props, State> {
             toggle={this.props.toggleSmallTeamsExpanded}
             badgeCount={this.props.bigTeamsBadgeCount}
           />}
+        {/*
+            // TODO when the teams tab exists
+            this.props.showBuildATeam &&
+              <BuildATeam />
+              */}
       </div>
     )
   }

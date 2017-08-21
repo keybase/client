@@ -119,8 +119,8 @@ const makeSelector = conversationIDKey => {
   }
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname}) => {
-  if (conversationIDKey) {
+const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname, type}) => {
+  if (['small', 'big'].includes(type)) {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
   } else {
@@ -145,8 +145,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const ConnectedRow = compose(
   // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => props.teamname && !props.channelname, renderComponent(TeamRow)),
-  branch(props => props.teamname && props.channelname, renderComponent(ChannelRow))
+  branch(props => props.type === 'bigHeader', renderComponent(TeamRow)),
+  branch(props => props.type === 'big', renderComponent(ChannelRow))
 )(SimpleRow)
 
 export default ConnectedRow

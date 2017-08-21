@@ -11,7 +11,7 @@ import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
-const smallteamsCollapsedMaxShown = 2
+const smallteamsCollapsedMaxShown = 5
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
@@ -57,9 +57,10 @@ const filteredInbox = createImmutableEqualSelector(
     // convert any small teams into smallids
     Object.keys(bigTeamToChannels).forEach(team => {
       // only one channel
-      if (Object.keys(bigTeamToChannels[team]) === 1) {
-        smallIds.push(bigTeamToChannels[team])
-        bigTeamToChannels[team] = undefined
+      const channels = Object.keys(bigTeamToChannels[team])
+      if (channels.length === 1) {
+        smallIds.push(bigTeamToChannels[team][channels[0]])
+        delete bigTeamToChannels[team]
       }
     })
 
@@ -122,9 +123,10 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     }
   }
 
-  const bigTeamsBadgeCount = 10 // TODO real number
-  const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'} // TODO isBadged
+  const bigTeamsBadgeCount = 0 // TODO real number
+  const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'}
   const bigTeamsLabel = {type: 'bigTeamsLabel'}
+  const showBuildATeam = bigTeams.count() === 0
 
   const rows = smallTeams
     .concat(I.List(showSmallTeamsExpandDivider ? [divider] : []))
@@ -137,6 +139,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     isActiveRoute,
     isLoading: state.chat.get('inboxUntrustedState') === 'loading',
     rows,
+    showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     showSmallTeamsExpandDivider,
   }
