@@ -5,12 +5,13 @@ import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
-import {compose, lifecycle} from 'recompose'
+import {compose, lifecycle, withState} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
+const smallteamsCollapsedMaxShown = 2
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
@@ -75,39 +76,57 @@ const filteredInbox = createImmutableEqualSelector(
     return [sortedSmallIds, bigTeamToChannels]
   }
 )
-const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
-  const [smallIds, bigTeamToChannels] = inbox
+const getRows = createImmutableEqualSelector(
+  [filteredInbox, getPending, (_, smallTeamsExpanded) => smallTeamsExpanded],
+  (inbox, pending, smallTeamsExpanded) => {
+    const [smallIds, bigTeamToChannels] = inbox
 
-  const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, teamname: null})))
-  const sids = I.List(smallIds.map(s => ({conversationIDKey: s, teamname: null})))
+    const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, teamname: null})))
+    const sids = I.List(smallIds.map(s => ({conversationIDKey: s, teamname: null})))
 
-  const teams = I.List(
-    flatten(
-      Object.keys(bigTeamToChannels).sort().map(team => {
-        const channels = bigTeamToChannels[team]
-        return [
-          {
-            teamname: team,
-          },
-        ].concat(
-          Object.keys(channels)
-            .sort()
-            .map(channel => ({channelname: channel, conversationIDKey: channels[channel].id, teamname: team}))
-        )
-      })
+    const bigTeams = I.List(
+      flatten(
+        Object.keys(bigTeamToChannels).sort().map(team => {
+          const channels = bigTeamToChannels[team]
+          return [
+            {
+              teamname: team,
+            },
+          ].concat(
+            Object.keys(channels).sort().map(channel => ({
+              channelname: channel,
+              conversationIDKey: channels[channel].id,
+              teamname: team,
+            }))
+          )
+        })
+      )
     )
-  )
 
-  return pids.concat(sids).concat(teams)
-})
+    let smallTeams = pids.concat(sids)
+    if (!smallTeamsExpanded && bigTeams.count()) {
+      smallTeams = smallTeams.slice(0, smallteamsCollapsedMaxShown)
+    }
 
-const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
-  filter: getFilter(state),
-  isActiveRoute,
-  isLoading: state.chat.get('inboxUntrustedState') === 'loading',
-  rows: getRows(state),
-  showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
-})
+    return [smallTeams, bigTeams]
+  }
+)
+
+const divider = {conversationIDKey: null, teamname: null}
+
+const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
+  const [smallTeams, bigTeams] = getRows(state, smallTeamsExpanded)
+  const showSmallTeamsExpandDivider = smallTeams > smallteamsCollapsedMaxShown && bigTeams.count() > 0
+  const rows = smallTeams.concat(I.List(showSmallTeamsExpandDivider ? [divider] : [])).concat(bigTeams)
+
+  return {
+    filter: getFilter(state),
+    isActiveRoute,
+    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    rows,
+    showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadInbox: () => dispatch(loadInbox()),
@@ -117,12 +136,20 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  smallTeamsExpanded: stateProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collpase if we're actually showing a divider
+})
+
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  withState('smallTeamsExpanded', 'setSmallTeamsExpanded', false),
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {

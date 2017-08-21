@@ -9,7 +9,7 @@ export type Props = {
   isActiveRoute: boolean,
   filter: string,
   nowOverride?: number, // just for dumb rendering
-  rows: List<ConversationIDKey>,
+  rows: List<RowItem>,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
   loadInbox: () => void,
