@@ -32,7 +32,6 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
     return index
       ? <Row
           conversationIDKey={item.conversationIDKey}
-          key={item.conversationIDKey || item.teamname}
           isActiveRoute={this.props.isActiveRoute}
           teamname={item.teamname}
           channelname={item.channelname}
@@ -45,7 +44,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
         />
   }
 
-  _keyExtractor = (item, index) => (item ? item.conversationIDKey || item.teamname : 'filter')
+  _keyExtractor = (item, index) => item.conversationIDKey || item.teamname || 'filter'
 
   _setupDataSource = props => {
     this.setState({rows: [{}].concat(props.rows.toArray())})
