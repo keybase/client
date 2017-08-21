@@ -93,8 +93,10 @@ class Inbox extends PureComponent<void, Props, void> {
     }
 
     const [first, end] = this._list.getVisibleRange()
-    const conversationIDKey = this.props.rows.get(first)
-    this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+    const {conversationIDKey} = this.props.rows.get(first)
+    if (conversationIDKey) {
+      this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+    }
   }, 200)
 
   _setRef = list => {
