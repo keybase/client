@@ -1,6 +1,6 @@
 // @flow
 import * as shared from './post-proof.shared'
-import * as React from 'react';
+import * as React from 'react'
 import {Box, Button, CopyableText, Icon, LinkWithIcon, PlatformIcon, Text} from '../common-adapters'
 import {clipboard} from 'electron'
 import {globalStyles, globalColors, globalMargins} from '../styles'

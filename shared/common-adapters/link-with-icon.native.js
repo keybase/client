@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon from './icon'

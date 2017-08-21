@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {Box, Button, Checkbox, Divider, Icon} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import Participants from './participants'

@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {StandardScreen, Avatar, Box, Text, Button} from '../common-adapters'
 import {globalStyles, globalMargins} from '../styles'
 import {noAvatarMessage, hasAvatarMessage} from './edit-avatar.shared'

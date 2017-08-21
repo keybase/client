@@ -1,6 +1,6 @@
 // @flow
 import Avatar from './avatar'
-import * as React from 'react';
+import * as React from 'react'
 import {globalStyles, globalColors} from '../styles'
 
 import type {Props} from './user-card'

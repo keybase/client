@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 
 import type {ImageRenderProps} from './image'
 

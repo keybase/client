@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {Box} from './'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
 import {globalColors, globalMargins, globalStyles} from '../styles'

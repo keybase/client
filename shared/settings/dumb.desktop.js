@@ -1,6 +1,6 @@
 // @flow
 
-import * as React from 'react';
+import * as React from 'react'
 import {Box} from '../common-adapters'
 
 import UpdateEmail from './email'

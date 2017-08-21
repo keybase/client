@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import moment from 'moment'
-import * as React from 'react';
+import * as React from 'react'
 import {Box, Icon, ProgressIndicator, Text, ClickableBox} from '../../../../common-adapters'
 import {isMobile, fileUIName} from '../../../../constants/platform'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'

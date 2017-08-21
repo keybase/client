@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {Avatar, BackButton, Box, Button, Icon, Text} from '../common-adapters'
 import capitalize from 'lodash/capitalize'
 import {globalColors, globalStyles, globalMargins} from '../styles'

@@ -4,7 +4,7 @@ import Attachment from './attachment/container'
 import ErrorMessage from './error/container'
 import Header from './header/container'
 import ProfileResetNotice from '../notices/profile-reset-notice/container'
-import * as React from 'react';
+import * as React from 'react'
 import TextMessage from './text/container'
 import Timestamp from './timestamp/container'
 import Wrapper from './wrapper/container'

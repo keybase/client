@@ -4,7 +4,7 @@ import List from './list/container'
 import HeaderOrSearchHeader from './header-or-search-header'
 import SearchResultsList from '../../search/results-list'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
-import * as React from 'react';
+import * as React from 'react'
 import Banner from './banner/container'
 import {withPropsOnChange, compose, branch} from 'recompose'
 import {Box, LoadingLine, ProgressIndicator, Text, HeaderHoc} from '../../common-adapters'

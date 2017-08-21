@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import Inbox from './inbox/container'
 import {globalStyles} from '../styles'
 

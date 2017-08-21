@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import type {Props} from './clear-history.render'
 import {Confirm, Box, Text, Icon, Usernames} from '../../common-adapters'
 import {globalColors} from '../../styles'

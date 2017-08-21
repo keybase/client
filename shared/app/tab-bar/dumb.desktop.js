@@ -1,6 +1,6 @@
 // @flow
 
-import * as React from 'react';
+import * as React from 'react'
 
 import {Text} from '../../common-adapters'
 import TabBar from './index.render'

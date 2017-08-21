@@ -1,6 +1,6 @@
 // @flow
 import Icon from './icon'
-import * as React from 'react';
+import * as React from 'react'
 import type {Props} from './progress-indicator'
 
 const ProgressIndicator = ({white, style}: Props) => (

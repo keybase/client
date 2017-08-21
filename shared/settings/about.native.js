@@ -1,6 +1,6 @@
 // @flow
 
-import * as React from 'react';
+import * as React from 'react'
 import {globalStyles, globalMargins} from '../styles'
 import {Box, Icon, Text} from '../common-adapters/index.native'
 

@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props} from './delete.render'
 import {Confirm, Box, Text, Icon, Usernames} from '../../common-adapters'

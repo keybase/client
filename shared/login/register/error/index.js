@@ -1,6 +1,6 @@
 // @flow
 import Container from '../../forms/container'
-import * as React from 'react';
+import * as React from 'react'
 import openURL from '../../../util/open-url'
 import {RPCError} from '../../../util/errors'
 import {ConstantsStatusCode} from '../../../constants/types/flow-types'

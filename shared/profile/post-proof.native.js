@@ -1,7 +1,7 @@
 // @flow
 import * as shared from './post-proof.shared'
 import CopyableText from '../common-adapters/copyable-text.native'
-import * as React from 'react';
+import * as React from 'react'
 import {Button, LinkWithIcon, PlatformIcon, StandardScreen, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 

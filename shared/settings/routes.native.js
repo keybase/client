@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {RouteDefNode} from '../route-tree'
 import TestPopup from '../dev/test-popup.native'
 import Settings from './'

@@ -1,11 +1,10 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {globalStyles} from '../styles'
 
 import type {Props} from './clickable-box'
 
-class ClickableBox
-  extends React.Component<Props & {children: any}, {mouseDown: boolean, mouseIn: boolean}> {
+class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: boolean, mouseIn: boolean}> {
   state = {
     mouseDown: false,
     mouseIn: false,

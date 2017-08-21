@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import engine from '../engine'
 import {BackButton, Box, Text} from '../common-adapters'
 import {connect} from 'react-redux'

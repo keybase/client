@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import Text from './text'
 import type {Props} from './meta'
 import {globalColors} from '../styles'

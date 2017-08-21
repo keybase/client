@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import type {Props} from './standard-screen'
 import {NativeScrollView} from './native-wrappers.native'
 import Box from './box'

@@ -1,5 +1,5 @@
 // @flow
-import * as React from 'react';
+import * as React from 'react'
 import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text, HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'

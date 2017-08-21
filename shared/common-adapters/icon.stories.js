@@ -1,7 +1,7 @@
 // @flow
 import Box from './box'
 import Icon from './icon'
-import * as React from 'react';
+import * as React from 'react'
 import Text from './text'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
