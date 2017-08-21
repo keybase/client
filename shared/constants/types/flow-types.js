@@ -3359,9 +3359,11 @@ export type LoadTeamArg = {
 }
 
 export type LockContext = {
-  requireLockID: long,
+  requireLockID: LockID,
   releaseAfterSuccess: boolean,
 }
+
+export type LockID = long
 
 export type LogLevel =
     0 // NONE_0
@@ -5330,12 +5332,12 @@ export type metadataGetMetadataRpcParam = Exact<{
   startRevision: long,
   stopRevision: long,
   logTags: {[key: string]: string},
-  lockBeforeGet?: ?long
+  lockBeforeGet?: ?LockID
 }>
 
 export type metadataLockRpcParam = Exact<{
   folderID: string,
-  lockID: long
+  lockID: LockID
 }>
 
 export type metadataPruneBranchRpcParam = Exact<{
@@ -5365,7 +5367,7 @@ export type metadataRegisterForUpdatesRpcParam = Exact<{
 
 export type metadataReleaseLockRpcParam = Exact<{
   folderID: string,
-  lockID: long
+  lockID: LockID
 }>
 
 export type metadataTruncateLockRpcParam = Exact<{

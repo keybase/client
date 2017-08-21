@@ -116,10 +116,16 @@
     },
     {
       "type": "record",
+      "name": "LockID",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
       "name": "LockContext",
       "fields": [
         {
-          "type": "long",
+          "type": "LockID",
           "name": "requireLockID"
         },
         {
@@ -211,7 +217,7 @@
           "name": "lockBeforeGet",
           "type": [
             null,
-            "long"
+            "LockID"
           ]
         }
       ],
@@ -406,7 +412,7 @@
         },
         {
           "name": "lockID",
-          "type": "long"
+          "type": "LockID"
         }
       ],
       "response": null
@@ -419,7 +425,7 @@
         },
         {
           "name": "lockID",
-          "type": "long"
+          "type": "LockID"
         }
       ],
       "response": null

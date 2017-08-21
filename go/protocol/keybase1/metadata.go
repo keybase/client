@@ -121,14 +121,20 @@ func (o KeyBundleResponse) DeepCopy() KeyBundleResponse {
 	}
 }
 
+type LockID int64
+
+func (o LockID) DeepCopy() LockID {
+	return o
+}
+
 type LockContext struct {
-	RequireLockID       int64 `codec:"requireLockID" json:"requireLockID"`
-	ReleaseAfterSuccess bool  `codec:"releaseAfterSuccess" json:"releaseAfterSuccess"`
+	RequireLockID       LockID `codec:"requireLockID" json:"requireLockID"`
+	ReleaseAfterSuccess bool   `codec:"releaseAfterSuccess" json:"releaseAfterSuccess"`
 }
 
 func (o LockContext) DeepCopy() LockContext {
 	return LockContext{
-		RequireLockID:       o.RequireLockID,
+		RequireLockID:       o.RequireLockID.DeepCopy(),
 		ReleaseAfterSuccess: o.ReleaseAfterSuccess,
 	}
 }
@@ -190,7 +196,7 @@ type GetMetadataArg struct {
 	StartRevision int64             `codec:"startRevision" json:"startRevision"`
 	StopRevision  int64             `codec:"stopRevision" json:"stopRevision"`
 	LogTags       map[string]string `codec:"logTags" json:"logTags"`
-	LockBeforeGet *int64            `codec:"lockBeforeGet,omitempty" json:"lockBeforeGet,omitempty"`
+	LockBeforeGet *LockID           `codec:"lockBeforeGet,omitempty" json:"lockBeforeGet,omitempty"`
 }
 
 func (o GetMetadataArg) DeepCopy() GetMetadataArg {
@@ -215,11 +221,11 @@ func (o GetMetadataArg) DeepCopy() GetMetadataArg {
 			}
 			return ret
 		})(o.LogTags),
-		LockBeforeGet: (func(x *int64) *int64 {
+		LockBeforeGet: (func(x *LockID) *LockID {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.LockBeforeGet),
 	}
@@ -436,25 +442,25 @@ func (o GetKeyBundlesArg) DeepCopy() GetKeyBundlesArg {
 
 type LockArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
-	LockID   int64  `codec:"lockID" json:"lockID"`
+	LockID   LockID `codec:"lockID" json:"lockID"`
 }
 
 func (o LockArg) DeepCopy() LockArg {
 	return LockArg{
 		FolderID: o.FolderID,
-		LockID:   o.LockID,
+		LockID:   o.LockID.DeepCopy(),
 	}
 }
 
 type ReleaseLockArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
-	LockID   int64  `codec:"lockID" json:"lockID"`
+	LockID   LockID `codec:"lockID" json:"lockID"`
 }
 
 func (o ReleaseLockArg) DeepCopy() ReleaseLockArg {
 	return ReleaseLockArg{
 		FolderID: o.FolderID,
-		LockID:   o.LockID,
+		LockID:   o.LockID.DeepCopy(),
 	}
 }
 
