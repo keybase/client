@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Box} from '../../../common-adapters'
-import {globalStyles, globalColors} from '../../../styles'
+import {ClickableBox, Icon, Box, Text, Badge} from '../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 type DividerProps = {
   isExpanded: boolean,
@@ -12,10 +12,27 @@ type DividerProps = {
 // TODO hover color
 
 const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
-  <ClickableBox onClick={toggle}>
+  <ClickableBox onClick={toggle} style={_dividerStyle}>
     <Box style={_boxStyle}>
       <Box style={_iconStyle}>
         <Icon type={isExpanded ? 'iconfont-keybase' : 'iconfont-down-arrow'} />
+      </Box>
+    </Box>
+  </ClickableBox>
+)
+
+type FloatingDividerProps = {
+  badgeCount: number,
+  toggle: () => void,
+}
+
+const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
+  <ClickableBox onClick={toggle} style={_floatingStyle}>
+    <Box style={_boxStyle}>
+      <Text type="BodySmallSemibold">Big teams</Text>
+      {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}
+      <Box style={_iconStyle}>
+        <Icon type="iconfont-keybase" />
       </Box>
     </Box>
   </ClickableBox>
@@ -31,9 +48,12 @@ const _boxStyle = {
   borderStyle: 'solid',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  height: 16,
+  height: '100%',
   justifyContent: 'space-between',
+  paddingLeft: globalMargins.tiny,
+  paddingRight: globalMargins.tiny,
   position: 'relative',
+  width: '100%',
 }
 
 const _iconStyle = {
@@ -43,4 +63,21 @@ const _iconStyle = {
   justifyContent: 'center',
 }
 
-export default Divider
+const _badgeStyle = {
+  marginRight: 0,
+}
+
+const _dividerStyle = {
+  height: 16,
+  flexShrink: 0,
+}
+
+const _floatingStyle = {
+  ...globalStyles.fillAbsolute,
+  backgroundColor: globalColors.white,
+  flexShrink: 0,
+  height: 32,
+  top: undefined,
+}
+
+export {Divider, FloatingDivider}

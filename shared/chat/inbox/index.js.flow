@@ -25,17 +25,19 @@ export type RowItem =
     }
 
 export type Props = {
-  isLoading: boolean,
-  isActiveRoute: boolean,
-  smallTeamsExpanded: boolean,
+  bigTeamsBadgeCount: number,
+  children?: React$Element<*>,
   filter: string,
+  isActiveRoute: boolean,
+  isLoading: boolean,
+  loadInbox: () => void,
   nowOverride?: number, // just for dumb rendering
-  rows: List<RowItem>,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
-  loadInbox: () => void,
-  children?: React$Element<*>,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
+  rows: List<RowItem>,
+  smallTeamsExpanded: boolean,
+  toggleSmallTeamsExpanded: () => void,
 }
 
 export default class Inbox extends Component<void, Props, void> {}

@@ -4,7 +4,7 @@ import ReactList from 'react-list'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
-import Divider from './row/divider'
+import {Divider, FloatingDivider} from './row/divider'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 
@@ -133,7 +133,6 @@ class Inbox extends PureComponent<void, Props, void> {
         <div style={scrollableStyle} onScroll={this._onScroll}>
           <ReactList
             ref={this._setRef}
-            style={listStyle}
             useTranslate3d={true}
             itemRenderer={this._itemRenderer}
             length={this.props.rows.count()}
@@ -141,25 +140,27 @@ class Inbox extends PureComponent<void, Props, void> {
             itemSizeGetter={this._itemSizeGetter}
           />
         </div>
+        <FloatingDivider
+          toggle={this.props.toggleSmallTeamsExpanded}
+          badgeCount={this.props.bigTeamsBadgeCount}
+        />
       </div>
     )
   }
-}
-
-const listStyle = {
-  flex: 1,
 }
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   boxShadow: `inset -1px 0 0 ${globalColors.black_05}`,
-  flex: 1,
+  height: '100%',
   maxWidth: 241,
   minWidth: 241,
+  position: 'relative',
 }
 
 const scrollableStyle = {
+  flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
 }

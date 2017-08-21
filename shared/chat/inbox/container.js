@@ -122,10 +122,12 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     }
   }
 
-  const divider = {isBadged: false, type: 'divider'} // TODO isBadged
+  const bigTeamsBadgeCount = 10 // TODO real number
+  const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'} // TODO isBadged
   const rows = smallTeams.concat(I.List(showSmallTeamsExpandDivider ? [divider] : [])).concat(bigTeams)
 
   return {
+    bigTeamsBadgeCount,
     filter: getFilter(state),
     isActiveRoute,
     isLoading: state.chat.get('inboxUntrustedState') === 'loading',
