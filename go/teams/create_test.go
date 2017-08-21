@@ -144,7 +144,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 
 	// Simple imp team
 	for _, u := range users {
-		impTeam.KeybaseUsers = append(impTeam.KeybaseUsers, u.Username)
+		impTeam.Writers.KeybaseUsers = append(impTeam.Writers.KeybaseUsers, u.Username)
 		uvs = append(uvs, u.User.ToUserVersion())
 	}
 	sort.Sort(keybase1.ByUserVersionID(uvs))
@@ -162,7 +162,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 	require.Equal(t, members.Owners, uvs)
 
 	// Imp team with invites
-	impTeam.UnresolvedUsers = []keybase1.SocialAssertion{
+	impTeam.Writers.UnresolvedUsers = []keybase1.SocialAssertion{
 		keybase1.SocialAssertion{
 			User:    "mike",
 			Service: keybase1.SocialAssertionService("twitter"),
