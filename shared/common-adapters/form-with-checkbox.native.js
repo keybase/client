@@ -7,7 +7,7 @@ import type {Props as CheckboxProps} from './checkbox'
 import type {Props} from './form-with-checkbox'
 import {globalStyles} from '../styles'
 
-class FormWithCheckbox extends Component<void, Props, void> {
+class FormWithCheckbox extends Component<Props> {
   render() {
     const {inputProps, checkboxesProps} = this.props
 

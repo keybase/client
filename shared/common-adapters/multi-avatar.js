@@ -13,7 +13,7 @@ export type Props = {
   style?: ?Object,
 }
 
-class MultiAvatar extends Component<void, Props, void> {
+class MultiAvatar extends Component<Props> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
     return JSON.stringify(this.props) !== JSON.stringify(nextProps)
   }

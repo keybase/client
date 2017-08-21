@@ -21,13 +21,6 @@ export default lifecycle({
     )
   },
   componentWillUnmount: function() {
-    Mousetrap.unbind(
-      this.props.hotkeys,
-      (e, key) => {
-        e.stopPropagation()
-        this.props.onHotkey(key)
-      },
-      'keydown'
-    )
+    Mousetrap.unbind(this.props.hotkeys)
   },
 })

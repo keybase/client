@@ -4,10 +4,10 @@ import React, {Component} from 'react'
 
 export type Props = {
   label: string,
-  onCheck: (newCheckedValue: boolean) => void,
+  onCheck: ?(newCheckedValue: boolean) => void,
   checked: boolean,
   style?: Object,
   disabled?: boolean,
 }
 
-declare export default class Checkbox extends Component<void, Props, void> {}
+declare export default class Checkbox extends Component<Props> {}

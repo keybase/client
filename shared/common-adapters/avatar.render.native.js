@@ -24,7 +24,7 @@ type Props = {
   followIconType: ?IconType,
   followIconSize: number,
   loadingColor: ?string,
-  onClick?: ?(event: SyntheticEvent) => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,
@@ -55,7 +55,7 @@ const Background = ({loaded, loadingColor, size}) => {
   return <View loaded={loaded} loadingColor={loadingColor} size={size} />
 }
 
-class UserImage extends PureComponent<void, ImageProps, void> {
+class UserImage extends PureComponent<ImageProps> {
   render() {
     const {url, size, onLoadEnd, opacity = 1} = this.props
 
@@ -101,7 +101,7 @@ const Border = ({borderColor, size}) => {
   return <View size={size} borderColor={borderColor} />
 }
 
-class AvatarRender extends PureComponent<void, Props, State> {
+class AvatarRender extends PureComponent<Props, State> {
   state: State = {
     loaded: false,
   }

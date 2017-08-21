@@ -82,7 +82,7 @@ function _checkPgpInfoForErrors(pgpInfo: PgpInfo): PgpInfoError {
   }
 }
 
-function* _checkPgpInfo(action: UpdatePgpInfo): SagaGenerator<any, any> {
+const _checkPgpInfo = function*(action: UpdatePgpInfo): SagaGenerator<any, any> {
   if (action.error) {
     return
   }
@@ -97,7 +97,7 @@ function* _checkPgpInfo(action: UpdatePgpInfo): SagaGenerator<any, any> {
 
   yield put(errorUpdateAction)
 }
-function* _dropPgpSaga(action: DropPgp): SagaGenerator<any, any> {
+const _dropPgpSaga = function*(action: DropPgp): SagaGenerator<any, any> {
   if (action.error) {
     return
   }
@@ -117,7 +117,7 @@ function* _dropPgpSaga(action: DropPgp): SagaGenerator<any, any> {
 }
 
 // TODO(mm) handle error better
-function* _generatePgpSaga(): SagaGenerator<any, any> {
+const _generatePgpSaga = function*(): SagaGenerator<any, any> {
   yield put(navigateAppend(['generate'], [profileTab, 'pgp']))
 
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
@@ -182,7 +182,7 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* pgpSaga(): SagaGenerator<any, any> {
+const pgpSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest(a => a && a.type === Constants.updatePgpInfo && !a.error, _checkPgpInfo)
   yield safeTakeLatest(Constants.generatePgp, _generatePgpSaga)
   yield safeTakeEvery(Constants.dropPgp, _dropPgpSaga)

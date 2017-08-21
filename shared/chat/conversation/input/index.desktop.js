@@ -19,7 +19,7 @@ type InputProps = {
   filePickerSetRef: (r: any) => void,
 } & Props
 
-class ConversationInput extends Component<void, InputProps, void> {
+class ConversationInput extends Component<InputProps> {
   componentDidMount() {
     this._registerBodyEvents(true)
   }
@@ -99,13 +99,13 @@ class ConversationInput extends Component<void, InputProps, void> {
     this.props.emojiPickerToggle()
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent) => {
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
     }
   }
 
-  _onEnterKeyDown = (e: SyntheticKeyboardEvent) => {
+  _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
     e.preventDefault()
 
     if (this.props.isLoading) {

@@ -25,7 +25,7 @@ export type SearchPlatform = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Hack
 export type SearchResultId = string // i.e. marcopolo or marcopolo@github
 export type SearchQuery = string
 
-export type RowProps = {|
+export type RowProps = {
   id: SearchResultId,
 
   leftFollowingState: FollowingState,
@@ -44,11 +44,11 @@ export type RowProps = {|
   onClick: () => void,
   onMouseOver?: () => void,
   selected: boolean,
-|}
+}
 
 // A normalized version of the row props above.
 // The connector should fill in the missing pieces like the following state
-export type SearchResult = {|
+export type SearchResult = {
   id: SearchResultId,
 
   leftIcon: ?IconType, // If service is keybase this can be null
@@ -59,7 +59,7 @@ export type SearchResult = {|
   rightIcon: ?IconType,
   rightService: ?Service,
   rightUsername: ?string,
-|}
+}
 
 // Actions
 export type Search<TypeToFire> = NoErrorTypedAction<

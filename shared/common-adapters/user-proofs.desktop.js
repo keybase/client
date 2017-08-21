@@ -1,6 +1,6 @@
 // @flow
-import React, {Component, PureComponent} from 'react'
-import {CSSTransitionGroup} from 'react-transition-group'
+import * as React from 'react'
+import {TransitionGroup, CSSTransition} from 'react-transition-group'
 import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
@@ -10,7 +10,7 @@ import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-function MissingProofRow({missingProof}: {missingProof: MissingProof}): React$Element<*> {
+function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.Node {
   const missingColor = globalColors.black_20
   return (
     <Box
@@ -52,7 +52,7 @@ type ProofRowState = {
   popupMenuPosition: {},
 }
 
-class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
+class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
   state: ProofRowState
   _onMouseEnter: () => void
   _onMouseLeave: () => void
@@ -151,8 +151,13 @@ function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
   )
 }
 
-class ProofsRender extends Component<void, Props, void> {
-  _rows: Array<React$Element<*>>
+// CSSTransition injects foreign props so lets not just accept all props
+const IgnorePropsBox = ({children, onlyProps}: {children?: any, onlyProps?: any}) => (
+  <Box {...onlyProps}>{children}</Box>
+)
+
+class ProofsRender extends React.Component<Props> {
+  _rows: Array<any>
 
   constructor(props: Props) {
     super(props)
@@ -191,18 +196,17 @@ class ProofsRender extends Component<void, Props, void> {
         color: ${globalColors.black_60} !important;
       }
     `
+
     return (
       <Box style={{...styleContainer(loading), ...style}}>
-        <CSSTransitionGroup
-          transitionName="fade-anim"
-          transitionEnterTimeout={250}
-          transitionLeaveTimeout={250}
-        >
+        <TransitionGroup>
           {loading
-            ? <Box key="loading" style={{...styleLoading, ...loadingStyle}}>
-                {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
-              </Box>
-            : <Box key="non-loading">
+            ? <CSSTransition classNames="fade-anim" timeout={{exit: 250, enter: 250}}>
+                <IgnorePropsBox key="loading" onlyProps={{style: {...styleLoading, ...loadingStyle}}}>
+                  {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} />)}
+                </IgnorePropsBox>
+              </CSSTransition>
+            : <IgnorePropsBox key="non-loading">
                 {this.props.type === 'proofs' &&
                   this.props.proofs.map((p, idx) => (
                     <ProofRow
@@ -222,8 +226,8 @@ class ProofsRender extends Component<void, Props, void> {
                     <MissingProofRow key={mp.type} missingProof={mp} />
                   ))}
                 {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
-              </Box>}
-        </CSSTransitionGroup>
+              </IgnorePropsBox>}
+        </TransitionGroup>
       </Box>
     )
   }

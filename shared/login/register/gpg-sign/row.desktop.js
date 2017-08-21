@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import type {Props} from './row'
 import {Icon, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, transition} from '../../../styles'

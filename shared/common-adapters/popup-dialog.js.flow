@@ -1,15 +1,15 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
   onClose: () => void,
   allowClipBubbling?: boolean,
   fill?: boolean,
-  children?: React$Element<*>,
+  children?: React.Node,
   styleCover?: Object,
   styleContainer?: Object,
   styleClose?: Object,
   styleClipContainer?: Object,
 }
 
-export default class PopupDialog extends Component<void, Props, void> {}
+export default class PopupDialog extends React.Component<Props> {}

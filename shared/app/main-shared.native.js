@@ -36,7 +36,7 @@ type OwnProps = {
   version: string,
 }
 
-class Main extends Component<void, any, void> {
+class Main extends Component<any> {
   constructor(props: Props) {
     super(props)
 

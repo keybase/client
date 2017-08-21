@@ -8,4 +8,4 @@ export type Props = {
   onCancel: () => void,
 }
 
-export default class ProveWebsiteChoice extends Component<void, Props, void> {}
+export default class ProveWebsiteChoice extends Component<Props> {}

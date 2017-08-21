@@ -47,7 +47,7 @@ const _loggedInSelector = (state: TypedState) => state.config.loggedIn
 
 const devicesTabLocation = isMobile ? [settingsTab, settingsDevicesTab] : [devicesTab]
 
-function* _deviceShowRevokePageSaga(action: ShowRevokePage): SagaGenerator<any, any> {
+const _deviceShowRevokePageSaga = function*(action: ShowRevokePage): SagaGenerator<any, any> {
   const {deviceID} = action.payload
   let endangeredTLFs = {endangeredTLFs: []}
   try {
@@ -70,7 +70,7 @@ function _sortRecords(a: DeviceDetailRecord, b: DeviceDetailRecord) {
   return a.name.localeCompare(b.name)
 }
 
-function* _deviceListSaga(): SagaGenerator<any, any> {
+const _deviceListSaga = function*(): SagaGenerator<any, any> {
   const loggedIn = yield select(_loggedInSelector)
   if (!loggedIn) {
     return
@@ -107,7 +107,7 @@ function* _deviceListSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* _deviceRevokedSaga(action: Revoke): SagaGenerator<any, any> {
+const _deviceRevokedSaga = function*(action: Revoke): SagaGenerator<any, any> {
   // Record our current route, only navigate away later if it's unchanged.
   const beforeRouteState = yield select(state => state.routeTree.routeState)
 
@@ -158,7 +158,7 @@ function* _deviceRevokedSaga(action: Revoke): SagaGenerator<any, any> {
   }
 }
 
-function* _devicePaperKeySaga(): SagaGenerator<any, any> {
+const _devicePaperKeySaga = function*(): SagaGenerator<any, any> {
   let channelMap
   try {
     yield put(setWaiting(true))
@@ -188,7 +188,7 @@ function* _devicePaperKeySaga(): SagaGenerator<any, any> {
   }
 }
 
-function* deviceSaga(): SagaGenerator<any, any> {
+const deviceSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest('devices:load', _deviceListSaga)
   yield safeTakeEvery('devices:revoke', _deviceRevokedSaga)
   yield safeTakeEvery('devices:paperKeyMake', _devicePaperKeySaga)

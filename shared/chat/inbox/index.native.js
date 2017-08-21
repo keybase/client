@@ -58,7 +58,6 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 
 class Avatars
   extends PureComponent<
-    void,
     {
       participants: List<string>,
       youNeedToRekey: boolean,
@@ -149,7 +148,6 @@ const avatarInnerBoxStyle = {
 
 class TopLine
   extends PureComponent<
-    void,
     {
       hasUnread: boolean,
       participants: List<string>,
@@ -198,7 +196,6 @@ class TopLine
 
 class BottomLine
   extends PureComponent<
-    void,
     {
       backgroundColor: ?string,
       participantNeedToRekey: boolean,
@@ -298,7 +295,7 @@ class BottomLine
   }
 }
 
-class _Row extends PureComponent<void, RowProps, void> {
+class _Row extends PureComponent<RowProps> {
   render() {
     const props = this.props
     return (
@@ -363,7 +360,7 @@ const NoChats = () => (
   </Box>
 )
 
-class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
+class Inbox extends PureComponent<Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {

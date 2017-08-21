@@ -73,7 +73,7 @@ function tmpFileName(
   return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
 }
 
-function* clientHeader(
+const clientHeader = function*(
   messageType: ChatTypes.MessageType,
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, ?ChatTypes.MessageClientHeader, any> {
@@ -104,7 +104,7 @@ function* clientHeader(
 }
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
-function* startNewConversation(
+const startNewConversation = function*(
   oldConversationIDKey: Constants.ConversationIDKey
 ): Generator<any, ?Constants.ConversationIDKey, any> {
   // Find the participants
@@ -157,7 +157,7 @@ function* startNewConversation(
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
-function* getPostingIdentifyBehavior(
+const getPostingIdentifyBehavior = function*(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, any, any> {
   const metaData = (yield select(metaDataSelector): any)

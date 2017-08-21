@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Wrapper from './shared'
 import {NativeTouchableHighlight, Box, NativeKeyboard} from '../../../../common-adapters/index.native'
 import {globalColors} from '../../../../styles'
@@ -17,6 +17,7 @@ const NativeWrapper = (props: Props) => (
     onPress={dismissKeyboard}
   >
     <Box>
+      {/* $FlowIssue */}
       <Wrapper {...props} />
     </Box>
   </NativeTouchableHighlight>

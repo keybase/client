@@ -31,13 +31,14 @@ type OwnProps = RouteProps<{}, {}>
 
 type CardStackShimProps = {
   mode?: 'modal',
-  renderRoute: (route: RenderRouteResult, isActiveRoute: boolean, shouldRender: boolean) => React$Element<*>,
+  renderRoute: (route: RenderRouteResult, isActiveRoute: boolean, shouldRender: boolean) => any,
   onNavigateBack: () => void,
   stack: RouteRenderStack,
   hidden?: boolean,
 }
 
-class CardStackShim extends Component<*, CardStackShimProps, *> {
+class CardStackShim extends Component<CardStackShimProps, *> {
+  static defaultProps: *
   getScreenOptions = () => ({})
   getStateForAction = emptyObj
   getActionForPathAndParams = emptyObj
@@ -149,7 +150,7 @@ const tabIsCached = {
   [settingsTab]: true,
 }
 
-class MainNavStack extends Component {
+class MainNavStack extends Component<any, any> {
   state = {
     stackCache: Map(),
   }
@@ -211,7 +212,7 @@ type AnimatedTabBarProps = {
   children: any,
 }
 
-class AnimatedTabBar extends Component<void, AnimatedTabBarProps, {offset: any}> {
+class AnimatedTabBar extends Component<AnimatedTabBarProps, {offset: any}> {
   state: {offset: any}
 
   constructor(props: AnimatedTabBarProps) {
@@ -260,7 +261,7 @@ const _tabBarHeightZero = {
   height: 0,
 }
 
-class Nav extends Component<void, Props, {keyboardShowing: boolean}> {
+class Nav extends Component<Props, {keyboardShowing: boolean}> {
   state = {
     keyboardShowing: false,
   }

@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as Constants from '../../../constants/chat'
 
 declare function factory(
@@ -7,10 +8,10 @@ declare function factory(
   onAction: (
     message: Constants.ServerMessage,
     localMessageState: Constants.LocalMessageState,
-    event: SyntheticEvent
+    event: SyntheticEvent<>
   ) => void,
-  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelectd: boolean,
   measure: () => void
-): React$Element<*>
+): React.Node
 export default factory

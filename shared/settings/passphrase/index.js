@@ -22,7 +22,7 @@ type State = {
   canSave: boolean,
 }
 
-class UpdatePassphrase extends Component<void, Props, State> {
+class UpdatePassphrase extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

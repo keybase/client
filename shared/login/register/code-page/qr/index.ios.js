@@ -6,7 +6,7 @@ import {NativeImage, Box, Text} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
 import throttle from 'lodash/throttle'
 
-class QR extends Component<void, Props, {permissionGranted: ?boolean}> {
+class QR extends Component<Props, {permissionGranted: ?boolean}> {
   state = {
     permissionGranted: null,
   }

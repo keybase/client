@@ -103,7 +103,7 @@ function openInDefault(openPath: string): Promise<*> {
   return _open(openPath)
 }
 
-function* openInWindows(openPath: string): SagaGenerator<any, any> {
+const openInWindows = function*(openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
@@ -137,7 +137,7 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
   yield call(_open, openPath)
 }
 
-function* openSaga(action: FSOpen): SagaGenerator<any, any> {
+const openSaga = function*(action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
 
   console.log('openInKBFS:', openPath)
@@ -148,7 +148,7 @@ function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   }
 }
 
-function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
+const openInFileUISaga = function*({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
   yield call(_open, path)
 }
 

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
 import ServicesFilter from './services-filter'
@@ -115,11 +115,8 @@ const kbRow = {
   leftUsername: 'jzila',
   rightFollowingState: 'NoState',
   rightFullname: 'John Zila',
-  // $FlowIssue flow is getting confused by the jsx spread
   rightIcon: null,
-  // $FlowIssue flow is getting confused by the jsx spread
   rightService: null,
-  // $FlowIssue flow is getting confused by the jsx spread
   rightUsername: null,
 }
 
@@ -130,9 +127,7 @@ const serviceRow = {
   rightFollowingState: 'NoState',
   rightFullname: 'John Zila',
   rightIcon: null,
-  // $FlowIssue flow is getting confused by the jsx spread
   rightService: null,
-  // $FlowIssue flow is getting confused by the jsx spread
   rightUsername: null,
 }
 

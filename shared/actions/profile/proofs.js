@@ -98,7 +98,7 @@ function checkProof(): CheckProof {
   return {payload: undefined, type: Constants.checkProof}
 }
 
-function* _checkProof(action: CheckProof): SagaGenerator<any, any> {
+const _checkProof = function*(action: CheckProof): SagaGenerator<any, any> {
   const getSigID = (state: TypedState) => state.profile.sigID
   const sigID = (yield select(getSigID): any)
   if (!sigID) {
@@ -126,7 +126,7 @@ function* _checkProof(action: CheckProof): SagaGenerator<any, any> {
   }
 }
 
-function* _addProof(action: AddProof): SagaGenerator<any, any> {
+const _addProof = function*(action: AddProof): SagaGenerator<any, any> {
   yield put(_updatePlatform(action.payload.platform))
   yield put(_updateErrorText())
 
@@ -158,7 +158,7 @@ function* _addProof(action: AddProof): SagaGenerator<any, any> {
   }
 }
 
-function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, any> {
+const _addServiceProof = function*(service: ProvablePlatformsType): SagaGenerator<any, any> {
   let _promptUsernameResponse: ?Object = null
   let _outputInstructionsResponse: ?Object = null
 
@@ -286,12 +286,14 @@ function* _addServiceProof(service: ProvablePlatformsType): SagaGenerator<any, a
   }
 }
 
-function* _cancelAddProof(): SagaGenerator<any, any> {
+const _cancelAddProof = function*(): SagaGenerator<any, any> {
   yield put(_updateErrorText())
   yield put(navigateTo([], [profileTab]))
 }
 
-function* _submitCryptoAddress(action: SubmitBTCAddress | SubmitZcashAddress): SagaGenerator<any, any> {
+const _submitCryptoAddress = function*(
+  action: SubmitBTCAddress | SubmitZcashAddress
+): SagaGenerator<any, any> {
   yield put(_cleanupUsername())
   const address = yield select(state => state.profile.username)
   const wantedFamily = {
@@ -311,7 +313,7 @@ function* _submitCryptoAddress(action: SubmitBTCAddress | SubmitZcashAddress): S
   }
 }
 
-function* proofsSaga(): SagaGenerator<any, any> {
+const proofsSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.submitBTCAddress, _submitCryptoAddress)
   yield safeTakeEvery(Constants.submitZcashAddress, _submitCryptoAddress)
   yield safeTakeEvery(Constants.cancelAddProof, _cancelAddProof)

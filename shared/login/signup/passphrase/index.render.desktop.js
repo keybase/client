@@ -5,7 +5,7 @@ import type {Props} from './index.render'
 import {UserCard, Input, Button} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
-class PassphraseRender extends Component<void, Props, void> {
+class PassphraseRender extends Component<Props> {
   render() {
     const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()
 
@@ -18,7 +18,9 @@ class PassphraseRender extends Component<void, Props, void> {
             style={{...stylesInput, ...stylesFirst}}
             type="password"
             onChangeText={pass1 => this.props.pass1Update(pass1)}
-            onEnterKeyDown={() => confirmInput.focus()}
+            onEnterKeyDown={() => {
+              confirmInput && confirmInput.focus()
+            }}
             hintText="Create a passphrase"
             errorText={passphraseError}
           />

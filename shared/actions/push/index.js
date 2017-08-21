@@ -25,13 +25,13 @@ const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenT
 
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
-function* permissionsNoSaga(): SagaGenerator<any, any> {
+const permissionsNoSaga = function*(): SagaGenerator<any, any> {
   yield call(setNoPushPermissions)
   yield put({type: Constants.permissionsRequesting, payload: false})
   yield put({type: Constants.permissionsPrompt, payload: false})
 }
 
-function* permissionsRequestSaga(): SagaGenerator<any, any> {
+const permissionsRequestSaga = function*(): SagaGenerator<any, any> {
   try {
     yield put({type: Constants.permissionsRequesting, payload: true})
 
@@ -45,7 +45,7 @@ function* permissionsRequestSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
+const pushNotificationSaga = function*(notification: Constants.PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
@@ -92,13 +92,13 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
   }
 }
 
-function* pushTokenSaga(action: Constants.PushToken): SagaGenerator<any, any> {
+const pushTokenSaga = function*(action: Constants.PushToken): SagaGenerator<any, any> {
   const {token, tokenType} = action.payload
   yield put(Creators.updatePushToken(token, tokenType))
   yield put(Creators.savePushToken())
 }
 
-function* savePushTokenSaga(): SagaGenerator<any, any> {
+const savePushTokenSaga = function*(): SagaGenerator<any, any> {
   try {
     const {token, tokenType} = (yield select(pushSelector): any)
     const deviceID = (yield select(deviceIDSelector): any)
@@ -126,7 +126,7 @@ function* savePushTokenSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* configurePushSaga(): SagaGenerator<any, any> {
+const configurePushSaga = function*(): SagaGenerator<any, any> {
   if (isMobile) {
     const chan = yield call(configurePush)
 
@@ -137,7 +137,7 @@ function* configurePushSaga(): SagaGenerator<any, any> {
   }
 }
 
-export function* deletePushTokenSaga(): SagaGenerator<any, any> {
+export const deletePushTokenSaga = function*(): SagaGenerator<any, any> {
   try {
     const {tokenType} = (yield select(pushSelector): any)
     if (!tokenType) {
@@ -164,7 +164,7 @@ export function* deletePushTokenSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* pushSaga(): SagaGenerator<any, any> {
+const pushSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
   yield safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
   yield safeTakeLatest(Constants.pushToken, pushTokenSaga)

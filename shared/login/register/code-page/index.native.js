@@ -32,7 +32,7 @@ import type {IconType} from '../../../common-adapters/icon'
 import type {Mode} from '../../../constants/login'
 import type {Props} from '.'
 
-class CodePage extends Component<void, Props, void> {
+class CodePage extends Component<Props> {
   componentDidMount() {
     this.props.resetQRCodeScanned()
   }

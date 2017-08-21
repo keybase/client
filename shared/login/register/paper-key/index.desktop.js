@@ -1,6 +1,6 @@
 // @flow
 import Container from '../../forms/container.desktop'
-import React from 'react'
+import * as React from 'react'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 
 import type {Props} from '.'

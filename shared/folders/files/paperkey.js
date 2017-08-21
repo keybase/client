@@ -20,7 +20,7 @@ type Props = {
 }
 
 // TODO remove this class
-class _PaperKey extends Component<void, Props, {paperKey: string}> {
+class _PaperKey extends Component<Props, {paperKey: string}> {
   state = {
     paperKey: '',
   }
