@@ -350,6 +350,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		debugger.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
 			tlfName, len(inbox.Convs))
 		res = inbox.Convs
+		// } else if membersType == chat1.ConversationMembersType_TEAM || membersType == chat1.ConversationMembersType_IMPTEAM {
 	} else if membersType == chat1.ConversationMembersType_TEAM {
 		// If this is a team chat that we are looking for, then let's try searching all
 		// chats on the team to see if any match the arguments before giving up.
@@ -378,8 +379,6 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		if len(res) > 0 {
 			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
 		}
-	} else if membersType == chat1.ConversationMembersType_IMPTEAM {
-		// XXX look here
 	} else if vis == chat1.TLFVisibility_PUBLIC {
 		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
 

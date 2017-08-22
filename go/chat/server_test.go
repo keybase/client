@@ -2570,4 +2570,36 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
 	require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAM, "implicit team")
+
+	// user 0 sends a message to conv
+	_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+		ConversationID: ncres.Conv.Info.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        ncres.Conv.Info.Triple,
+				MessageType: chat1.MessageType_TEXT,
+				TlfName:     ncres.Conv.Info.TlfName,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "HI",
+			}),
+		},
+	})
+	require.NoError(t, err)
+
+	// user 1 sends a message to conv
+	_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+		ConversationID: ncres.Conv.Info.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        ncres.Conv.Info.Triple,
+				MessageType: chat1.MessageType_TEXT,
+				TlfName:     ncres.Conv.Info.TlfName,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "Hello",
+			}),
+		},
+	})
+	require.NoError(t, err)
 }
