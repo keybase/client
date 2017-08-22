@@ -1705,6 +1705,14 @@ export function metadataGetMetadataRpcPromise (request: (requestCommon & {callba
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function metadataLockRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: metadataLockRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.lock', request)
+}
+
+export function metadataLockRpcPromise (request: (requestCommon & requestErrorCallback & {param: metadataLockRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.lock', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function metadataPing2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
 }
@@ -1751,6 +1759,14 @@ export function metadataRegisterForUpdatesRpcChannelMap (configKeys: Array<strin
 
 export function metadataRegisterForUpdatesRpcPromise (request: (requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function metadataReleaseLockRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: metadataReleaseLockRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
+}
+
+export function metadataReleaseLockRpcPromise (request: (requestCommon & requestErrorCallback & {param: metadataReleaseLockRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.releaseLock', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function metadataTruncateLockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}): EngineChannel {
@@ -3362,6 +3378,13 @@ export type LoadTeamArg = {
   forceRepoll: boolean,
   staleOK: boolean,
 }
+
+export type LockContext = {
+  requireLockID: LockID,
+  releaseAfterSuccess: boolean,
+}
+
+export type LockID = long
 
 export type LogLevel =
     0 // NONE_0
@@ -5331,7 +5354,13 @@ export type metadataGetMetadataRpcParam = Exact<{
   unmerged: boolean,
   startRevision: long,
   stopRevision: long,
-  logTags: {[key: string]: string}
+  logTags: {[key: string]: string},
+  lockBeforeGet?: ?LockID
+}>
+
+export type metadataLockRpcParam = Exact<{
+  folderID: string,
+  lockID: LockID
 }>
 
 export type metadataPruneBranchRpcParam = Exact<{
@@ -5349,13 +5378,19 @@ export type metadataPutMetadataRpcParam = Exact<{
   mdBlock: MDBlock,
   readerKeyBundle: KeyBundle,
   writerKeyBundle: KeyBundle,
-  logTags: {[key: string]: string}
+  logTags: {[key: string]: string},
+  lockContext?: ?LockContext
 }>
 
 export type metadataRegisterForUpdatesRpcParam = Exact<{
   folderID: string,
   currRevision: long,
   logTags: {[key: string]: string}
+}>
+
+export type metadataReleaseLockRpcParam = Exact<{
+  folderID: string,
+  lockID: LockID
 }>
 
 export type metadataTruncateLockRpcParam = Exact<{
