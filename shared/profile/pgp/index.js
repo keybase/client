@@ -9,20 +9,9 @@ import {updatePgpInfo, generatePgp} from '../../actions/profile'
 import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import * as Constants from '../../constants/profile'
 
-import type {Props as ProvePgpChoiceProps, Options as ProvePgpChoiceOptions} from './prove-pgp-choice'
-import type {Props as InfoProps} from './add'
-import type {Props as GenerateProps} from './generating-pgp'
-import type {Props as FinishedProps} from './finished-generating-pgp'
-import type {Props as ImportProps} from './prove-pgp-import'
-import type {TypedDispatch} from '../../constants/types/flux'
-import type {TypedState} from '../../constants/reducer'
+import type {Options as ProvePgpChoiceOptions} from './prove-pgp-choice'
 
-const choiceConnector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  ProvePgpChoiceProps
-> = new TypedConnector()
+const choiceConnector = new TypedConnector()
 export const ConnectedChoice = choiceConnector.connect((state, dispatch, ownProps) => ({
   onCancel: () => {
     dispatch(navigateUp())
@@ -32,14 +21,14 @@ export const ConnectedChoice = choiceConnector.connect((state, dispatch, ownProp
   },
 }))(ProvePgpChoice)
 
-const importConnector: TypedConnector<TypedState, TypedDispatch<{}>, {}, ImportProps> = new TypedConnector()
+const importConnector = new TypedConnector()
 export const ConnectedImport = importConnector.connect((state, dispatch, ownProps) => ({
   onCancel: () => {
     dispatch(navigateUp())
   },
 }))(ImportPgp)
 
-const pgpInfoConnector: TypedConnector<TypedState, TypedDispatch<{}>, {}, InfoProps> = new TypedConnector()
+const pgpInfoConnector = new TypedConnector()
 export const ConnectedPgpInfo = pgpInfoConnector.connect((state, dispatch, ownProps) => {
   const {profile: {pgpInfo}} = state
   return {
@@ -65,24 +54,14 @@ export const ConnectedPgpInfo = pgpInfoConnector.connect((state, dispatch, ownPr
   }
 })(PgpInfo)
 
-const generatePgpConnector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  GenerateProps
-> = new TypedConnector()
+const generatePgpConnector = new TypedConnector()
 export const ConnectedGeneratePgp = generatePgpConnector.connect((state, dispatch, ownProps) => ({
   onCancel: () => {
     dispatch({type: Constants.cancelPgpGen, payload: {}})
   },
 }))(GeneratePgp)
 
-const finishedConnector: TypedConnector<
-  TypedState,
-  TypedDispatch<{}>,
-  {},
-  FinishedProps
-> = new TypedConnector()
+const finishedConnector = new TypedConnector()
 export const ConnectedFinished = finishedConnector.connect((state, dispatch, ownProps) => {
   const {profile: {pgpPublicKey}} = state
   return {

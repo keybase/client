@@ -17,7 +17,7 @@ type State = {
   hasCopied: boolean,
 }
 
-class CopyableText<P: Props & TimerProps> extends Component<void, P, State> {
+class CopyableText<P: Props & TimerProps> extends Component<P, State> {
   state: State
   lastCopyTimeoutId: ?number
 

@@ -14,7 +14,7 @@ type State = {
   showIgnored: boolean,
 }
 
-class ListRender extends Component<void, Props, State> {
+class ListRender extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

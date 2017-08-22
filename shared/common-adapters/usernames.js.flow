@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import type {TextType, Background} from './text'
 
 export type UserListItem = {
@@ -39,6 +39,5 @@ export type PlaintextProps = {
 
 declare export function usernameText(props: Props): void
 
-declare export class Usernames extends Component<void, Props, void> {}
-
-declare export class PlaintextUsernames extends Component<void, PlaintextProps, void> {}
+declare export class Usernames extends React.Component<Props> {}
+declare export class PlaintextUsernames extends React.Component<PlaintextProps> {}

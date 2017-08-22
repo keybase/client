@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import type {IconType} from './icon'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import Box from './box'

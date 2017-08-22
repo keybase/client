@@ -5,7 +5,7 @@ import {Button} from './'
 
 type State = {mouseOver: boolean}
 
-class FollowButton extends Component<void, Props, State> {
+class FollowButton extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

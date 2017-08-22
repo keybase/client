@@ -9,7 +9,7 @@ import debounce from 'lodash/debounce'
 
 import type {Props} from './'
 
-class NewConversation extends PureComponent<void, {}, void> {
+class NewConversation extends PureComponent<{}> {
   render() {
     return (
       <div
@@ -56,7 +56,7 @@ class NewConversation extends PureComponent<void, {}, void> {
   }
 }
 
-class Inbox extends PureComponent<void, Props, void> {
+class Inbox extends PureComponent<Props> {
   _list: any
 
   componentWillReceiveProps(nextProps: Props) {

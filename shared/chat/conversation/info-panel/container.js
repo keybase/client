@@ -60,8 +60,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  onAddParticipant: () =>
-    dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.isYou).map(p => p.username)),
+  onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.map(p => p.username)),
   onMuteConversation: stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
     ? (muted: boolean) =>

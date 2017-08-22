@@ -11,20 +11,14 @@ export const tokenTypeAndroidPlay: TokenType = 'androidplay'
 // resemble iOS more closely.
 export type PushNotification = {
   payload?: {
-    userInteraction: boolean,
-    convID?: string, // Android variant
+    b?: number,
+    c?: string,
+    convID?: string,
+    m?: string,
+    p?: Array<string>,
+    t?: number,
     type?: string,
-    data?: {
-      // iOS variant
-      convID?: string,
-      type?: string,
-      username?: string,
-      c?: string,
-      t?: number,
-      m?: string,
-      b?: number,
-      p?: Array<string>,
-    },
+    userInteraction: boolean,
     username?: string,
   },
 }

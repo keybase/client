@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Markdown} from '../../../../common-adapters'
 import {globalStyles, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'

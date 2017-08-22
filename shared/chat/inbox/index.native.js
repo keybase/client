@@ -1,5 +1,5 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {Text, Icon, Box, NativeDimensions, NativeFlatList} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
@@ -25,7 +25,7 @@ const NoChats = () => (
   </Box>
 )
 
-class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
+class Inbox extends React.PureComponent<Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {

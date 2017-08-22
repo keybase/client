@@ -6,7 +6,7 @@ import {formatTimeForPopup} from '../../../util/timestamp'
 
 import type {Props} from './'
 
-class AutoMaxSizeImage extends Component<void, any, {width: number, height: number}> {
+class AutoMaxSizeImage extends Component<any, {width: number, height: number}> {
   state = {height: 0, width: 0}
   _mounted: boolean = false
 

@@ -21,7 +21,7 @@ type State = {
   isEditing: boolean,
 }
 
-class _ChatFilterRow extends Component<void, Props, State> {
+class _ChatFilterRow extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -39,7 +39,7 @@ class _ChatFilterRow extends Component<void, Props, State> {
     this.setState({isEditing: false})
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent, isComposingIME: boolean) => {
+  _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
     if (e.key === 'Escape' && !isComposingIME) {
       this.props.onSetFilter('')
       this._stopEditing()

@@ -11,7 +11,7 @@ import type {
   RegisterRekeyListenerAction,
   NewRekeyPopupAction,
 } from '../constants/unlock-folders'
-import type {TypedAsyncAction, AsyncAction, Dispatch} from '../constants/types/flux'
+import type {AsyncAction, Dispatch} from '../constants/types/flux'
 import {
   delegateUiCtlRegisterRekeyUIRpcPromise,
   loginPaperKeySubmitRpcPromise,
@@ -31,8 +31,8 @@ function waiting(currentlyWaiting: boolean): Waiting {
   return {type: Constants.waiting, payload: currentlyWaiting}
 }
 
-export function checkPaperKey(paperKey: HiddenString): TypedAsyncAction<CheckPaperKey | Waiting> {
-  return dispatch => {
+export function checkPaperKey(paperKey: HiddenString) {
+  return (dispatch: Dispatch) => {
     loginPaperKeySubmitRpcPromise({
       param: {paperPhrase: paperKey.stringValue()},
       waitingHandler: isWaiting => {

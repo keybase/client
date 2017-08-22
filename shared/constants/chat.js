@@ -53,7 +53,7 @@ type MessageKeyKind =
   | 'supersedes'
 
 export type MessageType = 'Text'
-export type FollowingMap = {[key: string]: boolean}
+export type FollowingMap = {[key: string]: true}
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']

@@ -8,10 +8,10 @@ import {isMobile} from '../../constants/platform'
 
 import type {IconType} from '../../common-adapters/icon'
 
-type Props = {|
+type Props = {
   selectedService: Constants.Service,
   onSelectService: (service: Constants.Service) => void,
-|}
+}
 
 const bubbleColors = {
   Facebook: '#3B5998',
@@ -92,7 +92,7 @@ const Service = ({service, selected, hovering, onHover, onSelect}) => {
 }
 
 // Holds all the services and keeps track of which one is hovered
-class Filter extends Component<void, Props, {hoveredService: ?Constants.Service}> {
+class Filter extends Component<Props, {hoveredService: ?Constants.Service}> {
   state = {
     hoveredService: null,
   }

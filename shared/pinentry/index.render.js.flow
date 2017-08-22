@@ -17,6 +17,6 @@ export type DefaultProps = {
   submitLabel: string,
 }
 
-export default class Pinentry extends Component<DefaultProps, Props, void> {
+export default class Pinentry extends Component<Props> {
   static defaultProps: DefaultProps
 }

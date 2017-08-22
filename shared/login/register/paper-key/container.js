@@ -20,7 +20,7 @@ export type State = {
 }
 
 // TODO remove this class
-class _PaperKey extends Component<void, Props, State> {
+class _PaperKey extends Component<Props, State> {
   state: State
 
   constructor(props) {

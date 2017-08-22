@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Text from './text'
 import BackButton from './back-button'
 import Box from './box'
@@ -8,7 +8,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './header-hoc'
 
-function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
+function HeaderHoc<P>(WrappedComponent: React.ComponentType<P>) {
   return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
     <Box style={_containerStyle}>
       <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
@@ -29,6 +29,7 @@ function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
             <Text type="Header">{title}</Text>
           </Box>}
       </Box>
+      {/* $FlowIssue */}
       <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
     </Box>
   )

@@ -3,12 +3,10 @@ import {Component} from 'react'
 
 export type Props = {
   autoFocus?: boolean,
-  blur?: () => void,
   className?: string,
   errorStyle?: ?Object,
   errorText?: ?string,
   floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
-  focus?: () => void,
   hideUnderline?: boolean,
   hintText?: ?string,
   inputStyle?: Object,
@@ -16,13 +14,12 @@ export type Props = {
   onBlur?: () => void,
   onClick?: (event: Event) => void,
   onChangeText?: (text: string) => void,
-  onEnterKeyDown?: (event: SyntheticKeyboardEvent) => void,
+  onEnterKeyDown?: (event: SyntheticKeyboardEvent<>) => void,
   onFocus?: () => void,
-  onKeyDown?: (event: SyntheticKeyboardEvent, isComposingIME: boolean) => void,
+  onKeyDown?: (event: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
   rowsMax?: number,
   maxLength?: number,
   rowsMin?: number,
-  select?: () => void,
   small?: boolean,
   smallLabel?: string,
   smallLabelStyle?: ?Object,
@@ -50,6 +47,9 @@ export type Props = {
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
 }
 
-declare export default class Input extends Component<void, Props, void> {
+declare export default class Input extends Component<Props> {
   setNativeProps(props: Object): {},
+  blur: () => void,
+  focus: () => void,
+  select: () => void,
 }

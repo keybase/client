@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import type {Folder} from './list'
 import {Box, Button, Text, Icon, MultiAvatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'

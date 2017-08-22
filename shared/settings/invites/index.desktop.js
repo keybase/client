@@ -16,7 +16,7 @@ type State = {
   showMessageField: boolean,
 }
 
-class Invites extends Component<void, Props, State> {
+class Invites extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
