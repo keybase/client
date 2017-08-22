@@ -296,9 +296,13 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// Introduce ourselves. TODO: move this to SharedKeybaseConnection
 	// somehow?
 	configClient := keybase1.ConfigClient{Cli: rawClient}
+	ct := keybase1.ClientType_KBFS
+	if k.config.Mode() == InitSingleOp {
+		ct = keybase1.ClientType_NONE
+	}
 	err = configClient.HelloIAm(ctx, keybase1.ClientDetails{
 		Pid:        os.Getpid(),
-		ClientType: keybase1.ClientType_KBFS,
+		ClientType: ct,
 		Argv:       os.Args,
 		Version:    VersionString(),
 	})
