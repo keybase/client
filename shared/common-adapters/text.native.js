@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import {clickableVisible} from '../local-debug'
-import glamorous from 'glamorous-native'
+import {glamorous} from '../styles'
 import shallowEqual from 'shallowequal'
 import {StyleSheet} from 'react-native'
 

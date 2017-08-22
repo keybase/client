@@ -1,8 +1,7 @@
 // @flow
 import Icon from './icon'
 import React, {PureComponent} from 'react'
-import {globalStyles, globalColors} from '../styles'
-import glamorous from 'glamorous'
+import {globalStyles, globalColors, glamorous} from '../styles'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'

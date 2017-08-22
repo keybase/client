@@ -1,11 +1,10 @@
 // @flow
 import Icon from './icon'
 import React, {PureComponent} from 'react'
-import {globalColors} from '../styles'
+import {globalColors, glamorous} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import memoize from 'lodash/memoize'
-import glamorous from 'glamorous-native'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
