@@ -24,12 +24,16 @@ const _InfoPanel = (props: Props) => (
     }}
     contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
   >
-    <Text style={{alignSelf: 'center'}} type="BodySemibold">
-      #{props.channelname}
-    </Text>
-    <Text style={{alignSelf: 'center'}} type="BodySmall">
-      {props.teamname}
-    </Text>
+    {props.channelname
+      ? <Text style={{alignSelf: 'center'}} type="BodySemibold">
+          #{props.channelname}
+        </Text>
+      : null}
+    {props.channelname
+      ? <Text style={{alignSelf: 'center'}} type="BodySmall">
+          {props.teamname}
+        </Text>
+      : null}
 
     <Participants
       participants={props.participants}
