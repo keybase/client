@@ -10,4 +10,4 @@ export type Props = {
   disabled?: boolean,
 }
 
-declare export default class RadioButton extends Component<void, Props, void> {}
+declare export default class RadioButton extends Component<Props> {}
