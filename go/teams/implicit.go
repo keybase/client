@@ -3,7 +3,6 @@ package teams
 import (
 	"fmt"
 	"sort"
-	"time"
 
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
@@ -103,9 +102,7 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	for _, u := range impTeamName.Writers.UnresolvedUsers {
 		writerNames = append(writerNames, u.String())
 	}
-	sort.Slice(writerNames, func(i, j int) bool {
-		return writerNames[i] < writerNames[j]
-	})
+	sort.Strings(writerNames)
 
 	var readerNames []string
 	for _, u := range impTeamName.Readers.KeybaseUsers {
@@ -114,13 +111,13 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	for _, u := range impTeamName.Readers.UnresolvedUsers {
 		readerNames = append(readerNames, u.String())
 	}
-	sort.Slice(readerNames, func(i, j int) bool {
-		return readerNames[i] < readerNames[j]
-	})
+	sort.Strings(readerNames)
 
 	var suffix string
 	if impTeamName.ConflictInfo != nil {
-		suffix = fmt.Sprintf("(conflicted %v #%v)", formatConflictTime(impTeamName.ConflictInfo.Time.Time()), impTeamName.ConflictInfo.Generation)
+		suffix = fmt.Sprintf("(conflicted %v #%v)",
+			impTeamName.ConflictInfo.Time.Time().UTC().Format("2006-01-02"),
+			impTeamName.ConflictInfo.Generation)
 	}
 
 	normalized, err := kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
@@ -132,10 +129,4 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 		prefix = "public/"
 	}
 	return prefix + normalized, nil
-}
-
-// time -> "2017-08-22"
-func formatConflictTime(thyme time.Time) string {
-	year, month, day := thyme.UTC().Date()
-	return fmt.Sprintf("%04d-%02d-%02d", year, month, day)
 }
