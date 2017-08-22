@@ -622,6 +622,9 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 }
 
 func ParseImplicitTeamName(ctx AssertionContext, s string, isPrivate bool) (ret keybase1.ImplicitTeamName, err error) {
+	// TODO perhaps this should parse out public/private and conflict
+	// TODO in which case it woudln't take isPrivate as an argument
+
 	// Turn the whole string tolower
 	s = strings.ToLower(s)
 
