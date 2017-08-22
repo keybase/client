@@ -634,10 +634,9 @@ func (c *ChainLink) CheckNameAndID(s NormalizedUsername, i keybase1.UID) error {
 		}
 	}
 	if !s.Eq(NewNormalizedUsername(c.unpacked.username)) {
-		return BadUsernameError{
+		return NewBadUsernameErrorWithFullMessage(
 			fmt.Sprintf("Username mismatch %s != %s in Link %s",
-				c.unpacked.username, s, c.id),
-		}
+				c.unpacked.username, s, c.id))
 	}
 	return nil
 

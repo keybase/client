@@ -52,7 +52,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 			ID: createdTeamID,
 		})
 		require.NoError(t, err)
-		teamDisplay, err := team.ImplicitTeamDisplayName(context.TODO())
+		teamDisplay, err := team.ImplicitTeamDisplayNameString(context.TODO())
 		require.NoError(t, err)
 		formatName, err := FormatImplicitTeamName(context.TODO(), tc.G, impTeamName)
 		require.NoError(t, err)

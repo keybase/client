@@ -344,8 +344,16 @@ func makeIdentifyLiteRes(id keybase1.TeamID, name keybase1.TeamName) keybase1.Id
 	}
 }
 
-func identifyLiteByID(ctx context.Context, g *libkb.GlobalContext, utid keybase1.UserOrTeamID, id2 keybase1.TeamID) (res keybase1.IdentifyLiteRes, err error) {
+func makeIdentifyLiteResImplicitTeam(id keybase1.TeamID, displayName string) keybase1.IdentifyLiteRes {
+	return keybase1.IdentifyLiteRes{
+		Ul: keybase1.UserOrTeamLite{
+			Id:   id.AsUserOrTeam(),
+			Name: displayName,
+		},
+	}
+}
 
+func identifyLiteByID(ctx context.Context, g *libkb.GlobalContext, utid keybase1.UserOrTeamID, id2 keybase1.TeamID) (res keybase1.IdentifyLiteRes, err error) {
 	var id1 keybase1.TeamID
 	if utid.Exists() {
 		id1, err = utid.AsTeam()
@@ -372,7 +380,14 @@ func identifyLiteByID(ctx context.Context, g *libkb.GlobalContext, utid keybase1
 	return makeIdentifyLiteRes(id1, name), nil
 }
 
-func identifyLiteByName(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName) (res keybase1.IdentifyLiteRes, err error) {
+func identifyLiteByName(ctx context.Context, g *libkb.GlobalContext, au libkb.AssertionURL) (res keybase1.IdentifyLiteRes, err error) {
+	var name keybase1.TeamName
+	switch au := au.(type) {
+	case libkb.AssertionTeamName:
+		name = au.Name()
+	default:
+		return res, fmt.Errorf("unrecognized team name assertion type: %T", au)
+	}
 	var id keybase1.TeamID
 	id, err = ResolveNameToID(ctx, g, name)
 	if err != nil {
@@ -381,13 +396,39 @@ func identifyLiteByName(ctx context.Context, g *libkb.GlobalContext, name keybas
 	return makeIdentifyLiteRes(id, name), nil
 }
 
+func identifyLiteByImplicitName(ctx context.Context, g *libkb.GlobalContext, au libkb.AssertionURL) (res keybase1.IdentifyLiteRes, err error) {
+	var teamName keybase1.TeamName
+	switch au := au.(type) {
+	case libkb.AssertionImplicitTeamName:
+		teamName = au.Name()
+	default:
+		return res, fmt.Errorf("unrecognized implicit team assertion type: %T", au)
+	}
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        teamName.String(),
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return res, err
+	}
+	displayName, err := team.ImplicitTeamDisplayNameString(ctx)
+	if err != nil {
+		return res, err
+	}
+	// Return the backing team ID and the implicit team display name
+	return makeIdentifyLiteResImplicitTeam(team.ID, displayName), nil
+}
+
 func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.IdentifyLiteArg, au libkb.AssertionURL) (res keybase1.IdentifyLiteRes, err error) {
 
 	if arg.Id.Exists() || au.IsTeamID() {
 		return identifyLiteByID(ctx, g, arg.Id, au.ToTeamID())
 	}
 	if au.IsTeamName() {
-		return identifyLiteByName(ctx, g, au.ToTeamName())
+		return identifyLiteByName(ctx, g, au)
+	}
+	if au.IsImplicitTeamName() {
+		return identifyLiteByImplicitName(ctx, g, au)
 	}
 	return res, errors.New("could not identify team by ID or name")
 }
