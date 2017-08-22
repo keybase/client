@@ -6,7 +6,7 @@ import {List} from 'immutable'
 
 import {SimpleTopLine, FilteredTopLine} from './top-line'
 import BottomLine from './bottom-line'
-import {Avatars} from './avatars'
+import {Avatars, TeamAvatar} from './avatars'
 
 type SimpleProps = {
   backgroundColor: string,
@@ -19,25 +19,28 @@ type SimpleProps = {
   showBold: boolean,
   snippet: string,
   subColor: string,
+  teamname: ?string,
   timestamp: string,
   usernameColor: string,
   youNeedToRekey: boolean,
 }
 
-class SimpleRow extends PureComponent<SimpleProps> {
+class SmallTeamRow extends PureComponent<SimpleProps> {
   render() {
     const props = this.props
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          <Avatars
-            backgroundColor={props.backgroundColor}
-            isMuted={props.isMuted}
-            isSelected={props.isSelected}
-            participantNeedToRekey={props.participantNeedToRekey}
-            participants={props.participants}
-            youNeedToRekey={props.youNeedToRekey}
-          />
+          {props.teamname
+            ? <TeamAvatar teamname={props.teamname} />
+            : <Avatars
+                backgroundColor={props.backgroundColor}
+                isMuted={props.isMuted}
+                isSelected={props.isSelected}
+                participantNeedToRekey={props.participantNeedToRekey}
+                participants={props.participants}
+                youNeedToRekey={props.youNeedToRekey}
+              />}
           <Box
             style={{
               ...conversationRowStyle,
@@ -46,7 +49,7 @@ class SimpleRow extends PureComponent<SimpleProps> {
           >
             <SimpleTopLine
               hasUnread={props.hasUnread}
-              participants={props.participants}
+              participants={props.teamname ? List.of(props.teamname) : props.participants}
               showBold={props.showBold}
               subColor={props.subColor}
               timestamp={props.timestamp}
@@ -79,7 +82,7 @@ type FilteredProps = {
   youNeedToRekey: boolean,
 }
 
-class FilteredRow extends PureComponent<FilteredProps> {
+class SmallTeamFilteredRow extends PureComponent<FilteredProps> {
   render() {
     const props = this.props
     return (
@@ -127,4 +130,4 @@ const rowContainerStyle = {
   minHeight: 56,
 }
 
-export {SimpleRow, FilteredRow}
+export {SmallTeamRow, SmallTeamFilteredRow}

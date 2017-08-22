@@ -8,7 +8,7 @@ type TeamProps = {
   teamname: string,
 }
 
-class TeamRow extends PureComponent<TeamProps> {
+class BigTeamHeaderRow extends PureComponent<TeamProps> {
   render() {
     return (
       <Box style={teamRowContainerStyle}>
@@ -45,7 +45,7 @@ type ChannelProps = {
   onSelectConversation: () => void,
 }
 
-class ChannelRow extends PureComponent<ChannelProps> {
+class BigTeamChannelRow extends PureComponent<ChannelProps> {
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
@@ -122,4 +122,4 @@ const unreadStyle = {
   height: 6,
   width: 6,
 }
-export {TeamRow, ChannelRow}
+export {BigTeamHeaderRow, BigTeamChannelRow}

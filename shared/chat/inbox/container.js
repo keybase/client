@@ -74,7 +74,7 @@ const filteredInbox = createImmutableEqualSelector(
       })
       .map(v => v.id)
 
-    return [sortedSmallIds, bigTeamToChannels]
+    return [sortedSmallIds, filter ? {} : bigTeamToChannels]
   }
 )
 const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
