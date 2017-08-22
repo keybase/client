@@ -324,12 +324,6 @@
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
 		{
-			"checksumSHA1": "OzgHkm+L/dachZhcQtPWpLDUbDM=",
-			"path": "github.com/keybase/go-updater/util",
-			"revision": "c602d527514bea8b44853809b78d92a5b7f7537e",
-			"revisionTime": "2017-07-21T17:44:06Z"
-		},
-		{
 			"path": "github.com/keybase/go-updater/watchdog",
 			"revision": "a05bfa6382513c15afde21392f07617f4ad68de9",
 			"revisionTime": "2016-06-28T16:50:19-07:00"

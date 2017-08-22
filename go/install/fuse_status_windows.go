@@ -7,9 +7,21 @@ package install
 
 import (
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-updater/util"
 	"golang.org/x/sys/windows/registry"
 )
+
+// Close closes a file and ignores the error.
+// This satisfies lint checks when using with defer and you don't care if there
+// is an error, so instead of:
+//   defer func() { _ = f.Close() }()
+//   defer Close(f)
+// (copied from go-updater/util to avoid vendoring)
+func Close(f io.Closer) {
+	if f == nil {
+		return
+	}
+	_ = f.Close()
+}
 
 func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	status := keybase1.FuseStatus{}
@@ -40,7 +52,7 @@ func checkKeybaseDokanCodes(log Log) bool {
 // Another alternative might be to look for %windir%\system32\dokan1.dll
 func checkRegistryKeybaseDokan(productIDKey string, log Log) (bool, error) {
 	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Keybase\Keybase\`, registry.QUERY_VALUE|registry.WOW64_64KEY)
-	defer util.Close(k)
+	defer Close(k)
 	if err != nil {
 		return false, err
 	}
@@ -54,7 +66,7 @@ func checkRegistryKeybaseDokan(productIDKey string, log Log) (bool, error) {
 		return false, err
 	}
 	k2, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`+productID, registry.QUERY_VALUE|registry.WOW64_64KEY)
-	defer util.Close(k2)
+	defer Close(k2)
 	if err == nil {
 		return true, nil
 	}

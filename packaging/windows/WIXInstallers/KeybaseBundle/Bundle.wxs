@@ -88,7 +88,7 @@
       <PackageGroupRef Id="NetFx40Web"/>
       
       <!-- Remember: if DetectCondition is true, this package is considered already present. 
-        WixBundleAction of 4 means install. 3 is uninstall, 5 is upgrade.
+        WixBundleAction of 4 means install. 3 is uninstall, 5 is upgrade, 7 is repair
         Making this permanent prevents it from being invoked on uninstall or other removal.
       -->
       <ExePackage
@@ -103,7 +103,7 @@
       </ExePackage>
 
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
- 	   which need to remain in sync. Also, "repair" doesn't seem to work, so we test for that too (WixBundleAction != 7) -->	    
+ 	   which need to remain in sync. Also, "repair" doesn't seem to work, so we omit that attribute -->	    
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
