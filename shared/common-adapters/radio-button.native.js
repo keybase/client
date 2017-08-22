@@ -8,7 +8,7 @@ import {globalStyles, globalColors} from '../styles'
 export const RADIOBUTTON_SIZE = 22
 export const RADIOBUTTON_MARGIN = 8
 
-const RadioButton = ({disabled, onSelect, selected, style}: Props) => {
+const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
   const boxStyle = {
     backgroundColor: globalColors.white,
     border: 1,
