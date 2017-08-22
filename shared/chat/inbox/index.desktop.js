@@ -126,6 +126,7 @@ class Inbox extends PureComponent<void, Props, State> {
       <Row
         conversationIDKey={row.conversationIDKey}
         key={key}
+        filtered={!!this.props.filter}
         isActiveRoute={true}
         teamname={row.teamname}
         channelname={row.channelname}
