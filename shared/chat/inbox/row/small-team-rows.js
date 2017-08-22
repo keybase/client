@@ -102,6 +102,7 @@ class SmallTeamFilteredRow extends PureComponent<FilteredProps> {
           <Box
             style={{
               ...conversationRowStyle,
+              paddingLeft: 0,
               backgroundColor: props.backgroundColor,
             }}
           >

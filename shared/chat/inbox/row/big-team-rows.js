@@ -84,16 +84,37 @@ class BigTeamChannelFilteredRow extends PureComponent<FilteredChannelProps> {
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box style={filteredRowStyle}>
           <TeamAvatar teamname={this.props.teamname} />
-          <Text type="BodySemibold" style={teamnameStyle}>{this.props.teamname}</Text>
-          <Text type="Body">&nbsp;#{this.props.channelname}</Text>
+          <Text type="BodySemibold" style={teamnameStyle} title={this.props.teamname}>
+            {this.props.teamname}
+          </Text>
+          <Text type="Body" style={channelnameStyle} title={`#${this.props.channelname}`}>
+            &nbsp;#{this.props.channelname}
+          </Text>
         </Box>
       </ClickableBox>
     )
   }
 }
 
+const channelnameStyle = {
+  flexBasis: '70%',
+  ...(isMobile
+    ? {}
+    : {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }),
+}
 const teamnameStyle = {
   color: globalColors.darkBlue,
+  ...(isMobile
+    ? {}
+    : {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }),
 }
 
 const filteredRowStyle = {
@@ -101,6 +122,7 @@ const filteredRowStyle = {
   alignItems: 'center',
   flexShrink: 0,
   height: 56,
+  paddingRight: globalMargins.tiny,
   width: '100%',
 }
 
