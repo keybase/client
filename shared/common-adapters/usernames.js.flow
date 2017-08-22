@@ -27,10 +27,18 @@ export type Props = {
   colorFollowing?: boolean,
   colorBroken?: boolean,
   onUsernameClicked?: (username: string) => void,
-  plainText?: boolean, // optimize if its just plaintext usernames
-  plainDivider?: string,
+}
+
+export type PlaintextProps = {
+  type: TextType,
+  users: UserList,
+  backgroundMode?: Background,
+  containerStyle?: Object,
+  title?: string,
 }
 
 declare export function usernameText(props: Props): void
 
-declare export default class Usernames extends Component<void, Props, void> {}
+declare export class Usernames extends Component<void, Props, void> {}
+
+declare export class PlaintextUsernames extends Component<void, PlaintextProps, void> {}
