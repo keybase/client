@@ -1,77 +1,38 @@
 // @flow
-import React, {Component} from 'react'
-import type {Props} from './checkbox'
-import {NativeTouchableWithoutFeedback, NativeAnimated, NativeEasing} from './native-wrappers.native'
-import Box from './box'
+import React from 'react'
+import ClickableBox from './clickable-box'
 import Text from './text'
+import type {Props} from './radio-button'
 import {globalStyles, globalColors} from '../styles'
 
-const checkedOffset = 14
+export const RADIOBUTTON_SIZE = 22
+export const RADIOBUTTON_MARGIN = 8
 
-type State = {
-  left: any,
-}
-
-class Checkbox extends Component<void, Props, State> {
-  state: State
-
-  _getOffset(props: Props): number {
-    return props.checked ? checkedOffset : 0
-  }
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {left: new NativeAnimated.Value(this._getOffset(props))}
-  }
-
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.checked !== nextProps.checked) {
-      NativeAnimated.timing(this.state.left, {
-        toValue: this._getOffset(nextProps),
-        duration: 100,
-        easing: NativeEasing.linear,
-      }).start()
-    }
-  }
-
-  shouldComponentUpdate(nextProps: Props, nextState: State): boolean {
-    return (
-      this.props.disabled !== nextProps.disabled ||
-      this.props.checked !== nextProps.checked ||
-      this.props.label !== nextProps.label
-    )
-  }
-
+class RadioButton extends React.Component<void, Props, void> {
   render() {
-    const containerStyle = {
-      ...(this.props.disabled ? {} : globalStyles.clickable),
+    const boxStyle = {
+      backgroundColor: globalColors.white,
+      border: 1,
+      borderColor: this.props.selected ? globalColors.blue : globalColors.black_10,
+      borderRadius: 100,
+      borderWidth: 1,
+      height: RADIOBUTTON_SIZE,
+      marginRight: RADIOBUTTON_MARGIN,
       opacity: this.props.disabled ? 0.4 : 1,
-    }
-    const onClick = this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)
-
-    const animatedColor = this.state.left.interpolate({
-      inputRange: [0, checkedOffset],
-      outputRange: [globalColors.white, globalColors.blue],
-    })
-
-    const outerOverride = {
-      ...(!this.props.checked && this.props.disabled ? {borderColor: globalColors.black_10} : {}),
-      backgroundColor: animatedColor,
-    }
-
-    const innerOverride = {
-      ...(!this.props.checked && this.props.disabled ? {borderColor: globalColors.black_10} : {}),
+      position: 'relative',
+      width: RADIOBUTTON_SIZE,
     }
 
     return (
-      <NativeTouchableWithoutFeedback onPress={onClick} delayPressIn={0}>
-        <Box style={{...styleContainer, ...containerStyle, ...this.props.style}}>
-          <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
-            <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
-          </NativeAnimated.View>
-          <Text type="Body" small={true} style={styleText}>{this.props.label}</Text>
-        </Box>
-      </NativeTouchableWithoutFeedback>
+      <ClickableBox
+        style={{...styleContainer, ...this.props.style}}
+        onClick={this.props.disabled ? undefined : () => this.props.onSelect(!this.props.selected)}
+      >
+        <ClickableBox style={boxStyle}>
+          <ClickableBox style={{...styleIcon, borderColor: this.props.selected ? globalColors.blue : globalColors.white}} />
+        </ClickableBox>
+        <Text type="Body" small={true} style={{color: globalColors.black_75}}>{this.props.label}</Text>
+      </ClickableBox>
     )
   }
 }
@@ -81,28 +42,13 @@ const styleContainer = {
   alignItems: 'center',
 }
 
-const styleOuter = {
-  height: 22,
-  width: 36,
-  borderWidth: 1,
-  borderColor: globalColors.blue,
-  borderRadius: 55,
-  padding: 1,
+const styleIcon = {
+  borderWidth: 5,
+  borderColor: globalColors.white,
+  borderRadius: 10,
+  left: 5,
+  position: 'absolute',
+  top: 5,
 }
 
-const styleInner = {
-  height: 18,
-  width: 18,
-  backgroundColor: globalColors.white,
-  borderWidth: 1,
-  borderColor: globalColors.blue,
-  borderRadius: 16,
-}
-
-const styleText = {
-  marginLeft: 8,
-  marginBottom: 3,
-  color: globalColors.black_75,
-}
-
-export default Checkbox
+export default RadioButton
