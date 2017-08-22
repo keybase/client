@@ -1060,10 +1060,16 @@
     },
     {
       "type": "record",
+      "name": "ImplicitTeamConflictGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamConflictInfo",
       "fields": [
         {
-          "type": "int",
+          "type": "ImplicitTeamConflictGeneration",
           "name": "generation"
         },
         {

@@ -218,3 +218,14 @@ func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression,
 	ret := parser.Parse(ctx)
 	return ret, parser.err
 }
+
+func AssertionParseAndOnlyWithITeamException(ctx AssertionContext, s string) (AssertionExpression, error) {
+	if url, found, err := parseAssertionImplicitTeamDisplayName(ctx, s); found {
+		if err != nil {
+			return nil, err
+		}
+		o := AssertionOr{terms: []AssertionExpression{url}}
+		return o, nil
+	}
+	return AssertionParseAndOnly(ctx, s)
+}

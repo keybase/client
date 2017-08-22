@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -24,6 +26,8 @@ type AssertionExpression interface {
 type AssertionOr struct {
 	terms []AssertionExpression
 }
+
+var _ AssertionExpression = AssertionOr{}
 
 func (a AssertionOr) HasOr() bool { return true }
 
@@ -177,16 +181,16 @@ func (b AssertionURLBase) matchSet(v AssertionURL, ps ProofSet) bool {
 func (b AssertionURLBase) NeedsParens() bool { return false }
 func (b AssertionURLBase) HasOr() bool       { return false }
 
-func (a AssertionUID) MatchSet(ps ProofSet) bool              { return a.matchSet(a, ps) }
-func (a AssertionTeamID) MatchSet(ps ProofSet) bool           { return a.matchSet(a, ps) }
-func (a AssertionTeamName) MatchSet(ps ProofSet) bool         { return a.matchSet(a, ps) }
-func (a AssertionImplicitTeamName) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
-func (a AssertionKeybase) MatchSet(ps ProofSet) bool          { return a.matchSet(a, ps) }
-func (a AssertionWeb) MatchSet(ps ProofSet) bool              { return a.matchSet(a, ps) }
-func (a AssertionSocial) MatchSet(ps ProofSet) bool           { return a.matchSet(a, ps) }
-func (a AssertionHTTP) MatchSet(ps ProofSet) bool             { return a.matchSet(a, ps) }
-func (a AssertionHTTPS) MatchSet(ps ProofSet) bool            { return a.matchSet(a, ps) }
-func (a AssertionDNS) MatchSet(ps ProofSet) bool              { return a.matchSet(a, ps) }
+func (a AssertionUID) MatchSet(ps ProofSet) bool                     { return a.matchSet(a, ps) }
+func (a AssertionTeamID) MatchSet(ps ProofSet) bool                  { return a.matchSet(a, ps) }
+func (a AssertionTeamName) MatchSet(ps ProofSet) bool                { return a.matchSet(a, ps) }
+func (a AssertionImplicitTeamDisplayName) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
+func (a AssertionKeybase) MatchSet(ps ProofSet) bool                 { return a.matchSet(a, ps) }
+func (a AssertionWeb) MatchSet(ps ProofSet) bool                     { return a.matchSet(a, ps) }
+func (a AssertionSocial) MatchSet(ps ProofSet) bool                  { return a.matchSet(a, ps) }
+func (a AssertionHTTP) MatchSet(ps ProofSet) bool                    { return a.matchSet(a, ps) }
+func (a AssertionHTTPS) MatchSet(ps ProofSet) bool                   { return a.matchSet(a, ps) }
+func (a AssertionDNS) MatchSet(ps ProofSet) bool                     { return a.matchSet(a, ps) }
 func (a AssertionFingerprint) MatchSet(ps ProofSet) bool {
 	return a.matchSet(a, ps)
 }
@@ -228,17 +232,19 @@ func (a AssertionFingerprint) MatchProof(proof Proof) bool {
 	return (v1[(l1-l2):] == v2)
 }
 
-func (a AssertionUID) CollectUrls(v []AssertionURL) []AssertionURL              { return append(v, a) }
-func (a AssertionTeamID) CollectUrls(v []AssertionURL) []AssertionURL           { return append(v, a) }
-func (a AssertionTeamName) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
-func (a AssertionImplicitTeamName) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
-func (a AssertionKeybase) CollectUrls(v []AssertionURL) []AssertionURL          { return append(v, a) }
-func (a AssertionWeb) CollectUrls(v []AssertionURL) []AssertionURL              { return append(v, a) }
-func (a AssertionSocial) CollectUrls(v []AssertionURL) []AssertionURL           { return append(v, a) }
-func (a AssertionHTTP) CollectUrls(v []AssertionURL) []AssertionURL             { return append(v, a) }
-func (a AssertionHTTPS) CollectUrls(v []AssertionURL) []AssertionURL            { return append(v, a) }
-func (a AssertionDNS) CollectUrls(v []AssertionURL) []AssertionURL              { return append(v, a) }
-func (a AssertionFingerprint) CollectUrls(v []AssertionURL) []AssertionURL      { return append(v, a) }
+func (a AssertionUID) CollectUrls(v []AssertionURL) []AssertionURL      { return append(v, a) }
+func (a AssertionTeamID) CollectUrls(v []AssertionURL) []AssertionURL   { return append(v, a) }
+func (a AssertionTeamName) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
+func (a AssertionImplicitTeamDisplayName) CollectUrls(v []AssertionURL) []AssertionURL {
+	return append(v, a)
+}
+func (a AssertionKeybase) CollectUrls(v []AssertionURL) []AssertionURL     { return append(v, a) }
+func (a AssertionWeb) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
+func (a AssertionSocial) CollectUrls(v []AssertionURL) []AssertionURL      { return append(v, a) }
+func (a AssertionHTTP) CollectUrls(v []AssertionURL) []AssertionURL        { return append(v, a) }
+func (a AssertionHTTPS) CollectUrls(v []AssertionURL) []AssertionURL       { return append(v, a) }
+func (a AssertionDNS) CollectUrls(v []AssertionURL) []AssertionURL         { return append(v, a) }
+func (a AssertionFingerprint) CollectUrls(v []AssertionURL) []AssertionURL { return append(v, a) }
 
 type AssertionSocial struct{ AssertionURLBase }
 type AssertionWeb struct{ AssertionURLBase }
@@ -255,9 +261,15 @@ type AssertionTeamName struct {
 	AssertionURLBase
 	name keybase1.TeamName
 }
-type AssertionImplicitTeamName struct {
+
+// AssertionImplicitTeamDisplayName is only used for Resolve3. It's an unfortunate consequence
+// of trying to shoe-horn implicit teams into the existing resolution infrastructure, but this
+// bad solution is less bad than the other solutions we came up with.
+type AssertionImplicitTeamDisplayName struct {
 	AssertionURLBase
-	name keybase1.TeamName
+	isPublic bool
+	name     keybase1.TeamNamePart
+	conflict *keybase1.ImplicitTeamConflictInfo
 }
 
 type AssertionHTTP struct{ AssertionURLBase }
@@ -382,18 +394,18 @@ func parseToKVPair(s string) (key string, value string, err error) {
 	return
 }
 
-func (a AssertionKeybase) IsKeybase() bool           { return true }
-func (a AssertionSocial) IsSocial() bool             { return true }
-func (a AssertionSocial) IsRemote() bool             { return true }
-func (a AssertionWeb) IsRemote() bool                { return true }
-func (a AssertionFingerprint) IsFingerprint() bool   { return true }
-func (a AssertionUID) IsUID() bool                   { return true }
-func (a AssertionTeamID) IsTeamID() bool             { return true }
-func (a AssertionTeamName) IsTeamName() bool         { return true }
-func (a AssertionTeamName) IsImplicitTeamName() bool { return true }
-func (a AssertionHTTP) IsRemote() bool               { return true }
-func (a AssertionHTTPS) IsRemote() bool              { return true }
-func (a AssertionDNS) IsRemote() bool                { return true }
+func (a AssertionKeybase) IsKeybase() bool                          { return true }
+func (a AssertionSocial) IsSocial() bool                            { return true }
+func (a AssertionSocial) IsRemote() bool                            { return true }
+func (a AssertionWeb) IsRemote() bool                               { return true }
+func (a AssertionFingerprint) IsFingerprint() bool                  { return true }
+func (a AssertionUID) IsUID() bool                                  { return true }
+func (a AssertionTeamID) IsTeamID() bool                            { return true }
+func (a AssertionTeamName) IsTeamName() bool                        { return true }
+func (a AssertionImplicitTeamDisplayName) IsImplicitTeamName() bool { return true }
+func (a AssertionHTTP) IsRemote() bool                              { return true }
+func (a AssertionHTTPS) IsRemote() bool                             { return true }
+func (a AssertionDNS) IsRemote() bool                               { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
@@ -445,8 +457,8 @@ func (a AssertionTeamName) ToLookup() (key, value string, err error) {
 	return "team", a.Value, nil
 }
 
-func (a AssertionImplicitTeamName) ToLookup() (key, value string, err error) {
-	return "iteam", a.Value, nil
+func (a AssertionImplicitTeamDisplayName) ToLookup() (key, value string, err error) {
+	return "iteam", a.StringShort(), nil
 }
 
 func (a AssertionTeamID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
@@ -466,21 +478,70 @@ func (a AssertionTeamName) CheckAndNormalize(_ AssertionContext) (AssertionURL, 
 	return a, err
 }
 
-var conflictRxx = regexp.MustCompile(`^(\w+)\s\(conflicted copy #\d+\)$`)
+var iTeamRxx = regexp.MustCompile(`^(?P<publicOrPrivate>(public|private))/(?P<name>[0-9a-zA-Z_,-]+)(?P<conflict> \(conflicted copy( (?P<date>\d{4}-\d{2}-\d{2}))?( #(?P<gen>\d+))?\))?$`)
 
-func (a AssertionImplicitTeamName) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func parseAssertionImplicitTeamDisplayName(ctx AssertionContext, s string) (ret AssertionURL, found bool, err error) {
+	key := "iteam"
+	prfx := key + ":"
+	if !strings.HasPrefix(s, prfx) {
+		return nil, false, nil
+	}
+	base := AssertionURLBase{key, s[len(prfx):]}
+	iteam := AssertionImplicitTeamDisplayName{AssertionURLBase: base}
+	ret, err = iteam.CheckAndNormalize(ctx)
+	return ret, true, err
+}
+
+func (a AssertionImplicitTeamDisplayName) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	var err error
-	// strip out suffix in case parsing a team name of the form foo,bar,baz (conflicted copy #10)
-	if strings.HasSuffix(a.Value, ")") {
-		name := conflictRxx.FindStringSubmatch(a.name.String())[0]
-		a.name = keybase1.TeamName{Parts: []keybase1.TeamNamePart{keybase1.TeamNamePart(name)}}
+
+	a.Value = strings.ToLower(a.Value)
+
+	match := iTeamRxx.FindStringSubmatch(a.Value)
+	if match == nil {
+		return nil, fmt.Errorf("Could not parse implicit team name")
 	}
-	a.name, err = keybase1.TeamNameFromString(a.Value)
-	if a.IsTeamName() {
-		return nil, fmt.Errorf("Parsed as explicit team name, wanted implicit team name.")
+	// This isn't great, Go, but this is the way we map the capture group names
+	// to the matched strings.
+	result := make(map[string]string)
+	for i, name := range iTeamRxx.SubexpNames() {
+		if i != 0 && name != "" {
+			result[name] = match[i]
+		}
 	}
-	a.Value = a.name.String()
+
+	a.name = keybase1.TeamNamePart(result["name"])
+
+	if result["conflict"] != "" {
+		a.conflict = &keybase1.ImplicitTeamConflictInfo{}
+		if result["date"] != "" {
+			tmp, err := time.ParseInLocation("2006-01-02", result["date"], time.UTC)
+			if err != nil {
+				return nil, err
+			}
+			a.conflict.Time = keybase1.ToTime(tmp)
+		}
+		if result["gen"] != "" {
+			tmp, err := strconv.Atoi(result["gen"])
+			if err != nil {
+				return nil, err
+			}
+			a.conflict.Generation = keybase1.ImplicitTeamConflictGeneration(tmp)
+		} else {
+			a.conflict.Generation = keybase1.ImplicitTeamConflictGeneration(1)
+		}
+	}
+
+	a.isPublic = (result["publicOrPrivate"] == "public")
 	return a, err
+}
+
+func (a AssertionImplicitTeamDisplayName) StringShort() string {
+	ret := string(a.name)
+	if a.conflict != nil {
+		ret += fmt.Sprintf("#%d", int(a.conflict.Generation))
+	}
+	return ret
 }
 
 func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
@@ -523,7 +584,7 @@ func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, str
 	case "team":
 		ret = AssertionTeamName{AssertionURLBase: base}
 	case "iteam":
-		ret = AssertionImplicitTeamName{AssertionURLBase: base}
+		ret = AssertionImplicitTeamDisplayName{AssertionURLBase: base}
 	case "web":
 		ret = AssertionWeb{base}
 	case "http":
