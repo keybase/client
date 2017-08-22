@@ -6,4 +6,4 @@ export type Props = {
   showTeamOffer: boolean,
 }
 
-export default class Header extends Component<void, Props, void> {}
+export default class Header extends Component<Props> {}

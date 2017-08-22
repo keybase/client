@@ -8,7 +8,7 @@ import {globalStyles, globalColors, transition} from '../styles'
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 8
 
-class Checkbox extends Component<void, Props, void> {
+class Checkbox extends Component<Props> {
   render() {
     let borderColor = globalColors.blue
 
@@ -32,7 +32,11 @@ class Checkbox extends Component<void, Props, void> {
     return (
       <div
         style={{...styleContainer, ...clickableStyle, ...this.props.style}}
-        onClick={this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)}
+        onClick={
+          this.props.disabled
+            ? undefined
+            : () => this.props.onCheck && this.props.onCheck(!this.props.checked)
+        }
       >
         <div style={boxStyle}>
           <Icon type="iconfont-check" style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}} />

@@ -27,7 +27,7 @@ type AvatarProps = {
   backgroundColor: string,
 }
 
-class Avatars extends PureComponent<void, AvatarProps, void> {
+class Avatars extends PureComponent<AvatarProps> {
   render() {
     const {
       participants,
@@ -118,7 +118,7 @@ const avatarInnerBoxStyle = {
   position: 'relative',
 }
 
-class TeamAvatar extends PureComponent<void, {teamname: string}, void> {
+class TeamAvatar extends PureComponent<{teamname: string}> {
   render() {
     return (
       <Box style={_avatarBoxStyle}>

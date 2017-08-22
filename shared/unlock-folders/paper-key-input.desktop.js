@@ -16,7 +16,7 @@ type State = {
   paperkey: string,
 }
 
-class PaperKeyInput extends Component<void, Props, State> {
+class PaperKeyInput extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -39,7 +39,8 @@ class PaperKeyInput extends Component<void, Props, State> {
           onChangeText={paperkey => this.setState({paperkey})}
           errorText={errorText}
           floatingHintTextOverride="Paper key"
-          hintText="elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose"
+          hintText="elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt
+ruril globil cose"
         />
         <Button
           type="Primary"

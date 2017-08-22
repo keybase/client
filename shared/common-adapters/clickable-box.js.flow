@@ -1,14 +1,14 @@
 // @flow
 import React, {Component} from 'react'
 
-export type Props = {|
+export type Props = {
   className?: ?string,
   hoverColor?: any,
   children?: any,
   style?: ?Object,
-  onClick?: ?(event: SyntheticEvent) => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   onPress?: void,
-  onLongPress?: ?(event: SyntheticEvent) => void,
+  onLongPress?: ?(event: SyntheticEvent<>) => void,
   underlayColor?: any,
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
@@ -16,11 +16,11 @@ export type Props = {|
   // mobile only
   activeOpacity?: number,
   // desktop only
-  onMouseOver?: ?(event: SyntheticEvent) => void,
+  onMouseOver?: ?(event: SyntheticEvent<>) => void,
   onMouseEnter?: ?() => void,
   onMouseLeave?: ?() => void,
   onMouseDown?: ?() => void,
   onMouseUp?: ?() => void,
-|}
+}
 
-declare export default class ClickableBox extends Component<void, Props, void> {}
+declare export default class ClickableBox extends Component<Props> {}

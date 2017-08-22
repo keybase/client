@@ -10,7 +10,7 @@ import debounce from 'lodash/debounce'
 
 import type {Props} from './'
 
-class NewConversation extends PureComponent<void, {}, void> {
+class NewConversation extends PureComponent<{}> {
   render() {
     return (
       <div
@@ -61,7 +61,7 @@ type State = {
   showFloating: boolean,
 }
 
-class Inbox extends PureComponent<void, Props, State> {
+class Inbox extends PureComponent<Props, State> {
   state = {
     showFloating: false,
   }
@@ -121,7 +121,8 @@ class Inbox extends PureComponent<void, Props, State> {
     const key =
       (row.type === 'small' && row.conversationIDKey) ||
       (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && `${row.teamname}:${row.channelname}`)
+      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
+      'missingkey'
     return (
       <Row
         conversationIDKey={row.conversationIDKey}

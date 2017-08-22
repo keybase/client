@@ -7,4 +7,4 @@ export type OwnProps = {
   measure: ?() => void,
 }
 
-export default class TextMessage extends Component<void, OwnProps, void> {}
+export default class TextMessage extends Component<OwnProps> {}

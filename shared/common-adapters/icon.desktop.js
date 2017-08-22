@@ -21,7 +21,7 @@ const StyledSpan = glamorous.span(props => ({
     : null),
 }))
 
-class Icon extends Component<void, Exact<Props>, void> {
+class Icon extends Component<Exact<Props>, void> {
   shouldComponentUpdate(nextProps: Exact<Props>, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {

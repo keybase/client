@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../constants/chat'
@@ -40,8 +40,10 @@ export type Props = {
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
   rows: List<RowItem>,
   showBuildATeam: boolean,
+  showNewConversation: boolean,
+  showSmallTeamsExpandDivider: boolean,
   smallTeamsExpanded: boolean,
   toggleSmallTeamsExpanded: () => void,
 }
 
-export default class Inbox extends Component<void, Props, void> {}
+export default class Inbox extends React.Component<Props> {}

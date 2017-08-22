@@ -49,7 +49,7 @@ const quoteStyle = {borderLeft: `3px solid ${globalColors.lightGrey2}`, paddingL
 function previewCreateComponent(type, key, children, options) {
   switch (type) {
     case 'emoji':
-      return <EmojiIfExists emojiName={String(children)} size={11} key={key} style={neutralPreviewStyle} />
+      return <EmojiIfExists emojiName={String(children)} size={11} key={key} />
     case 'native-emoji':
       return <Emoji emojiName={String(children)} size={11} key={key} />
     default:
@@ -70,7 +70,11 @@ function messageCreateComponent(type, key, children, options) {
         <Text type="BodyPrimaryLink" key={key} style={linkStyle} onClickURL={options.href}>{children}</Text>
       )
     case 'text-block':
-      return <Text type="Body" key={key} style={textBlockStyle}>{children.length ? children : '\u200b'}</Text>
+      return (
+        <Text type="Body" key={key} style={textBlockStyle}>
+          {children && children.length ? children : '\u200b'}
+        </Text>
+      )
     case 'bold':
       return <Text type="BodySemibold" key={key} style={boldStyle}>{children}</Text>
     case 'italic':
@@ -86,7 +90,7 @@ function messageCreateComponent(type, key, children, options) {
   }
 }
 
-class Markdown extends PureComponent<void, Props, void> {
+class Markdown extends PureComponent<Props> {
   render() {
     const content = parseMarkdown(
       this.props.children,

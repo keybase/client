@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
@@ -81,6 +81,7 @@ const MessageWrapper = (props: Props) => (
           />
           <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
             <Box style={_flexOneColumn}>
+              {/* $FlowIssue */}
               <props.innerClass
                 messageKey={props.messageKey}
                 measure={props.measure}

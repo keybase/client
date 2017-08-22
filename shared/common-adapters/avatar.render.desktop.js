@@ -1,6 +1,6 @@
 // @flow
 import Icon from './icon'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {globalStyles, globalColors, glamorous} from '../styles'
 
 import type {AvatarSize} from './avatar'
@@ -20,7 +20,7 @@ type Props = {
   followIconType: ?IconType,
   isTeam?: boolean,
   loadingColor: ?string,
-  onClick?: ?(event: SyntheticEvent) => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,
@@ -60,8 +60,7 @@ const BackgroundDiv = glamorous.div(
     borderRadius: props.borderRadius,
   })
 )
-class Background
-  extends PureComponent<void, {loaded: boolean, loadingColor: ?string, borderRadius: any}, void> {
+class Background extends React.PureComponent<{loaded: boolean, loadingColor: ?string, borderRadius: any}> {
   render() {
     return (
       <BackgroundDiv
@@ -95,7 +94,7 @@ const UserImageDiv = glamorous.div(
     }
   }
 )
-class UserImage extends PureComponent<void, ImageProps, void> {
+class UserImage extends React.PureComponent<ImageProps> {
   render() {
     return (
       <UserImageDiv
@@ -130,7 +129,7 @@ const Border = ({borderColor, size, borderRadius}) => (
 
 const _alreadyLoaded: {[name: string]: ?true} = {}
 
-class AvatarRender extends PureComponent<void, Props, State> {
+class AvatarRender extends React.PureComponent<Props, State> {
   state: State = {
     loaded: false,
   }

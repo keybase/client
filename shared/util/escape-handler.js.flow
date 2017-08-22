@@ -1,15 +1,15 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type GlobalProps = {
-  children?: React$Element<*>,
+  children?: React.Node,
 }
 
-export class GlobalEscapeHandler extends Component<void, GlobalProps, void> {}
+export class GlobalEscapeHandler extends React.Component<GlobalProps> {}
 
 export type Props = {
   onESC: () => void,
-  children?: React$Element<*>,
+  children?: React.Node,
 }
 
-export default class EscapeHandler extends Component<void, Props, void> {}
+export default class EscapeHandler extends React.Component<Props> {}

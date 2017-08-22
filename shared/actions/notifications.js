@@ -38,7 +38,7 @@ function receivedBadgeState(badgeState: RPCTypes.BadgeState): Constants.Received
   return {payload: {badgeState}, type: 'notifications:receivedBadgeState'}
 }
 
-function* _listenSaga(): SagaGenerator<any, any> {
+const _listenSaga = function*(): SagaGenerator<any, any> {
   const channels = {
     app: true,
     badges: true,
@@ -77,27 +77,27 @@ function* _listenSaga(): SagaGenerator<any, any> {
   yield put(setupUserChangedHandler())
 }
 
-function* _listenKBFSSaga(): SagaGenerator<any, any> {
+const _listenKBFSSaga = function*(): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
   yield put(setupChatHandlers())
 }
 
-function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
+const _onRecievedBadgeState = function*(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
   const {conversations} = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
 }
 
-function* _listenNotifications(): SagaGenerator<any, any> {
+const _listenNotifications = function*(): SagaGenerator<any, any> {
   yield take('notifications:listenForNotifications')
   yield call(_listenSaga)
 }
 
-function* _listenForKBFSNotifications(): SagaGenerator<any, any> {
+const _listenForKBFSNotifications = function*(): SagaGenerator<any, any> {
   yield take('notifications:listenForKBFSNotifications')
   yield call(_listenKBFSSaga)
 }
 
-function* notificationsSaga(): SagaGenerator<any, any> {
+const notificationsSaga = function*(): SagaGenerator<any, any> {
   yield fork(_listenNotifications)
   yield fork(_listenForKBFSNotifications)
   yield Saga.safeTakeLatest('notifications:receivedBadgeState', _onRecievedBadgeState)

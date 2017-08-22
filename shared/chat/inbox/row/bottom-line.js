@@ -20,7 +20,7 @@ type BottomLineProps = {
   youNeedToRekey: boolean,
 }
 
-class BottomLine extends PureComponent<void, BottomLineProps, void> {
+class BottomLine extends PureComponent<BottomLineProps> {
   render() {
     const {participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet, backgroundColor} = this.props
     let content

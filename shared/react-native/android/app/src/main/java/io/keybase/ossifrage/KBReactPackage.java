@@ -47,7 +47,6 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         return modules;
     }
 
-    @Override
     public List<Class<? extends JavaScriptModule>> createJSModules() {
         List<Class<? extends JavaScriptModule>> modules = new ArrayList<>();
         return modules;

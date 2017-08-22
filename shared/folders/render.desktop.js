@@ -6,7 +6,7 @@ import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-class FoldersRender extends Component<void, Props, void> {
+class FoldersRender extends Component<Props> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2

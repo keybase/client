@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Render from './render'
 import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/route-tree'

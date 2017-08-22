@@ -17,7 +17,7 @@ type ContainerProps = {
   restartSignup: () => void,
 }
 
-class PassphraseForm extends Component<void, ContainerProps, State> {
+class PassphraseForm extends Component<ContainerProps, State> {
   state: State
 
   constructor(props: ContainerProps) {

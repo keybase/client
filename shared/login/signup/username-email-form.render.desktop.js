@@ -5,9 +5,7 @@ import type {Props} from './username-email-form.render'
 import {UserCard, Input, Button} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 
-class UsernameEmailFormRender extends Component {
-  props: Props
-
+class UsernameEmailFormRender extends Component<Props> {
   render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>

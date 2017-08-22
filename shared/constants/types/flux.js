@@ -24,9 +24,7 @@ export type GetState = () => TypedState
 export type AsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise<*> // eslint-disable-line no-use-before-define
 export type Dispatch = (action: AsyncAction | Action) => ?Promise<*> // eslint-disable-line no-use-before-define
 
-export type TypedAsyncAction<A> = (dispatch: TypedDispatch<A>, getState: GetState) => ?Promise<*>
-// $FlowIssue
-export type TypedDispatch<-A> = (action: TypedAsyncAction<A> | A) => ?Promise<*>
+export type TypedAsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise<*>
 
 export const noPayloadTransformer: LogTransformer = action => {
   return {...action, payload: undefined}

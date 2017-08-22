@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import * as Constants from '../../../../constants/chat'
 
 export type StateProps = {|
@@ -10,4 +10,4 @@ export type DispatchProps = {|
   _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => void,
 |}
 
-export default class CreateTeamNotice extends Component<void, {}, void> {}
+export default class CreateTeamNotice extends React.Component<{}> {}

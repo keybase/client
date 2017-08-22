@@ -5,7 +5,7 @@ import {Box, Text} from '../common-adapters/index'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-class PopupMenu extends Component<void, Props, void> {
+class PopupMenu extends Component<Props> {
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}; }

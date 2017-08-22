@@ -24,7 +24,7 @@ type SimpleProps = {
   youNeedToRekey: boolean,
 }
 
-class SimpleRow extends PureComponent<void, SimpleProps, void> {
+class SimpleRow extends PureComponent<SimpleProps> {
   render() {
     const props = this.props
     return (
@@ -79,7 +79,7 @@ type FilteredProps = {
   youNeedToRekey: boolean,
 }
 
-class FilteredRow extends PureComponent<void, FilteredProps, void> {
+class FilteredRow extends PureComponent<FilteredProps> {
   render() {
     const props = this.props
     return (

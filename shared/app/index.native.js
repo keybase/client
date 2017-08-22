@@ -30,7 +30,7 @@ module.hot &&
     }
   })
 
-class Keybase extends Component {
+class Keybase extends Component<any> {
   store: any
 
   constructor(props: any) {

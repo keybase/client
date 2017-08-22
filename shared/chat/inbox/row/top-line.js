@@ -16,7 +16,7 @@ type SimpleTopLineProps = {
 
 const height = isMobile ? 19 : 17
 
-class SimpleTopLine extends PureComponent<void, SimpleTopLineProps, void> {
+class SimpleTopLine extends PureComponent<SimpleTopLineProps> {
   render() {
     const {hasUnread, participants, showBold, subColor, timestamp, usernameColor} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
@@ -69,7 +69,7 @@ type FilteredTopLineProps = {
   usernameColor: ?string,
 }
 
-class FilteredTopLine extends PureComponent<void, FilteredTopLineProps, void> {
+class FilteredTopLine extends PureComponent<FilteredTopLineProps> {
   render() {
     const {participants, showBold, usernameColor} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null

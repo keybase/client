@@ -34,7 +34,7 @@ export type Props = $Shape<{
 
 const REQUEST_DELAY = 5000
 
-class Menubar extends Component<void, Props, void> {
+class Menubar extends Component<Props> {
   _lastRequest: number
 
   constructor(props) {

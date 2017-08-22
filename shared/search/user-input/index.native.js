@@ -13,7 +13,7 @@ import type {UserDetails, Props} from './'
 type UserItemProps = UserDetails & {onRemoveUser: (id: string) => void}
 type UserItemState = {isSelected: boolean, selectAnim: Animated.Value}
 
-class UserItem extends Component<void, UserItemProps, UserItemState> {
+class UserItem extends Component<UserItemProps, UserItemState> {
   state = {
     isSelected: false,
     selectAnim: new Animated.Value(0),
@@ -104,7 +104,7 @@ type State = {isFocused: boolean, selectionStart: ?number, selectionEnd: ?number
 
 const ZERO_WIDTH_SPACE = '\u200B'
 
-class UserInput extends Component<void, Props, State> {
+class UserInput extends Component<Props, State> {
   _textInput: TextInput
 
   state = {

@@ -72,7 +72,7 @@ const nonInlineStyle = {
 }
 const inlineProps = isMobile ? {lineClamp: 1} : {}
 
-class Usernames extends Component<void, Props, void> {
+class Usernames extends Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['style', 'containerStyle', 'users'].includes(key)) {
@@ -120,7 +120,7 @@ class Usernames extends Component<void, Props, void> {
 
 const divider = isMobile ? ', ' : ',\u200a'
 
-class PlaintextUsernames extends Component<void, PlaintextProps, void> {
+class PlaintextUsernames extends Component<PlaintextProps> {
   shouldComponentUpdate(nextProps: PlaintextProps) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['containerStyle', 'users'].includes(key)) {

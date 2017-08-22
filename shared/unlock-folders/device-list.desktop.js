@@ -11,7 +11,7 @@ export type Props = {
   toPaperKeyInput: () => void,
 }
 
-class DeviceRow extends Component<void, {device: Device}, void> {
+class DeviceRow extends Component<{device: Device}, void> {
   render() {
     const icon = {
       desktop: 'icon-computer-32',
@@ -30,7 +30,7 @@ class DeviceRow extends Component<void, {device: Device}, void> {
   }
 }
 
-export default class DeviceList extends Component<void, Props, void> {
+export default class DeviceList extends Component<Props> {
   render() {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>

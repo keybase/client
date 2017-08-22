@@ -8,7 +8,7 @@ export type Props = {
   onOk: () => void,
 }
 
-class PgpPurgeMessage extends Component<void, Props, void> {
+class PgpPurgeMessage extends Component<Props> {
   _toItalics(s: string) {
     return <Text type="BodySemiboldItalic">{s}</Text>
   }

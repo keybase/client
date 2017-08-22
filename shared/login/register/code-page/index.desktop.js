@@ -5,7 +5,7 @@
  */
 
 import Container from '../../forms/container.desktop'
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {
   codePageDeviceRoleExistingPhone,
@@ -127,7 +127,7 @@ function _otherIsPhone(otherDeviceRole) {
   return [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(otherDeviceRole) !== -1
 }
 
-class CodePage extends Component<void, Props, void> {
+class CodePage extends React.Component<Props> {
   render() {
     switch (this.props.mode) {
       case codePageModeShowCode:

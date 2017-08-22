@@ -43,7 +43,7 @@ const UserRow = ({user, onClick}) => (
   </ItemBox>
 )
 
-class Login extends Component<void, Props, State> {
+class Login extends Component<Props, State> {
   state = {
     open: false,
   }

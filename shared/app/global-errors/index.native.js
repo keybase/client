@@ -19,7 +19,7 @@ type State = {
   cachedDetails: ?string,
 }
 
-class GlobalError extends Component<void, Props, State> {
+class GlobalError extends Component<Props, State> {
   state: State
   timerID: any
 
