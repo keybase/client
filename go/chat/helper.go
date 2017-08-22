@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 )
 
 func SendTextByName(ctx context.Context, g *globals.Context, name string, topicName *string,
@@ -330,8 +331,14 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		TopicType:         &topicType,
 		OneChatTypePerTLF: oneChatPerTLF,
 	}
+
 	inbox, irl, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
 	if err != nil {
+		if membersType == chat1.ConversationMembersType_IMPTEAM {
+			if _, ok := err.(teams.TeamDoesNotExistError); ok {
+				return res, rl, nil
+			}
+		}
 		return res, rl, err
 	}
 	if irl != nil {
@@ -371,6 +378,8 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		if len(res) > 0 {
 			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
 		}
+	} else if membersType == chat1.ConversationMembersType_IMPTEAM {
+		// XXX look here
 	} else if vis == chat1.TLFVisibility_PUBLIC {
 		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
 
@@ -620,6 +629,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	if err != nil {
 		return res, rl, err
 	}
+
 	// If we find one conversation, then just return it as if we created it.
 	rl = append(rl, irl...)
 	if len(convs) == 1 {
@@ -690,6 +700,13 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		}
 
 		n.Debug(ctx, "established conv: %v", convID)
+
+		// XXX made it here so far
+		/*
+			if n.membersType == chat1.ConversationMembersType_IMPTEAM {
+				panic("here x")
+			}
+		*/
 
 		// create succeeded; grabbing the conversation and returning
 		ib, irl, err := n.G().InboxSource.Read(ctx, n.uid, nil, false,

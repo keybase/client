@@ -195,11 +195,41 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("KBFS Stage Begin")
 	f(chat1.ConversationMembersType_KBFS)
 	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
+
 	useRemoteMock = false
 	t.Logf("Team Stage Begin")
 	start = time.Now()
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
+
+	/*
+		t.Logf("Implicit Team Stage Begin")
+		start = time.Now()
+		f(chat1.ConversationMembersType_IMPTEAM)
+		t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
+	*/
+
+	useRemoteMock = true
+}
+
+func runWithMemberTypesImplicit(t *testing.T, f func(membersType chat1.ConversationMembersType)) {
+	useRemoteMock = true
+	start := time.Now()
+	t.Logf("KBFS Stage Begin")
+	f(chat1.ConversationMembersType_KBFS)
+	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
+
+	useRemoteMock = false
+	t.Logf("Team Stage Begin")
+	start = time.Now()
+	f(chat1.ConversationMembersType_TEAM)
+	t.Logf("Team Stage End: %v", time.Now().Sub(start))
+
+	t.Logf("Implicit Team Stage Begin")
+	start = time.Now()
+	f(chat1.ConversationMembersType_IMPTEAM)
+	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
+
 	useRemoteMock = true
 }
 
@@ -358,7 +388,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	// Create conversation name based on list of users
 	var name string
 	switch membersType {
-	case chat1.ConversationMembersType_KBFS:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
 		var memberStr []string
 		for _, other := range others {
 			memberStr = append(memberStr, other.Username)
@@ -375,6 +405,8 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 		} else {
 			name = tn
 		}
+	default:
+		t.Fatalf("unhandled membersType: %v", membersType)
 	}
 	tc := ctc.as(t, creator)
 	ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
@@ -434,7 +466,7 @@ func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 	ctc.advanceFakeClock(time.Second)
 }
 
-func TestChatSrvNewConversationLocal(t *testing.T) {
+func TestChatSrvNewConversationLocalX(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
 		defer ctc.cleanup()
@@ -2485,4 +2517,57 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, conv.TlfName, "general"),
 			unboxRes)
 	})
+}
+
+func TestChatSrvImplicitConversation(t *testing.T) {
+	useRemoteMock = false
+	defer func() {
+		useRemoteMock = true
+	}()
+	ctc := makeChatTestContext(t, "ImplicitConversation", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+	displayName := users[0].Username + "," + users[1].Username
+
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+		chat1.FindConversationsLocalArg{
+			TlfName:          displayName,
+			MembersType:      chat1.ConversationMembersType_IMPTEAM,
+			Visibility:       chat1.TLFVisibility_PRIVATE,
+			TopicType:        chat1.TopicType_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	require.Equal(t, 0, len(res.Conversations), "conv found")
+
+	// make the implicit team
+	implicitTeamDesc := keybase1.ImplicitTeamName{
+		IsPrivate: true,
+		Writers: keybase1.ImplicitTeamUserSet{
+			KeybaseUsers: []string{users[0].Username, users[1].Username},
+		},
+	}
+	impTeamID, err := teams.CreateImplicitTeam(ctx, tc.G, implicitTeamDesc)
+	require.NoError(t, err)
+	require.True(t, impTeamID.IsRootTeam(), "not root team")
+
+	// create a new conversation
+	ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+		chat1.NewConversationLocalArg{
+			TlfName:          displayName,
+			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+			TopicType:        chat1.TopicType_CHAT,
+			MembersType:      chat1.ConversationMembersType_IMPTEAM,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+
+	ctx = ctc.as(t, users[0]).startCtx
+	uid := users[0].User.GetUID().ToBytes()
+	conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
+	require.NoError(t, err)
+	require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
+	require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAM, "implicit team")
 }

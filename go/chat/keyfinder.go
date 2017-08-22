@@ -56,6 +56,8 @@ func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 		return NewKBFSNameInfoSource(k.G())
 	case chat1.ConversationMembersType_TEAM:
 		return NewTeamsNameInfoSource(k.G())
+	case chat1.ConversationMembersType_IMPTEAM:
+		return NewImplicitTeamsNameInfoSource(k.G())
 	}
 	k.Debug(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(k.G())

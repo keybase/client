@@ -612,7 +612,7 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 			return "keybase", strings.ToLower(s), nil
 		}
 
-		return "", "", fmt.Errorf("Parsed part as keybase username, but invalid username: %s", s)
+		return "", "", fmt.Errorf("Parsed part as keybase username, but invalid username (%q)", s)
 	}
 	assertion, err := ParseAssertionURL(ctx, s, true)
 	if err != nil {
