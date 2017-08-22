@@ -29,7 +29,9 @@ class RadioButton extends React.Component<void, Props, void> {
         onClick={this.props.disabled ? undefined : () => this.props.onSelect(!this.props.selected)}
       >
         <ClickableBox style={boxStyle}>
-          <ClickableBox style={{...styleIcon, borderColor: this.props.selected ? globalColors.blue : globalColors.white}} />
+          <ClickableBox
+            style={{...styleIcon, borderColor: this.props.selected ? globalColors.blue : globalColors.white}}
+          />
         </ClickableBox>
         <Text type="Body" small={true} style={{color: globalColors.black_75}}>{this.props.label}</Text>
       </ClickableBox>

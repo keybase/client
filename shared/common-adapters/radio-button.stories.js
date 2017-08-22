@@ -6,7 +6,7 @@ import {storiesOf, action} from '../stories/storybook'
 
 const commonProps = {
   disabled: false,
-  onCheck: newCheckedValue => action(`Got check: ${newCheckedValue ? 'true' : 'false'}`),
+  onSelect: newCheckedValue => action(`Got check: ${newCheckedValue ? 'true' : 'false'}`),
   style: {margin: 10},
 }
 
