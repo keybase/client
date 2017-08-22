@@ -29,7 +29,7 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 }
 
 func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
-	impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
+	impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, !public /*isPrivate*/)
 	if err != nil {
 		return res, impTeamName, err
 	}
@@ -80,7 +80,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, nam
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
 			// If the team does not exist, then let's create it
-			impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
+			impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, !public /*isPrivate*/)
 			if err != nil {
 				return res, impTeamName, err
 			}

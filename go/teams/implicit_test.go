@@ -28,15 +28,22 @@ func TestLookupImplicitTeams(t *testing.T) {
 	}
 
 	tc.G.SetServices(externals.GetServices())
-	lookupAndCreate := func(displayName string) {
-		_, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, false)
+	lookupAndCreate := func(displayName string, public bool) {
+		_, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.Error(t, err)
 		require.IsType(t, TeamDoesNotExistError{}, err)
 
-		createdTeamID, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, false)
+		createdTeamID, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.NoError(t, err)
+		require.Equal(t, public, !impTeamName.IsPrivate)
 
-		lookupTeamID, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, false)
+		// second time, LookupOrCreate should Lookup the team just created.
+		createdTeamID2, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
+		require.NoError(t, err)
+		require.Equal(t, createdTeamID, createdTeamID2)
+		require.Equal(t, impTeamName, impTeamName2, "public: %v", public)
+
+		lookupTeamID, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.NoError(t, err)
 		require.Equal(t, createdTeamID, lookupTeamID)
 
@@ -53,11 +60,15 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	displayName := strings.Join(usernames, ",")
 	t.Logf("displayName: %s", displayName)
-	lookupAndCreate(displayName)
+	lookupAndCreate(displayName, false)
+	lookupAndCreate(displayName, true)
 	displayName = fmt.Sprintf("mike@twitter,%s,james@github", displayName)
 	t.Logf("displayName: %s", displayName)
-	lookupAndCreate(displayName)
+	lookupAndCreate(displayName, false)
+	lookupAndCreate(displayName, true)
 
 	_, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", false)
+	require.Error(t, err)
+	_, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", true)
 	require.Error(t, err)
 }
