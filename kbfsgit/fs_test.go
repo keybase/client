@@ -18,9 +18,6 @@ import (
 	"github.com/stretchr/testify/require"
 	gogit "gopkg.in/src-d/go-git.v4"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
-	"gopkg.in/src-d/go-git.v4/plumbing/storer"
-	"gopkg.in/src-d/go-git.v4/storage"
-	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
 
 func makeFS(t *testing.T, subdir string) (
@@ -33,30 +30,6 @@ func makeFS(t *testing.T, subdir string) (
 	require.NoError(t, err)
 	return ctx, h, fs
 }
-
-// configInMemoryStorer keeps the git config in memory, to work around
-// a gcfg bug (used by go-git when reading configs from disk) that
-// causes a freakout when it sees backslashes in git file URLs.
-type configInMemoryStorer struct {
-	*filesystem.Storage
-	cfg *gogitcfg.Config
-}
-
-func (cims *configInMemoryStorer) Init() error {
-	return cims.Storage.Init()
-}
-
-func (cims *configInMemoryStorer) Config() (*gogitcfg.Config, error) {
-	return cims.cfg, nil
-}
-
-func (cims *configInMemoryStorer) SetConfig(c *gogitcfg.Config) error {
-	cims.cfg = c
-	return nil
-}
-
-var _ storage.Storer = (*configInMemoryStorer)(nil)
-var _ storer.Initializer = (*configInMemoryStorer)(nil)
 
 // This tests pushing code to a bare repo stored in KBFS, and pulling
 // code from that bare repo into a new working tree.  This is a simple
@@ -76,11 +49,8 @@ func TestBareRepoInKBFS(t *testing.T) {
 	ctx, _, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.Config())
 
-	fsStorer, err := filesystem.NewStorage(fs)
+	storer, err := newConfigInMemoryStorer(fs)
 	require.NoError(t, err)
-	cfg, err := fsStorer.Config()
-	require.NoError(t, err)
-	storer := &configInMemoryStorer{fsStorer, cfg}
 
 	repo, err := gogit.Init(storer, nil)
 	require.NoError(t, err)

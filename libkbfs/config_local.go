@@ -996,7 +996,7 @@ func (c *ConfigLocal) BGFlushPeriod() time.Duration {
 // Shutdown implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Shutdown(ctx context.Context) error {
 	c.RekeyQueue().Shutdown()
-	if c.CheckStateOnShutdown() {
+	if c.CheckStateOnShutdown() && c.allKnownConfigsForTesting != nil {
 		// Before we do anything, wait for all archiving and
 		// journaling to finish.
 		for _, config := range *c.allKnownConfigsForTesting {
