@@ -8,6 +8,7 @@ import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../a
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
+import {isMobile} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -147,7 +148,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
 
   let smallTeams = allSmallTeams
   let showSmallTeamsExpandDivider = false
-  if (!filter && bigTeams.count() && allSmallTeams.count() > smallteamsCollapsedMaxShown) {
+  // isMobile TEMP
+  if (!isMobile && !filter && bigTeams.count() && allSmallTeams.count() > smallteamsCollapsedMaxShown) {
     showSmallTeamsExpandDivider = true
     if (!smallTeamsExpanded) {
       smallTeams = allSmallTeams.slice(0, smallteamsCollapsedMaxShown)
