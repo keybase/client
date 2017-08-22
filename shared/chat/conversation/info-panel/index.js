@@ -62,18 +62,12 @@ const _ChannelInfoPanel = (props: ChannelInfoPanelProps) => (
     style={scrollViewStyle}
     contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
   >
-    <Text style={{alignSelf: 'center'}} type="BodySemibold">
+    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodySemibold">
       #{props.channelname}
     </Text>
     <Text style={{alignSelf: 'center'}} type="BodySmall">
       {props.teamname}
     </Text>
-
-    <Participants
-      participants={props.participants}
-      onAddParticipant={props.onAddParticipant}
-      onShowProfile={props.onShowProfile}
-    />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
@@ -82,7 +76,7 @@ const _ChannelInfoPanel = (props: ChannelInfoPanelProps) => (
         checked={props.muted}
         disabled={props.onMuteConversation == null}
         onCheck={checked => props.onMuteConversation(checked)}
-        label="Mute notifications"
+        label="Mute channel"
       />
       <Icon
         type="iconfont-shh"
@@ -96,7 +90,11 @@ const _ChannelInfoPanel = (props: ChannelInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
+    <Participants
+      participants={props.participants}
+      onAddParticipant={props.onAddParticipant}
+      onShowProfile={props.onShowProfile}
+    />
   </ScrollView>
 )
 
