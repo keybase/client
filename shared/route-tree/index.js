@@ -45,7 +45,10 @@ type RouteDefParamsCommon<P> = {
 // TODO type this properly. component and container component are mutually exclusive
 type RouteDefParams<P> = {
   component?: ?(
-    | (Component<P, any> | $Supertype<Component<P, any>> | Class<ConnectedComponent<P, any, any, any>> | Class<TypedConnectedComponent<P>>)),
+    | Component<P, any>
+    | $Supertype<Component<P, any>>
+    | Class<ConnectedComponent<P, any, any, any>>
+    | Class<TypedConnectedComponent<P>>),
   containerComponent?: ?Component<P, any>,
   ...RouteDefParamsCommon<P>,
 }
