@@ -10,14 +10,14 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamName) (res keybase1.TeamID, err error) {
+func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, err error) {
 	defer g.CTrace(ctx, "CreateImplicitTeam", func() error { return err })()
 
 	name, err := NewImplicitTeamName()
 	if err != nil {
 		return res, err
 	}
-	teamID := RootTeamIDFromNameString(name)
+	teamID := RootTeamIDFromNameString(name.String())
 
 	// Load all the Keybase users
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
@@ -81,8 +81,8 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	// Post the team
-	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, teamInvites, secretboxRecipients, name,
-		teamID, !impTeam.IsPrivate, true)
+	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, teamInvites, secretboxRecipients, name.String(),
+		teamID, impTeam.IsPublic, true)
 }
 
 func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, users []SCTeamMember,

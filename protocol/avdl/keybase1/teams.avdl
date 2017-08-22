@@ -107,6 +107,7 @@ protocol teams {
       TeamID id;
       string name;
       boolean implicit;
+      boolean public;
       TeamApplication application;
 
       array<UserVersion> writers;
@@ -183,6 +184,8 @@ protocol teams {
 
     // Whether this is an implicit team.
     boolean implicit;
+    // Whether this is a public team.
+    boolean public;
 
     // Name of the root ancestor. For A.B.C this is 'A'.
     TeamName rootAncestor;
@@ -422,8 +425,8 @@ protocol teams {
   /**
    * iTeams
   */
-  record ImplicitTeamName {
-    boolean isPrivate;
+  record ImplicitTeamDisplayName {
+    boolean isPublic;
     ImplicitTeamUserSet writers;
     ImplicitTeamUserSet readers;
     union { null, ImplicitTeamConflictInfo } conflictInfo;

@@ -379,6 +379,7 @@ type TeamPlusApplicationKeys struct {
 	Id              TeamID               `codec:"id" json:"id"`
 	Name            string               `codec:"name" json:"name"`
 	Implicit        bool                 `codec:"implicit" json:"implicit"`
+	Public          bool                 `codec:"public" json:"public"`
 	Application     TeamApplication      `codec:"application" json:"application"`
 	Writers         []UserVersion        `codec:"writers" json:"writers"`
 	OnlyReaders     []UserVersion        `codec:"onlyReaders" json:"onlyReaders"`
@@ -390,6 +391,7 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 		Id:          o.Id.DeepCopy(),
 		Name:        o.Name,
 		Implicit:    o.Implicit,
+		Public:      o.Public,
 		Application: o.Application.DeepCopy(),
 		Writers: (func(x []UserVersion) []UserVersion {
 			var ret []UserVersion
@@ -635,6 +637,7 @@ type TeamSigChainState struct {
 	Reader        UserVersion                         `codec:"reader" json:"reader"`
 	Id            TeamID                              `codec:"id" json:"id"`
 	Implicit      bool                                `codec:"implicit" json:"implicit"`
+	Public        bool                                `codec:"public" json:"public"`
 	RootAncestor  TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
 	NameDepth     int                                 `codec:"nameDepth" json:"nameDepth"`
 	NameLog       []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
@@ -654,6 +657,7 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 		Reader:       o.Reader.DeepCopy(),
 		Id:           o.Id.DeepCopy(),
 		Implicit:     o.Implicit,
+		Public:       o.Public,
 		RootAncestor: o.RootAncestor.DeepCopy(),
 		NameDepth:    o.NameDepth,
 		NameLog: (func(x []TeamNameLogPoint) []TeamNameLogPoint {
@@ -1115,18 +1119,18 @@ func (o ImplicitTeamUserSet) DeepCopy() ImplicitTeamUserSet {
 }
 
 // * iTeams
-type ImplicitTeamName struct {
-	IsPrivate    bool                      `codec:"isPrivate" json:"isPrivate"`
+type ImplicitTeamDisplayName struct {
+	IsPublic     bool                      `codec:"isPublic" json:"isPublic"`
 	Writers      ImplicitTeamUserSet       `codec:"writers" json:"writers"`
 	Readers      ImplicitTeamUserSet       `codec:"readers" json:"readers"`
 	ConflictInfo *ImplicitTeamConflictInfo `codec:"conflictInfo,omitempty" json:"conflictInfo,omitempty"`
 }
 
-func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
-	return ImplicitTeamName{
-		IsPrivate: o.IsPrivate,
-		Writers:   o.Writers.DeepCopy(),
-		Readers:   o.Readers.DeepCopy(),
+func (o ImplicitTeamDisplayName) DeepCopy() ImplicitTeamDisplayName {
+	return ImplicitTeamDisplayName{
+		IsPublic: o.IsPublic,
+		Writers:  o.Writers.DeepCopy(),
+		Readers:  o.Readers.DeepCopy(),
 		ConflictInfo: (func(x *ImplicitTeamConflictInfo) *ImplicitTeamConflictInfo {
 			if x == nil {
 				return nil

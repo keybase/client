@@ -3243,8 +3243,8 @@ export type ImplicitTeamConflictInfo = {
   time: Time,
 }
 
-export type ImplicitTeamName = {
-  isPrivate: boolean,
+export type ImplicitTeamDisplayName = {
+  isPublic: boolean,
   writers: ImplicitTeamUserSet,
   readers: ImplicitTeamUserSet,
   conflictInfo?: ?ImplicitTeamConflictInfo,
@@ -4565,6 +4565,7 @@ export type TeamPlusApplicationKeys = {
   id: TeamID,
   name: string,
   implicit: boolean,
+  public: boolean,
   application: TeamApplication,
   writers?: ?Array<UserVersion>,
   onlyReaders?: ?Array<UserVersion>,
@@ -4594,6 +4595,7 @@ export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
   implicit: boolean,
+  public: boolean,
   rootAncestor: TeamName,
   nameDepth: int,
   nameLog?: ?Array<TeamNameLogPoint>,

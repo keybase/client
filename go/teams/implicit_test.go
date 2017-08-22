@@ -36,7 +36,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 		createdTeamID, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.NoError(t, err)
-		require.Equal(t, public, !impTeamName.IsPrivate)
+		require.Equal(t, public, impTeamName.IsPublic)
 
 		// second time, LookupOrCreate should Lookup the team just created.
 		createdTeamID2, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
@@ -52,9 +52,9 @@ func TestLookupImplicitTeams(t *testing.T) {
 			ID: createdTeamID,
 		})
 		require.NoError(t, err)
-		teamDisplay, err := team.ImplicitTeamDisplayName(context.TODO())
+		teamDisplay, err := team.ImplicitTeamDisplayNameString(context.TODO())
 		require.NoError(t, err)
-		formatName, err := FormatImplicitTeamName(context.TODO(), tc.G, impTeamName)
+		formatName, err := FormatImplicitTeamDisplayName(context.TODO(), tc.G, impTeamName)
 		require.NoError(t, err)
 		require.Equal(t, teamDisplay, formatName)
 	}

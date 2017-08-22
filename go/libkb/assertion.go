@@ -621,13 +621,16 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	return string(assertion.GetKey()), assertion.GetValue(), nil
 }
 
-func ParseImplicitTeamName(ctx AssertionContext, s string, isPrivate bool) (ret keybase1.ImplicitTeamName, err error) {
+func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
+	// TODO perhaps this should parse out public/private and conflict
+	// TODO in which case it woudln't take isPublic as an argument
+
 	// Turn the whole string tolower
 	s = strings.ToLower(s)
 
 	parts := strings.Split(s, "#")
 	if len(parts) > 2 {
-		return ret, NewImplicitTeamNameError("can have at most one '#' separator")
+		return ret, NewImplicitTeamDisplayNameError("can have at most one '#' separator")
 	}
 
 	seen := make(map[string]bool)
@@ -638,7 +641,7 @@ func ParseImplicitTeamName(ctx AssertionContext, s string, isPrivate bool) (ret 
 	}
 
 	if writers.NumTotalUsers() == 0 {
-		return ret, NewImplicitTeamNameError("need at least one writer")
+		return ret, NewImplicitTeamDisplayNameError("need at least one writer")
 	}
 
 	if len(parts) == 2 {
@@ -648,8 +651,8 @@ func ParseImplicitTeamName(ctx AssertionContext, s string, isPrivate bool) (ret 
 		}
 	}
 
-	ret = keybase1.ImplicitTeamName{
-		IsPrivate:    isPrivate,
+	ret = keybase1.ImplicitTeamDisplayName{
+		IsPublic:     isPublic,
 		ConflictInfo: nil,
 		Writers:      writers,
 		Readers:      readers,
@@ -681,8 +684,8 @@ func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bo
 	return ret, nil
 }
 
-func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamName, error) {
-	ret := keybase1.ImplicitTeamName{}
+func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamDisplayName, error) {
+	ret := keybase1.ImplicitTeamDisplayName{}
 	s = strings.ToLower(s)
 	parts := strings.Split(s, "/")
 	if len(parts) != 4 {
@@ -691,6 +694,6 @@ func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.Implicit
 	if parts[0] != "" || parts[1] != "keybase" || (parts[2] != "private" && parts[2] != "public") {
 		return ret, fmt.Errorf("Invalid team TLF name")
 	}
-	isPrivate := parts[2] == "private"
-	return ParseImplicitTeamName(ctx, parts[3], isPrivate)
+	isPublic := parts[2] == "public"
+	return ParseImplicitTeamDisplayName(ctx, parts[3], isPublic)
 }

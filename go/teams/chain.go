@@ -70,6 +70,10 @@ func (t TeamSigChainState) IsImplicit() bool {
 	return t.inner.Implicit
 }
 
+func (t TeamSigChainState) IsPublic() bool {
+	return t.inner.Public
+}
+
 func (t TeamSigChainState) LatestLastNamePart() keybase1.TeamNamePart {
 	return t.inner.NameLog[len(t.inner.NameLog)-1].LastPart
 }
@@ -675,6 +679,15 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			team.Implicit, prevState.IsImplicit())
 	}
 
+	if prevState != nil && prevState.IsPublic() != team.Public {
+		return res, fmt.Errorf("link specified public:%v but team was already public:%v",
+			team.Implicit, prevState.IsImplicit())
+	}
+
+	if team.Public && (!team.Implicit || (prevState != nil && !prevState.IsImplicit())) {
+		return res, fmt.Errorf("public non-implicit teams are not supported")
+	}
+
 	hasPrevState := func(has bool) error {
 		if has {
 			if prevState == nil {
@@ -791,6 +804,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				Reader:       t.reader,
 				Id:           teamID,
 				Implicit:     isImplicit,
+				Public:       team.Public,
 				RootAncestor: teamName.RootAncestorName(),
 				NameDepth:    teamName.Depth(),
 				NameLog: []keybase1.TeamNameLogPoint{{
@@ -1108,6 +1122,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
+		if team.Public {
+			return res, fmt.Errorf("public subteams are not supported")
+		}
+
 		// Check the subteam ID
 		if !teamID.IsSubTeam() {
 			return res, fmt.Errorf("malformed subteam id")
@@ -1152,6 +1170,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				Reader:       t.reader,
 				Id:           teamID,
 				Implicit:     false,
+				Public:       false,
 				RootAncestor: teamName.RootAncestorName(),
 				NameDepth:    teamName.Depth(),
 				NameLog: []keybase1.TeamNameLogPoint{{

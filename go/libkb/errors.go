@@ -660,15 +660,23 @@ func NewProfileNotPublicError(s string) ProfileNotPublicError {
 //=============================================================================
 
 type BadUsernameError struct {
-	N string
+	N   string
+	msg string
 }
 
 func (e BadUsernameError) Error() string {
-	return "Bad username: '" + e.N + "'"
+	if len(e.msg) == 0 {
+		return "Bad username: '" + e.N + "'"
+	}
+	return e.msg
 }
 
 func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
+}
+
+func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
+	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
 }
 
 //=============================================================================
@@ -2068,14 +2076,14 @@ func (e RevokeLastDeviceError) Error() string {
 
 //=============================================================================
 
-type ImplictTeamNameError struct {
+type ImplicitTeamDisplayNameError struct {
 	msg string
 }
 
-func (e ImplictTeamNameError) Error() string {
+func (e ImplicitTeamDisplayNameError) Error() string {
 	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
 }
 
-func NewImplicitTeamNameError(s string) ImplictTeamNameError {
-	return ImplictTeamNameError{s}
+func NewImplicitTeamDisplayNameError(s string) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{s}
 }
