@@ -1780,8 +1780,8 @@ func (i ImplicitTeamUserSet) NumTotalUsers() int {
 	return len(i.KeybaseUsers) + len(i.UnresolvedUsers)
 }
 
-// LockIDFromBytes takes the first 8 bytes of the sha512 over data, and
-// interpret it as int64 using little endian, and return the value as LockID.
+// LockIDFromBytes takes the first 8 bytes of the sha512 over data, interprets
+// it as int64 using little endian, and returns the value as LockID.
 func LockIDFromBytes(data []byte) LockID {
 	sum := sha512.Sum512(data)
 	return LockID(binary.LittleEndian.Uint64(sum[:8]))
