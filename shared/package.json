@@ -117,7 +117,7 @@
     "babel-core": "6.26.0",
     "babel-eslint": "7.2.3",
     "babel-jest": "20.0.3",
-    "babel-loader": "7.1.1",
+    "babel-loader": "7.1.2",
     "babel-plugin-react-transform": "2.0.2",
     "babel-plugin-transform-builtin-extend": "1.1.2",
     "babel-plugin-transform-runtime": "6.23.0",
