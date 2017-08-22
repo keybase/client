@@ -4,7 +4,7 @@ import ConversationHeader from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import NoConversation from './conversation/no-conversation'
-import ConversationInfoPanel from './conversation/info-panel'
+import {InfoPanel} from './conversation/info-panel'
 import HiddenString from '../util/hidden-string'
 import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/rekey/participant-rekey'
@@ -352,7 +352,7 @@ const commonInfoPanel = {
 }
 
 const infoPanel = {
-  component: ConversationInfoPanel,
+  component: InfoPanel,
   mocks: {
     Normal: {
       ...commonInfoPanel,

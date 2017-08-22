@@ -1,9 +1,9 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import InfoPanel from '.'
+import {InfoPanel, ChannelInfoPanel} from '.'
 import {Map} from 'immutable'
-import {compose} from 'recompose'
+import {compose, renderComponent, branch} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
@@ -84,4 +84,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
     ),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(InfoPanel)
+const ConnectedInfoPanel = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => props.channelname, renderComponent(ChannelInfoPanel))
+)(InfoPanel)
+
+export default ConnectedInfoPanel
