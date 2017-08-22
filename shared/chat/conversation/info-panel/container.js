@@ -40,6 +40,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
+  onBack: () => dispatch(navigateUp()),
   onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
   },
@@ -54,7 +55,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     )
   },
   onShowProfile: (username: string) => dispatch(showUserProfile(username)),
-  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
