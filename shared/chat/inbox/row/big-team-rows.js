@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import {Avatar, Box, Text, Icon, ClickableBox} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {TeamAvatar} from './avatars'
 
 type TeamProps = {
   teamname: string,
@@ -71,6 +72,38 @@ class BigTeamChannelRow extends PureComponent<ChannelProps> {
   }
 }
 
+type FilteredChannelProps = {
+  teamname: string,
+  channelname: string,
+  onSelectConversation: () => void,
+}
+
+class BigTeamChannelFilteredRow extends PureComponent<FilteredChannelProps> {
+  render() {
+    return (
+      <ClickableBox onClick={this.props.onSelectConversation}>
+        <Box style={filteredRowStyle}>
+          <TeamAvatar teamname={this.props.teamname} />
+          <Text type="BodySemibold" style={teamnameStyle}>{this.props.teamname}</Text>
+          <Text type="Body">&nbsp;#{this.props.channelname}</Text>
+        </Box>
+      </ClickableBox>
+    )
+  }
+}
+
+const teamnameStyle = {
+  color: globalColors.darkBlue,
+}
+
+const filteredRowStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  flexShrink: 0,
+  height: 56,
+  width: '100%',
+}
+
 const teamRowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
@@ -122,4 +155,4 @@ const unreadStyle = {
   height: 6,
   width: 6,
 }
-export {BigTeamHeaderRow, BigTeamChannelRow}
+export {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow}

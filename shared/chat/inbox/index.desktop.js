@@ -113,7 +113,7 @@ class Inbox extends PureComponent<Props, State> {
     if (row.type === 'bigTeamsLabel') {
       return (
         <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
-          <BigTeamsLabel />
+          <BigTeamsLabel isFiltered={row.isFiltered} />
         </Box>
       )
     }

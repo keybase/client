@@ -12,7 +12,7 @@ import {
 } from '../../../constants/chat'
 import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
-import {BigTeamHeaderRow, BigTeamChannelRow} from './big-team-rows'
+import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 import {compose, renderComponent, branch} from 'recompose'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -146,6 +146,7 @@ const ConnectedRow = compose(
   // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(props => props.filtered && props.type === 'small', renderComponent(SmallTeamFilteredRow)),
+  branch(props => props.filtered && props.type === 'big', renderComponent(BigTeamChannelFilteredRow)),
   branch(props => props.type === 'bigHeader', renderComponent(BigTeamHeaderRow)),
   branch(props => props.type === 'big', renderComponent(BigTeamChannelRow))
 )(SmallTeamRow)

@@ -55,7 +55,7 @@ type FloatingDividerProps = {
 const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
   <ClickableBox onClick={toggle} style={_floatingStyle}>
     <DividerBox>
-      <BigTeamsLabel />
+      <BigTeamsLabel isFiltered={false} />
       {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}
       <Box style={_iconStyle}>
         <Icon type="iconfont-keybase" inheritColor={true} />
@@ -64,9 +64,9 @@ const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
   </ClickableBox>
 )
 
-const BigTeamsLabel = () => (
+const BigTeamsLabel = ({isFiltered}: {isFiltered: boolean}) => (
   <Box style={_bigTeamsLabelBox}>
-    <Text type="BodySmallSemibold">Big teams</Text>
+    <Text type="BodySmallSemibold">{isFiltered ? 'Teams' : 'Big teams'}</Text>
   </Box>
 )
 

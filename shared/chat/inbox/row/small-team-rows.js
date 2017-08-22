@@ -78,6 +78,7 @@ type FilteredProps = {
   participantNeedToRekey: boolean,
   participants: List<string>,
   showBold: boolean,
+  teamname: ?string,
   usernameColor: string,
   youNeedToRekey: boolean,
 }
@@ -88,14 +89,16 @@ class SmallTeamFilteredRow extends PureComponent<FilteredProps> {
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
         <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          <Avatars
-            backgroundColor={props.backgroundColor}
-            isMuted={props.isMuted}
-            isSelected={props.isSelected}
-            participantNeedToRekey={props.participantNeedToRekey}
-            participants={props.participants}
-            youNeedToRekey={props.youNeedToRekey}
-          />
+          {props.teamname
+            ? <TeamAvatar teamname={props.teamname} />
+            : <Avatars
+                backgroundColor={props.backgroundColor}
+                isMuted={props.isMuted}
+                isSelected={props.isSelected}
+                participantNeedToRekey={props.participantNeedToRekey}
+                participants={props.participants}
+                youNeedToRekey={props.youNeedToRekey}
+              />}
           <Box
             style={{
               ...conversationRowStyle,
@@ -103,7 +106,7 @@ class SmallTeamFilteredRow extends PureComponent<FilteredProps> {
             }}
           >
             <FilteredTopLine
-              participants={props.participants}
+              participants={props.teamname ? List.of(props.teamname) : props.participants}
               showBold={props.showBold}
               usernameColor={props.usernameColor}
             />

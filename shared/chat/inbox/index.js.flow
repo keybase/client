@@ -11,6 +11,7 @@ export type RowItem =
     }
   | {
       type: 'bigTeamsLabel',
+      isFiltered: boolean,
     }
   | {
       type: 'bigHeader',
