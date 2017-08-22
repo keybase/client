@@ -7,8 +7,9 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -149,9 +150,9 @@ func TestPartImplicitTeamTLFNameEvenMore(t *testing.T) {
 // quick sanity test -- mostly redundant with TLFName test above
 func TestParseImplicitTeamName(t *testing.T) {
 	goodName := "twitter:alice,bob@facebook,carol@keybase,dave"
-	namePrivate, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, true)
+	namePrivate, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, false)
 	require.NoError(t, err)
-	namePublic, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, false)
+	namePublic, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, true)
 	require.NoError(t, err)
 	require.True(t, namePrivate.IsPrivate)
 	require.True(t, !namePublic.IsPrivate)

@@ -29,8 +29,8 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
-	impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, !public /*isPrivate*/)
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), name, public /*isPublic*/)
 	if err != nil {
 		return res, impTeamName, err
 	}
@@ -66,7 +66,7 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 	if err != nil {
 		return res, impTeamName, err
 	}
-	formatImpName, err := FormatImplicitTeamName(ctx, g, impTeamName)
+	formatImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamName)
 	if err != nil {
 		return res, impTeamName, err
 	}
@@ -78,12 +78,12 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 	return imp.TeamID, impTeamName, nil
 }
 
-func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
+func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
 	res, impTeamName, err = LookupImplicitTeam(ctx, g, name, public)
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
 			// If the team does not exist, then let's create it
-			impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, !public /*isPrivate*/)
+			impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), name, public /*isPublic*/)
 			if err != nil {
 				return res, impTeamName, err
 			}
@@ -95,7 +95,7 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, nam
 	return res, impTeamName, nil
 }
 
-func FormatImplicitTeamName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamName) (string, error) {
+func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName) (string, error) {
 	var writerNames []string
 	for _, u := range impTeamName.Writers.KeybaseUsers {
 		writerNames = append(writerNames, u)
@@ -128,7 +128,7 @@ func FormatImplicitTeamName(ctx context.Context, g *libkb.GlobalContext, impTeam
 		return "", err
 	}
 	prefix := "private/"
-	if !impTeamName.IsPrivate {
+	if impTeamName.IsPublic {
 		prefix = "public/"
 	}
 	return prefix + normalized, nil

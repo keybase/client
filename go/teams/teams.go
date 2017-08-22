@@ -123,9 +123,9 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	return members, nil
 }
 
-func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamName, err error) {
-	impName := keybase1.ImplicitTeamName{
-		IsPrivate:    !t.IsPublic(),
+func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	impName := keybase1.ImplicitTeamDisplayName{
+		IsPublic:     t.IsPublic(),
 		ConflictInfo: nil, // TODO should we know this here?
 	}
 
@@ -193,7 +193,7 @@ func (t *Team) ImplicitTeamDisplayNameString(ctx context.Context) (string, error
 	if err != nil {
 		return "", err
 	}
-	return FormatImplicitTeamName(ctx, t.G(), impName)
+	return FormatImplicitTeamDisplayName(ctx, t.G(), impName)
 }
 
 func (t *Team) NextSeqno() keybase1.Seqno {

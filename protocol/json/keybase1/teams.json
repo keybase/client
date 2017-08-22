@@ -1042,11 +1042,11 @@
     },
     {
       "type": "record",
-      "name": "ImplicitTeamName",
+      "name": "ImplicitTeamDisplayName",
       "fields": [
         {
           "type": "boolean",
-          "name": "isPrivate"
+          "name": "isPublic"
         },
         {
           "type": "ImplicitTeamUserSet",

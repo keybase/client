@@ -425,8 +425,8 @@ protocol teams {
   /**
    * iTeams
   */
-  record ImplicitTeamName {
-    boolean isPrivate;
+  record ImplicitTeamDisplayName {
+    boolean isPublic;
     ImplicitTeamUserSet writers;
     ImplicitTeamUserSet readers;
     union { null, ImplicitTeamConflictInfo } conflictInfo;

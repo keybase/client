@@ -135,7 +135,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 	numKBUsers := 3
 	var users []*kbtest.FakeUser
 	var uvs []keybase1.UserVersion
-	var impTeam keybase1.ImplicitTeamName
+	var impTeam keybase1.ImplicitTeamDisplayName
 	for i := 0; i < numKBUsers; i++ {
 		u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 		require.NoError(t, err)
@@ -148,7 +148,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 		uvs = append(uvs, u.User.ToUserVersion())
 	}
 	sort.Sort(keybase1.ByUserVersionID(uvs))
-	impTeam.IsPrivate = true
+	impTeam.IsPublic = false
 	teamID, err := CreateImplicitTeam(context.TODO(), tc.G, impTeam)
 	require.NoError(t, err)
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{

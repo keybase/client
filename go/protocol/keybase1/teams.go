@@ -1119,18 +1119,18 @@ func (o ImplicitTeamUserSet) DeepCopy() ImplicitTeamUserSet {
 }
 
 // * iTeams
-type ImplicitTeamName struct {
-	IsPrivate    bool                      `codec:"isPrivate" json:"isPrivate"`
+type ImplicitTeamDisplayName struct {
+	IsPublic     bool                      `codec:"isPublic" json:"isPublic"`
 	Writers      ImplicitTeamUserSet       `codec:"writers" json:"writers"`
 	Readers      ImplicitTeamUserSet       `codec:"readers" json:"readers"`
 	ConflictInfo *ImplicitTeamConflictInfo `codec:"conflictInfo,omitempty" json:"conflictInfo,omitempty"`
 }
 
-func (o ImplicitTeamName) DeepCopy() ImplicitTeamName {
-	return ImplicitTeamName{
-		IsPrivate: o.IsPrivate,
-		Writers:   o.Writers.DeepCopy(),
-		Readers:   o.Readers.DeepCopy(),
+func (o ImplicitTeamDisplayName) DeepCopy() ImplicitTeamDisplayName {
+	return ImplicitTeamDisplayName{
+		IsPublic: o.IsPublic,
+		Writers:  o.Writers.DeepCopy(),
+		Readers:  o.Readers.DeepCopy(),
 		ConflictInfo: (func(x *ImplicitTeamConflictInfo) *ImplicitTeamConflictInfo {
 			if x == nil {
 				return nil

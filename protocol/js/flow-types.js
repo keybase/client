@@ -3227,8 +3227,8 @@ export type ImplicitTeamConflictInfo = {
   time: Time,
 }
 
-export type ImplicitTeamName = {
-  isPrivate: boolean,
+export type ImplicitTeamDisplayName = {
+  isPublic: boolean,
   writers: ImplicitTeamUserSet,
   readers: ImplicitTeamUserSet,
   conflictInfo?: ?ImplicitTeamConflictInfo,
