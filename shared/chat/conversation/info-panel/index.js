@@ -1,6 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Checkbox, Divider, HeaderHoc, Icon, ScrollView, Text} from '../../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  Checkbox,
+  Divider,
+  HeaderHoc,
+  Icon,
+  ScrollView,
+  Text,
+} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
@@ -65,9 +75,13 @@ const _ChannelInfoPanel = (props: ChannelInfoPanelProps) => (
     <Text style={{alignSelf: 'center', marginTop: 20}} type="BodySemibold">
       #{props.channelname}
     </Text>
-    <Text style={{alignSelf: 'center'}} type="BodySmall">
-      {props.teamname}
-    </Text>
+
+    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+      <Avatar teamname={props.teamname} size={16} />
+      <Text style={{marginLeft: globalMargins.xtiny}} type="BodySmall">
+        {props.teamname}
+      </Text>
+    </Box>
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
