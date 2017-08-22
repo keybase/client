@@ -23,7 +23,7 @@ class RadioButton extends React.Component<Props, {hovered: boolean}> {
       ...transition('background'),
       backgroundColor: this.props.selected ? globalColors.blue : 'inherit',
       border: `solid 1px ${borderColor}`,
-      borderRadius: 100,
+      borderRadius: '100%',
       height: RADIOBUTTON_SIZE,
       marginRight: RADIOBUTTON_MARGIN,
       opacity: this.props.disabled ? 0.4 : 1,
@@ -43,7 +43,7 @@ class RadioButton extends React.Component<Props, {hovered: boolean}> {
         <div style={boxStyle}>
           <div style={styleIcon} />
         </div>
-        <Text type="Body" small={true} style={{color: globalColors.black_75}}>{this.props.label}</Text>
+        <Text type="Body" style={{color: globalColors.black_75}}>{this.props.label}</Text>
       </div>
     )
   }
@@ -57,7 +57,7 @@ const styleContainer = {
 const styleIcon = {
   ...transition('opacity'),
   border: `solid 3px ${globalColors.white}`,
-  borderRadius: 10,
+  borderRadius: '100%',
   color: globalColors.white,
   hoverColor: globalColors.white,
   left: 3,
