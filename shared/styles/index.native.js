@@ -2,6 +2,7 @@
 import {StatusBar, StyleSheet} from 'react-native'
 import {isAndroid, isIOS} from '../constants/platform'
 import globalColors from './colors'
+import glamorous from 'glamorous-native'
 
 const globalMargins = {
   xtiny: 4,
@@ -120,6 +121,7 @@ const lineHeight = (h: number) => h
 export {
   backgroundURL,
   collapseStyles,
+  glamorous,
   globalColors,
   globalMargins,
   globalStyles,
