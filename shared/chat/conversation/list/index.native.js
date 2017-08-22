@@ -44,8 +44,11 @@ class ConversationList extends Component<Props> {
 
   _keyExtractor = messageKey => messageKey
 
+  // Don't load if we have no messages in there. This happens a lot when we're dealing with stale messages
   _onEndReached = () => {
-    this.props.onLoadMoreMessages()
+    if (this.props.messageKeys.count() > 1) {
+      this.props.onLoadMoreMessages()
+    }
   }
 
   componentDidUpdate(prevProps: Props) {

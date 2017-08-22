@@ -20,7 +20,7 @@ export type Props = {|
   onAction: (event: SyntheticEvent<>) => void,
   onRetry: () => void,
   onShowEditor: (event: SyntheticEvent<>) => void,
-  onClick: (event: SyntheticEvent<>) => void,
+  onClick: () => void,
   timestamp: ?string,
 |}
 

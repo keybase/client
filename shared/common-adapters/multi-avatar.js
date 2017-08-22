@@ -3,6 +3,7 @@
 import Avatar from './avatar'
 import Box from './box'
 import React, {Component} from 'react'
+import {globalStyles} from '../styles'
 
 import type {Props as AvatarProps, AvatarSize} from './avatar'
 
@@ -11,6 +12,7 @@ export type Props = {
   singleSize: AvatarSize,
   multiSize: AvatarSize,
   style?: ?Object,
+  multiPadding?: number,
 }
 
 class MultiAvatar extends Component<Props> {
@@ -19,7 +21,7 @@ class MultiAvatar extends Component<Props> {
   }
 
   render() {
-    const {avatarProps, singleSize, multiSize, style} = this.props
+    const {avatarProps, singleSize, multiSize, style, multiPadding} = this.props
     if (avatarProps.length <= 0) {
       return null
     }
@@ -34,29 +36,42 @@ class MultiAvatar extends Component<Props> {
     const backgroundColor = (this.props.style &&
     this.props.style.backgroundColor && {backgroundColor: this.props.style.backgroundColor}) || {}
     if (avatarProps.length === 1) {
-      return <Avatar style={{...backgroundColor, ...rightProps.style}} {...rightProps} size={singleSize} />
+      return (
+        <Box style={singleStyle}>
+          <Avatar style={{...backgroundColor, ...rightProps.style}} {...rightProps} size={singleSize} />
+        </Box>
+      )
     }
 
     return (
-      <Box style={{...containerStyle, ...style}}>
-        <Avatar {...leftProps} style={{...leftAvatar, ...leftProps.style}} size={multiSize} />
-        <Box style={rightAvatarContainer}>
-          <Avatar {...rightProps} style={rightProps.style} size={multiSize} />
-        </Box>
+      <Box style={{height: '100%', position: 'relative', width: '100%', ...style}}>
+        <Avatar {...leftProps} style={{...leftAvatar(multiPadding), ...leftProps.style}} size={multiSize} />
+        <Avatar
+          {...rightProps}
+          style={{...rightAvatar(multiPadding), ...rightProps.style}}
+          size={multiSize}
+        />
       </Box>
     )
   }
 }
 
-const containerStyle = {
-  position: 'relative',
+const singleStyle = {
+  ...globalStyles.flexBoxCenter,
+  height: '100%',
+  width: '100%',
 }
 
-const leftAvatar = {}
+const leftAvatar = (offset = 0) => ({
+  left: 0,
+  position: 'absolute',
+  top: offset,
+})
 
-const rightAvatarContainer = {
-  marginLeft: 8,
-  marginTop: -16,
-}
+const rightAvatar = (offset = 0) => ({
+  bottom: offset,
+  position: 'absolute',
+  right: 0,
+})
 
 export default MultiAvatar

@@ -17,6 +17,9 @@ import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
   ConstantsStatusCode,
+  teamsTeamCreateRpcPromise,
+  teamsTeamAddMemberRpcPromise,
+  TeamsTeamRole,
 } from '../../constants/types/flow-types'
 import {call, put, all, take, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
@@ -96,8 +99,7 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
         // private one, which is what we were doing before this change.
         if (
           incomingMessage.conv &&
-          incomingMessage.conv.info &&
-          incomingMessage.conv.info.visibility !== ChatTypes.CommonTLFVisibility.private
+          incomingMessage.conv.visibility !== ChatTypes.CommonTLFVisibility.private
         ) {
           return
         }
@@ -106,7 +108,7 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
           yield call(Inbox.processConversation, incomingMessage.conv)
         }
 
-        const messageUnboxed: ChatTypes.MessageUnboxed = incomingMessage.message
+        const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
@@ -280,16 +282,41 @@ const _ensureValidSelectedChat = function*(onlyIfNoSelection: boolean, forceSele
 const _updateThread = function*({
   payload: {yourName, thread, yourDeviceName, conversationIDKey},
 }: Constants.UpdateThread) {
-  const newMessages = ((thread && thread.messages) || [])
-    .map(message => _unboxedToMessage(message, yourName, yourDeviceName, conversationIDKey))
-    .reverse()
+  let newMessages = []
+  const newUnboxeds = (thread && thread.messages) || []
+  for (const unboxed of newUnboxeds) {
+    const message = _unboxedToMessage(unboxed, yourName, yourDeviceName, conversationIDKey)
+    const messageFromYou =
+      message.deviceName === yourDeviceName && message.author && yourName === message.author
+
+    let pendingMessage
+    if ((message.type === 'Text' || message.type === 'Attachment') && messageFromYou && message.outboxID) {
+      pendingMessage = yield select(
+        Shared.pendingMessageOutboxIDSelector,
+        conversationIDKey,
+        message.outboxID
+      )
+    }
+
+    if (pendingMessage) {
+      // Delete the pre-existing pending version of this message, since we're
+      // about to add a newly received version of the same message.
+      yield put(Creators.removeOutboxMessage(conversationIDKey, message.outboxID))
+    }
+    newMessages.push(message)
+  }
+
+  newMessages = newMessages.reverse()
   const pagination = _threadToPagination(thread)
   yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
 }
 
 function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
   return function*({thread}) {
-    yield put(Creators.updateThread(thread, yourName, yourDeviceName, conversationIDKey))
+    if (thread) {
+      const decThread: ChatTypes.UIMessages = JSON.parse(thread)
+      yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey))
+    }
     return EngineRpc.rpcResult()
   }
 }
@@ -444,26 +471,25 @@ function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
 }
 
 function _unboxedToMessage(
-  message: ChatTypes.MessageUnboxed,
+  message: ChatTypes.UIMessage,
   yourName,
   yourDeviceName,
   conversationIDKey: Constants.ConversationIDKey
 ): Constants.Message {
-  if (message && message.state === ChatTypes.LocalMessageUnboxedState.outbox && message.outbox) {
+  if (message && message.state === ChatTypes.ChatUiMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
-    const payload: ChatTypes.OutboxRecord = message.outbox
+    const payload: ChatTypes.UIMessageOutbox = message.outbox
     const messageState: Constants.MessageState = payload &&
       payload.state &&
       payload.state.state === ChatTypes.LocalOutboxStateType.error
       ? 'failed'
       : 'pending'
-    const messageBody: ChatTypes.MessageBody = payload.Msg.messageBody
     const failureDescription = messageState === 'failed' // prettier-ignore $FlowIssue
       ? _decodeFailureDescription(payload.state.error.typ)
       : null
     // $FlowIssue
-    const messageText: ChatTypes.MessageText = messageBody.text
-    const outboxIDKey = Constants.outboxIDToKey(payload.outboxID)
+    const messageText: ChatTypes.MessageText = message.outbox.body
+    const outboxIDKey = payload.outboxID
 
     return {
       author: yourName,
@@ -483,7 +509,7 @@ function _unboxedToMessage(
     }
   }
 
-  if (message.state === ChatTypes.LocalMessageUnboxedState.valid) {
+  if (message.state === ChatTypes.ChatUiMessageUnboxedState.valid) {
     const payload = message.valid
     if (payload) {
       const common = {
@@ -492,16 +518,15 @@ function _unboxedToMessage(
         deviceName: payload.senderDeviceName,
         deviceType: toDeviceType(payload.senderDeviceType),
         failureDescription: null,
-        messageID: payload.serverHeader.messageID,
+        messageID: payload.messageID,
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
-        timestamp: payload.serverHeader.ctime,
+        timestamp: payload.ctime,
         you: yourName,
       }
 
       switch (payload.messageBody.messageType) {
         case ChatTypes.CommonMessageType.text:
-          const outboxID =
-            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.outboxID
           const p: any = payload
           const message = new HiddenString(
             (p.messageBody && p.messageBody.text && p.messageBody.text.body) || ''
@@ -510,15 +535,14 @@ function _unboxedToMessage(
           return {
             type: 'Text',
             ...common,
-            editedCount: payload.serverHeader.supersededBy ? 1 : 0, // mark it as edited if it's been superseded
+            editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
-          const outboxID =
-            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.outboxID
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
@@ -576,8 +600,8 @@ function _unboxedToMessage(
           const deletedIDs = (payload.messageBody.delete && payload.messageBody.delete.messageIDs) || []
           return {
             type: 'Deleted',
-            timestamp: payload.serverHeader.ctime,
-            messageID: payload.serverHeader.messageID,
+            timestamp: payload.ctime,
+            messageID: payload.messageID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDDeleted', common.messageID),
             deletedIDs,
           }
@@ -585,8 +609,7 @@ function _unboxedToMessage(
           const message = new HiddenString(
             (payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body) || ''
           )
-          const outboxID =
-            payload.clientHeader.outboxID && Constants.outboxIDToKey(payload.clientHeader.outboxID)
+          const outboxID = payload.outboxID
           const targetMessageID = payload.messageBody.edit ? payload.messageBody.edit.messageID : 0
           return {
             key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
@@ -631,7 +654,7 @@ function _unboxedToMessage(
     }
   }
 
-  if (message.state === ChatTypes.LocalMessageUnboxedState.error) {
+  if (message.state === ChatTypes.ChatUiMessageUnboxedState.error) {
     const error = message.error
     if (error) {
       switch (error.errType) {
@@ -910,7 +933,7 @@ const _sendNotifications = function*(action: Constants.AppendMessages): SagaGene
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
         console.log('Sending Chat notification')
-        const snippet = Constants.makeSnippet(Constants.serverMessageToMessageBody(message))
+        const snippet = Constants.makeSnippet(Constants.serverMessageToMessageText(message))
         yield put((dispatch: Dispatch) => {
           NotifyPopup(message.author, {body: snippet}, -1, message.author, () => {
             dispatch(Creators.selectConversation(action.payload.conversationIDKey, false))
@@ -999,7 +1022,6 @@ const _updateTempSearchConversation = function*(
     const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
     actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
     actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
-    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
   } else if (action.type === 'chat:unstageUserForSearch') {
     const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
     if (!nextTempSearchConv.isEmpty()) {
@@ -1009,7 +1031,6 @@ const _updateTempSearchConversation = function*(
     }
 
     actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
-    actionsToPut.push(put(Creators.setInboxFilter(nextTempSearchConv.toArray())))
   }
 
   // Always clear the search results when you select/unselect
@@ -1021,10 +1042,34 @@ const _exitSearch = function*() {
   const inboxSearch = yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
-  yield put(Creators.setInboxFilter([]))
   yield put(Creators.removeTempPendingConversations())
   if (inboxSearch.count() === 0) {
-    yield put(Creators.selectConversation((yield select(previousConversationSelector)), false))
+    yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
+  }
+}
+
+const _createNewTeam = function*(action: Constants.CreateNewTeam) {
+  const {payload: {conversationIDKey, name}} = action
+  const me = yield select(usernameSelector)
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  if (inbox) {
+    yield call(teamsTeamCreateRpcPromise, {
+      param: {name: {parts: [name]}},
+    })
+    const participants = inbox.get('participants').toArray()
+    for (const username of participants) {
+      if (username !== me) {
+        yield call(teamsTeamAddMemberRpcPromise, {
+          param: {
+            email: '',
+            name,
+            role: TeamsTeamRole.writer,
+            sendChatNotification: true,
+            username,
+          },
+        })
+      }
+    }
   }
 }
 
@@ -1032,6 +1077,7 @@ const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)

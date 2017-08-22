@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
+import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 import type {NotificationsSettingsState} from '../../constants/settings'
@@ -104,15 +104,6 @@ const Notifications = (props: Props) =>
             settings={props.groups.security.settings}
             unsubscribedFromAll={false}
           />}
-
-        <Button
-          style={{alignSelf: 'center', marginTop: globalMargins.small}}
-          type="Primary"
-          label="Save"
-          disabled={!props.allowSave || !props.allowEdit}
-          onClick={props.onSave}
-          waiting={props.waitingForResponse}
-        />
       </Box>
 
 export default Notifications

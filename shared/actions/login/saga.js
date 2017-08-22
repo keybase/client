@@ -58,9 +58,12 @@ const makeWaitingHandler = (dispatch: Dispatch): {waitingHandler: (waiting: bool
 
 const getAccounts = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
-    Types.loginGetConfiguredAccountsRpc({
-      ...makeWaitingHandler(dispatch),
-      callback: (error, accounts) => {
+    Types.loginGetConfiguredAccountsRpcPromise({...makeWaitingHandler(dispatch)})
+      .then(accounts => {
+        dispatch({payload: {accounts}, type: Constants.configuredAccounts})
+        resolve()
+      })
+      .catch(error => {
         if (error) {
           dispatch({
             error: true,
@@ -68,12 +71,8 @@ const getAccounts = (): AsyncAction => dispatch =>
             type: Constants.configuredAccounts,
           })
           reject(error)
-          return
         }
-        dispatch({payload: {accounts}, type: Constants.configuredAccounts})
-        resolve()
-      },
-    })
+      })
   })
 
 const setCodePageOtherDeviceRole = function*(otherDeviceRole: DeviceRole) {

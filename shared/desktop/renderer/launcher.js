@@ -7,7 +7,7 @@ import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
 import reactDOM from 'react-dom'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
+import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {makeEngine} from '../../engine'
 import {remote} from 'electron'
@@ -26,8 +26,8 @@ if (module.hot) {
 let _store
 
 function setupAvatar() {
-  initAvatarLookup(getUserImageMap)
-  initAvatarLoad(loadUserImageMap)
+  initAvatarLookup(getUserImageMap, getTeamImageMap)
+  initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 }
 
 class RemoteMenubar extends Component<{}> {

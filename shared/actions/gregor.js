@@ -4,9 +4,9 @@ import * as Constants from '../constants/gregor'
 import engine from '../engine'
 import {all, call, put, select} from 'redux-saga/effects'
 import {
-  delegateUiCtlRegisterGregorFirehoseRpc,
+  delegateUiCtlRegisterGregorFirehoseRpcPromise,
   reachabilityCheckReachabilityRpcPromise,
-  reachabilityStartReachabilityRpc,
+  reachabilityStartReachabilityRpcPromise,
   ReachabilityReachable,
 } from '../constants/types/flow-types'
 import {favoriteList, markTLFCreated} from './favorite'
@@ -110,29 +110,25 @@ function checkReachabilityOnConnect() {
     // via reachabilityChanged.
     // This should be run on app start and service re-connect in case the
     // service somehow crashed or was restarted manually.
-    reachabilityStartReachabilityRpc({
-      callback: (err, reachability) => {
-        if (err) {
-          console.warn('error bootstrapping reachability: ', err)
-          return
-        }
+    reachabilityStartReachabilityRpcPromise()
+      .then(reachability => {
         dispatch(updateReachability(reachability))
-      },
-    })
+      })
+      .catch(err => {
+        console.warn('error bootstrapping reachability: ', err)
+      })
   }
 }
 
 function registerGregorListeners() {
   return (dispatch: Dispatch) => {
-    delegateUiCtlRegisterGregorFirehoseRpc({
-      callback: (error, response) => {
-        if (error != null) {
-          console.warn('error in registering gregor listener: ', error)
-        } else {
-          console.log('Registered gregor listener')
-        }
-      },
-    })
+    delegateUiCtlRegisterGregorFirehoseRpcPromise()
+      .then(response => {
+        console.log('Registered gregor listener')
+      })
+      .catch(error => {
+        console.warn('error in registering gregor listener: ', error)
+      })
 
     // we get this with sessionID == 0 if we call openDialog
     engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {

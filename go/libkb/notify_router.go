@@ -49,7 +49,7 @@ type NotifyListener interface {
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
-	ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal)
+	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
@@ -534,7 +534,7 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	n.G().Log.CDebugf(ctx, "- Sent ChatIdentifyUpdate notification")
 }
 
-func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.ConversationLocal) {
+func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem) {
 	if n == nil {
 		return
 	}
@@ -673,7 +673,7 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 }
 
 func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,
-	conv chat1.ConversationLocal) {
+	conv chat1.InboxUIItem) {
 	if n == nil {
 		return
 	}

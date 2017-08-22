@@ -13,6 +13,7 @@ const (
 	PromptDescriptorReregister
 	PromptDescriptorInviteOK
 	PromptDescriptorPGPGenPushSecret
+	PromptDescriptorPGPGenEncryptSecret
 	PromptDescriptorDoctorWhichAccount
 	PromptDescriptorDoctorSignOK
 	PromptDescriptorGPGOKToAdd

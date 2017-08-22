@@ -324,6 +324,10 @@
           "name": "name"
         },
         {
+          "type": "boolean",
+          "name": "implicit"
+        },
+        {
           "type": "TeamApplication",
           "name": "application"
         },
@@ -516,6 +520,10 @@
         {
           "type": "TeamID",
           "name": "id"
+        },
+        {
+          "type": "boolean",
+          "name": "implicit"
         },
         {
           "type": "TeamName",
@@ -1003,6 +1011,66 @@
           "name": "admin"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamUserSet",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "keybaseUsers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SocialAssertion"
+          },
+          "name": "unresolvedUsers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamName",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPrivate"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "writers"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "readers"
+        },
+        {
+          "type": [
+            null,
+            "ImplicitTeamConflictInfo"
+          ],
+          "name": "conflictInfo"
+        }
+      ],
+      "doc": "* iTeams"
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamConflictInfo",
+      "fields": [
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "Time",
+          "name": "time"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1264,6 +1332,32 @@
         }
       ],
       "response": null
+    },
+    "lookupImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamID"
+    },
+    "lookupOrCreateImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamID"
     },
     "loadTeamPlusApplicationKeys": {
       "request": [

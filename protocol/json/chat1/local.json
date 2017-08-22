@@ -813,16 +813,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "MessageUnboxedState",
-      "symbols": [
-        "VALID_1",
-        "ERROR_2",
-        "OUTBOX_3",
-        "PLACEHOLDER_4"
-      ]
-    },
-    {
       "type": "record",
       "name": "MessageUnboxedValid",
       "fields": [
@@ -2103,10 +2093,6 @@
           "type": "ConversationID"
         },
         {
-          "name": "conv",
-          "type": "ConversationIDTriple"
-        },
-        {
           "name": "tlfName",
           "type": "string"
         },
@@ -2143,10 +2129,6 @@
           "type": "ConversationID"
         },
         {
-          "name": "conv",
-          "type": "ConversationIDTriple"
-        },
-        {
           "name": "tlfName",
           "type": "string"
         },
@@ -2181,10 +2163,6 @@
         {
           "name": "conversationID",
           "type": "ConversationID"
-        },
-        {
-          "name": "conv",
-          "type": "ConversationIDTriple"
         },
         {
           "name": "tlfName",
@@ -2324,8 +2302,12 @@
           "type": "ConversationID"
         },
         {
-          "name": "clientHeader",
-          "type": "MessageClientHeader"
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "visibility",
+          "type": "TLFVisibility"
         },
         {
           "name": "attachment",
@@ -2364,8 +2346,12 @@
           "type": "ConversationID"
         },
         {
-          "name": "clientHeader",
-          "type": "MessageClientHeader"
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "visibility",
+          "type": "TLFVisibility"
         },
         {
           "name": "attachment",

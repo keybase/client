@@ -112,7 +112,7 @@ table {
 html {
     box-sizing: border-box;
     cursor: default;
-    -webkit-user-select: none;
+    user-select: none;
 }
 
 *, *:before, *:after {

@@ -9,7 +9,7 @@ import (
 )
 
 type Offlinable interface {
-	IsOffline() bool
+	IsOffline(ctx context.Context) bool
 	Connected(ctx context.Context)
 	Disconnected(ctx context.Context)
 }

@@ -193,6 +193,18 @@ func NewTeamDoesNotExistError(descriptor string) error {
 	return TeamDoesNotExistError{descriptor}
 }
 
+type ImplicitTeamOperationError struct {
+	msg string
+}
+
+func (e ImplicitTeamOperationError) Error() string {
+	return fmt.Sprintf("Implicit team operation not allowed: %v", e.msg)
+}
+
+func NewImplicitTeamOperationError(format string, args ...interface{}) error {
+	return &ImplicitTeamOperationError{msg: fmt.Sprintf(format, args...)}
+}
+
 func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n string) error {
 	if e == nil {
 		return nil
@@ -215,4 +227,25 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n s
 		return NewTeamDoesNotExistError(n)
 	}
 	return e
+}
+
+type KeyMaskNotFoundError struct {
+	app keybase1.TeamApplication
+	gen keybase1.PerTeamKeyGeneration
+}
+
+func (e KeyMaskNotFoundError) Error() string {
+	msg := fmt.Sprintf("You don't have access to %s for this team", e.app)
+	if e.gen != keybase1.PerTeamKeyGeneration(0) {
+		msg += fmt.Sprintf(" (at generation %d)", int(e.gen))
+	}
+	return msg
+}
+
+func NewKeyMaskNotFoundErrorForApplication(a keybase1.TeamApplication) KeyMaskNotFoundError {
+	return KeyMaskNotFoundError{app: a}
+}
+
+func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplication, g keybase1.PerTeamKeyGeneration) KeyMaskNotFoundError {
+	return KeyMaskNotFoundError{app: a, gen: g}
 }

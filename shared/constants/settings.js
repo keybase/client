@@ -32,7 +32,6 @@ export type NotificationsGroupState = {
 }
 
 export type NotificationsState = {
-  allowSave: boolean,
   allowEdit: boolean,
   groups: {
     email?: NotificationsGroupState,
@@ -93,8 +92,6 @@ export type NotificationsRefresh = NoErrorTypedAction<'settings:notificationsRef
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export type NotificationsRefreshed = NoErrorTypedAction<'settings:notificationsRefreshed', NotificationsState>
 
-export const notificationsSave = 'settings:notificationsSave'
-export type NotificationsSave = NoErrorTypedAction<'settings:notificationsSave', void>
 export const notificationsSaved = 'settings:notificationsSaved'
 export type NotificationsSaved = NoErrorTypedAction<'settings:notificationsSaved', void>
 
@@ -193,7 +190,6 @@ export type Actions =
   | InvitesRefresh
   | NotificationsRefresh
   | NotificationsRefreshed
-  | NotificationsSave
   | NotificationsSaved
   | NotificationsToggle
   | SetAllowDeleteAccount

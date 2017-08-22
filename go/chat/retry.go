@@ -336,7 +336,7 @@ func (f *FetchRetrier) Disconnected(ctx context.Context) {
 }
 
 // IsOffline returns if the module thinks we are connected to the chat server.
-func (f *FetchRetrier) IsOffline() bool {
+func (f *FetchRetrier) IsOffline(ctx context.Context) bool {
 	f.Lock()
 	defer f.Unlock()
 	return f.offline

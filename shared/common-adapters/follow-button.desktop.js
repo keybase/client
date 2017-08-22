@@ -17,7 +17,7 @@ class FollowButton extends Component<Props, State> {
   }
 
   render() {
-    const {following, onFollow, onUnfollow, style, ...otherProps} = this.props
+    const {following, onFollow, onUnfollow, style, waiting, ...otherProps} = this.props
 
     if (following) {
       return (
@@ -25,6 +25,7 @@ class FollowButton extends Component<Props, State> {
           type={this.state.mouseOver ? 'Unfollow' : 'Following'}
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
+          waiting={waiting}
           onMouseEnter={() => this.setState({mouseOver: true})}
           onMouseLeave={() => this.setState({mouseOver: false})}
           style={{...styleButton, ...style}}
@@ -37,6 +38,7 @@ class FollowButton extends Component<Props, State> {
           type="Follow"
           label="Follow"
           onClick={onFollow}
+          waiting={waiting}
           style={{...styleButton, ...style}}
           {...otherProps}
         />

@@ -122,42 +122,23 @@ const onInboxStale = function*(): SagaGenerator<any, any> {
     }
     incoming['chat.1.chatUi.chatInboxUnverified'].response.result()
 
-    const inbox: ChatTypes.GetInboxLocalRes = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
+    const jsonInbox: string = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
+    const inbox: ChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
     const conversations: List<Constants.InboxState> = List(
-      (inbox.conversationsUnverified || [])
+      (inbox.items || [])
         .map(c => {
-          if (c.metadata.visibility !== ChatTypes.CommonTLFVisibility.private) {
-            // private chats only
-            return null
-          }
-
-          const msgMax = c.maxMsgSummaries && c.maxMsgSummaries.length && c.maxMsgSummaries[0]
-          if (!msgMax || msgMax.tlfName.includes('#')) {
-            // We don't support mixed reader/writers
-            return null
-          }
-
-          const times = (c.maxMsgSummaries || [])
-            .filter(m =>
-              [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(
-                m.messageType
-              )
-            )
-            .map((message: {ctime: number}) => message.ctime)
-            .sort()
-          const time = times && times.length > 0 && times[times.length - 1]
-
           return new Constants.InboxStateRecord({
-            conversationIDKey: Constants.conversationIDToKey(c.metadata.conversationID),
+            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? ' ' : undefined,
+            conversationIDKey: c.convID,
             info: null,
-            participants: List(parseFolderNameToUsers(author, msgMax.tlfName).map(ul => ul.username)),
-            snippet: ' ',
-            state: 'untrusted',
-            status: Constants.ConversationStatusByEnum[c.metadata.status || 0],
-            time,
+            membersType: c.membersType,
+            participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
+            status: Constants.ConversationStatusByEnum[c.status || 0],
+            teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+            time: c.time,
           })
         })
         .filter(Boolean)
@@ -165,6 +146,12 @@ const onInboxStale = function*(): SagaGenerator<any, any> {
 
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
+
+    // Unbox teams so we can get their names
+    yield call(
+      unboxConversations,
+      conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
+    )
 
     const {
       initialConversation,
@@ -207,8 +194,8 @@ function _toSupersedeInfo(
 }
 
 // Update an inbox item
-const processConversation = function*(c: ChatTypes.ConversationLocal): SagaGenerator<any, any> {
-  const conversationIDKey = Constants.conversationIDToKey(c.info.id)
+const processConversation = function*(c: ChatTypes.InboxUIItem): SagaGenerator<any, any> {
+  const conversationIDKey = c.convID
 
   const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
   if (supersedes) {
@@ -220,8 +207,8 @@ const processConversation = function*(c: ChatTypes.ConversationLocal): SagaGener
     yield put(Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy})))
   }
 
-  if (c.info.finalizeInfo) {
-    yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.info.finalizeInfo})))
+  if (c.finalizeInfo) {
+    yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.finalizeInfo})))
   }
 
   const inboxState = _conversationLocalToInboxState(c)
@@ -376,52 +363,39 @@ const unboxConversations = function*(
 }
 
 // Convert server to our data type. Make timestamps and snippets
-function _conversationLocalToInboxState(c: ?ChatTypes.ConversationLocal): ?Constants.InboxState {
+function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.InboxState {
   if (
     !c ||
-    c.info.visibility !== ChatTypes.CommonTLFVisibility.private || // private chats only
-    c.info.tlfName.includes('#') // We don't support mixed reader/writers
+    c.visibility !== ChatTypes.CommonTLFVisibility.private || // private chats only
+    c.name.includes('#') // We don't support mixed reader/writers
   ) {
     return null
   }
 
-  const conversationIDKey = Constants.conversationIDToKey(c.info.id)
+  const conversationIDKey = c.convID
 
-  const validMaxMsgs = List(c.maxMessages || [])
-    .filter(m => m.valid && m.state === ChatTypes.LocalMessageUnboxedState.valid)
-    .map((m: any) => ({body: m.valid.messageBody, time: m.valid.serverHeader.ctime}))
-  const toShow = validMaxMsgs
-    .filter(m =>
-      [ChatTypes.CommonMessageType.attachment, ChatTypes.CommonMessageType.text].includes(m.body.messageType)
-    )
-    .sort((a, b) => b.time - a.time)
-    .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
-      snippet: Constants.makeSnippet(message.body),
-      time: message.time,
-    }))
-    .first() || {}
+  let parts = List(c.participants || [])
+  let teamname = null
+  let channelname = null
 
-  // Temporary hack to make team convos easier to parse in inbox view
-  let parts = List(c.info.writerNames || [])
-  if (c.info.membersType === ChatTypes.CommonConversationMembersType.team) {
-    const topicName = validMaxMsgs
-      .filter(m => [ChatTypes.CommonMessageType.metadata].includes(m.body && m.body.messageType))
-      .map((message: {time: number, body: ?ChatTypes.MessageBody}) => ({
-        title: Constants.makeTeamTitle(message.body) || '<none>',
-      }))
-      .first() || {}
-    parts = List([`${topicName.title} ${c.info.tlfName}`])
+  if (c.membersType === ChatTypes.CommonConversationMembersType.team) {
+    teamname = c.name
+    channelname = c.channel
   }
 
   return new Constants.InboxStateRecord({
+    channelname,
     conversationIDKey,
-    info: c.info,
     isEmpty: c.isEmpty,
-    participants: parts || [],
-    snippet: toShow.snippet,
+    membersType: c.membersType,
+    name: c.name,
+    participants: parts,
+    snippet: Constants.makeSnippet(c.snippet),
     state: 'unboxed',
-    status: Constants.ConversationStatusByEnum[c.info ? c.info.status : 0],
-    time: toShow.time || c.readerInfo.mtime,
+    status: Constants.ConversationStatusByEnum[c.status],
+    teamname,
+    time: c.time,
+    visibility: c.visibility,
   })
 }
 

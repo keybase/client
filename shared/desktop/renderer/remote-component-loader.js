@@ -12,7 +12,7 @@ import purgeMessage from '../../pgp/container.desktop'
 import tracker from '../../tracker'
 import unlockFolders from '../../unlock-folders'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
+import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {remote, ipcRenderer} from 'electron'
@@ -24,8 +24,8 @@ disableDragDrop()
 makeEngine()
 
 function setupAvatar() {
-  initAvatarLookup(getUserImageMap)
-  initAvatarLoad(loadUserImageMap)
+  initAvatarLookup(getUserImageMap, getTeamImageMap)
+  initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 }
 
 module.hot && module.hot.accept()

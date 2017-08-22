@@ -55,11 +55,11 @@ func (e ChatActivityType) String() string {
 }
 
 type IncomingMessage struct {
-	Message                    MessageUnboxed     `codec:"message" json:"message"`
-	ConvID                     ConversationID     `codec:"convID" json:"convID"`
-	DisplayDesktopNotification bool               `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
-	Conv                       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
-	Pagination                 *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Message                    UIMessage      `codec:"message" json:"message"`
+	ConvID                     ConversationID `codec:"convID" json:"convID"`
+	DisplayDesktopNotification bool           `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
+	Conv                       *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+	Pagination                 *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o IncomingMessage) DeepCopy() IncomingMessage {
@@ -67,7 +67,7 @@ func (o IncomingMessage) DeepCopy() IncomingMessage {
 		Message: o.Message.DeepCopy(),
 		ConvID:  o.ConvID.DeepCopy(),
 		DisplayDesktopNotification: o.DisplayDesktopNotification,
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
@@ -85,16 +85,16 @@ func (o IncomingMessage) DeepCopy() IncomingMessage {
 }
 
 type ReadMessageInfo struct {
-	ConvID ConversationID     `codec:"convID" json:"convID"`
-	MsgID  MessageID          `codec:"msgID" json:"msgID"`
-	Conv   *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o ReadMessageInfo) DeepCopy() ReadMessageInfo {
 	return ReadMessageInfo{
 		ConvID: o.ConvID.DeepCopy(),
 		MsgID:  o.MsgID.DeepCopy(),
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
@@ -105,7 +105,7 @@ func (o ReadMessageInfo) DeepCopy() ReadMessageInfo {
 }
 
 type NewConversationInfo struct {
-	Conv ConversationLocal `codec:"conv" json:"conv"`
+	Conv InboxUIItem `codec:"conv" json:"conv"`
 }
 
 func (o NewConversationInfo) DeepCopy() NewConversationInfo {
@@ -117,14 +117,14 @@ func (o NewConversationInfo) DeepCopy() NewConversationInfo {
 type SetStatusInfo struct {
 	ConvID ConversationID     `codec:"convID" json:"convID"`
 	Status ConversationStatus `codec:"status" json:"status"`
-	Conv   *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	Conv   *InboxUIItem       `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o SetStatusInfo) DeepCopy() SetStatusInfo {
 	return SetStatusInfo{
 		ConvID: o.ConvID.DeepCopy(),
 		Status: o.Status.DeepCopy(),
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
@@ -504,7 +504,7 @@ type ChatTLFFinalizeArg struct {
 	Uid          keybase1.UID             `codec:"uid" json:"uid"`
 	ConvID       ConversationID           `codec:"convID" json:"convID"`
 	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
-	Conv         *ConversationLocal       `codec:"conv,omitempty" json:"conv,omitempty"`
+	Conv         *InboxUIItem             `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o ChatTLFFinalizeArg) DeepCopy() ChatTLFFinalizeArg {
@@ -512,7 +512,7 @@ func (o ChatTLFFinalizeArg) DeepCopy() ChatTLFFinalizeArg {
 		Uid:          o.Uid.DeepCopy(),
 		ConvID:       o.ConvID.DeepCopy(),
 		FinalizeInfo: o.FinalizeInfo.DeepCopy(),
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
@@ -583,8 +583,8 @@ func (o ChatTypingUpdateArg) DeepCopy() ChatTypingUpdateArg {
 }
 
 type ChatJoinedConversationArg struct {
-	Uid  keybase1.UID      `codec:"uid" json:"uid"`
-	Conv ConversationLocal `codec:"conv" json:"conv"`
+	Uid  keybase1.UID `codec:"uid" json:"uid"`
+	Conv InboxUIItem  `codec:"conv" json:"conv"`
 }
 
 func (o ChatJoinedConversationArg) DeepCopy() ChatJoinedConversationArg {

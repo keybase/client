@@ -36,7 +36,7 @@ const _onMobileAppStateChanged = function*(action: Constants.MobileAppState): Sa
       background: Types.AppStateAppState.background,
     }[nextAppState] || Types.AppStateAppState.foreground
 
-  yield call(Types.appStateUpdateAppStateRpc, {param: {state}})
+  yield call(Types.appStateUpdateAppStateRpcPromise, {param: {state}})
 }
 
 const appStateSaga = function*(): SagaGenerator<any, any> {

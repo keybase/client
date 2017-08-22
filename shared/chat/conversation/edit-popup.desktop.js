@@ -63,7 +63,8 @@ class EditPopup extends Component<Props> {
             rowsMax={5}
             onEnterKeyDown={e => {
               e.preventDefault()
-              onSubmit(e.target.textContent)
+              const target = (e.target: any)
+              onSubmit(target.textContent)
               onClose()
             }}
             style={{

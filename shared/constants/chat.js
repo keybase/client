@@ -20,6 +20,7 @@ import type {
   AssetMetadata,
   ChatActivity,
   ConversationInfoLocal,
+  ConversationMembersType,
   ConversationFinalizeInfo,
   MessageBody,
   MessageID as RPCMessageID,
@@ -277,18 +278,26 @@ export const InboxStateRecord = Record({
   conversationIDKey: '',
   info: null,
   isEmpty: false,
+  teamname: null,
+  channelname: null,
+  membersType: 0,
   participants: List(),
   snippet: '',
   snippetKey: null,
   state: 'untrusted',
   status: 'unfiled',
   time: 0,
+  name: '',
+  visibility: ChatTypes.CommonTLFVisibility.private,
 })
 
 export type InboxState = KBRecord<{
   conversationIDKey: ConversationIDKey,
   info: ConversationInfoLocal,
   isEmpty: boolean,
+  teamname: ?string,
+  channelname: ?string,
+  membersType: ConversationMembersType,
   participants: List<string>,
   snippet: string,
   snippetKey: any,
@@ -363,7 +372,7 @@ export const StateRecord: KBRecord<T> = Record({
   messageMap: Map(),
   localMessageStates: Map(),
   inbox: List(),
-  inboxFilter: List(),
+  inboxFilter: '',
   inboxSearch: List(),
   conversationStates: Map(),
   metaData: Map(),
@@ -395,7 +404,7 @@ export type State = KBRecord<{
   messageMap: Map<MessageKey, Message>,
   localMessageStates: Map<MessageKey, LocalMessageState>,
   inbox: List<InboxState>,
-  inboxFilter: List<string>,
+  inboxFilter: string,
   inboxSearch: List<string>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
@@ -528,7 +537,7 @@ export type SelectConversation = NoErrorTypedAction<
   'chat:selectConversation',
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
-export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: Array<string>}>
+export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: string}>
 export type SetInboxSearch = NoErrorTypedAction<'chat:inboxSearch', {search: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
   'chat:inboxUntrustedState',
@@ -665,6 +674,15 @@ export type SaveAttachment = NoErrorTypedAction<
     messageKey: MessageKey,
   }
 >
+
+export type CreateNewTeam = NoErrorTypedAction<
+  'chat:createNewTeam',
+  {
+    conversationIDKey: ConversationIDKey,
+    name: string,
+  }
+>
+
 export type AttachmentSaveStart = NoErrorTypedAction<
   'chat:attachmentSaveStart',
   {
@@ -745,7 +763,7 @@ export type ShareAttachment = NoErrorTypedAction<
 export type UpdateThread = NoErrorTypedAction<
   'chat:updateThread',
   {
-    thread: ChatTypes.ThreadView,
+    thread: ChatTypes.UIMessages,
     yourName: string,
     yourDeviceName: string,
     conversationIDKey: string,
@@ -758,6 +776,7 @@ export type Actions =
   | AddPendingConversation
   | AppendMessages
   | ClearRekey
+  | CreateNewTeam
   | DeleteMessage
   | EditMessage
   | ShowEditor
@@ -802,18 +821,8 @@ function keyToOutboxID(key: OutboxIDKey): OutboxID {
   return Buffer.from(key, 'hex')
 }
 
-function makeSnippet(messageBody: ?MessageBody): ?string {
-  if (!messageBody) {
-    return null
-  }
-  switch (messageBody.messageType) {
-    case ChatTypes.CommonMessageType.text:
-      return textSnippet(messageBody.text && messageBody.text.body, 100)
-    case ChatTypes.CommonMessageType.attachment:
-      return messageBody.attachment ? textSnippet(messageBody.attachment.object.title, 100) : 'Attachment'
-    default:
-      return null
-  }
+function makeSnippet(messageBody: ?string): ?string {
+  return textSnippet(messageBody || '', 100)
 }
 
 function makeTeamTitle(messageBody: ?MessageBody): ?string {
@@ -843,15 +852,10 @@ function participantFilter(participants: List<string>, you: string): List<string
   return withoutYou
 }
 
-function serverMessageToMessageBody(message: ServerMessage): ?MessageBody {
+function serverMessageToMessageText(message: ServerMessage): ?string {
   switch (message.type) {
     case 'Text':
-      return {
-        messageType: ChatTypes.CommonMessageType.text,
-        text: {
-          body: message.message.stringValue(),
-        },
-      }
+      return message.message.stringValue()
     default:
       return null
   }
@@ -1142,7 +1146,7 @@ export {
   splitMessageIDKey,
   outboxIDToKey,
   participantFilter,
-  serverMessageToMessageBody,
+  serverMessageToMessageText,
   usernamesToUserListItem,
   clampAttachmentPreviewSize,
   newestConversationIDKey,

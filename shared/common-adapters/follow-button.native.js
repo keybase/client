@@ -5,12 +5,30 @@ import Button from './button'
 
 class FollowButton extends Component<Props> {
   render() {
-    const {following, onFollow, onUnfollow, style, ...otherProps} = this.props
+    const {following, onFollow, onUnfollow, style, waiting, ...otherProps} = this.props
 
     if (following) {
-      return <Button type="Following" label="Following" onClick={onUnfollow} style={style} {...otherProps} />
+      return (
+        <Button
+          type="Following"
+          label="Following"
+          onClick={onUnfollow}
+          style={style}
+          waiting={waiting}
+          {...otherProps}
+        />
+      )
     } else {
-      return <Button type="Follow" label="Follow" onClick={onFollow} style={style} {...otherProps} />
+      return (
+        <Button
+          type="Follow"
+          label="Follow"
+          onClick={onFollow}
+          style={style}
+          waiting={waiting}
+          {...otherProps}
+        />
+      )
     }
   }
 }

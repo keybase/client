@@ -1454,6 +1454,14 @@ func (u UserVersion) Eq(v UserVersion) bool {
 	return u.Uid.Equal(v.Uid) && u.EldestSeqno.Eq(v.EldestSeqno)
 }
 
+type ByUserVersionID []UserVersion
+
+func (b ByUserVersionID) Len() int      { return len(b) }
+func (b ByUserVersionID) Swap(i, j int) { b[i], b[j] = b[j], b[i] }
+func (b ByUserVersionID) Less(i, j int) bool {
+	return b[i].String() < b[j].String()
+}
+
 func (k CryptKey) Material() Bytes32 {
 	return k.Key
 }
@@ -1518,23 +1526,41 @@ func (t TeamName) IsNil() bool {
 
 // underscores allowed, just not first or doubled
 var namePartRxx = regexp.MustCompile(`([a-zA-Z0-9][a-zA-Z0-9_]?)+`)
+var implicitRxxString = fmt.Sprintf("^%s[0-9a-f]{%d}$", ImplicitTeamPrefix, ImplicitSuffixLengthBytes*2)
+var implicitNameRxx = regexp.MustCompile(implicitRxxString)
 
-func TeamNameFromString(s string) (ret TeamName, err error) {
+const ImplicitTeamPrefix = "__keybase_implicit_team__"
+const ImplicitSuffixLengthBytes = 16
+
+func TeamNameFromString(s string) (TeamName, error) {
+	ret := TeamName{}
+	var regularErr error
+
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 {
 		return ret, errors.New("need >= 1 part, got 0")
 	}
+
+	if len(parts) == 1 && implicitNameRxx.MatchString(s) {
+		return TeamName{Parts: []TeamNamePart{TeamNamePart(strings.ToLower(s))}}, nil
+	}
+
 	tmp := make([]TeamNamePart, len(parts))
 	for i, part := range parts {
 		if !(len(part) >= 2 && len(part) <= 16) {
-			return ret, errors.New("team names must be between 2 and 16 characters long")
+			regularErr = errors.New("team names must be between 2 and 16 characters long")
+			break
 		}
 		if !namePartRxx.MatchString(part) {
-			return ret, fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+			regularErr = fmt.Errorf("Bad name component: %s (at pos %d)", part, i)
+			break
 		}
 		tmp[i] = TeamNamePart(strings.ToLower(part))
 	}
-	return TeamName{Parts: tmp}, nil
+	if regularErr == nil {
+		return TeamName{Parts: tmp}, nil
+	}
+	return ret, fmt.Errorf("Could not parse name as team name: %v", regularErr)
 }
 
 func (t TeamName) String() string {
@@ -1609,6 +1635,10 @@ func (t TeamName) SwapLastPart(newLast string) (TeamName, error) {
 	return parent.Append(newLast)
 }
 
+func (t TeamName) IsImplicit() bool {
+	return strings.HasPrefix(t.String(), ImplicitTeamPrefix)
+}
+
 // The number of parts in a team name.
 // Root teams have 1.
 func (t TeamName) Depth() int {
@@ -1631,6 +1661,13 @@ func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 		Uid:         u.Uid,
 		EldestSeqno: u.EldestSeqno,
 	}
+}
+
+func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
+	if len(u.PerUserKeys) > 0 {
+		return &u.PerUserKeys[len(u.PerUserKeys)-1]
+	}
+	return nil
 }
 
 func (s PerTeamKeySeed) ToBytes() []byte { return s[:] }
@@ -1736,4 +1773,8 @@ func (t TeamInviteType) String() (string, error) {
 
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
+}
+
+func (i ImplicitTeamUserSet) NumTotalUsers() int {
+	return len(i.KeybaseUsers) + len(i.UnresolvedUsers)
 }

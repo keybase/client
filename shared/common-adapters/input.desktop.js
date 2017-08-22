@@ -122,7 +122,7 @@ class Input extends Component<Props, State> {
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.onKeyDown) {
-      this.props.onKeyDown(e)
+      this.props.onKeyDown(e, this._isComposingIME)
     }
 
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
@@ -132,6 +132,7 @@ class Input extends Component<Props, State> {
 
   _onFocus = () => {
     this.setState({focused: true})
+    this.props.onFocus && this.props.onFocus()
   }
 
   _onBlur = () => {

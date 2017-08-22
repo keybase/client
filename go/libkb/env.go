@@ -1091,6 +1091,7 @@ type AppConfig struct {
 	Debug                       bool
 	LocalRPCDebug               string
 	ServerURI                   string
+	VDebugSetting               string
 	SecurityAccessGroupOverride bool
 }
 
@@ -1126,6 +1127,10 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 
 func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
+}
+
+func (c AppConfig) GetVDebugSetting() string {
+	return c.VDebugSetting
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {
