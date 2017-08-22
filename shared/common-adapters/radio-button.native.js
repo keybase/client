@@ -32,7 +32,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
           style={{...styleIcon, borderColor: selected ? globalColors.blue : globalColors.white}}
         />
       </ClickableBox>
-      <Text type="Body" small={true} style={{color: globalColors.black_75}}>{label}</Text>
+      <Text type="Body" style={{color: globalColors.black_75}}>{label}</Text>
     </ClickableBox>
   )
 }

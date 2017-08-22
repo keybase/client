@@ -71,7 +71,7 @@ class Checkbox extends Component<Props, State> {
           <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
             <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
           </NativeAnimated.View>
-          <Text type="Body" small={true} style={styleText}>{this.props.label}</Text>
+          <Text type="Body" style={styleText}>{this.props.label}</Text>
         </Box>
       </NativeTouchableWithoutFeedback>
     )
