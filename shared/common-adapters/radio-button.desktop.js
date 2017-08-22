@@ -21,9 +21,9 @@ class RadioButton extends React.Component<void, Props, {hovered: boolean}> {
 
     const boxStyle = {
       ...transition('background'),
+      backgroundColor: this.props.selected ? globalColors.blue : 'inherit',
       border: `solid 1px ${borderColor}`,
       borderRadius: 100,
-      backgroundColor: this.props.selected ? globalColors.blue : 'inherit',
       height: RADIOBUTTON_SIZE,
       marginRight: RADIOBUTTON_MARGIN,
       opacity: this.props.disabled ? 0.4 : 1,

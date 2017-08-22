@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 
 export type Props = {
   label: string,
-  onSelect: (newCheckedValue: boolean) => void,
+  onSelect: (selected: boolean) => void,
   selected: boolean,
   style?: Object,
   disabled?: boolean,
