@@ -3,6 +3,7 @@ import {Component} from 'react'
 import {List} from 'immutable'
 
 export type Props = {
+  channelname: ?string,
   muted: boolean,
   onAddParticipant: () => void,
   onMuteConversation: (muted: boolean) => void,
@@ -16,6 +17,7 @@ export type Props = {
     broken: boolean,
     isYou: boolean,
   }>,
+  teamname: ?string,
 }
 
 export default class InfoPanel extends Component<Props> {}

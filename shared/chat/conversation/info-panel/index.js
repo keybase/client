@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Checkbox, Divider, HeaderHoc, Icon, ScrollView} from '../../../common-adapters'
+import {Box, Button, Checkbox, Divider, HeaderHoc, Icon, ScrollView, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
@@ -24,6 +24,13 @@ const _InfoPanel = (props: Props) => (
     }}
     contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
   >
+    <Text style={{alignSelf: 'center'}} type="BodySemibold">
+      #{props.channelname}
+    </Text>
+    <Text style={{alignSelf: 'center'}} type="BodySmall">
+      {props.teamname}
+    </Text>
+
     <Participants
       participants={props.participants}
       onAddParticipant={props.onAddParticipant}

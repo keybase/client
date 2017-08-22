@@ -32,11 +32,21 @@ const getParticipants = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState) => ({
-  muted: Constants.getMuted(state),
-  participants: getParticipants(state),
-  selectedConversationIDKey: Constants.getSelectedConversation(state),
-})
+const mapStateToProps = (state: TypedState) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const conversation = state.chat
+    .get('inbox')
+    .find(i => i.get('conversationIDKey') === selectedConversationIDKey)
+  const channelname = conversation.get('channelname')
+  const teamname = conversation.get('teamname')
+  return {
+    channelname,
+    muted: Constants.getMuted(state),
+    participants: getParticipants(state),
+    selectedConversationIDKey,
+    teamname,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
