@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Text from './text'
 import type {Props} from './radio-button'
 import {globalStyles, globalColors, transition} from '../styles'
@@ -7,7 +7,7 @@ import {globalStyles, globalColors, transition} from '../styles'
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8
 
-class RadioButton extends React.Component<void, Props, {hovered: boolean}> {
+class RadioButton extends React.Component<Props, {hovered: boolean}> {
   state = {
     hovered: false,
   }
