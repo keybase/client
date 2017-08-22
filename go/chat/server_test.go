@@ -2571,6 +2571,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
 	require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAM, "implicit team")
 
+	t.Logf("ncres tlf name: %s", ncres.Conv.Info.TlfName)
+
 	// user 0 sends a message to conv
 	_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 		ConversationID: ncres.Conv.Info.Id,
@@ -2588,6 +2590,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	require.NoError(t, err)
 
 	// user 1 sends a message to conv
+	ctx = ctc.as(t, users[1]).startCtx
 	_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
 		ConversationID: ncres.Conv.Info.Id,
 		Msg: chat1.MessagePlaintext{
@@ -2602,4 +2605,18 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+
+	// user 1 finds the conversation
+	tc = ctc.world.Tcs[users[1].Username]
+	ctx = ctc.as(t, users[1]).startCtx
+	res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
+		chat1.FindConversationsLocalArg{
+			TlfName:          displayName,
+			MembersType:      chat1.ConversationMembersType_IMPTEAM,
+			Visibility:       chat1.TLFVisibility_PRIVATE,
+			TopicType:        chat1.TopicType_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res.Conversations), "no convs found")
 }

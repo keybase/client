@@ -321,6 +321,21 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, vis chat1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+
+	if membersType == chat1.ConversationMembersType_IMPTEAM {
+		// in this case, we need to get the hidden implicit team name from the display name
+		_, teamName, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == chat1.TLFVisibility_PUBLIC)
+		if err != nil {
+			if _, ok := err.(teams.TeamDoesNotExistError); ok {
+				// no exist is just empty response
+				return res, rl, nil
+			}
+			return res, rl, err
+		}
+		debugger.Debug(ctx, "FindConversations: using implicit team name %q for display name %q", teamName, tlfName)
+		tlfName = teamName.String()
+	}
+
 	query := &chat1.GetInboxLocalQuery{
 		Name: &chat1.NameQuery{
 			Name:        tlfName,
@@ -334,11 +349,6 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 	inbox, irl, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
 	if err != nil {
-		if membersType == chat1.ConversationMembersType_IMPTEAM {
-			if _, ok := err.(teams.TeamDoesNotExistError); ok {
-				return res, rl, nil
-			}
-		}
 		return res, rl, err
 	}
 	if irl != nil {
@@ -351,7 +361,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			tlfName, len(inbox.Convs))
 		res = inbox.Convs
 		// } else if membersType == chat1.ConversationMembersType_TEAM || membersType == chat1.ConversationMembersType_IMPTEAM {
-	} else if membersType == chat1.ConversationMembersType_TEAM {
+	} else if membersType == chat1.ConversationMembersType_TEAM || membersType == chat1.ConversationMembersType_IMPTEAM {
 		// If this is a team chat that we are looking for, then let's try searching all
 		// chats on the team to see if any match the arguments before giving up.
 		// No need to worry (yet) about conflicting with public code path, since there

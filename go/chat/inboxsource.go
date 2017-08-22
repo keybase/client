@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -484,11 +483,6 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	// Read unverified inbox
 	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
-		if query != nil && query.Name != nil && query.Name.MembersType == chat1.ConversationMembersType_IMPTEAM {
-			if _, ok := err.(teams.TeamDoesNotExistError); ok {
-				return inbox, rl, nil
-			}
-		}
 		return inbox, rl, err
 	}
 	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
