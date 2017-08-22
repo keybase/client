@@ -15,7 +15,12 @@ const load = () => {
     <Box style={{flex: 1}}>
       <RadioButton {...commonProps} label="RadioButton Unselected Enabled" selected={false} />
       <RadioButton {...commonProps} label="RadioButton Selected Enabled" selected={true} />
-      <RadioButton {...commonProps} label="RadioButton Unselected Disabled" selected={false} disabled={true} />
+      <RadioButton
+        {...commonProps}
+        label="RadioButton Unselected Disabled"
+        selected={false}
+        disabled={true}
+      />
       <RadioButton {...commonProps} label="RadioButton Selected Disabled" selected={true} disabled={true} />
     </Box>
   ))
