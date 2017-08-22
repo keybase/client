@@ -172,7 +172,7 @@ const unreadContainerStyle = {
 }
 const unreadStyle = {
   backgroundColor: globalColors.orange,
-  borderRadius: '50%',
+  borderRadius: 6,
   flexShrink: 0,
   height: 6,
   width: 6,

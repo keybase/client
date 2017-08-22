@@ -29,6 +29,30 @@ class Inbox extends React.PureComponent<Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {
+    const row = item
+    if (row.type === 'divider') {
+      // TEMP until the next branch
+      return null
+      // return (
+      // <Divider
+      // key="divider"
+      // isExpanded={this.props.smallTeamsExpanded}
+      // isBadged={row.isBadged}
+      // toggle={this.props.toggleSmallTeamsExpanded}
+      // />
+      // )
+    }
+
+    if (row.type === 'bigTeamsLabel') {
+      // TEMP until the next branch
+      return null
+      // return (
+      // <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
+      // <BigTeamsLabel isFiltered={row.isFiltered} />
+      // </Box>
+      // )
+    }
+
     return index
       ? <Row
           conversationIDKey={item.conversationIDKey}
@@ -36,6 +60,7 @@ class Inbox extends React.PureComponent<Props, {rows: Array<any>}> {
           isActiveRoute={this.props.isActiveRoute}
           teamname={item.teamname}
           channelname={item.channelname}
+          type={row.type}
         />
       : <ChatFilterRow
           isLoading={this.props.isLoading}
@@ -45,7 +70,20 @@ class Inbox extends React.PureComponent<Props, {rows: Array<any>}> {
         />
   }
 
-  _keyExtractor = (item, index) => item.conversationIDKey || item.teamname || 'filter'
+  _keyExtractor = (item, index) => {
+    const row = item
+
+    if (row.type === 'divider' || row.type === 'bigTeamsLabel') {
+      return row.type
+    }
+
+    return (
+      (row.type === 'small' && row.conversationIDKey) ||
+      (row.type === 'bigHeader' && row.teamname) ||
+      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
+      'missingkey'
+    )
+  }
 
   _setupDataSource = props => {
     this.setState({rows: [{}].concat(props.rows.toArray())})
@@ -91,6 +129,7 @@ class Inbox extends React.PureComponent<Props, {rows: Array<any>}> {
 
   _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
 
+  // TODO maybe we can put getItemLayout back if we do a bunch of pre-calc. The offset could be figured out based on index if we're very careful
   render() {
     return (
       <Box style={boxStyle}>
@@ -101,7 +140,6 @@ class Inbox extends React.PureComponent<Props, {rows: Array<any>}> {
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}
-          getItemLayout={(data, index) => ({index, length: 64, offset: 64 * index})}
           initialNumToRender={this._maxVisible}
           windowSize={this._maxVisible}
         />
