@@ -20,27 +20,26 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
-const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
+const passesFilter = (i: Constants.InboxState, filter: string, you: ?string): boolean => {
   if (!filter) {
     return true
   }
-
-  const names = i.get('participants').toArray()
+  const names = i.get('participants').filter(p => p !== you).toArray()
   // No need to worry about Unicode issues with toLowerCase(), since
   // names can only be ASCII.
   return names.some(n => n.toLowerCase().indexOf(filter.toLowerCase()) >= 0)
 }
 
 const filteredInbox = createImmutableEqualSelector(
-  [getInbox, getSupersededByState, getAlwaysShow, getFilter],
-  (inbox, supersededByState, alwaysShow, filter) => {
+  [getInbox, getSupersededByState, getAlwaysShow, getFilter, Constants.getYou],
+  (inbox, supersededByState, alwaysShow, filter, you) => {
     const smallIds = []
     const bigTeamToChannels = {}
 
     // Partition small and big. Some big will turn into small later if they only have one channel
     inbox.forEach(i => {
       const id = i.conversationIDKey
-      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id) && passesFilter(i, filter)) {
+      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id) && passesFilter(i, filter, you)) {
         // Keep time cause we sort later
         const value = {id, time: i.time}
         if (!i.teamname) {

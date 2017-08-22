@@ -140,10 +140,12 @@ class Inbox extends PureComponent<Props, State> {
     let showFloating = true
     if (this._list) {
       const [, last] = this._list.getVisibleRange()
-      const row = this.props.rows.get(last)
+      if (typeof last === 'number') {
+        const row = this.props.rows.get(last)
 
-      if (!row || row.type !== 'small') {
-        showFloating = false
+        if (!row || row.type !== 'small') {
+          showFloating = false
+        }
       }
     }
 
@@ -163,9 +165,11 @@ class Inbox extends PureComponent<Props, State> {
     }
 
     const [first, end] = this._list.getVisibleRange()
-    const row = this.props.rows.get(first)
-    if (row.type === 'small') {
-      this.props.onUntrustedInboxVisible(row.conversationIDKey, end - first)
+    if (typeof first === 'number') {
+      const row = this.props.rows.get(first)
+      if (row && row.type === 'small') {
+        this.props.onUntrustedInboxVisible(row.conversationIDKey, end - first)
+      }
     }
   }, 200)
 
