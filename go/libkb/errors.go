@@ -660,15 +660,23 @@ func NewProfileNotPublicError(s string) ProfileNotPublicError {
 //=============================================================================
 
 type BadUsernameError struct {
-	N string
+	N   string
+	msg string
 }
 
 func (e BadUsernameError) Error() string {
-	return "Bad username: '" + e.N + "'"
+	if len(e.msg) == 0 {
+		return "Bad username: '" + e.N + "'"
+	}
+	return e.msg
 }
 
 func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
+}
+
+func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
+	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
 }
 
 //=============================================================================

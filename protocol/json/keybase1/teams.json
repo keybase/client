@@ -328,6 +328,10 @@
           "name": "implicit"
         },
         {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
           "type": "TeamApplication",
           "name": "application"
         },
@@ -524,6 +528,10 @@
         {
           "type": "boolean",
           "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         },
         {
           "type": "TeamName",

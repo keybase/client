@@ -379,6 +379,7 @@ type TeamPlusApplicationKeys struct {
 	Id              TeamID               `codec:"id" json:"id"`
 	Name            string               `codec:"name" json:"name"`
 	Implicit        bool                 `codec:"implicit" json:"implicit"`
+	Public          bool                 `codec:"public" json:"public"`
 	Application     TeamApplication      `codec:"application" json:"application"`
 	Writers         []UserVersion        `codec:"writers" json:"writers"`
 	OnlyReaders     []UserVersion        `codec:"onlyReaders" json:"onlyReaders"`
@@ -390,6 +391,7 @@ func (o TeamPlusApplicationKeys) DeepCopy() TeamPlusApplicationKeys {
 		Id:          o.Id.DeepCopy(),
 		Name:        o.Name,
 		Implicit:    o.Implicit,
+		Public:      o.Public,
 		Application: o.Application.DeepCopy(),
 		Writers: (func(x []UserVersion) []UserVersion {
 			var ret []UserVersion
@@ -635,6 +637,7 @@ type TeamSigChainState struct {
 	Reader        UserVersion                         `codec:"reader" json:"reader"`
 	Id            TeamID                              `codec:"id" json:"id"`
 	Implicit      bool                                `codec:"implicit" json:"implicit"`
+	Public        bool                                `codec:"public" json:"public"`
 	RootAncestor  TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
 	NameDepth     int                                 `codec:"nameDepth" json:"nameDepth"`
 	NameLog       []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
@@ -654,6 +657,7 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 		Reader:       o.Reader.DeepCopy(),
 		Id:           o.Id.DeepCopy(),
 		Implicit:     o.Implicit,
+		Public:       o.Public,
 		RootAncestor: o.RootAncestor.DeepCopy(),
 		NameDepth:    o.NameDepth,
 		NameLog: (func(x []TeamNameLogPoint) []TeamNameLogPoint {

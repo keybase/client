@@ -3,6 +3,7 @@ package teams
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
@@ -54,12 +55,14 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 		return res, impTeamName, err
 	}
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID: imp.TeamID,
+		ID:          imp.TeamID,
+		ForceRepoll: true,
 	})
 	if err != nil {
 		return res, impTeamName, err
 	}
-	teamDisplayName, err := team.ImplicitTeamDisplayName(ctx)
+
+	teamDisplayName, err := team.ImplicitTeamDisplayNameString(ctx)
 	if err != nil {
 		return res, impTeamName, err
 	}
@@ -93,20 +96,46 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, nam
 }
 
 func FormatImplicitTeamName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamName) (string, error) {
-	var names []string
+	var writerNames []string
 	for _, u := range impTeamName.Writers.KeybaseUsers {
-		names = append(names, u)
+		writerNames = append(writerNames, u)
 	}
 	for _, u := range impTeamName.Writers.UnresolvedUsers {
-		names = append(names, u.String())
+		writerNames = append(writerNames, u.String())
 	}
-	sort.Slice(names, func(i, j int) bool {
-		return names[i] < names[j]
+	sort.Slice(writerNames, func(i, j int) bool {
+		return writerNames[i] < writerNames[j]
 	})
 
-	normalized, err := kbfs.NormalizeNamesInTLF(names, nil, "")
+	var readerNames []string
+	for _, u := range impTeamName.Readers.KeybaseUsers {
+		readerNames = append(readerNames, u)
+	}
+	for _, u := range impTeamName.Readers.UnresolvedUsers {
+		readerNames = append(readerNames, u.String())
+	}
+	sort.Slice(readerNames, func(i, j int) bool {
+		return readerNames[i] < readerNames[j]
+	})
+
+	var suffix string
+	if impTeamName.ConflictInfo != nil {
+		suffix = fmt.Sprintf("(conflicted %v #%v)", formatConflictTime(impTeamName.ConflictInfo.Time.Time()), impTeamName.ConflictInfo.Generation)
+	}
+
+	normalized, err := kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
 	if err != nil {
 		return "", err
 	}
-	return normalized, nil
+	prefix := "private/"
+	if !impTeamName.IsPrivate {
+		prefix = "public/"
+	}
+	return prefix + normalized, nil
+}
+
+// time -> "2017-08-22"
+func formatConflictTime(thyme time.Time) string {
+	year, month, day := thyme.UTC().Date()
+	return fmt.Sprintf("%04d-%02d-%02d", year, month, day)
 }
