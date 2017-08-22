@@ -104,6 +104,10 @@ const _ChannelInfoPanel = (props: ChannelInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
+    <Text type="BodySmall">
+      Members
+    </Text>
+
     <Participants
       participants={props.participants}
       onAddParticipant={props.onAddParticipant}
