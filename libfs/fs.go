@@ -6,7 +6,8 @@ package libfs
 
 import (
 	"context"
-	"math/rand"
+	"crypto/rand"
+	"encoding/base64"
 	"os"
 	"path"
 	"strings"
@@ -391,8 +392,12 @@ func (fs *FS) TempFile(dir, prefix string) (billy.File, error) {
 	// but the given uniq ID and a random number should be good
 	// enough.  Especially since most users will end up renaming the
 	// temp file before journal flushing even happens.
-	r := rand.Int63()
-	suffix := fs.uniqID + "-" + string(r)
+	b := make([]byte, 8)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+	suffix := fs.uniqID + "-" + base64.URLEncoding.EncodeToString(b)
 	return fs.OpenFile(path.Join(dir, prefix+suffix),
 		os.O_CREATE|os.O_EXCL, 0600)
 }
