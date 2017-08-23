@@ -1,52 +1,43 @@
 // @flow
 import * as React from 'react'
 import Text from './text'
+import glamorous from 'glamorous'
 import type {Props} from './radio-button'
 import {globalStyles, globalColors, transition} from '../styles'
 
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8
 
-class RadioButton extends React.Component<Props, {hovered: boolean}> {
-  state = {
-    hovered: false,
+const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
+  const clickableStyle = disabled ? {} : globalStyles.clickable
+
+  const StyledDiv = glamorous(glamorous.Div)(({border, disabled, selected}) => ({
+    '&:hover': {border: (selected || !disabled) && `solid 1px ${globalColors.blue}`},
+    border: `solid 1px ${globalColors.black_10}`,
+  }))
+
+  StyledDiv.defaultProps = {
+    ...transition('background'),
+    backgroundColor: selected ? globalColors.blue : 'inherit',
+    borderRadius: '100%',
+    height: RADIOBUTTON_SIZE,
+    marginRight: RADIOBUTTON_MARGIN,
+    opacity: disabled ? 0.4 : 1,
+    position: 'relative',
+    width: RADIOBUTTON_SIZE,
   }
 
-  render() {
-    let borderColor = globalColors.black_10
-
-    if (this.props.selected || (this.state.hovered && !this.props.disabled)) {
-      borderColor = globalColors.blue
-    }
-
-    const boxStyle = {
-      ...transition('background'),
-      backgroundColor: this.props.selected ? globalColors.blue : 'inherit',
-      border: `solid 1px ${borderColor}`,
-      borderRadius: '100%',
-      height: RADIOBUTTON_SIZE,
-      marginRight: RADIOBUTTON_MARGIN,
-      opacity: this.props.disabled ? 0.4 : 1,
-      position: 'relative',
-      width: RADIOBUTTON_SIZE,
-    }
-
-    const clickableStyle = this.props.disabled ? {} : globalStyles.clickable
-
-    return (
-      <div
-        style={{...styleContainer, ...clickableStyle, ...this.props.style}}
-        onClick={this.props.disabled ? undefined : () => this.props.onSelect(!this.props.selected)}
-        onMouseEnter={() => this.setState({hovered: true})}
-        onMouseLeave={() => this.setState({hovered: false})}
-      >
-        <div style={boxStyle}>
-          <div style={styleIcon} />
-        </div>
-        <Text type="Body" style={{color: globalColors.black_75}}>{this.props.label}</Text>
-      </div>
-    )
-  }
+  return (
+    <div
+      style={{...styleContainer, ...clickableStyle, ...style}}
+      onClick={disabled ? undefined : () => onSelect(!selected)}
+    >
+      <StyledDiv disabled={disabled} selected={selected}>
+        <div style={styleIcon} />
+      </StyledDiv>
+      <Text type="Body" style={{color: globalColors.black_75}}>{label}</Text>
+    </div>
+  )
 }
 
 const styleContainer = {
