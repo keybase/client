@@ -201,35 +201,6 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	start = time.Now()
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
-
-	/*
-		t.Logf("Implicit Team Stage Begin")
-		start = time.Now()
-		f(chat1.ConversationMembersType_IMPTEAM)
-		t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
-	*/
-
-	useRemoteMock = true
-}
-
-func runWithMemberTypesImplicit(t *testing.T, f func(membersType chat1.ConversationMembersType)) {
-	useRemoteMock = true
-	start := time.Now()
-	t.Logf("KBFS Stage Begin")
-	f(chat1.ConversationMembersType_KBFS)
-	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
-
-	useRemoteMock = false
-	t.Logf("Team Stage Begin")
-	start = time.Now()
-	f(chat1.ConversationMembersType_TEAM)
-	t.Logf("Team Stage End: %v", time.Now().Sub(start))
-
-	t.Logf("Implicit Team Stage Begin")
-	start = time.Now()
-	f(chat1.ConversationMembersType_IMPTEAM)
-	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
-
 	useRemoteMock = true
 }
 
@@ -466,7 +437,7 @@ func mustPostLocalForTest(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 	ctc.advanceFakeClock(time.Second)
 }
 
-func TestChatSrvNewConversationLocalX(t *testing.T) {
+func TestChatSrvNewConversationLocal(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
 		defer ctc.cleanup()

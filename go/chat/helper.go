@@ -360,7 +360,6 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		debugger.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
 			tlfName, len(inbox.Convs))
 		res = inbox.Convs
-		// } else if membersType == chat1.ConversationMembersType_TEAM || membersType == chat1.ConversationMembersType_IMPTEAM {
 	} else if membersType == chat1.ConversationMembersType_TEAM || membersType == chat1.ConversationMembersType_IMPTEAM {
 		// If this is a team chat that we are looking for, then let's try searching all
 		// chats on the team to see if any match the arguments before giving up.
@@ -709,13 +708,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		}
 
 		n.Debug(ctx, "established conv: %v", convID)
-
-		// XXX made it here so far
-		/*
-			if n.membersType == chat1.ConversationMembersType_IMPTEAM {
-				panic("here x")
-			}
-		*/
 
 		// create succeeded; grabbing the conversation and returning
 		ib, irl, err := n.G().InboxSource.Read(ctx, n.uid, nil, false,
