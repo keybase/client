@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Checkbox, ProgressIndicator, RadioButton, Text} from '../../common-adapters'
+import {Box, Checkbox, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 
 import type {NotificationsSettingsState} from '../../constants/settings'
@@ -14,12 +14,12 @@ const SubscriptionCheckbox = (props: {
   onToggle: (groupName: string, name: string) => void,
   subscribed: boolean,
 }) => (
-  <RadioButton
+  <Checkbox
     style={{marginRight: globalMargins.medium, marginTop: globalMargins.tiny}}
     key={props.name}
     disabled={!props.allowEdit}
-    onSelect={() => props.onToggle(props.groupName, props.name)}
-    selected={props.subscribed}
+    onCheck={() => props.onToggle(props.groupName, props.name)}
+    checked={props.subscribed}
     label={props.description}
   />
 )
