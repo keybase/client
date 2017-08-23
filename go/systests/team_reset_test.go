@@ -5,10 +5,13 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	client "github.com/keybase/client/go/client"
 	libkb "github.com/keybase/client/go/libkb"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	teams "github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
 
@@ -322,7 +325,6 @@ func TestTeamResetNoKeysAdmin(t *testing.T) {
 	ann.addAdmin(team, bob)
 	divDebug(ctx, "Added bob as an admin")
 }
-
 // bob resets, implicit team lookup should still work for ann
 func TestImplicitTeamReset(t *testing.T) {
 	ctx := newSMUContext(t)
@@ -349,4 +351,45 @@ func TestImplicitTeamReset(t *testing.T) {
 	iteam3 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
 	require.Equal(t, iteam.ID, iteam3.ID, "lookup after reset should return same team")
 	divDebug(ctx, "team looked up before reset")
+}
+
+
+func TestImplicitTeamUserReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	alice := ctx.installKeybaseForUser("alice", 10)
+	alice.signup()
+	divDebug(ctx, "Signed up alice (%s)", alice.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	cli := alice.getTeamsClient()
+	arg := keybase1.LookupOrCreateImplicitTeamArg{
+		Name:   fmt.Sprintf("%s,%s", alice.username, bob.username),
+		Public: false,
+	}
+	teamID, err := cli.LookupOrCreateImplicitTeam(context.TODO(), arg)
+	require.NoError(t, err)
+
+	divDebug(ctx, "Created implicit team %s\n", teamID)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	G := alice.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+	team, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+
+	divDebug(ctx, "Implicit team name is %s\n", team.Name().String())
+
+	alice.addOwner(smuTeam{name: team.Name().String()}, bob)
+	divDebug(ctx, "Re-Added bob as an owner")
 }
