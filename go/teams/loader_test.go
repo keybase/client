@@ -29,7 +29,7 @@ func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, 
 	for i := 0; i < n; i++ {
 		tc := SetupTest(t, "team", 1)
 		tcs = append(tcs, &tc)
-		if i < nPukless {
+		if i >= n-nPukless {
 			tc.Tp.DisableUpgradePerUserKey = true
 		}
 		fu, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
