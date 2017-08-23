@@ -35,6 +35,7 @@
 ./flow-typed
 
 [options]
+include_warnings=true
 munge_underscores=true
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
@@ -54,6 +55,9 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowIssue\\((\\(>=0\\.\\(1[0-7]\\|[0-9]\\).[0-9
 suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
 suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 suppress_comment=\\(.\\|\n\\)*\\$ForceType
+
+[lints]
+all=warn
 
 [version]
 0.53.1
