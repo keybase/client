@@ -16,15 +16,11 @@ import type {Props} from '.'
 
 const InfoPanelContents = (props: Props) => (
   <NativeScrollView style={{flex: 1, width: '100%'}}>
-    <Divider style={{marginTop: 20}} />
-    <Box style={{...globalStyles.flexBoxRow, width: '100%', alignItems: 'stretch'}}>
-      <Participants
-        participants={props.participants}
-        onAddParticipant={props.onAddParticipant}
-        onShowProfile={props.onShowProfile}
-        style={{width: '100%'}}
-      />
-    </Box>
+    <Participants
+      participants={props.participants}
+      onAddParticipant={props.onAddParticipant}
+      onShowProfile={props.onShowProfile}
+    />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
@@ -46,8 +42,6 @@ const InfoPanelContents = (props: Props) => (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
     </Box>
-
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
   </NativeScrollView>
 )
 
