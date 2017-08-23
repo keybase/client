@@ -133,12 +133,16 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
           conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
 
         if (message && message.messageID && conversationIsFocused) {
-          yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-            param: {
-              conversationID: incomingMessage.convID,
-              msgID: message.messageID,
-            },
-          })
+          try {
+            yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+              param: {
+                conversationID: incomingMessage.convID,
+                msgID: message.messageID,
+              },
+            })
+          } catch (err) {
+            console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+          }
         }
 
         const messageFromYou =
@@ -241,6 +245,14 @@ const _setupChatHandlers = function*(): SagaGenerator<any, any> {
       if (updates) {
         dispatch(Creators.markThreadsStale(updates))
       }
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatJoinedConversation', () => {
+      dispatch(Creators.inboxStale())
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatLeftConversation', () => {
+      dispatch(Creators.inboxStale())
     })
   })
 }
@@ -871,9 +883,13 @@ const _updateBadging = function*(action: Constants.UpdateBadging): SagaGenerator
   if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
-    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {conversationID, msgID},
-    })
+    try {
+      yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+        param: {conversationID, msgID},
+      })
+    } catch (err) {
+      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+    }
   }
 }
 
