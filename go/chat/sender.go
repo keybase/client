@@ -168,7 +168,7 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 		}
 		if !namesEq {
 			s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
-			return fmt.Errorf("TlfName does not match reference message")
+			return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
 		}
 	}
 

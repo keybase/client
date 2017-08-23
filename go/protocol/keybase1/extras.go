@@ -1792,6 +1792,7 @@ func (i ImplicitTeamUserSet) List() string {
 	for _, u := range i.UnresolvedUsers {
 		names = append(names, u.String())
 	}
+	sort.Strings(names)
 	return strings.Join(names, ",")
 }
 
