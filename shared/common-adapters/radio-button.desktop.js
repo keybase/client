@@ -8,37 +8,34 @@ import {globalStyles, globalColors, transition} from '../styles'
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8
 
-const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
-  const clickableStyle = disabled ? {} : globalStyles.clickable
-
-  const StyledDiv = glamorous(glamorous.Div)(({border, disabled, selected}) => ({
-    '&:hover': {border: (selected || !disabled) && `solid 1px ${globalColors.blue}`},
-    border: `solid 1px ${globalColors.black_10}`,
-  }))
-
-  StyledDiv.defaultProps = {
+const StyledRadio = glamorous(glamorous.Div)(
+  {
     ...transition('background'),
-    backgroundColor: selected ? globalColors.blue : 'inherit',
     borderRadius: '100%',
     height: RADIOBUTTON_SIZE,
     marginRight: RADIOBUTTON_MARGIN,
-    opacity: disabled ? 0.4 : 1,
     position: 'relative',
     width: RADIOBUTTON_SIZE,
-  }
+  },
+  ({disabled, selected}) => ({
+    '&:hover': {border: (selected || !disabled) && `solid 1px ${globalColors.blue}`},
+    border: `solid 1px ${globalColors.black_10}`,
+    backgroundColor: selected ? globalColors.blue : 'inherit',
+    opacity: disabled ? 0.4 : 1,
+  })
+)
 
-  return (
-    <div
-      style={{...styleContainer, ...clickableStyle, ...style}}
-      onClick={disabled ? undefined : () => onSelect(!selected)}
-    >
-      <StyledDiv disabled={disabled} selected={selected}>
-        <div style={styleIcon} />
-      </StyledDiv>
-      <Text type="Body" style={{color: globalColors.black_75}}>{label}</Text>
-    </div>
-  )
-}
+const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
+  <div
+    style={{...styleContainer, ...(disabled ? {} : globalStyles.clickable), ...style}}
+    onClick={disabled ? undefined : () => onSelect(!selected)}
+  >
+    <StyledRadio disabled={disabled} selected={selected}>
+      <div style={styleIcon} />
+    </StyledRadio>
+    <Text type="Body" style={{color: globalColors.black_75}}>{label}</Text>
+  </div>
+)
 
 const styleContainer = {
   ...globalStyles.flexBoxRow,
