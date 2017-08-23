@@ -117,7 +117,11 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 	if err != nil {
 		return res, err
 	}
-	res.CanonicalName, err = team.ImplicitTeamDisplayName(ctx)
+	display, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return res, err
+	}
+	res.CanonicalName = display.String()
 	if vis == chat1.TLFVisibility_PRIVATE {
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {

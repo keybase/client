@@ -2514,8 +2514,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	require.Equal(t, 0, len(res.Conversations), "conv found")
 
 	// make the implicit team
-	implicitTeamDesc := keybase1.ImplicitTeamName{
-		IsPrivate: true,
+	implicitTeamDesc := keybase1.ImplicitTeamDisplayName{
 		Writers: keybase1.ImplicitTeamUserSet{
 			KeybaseUsers: []string{users[0].Username, users[1].Username},
 		},

@@ -1052,12 +1052,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 			return conversationLocal
 		}
-		conversationLocal.Info.TlfName, err = team.ImplicitTeamDisplayName(ctx)
+		display, err := team.ImplicitTeamDisplayName(ctx)
 		if err != nil {
 			errMsg := fmt.Sprintf("implicit team display name error for %q: %s", conversationLocal.Info.TlfName, err)
 			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 			return conversationLocal
 		}
+		conversationLocal.Info.TlfName = display.String()
 	}
 
 	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt

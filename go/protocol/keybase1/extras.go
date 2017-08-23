@@ -1795,7 +1795,7 @@ func (i ImplicitTeamUserSet) List() string {
 	return strings.Join(names, ",")
 }
 
-func (n ImplicitTeamName) String() string {
+func (n ImplicitTeamDisplayName) String() string {
 	name := n.Writers.List()
 
 	if n.Readers.NumTotalUsers() > 0 {
