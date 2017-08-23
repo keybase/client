@@ -22,8 +22,8 @@ func TestCapabilities(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	input := bytes.NewBufferString("capabilities\n\n")
 	var output bytes.Buffer
-	r, err := newRunner(ctx, config, "keybase://private/user1/test",
-		input, &output)
+	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
+		"", input, &output)
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -53,8 +53,8 @@ func TestInitRepo(t *testing.T) {
 
 	input := bytes.NewBufferString("list\n\n")
 	var output bytes.Buffer
-	r, err := newRunner(ctx, config, "keybase://private/user1/test",
-		input, &output)
+	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
+		"", input, &output)
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)

@@ -17,6 +17,7 @@ type StartOptions struct {
 	KbfsParams libkbfs.InitParams
 	Remote     string
 	Repo       string
+	GitDir     string
 }
 
 const (
@@ -60,7 +61,9 @@ func Start(ctx context.Context, options StartOptions,
 	}
 	defer config.Shutdown(ctx)
 
-	r, err := newRunner(ctx, config, options.Repo, input, output)
+	r, err := newRunner(
+		ctx, config, options.Remote, options.Repo, options.GitDir,
+		input, output)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}

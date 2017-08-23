@@ -18,6 +18,7 @@ import (
 // backslashes in git file URLs.
 type configWithoutRemotesStorer struct {
 	*filesystem.Storage
+	cfg *gogitcfg.Config
 }
 
 func newConfigWithoutRemotesStorer(fs *libfs.FS) (
@@ -26,14 +27,23 @@ func newConfigWithoutRemotesStorer(fs *libfs.FS) (
 	if err != nil {
 		return nil, err
 	}
-	return &configWithoutRemotesStorer{fsStorer}, nil
+	cfg, err := fsStorer.Config()
+	if err != nil {
+		return nil, err
+	}
+	return &configWithoutRemotesStorer{fsStorer, cfg}, nil
 }
 
 func (cwrs *configWithoutRemotesStorer) Init() error {
 	return cwrs.Storage.Init()
 }
 
+func (cwrs *configWithoutRemotesStorer) Config() (*gogitcfg.Config, error) {
+	return cwrs.cfg, nil
+}
+
 func (cwrs *configWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) error {
+	cwrs.cfg = c
 	if len(c.Remotes) != 0 {
 		// If there are remotes, we need to strip them out before writing
 		// them out to disk.  Do that by making a copy.

@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/kbfs/kbfsgit"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/pkg/errors"
 )
 
 var version = flag.Bool("version", false, "Print version")
@@ -42,6 +43,18 @@ func getUsageString(ctx libkbfs.Context) string {
 	defaultUsageStr := libkbfs.GetDefaultsUsageString(ctx)
 	return fmt.Sprintf(
 		usageFormatStr, remoteUsageStr, localUsageStr, defaultUsageStr)
+}
+
+func getLocalGitDir() (gitDir string, err error) {
+	gitDir = os.Getenv("GIT_DIR")
+	fi, err := os.Stat(gitDir)
+	if err != nil {
+		return "", err
+	}
+	if !fi.IsDir() {
+		return "", errors.Errorf("GIT_DIR=%s, but is not a dir", gitDir)
+	}
+	return gitDir, nil
 }
 
 func start() *libfs.Error {
@@ -91,10 +104,16 @@ func start() *libfs.Error {
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
+	gitDir, err := getLocalGitDir()
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
+
 	options := kbfsgit.StartOptions{
 		KbfsParams: *kbfsParams,
 		Remote:     remote,
 		Repo:       repo,
+		GitDir:     gitDir,
 	}
 
 	ctx := context.Background()

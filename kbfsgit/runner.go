@@ -7,6 +7,7 @@ package kbfsgit
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -19,6 +20,7 @@ import (
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	gogit "gopkg.in/src-d/go-git.v4"
+	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
@@ -66,7 +68,9 @@ type runner struct {
 	config libkbfs.Config
 	log    logger.Logger
 	h      *libkbfs.TlfHandle
+	remote string
 	repo   string
+	gitDir string
 	uniqID string
 	input  io.Reader
 	output io.Writer
@@ -74,8 +78,9 @@ type runner struct {
 
 // newRunner creates a new runner for git commands.  It expects `repo`
 // to be in the form "keybase://private/user/reponame".
-func newRunner(ctx context.Context, config libkbfs.Config, repo string,
-	input io.Reader, output io.Writer) (*runner, error) {
+func newRunner(ctx context.Context, config libkbfs.Config,
+	remote, repo, gitDir string, input io.Reader, output io.Writer) (
+	*runner, error) {
 	tlfAndRepo := strings.TrimPrefix(repo, kbfsgitPrefix)
 	parts := strings.Split(tlfAndRepo, repoSplitter)
 	if len(parts) != 3 {
@@ -114,7 +119,9 @@ func newRunner(ctx context.Context, config libkbfs.Config, repo string,
 		config: config,
 		log:    config.MakeLogger(""),
 		h:      h,
+		remote: remote,
 		repo:   parts[2],
+		gitDir: gitDir,
 		uniqID: uniqID,
 		input:  input,
 		output: output}, nil
@@ -297,22 +304,113 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	return err
 }
 
-func (r *runner) processCommands(ctx context.Context) error {
-	r.log.CDebugf(ctx, "Ready to process")
-	reader := bufio.NewReader(r.input)
-	for {
-		cmd, err := reader.ReadString('\n')
-		if err != nil {
+// handleFetchBatch: From https://git-scm.com/docs/git-remote-helpers
+//
+// fetch <sha1> <name>
+// Fetches the given object, writing the necessary objects to the
+// database. Fetch commands are sent in a batch, one per line,
+// terminated with a blank line. Outputs a single blank line when all
+// fetch commands in the same batch are complete. Only objects which
+// were reported in the output of list with a sha1 may be fetched this
+// way.
+//
+// Optionally may output a lock <file> line indicating a file under
+// GIT_DIR/objects/pack which is keeping a pack until refs can be
+// suitably updated.
+func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
+	err error) {
+	repo, err := r.initRepoIfNeeded(ctx)
+	if err != nil {
+		return err
+	}
+
+	r.log.CDebugf(ctx, "Fetching %d refs into %s", len(args), r.gitDir)
+
+	remoteName := "local"
+	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
+		Name: remoteName,
+		URL:  r.gitDir,
+	})
+
+	for _, fetch := range args {
+		if len(fetch) != 2 {
+			return errors.Errorf("Bad fetch request: %v", fetch)
+		}
+		refInBareRepo := fetch[1]
+
+		// Push into a local ref with a temporary name, because the
+		// git process that invoked us will get confused if we make a
+		// ref with the same name.  Later, delete this temporary ref.
+		localTempRef := plumbing.ReferenceName(refInBareRepo).Short() +
+			"-" + r.uniqID
+		refSpec := fmt.Sprintf(
+			"%s:refs/remotes/%s/%s", refInBareRepo, r.remote, localTempRef)
+		r.log.CDebugf(ctx, "Fetching %s", refSpec)
+
+		// Now "push" into the local repo to get it to store objects
+		// from the KBFS bare repo.
+		err = remote.Push(&gogit.PushOptions{
+			RemoteName: remoteName,
+			RefSpecs:   []gogitcfg.RefSpec{gogitcfg.RefSpec(refSpec)},
+		})
+		if err != nil && err != gogit.NoErrAlreadyUpToDate {
 			return err
 		}
-		cmdParts := strings.Fields(cmd)
-		if len(cmdParts) == 0 {
+
+		// Delete the temporary refspec now that the objects are
+		// safely stored in the local repo.
+		refSpec = fmt.Sprintf(":refs/remotes/%s/%s", r.remote, localTempRef)
+		err = remote.Push(&gogit.PushOptions{
+			RemoteName: remoteName,
+			RefSpecs:   []gogitcfg.RefSpec{gogitcfg.RefSpec(refSpec)},
+		})
+		if err != nil && err != gogit.NoErrAlreadyUpToDate {
+			return err
+		}
+	}
+
+	err = r.waitForJournal(ctx)
+	if err != nil {
+		return err
+	}
+	r.log.CDebugf(ctx, "Done waiting for journal")
+
+	_, err = r.output.Write([]byte("\n"))
+	return err
+}
+
+func (r *runner) processCommands(ctx context.Context) (err error) {
+	r.log.CDebugf(ctx, "Ready to process")
+	reader := bufio.NewReader(r.input)
+	var fetchBatch [][]string
+	for {
+		cmd, err := reader.ReadString('\n')
+		if errors.Cause(err) == io.EOF {
 			r.log.CDebugf(ctx, "Done processing commands")
 			return nil
+		} else if err != nil {
+			return err
 		}
 
 		ctx := libkbfs.CtxWithRandomIDReplayable(
 			ctx, ctxCommandIDKey, ctxCommandOpID, r.log)
+
+		cmdParts := strings.Fields(cmd)
+		if len(cmdParts) == 0 {
+			if len(fetchBatch) > 0 {
+				r.log.CDebugf(ctx, "Processing fetch batch")
+				err = r.handleFetchBatch(ctx, fetchBatch)
+				if err != nil {
+					return err
+				}
+				fetchBatch = nil
+				continue
+			} else {
+				r.log.CDebugf(ctx, "Done processing commands")
+				return nil
+			}
+		}
+
 		r.log.CDebugf(ctx, "Received command: %s", cmd)
 
 		switch cmdParts[0] {
@@ -320,12 +418,13 @@ func (r *runner) processCommands(ctx context.Context) error {
 			err = r.handleCapabilities()
 		case gitCmdList:
 			err = r.handleList(ctx, cmdParts[1:])
+		case gitCmdFetch:
+			fetchBatch = append(fetchBatch, cmdParts[1:])
 		default:
 			err = errors.Errorf("Unsupported command: %s", cmdParts[0])
 		}
 		if err != nil {
 			return err
 		}
-
 	}
 }
