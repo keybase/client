@@ -273,6 +273,12 @@ func newRekeyStateScheduled(
 func (r *rekeyStateScheduled) reactToEvent(event RekeyEvent) rekeyState {
 	switch event.eventType {
 	case rekeyTimeupEvent:
+		// This blocks (which inheritently blocks the entire FSM) if too many
+		// are active.
+		if r.fsm.fbo.config.GetRekeyFSMLimiter().WaitToStart(
+			r.task.ctx.context()) != nil {
+			return r
+		}
 		return newRekeyStateStarted(r.fsm, r.task)
 	case rekeyRequestEvent:
 		if r.task.promptPaper && !event.request.promptPaper {
@@ -342,6 +348,7 @@ func newRekeyStateStarted(fsm *rekeyFSM, task rekeyTask) *rekeyStateStarted {
 		ctx, cancel = context.WithTimeout(task.ctx.context(), *task.timeout)
 	}
 	go func() {
+		defer fsm.fbo.config.GetRekeyFSMLimiter().Done()
 		if cancel != nil {
 			defer cancel()
 		}

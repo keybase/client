@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -124,7 +125,8 @@ type ConfigLocal struct {
 
 	mode InitMode
 
-	quotaUsage map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
+	quotaUsage      map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage
+	rekeyFSMLimiter *OngoingWorkLimiter
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -339,6 +341,20 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	config.metadataVersion = defaultClientMetadataVer
 	config.quotaUsage =
 		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
+
+	switch config.mode {
+	case InitDefault:
+		// In normal desktop app, we limit to 16 routines.
+		config.rekeyFSMLimiter = NewOngoingWorkLimiter(16)
+	case InitMinimal:
+		// This is likely mobile. Limit it to 4.
+		config.rekeyFSMLimiter = NewOngoingWorkLimiter(4)
+	case InitSingleOp:
+		// Just block all rekeys and don't bother cleaning up requests since the process is short lived anyway.
+		config.rekeyFSMLimiter = NewOngoingWorkLimiter(0)
+	default:
+		panic(fmt.Sprintf("😱 unknown init mode %v", config.mode))
+	}
 
 	return config
 }
@@ -1235,4 +1251,9 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	}
 	c.syncedTlfs[tlfID] = isSynced
 	return nil
+}
+
+// GetRekeyFSMLimiter implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
+	return c.rekeyFSMLimiter
 }

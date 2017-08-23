@@ -6444,6 +6444,18 @@ func (mr *MockConfigMockRecorder) CheckStateOnShutdown() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckStateOnShutdown", reflect.TypeOf((*MockConfig)(nil).CheckStateOnShutdown))
 }
 
+// GetRekeyFSMLimiter mocks base method
+func (m *MockConfig) GetRekeyFSMLimiter() *OngoingWorkLimiter {
+	ret := m.ctrl.Call(m, "GetRekeyFSMLimiter")
+	ret0, _ := ret[0].(*OngoingWorkLimiter)
+	return ret0
+}
+
+// GetRekeyFSMLimiter indicates an expected call of GetRekeyFSMLimiter
+func (mr *MockConfigMockRecorder) GetRekeyFSMLimiter() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRekeyFSMLimiter", reflect.TypeOf((*MockConfig)(nil).GetRekeyFSMLimiter))
+}
+
 // MockNodeCache is a mock of NodeCache interface
 type MockNodeCache struct {
 	ctrl     *gomock.Controller

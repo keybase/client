@@ -1788,6 +1788,9 @@ type Config interface {
 	// CheckStateOnShutdown tells the caller whether or not it is safe
 	// to check the state of the system on shutdown.
 	CheckStateOnShutdown() bool
+
+	// GetRekeyFSMLimiter returns the global rekey FSM limiter.
+	GetRekeyFSMLimiter() *OngoingWorkLimiter
 }
 
 // NodeCache holds Nodes, and allows libkbfs to update them when
