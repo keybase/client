@@ -5,7 +5,10 @@ import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
-const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
+const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => {
+  console.warn('in notifications, desktop is', desktop, 'and mobile is', mobile)
+
+  return (
   <Box style={globalStyles.flexBoxColumn}>
 
     <Box style={styleHeader}>
@@ -69,7 +72,7 @@ const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
     </Box>
   </Box>
 )
-
+}
 const styleHeader = {
   ...globalStyles.flexBoxRow,
   marginLeft: globalMargins.small,
