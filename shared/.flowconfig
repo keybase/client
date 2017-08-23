@@ -35,7 +35,7 @@
 ./flow-typed
 
 [options]
-include_warnings=true
+include_warnings=false
 munge_underscores=true
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
@@ -58,6 +58,10 @@ suppress_comment=\\(.\\|\n\\)*\\$ForceType
 
 [lints]
 all=warn
+sketchy-null-bool=off
+sketchy-null-string=off
+sketchy-null-mixed=off
+sketchy-null-number=off
 
 [version]
 0.53.1
