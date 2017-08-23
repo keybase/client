@@ -53,7 +53,9 @@ const filteredInbox = createImmutableEqualSelector(
           if (!bigTeamToChannels[i.teamname]) {
             bigTeamToChannels[i.teamname] = {}
           }
-          bigTeamToChannels[i.teamname][i.channelname] = value
+          // Do we have the real name yet?
+          const channel = i.channelname === '-' ? id : i.channelname
+          bigTeamToChannels[i.teamname][channel] = value
         }
       }
     })

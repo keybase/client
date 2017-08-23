@@ -31,7 +31,7 @@ type State = {
 }
 
 class Inbox extends React.PureComponent<Props, State> {
-  _list: React.Node
+  _list: any
 
   state = {
     showFloating: false,
@@ -94,8 +94,8 @@ class Inbox extends React.PureComponent<Props, State> {
       }
     }
 
-    if (this.props.smallTeamsExpanded !== nextProps.smallTeamsExpanded && !this.props.smallTeamsExpanded) {
-      this._list && this._list.scrollToOffset({offset: 0, animated: true})
+    if (this.props.smallTeamsExpanded !== nextProps.smallTeamsExpanded && !nextProps.smallTeamsExpanded) {
+      this._list && this._list.scrollToOffset({animated: true, offset: 0})
     }
   }
 
@@ -119,6 +119,9 @@ class Inbox extends React.PureComponent<Props, State> {
     let showFloating = true
     const {viewableItems} = data
     const item = viewableItems && viewableItems[viewableItems.length - 1]
+    if (!item) {
+      return
+    }
     const row = item.item
 
     if (!row || row.type !== 'small') {
