@@ -13,7 +13,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => {
     backgroundColor: globalColors.white,
     border: 1,
     borderColor: selected ? globalColors.blue : globalColors.black_10,
-    borderRadius: 100,
+    borderRadius: '100%',
     borderWidth: 1,
     height: RADIOBUTTON_SIZE,
     marginRight: RADIOBUTTON_MARGIN,
@@ -45,7 +45,7 @@ const styleContainer = {
 const styleIcon = {
   borderWidth: 5,
   borderColor: globalColors.white,
-  borderRadius: 10,
+  borderRadius: '100%',
   left: 5,
   position: 'absolute',
   top: 5,
