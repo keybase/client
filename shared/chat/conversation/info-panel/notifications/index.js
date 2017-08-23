@@ -1,16 +1,19 @@
 // @flow
 import * as React from 'react'
-import {Box, RadioButton, Text} from '../../../../common-adapters'
+import {Box, Icon, RadioButton, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
 const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
-    <Box style={{...globalStyles.flexBoxRow, paddingBottom: globalMargins.tiny}}>
+  <Box style={globalStyles.flexBoxColumn}>
+
+    <Box style={styleHeader}>
+      <Icon style={{paddingRight: globalMargins.xtiny}} type="iconfont-notifications-desktop" />
       <Text type="BodySmallSemibold">Desktop notifications</Text>
     </Box>
-    <Box style={globalStyles.flexBoxRow}>
+
+    <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetDesktop('generic')}
@@ -18,7 +21,7 @@ const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
         label={'On any activity'}
       />
     </Box>
-    <Box style={globalStyles.flexBoxRow}>
+    <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetDesktop('atmention')}
@@ -26,7 +29,7 @@ const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
         label={'When @mentioned'}
       />
     </Box>
-    <Box style={globalStyles.flexBoxRow}>
+    <Box style={styleRadioButton}>
       <RadioButton
         style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetDesktop('never')}
@@ -34,24 +37,31 @@ const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
         label={'Never'}
       />
     </Box>
-    <Box style={{...globalStyles.flexBoxRow, paddingTop: globalMargins.small, padddingBottom: globalMargins.tiny}}>
+
+    <Box style={styleHeader}>
+      <Icon style={{paddingRight: globalMargins.xtiny}} type="iconfont-notifications-mobile" />
       <Text type="BodySmallSemibold">Mobile notifications</Text>
     </Box>
-    <Box style={globalStyles.flexBoxRow}>
+
+    <Box style={styleRadioButton}>
       <RadioButton
-        style={{marginTop: globalMargins.small}}
+        style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetMobile('generic')}
         selected={desktop === 'generic'}
         label={'On any activity'}
       />
+    </Box>
+    <Box style={styleRadioButton}>
       <RadioButton
-        style={{marginTop: globalMargins.small}}
+        style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetMobile('atmention')}
         selected={desktop === 'atmention'}
         label={'When @mentioned'}
       />
+    </Box>
+    <Box style={styleRadioButton}>
       <RadioButton
-        style={{marginTop: globalMargins.small}}
+        style={{marginTop: globalMargins.xtiny}}
         onSelect={() => onSetMobile('never')}
         selected={mobile === 'never'}
         label={'Never'}
@@ -59,5 +69,17 @@ const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
     </Box>
   </Box>
 )
+
+const styleHeader = {
+  ...globalStyles.flexBoxRow,
+  marginLeft: globalMargins.small,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.small,
+}
+
+const styleRadioButton = {
+  ...globalStyles.flexBoxRow,
+  marginLeft: globalMargins.large,
+}
 
 export default Notifications

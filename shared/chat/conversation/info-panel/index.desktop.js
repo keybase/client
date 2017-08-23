@@ -42,9 +42,7 @@ const InfoPanel = (props: Props) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', borderLeft: border, borderRight: border}}>
-      <Notifications desktop={'atmention'} mobile={'atmention'} onSetDesktop={null} onSetMobile={null} />
-    </Box>
+    <Notifications desktop={'atmention'} mobile={'atmention'} onSetDesktop={null} onSetMobile={null} />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
