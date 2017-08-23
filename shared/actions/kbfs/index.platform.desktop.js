@@ -15,6 +15,7 @@ import electron, {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import {fuseStatus} from './index'
+import {execFile} from 'child_process'
 
 import type {
   FSInstallFuseFinished,
@@ -163,6 +164,62 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   yield put(finishedAction)
 }
 
+function installCachedDokan(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    const regedit = require('regedit')
+    regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
+      if (err) {
+        reject(err)
+      } else {
+        var programKeyNames =
+          programKeys['HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'].keys
+
+        for (var keyName of programKeyNames) {
+          var programKey = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + keyName
+
+          regedit.list(programKey, (err, program) => {
+            if (err) {
+              reject(err)
+            } else {
+              for (var p in program) {
+                var vals = program[p]
+                var displayName, publisher
+                var modifyPath = ''
+                for (var v in vals) {
+                  if (vals[v]['DisplayName']) {
+                    displayName = vals[v]['DisplayName'].value
+                  }
+                  if (vals[v]['Publisher']) {
+                    publisher = vals[v]['Publisher'].value
+                  }
+                  if (vals[v]['ModifyPath']) {
+                    modifyPath = vals[v]['ModifyPath'].value
+                  }
+                }
+                if (displayName === 'Keybase' && publisher === 'Keybase, Inc.') {
+                  modifyPath = modifyPath.replace(/"/g, '')
+                  modifyPath = modifyPath.replace(' /modify', '')
+                  console.log(modifyPath)
+                  execFile(modifyPath, [
+                    '/modify',
+                    'driver=1',
+                    'modifyprompt=Click "Repair" to view files in Explorer',
+                  ])
+                  resolve()
+                }
+              }
+            }
+          })
+        }
+      }
+    })
+  })
+}
+
+function* installDokanSaga(): SagaGenerator<any, any> {
+  yield call(installCachedDokan)
+}
+
 function waitForMount(attempt: number): Promise<*> {
   return new Promise((resolve, reject) => {
     // Read the KBFS path waiting for files to exist, which means it's mounted
@@ -277,6 +334,7 @@ export {
   fuseStatusUpdateSaga,
   installFuseSaga,
   installKBFSSaga,
+  installDokanSaga,
   openInFileUISaga,
   openSaga,
   uninstallKBFSSaga,
