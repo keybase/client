@@ -26,9 +26,7 @@ const InfoPanelContents = (props: Props) => (
       />
     </Box>
 
-    <Box style={globalStyles.flexBoxRow}>
-      <Divider style={{marginBottom: 20, marginTop: 20}} />
-    </Box>
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
 
     <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
       <Checkbox
@@ -43,17 +41,13 @@ const InfoPanelContents = (props: Props) => (
       />
     </Box>
 
-    <Box style={globalStyles.flexBoxRow}>
-      <Divider style={{marginBottom: 20, marginTop: 20}} />
-    </Box>
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
 
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
     </Box>
 
-    <Box style={globalStyles.flexBoxRow}>
-      <Divider style={{marginBottom: 20, marginTop: 20}} />
-    </Box>
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
   </NativeScrollView>
 )
 
