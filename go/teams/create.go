@@ -13,75 +13,95 @@ import (
 func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, err error) {
 	defer g.CTrace(ctx, "CreateImplicitTeam", func() error { return err })()
 
+	// TODO Creating an implicit team doesn't yet support readers.
+	//      They are ignored.
+	//      Coming up in CORE-5877
+
 	name, err := NewImplicitTeamName()
 	if err != nil {
 		return res, err
 	}
 	teamID := RootTeamIDFromNameString(name.String())
 
-	// Load all the Keybase users
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
 		return res, err
 	}
-	var kbusers []*keybase1.UserPlusKeysV2AllIncarnations
-	for _, kbu := range impTeam.Writers.KeybaseUsers {
-		uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(kbu))
+
+	// Load all the Keybase users
+	loadUpakByUsername := func(username string) (*keybase1.UserPlusKeysV2, error) {
+		uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
 		if err != nil {
-			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load uid: %s msg: %s", kbu, err)
-			return res, err
+			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load uid: %s msg: %s", username, err)
+			return nil, err
 		}
 		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{
 			UID: uid,
 		})
 		if err != nil {
-			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", kbu, err)
-			return res, err
+			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", username, err)
+			return nil, err
 		}
-		kbusers = append(kbusers, upak)
+		return &upak.Current, nil
 	}
 
-	// Form secret boxes and make invites for KB users with no PUKs
-	var invites []SCTeamInvite
+	loadUsernameList := func(usernames []string) (res []*keybase1.UserPlusKeysV2, err error) {
+		for _, username := range usernames {
+			upak, err := loadUpakByUsername(username)
+			if err != nil {
+				return res, err
+			}
+			res = append(res, upak)
+		}
+		return res, nil
+	}
+
+	ownerUPAKs, err := loadUsernameList(impTeam.Writers.KeybaseUsers)
+	if err != nil {
+		return res, err
+	}
+
+	var owners []SCTeamMember
+	var ownerInvites []SCTeamInvite
 	secretboxRecipients := make(map[keybase1.UserVersion]keybase1.PerUserKey)
-	for _, kbu := range kbusers {
-		puk := kbu.Current.GetLatestPerUserKey()
+
+	// Form secret boxes for KB users with PUKs, and invites for those without
+	for _, upak := range ownerUPAKs {
+		uv := upak.ToUserVersion()
+		puk := upak.GetLatestPerUserKey()
 		if puk == nil {
 			// Add this person as an invite if they do not have a puk
-			invites = append(invites, SCTeamInvite{
+			ownerInvites = append(ownerInvites, SCTeamInvite{
 				Type: "keybase",
-				Name: kbu.Current.ToUserVersion().PercentForm(),
+				Name: uv.PercentForm(),
 				ID:   NewInviteID(),
 			})
 		} else {
-			secretboxRecipients[kbu.Current.ToUserVersion()] = *puk
+			secretboxRecipients[uv] = *puk
+			owners = append(owners, SCTeamMember(uv))
 		}
 	}
 
 	// Add invites for assertions
 	for _, assertion := range impTeam.Writers.UnresolvedUsers {
-		invites = append(invites, SCTeamInvite{
+		ownerInvites = append(ownerInvites, SCTeamInvite{
 			Type: string(assertion.Service),
 			Name: assertion.User,
 			ID:   NewInviteID(),
 		})
 	}
 	var teamInvites *SCTeamInvites
-	if len(invites) > 0 {
+	if len(ownerInvites) > 0 {
 		teamInvites = &SCTeamInvites{
-			Owners:  &invites,
+			Owners:  &ownerInvites,
 			Admins:  &[]SCTeamInvite{},
 			Writers: &[]SCTeamInvite{},
 			Readers: &[]SCTeamInvite{},
 		}
 	}
-	var teamMembers []SCTeamMember
-	for _, kbu := range kbusers {
-		teamMembers = append(teamMembers, SCTeamMember(kbu.Current.ToUserVersion()))
-	}
 
 	// Post the team
-	return teamID, makeSigAndPostRootTeam(ctx, g, me, teamMembers, teamInvites, secretboxRecipients, name.String(),
+	return teamID, makeSigAndPostRootTeam(ctx, g, me, owners, teamInvites, secretboxRecipients, name.String(),
 		teamID, impTeam.IsPublic, true)
 }
 
@@ -186,7 +206,11 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam created team: %v", teamID)
+	return nil
 }
 
 func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (err error) {
