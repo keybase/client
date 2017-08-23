@@ -70,27 +70,9 @@ func NewImplicitTeamsNameInfoSource(g *globals.Context) *ImplicitTeamsNameInfoSo
 }
 
 func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, vis chat1.TLFVisibility) (res types.NameInfo, err error) {
-	// XXX check if name is prefixed
+	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
-		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{Name: name})
-		if err != nil {
-			return res, err
-		}
-		res.ID, err = teamIDToTLFID(team.ID)
-		if err != nil {
-			return res, err
-		}
-		res.CanonicalName, err = team.ImplicitTeamDisplayName(ctx)
-		if vis == chat1.TLFVisibility_PRIVATE {
-			chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
-			if err != nil {
-				return res, err
-			}
-			for _, key := range chatKeys {
-				res.CryptKeys = append(res.CryptKeys, key)
-			}
-		}
-		return res, nil
+		return t.lookupInternalName(ctx, name, vis)
 	}
 
 	teamID, teamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, vis == chat1.TLFVisibility_PUBLIC)
@@ -123,5 +105,27 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		}
 	}
 
+	return res, nil
+}
+
+func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, vis chat1.TLFVisibility) (res types.NameInfo, err error) {
+	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{Name: name})
+	if err != nil {
+		return res, err
+	}
+	res.ID, err = teamIDToTLFID(team.ID)
+	if err != nil {
+		return res, err
+	}
+	res.CanonicalName, err = team.ImplicitTeamDisplayName(ctx)
+	if vis == chat1.TLFVisibility_PRIVATE {
+		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
+		if err != nil {
+			return res, err
+		}
+		for _, key := range chatKeys {
+			res.CryptKeys = append(res.CryptKeys, key)
+		}
+	}
 	return res, nil
 }
