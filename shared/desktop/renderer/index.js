@@ -20,7 +20,7 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
-import {changedFocus} from '../../actions/app'
+import {changedFocus, changedActive} from '../../actions/app'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {resetEngineOnHMR} from '../../local-debug.desktop'
@@ -34,7 +34,6 @@ import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
-import {isMobile} from '../../constants/platform'
 
 let _store
 function setupStore() {
@@ -54,54 +53,53 @@ function setupAvatar() {
   initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 }
 
-var inactiveTimeoutID
-var activeTimeoutID
-
 // 5 minutes after being active, consider us inactive after
 // an additional minute of no input
 // for the purpose of marking chat messages read
-function setTimeoutListeners() {
-  window.addEventListener('mousemove', resetTimer, true)
-  window.addEventListener('keypress', resetTimer, true)
+function InputMonitor(notifyActiveFunction) {
+  var notifyActive = notifyActiveFunction
+  var activeTimeoutID
+  var inactiveTimeoutID
+  var active = true
 
-  startInactiveTimer()
-}
-
-function startActiveTimer() {
-  if (!isMobile) {
+  this.startActiveTimer = () => {
     // wait 5 minutes before adding listeners
-    activeTimeoutID = window.setTimeout(goListening, 300000)
+    activeTimeoutID = window.setTimeout(this.goListening, 300000)
   }
-}
 
-function startInactiveTimer() {
-  // wait 1 minute before calling goInactive
-  inactiveTimeoutID = window.setTimeout(goInactive, 60000)
-}
+  this.resetInactiveTimer = () => {
+    window.clearTimeout(inactiveTimeoutID)
+    this.goActive()
+  }
 
-function resetTimer(e) {
-  window.clearTimeout(inactiveTimeoutID)
-  goActive()
-}
+  this.goInactive = () => {
+    console.log('Going inactive due to 1 minute of no input')
+    window.clearTimeout(inactiveTimeoutID)
+    if (active) {
+      notifyActive(false)
+      active = false
+    }
+  }
 
-function goInactive() {
-  console.log('Going inactive due to 1 minute of no input')
-  window.clearTimeout(inactiveTimeoutID)
-  setupStore().dispatch(changedFocus(false))
-}
+  this.goListening = () => {
+    console.log('Adding input listeners after 5 active minutes')
+    window.clearTimeout(activeTimeoutID)
 
-function goListening() {
-  console.log('Adding input listeners after 5 active minutes')
-  window.clearTimeout(activeTimeoutID)
-  setTimeoutListeners()
-}
+    window.addEventListener('mousemove', this.resetInactiveTimer, true)
+    window.addEventListener('keypress', this.resetInactiveTimer, true)
 
-function goActive() {
-  if (!isMobile) {
-    window.removeEventListener('mousemove', resetTimer, true)
-    window.removeEventListener('keypress', resetTimer, true)
+    // wait 1 minute before calling goInactive
+    inactiveTimeoutID = window.setTimeout(this.goInactive, 60000)
+  }
 
-    startActiveTimer()
+  this.goActive = () => {
+    window.removeEventListener('mousemove', this.resetInactiveTimer, true)
+    window.removeEventListener('keypress', this.resetInactiveTimer, true)
+    if (!active) {
+      notifyActive(true)
+      active = true
+    }
+    this.startActiveTimer()
   }
 }
 
@@ -143,10 +141,13 @@ function setupApp(store) {
   })
   ipcRenderer.send('install-check')
 
-  startActiveTimer()
+  var inputMonitor = new InputMonitor(function(isActive) {
+    store.dispatch(changedActive(isActive))
+  })
+  inputMonitor.startActiveTimer()
 
   window.addEventListener('focus', () => {
-    goActive()
+    inputMonitor.goActive()
     store.dispatch(changedFocus(true))
   })
   window.addEventListener('blur', () => {

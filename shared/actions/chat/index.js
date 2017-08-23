@@ -127,10 +127,11 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         // it was written by the current user.
         const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
         const appFocused = yield select(Shared.focusedSelector)
+        const userActive = yield select(Shared.activeSelector)
         const selectedTab = yield select(Shared.routeSelector)
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
-          conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
+          conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected && userActive
 
         if (message && message.messageID && conversationIsFocused) {
           yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
