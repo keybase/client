@@ -40,6 +40,26 @@ const (
 	publicName  = "public"
 	privateName = "private"
 	teamName    = "team"
+
+	// localRepoRemoteName is the name of the remote that gets added
+	// locally to the config of the KBFS bare repo, pointing to the
+	// git repo stored at the `gitDir` passed to `newRunner`.
+	//
+	// In go-git, there is no way to hook two go-git.Repository
+	// instances together to do fetches/pulls between them. One of the
+	// two repos has to be defined as a "remote" to the other one in
+	// order to use the nice Fetch and Pull commands. (There might be
+	// other more involved ways to transfer objects manually
+	// one-by-one, but that seems like it would be pretty sad.)
+	//
+	// Since there is no standard remote protocol for keybase yet
+	// (that's what we're building!), it's not supported by go-git
+	// itself. That means our only option is to treat the local
+	// on-disk repo as a "remote" with respect to the bare KBFS repo,
+	// and do everything in reverse: for example, when a user does a
+	// push, we actually fetch from the local repo and write the
+	// objects into the bare repo.
+	localRepoRemoteName = "local"
 )
 
 type ctxCommandTagKey int
@@ -187,10 +207,11 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 		return nil, err
 	}
 
-	// We store the config in memory for two reasons. 1) gogit/gcfg
-	// has a bug where it can't handle backslashes in remote URLs, and
-	// 2) we don't want to flush the remotes since they'll contain
-	// local paths.
+	// We don't persist remotes to the config on disk for two
+	// reasons. 1) gogit/gcfg has a bug where it can't handle
+	// backslashes in remote URLs, and 2) we don't want to persist the
+	// remotes anyway since they'll contain local paths and wouldn't
+	// make sense to other devices, plus that could leak local info.
 	storer, err := newConfigWithoutRemotesStorer(fs)
 	if err != nil {
 		return nil, err
@@ -326,9 +347,8 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 
 	r.log.CDebugf(ctx, "Fetching %d refs into %s", len(args), r.gitDir)
 
-	remoteName := "local"
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
-		Name: remoteName,
+		Name: localRepoRemoteName,
 		URL:  r.gitDir,
 	})
 
@@ -350,7 +370,7 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 		// Now "push" into the local repo to get it to store objects
 		// from the KBFS bare repo.
 		err = remote.Push(&gogit.PushOptions{
-			RemoteName: remoteName,
+			RemoteName: localRepoRemoteName,
 			RefSpecs:   []gogitcfg.RefSpec{gogitcfg.RefSpec(refSpec)},
 		})
 		if err != nil && err != gogit.NoErrAlreadyUpToDate {
@@ -361,7 +381,7 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 		// safely stored in the local repo.
 		refSpec = fmt.Sprintf(":refs/remotes/%s/%s", r.remote, localTempRef)
 		err = remote.Push(&gogit.PushOptions{
-			RemoteName: remoteName,
+			RemoteName: localRepoRemoteName,
 			RefSpecs:   []gogitcfg.RefSpec{gogitcfg.RefSpec(refSpec)},
 		})
 		if err != nil && err != gogit.NoErrAlreadyUpToDate {
