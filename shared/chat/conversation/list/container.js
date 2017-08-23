@@ -131,9 +131,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
   if (selected) {
     messageKeysWithHeaders = messageKeysWithHeaders.withMutations(l => {
       if (stateProps._supersedes) {
-        l.unshift(Constants.messageKey(selected, 'supersedes', 0))
+        l.unshift(Constants.messageKey(selected, 'supersedes', Constants.selfInventedIDToMessageID(-1)))
       }
-      l.unshift(Constants.messageKey(selected, 'header', 0))
+      l.unshift(Constants.messageKey(selected, 'header', Constants.selfInventedIDToMessageID(-1)))
     })
   }
 

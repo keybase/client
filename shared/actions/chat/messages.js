@@ -14,6 +14,21 @@ import {chatTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
+function _lastMessageID(
+  state: TypedState,
+  conversationIDKey: Constants.ConversationIDKey
+): ?Constants.MessageID {
+  const messageKeys = Constants.getConversationMessages(state, conversationIDKey)
+  const lastMessageKey = messageKeys.findLast(m => {
+    if (m) {
+      const {type: msgIDType} = Constants.parseMessageID(Constants.messageKeyValue(m))
+      return msgIDType === 'rpcMessageID'
+    }
+  })
+
+  return lastMessageKey ? Constants.messageKeyValue(lastMessageKey) : null
+}
+
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
   let messageID: ?Constants.MessageID
@@ -33,18 +48,10 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
 
   if (messageID) {
     // Deleting a server message.
-    const [inboxConvo, conversationState] = yield all([
+    const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
       select(Shared.selectedInboxSelector, conversationIDKey),
-      select(Shared.conversationStateSelector, conversationIDKey),
+      select(_lastMessageID, conversationIDKey),
     ])
-    let lastMessageID
-    if (conversationState) {
-      const message = conversationState.messages.findLast(m => !!m.messageID)
-      if (message) {
-        lastMessageID = message.messageID
-      }
-    }
-
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
@@ -89,17 +96,10 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     }
   }
 
-  const [inboxConvo, conversationState] = yield all([
+  const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
     select(Shared.selectedInboxSelector, conversationIDKey),
-    select(Shared.conversationStateSelector, conversationIDKey),
+    select(_lastMessageID, conversationIDKey),
   ])
-  let lastMessageID
-  if (conversationState) {
-    const message = conversationState.messages.findLast(m => !!m.messageID)
-    if (message) {
-      lastMessageID = message.messageID
-    }
-  }
 
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
   const author = yield select(usernameSelector)
@@ -164,17 +164,10 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     return
   }
 
-  const [inboxConvo, conversationState] = yield all([
+  const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
     select(Shared.selectedInboxSelector, conversationIDKey),
-    select(Shared.conversationStateSelector, conversationIDKey),
+    select(_lastMessageID, conversationIDKey),
   ])
-  let lastMessageID
-  if (conversationState) {
-    const message = conversationState.messages.findLast(m => !!m.messageID)
-    if (message) {
-      lastMessageID = message.messageID
-    }
-  }
 
   // Not editing anymore
   yield put(Creators.showEditor(null))

@@ -174,7 +174,7 @@ function* onLoadAttachment({
   yield spawn(function*() {
     const param = {
       conversationID: Constants.keyToConversationID(conversationIDKey),
-      messageID,
+      messageID: Constants.parseMessageID(messageID).msgID,
       filename: destPath,
       preview: loadPreview,
       identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,

@@ -133,12 +133,14 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
           conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
+        const {type: msgIDType, msgID: rpcMessageID} = Constants.parseMessageID(message.messageID)
 
-        if (message && message.messageID && conversationIsFocused) {
+        if (message && message.messageID && conversationIsFocused && msgIDType === 'rpcMessageID') {
+          // TODO does this have to be sync?
           yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
             param: {
               conversationID: incomingMessage.convID,
-              msgID: message.messageID,
+              msgID: rpcMessageID,
             },
           })
         }
@@ -293,11 +295,7 @@ function* _updateThread({
 
     let pendingMessage
     if ((message.type === 'Text' || message.type === 'Attachment') && messageFromYou && message.outboxID) {
-      pendingMessage = yield select(
-        Shared.pendingMessageOutboxIDSelector,
-        conversationIDKey,
-        message.outboxID
-      )
+      pendingMessage = yield select(Shared.messageOutboxIDSelector, conversationIDKey, message.outboxID)
     }
 
     if (pendingMessage) {
@@ -455,8 +453,8 @@ function _threadToPagination(thread): {last: any, next: any} {
   }
 }
 
-// used to key errors
-let errorIdx = 1
+// used to key errors. Negative so that we know we made this up and didn't get it from the server
+let errorIdx = -1
 
 function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
   switch (typ) {
@@ -523,7 +521,7 @@ function _unboxedToMessage(
         deviceName: payload.senderDeviceName,
         deviceType: toDeviceType(payload.senderDeviceType),
         failureDescription: null,
-        messageID: payload.messageID,
+        messageID: Constants.rpcMessageIDToMessageID(payload.messageID),
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
         timestamp: payload.ctime,
         you: yourName,
@@ -592,7 +590,7 @@ function _unboxedToMessage(
               common.messageID
             ),
             messageID: common.messageID,
-            targetMessageID: attachmentUploaded.messageID,
+            targetMessageID: Constants.rpcMessageIDToMessageID(attachmentUploaded.messageID),
             timestamp: common.timestamp,
             type: 'UpdateAttachment',
             updates: {
@@ -602,11 +600,12 @@ function _unboxedToMessage(
           }
         }
         case ChatTypes.CommonMessageType.delete:
-          const deletedIDs = (payload.messageBody.delete && payload.messageBody.delete.messageIDs) || []
+          const deletedIDs = ((payload.messageBody.delete && payload.messageBody.delete.messageIDs) || [])
+            .map(Constants.rpcMessageIDToMessageID)
           return {
             type: 'Deleted',
             timestamp: payload.ctime,
-            messageID: payload.messageID,
+            messageID: common.messageID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDDeleted', common.messageID),
             deletedIDs,
           }
@@ -615,7 +614,9 @@ function _unboxedToMessage(
             (payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body) || ''
           )
           const outboxID = payload.outboxID
-          const targetMessageID = payload.messageBody.edit ? payload.messageBody.edit.messageID : 0
+          const targetMessageID = payload.messageBody.edit
+            ? Constants.rpcMessageIDToMessageID(payload.messageBody.edit.messageID)
+            : 0
           return {
             key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
             message,
@@ -668,8 +669,12 @@ function _unboxedToMessage(
         case ChatTypes.LocalMessageUnboxedErrorType.identify: // fallthrough
           return {
             conversationIDKey,
-            key: Constants.messageKey(conversationIDKey, 'messageIDError', errorIdx++),
-            messageID: error.messageID,
+            key: Constants.messageKey(
+              conversationIDKey,
+              'messageIDError',
+              Constants.rpcMessageIDToMessageID(error.messageID)
+            ),
+            messageID: Constants.rpcMessageIDToMessageID(error.messageID),
             reason: error.errMsg || '',
             timestamp: error.ctime,
             type: 'Error',
@@ -677,9 +682,13 @@ function _unboxedToMessage(
         case ChatTypes.LocalMessageUnboxedErrorType.badversion:
           return {
             conversationIDKey,
-            key: Constants.messageKey(conversationIDKey, 'errorInvisible', errorIdx++),
+            key: Constants.messageKey(
+              conversationIDKey,
+              'errorInvisible',
+              Constants.rpcMessageIDToMessageID(error.messageID)
+            ),
             data: message,
-            messageID: error.messageID,
+            messageID: Constants.rpcMessageIDToMessageID(error.messageID),
             timestamp: error.ctime,
             type: 'InvisibleError',
           }
@@ -689,7 +698,14 @@ function _unboxedToMessage(
 
   return {
     type: 'Error',
-    key: Constants.messageKey(conversationIDKey, 'error', errorIdx++),
+    key: Constants.messageKey(
+      conversationIDKey,
+      'error',
+      // $FlowIssue
+      message && message.messageID && typeof message.messageID === 'number'
+        ? Constants.rpcMessageIDToMessageID(message.messageID)
+        : Constants.selfInventedIDToMessageID(errorIdx--)
+    ),
     data: message,
     reason: "The message couldn't be loaded",
     conversationIDKey,
@@ -874,11 +890,13 @@ function* _updateBadging(action: Constants.UpdateBadging): SagaGenerator<any, an
   // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
+  // TODO update this code
   if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
+    const parsed = Constants.parseMessageID(msgID)
     yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {conversationID, msgID},
+      param: {conversationID, msgID: parsed.msgID},
     })
   }
 }

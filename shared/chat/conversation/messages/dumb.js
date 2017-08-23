@@ -34,7 +34,11 @@ function messageMock(
     timestamp: 1479764890000,
     conversationIDKey: 'cid1',
     messageID: 1,
-    key: ChatConstants.messageKey(convID, 'messageIDText', mockKey++),
+    key: ChatConstants.messageKey(
+      convID,
+      'messageIDText',
+      ChatConstants.selfInventedIDToMessageID(mockKey++)
+    ),
     ...otherProps,
   }
 }
