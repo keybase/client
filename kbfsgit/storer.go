@@ -12,38 +12,45 @@ import (
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
 
-// configInMemoryStorer keeps the git config in memory, to work around
-// a gcfg bug (used by go-git when reading configs from disk) that
-// causes a freakout when it sees backslashes in git file URLs.
-type configInMemoryStorer struct {
+// configWithoutRemotesStorer strips remotes from the config before
+// writing them to disk, to work around a gcfg bug (used by go-git
+// when reading configs from disk) that causes a freakout when it sees
+// backslashes in git file URLs.
+type configWithoutRemotesStorer struct {
 	*filesystem.Storage
-	cfg *gogitcfg.Config
 }
 
-func newConfigInMemoryStorer(fs *libfs.FS) (*configInMemoryStorer, error) {
+func newConfigWithoutRemotesStorer(fs *libfs.FS) (
+	*configWithoutRemotesStorer, error) {
 	fsStorer, err := filesystem.NewStorage(fs)
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := fsStorer.Config()
-	if err != nil {
-		return nil, err
+	return &configWithoutRemotesStorer{fsStorer}, nil
+}
+
+func (cwrs *configWithoutRemotesStorer) Init() error {
+	return cwrs.Storage.Init()
+}
+
+func (cwrs *configWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) error {
+	if len(c.Remotes) != 0 {
+		// If there are remotes, we need to strip them out before writing
+		// them out to disk.  Do that by making a copy.
+		buf, err := c.Marshal()
+		if err != nil {
+			return err
+		}
+		cCopy := gogitcfg.NewConfig()
+		err = cCopy.Unmarshal(buf)
+		if err != nil {
+			return err
+		}
+		cCopy.Remotes = nil
+		c = cCopy
 	}
-	return &configInMemoryStorer{fsStorer, cfg}, nil
+	return cwrs.Storage.SetConfig(c)
 }
 
-func (cims *configInMemoryStorer) Init() error {
-	return cims.Storage.Init()
-}
-
-func (cims *configInMemoryStorer) Config() (*gogitcfg.Config, error) {
-	return cims.cfg, nil
-}
-
-func (cims *configInMemoryStorer) SetConfig(c *gogitcfg.Config) error {
-	cims.cfg = c
-	return nil
-}
-
-var _ storage.Storer = (*configInMemoryStorer)(nil)
-var _ storer.Initializer = (*configInMemoryStorer)(nil)
+var _ storage.Storer = (*configWithoutRemotesStorer)(nil)
+var _ storer.Initializer = (*configWithoutRemotesStorer)(nil)

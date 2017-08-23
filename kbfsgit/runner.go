@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	gogit "gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
 const (
@@ -119,6 +120,12 @@ func newRunner(ctx context.Context, config libkbfs.Config, repo string,
 		output: output}, nil
 }
 
+// handleCapabilities: from https://git-scm.com/docs/git-remote-helpers
+//
+// Lists the capabilities of the helper, one per line, ending with a
+// blank line. Each capability may be preceded with *, which marks
+// them mandatory for git versions using the remote helper to
+// understand. Any unknown mandatory capability is a fatal error.
 func (r *runner) handleCapabilities() error {
 	caps := []string{
 		gitCmdFetch,
@@ -177,7 +184,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 	// has a bug where it can't handle backslashes in remote URLs, and
 	// 2) we don't want to flush the remotes since they'll contain
 	// local paths.
-	storer, err := newConfigInMemoryStorer(fs)
+	storer, err := newConfigWithoutRemotesStorer(fs)
 	if err != nil {
 		return nil, err
 	}
@@ -232,14 +239,52 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	return nil
 }
 
-func (r *runner) handleList(ctx context.Context, args []string) error {
+// handleList: From https://git-scm.com/docs/git-remote-helpers
+//
+// Lists the refs, one per line, in the format "<value> <name> [<attr>
+// …​]". The value may be a hex sha1 hash, "@<dest>" for a symref, or
+// "?" to indicate that the helper could not get the value of the
+// ref. A space-separated list of attributes follows the name;
+// unrecognized attributes are ignored. The list ends with a blank
+// line.
+func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	if len(args) > 0 {
 		return errors.New("Lists for non-fetches unsupported for now")
 	}
 
-	_, err := r.initRepoIfNeeded(ctx)
+	repo, err := r.initRepoIfNeeded(ctx)
 	if err != nil {
 		return err
+	}
+
+	refs, err := repo.References()
+	if err != nil {
+		return err
+	}
+
+	for {
+		ref, err := refs.Next()
+		if errors.Cause(err) == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		value := ""
+		switch ref.Type() {
+		case plumbing.HashReference:
+			value = ref.Hash().String()
+		case plumbing.SymbolicReference:
+			value = "@" + ref.Target().String()
+		default:
+			value = "?"
+		}
+		refStr := value + " " + ref.Name().String() + "\n"
+		_, err = r.output.Write([]byte(refStr))
+		if err != nil {
+			return err
+		}
 	}
 
 	err = r.waitForJournal(ctx)
@@ -248,7 +293,6 @@ func (r *runner) handleList(ctx context.Context, args []string) error {
 	}
 	r.log.CDebugf(ctx, "Done waiting for journal")
 
-	// TODO(KBFS-2353/KBFS-2354): list actual references from the repo.
 	_, err = r.output.Write([]byte("\n"))
 	return err
 }

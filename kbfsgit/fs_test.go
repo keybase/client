@@ -49,7 +49,7 @@ func TestBareRepoInKBFS(t *testing.T) {
 	ctx, _, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.Config())
 
-	storer, err := newConfigInMemoryStorer(fs)
+	storer, err := newConfigWithoutRemotesStorer(fs)
 	require.NoError(t, err)
 
 	repo, err := gogit.Init(storer, nil)
