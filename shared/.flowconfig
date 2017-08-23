@@ -35,7 +35,7 @@
 ./flow-typed
 
 [options]
-include_warnings=false
+include_warnings=true
 munge_underscores=true
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
