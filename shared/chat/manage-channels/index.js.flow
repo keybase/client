@@ -1,0 +1,19 @@
+// @flow
+import * as React from 'react'
+
+export type RowProps = {
+  description: string,
+  name: string,
+  selected: boolean,
+}
+
+export type Props = {
+  channels: Array<RowProps>,
+  numChannels: number,
+  onCreate: () => void,
+  onToggle: (channel: string) => void,
+  onClose: () => void,
+  teamname: string,
+}
+
+declare export default class ManageChannels extends React.Component<Props> {}
