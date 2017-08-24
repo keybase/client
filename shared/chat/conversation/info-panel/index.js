@@ -17,7 +17,7 @@ import {branch} from 'recompose'
 
 import Participants from './participants'
 
-import type {InfoPanelProps, BigTeamInfoPanelProps} from '.'
+import type {SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -31,7 +31,7 @@ const scrollViewStyle = {
       }),
 }
 
-const _InfoPanel = (props: InfoPanelProps) => (
+const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView
     style={scrollViewStyle}
     contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
@@ -116,7 +116,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   </ScrollView>
 )
 
-const InfoPanel = branch(() => isMobile, HeaderHoc)(_InfoPanel)
+const SmallTeamInfoPanel = branch(() => isMobile, HeaderHoc)(_SmallTeamInfoPanel)
 const BigTeamInfoPanel = branch(() => isMobile, HeaderHoc)(_BigTeamInfoPanel)
 
-export {InfoPanel, BigTeamInfoPanel}
+export {SmallTeamInfoPanel, BigTeamInfoPanel}

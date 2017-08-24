@@ -2,7 +2,7 @@
 import {Component} from 'react'
 import {List} from 'immutable'
 
-export type InfoPanelProps = {
+export type SmallTeamInfoPanelProps = {
   muted: boolean,
   onAddParticipant: () => void,
   onMuteConversation: (muted: boolean) => void,
@@ -18,14 +18,13 @@ export type InfoPanelProps = {
   }>,
 }
 
-export class InfoPanel extends Component<InfoPanelProps> {}
+export class SmallTeamInfoPanel extends Component<SmallTeamInfoPanelProps> {}
 
 export type BigTeamInfoPanelProps = {
   channelname: string,
   muted: boolean,
   onAddParticipant: () => void,
   onMuteConversation: (muted: boolean) => void,
-  onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
   participants: List<{
