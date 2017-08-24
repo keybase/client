@@ -228,6 +228,10 @@ func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
 		},
 		Revision:          kbfsmd.RevisionInitial,
 		UnresolvedReaders: unresolvedReaders,
+		// Normally an MD wouldn't start out with extensions, but this
+		// is useful for tests.
+		ConflictInfo:  h.ConflictInfo,
+		FinalizedInfo: h.FinalizedInfo,
 	}, nil
 }
 

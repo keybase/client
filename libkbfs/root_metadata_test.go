@@ -512,6 +512,67 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 	require.Equal(t, handle, handle2)
 }
 
+// Test upconversion from MDv2 to MDv3 for a private conflict folder.
+// Regression test for KBFS-2381.
+func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
+	ctx := context.Background()
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer config.Shutdown(ctx)
+
+	tlfID := tlf.FakeID(1, tlf.Private)
+	h := parseTlfHandleOrBust(
+		t, config, "alice,bob (conflicted copy 2017-08-24)", tlf.Private)
+	rmd, err := makeInitialRootMetadata(InitialExtraMetadataVer, tlfID, h)
+	require.NoError(t, err)
+	require.Equal(t, KeyGen(0), rmd.LatestKeyGeneration())
+	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
+	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
+	require.NotNil(t, h.ConflictInfo())
+
+	// set some dummy numbers
+	diskUsage, refBytes, unrefBytes :=
+		uint64(12345), uint64(4321), uint64(1234)
+	rmd.SetDiskUsage(diskUsage)
+	rmd.SetRefBytes(refBytes)
+	rmd.SetUnrefBytes(unrefBytes)
+	// Make sure the MD looks readable.
+	rmd.data.Dir.BlockPointer = BlockPointer{ID: kbfsblock.FakeID(1)}
+
+	// key it once
+	done, _, err := config.KeyManager().Rekey(context.Background(), rmd, false)
+	require.NoError(t, err)
+	require.True(t, done)
+	require.Equal(t, KeyGen(1), rmd.LatestKeyGeneration())
+	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
+	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
+	require.Equal(t, 0, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
+	require.Equal(t, 1, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
+	require.True(t, rmd.IsReadable())
+
+	// override the metadata version
+	config.metadataVersion = SegregatedKeyBundlesVer
+
+	// create an MDv3 successor
+	rmd2, err := rmd.MakeSuccessor(context.Background(),
+		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
+		true)
+	require.NoError(t, err)
+	require.Equal(t, KeyGen(1), rmd2.LatestKeyGeneration())
+	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
+	require.Equal(t, SegregatedKeyBundlesVer, rmd2.Version())
+	extra, ok := rmd2.extra.(*ExtraMetadataV3)
+	require.True(t, ok)
+	require.True(t, extra.wkbNew)
+	require.True(t, extra.rkbNew)
+
+	// Check the handle, but the cached handle in the MD is a direct copy...
+	require.Equal(
+		t, h.GetCanonicalPath(), rmd2.GetTlfHandle().GetCanonicalPath())
+	// So also check that the conflict info is set in the MD itself.
+	require.NotNil(t, rmd2.bareMd.(*BareRootMetadataV3).ConflictInfo)
+}
+
 // The server will be reusing IsLastModifiedBy and we don't want a client
 // to be able to construct an MD that will crash the server.
 func TestRootMetadataV3NoPanicOnWriterMismatch(t *testing.T) {

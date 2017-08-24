@@ -183,6 +183,10 @@ func MakeInitialBareRootMetadataV2(tlfID tlf.ID, h tlf.Handle) (
 		Revision:          kbfsmd.RevisionInitial,
 		RKeys:             rKeys,
 		UnresolvedReaders: unresolvedReaders,
+		// Normally an MD wouldn't start out with extensions, but this
+		// is useful for tests.
+		ConflictInfo:  h.ConflictInfo,
+		FinalizedInfo: h.FinalizedInfo,
 	}, nil
 }
 
@@ -443,7 +447,7 @@ func (md *BareRootMetadataV2) makeSuccessorCopyV3(
 
 	if md.ConflictInfo != nil {
 		ci := *md.ConflictInfo
-		md.ConflictInfo = &ci
+		mdV3.ConflictInfo = &ci
 	}
 
 	// Metadata with finalized info is never succeeded.
