@@ -208,3 +208,7 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 	teamID, _, err := teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
 	return teamID, err
 }
+
+func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) error {
+	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+}

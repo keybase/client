@@ -1367,6 +1367,23 @@
       ],
       "response": "TeamID"
     },
+    "teamReAddMemberAfterReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "loadTeamPlusApplicationKeys": {
       "request": [
         {

@@ -1393,6 +1393,20 @@ func (o LookupOrCreateImplicitTeamArg) DeepCopy() LookupOrCreateImplicitTeamArg 
 	}
 }
 
+type TeamReAddMemberAfterResetArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+	Username  string `codec:"username" json:"username"`
+}
+
+func (o TeamReAddMemberAfterResetArg) DeepCopy() TeamReAddMemberAfterResetArg {
+	return TeamReAddMemberAfterResetArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Username:  o.Username,
+	}
+}
+
 type LoadTeamPlusApplicationKeysArg struct {
 	SessionID   int             `codec:"sessionID" json:"sessionID"`
 	Id          TeamID          `codec:"id" json:"id"`
@@ -1438,6 +1452,7 @@ type TeamsInterface interface {
 	TeamDelete(context.Context, TeamDeleteArg) error
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (TeamID, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (TeamID, error)
+	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
 	// * of the refreshers aren't met.
@@ -1737,6 +1752,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamReAddMemberAfterReset": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamReAddMemberAfterResetArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamReAddMemberAfterResetArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamReAddMemberAfterResetArg)(nil), args)
+						return
+					}
+					err = i.TeamReAddMemberAfterReset(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"loadTeamPlusApplicationKeys": {
 				MakeArg: func() interface{} {
 					ret := make([]LoadTeamPlusApplicationKeysArg, 1)
@@ -1865,6 +1896,11 @@ func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplici
 
 func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res TeamID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamReAddMemberAfterReset(ctx context.Context, __arg TeamReAddMemberAfterResetArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamReAddMemberAfterReset", []interface{}{__arg}, nil)
 	return
 }
 

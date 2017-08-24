@@ -249,6 +249,21 @@ func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keyba
 	return res, nil
 }
 
+func (t TeamSigChainState) GetLatestUVWithUID(uid keybase1.UID) (res keybase1.UserVersion, err error) {
+	found := false
+	for uv := range t.inner.UserLog {
+		if uv.Uid == uid && (!found || res.EldestSeqno < uv.EldestSeqno) {
+			res = uv
+			found = true
+		}
+	}
+
+	if !found {
+		return keybase1.UserVersion{}, errors.New("did not find user with given uid")
+	}
+	return res.DeepCopy(), nil
+}
+
 func (t TeamSigChainState) GetLatestPerTeamKey() (keybase1.PerTeamKey, error) {
 	res, ok := t.inner.PerTeamKeys[keybase1.PerTeamKeyGeneration(len(t.inner.PerTeamKeys))]
 	if !ok {

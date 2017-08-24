@@ -389,14 +389,32 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	divDebug(ctx, "Implicit team name is %s\n", team.Name().String())
+	teamName := team.Name().String()
+	divDebug(ctx, "Implicit team name is %s\n", teamName)
 
-	alice.addOwner(smuTeam{name: team.Name().String()}, bob)
+	alice.reAddUserAfterReset(smuTeam{name: teamName}, bob)
 	divDebug(ctx, "Re-Added bob as an owner")
 
-	_, err = teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
+	tryLoad := func() {
+		_, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
+			ID:          teamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+	}
+
+	tryLoad()
+
+	bob.reset()
+	divDebug(ctx, "Reset bob again (%s) (poor bob)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	tryLoad()
+
+	alice.reAddUserAfterReset(smuTeam{name: teamName}, bob)
+	divDebug(ctx, "Re-Added bob as an owner again")
+
+	tryLoad()
 }

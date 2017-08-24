@@ -2323,6 +2323,14 @@ export function teamsTeamListRpcPromise (request: (requestCommon & {callback?: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamReAddMemberAfterResetRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamReAddMemberAfterResetRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
+}
+
+export function teamsTeamReAddMemberAfterResetRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamReAddMemberAfterResetRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamRemoveMemberRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRemoveMember', request)
 }
@@ -5823,6 +5831,11 @@ export type teamsTeamLeaveRpcParam = Exact<{
 export type teamsTeamListRpcParam = Exact<{
   userAssertion: string,
   all: boolean
+}>
+
+export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
+  name: string,
+  username: string
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{

@@ -82,7 +82,17 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 	for i, uv := range group {
 		members[i], err = m.loadMember(ctx, g, uv, storeRecipient, force)
 		if _, reset := err.(libkb.AccountResetError); reset {
-			g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
+			if !storeRecipient {
+				// If caller doesn't care about keys, it probably expects
+				// reset users to be passed through as well. This is used
+				// in readding reset users in impteams.
+				members[i] = member{version: uv}
+			} else {
+				// TODO: This has a bug where it will leave empty member{}
+				// in the member list. If we are on our way of creating
+				// JSON payload, it will contain { Uid: "", EldestSeqno: 0 }.
+				g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
+			}
 			continue
 		}
 		if err != nil {

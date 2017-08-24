@@ -478,3 +478,41 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 
 	return team.Name.RootAncestorName().ToTeamID(), nil
 }
+
+func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+	uv, err := loadUserVersionByUsername(ctx, g, username)
+	if err != nil {
+		return err
+	}
+
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err != nil {
+		return fmt.Errorf("User %s has never been a member of this team.", username)
+	}
+
+	if existingUV.EldestSeqno == uv.EldestSeqno {
+		return fmt.Errorf("No need to ReAdd member, user has not reset")
+	} else if existingUV.EldestSeqno > uv.EldestSeqno {
+		return fmt.Errorf("EldestSeqno going backwards?")
+	}
+
+	existingRole, err := t.MemberRole(ctx, existingUV)
+	if err != nil {
+		return err
+	}
+
+	req, err := reqFromRole(uv, existingRole)
+	if err != nil {
+		return err
+	}
+
+	req.None = []keybase1.UserVersion{existingUV}
+	if err := t.ChangeMembership(ctx, req); err != nil {
+		return err
+	}
+	return nil
+}

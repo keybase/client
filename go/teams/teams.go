@@ -92,6 +92,10 @@ func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase
 	return t.chain().GetUserRole(uv)
 }
 
+func (t *Team) UserVersionByUID(ctx context.Context, uid keybase1.UID) (keybase1.UserVersion, error) {
+	return t.chain().GetLatestUVWithUID(uid)
+}
+
 func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
 	return t.chain().GetUsersWithRole(role)
 }
@@ -359,7 +363,10 @@ func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
 func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error) {
 
 	for _, member := range ms.None {
-		uids = append(uids, member.version.Uid)
+		// It's not a downgrade if we are removing a reset user.
+		if role, err := t.chain().GetUserRole(member.version); err != nil && role != keybase1.TeamRole_NONE {
+			uids = append(uids, member.version.Uid)
+		}
 	}
 
 	for _, member := range ms.nonAdmins() {
@@ -406,6 +413,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		implicitAdminBoxes: implicitAdminBoxes,
 		lease:              lease,
 	}
+
 	if err := t.postChangeItem(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs); err != nil {
 		return err
 	}
