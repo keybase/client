@@ -7,6 +7,7 @@ import {
   fuseStatusUpdateSaga,
   installFuseSaga,
   installKBFSSaga,
+  installDokanSaga,
   openSaga,
   openInFileUISaga,
   uninstallKBFSSaga,
@@ -25,6 +26,7 @@ import type {
 } from '../../constants/kbfs'
 import type {ListResult} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
+import {isWindows} from '../../constants/platform'
 
 function fsList(path: string): FSList {
   return {payload: {path}, type: Constants.fsList}
@@ -76,6 +78,11 @@ function* kbfsSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest('fs:fuseStatus', fuseStatusSaga)
   yield safeTakeLatest('fs:fuseStatusUpdate', fuseStatusUpdateSaga)
   yield safeTakeLatest('fs:installFuse', installFuseSaga)
+  if (isWindows) {
+    yield safeTakeLatest('fs:installFuse', installDokanSaga)
+  } else {
+    yield safeTakeLatest('fs:installFuse', installFuseSaga)
+  }
   yield safeTakeLatest('fs:installKBFS', installKBFSSaga)
   yield safeTakeLatest('fs:uninstallKBFS', uninstallKBFSSaga)
 }

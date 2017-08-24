@@ -31,6 +31,9 @@ const commands = {
     code: () => {
       // Inject dummy modules
       makeShims(['net', 'tls', 'msgpack'])
+      if (process.platform !== 'win32') {
+        makeShims(['regedit'])
+      }
     },
     help: 'all: install global eslint. dummy modules',
   },

@@ -165,5 +165,8 @@
     "webpack-dashboard": "0.4.0",
     "webpack-dev-server": "2.6.1",
     "webpack-merge": "4.1.0"
+  },
+  "optionalDependencies": {
+    "regedit": "2.2.7"    
   }
 }

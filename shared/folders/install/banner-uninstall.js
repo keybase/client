@@ -5,6 +5,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {connect} from 'react-redux'
 import {openInKBFS, uninstallKBFS} from '../../actions/kbfs'
 import electron from 'electron'
+import {isWindows} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -12,6 +13,7 @@ type Props = {
   inProgress: boolean,
   openInKBFS: () => void,
   uninstallKBFSAndRestart: () => void,
+  kbfsMount: string,
 }
 
 class InstalledBanner extends Component<void, Props, void> {
@@ -45,21 +47,40 @@ class InstalledBanner extends Component<void, Props, void> {
       )
     }
 
-    return (
-      <Box style={stylesContainer}>
-        <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
-          Your Keybase folders currently appear in your Finder under&nbsp;
-          <Text type="BodySmallPrimaryLink" style={globalStyles.fontTerminal} onClick={this._onOpen}>
-            /keybase
+    if (isWindows) {
+      // todo: get mount drive letter on Windows?
+      return (
+        <Box style={stylesContainer}>
+          <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
+            Your Keybase folders currently appear in Explorer.
+            <br />
+            <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
+              To stop showing in Explorer, uninstall Dokan from the control panel.
+            </Text>
           </Text>
-          .
-          <br />
-          <Text type="BodySmallInlineLink" style={{color: globalColors.black_60}} onClick={this._onUninstall}>
-            Do not show them in Finder
+        </Box>
+      )
+    } else {
+      return (
+        <Box style={stylesContainer}>
+          <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
+            Your Keybase folders currently appear in your Finder under&nbsp;
+            <Text type="BodySmallPrimaryLink" style={globalStyles.fontTerminal} onClick={this._onOpen}>
+              /keybase
+            </Text>
+            .
+            <br />
+            <Text
+              type="BodySmallInlineLink"
+              style={{color: globalColors.black_60}}
+              onClick={this._onUninstall}
+            >
+              Do not show them in Finder
+            </Text>
           </Text>
-        </Text>
-      </Box>
-    )
+        </Box>
+      )
+    }
   }
 }
 
