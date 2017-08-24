@@ -17,15 +17,13 @@ type infoPanelProps = {
   }>,
 }
 
-export type SmallTeamInfoPanelProps = {
-  ...$Exact<infoPanelProps>,
+export type SmallTeamInfoPanelProps = infoPanelProps & {
   onShowBlockConversationDialog: () => void,
 }
 
 export class SmallTeamInfoPanel extends Component<SmallTeamInfoPanelProps> {}
 
-export type BigTeamInfoPanelProps = {
-  ...$Exact<infoPanelProps>,
+export type BigTeamInfoPanelProps = infoPanelProps & {
   channelname: string,
   teamname: string,
 }
