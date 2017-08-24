@@ -29,29 +29,17 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	// Load all the Keybase users
-	loadUpakByUsername := func(username string) (*keybase1.UserPlusKeysV2, error) {
-		uid, err := g.GetUPAKLoader().LookupUID(ctx, libkb.NewNormalizedUsername(username))
-		if err != nil {
-			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load uid: %s msg: %s", username, err)
-			return nil, err
-		}
-		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{
-			UID: uid,
-		})
-		if err != nil {
-			g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", username, err)
-			return nil, err
-		}
-		return &upak.Current, nil
-	}
-
 	loadUsernameList := func(usernames []string) (res []*keybase1.UserPlusKeysV2, err error) {
 		for _, username := range usernames {
-			upak, err := loadUpakByUsername(username)
+			upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{
+				Name:       username,
+				NetContext: ctx,
+			})
 			if err != nil {
+				g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", username, err)
 				return res, err
 			}
-			res = append(res, upak)
+			res = append(res, &upak.Current)
 		}
 		return res, nil
 	}
