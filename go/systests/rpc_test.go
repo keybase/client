@@ -310,6 +310,7 @@ func testIdentifyLite(t *testing.T) {
 	t.Logf("make an implicit team")
 	iTeamCreateName := strings.Join([]string{tt.users[0].username, "bob@github"}, ",")
 	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
+	require.NoError(t, err)
 	iTeamImpName := getTeamName(iTeamID)
 	require.True(t, iTeamImpName.IsImplicit())
 	require.NoError(t, err)

@@ -102,30 +102,6 @@ func TestImplicitPukless(t *testing.T) {
 	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
 }
 
-func TestImplicitTeamTmp(t *testing.T) {
-	fus, tcs, cleanup := setupNTests(t, 2)
-	defer cleanup()
-
-	displayName := "" + fus[0].Username + "#" + fus[1].Username
-	t.Logf("U0 creates an implicit team: %v", displayName)
-	teamID, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
-	require.NoError(t, err)
-
-	t.Logf("U1 looks up the team (softly)")
-	teamID2, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
-	require.NoError(t, err)
-	require.Equal(t, teamID, teamID2, "users should lookup the same team ID")
-
-	t.Logf("U1 looks up the team")
-	teamID2, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
-	require.NoError(t, err)
-	require.Equal(t, teamID, teamID2, "users should lookup the same team ID")
-
-	t.Logf("U1 loads the team")
-	_, err = Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{ID: teamID2})
-	require.NoError(t, err)
-}
-
 // Test loading an implicit team as a #reader.
 func TestImplicitTeamReader(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
