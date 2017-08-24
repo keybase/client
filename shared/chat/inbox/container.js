@@ -5,7 +5,6 @@ import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
-import {navigateAppend} from '../../actions/route-tree'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
@@ -182,9 +181,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadInbox: () => dispatch(loadInbox()),
-  onNewChat: () =>
-    dispatch(navigateAppend([{props: {teamname: 'cnojimatest7'}, selected: 'manageChannels'}])),
-  // TEMP onNewChat: () => dispatch(newChat([])),
+  onNewChat: () => dispatch(newChat([])),
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),

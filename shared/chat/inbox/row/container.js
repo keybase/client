@@ -14,6 +14,7 @@ import {selectConversation, setInboxFilter} from '../../../actions/chat/creators
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 import {compose, renderComponent, branch} from 'recompose'
+import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
@@ -133,6 +134,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(setInboxFilter(''))
     dispatch(selectConversation(key, true))
   },
+  _onShowMenu: (teamname: string) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -140,6 +143,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
+  onShowMenu: () => dispatchProps._onShowMenu(stateProps.teamname),
 })
 
 const ConnectedRow = compose(
