@@ -11,14 +11,6 @@ protocol identify {
   @lint("ignore")
   UserOrTeamLite Resolve3(string assertion);
 
-  /**
-    DEPRECATED:  use identify2
-
-    Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
-    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
-    */
-  IdentifyRes identify(int sessionID, string userAssertion, boolean forceRemoteCheck=false, boolean useDelegateUI=false, IdentifyReason reason, ClientType source);
-
   record IdentifyProofBreak {
     RemoteProof remoteProof;
     LinkCheckResult lcr;

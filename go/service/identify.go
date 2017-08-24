@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -146,11 +145,6 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 		return u, err
 	}
 	return res.UserOrTeam(), nil
-}
-
-func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (res keybase1.IdentifyRes, err error) {
-	h.G().Log.Info("deprecated keybase1.Identify v1 called")
-	return res, errors.New("keybase1.Identify no longer supported")
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

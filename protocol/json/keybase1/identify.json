@@ -96,38 +96,6 @@
       "doc": "Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.",
       "lint": "ignore"
     },
-    "identify": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "userAssertion",
-          "type": "string"
-        },
-        {
-          "name": "forceRemoteCheck",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "useDelegateUI",
-          "type": "boolean",
-          "default": false
-        },
-        {
-          "name": "reason",
-          "type": "IdentifyReason"
-        },
-        {
-          "name": "source",
-          "type": "ClientType"
-        }
-      ],
-      "response": "IdentifyRes",
-      "doc": "DEPRECATED:  use identify2\n\n    Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).\n    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used)."
-    },
     "identify2": {
       "request": [
         {

@@ -214,34 +214,6 @@
     },
     {
       "type": "record",
-      "name": "IdentifyRes",
-      "fields": [
-        {
-          "type": [
-            null,
-            "User"
-          ],
-          "name": "user"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "PublicKey"
-          },
-          "name": "publicKeys"
-        },
-        {
-          "type": "IdentifyOutcome",
-          "name": "outcome"
-        },
-        {
-          "type": "TrackToken",
-          "name": "trackToken"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "RemoteProof",
       "fields": [
         {

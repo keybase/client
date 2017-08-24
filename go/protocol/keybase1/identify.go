@@ -94,26 +94,6 @@ func (o Resolve3Arg) DeepCopy() Resolve3Arg {
 	}
 }
 
-type IdentifyArg struct {
-	SessionID        int            `codec:"sessionID" json:"sessionID"`
-	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
-	ForceRemoteCheck bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
-	UseDelegateUI    bool           `codec:"useDelegateUI" json:"useDelegateUI"`
-	Reason           IdentifyReason `codec:"reason" json:"reason"`
-	Source           ClientType     `codec:"source" json:"source"`
-}
-
-func (o IdentifyArg) DeepCopy() IdentifyArg {
-	return IdentifyArg{
-		SessionID:        o.SessionID,
-		UserAssertion:    o.UserAssertion,
-		ForceRemoteCheck: o.ForceRemoteCheck,
-		UseDelegateUI:    o.UseDelegateUI,
-		Reason:           o.Reason.DeepCopy(),
-		Source:           o.Source.DeepCopy(),
-	}
-}
-
 type Identify2Arg struct {
 	SessionID             int                 `codec:"sessionID" json:"sessionID"`
 	Uid                   UID                 `codec:"uid" json:"uid"`
@@ -189,11 +169,6 @@ func (o IdentifyLiteArg) DeepCopy() IdentifyLiteArg {
 type IdentifyInterface interface {
 	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
 	Resolve3(context.Context, string) (UserOrTeamLite, error)
-	// DEPRECATED:  use identify2
-	//
-	// Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
-	// If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
-	Identify(context.Context, IdentifyArg) (IdentifyRes, error)
 	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
 	IdentifyLite(context.Context, IdentifyLiteArg) (IdentifyLiteRes, error)
 }
@@ -214,22 +189,6 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.Resolve3(ctx, (*typedArgs)[0].Assertion)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"identify": {
-				MakeArg: func() interface{} {
-					ret := make([]IdentifyArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]IdentifyArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]IdentifyArg)(nil), args)
-						return
-					}
-					ret, err = i.Identify(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -278,15 +237,6 @@ type IdentifyClient struct {
 func (c IdentifyClient) Resolve3(ctx context.Context, assertion string) (res UserOrTeamLite, err error) {
 	__arg := Resolve3Arg{Assertion: assertion}
 	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve3", []interface{}{__arg}, &res)
-	return
-}
-
-// DEPRECATED:  use identify2
-//
-// Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
-// If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
-func (c IdentifyClient) Identify(ctx context.Context, __arg IdentifyArg) (res IdentifyRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.identify.identify", []interface{}{__arg}, &res)
 	return
 }
 

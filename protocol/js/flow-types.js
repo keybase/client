@@ -1387,14 +1387,6 @@ export function identifyIdentifyLiteRpcPromise (request: (requestCommon & {callb
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identifyLite', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function identifyIdentifyRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify', request)
-}
-
-export function identifyIdentifyRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam})): Promise<identifyIdentifyResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identify', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
 export function identifyResolve3RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
 }
@@ -3231,13 +3223,6 @@ export type IdentifyReasonType =
   | 5 // VERIFY_5
   | 6 // RESOURCE_6
   | 7 // BACKGROUND_7
-
-export type IdentifyRes = {
-  user?: ?User,
-  publicKeys?: ?Array<PublicKey>,
-  outcome: IdentifyOutcome,
-  trackToken: TrackToken,
-}
 
 export type IdentifyRow = {
   rowId: int,
@@ -5153,14 +5138,6 @@ export type identifyIdentifyLiteRpcParam = Exact<{
   forceDisplay?: boolean
 }>
 
-export type identifyIdentifyRpcParam = Exact<{
-  userAssertion: string,
-  forceRemoteCheck?: boolean,
-  useDelegateUI?: boolean,
-  reason: IdentifyReason,
-  source: ClientType
-}>
-
 export type identifyResolve3RpcParam = Exact<{
   assertion: string
 }>
@@ -6046,7 +6023,6 @@ type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
-type identifyIdentifyResult = IdentifyRes
 type identifyResolve3Result = UserOrTeamLite
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
