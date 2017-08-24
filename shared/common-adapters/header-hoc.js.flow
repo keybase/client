@@ -6,7 +6,10 @@ export type Props = {
   onBack?: ?() => void,
   onCancel?: ?() => void,
   headerStyle?: ?Object,
+  customComponent?: ?React.Node,
   theme?: 'light' | 'dark', // defaults to light
 }
 
-declare export default function HeaderHoc<P>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P & Props>
+declare export default function HeaderHoc<P>(
+  WrappedComponent: React.ComponentType<P>
+): React.ComponentType<P & Props>

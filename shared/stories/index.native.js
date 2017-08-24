@@ -13,13 +13,15 @@ const scrollViewDecorator = story => [
   </ScrollView>,
 ]
 
+const noScrollBars = ['chatList', 'chatManageChannels']
+
 // Load common-adapter stories
 const load = () => {
   configure(() => {
-    stories.chatList()
+    noScrollBars.forEach(s => stories[s]())
     // If you want a scroll view, but the load fn after this decorator. Otherewise before
     addDecorator(scrollViewDecorator)
-    Object.keys(stories).filter(s => s !== 'chat').forEach(s => stories[s]())
+    Object.keys(stories).filter(s => !noScrollBars.includes(s)).forEach(s => stories[s]())
   }, module)
 }
 

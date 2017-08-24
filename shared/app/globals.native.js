@@ -12,7 +12,7 @@ import {isStoryBook} from '../constants/platform.native'
 // __STORYBOOK__
 // if we're in storybook mode
 if (typeof __STORYBOOK__ === 'undefined') {
-  __STORYBOOK__ = isStoryBook
+  __STORYBOOK__ = true
 }
 
 // __SCREENSHOT__

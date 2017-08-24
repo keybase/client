@@ -2,72 +2,92 @@
 import * as React from 'react'
 import {Avatar, Text, Box, ScrollView, Checkbox, Icon, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {renameProp, compose, withProps} from 'recompose'
 
 import type {Props, RowProps} from '.'
 
 const Row = (props: RowProps & {onToggle: () => void}) => (
   <Box style={_rowBox}>
-    <Checkbox checked={props.selected} label="" onCheck={props.onToggle} style={{marginTop: 3}} />
-    <Box style={globalStyles.flexBoxColumn}>
-      <Text type="BodySemibold" style={{color: globalColors.blue}}>#{props.name}</Text>
-      <Text type="BodySmall">{props.description}</Text>
+    <Box
+      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingRight: globalMargins.tiny}}
+    >
+      <Text type="BodySemibold" style={{color: globalColors.blue, maxWidth: '100%'}} lineClamp={1}>
+        #{props.name}
+      </Text>
+      <Text type="BodySmall" lineClamp={1}>{props.description}</Text>
     </Box>
+    <Checkbox checked={props.selected} label="" onCheck={props.onToggle} />
   </Box>
 )
 
 const _rowBox = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
+  alignItems: 'center',
   flexShrink: 0,
-  height: 40,
-  paddingLeft: globalMargins.large,
-  paddingTop: 6,
+  height: 56,
   width: '100%',
 }
 
 const ManageChannels = (props: Props) => (
   <Box style={_boxStyle}>
-    <Avatar teamname={props.teamname} size={16} />
-    <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
-      {props.teamname}
-    </Text>
-    <Text type="Header" style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
-      {props.numChannels} chat channels
-    </Text>
     <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
+      <Box style={_createStyle}>
+        <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
+        <Text type="BodyBigLink" onClick={props.onCreate}>Create chat channel</Text>
+      </Box>
       {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
     </ScrollView>
-    <Box style={_createStyle}>
-      <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-      <Text type="BodyBigLink" onClick={props.onCreate}>Create chat channel</Text>
-    </Box>
   </Box>
 )
 
-const _boxStyle = {
+const Header = (props: Props) => (
+  <Box style={_headerStyle}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
+      <Avatar teamname={props.teamname} size={12} />
+      <Text
+        type="BodySmallSemibold"
+        style={{color: globalColors.darkBlue, fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}
+        lineClamp={1}
+      >
+        {props.teamname}
+      </Text>
+    </Box>
+    <Text type="BodySmallSemibold" style={{color: globalColors.black_75}}>
+      {props.numChannels} chat channels
+    </Text>
+  </Box>
+)
+
+const _headerStyle = {
+  ...globalStyles.fillAbsolute,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+}
+
+const _boxStyle = {
+  ...globalStyles.flexBoxColumn,
   height: '100%',
-  paddingLeft: 32,
-  paddingRight: 32,
-  paddingTop: 32,
-  position: 'relative',
+  padding: 16,
   width: '100%',
 }
 
 const _createStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  position: 'absolute',
-  right: 32,
-  top: 32,
+  alignSelf: 'stretch',
+  height: 56,
+  justifyContent: 'center',
 }
 
 const _createIcon = {
   color: globalColors.blue,
-  display: 'block',
-  hoverColor: globalColors.blue2,
   marginRight: globalMargins.xtiny,
 }
 
-export default HeaderHoc(ManageChannels)
+export default compose(
+  renameProp('onClose', 'onBack'),
+  withProps(props => ({
+    customComponent: <Header {...props} />,
+  })),
+  HeaderHoc
+)(ManageChannels)

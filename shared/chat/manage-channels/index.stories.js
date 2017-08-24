@@ -2,6 +2,7 @@
 import React from 'react'
 import {Box} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
+import {isMobile} from '../../constants/platform'
 import ManageChannels from '.'
 
 const channels = [
@@ -35,11 +36,16 @@ const channels = [
     name: 'zzz',
     selected: true,
   },
+  {
+    description: 'This is a very long long long description to test that things flow correctly',
+    name: 'superlonglonglongnameforachannel',
+    selected: true,
+  },
 ]
 
 const load = () => {
   storiesOf('Chat/Teams', module).add('ManageChannels', () => (
-    <Box style={{minWidth: 400, width: '100%'}}>
+    <Box style={{minWidth: isMobile ? undefined : 400, width: '100%'}}>
       <ManageChannels
         teamname="stripe.usa"
         numChannels={23}
