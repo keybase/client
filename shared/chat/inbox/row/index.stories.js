@@ -4,8 +4,8 @@ import * as I from 'immutable'
 import {Box} from '../../../common-adapters'
 import {storiesOf, action} from '../../../stories/storybook'
 import {globalColors} from '../../../styles'
-import {SimpleRow} from './simple-row'
-import {TeamRow, ChannelRow} from './team-row'
+import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
+import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 
 const simpleCommon = {
   backgroundColor: globalColors.white,
@@ -65,33 +65,38 @@ const load = () => {
   storiesOf('Chat/Inbox', module)
     .add('Simple', () => (
       <Box style={{width: 240}}>
-        {mocks.map(m => <SimpleRow key={m.conversationIDKey} {...m} />)}
+        {mocks.map(m => <SmallTeamRow key={m.conversationIDKey} {...m} />)}
       </Box>
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
-        <TeamRow teamname="Keybase" />
-        <ChannelRow teamname="Keybase" channelname="#general" {...commonChannel} />
-        <ChannelRow teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
-        <ChannelRow
+        <BigTeamHeaderRow teamname="Keybase" />
+        <BigTeamChannelRow teamname="Keybase" channelname="#general" {...commonChannel} />
+        <BigTeamChannelRow teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
+        <BigTeamChannelRow
           teamname="Keybase"
           channelname="#zzz"
           showBold={true}
           hasUnread={true}
           {...commonChannel}
         />
-        <ChannelRow teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
-        <TeamRow teamname="techtonica" />
-        <ChannelRow teamname="techtonica" channelname="#general" isSelected={true} {...commonChannel} />
-        <ChannelRow teamname="techtonica" channelname="#ignore-selected-below" {...commonChannel} />
-        <ChannelRow
+        <BigTeamChannelRow teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
+        <BigTeamHeaderRow teamname="techtonica" />
+        <BigTeamChannelRow
+          teamname="techtonica"
+          channelname="#general"
+          isSelected={true}
+          {...commonChannel}
+        />
+        <BigTeamChannelRow teamname="techtonica" channelname="#ignore-selected-below" {...commonChannel} />
+        <BigTeamChannelRow
           teamname="techtonica"
           channelname="#random"
           isSelected={true}
           isMuted={true}
           {...commonChannel}
         />
-        <ChannelRow
+        <BigTeamChannelRow
           teamname="techtonica"
           channelname="#happy-hour"
           isSelected={true}
@@ -100,6 +105,43 @@ const load = () => {
         />
       </Box>
     ))
+    .add('Filtered', () => (
+      <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
+        <SmallTeamFilteredRow {...commonFiltered} />
+        <SmallTeamFilteredRow {...commonFiltered} participants={I.List.of('chris')} />
+        <SmallTeamFilteredRow {...commonFiltered} teamname="pokerpals" />
+        <BigTeamChannelFilteredRow {...commonBigFiltered} channelname="general" />
+        <BigTeamChannelFilteredRow {...commonBigFiltered} channelname="random" />
+        <BigTeamChannelFilteredRow
+          {...commonBigFiltered}
+          teamname="stripe.usa"
+          channelname="this-is-a-very-long-channel-name"
+        />
+        <BigTeamChannelFilteredRow
+          {...commonBigFiltered}
+          teamname="this.is.a.very.long.team.name.situation"
+          channelname="general"
+        />
+      </Box>
+    ))
+}
+
+const commonBigFiltered = {
+  teamname: 'stripe',
+  onSelectConversation: action('onSelectConversation'),
+}
+
+const commonFiltered = {
+  backgroundColor: globalColors.white,
+  isMuted: false,
+  isSelected: false,
+  onSelectConversation: action('onSelectConversation'),
+  participantNeedToRekey: false,
+  participants: I.List.of('chris', 'mikem'),
+  showBold: false,
+  teamname: null,
+  usernameColor: globalColors.darkBlue,
+  youNeedToRekey: false,
 }
 
 export default load

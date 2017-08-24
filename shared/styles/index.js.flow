@@ -26,3 +26,7 @@ declare export var windowStyle: {
   width: number,
   height: number,
 }
+
+declare export function glamorous(
+  Component: any // React.ComponentType<P>
+): (...styles: Array<any>) => any // React.Component<P>

@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 
 export type Props = {
+  className?: ?string,
   hoverColor?: any,
   children?: any,
   style?: ?Object,
