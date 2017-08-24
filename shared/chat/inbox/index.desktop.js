@@ -9,7 +9,7 @@ import debounce from 'lodash/debounce'
 
 import type {Props} from './'
 
-class NewConversation extends PureComponent<void, {}, void> {
+class NewConversation extends PureComponent<{}> {
   render() {
     return (
       <div
@@ -56,7 +56,7 @@ class NewConversation extends PureComponent<void, {}, void> {
   }
 }
 
-class Inbox extends PureComponent<void, Props, void> {
+class Inbox extends PureComponent<Props> {
   _list: any
 
   componentWillReceiveProps(nextProps: Props) {
@@ -79,6 +79,7 @@ class Inbox extends PureComponent<void, Props, void> {
     return (
       <Row
         conversationIDKey={row.conversationIDKey}
+        filtered={!!this.props.filter}
         key={row.conversationIDKey || row.teamname}
         isActiveRoute={true}
         teamname={row.teamname}
@@ -93,8 +94,10 @@ class Inbox extends PureComponent<void, Props, void> {
     }
 
     const [first, end] = this._list.getVisibleRange()
-    const conversationIDKey = this.props.rows.get(first)
-    this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+    const {conversationIDKey} = this.props.rows.get(first)
+    if (conversationIDKey) {
+      this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+    }
   }, 200)
 
   _setRef = list => {

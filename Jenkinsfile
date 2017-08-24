@@ -232,9 +232,11 @@ helpers.rootLinuxNode(env, {
                                         wrap([$class: 'Xvfb']) {
                                             println "Test Windows JS"
                                             dir("visdiff") {
+                                                bat "yarn cache clean"
                                                 bat "yarn install --pure-lockfile"
                                             }
                                             dir("desktop") {
+                                                bat "yarn cache clean"
                                                 bat "yarn install --pure-lockfile"
                                                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                         credentialsId: 'visdiff-aws-creds',

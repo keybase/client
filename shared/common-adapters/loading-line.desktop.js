@@ -5,7 +5,7 @@ import {globalColors, globalStyles} from '../styles'
 
 import type {Props} from './loading-line'
 
-class LoadingLine extends Component<void, Props, void> {
+class LoadingLine extends Component<Props> {
   render() {
     const realCSS = `
     @keyframes fadeIn {

@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react'
+import * as React from 'react'
 import {Box, Text, Icon, Button, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'

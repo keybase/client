@@ -1,7 +1,6 @@
 // @flow
 import crypto from 'crypto'
 import fs from 'fs'
-import fsExtra from 'fs-extra'
 import os from 'os'
 import path from 'path'
 import {findAvailableFilename} from './file.shared'
@@ -55,8 +54,21 @@ function stat(filepath: string): Promise<StatResult> {
   })
 }
 
+function mkdirp(target) {
+  const initDir = path.isAbsolute(target) ? path.sep : ''
+  target.split(path.sep).reduce((parentDir, childDir) => {
+    const curDir = path.resolve(parentDir, childDir)
+    if (!fs.existsSync(curDir)) {
+      fs.mkdirSync(curDir)
+    }
+
+    return curDir
+  }, initDir)
+}
+
 function copy(from: string, to: string) {
-  fsExtra.copySync(from, to)
+  mkdirp(path.dirname(to))
+  fs.writeFileSync(to, fs.readFileSync(from))
 }
 
 // TODO implemented for mobile, not here

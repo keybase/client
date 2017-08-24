@@ -2,7 +2,7 @@
 // import AttachmentMessageComponent from './attachment'
 // import AttachmentPopup from '../attachment-popup'
 import HiddenString from '../../../util/hidden-string'
-import React from 'react'
+import * as React from 'react'
 import TextContainer from './text/container'
 import Wrapper from './wrapper'
 import {Box} from '../../../common-adapters'

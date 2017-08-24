@@ -141,3 +141,15 @@ If you run into weird issues with your packager this may be due to a stale cache
 ```sh
 yarn run rn-packager-wipe-cache
 ```
+
+### Dependency forks
+
+We have some custom forks of dependencies. This is usually a temporary fix and is something we want to avoid long term.
+
+- react-navigation:
+  - Keep queued transitions, fixes races with dragging and touches
+  - Increase interactivity threshold so you can click while things are still animating
+- electron-download
+  - Add a force-use-cache option so we don't download all the time
+- react-native-push-notification
+  - 1 liner to add RN 0.47 support

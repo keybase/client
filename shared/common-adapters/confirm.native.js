@@ -6,7 +6,7 @@ import Button from './button'
 import StandardScreen from './standard-screen'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-class Confirm extends Component<void, Props, void> {
+class Confirm extends Component<Props> {
   render() {
     return (
       <StandardScreen theme={mapTheme[this.props.theme]} onCancel={this.props.onCancel}>

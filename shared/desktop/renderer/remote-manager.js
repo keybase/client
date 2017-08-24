@@ -5,7 +5,7 @@ import RemotePinentry from './remote-pinentry'
 import RemoteUnlockFolders from './remote-unlock-folders'
 import RemotePurgeMessage from './remote-purge-message'
 
-class RemoteManager extends Component<void, {}, void> {
+class RemoteManager extends Component<{}, void> {
   render() {
     return (
       <div style={{display: 'none'}}>

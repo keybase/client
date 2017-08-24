@@ -7,4 +7,4 @@ export type OwnProps = {|
   infoPanelOpen: boolean,
 |}
 
-export default class HeaderContainer extends Component<void, OwnProps, void> {}
+export default class HeaderContainer extends Component<OwnProps> {}

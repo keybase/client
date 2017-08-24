@@ -6,12 +6,16 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/teams"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -291,50 +295,88 @@ func testIdentifyLite(t *testing.T) {
 	teamName := tt.users[0].createTeam()
 	g := tt.users[0].tc.G
 
+	t.Logf("make a team")
 	team, err := GetTeamForTestByStringName(context.Background(), g, teamName)
-	if err != nil {
-		t.Fatal(err)
+	require.NoError(t, err)
+
+	getTeamName := func(teamID keybase1.TeamID) keybase1.TeamName {
+		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		require.NoError(t, err)
+		return team.Name()
 	}
+
+	t.Logf("make an implicit team")
+	iTeamCreateName := strings.Join([]string{tt.users[0].username, "bob@github"}, ",")
+	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
+	iTeamImpName := getTeamName(iTeamID)
+	require.True(t, iTeamImpName.IsImplicit())
+	require.NoError(t, err)
 
 	cli, err := client.GetIdentifyClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
+	require.NoError(t, err, "failed to get new identifyclient")
 
 	// test ok assertions
-	var assertions = []string{"team:" + teamName, "tid:" + team.ID.String(), "t_alice"}
-	for _, assertion := range assertions {
-		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
-		if err != nil {
-			t.Fatalf("IdentifyLite (%s) failed: %v\n", assertion, err)
+	var units = []struct {
+		assertion string
+		resID     keybase1.TeamID
+		resName   string
+	}{
+		{
+			assertion: "t_alice",
+			resName:   "t_alice",
+		}, {
+			assertion: "team:" + teamName,
+			resID:     team.ID,
+			resName:   teamName,
+		}, {
+			assertion: "tid:" + team.ID.String(),
+			resID:     team.ID,
+			resName:   teamName,
+		},
+	}
+	for _, unit := range units {
+		res, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: unit.assertion})
+		require.NoError(t, err, "IdentifyLite (%s) failed", unit.assertion)
+
+		if len(unit.resID) > 0 {
+			require.Equal(t, unit.resID.String(), res.Ul.Id.String())
+		}
+
+		if len(unit.resName) > 0 {
+			require.Equal(t, unit.resName, res.Ul.Name)
 		}
 	}
 
 	// test identify by assertion and id
-	assertions = []string{"team:" + teamName, "tid:" + team.ID.String()}
+	assertions := []string{"team:" + teamName, "tid:" + team.ID.String()}
 	for _, assertion := range assertions {
 		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam(), Assertion: assertion})
-		if err != nil {
-			t.Fatalf("IdentifyLite by assertion and id (%s) failed: %v\n", assertion, err)
-		}
+		require.NoError(t, err, "IdentifyLite by assertion and id (%s)", assertion)
 	}
 
 	// test identify by id only
 	_, err = cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam()})
-	if err != nil {
-		t.Fatalf("IdentifyLite id only failed: %v\n", err)
-	}
+	require.NoError(t, err, "IdentifyLite id only")
+
+	// test invalid user format
+	_, err = cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: "__t_alice"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "bad keybase username")
 
 	// test team read error
 	assertions = []string{"team:jwkj22111z"}
 	for _, assertion := range assertions {
 		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
 		aerr, ok := err.(libkb.AppStatusError)
-		if !ok {
-			t.Fatalf("Expected an AppStatusError for %s, but got: %v (%T)", assertion, err, err)
-		}
-		if aerr.Code != libkb.SCTeamNotFound {
-			t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamNotFound)
+		if ok {
+			if aerr.Code != libkb.SCTeamNotFound {
+				t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamNotFound)
+			}
+		} else {
+			require.True(t, regexp.MustCompile("Team .* does not exist").MatchString(err.Error()),
+				"Expected an AppStatusError or team-does-not-exist for %s, but got: %v (%T)", assertion, err, err)
 		}
 	}
 

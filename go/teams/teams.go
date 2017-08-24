@@ -46,6 +46,10 @@ func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
 	return t.chain().GetLatestGeneration()
 }
 
+func (t *Team) IsPublic() bool {
+	return t.chain().IsPublic()
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()
@@ -117,6 +121,79 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	members.Readers = x
 
 	return members, nil
+}
+
+func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	impName := keybase1.ImplicitTeamDisplayName{
+		IsPublic:     t.IsPublic(),
+		ConflictInfo: nil, // TODO should we know this here?
+	}
+
+	members, err := t.Members()
+	if err != nil {
+		return res, err
+	}
+	// Add the keybase owners
+	for _, member := range members.Owners {
+		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
+		if err != nil {
+			return res, err
+		}
+		impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, name.String())
+	}
+	// Add the keybase readers
+	for _, member := range members.Readers {
+		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
+		if err != nil {
+			return res, err
+		}
+		impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, name.String())
+	}
+
+	// Add the invites
+	chainInvites := t.chain().inner.ActiveInvites
+	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
+	if err != nil {
+		return res, err
+	}
+	for inviteID := range chainInvites {
+		invite, ok := inviteMap[inviteID]
+		if !ok {
+			// this should never happen
+			return res, fmt.Errorf("missing invite: %v", inviteID)
+		}
+		invtyp, err := invite.Type.C()
+		if err != nil {
+			continue
+		}
+		sa := keybase1.SocialAssertion{
+			User:    string(invite.Name),
+			Service: "__tbd__",
+		}
+		switch invtyp {
+		case keybase1.TeamInviteCategory_SBS:
+			sa.Service = keybase1.SocialAssertionService(string(invite.Type.Sbs()))
+		default:
+			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
+		}
+		switch invite.Role {
+		case keybase1.TeamRole_OWNER:
+			impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
+		case keybase1.TeamRole_READER:
+			impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
+		default:
+			return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+		}
+	}
+	return impName, nil
+}
+
+func (t *Team) ImplicitTeamDisplayNameString(ctx context.Context) (string, error) {
+	impName, err := t.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return "", err
+	}
+	return FormatImplicitTeamDisplayName(ctx, t.G(), impName)
 }
 
 func (t *Team) NextSeqno() keybase1.Seqno {

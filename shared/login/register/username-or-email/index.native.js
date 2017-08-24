@@ -8,7 +8,7 @@ import type {Props} from '.'
 
 type State = {usernameOrEmail: string}
 
-class UsernameOrEmail extends Component<void, Props, State> {
+class UsernameOrEmail extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

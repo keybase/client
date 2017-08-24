@@ -2,10 +2,10 @@
 import {Component} from 'react'
 
 export type Props = {
-  badgeNumber: number,
-  badgeStyle?: Object,
+  badgeNumber: ?number,
+  badgeStyle?: any,
   badgeNumberStyle?: Object,
   outlineColor?: string,
 }
 
-declare export default class Badge extends Component<void, Props, void> {}
+declare export default class Badge extends Component<Props> {}

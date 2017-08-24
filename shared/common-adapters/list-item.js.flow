@@ -1,5 +1,5 @@
 // @flow
-import {Component, Element} from 'react'
+import * as React from 'react'
 
 // splits the rendering into 3 parts like the style guide shows.
 // Part 1 Icon
@@ -8,9 +8,9 @@ import {Component, Element} from 'react'
 
 export type Props = {
   type: 'Small' | 'Large',
-  icon: Element<*>,
-  body: Element<*>,
-  action: Element<*>,
+  icon: React.Node,
+  body: React.Node,
+  action: React.Node,
   extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
   onClick?: () => void,
   onPress?: void,
@@ -19,4 +19,4 @@ export type Props = {
   swipeToAction?: boolean, // Do you have to swipe the list item to reveal an action?
 }
 
-export default class ListItem extends Component<void, Props, void> {}
+export default class ListItem extends React.Component<Props> {}

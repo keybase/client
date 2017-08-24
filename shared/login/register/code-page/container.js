@@ -12,7 +12,7 @@ import type {Props} from '.'
 import type {TypedState} from '../../../constants/reducer'
 
 // TODO remove this class
-class _CodePage extends Component<void, Props, {enterText: string}> {
+class _CodePage extends Component<Props, {enterText: string}> {
   state = {
     enterText: '',
   }

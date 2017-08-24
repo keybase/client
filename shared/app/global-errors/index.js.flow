@@ -3,10 +3,12 @@ import {Component} from 'react'
 
 export type Props = {
   error: ?Error,
-  daemonError: ?String,
+  daemonError: ?Error,
   onDismiss: () => void,
   setTimeout: (cb: () => void, delay: number) => any,
   clearTimeout: (id: any) => void,
+  setInterval: (cb: () => void, delay: number) => any,
+  clearInterval: (id: any) => void,
 }
 
-export default class GlobalError extends Component<void, Props, void> {}
+export default class GlobalError extends Component<Props> {}

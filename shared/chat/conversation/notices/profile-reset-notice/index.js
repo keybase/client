@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Text} from '../../../../common-adapters'
 import UserNotice from '../user-notice'
 import {globalColors} from '../../../../styles'

@@ -6,7 +6,7 @@ import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
 import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
-import SimpleRow from './simple-row'
+import {SimpleRow, FilteredRow} from './simple-row'
 import {TeamRow, ChannelRow} from './team-row'
 import {compose, renderComponent, branch} from 'recompose'
 
@@ -142,7 +142,8 @@ const ConnectedRow = compose(
   // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(props => props.teamname && !props.channelname, renderComponent(TeamRow)),
-  branch(props => props.teamname && props.channelname, renderComponent(ChannelRow))
+  branch(props => props.teamname && props.channelname, renderComponent(ChannelRow)),
+  branch(props => props.filtered, renderComponent(FilteredRow))
 )(SimpleRow)
 
 export default ConnectedRow

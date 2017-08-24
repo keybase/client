@@ -24,7 +24,7 @@ function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment):
   }
 }
 
-function* onSaveAttachmentNative({
+const onSaveAttachmentNative = function*({
   payload: {messageKey},
 }: Constants.SaveAttachmentNative): SagaGenerator<any, any> {
   const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
@@ -33,7 +33,7 @@ function* onSaveAttachmentNative({
   }
 }
 
-function* onLoadAttachmentPreview({
+const onLoadAttachmentPreview = function*({
   payload: {messageKey},
 }: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
   yield put(Creators.loadAttachment(messageKey, true))
@@ -114,7 +114,7 @@ const loadAttachmentSagaMap = (messageKey, loadPreview) => ({
   'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
 })
 
-function* onLoadAttachment({
+const onLoadAttachment = function*({
   payload: {messageKey, loadPreview},
 }: Constants.LoadAttachment): SagaGenerator<any, any> {
   // Check if we should download the attachment. Only one instance of this saga
@@ -202,7 +202,7 @@ function* onLoadAttachment({
   })
 }
 
-function* _appendAttachmentPlaceholder(
+const _appendAttachmentPlaceholder = function*(
   conversationIDKey: Constants.ConversationIDKey,
   outboxIDKey: Constants.OutboxIDKey,
   preview: ChatTypes.MakePreviewRes,
@@ -303,7 +303,9 @@ const postAttachmentSagaMap = (
   'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
 })
 
-function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
+const onSelectAttachment = function*({
+  payload: {input},
+}: Constants.SelectAttachment): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
 
@@ -390,14 +392,14 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   }
 }
 
-function* onRetryAttachment({
+const onRetryAttachment = function*({
   payload: {input, oldOutboxID},
 }: Constants.RetryAttachment): Generator<any, any, any> {
   yield put(Creators.removeOutboxMessage(input.conversationIDKey, oldOutboxID))
   yield call(onSelectAttachment, {payload: {input}})
 }
 
-function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
+const onOpenAttachmentPopup = function*(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {

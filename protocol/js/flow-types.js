@@ -1705,6 +1705,14 @@ export function metadataGetMetadataRpcPromise (request: (requestCommon & {callba
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.getMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function metadataLockRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: metadataLockRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.lock', request)
+}
+
+export function metadataLockRpcPromise (request: (requestCommon & requestErrorCallback & {param: metadataLockRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.lock', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function metadataPing2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.ping2', request)
 }
@@ -1751,6 +1759,14 @@ export function metadataRegisterForUpdatesRpcChannelMap (configKeys: Array<strin
 
 export function metadataRegisterForUpdatesRpcPromise (request: (requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.registerForUpdates', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function metadataReleaseLockRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: metadataReleaseLockRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.metadata.releaseLock', request)
+}
+
+export function metadataReleaseLockRpcPromise (request: (requestCommon & requestErrorCallback & {param: metadataReleaseLockRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.metadata.releaseLock', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function metadataTruncateLockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}): EngineChannel {
@@ -2175,6 +2191,22 @@ export function teamsLoadTeamPlusApplicationKeysRpcChannelMap (configKeys: Array
 
 export function teamsLoadTeamPlusApplicationKeysRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsLoadTeamPlusApplicationKeysResult) => void} & {param: teamsLoadTeamPlusApplicationKeysRpcParam})): Promise<teamsLoadTeamPlusApplicationKeysResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.loadTeamPlusApplicationKeys', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsLookupImplicitTeamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsLookupImplicitTeamResult) => void} & {param: teamsLookupImplicitTeamRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupImplicitTeam', request)
+}
+
+export function teamsLookupImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsLookupImplicitTeamResult) => void} & {param: teamsLookupImplicitTeamRpcParam})): Promise<teamsLookupImplicitTeamResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsLookupOrCreateImplicitTeamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsLookupOrCreateImplicitTeamResult) => void} & {param: teamsLookupOrCreateImplicitTeamRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.lookupOrCreateImplicitTeam', request)
+}
+
+export function teamsLookupOrCreateImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsLookupOrCreateImplicitTeamResult) => void} & {param: teamsLookupOrCreateImplicitTeamRpcParam})): Promise<teamsLookupOrCreateImplicitTeamResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamAcceptInviteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}): EngineChannel {
@@ -3211,11 +3243,16 @@ export type ImplicitTeamConflictInfo = {
   time: Time,
 }
 
-export type ImplicitTeamName = {
-  isPrivate: boolean,
+export type ImplicitTeamDisplayName = {
+  isPublic: boolean,
+  writers: ImplicitTeamUserSet,
+  readers: ImplicitTeamUserSet,
+  conflictInfo?: ?ImplicitTeamConflictInfo,
+}
+
+export type ImplicitTeamUserSet = {
   keybaseUsers?: ?Array<string>,
   unresolvedUsers?: ?Array<SocialAssertion>,
-  conflictInfo?: ?ImplicitTeamConflictInfo,
 }
 
 export type InstallAction =
@@ -3341,6 +3378,13 @@ export type LoadTeamArg = {
   forceRepoll: boolean,
   staleOK: boolean,
 }
+
+export type LockContext = {
+  requireLockID: LockID,
+  releaseAfterSuccess: boolean,
+}
+
+export type LockID = long
 
 export type LogLevel =
     0 // NONE_0
@@ -4521,6 +4565,7 @@ export type TeamPlusApplicationKeys = {
   id: TeamID,
   name: string,
   implicit: boolean,
+  public: boolean,
   application: TeamApplication,
   writers?: ?Array<UserVersion>,
   onlyReaders?: ?Array<UserVersion>,
@@ -4550,6 +4595,7 @@ export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
   implicit: boolean,
+  public: boolean,
   rootAncestor: TeamName,
   nameDepth: int,
   nameLog?: ?Array<TeamNameLogPoint>,
@@ -5310,7 +5356,13 @@ export type metadataGetMetadataRpcParam = Exact<{
   unmerged: boolean,
   startRevision: long,
   stopRevision: long,
-  logTags: {[key: string]: string}
+  logTags: {[key: string]: string},
+  lockBeforeGet?: ?LockID
+}>
+
+export type metadataLockRpcParam = Exact<{
+  folderID: string,
+  lockID: LockID
 }>
 
 export type metadataPruneBranchRpcParam = Exact<{
@@ -5328,13 +5380,19 @@ export type metadataPutMetadataRpcParam = Exact<{
   mdBlock: MDBlock,
   readerKeyBundle: KeyBundle,
   writerKeyBundle: KeyBundle,
-  logTags: {[key: string]: string}
+  logTags: {[key: string]: string},
+  lockContext?: ?LockContext
 }>
 
 export type metadataRegisterForUpdatesRpcParam = Exact<{
   folderID: string,
   currRevision: long,
   logTags: {[key: string]: string}
+}>
+
+export type metadataReleaseLockRpcParam = Exact<{
+  folderID: string,
+  lockID: LockID
 }>
 
 export type metadataTruncateLockRpcParam = Exact<{
@@ -5697,6 +5755,16 @@ export type teamsLoadTeamPlusApplicationKeysRpcParam = Exact<{
   refreshers: TeamRefreshers
 }>
 
+export type teamsLookupImplicitTeamRpcParam = Exact<{
+  name: string,
+  public: boolean
+}>
+
+export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
+  name: string,
+  public: boolean
+}>
+
 export type teamsTeamAcceptInviteRpcParam = Exact<{
   token: string
 }>
@@ -6017,6 +6085,8 @@ type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsGetTeamRootIDResult = TeamID
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
+type teamsLookupImplicitTeamResult = TeamID
+type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>

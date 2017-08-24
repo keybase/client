@@ -77,10 +77,10 @@ export function unsafeUnwrap<T>(t: ?T): T {
   return t
 }
 
-export type _PropsOf<Props, C: Component<*, Props, *>> = Props // eslint-disable-line
+export type _PropsOf<Props, C: Component<Props, *>> = Props // eslint-disable-line
 export type PropsOf<C> = _PropsOf<*, C>
 
-export type DumbComponentMap<C: Component<*, *, *>> = {
+export type DumbComponentMap<C: Component<*, *>> = {
   component: Class<C>,
   mocks: {
     [key: string]: PropsOf<C> | {...$Exact<PropsOf<C>>, parentProps: Object},

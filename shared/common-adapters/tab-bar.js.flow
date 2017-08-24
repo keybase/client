@@ -1,10 +1,10 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import type {Exact} from '../constants/types/more'
 import type {IconType} from './icon'
 
 export type ItemProps = Exact<{
-  tabBarButton?: React$Element<*>,
+  tabBarButton?: React.Node,
   label?: string,
   selected: boolean,
   selectedColor?: string,
@@ -12,7 +12,7 @@ export type ItemProps = Exact<{
   onPress?: void,
   style?: Object,
   styleContainer?: Object,
-  children?: React$Element<*>,
+  children?: React.Node,
   onBottom?: boolean,
   underlined?: boolean,
 }>
@@ -20,14 +20,14 @@ export type ItemProps = Exact<{
 export type Props = Exact<{
   style?: ?Object,
   styleTabBar?: Object,
-  children?: Array<React$Element<ItemProps>>,
+  children?: Array<React.Element<React.ComponentType<ItemProps>>>,
   tabBarOnBottom?: boolean,
   underlined?: boolean,
 }>
 
-export default class TabBar extends Component<void, Props, void> {}
+export default class TabBar extends React.Component<Props> {}
 
-export class TabBarItem extends Component<void, ItemProps, void> {}
+export class TabBarItem extends React.Component<ItemProps> {}
 
 export type TabBarButtonSource =
   | {type: 'icon', icon: IconType}
@@ -53,4 +53,4 @@ export type TabBarButtonProps = Exact<{
   styleLabel?: Object,
 }>
 
-export class TabBarButton extends Component<void, TabBarButtonProps, void> {}
+export class TabBarButton extends React.Component<TabBarButtonProps> {}

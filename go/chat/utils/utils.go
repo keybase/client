@@ -12,6 +12,7 @@ import (
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -131,7 +132,7 @@ func ReorderParticipants(ctx context.Context, uloader ReorderUsernameSource, tlf
 			continue
 		}
 		user := normalizedUsername.String()
-		user, err = normalizeAssertionOrName(user)
+		user, err = kbfs.NormalizeAssertionOrName(user)
 		if err != nil {
 			continue
 		}
@@ -157,9 +158,9 @@ func ReorderParticipants(ctx context.Context, uloader ReorderUsernameSource, tlf
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
 func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = splitAndNormalizeTLFName(name, public)
-	if retryErr, retry := err.(TlfNameNotCanonical); retry {
-		return splitAndNormalizeTLFName(retryErr.NameToTry, public)
+	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(name, public)
+	if retryErr, retry := err.(kbfs.TlfNameNotCanonical); retry {
+		return kbfs.SplitAndNormalizeTLFName(retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }

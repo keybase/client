@@ -1,7 +1,7 @@
 // @flow
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
-import React from 'react'
+import * as React from 'react'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 import omit from 'lodash/omit'

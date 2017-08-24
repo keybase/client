@@ -158,4 +158,5 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
   }
 }
 
+// $FlowIssue
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(ListComponent)

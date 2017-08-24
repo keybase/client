@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Header from './header.render'
 
 import {Box, Button, Text} from '../common-adapters'

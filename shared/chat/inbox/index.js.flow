@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../constants/chat'
@@ -9,12 +9,13 @@ export type Props = {
   isActiveRoute: boolean,
   filter: string,
   nowOverride?: number, // just for dumb rendering
-  rows: List<ConversationIDKey>,
+  rows: List<{conversationIDKey: ConversationIDKey, teamname: ?string}>,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
   loadInbox: () => void,
-  children?: React$Element<*>,
+  children?: React.Node,
+  showNewConversation: boolean,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
 }
 
-export default class Inbox extends Component<void, Props, void> {}
+export default class Inbox extends React.Component<Props> {}

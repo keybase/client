@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import keyBy from 'lodash/keyBy'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
@@ -16,6 +16,7 @@ import {
   Markdown,
   PopupDialog,
   PopupMenu,
+  RadioButton,
   StandardScreen,
   TabBar,
   Text,
@@ -27,6 +28,7 @@ import {isMobile} from '../constants/platform'
 
 const onCheck = () => console.log('on check!')
 const onClick = () => console.log('on click!')
+const onSelect = () => console.log('on select!')
 
 // So we can share this between mobile and desktop
 const display = type => (isMobile ? {} : {display: type})
@@ -360,6 +362,34 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
       onCheck,
       disabled: true,
       checked: false,
+    },
+  },
+}
+
+const radioButtonMap: DumbComponentMap<RadioButton> = {
+  component: RadioButton,
+  mocks: {
+    'Normal - selected': {
+      label: 'Normal - selected',
+      onSelect,
+      selected: true,
+    },
+    'Normal - unchecked': {
+      label: 'Normal - unselected',
+      onSelect,
+      selected: false,
+    },
+    'Disabled - selected': {
+      label: 'Disabled - selected',
+      onSelect,
+      disabled: true,
+      selected: true,
+    },
+    'Disabled - unselected': {
+      label: 'Disabled - unselected',
+      onSelect,
+      disabled: true,
+      selected: false,
     },
   },
 }
@@ -1074,6 +1104,7 @@ export default {
   Markdown: markdownDumbMap,
   PopupDialog: popupDialogMap,
   PopupMenu: popupMenuMap,
+  RadioButton: radioButtonMap,
   StandardScreen: standardScreenMap,
   TabBar: tabBarMap,
   Text: textMap,

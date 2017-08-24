@@ -3,11 +3,7 @@ import ProveWebsiteChoice from './prove-website-choice'
 import {TypedConnector} from '../util/typed-connect'
 import {addProof, cancelAddProof} from '../actions/profile'
 
-import type {Props} from './prove-website-choice'
-import type {TypedDispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
-
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+const connector = new TypedConnector()
 
 export default connector.connect((state, dispatch) => {
   return {

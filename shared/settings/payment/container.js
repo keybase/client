@@ -26,7 +26,7 @@ type Props = {
   onSubmit: (cardNumber: ?string, name: ?string, securityCode: ?string, expiration: ?string) => void,
 }
 
-class PaymentStateHolder extends Component<void, Props, State> {
+class PaymentStateHolder extends Component<Props, State> {
   state: State
   constructor() {
     super()

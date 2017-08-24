@@ -20,7 +20,7 @@ type DefaultProps = {
   openWithMenuShowing: boolean,
 }
 
-class MenubarRender extends Component<DefaultProps, Props, State> {
+class MenubarRender extends Component<Props, State> {
   static defaultProps: DefaultProps
   state: State
 

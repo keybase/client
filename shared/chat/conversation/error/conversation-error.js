@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {branch} from 'recompose'
 import {Box, CopyableText, HeaderHoc, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'

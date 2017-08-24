@@ -4,8 +4,12 @@
 package externals
 
 import (
-	"github.com/stretchr/testify/require"
+	"bytes"
+	"encoding/hex"
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -37,15 +41,15 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	goodName := "/keybase/public/dave,twitter:alice,bob@facebook,carol@keybase,echo"
 	name, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(), goodName)
 	require.NoError(t, err)
-	require.Equal(t, name.IsPrivate, false)
-	require.Equal(t, len(name.KeybaseUsers), 3)
-	require.Equal(t, len(name.UnresolvedUsers), 2)
-	require.True(t, containsString(name.KeybaseUsers, "dave"))
-	require.True(t, containsString(name.KeybaseUsers, "carol"))
-	require.True(t, containsString(name.KeybaseUsers, "echo"))
+	require.Equal(t, name.IsPublic, true)
+	require.Equal(t, len(name.Writers.KeybaseUsers), 3)
+	require.Equal(t, len(name.Writers.UnresolvedUsers), 2)
+	require.True(t, containsString(name.Writers.KeybaseUsers, "dave"))
+	require.True(t, containsString(name.Writers.KeybaseUsers, "carol"))
+	require.True(t, containsString(name.Writers.KeybaseUsers, "echo"))
 
-	firstSocial := name.UnresolvedUsers[0]
-	secondSocial := name.UnresolvedUsers[1]
+	firstSocial := name.Writers.UnresolvedUsers[0]
+	secondSocial := name.Writers.UnresolvedUsers[1]
 	aliceExpected := keybase1.SocialAssertion{User: "alice", Service: keybase1.SocialAssertionService("twitter")}
 	bobExpected := keybase1.SocialAssertion{User: "bob", Service: keybase1.SocialAssertionService("facebook")}
 	require.True(t, firstSocial != secondSocial)
@@ -53,14 +57,103 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	require.True(t, secondSocial == aliceExpected || secondSocial == bobExpected)
 }
 
-// TestParseImplicitTeamName is just a quick sanity check.
+func TestPartImplicitTeamTLFNameEvenMore(t *testing.T) {
+	tests := []struct {
+		input  string
+		output *keybase1.ImplicitTeamDisplayName
+	}{
+		{
+			"/keybase/private/bob,alice#bob,alice",
+			&keybase1.ImplicitTeamDisplayName{
+				IsPublic: false,
+				Writers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"alice", "bob"},
+				},
+			},
+		},
+		{
+			"/keybase/private/bob,alice#bob,alice,doug,charlie",
+			&keybase1.ImplicitTeamDisplayName{
+				IsPublic: false,
+				Writers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"alice", "bob"},
+				},
+				Readers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"charlie", "doug"},
+				},
+			},
+		},
+		{
+			"/keybase/private/bob,alice,jason@github#bob,alice,doug,charlie,github:jason,keith@twitter,twitter:keith,beth@reddit,keith@github",
+			&keybase1.ImplicitTeamDisplayName{
+				IsPublic: false,
+				Writers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"alice", "bob"},
+					UnresolvedUsers: []keybase1.SocialAssertion{
+						keybase1.SocialAssertion{
+							User:    "jason",
+							Service: keybase1.SocialAssertionService("github"),
+						},
+					},
+				},
+				Readers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"charlie", "doug"},
+					UnresolvedUsers: []keybase1.SocialAssertion{
+						keybase1.SocialAssertion{
+							User:    "beth",
+							Service: keybase1.SocialAssertionService("reddit"),
+						},
+						keybase1.SocialAssertion{
+							User:    "keith",
+							Service: keybase1.SocialAssertionService("github"),
+						},
+						keybase1.SocialAssertion{
+							User:    "keith",
+							Service: keybase1.SocialAssertionService("twitter"),
+						},
+					},
+				},
+			},
+		},
+		{
+			"/keybase/private/keybase:alice,bob@keybase#bob,alice",
+			&keybase1.ImplicitTeamDisplayName{
+				IsPublic: false,
+				Writers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"alice", "bob"},
+				},
+			},
+		},
+		{"/keybase/private/alice#alice#alice", nil},
+		{"/keybase/private/#alice", nil},
+	}
+
+	deepEq := func(a, b keybase1.ImplicitTeamDisplayName) bool {
+		x, _ := libkb.MsgpackEncode(a)
+		y, _ := libkb.MsgpackEncode(b)
+		fmt.Printf("%s\n", hex.EncodeToString(x))
+		fmt.Printf("%s\n", hex.EncodeToString(y))
+		return bytes.Equal(x, y)
+	}
+
+	for _, test := range tests {
+		itn, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(), test.input)
+		if test.output == nil {
+			require.Error(t, err)
+		} else {
+			require.True(t, deepEq(itn, *test.output))
+		}
+	}
+}
+
+// TestParseImplicitTeamDisplayName is just a quick sanity check.
 // quick sanity test -- mostly redundant with TLFName test above
-func TestParseImplicitTeamName(t *testing.T) {
+func TestParseImplicitTeamDisplayName(t *testing.T) {
 	goodName := "twitter:alice,bob@facebook,carol@keybase,dave"
-	namePrivate, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, true)
+	namePrivate, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(), goodName, false)
 	require.NoError(t, err)
-	namePublic, err := libkb.ParseImplicitTeamName(MakeAssertionContext(), goodName, false)
+	namePublic, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(), goodName, true)
 	require.NoError(t, err)
-	require.True(t, namePrivate.IsPrivate)
-	require.True(t, !namePublic.IsPrivate)
+	require.False(t, namePrivate.IsPublic)
+	require.True(t, namePublic.IsPublic)
 }
