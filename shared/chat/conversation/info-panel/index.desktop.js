@@ -8,7 +8,6 @@ import type {Props} from '.'
 
 const InfoPanelContents = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-
     <Participants
       participants={props.participants}
       onAddParticipant={props.onAddParticipant}
@@ -29,13 +28,7 @@ const InfoPanelContents = (props: Props) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Button
-      type="Danger"
-      label="Block this conversation"
-      onClick={() => props.onShowBlockConversationDialog()}
-    />
-
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
   </Box>
 )
 

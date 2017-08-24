@@ -15,7 +15,7 @@ import Participants from './participants'
 import type {Props} from '.'
 
 const InfoPanelContents = (props: Props) => (
-  <NativeScrollView style={{flex: 1, width: '100%'}}>
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
     <Participants
       participants={props.participants}
       onAddParticipant={props.onAddParticipant}
@@ -39,12 +39,16 @@ const InfoPanelContents = (props: Props) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
-    </Box>
+    <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
+  </Box>
+)
+
+const InfoPanelContainer = (props: Props) => (
+  <NativeScrollView style={{flex: 1, width: '100%'}}>
+    <InfoPanelContents {...props} />
   </NativeScrollView>
 )
 
-const InfoPanel = HeaderHoc(InfoPanelContents)
+const InfoPanel = HeaderHoc(InfoPanelContainer)
 
 export default InfoPanel
