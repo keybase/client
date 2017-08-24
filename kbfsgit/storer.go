@@ -7,6 +7,7 @@ package kbfsgit
 import (
 	"github.com/keybase/kbfs/libfs"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
+	format "gopkg.in/src-d/go-git.v4/plumbing/format/config"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem"
@@ -45,18 +46,28 @@ func (cwrs *configWithoutRemotesStorer) Config() (*gogitcfg.Config, error) {
 func (cwrs *configWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) error {
 	cwrs.cfg = c
 	if len(c.Remotes) != 0 {
-		// If there are remotes, we need to strip them out before writing
-		// them out to disk.  Do that by making a copy.
-		buf, err := c.Marshal()
-		if err != nil {
-			return err
-		}
+		// If there are remotes, we need to strip them out before
+		// writing them out to disk.  Do that by making a copy of
+		// everything but the remotes.  (Note that we can't just
+		// Marshal+Unmarshal for a deep-copy, since Unmarshal is where
+		// the gcfg bug is.)
 		cCopy := gogitcfg.NewConfig()
-		err = cCopy.Unmarshal(buf)
+		cCopy.Core = c.Core
+		for k, v := range c.Submodules {
+			v2 := *v
+			cCopy.Submodules[k] = &v2
+		}
+
+		// Get the raw config so we don't lose any unsupported fields
+		// from c, but clear out the remotes.
+		_, err := c.Marshal()
 		if err != nil {
 			return err
 		}
-		cCopy.Remotes = nil
+		s := c.Raw.Section("remote")
+		s.Subsections = make(format.Subsections, 0)
+		cCopy.Raw = c.Raw
+
 		c = cCopy
 	}
 	return cwrs.Storage.SetConfig(c)
