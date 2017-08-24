@@ -10,7 +10,7 @@ import {
   NativeScrollView,
 } from '../../../common-adapters/index.native'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
-import Notifications from './notifications'
+import Notifications from './notifications/container'
 import Participants from './participants'
 
 import type {Props} from '.'
@@ -48,7 +48,7 @@ const InfoPanelContents = (props: Props) => (
       <Divider style={{marginBottom: 20, marginTop: 20}} />
     </Box>
 
-    <Notifications desktop={'atmention'} mobile={'atmention'} onSetDesktop={null} onSetMobile={null} />
+    <Notifications desktop={'atmention'} mobile={'atmention'} onSetDesktop={() => console.log('onSetDesktop')} onSetMobile={() => console.log('onSetMobile')} />
 
     <Box style={globalStyles.flexBoxRow}>
       <Divider style={{marginBottom: 20, marginTop: 20}} />

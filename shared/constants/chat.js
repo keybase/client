@@ -569,6 +569,10 @@ export type SetLoaded = NoErrorTypedAction<
   'chat:setLoaded',
   {conversationIDKey: ConversationIDKey, isLoaded: boolean}
 >
+export type SetNotifications = NoErrorTypedAction<
+  'chat:setNotifications',
+  {conversationIDKey: ConversationIDKey, deviceType: DeviceType, notifyType: NotifyType}
+>
 export type SetUnboxing = TypedAction<
   'chat:setUnboxing',
   {conversationIDKeys: Array<ConversationIDKey>},
