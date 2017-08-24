@@ -62,7 +62,8 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	return keybase1.UninstallResult{}
 }
 
-// installDokan installs the Dokan drivers
+// installDokan installs the Dokan drivers. This implementation is for CLI support.
+// The GUI also supports this in order for the installer UI to be topmost.
 func installDokan(_ libkb.RunMode, log Log) error {
 	log.Info("Installing Dokan")
 	command, err := getCachedPackageModifyString(log)
@@ -70,7 +71,9 @@ func installDokan(_ libkb.RunMode, log Log) error {
 		return err
 	}
 
+	// Remove /modify so it can be given separately to exec.Command
 	command = strings.Replace(command, " /modify", "", 1)
+	// Remove surrounding double quotes - won't work otherwise
 	command = strings.Replace(command, "\"", "", 2)
 
 	log.Info("Starting %#v", command)

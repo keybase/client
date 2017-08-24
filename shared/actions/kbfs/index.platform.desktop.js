@@ -164,8 +164,12 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   yield put(finishedAction)
 }
 
+// Invoking the cached installer package has to happen from the topmost process
+// or it won't be visible to the user. The service also does this to support command line
+// operations.
 function installCachedDokan(): Promise<*> {
   return new Promise((resolve, reject) => {
+    // $FlowIssue
     const regedit = require('regedit')
     regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
       if (err) {
@@ -197,13 +201,15 @@ function installCachedDokan(): Promise<*> {
                   }
                 }
                 if (displayName === 'Keybase' && publisher === 'Keybase, Inc.') {
+                  // Remove double quotes - won't work otherwise
                   modifyPath = modifyPath.replace(/"/g, '')
+                  // Remove /modify and send it in with the other arguments, below
                   modifyPath = modifyPath.replace(' /modify', '')
                   console.log(modifyPath)
                   execFile(modifyPath, [
                     '/modify',
                     'driver=1',
-                    'modifyprompt=Click "Repair" to view files in Explorer',
+                    'modifyprompt=Press "Repair" to view files in Explorer',
                   ])
                   resolve()
                 }

@@ -13,6 +13,7 @@ type Props = {
   inProgress: boolean,
   openInKBFS: () => void,
   uninstallKBFSAndRestart: () => void,
+  kbfsMount: string,
 }
 
 class InstalledBanner extends Component<void, Props, void> {
@@ -47,14 +48,11 @@ class InstalledBanner extends Component<void, Props, void> {
     }
 
     if (isWindows) {
+      // todo: get mount drive letter on Windows?
       return (
         <Box style={stylesContainer}>
           <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
-            Your Keybase folders currently appear in Explorer under&nbsp;
-            <Text type="BodySmallPrimaryLink" style={globalStyles.fontTerminal} onClick={this._onOpen}>
-              /keybase
-            </Text>
-            .
+            Your Keybase folders currently appear in Explorer.
             <br />
             <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
               To stop showing in Explorer, uninstall Dokan from the control panel.
