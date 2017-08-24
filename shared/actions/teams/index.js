@@ -4,6 +4,7 @@ import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Saga from '../../util/saga'
+import * as Creators from './creators'
 import {replaceEntity} from '../entities'
 import {call, put, select} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
@@ -58,6 +59,9 @@ const _toggleChannelMembership = function*(
       },
     })
   }
+
+  // reload
+  yield put(Creators.getChannels(action.payload.teamname))
 }
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
