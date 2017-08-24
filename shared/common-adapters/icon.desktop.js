@@ -2,11 +2,10 @@
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, glamorous} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import Box from './box'
-import glamorous from 'glamorous'
 
 import type {Exact} from '../constants/types/more'
 import type {Props, IconType} from './icon'

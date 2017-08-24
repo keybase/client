@@ -45,7 +45,7 @@ class EditPopup extends Component<Props> {
             left: messageRect.left,
             paddingBottom: globalMargins.xtiny,
             position: 'absolute',
-            top: messageRect.top,
+            top: Math.max(40, messageRect.top),
           }}
         >
           <Input
@@ -60,16 +60,19 @@ class EditPopup extends Component<Props> {
               e.stopPropagation() // else the bottom input bar gets focus!
             }}
             rowsMin={1}
-            rowsMax={5}
             onEnterKeyDown={e => {
               e.preventDefault()
               const target = (e.target: any)
               onSubmit(target.textContent)
               onClose()
             }}
+            inputStyle={{
+              maxHeight: 300,
+            }}
             style={{
               height: messageRect.height,
               maxWidth: messageRect.width,
+              maxHeight: 300,
               textAlign: 'left',
               width: messageRect.width,
             }}

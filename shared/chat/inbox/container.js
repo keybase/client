@@ -6,12 +6,13 @@ import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
 import {navigateAppend} from '../../actions/route-tree'
-import {compose, lifecycle} from 'recompose'
+import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
+const smallteamsCollapsedMaxShown = 5
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
@@ -20,36 +21,42 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
-const passesFilter = (i: Constants.InboxState, filter: string): boolean => {
+const passesStringFilter = (filter: string, toCheck: string): boolean => {
+  return toCheck.toLowerCase().indexOf(filter.toLowerCase()) >= 0
+}
+
+const passesParticipantFilter = (participants: I.List<string>, filter: string, you: ?string): boolean => {
   if (!filter) {
     return true
   }
-
-  const names = i.get('participants').toArray()
+  const names = participants.filter(p => p !== you).toArray()
   // No need to worry about Unicode issues with toLowerCase(), since
   // names can only be ASCII.
-  return names.some(n => n.toLowerCase().indexOf(filter.toLowerCase()) >= 0)
+  return names.some(n => passesStringFilter(filter, n))
 }
 
 const filteredInbox = createImmutableEqualSelector(
-  [getInbox, getSupersededByState, getAlwaysShow, getFilter],
-  (inbox, supersededByState, alwaysShow, filter) => {
+  [getInbox, getSupersededByState, getAlwaysShow, getFilter, Constants.getYou],
+  (inbox, supersededByState, alwaysShow, filter, you) => {
     const smallIds = []
     const bigTeamToChannels = {}
 
     // Partition small and big. Some big will turn into small later if they only have one channel
+    // Filter out any small teams that don't match
     inbox.forEach(i => {
       const id = i.conversationIDKey
-      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id) && passesFilter(i, filter)) {
+      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id)) {
         // Keep time cause we sort later
         const value = {id, time: i.time}
-        if (!i.teamname) {
+        if (!i.teamname && passesParticipantFilter(i.get('participants'), filter, you)) {
           smallIds.push(value)
         } else {
           if (!bigTeamToChannels[i.teamname]) {
             bigTeamToChannels[i.teamname] = {}
           }
-          bigTeamToChannels[i.teamname][i.channelname] = value
+          // Do we have the real name yet?
+          const channel = i.channelname === '-' ? id : i.channelname
+          bigTeamToChannels[i.teamname][channel] = value
         }
       }
     })
@@ -57,11 +64,34 @@ const filteredInbox = createImmutableEqualSelector(
     // convert any small teams into smallids
     Object.keys(bigTeamToChannels).forEach(team => {
       // only one channel
-      if (Object.keys(bigTeamToChannels[team]) === 1) {
-        smallIds.push(bigTeamToChannels[team])
-        bigTeamToChannels[team] = undefined
+      const channels = Object.keys(bigTeamToChannels[team])
+      if (channels.length === 1) {
+        if (passesParticipantFilter(I.List.of(team), filter, you)) {
+          smallIds.push(bigTeamToChannels[team][channels[0]])
+        }
+        delete bigTeamToChannels[team]
       }
     })
+
+    // Filter out big teams
+    if (filter) {
+      Object.keys(bigTeamToChannels).forEach(team => {
+        // teamname doesn't pass
+        if (!passesStringFilter(filter, team)) {
+          const channels = Object.keys(bigTeamToChannels[team])
+          channels.forEach(c => {
+            if (!passesStringFilter(filter, c)) {
+              delete bigTeamToChannels[team][c]
+            }
+          })
+
+          const filteredChannels = Object.keys(bigTeamToChannels[team])
+          if (!filteredChannels.length) {
+            delete bigTeamToChannels[team]
+          }
+        }
+      })
+    }
 
     const sortedSmallIds = smallIds
       .sort((a, b) => {
@@ -76,39 +106,79 @@ const filteredInbox = createImmutableEqualSelector(
     return [sortedSmallIds, bigTeamToChannels]
   }
 )
-const getRows = createImmutableEqualSelector([filteredInbox, getPending], (inbox, pending) => {
-  const [smallIds, bigTeamToChannels] = inbox
+const getRows = createImmutableEqualSelector(
+  [filteredInbox, getPending, getFilter],
+  (inbox, pending, filter) => {
+    const [smallIds, bigTeamToChannels] = inbox
 
-  const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, teamname: null})))
-  const sids = I.List(smallIds.map(s => ({conversationIDKey: s, teamname: null})))
+    const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, type: 'small'})))
+    const sids = I.List(smallIds.map(s => ({conversationIDKey: s, type: 'small'})))
 
-  const teams = I.List(
-    flatten(
-      Object.keys(bigTeamToChannels).sort().map(team => {
-        const channels = bigTeamToChannels[team]
-        return [
-          {
-            teamname: team,
-          },
-        ].concat(
-          Object.keys(channels)
-            .sort()
-            .map(channel => ({channelname: channel, conversationIDKey: channels[channel].id, teamname: team}))
-        )
-      })
+    const bigTeams = I.List(
+      flatten(
+        Object.keys(bigTeamToChannels).sort().map(team => {
+          const channels = bigTeamToChannels[team]
+          return [
+            ...(filter
+              ? []
+              : [
+                  {
+                    teamname: team,
+                    type: 'bigHeader',
+                  },
+                ]),
+          ].concat(
+            Object.keys(channels).sort().map(channel => ({
+              channelname: channel,
+              conversationIDKey: channels[channel].id,
+              teamname: team,
+              type: 'big',
+            }))
+          )
+        })
+      )
     )
-  )
 
-  return pids.concat(sids).concat(teams)
-})
+    const allSmallTeams = pids.concat(sids)
+    return [allSmallTeams, bigTeams]
+  }
+)
 
-const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
-  filter: getFilter(state),
-  isActiveRoute,
-  isLoading: state.chat.get('inboxUntrustedState') === 'loading',
-  rows: getRows(state),
-  showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
-})
+const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
+  const [allSmallTeams, bigTeams] = getRows(state, smallTeamsExpanded)
+  const filter = getFilter(state)
+
+  let smallTeams = allSmallTeams
+  let showSmallTeamsExpandDivider = false
+
+  if (!filter && bigTeams.count() && allSmallTeams.count() > smallteamsCollapsedMaxShown) {
+    showSmallTeamsExpandDivider = true
+    if (!smallTeamsExpanded) {
+      smallTeams = allSmallTeams.slice(0, smallteamsCollapsedMaxShown)
+    }
+  }
+
+  const bigTeamsBadgeCount = 0 // TODO real number
+  const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'}
+  const bigTeamsLabel = {isFiltered: !!filter, type: 'bigTeamsLabel'}
+  const showBuildATeam = bigTeams.count() === 0
+
+  const rows = smallTeams
+    .concat(I.List(showSmallTeamsExpandDivider ? [divider] : []))
+    .concat(I.List(bigTeams.count() ? [bigTeamsLabel] : []))
+    .concat(bigTeams)
+
+  return {
+    bigTeamsBadgeCount,
+    filter,
+    isActiveRoute,
+    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    rows,
+    showBuildATeam,
+    showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
+    showSmallTeamsExpandDivider,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadInbox: () => dispatch(loadInbox()),
@@ -120,12 +190,23 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
+})
+
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  withState('smallTeamsExpanded', 'setSmallTeamsExpanded', false),
+  withHandlers({
+    toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
+  }),
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {

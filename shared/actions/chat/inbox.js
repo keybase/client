@@ -133,7 +133,7 @@ const onInboxStale = function*(): SagaGenerator<any, any> {
       (inbox.items || [])
         .map(c => {
           return new Constants.InboxStateRecord({
-            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? ' ' : undefined,
+            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? '-' : undefined,
             conversationIDKey: c.convID,
             info: null,
             membersType: c.membersType,
@@ -288,12 +288,16 @@ const _chatInboxFailedSubSaga = function*(params) {
   const {maxMsgid} = error.remoteConv.readerInfo
   const selectedConversation = yield select(Constants.getSelectedConversation)
   if (maxMsgid && selectedConversation === conversationIDKey) {
-    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {
-        conversationID: convID,
-        msgID: maxMsgid,
-      },
-    })
+    try {
+      yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+        param: {
+          conversationID: convID,
+          msgID: maxMsgid,
+        },
+      })
+    } catch (err) {
+      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+    }
   }
 
   switch (error.typ) {

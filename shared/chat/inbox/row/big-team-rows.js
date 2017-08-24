@@ -3,12 +3,13 @@ import React, {PureComponent} from 'react'
 import {Avatar, Box, Text, Icon, ClickableBox} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {TeamAvatar} from './avatars'
 
 type TeamProps = {
   teamname: string,
 }
 
-class TeamRow extends PureComponent<TeamProps> {
+class BigTeamHeaderRow extends PureComponent<TeamProps> {
   render() {
     return (
       <Box style={teamRowContainerStyle}>
@@ -45,7 +46,7 @@ type ChannelProps = {
   onSelectConversation: () => void,
 }
 
-class ChannelRow extends PureComponent<ChannelProps> {
+class BigTeamChannelRow extends PureComponent<ChannelProps> {
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
@@ -69,6 +70,60 @@ class ChannelRow extends PureComponent<ChannelProps> {
       </ClickableBox>
     )
   }
+}
+
+type FilteredChannelProps = {
+  teamname: string,
+  channelname: string,
+  onSelectConversation: () => void,
+}
+
+class BigTeamChannelFilteredRow extends PureComponent<FilteredChannelProps> {
+  render() {
+    return (
+      <ClickableBox onClick={this.props.onSelectConversation}>
+        <Box style={filteredRowStyle}>
+          <TeamAvatar teamname={this.props.teamname} />
+          <Text type="BodySemibold" style={teamnameStyle} title={this.props.teamname}>
+            {this.props.teamname}
+          </Text>
+          <Text type="Body" style={channelnameStyle} title={`#${this.props.channelname}`}>
+            &nbsp;#{this.props.channelname}
+          </Text>
+        </Box>
+      </ClickableBox>
+    )
+  }
+}
+
+const channelnameStyle = {
+  flexBasis: '70%',
+  ...(isMobile
+    ? {}
+    : {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }),
+}
+const teamnameStyle = {
+  color: globalColors.darkBlue,
+  ...(isMobile
+    ? {}
+    : {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }),
+}
+
+const filteredRowStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  flexShrink: 0,
+  height: 56,
+  paddingRight: globalMargins.tiny,
+  width: '100%',
 }
 
 const teamRowContainerStyle = {
@@ -117,9 +172,9 @@ const unreadContainerStyle = {
 }
 const unreadStyle = {
   backgroundColor: globalColors.orange,
-  borderRadius: '50%',
+  borderRadius: 6,
   flexShrink: 0,
   height: 6,
   width: 6,
 }
-export {TeamRow, ChannelRow}
+export {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow}
