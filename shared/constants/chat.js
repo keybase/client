@@ -783,7 +783,7 @@ function keyToConversationID(key: ConversationIDKey): ConversationID {
   return Buffer.from(key, 'hex')
 }
 
-const _outboxPrefix = 'OUTBOXID:'
+const _outboxPrefix = 'OUTBOXID-'
 const _outboxPrefixReg = new RegExp('^' + _outboxPrefix)
 function outboxIDToKey(outboxID: OutboxID): OutboxIDKey {
   return `${_outboxPrefix}${outboxID.toString('hex')}`
@@ -793,7 +793,7 @@ function keyToOutboxID(key: OutboxIDKey): OutboxID {
   return Buffer.from(key.substring(_outboxPrefix.length), 'hex')
 }
 
-const _messageIDPrefix = 'MSGID:'
+const _messageIDPrefix = 'MSGID-'
 const _messageIDPrefixReg = new RegExp('^' + _messageIDPrefix)
 function rpcMessageIDToMessageID(rpcMessageID: RPCMessageID): MessageID {
   return `${_messageIDPrefix}${rpcMessageID.toString(16)}`
@@ -803,7 +803,7 @@ function messageIDToRpcMessageID(msgID: MessageID): RPCMessageID {
   return parseInt(msgID.substring(_messageIDPrefix.length), 16)
 }
 
-const _selfInventedID = 'SELFINVENTED:'
+const _selfInventedID = 'SELFINVENTED-'
 const _selfInventedIDReg = new RegExp('^' + _selfInventedID)
 function selfInventedIDToMessageID(selfInventedID: number /* < 0 */) {
   return `${_selfInventedID}${selfInventedID.toString(16)}`
@@ -1178,7 +1178,7 @@ function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?M
 function getMessageKeyFromConvKeyMessageID(
   state: TypedState,
   conversationIDKey: ConversationIDKey,
-  messageID: MessageID | OutboxID // Works for outbox id too since it uses the message key
+  messageID: MessageID | OutboxIDKey // Works for outbox id too since it uses the message key
 ) {
   const convMsgs = getConversationMessages(state, conversationIDKey)
   return convMsgs.find(k => {
@@ -1194,6 +1194,18 @@ function getMessageFromConvKeyMessageID(
 ) {
   const key = getMessageKeyFromConvKeyMessageID(state, conversationIDKey, messageID)
   return key ? getMessageFromMessageKey(state, key) : null
+}
+
+function lastMessageID(state: TypedState, conversationIDKey: ConversationIDKey): ?MessageID {
+  const messageKeys = getConversationMessages(state, conversationIDKey)
+  const lastMessageKey = messageKeys.findLast(m => {
+    if (m) {
+      const {type: msgIDType} = parseMessageID(messageKeyValue(m))
+      return msgIDType === 'rpcMessageID'
+    }
+  })
+
+  return lastMessageKey ? messageKeyValue(lastMessageKey) : null
 }
 
 const getDownloadProgress = ({entities: {attachmentDownloadProgress}}: TypedState, messageKey: MessageKey) =>
@@ -1320,4 +1332,5 @@ export {
   selfInventedIDToMessageID,
   messageIDToSelfInventedID,
   parseMessageID,
+  lastMessageID,
 }

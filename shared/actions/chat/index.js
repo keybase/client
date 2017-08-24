@@ -62,7 +62,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       if (failedMessage && failedMessage.outboxRecords) {
         for (const outboxRecord of failedMessage.outboxRecords) {
           const conversationIDKey = Constants.conversationIDToKey(outboxRecord.convID)
-          const outboxID = Constants.outboxIDToKey(outboxRecord.outboxID)
+          const outboxID = outboxRecord.outboxID && Constants.outboxIDToKey(outboxRecord.outboxID)
           // $FlowIssue
           const errTyp = outboxRecord.state.error.typ
           const failureDescription = _decodeFailureDescription(errTyp)
@@ -158,12 +158,13 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         }
 
         if (pendingMessage) {
-          yield put(Creators.outboxMessageBecameReal(pendingMessage.key, message.key))
-
-          // If the message has an outboxID and came from our device, then we
-          // sent it and have already rendered it in the message list; we just
-          // need to mark it as sent.
-          yield put(Creators.updateTempMessage(conversationIDKey, message, message.outboxID))
+          yield all([
+            // If the message has an outboxID and came from our device, then we
+            // sent it and have already rendered it in the message list; we just
+            // need to mark it as sent.
+            put(Creators.updateTempMessage(conversationIDKey, message, message.outboxID)),
+            put(Creators.outboxMessageBecameReal(pendingMessage.key, message.key)),
+          ])
 
           const messageID = message.messageID
           if (messageID) {
@@ -492,7 +493,7 @@ function _unboxedToMessage(
       : null
     // $FlowIssue
     const messageText: ChatTypes.MessageText = message.outbox.body
-    const outboxIDKey = payload.outboxID
+    const outboxIDKey = payload.outboxID && Constants.outboxIDToKey(payload.outboxID)
 
     return {
       author: yourName,
@@ -525,11 +526,11 @@ function _unboxedToMessage(
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
         timestamp: payload.ctime,
         you: yourName,
+        outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
       }
 
       switch (payload.messageBody.messageType) {
         case ChatTypes.CommonMessageType.text:
-          const outboxID = payload.outboxID
           const p: any = payload
           const message = new HiddenString(
             (p.messageBody && p.messageBody.text && p.messageBody.text.body) || ''
@@ -541,11 +542,9 @@ function _unboxedToMessage(
             editedCount: payload.superseded ? 1 : 0, // mark it as edited if it's been superseded
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
           }
         case ChatTypes.CommonMessageType.attachment: {
-          const outboxID = payload.outboxID
           if (!payload.messageBody.attachment) {
             throw new Error('empty attachment body')
           }
@@ -566,7 +565,6 @@ function _unboxedToMessage(
             ...common,
             ...attachmentInfo,
             messageState,
-            outboxID,
             key: Constants.messageKey(common.conversationIDKey, 'messageIDAttachment', common.messageID),
           }
         }
@@ -613,7 +611,6 @@ function _unboxedToMessage(
           const message = new HiddenString(
             (payload.messageBody && payload.messageBody.edit && payload.messageBody.edit.body) || ''
           )
-          const outboxID = payload.outboxID
           const targetMessageID = payload.messageBody.edit
             ? Constants.rpcMessageIDToMessageID(payload.messageBody.edit.messageID)
             : 0
@@ -621,7 +618,7 @@ function _unboxedToMessage(
             key: Constants.messageKey(common.conversationIDKey, 'messageIDEdit', common.messageID),
             message,
             messageID: common.messageID,
-            outboxID,
+            outboxID: common.outboxID,
             targetMessageID,
             timestamp: common.timestamp,
             type: 'Edit',
@@ -886,17 +883,16 @@ function* _muteConversation(action: Constants.MuteConversation): SagaGenerator<a
   })
 }
 
-function* _updateBadging(action: Constants.UpdateBadging): SagaGenerator<any, any> {
+function _updateBadging(
+  {payload: {conversationIDKey}}: Constants.UpdateBadging,
+  lastMessageID: ?Constants.MessageID
+) {
   // Update gregor's view of the latest message we've read.
-  const {conversationIDKey} = action.payload
-  const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-  // TODO update this code
-  if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
+  if (conversationIDKey && lastMessageID) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)
-    const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
-    const parsed = Constants.parseMessageID(msgID)
-    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {conversationID, msgID: parsed.msgID},
+    const {msgID} = Constants.parseMessageID(lastMessageID)
+    return call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+      param: {conversationID, msgID},
     })
   }
 }
@@ -1206,11 +1202,11 @@ function* _createNewTeam(action: Constants.CreateNewTeam) {
 
 function updateProgress(action: Constants.DownloadProgress | Constants.UploadProgress) {
   const {type, payload: {progress, messageKey}} = action
-  if (type === 'downloadProgress') {
+  if (type === 'chat:downloadProgress') {
     if (action.payload.isPreview) {
       return put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], {[messageKey]: progress}))
     }
-    return put(EntityCreators.replaceEntity(['attachmentDownloadedProgress'], {[messageKey]: progress}))
+    return put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], {[messageKey]: progress}))
   }
   return put(EntityCreators.replaceEntity(['attachmentUploadProgress'], {[messageKey]: progress}))
 }
@@ -1263,7 +1259,7 @@ function* chatSaga(): SagaGenerator<any, any> {
     (s: TypedState, a: Constants.RemoveOutboxMessage) =>
       Constants.getConversationMessages(s, a.payload.conversationIDKey)
   )
-  yield Saga.safeTakeEvery('chat:updateTempMessage', _updateMessageEntity)
+  yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
@@ -1295,7 +1291,12 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment)
   yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
   yield Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible)
-  yield Saga.safeTakeEvery('chat:updateBadging', _updateBadging)
+  yield Saga.safeTakeEveryPure(
+    'chat:updateBadging',
+    _updateBadging,
+    (state: TypedState, {payload: {conversationIDKey}}: Constants.UpdateBadging) =>
+      Constants.lastMessageID(state, conversationIDKey)
+  )
   yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
   yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)

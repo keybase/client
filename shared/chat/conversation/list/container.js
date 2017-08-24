@@ -8,7 +8,6 @@ import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
 import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
-import createCachedSelector from 're-reselect'
 import * as Selectors from '../../../constants/selectors'
 
 import type {OpenInFileUI} from '../../../constants/kbfs'
@@ -65,7 +64,7 @@ const messageKeysSelector = immutableCreateSelector(
       return ks
         .filterNot(k => {
           const {messageID} = Constants.splitMessageIDKey(k)
-          deletedIDs.has(messageID)
+          return deletedIDs.has(messageID)
         })
         .toList()
     }
@@ -73,12 +72,12 @@ const messageKeysSelector = immutableCreateSelector(
   }
 )
 
-const getMessageFromMessageKeyFnSelector = createCachedSelector(
+const getMessageFromMessageKeyFnSelector = createSelector(
   [state => state.entities.messages],
   (messageMap: Map<Constants.MessageKey, Constants.Message>) => {
     return (messageKey: Constants.MessageKey) => messageMap.get(messageKey)
   }
-)(messageKeysSelector)
+)
 
 const convStateProps = createSelector(
   [Constants.getSelectedConversation, supersedesIfNoMoreToLoadSelector, getValidatedState],
