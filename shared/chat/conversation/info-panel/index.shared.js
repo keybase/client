@@ -2,6 +2,9 @@
 import * as React from 'react'
 import {Box, Button, Checkbox, Divider, Icon} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
+
+import {isMobile} from '../../../constants/platform'
+
 import Participants from './participants'
 
 import type {Props} from '.'
@@ -27,8 +30,8 @@ const InfoPanelContents = (props: Props) => (
         type="iconfont-shh"
         style={{
           color: globalColors.black_20,
-          fontSize: 24,
           marginLeft: globalMargins.tiny,
+          ...(isMobile ? {fontSize: 24} : {}),
         }}
       />
     </Box>
