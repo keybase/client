@@ -24,7 +24,7 @@ if (ipcRenderer) {
   })
 }
 
-class RemoteComponent extends Component {
+class RemoteComponent extends Component<any> {
   closed: ?boolean
   remoteWindow: BrowserWindow
   remoteWindowId: string

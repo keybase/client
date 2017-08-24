@@ -402,7 +402,7 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 	// key it (implicitly) delegated. For example, Max's eldest link is a
 	// twitter proof, which is revoked. That *must not* count as a revocation
 	// of his eldest key. We have a copy of Max's sigchain as one of our test
-	// vectors, to cover this behavior.
+	// vectors, to cover this behavior. See also the note in RevokeSig.
 
 	ckf.cki.Insert(&eldestCki)
 	return nil
@@ -762,6 +762,11 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 	if info, found := ckf.cki.Sigs[sig]; !found {
 		// silently no-op if the signature doesn't exist
 	} else if _, found := info.Delegations[sig]; found {
+		// Tricky legacy detail: For some eldest links that implicitly delegate
+		// keys, the info.Delegations map will not contain the delegation, and
+		// we will skip this branch. We rely on this behavior to avoid revoking
+		// keys that shouldn't be revoked. See the note in InsertEldestLink.
+
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()

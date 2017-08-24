@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Text, Header as CommonHeader} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles'
 import {intersperseFn} from '../../../util/arrays'
@@ -29,8 +29,13 @@ function brokenSeparator(idx, item, arr) {
   }
 }
 
-const Header = ({children, title = '', style = {}}: any) => (
-  <CommonHeader windowDragging={false} style={{...commonHeaderStyle, ...style}} type="Strong" title={title}>
+const Header = ({children, title, style = {}}: {children: React.Node, title?: string, style?: any}) => (
+  <CommonHeader
+    windowDragging={false}
+    style={{...commonHeaderStyle, ...style}}
+    type="Strong"
+    title={title || ''}
+  >
     {children}
   </CommonHeader>
 )

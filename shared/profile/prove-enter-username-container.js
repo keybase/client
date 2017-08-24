@@ -10,15 +10,11 @@ import {
   submitZcashAddress,
 } from '../actions/profile'
 
-import type {Props} from './prove-enter-username'
-import type {TypedDispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
-
 type State = {
   username: ?string,
 }
 
-class ProveEnterUsernameContainer extends Component<void, any, State> {
+class ProveEnterUsernameContainer extends Component<any, State> {
   state: State
   constructor() {
     super()
@@ -36,7 +32,7 @@ class ProveEnterUsernameContainer extends Component<void, any, State> {
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
+const connector = new TypedConnector()
 
 export default connector.connect((state, dispatch, ownProps) => {
   const profile = state.profile

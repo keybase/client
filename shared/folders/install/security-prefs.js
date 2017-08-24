@@ -18,7 +18,7 @@ type State = {
   appFocusedCount: number,
 }
 
-class InstallSecurityPrefs extends Component<void, Props, State> {
+class InstallSecurityPrefs extends Component<Props, State> {
   state = {
     appFocusedCount: -1,
   }

@@ -25,13 +25,13 @@ const pushSelector = ({push: {token, tokenType}}: TypedState) => ({token, tokenT
 
 const deviceIDSelector = ({config: {deviceID}}: TypedState) => deviceID
 
-function* permissionsNoSaga(): SagaGenerator<any, any> {
+const permissionsNoSaga = function*(): SagaGenerator<any, any> {
   yield call(setNoPushPermissions)
   yield put({type: Constants.permissionsRequesting, payload: false})
   yield put({type: Constants.permissionsPrompt, payload: false})
 }
 
-function* permissionsRequestSaga(): SagaGenerator<any, any> {
+const permissionsRequestSaga = function*(): SagaGenerator<any, any> {
   try {
     yield put({type: Constants.permissionsRequesting, payload: true})
 
@@ -45,62 +45,60 @@ function* permissionsRequestSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
+const pushNotificationSaga = function*(notification: Constants.PushNotification): SagaGenerator<any, any> {
   console.warn('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
-    const data = {
-      ...payload,
-      ...(payload.data || {}),
-    }
-    if (data.type === 'chat.newmessageSilent') {
+    if (payload.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
       try {
         const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           param: {
-            convID: data.c,
-            membersType: data.t,
-            payload: data.m,
-            pushIDs: data.p,
+            convID: payload.c,
+            membersType: payload.t,
+            payload: payload.m,
+            pushIDs: payload.p,
           },
         })
-        yield call(displayNewMessageNotification, unboxRes, data.c, data.b)
+        yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b)
       } catch (err) {
         console.info('failed to unbox silent notification', err)
       }
-    } else if (data.type === 'chat.newmessage') {
+    } else if (payload.type === 'chat.newmessage') {
+      const {convID} = payload
       // Check for conversation ID so we know where to navigate to
-      if (!data.convID) {
+      if (!convID) {
         console.error('Push chat notification payload missing conversation ID')
         return
       }
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
-      yield put(navigateTo([chatTab, data.convID]))
-    } else if (data.type === 'follow') {
-      if (!data.username) {
+      yield put(navigateTo([chatTab, convID]))
+    } else if (payload.type === 'follow') {
+      const {username} = payload
+      if (!username) {
         console.error('Follow notification payload missing username', JSON.stringify(payload))
         return
       }
-      console.info('Push notification: follow received, follower= ', data.username)
+      console.info('Push notification: follow received, follower= ', username)
       // Record that we're going to a push notification conversation, in order
       // to avoid racing with restoring a saved initial tab.
       yield put(setLaunchedViaPush(true))
-      yield put(showUserProfile(data.username))
+      yield put(showUserProfile(username))
     } else {
       console.error('Push notification payload missing or unknown type')
     }
   }
 }
 
-function* pushTokenSaga(action: Constants.PushToken): SagaGenerator<any, any> {
+const pushTokenSaga = function*(action: Constants.PushToken): SagaGenerator<any, any> {
   const {token, tokenType} = action.payload
   yield put(Creators.updatePushToken(token, tokenType))
   yield put(Creators.savePushToken())
 }
 
-function* savePushTokenSaga(): SagaGenerator<any, any> {
+const savePushTokenSaga = function*(): SagaGenerator<any, any> {
   try {
     const {token, tokenType} = (yield select(pushSelector): any)
     const deviceID = (yield select(deviceIDSelector): any)
@@ -128,7 +126,7 @@ function* savePushTokenSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* configurePushSaga(): SagaGenerator<any, any> {
+const configurePushSaga = function*(): SagaGenerator<any, any> {
   if (isMobile) {
     const chan = yield call(configurePush)
 
@@ -139,7 +137,7 @@ function* configurePushSaga(): SagaGenerator<any, any> {
   }
 }
 
-export function* deletePushTokenSaga(): SagaGenerator<any, any> {
+export const deletePushTokenSaga = function*(): SagaGenerator<any, any> {
   try {
     const {tokenType} = (yield select(pushSelector): any)
     if (!tokenType) {
@@ -166,7 +164,7 @@ export function* deletePushTokenSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* pushSaga(): SagaGenerator<any, any> {
+const pushSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.permissionsRequest, permissionsRequestSaga)
   yield safeTakeLatest(Constants.permissionsNo, permissionsNoSaga)
   yield safeTakeLatest(Constants.pushToken, pushTokenSaga)

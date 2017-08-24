@@ -18,7 +18,7 @@ type State = {
   infoPanelOpen: boolean,
 }
 
-class Conversation extends Component<void, Props, State> {
+class Conversation extends Component<Props, State> {
   state = {
     showDropOverlay: false,
     infoPanelOpen: false,

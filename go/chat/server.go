@@ -155,6 +155,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.Time = utils.GetConvMtime(rawConv)
 		conv.Visibility = rawConv.Metadata.Visibility
 		conv.Notifications = rawConv.Notifications
+		conv.MembersType = rawConv.GetMembersType()
 		res.Items = append(res.Items, conv)
 	}
 	res.Pagination = vres.Pagination
@@ -446,6 +447,20 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}()
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return res, err
+	}
+
+	if arg.Pagination != nil {
+		// Next and Prev are base64-encoded when sent via JSON, so they come back from UI
+		// base64-encoded, too.
+		var err error
+		arg.Pagination.Next, err = utils.DecodeBase64(arg.Pagination.Next)
+		if err != nil {
+			return res, err
+		}
+		arg.Pagination.Previous, err = utils.DecodeBase64(arg.Pagination.Previous)
+		if err != nil {
+			return res, err
+		}
 	}
 
 	// Grab local copy first

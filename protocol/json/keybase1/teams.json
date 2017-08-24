@@ -324,6 +324,14 @@
           "name": "name"
         },
         {
+          "type": "boolean",
+          "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
           "type": "TeamApplication",
           "name": "application"
         },
@@ -516,6 +524,14 @@
         {
           "type": "TeamID",
           "name": "id"
+        },
+        {
+          "type": "boolean",
+          "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         },
         {
           "type": "TeamName",
@@ -1006,12 +1022,8 @@
     },
     {
       "type": "record",
-      "name": "ImplicitTeamName",
+      "name": "ImplicitTeamUserSet",
       "fields": [
-        {
-          "type": "boolean",
-          "name": "isPrivate"
-        },
         {
           "type": {
             "type": "array",
@@ -1025,6 +1037,24 @@
             "items": "SocialAssertion"
           },
           "name": "unresolvedUsers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamDisplayName",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPublic"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "writers"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "readers"
         },
         {
           "type": [
@@ -1310,6 +1340,32 @@
         }
       ],
       "response": null
+    },
+    "lookupImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamID"
+    },
+    "lookupOrCreateImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamID"
     },
     "loadTeamPlusApplicationKeys": {
       "request": [

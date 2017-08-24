@@ -6,7 +6,7 @@ import {globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
-class Passphrase extends Component<void, Props, void> {
+class Passphrase extends Component<Props> {
   render() {
     const {showTyping, toggleShowTyping} = this.props
 

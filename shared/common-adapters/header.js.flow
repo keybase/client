@@ -1,12 +1,12 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
   icon?: boolean,
   title?: string,
   onClose?: () => void,
   style?: Object,
-  children?: ?Object,
+  children?: React.Node,
   windowDragging?: boolean,
   type: 'Default' | 'Strong',
 }
@@ -15,6 +15,6 @@ export type DefaultProps = {
   type: $PropertyType<Props, 'type'>,
 }
 
-declare export default class Header extends Component<DefaultProps, Props, void> {
+declare export default class Header extends React.Component<Props> {
   static defaultProps: DefaultProps,
 }

@@ -12,7 +12,7 @@ type State = {
   focused: boolean,
 }
 
-class Input extends Component<void, Props, State> {
+class Input extends Component<Props, State> {
   state: State
   _input: any
   _isComposingIME: boolean
@@ -61,6 +61,7 @@ class Input extends Component<void, Props, State> {
   selections() {
     const node = this._input && this._inputNode()
     if (node) {
+      // $FlowIssue
       const {selectionStart, selectionEnd} = node
       return {selectionStart, selectionEnd}
     }
@@ -79,11 +80,13 @@ class Input extends Component<void, Props, State> {
     }
 
     const node = this._inputNode()
-    if (!node) {
+    if (!node || !node.style) {
       return
     }
 
+    // $FlowIssue
     node.style.height = '1px'
+    // $FlowIssue
     node.style.height = `${node.scrollHeight}px`
   }
 
@@ -92,15 +95,21 @@ class Input extends Component<void, Props, State> {
   }
 
   focus() {
-    this._input && this._inputNode().focus()
+    const n = this._input && this._inputNode()
+    // $FlowIssue
+    n && n.focus()
   }
 
   select() {
-    this._input && this._inputNode().select()
+    const n = this._input && this._inputNode()
+    // $FlowIssue
+    n && n.select()
   }
 
   blur() {
-    this._input && this._inputNode().blur()
+    const n = this._input && this._inputNode()
+    // $FlowIssue
+    n && n.blur()
   }
 
   _onCompositionStart = () => {
@@ -111,9 +120,9 @@ class Input extends Component<void, Props, State> {
     this._isComposingIME = false
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent) => {
+  _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (this.props.onKeyDown) {
-      this.props.onKeyDown(e)
+      this.props.onKeyDown(e, this._isComposingIME)
     }
 
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
@@ -123,6 +132,7 @@ class Input extends Component<void, Props, State> {
 
   _onFocus = () => {
     this.setState({focused: true})
+    this.props.onFocus && this.props.onFocus()
   }
 
   _onBlur = () => {

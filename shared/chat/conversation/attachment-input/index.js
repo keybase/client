@@ -11,7 +11,7 @@ type State = {
   title: string,
 }
 
-class RenderAttachmentInput extends Component<void, Props, State> {
+class RenderAttachmentInput extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

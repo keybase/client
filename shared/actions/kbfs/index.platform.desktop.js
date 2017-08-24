@@ -169,7 +169,6 @@ function* installFuseSaga(): SagaGenerator<any, any> {
 // operations.
 function installCachedDokan(): Promise<*> {
   return new Promise((resolve, reject) => {
-    // $FlowIssue
     const regedit = require('regedit')
     regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
       if (err) {
@@ -320,7 +319,7 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
   yield call(_open, openPath)
 }
 
-function* openSaga(action: FSOpen): SagaGenerator<any, any> {
+const openSaga = function*(action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
 
   console.log('openInKBFS:', openPath)
@@ -331,7 +330,7 @@ function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   }
 }
 
-function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
+const openInFileUISaga = function*({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
   yield call(_open, path)
 }
 

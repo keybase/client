@@ -12,7 +12,7 @@ import purgeMessage from '../../pgp/container.desktop'
 import tracker from '../../tracker'
 import unlockFolders from '../../unlock-folders'
 import {disable as disableDragDrop} from '../../util/drag-drop'
-import {getUserImageMap, loadUserImageMap} from '../../util/pictures'
+import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {globalColors} from '../../styles'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {remote, ipcRenderer} from 'electron'
@@ -24,8 +24,8 @@ disableDragDrop()
 makeEngine()
 
 function setupAvatar() {
-  initAvatarLookup(getUserImageMap)
-  initAvatarLoad(loadUserImageMap)
+  initAvatarLookup(getUserImageMap, getTeamImageMap)
+  initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 }
 
 module.hot && module.hot.accept()
@@ -64,7 +64,7 @@ type State = {
   props?: any,
 }
 
-class RemoteComponentLoader extends Component<void, any, State> {
+class RemoteComponentLoader extends Component<any, State> {
   state: State
   store: any
   ComponentClass: any
@@ -168,10 +168,12 @@ class RemoteComponentLoader extends Component<void, any, State> {
     if (this.state.unmounted) {
       return <div />
     }
+
+    const TheComponent = this.ComponentClass
     return (
       <div id="RemoteComponentRoot" style={styles.container}>
         <Root store={this.store}>
-          <this.ComponentClass {...this.state.props} />
+          <TheComponent {...this.state.props} />
         </Root>
       </div>
     )

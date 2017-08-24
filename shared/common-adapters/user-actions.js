@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import type {Props} from './user-actions'
 import {Box, Button, FollowButton} from '../common-adapters'
 import {globalMargins} from '../styles'

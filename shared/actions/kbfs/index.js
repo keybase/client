@@ -36,7 +36,7 @@ function openInKBFS(path: string = ''): FSOpen {
   return {payload: {path}, type: Constants.fsOpen}
 }
 
-function* _listSaga(action: FSList): SagaGenerator<any, any> {
+const _listSaga = function*(action: FSList): SagaGenerator<any, any> {
   try {
     const result: ?ListResult = yield call(fsListRpcPromise, {param: {path: action.payload.path}})
 

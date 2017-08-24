@@ -16,7 +16,7 @@ type Props = {
   kbfsMount: string,
 }
 
-class InstalledBanner extends Component<void, Props, void> {
+class InstalledBanner extends Component<Props, void> {
   _onUninstall = () => {
     const dialog = electron.dialog || electron.remote.dialog
     dialog.showMessageBox(

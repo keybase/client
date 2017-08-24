@@ -10,7 +10,7 @@ type State = {
   showCloseWarning: boolean,
 }
 
-export default class HeaderRender extends PureComponent<void, HeaderProps, State> {
+export default class HeaderRender extends PureComponent<HeaderProps, State> {
   state: State
 
   constructor(props: HeaderProps) {

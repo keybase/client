@@ -15,7 +15,7 @@ function* installKBFSSaga(): SagaGenerator<any, any> {}
 
 function* openSaga(action: FSOpen): SagaGenerator<any, any> {}
 
-function* openInFileUISaga(action: OpenInFileUI): SagaGenerator<any, any> {}
+const openInFileUISaga = function*(action: OpenInFileUI): SagaGenerator<any, any> {}
 
 export {
   fuseStatusSaga,

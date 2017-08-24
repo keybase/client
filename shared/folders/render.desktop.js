@@ -12,7 +12,7 @@ import InstallSecurityPrefs from './install/security-prefs'
 
 import type {TypedState} from '../constants/reducer'
 
-class FoldersRender extends Component<void, Props, void> {
+class FoldersRender extends Component<Props> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2

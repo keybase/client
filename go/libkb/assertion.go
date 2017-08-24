@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -597,4 +598,102 @@ func CollectAssertions(e AssertionExpression) (remotes AssertionAnd, locals Asse
 
 func AssertionIsTeam(au AssertionURL) bool {
 	return au != nil && (au.IsTeamID() || au.IsTeamName())
+}
+
+func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name string, err error) {
+	nColons := strings.Count(s, ":")
+	nAts := strings.Count(s, "@")
+	nDelimiters := nColons + nAts
+	if nDelimiters > 1 {
+		return "", "", fmt.Errorf("Invalid implicit team part, can have at most one ':' xor '@'")
+	}
+	if nDelimiters == 0 {
+		if CheckUsername.F(s) {
+			return "keybase", strings.ToLower(s), nil
+		}
+
+		return "", "", fmt.Errorf("Parsed part as keybase username, but invalid username")
+	}
+	assertion, err := ParseAssertionURL(ctx, s, true)
+	if err != nil {
+		return "", "", fmt.Errorf("Could not parse part as SBS assertion")
+	}
+	return string(assertion.GetKey()), assertion.GetValue(), nil
+}
+
+func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
+	// TODO perhaps this should parse out public/private and conflict
+	// TODO in which case it woudln't take isPublic as an argument
+
+	// Turn the whole string tolower
+	s = strings.ToLower(s)
+
+	parts := strings.Split(s, "#")
+	if len(parts) > 2 {
+		return ret, NewImplicitTeamDisplayNameError("can have at most one '#' separator")
+	}
+
+	seen := make(map[string]bool)
+	var readers, writers keybase1.ImplicitTeamUserSet
+	writers, err = parseImplicitTeamUserSet(ctx, parts[0], seen)
+	if err != nil {
+		return ret, err
+	}
+
+	if writers.NumTotalUsers() == 0 {
+		return ret, NewImplicitTeamDisplayNameError("need at least one writer")
+	}
+
+	if len(parts) == 2 {
+		readers, err = parseImplicitTeamUserSet(ctx, parts[1], seen)
+		if err != nil {
+			return ret, err
+		}
+	}
+
+	ret = keybase1.ImplicitTeamDisplayName{
+		IsPublic:     isPublic,
+		ConflictInfo: nil,
+		Writers:      writers,
+		Readers:      readers,
+	}
+	return ret, nil
+}
+
+func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bool) (ret keybase1.ImplicitTeamUserSet, err error) {
+
+	for _, part := range strings.Split(s, ",") {
+		typ, name, err := parseImplicitTeamPart(ctx, part)
+		if err != nil {
+			return keybase1.ImplicitTeamUserSet{}, err
+		}
+		sa := keybase1.SocialAssertion{User: name, Service: keybase1.SocialAssertionService(typ)}
+		idx := sa.String()
+		if seen[idx] {
+			continue
+		}
+		seen[idx] = true
+		if typ == "keybase" {
+			ret.KeybaseUsers = append(ret.KeybaseUsers, name)
+		} else {
+			ret.UnresolvedUsers = append(ret.UnresolvedUsers, sa)
+		}
+	}
+	sort.Strings(ret.KeybaseUsers)
+	sort.Slice(ret.UnresolvedUsers, func(i, j int) bool { return ret.UnresolvedUsers[i].String() < ret.UnresolvedUsers[j].String() })
+	return ret, nil
+}
+
+func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamDisplayName, error) {
+	ret := keybase1.ImplicitTeamDisplayName{}
+	s = strings.ToLower(s)
+	parts := strings.Split(s, "/")
+	if len(parts) != 4 {
+		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
+	}
+	if parts[0] != "" || parts[1] != "keybase" || (parts[2] != "private" && parts[2] != "public") {
+		return ret, fmt.Errorf("Invalid team TLF name")
+	}
+	isPublic := parts[2] == "public"
+	return ParseImplicitTeamDisplayName(ctx, parts[3], isPublic)
 }

@@ -1,11 +1,11 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 
 export type Props = {
   onBack?: () => void,
-  children?: ?Array<any>,
+  children?: React.Node,
   style?: ?Object,
   outerStyle?: ?Object,
 }
 
-declare export default class Container extends Component<void, Props, void> {}
+declare export default class Container extends React.Component<Props> {}

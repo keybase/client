@@ -9,7 +9,7 @@ type State = {
   inviteCode: string,
 }
 
-class InviteCodeRender extends Component<void, Props, State> {
+class InviteCodeRender extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

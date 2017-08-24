@@ -162,17 +162,15 @@ body {
     transition: opacity 250ms ease-in-out;
 }
 
-.fade-anim-leave {
+.fade-anim-exit {
     opacity: 1;
 }
 
-.fade-anim-leave.fade-anim-leave-active {
+.fade-anim-exit.fade-anim-exit-active {
     opacity: 0;
     transition: opacity 250ms ease-in-out;
 }
 
 .emoji-mart-emoji {
-	display: inline;
-    font-size: medium;
     vertical-align: middle;
 }

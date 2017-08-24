@@ -201,7 +201,7 @@ const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing
   type: Constants.updateFollowing,
 })
 
-function* _bootstrapSuccessSaga(): SagaGenerator<any, any> {
+const _bootstrapSuccessSaga = function*(): SagaGenerator<any, any> {
   if (isMobile) {
     const pushLoaded = yield select(({config: {pushLoaded}}: TypedState) => pushLoaded)
     const loggedIn = yield select(loggedInSelector)
@@ -214,7 +214,7 @@ function* _bootstrapSuccessSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* configSaga(): SagaGenerator<any, any> {
+const configSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('config:bootstrapSuccess', _bootstrapSuccessSaga)
 }
 

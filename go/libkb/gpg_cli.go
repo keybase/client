@@ -154,11 +154,15 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyB
 	return bundle, nil
 }
 
-func (g *GpgCLI) ExportKey(k PGPKeyBundle, private bool) (err error) {
+func (g *GpgCLI) ExportKey(k PGPKeyBundle, private bool, batch bool) (err error) {
 	g.outputVersion()
 	arg := RunGpg2Arg{
 		Arguments: []string{"--import"},
 		Stdin:     true,
+	}
+
+	if batch {
+		arg.Arguments = append(arg.Arguments, "--batch")
 	}
 
 	res := g.Run2(arg)

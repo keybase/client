@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import type {Props as ListProps} from './list'
 
 export type Props = {
@@ -18,9 +18,7 @@ export type Props = {
   onOpen?: (path: string) => void,
   onRekey: (path: string) => void,
   onToggleShowIgnored: () => void,
-  installed: boolean,
-  getFuseStatus: () => void,
   showSecurityPrefs?: boolean,
 }
 
-export default class Render extends Component<void, Props, void> {}
+export default class Render extends React.Component<Props> {}

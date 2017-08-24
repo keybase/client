@@ -1,11 +1,12 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import * as Constants from '../../../../constants/chat'
 
 export type Props = {|
   author: string,
   failureDescription: ?string,
   includeHeader: boolean,
+  innerClass: React.Component<*>,
   isBroken: boolean,
   isEdited: boolean,
   isEditing: boolean,
@@ -14,12 +15,13 @@ export type Props = {|
   isRevoked: boolean,
   isSelected: boolean,
   isYou: boolean,
+  measure: ?() => void,
   messageKey: Constants.MessageKey,
-  onAction: (event: SyntheticEvent) => void,
+  onAction: (event: SyntheticEvent<>) => void,
   onRetry: () => void,
-  onShowEditor: (event: SyntheticEvent) => void,
-  onClick: (event: SyntheticEvent) => void,
+  onShowEditor: (event: SyntheticEvent<>) => void,
+  onClick: () => void,
   timestamp: ?string,
 |}
 
-export default class Wrapper extends Component<void, Props, void> {}
+export default class Wrapper extends React.Component<Props> {}

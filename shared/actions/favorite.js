@@ -204,7 +204,7 @@ function _getFavoritesRPCToFolders(
   return folders
 }
 
-function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
+const _addSaga = function*(action: FavoriteAdd): SagaGenerator<any, any> {
   const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
     const action: FavoriteAdded = {
@@ -225,7 +225,7 @@ function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
   }
 }
 
-function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
+const _ignoreSaga = function*(action: FavoriteAdd): SagaGenerator<any, any> {
   const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
     const action: FavoriteIgnored = {
@@ -246,7 +246,7 @@ function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
   }
 }
 
-function* _listSaga(): SagaGenerator<any, any> {
+const _listSaga = function*(): SagaGenerator<any, any> {
   const bail = yield select(({dev: {reloading = false} = {}}) => reloading)
   if (bail) {
     return
@@ -303,7 +303,7 @@ function _notify(state) {
 
 // Don't send duplicates else we get high cpu usage
 let _kbfsUploadingState = false
-function* _setupKBFSChangedHandler(): SagaGenerator<any, any> {
+const _setupKBFSChangedHandler = function*(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     const debouncedKBFSStopped = debounce(() => {
       if (_kbfsUploadingState === true) {
@@ -333,7 +333,7 @@ function* _setupKBFSChangedHandler(): SagaGenerator<any, any> {
   yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
 }
 
-function* favoriteSaga(): SagaGenerator<any, any> {
+const favoriteSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.favoriteList, _listSaga)
   yield safeTakeEvery(Constants.favoriteAdd, _addSaga)
   yield safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga)

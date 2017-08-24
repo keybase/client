@@ -35,7 +35,7 @@ const _getInboxQuery = {
 let _backgroundLoopTask
 
 // Load the inbox if we haven't yet, mostly done by the UI
-function* onInitialInboxLoad(): SagaGenerator<any, any> {
+const onInitialInboxLoad = function*(): SagaGenerator<any, any> {
   try {
     yield put(Creators.inboxStale())
     if (!isMobile) {
@@ -51,7 +51,7 @@ function* onInitialInboxLoad(): SagaGenerator<any, any> {
 }
 
 // On desktop we passively unbox inbox items
-function* _backgroundUnboxLoop() {
+const _backgroundUnboxLoop = function*() {
   try {
     while (true) {
       yield call(delay, 10 * 1000)
@@ -74,7 +74,7 @@ function* _backgroundUnboxLoop() {
 }
 
 // Update inboxes that have been reset
-function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
+const _updateFinalized = function*(inbox: ChatTypes.GetInboxLocalRes) {
   const finalizedState: Constants.FinalizedState = Map(
     (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
       Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
@@ -89,7 +89,7 @@ function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
 }
 
 // Loads the untrusted inbox only
-function* onInboxStale(): SagaGenerator<any, any> {
+const onInboxStale = function*(): SagaGenerator<any, any> {
   try {
     yield put(Creators.setInboxUntrustedState('loading'))
 
@@ -131,13 +131,13 @@ function* onInboxStale(): SagaGenerator<any, any> {
       (inbox.items || [])
         .map(c => {
           return new Constants.InboxStateRecord({
+            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? ' ' : undefined,
             conversationIDKey: c.convID,
             info: null,
             membersType: c.membersType,
             participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
-            snippet: ' ',
-            state: 'untrusted',
             status: Constants.ConversationStatusByEnum[c.status || 0],
+            teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
             time: c.time,
           })
         })
@@ -146,6 +146,12 @@ function* onInboxStale(): SagaGenerator<any, any> {
 
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
+
+    // Unbox teams so we can get their names
+    yield call(
+      unboxConversations,
+      conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
+    )
 
     const {
       initialConversation,
@@ -168,7 +174,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
   }
 }
 
-function* onGetInboxAndUnbox({
+const onGetInboxAndUnbox = function*({
   payload: {conversationIDKeys},
 }: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
   yield call(unboxConversations, conversationIDKeys)
@@ -188,7 +194,7 @@ function _toSupersedeInfo(
 }
 
 // Update an inbox item
-function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any> {
+const processConversation = function*(c: ChatTypes.InboxUIItem): SagaGenerator<any, any> {
   const conversationIDKey = c.convID
 
   const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
@@ -223,7 +229,7 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
 }
 
 // Gui is showing boxed content, find some rows to unbox
-function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
+const untrustedInboxVisible = function*(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
   const {conversationIDKey, rowsVisible} = action.payload
   const inboxes = yield select(state => state.chat.get('inbox'))
 
@@ -245,7 +251,7 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
   }
 }
 
-function* _chatInboxConversationSubSaga({conv}) {
+const _chatInboxConversationSubSaga = function*({conv}) {
   // Wait for an idle
   yield call(onIdlePromise, 100)
   // TODO might be better to make this a put with an associated takeEvery
@@ -253,7 +259,7 @@ function* _chatInboxConversationSubSaga({conv}) {
   return EngineRpc.rpcResult()
 }
 
-function* _chatInboxFailedSubSaga(params) {
+const _chatInboxFailedSubSaga = function*(params) {
   const {convID, error} = params
   console.log('chatInboxFailed', params)
   yield call(onIdlePromise, 100)
@@ -280,12 +286,16 @@ function* _chatInboxFailedSubSaga(params) {
   const {maxMsgid} = error.remoteConv.readerInfo
   const selectedConversation = yield select(Constants.getSelectedConversation)
   if (maxMsgid && selectedConversation === conversationIDKey) {
-    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {
-        conversationID: convID,
-        msgID: maxMsgid,
-      },
-    })
+    try {
+      yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+        param: {
+          conversationID: convID,
+          msgID: maxMsgid,
+        },
+      })
+    } catch (err) {
+      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+    }
   }
 
   switch (error.typ) {
@@ -323,7 +333,7 @@ const unboxConversationsSagaMap = {
 }
 
 // Loads the trusted inbox segments
-function* unboxConversations(
+const unboxConversations = function*(
   conversationIDKeys: Array<Constants.ConversationIDKey>
 ): Generator<any, any, any> {
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
@@ -367,21 +377,27 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
   }
 
   const conversationIDKey = c.convID
-  // Temporary hack to make team convos easier to parse in inbox view
+
   let parts = List(c.participants || [])
+  let teamname = null
+  let channelname = null
+
   if (c.membersType === ChatTypes.CommonConversationMembersType.team) {
-    parts = List([`#${c.channel} ${c.name}`])
+    teamname = c.name
+    channelname = c.channel
   }
 
   return new Constants.InboxStateRecord({
+    channelname,
     conversationIDKey,
-    name: c.name,
     isEmpty: c.isEmpty,
     membersType: c.membersType,
-    participants: parts || [],
+    name: c.name,
+    participants: parts,
     snippet: Constants.makeSnippet(c.snippet),
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
+    teamname,
     time: c.time,
     visibility: c.visibility,
   })

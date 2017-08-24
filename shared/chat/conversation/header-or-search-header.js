@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Header from './header/container'
 import SearchHeader from '../search-header'
 import * as ChatConstants from '../../constants/chat'

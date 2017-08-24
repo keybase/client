@@ -10,12 +10,13 @@ import glamorous from 'glamorous'
 
 import type {Props, TextType, Background} from './text'
 
-class Text extends Component<void, Props, void> {
+class Text extends Component<Props> {
   _span: any
 
   highlightText() {
     const el = findDOMNode(this._span)
     const range = document.createRange()
+    // $FlowIssue
     range.selectNodeContents(el)
 
     const sel = window.getSelection()

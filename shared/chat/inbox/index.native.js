@@ -1,9 +1,9 @@
 // @flow
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {Text, Icon, Box, NativeDimensions, NativeFlatList} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
-import AddNewRow from './row/add-new-row'
+import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 
 import type {Props} from './'
@@ -25,16 +25,27 @@ const NoChats = () => (
   </Box>
 )
 
-class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
+class Inbox extends React.PureComponent<Props, {rows: Array<any>}> {
   state = {rows: []}
 
   _renderItem = ({item, index}) => {
     return index
-      ? <Row conversationIDKey={item} key={item} isActiveRoute={this.props.isActiveRoute} />
-      : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
+      ? <Row
+          conversationIDKey={item.conversationIDKey}
+          filtered={!!this.props.filter}
+          isActiveRoute={this.props.isActiveRoute}
+          teamname={item.teamname}
+          channelname={item.channelname}
+        />
+      : <ChatFilterRow
+          isLoading={this.props.isLoading}
+          filter={this.props.filter}
+          onNewChat={this.props.onNewChat}
+          onSetFilter={this.props.onSetFilter}
+        />
   }
 
-  _keyExtractor = (item, index) => item
+  _keyExtractor = (item, index) => item.conversationIDKey || item.teamname || 'filter'
 
   _setupDataSource = props => {
     this.setState({rows: [{}].concat(props.rows.toArray())})
@@ -45,14 +56,19 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
       this._setupDataSource(nextProps)
 
       if (nextProps.rows.count()) {
-        const conversationIDKey = nextProps.rows.get(0)
-        this.props.onUntrustedInboxVisible(conversationIDKey, 20)
+        const {conversationIDKey} = nextProps.rows.get(0)
+        if (conversationIDKey) {
+          this.props.onUntrustedInboxVisible(conversationIDKey, 20)
+        }
       }
     }
   }
 
-  _askForUnboxing = (id: any, count: number) => {
-    this.props.onUntrustedInboxVisible(id, count)
+  _askForUnboxing = (row: any, count: number) => {
+    const {conversationIDKey} = row
+    if (conversationIDKey) {
+      this.props.onUntrustedInboxVisible(conversationIDKey, count)
+    }
   }
 
   _onViewChanged = debounce(data => {
@@ -85,7 +101,7 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
           onViewableItemsChanged={this._onViewChanged}
-          getItemLayout={(data, index) => ({length: 64, offset: 64 * index, index})}
+          getItemLayout={(data, index) => ({index, length: 64, offset: 64 * index})}
           initialNumToRender={this._maxVisible}
           windowSize={this._maxVisible}
         />

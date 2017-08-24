@@ -32,7 +32,7 @@ function readImage(): Promise<?ClipboardData> {
 }
 
 export function readImageFromClipboard(
-  event: SyntheticEvent,
+  event: SyntheticEvent<>,
   willReadData: () => void
 ): Promise<?ClipboardData> {
   const formats = clipboard.availableFormats()

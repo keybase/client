@@ -46,7 +46,7 @@ import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any, any> {
+const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case ChatTypes.NotifyChatChatActivityType.setStatus:
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
@@ -133,12 +133,16 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
 
         if (message && message.messageID && conversationIsFocused) {
-          yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-            param: {
-              conversationID: incomingMessage.convID,
-              msgID: message.messageID,
-            },
-          })
+          try {
+            yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+              param: {
+                conversationID: incomingMessage.convID,
+                msgID: message.messageID,
+              },
+            })
+          } catch (err) {
+            console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+          }
         }
 
         const messageFromYou =
@@ -195,7 +199,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
   }
 }
 
-function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, any> {
+const _incomingTyping = function*(action: Constants.IncomingTyping): SagaGenerator<any, any> {
   // $FlowIssue
   for (const activity of action.payload.activity) {
     const conversationIDKey = Constants.conversationIDToKey(activity.convID)
@@ -205,7 +209,7 @@ function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, 
   }
 }
 
-function* _setupChatHandlers(): SagaGenerator<any, any> {
+const _setupChatHandlers = function*(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
       dispatch(Creators.incomingMessage(activity))
@@ -242,12 +246,20 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
         dispatch(Creators.markThreadsStale(updates))
       }
     })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatJoinedConversation', () => {
+      dispatch(Creators.inboxStale())
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatLeftConversation', () => {
+      dispatch(Creators.inboxStale())
+    })
   })
 }
 
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
 
-function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
+const _ensureValidSelectedChat = function*(onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
   // Mobile doesn't auto select a conversation
   if (isMobile && !forceSelectOnMobile) {
     return
@@ -279,7 +291,7 @@ function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobi
   }
 }
 
-function* _updateThread({
+const _updateThread = function*({
   payload: {yourName, thread, yourDeviceName, conversationIDKey},
 }: Constants.UpdateThread) {
   let newMessages = []
@@ -326,7 +338,7 @@ const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey) =
   'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
 })
 
-function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
+const _loadMoreMessages = function*(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
 
   try {
@@ -691,7 +703,7 @@ function _unboxedToMessage(
   }
 }
 
-function* _openTlfInChat(action: Constants.OpenTlfInChat): SagaGenerator<any, any> {
+const _openTlfInChat = function*(action: Constants.OpenTlfInChat): SagaGenerator<any, any> {
   const tlf = action.payload
   const me = yield select(usernameSelector)
   const userlist = parseFolderNameToUsers(me, tlf)
@@ -703,7 +715,7 @@ function* _openTlfInChat(action: Constants.OpenTlfInChat): SagaGenerator<any, an
   yield put(Creators.startConversation(users))
 }
 
-function* _startConversation(action: Constants.StartConversation): SagaGenerator<any, any> {
+const _startConversation = function*(action: Constants.StartConversation): SagaGenerator<any, any> {
   const {users, forceImmediate, temporary} = action.payload
   const me = yield select(usernameSelector)
 
@@ -734,12 +746,12 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
   }
 }
 
-function* _openFolder(): SagaGenerator<any, any> {
+const _openFolder = function*(): SagaGenerator<any, any> {
   const conversationIDKey = yield select(Constants.getSelectedConversation)
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    const helper = inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
+    const helper = inbox.visibility === ChatTypes.CommonTLFVisibility.public
       ? publicFolderWithUsers
       : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())
@@ -749,7 +761,7 @@ function* _openFolder(): SagaGenerator<any, any> {
   }
 }
 
-function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
+const _newChat = function*(action: Constants.NewChat): SagaGenerator<any, any> {
   const inboxSearch = yield select(inboxSearchSelector)
   if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
     // Ignore 'New Chat' attempts when we're already building a chat
@@ -763,7 +775,7 @@ function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
 }
 
-function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, any> {
+const _updateMetadata = function*(action: Constants.UpdateMetadata): SagaGenerator<any, any> {
   // Don't send sharing before signup values
   const metaData = yield select(Shared.metaDataSelector)
   const usernames = action.payload.users.filter(
@@ -800,7 +812,7 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
   }
 }
 
-function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
+const _selectConversation = function*(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
   // Load the inbox item always
@@ -840,7 +852,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   }
 }
 
-function* _blockConversation(action: Constants.BlockConversation): SagaGenerator<any, any> {
+const _blockConversation = function*(action: Constants.BlockConversation): SagaGenerator<any, any> {
   const {blocked, conversationIDKey, reportUser} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   if (blocked) {
@@ -854,7 +866,7 @@ function* _blockConversation(action: Constants.BlockConversation): SagaGenerator
   }
 }
 
-function* _muteConversation(action: Constants.MuteConversation): SagaGenerator<any, any> {
+const _muteConversation = function*(action: Constants.MuteConversation): SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
   const status = muted ? ChatTypes.CommonConversationStatus.muted : ChatTypes.CommonConversationStatus.unfiled
@@ -864,20 +876,24 @@ function* _muteConversation(action: Constants.MuteConversation): SagaGenerator<a
   })
 }
 
-function* _updateBadging(action: Constants.UpdateBadging): SagaGenerator<any, any> {
+const _updateBadging = function*(action: Constants.UpdateBadging): SagaGenerator<any, any> {
   // Update gregor's view of the latest message we've read.
   const {conversationIDKey} = action.payload
   const conversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
   if (conversationState && conversationState.messages !== null && conversationState.messages.size > 0) {
     const conversationID = Constants.keyToConversationID(conversationIDKey)
     const msgID = conversationState.messages.get(conversationState.messages.size - 1).messageID
-    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {conversationID, msgID},
-    })
+    try {
+      yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+        param: {conversationID, msgID},
+      })
+    } catch (err) {
+      console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+    }
   }
 }
 
-function* _changedFocus(action: ChangedFocus): SagaGenerator<any, any> {
+const _changedFocus = function*(action: ChangedFocus): SagaGenerator<any, any> {
   // Update badging and the latest message due to the refocus.
   const {appFocused} = action.payload
   const conversationIDKey = yield select(Constants.getSelectedConversation)
@@ -893,7 +909,7 @@ function* _changedFocus(action: ChangedFocus): SagaGenerator<any, any> {
   }
 }
 
-function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
+const _badgeAppForChat = function*(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
   let conversationsWithKeys = {}
   conversations.map(conv => {
@@ -910,7 +926,7 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
 }
 
-function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<any, any> {
+const _sendNotifications = function*(action: Constants.AppendMessages): SagaGenerator<any, any> {
   const appFocused = yield select(Shared.focusedSelector)
   const selectedTab = yield select(Shared.routeSelector)
   const chatTabSelected = selectedTab === chatTab
@@ -946,7 +962,7 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
   }
 }
 
-function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
+const _markThreadsStale = function*(action: Constants.MarkThreadsStale): SagaGenerator<any, any> {
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {updates} = action.payload
   const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
@@ -969,7 +985,7 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
   )
 }
 
-function* _openConversation({
+const _openConversation = function*({
   payload: {conversationIDKey},
 }: Constants.OpenConversation): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
@@ -995,7 +1011,7 @@ function* _openConversation({
   }
 }
 
-function* _updateTyping({
+const _updateTyping = function*({
   payload: {conversationIDKey, typing},
 }: Constants.UpdateTyping): SagaGenerator<any, any> {
   // Send we-are-typing info up to Gregor.
@@ -1007,7 +1023,7 @@ function* _updateTyping({
   }
 }
 
-function* _updateTempSearchConversation(
+const _updateTempSearchConversation = function*(
   action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
 ) {
   const {payload: {user}} = action
@@ -1038,7 +1054,7 @@ function* _updateTempSearchConversation(
   yield all(actionsToPut)
 }
 
-function* _exitSearch() {
+const _exitSearch = function*() {
   const inboxSearch = yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
@@ -1048,7 +1064,7 @@ function* _exitSearch() {
   }
 }
 
-function* _createNewTeam(action: Constants.CreateNewTeam) {
+const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
@@ -1073,7 +1089,7 @@ function* _createNewTeam(action: Constants.CreateNewTeam) {
   }
 }
 
-function* chatSaga(): SagaGenerator<any, any> {
+const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)

@@ -15,7 +15,7 @@ type Props = {
   installFuse: () => void,
 }
 
-class InstallBanner extends Component<void, Props, void> {
+class InstallBanner extends Component<Props, void> {
   componentDidMount() {
     this.props.getFuseStatus()
   }

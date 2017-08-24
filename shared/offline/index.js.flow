@@ -8,4 +8,4 @@ export type Props = {
   appFocused: boolean,
 }
 
-export default class Offline extends Component<void, Props, void> {}
+export default class Offline extends Component<Props> {}

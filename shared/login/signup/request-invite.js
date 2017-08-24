@@ -21,7 +21,7 @@ type State = {
   name: string,
 }
 
-class RequestInvite extends Component<void, ContainerProps, State> {
+class RequestInvite extends Component<ContainerProps, State> {
   state: State
 
   constructor(props: ContainerProps) {

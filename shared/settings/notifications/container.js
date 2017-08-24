@@ -7,7 +7,7 @@ import {notificationsRefresh, notificationsToggle} from '../../actions/settings'
 
 import type {TypedState} from '../../constants/reducer'
 
-class NotificationsContainer extends Component {
+class NotificationsContainer extends Component<any> {
   componentWillMount() {
     this.props.onRefresh()
   }

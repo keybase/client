@@ -5,15 +5,17 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	ret := libkb.SetupTest(tb, name, depth+1)
-	NewTeamLoaderAndInstall(ret.G)
-	return ret
+	tc = libkb.SetupTest(tb, name, depth+1)
+	tc.G.SetServices(externals.GetServices())
+	NewTeamLoaderAndInstall(tc.G)
+	return tc
 }
 
 func GetForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {

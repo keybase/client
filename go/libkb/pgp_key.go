@@ -872,3 +872,23 @@ func (p PGPFingerprint) GetProofType() keybase1.ProofType {
 }
 
 //===================================================
+
+func EncryptPGPKey(bundle *openpgp.Entity, passphrase string) error {
+	passBytes := []byte(passphrase)
+
+	if err := bundle.PrivateKey.Encrypt(passBytes, nil); err != nil {
+		return err
+	}
+
+	for _, subkey := range bundle.Subkeys {
+		if subkey.PrivateKey == nil {
+			continue
+		}
+
+		if err := subkey.PrivateKey.Encrypt(passBytes, nil); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

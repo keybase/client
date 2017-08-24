@@ -53,7 +53,7 @@ type MessageKeyKind =
   | 'supersedes'
 
 export type MessageType = 'Text'
-export type FollowingMap = {[key: string]: boolean}
+export type FollowingMap = {[key: string]: true}
 
 export type MessageState = 'pending' | 'failed' | 'sent'
 export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
@@ -278,6 +278,8 @@ export const InboxStateRecord = Record({
   conversationIDKey: '',
   info: null,
   isEmpty: false,
+  teamname: null,
+  channelname: null,
   membersType: 0,
   participants: List(),
   snippet: '',
@@ -293,6 +295,8 @@ export type InboxState = KBRecord<{
   conversationIDKey: ConversationIDKey,
   info: ConversationInfoLocal,
   isEmpty: boolean,
+  teamname: ?string,
+  channelname: ?string,
   membersType: ConversationMembersType,
   participants: List<string>,
   snippet: string,

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import ServiceFilter from '../search/services-filter'
 import ResultsList from '../search/results-list'
 import UserInput from '../search/user-input'

@@ -4,12 +4,12 @@ import ReactList from 'react-list'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
-import AddNewRow from './row/add-new-row'
+import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 
 import type {Props} from './'
 
-class NewConversation extends PureComponent<void, {}, void> {
+class NewConversation extends PureComponent<{}> {
   render() {
     return (
       <div
@@ -56,7 +56,7 @@ class NewConversation extends PureComponent<void, {}, void> {
   }
 }
 
-class Inbox extends PureComponent<void, Props, void> {
+class Inbox extends PureComponent<Props> {
   _list: any
 
   componentWillReceiveProps(nextProps: Props) {
@@ -65,9 +65,27 @@ class Inbox extends PureComponent<void, Props, void> {
     }
   }
 
+  _itemSizeGetter = index => {
+    const row = this.props.rows.get(index)
+    if (row.teamname) {
+      return 24
+    } else {
+      return 56
+    }
+  }
+
   _itemRenderer = index => {
-    const conversationIDKey = this.props.rows.get(index)
-    return <Row conversationIDKey={conversationIDKey} key={conversationIDKey} isActiveRoute={true} />
+    const row = this.props.rows.get(index)
+    return (
+      <Row
+        conversationIDKey={row.conversationIDKey}
+        filtered={!!this.props.filter}
+        key={row.conversationIDKey || row.teamname}
+        isActiveRoute={true}
+        teamname={row.teamname}
+        channelname={row.channelname}
+      />
+    )
   }
 
   _onScroll = debounce(() => {
@@ -76,8 +94,10 @@ class Inbox extends PureComponent<void, Props, void> {
     }
 
     const [first, end] = this._list.getVisibleRange()
-    const conversationIDKey = this.props.rows.get(first)
-    this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+    const {conversationIDKey} = this.props.rows.get(first)
+    if (conversationIDKey) {
+      this.props.onUntrustedInboxVisible(conversationIDKey, end - first)
+    }
   }, 200)
 
   _setRef = list => {
@@ -87,8 +107,11 @@ class Inbox extends PureComponent<void, Props, void> {
   render() {
     return (
       <div style={containerStyle}>
-        <AddNewRow
+        <ChatFilterRow
+          isLoading={this.props.isLoading}
+          filter={this.props.filter}
           onNewChat={this.props.onNewChat}
+          onSetFilter={this.props.onSetFilter}
           hotkeys={['ctrl+n', 'command+n']}
           onHotkey={this.props.onNewChat}
         />
@@ -98,10 +121,10 @@ class Inbox extends PureComponent<void, Props, void> {
             ref={this._setRef}
             style={listStyle}
             useTranslate3d={true}
-            useStaticSize={true}
             itemRenderer={this._itemRenderer}
             length={this.props.rows.count()}
-            type="uniform"
+            type="variable"
+            itemSizeGetter={this._itemSizeGetter}
           />
         </div>
       </div>
