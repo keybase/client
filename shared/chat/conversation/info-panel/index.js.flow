@@ -20,7 +20,7 @@ export type InfoPanelProps = {
 
 export class InfoPanel extends Component<InfoPanelProps> {}
 
-export type ChannelInfoPanelProps = {
+export type BigTeamInfoPanelProps = {
   channelname: string,
   muted: boolean,
   onAddParticipant: () => void,
@@ -38,4 +38,4 @@ export type ChannelInfoPanelProps = {
   teamname: string,
 }
 
-export class ChannelInfoPanel extends Component<ChannelInfoPanelProps> {}
+export class BigTeamInfoPanel extends Component<BigTeamInfoPanelProps> {}
