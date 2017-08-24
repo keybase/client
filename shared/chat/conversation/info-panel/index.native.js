@@ -1,15 +1,15 @@
 // @flow
 import * as React from 'react'
-import {HeaderHoc, NativeScrollView} from '../../../common-adapters/index.native'
+import {HeaderHoc, ScrollView} from '../../../common-adapters/index.native'
 
 import InfoPanelContents from './index.shared'
 
 import type {Props} from '.'
 
 const InfoPanelContainer = (props: Props) => (
-  <NativeScrollView style={{flex: 1, width: '100%'}}>
+  <ScrollView style={{flex: 1, width: '100%'}}>
     <InfoPanelContents {...props} />
-  </NativeScrollView>
+  </ScrollView>
 )
 
 const InfoPanel = HeaderHoc(InfoPanelContainer)
