@@ -13,10 +13,12 @@ export type Teamname = string
 
 export type ChannelRecord = KBRecord<{
   participants: I.Set<string>,
+  conversationIDKey: ?string,
 }>
 
 const ChannelRecord = I.Record({
   participants: I.Set(),
+  conversationIDKey: null,
 })
 
 export type Team = KBRecord<{
