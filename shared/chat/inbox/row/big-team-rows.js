@@ -141,12 +141,16 @@ const teamRowContainerStyle = {
 
 const HeaderBox = glamorous(Box)({
   ...teamRowContainerStyle,
-  '& .icon': {
-    display: 'none !important',
-  },
-  ':hover .icon': {
-    display: 'inherit !important',
-  },
+  ...(isMobile
+    ? {}
+    : {
+        '& .icon': {
+          display: 'none !important',
+        },
+        ':hover .icon': {
+          display: 'inherit !important',
+        },
+      }),
 })
 
 const channelRowContainerStyle = {

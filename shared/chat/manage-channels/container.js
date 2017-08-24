@@ -29,6 +29,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => ({
   _loadChannels: () => dispatch(getChannels(routeProps.teamname)),
+  onBack: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onCreate: () => dispatch(navigateTo(['createChannel'], routePath.butLast())),
   onToggle: (channelname: string) => dispatch(toggleChannelMembership(routeProps.teamname, channelname)),
