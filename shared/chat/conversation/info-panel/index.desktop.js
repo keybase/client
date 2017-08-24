@@ -6,50 +6,52 @@ import Participants from './participants'
 
 import type {Props} from '.'
 
-const border = `1px solid ${globalColors.black_05}`
-const InfoPanel = (props: Props) => (
-  <Box
-    style={{
-      flex: 1,
-      borderLeft: border,
-      borderRight: border,
-      backgroundColor: globalColors.white,
-      marginTop: -1,
-      overflowY: 'auto',
-    }}
-  >
+const InfoPanelContents = (props: Props) => (
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+
     <Participants
       participants={props.participants}
       onAddParticipant={props.onAddParticipant}
       onShowProfile={props.onShowProfile}
     />
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-    <Box
-      style={{...globalStyles.flexBoxColumn, alignItems: 'center', borderLeft: border, borderRight: border}}
-    >
-      <Box style={globalStyles.flexBoxRow}>
-        <Checkbox
-          checked={props.muted}
-          disabled={props.onMuteConversation == null}
-          onCheck={checked => props.onMuteConversation(checked)}
-          label="Mute notifications"
-        />
-        <Icon type="iconfont-shh" style={{marginLeft: globalMargins.tiny}} />
-      </Box>
-    </Box>
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Button
-        type="Danger"
-        label="Block this conversation"
-        onClick={() => props.onShowBlockConversationDialog()}
+    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+      <Checkbox
+        checked={props.muted}
+        disabled={props.onMuteConversation == null}
+        onCheck={checked => props.onMuteConversation(checked)}
+        label="Mute notifications"
       />
+      <Icon type="iconfont-shh" style={{marginLeft: globalMargins.tiny}} />
     </Box>
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Button
+      type="Danger"
+      label="Block this conversation"
+      onClick={() => props.onShowBlockConversationDialog()}
+    />
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+  </Box>
+)
+
+const border = `1px solid ${globalColors.black_05}`
+const InfoPanel = (props: Props) => (
+  <Box
+    style={{
+      backgroundColor: globalColors.white,
+      borderLeft: border,
+      borderRight: border,
+      flex: 1,
+      marginTop: -1,
+      overflowY: 'auto',
+    }}
+  >
+    <InfoPanelContents {...props} />
   </Box>
 )
 
