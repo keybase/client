@@ -229,7 +229,7 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 	return err
 }
 
-// loadWithInfo loads a user by UID from the CachedUPAKLoader object. The 'info'
+// loadWithInfo loads a user from the CachedUPAKLoader object. The 'info'
 // object contains information about how the request was handled, but otherwise,
 // this method behaves like (and implements) the public CachedUPAKLoader#Load
 // method below. If `accessor` is nil, then a deep copy of the UPAK is returned.
@@ -247,8 +247,14 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	defer g.CVTrace(ctx, VLog0, culDebug(arg.UID), func() error { return err })()
 
 	if arg.UID.IsNil() {
-		err = errors.New("need a UID to load UPAK from loader")
-		return nil, nil, err
+		if len(arg.Name) == 0 {
+			return nil, nil, errors.New("need a UID or username to load UPAK from loader")
+		}
+		// Modifies the load arg, setting a UID
+		arg.UID, err = u.LookupUID(ctx, NewNormalizedUsername(arg.Name))
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	lock := u.locktab.AcquireOnName(ctx, g, arg.UID.String())
