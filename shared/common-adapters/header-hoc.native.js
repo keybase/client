@@ -8,32 +8,31 @@ import {globalStyles, globalColors, globalMargins, statusBarHeight} from '../sty
 
 import type {Props} from './header-hoc'
 
-function HeaderHoc<P>(WrappedComponent: React.ComponentType<P>) {
-  const HeaderHocWrapper = ({
-    onBack,
-    onCancel,
-    headerStyle,
-    title,
-    theme = 'light',
-    ...restProps
-  }: Props & P) => (
-    <Box style={_containerStyle}>
-      <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
-        <Box style={_titleStyle}>
-          <Text type="Header">{title}</Text>
+function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
+  const HeaderHocWrapper = (props: P & Props) => {
+    const {onBack, onCancel, headerStyle, title, theme = 'light'} = props
+    return (
+      <Box style={_containerStyle}>
+        <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
+          <Box style={_titleStyle}>
+            <Text type="Header">{title}</Text>
+          </Box>
+          {onCancel && <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>Cancel</Text>}
+          {onBack &&
+            <BackButton
+              iconStyle={_backButtonIconStyleThemed[theme]}
+              style={_buttonStyle}
+              onClick={onBack}
+            />}
         </Box>
-        {onCancel && <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>Cancel</Text>}
-        {onBack &&
-          <BackButton iconStyle={_backButtonIconStyleThemed[theme]} style={_buttonStyle} onClick={onBack} />}
-      </Box>
-      <Box style={_wrapperStyle}>
-        <Box style={_wrapper2Style}>
-          {/* $FlowIssue */}
-          <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
+        <Box style={_wrapperStyle}>
+          <Box style={_wrapper2Style}>
+            <WrappedComponent {...(props: P)} theme={theme} onBack={onBack} onCancel={onCancel} />
+          </Box>
         </Box>
       </Box>
-    </Box>
-  )
+    )
+  }
 
   return HeaderHocWrapper
 }
