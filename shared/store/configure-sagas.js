@@ -19,6 +19,7 @@ import {fork} from 'redux-saga/effects'
 import sagaMonitor from './saga-monitor'
 import {reduxSagaLogger} from '../local-debug'
 import appStateSaga from '../actions/app'
+import teamsSaga from '../actions/teams'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -39,6 +40,7 @@ const mainSaga = function*(): SagaGenerator<any, any> {
   yield fork(searchSaga)
   yield fork(settingsSaga)
   yield fork(appStateSaga)
+  yield fork(teamsSaga)
 }
 
 let middleWare

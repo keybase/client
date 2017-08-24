@@ -28,7 +28,7 @@ const _rowBox = {
 const ManageChannels = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
     <Box style={_boxStyle}>
-      <Avatar teamname={props.teamname} size={16} />
+      <Avatar isTeam={true} teamname={props.teamname} size={16} />
       <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
         {props.teamname}
       </Text>

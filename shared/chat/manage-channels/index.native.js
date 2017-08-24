@@ -43,7 +43,7 @@ const ManageChannels = (props: Props) => (
 const Header = (props: Props) => (
   <Box style={_headerStyle}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 15}}>
-      <Avatar teamname={props.teamname} size={12} />
+      <Avatar isTeam={true} teamname={props.teamname} size={12} />
       <Text
         type="BodySmallSemibold"
         style={{color: globalColors.darkBlue, fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}

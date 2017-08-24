@@ -112,7 +112,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadInbox: () => dispatch(loadInbox()),
-  onNewChat: () => dispatch(navigateAppend(['manageChannels'])),
+  onNewChat: () =>
+    dispatch(navigateAppend([{props: {teamname: 'cnojimatest7'}, selected: 'manageChannels'}])),
   // TEMP onNewChat: () => dispatch(newChat([])),
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
