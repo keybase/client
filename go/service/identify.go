@@ -132,28 +132,6 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	return res, err
 }
 
-func (h *IdentifyHandler) Resolve(ctx context.Context, arg string) (uid keybase1.UID, err error) {
-	ctx = libkb.WithLogTag(ctx, "RSLV")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve(%s)", arg), func() error { return err })()
-	rres := h.G().Resolver.ResolveFullExpression(ctx, arg)
-	return rres.GetUID(), rres.GetError()
-}
-
-func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.User, err error) {
-	ctx = libkb.WithLogTag(ctx, "RSLV")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve2(%s)", arg), func() error { return err })()
-	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
-	err = res.GetError()
-	if err != nil {
-		return keybase1.User{}, err
-	}
-	ret := res.User()
-	if ret.Uid.IsNil() {
-		return keybase1.User{}, libkb.UserNotFoundError{Msg: "resolve2 does not work with teams"}
-	}
-	return res.User(), nil
-}
-
 func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
 	ctx = libkb.WithLogTag(ctx, "RSLV")
 	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve3(%s)", arg), func() error { return err })()

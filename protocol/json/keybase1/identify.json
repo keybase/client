@@ -85,28 +85,6 @@
     }
   ],
   "messages": {
-    "Resolve": {
-      "request": [
-        {
-          "name": "assertion",
-          "type": "string"
-        }
-      ],
-      "response": "UID",
-      "doc": "Resolve an assertion to a UID. On failure, resolves to an empty UID and returns\n    an error.",
-      "lint": "ignore"
-    },
-    "Resolve2": {
-      "request": [
-        {
-          "name": "assertion",
-          "type": "string"
-        }
-      ],
-      "response": "User",
-      "doc": "Resolve an assertion to a (UID,username). On failure, returns an error. Doesn't work for teams.",
-      "lint": "ignore"
-    },
     "Resolve3": {
       "request": [
         {

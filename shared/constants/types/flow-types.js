@@ -1395,28 +1395,12 @@ export function identifyIdentifyRpcPromise (request: (requestCommon & {callback?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identify', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function identifyResolve2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve2', request)
-}
-
-export function identifyResolve2RpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam})): Promise<identifyResolve2Result> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve2', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
 export function identifyResolve3RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
 }
 
 export function identifyResolve3RpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam})): Promise<identifyResolve3Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
-export function identifyResolveRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve', request)
-}
-
-export function identifyResolveRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam})): Promise<identifyResolveResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}): EngineChannel {
@@ -5177,15 +5161,7 @@ export type identifyIdentifyRpcParam = Exact<{
   source: ClientType
 }>
 
-export type identifyResolve2RpcParam = Exact<{
-  assertion: string
-}>
-
 export type identifyResolve3RpcParam = Exact<{
-  assertion: string
-}>
-
-export type identifyResolveRpcParam = Exact<{
   assertion: string
 }>
 
@@ -6071,9 +6047,7 @@ type gregorGetStateResult = gregor1.State
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyIdentifyResult = IdentifyRes
-type identifyResolve2Result = User
 type identifyResolve3Result = UserOrTeamLite
-type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
 type installFuseStatusResult = FuseStatus
