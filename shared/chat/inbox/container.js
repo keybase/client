@@ -8,7 +8,6 @@ import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../a
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
-import {isMobile} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -54,7 +53,9 @@ const filteredInbox = createImmutableEqualSelector(
           if (!bigTeamToChannels[i.teamname]) {
             bigTeamToChannels[i.teamname] = {}
           }
-          bigTeamToChannels[i.teamname][i.channelname] = value
+          // Do we have the real name yet?
+          const channel = i.channelname === '-' ? id : i.channelname
+          bigTeamToChannels[i.teamname][channel] = value
         }
       }
     })
@@ -148,8 +149,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
 
   let smallTeams = allSmallTeams
   let showSmallTeamsExpandDivider = false
-  // isMobile TEMP
-  if (!isMobile && !filter && bigTeams.count() && allSmallTeams.count() > smallteamsCollapsedMaxShown) {
+
+  if (!filter && bigTeams.count() && allSmallTeams.count() > smallteamsCollapsedMaxShown) {
     showSmallTeamsExpandDivider = true
     if (!smallTeamsExpanded) {
       smallTeams = allSmallTeams.slice(0, smallteamsCollapsedMaxShown)

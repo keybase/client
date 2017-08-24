@@ -232,6 +232,8 @@ const _scrollableStyle = {
 }
 
 const _bigTeamLabelStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
   height: 24,
   marginLeft: globalMargins.tiny,
 }

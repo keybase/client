@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {ClickableBox, Icon, Box, Text, Badge} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../../styles'
+import {isMobile} from '../../../constants/platform'
 
 type DividerProps = {
   isExpanded: boolean,
@@ -11,11 +12,16 @@ type DividerProps = {
 
 const DividerBox = glamorous(Box)({
   ...globalStyles.flexBoxRow,
-  ':hover': {
-    borderBottomColor: globalColors.black_10,
-    borderTopColor: globalColors.black_10,
-    color: globalColors.black_40,
-  },
+  ...(isMobile
+    ? {}
+    : {
+        ':hover': {
+          borderBottomColor: globalColors.black_10,
+          borderTopColor: globalColors.black_10,
+          color: globalColors.black_40,
+        },
+        color: globalColors.black_20,
+      }),
   alignItems: 'center',
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: 1,
@@ -24,7 +30,6 @@ const DividerBox = glamorous(Box)({
   borderStyle: 'solid',
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
-  color: globalColors.black_20,
   height: '100%',
   justifyContent: 'space-between',
   paddingLeft: globalMargins.tiny,
@@ -40,7 +45,7 @@ const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
     className={isExpanded ? 'smallTeamsDividerExpanded' : ''}
   >
     <DividerBox>
-      <Box style={_iconStyle}>
+      <Box style={_dividerIconStyle}>
         <Icon type={isExpanded ? 'iconfont-keybase' : 'iconfont-down-arrow'} inheritColor={true} />
       </Box>
     </DividerBox>
@@ -83,13 +88,18 @@ const _iconStyle = {
   justifyContent: 'center',
 }
 
+const _dividerIconStyle = {
+  ..._iconStyle,
+  alignItems: 'center',
+}
+
 const _badgeStyle = {
   marginRight: 0,
 }
 
 const _dividerStyle = {
   flexShrink: 0,
-  height: 16,
+  height: isMobile ? 25 : 16,
 }
 
 const _floatingStyle = {
