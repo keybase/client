@@ -42,7 +42,7 @@ const InfoPanel = (props: Props) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Notifications desktop={'atmention'} mobile={'atmention'} onSetDesktop={null} onSetMobile={null} />
+    <Notifications />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 

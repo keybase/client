@@ -50,7 +50,7 @@ const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => {
         <RadioButton
           style={{marginTop: globalMargins.xtiny}}
           onSelect={() => onSetMobile('generic')}
-          selected={desktop === 'generic'}
+          selected={mobile === 'generic'}
           label={'On any activity'}
         />
       </Box>
@@ -58,7 +58,7 @@ const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => {
         <RadioButton
           style={{marginTop: globalMargins.xtiny}}
           onSelect={() => onSetMobile('atmention')}
-          selected={desktop === 'atmention'}
+          selected={mobile === 'atmention'}
           label={'When @mentioned'}
         />
       </Box>

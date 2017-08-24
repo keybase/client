@@ -26,6 +26,7 @@ const serverStateToProps = (notifications: Constants.NotificationsState, type: '
 }
 
 const mapStateToProps = (state: TypedState) => {
+  console.warn('in mapStateToProps in container')
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
     throw new Error('no selected conversation')

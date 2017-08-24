@@ -48,7 +48,7 @@ const InfoPanelContents = (props: Props) => (
       <Divider style={{marginBottom: 20, marginTop: 20}} />
     </Box>
 
-    <Notifications desktop={'atmention'} mobile={'atmention'} onSetDesktop={() => console.log('onSetDesktop')} onSetMobile={() => console.log('onSetMobile')} />
+    <Notifications />
 
     <Box style={globalStyles.flexBoxRow}>
       <Divider style={{marginBottom: 20, marginTop: 20}} />

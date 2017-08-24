@@ -646,6 +646,35 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const {payload: {pending}} = action
       return state.set('searchPending', pending)
     }
+    case 'chat:setNotifications': {
+      const {payload: {conversationIDKey, deviceType, notifyType}} = action
+      const inbox = state.get('inbox')
+      const [index, conv] = state
+        .get('inbox')
+        .findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      const notifications = conv && conv.get('notifications')
+      // This is the flip-side of the logic in the notifications container.
+      console.warn({deviceType, notifyType})
+      if (notifications && notifications[deviceType]) {
+        switch (notifyType) {
+          case 'generic':
+            console.warn('generic')
+            notifications[deviceType].generic = true
+            notifications[deviceType].atmention = true
+            break
+          case 'atmention':
+            console.warn('atmention')
+            notifications[deviceType].generic = false
+            notifications[deviceType].atmention = true
+            break
+          case 'never':
+            notifications[deviceType].generic = false
+            notifications[deviceType].atmention = false
+            break
+        }
+      }
+      return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
+    }
   }
 
   return state
