@@ -279,8 +279,10 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 // unrecognized attributes are ignored. The list ends with a blank
 // line.
 func (r *runner) handleList(ctx context.Context, args []string) (err error) {
-	if len(args) > 0 {
-		return errors.New("Lists for non-fetches unsupported for now")
+	if len(args) == 1 && args[0] == "for-push" {
+		r.log.CDebugf(ctx, "Treating for-push the same as a regular list")
+	} else if len(args) > 0 {
+		return errors.Errorf("Bad list request: %v", args)
 	}
 
 	repo, err := r.initRepoIfNeeded(ctx)
@@ -402,10 +404,115 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 	return err
 }
 
+// handlePushBatch: From https://git-scm.com/docs/git-remote-helpers
+//
+// push +<src>:<dst>
+// Pushes the given local <src> commit or branch to the remote branch
+// described by <dst>. A batch sequence of one or more push commands
+// is terminated with a blank line (if there is only one reference to
+// push, a single push command is followed by a blank line). For
+// example, the following would be two batches of push, the first
+// asking the remote-helper to push the local ref master to the remote
+// ref master and the local HEAD to the remote branch, and the second
+// asking to push ref foo to ref bar (forced update requested by the
+// +).
+//
+// push refs/heads/master:refs/heads/master
+// push HEAD:refs/heads/branch
+// \n
+// push +refs/heads/foo:refs/heads/bar
+// \n
+//
+// Zero or more protocol options may be entered after the last push
+// command, before the batch’s terminating blank line.
+//
+// When the push is complete, outputs one or more ok <dst> or error
+// <dst> <why>? lines to indicate success or failure of each pushed
+// ref. The status report output is terminated by a blank line. The
+// option field <why> may be quoted in a C style string if it contains
+// an LF.
+func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
+	err error) {
+	repo, err := r.initRepoIfNeeded(ctx)
+	if err != nil {
+		return err
+	}
+
+	r.log.CDebugf(ctx, "Fetching %d refs into %s", len(args), r.gitDir)
+
+	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
+		Name: localRepoRemoteName,
+		URL:  r.gitDir,
+	})
+
+	results := make(map[string]error, len(args))
+	for _, push := range args {
+		if len(push) != 1 {
+			return errors.Errorf("Bad push request: %v", push)
+		}
+		refspec := gogitcfg.RefSpec(push[0])
+		err := refspec.Validate()
+		if err != nil {
+			return err
+		}
+
+		if !refspec.IsForceUpdate() {
+			r.log.CDebugf(
+				ctx, "Turning a non-force push into a force push for now: %s",
+				refspec)
+		}
+
+		start := strings.Index(push[0], ":") + 1
+		dst := push[0][start:]
+
+		// Delete the reference in the repo if needed; otherwise,
+		// fetch from the local repo into the remote repo.
+		if refspec.IsDelete() {
+			if refspec.IsWildcard() {
+				results[dst] = errors.Errorf(
+					"Wildcards not supported for deletes: %s", refspec)
+				continue
+			}
+			err = repo.Storer.RemoveReference(plumbing.ReferenceName(dst))
+		} else {
+			err = remote.Fetch(&gogit.FetchOptions{
+				RemoteName: localRepoRemoteName,
+				RefSpecs:   []gogitcfg.RefSpec{refspec},
+			})
+		}
+		if err == gogit.NoErrAlreadyUpToDate {
+			err = nil
+		}
+		if err != nil {
+			r.log.CDebugf(ctx, "Error fetching %s: %+v", refspec, err)
+		}
+		results[dst] = err
+	}
+
+	err = r.waitForJournal(ctx)
+	if err != nil {
+		return err
+	}
+	r.log.CDebugf(ctx, "Done waiting for journal")
+
+	for d, e := range results {
+		result := ""
+		if e == nil {
+			result = fmt.Sprintf("ok %s", d)
+		} else {
+			result = fmt.Sprintf("error %s %s", d, err.Error())
+		}
+		_, err = r.output.Write([]byte(result + "\n"))
+	}
+
+	_, err = r.output.Write([]byte("\n"))
+	return err
+}
+
 func (r *runner) processCommands(ctx context.Context) (err error) {
 	r.log.CDebugf(ctx, "Ready to process")
 	reader := bufio.NewReader(r.input)
-	var fetchBatch [][]string
+	var fetchBatch, pushBatch [][]string
 	for {
 		cmd, err := reader.ReadString('\n')
 		if errors.Cause(err) == io.EOF {
@@ -428,6 +535,14 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 				}
 				fetchBatch = nil
 				continue
+			} else if len(pushBatch) > 0 {
+				r.log.CDebugf(ctx, "Processing push batch")
+				err = r.handlePushBatch(ctx, pushBatch)
+				if err != nil {
+					return err
+				}
+				pushBatch = nil
+				continue
 			} else {
 				r.log.CDebugf(ctx, "Done processing commands")
 				return nil
@@ -442,7 +557,15 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 		case gitCmdList:
 			err = r.handleList(ctx, cmdParts[1:])
 		case gitCmdFetch:
+			if len(pushBatch) > 0 {
+				return errors.New("Cannot fetch in the middle of a push batch")
+			}
 			fetchBatch = append(fetchBatch, cmdParts[1:])
+		case gitCmdPush:
+			if len(fetchBatch) > 0 {
+				return errors.New("Cannot push in the middle of a fetch batch")
+			}
+			pushBatch = append(pushBatch, cmdParts[1:])
 		default:
 			err = errors.Errorf("Unsupported command: %s", cmdParts[0])
 		}
