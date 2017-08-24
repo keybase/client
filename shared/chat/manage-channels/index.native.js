@@ -53,7 +53,7 @@ const Header = (props: Props) => (
       </Text>
     </Box>
     <Text type="BodySmallSemibold" style={{color: globalColors.black_75}}>
-      {props.numChannels} chat channels
+      {props.channels.length} chat channels
     </Text>
   </Box>
 )

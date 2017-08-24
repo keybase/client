@@ -167,6 +167,7 @@ function renderRouteStack({
             setRouteState={setRouteState}
             leafTags={childStack.last().tags}
             stack={childStack}
+            key={path.join(':')}
           >
             {child({isActiveRoute, shouldRender})}
           </RenderRouteNode>
@@ -186,6 +187,7 @@ function renderRouteStack({
             routeDef={routeDef}
             routeState={routeState}
             path={path}
+            key={path.join(':')}
             setRouteState={setRouteState}
           />
         : <Box />

@@ -9,7 +9,6 @@ export type RowProps = {
 
 export type Props = {
   channels: Array<RowProps>,
-  numChannels: number,
   onCreate: () => void,
   onToggle: (channel: string) => void,
   onClose: () => void,

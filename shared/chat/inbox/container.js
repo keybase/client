@@ -5,6 +5,7 @@ import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
+import {navigateAppend} from '../../actions/route-tree'
 import {compose, lifecycle} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
@@ -111,7 +112,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute}) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   loadInbox: () => dispatch(loadInbox()),
-  onNewChat: () => dispatch(newChat([])),
+  onNewChat: () => dispatch(navigateAppend(['manageChannels'])),
+  // TEMP onNewChat: () => dispatch(newChat([])),
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),

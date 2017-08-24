@@ -33,7 +33,7 @@ const ManageChannels = (props: Props) => (
         {props.teamname}
       </Text>
       <Text type="Header" style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
-        {props.numChannels} chat channels
+        {props.channels.length} chat channels
       </Text>
       <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
         {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
