@@ -11,7 +11,7 @@ export type ToggleChannelMembership = NoErrorTypedAction<
 
 export type Teamname = string
 
-export type ChannelRecord = KBRecord<{
+export type Channel = KBRecord<{
   participants: I.Set<string>,
   conversationIDKey: ?string,
 }>
@@ -22,7 +22,7 @@ const ChannelRecord = I.Record({
 })
 
 export type Team = KBRecord<{
-  channels: I.Map<string, ChannelRecord>,
+  channels: I.Map<string, Channel>,
 }>
 
 export {ChannelRecord}
