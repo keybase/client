@@ -2,6 +2,7 @@ package utils
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"sort"
@@ -716,4 +717,14 @@ func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
 		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)
 	}
 	settings.Settings[apptype][kind] = enabled
+}
+
+func DecodeBase64(enc []byte) ([]byte, error) {
+	if len(enc) == 0 {
+		return enc, nil
+	}
+
+	b := make([]byte, base64.StdEncoding.DecodedLen(len(enc)))
+	n, err := base64.StdEncoding.Decode(b, enc)
+	return b[:n], err
 }
