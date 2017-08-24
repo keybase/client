@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../../../common-adapters'
+import {ScrollView} from '../../../common-adapters'
 import {globalColors} from '../../../styles'
 
 import InfoPanelContents from './index.shared'
@@ -9,7 +9,7 @@ import type {Props} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
 const InfoPanel = (props: Props) => (
-  <Box
+  <ScrollView
     style={{
       backgroundColor: globalColors.white,
       borderLeft: border,
@@ -20,7 +20,7 @@ const InfoPanel = (props: Props) => (
     }}
   >
     <InfoPanelContents {...props} />
-  </Box>
+  </ScrollView>
 )
 
 export default InfoPanel
