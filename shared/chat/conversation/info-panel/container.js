@@ -34,11 +34,9 @@ const getParticipants = createSelector(
 
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const conversation = state.chat
-    .get('inbox')
-    .find(i => i.get('conversationIDKey') === selectedConversationIDKey)
-  const channelname = conversation.get('channelname')
-  const teamname = conversation.get('teamname')
+  const inbox = Constants.getSelectedInbox(state)
+  const channelname = inbox.get('channelname')
+  const teamname = inbox.get('teamname')
   return {
     channelname,
     muted: Constants.getMuted(state),
