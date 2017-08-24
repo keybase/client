@@ -1664,6 +1664,7 @@ func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 	}
 }
 
+// Can return nil.
 func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	if len(u.PerUserKeys) > 0 {
 		return &u.PerUserKeys[len(u.PerUserKeys)-1]
