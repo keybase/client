@@ -131,7 +131,7 @@ const onInboxStale = function*(): SagaGenerator<any, any> {
       (inbox.items || [])
         .map(c => {
           return new Constants.InboxStateRecord({
-            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? ' ' : undefined,
+            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? '-' : undefined,
             conversationIDKey: c.convID,
             info: null,
             membersType: c.membersType,
