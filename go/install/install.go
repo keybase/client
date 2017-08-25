@@ -10,14 +10,11 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-updater/process"
 )
 
 // Log is the logging interface for this package
@@ -278,16 +275,4 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(filepath.Dir(path), kbfsBinName()), nil
-}
-
-// TerminateApp will stop the Keybase (UI) app
-func TerminateApp(context Context, log Log) error {
-	appExecName := "Keybase"
-	logf := logger.NewLoggerf(log)
-	log.Info("Stopping Keybase app")
-	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
-	if len(appPIDs) > 0 {
-		log.Info("Terminated %s %v", appExecName, appPIDs)
-	}
-	return nil
 }
