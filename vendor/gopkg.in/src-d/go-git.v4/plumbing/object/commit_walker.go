@@ -18,10 +18,16 @@ type commitPreIterator struct {
 // The given callback will be called for each visited commit. Each commit will
 // be visited only once. If the callback returns an error, walking will stop
 // and will return the error. Other errors might be returned if the history
-// cannot be traversed (e.g. missing objects).
-func NewCommitPreorderIter(c *Commit) CommitIter {
+// cannot be traversed (e.g. missing objects). Ignore allows to skip some
+// commits from being iterated.
+func NewCommitPreorderIter(c *Commit, ignore []plumbing.Hash) CommitIter {
+	seen := make(map[plumbing.Hash]bool)
+	for _, h := range ignore {
+		seen[h] = true
+	}
+
 	return &commitPreIterator{
-		seen:  make(map[plumbing.Hash]bool),
+		seen:  seen,
 		stack: make([]CommitIter, 0),
 		start: c,
 	}
@@ -51,18 +57,31 @@ func (w *commitPreIterator) Next() (*Commit, error) {
 			}
 		}
 
-		// check and update seen
 		if w.seen[c.Hash] {
 			continue
 		}
 
 		w.seen[c.Hash] = true
+
 		if c.NumParents() > 0 {
-			w.stack = append(w.stack, c.Parents())
+			w.stack = append(w.stack, filteredParentIter(c, w.seen))
 		}
 
 		return c, nil
 	}
+}
+
+func filteredParentIter(c *Commit, seen map[plumbing.Hash]bool) CommitIter {
+	var hashes []plumbing.Hash
+	for _, h := range c.ParentHashes {
+		if !seen[h] {
+			hashes = append(hashes, h)
+		}
+	}
+
+	return NewCommitIter(c.s,
+		storer.NewEncodedObjectLookupIter(c.s, plumbing.CommitObject, hashes),
+	)
 }
 
 func (w *commitPreIterator) ForEach(cb func(*Commit) error) error {
@@ -98,11 +117,16 @@ type commitPostIterator struct {
 // history like WalkCommitHistory but in post-order. This means that after
 // walking a merge commit, the merged commit will be walked before the base
 // it was merged on. This can be useful if you wish to see the history in
-// chronological order.
-func NewCommitPostorderIter(c *Commit) CommitIter {
+// chronological order. Ignore allows to skip some commits from being iterated.
+func NewCommitPostorderIter(c *Commit, ignore []plumbing.Hash) CommitIter {
+	seen := make(map[plumbing.Hash]bool)
+	for _, h := range ignore {
+		seen[h] = true
+	}
+
 	return &commitPostIterator{
 		stack: []*Commit{c},
-		seen:  make(map[plumbing.Hash]bool),
+		seen:  seen,
 	}
 }
 
@@ -114,17 +138,17 @@ func (w *commitPostIterator) Next() (*Commit, error) {
 
 		c := w.stack[len(w.stack)-1]
 		w.stack = w.stack[:len(w.stack)-1]
+
 		if w.seen[c.Hash] {
 			continue
 		}
+
 		w.seen[c.Hash] = true
 
-		err := c.Parents().ForEach(func(pcm *Commit) error {
-			w.stack = append(w.stack, pcm)
+		return c, c.Parents().ForEach(func(p *Commit) error {
+			w.stack = append(w.stack, p)
 			return nil
 		})
-
-		return c, err
 	}
 }
 

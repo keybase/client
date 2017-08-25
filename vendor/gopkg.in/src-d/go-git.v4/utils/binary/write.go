@@ -31,6 +31,12 @@ func WriteVariableWidthInt(w io.Writer, n int64) error {
 	return err
 }
 
+// WriteUint64 writes the binary representation of a uint64 into w, in BigEndian
+// order
+func WriteUint64(w io.Writer, value uint64) error {
+	return binary.Write(w, binary.BigEndian, value)
+}
+
 // WriteUint32 writes the binary representation of a uint32 into w, in BigEndian
 // order
 func WriteUint32(w io.Writer, value uint32) error {

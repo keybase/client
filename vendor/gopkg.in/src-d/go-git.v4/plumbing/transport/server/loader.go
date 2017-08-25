@@ -10,7 +10,7 @@ import (
 )
 
 // DefaultLoader is a filesystem loader ignoring host and resolving paths to /.
-var DefaultLoader = NewFilesystemLoader(osfs.New("/"))
+var DefaultLoader = NewFilesystemLoader(osfs.New(""))
 
 // Loader loads repository's storer.Storer based on an optional host and a path.
 type Loader interface {

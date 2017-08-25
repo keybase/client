@@ -1,6 +1,7 @@
 package packfile
 
 import (
+	"errors"
 	"io/ioutil"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -30,7 +31,11 @@ func ApplyDelta(target, base plumbing.EncodedObject, delta []byte) error {
 		return err
 	}
 
-	dst := PatchDelta(src, delta)
+	dst, err := PatchDelta(src, delta)
+	if err != nil {
+		return err
+	}
+
 	target.SetSize(int64(len(dst)))
 
 	if _, err := w.Write(dst); err != nil {
@@ -40,15 +45,22 @@ func ApplyDelta(target, base plumbing.EncodedObject, delta []byte) error {
 	return nil
 }
 
+var (
+	ErrInvalidDelta = errors.New("invalid delta")
+	ErrDeltaCmd     = errors.New("wrong delta command")
+)
+
 // PatchDelta returns the result of applying the modification deltas in delta to src.
-func PatchDelta(src, delta []byte) []byte {
+// An error will be returned if delta is corrupted (ErrDeltaLen) or an action command
+// is not copy from source or copy from delta (ErrDeltaCmd).
+func PatchDelta(src, delta []byte) ([]byte, error) {
 	if len(delta) < deltaSizeMin {
-		return nil
+		return nil, ErrInvalidDelta
 	}
 
 	srcSz, delta := decodeLEB128(delta)
 	if srcSz != uint(len(src)) {
-		return nil
+		return nil, ErrInvalidDelta
 	}
 
 	targetSz, delta := decodeLEB128(delta)
@@ -57,12 +69,25 @@ func PatchDelta(src, delta []byte) []byte {
 	var dest []byte
 	var cmd byte
 	for {
+		if len(delta) == 0 {
+			return nil, ErrInvalidDelta
+		}
+
 		cmd = delta[0]
 		delta = delta[1:]
 		if isCopyFromSrc(cmd) {
 			var offset, sz uint
-			offset, delta = decodeOffset(cmd, delta)
-			sz, delta = decodeSize(cmd, delta)
+			var err error
+			offset, delta, err = decodeOffset(cmd, delta)
+			if err != nil {
+				return nil, err
+			}
+
+			sz, delta, err = decodeSize(cmd, delta)
+			if err != nil {
+				return nil, err
+			}
+
 			if invalidSize(sz, targetSz) ||
 				invalidOffsetSize(offset, sz, srcSz) {
 				break
@@ -72,13 +97,18 @@ func PatchDelta(src, delta []byte) []byte {
 		} else if isCopyFromDelta(cmd) {
 			sz := uint(cmd) // cmd is the size itself
 			if invalidSize(sz, targetSz) {
-				break
+				return nil, ErrInvalidDelta
 			}
+
+			if uint(len(delta)) < sz {
+				return nil, ErrInvalidDelta
+			}
+
 			dest = append(dest, delta[0:sz]...)
 			remainingTargetSz -= sz
 			delta = delta[sz:]
 		} else {
-			return nil
+			return nil, ErrDeltaCmd
 		}
 
 		if remainingTargetSz <= 0 {
@@ -86,7 +116,7 @@ func PatchDelta(src, delta []byte) []byte {
 		}
 	}
 
-	return dest
+	return dest, nil
 }
 
 // Decodes a number encoded as an unsigned LEB128 at the start of some
@@ -124,39 +154,60 @@ func isCopyFromDelta(cmd byte) bool {
 	return (cmd&0x80) == 0 && cmd != 0
 }
 
-func decodeOffset(cmd byte, delta []byte) (uint, []byte) {
+func decodeOffset(cmd byte, delta []byte) (uint, []byte, error) {
 	var offset uint
 	if (cmd & 0x01) != 0 {
+		if len(delta) == 0 {
+			return 0, nil, ErrInvalidDelta
+		}
 		offset = uint(delta[0])
 		delta = delta[1:]
 	}
 	if (cmd & 0x02) != 0 {
+		if len(delta) == 0 {
+			return 0, nil, ErrInvalidDelta
+		}
 		offset |= uint(delta[0]) << 8
 		delta = delta[1:]
 	}
 	if (cmd & 0x04) != 0 {
+		if len(delta) == 0 {
+			return 0, nil, ErrInvalidDelta
+		}
 		offset |= uint(delta[0]) << 16
 		delta = delta[1:]
 	}
 	if (cmd & 0x08) != 0 {
+		if len(delta) == 0 {
+			return 0, nil, ErrInvalidDelta
+		}
 		offset |= uint(delta[0]) << 24
 		delta = delta[1:]
 	}
 
-	return offset, delta
+	return offset, delta, nil
 }
 
-func decodeSize(cmd byte, delta []byte) (uint, []byte) {
+func decodeSize(cmd byte, delta []byte) (uint, []byte, error) {
 	var sz uint
 	if (cmd & 0x10) != 0 {
+		if len(delta) == 0 {
+			return 0, nil, ErrInvalidDelta
+		}
 		sz = uint(delta[0])
 		delta = delta[1:]
 	}
 	if (cmd & 0x20) != 0 {
+		if len(delta) == 0 {
+			return 0, nil, ErrInvalidDelta
+		}
 		sz |= uint(delta[0]) << 8
 		delta = delta[1:]
 	}
 	if (cmd & 0x40) != 0 {
+		if len(delta) == 0 {
+			return 0, nil, ErrInvalidDelta
+		}
 		sz |= uint(delta[0]) << 16
 		delta = delta[1:]
 	}
@@ -164,7 +215,7 @@ func decodeSize(cmd byte, delta []byte) (uint, []byte) {
 		sz = 0x10000
 	}
 
-	return sz, delta
+	return sz, delta, nil
 }
 
 func invalidSize(sz, targetSz uint) bool {

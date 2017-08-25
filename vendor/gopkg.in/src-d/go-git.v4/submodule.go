@@ -2,10 +2,11 @@ package git
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 
-	billy "gopkg.in/src-d/go-billy.v3"
+	"gopkg.in/src-d/go-billy.v3"
 	"gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/index"
@@ -114,7 +115,7 @@ func (s *Submodule) Repository() (*Repository, error) {
 	}
 
 	var worktree billy.Filesystem
-	if worktree, err = s.w.fs.Chroot(s.c.Path); err != nil {
+	if worktree, err = s.w.Filesystem.Chroot(s.c.Path); err != nil {
 		return nil, err
 	}
 
@@ -129,7 +130,7 @@ func (s *Submodule) Repository() (*Repository, error) {
 
 	_, err = r.CreateRemote(&config.RemoteConfig{
 		Name: DefaultRemoteName,
-		URL:  s.c.URL,
+		URLs: []string{s.c.URL},
 	})
 
 	return r, err
@@ -139,10 +140,21 @@ func (s *Submodule) Repository() (*Repository, error) {
 // submodule should be initialized first calling the Init method or setting in
 // the options SubmoduleUpdateOptions.Init equals true
 func (s *Submodule) Update(o *SubmoduleUpdateOptions) error {
-	return s.update(o, plumbing.ZeroHash)
+	return s.UpdateContext(context.Background(), o)
 }
 
-func (s *Submodule) update(o *SubmoduleUpdateOptions, forceHash plumbing.Hash) error {
+// UpdateContext the registered submodule to match what the superproject
+// expects, the submodule should be initialized first calling the Init method or
+// setting in the options SubmoduleUpdateOptions.Init equals true.
+//
+// The provided Context must be non-nil. If the context expires before the
+// operation is complete, an error is returned. The context only affects to the
+// transport operations.
+func (s *Submodule) UpdateContext(ctx context.Context, o *SubmoduleUpdateOptions) error {
+	return s.update(ctx, o, plumbing.ZeroHash)
+}
+
+func (s *Submodule) update(ctx context.Context, o *SubmoduleUpdateOptions, forceHash plumbing.Hash) error {
 	if !s.initialized && !o.Init {
 		return ErrSubmoduleNotInitialized
 	}
@@ -173,7 +185,7 @@ func (s *Submodule) update(o *SubmoduleUpdateOptions, forceHash plumbing.Hash) e
 		return err
 	}
 
-	if err := s.fetchAndCheckout(r, o, hash); err != nil {
+	if err := s.fetchAndCheckout(ctx, r, o, hash); err != nil {
 		return err
 	}
 
@@ -202,9 +214,11 @@ func (s *Submodule) doRecursiveUpdate(r *Repository, o *SubmoduleUpdateOptions) 
 	return l.Update(new)
 }
 
-func (s *Submodule) fetchAndCheckout(r *Repository, o *SubmoduleUpdateOptions, hash plumbing.Hash) error {
+func (s *Submodule) fetchAndCheckout(
+	ctx context.Context, r *Repository, o *SubmoduleUpdateOptions, hash plumbing.Hash,
+) error {
 	if !o.NoFetch {
-		err := r.Fetch(&FetchOptions{})
+		err := r.FetchContext(ctx, &FetchOptions{Auth: o.Auth})
 		if err != nil && err != NoErrAlreadyUpToDate {
 			return err
 		}
@@ -239,8 +253,17 @@ func (s Submodules) Init() error {
 
 // Update updates all the submodules in this list.
 func (s Submodules) Update(o *SubmoduleUpdateOptions) error {
+	return s.UpdateContext(context.Background(), o)
+}
+
+// UpdateContext updates all the submodules in this list.
+//
+// The provided Context must be non-nil. If the context expires before the
+// operation is complete, an error is returned. The context only affects to the
+// transport operations.
+func (s Submodules) UpdateContext(ctx context.Context, o *SubmoduleUpdateOptions) error {
 	for _, sub := range s {
-		if err := sub.Update(o); err != nil {
+		if err := sub.UpdateContext(ctx, o); err != nil {
 			return err
 		}
 	}

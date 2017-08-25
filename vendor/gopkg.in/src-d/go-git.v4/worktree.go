@@ -1,6 +1,7 @@
 package git
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/filemode"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/index"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 	"gopkg.in/src-d/go-git.v4/utils/merkletrie"
 
@@ -28,8 +30,104 @@ var (
 
 // Worktree represents a git worktree.
 type Worktree struct {
-	r  *Repository
-	fs billy.Filesystem
+	// Filesystem underlying filesystem.
+	Filesystem billy.Filesystem
+
+	r *Repository
+}
+
+// Pull incorporates changes from a remote repository into the current branch.
+// Returns nil if the operation is successful, NoErrAlreadyUpToDate if there are
+// no changes to be fetched, or an error.
+//
+// Pull only supports merges where the can be resolved as a fast-forward.
+func (w *Worktree) Pull(o *PullOptions) error {
+	return w.PullContext(context.Background(), o)
+}
+
+// PullContext incorporates changes from a remote repository into the current
+// branch. Returns nil if the operation is successful, NoErrAlreadyUpToDate if
+// there are no changes to be fetched, or an error.
+//
+// Pull only supports merges where the can be resolved as a fast-forward.
+//
+// The provided Context must be non-nil. If the context expires before the
+// operation is complete, an error is returned. The context only affects to the
+// transport operations.
+func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
+	if err := o.Validate(); err != nil {
+		return err
+	}
+
+	remote, err := w.r.Remote(o.RemoteName)
+	if err != nil {
+		return err
+	}
+
+	fetchHead, err := remote.fetch(ctx, &FetchOptions{
+		RemoteName: o.RemoteName,
+		Depth:      o.Depth,
+		Auth:       o.Auth,
+		Progress:   o.Progress,
+	})
+
+	updated := true
+	if err == NoErrAlreadyUpToDate {
+		updated = false
+	} else if err != nil {
+		return err
+	}
+
+	ref, err := storer.ResolveReference(fetchHead, o.ReferenceName)
+	if err != nil {
+		return err
+	}
+
+	head, err := w.r.Head()
+	if err == nil {
+		if !updated && head.Hash() == ref.Hash() {
+			return NoErrAlreadyUpToDate
+		}
+
+		ff, err := isFastForward(w.r.Storer, head.Hash(), ref.Hash())
+		if err != nil {
+			return err
+		}
+
+		if !ff {
+			return fmt.Errorf("non-fast-forward update")
+		}
+	}
+
+	if err != nil && err != plumbing.ErrReferenceNotFound {
+		return err
+	}
+
+	if err := w.updateHEAD(ref.Hash()); err != nil {
+		return err
+	}
+
+	if err := w.Reset(&ResetOptions{Commit: ref.Hash()}); err != nil {
+		return err
+	}
+
+	if o.RecurseSubmodules != NoRecurseSubmodules {
+		return w.updateSubmodules(&SubmoduleUpdateOptions{
+			RecurseSubmodules: o.RecurseSubmodules,
+			Auth:              o.Auth,
+		})
+	}
+
+	return nil
+}
+
+func (w *Worktree) updateSubmodules(o *SubmoduleUpdateOptions) error {
+	s, err := w.Submodules()
+	if err != nil {
+		return err
+	}
+	o.Init = true
+	return s.Update(o)
 }
 
 // Checkout switch branches or restore working tree files.
@@ -38,8 +136,14 @@ func (w *Worktree) Checkout(opts *CheckoutOptions) error {
 		return err
 	}
 
+	if opts.Create {
+		if err := w.createBranch(opts); err != nil {
+			return err
+		}
+	}
+
 	if !opts.Force {
-		unstaged, err := w.cointainsUnstagedChanges()
+		unstaged, err := w.containsUnstagedChanges()
 		if err != nil {
 			return err
 		}
@@ -59,7 +163,7 @@ func (w *Worktree) Checkout(opts *CheckoutOptions) error {
 		ro.Mode = HardReset
 	}
 
-	if !opts.Hash.IsZero() {
+	if !opts.Hash.IsZero() && !opts.Create {
 		err = w.setHEADToCommit(opts.Hash)
 	} else {
 		err = w.setHEADToBranch(opts.Branch, c)
@@ -70,6 +174,29 @@ func (w *Worktree) Checkout(opts *CheckoutOptions) error {
 	}
 
 	return w.Reset(ro)
+}
+func (w *Worktree) createBranch(opts *CheckoutOptions) error {
+	_, err := w.r.Storer.Reference(opts.Branch)
+	if err == nil {
+		return fmt.Errorf("a branch named %q already exists", opts.Branch)
+	}
+
+	if err != plumbing.ErrReferenceNotFound {
+		return err
+	}
+
+	if opts.Hash.IsZero() {
+		ref, err := w.r.Head()
+		if err != nil {
+			return err
+		}
+
+		opts.Hash = ref.Hash()
+	}
+
+	return w.r.Storer.SetReference(
+		plumbing.NewHashReference(opts.Branch, opts.Hash),
+	)
 }
 
 func (w *Worktree) getCommitFromCheckoutOptions(opts *CheckoutOptions) (plumbing.Hash, error) {
@@ -82,7 +209,7 @@ func (w *Worktree) getCommitFromCheckoutOptions(opts *CheckoutOptions) (plumbing
 		return plumbing.ZeroHash, err
 	}
 
-	if !b.IsTag() {
+	if !b.Name().IsTag() {
 		return b.Hash(), nil
 	}
 
@@ -117,7 +244,7 @@ func (w *Worktree) setHEADToBranch(branch plumbing.ReferenceName, commit plumbin
 	}
 
 	var head *plumbing.Reference
-	if target.IsBranch() {
+	if target.Name().IsBranch() {
 		head = plumbing.NewSymbolicReference(plumbing.HEAD, target.Name())
 	} else {
 		head = plumbing.NewHashReference(plumbing.HEAD, commit)
@@ -133,7 +260,7 @@ func (w *Worktree) Reset(opts *ResetOptions) error {
 	}
 
 	if opts.Mode == MergeReset {
-		unstaged, err := w.cointainsUnstagedChanges()
+		unstaged, err := w.containsUnstagedChanges()
 		if err != nil {
 			return err
 		}
@@ -171,7 +298,7 @@ func (w *Worktree) Reset(opts *ResetOptions) error {
 	return w.setHEADCommit(opts.Commit)
 }
 
-func (w *Worktree) cointainsUnstagedChanges() (bool, error) {
+func (w *Worktree) containsUnstagedChanges() (bool, error) {
 	ch, err := w.diffStagingWithWorktree()
 	if err != nil {
 		return false, err
@@ -196,7 +323,7 @@ func (w *Worktree) setHEADCommit(commit plumbing.Hash) error {
 		return err
 	}
 
-	if !branch.IsBranch() {
+	if !branch.Name().IsBranch() {
 		return fmt.Errorf("invalid HEAD target should be a branch, found %s", branch.Type())
 	}
 
@@ -264,20 +391,22 @@ func (w *Worktree) checkoutChangeSubmodule(name string,
 			return err
 		}
 
-		return sub.update(&SubmoduleUpdateOptions{}, e.Hash)
+		// TODO: the submodule update should be reviewed as reported at:
+		// https://github.com/src-d/go-git/issues/415
+		return sub.update(context.TODO(), &SubmoduleUpdateOptions{}, e.Hash)
 	case merkletrie.Insert:
 		mode, err := e.Mode.ToOSFileMode()
 		if err != nil {
 			return err
 		}
 
-		if err := w.fs.MkdirAll(name, mode); err != nil {
+		if err := w.Filesystem.MkdirAll(name, mode); err != nil {
 			return err
 		}
 
 		return w.addIndexFromTreeEntry(name, e, idx)
 	case merkletrie.Delete:
-		if err := rmFileAndDirIfEmpty(w.fs, name); err != nil {
+		if err := rmFileAndDirIfEmpty(w.Filesystem, name); err != nil {
 			return err
 		}
 
@@ -301,7 +430,7 @@ func (w *Worktree) checkoutChangeRegularFile(name string,
 
 		// to apply perm changes the file is deleted, billy doesn't implement
 		// chmod
-		if err := w.fs.Remove(name); err != nil {
+		if err := w.Filesystem.Remove(name); err != nil {
 			return err
 		}
 
@@ -318,7 +447,7 @@ func (w *Worktree) checkoutChangeRegularFile(name string,
 
 		return w.addIndexFromFile(name, e.Hash, idx)
 	case merkletrie.Delete:
-		if err := rmFileAndDirIfEmpty(w.fs, name); err != nil {
+		if err := rmFileAndDirIfEmpty(w.Filesystem, name); err != nil {
 			return err
 		}
 
@@ -345,7 +474,7 @@ func (w *Worktree) checkoutFile(f *object.File) (err error) {
 
 	defer ioutil.CheckClose(from, &err)
 
-	to, err := w.fs.OpenFile(f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode.Perm())
+	to, err := w.Filesystem.OpenFile(f.Name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, mode.Perm())
 	if err != nil {
 		return
 	}
@@ -369,7 +498,7 @@ func (w *Worktree) checkoutFileSymlink(f *object.File) (err error) {
 		return
 	}
 
-	err = w.fs.Symlink(string(bytes), f.Name)
+	err = w.Filesystem.Symlink(string(bytes), f.Name)
 	return
 }
 
@@ -384,7 +513,7 @@ func (w *Worktree) addIndexFromTreeEntry(name string, f *object.TreeEntry, idx *
 }
 
 func (w *Worktree) addIndexFromFile(name string, h plumbing.Hash, idx *index.Index) error {
-	fi, err := w.fs.Lstat(name)
+	fi, err := w.Filesystem.Lstat(name)
 	if err != nil {
 		return err
 	}
@@ -467,6 +596,10 @@ func (w *Worktree) Submodules() (Submodules, error) {
 	}
 
 	c, err := w.r.Config()
+	if err != nil {
+		return nil, err
+	}
+
 	for _, s := range m.Submodules {
 		l = append(l, w.newSubmodule(s, c.Submodules[s.Name]))
 	}
@@ -489,7 +622,7 @@ func (w *Worktree) newSubmodule(fromModules, fromConfig *config.Submodule) *Subm
 }
 
 func (w *Worktree) readGitmodulesFile() (*config.Modules, error) {
-	f, err := w.fs.Open(gitmodulesFile)
+	f, err := w.Filesystem.Open(gitmodulesFile)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
@@ -498,6 +631,7 @@ func (w *Worktree) readGitmodulesFile() (*config.Modules, error) {
 		return nil, err
 	}
 
+	defer f.Close()
 	input, err := stdioutil.ReadAll(f)
 	if err != nil {
 		return nil, err

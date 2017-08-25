@@ -145,34 +145,6 @@ type AuthMethod interface {
 	setAuth(r *http.Request)
 }
 
-// TokenAuthMethod is concrete implementation of common.AuthMethod for HTTP services
-// Allow Bearer Token used in git authentication.
-type TokenAuth struct {
-	token string
-}
-
-// NewTokenAuth returns a tokenAuth on the given authrorization token.
-func NewTokenAuth(token string) *TokenAuth {
-	return &TokenAuth{token}
-}
-
-func (a *TokenAuth) setAuth(r *http.Request) {
-	if a == nil {
-		return
-	}
-
-	r.Header.Set("Authorization", a.token)
-}
-
-// Name is name of the auth
-func (a *TokenAuth) Name() string {
-	return "http-token-auth"
-}
-
-func (a *TokenAuth) String() string {
-	return fmt.Sprintf("%s...", a.token[:10])
-}
-
 func basicAuthFromEndpoint(ep transport.Endpoint) *BasicAuth {
 	u := ep.User()
 	if u == "" {

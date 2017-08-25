@@ -11,8 +11,14 @@ const (
 
 type FileSize int64
 
+// Object is an interface to a object cache.
 type Object interface {
-	Add(o plumbing.EncodedObject)
-	Get(k plumbing.Hash) plumbing.EncodedObject
+	// Put puts the given object into the cache. Whether this object will
+	// actually be put into the cache or not is implementation specific.
+	Put(o plumbing.EncodedObject)
+	// Get gets an object from the cache given its hash. The second return value
+	// is true if the object was returned, and false otherwise.
+	Get(k plumbing.Hash) (plumbing.EncodedObject, bool)
+	// Clear clears every object from the cache.
 	Clear()
 }

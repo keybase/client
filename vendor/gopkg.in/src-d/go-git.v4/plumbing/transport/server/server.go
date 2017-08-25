@@ -3,6 +3,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -14,6 +15,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/revlist"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
+	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
 
 var DefaultServer = NewServer(DefaultLoader)
@@ -129,7 +131,7 @@ func (s *upSession) AdvertisedReferences() (*packp.AdvRefs, error) {
 	return ar, nil
 }
 
-func (s *upSession) UploadPack(req *packp.UploadPackRequest) (*packp.UploadPackResponse, error) {
+func (s *upSession) UploadPack(ctx context.Context, req *packp.UploadPackRequest) (*packp.UploadPackResponse, error) {
 	if req.IsEmpty() {
 		return nil, transport.ErrEmptyUploadPackRequest
 	}
@@ -167,7 +169,9 @@ func (s *upSession) UploadPack(req *packp.UploadPackRequest) (*packp.UploadPackR
 		pw.CloseWithError(err)
 	}()
 
-	return packp.NewUploadPackResponseWithPackfile(req, pr), nil
+	return packp.NewUploadPackResponseWithPackfile(req,
+		ioutil.NewContextReadCloser(ctx, pr),
+	), nil
 }
 
 func (s *upSession) objectsToUpload(req *packp.UploadPackRequest) ([]plumbing.Hash, error) {
@@ -222,7 +226,7 @@ var (
 	ErrUpdateReference = errors.New("failed to update ref")
 )
 
-func (s *rpSession) ReceivePack(req *packp.ReferenceUpdateRequest) (*packp.ReportStatus, error) {
+func (s *rpSession) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateRequest) (*packp.ReportStatus, error) {
 	if s.caps == nil {
 		s.caps = capability.NewList()
 		if err := s.setSupportedCapabilities(s.caps); err != nil {
@@ -238,7 +242,8 @@ func (s *rpSession) ReceivePack(req *packp.ReferenceUpdateRequest) (*packp.Repor
 
 	//TODO: Implement 'atomic' update of references.
 
-	if err := s.writePackfile(req.Packfile); err != nil {
+	r := ioutil.NewContextReadCloser(ctx, req.Packfile)
+	if err := s.writePackfile(r); err != nil {
 		s.unpackErr = err
 		s.firstErr = err
 		return s.reportStatus(), err

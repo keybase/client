@@ -146,11 +146,14 @@ func overrideConfig(overrides *ssh.ClientConfig, c *ssh.ClientConfig) {
 		return
 	}
 
-	vo := reflect.ValueOf(*overrides)
-	vc := reflect.ValueOf(*c)
-	for i := 0; i < vc.Type().NumField(); i++ {
-		vcf := vc.Field(i)
-		vof := vo.Field(i)
+	t := reflect.TypeOf(*c)
+	vc := reflect.ValueOf(c).Elem()
+	vo := reflect.ValueOf(overrides).Elem()
+
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		vcf := vc.FieldByName(f.Name)
+		vof := vo.FieldByName(f.Name)
 		if isZeroValue(vcf) {
 			vcf.Set(vof)
 		}

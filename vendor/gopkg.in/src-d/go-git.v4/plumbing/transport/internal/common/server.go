@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -34,7 +35,7 @@ func ServeUploadPack(cmd ServerCommand, s transport.UploadPackSession) (err erro
 	}
 
 	var resp *packp.UploadPackResponse
-	resp, err = s.UploadPack(req)
+	resp, err = s.UploadPack(context.TODO(), req)
 	if err != nil {
 		return err
 	}
@@ -57,7 +58,7 @@ func ServeReceivePack(cmd ServerCommand, s transport.ReceivePackSession) error {
 		return fmt.Errorf("error decoding: %s", err)
 	}
 
-	rs, err := s.ReceivePack(req)
+	rs, err := s.ReceivePack(context.TODO(), req)
 	if rs != nil {
 		if err := rs.Encode(cmd.Stdout); err != nil {
 			return fmt.Errorf("error in encoding report status %s", err)

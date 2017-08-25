@@ -116,7 +116,7 @@ func (w *Worktree) diffStagingWithWorktree() (merkletrie.Changes, error) {
 		return nil, err
 	}
 
-	to := filesystem.NewRootNode(w.fs, submodules)
+	to := filesystem.NewRootNode(w.Filesystem, submodules)
 	res, err := merkletrie.DiffTree(from, to, diffTreeIsEquals)
 	if err == nil {
 		res = w.excludeIgnoredChanges(res)
@@ -125,7 +125,7 @@ func (w *Worktree) diffStagingWithWorktree() (merkletrie.Changes, error) {
 }
 
 func (w *Worktree) excludeIgnoredChanges(changes merkletrie.Changes) merkletrie.Changes {
-	patterns, err := gitignore.ReadPatterns(w.fs, nil)
+	patterns, err := gitignore.ReadPatterns(w.Filesystem, nil)
 	if err != nil || len(patterns) == 0 {
 		return changes
 	}
@@ -251,7 +251,7 @@ func (w *Worktree) Add(path string) (plumbing.Hash, error) {
 }
 
 func (w *Worktree) copyFileToStorage(path string) (hash plumbing.Hash, err error) {
-	fi, err := w.fs.Lstat(path)
+	fi, err := w.Filesystem.Lstat(path)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
@@ -281,7 +281,7 @@ func (w *Worktree) copyFileToStorage(path string) (hash plumbing.Hash, err error
 }
 
 func (w *Worktree) fillEncodedObjectFromFile(dst io.Writer, path string, fi os.FileInfo) (err error) {
-	src, err := w.fs.Open(path)
+	src, err := w.Filesystem.Open(path)
 	if err != nil {
 		return err
 	}
@@ -296,7 +296,7 @@ func (w *Worktree) fillEncodedObjectFromFile(dst io.Writer, path string, fi os.F
 }
 
 func (w *Worktree) fillEncodedObjectFromSymlink(dst io.Writer, path string, fi os.FileInfo) error {
-	target, err := w.fs.Readlink(path)
+	target, err := w.Filesystem.Readlink(path)
 	if err != nil {
 		return err
 	}
@@ -337,7 +337,7 @@ func (w *Worktree) doAddFileToIndex(idx *index.Index, filename string, h plumbin
 }
 
 func (w *Worktree) doUpdateFileToIndex(e *index.Entry, filename string, h plumbing.Hash) error {
-	info, err := w.fs.Lstat(filename)
+	info, err := w.Filesystem.Lstat(filename)
 	if err != nil {
 		return err
 	}
@@ -382,7 +382,7 @@ func (w *Worktree) deleteFromIndex(path string) (plumbing.Hash, error) {
 }
 
 func (w *Worktree) deleteFromFilesystem(path string) error {
-	err := w.fs.Remove(path)
+	err := w.Filesystem.Remove(path)
 	if os.IsNotExist(err) {
 		return nil
 	}
@@ -393,11 +393,11 @@ func (w *Worktree) deleteFromFilesystem(path string) error {
 // Move moves or rename a file in the worktree and the index, directories are
 // not supported.
 func (w *Worktree) Move(from, to string) (plumbing.Hash, error) {
-	if _, err := w.fs.Lstat(from); err != nil {
+	if _, err := w.Filesystem.Lstat(from); err != nil {
 		return plumbing.ZeroHash, err
 	}
 
-	if _, err := w.fs.Lstat(to); err == nil {
+	if _, err := w.Filesystem.Lstat(to); err == nil {
 		return plumbing.ZeroHash, ErrDestinationExists
 	}
 
@@ -406,7 +406,7 @@ func (w *Worktree) Move(from, to string) (plumbing.Hash, error) {
 		return plumbing.ZeroHash, err
 	}
 
-	if err := w.fs.Rename(from, to); err != nil {
+	if err := w.Filesystem.Rename(from, to); err != nil {
 		return hash, err
 	}
 

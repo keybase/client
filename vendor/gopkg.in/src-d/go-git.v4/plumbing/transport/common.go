@@ -13,6 +13,7 @@
 package transport
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -72,7 +73,7 @@ type UploadPackSession interface {
 	// including a packfile. Don't be confused by terminology, the client
 	// side of a git-upload-pack is called git-fetch-pack, although here
 	// the same interface is used to make it RPC-like.
-	UploadPack(*packp.UploadPackRequest) (*packp.UploadPackResponse, error)
+	UploadPack(context.Context, *packp.UploadPackRequest) (*packp.UploadPackResponse, error)
 }
 
 // ReceivePackSession represents a git-receive-pack session.
@@ -86,7 +87,7 @@ type ReceivePackSession interface {
 	// terminology, the client side of a git-receive-pack is called
 	// git-send-pack, although here the same interface is used to make it
 	// RPC-like.
-	ReceivePack(*packp.ReferenceUpdateRequest) (*packp.ReportStatus, error)
+	ReceivePack(context.Context, *packp.ReferenceUpdateRequest) (*packp.ReportStatus, error)
 }
 
 // Endpoint represents a Git URL in any supported protocol.

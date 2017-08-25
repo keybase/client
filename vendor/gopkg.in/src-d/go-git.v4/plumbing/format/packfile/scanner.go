@@ -8,10 +8,11 @@ import (
 	"hash"
 	"hash/crc32"
 	"io"
-	"io/ioutil"
+	stdioutil "io/ioutil"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/utils/binary"
+	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
 
 var (
@@ -198,7 +199,7 @@ func (s *Scanner) discardObjectIfNeeded() error {
 	}
 
 	h := s.pendingObject
-	n, _, err := s.NextObject(ioutil.Discard)
+	n, _, err := s.NextObject(stdioutil.Discard)
 	if err != nil {
 		return err
 	}
@@ -275,8 +276,7 @@ func (s *Scanner) NextObject(w io.Writer) (written int64, crc32 uint32, err erro
 
 // ReadRegularObject reads and write a non-deltified object
 // from it zlib stream in an object entry in the packfile.
-func (s *Scanner) copyObject(w io.Writer) (int64, error) {
-	var err error
+func (s *Scanner) copyObject(w io.Writer) (n int64, err error) {
 	if s.zr == nil {
 		zr, err := zlib.NewReader(s.r)
 		if err != nil {
@@ -290,14 +290,9 @@ func (s *Scanner) copyObject(w io.Writer) (int64, error) {
 		}
 	}
 
-	defer func() {
-		closeErr := s.zr.Close()
-		if err == nil {
-			err = closeErr
-		}
-	}()
-
-	return io.Copy(w, s.zr)
+	defer ioutil.CheckClose(s.zr, &err)
+	n, err = io.Copy(w, s.zr)
+	return
 }
 
 // SeekFromStart sets a new offset from start, returns the old position before
@@ -329,7 +324,7 @@ func (s *Scanner) Checksum() (plumbing.Hash, error) {
 
 // Close reads the reader until io.EOF
 func (s *Scanner) Close() error {
-	_, err := io.Copy(ioutil.Discard, s.r)
+	_, err := io.Copy(stdioutil.Discard, s.r)
 	return err
 }
 

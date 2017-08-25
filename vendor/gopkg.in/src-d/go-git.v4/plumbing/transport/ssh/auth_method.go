@@ -3,6 +3,7 @@ package ssh
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 
+	"github.com/mitchellh/go-homedir"
 	"github.com/xanzy/ssh-agent"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -164,6 +166,19 @@ func (a *PublicKeys) clientConfig() *ssh.ClientConfig {
 	}
 }
 
+func username() (string, error) {
+	var username string
+	if user, err := user.Current(); err == nil {
+		username = user.Username
+	} else {
+		username = os.Getenv("USER")
+	}
+	if username == "" {
+		return "", errors.New("failed to get username")
+	}
+	return username, nil
+}
+
 // PublicKeysCallback implements AuthMethod by asking a
 // ssh.agent.Agent to act as a signer.
 type PublicKeysCallback struct {
@@ -176,13 +191,12 @@ type PublicKeysCallback struct {
 // a pipe with the SSH agent and uses the pipe as the implementer of the public
 // key callback function.
 func NewSSHAgentAuth(u string) (AuthMethod, error) {
+	var err error
 	if u == "" {
-		usr, err := user.Current()
+		u, err = username()
 		if err != nil {
-			return nil, fmt.Errorf("error getting current user: %q", err)
+			return nil, err
 		}
-
-		u = usr.Username
 	}
 
 	a, _, err := sshagent.New()
@@ -241,13 +255,13 @@ func getDefaultKnownHostsFiles() ([]string, error) {
 		return files, nil
 	}
 
-	user, err := user.Current()
+	homeDirPath, err := homedir.Dir()
 	if err != nil {
 		return nil, err
 	}
 
 	return []string{
-		filepath.Join(user.HomeDir, "/.ssh/known_hosts"),
+		filepath.Join(homeDirPath, "/.ssh/known_hosts"),
 		"/etc/ssh/ssh_known_hosts",
 	}, nil
 }

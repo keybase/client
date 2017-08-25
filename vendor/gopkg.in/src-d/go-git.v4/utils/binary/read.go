@@ -94,7 +94,17 @@ const (
 	lengthBits   = uint8(7)   // subsequent bytes has 7 bits to store the length
 )
 
-// ReadUint32 reads 4 bytes and returns them as a Big ndian uint32
+// ReadUint64 reads 8 bytes and returns them as a BigEndian uint32
+func ReadUint64(r io.Reader) (uint64, error) {
+	var v uint64
+	if err := binary.Read(r, binary.BigEndian, &v); err != nil {
+		return 0, err
+	}
+
+	return v, nil
+}
+
+// ReadUint32 reads 4 bytes and returns them as a BigEndian uint32
 func ReadUint32(r io.Reader) (uint32, error) {
 	var v uint32
 	if err := binary.Read(r, binary.BigEndian, &v); err != nil {

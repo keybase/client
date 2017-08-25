@@ -354,7 +354,7 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: localRepoRemoteName,
-		URL:  r.gitDir,
+		URLs: []string{r.gitDir},
 	})
 
 	for _, fetch := range args {
@@ -442,7 +442,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: localRepoRemoteName,
-		URL:  r.gitDir,
+		URLs: []string{r.gitDir},
 	})
 
 	results := make(map[string]error, len(args))

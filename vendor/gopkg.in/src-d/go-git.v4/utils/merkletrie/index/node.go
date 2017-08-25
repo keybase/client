@@ -1,7 +1,7 @@
 package index
 
 import (
-	"path/filepath"
+	"path"
 	"strings"
 
 	"gopkg.in/src-d/go-git.v4/plumbing/format/index"
@@ -28,19 +28,19 @@ func NewRootNode(idx *index.Index) noder.Noder {
 	m := map[string]*node{rootNode: {isDir: true}}
 
 	for _, e := range idx.Entries {
-		parts := strings.Split(e.Name, string(filepath.Separator))
+		parts := strings.Split(e.Name, string("/"))
 
-		var path string
+		var fullpath string
 		for _, part := range parts {
-			parent := path
-			path = filepath.Join(path, part)
+			parent := fullpath
+			fullpath = path.Join(fullpath, part)
 
-			if _, ok := m[path]; ok {
+			if _, ok := m[fullpath]; ok {
 				continue
 			}
 
-			n := &node{path: path}
-			if path == e.Name {
+			n := &node{path: fullpath}
+			if fullpath == e.Name {
 				n.entry = e
 			} else {
 				n.isDir = true
@@ -74,7 +74,7 @@ func (n *node) Hash() []byte {
 }
 
 func (n *node) Name() string {
-	return filepath.Base(n.path)
+	return path.Base(n.path)
 }
 
 func (n *node) IsDir() bool {

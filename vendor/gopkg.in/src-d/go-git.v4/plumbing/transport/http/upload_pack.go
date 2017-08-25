@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,7 +29,10 @@ func (s *upSession) AdvertisedReferences() (*packp.AdvRefs, error) {
 	return advertisedReferences(s.session, transport.UploadPackServiceName)
 }
 
-func (s *upSession) UploadPack(req *packp.UploadPackRequest) (*packp.UploadPackResponse, error) {
+func (s *upSession) UploadPack(
+	ctx context.Context, req *packp.UploadPackRequest,
+) (*packp.UploadPackResponse, error) {
+
 	if req.IsEmpty() {
 		return nil, transport.ErrEmptyUploadPackRequest
 	}
@@ -47,7 +51,7 @@ func (s *upSession) UploadPack(req *packp.UploadPackRequest) (*packp.UploadPackR
 		return nil, err
 	}
 
-	res, err := s.doRequest(http.MethodPost, url, content)
+	res, err := s.doRequest(ctx, http.MethodPost, url, content)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +74,10 @@ func (s *upSession) Close() error {
 	return nil
 }
 
-func (s *upSession) doRequest(method, url string, content *bytes.Buffer) (*http.Response, error) {
+func (s *upSession) doRequest(
+	ctx context.Context, method, url string, content *bytes.Buffer,
+) (*http.Response, error) {
+
 	var body io.Reader
 	if content != nil {
 		body = content
@@ -84,7 +91,7 @@ func (s *upSession) doRequest(method, url string, content *bytes.Buffer) (*http.
 	applyHeadersToRequest(req, content, s.endpoint.Host(), transport.UploadPackServiceName)
 	s.applyAuthToRequest(req)
 
-	res, err := s.client.Do(req)
+	res, err := s.client.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, plumbing.NewUnexpectedError(err)
 	}

@@ -55,6 +55,26 @@ func (r ReferenceType) String() string {
 // ReferenceName reference name's
 type ReferenceName string
 
+// IsBranch check if a reference is a branch
+func (r ReferenceName) IsBranch() bool {
+	return strings.HasPrefix(string(r), refHeadPrefix)
+}
+
+// IsNote check if a reference is a note
+func (r ReferenceName) IsNote() bool {
+	return strings.HasPrefix(string(r), refNotePrefix)
+}
+
+// IsRemote check if a reference is a remote
+func (r ReferenceName) IsRemote() bool {
+	return strings.HasPrefix(string(r), refRemotePrefix)
+}
+
+// IsTag check if a reference is a tag
+func (r ReferenceName) IsTag() bool {
+	return strings.HasPrefix(string(r), refTagPrefix)
+}
+
 func (r ReferenceName) String() string {
 	return string(r)
 }
@@ -136,26 +156,6 @@ func (r *Reference) Hash() Hash {
 // Target return the target of a symbolic reference
 func (r *Reference) Target() ReferenceName {
 	return r.target
-}
-
-// IsBranch check if a reference is a branch
-func (r *Reference) IsBranch() bool {
-	return strings.HasPrefix(string(r.n), refHeadPrefix)
-}
-
-// IsNote check if a reference is a note
-func (r *Reference) IsNote() bool {
-	return strings.HasPrefix(string(r.n), refNotePrefix)
-}
-
-// IsRemote check if a reference is a remote
-func (r *Reference) IsRemote() bool {
-	return strings.HasPrefix(string(r.n), refRemotePrefix)
-}
-
-// IsTag check if a reference is a tag
-func (r *Reference) IsTag() bool {
-	return strings.HasPrefix(string(r.n), refTagPrefix)
 }
 
 // Strings dump a reference as a [2]string

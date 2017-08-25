@@ -1,6 +1,8 @@
 package packfile
 
-import "gopkg.in/src-d/go-git.v4/plumbing"
+import (
+	"gopkg.in/src-d/go-git.v4/plumbing"
+)
 
 // ObjectToPack is a representation of an object that is going to be into a
 // pack file.
@@ -37,6 +39,48 @@ func newDeltaObjectToPack(base *ObjectToPack, original, delta plumbing.EncodedOb
 		Original: original,
 		Depth:    base.Depth + 1,
 	}
+}
+
+func (o *ObjectToPack) Type() plumbing.ObjectType {
+	if o.Original != nil {
+		return o.Original.Type()
+	}
+
+	if o.Base != nil {
+		return o.Base.Type()
+	}
+
+	if o.Object != nil {
+		return o.Object.Type()
+	}
+
+	panic("cannot get type")
+}
+
+func (o *ObjectToPack) Hash() plumbing.Hash {
+	if o.Original != nil {
+		return o.Original.Hash()
+	}
+
+	do, ok := o.Object.(plumbing.DeltaObject)
+	if ok {
+		return do.ActualHash()
+	}
+
+	panic("cannot get hash")
+}
+
+func (o *ObjectToPack) Size() int64 {
+	if o.Original != nil {
+		return o.Original.Size()
+	}
+
+	do, ok := o.Object.(plumbing.DeltaObject)
+	if ok {
+		return do.ActualSize()
+	}
+
+	panic("cannot get ObjectToPack size")
 }
 
 func (o *ObjectToPack) IsDelta() bool {

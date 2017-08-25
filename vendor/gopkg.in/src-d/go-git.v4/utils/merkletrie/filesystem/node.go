@@ -3,7 +3,7 @@ package filesystem
 import (
 	"io"
 	"os"
-	"path/filepath"
+	"path"
 
 	"gopkg.in/src-d/go-billy.v3"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -53,7 +53,7 @@ func (n *node) Hash() []byte {
 }
 
 func (n *node) Name() string {
-	return filepath.Base(n.path)
+	return path.Base(n.path)
 }
 
 func (n *node) IsDir() bool {
@@ -107,7 +107,7 @@ func (n *node) calculateChildren() error {
 }
 
 func (n *node) newChildNode(file os.FileInfo) (*node, error) {
-	path := filepath.Join(n.path, file.Name())
+	path := path.Join(n.path, file.Name())
 
 	hash, err := n.calculateHash(path, file)
 	if err != nil {

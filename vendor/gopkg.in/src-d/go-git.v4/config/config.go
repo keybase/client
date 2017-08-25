@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"sort"
 
 	format "gopkg.in/src-d/go-git.v4/plumbing/format/config"
 )
@@ -159,13 +160,29 @@ func (c *Config) marshalCore() {
 
 func (c *Config) marshalRemotes() {
 	s := c.Raw.Section(remoteSection)
-	s.Subsections = make(format.Subsections, len(c.Remotes))
-
-	var i int
-	for _, r := range c.Remotes {
-		s.Subsections[i] = r.marshal()
-		i++
+	newSubsections := make(format.Subsections, 0, len(c.Remotes))
+	added := make(map[string]bool)
+	for _, subsection := range s.Subsections {
+		if remote, ok := c.Remotes[subsection.Name]; ok {
+			newSubsections = append(newSubsections, remote.marshal())
+			added[subsection.Name] = true
+		}
 	}
+
+	remoteNames := make([]string, 0, len(c.Remotes))
+	for name := range c.Remotes {
+		remoteNames = append(remoteNames, name)
+	}
+
+	sort.Strings(remoteNames)
+
+	for _, name := range remoteNames {
+		if !added[name] {
+			newSubsections = append(newSubsections, c.Remotes[name].marshal())
+		}
+	}
+
+	s.Subsections = newSubsections
 }
 
 func (c *Config) marshalSubmodules() {
@@ -187,8 +204,9 @@ func (c *Config) marshalSubmodules() {
 type RemoteConfig struct {
 	// Name of the remote
 	Name string
-	// URL the URL of a remote repository
-	URL string
+	// URLs the URLs of a remote repository. It must be non-empty. Fetch will
+	// always use the first URL, while push will use all of them.
+	URLs []string
 	// Fetch the default set of "refspec" for fetch operation
 	Fetch []RefSpec
 
@@ -203,7 +221,7 @@ func (c *RemoteConfig) Validate() error {
 		return ErrRemoteConfigEmptyName
 	}
 
-	if c.URL == "" {
+	if len(c.URLs) == 0 {
 		return ErrRemoteConfigEmptyURL
 	}
 
@@ -233,8 +251,13 @@ func (c *RemoteConfig) unmarshal(s *format.Subsection) error {
 		fetch = append(fetch, rs)
 	}
 
+	var urls []string
+	for _, f := range c.raw.Options.GetAll(urlKey) {
+		urls = append(urls, f)
+	}
+
 	c.Name = c.raw.Name
-	c.URL = c.raw.Option(urlKey)
+	c.URLs = urls
 	c.Fetch = fetch
 
 	return nil
@@ -246,9 +269,21 @@ func (c *RemoteConfig) marshal() *format.Subsection {
 	}
 
 	c.raw.Name = c.Name
-	c.raw.SetOption(urlKey, c.URL)
-	for _, rs := range c.Fetch {
-		c.raw.SetOption(fetchKey, rs.String())
+	if len(c.URLs) == 0 {
+		c.raw.RemoveOption(urlKey)
+	} else {
+		c.raw.SetOption(urlKey, c.URLs...)
+	}
+
+	if len(c.Fetch) == 0 {
+		c.raw.RemoveOption(fetchKey)
+	} else {
+		var values []string
+		for _, rs := range c.Fetch {
+			values = append(values, rs.String())
+		}
+
+		c.raw.SetOption(fetchKey, values...)
 	}
 
 	return c.raw

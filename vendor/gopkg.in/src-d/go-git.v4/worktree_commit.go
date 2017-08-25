@@ -1,7 +1,7 @@
 package git
 
 import (
-	"path/filepath"
+	"path"
 	"strings"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -32,7 +32,7 @@ func (w *Worktree) Commit(msg string, opts *CommitOptions) (plumbing.Hash, error
 	}
 
 	h := &buildTreeHelper{
-		fs: w.fs,
+		fs: w.Filesystem,
 		s:  w.r.Storer,
 	}
 
@@ -128,36 +128,36 @@ func (h *buildTreeHelper) BuildTree(idx *index.Index) (plumbing.Hash, error) {
 }
 
 func (h *buildTreeHelper) commitIndexEntry(e *index.Entry) error {
-	parts := strings.Split(e.Name, string(filepath.Separator))
+	parts := strings.Split(e.Name, "/")
 
-	var path string
+	var fullpath string
 	for _, part := range parts {
-		parent := path
-		path = filepath.Join(path, part)
+		parent := fullpath
+		fullpath = path.Join(fullpath, part)
 
-		h.doBuildTree(e, parent, path)
+		h.doBuildTree(e, parent, fullpath)
 	}
 
 	return nil
 }
 
-func (h *buildTreeHelper) doBuildTree(e *index.Entry, parent, path string) {
-	if _, ok := h.trees[path]; ok {
+func (h *buildTreeHelper) doBuildTree(e *index.Entry, parent, fullpath string) {
+	if _, ok := h.trees[fullpath]; ok {
 		return
 	}
 
-	if _, ok := h.entries[path]; ok {
+	if _, ok := h.entries[fullpath]; ok {
 		return
 	}
 
-	te := object.TreeEntry{Name: filepath.Base(path)}
+	te := object.TreeEntry{Name: path.Base(fullpath)}
 
-	if path == e.Name {
+	if fullpath == e.Name {
 		te.Mode = e.Mode
 		te.Hash = e.Hash
 	} else {
 		te.Mode = filemode.Dir
-		h.trees[path] = &object.Tree{}
+		h.trees[fullpath] = &object.Tree{}
 	}
 
 	h.trees[parent].Entries = append(h.trees[parent].Entries, te)
@@ -169,7 +169,7 @@ func (h *buildTreeHelper) copyTreeToStorageRecursive(parent string, t *object.Tr
 			continue
 		}
 
-		path := filepath.Join(parent, e.Name)
+		path := path.Join(parent, e.Name)
 
 		var err error
 		e.Hash, err = h.copyTreeToStorageRecursive(path, h.trees[path])

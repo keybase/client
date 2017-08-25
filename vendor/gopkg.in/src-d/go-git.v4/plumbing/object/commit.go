@@ -278,7 +278,7 @@ func (iter *storerCommitIter) Next() (*Commit, error) {
 
 // ForEach call the cb function for each commit contained on this iter until
 // an error appends or the end of the iter is reached. If ErrStop is sent
-// the iteration is stop but no error is returned. The iterator is closed.
+// the iteration is stopped but no error is returned. The iterator is closed.
 func (iter *storerCommitIter) ForEach(cb func(*Commit) error) error {
 	return iter.EncodedObjectIter.ForEach(func(obj plumbing.EncodedObject) error {
 		c, err := DecodeCommit(iter.s, obj)

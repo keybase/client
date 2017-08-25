@@ -253,10 +253,10 @@ func (d *DotGit) SetRef(r *plumbing.Reference) error {
 		return err
 	}
 
-	if _, err := f.Write([]byte(content)); err != nil {
-		return err
-	}
-	return f.Close()
+	defer ioutil.CheckClose(f, &err)
+
+	_, err = f.Write([]byte(content))
+	return err
 }
 
 // Refs scans the git directory collecting references, which it returns.
@@ -348,7 +348,6 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 
 		return err
 	}
-	defer ioutil.CheckClose(f, &err)
 
 	// Creating the temp file in the same directory as the target file
 	// improves our chances for rename operation to be atomic.
@@ -356,10 +355,6 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 	if err != nil {
 		return err
 	}
-
-	tmpPath := tmp.Name()
-	defer ioutil.CheckClose(tmp, &err)
-	defer d.fs.Remove(tmpPath)
 
 	s := bufio.NewScanner(f)
 	found := false
@@ -388,7 +383,16 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 		return nil
 	}
 
-	return d.fs.Rename(tmpPath, packedRefsPath)
+	if err := f.Close(); err != nil {
+		ioutil.CheckClose(tmp, &err)
+		return err
+	}
+
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+
+	return d.fs.Rename(tmp.Name(), packedRefsPath)
 }
 
 // process lines from a packed-refs file

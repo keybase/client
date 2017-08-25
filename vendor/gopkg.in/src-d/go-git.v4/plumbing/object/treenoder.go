@@ -99,7 +99,7 @@ func transformChildren(t *Tree) ([]noder.Noder, error) {
 	// is bigger than needed.
 	ret := make([]noder.Noder, 0, len(t.Entries))
 
-	walker := NewTreeWalker(t, false) // don't recurse
+	walker := NewTreeWalker(t, false, nil) // don't recurse
 	// don't defer walker.Close() for efficiency reasons.
 	for {
 		_, e, err = walker.Next()

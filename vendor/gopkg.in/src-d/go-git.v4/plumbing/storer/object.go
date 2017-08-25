@@ -38,6 +38,14 @@ type EncodedObjectStorer interface {
 	IterEncodedObjects(plumbing.ObjectType) (EncodedObjectIter, error)
 }
 
+// DeltaObjectStorer is an EncodedObjectStorer that can return delta
+// objects.
+type DeltaObjectStorer interface {
+	// DeltaObject is the same as EncodedObject but without resolving deltas.
+	// Deltas will be returned as plumbing.DeltaObject instances.
+	DeltaObject(plumbing.ObjectType, plumbing.Hash) (plumbing.EncodedObject, error)
+}
+
 // Transactioner is a optional method for ObjectStorer, it enable transaction
 // base write and read operations in the storage
 type Transactioner interface {

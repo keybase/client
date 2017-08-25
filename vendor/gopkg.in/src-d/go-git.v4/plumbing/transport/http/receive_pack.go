@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,7 +26,7 @@ func (s *rpSession) AdvertisedReferences() (*packp.AdvRefs, error) {
 	return advertisedReferences(s.session, transport.ReceivePackServiceName)
 }
 
-func (s *rpSession) ReceivePack(req *packp.ReferenceUpdateRequest) (
+func (s *rpSession) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateRequest) (
 	*packp.ReportStatus, error) {
 	url := fmt.Sprintf(
 		"%s/%s",
@@ -37,7 +38,7 @@ func (s *rpSession) ReceivePack(req *packp.ReferenceUpdateRequest) (
 		return nil, err
 	}
 
-	res, err := s.doRequest(http.MethodPost, url, buf)
+	res, err := s.doRequest(ctx, http.MethodPost, url, buf)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +62,10 @@ func (s *rpSession) ReceivePack(req *packp.ReferenceUpdateRequest) (
 	return report, report.Error()
 }
 
-func (s *rpSession) doRequest(method, url string, content *bytes.Buffer) (*http.Response, error) {
+func (s *rpSession) doRequest(
+	ctx context.Context, method, url string, content *bytes.Buffer,
+) (*http.Response, error) {
+
 	var body io.Reader
 	if content != nil {
 		body = content
@@ -75,7 +79,7 @@ func (s *rpSession) doRequest(method, url string, content *bytes.Buffer) (*http.
 	applyHeadersToRequest(req, content, s.endpoint.Host(), transport.ReceivePackServiceName)
 	s.applyAuthToRequest(req)
 
-	res, err := s.client.Do(req)
+	res, err := s.client.Do(req.WithContext(ctx))
 	if err != nil {
 		return nil, plumbing.NewUnexpectedError(err)
 	}

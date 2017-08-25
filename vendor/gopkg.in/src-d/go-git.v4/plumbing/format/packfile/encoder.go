@@ -18,6 +18,9 @@ type Encoder struct {
 	w            *offsetWriter
 	zw           *zlib.Writer
 	hasher       plumbing.Hasher
+	// offsets is a map of object hashes to corresponding offsets in the packfile.
+	// It is used to determine offset of the base of a delta when a OFS_DELTA is
+	// used.
 	offsets      map[plumbing.Hash]int64
 	useRefDeltas bool
 }
@@ -78,25 +81,24 @@ func (e *Encoder) head(numEntries int) error {
 
 func (e *Encoder) entry(o *ObjectToPack) error {
 	offset := e.w.Offset()
+	e.offsets[o.Hash()] = offset
 
 	if o.IsDelta() {
 		if err := e.writeDeltaHeader(o, offset); err != nil {
 			return err
 		}
 	} else {
-		if err := e.entryHead(o.Object.Type(), o.Object.Size()); err != nil {
+		if err := e.entryHead(o.Type(), o.Size()); err != nil {
 			return err
 		}
 	}
-
-	// Save the position using the original hash, maybe a delta will need it
-	e.offsets[o.Original.Hash()] = offset
 
 	e.zw.Reset(e.w)
 	or, err := o.Object.Reader()
 	if err != nil {
 		return err
 	}
+
 	_, err = io.Copy(e.zw, or)
 	if err != nil {
 		return err
@@ -117,9 +119,9 @@ func (e *Encoder) writeDeltaHeader(o *ObjectToPack, offset int64) error {
 	}
 
 	if e.useRefDeltas {
-		return e.writeRefDeltaHeader(o.Base.Original.Hash())
+		return e.writeRefDeltaHeader(o.Base.Hash())
 	} else {
-		return e.writeOfsDeltaHeader(offset, o.Base.Original.Hash())
+		return e.writeOfsDeltaHeader(offset, o.Base.Hash())
 	}
 }
 
@@ -128,14 +130,19 @@ func (e *Encoder) writeRefDeltaHeader(base plumbing.Hash) error {
 }
 
 func (e *Encoder) writeOfsDeltaHeader(deltaOffset int64, base plumbing.Hash) error {
-	// because it is an offset delta, we need the base
-	// object position
-	offset, ok := e.offsets[base]
+	baseOffset, ok := e.offsets[base]
 	if !ok {
-		return fmt.Errorf("delta base not found. Hash: %v", base)
+		return fmt.Errorf("base for delta not found, base hash: %v", base)
 	}
 
-	return binary.WriteVariableWidthInt(e.w, deltaOffset-offset)
+	// for OFS_DELTA, offset of the base is interpreted as negative offset
+	// relative to the type-byte of the header of the ofs-delta entry.
+	relativeOffset := deltaOffset-baseOffset
+	if relativeOffset <= 0 {
+		return fmt.Errorf("bad offset for OFS_DELTA entry: %d", relativeOffset)
+	}
+
+	return binary.WriteVariableWidthInt(e.w, relativeOffset)
 }
 
 func (e *Encoder) entryHead(typeNum plumbing.ObjectType, size int64) error {

@@ -81,7 +81,7 @@ type FileIter struct {
 // NewFileIter takes a storer.EncodedObjectStorer and a Tree and returns a
 // *FileIter that iterates over all files contained in the tree, recursively.
 func NewFileIter(s storer.EncodedObjectStorer, t *Tree) *FileIter {
-	return &FileIter{s: s, w: *NewTreeWalker(t, true)}
+	return &FileIter{s: s, w: *NewTreeWalker(t, true, nil)}
 }
 
 // Next moves the iterator to the next file and returns a pointer to it. If

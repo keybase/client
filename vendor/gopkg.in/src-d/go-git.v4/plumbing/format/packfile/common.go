@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
+	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
 
 var signature = []byte{'P', 'A', 'C', 'K'}
@@ -24,14 +25,7 @@ const (
 // packfile.
 func UpdateObjectStorage(s storer.EncodedObjectStorer, packfile io.Reader) error {
 	if sw, ok := s.(storer.PackfileWriter); ok {
-		w, err := sw.PackfileWriter()
-		if err != nil {
-			return err
-		}
-
-		defer w.Close()
-		_, err = io.Copy(w, packfile)
-		return err
+		return writePackfileToObjectStorage(sw, packfile)
 	}
 
 	stream := NewScanner(packfile)
@@ -41,5 +35,17 @@ func UpdateObjectStorage(s storer.EncodedObjectStorer, packfile io.Reader) error
 	}
 
 	_, err = d.Decode()
+	return err
+}
+
+func writePackfileToObjectStorage(sw storer.PackfileWriter, packfile io.Reader) error {
+	var err error
+	w, err := sw.PackfileWriter()
+	if err != nil {
+		return err
+	}
+
+	defer ioutil.CheckClose(w, &err)
+	_, err = io.Copy(w, packfile)
 	return err
 }

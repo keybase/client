@@ -5,6 +5,7 @@ import (
 
 	"gopkg.in/src-d/go-git.v4/plumbing/format/index"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem/internal/dotgit"
+	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
 
 type IndexStorage struct {
@@ -17,10 +18,11 @@ func (s *IndexStorage) SetIndex(idx *index.Index) error {
 		return err
 	}
 
-	defer f.Close()
+	defer ioutil.CheckClose(f, &err)
 
 	e := index.NewEncoder(f)
-	return e.Encode(idx)
+	err = e.Encode(idx)
+	return err
 }
 
 func (s *IndexStorage) Index() (*index.Index, error) {
@@ -37,8 +39,9 @@ func (s *IndexStorage) Index() (*index.Index, error) {
 		return nil, err
 	}
 
-	defer f.Close()
+	defer ioutil.CheckClose(f, &err)
 
 	d := index.NewDecoder(f)
-	return idx, d.Decode(idx)
+	err = d.Decode(idx)
+	return idx, err
 }

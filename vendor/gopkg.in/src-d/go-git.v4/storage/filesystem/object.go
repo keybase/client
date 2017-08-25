@@ -5,24 +5,32 @@ import (
 	"os"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/cache"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/idxfile"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/objfile"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/packfile"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
 	"gopkg.in/src-d/go-git.v4/storage/filesystem/internal/dotgit"
 	"gopkg.in/src-d/go-git.v4/storage/memory"
+	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 
 	"gopkg.in/src-d/go-billy.v3"
 )
 
+const DefaultMaxDeltaBaseCacheSize = 92 * cache.MiByte
+
 type ObjectStorage struct {
+	// DeltaBaseCache is an object cache uses to cache delta's bases when
+	DeltaBaseCache cache.Object
+
 	dir   *dotgit.DotGit
-	index map[plumbing.Hash]idx
+	index map[plumbing.Hash]*packfile.Index
 }
 
 func newObjectStorage(dir *dotgit.DotGit) (ObjectStorage, error) {
 	s := ObjectStorage{
-		dir: dir,
+		DeltaBaseCache: cache.NewObjectLRU(DefaultMaxDeltaBaseCacheSize),
+		dir:            dir,
 	}
 
 	return s, nil
@@ -33,7 +41,7 @@ func (s *ObjectStorage) requireIndex() error {
 		return nil
 	}
 
-	s.index = make(map[plumbing.Hash]idx, 0)
+	s.index = make(map[plumbing.Hash]*packfile.Index, 0)
 	packs, err := s.dir.ObjectPacks()
 	if err != nil {
 		return err
@@ -49,14 +57,20 @@ func (s *ObjectStorage) requireIndex() error {
 }
 
 func (s *ObjectStorage) loadIdxFile(h plumbing.Hash) error {
-	idxfile, err := s.dir.ObjectPackIdx(h)
+	f, err := s.dir.ObjectPackIdx(h)
 	if err != nil {
 		return err
 	}
-	defer idxfile.Close()
 
-	s.index[h] = make(idx)
-	return s.index[h].Decode(idxfile)
+	defer ioutil.CheckClose(f, &err)
+	idxf := idxfile.NewIdxfile()
+	d := idxfile.NewDecoder(f)
+	if err = d.Decode(idxf); err != nil {
+		return err
+	}
+
+	s.index[h] = packfile.NewIndexFromIdxFile(idxf)
+	return err
 }
 
 func (s *ObjectStorage) NewEncodedObject() plumbing.EncodedObject {
@@ -73,11 +87,8 @@ func (s *ObjectStorage) PackfileWriter() (io.WriteCloser, error) {
 		return nil, err
 	}
 
-	w.Notify = func(h plumbing.Hash, idxfile idxfile.Idxfile) {
-		s.index[h] = make(idx)
-		for _, e := range idxfile.Entries {
-			s.index[h][e.Hash] = int64(e.Offset)
-		}
+	w.Notify = func(h plumbing.Hash, idx *packfile.Index) {
+		s.index[h] = idx
 	}
 
 	return w, nil
@@ -94,14 +105,14 @@ func (s *ObjectStorage) SetEncodedObject(o plumbing.EncodedObject) (plumbing.Has
 		return plumbing.ZeroHash, err
 	}
 
-	defer ow.Close()
+	defer ioutil.CheckClose(ow, &err)
 
 	or, err := o.Reader()
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
 
-	defer or.Close()
+	defer ioutil.CheckClose(or, &err)
 
 	if err := ow.WriteHeader(o.Type(), o.Size()); err != nil {
 		return plumbing.ZeroHash, err
@@ -111,7 +122,7 @@ func (s *ObjectStorage) SetEncodedObject(o plumbing.EncodedObject) (plumbing.Has
 		return plumbing.ZeroHash, err
 	}
 
-	return o.Hash(), nil
+	return o.Hash(), err
 }
 
 // EncodedObject returns the object with the given hash, by searching for it in
@@ -119,7 +130,27 @@ func (s *ObjectStorage) SetEncodedObject(o plumbing.EncodedObject) (plumbing.Has
 func (s *ObjectStorage) EncodedObject(t plumbing.ObjectType, h plumbing.Hash) (plumbing.EncodedObject, error) {
 	obj, err := s.getFromUnpacked(h)
 	if err == plumbing.ErrObjectNotFound {
-		obj, err = s.getFromPackfile(h)
+		obj, err = s.getFromPackfile(h, false)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if plumbing.AnyObject != t && obj.Type() != t {
+		return nil, plumbing.ErrObjectNotFound
+	}
+
+	return obj, nil
+}
+
+// DeltaObject returns the object with the given hash, by searching for
+// it in the packfile and the git object directories.
+func (s *ObjectStorage) DeltaObject(t plumbing.ObjectType,
+	h plumbing.Hash) (plumbing.EncodedObject, error) {
+	obj, err := s.getFromUnpacked(h)
+	if err == plumbing.ErrObjectNotFound {
+		obj, err = s.getFromPackfile(h, true)
 	}
 
 	if err != nil {
@@ -143,7 +174,7 @@ func (s *ObjectStorage) getFromUnpacked(h plumbing.Hash) (obj plumbing.EncodedOb
 		return nil, err
 	}
 
-	defer f.Close()
+	defer ioutil.CheckClose(f, &err)
 
 	obj = s.NewEncodedObject()
 	r, err := objfile.NewReader(f)
@@ -151,7 +182,7 @@ func (s *ObjectStorage) getFromUnpacked(h plumbing.Hash) (obj plumbing.EncodedOb
 		return nil, err
 	}
 
-	defer r.Close()
+	defer ioutil.CheckClose(r, &err)
 
 	t, size, err := r.Header()
 	if err != nil {
@@ -171,12 +202,14 @@ func (s *ObjectStorage) getFromUnpacked(h plumbing.Hash) (obj plumbing.EncodedOb
 
 // Get returns the object with the given hash, by searching for it in
 // the packfile.
-func (s *ObjectStorage) getFromPackfile(h plumbing.Hash) (plumbing.EncodedObject, error) {
+func (s *ObjectStorage) getFromPackfile(h plumbing.Hash, canBeDelta bool) (
+	plumbing.EncodedObject, error) {
+
 	if err := s.requireIndex(); err != nil {
 		return nil, err
 	}
 
-	pack, offset := s.findObjectInPackfile(h)
+	pack, hash, offset := s.findObjectInPackfile(h)
 	if offset == -1 {
 		return nil, plumbing.ErrObjectNotFound
 	}
@@ -186,26 +219,96 @@ func (s *ObjectStorage) getFromPackfile(h plumbing.Hash) (plumbing.EncodedObject
 		return nil, err
 	}
 
-	defer f.Close()
+	defer ioutil.CheckClose(f, &err)
+
+	idx := s.index[pack]
+	if canBeDelta {
+		return s.decodeDeltaObjectAt(f, idx, offset, hash)
+	}
+
+	return s.decodeObjectAt(f, idx, offset)
+}
+
+func (s *ObjectStorage) decodeObjectAt(
+	f billy.File,
+	idx *packfile.Index,
+	offset int64) (plumbing.EncodedObject, error) {
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return nil, err
+	}
 
 	p := packfile.NewScanner(f)
+
 	d, err := packfile.NewDecoder(p, memory.NewStorage())
 	if err != nil {
 		return nil, err
 	}
 
-	d.SetOffsets(s.index[pack])
-	return d.DecodeObjectAt(offset)
+	d.SetIndex(idx)
+	d.DeltaBaseCache = s.DeltaBaseCache
+	obj, err := d.DecodeObjectAt(offset)
+	return obj, err
 }
 
-func (s *ObjectStorage) findObjectInPackfile(h plumbing.Hash) (plumbing.Hash, int64) {
+func (s *ObjectStorage) decodeDeltaObjectAt(
+	f billy.File,
+	idx *packfile.Index,
+	offset int64,
+	hash plumbing.Hash) (plumbing.EncodedObject, error) {
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return nil, err
+	}
+
+	p := packfile.NewScanner(f)
+	if _, err := p.SeekFromStart(offset); err != nil {
+		return nil, err
+	}
+
+	header, err := p.NextObjectHeader()
+	if err != nil {
+		return nil, err
+	}
+
+	var (
+		base plumbing.Hash
+	)
+
+	switch header.Type {
+	case plumbing.REFDeltaObject:
+		base = header.Reference
+	case plumbing.OFSDeltaObject:
+		e, ok := idx.LookupOffset(uint64(header.OffsetReference))
+		if !ok {
+			return nil, plumbing.ErrObjectNotFound
+		}
+
+		base = e.Hash
+	default:
+		return s.decodeObjectAt(f, idx, offset)
+	}
+
+	obj := &plumbing.MemoryObject{}
+	obj.SetType(header.Type)
+	w, err := obj.Writer()
+	if err != nil {
+		return nil, err
+	}
+
+	if _, _, err := p.NextObject(w); err != nil {
+		return nil, err
+	}
+
+	return newDeltaObject(obj, hash, base, header.Length), nil
+}
+
+func (s *ObjectStorage) findObjectInPackfile(h plumbing.Hash) (plumbing.Hash, plumbing.Hash, int64) {
 	for packfile, index := range s.index {
-		if offset, ok := index[h]; ok {
-			return packfile, offset
+		if e, ok := index.LookupHash(h); ok {
+			return packfile, e.Hash, int64(e.Offset)
 		}
 	}
 
-	return plumbing.ZeroHash, -1
+	return plumbing.ZeroHash, plumbing.ZeroHash, -1
 }
 
 // IterEncodedObjects returns an iterator for all the objects in the packfile
@@ -249,7 +352,7 @@ func (s *ObjectStorage) buildPackfileIters(t plumbing.ObjectType, seen map[plumb
 			return nil, err
 		}
 
-		iter, err := newPackfileIter(pack, t, seen, s.index[h])
+		iter, err := newPackfileIter(pack, t, seen, s.index[h], s.DeltaBaseCache)
 		if err != nil {
 			return nil, err
 		}
@@ -258,23 +361,6 @@ func (s *ObjectStorage) buildPackfileIters(t plumbing.ObjectType, seen map[plumb
 	}
 
 	return iters, nil
-}
-
-type idx map[plumbing.Hash]int64
-
-func (i idx) Decode(r io.Reader) error {
-	idx := &idxfile.Idxfile{}
-
-	d := idxfile.NewDecoder(r)
-	if err := d.Decode(idx); err != nil {
-		return err
-	}
-
-	for _, e := range idx.Entries {
-		i[e.Hash] = int64(e.Offset)
-	}
-
-	return nil
 }
 
 type packfileIter struct {
@@ -288,11 +374,11 @@ type packfileIter struct {
 }
 
 func NewPackfileIter(f billy.File, t plumbing.ObjectType) (storer.EncodedObjectIter, error) {
-	return newPackfileIter(f, t, make(map[plumbing.Hash]bool), nil)
+	return newPackfileIter(f, t, make(map[plumbing.Hash]bool), nil, nil)
 }
 
 func newPackfileIter(f billy.File, t plumbing.ObjectType, seen map[plumbing.Hash]bool,
-	index idx) (storer.EncodedObjectIter, error) {
+	index *packfile.Index, cache cache.Object) (storer.EncodedObjectIter, error) {
 	s := packfile.NewScanner(f)
 	_, total, err := s.Header()
 	if err != nil {
@@ -304,7 +390,8 @@ func newPackfileIter(f billy.File, t plumbing.ObjectType, seen map[plumbing.Hash
 		return nil, err
 	}
 
-	d.SetOffsets(index)
+	d.SetIndex(index)
+	d.DeltaBaseCache = cache
 
 	return &packfileIter{
 		f: f,

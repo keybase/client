@@ -10,7 +10,7 @@ is supported by go-git.
 | config                                | ✔ | Reading and modifying per-repository configuration (`.git/config`) is supported. Global configuration (`$HOME/.gitconfig`) is not. |
 | **getting and creating repositories** |
 | init                                  | ✔ | Plain init and `--bare` are supported. Flags `--template`, `--separate-git-dir` and `--shared` are not. |
-| clone                                 | ✔ | Plain clone and equivalents to `--progress`,  `--single-branch`, `--depth`, `--origin`, `--recurse-submodules` are supported. Others are not. | 
+| clone                                 | ✔ | Plain clone and equivalents to `--progress`,  `--single-branch`, `--depth`, `--origin`, `--recurse-submodules` are supported. Others are not. |
 | **basic snapshotting** |
 | add                                   | ✔ | Plain add is supported. Any other flag aren't supported |
 | status                                | ✔ |
@@ -27,7 +27,7 @@ is supported by go-git.
 | tag                                   | ✔ |
 | **sharing and updating projects** |
 | fetch                                 | ✔ |
-| pull                                  | ✔ |
+| pull                                  | ✔ | Only supports merges where the merge can be resolved as a fast-forward. |
 | push                                  | ✔ |
 | remote                                | ✔ |
 | submodule                             | ✔ |

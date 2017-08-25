@@ -73,7 +73,8 @@ func prefixExecPath(cmd string) (string, error) {
 	return cmd, nil
 }
 
-func (r *runner) Command(cmd string, ep transport.Endpoint, auth transport.AuthMethod) (common.Command, error) {
+func (r *runner) Command(cmd string, ep transport.Endpoint, auth transport.AuthMethod,
+) (common.Command, error) {
 
 	switch cmd {
 	case transport.UploadPackServiceName:
@@ -124,6 +125,11 @@ func (c *command) StdoutPipe() (io.Reader, error) {
 	return c.cmd.StdoutPipe()
 }
 
+func (c *command) Kill() error {
+	c.cmd.Process.Kill()
+	return c.Close()
+}
+
 // Close waits for the command to exit.
 func (c *command) Close() error {
 	if c.closed {
@@ -133,6 +139,7 @@ func (c *command) Close() error {
 	defer func() {
 		c.closed = true
 		_ = c.stderrCloser.Close()
+
 	}()
 
 	err := c.cmd.Wait()
