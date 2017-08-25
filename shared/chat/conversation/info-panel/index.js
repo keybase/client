@@ -13,7 +13,6 @@ const border = `1px solid ${globalColors.black_05}`
 const containerStyle = isMobile
   ? {
       flex: 1,
-      width: '100%',
     }
   : {
       backgroundColor: globalColors.white,
