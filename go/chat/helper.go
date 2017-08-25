@@ -789,8 +789,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 		// Send a message to the channel after joining.
 		switch n.membersType {
-		// XXX should this happen for IMPTEAM too?
-		// case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 		case chat1.ConversationMembersType_TEAM:
 			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
 			irl, err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody)
