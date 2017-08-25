@@ -1387,13 +1387,11 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 func IsIdentifyProofError(err error) bool {
 	switch err.(type) {
-	case ProofError:
-	case IdentifySummaryError:
+	case ProofError, IdentifySummaryError:
 		return true
 	default:
 		return false
 	}
-	return false
 }
 
 //=============================================================================
