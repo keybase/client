@@ -2590,3 +2590,17 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res.Conversations), "no convs found")
 }
+
+func TestImpTeamExistingKBFS(t *testing.T) {
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	c1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_KBFS, ctc.as(t, users[1]).user())
+	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAM, ctc.as(t, users[1]).user())
+
+	t.Logf("c1: %v c2: %v", c1, c2)
+	if !c2.Id.Eq(c1.Id) {
+		t.Fatalf("2nd call to NewConversationLocal as IMPTEAM for a KBFS conversation did not return the same conversation ID")
+	}
+}

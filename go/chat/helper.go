@@ -668,7 +668,13 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		return convs[0], rl, err
 	}
 
-	// XXX if KBFS, return an error...need to use IMPTEAM now
+	// if KBFS, return an error. Need to use IMPTEAM now.
+	if n.membersType == chat1.ConversationMembersType_KBFS {
+		// let it slide in devel for tests
+		if n.G().ExternalG().Env.GetRunMode() != libkb.DevelRunMode {
+			return res, rl, errors.New("new KBFS conversations no longer allowed, use IMPTEAM")
+		}
+	}
 
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
 
