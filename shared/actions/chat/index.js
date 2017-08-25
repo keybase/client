@@ -869,7 +869,7 @@ const _blockConversation = function*(action: Constants.BlockConversation): SagaG
 const _leaveConversation = function*(action: Constants.LeaveConversation): SagaGenerator<any, any> {
   const {conversationIDKey} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
-  yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
+  yield call(ChatTypes.localLeaveConversationLocalRpcPromise, {
     param: {conversationID},
   })
 }
