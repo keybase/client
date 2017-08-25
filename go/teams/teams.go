@@ -364,7 +364,8 @@ func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error
 
 	for _, member := range ms.None {
 		// It's not a downgrade if we are removing a reset user.
-		if role, err := t.chain().GetUserRole(member.version); err != nil && role != keybase1.TeamRole_NONE {
+		role, err := t.chain().GetUserRole(member.version)
+		if err != nil && role != keybase1.TeamRole_NONE {
 			uids = append(uids, member.version.Uid)
 		}
 	}
