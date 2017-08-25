@@ -236,6 +236,13 @@ function editMessage(message: Constants.Message, text: HiddenString): Constants.
   return {payload: {message, text}, type: 'chat:editMessage'}
 }
 
+function leaveConversation(conversationIDKey: Constants.ConversationIDKey): Constants.LeaveConversation {
+  return {
+    payload: {conversationIDKey},
+    type: 'chat:leaveConversation',
+  }
+}
+
 function muteConversation(
   conversationIDKey: Constants.ConversationIDKey,
   muted: boolean
@@ -705,6 +712,7 @@ export {
   inboxStale,
   incomingMessage,
   incomingTyping,
+  leaveConversation,
   loadAttachment,
   loadAttachmentPreview,
   loadInbox,

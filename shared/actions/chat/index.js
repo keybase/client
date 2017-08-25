@@ -866,6 +866,14 @@ const _blockConversation = function*(action: Constants.BlockConversation): SagaG
   }
 }
 
+const _leaveConversation = function*(action: Constants.LeaveConversation): SagaGenerator<any, any> {
+  const {conversationIDKey} = action.payload
+  const conversationID = Constants.keyToConversationID(conversationIDKey)
+  yield call(ChatTypes.localSetConversationStatusLocalRpcPromise, {
+    param: {conversationID},
+  })
+}
+
 const _muteConversation = function*(action: Constants.MuteConversation): SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
@@ -1099,6 +1107,7 @@ const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
   yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
+  yield Saga.safeTakeEvery('chat:leaveConversation', _leaveConversation)
   yield Saga.safeTakeSerially('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
