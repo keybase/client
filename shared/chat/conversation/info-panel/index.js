@@ -25,37 +25,38 @@ const containerStyle = isMobile
     }
 
 const _InfoPanel = (props: Props) => (
-  <ScrollView style={containerStyle}>
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}>
-      <Participants
-        participants={props.participants}
-        onAddParticipant={props.onAddParticipant}
-        onShowProfile={props.onShowProfile}
+  <ScrollView
+    style={containerStyle}
+    contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
+  >
+    <Participants
+      participants={props.participants}
+      onAddParticipant={props.onAddParticipant}
+      onShowProfile={props.onShowProfile}
+    />
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+      <Checkbox
+        checked={props.muted}
+        disabled={props.onMuteConversation == null}
+        onCheck={checked => props.onMuteConversation(checked)}
+        label="Mute notifications"
       />
-
-      <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-      <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-        <Checkbox
-          checked={props.muted}
-          disabled={props.onMuteConversation == null}
-          onCheck={checked => props.onMuteConversation(checked)}
-          label="Mute notifications"
-        />
-        <Icon
-          type="iconfont-shh"
-          style={{
-            color: globalColors.black_20,
-            marginLeft: globalMargins.tiny,
-            ...(isMobile ? {fontSize: 24} : {}),
-          }}
-        />
-      </Box>
-
-      <Divider style={{marginBottom: 20, marginTop: 20}} />
-
-      <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
+      <Icon
+        type="iconfont-shh"
+        style={{
+          color: globalColors.black_20,
+          marginLeft: globalMargins.tiny,
+          ...(isMobile ? {fontSize: 24} : {}),
+        }}
+      />
     </Box>
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
   </ScrollView>
 )
 
