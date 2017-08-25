@@ -609,13 +609,37 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	}
 }
 
+func (n *newConversationHelper) findConversations(ctx context.Context, membersType chat1.ConversationMembersType, topicName string) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+	onechatpertlf := true
+	return FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType, membersType, n.vis, topicName, &onechatpertlf)
+}
+
+func (n *newConversationHelper) findExisting(ctx context.Context, topicName string) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	// if IMPTEAM, check if a KBFS conversation exists already
+	if n.membersType == chat1.ConversationMembersType_IMPTEAM {
+		convs, rl, err := n.findConversations(ctx, chat1.ConversationMembersType_KBFS, topicName)
+		if err != nil {
+			n.Debug(ctx, "error looking for KBFS conversation for IMPTEAM: %s", err)
+		} else if len(convs) == 1 {
+			// If we find one conversation, then just return it as if we created it.
+			n.Debug(ctx, "IMPTEAM conv requested, but found previous KBFS conversation that matches, returning (%s)", n.tlfName)
+			return convs, rl, nil
+		}
+
+		n.Debug(ctx, "no KBFS conversation found for IMPTEAM (%s)", n.tlfName)
+	}
+
+	// proceed to findConversations for requested member type
+	return n.findConversations(ctx, n.membersType, topicName)
+}
+
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, rl []chat1.RateLimit, reserr error) {
 	defer n.Trace(ctx, func() error { return reserr }, "newConversationHelper")()
 	// Handle a nil topic name with default values for the members type specified
 	if n.topicName == nil {
 		// We never want a blank topic name in team chats, always default to the default team name
 		switch n.membersType {
-		case chat1.ConversationMembersType_TEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 			n.topicName = &DefaultTeamTopic
 		}
 	}
@@ -631,12 +655,35 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
-	onechatpertlf := true
-	convs, irl, err := FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType,
-		n.membersType, n.vis, findConvsTopicName, &onechatpertlf)
-	if err != nil {
-		return res, rl, err
-	}
+
+	convs, irl, err := n.findExisting(ctx, findConvsTopicName)
+
+	/*
+		// check if a KBFS conversation exists for an IMPTEAM
+		if n.membersType == chat1.ConversationMembersType_IMPTEAM {
+			convs, irl, err := FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType,
+				chat1.ConversationMembersType_KBFS, n.vis, findConvsTopicName, &onechatpertlf)
+			if err != nil {
+				return res, rl, err
+			}
+
+			// If we find one conversation, then just return it as if we created it.
+			rl = append(rl, irl...)
+			if len(convs) == 1 {
+				n.Debug(ctx, "IMPTEAM conv requested, but found previous KBFS conversation that matches, returning (%s)", n.tlfName)
+				return convs[0], rl, err
+			}
+
+			n.Debug(ctx, "no KBFS conversation found for IMPTEAM (%s)", n.tlfName)
+		}
+
+		// proceed to FindConversations for
+		convs, irl, err := FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType,
+			n.membersType, n.vis, findConvsTopicName, &onechatpertlf)
+		if err != nil {
+			return res, rl, err
+		}
+	*/
 
 	// If we find one conversation, then just return it as if we created it.
 	rl = append(rl, irl...)
@@ -644,6 +691,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		n.Debug(ctx, "found previous conversation that matches, returning")
 		return convs[0], rl, err
 	}
+
+	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
 
 	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType,
 		n.vis == chat1.TLFVisibility_PUBLIC)
