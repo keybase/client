@@ -358,6 +358,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
+	// Sign up two users, bob and alice.
 	alice := ctx.installKeybaseForUser("alice", 10)
 	alice.signup()
 	divDebug(ctx, "Signed up alice (%s)", alice.username)
@@ -365,6 +366,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 
+	// Create implicit team.
 	cli := alice.getTeamsClient()
 	arg := keybase1.LookupOrCreateImplicitTeamArg{
 		Name:   fmt.Sprintf("%s,%s", alice.username, bob.username),
@@ -375,46 +377,75 @@ func TestImplicitTeamUserReset(t *testing.T) {
 
 	divDebug(ctx, "Created implicit team %s\n", teamID)
 
+	// Reset bob and reprovision.
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
+	// Setup team loader on alice
 	G := alice.getPrimaryGlobalContext()
 	teams.NewTeamLoaderAndInstall(G)
-	team, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
-		ID:          teamID,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
 
-	teamName := team.Name().String()
-	divDebug(ctx, "Implicit team name is %s\n", teamName)
-
-	alice.reAddUserAfterReset(smuTeam{name: teamName}, bob)
-	divDebug(ctx, "Re-Added bob as an owner")
-
-	tryLoad := func() {
-		_, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
+	tryLoad := func(teamID keybase1.TeamID) *teams.Team {
+		team, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
 			ID:          teamID,
 			ForceRepoll: true,
 		})
 		require.NoError(t, err)
+		return team
 	}
 
-	tryLoad()
+	// Try load team, excercise team sigchain player and also get team
+	// name (needed for further team ops).
+	team := tryLoad(teamID)
 
+	teamName := team.Name().String()
+	divDebug(ctx, "Implicit team name is %s\n", teamName)
+
+	// Bob's role should be NONE since he's still reset.
+	role, err := teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+
+	// Alice re-adds bob.
+	alice.reAddUserAfterReset(smuTeam{name: teamName}, bob)
+	divDebug(ctx, "Re-Added bob as an owner")
+
+	// Check if sigchain still plays back correctly
+	tryLoad(teamID)
+
+	// Check if bob is back as OWNER.
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_OWNER)
+
+	// Reset and re-provision bob again.
 	bob.reset()
 	divDebug(ctx, "Reset bob again (%s) (poor bob)", bob.username)
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
-	tryLoad()
+	// Check if sigchain plays correctly, check if role is NONE.
+	tryLoad(teamID)
 
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+
+	// Alice re-adds bob, again.
 	alice.reAddUserAfterReset(smuTeam{name: teamName}, bob)
 	divDebug(ctx, "Re-Added bob as an owner again")
 
-	tryLoad()
+	// Check if sigchain plays correctly, at this point there are two
+	// sigs similar to:
+	//   "change_membership: { owner: ['xxxx%6'], none: ['xxxx%3'] }"
+	// with uids and eldest from before and after reset.
+	tryLoad(teamID)
+
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }
