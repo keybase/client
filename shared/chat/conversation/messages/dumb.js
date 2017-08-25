@@ -9,6 +9,7 @@ import {Box} from '../../../common-adapters'
 import {Map} from 'immutable'
 // import {TextPopupMenu, AttachmentPopupMenu} from './popup'
 import * as ChatConstants from '../../../constants/chat'
+import * as EntityConstants from '../../../constants/entities'
 import * as ChatCreators from '../../../actions/chat/creators'
 import chatReducer from '../../../reducers/chat'
 
@@ -420,8 +421,20 @@ mockState = chatReducer(
   )
 )
 
+const msgs = [firstMsg, secondMsg, pendingMessage, failedMessage]
+
 const mockStore = {
   chat: mockState,
+  entities: EntityConstants.StateRecord({
+    messages: Map(
+      msgs.reduce((acc, m) => {
+        acc[m.key] = m
+        return acc
+      }, {})
+    ),
+    conversationMessages: Map({[convID]: msgs.map(m => [m.key])}),
+    convIDToSnippet: Map({[convID]: 'Snippet here'}),
+  }),
 }
 
 const textContainerMock = (messageKey, override) => ({

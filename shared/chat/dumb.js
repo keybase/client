@@ -14,6 +14,7 @@ import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {RouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
+import * as EntityConstants from '../constants/entities'
 
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -192,6 +193,14 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       rekeyInfos: rekeyInfos || Map(),
       selectedConversation: null,
       supersededByState: Map(),
+    }),
+    entities: EntityConstants.StateRecord({
+      convIDToSnippet: Map(
+        inbox.reduce((acc, m) => {
+          acc[m.conversationIDKey] = m.snippet
+          return acc
+        }, {})
+      ),
     }),
     config: {
       username: 'chris',
