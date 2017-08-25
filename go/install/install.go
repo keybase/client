@@ -62,12 +62,14 @@ const (
 	ComponentNameHelper ComponentName = "helper"
 	// ComponentNameMountDir is the mount directory
 	ComponentNameMountDir ComponentName = "mountdir"
+	// ComponentNameCLIPaths is for /etc/paths.d/Keybase
+	ComponentNameCLIPaths ComponentName = "clipaths"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
 
 // ComponentNames are all the valid component names
-var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM}
+var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM, ComponentNameCLIPaths}
 
 // String returns string for ComponentName
 func (c ComponentName) String() string {
@@ -93,6 +95,8 @@ func (c ComponentName) Description() string {
 		return "Privileged Helper Tool"
 	case ComponentNameKBNM:
 		return "Browser Native Messaging"
+	case ComponentNameCLIPaths:
+		return "Command Line (privileged)"
 	}
 	return "Unknown"
 }
@@ -116,6 +120,8 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameFuse
 	case string(ComponentNameHelper):
 		return ComponentNameHelper
+	case string(ComponentNameCLIPaths):
+		return ComponentNameCLIPaths
 	}
 	return ComponentNameUnknown
 }

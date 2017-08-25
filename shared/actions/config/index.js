@@ -11,6 +11,7 @@ import {
 } from '../../constants/types/flow-types'
 import {isMobile, isSimulator} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
+import {fuseStatus} from '../../actions/kbfs'
 import {navBasedOnLoginState} from '../../actions/login/creators'
 import {
   checkReachabilityOnConnect,
@@ -151,7 +152,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
-    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS())])
+    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS()), dispatch(fuseStatus())])
       .then(() => {
         dispatch({type: 'config:bootstrapSuccess', payload: undefined})
         engine().listenOnDisconnect('daemonError', () => {

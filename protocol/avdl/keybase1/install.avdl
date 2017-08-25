@@ -62,6 +62,7 @@ protocol install {
   record ComponentResult {
     string name;
     Status status;
+    int exitCode;
   }
 
   record InstallResult {
@@ -75,4 +76,29 @@ protocol install {
     Status status;
   }
 
+  /*
+    Return status for Fuse install.
+    If you specify bundleVersion, it will tell you if an upgrade is needed.
+   */
+  FuseStatus fuseStatus(int sessionID, string bundleVersion);
+
+  /*
+    Install Fuse.
+   */
+  InstallResult installFuse();
+
+  /*
+    Install KBFS (including mount).
+   */
+  InstallResult installKBFS();
+
+  /*
+    Uninstalls KBFS (and Fuse, mount).
+   */
+  UninstallResult uninstallKBFS();
+
+  /*
+    Install command line via privileged helper.
+   */
+  InstallResult installCommandLinePrivileged();
 }

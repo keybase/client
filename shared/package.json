@@ -76,6 +76,7 @@
     "glamorous-native": "1.1.1",
     "iced-runtime": "1.0.3",
     "immutable": "3.8.1",
+    "jsonfile": "^3.0.1",
     "lodash": "4.17.4",
     "menubar": "5.2.3",
     "mkdirp": "0.5.1",
@@ -164,5 +165,8 @@
     "webpack-dashboard": "0.4.0",
     "webpack-dev-server": "2.7.1",
     "webpack-merge": "4.1.0"
+  },
+  "optionalDependencies": {
+    "regedit": "2.2.7"
   }
 }

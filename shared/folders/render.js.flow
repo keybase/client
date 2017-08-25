@@ -18,6 +18,7 @@ export type Props = {
   onOpen?: (path: string) => void,
   onRekey: (path: string) => void,
   onToggleShowIgnored: () => void,
+  showSecurityPrefs?: boolean,
 }
 
 export default class Render extends React.Component<Props> {}

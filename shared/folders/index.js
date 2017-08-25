@@ -53,10 +53,10 @@ type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
 
 const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
-  username: state.config.username,
   folderState: state.favorite ? state.favorite.folderState : null,
-  showingPrivate: !!state.favorite && showingPrivate,
   showingIgnored: !!state.favorite && routeState.showingIgnored,
+  showingPrivate: !!state.favorite && showingPrivate,
+  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({

@@ -4,10 +4,15 @@ import {FavoriteFolderType} from '../constants/types/flow-types'
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
 
 import type {Exact} from '../constants/types/more'
-import type {Folder as FolderRPC} from '../constants/types/flow-types'
+import type {Folder as FolderRPC, FuseStatus} from '../constants/types/flow-types'
 import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
 import type {UserList} from '../common-adapters/usernames'
+
+// See KBDefines.h: KBExitFuseKextError
+export const ExitCodeFuseKextError = 4
+// See KBDefines.h: KBExitFuseKextPermissionError
+export const ExitCodeFuseKextPermissionError = 5
 
 type ListState = any
 // TODO this is super messy and there some entangled flow error. let's revisit this soon
@@ -45,8 +50,14 @@ export type KBFSStatus = {
 
 export type State = Exact<{
   folderState: FolderState,
-  viewState: ViewState,
+  fuseInstalling: boolean,
+  fuseStatus: ?FuseStatus,
+  fuseStatusLoading: boolean,
+  kbfsInstalling: boolean,
+  kbfsOpening: boolean,
   kbfsStatus: KBFSStatus,
+  kextPermissionError: boolean,
+  viewState: ViewState,
 }>
 
 export const favoriteAdd = 'favorite:favoriteAdd'

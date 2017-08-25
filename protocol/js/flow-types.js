@@ -194,6 +194,8 @@ export const ConstantsStatusCode = {
   scinvalidlocationerror: 1802,
   scservicestatuserror: 1803,
   scinstallerror: 1804,
+  scloadkexterror: 1810,
+  scloadkextpermerror: 1811,
   scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
@@ -1415,6 +1417,46 @@ export function identifyResolveRpcChannelMap (configKeys: Array<string>, request
 
 export function identifyResolveRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam})): Promise<identifyResolveResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
+}
+
+export function installFuseStatusRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam})): Promise<installFuseStatusResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.fuseStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallCommandLinePrivilegedRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installInstallCommandLinePrivilegedResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installCommandLinePrivileged', request)
+}
+
+export function installInstallCommandLinePrivilegedRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installInstallCommandLinePrivilegedResult) => void})): Promise<installInstallCommandLinePrivilegedResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallFuseRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installInstallFuseResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installFuse', request)
+}
+
+export function installInstallFuseRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installInstallFuseResult) => void})): Promise<installInstallFuseResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installFuse', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallKBFSRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
+}
+
+export function installInstallKBFSRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void})): Promise<installInstallKBFSResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installUninstallKBFSRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.uninstallKBFS', request)
+}
+
+export function installUninstallKBFSRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void})): Promise<installUninstallKBFSResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.uninstallKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function kbfsFSEditListRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}): EngineChannel {
@@ -2765,6 +2807,7 @@ export type ClientType =
 export type ComponentResult = {
   name: string,
   status: Status,
+  exitCode: int,
 }
 
 export type Config = {
@@ -4343,6 +4386,8 @@ export type StatusCode =
   | 1802 // SCInvalidLocationError_1802
   | 1803 // SCServiceStatusError_1803
   | 1804 // SCInstallError_1804
+  | 1810 // SCLoadKextError_1810
+  | 1811 // SCLoadKextPermError_1811
   | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
@@ -5207,6 +5252,10 @@ export type identifyUiStartRpcParam = Exact<{
   forceDisplay?: boolean
 }>
 
+export type installFuseStatusRpcParam = Exact<{
+  bundleVersion: string
+}>
+
 export type kbfsFSEditListRpcParam = Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
@@ -6027,6 +6076,11 @@ type identifyResolve3Result = UserOrTeamLite
 type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
+type installFuseStatusResult = FuseStatus
+type installInstallCommandLinePrivilegedResult = InstallResult
+type installInstallFuseResult = InstallResult
+type installInstallKBFSResult = InstallResult
+type installUninstallKBFSResult = UninstallResult
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
