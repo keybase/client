@@ -12,6 +12,13 @@ function createFolder(partialFolder: $Shape<Folder>) {
   return {...partialFolder, ...pathFromFolder(partialFolder)}
 }
 
+const mockStore = {
+  favorite: {
+    fuseStatus: null,
+    kextPermissionError: false,
+  },
+}
+
 const mockUsers = [
   {username: 'cecileb', you: true},
   {username: 'jeresig', broken: true},
@@ -303,6 +310,7 @@ const filesMenuItems = [
 ]
 
 const commonFiles = (isPrivate): FilesProps => ({
+  mockStore,
   theme: isPrivate ? 'private' : 'public',
   ignored: false,
   allowIgnore: true,
