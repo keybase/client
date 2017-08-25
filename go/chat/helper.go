@@ -639,10 +639,13 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	if n.topicName == nil {
 		// We never want a blank topic name in team chats, always default to the default team name
 		switch n.membersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_TEAM:
 			n.topicName = &DefaultTeamTopic
 		}
+	} else if n.membersType == chat1.ConversationMembersType_IMPTEAM {
+		return res, rl, errors.New("no topic name allowed for implicit teams")
 	}
+
 	var findConvsTopicName string
 	if n.topicName != nil {
 		findConvsTopicName = *n.topicName
@@ -658,39 +661,14 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 	convs, irl, err := n.findExisting(ctx, findConvsTopicName)
 
-	/*
-		// check if a KBFS conversation exists for an IMPTEAM
-		if n.membersType == chat1.ConversationMembersType_IMPTEAM {
-			convs, irl, err := FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType,
-				chat1.ConversationMembersType_KBFS, n.vis, findConvsTopicName, &onechatpertlf)
-			if err != nil {
-				return res, rl, err
-			}
-
-			// If we find one conversation, then just return it as if we created it.
-			rl = append(rl, irl...)
-			if len(convs) == 1 {
-				n.Debug(ctx, "IMPTEAM conv requested, but found previous KBFS conversation that matches, returning (%s)", n.tlfName)
-				return convs[0], rl, err
-			}
-
-			n.Debug(ctx, "no KBFS conversation found for IMPTEAM (%s)", n.tlfName)
-		}
-
-		// proceed to FindConversations for
-		convs, irl, err := FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType,
-			n.membersType, n.vis, findConvsTopicName, &onechatpertlf)
-		if err != nil {
-			return res, rl, err
-		}
-	*/
-
 	// If we find one conversation, then just return it as if we created it.
 	rl = append(rl, irl...)
 	if len(convs) == 1 {
 		n.Debug(ctx, "found previous conversation that matches, returning")
 		return convs[0], rl, err
 	}
+
+	// XXX if KBFS, return an error...need to use IMPTEAM now
 
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
 
