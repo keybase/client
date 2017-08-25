@@ -53,6 +53,9 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
+  _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
+    dispatch(Creators.leaveConversation(conversationIDKey))
+  },
   _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
   },
@@ -85,6 +88,12 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
   onAddParticipant: () => dispatchProps._onAddParticipant(stateProps.participants.map(p => p.username)),
+  onLeaveConversation: stateProps.selectedConversationIDKey &&
+    !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
+    ? () =>
+        stateProps.selectedConversationIDKey &&
+        dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
+    : null,
   onMuteConversation: stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
     ? (muted: boolean) =>
