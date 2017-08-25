@@ -678,10 +678,26 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
 
-	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType,
-		n.vis == chat1.TLFVisibility_PUBLIC)
+	isPublic := n.vis == chat1.TLFVisibility_PUBLIC
+	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
 	if err != nil {
-		return res, rl, err
+		if n.membersType != chat1.ConversationMembersType_IMPTEAM {
+			return res, rl, err
+		}
+		if _, ok := err.(teams.TeamDoesNotExistError); !ok {
+			return res, rl, err
+		}
+
+		// couldn't find implicit team, so make one
+		n.Debug(ctx, "making new implicit team %q", n.tlfName)
+		_, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
+		if err != nil {
+			return res, rl, err
+		}
+		info, err = CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
+		if err != nil {
+			return res, rl, err
+		}
 	}
 
 	triple := chat1.ConversationIDTriple{

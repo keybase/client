@@ -129,7 +129,7 @@ func (c ChatChannel) GetMembersType() chat1.ConversationMembersType {
 	if typ, ok := chat1.ConversationMembersTypeMap[strings.ToUpper(c.MembersType)]; ok {
 		return typ
 	}
-	return chat1.ConversationMembersType_KBFS
+	return chat1.ConversationMembersType_IMPTEAM
 }
 
 // ChatMessage represents a text message to be sent.

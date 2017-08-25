@@ -164,7 +164,7 @@ func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResol
 	}
 	switch *userOrTeamResult {
 	case keybase1.UserOrTeamResult_USER:
-		req.MembersType = chat1.ConversationMembersType_KBFS
+		req.MembersType = chat1.ConversationMembersType_IMPTEAM
 	case keybase1.UserOrTeamResult_TEAM:
 		req.MembersType = chat1.ConversationMembersType_TEAM
 	}
