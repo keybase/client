@@ -10,20 +10,18 @@ import Participants from './participants'
 import type {Props} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
-const containerStyle = isMobile
-  ? {
-      flex: 1,
-    }
-  : {
-      backgroundColor: globalColors.white,
-      borderLeft: border,
-      borderRight: border,
-      flex: 1,
-    }
-
 const _InfoPanel = (props: Props) => (
   <ScrollView
-    style={containerStyle}
+    style={{
+      flex: 1,
+      ...(isMobile
+        ? {}
+        : {
+            backgroundColor: globalColors.white,
+            borderLeft: border,
+            borderRight: border,
+          }),
+    }}
     contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
   >
     <Participants
