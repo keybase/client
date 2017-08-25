@@ -20,7 +20,6 @@ const containerStyle = isMobile
       borderRight: border,
       flex: 1,
       marginTop: -1,
-      overflowY: 'auto',
     }
 
 const _InfoPanel = (props: Props) => (
