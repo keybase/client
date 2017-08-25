@@ -37,8 +37,8 @@ const getParticipants = createSelector(
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const inbox = Constants.getSelectedInbox(state)
-  const channelname = inbox.get('channelname')
-  const teamname = inbox.get('teamname')
+  const channelname = inbox ? inbox.get('channelname') : ''
+  const teamname = inbox ? inbox.get('teamname') : ''
   const showTeamButton = flags.teamChatEnabled
 
   return {
