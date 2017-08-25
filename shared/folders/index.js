@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import {favoriteList} from '../actions/favorite'
-import {openInKBFS} from '../actions/kbfs'
+import {openInKBFS, fuseStatus} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
 
 import {switchTo, navigateAppend} from '../actions/route-tree'
@@ -57,6 +57,9 @@ const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnPro
   showingIgnored: !!state.favorite && routeState.showingIgnored,
   showingPrivate: !!state.favorite && showingPrivate,
   username: state.config.username,
+  showSecurityPrefs: state.favorite.fuseStatus &&
+    state.favorite.fuseStatus.kextStarted &&
+    state.favorite.kextPermissionError,
 })
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({
@@ -68,6 +71,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   switchTab: showingPrivate =>
     dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))),
   onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.showingIgnored}),
+  fuseStatus: () => dispatch(fuseStatus()),
 })
 
 const ConnectedFolders = pausableConnect(mapStateToProps, mapDispatchToProps)(Folders)
