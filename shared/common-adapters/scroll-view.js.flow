@@ -1,4 +1,8 @@
 // @flow
 import {Component} from 'react'
 
-export default class ScrollView extends Component<any> {}
+export type Props = {
+  style?: Object,
+}
+
+export default class ScrollView extends Component<Props> {}
