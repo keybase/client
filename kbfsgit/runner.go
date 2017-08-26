@@ -97,7 +97,10 @@ type runner struct {
 }
 
 // newRunner creates a new runner for git commands.  It expects `repo`
-// to be in the form "keybase://private/user/reponame".
+// to be in the form "keybase://private/user/reponame".  `remote`
+// is the local name assigned to that URL, while `gitDir` is the
+// filepath leading to the .git directory of the caller's local
+// on-disk repo
 func newRunner(ctx context.Context, config libkbfs.Config,
 	remote, repo, gitDir string, input io.Reader, output io.Writer) (
 	*runner, error) {
