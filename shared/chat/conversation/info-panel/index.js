@@ -72,7 +72,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
       : null}
 
     {props.showTeamButton
-      ? <Text style={{alignSelf: 'center', marginTop: 20}} type="BodySmall">
+      ? <Text style={{alignSelf: 'center', marginTop: globalMargins.tiny}} type="BodySmall">
           You'll be able to add and delete members as you wish.
         </Text>
       : null}
