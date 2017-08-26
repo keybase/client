@@ -16,7 +16,6 @@ type Props = {
   style?: ?Object,
 }
 
-// TODO: Might be too much marginBottom when onAddParticipant is null.
 const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, ...style}}>
     {participants.map((info, index, arr) => {

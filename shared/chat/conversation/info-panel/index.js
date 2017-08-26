@@ -60,12 +60,12 @@ const MuteRow = (props: muteRowProps) => (
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants
-        participants={props.participants}
-        onAddParticipant={props.showTeamButton ? null : props.onAddParticipant}
-        onShowProfile={props.onShowProfile}
+      participants={props.participants}
+      onAddParticipant={props.showTeamButton ? null : props.onAddParticipant}
+      onShowProfile={props.onShowProfile}
     />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
 
     {props.showTeamButton
       ? <Button type="Primary" label="Turn into team" onClick={props.onShowNewTeamDialog} />
