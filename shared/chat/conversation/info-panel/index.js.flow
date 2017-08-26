@@ -19,6 +19,7 @@ type infoPanelProps = {
 
 export type SmallTeamInfoPanelProps = infoPanelProps & {
   onShowBlockConversationDialog: () => void,
+  onShowNewTeamDialog: () => void,
 }
 
 export class SmallTeamInfoPanel extends Component<SmallTeamInfoPanelProps> {}
