@@ -500,7 +500,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		if e == nil {
 			result = fmt.Sprintf("ok %s", d)
 		} else {
-			result = fmt.Sprintf("error %s %s", d, err.Error())
+			result = fmt.Sprintf("error %s %s", d, e.Error())
 		}
 		_, err = r.output.Write([]byte(result + "\n"))
 	}
