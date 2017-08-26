@@ -164,60 +164,52 @@ function* installFuseSaga(): SagaGenerator<any, any> {
   yield put(finishedAction)
 }
 
+function findKeybaseUninstallString(): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const regedit = require('regedit')
+    regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall')
+    .on('data', function(entry) {
+      for (var keyName of entry.data.keys) {
+        regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + keyName)
+        .on('data', function(entry) {
+          if (entry.data.values.DisplayName &&
+            entry.data.values.DisplayName.value === 'Keybase' &&
+            entry.data.values.Publisher && entry.data.values.Publisher.value === 'Keybase, Inc.' &&
+            entry.data.values.ModifyPath) {
+            var modifyPath = entry.data.values.ModifyPath.value
+            // Remove double quotes - won't work otherwise
+            modifyPath = modifyPath.replace(/"/g, '')
+            // Remove /modify and send it in with the other arguments, below
+            modifyPath = modifyPath.replace(' /modify', '')
+            resolve(modifyPath)
+          }
+        })
+      }
+    })
+  })
+}
+
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
 function installCachedDokan(): Promise<*> {
-  return new Promise((resolve, reject) => {
-    const regedit = require('regedit')
-    regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
-      if (err) {
-        reject(err)
-      } else {
-        var programKeyNames =
-          programKeys['HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'].keys
+  return new Promise( async (resolve, reject) => {
+    var programKeyNames = []
+    var modifyCommand = await findKeybaseUninstallString()
 
-        for (var keyName of programKeyNames) {
-          var programKey = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + keyName
-
-          regedit.list(programKey, (err, program) => {
-            if (err) {
-              reject(err)
-            } else {
-              for (var p in program) {
-                var vals = program[p]
-                var displayName, publisher
-                var modifyPath = ''
-                for (var v in vals) {
-                  if (vals[v]['DisplayName']) {
-                    displayName = vals[v]['DisplayName'].value
-                  }
-                  if (vals[v]['Publisher']) {
-                    publisher = vals[v]['Publisher'].value
-                  }
-                  if (vals[v]['ModifyPath']) {
-                    modifyPath = vals[v]['ModifyPath'].value
-                  }
-                }
-                if (displayName === 'Keybase' && publisher === 'Keybase, Inc.') {
-                  // Remove double quotes - won't work otherwise
-                  modifyPath = modifyPath.replace(/"/g, '')
-                  // Remove /modify and send it in with the other arguments, below
-                  modifyPath = modifyPath.replace(' /modify', '')
-                  console.log(modifyPath)
-                  execFile(modifyPath, [
-                    '/modify',
-                    'driver=1',
-                    'modifyprompt=Press "Repair" to view files in Explorer',
-                  ])
-                  resolve()
-                }
-              }
-            }
-          })
-        }
-      }
-    })
+    if(modifyCommand) {
+      console.log(modifyCommand)
+      execFile(modifyCommand, [
+        '/modify',
+        'driver=1',
+        'modifyprompt=Press "Repair" to view files in Explorer',
+      ])
+      resolve()
+    } else {
+      const err = new Error("Can't find Keybase uninstall string")
+      console.log(err)
+      reject(err)
+    }
   })
 }
 
