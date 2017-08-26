@@ -281,35 +281,6 @@ func (o IdentifyOutcome) DeepCopy() IdentifyOutcome {
 	}
 }
 
-type IdentifyRes struct {
-	User       *User           `codec:"user,omitempty" json:"user,omitempty"`
-	PublicKeys []PublicKey     `codec:"publicKeys" json:"publicKeys"`
-	Outcome    IdentifyOutcome `codec:"outcome" json:"outcome"`
-	TrackToken TrackToken      `codec:"trackToken" json:"trackToken"`
-}
-
-func (o IdentifyRes) DeepCopy() IdentifyRes {
-	return IdentifyRes{
-		User: (func(x *User) *User {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.User),
-		PublicKeys: (func(x []PublicKey) []PublicKey {
-			var ret []PublicKey
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.PublicKeys),
-		Outcome:    o.Outcome.DeepCopy(),
-		TrackToken: o.TrackToken.DeepCopy(),
-	}
-}
-
 type RemoteProof struct {
 	ProofType     ProofType `codec:"proofType" json:"proofType"`
 	Key           string    `codec:"key" json:"key"`

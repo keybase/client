@@ -5,6 +5,7 @@ package keybase1
 
 import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	context "golang.org/x/net/context"
 )
 
 // Install status describes state of install for a component or service.
@@ -168,14 +169,16 @@ func (o FuseStatus) DeepCopy() FuseStatus {
 }
 
 type ComponentResult struct {
-	Name   string `codec:"name" json:"name"`
-	Status Status `codec:"status" json:"status"`
+	Name     string `codec:"name" json:"name"`
+	Status   Status `codec:"status" json:"status"`
+	ExitCode int    `codec:"exitCode" json:"exitCode"`
 }
 
 func (o ComponentResult) DeepCopy() ComponentResult {
 	return ComponentResult{
-		Name:   o.Name,
-		Status: o.Status.DeepCopy(),
+		Name:     o.Name,
+		Status:   o.Status.DeepCopy(),
+		ExitCode: o.ExitCode,
 	}
 }
 
@@ -219,16 +222,147 @@ func (o UninstallResult) DeepCopy() UninstallResult {
 	}
 }
 
+type FuseStatusArg struct {
+	SessionID     int    `codec:"sessionID" json:"sessionID"`
+	BundleVersion string `codec:"bundleVersion" json:"bundleVersion"`
+}
+
+func (o FuseStatusArg) DeepCopy() FuseStatusArg {
+	return FuseStatusArg{
+		SessionID:     o.SessionID,
+		BundleVersion: o.BundleVersion,
+	}
+}
+
+type InstallFuseArg struct {
+}
+
+func (o InstallFuseArg) DeepCopy() InstallFuseArg {
+	return InstallFuseArg{}
+}
+
+type InstallKBFSArg struct {
+}
+
+func (o InstallKBFSArg) DeepCopy() InstallKBFSArg {
+	return InstallKBFSArg{}
+}
+
+type UninstallKBFSArg struct {
+}
+
+func (o UninstallKBFSArg) DeepCopy() UninstallKBFSArg {
+	return UninstallKBFSArg{}
+}
+
+type InstallCommandLinePrivilegedArg struct {
+}
+
+func (o InstallCommandLinePrivilegedArg) DeepCopy() InstallCommandLinePrivilegedArg {
+	return InstallCommandLinePrivilegedArg{}
+}
+
 type InstallInterface interface {
+	FuseStatus(context.Context, FuseStatusArg) (FuseStatus, error)
+	InstallFuse(context.Context) (InstallResult, error)
+	InstallKBFS(context.Context) (InstallResult, error)
+	UninstallKBFS(context.Context) (UninstallResult, error)
+	InstallCommandLinePrivileged(context.Context) (InstallResult, error)
 }
 
 func InstallProtocol(i InstallInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name:    "keybase.1.install",
-		Methods: map[string]rpc.ServeHandlerDescription{},
+		Name: "keybase.1.install",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"fuseStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]FuseStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FuseStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FuseStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.FuseStatus(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"installFuse": {
+				MakeArg: func() interface{} {
+					ret := make([]InstallFuseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.InstallFuse(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"installKBFS": {
+				MakeArg: func() interface{} {
+					ret := make([]InstallKBFSArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.InstallKBFS(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"uninstallKBFS": {
+				MakeArg: func() interface{} {
+					ret := make([]UninstallKBFSArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.UninstallKBFS(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"installCommandLinePrivileged": {
+				MakeArg: func() interface{} {
+					ret := make([]InstallCommandLinePrivilegedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.InstallCommandLinePrivileged(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
 	}
 }
 
 type InstallClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c InstallClient) FuseStatus(ctx context.Context, __arg FuseStatusArg) (res FuseStatus, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.fuseStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c InstallClient) InstallFuse(ctx context.Context) (res InstallResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.installFuse", []interface{}{InstallFuseArg{}}, &res)
+	return
+}
+
+func (c InstallClient) InstallKBFS(ctx context.Context) (res InstallResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.installKBFS", []interface{}{InstallKBFSArg{}}, &res)
+	return
+}
+
+func (c InstallClient) UninstallKBFS(ctx context.Context) (res UninstallResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.uninstallKBFS", []interface{}{UninstallKBFSArg{}}, &res)
+	return
+}
+
+func (c InstallClient) InstallCommandLinePrivileged(ctx context.Context) (res InstallResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.install.installCommandLinePrivileged", []interface{}{InstallCommandLinePrivilegedArg{}}, &res)
+	return
 }
