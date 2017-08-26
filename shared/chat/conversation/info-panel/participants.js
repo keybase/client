@@ -1,13 +1,12 @@
 // @flow
 import * as React from 'react'
-import {List} from 'immutable'
 import {Box, ClickableBox, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
   onAddParticipant: ?() => void,
   onShowProfile: (user: string) => void,
-  participants: List<{
+  participants: Array<{
     username: string,
     following: boolean,
     fullname: string,
@@ -44,7 +43,7 @@ const Participants = ({participants, onShowProfile, onAddParticipant, style}: Pr
                 {fullname}
               </Text>
             </Box>
-            {index < arr.count() - 1 || onAddParticipant ? <Divider style={{marginLeft: 44}} /> : null}
+            {index < arr.length - 1 || onAddParticipant ? <Divider style={{marginLeft: 44}} /> : null}
           </Box>
         </ClickableBox>
       )
