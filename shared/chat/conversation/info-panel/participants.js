@@ -35,10 +35,10 @@ const Participants = ({participants, onShowProfile, onAddParticipant, style}: Pr
               <Usernames
                 colorFollowing={true}
                 type="BodySemibold"
-                users={[{username, you: isYou, following, broken}]}
+                users={[{broken, following, username, you: isYou}]}
                 containerStyle={{marginLeft: 12}}
               />
-              <Text type="BodySmall" style={{marginLeft: globalMargins.tiny, flex: 1, textAlign: 'right'}}>
+              <Text type="BodySmall" style={{flex: 1, marginLeft: globalMargins.tiny, textAlign: 'right'}}>
                 {fullname}
               </Text>
             </Box>
