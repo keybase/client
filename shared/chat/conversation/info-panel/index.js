@@ -67,9 +67,17 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Button type="Primary" label="Turn into team" onClick={props.onShowNewTeamDialog} />
+    {props.showTeamButton
+      ? <Button type="Primary" label="Turn into team" onClick={props.onShowNewTeamDialog} />
+      : null}
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    {props.showTeamButton
+      ? <Text type="BodySmall">
+          You'll be able to add and delete members as you wish.'
+        </Text>
+      : null}
+
+    {props.showTeamButton ? <Divider style={{marginBottom: 20, marginTop: 20}} /> : null}
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute notifications" />
 
