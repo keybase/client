@@ -17,9 +17,10 @@ type Props = {
   style?: ?Object,
 }
 
+// TODO: Might be too much marginBottom when onAddParticipant is null.
 const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, ...style}}>
-    {participants.map(info => {
+    {participants.map((info, index, arr) => {
       const {username, following, fullname, broken, isYou} = info
       return (
         <ClickableBox key={username} onClick={() => onShowProfile(username)}>
@@ -43,7 +44,7 @@ const Participants = ({participants, onShowProfile, onAddParticipant, style}: Pr
                 {fullname}
               </Text>
             </Box>
-            <Divider style={{marginLeft: 44}} />
+            {index < arr.count() - 1 || onAddParticipant ? <Divider style={{marginLeft: 44}} /> : null}
           </Box>
         </ClickableBox>
       )
