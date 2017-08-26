@@ -60,9 +60,9 @@ const MuteRow = (props: muteRowProps) => (
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants
-      participants={props.participants}
-      onAddParticipant={props.onAddParticipant}
-      onShowProfile={props.onShowProfile}
+        participants={props.participants}
+        onAddParticipant={props.showTeamButton ? null : props.onAddParticipant}
+        onShowProfile={props.onShowProfile}
     />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />

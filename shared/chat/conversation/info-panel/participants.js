@@ -5,7 +5,7 @@ import {Box, ClickableBox, Avatar, Text, Usernames, Divider, Icon} from '../../.
 import {globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
-  onAddParticipant: () => void,
+  onAddParticipant: ?() => void,
   onShowProfile: (user: string) => void,
   participants: List<{
     username: string,
@@ -48,12 +48,14 @@ const Participants = ({participants, onShowProfile, onAddParticipant, style}: Pr
         </ClickableBox>
       )
     })}
-    <ClickableBox onClick={() => onAddParticipant()}>
-      <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Icon type="icon-user-add-32" style={{marginRight: 12}} />
-        <Text type="BodyPrimaryLink" onClick={() => onAddParticipant()}>Add another participant</Text>
-      </Box>
-    </ClickableBox>
+    {onAddParticipant
+      ? <ClickableBox onClick={onAddParticipant}>
+          <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <Icon type="icon-user-add-32" style={{marginRight: 12}} />
+            <Text type="BodyPrimaryLink" onClick={onAddParticipant}>Add another participant</Text>
+          </Box>
+        </ClickableBox>
+      : null}
   </Box>
 )
 
