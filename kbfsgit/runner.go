@@ -136,7 +136,7 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	if err != nil {
 		return nil, err
 	}
-	uniqID := session.VerifyingKey.String() + "-" + string(os.Getpid())
+	uniqID := fmt.Sprintf("%s-%d", session.VerifyingKey.String(), os.Getpid())
 
 	return &runner{
 		config: config,
@@ -357,7 +357,9 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 		URLs: []string{r.gitDir},
 	})
 
-	for _, fetch := range args {
+	var refSpecs []gogitcfg.RefSpec
+	var deleteRefSpecs []gogitcfg.RefSpec
+	for i, fetch := range args {
 		if len(fetch) != 2 {
 			return errors.Errorf("Bad fetch request: %v", fetch)
 		}
@@ -366,32 +368,35 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 		// Push into a local ref with a temporary name, because the
 		// git process that invoked us will get confused if we make a
 		// ref with the same name.  Later, delete this temporary ref.
-		localTempRef := plumbing.ReferenceName(refInBareRepo).Short() +
-			"-" + r.uniqID
+		localTempRef := fmt.Sprintf("%s-%s-%d",
+			plumbing.ReferenceName(refInBareRepo).Short(), r.uniqID, i)
 		refSpec := fmt.Sprintf(
 			"%s:refs/remotes/%s/%s", refInBareRepo, r.remote, localTempRef)
 		r.log.CDebugf(ctx, "Fetching %s", refSpec)
 
-		// Now "push" into the local repo to get it to store objects
-		// from the KBFS bare repo.
-		err = remote.Push(&gogit.PushOptions{
-			RemoteName: localRepoRemoteName,
-			RefSpecs:   []gogitcfg.RefSpec{gogitcfg.RefSpec(refSpec)},
-		})
-		if err != nil && err != gogit.NoErrAlreadyUpToDate {
-			return err
-		}
+		refSpecs = append(refSpecs, gogitcfg.RefSpec(refSpec))
+		deleteRefSpecs = append(deleteRefSpecs, gogitcfg.RefSpec(
+			fmt.Sprintf(":refs/remotes/%s/%s", r.remote, localTempRef)))
+	}
 
-		// Delete the temporary refspec now that the objects are
-		// safely stored in the local repo.
-		refSpec = fmt.Sprintf(":refs/remotes/%s/%s", r.remote, localTempRef)
-		err = remote.Push(&gogit.PushOptions{
-			RemoteName: localRepoRemoteName,
-			RefSpecs:   []gogitcfg.RefSpec{gogitcfg.RefSpec(refSpec)},
-		})
-		if err != nil && err != gogit.NoErrAlreadyUpToDate {
-			return err
-		}
+	// Now "push" into the local repo to get it to store objects
+	// from the KBFS bare repo.
+	err = remote.PushContext(ctx, &gogit.PushOptions{
+		RemoteName: localRepoRemoteName,
+		RefSpecs:   refSpecs,
+	})
+	if err != nil && err != gogit.NoErrAlreadyUpToDate {
+		return err
+	}
+
+	// Delete the temporary refspecs now that the objects are
+	// safely stored in the local repo.
+	err = remote.PushContext(ctx, &gogit.PushOptions{
+		RemoteName: localRepoRemoteName,
+		RefSpecs:   deleteRefSpecs,
+	})
+	if err != nil && err != gogit.NoErrAlreadyUpToDate {
+		return err
 	}
 
 	err = r.waitForJournal(ctx)
@@ -446,6 +451,9 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	})
 
 	results := make(map[string]error, len(args))
+	// We don't batch the pushes together, because the protocol
+	// requires a separate ok/error line for each individual ref, and
+	// we can't get that with a batched fetch operation.
 	for _, push := range args {
 		if len(push) != 1 {
 			return errors.Errorf("Bad push request: %v", push)
@@ -475,7 +483,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			}
 			err = repo.Storer.RemoveReference(plumbing.ReferenceName(dst))
 		} else {
-			err = remote.Fetch(&gogit.FetchOptions{
+			err = remote.FetchContext(ctx, &gogit.FetchOptions{
 				RemoteName: localRepoRemoteName,
 				RefSpecs:   []gogitcfg.RefSpec{refspec},
 			})
