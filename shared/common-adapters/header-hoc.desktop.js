@@ -31,7 +31,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
               <Text type="Header">{title}</Text>
             </Box>}
         </Box>
-        <WrappedComponent {...(props: P)} theme={theme} onBack={onBack} onCancel={onCancel} />
+        <WrappedComponent {...(props: P)} />
       </Box>
     )
   }

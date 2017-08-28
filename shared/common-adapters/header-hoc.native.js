@@ -27,7 +27,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
         </Box>
         <Box style={_wrapperStyle}>
           <Box style={_wrapper2Style}>
-            <WrappedComponent {...(props: P)} theme={theme} onBack={onBack} onCancel={onCancel} />
+            <WrappedComponent {...(props: P)} />
           </Box>
         </Box>
       </Box>
