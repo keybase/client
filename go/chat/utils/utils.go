@@ -665,6 +665,7 @@ func DecodePagination(p *chat1.UIPagination) (res *chat1.Pagination, err error) 
 	if p == nil {
 		return nil, nil
 	}
+	res = new(chat1.Pagination)
 	res.Last = p.Last
 	res.Num = p.Num
 	if res.Next, err = hex.DecodeString(p.Next); err != nil {
