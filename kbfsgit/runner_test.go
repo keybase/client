@@ -22,6 +22,15 @@ import (
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 )
 
+type testErrput struct {
+	t *testing.T
+}
+
+func (te testErrput) Write(buf []byte) (int, error) {
+	te.t.Log(string(buf))
+	return 0, nil
+}
+
 func TestRunnerCapabilities(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
@@ -29,7 +38,7 @@ func TestRunnerCapabilities(t *testing.T) {
 	input := bytes.NewBufferString("capabilities\n\n")
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		"", input, &output)
+		"", input, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -68,7 +77,7 @@ func TestRunnerInitRepo(t *testing.T) {
 	input := bytes.NewBufferString("list\n\n")
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		"", input, &output)
+		"", input, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -120,7 +129,7 @@ func testPush(t *testing.T, ctx context.Context, config libkbfs.Config,
 		"push %s\n\n", refspec))
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		filepath.Join(gitDir, ".git"), input, &output)
+		filepath.Join(gitDir, ".git"), input, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -135,7 +144,7 @@ func testListAndGetHeads(t *testing.T, ctx context.Context,
 	input := bytes.NewBufferString("list\n\n")
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		filepath.Join(gitDir, ".git"), input, &output)
+		filepath.Join(gitDir, ".git"), input, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -202,7 +211,7 @@ func TestRunnerPushFetch(t *testing.T) {
 		fmt.Sprintf("fetch %s refs/heads/master\n\n", heads[0]))
 	var output3 bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		git2, input, &output3)
+		git2, input, &output3, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)

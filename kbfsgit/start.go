@@ -41,12 +41,14 @@ const (
 // commands from `input` and responding to them via `output`.
 func Start(ctx context.Context, options StartOptions,
 	kbCtx libkbfs.Context, defaultLogPath string,
-	input io.Reader, output io.Writer) *libfs.Error {
+	input io.Reader, output io.Writer, errput io.Writer) *libfs.Error {
 	log, err := libkbfs.InitLogWithPrefix(
 		options.KbfsParams, kbCtx, "git", defaultLogPath)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
+
+	errput.Write([]byte("Initializing KBFS... "))
 
 	// Assign a unique ID to each remote-helper instance, since
 	// they'll all share the same log.
@@ -54,6 +56,7 @@ func Start(ctx context.Context, options StartOptions,
 		libkbfs.CtxWithRandomIDReplayable(
 			ctx, ctxProcessIDKey, ctxProcessOpID, log))
 	if err != nil {
+		errput.Write([]byte(err.Error() + "\n"))
 		return libfs.InitError(err.Error())
 	}
 	log.CDebugf(
@@ -63,13 +66,16 @@ func Start(ctx context.Context, options StartOptions,
 	config, err := libkbfs.InitWithLogPrefix(
 		ctx, kbCtx, options.KbfsParams, nil, nil, log, "git")
 	if err != nil {
+		errput.Write([]byte(err.Error() + "\n"))
 		return libfs.InitError(err.Error())
 	}
 	defer config.Shutdown(ctx)
 
+	errput.Write([]byte("done.\n"))
+
 	r, err := newRunner(
 		ctx, config, options.Remote, options.Repo, options.GitDir,
-		input, output)
+		input, output, errput)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}

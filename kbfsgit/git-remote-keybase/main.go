@@ -54,7 +54,9 @@ func getLocalGitDir() (gitDir string, err error) {
 	if !fi.IsDir() {
 		return "", errors.Errorf("GIT_DIR=%s, but is not a dir", gitDir)
 	}
-	return gitDir, nil
+	// On Windows, git annoyingly puts normal slashes in the
+	// environment variable.
+	return filepath.FromSlash(gitDir), nil
 }
 
 func start() *libfs.Error {
@@ -66,8 +68,11 @@ func start() *libfs.Error {
 		return libfs.InitError(err.Error())
 	}
 	defer func() {
-		fmt.Fprintf(os.Stderr, "Cleaning temp storage dir %s\n", storageRoot)
-		os.RemoveAll(storageRoot)
+		rmErr := os.RemoveAll(storageRoot)
+		if rmErr != nil {
+			fmt.Fprintf(os.Stderr,
+				"Error cleaning storage dir %s: %+v\n", storageRoot, rmErr)
+		}
 	}()
 
 	defaultParams := libkbfs.DefaultInitParams(kbCtx)
@@ -78,6 +83,15 @@ func start() *libfs.Error {
 	defaultParams.Mode = libkbfs.InitSingleOpString
 	defaultLogPath := filepath.Join(
 		kbCtx.GetLogDir(), libkb.GitLogFileName)
+
+	// Duplicate the stderr fd, so that when the logger closes it when
+	// redirecting log messages to a file, we will still be able to
+	// write status updates back to the git process.
+	stderrFile, err := dupStderr()
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
+	defer stderrFile.Close()
 
 	kbfsParams := libkbfs.AddFlagsWithDefaults(
 		flag.CommandLine, defaultParams, defaultLogPath)
@@ -118,7 +132,7 @@ func start() *libfs.Error {
 
 	ctx := context.Background()
 	return kbfsgit.Start(
-		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout)
+		ctx, options, kbCtx, defaultLogPath, os.Stdin, os.Stdout, stderrFile)
 }
 
 func main() {

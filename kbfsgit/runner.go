@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -94,6 +95,10 @@ type runner struct {
 	uniqID string
 	input  io.Reader
 	output io.Writer
+	errput io.Writer
+
+	logSync     sync.Once
+	logSyncDone sync.Once
 }
 
 // newRunner creates a new runner for git commands.  It expects `repo`
@@ -102,7 +107,7 @@ type runner struct {
 // filepath leading to the .git directory of the caller's local
 // on-disk repo
 func newRunner(ctx context.Context, config libkbfs.Config,
-	remote, repo, gitDir string, input io.Reader, output io.Writer) (
+	remote, repo, gitDir string, input io.Reader, output io.Writer, errput io.Writer) (
 	*runner, error) {
 	tlfAndRepo := strings.TrimPrefix(repo, kbfsgitPrefix)
 	parts := strings.Split(tlfAndRepo, repoSplitter)
@@ -147,7 +152,8 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 		gitDir: gitDir,
 		uniqID: uniqID,
 		input:  input,
-		output: output}, nil
+		output: output,
+		errput: errput}, nil
 }
 
 // handleCapabilities: from https://git-scm.com/docs/git-remote-helpers
@@ -171,8 +177,23 @@ func (r *runner) handleCapabilities() error {
 	return err
 }
 
+func (r *runner) printDoneOrErr(err error) {
+	if err != nil {
+		r.errput.Write([]byte(err.Error() + "\n"))
+	} else {
+		r.errput.Write([]byte("done.\n"))
+	}
+}
+
 func (r *runner) initRepoIfNeeded(ctx context.Context) (
-	*gogit.Repository, error) {
+	repo *gogit.Repository, err error) {
+	// This function might be called multiple times per function, but
+	// the subsequent calls will use the local cache.  So only print
+	// these messages once.
+	r.logSync.Do(func() { r.errput.Write([]byte("Syncing to Keybase... ")) })
+	defer func() {
+		r.logSyncDone.Do(func() { r.printDoneOrErr(err) })
+	}()
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
 		ctx, r.h, libkbfs.MasterBranch)
 	if err != nil {
@@ -223,7 +244,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 	// TODO: This needs to take a server lock when initializing a
 	// repo.
 	r.log.CDebugf(ctx, "Attempting to init or open repo %s", r.repo)
-	repo, err := gogit.Init(storer, nil)
+	repo, err = gogit.Init(storer, nil)
 	if err == gogit.ErrRepositoryAlreadyExists {
 		repo, err = gogit.Open(storer, nil)
 	}
@@ -350,6 +371,11 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 		return err
 	}
 
+	r.errput.Write([]byte("Fetching data from Keybase... "))
+	defer func() {
+		r.printDoneOrErr(err)
+	}()
+
 	r.log.CDebugf(ctx, "Fetching %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
@@ -443,7 +469,12 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		return err
 	}
 
-	r.log.CDebugf(ctx, "Fetching %d refs into %s", len(args), r.gitDir)
+	r.errput.Write([]byte("Pushing data to Keybase... "))
+	defer func() {
+		r.printDoneOrErr(err)
+	}()
+
+	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: localRepoRemoteName,
