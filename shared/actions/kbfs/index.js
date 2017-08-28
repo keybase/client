@@ -71,7 +71,7 @@ function clearFuseInstall(): FSClearFuseInstall {
   return {payload: undefined, type: 'fs:clearFuseInstall'}
 }
 
-function* kbfsSaga(): SagaGenerator<any, any> {
+const kbfsSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.fsList, _listSaga)
   yield safeTakeEvery(Constants.fsOpen, openSaga)
   yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)

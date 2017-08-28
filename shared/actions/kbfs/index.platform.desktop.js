@@ -123,7 +123,7 @@ function openInDefault(openPath: string): Promise<*> {
   return _open(openPath)
 }
 
-function* fuseStatusSaga(): SagaGenerator<any, any> {
+const fuseStatusSaga = function*(): SagaGenerator<any, any> {
   const prevStatus = yield select(state => state.favorite.fuseStatus)
 
   const status = yield call(installFuseStatusRpcPromise)
@@ -131,14 +131,16 @@ function* fuseStatusSaga(): SagaGenerator<any, any> {
   yield put(action)
 }
 
-function* fuseStatusUpdateSaga({payload: {prevStatus, status}}: FSFuseStatusUpdate): SagaGenerator<any, any> {
+const fuseStatusUpdateSaga = function*({
+  payload: {prevStatus, status},
+}: FSFuseStatusUpdate): SagaGenerator<any, any> {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
     yield call(installKBFSSaga)
   }
 }
 
-function* installFuseSaga(): SagaGenerator<any, any> {
+const installFuseSaga = function*(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallFuseRpcPromise)
   const fuseResults = result && result.componentResults
     ? result.componentResults.filter(c => c.name === 'fuse')
@@ -221,7 +223,7 @@ function installCachedDokan(): Promise<*> {
   })
 }
 
-function* installDokanSaga(): SagaGenerator<any, any> {
+const installDokanSaga = function*(): SagaGenerator<any, any> {
   yield call(installCachedDokan)
 }
 
@@ -251,7 +253,7 @@ function waitForMountAndOpen(): Promise<*> {
   return waitForMount(0).then(openDefaultPath)
 }
 
-function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
+const waitForMountAndOpenSaga = function*(): SagaGenerator<any, any> {
   const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
   yield put(openAction)
   try {
@@ -262,7 +264,7 @@ function* waitForMountAndOpenSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* installKBFSSaga(): SagaGenerator<any, any> {
+const installKBFSSaga = function*(): SagaGenerator<any, any> {
   const result: InstallResult = yield call(installInstallKBFSRpcPromise)
   const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
   yield put(resultAction)
@@ -275,7 +277,7 @@ function* installKBFSSaga(): SagaGenerator<any, any> {
   yield call(waitForMountAndOpenSaga)
 }
 
-function* uninstallKBFSSaga(): SagaGenerator<any, any> {
+const uninstallKBFSSaga = function*(): SagaGenerator<any, any> {
   const result: UninstallResult = yield call(installUninstallKBFSRpcPromise)
   yield put({payload: {result}, type: 'fs:uninstallKBFSResult'})
 
@@ -285,7 +287,7 @@ function* uninstallKBFSSaga(): SagaGenerator<any, any> {
   app.exit(0)
 }
 
-function* openInWindows(openPath: string): SagaGenerator<any, any> {
+const openInWindows = function*(openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
   }
