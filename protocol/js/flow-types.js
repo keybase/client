@@ -3402,6 +3402,8 @@ export type MDBlock = {
   block: bytes,
 }
 
+export type MDPriority = int
+
 export type MaskB64 = bytes
 
 export type MemberInfo = {
@@ -5379,7 +5381,8 @@ export type metadataPutMetadataRpcParam = Exact<{
   readerKeyBundle: KeyBundle,
   writerKeyBundle: KeyBundle,
   logTags: {[key: string]: string},
-  lockContext?: ?LockContext
+  lockContext?: ?LockContext,
+  priority: MDPriority
 }>
 
 export type metadataRegisterForUpdatesRpcParam = Exact<{
