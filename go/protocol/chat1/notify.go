@@ -59,7 +59,7 @@ type IncomingMessage struct {
 	ConvID                     ConversationID `codec:"convID" json:"convID"`
 	DisplayDesktopNotification bool           `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
 	Conv                       *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
-	Pagination                 *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Pagination                 *UIPagination  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o IncomingMessage) DeepCopy() IncomingMessage {
@@ -74,7 +74,7 @@ func (o IncomingMessage) DeepCopy() IncomingMessage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Conv),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
 			}

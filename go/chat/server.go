@@ -158,7 +158,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.MembersType = rawConv.GetMembersType()
 		res.Items = append(res.Items, conv)
 	}
-	res.Pagination = vres.Pagination
+	res.Pagination = utils.PresentPagination(vres.Pagination)
 	res.Offline = vres.Offline
 	return res, err
 }
@@ -414,7 +414,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 }
 
 func (h *Server) presentThreadView(tv chat1.ThreadView) (res chat1.UIMessages) {
-	res.Pagination = tv.Pagination
+	res.Pagination = utils.PresentPagination(tv.Pagination)
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(msg))
 	}
@@ -449,18 +449,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		return res, err
 	}
 
-	if arg.Pagination != nil {
-		// Next and Prev are base64-encoded when sent via JSON, so they come back from UI
-		// base64-encoded, too.
-		var err error
-		arg.Pagination.Next, err = utils.DecodeBase64(arg.Pagination.Next)
-		if err != nil {
-			return res, err
-		}
-		arg.Pagination.Previous, err = utils.DecodeBase64(arg.Pagination.Previous)
-		if err != nil {
-			return res, err
-		}
+	// Decode presentation form pagination
+	pagination, err := utils.DecodePagination(arg.Pagination)
+	if err != nil {
+		return res, err
 	}
 
 	// Grab local copy first
@@ -486,7 +478,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				time.Sleep(*h.cachedThreadDelay)
 			}
 			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
-				gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+				gregor1.UID(uid.ToBytes()), arg.Query, pagination)
 			ch <- err
 		}()
 		select {
@@ -540,7 +532,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		var remoteThread chat1.ThreadView
 		var rl []*chat1.RateLimit
 		remoteThread, rl, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
-			gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+			gregor1.UID(uid.ToBytes()), arg.Query, pagination)
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return

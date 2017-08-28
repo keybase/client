@@ -298,7 +298,7 @@ function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox 
 
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: Buffer
+  paginationNext: string
 ): Constants.UpdatePaginationNext {
   return {
     payload: {conversationIDKey, paginationNext},

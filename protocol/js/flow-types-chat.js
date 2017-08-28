@@ -1249,7 +1249,7 @@ export type InboxUIItem = {
 
 export type InboxUIItems = {
   items?: ?Array<InboxUIItem>,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
   offline: boolean,
 }
 
@@ -1270,7 +1270,7 @@ export type IncomingMessage = {
   convID: ConversationID,
   displayDesktopNotification: boolean,
   conv?: ?InboxUIItem,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
 }
 
 export type JoinLeaveConversationLocalRes = {
@@ -1867,7 +1867,14 @@ export type UIMessageValid = {
 
 export type UIMessages = {
   messages?: ?Array<UIMessage>,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
+}
+
+export type UIPagination = {
+  next: string,
+  previous: string,
+  num: int,
+  last: boolean,
 }
 
 export type UnreadFirstNumLimit = {
@@ -1900,7 +1907,7 @@ export type UnverifiedInboxUIItem = {
 
 export type UnverifiedInboxUIItems = {
   items?: ?Array<UnverifiedInboxUIItem>,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
   offline: boolean,
 }
 
@@ -2037,7 +2044,7 @@ export type localGetThreadLocalRpcParam = Exact<{
 export type localGetThreadNonblockRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
