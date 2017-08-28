@@ -166,23 +166,32 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 		if err != nil {
 			continue
 		}
-		sa := keybase1.SocialAssertion{
-			User:    string(invite.Name),
-			Service: "__tbd__",
-		}
 		switch invtyp {
 		case keybase1.TeamInviteCategory_SBS:
-			sa.Service = keybase1.SocialAssertionService(string(invite.Type.Sbs()))
+			sa := keybase1.SocialAssertion{
+				User:    string(invite.Name),
+				Service: keybase1.SocialAssertionService(string(invite.Type.Sbs())),
+			}
+			switch invite.Role {
+			case keybase1.TeamRole_OWNER:
+				impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
+			case keybase1.TeamRole_READER:
+				impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
+			default:
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+			}
+		case keybase1.TeamInviteCategory_KEYBASE:
+			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
+			switch invite.Role {
+			case keybase1.TeamRole_OWNER:
+				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, string(invite.Name))
+			case keybase1.TeamRole_READER:
+				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, string(invite.Name))
+			default:
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+			}
 		default:
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
-		}
-		switch invite.Role {
-		case keybase1.TeamRole_OWNER:
-			impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
-		case keybase1.TeamRole_READER:
-			impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
-		default:
-			return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
 		}
 	}
 	return impName, nil

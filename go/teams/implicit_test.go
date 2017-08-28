@@ -81,10 +81,13 @@ func TestImplicitPukless(t *testing.T) {
 	teamID, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	// TODO enable this after fixing lookup
-	// teamID2, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
-	// require.NoError(t, err)
-	// require.Equal(t, teamID, teamID2)
+	teamID2, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
+
+	teamID2, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
 
 	t.Logf("U0 loads the team")
 	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
