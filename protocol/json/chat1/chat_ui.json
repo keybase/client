@@ -10,6 +10,28 @@
   "types": [
     {
       "type": "record",
+      "name": "UIPagination",
+      "fields": [
+        {
+          "type": "string",
+          "name": "next"
+        },
+        {
+          "type": "string",
+          "name": "previous"
+        },
+        {
+          "type": "int",
+          "name": "num"
+        },
+        {
+          "type": "boolean",
+          "name": "last"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnverifiedInboxUIItem",
       "fields": [
         {
@@ -59,7 +81,7 @@
         {
           "type": [
             null,
-            "Pagination"
+            "UIPagination"
           ],
           "name": "pagination"
         },
@@ -160,7 +182,7 @@
         {
           "type": [
             null,
-            "Pagination"
+            "UIPagination"
           ],
           "name": "pagination"
         },
@@ -306,7 +328,7 @@
         {
           "type": [
             null,
-            "Pagination"
+            "UIPagination"
           ],
           "name": "pagination"
         }
