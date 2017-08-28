@@ -260,6 +260,13 @@ def runNixTest(prefix) {
     dir('test') {
         sh 'go test -i -tags fuse'
     }
+
+    // Build out the vendored gogit dependency first, otherwise the
+    // fit-remote-helper binary and the kbfsgit tests might have
+    // concurrent build issues when running in parallel.
+    dir('kbfsgit') {
+        sh 'go test -i'
+    }
     tests = [:]
     tests[prefix+'install'] = {
         sh 'go install github.com/keybase/kbfs/...'
@@ -336,7 +343,7 @@ def runNixTest(prefix) {
     }
     tests[prefix+'kbfsgit'] = {
         dir('kbfsgit') {
-            sh 'go test -i'
+            // test dependencies pre-built above
             sh 'go test -race -c'
             sh './kbfsgit.test -test.timeout 10m'
         }
