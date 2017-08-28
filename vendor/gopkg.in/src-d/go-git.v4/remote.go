@@ -92,9 +92,14 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) error {
 	}
 
 	isDelete := false
+	allDelete := true
 	for _, rs := range o.RefSpecs {
 		if rs.IsDelete() {
 			isDelete = true
+		} else {
+			allDelete = false
+		}
+		if isDelete && !allDelete {
 			break
 		}
 	}
@@ -132,9 +137,13 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) error {
 	// we are aware.
 	haves = append(haves, stop...)
 
-	hashesToPush, err := revlist.Objects(r.s, objects, haves)
-	if err != nil {
-		return err
+	var hashesToPush []plumbing.Hash
+	// Avoid the expensive revlist operation if we're only doing deletes.
+	if !allDelete {
+		hashesToPush, err = revlist.Objects(r.s, objects, haves)
+		if err != nil {
+			return err
+		}
 	}
 
 	rs, err := pushHashes(ctx, s, r.s, req, hashesToPush)

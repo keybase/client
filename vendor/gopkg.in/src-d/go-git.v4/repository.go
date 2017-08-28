@@ -30,6 +30,7 @@ var (
 	ErrRemoteExists            = errors.New("remote already exists	")
 	ErrWorktreeNotProvided     = errors.New("worktree should be provided")
 	ErrIsBareRepository        = errors.New("worktree not available in a bare repository")
+	ErrUnableToResolveCommit   = errors.New("unable to resolve commit")
 )
 
 // Repository represents a git repository
@@ -400,6 +401,25 @@ func (r *Repository) DeleteRemote(name string) error {
 	return r.Storer.SetConfig(cfg)
 }
 
+func (r *Repository) resolveToCommitHash(h plumbing.Hash) (plumbing.Hash, error) {
+	obj, err := r.Storer.EncodedObject(plumbing.AnyObject, h)
+	if err != nil {
+		return plumbing.ZeroHash, err
+	}
+	switch obj.Type() {
+	case plumbing.TagObject:
+		t, err := object.DecodeTag(r.Storer, obj)
+		if err != nil {
+			return plumbing.ZeroHash, err
+		}
+		return r.resolveToCommitHash(t.Target)
+	case plumbing.CommitObject:
+		return h, nil
+	default:
+		return plumbing.ZeroHash, ErrUnableToResolveCommit
+	}
+}
+
 // Clone clones a remote repository
 func (r *Repository) clone(ctx context.Context, o *CloneOptions) error {
 	if err := o.Validate(); err != nil {
@@ -415,7 +435,7 @@ func (r *Repository) clone(ctx context.Context, o *CloneOptions) error {
 		return err
 	}
 
-	head, err := r.fetchAndUpdateReferences(ctx, &FetchOptions{
+	ref, err := r.fetchAndUpdateReferences(ctx, &FetchOptions{
 		RefSpecs: r.cloneRefSpec(o, c),
 		Depth:    o.Depth,
 		Auth:     o.Auth,
@@ -427,6 +447,11 @@ func (r *Repository) clone(ctx context.Context, o *CloneOptions) error {
 
 	if r.wt != nil {
 		w, err := r.Worktree()
+		if err != nil {
+			return err
+		}
+
+		head, err := r.Head()
 		if err != nil {
 			return err
 		}
@@ -445,7 +470,7 @@ func (r *Repository) clone(ctx context.Context, o *CloneOptions) error {
 		}
 	}
 
-	return r.updateRemoteConfigIfNeeded(o, c, head)
+	return r.updateRemoteConfigIfNeeded(o, c, ref)
 }
 
 const (
@@ -520,12 +545,12 @@ func (r *Repository) fetchAndUpdateReferences(
 		return nil, err
 	}
 
-	head, err := storer.ResolveReference(remoteRefs, ref)
+	resolvedRef, err := storer.ResolveReference(remoteRefs, ref)
 	if err != nil {
 		return nil, err
 	}
 
-	refsUpdated, err := r.updateReferences(remote.c.Fetch, head)
+	refsUpdated, err := r.updateReferences(remote.c.Fetch, resolvedRef)
 	if err != nil {
 		return nil, err
 	}
@@ -534,26 +559,30 @@ func (r *Repository) fetchAndUpdateReferences(
 		return nil, NoErrAlreadyUpToDate
 	}
 
-	return head, nil
+	return resolvedRef, nil
 }
 
 func (r *Repository) updateReferences(spec []config.RefSpec,
-	resolvedHead *plumbing.Reference) (updated bool, err error) {
+	resolvedRef *plumbing.Reference) (updated bool, err error) {
 
-	if !resolvedHead.Name().IsBranch() {
+	if !resolvedRef.Name().IsBranch() {
 		// Detached HEAD mode
-		head := plumbing.NewHashReference(plumbing.HEAD, resolvedHead.Hash())
+		h, err := r.resolveToCommitHash(resolvedRef.Hash())
+		if err != nil {
+			return false, err
+		}
+		head := plumbing.NewHashReference(plumbing.HEAD, h)
 		return updateReferenceStorerIfNeeded(r.Storer, head)
 	}
 
 	refs := []*plumbing.Reference{
-		// Create local reference for the resolved head
-		resolvedHead,
+		// Create local reference for the resolved ref
+		resolvedRef,
 		// Create local symbolic HEAD
-		plumbing.NewSymbolicReference(plumbing.HEAD, resolvedHead.Name()),
+		plumbing.NewSymbolicReference(plumbing.HEAD, resolvedRef.Name()),
 	}
 
-	refs = append(refs, r.calculateRemoteHeadReference(spec, resolvedHead)...)
+	refs = append(refs, r.calculateRemoteHeadReference(spec, resolvedRef)...)
 
 	for _, ref := range refs {
 		u, err := updateReferenceStorerIfNeeded(r.Storer, ref)
