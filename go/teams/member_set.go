@@ -77,7 +77,7 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 }
 
 func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UserVersion, storeRecipient, force bool) ([]member, error) {
-	members := []member{}
+	var members []member
 	for _, uv := range group {
 		mem, err := m.loadMember(ctx, g, uv, storeRecipient, force)
 		if _, reset := err.(libkb.AccountResetError); reset {
