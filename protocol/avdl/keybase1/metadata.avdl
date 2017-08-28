@@ -44,6 +44,9 @@ protocol metadata {
   @typedef("long")
   record LockID{}
 
+  @typedef("int")
+  record MDPriority{}
+
   record LockContext {
     LockID  requireLockID;
     boolean releaseAfterSuccess;
@@ -51,7 +54,7 @@ protocol metadata {
 
   ChallengeInfo getChallenge();
   int authenticate(string signature);
-  void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags, union{null, LockContext} lockContext);
+  void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags, union{null, LockContext} lockContext, MDPriority priority);
   MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags, union{null, LockID} lockBeforeGet);
   void registerForUpdates(string folderID, long currRevision, map<string> logTags);
   void pruneBranch(string folderID, string branchID, map<string> logTags);

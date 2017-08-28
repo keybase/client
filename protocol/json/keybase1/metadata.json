@@ -122,6 +122,12 @@
     },
     {
       "type": "record",
+      "name": "MDPriority",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
       "name": "LockContext",
       "fields": [
         {
@@ -176,6 +182,10 @@
             null,
             "LockContext"
           ]
+        },
+        {
+          "name": "priority",
+          "type": "MDPriority"
         }
       ],
       "response": null

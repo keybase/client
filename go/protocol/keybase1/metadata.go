@@ -127,6 +127,12 @@ func (o LockID) DeepCopy() LockID {
 	return o
 }
 
+type MDPriority int
+
+func (o MDPriority) DeepCopy() MDPriority {
+	return o
+}
+
 type LockContext struct {
 	RequireLockID       LockID `codec:"requireLockID" json:"requireLockID"`
 	ReleaseAfterSuccess bool   `codec:"releaseAfterSuccess" json:"releaseAfterSuccess"`
@@ -162,6 +168,7 @@ type PutMetadataArg struct {
 	WriterKeyBundle KeyBundle         `codec:"writerKeyBundle" json:"writerKeyBundle"`
 	LogTags         map[string]string `codec:"logTags" json:"logTags"`
 	LockContext     *LockContext      `codec:"lockContext,omitempty" json:"lockContext,omitempty"`
+	Priority        MDPriority        `codec:"priority" json:"priority"`
 }
 
 func (o PutMetadataArg) DeepCopy() PutMetadataArg {
@@ -185,6 +192,7 @@ func (o PutMetadataArg) DeepCopy() PutMetadataArg {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.LockContext),
+		Priority: o.Priority.DeepCopy(),
 	}
 }
 
