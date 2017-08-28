@@ -167,26 +167,25 @@ function* installFuseSaga(): SagaGenerator<any, any> {
 function findKeybaseUninstallString(): Promise<string> {
   return new Promise((resolve, reject) => {
     const regedit = require('regedit')
-    regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall').on('data', function(entry) {
+    const uninstallRegPath = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
+    regedit.list(uninstallRegPath).on('data', function(entry) {
       for (var keyName of entry.data.keys) {
-        regedit
-          .list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + keyName)
-          .on('data', function(entry) {
-            if (
-              entry.data.values.DisplayName &&
-              entry.data.values.DisplayName.value === 'Keybase' &&
-              entry.data.values.Publisher &&
-              entry.data.values.Publisher.value === 'Keybase, Inc.' &&
-              entry.data.values.ModifyPath
-            ) {
-              var modifyPath = entry.data.values.ModifyPath.value
-              // Remove double quotes - won't work otherwise
-              modifyPath = modifyPath.replace(/"/g, '')
-              // Remove /modify and send it in with the other arguments, below
-              modifyPath = modifyPath.replace(' /modify', '')
-              resolve(modifyPath)
-            }
-          })
+        regedit.list(uninstallRegPath + '\\' + keyName).on('data', function(entry) {
+          if (
+            entry.data.values.DisplayName &&
+            entry.data.values.DisplayName.value === 'Keybase' &&
+            entry.data.values.Publisher &&
+            entry.data.values.Publisher.value === 'Keybase, Inc.' &&
+            entry.data.values.ModifyPath
+          ) {
+            var modifyPath = entry.data.values.ModifyPath.value
+            // Remove double quotes - won't work otherwise
+            modifyPath = modifyPath.replace(/"/g, '')
+            // Remove /modify and send it in with the other arguments, below
+            modifyPath = modifyPath.replace(' /modify', '')
+            resolve(modifyPath)
+          }
+        })
       }
     })
   })
@@ -196,23 +195,24 @@ function findKeybaseUninstallString(): Promise<string> {
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
 function installCachedDokan(): Promise<*> {
-  return new Promise(async (resolve, reject) => {
-    var modifyCommand = await findKeybaseUninstallString()
-
-    if (modifyCommand) {
-      console.log(modifyCommand)
-      execFile(modifyCommand, [
-        '/modify',
-        'driver=1',
-        'modifyprompt=Press "Repair" to view files in Explorer',
-      ])
-      resolve()
-    } else {
-      const err = new Error("Can't find Keybase uninstall string")
-      console.log(err)
-      reject(err)
-    }
-  })
+  return findKeybaseUninstallString().then(
+    modifyCommand =>
+      new Promise((resolve, reject) => {
+        if (modifyCommand) {
+          console.log('Invoking repair to add driver: ' + modifyCommand)
+          execFile(modifyCommand, [
+            '/modify',
+            'driver=1',
+            'modifyprompt=Press "Repair" to view files in Explorer',
+          ])
+          resolve()
+        } else {
+          const err = new Error('Cannot find Keybase uninstall string')
+          console.log(err)
+          reject(err)
+        }
+      })
+  )
 }
 
 function* installDokanSaga(): SagaGenerator<any, any> {
