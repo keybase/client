@@ -1,7 +1,7 @@
 // @flow
 import Box from './box'
 import Checkbox from './checkbox'
-import React from 'react'
+import * as React from 'react'
 import {storiesOf, action} from '../stories/storybook'
 
 const commonProps = {
@@ -16,7 +16,7 @@ const load = () => {
       <Checkbox {...commonProps} label="Checkbox Unchecked Enabled" checked={false} />
       <Checkbox {...commonProps} label="Checkbox Checked Enabled" checked={true} />
       <Checkbox {...commonProps} label="Checkbox Unchecked Disabled" checked={false} disabled={true} />
-      <Checkbox {...commonProps} label="Checkbox Checked Disabled" checked={true} />
+      <Checkbox {...commonProps} label="Checkbox Checked Disabled" checked={true} disabled={true} />
     </Box>
   ))
 }

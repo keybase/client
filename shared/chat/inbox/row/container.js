@@ -11,8 +11,8 @@ import {
   getSelectedConversation,
 } from '../../../constants/chat'
 import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
-import SimpleRow from './simple-row'
-import {TeamRow, ChannelRow} from './team-row'
+import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
+import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 import {compose, renderComponent, branch} from 'recompose'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -119,8 +119,8 @@ const makeSelector = conversationIDKey => {
   }
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname}) => {
-  if (conversationIDKey) {
+const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname, type}) => {
+  if (['small', 'big'].includes(type)) {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
   } else {
@@ -145,8 +145,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const ConnectedRow = compose(
   // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch(props => props.teamname && !props.channelname, renderComponent(TeamRow)),
-  branch(props => props.teamname && props.channelname, renderComponent(ChannelRow))
-)(SimpleRow)
+  branch(props => props.filtered && props.type === 'small', renderComponent(SmallTeamFilteredRow)),
+  branch(props => props.filtered && props.type === 'big', renderComponent(BigTeamChannelFilteredRow)),
+  branch(props => props.type === 'bigHeader', renderComponent(BigTeamHeaderRow)),
+  branch(props => props.type === 'big', renderComponent(BigTeamChannelRow))
+)(SmallTeamRow)
 
 export default ConnectedRow

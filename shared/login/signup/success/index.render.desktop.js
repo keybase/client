@@ -10,7 +10,7 @@ type State = {
   inWallet: boolean,
 }
 
-class SuccessRender extends Component<void, Props, State> {
+class SuccessRender extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

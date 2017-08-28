@@ -6,6 +6,7 @@ package install
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,9 +27,64 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+// Install only handles the driver part on Windows
+func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
+	var err error
+	componentResults := []keybase1.ComponentResult{}
+
+	log.Debug("Installing components: %s", components)
+
+	if libkb.IsIn(string(ComponentNameFuse), components, false) {
+		err = installDokan(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
+		if err != nil {
+			log.Errorf("Error installing KBFuse: %s", err)
+		}
+	}
+
+	return keybase1.InstallResult{}
+}
+
+func componentResult(name string, err error) keybase1.ComponentResult {
+	if err != nil {
+		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
+	}
+	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
+}
+
 // AutoInstall is not supported on Windows
-func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, err error) {
-	return false, fmt.Errorf("Auto install not supported for this build or platform")
+func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (bool, error) {
+	return false, nil
+}
+
+// Uninstall empty implementation for unsupported platforms
+func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
+	return keybase1.UninstallResult{}
+}
+
+// installDokan installs the Dokan drivers. This implementation is for CLI support.
+// The GUI also supports this in order for the installer UI to be topmost.
+func installDokan(_ libkb.RunMode, log Log) error {
+	log.Info("Installing Dokan")
+	command, err := getCachedPackageModifyString(log)
+	if err != nil {
+		return err
+	}
+
+	// Remove /modify so it can be given separately to exec.Command
+	command = strings.Replace(command, " /modify", "", 1)
+	// Remove surrounding double quotes - won't work otherwise
+	command = strings.Replace(command, "\"", "", 2)
+
+	log.Info("Starting %#v", command)
+	cmd := exec.Command(command, "driver=1", "/modify", `modifyprompt=Press 'Repair' to view files in Explorer`)
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	log.Info("Program finished: %q", command)
+	return nil
 }
 
 // CheckIfValidLocation is not supported on Windows
@@ -227,4 +283,37 @@ func IsInUse(mountDir string, log Log) bool {
 	}
 
 	return false
+}
+
+func getCachedPackageModifyString(log Log) (string, error) {
+	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`, registry.READ|registry.WOW64_64KEY)
+	defer k.Close()
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't enumerate uninstall keys")
+		return "", err
+	}
+	subKeyNames, err := k.ReadSubKeyNames(0)
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't ReadSubKeyNames")
+		return "", err
+	}
+	for _, subKeyName := range subKeyNames {
+		k2, err := registry.OpenKey(k, subKeyName, registry.QUERY_VALUE|registry.WOW64_64KEY)
+		if err != nil {
+			continue
+		}
+		displayName, _, err := k2.GetStringValue("DisplayName")
+		if err != nil {
+			continue
+		}
+		publisher, _, err := k2.GetStringValue("Publisher")
+		if err != nil {
+			continue
+		}
+		if displayName == "Keybase" && publisher == "Keybase, Inc." {
+			modify, _, err := k2.GetStringValue("ModifyPath")
+			return modify, err
+		}
+	}
+	return "", errors.New("no cached package path found")
 }

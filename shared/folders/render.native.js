@@ -7,7 +7,7 @@ import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {compose, defaultProps} from 'recompose'
 
-class FoldersRender extends Component<void, Props, void> {
+class FoldersRender extends Component<Props> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
     const icon = isPublic ? 'icon-folder-public-24' : 'icon-folder-private-24'
     return (

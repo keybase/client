@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import * as Creators from '../actions/chat/creators'
 import * as SearchCreators from '../actions/search/creators'
 import * as SearchConstants from '../constants/search'

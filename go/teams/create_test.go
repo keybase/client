@@ -135,7 +135,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 	numKBUsers := 3
 	var users []*kbtest.FakeUser
 	var uvs []keybase1.UserVersion
-	var impTeam keybase1.ImplicitTeamName
+	var impTeam keybase1.ImplicitTeamDisplayName
 	for i := 0; i < numKBUsers; i++ {
 		u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 		require.NoError(t, err)
@@ -144,11 +144,11 @@ func TestCreateImplicitTeam(t *testing.T) {
 
 	// Simple imp team
 	for _, u := range users {
-		impTeam.KeybaseUsers = append(impTeam.KeybaseUsers, u.Username)
+		impTeam.Writers.KeybaseUsers = append(impTeam.Writers.KeybaseUsers, u.Username)
 		uvs = append(uvs, u.User.ToUserVersion())
 	}
 	sort.Sort(keybase1.ByUserVersionID(uvs))
-	impTeam.IsPrivate = true
+	impTeam.IsPublic = false
 	teamID, err := CreateImplicitTeam(context.TODO(), tc.G, impTeam)
 	require.NoError(t, err)
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
@@ -162,7 +162,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 	require.Equal(t, members.Owners, uvs)
 
 	// Imp team with invites
-	impTeam.UnresolvedUsers = []keybase1.SocialAssertion{
+	impTeam.Writers.UnresolvedUsers = []keybase1.SocialAssertion{
 		keybase1.SocialAssertion{
 			User:    "mike",
 			Service: keybase1.SocialAssertionService("twitter"),

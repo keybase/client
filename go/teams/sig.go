@@ -58,13 +58,13 @@ func RootTeamIDFromNameString(name string) keybase1.TeamID {
 	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
-func NewImplicitTeamName() (string, error) {
+func NewImplicitTeamName() (res keybase1.TeamName, err error) {
 	dat, err := libkb.RandBytes(keybase1.ImplicitSuffixLengthBytes)
 	if err != nil {
-		return "", err
+		return res, err
 	}
-	return fmt.Sprintf("%s%s", keybase1.ImplicitTeamPrefix, hex.EncodeToString(dat)),
-		nil
+	res, err = keybase1.TeamNameFromString(fmt.Sprintf("%s%s", keybase1.ImplicitTeamPrefix, hex.EncodeToString(dat)))
+	return res, err
 }
 
 func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (*jsonw.Wrapper, error) {

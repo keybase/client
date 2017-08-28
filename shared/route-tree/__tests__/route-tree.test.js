@@ -40,12 +40,14 @@ describe('RouteDefNode', () => {
       },
     })
 
+    // $FlowIssue
     expect(node).toBeInstanceOf(RouteDefNode)
 
     const objectChild = node.getChild('object')
     if (!objectChild) {
       return expect(objectChild).toBeTruthy()
     }
+    // $FlowIssue
     expect(objectChild).toBeInstanceOf(RouteDefNode)
     expect(objectChild).toEqual(new RouteDefNode({children: {}}))
 
@@ -53,6 +55,7 @@ describe('RouteDefNode', () => {
     if (!nodeChild) {
       return expect(nodeChild).toBeTruthy()
     }
+    // $FlowIssue
     expect(nodeChild).toBeInstanceOf(RouteDefNode)
     expect(nodeChild).toEqual(emptyRouteDef)
   })
@@ -214,6 +217,7 @@ describe('routeSetProps', () => {
   it('throws when traversing to a path with missing def', () => {
     expect(() => {
       routeSetProps(demoRouteDef, null, (['etc', 'missing']: PropsPath<*>))
+      // $FlowIssue
     }).toThrowError(InvalidRouteError)
   })
 })
@@ -326,12 +330,14 @@ describe('routeSetState', () => {
     const startRouteState = routeNavigate(demoRouteDef, null, (['foo']: Array<string>))
     expect(() => {
       routeSetState(demoRouteDef, startRouteState, ['foo', 'nonexistent'], {state: 'value'})
+      // $FlowIssue
     }).toThrowError(InvalidRouteError)
   })
 })
 
 describe('routeClear', () => {
   let startRouteState
+  // $FlowIssue
   beforeAll(() => {
     startRouteState = routeNavigate(
       demoRouteDef,

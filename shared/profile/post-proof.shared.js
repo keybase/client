@@ -1,6 +1,6 @@
 // @flow
 import FacebookDescription from './facebook-description'
-import React from 'react'
+import * as React from 'react'
 import openUrl from '../util/open-url'
 import {Box, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'

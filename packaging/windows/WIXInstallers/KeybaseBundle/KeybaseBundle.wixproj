@@ -56,30 +56,31 @@
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
-    <PreBuildEvent>cd /d "$(ProjectDir)"
+    <PreBuildEvent>
+      cd /d "$(ProjectDir)"
 
-if NOT exist Redist\VCRedist_2015\vc_redist.x86.exe (
+      if NOT exist Redist\VCRedist_2015\vc_redist.x86.exe (
 
-    if NOT exist Redist\ mkdir Redist
+      if NOT exist Redist\ mkdir Redist
 
-    if NOT exist Redist\VCRedist_2015\ mkdir Redist\VCRedist_2015\
+      if NOT exist Redist\VCRedist_2015\ mkdir Redist\VCRedist_2015\
 
-    powershell -command "wget https://download.microsoft.com/download/2/6/8/268f7be7-8d2a-42d6-a823-5c6941a3d70a/vc_redist.x86.exe -OutFile Redist\VCRedist_2015\VC_redist.x86.exe"
+      powershell -command "wget https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe -OutFile Redist\VCRedist_2015\VC_redist.x86.exe"
 
-    powershell -command "wget https://download.microsoft.com/download/6/3/a/63abaf83-2ca6-4460-90d7-12de8e815b1a/vc_redist.x64.exe -OutFile Redist\VCRedist_2015\VC_redist.x64.exe"
+      powershell -command "wget https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x64.exe -OutFile Redist\VCRedist_2015\VC_redist.x64.exe"
 
-)
+      )
 
-if NOT exist Redist\KB2999226\Windows8.1-KB2999226-x64.msu (
-    if NOT exist Redist\ mkdir Redist
-    if NOT exist Redist\KB2999226\ mkdir Redist\KB2999226\
-    powershell -command "wget https://download.microsoft.com/download/4/F/E/4FE73868-5EDD-4B47-8B33-CE1BB7B2B16A/Windows6.1-KB2999226-x86.msu -OutFile Redist\KB2999226\Windows6.1-KB2999226-x86.msu"
-    powershell -command "wget https://download.microsoft.com/download/1/1/5/11565A9A-EA09-4F0A-A57E-520D5D138140/Windows6.1-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows6.1-KB2999226-x64.msu"
-    powershell -command "wget https://download.microsoft.com/download/1/E/8/1E8AFE90-5217-464D-9292-7D0B95A56CE4/Windows8-RT-KB2999226-x86.msu -OutFile Redist\KB2999226\Windows8-RT-KB2999226-x86.msu"
-    powershell -command "wget https://download.microsoft.com/download/A/C/1/AC15393F-A6E6-469B-B222-C44B3BB6ECCC/Windows8-RT-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows8-RT-KB2999226-x64.msu"
-    powershell -command "wget https://download.microsoft.com/download/E/4/6/E4694323-8290-4A08-82DB-81F2EB9452C2/Windows8.1-KB2999226-x86.msu -OutFile Redist\KB2999226\Windows8.1-KB2999226-x86.msu"
-    powershell -command "wget https://download.microsoft.com/download/9/6/F/96FD0525-3DDF-423D-8845-5F92F4A6883E/Windows8.1-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows8.1-KB2999226-x64.msu"
-)</PreBuildEvent>
+      if NOT exist Redist\KB2999226\Windows8.1-KB2999226-x64.msu (
+      if NOT exist Redist\ mkdir Redist
+      if NOT exist Redist\KB2999226\ mkdir Redist\KB2999226\
+      powershell -command "wget https://download.microsoft.com/download/4/F/E/4FE73868-5EDD-4B47-8B33-CE1BB7B2B16A/Windows6.1-KB2999226-x86.msu -OutFile Redist\KB2999226\Windows6.1-KB2999226-x86.msu"
+      powershell -command "wget https://download.microsoft.com/download/1/1/5/11565A9A-EA09-4F0A-A57E-520D5D138140/Windows6.1-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows6.1-KB2999226-x64.msu"
+      powershell -command "wget https://download.microsoft.com/download/1/E/8/1E8AFE90-5217-464D-9292-7D0B95A56CE4/Windows8-RT-KB2999226-x86.msu -OutFile Redist\KB2999226\Windows8-RT-KB2999226-x86.msu"
+      powershell -command "wget https://download.microsoft.com/download/A/C/1/AC15393F-A6E6-469B-B222-C44B3BB6ECCC/Windows8-RT-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows8-RT-KB2999226-x64.msu"
+      powershell -command "wget https://download.microsoft.com/download/E/4/6/E4694323-8290-4A08-82DB-81F2EB9452C2/Windows8.1-KB2999226-x86.msu -OutFile Redist\KB2999226\Windows8.1-KB2999226-x86.msu"
+      powershell -command "wget https://download.microsoft.com/download/9/6/F/96FD0525-3DDF-423D-8845-5F92F4A6883E/Windows8.1-KB2999226-x64.msu -OutFile Redist\KB2999226\Windows8.1-KB2999226-x64.msu"
+      )</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" (

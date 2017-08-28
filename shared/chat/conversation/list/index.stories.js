@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../../constants/chat'
 import {Box} from '../../../common-adapters'
@@ -168,6 +168,7 @@ const load = () => {
       return (
         <Box style={globalStyles.fillAbsolute}>
           <Provider store={createStore(ignore => store, store)}>
+            {/* $FlowIssue */}
             <List {...mock.default} />
           </Provider>
         </Box>
@@ -180,6 +181,7 @@ const load = () => {
       return (
         <Box style={globalStyles.fillAbsolute}>
           <Provider store={createStore(ignore => store, store)}>
+            {/* $FlowIssue */}
             <List {...mock.default} />
           </Provider>
         </Box>

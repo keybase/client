@@ -4,7 +4,7 @@
  */
 
 import Main from '../../app/main.desktop'
-import React from 'react'
+import * as React from 'react'
 import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
 import Root from './container'

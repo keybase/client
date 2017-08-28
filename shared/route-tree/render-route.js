@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {LeafTags, pathToString} from './'
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 import {Box} from '../common-adapters'
@@ -11,8 +11,8 @@ import type {RouteDefNode, RouteStateNode, Path} from './'
 type _RenderRouteResultParams = {
   path: I.List<string>,
   tags: LeafTags,
-  component: ({isActiveRoute: boolean, shouldRender: boolean}) => React$Element<any>,
-  leafComponent: ({isActiveRoute: boolean, shouldRender: boolean}) => React$Element<any>,
+  component: ({isActiveRoute: boolean, shouldRender: boolean}) => React.Node,
+  leafComponent: ({isActiveRoute: boolean, shouldRender: boolean}) => React.Node,
 }
 
 export const RenderRouteResult: (
@@ -68,12 +68,13 @@ type RenderRouteNodeProps<S> = {
   path: I.List<string>,
   leafTags?: LeafTags,
   stack?: RouteRenderStack,
-  children?: React$Element<*>,
+  children?: React.Node,
 }
 
 // Helper to render a component based on route state and use
 // shouldComponentUpdate (via PureComponent).
-class RenderRouteNode extends PureComponent<*, RenderRouteNodeProps<*>, *> {
+class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
+  static defaultProps: *
   render() {
     const {
       isActiveRoute,
@@ -208,7 +209,8 @@ type RenderRouteProps<S> = {
 
 export {renderRouteStack}
 
-export default class RenderRoute extends PureComponent<*, RenderRouteProps<*>, *> {
+export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>, *> {
+  static defaultProps: *
   render() {
     // renderRouteStack gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.

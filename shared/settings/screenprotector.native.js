@@ -10,7 +10,7 @@ type State = {
   secureFlag: boolean,
 }
 
-class Screenprotector extends Component {
+class Screenprotector extends Component<{}, State> {
   state: State = {secureFlag: false}
   mounted = false
 

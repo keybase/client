@@ -1,20 +1,50 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../constants/chat'
 
+export type RowItem =
+  | {
+      type: 'small',
+      conversationIDKey: ConversationIDKey,
+    }
+  | {
+      type: 'bigTeamsLabel',
+      isFiltered: boolean,
+    }
+  | {
+      type: 'bigHeader',
+      teamname: string,
+    }
+  | {
+      type: 'big',
+      conversationIDKey: ?ConversationIDKey,
+      teamname: string,
+      channelname: ?string,
+    }
+  | {
+      type: 'divider',
+      isBadged: boolean,
+    }
+
 export type Props = {
-  isLoading: boolean,
-  isActiveRoute: boolean,
+  bigTeamsBadgeCount: number,
+  children?: React$Element<*>,
   filter: string,
+  isActiveRoute: boolean,
+  isLoading: boolean,
+  loadInbox: () => void,
   nowOverride?: number, // just for dumb rendering
-  rows: List<{conversationIDKey: ConversationIDKey, teamname: ?string}>,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
-  loadInbox: () => void,
-  children?: React$Element<*>,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
+  rows: List<RowItem>,
+  showBuildATeam: boolean,
+  showNewConversation: boolean,
+  showSmallTeamsExpandDivider: boolean,
+  smallTeamsExpanded: boolean,
+  toggleSmallTeamsExpanded: () => void,
 }
 
-export default class Inbox extends Component<void, Props, void> {}
+export default class Inbox extends React.Component<Props> {}

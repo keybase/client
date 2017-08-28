@@ -34,6 +34,7 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 		Id:              t.chain().GetID(),
 		Name:            t.Name().String(),
 		Implicit:        t.chain().IsImplicit(),
+		Public:          t.IsPublic(),
 		Application:     application,
 		Writers:         writers,
 		OnlyReaders:     onlyReaders,

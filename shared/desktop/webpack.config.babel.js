@@ -43,23 +43,19 @@ const makeCommonConfig = () => {
         babelrc: false,
         cacheDirectory: true,
         plugins: [
-          ['babel-plugin-transform-builtin-extend', {globals: ['Error']}],
-          'transform-flow-strip-types',
-          'transform-object-rest-spread', // not supported by electron yet
-          'babel-plugin-transform-class-properties', // not supported by electron yet
-          'transform-es2015-destructuring', // due to a bug: https://github.com/babel/babel/pull/5469
+          ['transform-builtin-extend', {globals: ['Error']}], // we override Error sometimes
+          'transform-flow-strip-types', // ignore flow
+          'transform-object-rest-spread', // not supported by electrons node yet
+          'babel-plugin-transform-class-properties', // not supported by electrons node yet
         ],
         presets: [
           [
             'env',
             {
               debug: false,
-              exclude: ['transform-regenerator'],
-              modules: false,
               targets: {
-                electron: '1.6.10',
+                electron: '1.7.5',
               },
-              useBuiltIns: false,
             },
           ],
           'babel-preset-react',
@@ -86,6 +82,11 @@ const makeCommonConfig = () => {
       },
       {
         test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
+        use: [fileLoaderRule],
+      },
+      {
+        include: path.resolve(__dirname, '../images/install'),
+        test: [/.*\.(gif|png)$/],
         use: [fileLoaderRule],
       },
       {
@@ -273,12 +274,9 @@ const makeDllConfig = () => {
       'react',
       'react-dom',
       'react-list',
-      'react-redux',
       'react-virtualized',
       'recompose',
       'redux',
-      'redux-logger',
-      'redux-saga',
       'semver',
     ],
     name: 'vendor',

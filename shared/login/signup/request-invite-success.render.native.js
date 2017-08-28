@@ -5,9 +5,7 @@ import type {Props} from './request-invite-success.render'
 import {Text, Icon} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class RequestInviteSuccessRender extends Component {
-  props: Props
-
+class RequestInviteSuccessRender extends Component<Props> {
   render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>

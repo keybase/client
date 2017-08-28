@@ -2,6 +2,8 @@ package utils
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -647,6 +649,34 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 	return res
 }
 
+func PresentPagination(p *chat1.Pagination) (res *chat1.UIPagination) {
+	if p == nil {
+		return nil
+	}
+	res = new(chat1.UIPagination)
+	res.Last = p.Last
+	res.Num = p.Num
+	res.Next = hex.EncodeToString(p.Next)
+	res.Previous = hex.EncodeToString(p.Previous)
+	return res
+}
+
+func DecodePagination(p *chat1.UIPagination) (res *chat1.Pagination, err error) {
+	if p == nil {
+		return nil, nil
+	}
+	res = new(chat1.Pagination)
+	res.Last = p.Last
+	res.Num = p.Num
+	if res.Next, err = hex.DecodeString(p.Next); err != nil {
+		return nil, err
+	}
+	if res.Previous, err = hex.DecodeString(p.Previous); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 type ConvLocalByConvID []chat1.ConversationLocal
 
 func (c ConvLocalByConvID) Len() int      { return len(c) }
@@ -716,4 +746,14 @@ func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
 		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)
 	}
 	settings.Settings[apptype][kind] = enabled
+}
+
+func DecodeBase64(enc []byte) ([]byte, error) {
+	if len(enc) == 0 {
+		return enc, nil
+	}
+
+	b := make([]byte, base64.StdEncoding.DecodedLen(len(enc)))
+	n, err := base64.StdEncoding.Decode(b, enc)
+	return b[:n], err
 }

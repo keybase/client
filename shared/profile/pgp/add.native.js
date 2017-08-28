@@ -5,7 +5,7 @@ import {NativeKeyboardAvoidingView} from '../../common-adapters/index.native'
 import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
 
-class PgpAdd extends Component<void, Props, void> {
+class PgpAdd extends Component<Props> {
   render() {
     const nextDisabled = !this.props.email1 || !this.props.fullName
     const emailInputProps = {

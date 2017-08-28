@@ -1,31 +1,41 @@
 // @flow
-import {app} from 'electron'
+import {app, dialog} from 'electron'
 import exec from './exec'
-import {appInstallerPath, appBundlePath} from './paths'
+import {keybaseBinPath} from './paths'
 import {quit} from './ctl'
-import {runMode} from '../../constants/platform.desktop'
 import {isWindows} from '../../constants/platform'
+import {ExitCodeFuseKextError, ExitCodeFuseKextPermissionError} from '../../constants/favorite'
+import UserData from './user-data'
 
-// Runs the installer (on MacOS).
-// For other platforms, this immediately returns that there is no installer.
+import type {InstallResult} from '../../constants/types/flow-types'
+
+type State = {
+  promptedForCLI: boolean,
+}
+class InstallerData extends UserData<State> {}
+const installerState = new InstallerData('installer.json', {promptedForCLI: false})
+
+type CheckErrorsResult = {
+  errors: Array<string>,
+  hasCLIError: boolean,
+}
+
+// Install.
 //
 // To test the installer from dev (on MacOS), you can point KEYBASE_GET_APP_PATH
-// to a place where the installer is bundled, for example:
-//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start-hot
+// to a place where keybase bin is bundled, for example:
+//   KEYBASE_GET_APP_PATH=/Applications/Keybase.app/Contents/Resources/app/ yarn run start
+//
+// Reminder: hot-server doesn't reload code in here (/desktop)
 export default (callback: (err: any) => void): void => {
   if (isWindows) {
-    console.log('skipping installer on win32')
+    console.log('Skipping installer on win32')
     callback(null)
     return
   }
-  const installerPath = appInstallerPath()
-  if (!installerPath) {
-    callback(new Error('No installer path'))
-    return
-  }
-  const bundlePath = appBundlePath()
-  if (!bundlePath) {
-    callback(new Error('No bundle path for installer'))
+  const keybaseBin = keybaseBinPath()
+  if (!keybaseBin) {
+    callback(new Error('No keybase bin path'))
     return
   }
   let timeout = 30
@@ -34,15 +44,110 @@ export default (callback: (err: any) => void): void => {
   if (app.getLoginItemSettings().wasOpenedAtLogin) {
     timeout = 90
   }
-  const args = ['--debug', '--app-path=' + bundlePath, '--run-mode=' + runMode, '--timeout=' + timeout]
+  const args = ['--debug', 'install-auto', '--format=json', '--timeout=' + timeout + 's']
 
-  exec(installerPath, args, 'darwin', 'prod', true, function(err) {
-    if (err && err.code === 1) {
-      // The installer app returns exit status 1, if there was an error and
-      // the user chooses to quit the app.
-      quit()
+  exec(keybaseBin, args, 'darwin', 'prod', true, (err, attempted, stdout, stderr) => {
+    let errorsResult: CheckErrorsResult = {errors: [], hasCLIError: false}
+    if (err) {
+      errorsResult.errors = [`There was an error trying to run the install (${err.code}).`]
+    } else if (stdout !== '') {
+      try {
+        const result = JSON.parse(stdout)
+        if (result) {
+          errorsResult = checkErrors(result)
+        } else {
+          errorsResult.errors = [`There was an error trying to run the install. No output.`]
+        }
+      } catch (err) {
+        errorsResult.errors = [
+          `There was an error trying to run the install. We were unable to parse the output of keybase install-auto.`,
+        ]
+      }
+    }
+
+    if (errorsResult.errors.length > 0) {
+      showError(errorsResult.errors, callback)
       return
     }
-    callback(err)
+
+    // If we had an error install CLI, let's prompt and try to do it via
+    // privileged install.
+    if (errorsResult.hasCLIError && !installerState.state.promptedForCLI) {
+      promptForInstallCLIPrivileged(keybaseBin, callback)
+      return
+    }
+
+    callback(null)
   })
+}
+
+function checkErrors(result: InstallResult): CheckErrorsResult {
+  let errors = []
+  let hasCLIError = false
+  const crs = (result && result.componentResults) || []
+  for (let cr of crs) {
+    if (cr.status.code !== 0) {
+      if (cr.name === 'fuse') {
+        if (cr.exitCode === ExitCodeFuseKextError) {
+          errors.push(
+            `We were unable to load KBFS (Fuse kext). This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.`
+          )
+        } else if (cr.exitCode === ExitCodeFuseKextPermissionError) {
+          // This will occur if they started install and didn't allow the extension in >= 10.13, and then restarted the app.
+          // The app will deal with this scenario in the folders tab, so we can ignore this specific error here.
+        }
+      } else if (cr.name === 'cli') {
+        hasCLIError = true
+      } else {
+        errors.push(`There was an error trying to install the ${cr.name}.`)
+      }
+    }
+  }
+  return {errors, hasCLIError}
+}
+
+function showError(errors: Array<string>, callback: (err: ?Error) => void) {
+  const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
+  dialog.showMessageBox(
+    {
+      buttons: ['Ignore', 'Quit'],
+      detail: detail,
+      message: 'Keybase Install Error',
+    },
+    resp => {
+      if (resp === 1) {
+        quit()
+      } else {
+        callback(null)
+      }
+    }
+  )
+}
+
+function promptForInstallCLIPrivileged(keybaseBin: string, callback: (err: ?Error) => void) {
+  dialog.showMessageBox(
+    {
+      buttons: ['Yes, Install', 'No'],
+      checkboxChecked: true,
+      checkboxLabel: "Don't ask again",
+      detail: 'Do you want to install Keybase for use in the Terminal?',
+      message: 'Install Command Line',
+    },
+    (resp, checkboxChecked) => {
+      if (checkboxChecked) {
+        installerState.state.promptedForCLI = true
+        installerState.save()
+      }
+      if (resp === 0) {
+        installCLIPrivileged(keybaseBin, callback)
+      } else {
+        callback(null)
+      }
+    }
+  )
+}
+
+function installCLIPrivileged(keybaseBin: string, callback: (err: ?Error) => void) {
+  const args = ['--debug', 'install', '--components=clipaths', '--format=json', '--timeout=120s']
+  exec(keybaseBin, args, 'darwin', 'prod', true, callback)
 }

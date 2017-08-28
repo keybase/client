@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Box, Button, Text} from '../../../common-adapters'
 import {globalColors, globalStyles} from '../../../styles'
 

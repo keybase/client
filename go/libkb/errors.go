@@ -660,15 +660,23 @@ func NewProfileNotPublicError(s string) ProfileNotPublicError {
 //=============================================================================
 
 type BadUsernameError struct {
-	N string
+	N   string
+	msg string
 }
 
 func (e BadUsernameError) Error() string {
-	return "Bad username: '" + e.N + "'"
+	if len(e.msg) == 0 {
+		return "Bad username: '" + e.N + "'"
+	}
+	return e.msg
 }
 
 func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
+}
+
+func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
+	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
 }
 
 //=============================================================================
@@ -1379,13 +1387,11 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 func IsIdentifyProofError(err error) bool {
 	switch err.(type) {
-	case ProofError:
-	case IdentifySummaryError:
+	case ProofError, IdentifySummaryError:
 		return true
 	default:
 		return false
 	}
-	return false
 }
 
 //=============================================================================
@@ -2064,4 +2070,18 @@ type RevokeLastDeviceError struct{}
 
 func (e RevokeLastDeviceError) Error() string {
 	return "cannot revoke the last device in your account without confirmation"
+}
+
+//=============================================================================
+
+type ImplicitTeamDisplayNameError struct {
+	msg string
+}
+
+func (e ImplicitTeamDisplayNameError) Error() string {
+	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
+}
+
+func NewImplicitTeamDisplayNameError(s string) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{s}
 }

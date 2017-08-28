@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, UserCard, Text, Button, FormWithCheckbox, Icon, PopupDialog} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import glamorous from 'glamorous'
+import {globalStyles, globalColors, globalMargins, glamorous} from '../../styles'
 
 import type {Props} from '.'
 
@@ -44,7 +43,7 @@ const UserRow = ({user, onClick}) => (
   </ItemBox>
 )
 
-class Login extends Component<void, Props, State> {
+class Login extends Component<Props, State> {
   state = {
     open: false,
   }

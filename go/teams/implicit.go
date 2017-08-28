@@ -28,13 +28,13 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
-	impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public /*isPublic*/)
 	if err != nil {
 		return res, impTeamName, err
 	}
 	impTeamMembers := make(map[string]bool)
-	for _, u := range impTeamName.KeybaseUsers {
+	for _, u := range impTeamName.Writers.KeybaseUsers {
 		impTeamMembers[u] = true
 	}
 
@@ -42,28 +42,30 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
-		"display_name": libkb.S{Val: name},
+		"display_name": libkb.S{Val: displayName},
 		"public":       libkb.B{Val: public},
 	}
 	var imp implicitTeam
 	if err = g.API.GetDecode(arg, &imp); err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok &&
 			keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError {
-			return res, impTeamName, NewTeamDoesNotExistError(name)
+			return res, impTeamName, NewTeamDoesNotExistError(displayName)
 		}
 		return res, impTeamName, err
 	}
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
-		ID: imp.TeamID,
+		ID:          imp.TeamID,
+		ForceRepoll: true,
 	})
 	if err != nil {
 		return res, impTeamName, err
 	}
-	teamDisplayName, err := team.ImplicitTeamDisplayName(ctx)
+
+	teamDisplayName, err := team.ImplicitTeamDisplayNameString(ctx)
 	if err != nil {
 		return res, impTeamName, err
 	}
-	formatImpName, err := FormatImplicitTeamName(ctx, g, impTeamName)
+	formatImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamName)
 	if err != nil {
 		return res, impTeamName, err
 	}
@@ -75,12 +77,12 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 	return imp.TeamID, impTeamName, nil
 }
 
-func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamName, err error) {
-	res, impTeamName, err = LookupImplicitTeam(ctx, g, name, public)
+func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	res, impTeamName, err = LookupImplicitTeam(ctx, g, displayName, public)
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
 			// If the team does not exist, then let's create it
-			impTeamName, err = libkb.ParseImplicitTeamName(g.MakeAssertionContext(), name, public)
+			impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public /*isPublic*/)
 			if err != nil {
 				return res, impTeamName, err
 			}
@@ -92,21 +94,39 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, nam
 	return res, impTeamName, nil
 }
 
-func FormatImplicitTeamName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamName) (string, error) {
-	var names []string
-	for _, u := range impTeamName.KeybaseUsers {
-		names = append(names, u)
+func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName) (string, error) {
+	var writerNames []string
+	for _, u := range impTeamName.Writers.KeybaseUsers {
+		writerNames = append(writerNames, u)
 	}
-	for _, u := range impTeamName.UnresolvedUsers {
-		names = append(names, u.String())
+	for _, u := range impTeamName.Writers.UnresolvedUsers {
+		writerNames = append(writerNames, u.String())
 	}
-	sort.Slice(names, func(i, j int) bool {
-		return names[i] < names[j]
-	})
+	sort.Strings(writerNames)
 
-	normalized, err := kbfs.NormalizeNamesInTLF(names, nil, "")
+	var readerNames []string
+	for _, u := range impTeamName.Readers.KeybaseUsers {
+		readerNames = append(readerNames, u)
+	}
+	for _, u := range impTeamName.Readers.UnresolvedUsers {
+		readerNames = append(readerNames, u.String())
+	}
+	sort.Strings(readerNames)
+
+	var suffix string
+	if impTeamName.ConflictInfo != nil {
+		suffix = fmt.Sprintf("(conflicted %v #%v)",
+			impTeamName.ConflictInfo.Time.Time().UTC().Format("2006-01-02"),
+			impTeamName.ConflictInfo.Generation)
+	}
+
+	normalized, err := kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
 	if err != nil {
 		return "", err
 	}
-	return normalized, nil
+	prefix := "private/"
+	if impTeamName.IsPublic {
+		prefix = "public/"
+	}
+	return prefix + normalized, nil
 }

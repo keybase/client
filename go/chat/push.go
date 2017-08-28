@@ -458,7 +458,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(conv),
 					DisplayDesktopNotification: desktopNotification,
-					Pagination:                 page,
+					Pagination:                 utils.PresentPagination(page),
 				})
 			}
 

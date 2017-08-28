@@ -6,4 +6,4 @@ export type Props = {
   style?: Object,
 }
 
-declare export default class Meta extends Component<void, Props, void> {}
+declare export default class Meta extends Component<Props> {}

@@ -43,7 +43,7 @@ type EitherProps<P> =
       onBack: ?() => void,
     }
 
-class ProfileContainer extends PureComponent<void, EitherProps<Props>, void> {
+class ProfileContainer extends PureComponent<EitherProps<Props>, void> {
   render() {
     if (this.props.type === 'error') {
       return <ErrorComponent error={this.props.propError} onBack={this.props.onBack} />

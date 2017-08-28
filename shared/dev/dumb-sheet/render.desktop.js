@@ -8,7 +8,7 @@ import type {Props} from './render'
 import {Box, Text, Input, BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
 
-class DumbSheetRender extends Component<void, Props, any> {
+class DumbSheetRender extends Component<Props, any> {
   _onFilterChange: (a: any) => void
   _onNext: (a: any, offset: 1 | -1) => void
   _box: any
@@ -41,7 +41,11 @@ class DumbSheetRender extends Component<void, Props, any> {
     // Scroll the screen to the top when you are arrowing around using the exact filter match. Kinda
     // hacky and just to make things simple.
     setImmediate(() => {
-      ReactDOM.findDOMNode(this.refs.scrollBox).scrollTop = 0
+      const node = ReactDOM.findDOMNode(this.refs.scrollBox)
+      if (node) {
+        // $FlowIssue
+        node.scrollTop = 0
+      }
     })
   }
 

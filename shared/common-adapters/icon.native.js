@@ -1,12 +1,11 @@
 // @flow
 import * as shared from './icon.shared'
 import ClickableBox from './clickable-box'
-import React from 'react'
-import {globalColors} from '../styles'
+import * as React from 'react'
+import {globalColors, glamorous} from '../styles'
 import {iconMeta} from './icon.constants'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
-import glamorous from 'glamorous-native'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 
 import type {Exact} from '../constants/types/more'

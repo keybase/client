@@ -4,7 +4,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -63,16 +62,21 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 	defer h.G().CTrace(netCtx, "IdentifyHandler#IdentifyLite", func() error { return err })()
 
 	var au libkb.AssertionURL
+	var parseError error
 	if len(arg.Assertion) > 0 {
 		// It's OK to fail this assertion; it will be off in the case of regular lookups
 		// for users like `t_ellen` without a `type` specification
-		au, _ = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
+		au, parseError = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
 	} else {
 		// empty assertion url required for teams.IdentifyLite
 		au = libkb.AssertionKeybase{}
 	}
 
 	if arg.Id.IsTeamOrSubteam() || libkb.AssertionIsTeam(au) {
+		// Now heed the parse error.
+		if parseError != nil {
+			return res, parseError
+		}
 		return teams.IdentifyLite(netCtx, h.G(), arg, au)
 	}
 
@@ -127,28 +131,6 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	return res, err
 }
 
-func (h *IdentifyHandler) Resolve(ctx context.Context, arg string) (uid keybase1.UID, err error) {
-	ctx = libkb.WithLogTag(ctx, "RSLV")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve(%s)", arg), func() error { return err })()
-	rres := h.G().Resolver.ResolveFullExpression(ctx, arg)
-	return rres.GetUID(), rres.GetError()
-}
-
-func (h *IdentifyHandler) Resolve2(ctx context.Context, arg string) (u keybase1.User, err error) {
-	ctx = libkb.WithLogTag(ctx, "RSLV")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve2(%s)", arg), func() error { return err })()
-	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
-	err = res.GetError()
-	if err != nil {
-		return keybase1.User{}, err
-	}
-	ret := res.User()
-	if ret.Uid.IsNil() {
-		return keybase1.User{}, libkb.UserNotFoundError{Msg: "resolve2 does not work with teams"}
-	}
-	return res.User(), nil
-}
-
 func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
 	ctx = libkb.WithLogTag(ctx, "RSLV")
 	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve3(%s)", arg), func() error { return err })()
@@ -163,11 +145,6 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 		return u, err
 	}
 	return res.UserOrTeam(), nil
-}
-
-func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (res keybase1.IdentifyRes, err error) {
-	h.G().Log.Info("deprecated keybase1.Identify v1 called")
-	return res, errors.New("keybase1.Identify no longer supported")
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

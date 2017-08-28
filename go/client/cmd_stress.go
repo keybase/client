@@ -163,7 +163,7 @@ func (c *CmdStress) idSelf() {
 		return
 	}
 	icli := keybase1.IdentifyClient{Cli: cli}
-	_, err = icli.Identify(context.TODO(), keybase1.IdentifyArg{})
+	_, err = icli.Identify2(context.TODO(), keybase1.Identify2Arg{})
 	if err != nil {
 		G.Log.Warning("id self error: %s", err)
 	}
@@ -176,7 +176,7 @@ func (c *CmdStress) idAlice() {
 		return
 	}
 	icli := keybase1.IdentifyClient{Cli: cli}
-	_, err = icli.Identify(context.TODO(), keybase1.IdentifyArg{UserAssertion: "t_alice"})
+	_, err = icli.Identify2(context.TODO(), keybase1.Identify2Arg{UserAssertion: "t_alice"})
 	if err != nil {
 		G.Log.Warning("id t_alice error: %s", err)
 	}

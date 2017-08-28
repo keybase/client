@@ -6,17 +6,21 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/teams"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
 func TestRPCs(t *testing.T) {
-	tc := setupTest(t, "resolve2")
+	tc := setupTest(t, "rpcs")
 	tc2 := cloneContext(tc)
 
 	libkb.G.LocalDb = nil
@@ -37,7 +41,6 @@ func TestRPCs(t *testing.T) {
 	<-startCh
 
 	// Add test RPC methods here.
-	testIdentifyResolve2(t, tc2.G)
 	testIdentifyResolve3(t, tc2.G)
 	testCheckInvitationCode(t, tc2.G)
 	testLoadAllPublicKeysUnverified(t, tc2.G)
@@ -57,58 +60,11 @@ func TestRPCs(t *testing.T) {
 	}
 }
 
-func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
-
-	cli, err := client.GetIdentifyClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
-
-	if _, err := cli.Resolve(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resolve failed: %v\n", err)
-	}
-
-	// We don't want to hit the cache, since the previous lookup never hit the
-	// server.  For Resolve2, we have to, since we need a username.  So test that
-	// here.
-	if res, err := cli.Resolve2(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resolve failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong username: %s != 't_tracy", res.Username)
-	}
-
-	if res, err := cli.Resolve2(context.TODO(), "t_tracy@rooter"); err != nil {
-		t.Fatalf("Resolve2 failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
-	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
-	}
-
-	if _, err := cli.Resolve2(context.TODO(), "foobag@rooter"); err == nil {
-		t.Fatalf("expected an error on a bad resolve, but got none")
-	} else if _, ok := err.(libkb.ResolutionError); !ok {
-		t.Fatalf("Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
-	}
-
-	if res, err := cli.Resolve2(context.TODO(), "t_tracy"); err != nil {
-		t.Fatalf("Resolve2 failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
-	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
-	}
-}
-
 func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
 
 	cli, err := client.GetIdentifyClient(g)
 	if err != nil {
 		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
-
-	if _, err := cli.Resolve(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resolve failed: %v\n", err)
 	}
 
 	// We don't want to hit the cache, since the previous lookup never hit the
@@ -291,50 +247,89 @@ func testIdentifyLite(t *testing.T) {
 	teamName := tt.users[0].createTeam()
 	g := tt.users[0].tc.G
 
+	t.Logf("make a team")
 	team, err := GetTeamForTestByStringName(context.Background(), g, teamName)
-	if err != nil {
-		t.Fatal(err)
+	require.NoError(t, err)
+
+	getTeamName := func(teamID keybase1.TeamID) keybase1.TeamName {
+		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		require.NoError(t, err)
+		return team.Name()
 	}
+
+	t.Logf("make an implicit team")
+	iTeamCreateName := strings.Join([]string{tt.users[0].username, "bob@github"}, ",")
+	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
+	require.NoError(t, err)
+	iTeamImpName := getTeamName(iTeamID)
+	require.True(t, iTeamImpName.IsImplicit())
+	require.NoError(t, err)
 
 	cli, err := client.GetIdentifyClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
+	require.NoError(t, err, "failed to get new identifyclient")
 
 	// test ok assertions
-	var assertions = []string{"team:" + teamName, "tid:" + team.ID.String(), "t_alice"}
-	for _, assertion := range assertions {
-		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
-		if err != nil {
-			t.Fatalf("IdentifyLite (%s) failed: %v\n", assertion, err)
+	var units = []struct {
+		assertion string
+		resID     keybase1.TeamID
+		resName   string
+	}{
+		{
+			assertion: "t_alice",
+			resName:   "t_alice",
+		}, {
+			assertion: "team:" + teamName,
+			resID:     team.ID,
+			resName:   teamName,
+		}, {
+			assertion: "tid:" + team.ID.String(),
+			resID:     team.ID,
+			resName:   teamName,
+		},
+	}
+	for _, unit := range units {
+		res, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: unit.assertion})
+		require.NoError(t, err, "IdentifyLite (%s) failed", unit.assertion)
+
+		if len(unit.resID) > 0 {
+			require.Equal(t, unit.resID.String(), res.Ul.Id.String())
+		}
+
+		if len(unit.resName) > 0 {
+			require.Equal(t, unit.resName, res.Ul.Name)
 		}
 	}
 
 	// test identify by assertion and id
-	assertions = []string{"team:" + teamName, "tid:" + team.ID.String()}
+	assertions := []string{"team:" + teamName, "tid:" + team.ID.String()}
 	for _, assertion := range assertions {
 		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam(), Assertion: assertion})
-		if err != nil {
-			t.Fatalf("IdentifyLite by assertion and id (%s) failed: %v\n", assertion, err)
-		}
+		require.NoError(t, err, "IdentifyLite by assertion and id (%s)", assertion)
 	}
 
 	// test identify by id only
 	_, err = cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam()})
-	if err != nil {
-		t.Fatalf("IdentifyLite id only failed: %v\n", err)
-	}
+	require.NoError(t, err, "IdentifyLite id only")
+
+	// test invalid user format
+	_, err = cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: "__t_alice"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "bad keybase username")
 
 	// test team read error
 	assertions = []string{"team:jwkj22111z"}
 	for _, assertion := range assertions {
 		_, err := cli.IdentifyLite(context.Background(), keybase1.IdentifyLiteArg{Assertion: assertion})
 		aerr, ok := err.(libkb.AppStatusError)
-		if !ok {
-			t.Fatalf("Expected an AppStatusError for %s, but got: %v (%T)", assertion, err, err)
-		}
-		if aerr.Code != libkb.SCTeamNotFound {
-			t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamNotFound)
+		if ok {
+			if aerr.Code != libkb.SCTeamNotFound {
+				t.Fatalf("app status code: %d, expected %d", aerr.Code, libkb.SCTeamNotFound)
+			}
+		} else {
+			require.True(t, regexp.MustCompile("Team .* does not exist").MatchString(err.Error()),
+				"Expected an AppStatusError or team-does-not-exist for %s, but got: %v (%T)", assertion, err, err)
 		}
 	}
 

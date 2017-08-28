@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Box} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'

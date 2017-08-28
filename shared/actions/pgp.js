@@ -13,11 +13,11 @@ function pgpStorageDismiss() {
   })
 }
 
-function* pgpSecurityModelChangeMessageSaga({payload: {hitOk}}: PgpAckedMessage): any {
+const pgpSecurityModelChangeMessageSaga = function*({payload: {hitOk}}: PgpAckedMessage): any {
   pgpStorageDismiss()
 }
 
-function* pgpSaga(): any {
+const pgpSaga = function*(): any {
   yield safeTakeEvery(Constants.pgpAckedMessage, pgpSecurityModelChangeMessageSaga)
 }
 

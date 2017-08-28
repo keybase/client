@@ -113,6 +113,32 @@
           "lint": "ignore"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LockID",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "MDPriority",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "LockContext",
+      "fields": [
+        {
+          "type": "LockID",
+          "name": "requireLockID"
+        },
+        {
+          "type": "boolean",
+          "name": "releaseAfterSuccess"
+        }
+      ]
     }
   ],
   "messages": {
@@ -149,6 +175,17 @@
             "type": "map",
             "values": "string"
           }
+        },
+        {
+          "name": "lockContext",
+          "type": [
+            null,
+            "LockContext"
+          ]
+        },
+        {
+          "name": "priority",
+          "type": "MDPriority"
         }
       ],
       "response": null
@@ -185,6 +222,13 @@
             "type": "map",
             "values": "string"
           }
+        },
+        {
+          "name": "lockBeforeGet",
+          "type": [
+            null,
+            "LockID"
+          ]
         }
       ],
       "response": "MetadataResponse"
@@ -369,6 +413,32 @@
         }
       ],
       "response": "KeyBundleResponse"
+    },
+    "lock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "lockID",
+          "type": "LockID"
+        }
+      ],
+      "response": null
+    },
+    "releaseLock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "lockID",
+          "type": "LockID"
+        }
+      ],
+      "response": null
     },
     "getMerkleRoot": {
       "request": [

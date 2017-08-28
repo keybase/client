@@ -14,7 +14,7 @@ import {chatTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
-function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
+const deleteMessage = function*(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
   let messageID: ?Constants.MessageID
   let conversationIDKey: ?Constants.ConversationIDKey
@@ -73,7 +73,7 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
   }
 }
 
-function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
+const postMessage = function*(action: Constants.PostMessage): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
 
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
@@ -147,7 +147,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   })
 }
 
-function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
+const editMessage = function*(action: Constants.EditMessage): SagaGenerator<any, any> {
   const {message} = action.payload
   let messageID: ?Constants.MessageID
   let conversationIDKey: Constants.ConversationIDKey = ''
@@ -194,7 +194,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   })
 }
 
-function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
+const retryMessage = function*(action: Constants.RetryMessage): SagaGenerator<any, any> {
   const {conversationIDKey, outboxIDKey} = action.payload
   yield put(Creators.updateTempMessage(conversationIDKey, {messageState: 'pending'}, outboxIDKey))
   yield call(ChatTypes.localRetryPostRpcPromise, {

@@ -57,6 +57,7 @@ export function publicFolderWithUsers(users: Array<string>): string {
 export type State = {
   appFocused: boolean,
   userActive: boolean,
+  appFocusedCount: number,
   bootStatus: BootStatus,
   pushLoaded: boolean,
   bootstrapTriesRemaining: number,

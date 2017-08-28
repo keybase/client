@@ -104,9 +104,14 @@ function configurePush() {
       },
       senderID: PushConstants.androidSenderID,
       onNotification: notification => {
+        const merged = {
+          ...notification,
+          ...(notification.data || {}),
+          data: undefined,
+        }
         emitter(
           ({
-            payload: notification,
+            payload: merged,
             type: 'push:notification',
           }: PushConstants.PushNotificationAction)
         )

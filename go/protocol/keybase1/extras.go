@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
@@ -1663,6 +1664,7 @@ func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 	}
 }
 
+// Can return nil.
 func (u UserPlusKeysV2) GetLatestPerUserKey() *PerUserKey {
 	if len(u.PerUserKeys) > 0 {
 		return &u.PerUserKeys[len(u.PerUserKeys)-1]
@@ -1774,3 +1776,28 @@ func (t TeamInviteType) String() (string, error) {
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
+
+func (i ImplicitTeamUserSet) NumTotalUsers() int {
+	return len(i.KeybaseUsers) + len(i.UnresolvedUsers)
+}
+
+// LockIDFromBytes takes the first 8 bytes of the sha512 over data, interprets
+// it as int64 using little endian, and returns the value as LockID.
+func LockIDFromBytes(data []byte) LockID {
+	sum := sha512.Sum512(data)
+	return LockID(binary.LittleEndian.Uint64(sum[:8]))
+}
+
+// MDPriority is the type for the priority field of a metadata put. mdserver
+// prioritizes MD writes with higher priority when multiple happen at the same
+// time, for the same TLF.
+const (
+	// MDPriorityDefault is the priority of zero. It's implicitly used by all
+	// old clients, and has lowest priority.
+	MDPriorityDefault MDPriority = 0
+	// MDPriorityNormal is the priority used for normal KBFS metadata writes.
+	MDPriorityNormal = 8
+	// MDPriorityGit is the priority used for metadata writes triggered by git
+	// remote helpers.
+	MDPriorityGit = 32
+)

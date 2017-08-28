@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"sort"
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -46,6 +44,10 @@ func (t *Team) Name() keybase1.TeamName {
 
 func (t *Team) Generation() keybase1.PerTeamKeyGeneration {
 	return t.chain().GetLatestGeneration()
+}
+
+func (t *Team) IsPublic() bool {
+	return t.chain().IsPublic()
 }
 
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
@@ -121,45 +123,86 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 	return members, nil
 }
 
-func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (string, error) {
+func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	impName := keybase1.ImplicitTeamDisplayName{
+		IsPublic:     t.IsPublic(),
+		ConflictInfo: nil, // TODO should we know this here?
+	}
+
 	members, err := t.Members()
 	if err != nil {
-		return "", err
+		return res, err
 	}
-	var usernames []string
+	// Add the keybase owners
 	for _, member := range members.Owners {
 		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
 		if err != nil {
-			return "", err
+			return res, err
 		}
-		usernames = append(usernames, name.String())
+		impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, name.String())
+	}
+	// Add the keybase readers
+	for _, member := range members.Readers {
+		name, err := t.G().GetUPAKLoader().LookupUsername(ctx, member.Uid)
+		if err != nil {
+			return res, err
+		}
+		impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, name.String())
 	}
 
-	var invites []string
+	// Add the invites
 	chainInvites := t.chain().inner.ActiveInvites
 	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
 	if err != nil {
-		return "", err
+		return res, err
 	}
 	for inviteID := range chainInvites {
-		invite := inviteMap[inviteID]
+		invite, ok := inviteMap[inviteID]
+		if !ok {
+			// this should never happen
+			return res, fmt.Errorf("missing invite: %v", inviteID)
+		}
 		invtyp, err := invite.Type.C()
 		if err != nil {
 			continue
 		}
-		name := string(invite.Name)
-		if invtyp == keybase1.TeamInviteCategory_SBS {
-			name += "@" + string(invite.Type.Sbs())
+		switch invtyp {
+		case keybase1.TeamInviteCategory_SBS:
+			sa := keybase1.SocialAssertion{
+				User:    string(invite.Name),
+				Service: keybase1.SocialAssertionService(string(invite.Type.Sbs())),
+			}
+			switch invite.Role {
+			case keybase1.TeamRole_OWNER:
+				impName.Writers.UnresolvedUsers = append(impName.Writers.UnresolvedUsers, sa)
+			case keybase1.TeamRole_READER:
+				impName.Readers.UnresolvedUsers = append(impName.Readers.UnresolvedUsers, sa)
+			default:
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+			}
+		case keybase1.TeamInviteCategory_KEYBASE:
+			// invite.Name is the username of the invited user, which AnnotateInvites has resolved.
+			switch invite.Role {
+			case keybase1.TeamRole_OWNER:
+				impName.Writers.KeybaseUsers = append(impName.Writers.KeybaseUsers, string(invite.Name))
+			case keybase1.TeamRole_READER:
+				impName.Readers.KeybaseUsers = append(impName.Readers.KeybaseUsers, string(invite.Name))
+			default:
+				return res, fmt.Errorf("implicit team contains invite to role: %v (%v)", invite.Role, invite.Id)
+			}
+		default:
+			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}
-		invites = append(invites, name)
 	}
-	names := append(usernames, invites...)
-	sort.Slice(names, func(i, j int) bool { return names[i] < names[j] })
-	normalized, err := kbfs.NormalizeNamesInTLF(names, nil, "")
+	return impName, nil
+}
+
+func (t *Team) ImplicitTeamDisplayNameString(ctx context.Context) (string, error) {
+	impName, err := t.ImplicitTeamDisplayName(ctx)
 	if err != nil {
 		return "", err
 	}
-	return normalized, nil
+	return FormatImplicitTeamDisplayName(ctx, t.G(), impName)
 }
 
 func (t *Team) NextSeqno() keybase1.Seqno {

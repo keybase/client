@@ -9,10 +9,8 @@ import {globalStyles} from '../styles'
 import type {Props} from './back-button'
 import {clickableVisible} from '../local-debug'
 
-export default class BackButton extends Component {
-  props: Props
-
-  onClick(event: SyntheticEvent) {
+export default class BackButton extends Component<Props> {
+  onClick(event: SyntheticEvent<>) {
     event && event.preventDefault && event.preventDefault()
     event && event.stopPropagation && event.stopPropagation()
     if (this.props.onClick) {

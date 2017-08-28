@@ -1,11 +1,10 @@
 // @flow
 import Icon from './icon'
-import React, {PureComponent} from 'react'
-import {globalColors} from '../styles'
+import * as React from 'react'
+import {globalColors, glamorous} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import memoize from 'lodash/memoize'
-import glamorous from 'glamorous-native'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -26,7 +25,7 @@ type Props = {
   followIconSize: number,
   isTeam?: boolean,
   loadingColor: ?string,
-  onClick?: ?(event: SyntheticEvent) => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,
@@ -67,8 +66,7 @@ const BackgroundView = glamorous.view(
   })
 )
 
-class Background
-  extends PureComponent<void, {loaded: boolean, loadingColor: any, borderRadius: number}, void> {
+class Background extends React.PureComponent<{loaded: boolean, loadingColor: any, borderRadius: number}> {
   render() {
     return (
       <BackgroundView
@@ -95,7 +93,7 @@ const UserImageImage = glamorous.image(
     width: props.size,
   })
 )
-class UserImage extends PureComponent<void, ImageProps, void> {
+class UserImage extends React.PureComponent<ImageProps> {
   render() {
     const {borderRadius, url, size, onLoadEnd, opacity = 1} = this.props
     return (
@@ -128,13 +126,13 @@ const BorderView = glamorous.view(
     borderRadius: props.borderRadius,
   })
 )
-class Border extends PureComponent<void, {borderColor: any, borderRadius: number}, void> {
+class Border extends React.PureComponent<{borderColor: any, borderRadius: number}> {
   render() {
     return <BorderView borderColor={this.props.borderColor} borderRadius={this.props.borderRadius} />
   }
 }
 
-class AvatarRender extends PureComponent<void, Props, State> {
+class AvatarRender extends React.PureComponent<Props, State> {
   state: State = {
     loaded: false,
   }

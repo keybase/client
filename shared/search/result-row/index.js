@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../constants/search'
-import React from 'react'
+import * as React from 'react'
 import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
 import {globalColors, globalStyles, globalMargins, hairlineWidth} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
