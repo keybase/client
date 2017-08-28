@@ -252,7 +252,7 @@ func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keyba
 func (t TeamSigChainState) GetLatestUVWithUID(uid keybase1.UID) (res keybase1.UserVersion, err error) {
 	found := false
 	for uv := range t.inner.UserLog {
-		if uv.Uid == uid && (!found || res.EldestSeqno < uv.EldestSeqno) {
+		if uv.Uid == uid && t.getUserRole(uv) != keybase1.TeamRole_NONE && (!found || res.EldestSeqno < uv.EldestSeqno) {
 			res = uv
 			found = true
 		}
