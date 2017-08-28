@@ -2,6 +2,7 @@ package systests
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	client "github.com/keybase/client/go/client"
@@ -320,4 +321,32 @@ func TestTeamResetNoKeysAdmin(t *testing.T) {
 
 	ann.addAdmin(team, bob)
 	divDebug(ctx, "Added bob as an admin")
+}
+
+// bob resets, implicit team lookup should still work for ann
+func TestImplicitTeamReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	displayName := strings.Join([]string{ann.username, bob.username}, ",")
+	iteam := ann.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	divDebug(ctx, "team created (%s)", iteam.ID)
+
+	iteam2 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.Equal(t, iteam.ID, iteam2.ID, "second lookup should return same team")
+	divDebug(ctx, "team looked up before reset")
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	iteam3 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.Equal(t, iteam.ID, iteam3.ID, "lookup after reset should return same team")
+	divDebug(ctx, "team looked up before reset")
 }
