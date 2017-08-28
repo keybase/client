@@ -39,11 +39,15 @@ class Text extends Component<Props> {
     })
   }
 
-  _className(props) {
+  _className(props: Props) {
     const meta = metaData[props.type]
-    const className = [props.className, meta.isLink ? 'hover-underline' : null].filter(Boolean).join(' ')
-
-    return className || undefined
+    const classNames = [props.className]
+    if (props.underline) {
+      classNames.push('underline')
+    } else if (meta.isLink) {
+      classNames.push('hover-underline')
+    }
+    return classNames.join(' ') || undefined
   }
 
   _urlClick = () => {

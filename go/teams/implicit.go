@@ -28,8 +28,8 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-	impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), name, public /*isPublic*/)
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public /*isPublic*/)
 	if err != nil {
 		return res, impTeamName, err
 	}
@@ -42,14 +42,14 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
-		"display_name": libkb.S{Val: name},
+		"display_name": libkb.S{Val: displayName},
 		"public":       libkb.B{Val: public},
 	}
 	var imp implicitTeam
 	if err = g.API.GetDecode(arg, &imp); err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok &&
 			keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError {
-			return res, impTeamName, NewTeamDoesNotExistError(name)
+			return res, impTeamName, NewTeamDoesNotExistError(displayName)
 		}
 		return res, impTeamName, err
 	}
@@ -77,12 +77,12 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string
 	return imp.TeamID, impTeamName, nil
 }
 
-func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
-	res, impTeamName, err = LookupImplicitTeam(ctx, g, name, public)
+func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	res, impTeamName, err = LookupImplicitTeam(ctx, g, displayName, public)
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
 			// If the team does not exist, then let's create it
-			impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), name, public /*isPublic*/)
+			impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public /*isPublic*/)
 			if err != nil {
 				return res, impTeamName, err
 			}

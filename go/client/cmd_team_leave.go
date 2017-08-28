@@ -30,7 +30,7 @@ func newCmdTeamLeave(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "p, permanent",
-				Usage: "Prevent being readded to team",
+				Usage: "Prevent being re-added to team",
 			},
 		},
 	}
@@ -64,9 +64,9 @@ func (c *CmdTeamLeave) Run() error {
 
 	dui := c.G().UI.GetDumbOutputUI()
 	if c.permanent {
-		dui.Printf("Success! You have left %s permanently.", c.team)
+		dui.Printf("Success! You have left %s (and will never be added again).\n", c.team)
 	} else {
-		dui.Printf("Success! You have left %s.", c.team)
+		dui.Printf("Success! You have left %s.\n", c.team)
 	}
 
 	return nil

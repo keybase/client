@@ -196,10 +196,6 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 }
 
-const filterItem = {
-  type: 'iAmTheFilter',
-}
-
 const boxStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,

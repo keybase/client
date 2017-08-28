@@ -144,6 +144,10 @@ body {
     text-decoration: underline;
 }
 
+.underline {
+	text-decoration: underline;
+}
+
 .hide-scrollbar::-webkit-scrollbar {
     display: none;
     width: 0;

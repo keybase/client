@@ -9,7 +9,9 @@
 
     <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
 
-    <Variable Name="nodriver" bal:Overridable="yes" />
+    <Variable Name="driver" bal:Overridable="yes" />
+    
+    <Variable Name="modifyprompt" bal:Overridable="yes" Value="Modify Setup" />
     
     <Log PathVariable="LOGPATH_PROP"/>
     <util:FileSearchRef Id='WINTRUST_FileSearch' />
@@ -86,12 +88,12 @@
       <PackageGroupRef Id="NetFx40Web"/>
       
       <!-- Remember: if DetectCondition is true, this package is considered already present. 
-        WixBundleAction of 4 means install. 3 is uninstall, 5 is upgrade.
+        WixBundleAction of 4 means install. 3 is uninstall, 5 is upgrade, 7 is repair
         Making this permanent prevents it from being invoked on uninstall or other removal.
       -->
       <ExePackage
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe"
-        DetectCondition="DokanUninstallString OR nodriver"
+        DetectCondition="DokanUninstallString OR NOT driver"
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes">
@@ -101,21 +103,20 @@
       </ExePackage>
 
       <!-- Note there are 2 VC redistributable package entries, one for x86 and one for x64,
- 	   which need to remain in sync -->	    
+ 	   which need to remain in sync. Also, "repair" doesn't seem to work, so we omit that attribute -->	    
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  RepairCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/uninstall /norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
-                  DetectCondition="vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918"
+                  DetectCondition="(vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
                   SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
-                  DownloadUrl="https://download.microsoft.com/download/2/6/8/268f7be7-8d2a-42d6-a823-5c6941a3d70a/vc_redist.x86.exe"
+                  DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe"
       >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
         <ExitCode Value="3010" Behavior="scheduleReboot"/>
@@ -127,18 +128,17 @@
       <ExePackage Id="vcredist_2015_x64.exe"
                   Name="vc_redist.x64.exe"
                   InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  RepairCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
-                  UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/uninstall /norestart /passive /chainingpackage ADMINDEPLOYMENT"
                   Protocol="netfx4"
                   Permanent="yes"
                   InstallCondition="VersionNT64"
-                  DetectCondition="vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918"
+                  DetectCondition="(vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
                   Cache="yes"
                   SuppressSignatureVerification="yes"
                   SourceFile="Redist\VCRedist_2015\vc_redist.x64.exe"
-                  DownloadUrl="https://download.microsoft.com/download/6/3/a/63abaf83-2ca6-4460-90d7-12de8e815b1a/vc_redist.x64.exe"
+                  DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x64.exe"
                   >
         <ExitCode Value="1641" Behavior="scheduleReboot"/>
         <ExitCode Value="3010" Behavior="scheduleReboot"/>
@@ -150,7 +150,7 @@
                   Compressed="yes"
                   Permanent="yes"
                   InstallCondition="NOT VersionNT64 AND VersionNT = v6.1"
-                  DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
+                  DetectCondition="(UCRTVERSION &gt;= v6.2.10585.0) OR NOT driver"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
@@ -163,7 +163,7 @@
                   Compressed="yes"
                   Permanent="yes"
                   InstallCondition="VersionNT64 AND VersionNT = v6.1"
-                  DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
+                  DetectCondition="(UCRTVERSION64 &gt;= v6.2.10585.0) OR NOT driver"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
@@ -176,7 +176,7 @@
                   Compressed="yes"
                   Permanent="yes"
                   InstallCondition="NOT VersionNT64 AND VersionNT = v6.2"
-                  DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
+                  DetectCondition="(UCRTVERSION &gt;= v6.2.10585.0) OR NOT driver"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
@@ -189,7 +189,7 @@
                   Compressed="yes"
                   Permanent="yes"
                   InstallCondition="VersionNT64 AND VersionNT = v6.2"
-                  DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
+                  DetectCondition="(UCRTVERSION64 &gt;= v6.2.10585.0) OR NOT driver"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
@@ -202,7 +202,7 @@
                   Compressed="yes"
                   Permanent="yes"
                   InstallCondition="NOT VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
-                  DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
+                  DetectCondition="(UCRTVERSION &gt;= v6.2.10585.0) OR NOT driver"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
@@ -215,7 +215,7 @@
                   Compressed="yes"
                   Permanent="yes"
                   InstallCondition="VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
-                  DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
+                  DetectCondition="(UCRTVERSION64 &gt;= v6.2.10585.0) OR NOT driver"
                   Vital="yes"
                   Cache="no"
                   SuppressSignatureVerification="yes"
@@ -224,7 +224,7 @@
                   />
 
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
-                  InstallCondition="NOT VersionNT64 AND NOT nodriver"
+                  InstallCondition="NOT VersionNT64 AND (driver OR DokanUninstallString)"
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
@@ -236,7 +236,7 @@
       </MsiPackage>
 
       <MsiPackage SourceFile="$(var.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
-                  InstallCondition="VersionNT64 AND NOT nodriver"
+                  InstallCondition="VersionNT64 AND (driver OR DokanUninstallString)"
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"

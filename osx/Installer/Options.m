@@ -43,11 +43,13 @@
   [parser registerSwitch:@"uninstall-fuse"];
   [parser registerSwitch:@"uninstall-mountdir"];
   [parser registerSwitch:@"uninstall-helper"];
+  [parser registerSwitch:@"uninstall-cli"];
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
   [parser registerSwitch:@"install-mountdir"];
   [parser registerSwitch:@"install-helper"];
   [parser registerSwitch:@"install-app-bundle"];
+  [parser registerSwitch:@"install-cli"];
   [parser registerOption:@"source-path" requirement:GBValueOptional]; // If using install-app-bundle
   [parser registerSwitch:@"debug"];
   [parser registerSettings:self.settings];
@@ -78,6 +80,9 @@
   if ([[self.settings objectForKey:@"uninstall-helper"] boolValue]) {
     self.uninstallOptions |= UninstallOptionHelper;
   }
+  if ([[self.settings objectForKey:@"uninstall-cli"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionCLI;
+  }
   if ([[self.settings objectForKey:@"uninstall"] boolValue]) {
     self.installOptions |= UninstallOptionAll;
   }
@@ -95,9 +100,10 @@
     self.installOptions |= KBInstallOptionAppBundle;
     self.sourcePath = [self.settings objectForKey:@"source-path"];
   }
-  if (self.installOptions == 0) {
-    self.installOptions = KBInstallOptionAll;
+  if ([[self.settings objectForKey:@"install-cli"] boolValue]) {
+    self.installOptions |= KBInstallOptionCLI;
   }
+
   self.installTimeout = [[self.settings objectForKey:@"timeout"] intValue];
   if (self.installTimeout <= 0) {
     if (error) *error = KBMakeError(-1, @"Invalid timeout: %@", @(self.installTimeout));
