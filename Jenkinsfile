@@ -262,7 +262,7 @@ def runNixTest(prefix) {
     }
 
     // Build out the vendored gogit dependency first, otherwise the
-    // fit-remote-helper binary and the kbfsgit tests might have
+    // git-remote-helper binary and the kbfsgit tests might have
     // concurrent build issues when running in parallel.
     dir('kbfsgit') {
         sh 'go test -i'
