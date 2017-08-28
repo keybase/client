@@ -1787,3 +1787,17 @@ func LockIDFromBytes(data []byte) LockID {
 	sum := sha512.Sum512(data)
 	return LockID(binary.LittleEndian.Uint64(sum[:8]))
 }
+
+// MDPriority is the type for the priority field of a metadata put. mdserver
+// prioritizes MD writes with higher priority when multiple happen at the same
+// time, for the same TLF.
+const (
+	// MDPriorityDefault is the priority of zero. It's implicitly used by all
+	// old clients, and has lowest priority.
+	MDPriorityDefault MDPriority = 0
+	// MDPriorityNormal is the priority used for normal KBFS metadata writes.
+	MDPriorityNormal = 8
+	// MDPriorityGit is the priority used for metadata writes triggered by git
+	// remote helpers.
+	MDPriorityGit = 32
+)

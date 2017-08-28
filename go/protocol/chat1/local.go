@@ -3064,7 +3064,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -3079,7 +3079,7 @@ func (o GetThreadNonblockArg) DeepCopy() GetThreadNonblockArg {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Query),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
 			}

@@ -1970,7 +1970,7 @@
           "name": "pagination",
           "type": [
             null,
-            "Pagination"
+            "UIPagination"
           ]
         },
         {
