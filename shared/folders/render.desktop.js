@@ -5,12 +5,8 @@ import type {Props} from './render'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-import {connect} from 'react-redux'
-import {fuseStatus} from '../actions/kbfs'
 import Banner from './install/banner'
 import InstallSecurityPrefs from './install/security-prefs'
-
-import type {TypedState} from '../constants/reducer'
 
 class FoldersRender extends Component<Props> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
@@ -129,16 +125,4 @@ const tabBarStyle = {
   ...globalStyles.flexBoxRow,
 }
 
-const mapStateToProps = (state: TypedState) => {
-  const installed = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
-  return {
-    installed,
-    showSecurityPrefs: !installed && state.favorite.kextPermissionError,
-  }
-}
-
-const mapDispatchToProps = (dispatch: any) => ({
-  fuseStatus: () => dispatch(fuseStatus()),
-})
-
-export default connect(mapStateToProps, mapDispatchToProps)(FoldersRender)
+export default FoldersRender
