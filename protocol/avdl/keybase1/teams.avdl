@@ -440,7 +440,7 @@ protocol teams {
   TeamID lookupImplicitTeam(string name, boolean public);
   TeamID lookupOrCreateImplicitTeam(string name, boolean public);
 
-  void teamReAddMemberAfterReset(int sessionID, string name, string username);
+  void teamReAddMemberAfterReset(int sessionID, TeamID id, string username);
 
   /**
    * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.

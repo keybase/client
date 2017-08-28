@@ -1395,14 +1395,14 @@ func (o LookupOrCreateImplicitTeamArg) DeepCopy() LookupOrCreateImplicitTeamArg 
 
 type TeamReAddMemberAfterResetArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Name      string `codec:"name" json:"name"`
+	Id        TeamID `codec:"id" json:"id"`
 	Username  string `codec:"username" json:"username"`
 }
 
 func (o TeamReAddMemberAfterResetArg) DeepCopy() TeamReAddMemberAfterResetArg {
 	return TeamReAddMemberAfterResetArg{
 		SessionID: o.SessionID,
-		Name:      o.Name,
+		Id:        o.Id.DeepCopy(),
 		Username:  o.Username,
 	}
 }

@@ -1374,8 +1374,8 @@
           "type": "int"
         },
         {
-          "name": "name",
-          "type": "string"
+          "name": "id",
+          "type": "TeamID"
         },
         {
           "name": "username",

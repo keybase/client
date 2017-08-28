@@ -410,7 +410,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob.
-	alice.reAddUserAfterReset(smuTeam{name: teamName}, bob)
+	alice.reAddUserAfterReset(teamID, bob)
 	divDebug(ctx, "Re-Added bob as an owner")
 
 	// Check if sigchain still plays back correctly
@@ -436,7 +436,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob, again.
-	alice.reAddUserAfterReset(smuTeam{name: teamName}, bob)
+	alice.reAddUserAfterReset(teamID, bob)
 	divDebug(ctx, "Re-Added bob as an owner again")
 
 	// Check if sigchain plays correctly, at this point there are two

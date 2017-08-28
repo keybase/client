@@ -5834,7 +5834,7 @@ export type teamsTeamListRpcParam = Exact<{
 }>
 
 export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
-  name: string,
+  id: TeamID,
   username: string
 }>
 

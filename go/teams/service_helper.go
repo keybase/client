@@ -479,8 +479,8 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 	return team.Name.RootAncestorName().ToTeamID(), nil
 }
 
-func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
+	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
 	if err != nil {
 		return err
 	}
@@ -495,7 +495,7 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamname
 	}
 
 	if existingUV.EldestSeqno == uv.EldestSeqno {
-		return fmt.Errorf("No need to ReAdd member, user has not reset")
+		return fmt.Errorf("No need to re-add member, user has not reset")
 	} else if existingUV.EldestSeqno > uv.EldestSeqno {
 		return fmt.Errorf("EldestSeqno going backwards?")
 	}
