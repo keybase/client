@@ -235,7 +235,8 @@ func (e ServerErrorThrottle) ToStatus() (s keybase1.Status) {
 // ServerErrorConditionFailed is returned when a conditonal write failed.
 // This means there was a race and the caller should consider it a conflcit.
 type ServerErrorConditionFailed struct {
-	Err error
+	Err            error
+	ShouldThrottle bool
 }
 
 // Error implements the Error interface for ServerErrorConditionFailed.
@@ -248,6 +249,12 @@ func (e ServerErrorConditionFailed) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeServerErrorConditionFailed
 	s.Name = "CONDITION_FAILED"
 	s.Desc = e.Err.Error()
+	s.Fields = []keybase1.StringKVPair{
+		keybase1.StringKVPair{
+			Key:   "ShouldThrottle",
+			Value: strconv.FormatBool(e.ShouldThrottle),
+		},
+	}
 	return
 }
 
@@ -368,7 +375,17 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 		appError = ServerErrorThrottle{errors.New(s.Desc)}
 		break
 	case StatusCodeServerErrorConditionFailed:
-		appError = ServerErrorConditionFailed{errors.New(s.Desc)}
+		shouldThrottle := false
+		for _, kv := range s.Fields {
+			if kv.Key == "ShouldThrottle" {
+				shouldThrottle, _ = strconv.ParseBool(kv.Value)
+				break
+			}
+		}
+		appError = ServerErrorConditionFailed{
+			Err:            errors.New(s.Desc),
+			ShouldThrottle: shouldThrottle,
+		}
 		break
 	case StatusCodeServerErrorWriteAccess:
 		appError = ServerErrorWriteAccess{}
