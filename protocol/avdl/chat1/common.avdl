@@ -205,9 +205,6 @@ protocol common {
   record ConversationAuxiliaryInfo {
     gregor1.Time conversationCtime;
     gregor1.UID conversationCreator;
-    union { null, gregor1.Time } headlineMtime;
-    union { null, gregor1.UID } headlineModifier;
-    union { null, MessageID } headlineMessageID;
     int readerCount;
   }
 

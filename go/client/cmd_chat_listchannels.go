@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -55,7 +54,7 @@ func (c *CmdChatListChannels) Run() error {
 
 	ui.Printf("Listing channels on %s:\n\n", c.tlfName)
 	for _, c := range listRes.Convs {
-		ui.Printf("#%s\n", utils.GetTopicName(c))
+		ui.Printf("#%s [%s]\n", c.Channel, c.Headline)
 	}
 
 	return nil
@@ -64,7 +63,7 @@ func (c *CmdChatListChannels) Run() error {
 func (c *CmdChatListChannels) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
 		cli.ShowCommandHelp(ctx, "list-channels")
-		return fmt.Errorf("Incorrect usage.")
+		return fmt.Errorf("incorrect usage")
 	}
 
 	c.tlfName = ctx.Args().Get(0)

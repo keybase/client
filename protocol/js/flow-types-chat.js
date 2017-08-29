@@ -851,9 +851,6 @@ export type Conversation = {
 export type ConversationAuxiliaryInfo = {
   conversationCtime: gregor1.Time,
   conversationCreator: gregor1.UID,
-  headlineMtime?: ?gregor1.Time,
-  headlineModifier?: ?gregor1.UID,
-  headlineMessageID?: ?MessageID,
   readerCount: int,
 }
 
@@ -1131,7 +1128,7 @@ export type GetPublicConversationsRes = {
 }
 
 export type GetTLFConversationsLocalRes = {
-  convs?: ?Array<ConversationLocal>,
+  convs?: ?Array<InboxUIItem>,
   offline: boolean,
   rateLimits?: ?Array<RateLimit>,
 }
@@ -1236,6 +1233,7 @@ export type InboxUIItem = {
   name: string,
   snippet: string,
   channel: string,
+  headline: string,
   visibility: TLFVisibility,
   participants?: ?Array<string>,
   status: ConversationStatus,

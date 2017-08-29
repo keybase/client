@@ -2125,11 +2125,13 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 		return res, err
 	}
 
-	res.Convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
+	var convs []chat1.ConversationLocal
+	convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
 		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType, arg.IncludeAuxiliaryInfo)
 	if err != nil {
 		return res, err
 	}
+	res.Convs = utils.PresentConversationLocals(convs)
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }

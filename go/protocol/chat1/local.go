@@ -2958,15 +2958,15 @@ func (o JoinLeaveConversationLocalRes) DeepCopy() JoinLeaveConversationLocalRes 
 }
 
 type GetTLFConversationsLocalRes struct {
-	Convs      []ConversationLocal `codec:"convs" json:"convs"`
-	Offline    bool                `codec:"offline" json:"offline"`
-	RateLimits []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+	Convs      []InboxUIItem `codec:"convs" json:"convs"`
+	Offline    bool          `codec:"offline" json:"offline"`
+	RateLimits []RateLimit   `codec:"rateLimits" json:"rateLimits"`
 }
 
 func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
 	return GetTLFConversationsLocalRes{
-		Convs: (func(x []ConversationLocal) []ConversationLocal {
-			var ret []ConversationLocal
+		Convs: (func(x []InboxUIItem) []InboxUIItem {
+			var ret []InboxUIItem
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)

@@ -1859,7 +1859,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationLocal"
+            "items": "InboxUIItem"
           },
           "name": "convs"
         },

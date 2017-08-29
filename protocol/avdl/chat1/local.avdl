@@ -657,7 +657,7 @@ protocol local {
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
 
   record GetTLFConversationsLocalRes {
-    array<ConversationLocal> convs;
+    array<InboxUIItem> convs;
     boolean offline;
     array<RateLimit> rateLimits;
   }

@@ -87,6 +87,7 @@ type InboxUIItem struct {
 	Name          string                        `codec:"name" json:"name"`
 	Snippet       string                        `codec:"snippet" json:"snippet"`
 	Channel       string                        `codec:"channel" json:"channel"`
+	Headline      string                        `codec:"headline" json:"headline"`
 	Visibility    TLFVisibility                 `codec:"visibility" json:"visibility"`
 	Participants  []string                      `codec:"participants" json:"participants"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
@@ -105,6 +106,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		Name:       o.Name,
 		Snippet:    o.Snippet,
 		Channel:    o.Channel,
+		Headline:   o.Headline,
 		Visibility: o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			var ret []string

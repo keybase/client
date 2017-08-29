@@ -116,6 +116,10 @@
           "name": "channel"
         },
         {
+          "type": "string",
+          "name": "headline"
+        },
+        {
           "type": "TLFVisibility",
           "name": "visibility"
         },

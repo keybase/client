@@ -33,6 +33,7 @@ protocol chatUi {
     string name;
     string snippet;
     string channel;
+    string headline;
     TLFVisibility visibility;
     array<string> participants;
     ConversationStatus status;
