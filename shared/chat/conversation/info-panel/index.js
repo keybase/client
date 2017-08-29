@@ -106,7 +106,8 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   </ScrollView>
 )
 
-const SmallTeamInfoPanel = branch(() => isMobile, HeaderHoc)(_SmallTeamInfoPanel)
-const BigTeamInfoPanel = branch(() => isMobile, HeaderHoc)(_BigTeamInfoPanel)
+const wrap = branch(() => isMobile, HeaderHoc)
+const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
+const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
 
 export {SmallTeamInfoPanel, BigTeamInfoPanel}
