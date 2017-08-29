@@ -76,6 +76,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
+  // Used by HeaderHoc.
+  onBack: () => dispatch(navigateUp()),
   onShowProfile: (username: string) => dispatch(showUserProfile(username)),
 })
 
