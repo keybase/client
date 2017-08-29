@@ -6,7 +6,8 @@ import {Map} from 'immutable'
 import {compose, renderComponent, branch} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
-import {navigateAppend} from '../../../actions/route-tree'
+import {navigateAppend, navigateTo} from '../../../actions/route-tree'
+import {chatTab} from '../../../constants/tabs'
 import {showUserProfile} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -52,7 +53,11 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  _navToRootChat: () => dispatch(navigateTo([], [chatTab])),
   _onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
+  _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
+    dispatch(Creators.leaveConversation(conversationIDKey))
+  },
   _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
   },
@@ -85,6 +90,12 @@ const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
   onAddParticipant: () => dispatchProps._onAddParticipant(stateProps.participants.map(p => p.username)),
+  onLeaveConversation: () => {
+    if (stateProps.selectedConversationIDKey) {
+      dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
+      dispatchProps._navToRootChat()
+    }
+  },
   onMuteConversation: stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
     ? (muted: boolean) =>

@@ -474,6 +474,10 @@ export type GetInboxAndUnbox = NoErrorTypedAction<
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
 export type IncomingTyping = NoErrorTypedAction<'chat:incomingTyping', {activity: TyperInfo}>
+export type LeaveConversation = NoErrorTypedAction<
+  'chat:leaveConversation',
+  {conversationIDKey: ConversationIDKey}
+>
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',

@@ -26,6 +26,7 @@ export class SmallTeamInfoPanel extends Component<SmallTeamInfoPanelProps> {}
 
 export type BigTeamInfoPanelProps = infoPanelProps & {
   channelname: string,
+  onLeaveConversation: () => void,
   teamname: string,
 }
 
