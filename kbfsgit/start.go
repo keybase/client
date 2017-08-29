@@ -48,7 +48,7 @@ func Start(ctx context.Context, options StartOptions,
 		return libfs.InitError(err.Error())
 	}
 
-	errput.Write([]byte("Initializing KBFS... "))
+	errput.Write([]byte("Initializing Keybase... "))
 
 	// Assign a unique ID to each remote-helper instance, since
 	// they'll all share the same log.
