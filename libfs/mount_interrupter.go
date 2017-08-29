@@ -49,7 +49,7 @@ func (mi *MountInterrupter) MountAndSetUnmount(mounter Mounter) error {
 	}
 	err := mounter.Mount()
 	if err != nil {
-		mi.log.Error("Mounting the filesystem failed: ", err)
+		mi.log.Errorf("Mounting the filesystem failed: %v", err)
 		return err
 	}
 	mi.fun = mounter.Unmount
