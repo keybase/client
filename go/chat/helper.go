@@ -255,14 +255,13 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 
 func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType, includeAuxiliaryInfo bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
 	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:                tlfID,
-		TopicType:            topicType,
-		MembersType:          membersType,
-		SummarizeMaxMsgs:     false,
-		IncludeAuxiliaryInfo: includeAuxiliaryInfo,
+		TlfID:            tlfID,
+		TopicType:        topicType,
+		MembersType:      membersType,
+		SummarizeMaxMsgs: false,
 	})
 	if err != nil {
 		return res, rl, err
@@ -357,7 +356,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			return res, rl, err
 		}
 		tlfConvs, irl, err := GetTLFConversations(ctx, g, debugger, ri,
-			uid, nameInfo.ID, topicType, membersType, false)
+			uid, nameInfo.ID, topicType, membersType)
 		if err != nil {
 			debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
 			return res, rl, err

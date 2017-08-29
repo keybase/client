@@ -686,41 +686,27 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 	}
 }
 
-type ConversationAuxiliaryInfo struct {
-	ConversationCtime   gregor1.Time  `codec:"conversationCtime" json:"conversationCtime"`
-	ConversationCreator gregor1.UID   `codec:"conversationCreator" json:"conversationCreator"`
-	HeadlineMtime       *gregor1.Time `codec:"headlineMtime,omitempty" json:"headlineMtime,omitempty"`
-	HeadlineModifier    *gregor1.UID  `codec:"headlineModifier,omitempty" json:"headlineModifier,omitempty"`
-	HeadlineMessageID   *MessageID    `codec:"headlineMessageID,omitempty" json:"headlineMessageID,omitempty"`
-	ReaderCount         int           `codec:"readerCount" json:"readerCount"`
+type ConversationCreatorInfo struct {
+	Ctime gregor1.Time `codec:"ctime" json:"ctime"`
+	Uid   gregor1.UID  `codec:"uid" json:"uid"`
 }
 
-func (o ConversationAuxiliaryInfo) DeepCopy() ConversationAuxiliaryInfo {
-	return ConversationAuxiliaryInfo{
-		ConversationCtime:   o.ConversationCtime.DeepCopy(),
-		ConversationCreator: o.ConversationCreator.DeepCopy(),
-		HeadlineMtime: (func(x *gregor1.Time) *gregor1.Time {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.HeadlineMtime),
-		HeadlineModifier: (func(x *gregor1.UID) *gregor1.UID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.HeadlineModifier),
-		HeadlineMessageID: (func(x *MessageID) *MessageID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.HeadlineMessageID),
-		ReaderCount: o.ReaderCount,
+func (o ConversationCreatorInfo) DeepCopy() ConversationCreatorInfo {
+	return ConversationCreatorInfo{
+		Ctime: o.Ctime.DeepCopy(),
+		Uid:   o.Uid.DeepCopy(),
+	}
+}
+
+type ConversationCreatorInfoLocal struct {
+	Ctime    gregor1.Time `codec:"ctime" json:"ctime"`
+	Username string       `codec:"username" json:"username"`
+}
+
+func (o ConversationCreatorInfoLocal) DeepCopy() ConversationCreatorInfoLocal {
+	return ConversationCreatorInfoLocal{
+		Ctime:    o.Ctime.DeepCopy(),
+		Username: o.Username,
 	}
 }
 
@@ -730,7 +716,7 @@ type Conversation struct {
 	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
 	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
-	AuxiliaryInfo   *ConversationAuxiliaryInfo    `codec:"auxiliaryInfo,omitempty" json:"auxiliaryInfo,omitempty"`
+	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -766,13 +752,13 @@ func (o Conversation) DeepCopy() Conversation {
 			}
 			return ret
 		})(o.MaxMsgSummaries),
-		AuxiliaryInfo: (func(x *ConversationAuxiliaryInfo) *ConversationAuxiliaryInfo {
+		CreatorInfo: (func(x *ConversationCreatorInfo) *ConversationCreatorInfo {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.AuxiliaryInfo),
+		})(o.CreatorInfo),
 	}
 }
 

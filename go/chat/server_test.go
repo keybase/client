@@ -2090,20 +2090,17 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		consumeNewMsg(listener0, chat1.MessageType_JOIN)
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
-				TlfName:              conv.TlfName,
-				TopicType:            chat1.TopicType_CHAT,
-				MembersType:          chat1.ConversationMembersType_TEAM,
-				IncludeAuxiliaryInfo: true,
+				TlfName:     conv.TlfName,
+				TopicType:   chat1.TopicType_CHAT,
+				MembersType: chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
 		require.Equal(t, 3, len(getTLFRes.Convs))
-		require.Equal(t, DefaultTeamTopic, utils.GetTopicName(getTLFRes.Convs[0]))
-		require.Equal(t, topicName, utils.GetTopicName(getTLFRes.Convs[1]))
-		aux := getTLFRes.Convs[2].AuxiliaryInfo
-		require.True(t, aux != nil)
-		require.Equal(t, aux.ReaderCount, 2)
-		require.Equal(t, aux.ConversationCreator, gregor1.UID(users[0].User.GetUID().ToBytes()))
-		require.Equal(t, *aux.HeadlineModifier, gregor1.UID(users[1].User.GetUID().ToBytes()))
+		require.Equal(t, DefaultTeamTopic, getTLFRes.Convs[0].Channel)
+		require.Equal(t, topicName, getTLFRes.Convs[1].Channel)
+		creatorInfo := getTLFRes.Convs[2].CreatorInfo
+		require.NotNil(t, creatorInfo)
+		require.Equal(t, creatorInfo.Username, users[0].Username)
 		tvres, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 			ConversationID: getTLFRes.Convs[2].GetConvID(),
 		})
