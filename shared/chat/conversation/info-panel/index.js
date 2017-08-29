@@ -26,7 +26,7 @@ const containerStyle = isMobile
 
 const _InfoPanel = (props: Props) => (
   <ScrollView style={containerStyle}>
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}>
       <Participants
         participants={props.participants}
         onAddParticipant={props.onAddParticipant}
