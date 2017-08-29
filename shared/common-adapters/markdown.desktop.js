@@ -1,6 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import Text from './text'
+import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
 import {globalStyles, globalColors, globalMargins} from '../styles'
@@ -61,6 +62,8 @@ function messageCreateComponent(type, key, children, options) {
   switch (type) {
     case 'markup':
       return <Box key={key}>{children}</Box>
+    case 'mention':
+      return <Mention username={children[0]} service={options.service || ''} key={key} style={wrapStyle} />
     case 'inline-code':
       return <Text type="Body" key={key} style={codeSnippetStyle}>{children}</Text>
     case 'code-block':

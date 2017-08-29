@@ -1,0 +1,31 @@
+// @flow
+import React from 'react'
+import Text from './text'
+import {globalColors} from '../styles'
+
+export type Props = {
+  key: string,
+  username: string,
+  theme: 'follow' | 'nonFollow' | 'highlight' | 'none',
+  onClick: ?() => void,
+  style?: ?Object,
+}
+
+const mentionStyles = {
+  follow: {
+    color: globalColors.blue,
+  },
+  nonFollow: {
+    color: globalColors.green2,
+  },
+  highlight: {
+    backgroundColor: globalColors.yellow,
+  },
+  none: {},
+}
+
+export default ({key, username, theme, style, onClick}: Props) => (
+  <Text type="Body" onClick={onClick || undefined} key={key} style={{...style, ...mentionStyles[theme]}}>
+    @{username}
+  </Text>
+)

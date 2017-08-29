@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
+import Mention from './mention-container'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 import {NativeClipboard} from './native-wrappers.native'
@@ -140,6 +141,16 @@ function messageCreateComponent(style, allowFontScaling) {
           <Text type="Body" key={key} style={strikeStyle} allowFontScaling={allowFontScaling}>
             {children}
           </Text>
+        )
+      case 'mention':
+        return (
+          <Mention
+            username={children[0]}
+            service={options.service || ''}
+            key={key}
+            style={neutralStyle}
+            allowFontScaling={allowFontScaling}
+          />
         )
       case 'emoji':
         return (

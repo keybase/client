@@ -16,7 +16,7 @@ type MarkdownComponentType =
 export type MarkdownCreateComponent = (
   type: MarkdownComponentType,
   key: string,
-  children: React.Node,
+  children: Array<React.Node>,
   options: {href?: string}
 ) => ?React.Node
 
