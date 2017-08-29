@@ -446,10 +446,10 @@ func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
 	}
 }
 
-func (u *smuUser) reAddUserAfterReset(id keybase1.TeamID, w *smuUser) {
+func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
 	cli := u.getTeamsClient()
 	err := cli.TeamReAddMemberAfterReset(context.TODO(), keybase1.TeamReAddMemberAfterResetArg{
-		Id:       id,
+		Id:       team.ID,
 		Username: w.username,
 	})
 	if err != nil {
