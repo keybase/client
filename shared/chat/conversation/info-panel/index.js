@@ -30,6 +30,7 @@ const scrollViewStyle = {
         borderRight: border,
       }),
 }
+const contentContainerStyle = {...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}
 
 type muteRowProps = {
   muted: boolean,
@@ -57,10 +58,7 @@ const MuteRow = (props: muteRowProps) => (
 )
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
-  <ScrollView
-    style={scrollViewStyle}
-    contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
-  >
+  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants
       participants={props.participants}
       onAddParticipant={props.onAddParticipant}
@@ -78,10 +76,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
 )
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
-  <ScrollView
-    style={scrollViewStyle}
-    contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}}
-  >
+  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Text style={{alignSelf: 'center', marginTop: 20}} type="BodySemibold">
       #{props.channelname}
     </Text>
