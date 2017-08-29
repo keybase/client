@@ -1076,6 +1076,16 @@ const getMuted = createSelector(
   selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'
 )
 
+const getChannelName = createSelector(
+  [getSelectedInbox],
+  selectedInbox => selectedInbox && selectedInbox.get('channelname')
+)
+
+const getTeamName = createSelector(
+  [getSelectedInbox],
+  selectedInbox => selectedInbox && selectedInbox.get('teamname')
+)
+
 const getMessageFromMessageKey = (state: TypedState, messageKey: MessageKey): ?Message =>
   state.chat.getIn(['messageMap', messageKey])
 
@@ -1127,11 +1137,13 @@ const getUserItems = createShallowEqualSelector(
 
 export {
   getBrokenUsers,
+  getChannelName,
   getEditingMessage,
   getMessageFromMessageKey,
   getSelectedConversation,
   getSelectedConversationStates,
   getSupersedes,
+  getTeamName,
   conversationIDToKey,
   convSupersedesInfo,
   convSupersededByInfo,

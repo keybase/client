@@ -4,13 +4,16 @@ import type {UserList} from '../../../common-adapters/usernames'
 
 export type Props = {|
   badgeNumber?: number,
+  channelName: ?string,
   muted: boolean,
   onBack: () => void,
   onOpenFolder: () => void,
   onShowProfile: (user: string) => void,
   onToggleInfoPanel: () => void,
   infoPanelOpen: boolean,
+  teamName: ?string,
   users: UserList,
 |}
 
-export default class Header extends Component<Props> {}
+export class ChannelHeader extends Component<Props> {}
+export class UsernameHeader extends Component<Props> {}
