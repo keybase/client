@@ -2491,6 +2491,8 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 }
 
 func TestChatSrvImplicitConversation(t *testing.T) {
+	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
 	useRemoteMock = false
 	defer func() {
 		useRemoteMock = true
@@ -2592,6 +2594,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 }
 
 func TestImpTeamExistingKBFS(t *testing.T) {
+	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
 	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
 	defer ctc.cleanup()
 	users := ctc.users()

@@ -596,6 +596,11 @@ type newConversationHelper struct {
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis chat1.TLFVisibility,
 	ri func() chat1.RemoteInterface) *newConversationHelper {
+
+	if membersType == chat1.ConversationMembersType_IMPTEAM && g.ExternalG().Env.GetChatMemberType() != "impteam" {
+		membersType = chat1.ConversationMembersType_KBFS
+	}
+
 	return &newConversationHelper{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
