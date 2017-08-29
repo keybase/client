@@ -504,19 +504,29 @@
     },
     {
       "type": "record",
-      "name": "ConversationAuxiliaryInfo",
+      "name": "ConversationCreatorInfo",
       "fields": [
         {
           "type": "gregor1.Time",
-          "name": "conversationCtime"
+          "name": "ctime"
         },
         {
           "type": "gregor1.UID",
-          "name": "conversationCreator"
+          "name": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationCreatorInfoLocal",
+      "fields": [
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
         },
         {
-          "type": "int",
-          "name": "readerCount"
+          "type": "string",
+          "name": "username"
         }
       ]
     },
@@ -559,9 +569,9 @@
         {
           "type": [
             null,
-            "ConversationAuxiliaryInfo"
+            "ConversationCreatorInfo"
           ],
-          "name": "auxiliaryInfo"
+          "name": "creatorInfo"
         }
       ]
     },

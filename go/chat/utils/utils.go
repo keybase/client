@@ -595,6 +595,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Supersedes = rawConv.Supersedes
 	res.IsEmpty = rawConv.IsEmpty
 	res.Notifications = rawConv.Notifications
+	res.CreatorInfo = rawConv.CreatorInfo
 	return res
 }
 

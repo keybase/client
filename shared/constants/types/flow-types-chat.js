@@ -845,13 +845,17 @@ export type Conversation = {
   notifications?: ?ConversationNotificationInfo,
   maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
-  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+  creatorInfo?: ?ConversationCreatorInfo,
 }
 
-export type ConversationAuxiliaryInfo = {
-  conversationCtime: gregor1.Time,
-  conversationCreator: gregor1.UID,
-  readerCount: int,
+export type ConversationCreatorInfo = {
+  ctime: gregor1.Time,
+  uid: gregor1.UID,
+}
+
+export type ConversationCreatorInfoLocal = {
+  ctime: gregor1.Time,
+  username: string,
 }
 
 export type ConversationErrorLocal = {
@@ -920,7 +924,7 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
-  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+  creatorInfo?: ?ConversationCreatorInfoLocal,
   notifications?: ?ConversationNotificationInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1238,8 +1242,9 @@ export type InboxUIItem = {
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
-  notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
+  notifications?: ?ConversationNotificationInfo,
+  creatorInfo?: ?ConversationCreatorInfoLocal,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -2028,8 +2033,7 @@ export type localGetMessagesLocalRpcParam = Exact<{
 export type localGetTLFConversationsLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  membersType: ConversationMembersType,
-  includeAuxiliaryInfo: boolean
+  membersType: ConversationMembersType
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
@@ -2207,8 +2211,7 @@ export type remoteGetTLFConversationsRpcParam = Exact<{
   tlfID: TLFID,
   topicType: TopicType,
   membersType: ConversationMembersType,
-  summarizeMaxMsgs: boolean,
-  includeAuxiliaryInfo: boolean
+  summarizeMaxMsgs: boolean
 }>
 
 export type remoteGetThreadRemoteRpcParam = Exact<{

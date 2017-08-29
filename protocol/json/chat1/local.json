@@ -1130,9 +1130,9 @@
         {
           "type": [
             null,
-            "ConversationAuxiliaryInfo"
+            "ConversationCreatorInfoLocal"
           ],
-          "name": "auxiliaryInfo"
+          "name": "creatorInfo"
         },
         {
           "type": [
@@ -2594,10 +2594,6 @@
         {
           "name": "membersType",
           "type": "ConversationMembersType"
-        },
-        {
-          "name": "includeAuxiliaryInfo",
-          "type": "boolean"
         }
       ],
       "response": "GetTLFConversationsLocalRes"

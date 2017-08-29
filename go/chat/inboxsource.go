@@ -880,6 +880,15 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
+	// Pick a source of usernames based on offline status, if we are offline then just use a
+	// type that just returns errors all the time (this will just use TLF name as the ordering)
+	var uloader utils.ReorderUsernameSource
+	if s.offline {
+		uloader = nullUsernameSource{}
+	} else {
+		uloader = s.G().GetUPAKLoader()
+	}
+
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v", unverifiedTLFName,
 		conversationRemote.GetConvID(), s.offline)
@@ -906,7 +915,17 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 	conversationLocal.Notifications = conversationRemote.Notifications
-	conversationLocal.AuxiliaryInfo = conversationRemote.AuxiliaryInfo
+	if conversationRemote.CreatorInfo != nil {
+		nname, err := uloader.LookupUsername(ctx, keybase1.UID(conversationRemote.CreatorInfo.Uid.String()))
+		if err != nil {
+			s.Debug(ctx, "localizeConversation: failed to load creator username: %s", err)
+		} else {
+			conversationLocal.CreatorInfo = &chat1.ConversationCreatorInfoLocal{
+				Username: nname.String(),
+				Ctime:    conversationRemote.CreatorInfo.Ctime,
+			}
+		}
+	}
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"
@@ -1046,15 +1065,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 		// Not sure about the utility of this TlfName assignment, but the previous code did this:
 		conversationLocal.Info.TlfName = info.CanonicalName
-	}
-
-	// Pick a source of usernames based on offline status, if we are offline then just use a
-	// type that just returns errors all the time (this will just use TLF name as the ordering)
-	var uloader utils.ReorderUsernameSource
-	if s.offline {
-		uloader = nullUsernameSource{}
-	} else {
-		uloader = s.G().GetUPAKLoader()
 	}
 
 	// Form the writers name list, either from the active list + TLF name, or from the
