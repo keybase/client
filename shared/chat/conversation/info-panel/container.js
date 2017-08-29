@@ -1,9 +1,9 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import InfoPanel from '.'
+import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
-import {compose} from 'recompose'
+import {compose, renderComponent, branch} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {navigateAppend} from '../../../actions/route-tree'
@@ -32,14 +32,23 @@ const getParticipants = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState) => ({
-  muted: Constants.getMuted(state),
-  participants: getParticipants(state),
-  selectedConversationIDKey: Constants.getSelectedConversation(state),
-})
+const mapStateToProps = (state: TypedState) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const inbox = Constants.getSelectedInbox(state)
+  const channelname = inbox.get('channelname')
+  const teamname = inbox.get('teamname')
+  return {
+    channelname,
+    muted: Constants.getMuted(state),
+    participants: getParticipants(state),
+    selectedConversationIDKey,
+    teamname,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
+  onBack: () => dispatch(navigateUp()),
   onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
   },
@@ -54,7 +63,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     )
   },
   onShowProfile: (username: string) => dispatch(showUserProfile(username)),
-  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
@@ -74,4 +82,9 @@ const mergeProps = (stateProps, dispatchProps) => ({
     ),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(InfoPanel)
+const ConnectedInfoPanel = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => props.channelname, renderComponent(BigTeamInfoPanel))
+)(SmallTeamInfoPanel)
+
+export default ConnectedInfoPanel
