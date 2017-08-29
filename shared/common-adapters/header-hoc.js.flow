@@ -10,6 +10,6 @@ export type Props = {
   theme?: 'light' | 'dark', // defaults to light
 }
 
-declare export default function HeaderHoc<P>(
+declare export default function HeaderHoc<P: {}>(
   WrappedComponent: React.ComponentType<P>
 ): React.ComponentType<P & Props>

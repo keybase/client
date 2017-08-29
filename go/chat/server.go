@@ -2001,7 +2001,7 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 		return res, err
 	}
 	res.RateLimits = utils.AggRateLimits(rl)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2071,7 +2071,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, err
 	}
 	res.RateLimits = utils.AggRateLimits(rl)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2097,7 +2097,7 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	}
 
 	res.RateLimits = utils.AggRateLimits(rl)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2130,7 +2130,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	if err != nil {
 		return res, err
 	}
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2164,7 +2164,7 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 	}
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
