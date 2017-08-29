@@ -830,7 +830,7 @@ func (im InitMode) HasFlags(flags InitMode) bool {
 }
 
 func (im InitMode) String() string {
-	switch im {
+	switch im.Mode() {
 	case InitDefault:
 		return InitDefaultString
 	case InitMinimal:

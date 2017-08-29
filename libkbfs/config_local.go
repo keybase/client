@@ -350,7 +350,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	config.quotaUsage =
 		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
 
-	switch config.mode {
+	switch config.mode.Mode() {
 	case InitDefault:
 		// In normal desktop app, we limit to 16 routines.
 		config.rekeyFSMLimiter = NewOngoingWorkLimiter(16)
