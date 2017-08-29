@@ -325,6 +325,7 @@ func TestTeamResetNoKeysAdmin(t *testing.T) {
 	ann.addAdmin(team, bob)
 	divDebug(ctx, "Added bob as an admin")
 }
+
 // bob resets, implicit team lookup should still work for ann
 func TestImplicitTeamReset(t *testing.T) {
 	ctx := newSMUContext(t)
@@ -352,7 +353,6 @@ func TestImplicitTeamReset(t *testing.T) {
 	require.Equal(t, iteam.ID, iteam3.ID, "lookup after reset should return same team")
 	divDebug(ctx, "team looked up before reset")
 }
-
 
 func TestImplicitTeamUserReset(t *testing.T) {
 	ctx := newSMUContext(t)

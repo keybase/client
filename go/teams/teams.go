@@ -360,12 +360,13 @@ func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
 	return res, nil
 }
 
-func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error) {
+func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []keybase1.UID, err error) {
 
 	for _, member := range ms.None {
-		// It's not a downgrade if we are removing a reset user.
-		role, err := t.chain().GetUserRole(member.version)
-		if err == nil && role != keybase1.TeamRole_NONE {
+		// Load member first to check if their eldest_seqno has not changed.
+		// If it did, the member was nuked and we do not need to lease.
+		_, _, err := loadMember(ctx, t.G(), member.version, true)
+		if err == nil {
 			uids = append(uids, member.version.Uid)
 		}
 	}
@@ -397,7 +398,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	var merkleRoot *libkb.MerkleRoot
 	var lease *libkb.Lease
 
-	downgrades, err := t.getDowngradedUsers(memberSet)
+	downgrades, err := t.getDowngradedUsers(ctx, memberSet)
 	if err != nil {
 		return err
 	}
