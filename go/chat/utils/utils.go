@@ -455,7 +455,7 @@ func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libk
 			}
 		}
 		if replace {
-			return fmt.Sprintf("`%s`", m)
+			return fmt.Sprintf("%s@keybase", m)
 		}
 		return m
 	})
