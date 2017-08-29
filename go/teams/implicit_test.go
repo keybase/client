@@ -81,10 +81,13 @@ func TestImplicitPukless(t *testing.T) {
 	teamID, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	// TODO enable this after fixing lookup
-	// teamID2, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
-	// require.NoError(t, err)
-	// require.Equal(t, teamID, teamID2)
+	teamID2, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
+
+	teamID2, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2)
 
 	t.Logf("U0 loads the team")
 	team, err := Load(context.Background(), tcs[0].G, keybase1.LoadTeamArg{ID: teamID})
@@ -100,4 +103,33 @@ func TestImplicitPukless(t *testing.T) {
 	require.NoError(t, err, "team should have invite for the puk-less user")
 	require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
 	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
+}
+
+// Test loading an implicit team as a #reader.
+func TestImplicitTeamReader(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	displayName := "" + fus[0].Username + ",bob@twitter#" + fus[1].Username
+	t.Logf("U0 creates an implicit team: %v", displayName)
+	teamID, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
+	require.NoError(t, err)
+
+	t.Logf("U1 looks up the team")
+	teamID2, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
+	require.NoError(t, err)
+	require.Equal(t, teamID, teamID2, "users should lookup the same team ID")
+
+	t.Logf("U1 loads the team")
+	team, err := Load(context.Background(), tcs[1].G, keybase1.LoadTeamArg{ID: teamID2})
+	require.NoError(t, err)
+	_, err = team.ApplicationKey(context.Background(), keybase1.TeamApplication_KBFS)
+	require.NoError(t, err, "getting kbfs application key")
+	require.False(t, team.IsPublic())
+	u0Role, err := team.chain().GetUserRole(fus[0].GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_OWNER, u0Role)
+	u1Role, err := team.chain().GetUserRole(fus[1].GetUserVersion())
+	require.NoError(t, err)
+	require.Equal(t, keybase1.TeamRole_READER, u1Role)
 }

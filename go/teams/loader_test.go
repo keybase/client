@@ -13,40 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Create n TestContexts with logged in users
-// Returns (FakeUsers, TestContexts, CleanupFunction)
-func setupNTests(t *testing.T, n int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
-	return setupNTestsWithPukless(t, n, 0)
-}
-
-// nPukless is how many users start out with no PUK.
-// Those users appear at the end of the list
-func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
-	require.True(t, n > 0, "must create at least 1 tc")
-	require.True(t, n >= nPukless, "more pukless users than total users requested")
-	var fus []*kbtest.FakeUser
-	var tcs []*libkb.TestContext
-	for i := 0; i < n; i++ {
-		tc := SetupTest(t, "team", 1)
-		tcs = append(tcs, &tc)
-		if i >= n-nPukless {
-			tc.Tp.DisableUpgradePerUserKey = true
-		}
-		fu, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-		require.NoError(t, err)
-		fus = append(fus, fu)
-	}
-	cleanup := func() {
-		for _, tc := range tcs {
-			tc.Cleanup()
-		}
-	}
-	for i, fu := range fus {
-		t.Logf("U%d: %v %v", i, fu.Username, fu.GetUserVersion())
-	}
-	return fus, tcs, cleanup
-}
-
 func TestLoaderBasic(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()

@@ -20,7 +20,7 @@ protocol NotifyChat {
     ConversationID convID;
     boolean displayDesktopNotification;
     union { null, InboxUIItem } conv;
-    union { null, Pagination } pagination;
+    union { null, UIPagination } pagination;
   }
 
   record ReadMessageInfo {
