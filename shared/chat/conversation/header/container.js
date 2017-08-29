@@ -2,7 +2,8 @@
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import {List} from 'immutable'
-import Header from '.'
+import {ChannelHeader, UsernameHeader} from '.'
+import {branch, compose, renderComponent} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {showUserProfile} from '../../../actions/profile'
@@ -24,8 +25,10 @@ const getUsers = createSelector(
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
   badgeNumber: state.notifications.get('navBadges').get(chatTab),
+  channelName: Constants.getChannelName(state),
   muted: Constants.getMuted(state),
   infoPanelOpen,
+  teamName: Constants.getTeamName(state),
   users: getUsers(state),
 })
 
@@ -36,4 +39,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: Own
   onToggleInfoPanel,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Header)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  branch(props => props.channelName && props.teamName, renderComponent(ChannelHeader))
+)(UsernameHeader)

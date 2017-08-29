@@ -1,6 +1,6 @@
 // @flow
 import {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner} from './conversation/banner'
-import ConversationHeader from './conversation/header'
+import {UsernameHeader} from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import NoConversation from './conversation/no-conversation'
@@ -218,7 +218,7 @@ const emptyConversationsProps = {
 }
 
 const header = {
-  component: ConversationHeader,
+  component: UsernameHeader,
   mocks: {
     Normal: {
       ...commonConvoProps,

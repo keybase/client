@@ -1,11 +1,53 @@
 // @flow
 import * as React from 'react'
-import {BackButton, Box, Icon, Usernames} from '../../../common-adapters'
+import {Avatar, BackButton, Box, Icon, Text, Usernames} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
-const ConversationHeader = ({
+const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPanel, teamName}: Props) => (
+  <Box style={containerStyle}>
+    <BackButton
+      badgeNumber={badgeNumber}
+      onClick={onBack}
+      iconStyle={{color: globalColors.black_40}}
+      textStyle={{color: globalColors.blue}}
+      style={{flexShrink: 0, padding: globalMargins.tiny}}
+    />
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        justifyContent: 'center',
+        flex: 1,
+        marginTop: 2,
+        padding: globalMargins.tiny,
+      }}
+    >
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Avatar teamname={teamName} size={16} />
+          <Text type="BodyBig" style={{color: globalColors.black_40}}>&nbsp;{teamName}</Text>
+        </Box>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Text type="Header" style={{color: globalColors.black_75}}>#{channelName}</Text>
+        </Box>
+      </Box>
+
+      {muted &&
+        <Icon
+          type="iconfont-shh"
+          style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}}
+        />}
+    </Box>
+    <Icon
+      type="iconfont-info"
+      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
+      onClick={onToggleInfoPanel}
+    />
+  </Box>
+)
+
+const UsernameHeader = ({
   badgeNumber,
   muted,
   onBack,
@@ -17,7 +59,6 @@ const ConversationHeader = ({
   <Box style={containerStyle}>
     <BackButton
       badgeNumber={badgeNumber}
-      title={null}
       onClick={onBack}
       iconStyle={{color: globalColors.black_40}}
       textStyle={{color: globalColors.blue}}
@@ -73,4 +114,4 @@ const styleLeft = {
   marginLeft: globalMargins.xtiny,
 }
 
-export default ConversationHeader
+export {ChannelHeader, UsernameHeader}
