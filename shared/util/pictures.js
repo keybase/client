@@ -47,24 +47,26 @@ const _getPictures = (names: Array<string>, endpoint: string, paramName: string)
         const info = _nameToInfo[name]
         if (info) {
           info.done = true
+          info.error = false
           info.requesting = false
           info.urlMap = urlMap
           const callbacks = info.callbacks
           info.callbacks = []
-          callbacks.forEach(cb => cb(name, urlMap))
+          callbacks.forEach(cb => cb(name, info.urlMap))
         }
       })
     })
     .catch(() => {
       names.forEach(name => {
         const info = _nameToInfo[name]
-        const urlMap = {}
         if (info) {
           info.done = true
           info.requesting = false
           info.error = true
-          info.callbacks.forEach(cb => cb(name, urlMap))
+          info.urlMap = {}
+          const callbacks = info.callbacks
           info.callbacks = []
+          callbacks.forEach(cb => cb(name, info.urlMap))
         }
       })
     })
