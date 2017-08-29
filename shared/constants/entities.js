@@ -1,11 +1,11 @@
 // @flow
 import {Map, Record, List} from 'immutable'
 import * as SearchConstants from './search'
+import * as Teams from './teams'
 
 import type {KBRecord} from './types/more'
 import type {NoErrorTypedAction} from './types/flux'
 import type {DeviceDetailRecord} from './devices'
-import type {Teamname, Team} from './teams'
 
 export type EntityType = any // TODO stronger typing?
 
@@ -25,14 +25,14 @@ export type Actions = Delete | Merge | Replace
 // State
 export type State = KBRecord<{
   devices: Map<string, DeviceDetailRecord>,
-  teams: Map<Teamname, Team>,
+  teams: Map<Teams.Teamname, Teams.TeamRecord>,
   searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
 }>
 
 const StateRecord = Record({
   devices: Map(),
-  teams: Map(),
+  teams: new Teams.Team(),
   searchResults: Map(),
   searchQueryToResult: Map(),
 })

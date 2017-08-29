@@ -9,16 +9,24 @@ import {navigateTo} from '../../actions/route-tree'
 import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const chanMap = state.entities.getIn(['teams', routeProps.teamname, 'channels'], I.Map())
+  const convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', routeProps.teamname], I.Set())
   const you = state.config.username
 
-  const channels = chanMap
-    .map((chan, name) => ({
-      description: '', // TODO we don't have this i think
-      name,
-      selected: chan.participants.get(you),
-    }))
+  const channels = convIDs
+    .map(convID => {
+      const participants = state.entities.getIn(['teams', 'convIDToParticipants', convID], I.Set())
+      const name = state.entities.getIn(['teams', 'convIDToChannelName', convID])
+
+      return name
+        ? {
+            description: '', // TODO we don't have this i think
+            name,
+            selected: !!participants.get(you),
+          }
+        : null
+    })
     .toArray()
+    .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name))
 
   return {

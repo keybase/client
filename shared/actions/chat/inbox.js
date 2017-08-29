@@ -38,7 +38,7 @@ let _backgroundLoopTask
 const onInitialInboxLoad = function*(): SagaGenerator<any, any> {
   try {
     yield put(Creators.inboxStale())
-    console.log('skipping backgorund unbox')
+
     if (!isMobile) {
       // Only allow one loop at a time
       if (!_backgroundLoopTask) {
