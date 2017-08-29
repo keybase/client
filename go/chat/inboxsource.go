@@ -915,16 +915,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Conversation is not empty as long as we have a visible message, even if they are
-	// errors
-	conversationLocal.IsEmpty = true
-	for _, maxMsg := range conversationRemote.MaxMsgSummaries {
-		if utils.IsVisibleChatMessageType(maxMsg.GetMessageType()) {
-			conversationLocal.IsEmpty = false
-			break
-		}
-	}
-
+	conversationLocal.IsEmpty = utils.IsConvEmpty(conversationRemote)
 	errTyp := chat1.ConversationErrorType_PERMANENT
 	if len(conversationRemote.MaxMsgs) == 0 {
 		// Fetch max messages unboxed, using either a custom function or through

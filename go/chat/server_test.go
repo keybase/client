@@ -622,7 +622,12 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		select {
 		case ibox := <-inboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
-			require.Zero(t, len(ibox.InboxRes.Items), "wrong size inbox")
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				require.Equal(t, numconvs, len(ibox.InboxRes.Items))
+			default:
+				require.Zero(t, len(ibox.InboxRes.Items), "wrong size inbox")
+			}
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox received")
 		}

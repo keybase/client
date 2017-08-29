@@ -472,12 +472,17 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 }
 
 func IsConvEmpty(conv chat1.Conversation) bool {
-	for _, msg := range conv.MaxMsgSummaries {
-		if IsVisibleChatMessageType(msg.GetMessageType()) {
-			return false
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return false
+	default:
+		for _, msg := range conv.MaxMsgSummaries {
+			if IsVisibleChatMessageType(msg.GetMessageType()) {
+				return false
+			}
 		}
+		return true
 	}
-	return true
 }
 
 func PluckConvIDsLocal(convs []chat1.ConversationLocal) (res []chat1.ConversationID) {
