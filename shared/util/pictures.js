@@ -14,12 +14,12 @@ type Info = {
 
 const _nameToInfo: {[key: string]: ?Info} = {}
 
-const _getTeamPictures = (teamnames: Array<string>) => {
-  if (!teamnames.length) {
+const _getPictures = (names: Array<string>, endpoint: string, paramName: string) => {
+  if (!names.length) {
     return
   }
 
-  teamnames.forEach(n => {
+  names.forEach(n => {
     const info = _nameToInfo[n]
     if (info) {
       info.requesting = true
@@ -29,93 +29,41 @@ const _getTeamPictures = (teamnames: Array<string>) => {
   apiserverGetRpcPromise({
     param: {
       args: [
-        {key: 'team_names', value: teamnames.join(',')},
+        {key: paramName, value: names.join(',')},
         {key: 'formats', value: 'square_360,square_200,square_40'},
       ],
-      endpoint: 'image/team_avatar_lookups',
+      endpoint,
     },
   })
     .then(response => {
       JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-        const teamname = teamnames[idx]
+        const name = names[idx]
         let urlMap = {
           ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
           ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
           ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
         }
 
-        const info = _nameToInfo[teamname]
+        const info = _nameToInfo[name]
         if (info) {
           info.done = true
           info.requesting = false
           info.urlMap = urlMap
-          info.callbacks.forEach(cb => cb(teamname, urlMap))
+          const callbacks = info.callbacks
           info.callbacks = []
+          callbacks.forEach(cb => cb(name, urlMap))
         }
       })
     })
     .catch(() => {
-      teamnames.forEach(teamname => {
-        const info = _nameToInfo[teamname]
+      names.forEach(name => {
+        const info = _nameToInfo[name]
         const urlMap = {}
-        if (info) {
-          info.done = true
-          info.error = true
-          info.callbacks.forEach(cb => cb(teamname, urlMap))
-          info.callbacks = []
-        }
-      })
-    })
-}
-
-const _getUsernamePictures = (usernames: Array<string>) => {
-  if (!usernames.length) {
-    return
-  }
-
-  usernames.forEach(n => {
-    const info = _nameToInfo[n]
-    if (info) {
-      info.requesting = true
-    }
-  })
-
-  apiserverGetRpcPromise({
-    param: {
-      args: [
-        {key: 'usernames', value: usernames.join(',')},
-        {key: 'formats', value: 'square_360,square_200,square_40'},
-      ],
-      endpoint: 'image/username_pic_lookups',
-    },
-  })
-    .then(response => {
-      JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-        const username = usernames[idx]
-        let urlMap = {
-          ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-          ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-          ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-        }
-
-        const info = _nameToInfo[username]
         if (info) {
           info.done = true
           info.requesting = false
-          info.urlMap = urlMap
-          info.callbacks.forEach(cb => cb(username, urlMap))
-          info.callbacks = []
-        }
-      })
-    })
-    .catch(() => {
-      usernames.forEach(username => {
-        const info = _nameToInfo[username]
-        const urlMap = {}
-        if (info) {
-          info.done = true
           info.error = true
-          info.callbacks.forEach(cb => cb(username, urlMap))
+          info.callbacks.forEach(cb => cb(name, urlMap))
           info.callbacks = []
         }
       })
@@ -143,9 +91,9 @@ const _getUserImages = throttle(() => {
     }
   })
 
-  const [teamnames, usernames] = partition(good || [], n => _nameToInfo[n].isTeam)
-  _getUsernamePictures(usernames)
-  _getTeamPictures(teamnames)
+  const [teamnames, usernames] = partition(good, n => _nameToInfo[n].isTeam)
+  _getPictures(usernames, 'image/username_pic_lookups', 'usernames')
+  _getPictures(teamnames, 'image/team_avatar_lookups', 'team_names')
 }, 200)
 
 function validUsername(name: ?string) {
