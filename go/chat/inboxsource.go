@@ -1046,7 +1046,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// if this is an implicit team conversation, then the TLF name is the internal team name.
 	// Lookup the display name and use it instead.
 	if conversationLocal.GetMembersType() == chat1.ConversationMembersType_IMPTEAM {
-		team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{Name: conversationLocal.Info.TlfName})
+		teamID, err := keybase1.TeamIDFromString(conversationLocal.Info.Triple.Tlfid.String())
+		if err != nil {
+			errMsg := fmt.Sprintf("teams.Load failed for implicit team %q: %s", conversationLocal.Info.TlfName, err)
+			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+		team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
 		if err != nil {
 			errMsg := fmt.Sprintf("teams.Load failed for implicit team %q: %s", conversationLocal.Info.TlfName, err)
 			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)

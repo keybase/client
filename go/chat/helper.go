@@ -360,7 +360,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		debugger.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
 			tlfName, len(inbox.Convs))
 		res = inbox.Convs
-	} else if membersType == chat1.ConversationMembersType_TEAM || membersType == chat1.ConversationMembersType_IMPTEAM {
+	} else if membersType == chat1.ConversationMembersType_TEAM {
 		// If this is a team chat that we are looking for, then let's try searching all
 		// chats on the team to see if any match the arguments before giving up.
 		// No need to worry (yet) about conflicting with public code path, since there
@@ -615,8 +615,9 @@ func (n *newConversationHelper) findConversations(ctx context.Context, membersTy
 }
 
 func (n *newConversationHelper) findExisting(ctx context.Context, topicName string) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
-	// if IMPTEAM, check if a KBFS conversation exists already
-	if n.membersType == chat1.ConversationMembersType_IMPTEAM {
+	switch n.membersType {
+	case chat1.ConversationMembersType_IMPTEAM:
+		// if IMPTEAM, check if a KBFS conversation exists already
 		convs, rl, err := n.findConversations(ctx, chat1.ConversationMembersType_KBFS, topicName)
 		if err != nil {
 			n.Debug(ctx, "error looking for KBFS conversation for IMPTEAM: %s", err)
@@ -672,7 +673,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	if n.membersType == chat1.ConversationMembersType_KBFS {
 		// let it slide in devel for tests
 		if n.G().ExternalG().Env.GetRunMode() != libkb.DevelRunMode {
-			return res, rl, errors.New("new KBFS conversations no longer allowed, use IMPTEAM")
+			n.Debug(ctx, "KBFS conversations deprecated; switching membersType from KBFS to IMPTEAM")
+			n.membersType = chat1.ConversationMembersType_IMPTEAM
 		}
 	}
 
