@@ -9,7 +9,6 @@ const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPan
   <Box style={containerStyle}>
     <BackButton
       badgeNumber={badgeNumber}
-      title={null}
       onClick={onBack}
       iconStyle={{color: globalColors.black_40}}
       textStyle={{color: globalColors.blue}}
@@ -60,7 +59,6 @@ const UsernameHeader = ({
   <Box style={containerStyle}>
     <BackButton
       badgeNumber={badgeNumber}
-      title={null}
       onClick={onBack}
       iconStyle={{color: globalColors.black_40}}
       textStyle={{color: globalColors.blue}}
