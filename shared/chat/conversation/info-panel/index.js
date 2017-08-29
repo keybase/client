@@ -61,11 +61,23 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants
       participants={props.participants}
-      onAddParticipant={props.onAddParticipant}
+      onAddParticipant={props.showTeamButton ? null : props.onAddParticipant}
       onShowProfile={props.onShowProfile}
     />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
+
+    {props.showTeamButton
+      ? <Button type="Primary" label="Turn into team" onClick={props.onShowNewTeamDialog} />
+      : null}
+
+    {props.showTeamButton
+      ? <Text style={{alignSelf: 'center', marginTop: globalMargins.tiny}} type="BodySmall">
+          You'll be able to add and delete members as you wish.
+        </Text>
+      : null}
+
+    {props.showTeamButton ? <Divider style={{marginBottom: 20, marginTop: 20}} /> : null}
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute notifications" />
 

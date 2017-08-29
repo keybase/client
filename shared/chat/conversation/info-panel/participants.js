@@ -1,13 +1,12 @@
 // @flow
 import * as React from 'react'
-import {List} from 'immutable'
 import {Box, ClickableBox, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
-  onAddParticipant: () => void,
+  onAddParticipant: ?() => void,
   onShowProfile: (user: string) => void,
-  participants: List<{
+  participants: Array<{
     username: string,
     following: boolean,
     fullname: string,
@@ -19,7 +18,7 @@ type Props = {
 
 const Participants = ({participants, onShowProfile, onAddParticipant, style}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, ...style}}>
-    {participants.map(info => {
+    {participants.map((info, index, arr) => {
       const {username, following, fullname, broken, isYou} = info
       return (
         <ClickableBox key={username} onClick={() => onShowProfile(username)}>
@@ -36,24 +35,26 @@ const Participants = ({participants, onShowProfile, onAddParticipant, style}: Pr
               <Usernames
                 colorFollowing={true}
                 type="BodySemibold"
-                users={[{username, you: isYou, following, broken}]}
+                users={[{broken, following, username, you: isYou}]}
                 containerStyle={{marginLeft: 12}}
               />
-              <Text type="BodySmall" style={{marginLeft: globalMargins.tiny, flex: 1, textAlign: 'right'}}>
+              <Text type="BodySmall" style={{flex: 1, marginLeft: globalMargins.tiny, textAlign: 'right'}}>
                 {fullname}
               </Text>
             </Box>
-            <Divider style={{marginLeft: 44}} />
+            {index < arr.length - 1 || onAddParticipant ? <Divider style={{marginLeft: 44}} /> : null}
           </Box>
         </ClickableBox>
       )
     })}
-    <ClickableBox onClick={() => onAddParticipant()}>
-      <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Icon type="icon-user-add-32" style={{marginRight: 12}} />
-        <Text type="BodyPrimaryLink" onClick={() => onAddParticipant()}>Add another participant</Text>
-      </Box>
-    </ClickableBox>
+    {onAddParticipant
+      ? <ClickableBox onClick={onAddParticipant}>
+          <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <Icon type="icon-user-add-32" style={{marginRight: 12}} />
+            <Text type="BodyPrimaryLink" onClick={onAddParticipant}>Add another participant</Text>
+          </Box>
+        </ClickableBox>
+      : null}
   </Box>
 )
 

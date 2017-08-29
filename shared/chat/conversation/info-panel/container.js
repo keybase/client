@@ -11,6 +11,8 @@ import {showUserProfile} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
 
+import flags from '../../../util/feature-flags'
+
 const getParticipants = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
   (you, tlf, followingMap, metaDataMap) => {
@@ -37,27 +39,39 @@ const mapStateToProps = (state: TypedState) => {
   const inbox = Constants.getSelectedInbox(state)
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
+  const showTeamButton = flags.teamChatEnabled
+
   return {
     channelname,
     muted: Constants.getMuted(state),
     participants: getParticipants(state),
     selectedConversationIDKey,
+    showTeamButton,
     teamname,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
-  onBack: () => dispatch(navigateUp()),
-  onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
+  _onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
+  _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
   },
-  onShowBlockConversationDialog: (selectedConversation, participants) => {
+  _onShowBlockConversationDialog: (selectedConversation, participants) => {
     dispatch(
       navigateAppend([
         {
           props: {conversationIDKey: selectedConversation, participants},
           selected: 'showBlockConversationDialog',
+        },
+      ])
+    )
+  },
+  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {conversationIDKey},
+          selected: 'showNewTeamDialog',
         },
       ])
     )
@@ -68,18 +82,22 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.map(p => p.username)),
+  onAddParticipant: () => dispatchProps._onAddParticipant(stateProps.participants.map(p => p.username)),
   onMuteConversation: stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
     ? (muted: boolean) =>
         stateProps.selectedConversationIDKey &&
-        dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted)
+        dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
     : null,
   onShowBlockConversationDialog: () =>
-    dispatchProps.onShowBlockConversationDialog(
+    dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,
       stateProps.participants.map(p => p.username).join(',')
     ),
+  onShowNewTeamDialog: () => {
+    stateProps.selectedConversationIDKey &&
+      dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey)
+  },
 })
 
 const ConnectedInfoPanel = compose(

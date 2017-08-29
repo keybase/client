@@ -1,6 +1,5 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
 
 type infoPanelProps = {
   muted: boolean,
@@ -8,7 +7,7 @@ type infoPanelProps = {
   onMuteConversation: (muted: boolean) => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
-  participants: List<{
+  participants: Array<{
     username: string,
     following: boolean,
     fullname: string,
@@ -19,6 +18,8 @@ type infoPanelProps = {
 
 export type SmallTeamInfoPanelProps = infoPanelProps & {
   onShowBlockConversationDialog: () => void,
+  onShowNewTeamDialog: () => void,
+  showTeamButton: boolean,
 }
 
 export class SmallTeamInfoPanel extends Component<SmallTeamInfoPanelProps> {}
