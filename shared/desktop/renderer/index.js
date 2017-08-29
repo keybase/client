@@ -34,6 +34,7 @@ import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
+import InputMonitor from './inputmonitor'
 
 let _store
 function setupStore() {
@@ -51,56 +52,6 @@ function setupStore() {
 function setupAvatar() {
   initAvatarLookup(getUserImageMap, getTeamImageMap)
   initAvatarLoad(loadUserImageMap, loadTeamImageMap)
-}
-
-// 5 minutes after being active, consider us inactive after
-// an additional minute of no input
-// for the purpose of marking chat messages read
-function InputMonitor(notifyActiveFunction) {
-  var notifyActive = notifyActiveFunction
-  var activeTimeoutID
-  var inactiveTimeoutID
-  var active = true
-
-  this.startActiveTimer = () => {
-    // wait 5 minutes before adding listeners
-    activeTimeoutID = window.setTimeout(this.goListening, 300000)
-  }
-
-  this.resetInactiveTimer = () => {
-    window.clearTimeout(inactiveTimeoutID)
-    this.goActive()
-  }
-
-  this.goInactive = () => {
-    console.log('Going inactive due to 1 minute of no input')
-    window.clearTimeout(inactiveTimeoutID)
-    if (active) {
-      notifyActive(false)
-      active = false
-    }
-  }
-
-  this.goListening = () => {
-    console.log('Adding input listeners after 5 active minutes')
-    window.clearTimeout(activeTimeoutID)
-
-    window.addEventListener('mousemove', this.resetInactiveTimer, true)
-    window.addEventListener('keypress', this.resetInactiveTimer, true)
-
-    // wait 1 minute before calling goInactive
-    inactiveTimeoutID = window.setTimeout(this.goInactive, 60000)
-  }
-
-  this.goActive = () => {
-    window.removeEventListener('mousemove', this.resetInactiveTimer, true)
-    window.removeEventListener('keypress', this.resetInactiveTimer, true)
-    if (!active) {
-      notifyActive(true)
-      active = true
-    }
-    this.startActiveTimer()
-  }
 }
 
 function setupApp(store) {
