@@ -31,6 +31,31 @@ const scrollViewStyle = {
       }),
 }
 
+type muteRowProps = {
+  muted: boolean,
+  onMute: (muted: boolean) => void,
+  label: string,
+}
+
+const MuteRow = (props: muteRowProps) => (
+  <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+    <Checkbox
+      checked={props.muted}
+      disabled={props.onMute == null}
+      onCheck={props.onMute}
+      label={props.label}
+    />
+    <Icon
+      type="iconfont-shh"
+      style={{
+        color: globalColors.black_20,
+        marginLeft: globalMargins.tiny,
+        ...(isMobile ? {fontSize: 24} : {}),
+      }}
+    />
+  </Box>
+)
+
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView
     style={scrollViewStyle}
@@ -44,22 +69,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-      <Checkbox
-        checked={props.muted}
-        disabled={props.onMuteConversation == null}
-        onCheck={checked => props.onMuteConversation(checked)}
-        label="Mute notifications"
-      />
-      <Icon
-        type="iconfont-shh"
-        style={{
-          color: globalColors.black_20,
-          marginLeft: globalMargins.tiny,
-          ...(isMobile ? {fontSize: 24} : {}),
-        }}
-      />
-    </Box>
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute notifications" />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
@@ -85,22 +95,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
-    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-      <Checkbox
-        checked={props.muted}
-        disabled={props.onMuteConversation == null}
-        onCheck={checked => props.onMuteConversation(checked)}
-        label="Mute channel"
-      />
-      <Icon
-        type="iconfont-shh"
-        style={{
-          color: globalColors.black_20,
-          marginLeft: globalMargins.tiny,
-          ...(isMobile ? {fontSize: 24} : {}),
-        }}
-      />
-    </Box>
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
 
     <Divider style={{marginBottom: 20, marginTop: 20}} />
 
