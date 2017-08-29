@@ -942,6 +942,9 @@ type DiskBlockCache interface {
 	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
 		sizeRemoved int64, err error)
 	// UpdateMetadata updates metadata for a given block in the disk cache.
+	// A `nil` `triggeredPrefetch` or `finishedPrefetch` indicates that they
+	// should remain as they are right now (defaulting to `false` if the
+	// metadata doesn't exist yet).
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
 		triggeredPrefetch, finishedPrefetch *bool) error
 	// GetMetadata gets metadata for a given block in the disk cache without
@@ -2245,6 +2248,10 @@ type BlockRetriever interface {
 		prefetchDoneCh, prefetchErrCh chan<- struct{}) <-chan error
 	// CacheAndPrefetch caches a block along with its prefetch status, and then
 	// triggers prefetches as appropriate.
+	// `prefetchDoneCh` and `prefetchErrCh` can be nil so the caller doesn't always
+	// have to instantiate a channel if it doesn't care about waiting for the
+	// prefetch to complete. In that case, the `blockRetrievalQueue` instantiates
+	// each channel to monitor the prefetches.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
 		triggeredPrefetch bool,

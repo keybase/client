@@ -76,9 +76,12 @@ type blockRetrieval struct {
 	requests []*blockRetrievalRequest
 	// the cache lifetime for the retrieval
 	cacheLifetime BlockCacheLifetime
-	// channels to notify when this retrieval and its prefetches are done
+	// channel to notify when this retrieval and its entire subtree is done
+	// prefetching
 	prefetchDoneCh chan<- struct{}
-	prefetchErrCh  chan<- struct{}
+	// channel to notify when a prefetch in the subtree for this retrieval
+	// fails for any reason
+	prefetchErrCh chan<- struct{}
 
 	//// Queueing Metadata
 	// the index of the retrieval in the heap
@@ -212,9 +215,58 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	}
 }
 
+func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(ctx context.Context,
+	ptr BlockPointer, block Block, kmd KeyMetadata, prefetchDoneCh,
+	prefetchErrCh chan<- struct{}, didUpdateCh <-chan struct{}) {
+	prefetcher := brq.Prefetcher()
+	childPrefetchDoneCh, childPrefetchErrCh, numBlocks :=
+		prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
+
+	// If we have child blocks to prefetch, wait for them.
+	if numBlocks > 0 {
+		for i := 0; i < numBlocks; i++ {
+			select {
+			case <-childPrefetchDoneCh:
+				// We expect to receive from this channel `numBlocks` times,
+				// after which we know the subtree of this block is done
+				// prefetching.
+				continue
+			case <-childPrefetchErrCh:
+				// One error means this block didn't finish prefetching.
+				prefetchErrCh <- struct{}{}
+				return
+			case <-prefetcher.ShutdownCh():
+				prefetchErrCh <- struct{}{}
+				return
+			}
+		}
+	}
+
+	// Make sure we've already updated the metadata once to avoid a race.
+	<-didUpdateCh
+	// Prefetches are done. Update the disk cache metadata.
+	dbc := brq.config.DiskBlockCache()
+	if dbc != nil {
+		triggeredPrefetch := true
+		finishedPrefetch := true
+		err := dbc.UpdateMetadata(ctx, ptr.ID, &triggeredPrefetch,
+			&finishedPrefetch)
+		if err != nil {
+			brq.log.CWarningf(ctx, "Error updating metadata after "+
+				"prefetch: %+v", err)
+		}
+	}
+	// Now prefetching is actually done.
+	prefetchDoneCh <- struct{}{}
+}
+
 // CacheAndPrefetch implements the BlockRetrieval interface for
 // blockRetrievalQueue. It also updates the LRU time for the block in the disk
 // cache.
+// `prefetchDoneCh` and `prefetchErrCh` can be nil so the caller doesn't always
+// have to instantiate a channel if it doesn't care about waiting for the
+// prefetch to complete. In this case, the `blockRetrievalQueue` instantiates
+// each channel to monitor the prefetches.
 func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, triggeredPrefetch bool,
@@ -284,45 +336,8 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
-	go func() {
-		prefetcher := brq.Prefetcher()
-		childPrefetchDoneCh, childPrefetchErrCh, numBlocks :=
-			prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
-
-		// If we have child blocks to prefetch, wait for them.
-		if numBlocks > 0 {
-			for i := 0; i < numBlocks; i++ {
-				select {
-				case <-childPrefetchDoneCh:
-					// Passthrough
-				case <-childPrefetchErrCh:
-					// One error means this block didn't finish prefetching.
-					prefetchErrCh <- struct{}{}
-					return
-				case <-prefetcher.ShutdownCh():
-					prefetchErrCh <- struct{}{}
-					return
-				}
-			}
-		}
-
-		// Make sure we've already updated the metadata once to avoid a race.
-		<-didUpdateCh
-		// Prefetches are done. Update the disk cache metadata.
-		dbc := brq.config.DiskBlockCache()
-		if dbc != nil {
-			triggeredPrefetch := true
-			finishedPrefetch := true
-			err := dbc.UpdateMetadata(ctx, ptr.ID, &triggeredPrefetch,
-				&finishedPrefetch)
-			if err != nil {
-				brq.log.CWarningf(ctx, "Error updating metadata after "+
-					"prefetch: %+v", err)
-			}
-		}
-		// Now prefetching is actually done.
-		prefetchDoneCh <- struct{}{}
-	}()
+	go brq.triggerAndMonitorPrefetch(ctx, ptr, block, kmd, prefetchDoneCh,
+		prefetchErrCh, didUpdateCh)
 	return nil
 }
 
