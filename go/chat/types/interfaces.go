@@ -9,7 +9,7 @@ import (
 )
 
 type Offlinable interface {
-	IsOffline() bool
+	IsOffline(ctx context.Context) bool
 	Connected(ctx context.Context)
 	Disconnected(ctx context.Context)
 }
@@ -146,7 +146,7 @@ type PushHandler interface {
 	Activity(context.Context, gregor.OutOfBandMessage) error
 	Typing(context.Context, gregor.OutOfBandMessage) error
 	MembershipUpdate(context.Context, gregor.OutOfBandMessage) error
-	HandleOobm(context.Context, gregor.OutOfBandMessage) error
+	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
 }
 
 type AppState interface {

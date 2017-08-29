@@ -321,7 +321,7 @@ func (e *Identify2WithUID) Run(ctx *Context) (err error) {
 	}
 
 	// Only the first send matters, but we don't want to block the subsequent no-op
-	// sends. This code will break when we have more than 100 unblocking opporttunities.
+	// sends. This code will break when we have more than 100 unblocking opportunities.
 	ch := make(chan error, 100)
 
 	e.resultCh = ch

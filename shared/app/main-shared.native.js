@@ -7,7 +7,7 @@ import hello from '../util/hello'
 import {bootstrap} from '../actions/config'
 import {connect} from 'react-redux'
 import debounce from 'lodash/debounce'
-import {getUserImageMap, loadUserImageMap} from '../util/pictures'
+import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
 import {listenForNotifications} from '../actions/notifications'
 import {persistRouteState, loadRouteState} from '../actions/platform-specific.native'
@@ -36,14 +36,14 @@ type OwnProps = {
   version: string,
 }
 
-class Main extends Component<void, any, void> {
+class Main extends Component<any> {
   constructor(props: Props) {
     super(props)
 
     if (!global.mainLoaded) {
       global.mainLoaded = true
-      initAvatarLookup(getUserImageMap)
-      initAvatarLoad(loadUserImageMap)
+      initAvatarLookup(getUserImageMap, getTeamImageMap)
+      initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 
       this.props.loadRouteState()
       this.props.bootstrap()

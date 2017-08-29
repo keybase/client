@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react'
+import * as React from 'react'
 import {Box} from '../common-adapters'
 
 import UpdateEmail from './email'
@@ -313,7 +313,6 @@ const commonSettings = {
       unsubscribedFromAll: false,
     },
   },
-  allowSave: true,
   allowEdit: true,
   waitingForResponse: false,
   onRefresh: () => console.log('onRefresh'),

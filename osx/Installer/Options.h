@@ -17,9 +17,10 @@ typedef NS_OPTIONS (NSUInteger, UninstallOptions) {
   UninstallOptionFuse = 1 << 1,
   UninstallOptionMountDir = 1 << 2,
   UninstallOptionHelper = 1 << 3,
+  UninstallOptionCLI = 1 << 4,
 
   // Uninstall all (except for app)
-  UninstallOptionAll = UninstallOptionMountDir | UninstallOptionFuse | UninstallOptionHelper,
+  UninstallOptionAll = UninstallOptionMountDir | UninstallOptionFuse | UninstallOptionCLI | UninstallOptionHelper,
 };
 
 @interface Options : NSObject

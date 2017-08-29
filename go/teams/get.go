@@ -57,7 +57,7 @@ func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name
 		ForceRepoll: true,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fixupTeamGetError(ctx, g, err, name)
 	}
 	me, err := loadUserVersionByUID(ctx, g, g.Env.GetUID())
 	if err != nil {

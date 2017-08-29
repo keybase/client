@@ -292,16 +292,11 @@ func UninstallKeybaseServices(runMode libkb.RunMode, log Log) error {
 	return libkb.CombineErrors(err1, err2)
 }
 
-func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd.Plist, err error) {
-	mountDir, err := context.GetMountDir()
-	if err != nil {
-		return
-	}
+func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir string, skipMount bool) (launchd.Plist, error) {
 	logFile := filepath.Join(context.GetLogDir(), libkb.KBFSLogFileName)
 	startLogFile := filepath.Join(context.GetLogDir(), libkb.StartLogFileName)
-	err = libkb.MakeParentDirs(startLogFile)
-	if err != nil {
-		return
+	if err := libkb.MakeParentDirs(startLogFile); err != nil {
+		return launchd.Plist{}, err
 	}
 	// TODO: Remove debug flag when doing real release
 	plistArgs := []string{
@@ -314,18 +309,16 @@ func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd
 		plistArgs = append(plistArgs, fmt.Sprintf("-server-root=%s", context.GetRuntimeDir()))
 	}
 
+	if skipMount {
+		plistArgs = append(plistArgs, "-mount-type=none")
+	}
+
 	plistArgs = append(plistArgs, mountDir)
 
 	envVars := DefaultLaunchdEnvVars(label)
 	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", string(context.GetRunMode())))
-	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, startLogFile, defaultPlistComment)
-
-	_, err = os.Stat(mountDir)
-	if err != nil {
-		return
-	}
-
-	return
+	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, startLogFile, defaultPlistComment)
+	return plist, nil
 }
 
 func installKBFSService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
@@ -396,12 +389,50 @@ func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log 
 	}
 }
 
+// InstallAuto installs everything it can without asking for privileges or
+// extensions. If the user has already installed Fuse, we install everything.
+func InstallAuto(context Context, binPath string, sourcePath string, timeout time.Duration, log Log) keybase1.InstallResult {
+	var components []string
+	status := KeybaseFuseStatus("", log)
+	if status.InstallStatus == keybase1.InstallStatus_INSTALLED {
+		components = []string{
+			ComponentNameCLI.String(),
+			ComponentNameUpdater.String(),
+			ComponentNameService.String(),
+			ComponentNameKBFS.String(),
+			ComponentNameHelper.String(),
+			ComponentNameFuse.String(),
+			ComponentNameMountDir.String(),
+			ComponentNameKBFS.String(),
+			ComponentNameKBNM.String(),
+		}
+	} else {
+		components = []string{
+			ComponentNameCLI.String(),
+			ComponentNameUpdater.String(),
+			ComponentNameService.String(),
+			ComponentNameKBFS.String(),
+			ComponentNameKBNM.String(),
+		}
+	}
+
+	return Install(context, binPath, sourcePath, components, false, timeout, log)
+}
+
 // Install installs specified components
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
 
 	log.Debug("Installing components: %s", components)
+
+	if libkb.IsIn(string(ComponentNameCLI), components, false) {
+		err = installCommandLine(context, binPath, true, log) // Always force CLI install
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
+		if err != nil {
+			log.Errorf("Error installing CLI: %s", err)
+		}
+	}
 
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
 		err = installAppBundle(context, sourcePath, log)
@@ -419,19 +450,19 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameCLI), components, false) {
-		err = installCommandLine(context, binPath, true, log) // Always force CLI install
-		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
-		if err != nil {
-			log.Errorf("Error installing CLI: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameService), components, false) {
 		err = InstallService(context, binPath, force, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 		if err != nil {
 			log.Errorf("Error installing service: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameHelper), components, false) {
+		err = installHelper(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
+		if err != nil {
+			log.Errorf("Error installing Helper: %s", err)
 		}
 	}
 
@@ -452,7 +483,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = InstallKBFS(context, binPath, force, timeout, log)
+		err = InstallKBFS(context, binPath, force, true, timeout, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 		if err != nil {
 			log.Errorf("Error installing KBFS: %s", err)
@@ -464,6 +495,14 @@ func Install(context Context, binPath string, sourcePath string, components []st
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
 		if err != nil {
 			log.Errorf("Error installing KBNM: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
+		err = installCommandLinePrivileged(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
+		if err != nil {
+			log.Errorf("Error installing command line (privileged): %s", err)
 		}
 	}
 
@@ -482,7 +521,7 @@ func installCommandLine(context Context, binPath string, force bool, log Log) er
 	if linkPath == bp {
 		return fmt.Errorf("We can't symlink to ourselves: %s", bp)
 	}
-	log.Debug("Checking %s (%s)", linkPath, bp)
+	log.Info("Checking %s (%s)", linkPath, bp)
 	err = installCommandLineForBinPath(bp, linkPath, force, log)
 	if err != nil {
 		log.Errorf("Command line not installed properly (%s)", err)
@@ -500,6 +539,10 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool, l
 	}
 	isLink := (fi.Mode()&os.ModeSymlink != 0)
 	if !isLink {
+		if force {
+			log.Warning("Path is not a symlink: %s, forcing overwrite", linkPath)
+			return createCommandLine(binPath, linkPath, log)
+		}
 		return fmt.Errorf("Path is not a symlink: %s", linkPath)
 	}
 
@@ -510,6 +553,7 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool, l
 	}
 	if err != nil {
 		if force {
+			log.Warning("We are not symlinked to %s, forcing overwrite", linkPath)
 			return createCommandLine(binPath, linkPath, log)
 		}
 		return fmt.Errorf("We are not symlinked to %s", linkPath)
@@ -542,7 +586,7 @@ func InstallService(context Context, binPath string, force bool, timeout time.Du
 }
 
 // InstallKBFS installs the KBFS launchd service
-func InstallKBFS(context Context, binPath string, force bool, timeout time.Duration, log Log) error {
+func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvailable bool, timeout time.Duration, log Log) error {
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
@@ -550,7 +594,22 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	if err != nil {
 		return err
 	}
-	plist, err := kbfsPlist(context, kbfsBinPath, label)
+	mountDir, err := context.GetMountDir()
+	if err != nil {
+		return err
+	}
+
+	skipMount := false
+	_, err = os.Stat(mountDir)
+	if err != nil {
+		if skipMountIfNotAvailable {
+			skipMount = true
+		} else {
+			return err
+		}
+	}
+
+	plist, err := kbfsPlist(context, kbfsBinPath, label, mountDir, skipMount)
 	if err != nil {
 		return err
 	}
@@ -558,7 +617,6 @@ func InstallKBFS(context Context, binPath string, force bool, timeout time.Durat
 	UninstallKBFSServices(context.GetRunMode(), log)
 	log.Debug("Installing KBFS (%s, timeout=%s)", label, timeout)
 	if _, err := installKBFSService(context, kbfsService, plist, timeout, log); err != nil {
-		log.Errorf("Error installing KBFS: %s", err)
 		return err
 	}
 	return nil
@@ -574,13 +632,13 @@ func InstallKBNM(context Context, binPath string, log Log) error {
 	// kbnm binary is next to the keybase binary, same dir
 	hostPath := filepath.Join(filepath.Dir(keybasePath), "kbnm")
 
-	log.Debug("Installing KBNM NativeMessaging whitelists for binary: %s", hostPath)
+	log.Info("Installing KBNM NativeMessaging whitelists for binary: %s", hostPath)
 	return kbnminstaller.InstallKBNM(hostPath)
 }
 
 // UninstallKBNM removes the Keybase NativeMessaging whitelist
 func UninstallKBNM(log Log) error {
-	log.Debug("Uninstalling KBNM NativeMessaging whitelists")
+	log.Info("Uninstalling KBNM NativeMessaging whitelists")
 	return kbnminstaller.UninstallKBNM()
 }
 
@@ -635,14 +693,6 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameHelper), components, false) {
-		err = uninstallHelper(context.GetRunMode(), log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
-		if err != nil {
-			log.Errorf("Error uninstalling helper: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameApp), components, false) {
 		err = uninstallApp(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameApp), err))
@@ -651,19 +701,35 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		}
 	}
 
-	if libkb.IsIn(string(ComponentNameCLI), components, false) {
-		err = uninstallCommandLine(log)
-		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
-		if err != nil {
-			log.Errorf("Error uninstalling command line: %s", err)
-		}
-	}
-
 	if libkb.IsIn(string(ComponentNameKBNM), components, false) {
 		err = UninstallKBNM(log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBNM), err))
 		if err != nil {
 			log.Errorf("Error uninstalling kbnm: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameCLIPaths), components, false) {
+		err = uninstallCommandLinePrivileged(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLIPaths), err))
+		if err != nil {
+			log.Errorf("Error uninstalling command line (privileged): %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameHelper), components, false) {
+		err = uninstallHelper(context.GetRunMode(), log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameHelper), err))
+		if err != nil {
+			log.Errorf("Error uninstalling helper: %s", err)
+		}
+	}
+
+	if libkb.IsIn(string(ComponentNameCLI), components, false) {
+		err = uninstallCommandLine(log)
+		componentResults = append(componentResults, componentResult(string(ComponentNameCLI), err))
+		if err != nil {
+			log.Errorf("Error uninstalling command line: %s", err)
 		}
 	}
 
@@ -761,9 +827,24 @@ func installFuse(runMode libkb.RunMode, log Log) error {
 	return execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
 }
 
+func installHelper(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing Helper")
+	return execNativeInstallerWithArg([]string{"--install-helper"}, runMode, log)
+}
+
 func installAppBundle(context Context, sourcePath string, log Log) error {
 	log.Info("Install app bundle")
 	return execNativeInstallerWithArg([]string{"--install-app-bundle", fmt.Sprintf("--source-path=%s", sourcePath)}, context.GetRunMode(), log)
+}
+
+func installCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
+	log.Info("Installing command line (privileged)")
+	return execNativeInstallerWithArg([]string{"--install-cli"}, runMode, log)
+}
+
+func uninstallCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
+	log.Info("Removing command line (privileged)")
+	return execNativeInstallerWithArg([]string{"--uninstall-cli"}, runMode, log)
 }
 
 func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) error {
@@ -933,7 +1014,12 @@ func statusFromResults(componentResults []keybase1.ComponentResult) keybase1.Sta
 
 func componentResult(name string, err error) keybase1.ComponentResult {
 	if err != nil {
-		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
+		exitCode := 0
+		if exitError, ok := err.(*exec.ExitError); ok {
+			ws := exitError.Sys().(syscall.WaitStatus)
+			exitCode = ws.ExitStatus()
+		}
+		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error()), ExitCode: exitCode}
 	}
 	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }

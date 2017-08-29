@@ -15,4 +15,4 @@ export type Props = {
   onSubmit: () => void,
 }
 
-export default class PaymentForm extends Component<void, Props, void> {}
+export default class PaymentForm extends Component<Props> {}

@@ -26,7 +26,7 @@ export type Props = {
   showingIgnored: boolean,
 }
 
-class Folders extends Component<void, Props, void> {
+class Folders extends Component<Props> {
   componentDidMount() {
     this.props.favoriteList()
   }
@@ -41,7 +41,7 @@ class Folders extends Component<void, Props, void> {
         onChat={tlf => this.props.openTlfInChat(tlf)}
         onSwitchTab={showingPrivate => this.props.switchTab(showingPrivate)}
         showingPrivate={this.props.showingPrivate}
-        username={this.props.username}
+        username={this.props.username || ''}
         onToggleShowIgnored={this.props.onToggleShowIgnored}
         showingIgnored={this.props.showingIgnored}
       />
@@ -53,10 +53,10 @@ type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
 
 const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
-  username: state.config.username,
   folderState: state.favorite ? state.favorite.folderState : null,
-  showingPrivate: !!state.favorite && showingPrivate,
   showingIgnored: !!state.favorite && routeState.showingIgnored,
+  showingPrivate: !!state.favorite && showingPrivate,
+  username: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState}: OwnProps) => ({

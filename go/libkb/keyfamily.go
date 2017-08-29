@@ -36,7 +36,8 @@ type ComputedKeyInfosVersion int
 
 const (
 	ComputedKeyInfosV1             ComputedKeyInfosVersion = ComputedKeyInfosVersion(1)
-	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV1
+	ComputedKeyInfosV2             ComputedKeyInfosVersion = ComputedKeyInfosVersion(2)
+	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV2
 )
 
 // refers to exactly one ServerKeyInfo.
@@ -371,7 +372,6 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 	ckf.G().Log.Debug("ComputedKeyFamily#InsertEldestLink %s", tcl.ToDebugString())
 
 	kid := tcl.GetKID()
-	sigid := tcl.GetSigID()
 	tm := TclToKeybaseTime(tcl)
 
 	_, err = ckf.FindKeyWithKIDUnsafe(kid)
@@ -384,10 +384,27 @@ func (ckf ComputedKeyFamily) InsertEldestLink(tcl TypedChainLink, username Norma
 		return err
 	}
 
-	ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(), tcl.GetPGPFullHash(),
-		true /* isSibkey */, true /* isEldest */, tcl.GetCTime(), tcl.GetETime(),
-		mhm, tcl.GetFirstAppearedMerkleSeqnoUnverified(), tcl.ToSigChainLocation())
+	// We don't need to check the signature on the first link, because
+	// verifySubchain will take care of that.
+	ctime := tcl.GetCTime().Unix()
+	etime := tcl.GetETime().Unix()
 
+	eldestCki := NewComputedKeyInfo(kid, true, true, KeyUncancelled, ctime, etime, tcl.GetPGPFullHash())
+	eldestCki.DelegatedAt = tm
+	eldestCki.DelegatedAtHashMeta = mhm
+	eldestCki.DelegatedAtSigChainLocation = tcl.ToSigChainLocation()
+
+	// Tricky legacy detail: Note that we have not inserted the eldest sig into
+	// the Delegations map here. verifySubchain() might go on to do that after
+	// we return if the link is of a delegating type (type:eldest or
+	// type:sibkey), but that's not always the case. Omitting the delegation
+	// from that map means that revoking the signature does *not* revoke the
+	// key it (implicitly) delegated. For example, Max's eldest link is a
+	// twitter proof, which is revoked. That *must not* count as a revocation
+	// of his eldest key. We have a copy of Max's sigchain as one of our test
+	// vectors, to cover this behavior. See also the note in RevokeSig.
+
+	ckf.cki.Insert(&eldestCki)
 	return nil
 }
 
@@ -598,8 +615,8 @@ func (ckf *ComputedKeyFamily) Delegate(tcl TypedChainLink) (err error) {
 		return err
 	}
 
-	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(), tcl.GetPGPFullHash(),
-		(tcl.GetRole() == DLGSibkey), false /* isEldest */, tcl.GetCTime(), tcl.GetETime(),
+	err = ckf.cki.Delegate(kid, tm, sigid, tcl.GetKID(), tcl.GetParentKid(),
+		tcl.GetPGPFullHash(), (tcl.GetRole() == DLGSibkey), tcl.GetCTime(), tcl.GetETime(),
 		mhm, tcl.GetFirstAppearedMerkleSeqnoUnverified(), tcl.ToSigChainLocation())
 	return
 }
@@ -612,16 +629,15 @@ func (ckf *ComputedKeyFamily) DelegatePerUserKey(perUserKey keybase1.PerUserKey)
 // delegated, as of time tm, in sigid, as signed by signingKid, etc.
 // fau = "FirstAppearedUnverified", a hint from the server that we're going to persist.
 // dascl = "DelegatedAtSigChainLocation"
-func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime,
-	sigid keybase1.SigID, signingKid, parentKID keybase1.KID,
-	pgpHash string, isSibkey bool, isEldest bool, ctime, etime time.Time,
+func (cki *ComputedKeyInfos) Delegate(kid keybase1.KID, tm *KeybaseTime, sigid keybase1.SigID, signingKid, parentKID keybase1.KID,
+	pgpHash string, isSibkey bool, ctime, etime time.Time,
 	merkleHashMeta keybase1.HashMeta, fau keybase1.Seqno,
 	dascl keybase1.SigChainLocation) (err error) {
 
 	cki.G().Log.Debug("ComputeKeyInfos#Delegate To %s with %s at sig %s", kid.String(), signingKid, sigid.ToDisplayString(true))
 	info, found := cki.Infos[kid]
 	if !found {
-		newInfo := NewComputedKeyInfo(kid, isEldest, isSibkey, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
+		newInfo := NewComputedKeyInfo(kid, false, isSibkey, KeyUncancelled, ctime.Unix(), etime.Unix(), pgpHash)
 		newInfo.DelegatedAt = tm
 		info = &newInfo
 		cki.Infos[kid] = info
@@ -659,11 +675,17 @@ func (cki *ComputedKeyInfos) DelegatePerUserKey(perUserKey keybase1.PerUserKey) 
 	if perUserKey.Gen <= 0 {
 		return fmt.Errorf("invalid per-user-key generation %v", perUserKey.Gen)
 	}
+	if perUserKey.Seqno == 0 {
+		return fmt.Errorf("invalid per-user-key seqno: %v", perUserKey.Seqno)
+	}
 	if perUserKey.SigKID.IsNil() {
 		return errors.New("nil per-user-key sig kid")
 	}
 	if perUserKey.EncKID.IsNil() {
 		return errors.New("nil per-user-key enc kid")
+	}
+	if perUserKey.SignedByKID.IsNil() {
+		return errors.New("nil per-user-key signed-by kid")
 	}
 	cki.PerUserKeys[keybase1.PerUserKeyGeneration(perUserKey.Gen)] = perUserKey
 	return nil
@@ -738,7 +760,13 @@ func (ckf *ComputedKeyFamily) revokeKids(kids []keybase1.KID, tcl TypedChainLink
 
 func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) (err error) {
 	if info, found := ckf.cki.Sigs[sig]; !found {
+		// silently no-op if the signature doesn't exist
 	} else if _, found := info.Delegations[sig]; found {
+		// Tricky legacy detail: For some eldest links that implicitly delegate
+		// keys, the info.Delegations map will not contain the delegation, and
+		// we will skip this branch. We rely on this behavior to avoid revoking
+		// keys that shouldn't be revoked. See the note in InsertEldestLink.
+
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()

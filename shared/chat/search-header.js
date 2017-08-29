@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import * as Creators from '../actions/chat/creators'
 import * as SearchCreators from '../actions/search/creators'
 import * as SearchConstants from '../constants/search'
@@ -60,7 +60,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAddSelectedUser: id => dispatch(Creators.stageUserForSearch(id)),
 })
 
-const SearchHeader = props =>
+const SearchHeader = props => (
   <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
     <UserInput
       ref={props.setInputRef}
@@ -83,6 +83,7 @@ const SearchHeader = props =>
         <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
     </Box>
   </Box>
+)
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),

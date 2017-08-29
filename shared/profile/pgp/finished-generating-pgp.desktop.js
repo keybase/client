@@ -10,7 +10,7 @@ type State = {
   shouldStoreKeyOnServer: boolean,
 }
 
-class FinishedGeneratedPgp extends Component<void, Props, State> {
+class FinishedGeneratedPgp extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
@@ -84,6 +84,7 @@ const stylePgpKeyString = {
 
 const styleUploadContainer = {
   ...globalStyles.flexBoxColumn,
+  flexShrink: 0,
   textAlign: 'left',
   marginTop: globalMargins.small,
 }

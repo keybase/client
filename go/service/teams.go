@@ -111,8 +111,13 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 	memberBody := strings.Join(lines, "\n")
 	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
 		user, memberBody)
+
+	// Ensure we have chat available, since TeamAddMember may also be
+	// coming from a standalone launch.
+	h.G().ExternalG().StartStandaloneChat()
+
 	gregorCli := h.gregor.GetClient()
-	if err = chat.SendTextByName(ctx, h.G(), team, chat.DefaultTeamTopic, chat1.ConversationMembersType_TEAM,
+	if err = chat.SendTextByName(ctx, h.G(), team, &chat.DefaultTeamTopic, chat1.ConversationMembersType_TEAM,
 		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, gregorCli); err != nil {
 		return false
 	}
@@ -192,4 +197,14 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg k
 
 func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (keybase1.TeamID, error) {
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
+}
+
+func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (keybase1.TeamID, error) {
+	teamID, _, err := teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
+	return teamID, err
+}
+
+func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (keybase1.TeamID, error) {
+	teamID, _, err := teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
+	return teamID, err
 }

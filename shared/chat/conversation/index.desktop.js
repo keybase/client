@@ -18,7 +18,7 @@ type State = {
   infoPanelOpen: boolean,
 }
 
-class Conversation extends Component<void, Props, State> {
+class Conversation extends Component<Props, State> {
   state = {
     showDropOverlay: false,
     infoPanelOpen: false,
@@ -127,44 +127,44 @@ class Conversation extends Component<void, Props, State> {
         {this.props.showSearchPending
           ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
-            ? <SearchResultsList
-                searchKey={'chatSearch'} /* todo move to constant */
-                onShowTracker={this.props.onShowTrackerInSearch}
-                style={{...globalStyles.scrollable, flexGrow: 1}}
-              />
-            : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-                <List
-                  focusInputCounter={this.props.focusInputCounter}
-                  listScrollDownCounter={this.props.listScrollDownCounter}
-                  onEditLastMessage={this.props.onEditLastMessage}
-                  onScrollDown={this.props.onScrollDown}
-                  onFocusInput={this.props.onFocusInput}
-                  editLastMessageCounter={this.props.editLastMessageCounter}
+              ? <SearchResultsList
+                  searchKey={'chatSearch'} /* todo move to constant */
+                  onShowTracker={this.props.onShowTrackerInSearch}
+                  style={{...globalStyles.scrollable, flexGrow: 1}}
                 />
-                <Banner />
-                {this.props.showLoader && <LoadingLine />}
-                {this.props.finalizeInfo
-                  ? <OldProfileResetNotice />
-                  : <Input
-                      focusInputCounter={this.props.focusInputCounter}
-                      onEditLastMessage={this.props.onEditLastMessage}
-                      onScrollDown={this.props.onScrollDown}
-                    />}
-                {this.state.infoPanelOpen &&
-                  <div
-                    style={{
-                      ...globalStyles.flexBoxColumn,
-                      bottom: 0,
-                      position: 'absolute',
-                      right: 0,
-                      top: 35,
-                      width: 320,
-                    }}
-                  >
-                    <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
-                  </div>}
-                {dropOverlay}
-              </div>}
+              : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                  <List
+                    focusInputCounter={this.props.focusInputCounter}
+                    listScrollDownCounter={this.props.listScrollDownCounter}
+                    onEditLastMessage={this.props.onEditLastMessage}
+                    onScrollDown={this.props.onScrollDown}
+                    onFocusInput={this.props.onFocusInput}
+                    editLastMessageCounter={this.props.editLastMessageCounter}
+                  />
+                  <Banner />
+                  {this.props.showLoader && <LoadingLine />}
+                  {this.props.finalizeInfo
+                    ? <OldProfileResetNotice />
+                    : <Input
+                        focusInputCounter={this.props.focusInputCounter}
+                        onEditLastMessage={this.props.onEditLastMessage}
+                        onScrollDown={this.props.onScrollDown}
+                      />}
+                  {this.state.infoPanelOpen &&
+                    <div
+                      style={{
+                        ...globalStyles.flexBoxColumn,
+                        bottom: 0,
+                        position: 'absolute',
+                        right: 0,
+                        top: 35,
+                        width: 320,
+                      }}
+                    >
+                      <InfoPanel onToggleInfoPanel={this._onToggleInfoPanel} />
+                    </div>}
+                  {dropOverlay}
+                </div>}
       </Box>
     )
   }

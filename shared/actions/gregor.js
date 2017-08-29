@@ -4,9 +4,9 @@ import * as Constants from '../constants/gregor'
 import engine from '../engine'
 import {all, call, put, select} from 'redux-saga/effects'
 import {
-  delegateUiCtlRegisterGregorFirehoseRpc,
+  delegateUiCtlRegisterGregorFirehoseRpcPromise,
   reachabilityCheckReachabilityRpcPromise,
-  reachabilityStartReachabilityRpc,
+  reachabilityStartReachabilityRpcPromise,
   ReachabilityReachable,
 } from '../constants/types/flow-types'
 import {favoriteList, markTLFCreated} from './favorite'
@@ -110,29 +110,25 @@ function checkReachabilityOnConnect() {
     // via reachabilityChanged.
     // This should be run on app start and service re-connect in case the
     // service somehow crashed or was restarted manually.
-    reachabilityStartReachabilityRpc({
-      callback: (err, reachability) => {
-        if (err) {
-          console.warn('error bootstrapping reachability: ', err)
-          return
-        }
+    reachabilityStartReachabilityRpcPromise()
+      .then(reachability => {
         dispatch(updateReachability(reachability))
-      },
-    })
+      })
+      .catch(err => {
+        console.warn('error bootstrapping reachability: ', err)
+      })
   }
 }
 
 function registerGregorListeners() {
   return (dispatch: Dispatch) => {
-    delegateUiCtlRegisterGregorFirehoseRpc({
-      callback: (error, response) => {
-        if (error != null) {
-          console.warn('error in registering gregor listener: ', error)
-        } else {
-          console.log('Registered gregor listener')
-        }
-      },
-    })
+    delegateUiCtlRegisterGregorFirehoseRpcPromise()
+      .then(response => {
+        console.log('Registered gregor listener')
+      })
+      .catch(error => {
+        console.warn('error in registering gregor listener: ', error)
+      })
 
     // we get this with sessionID == 0 if we call openDialog
     engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
@@ -152,7 +148,7 @@ function registerGregorListeners() {
   }
 }
 
-function* handleTLFUpdate(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
+const handleTLFUpdate = function*(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
   const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
@@ -165,7 +161,7 @@ function* handleTLFUpdate(items: Array<NonNullGregorItem>): SagaGenerator<any, a
   }
 }
 
-function* handlePushState(pushAction: PushState): SagaGenerator<any, any> {
+const handlePushState = function*(pushAction: PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -179,7 +175,7 @@ function* handlePushState(pushAction: PushState): SagaGenerator<any, any> {
   }
 }
 
-function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
+const handleKbfsFavoritesOOBM = function*(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
@@ -197,7 +193,7 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
   )
 }
 
-function* handlePushOOBM(pushOOBM: pushOOBM) {
+const handlePushOOBM = function*(pushOOBM: pushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
@@ -206,12 +202,12 @@ function* handlePushOOBM(pushOOBM: pushOOBM) {
   }
 }
 
-function* handleCheckReachability(): SagaGenerator<any, any> {
+const handleCheckReachability = function*(): SagaGenerator<any, any> {
   const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
   yield put({type: Constants.updateReachability, payload: {reachability}})
 }
 
-function* gregorSaga(): SagaGenerator<any, any> {
+const gregorSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.pushState, handlePushState)
   yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
   yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)

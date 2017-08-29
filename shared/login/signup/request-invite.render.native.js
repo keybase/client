@@ -5,9 +5,7 @@ import type {Props} from './request-invite.render'
 import {Text, Icon, Input, Button, Box} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 
-class RequestInviteRender extends Component {
-  props: Props
-
+class RequestInviteRender extends Component<Props> {
   render() {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>

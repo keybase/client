@@ -3,6 +3,8 @@
 import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
+import isArray from 'lodash/isArray'
+import glamorous from 'glamorous'
 
 const windowStyle = {
   minWidth: 600,
@@ -87,11 +89,11 @@ const util = {
     overflowY: 'auto',
   },
   selectable: {
-    WebkitUserSelect: 'text',
+    userSelect: 'text',
     cursor: 'text',
   },
   noSelect: {
-    WebkitUserSelect: 'none',
+    userSelect: 'none',
   },
   windowDragging: {
     // allow frameless window dragging
@@ -163,13 +165,29 @@ function backgroundURL(...to: Array<string>): string {
 }
 
 const hairlineWidth = 1
+const styleSheetCreate = (obj: Object) => obj
+const collapseStyles = (styles: Array<Object> | Object) => {
+  if (isArray) {
+    return styles.reduce((map, item) => {
+      map = {...map, ...item}
+      return map
+    }, {})
+  } else {
+    return styles
+  }
+}
+const lineHeight = (h: number) => `${h}px`
 
 export {
   backgroundURL,
+  collapseStyles,
+  glamorous,
   globalColors,
   globalMargins,
   globalStyles,
+  lineHeight,
   hairlineWidth,
+  styleSheetCreate,
   transition,
   transitionColor,
   windowStyle,

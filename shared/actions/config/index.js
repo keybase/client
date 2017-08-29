@@ -4,13 +4,14 @@ import * as Creators from './creators'
 import engine from '../../engine'
 import {
   CommonClientType,
-  configGetBootstrapStatusRpc,
-  configGetConfigRpc,
-  configGetExtendedStatusRpc,
-  configWaitForClientRpc,
+  configGetBootstrapStatusRpcPromise,
+  configGetConfigRpcPromise,
+  configGetExtendedStatusRpcPromise,
+  configWaitForClientRpcPromise,
 } from '../../constants/types/flow-types'
 import {isMobile, isSimulator} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
+import {fuseStatus} from '../../actions/kbfs'
 import {navBasedOnLoginState} from '../../actions/login/creators'
 import {
   checkReachabilityOnConnect,
@@ -52,17 +53,14 @@ const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => ({
 
 const getConfig = (): AsyncAction => (dispatch, getState) =>
   new Promise((resolve, reject) => {
-    configGetConfigRpc({
-      callback: (error, config) => {
-        if (error) {
-          reject(error)
-          return
-        }
-
+    configGetConfigRpcPromise()
+      .then(config => {
         dispatch({payload: {config}, type: Constants.configLoaded})
         resolve()
-      },
-    })
+      })
+      .catch(error => {
+        reject(error)
+      })
   })
 
 function isFollower(getState: any, username: string): boolean {
@@ -84,15 +82,10 @@ const waitForKBFS = (): AsyncAction => dispatch =>
       reject(new Error("Waited for KBFS client, but it wasn't not found"))
     }, 10 * 1000)
 
-    configWaitForClientRpc({
-      callback: (error, found) => {
+    configWaitForClientRpcPromise({param: {clientType: CommonClientType.kbfs, timeout: 10.0}})
+      .then(found => {
         clearTimeout(timer)
-
         if (timedOut) {
-          return
-        }
-        if (error) {
-          reject(error)
           return
         }
         if (!found) {
@@ -100,24 +93,23 @@ const waitForKBFS = (): AsyncAction => dispatch =>
           return
         }
         resolve()
-      },
-      param: {clientType: CommonClientType.kbfs, timeout: 10.0},
-    })
+      })
+      .catch(error => {
+        clearTimeout(timer)
+        reject(error)
+      })
   })
 
 const getExtendedStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
-    configGetExtendedStatusRpc({
-      callback: (error, extendedConfig) => {
-        if (error) {
-          reject(error)
-          return
-        }
-
+    configGetExtendedStatusRpcPromise()
+      .then(extendedConfig => {
         dispatch({payload: {extendedConfig}, type: Constants.extendedConfigLoaded})
         resolve(extendedConfig)
-      },
-    })
+      })
+      .catch(error => {
+        reject(error)
+      })
   })
 
 const registerListeners = (): AsyncAction => dispatch => {
@@ -160,7 +152,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
     dispatch(registerListeners())
   } else {
     console.log('[bootstrap] performing bootstrap...')
-    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS())])
+    Promise.all([dispatch(getBootstrapStatus()), dispatch(waitForKBFS()), dispatch(fuseStatus())])
       .then(() => {
         dispatch({type: 'config:bootstrapSuccess', payload: undefined})
         engine().listenOnDisconnect('daemonError', () => {
@@ -190,21 +182,18 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
-    configGetBootstrapStatusRpc({
-      callback: (error, bootstrapStatus) => {
-        if (error) {
-          reject(error)
-          return
-        }
-
+    configGetBootstrapStatusRpcPromise()
+      .then(bootstrapStatus => {
         dispatch({
           payload: {bootstrapStatus},
           type: Constants.bootstrapStatusLoaded,
         })
 
         resolve(bootstrapStatus)
-      },
-    })
+      })
+      .catch(error => {
+        reject(error)
+      })
   })
 
 const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing => ({
@@ -212,7 +201,7 @@ const updateFollowing = (username: string, isTracking: boolean): UpdateFollowing
   type: Constants.updateFollowing,
 })
 
-function* _bootstrapSuccessSaga(): SagaGenerator<any, any> {
+const _bootstrapSuccessSaga = function*(): SagaGenerator<any, any> {
   if (isMobile) {
     const pushLoaded = yield select(({config: {pushLoaded}}: TypedState) => pushLoaded)
     const loggedIn = yield select(loggedInSelector)
@@ -225,7 +214,7 @@ function* _bootstrapSuccessSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* configSaga(): SagaGenerator<any, any> {
+const configSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('config:bootstrapSuccess', _bootstrapSuccessSaga)
 }
 

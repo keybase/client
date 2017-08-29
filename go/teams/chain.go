@@ -66,6 +66,14 @@ func (t TeamSigChainState) IsSubteam() bool {
 	return t.inner.ParentID != nil
 }
 
+func (t TeamSigChainState) IsImplicit() bool {
+	return t.inner.Implicit
+}
+
+func (t TeamSigChainState) IsPublic() bool {
+	return t.inner.Public
+}
+
 func (t TeamSigChainState) LatestLastNamePart() keybase1.TeamNamePart {
 	return t.inner.NameLog[len(t.inner.NameLog)-1].LastPart
 }
@@ -325,6 +333,9 @@ func (t *TeamSigChainState) getLastSubteamPoint(id keybase1.TeamID) *keybase1.Su
 // Links must be added in order by seqno for each subteam (asserted here).
 // Links for different subteams can interleave.
 // Mutates the SubteamLog.
+// Name collisions are allowed here. They are allowed because you might
+// be removed a subteam and then its future name changes and deletion would be stubbed.
+// See ListSubteams for details.
 func (t *TeamSigChainState) informSubteam(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
 	lastPoint := t.getLastSubteamPoint(id)
 	if lastPoint != nil && lastPoint.Seqno.Eq(seqno) {
@@ -333,9 +344,8 @@ func (t *TeamSigChainState) informSubteam(id keybase1.TeamID, name keybase1.Team
 	if lastPoint != nil && seqno < lastPoint.Seqno {
 		return fmt.Errorf("cannot add to subteam log out of order: %v < %v", seqno, lastPoint.Seqno)
 	}
-	err := t.checkSubteamCollision(id, name, seqno)
-	if err != nil {
-		return err
+	if lastPoint != nil && lastPoint.Name.IsNil() {
+		return fmt.Errorf("cannot process subteam rename because %v was deleted at seqno %v", id, lastPoint.Seqno)
 	}
 	t.inner.SubteamLog[id] = append(t.inner.SubteamLog[id], keybase1.SubteamLogPoint{
 		Name:  name,
@@ -356,30 +366,10 @@ func (t *TeamSigChainState) informSubteamDelete(id keybase1.TeamID, seqno keybas
 	if lastPoint != nil && seqno < lastPoint.Seqno {
 		return fmt.Errorf("cannot add to subteam log out of order: %v < %v", seqno, lastPoint.Seqno)
 	}
+	// Don't check for deleting the same team twice. Just allow it.
 	t.inner.SubteamLog[id] = append(t.inner.SubteamLog[id], keybase1.SubteamLogPoint{
 		Seqno: seqno,
 	})
-	return nil
-}
-
-// Check that there is no other subteam with this name at this seqno.
-func (t *TeamSigChainState) checkSubteamCollision(id keybase1.TeamID, name keybase1.TeamName, seqno keybase1.Seqno) error {
-	for otherID, points := range t.inner.SubteamLog {
-		if otherID.Eq(id) {
-			continue
-		}
-		// Get the other team's name at the time of the caller's update.
-		var otherName keybase1.TeamName
-		for _, point := range points {
-			if point.Seqno < seqno {
-				otherName = point.Name
-			}
-		}
-		if otherName.Eq(name) {
-			return fmt.Errorf("multiple subteams named %v at seqno %v: %v, %v",
-				name.String(), seqno, id.String(), otherID.String())
-		}
-	}
 	return nil
 }
 
@@ -391,16 +381,46 @@ type TeamIDAndName struct {
 // Only call this on a Team that has been loaded with NeedAdmin.
 // Otherwise, you might get incoherent answers due to links that
 // were stubbed over the life of the cached object.
+//
+// For subteams that you were removed from, this list may
+// still include them because your removal was stubbed.
+// The list will not contain duplicate names.
+// Since this should only be called when you are an admin,
+// none of that should really come up, but it's here just to be less fragile.
 func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
+	type Entry struct {
+		ID   keybase1.TeamID
+		Name keybase1.TeamName
+		// Seqno of the last cached rename of this team
+		Seqno keybase1.Seqno
+	}
+	// Use a map to deduplicate names. If there is a subteam name
+	// collision, take the one with the latest (parent) seqno
+	// modifying its name.
+	// A collision could occur if you were removed from a team
+	// and miss its renaming or deletion to to stubbing.
+	resMap := make(map[string] /*TeamName*/ Entry)
 	for subteamID, points := range t.inner.SubteamLog {
 		if len(points) == 0 {
 			// this should never happen
 			continue
 		}
 		lastPoint := points[len(points)-1]
+		entry := Entry{
+			ID:    subteamID,
+			Name:  lastPoint.Name,
+			Seqno: lastPoint.Seqno,
+		}
+		existing, ok := resMap[entry.Name.String()]
+		replace := !ok || (entry.Seqno >= existing.Seqno)
+		if replace {
+			resMap[entry.Name.String()] = entry
+		}
+	}
+	for _, entry := range resMap {
 		res = append(res, TeamIDAndName{
-			ID:   subteamID,
-			Name: lastPoint.Name,
+			ID:   entry.ID,
+			Name: entry.Name,
 		})
 	}
 	return res
@@ -654,6 +674,20 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.inner.Id.String())
 	}
 
+	if prevState != nil && prevState.IsImplicit() != team.Implicit {
+		return res, fmt.Errorf("link specified implicit:%v but team was already implicit:%v",
+			team.Implicit, prevState.IsImplicit())
+	}
+
+	if prevState != nil && prevState.IsPublic() != team.Public {
+		return res, fmt.Errorf("link specified public:%v but team was already public:%v",
+			team.Implicit, prevState.IsImplicit())
+	}
+
+	if team.Public && (!team.Implicit || (prevState != nil && !prevState.IsImplicit())) {
+		return res, fmt.Errorf("public non-implicit teams are not supported")
+	}
+
 	hasPrevState := func(has bool) error {
 		if has {
 			if prevState == nil {
@@ -717,7 +751,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(true),
 			hasAdmin(false),
-			hasInvites(false),
 			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
@@ -732,6 +765,13 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("root team has subteam name: %s", teamName)
 		}
 
+		// Whether this is an implicit team
+		isImplicit := teamName.IsImplicit()
+		if isImplicit != team.Implicit {
+			return res, fmt.Errorf("link specified implicit:%v but name specified implicit:%v",
+				team.Implicit, isImplicit)
+		}
+
 		// Check the team ID
 		// assert that team_name = hash(team_id)
 		// this is only true for root teams
@@ -743,8 +783,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
-			requireOwners: true,
-			allowRemovals: false,
+			requireOwners:       true,
+			allowRemovals:       false,
+			onlyOwnersOrReaders: isImplicit,
 		})
 		if err != nil {
 			return res, err
@@ -762,23 +803,40 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			inner: keybase1.TeamSigChainState{
 				Reader:       t.reader,
 				Id:           teamID,
+				Implicit:     isImplicit,
+				Public:       team.Public,
 				RootAncestor: teamName.RootAncestorName(),
 				NameDepth:    teamName.Depth(),
 				NameLog: []keybase1.TeamNameLogPoint{{
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:    1,
-				LastLinkID:   link.LinkID().Export(),
-				ParentID:     nil,
-				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:  perTeamKeys,
-				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks: make(map[keybase1.Seqno]bool),
+				LastSeqno:     1,
+				LastLinkID:    link.LinkID().Export(),
+				ParentID:      nil,
+				UserLog:       make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:    make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:   perTeamKeys,
+				LinkIDs:       make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:  make(map[keybase1.Seqno]bool),
+				ActiveInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
+
+		if team.Invites != nil {
+			if isImplicit {
+				additions, cancelations, err := t.sanityCheckInvites(signer.signer, *team.Invites, sanityCheckInvitesOptions{
+					implicitTeam: isImplicit,
+				})
+				if err != nil {
+					return res, err
+				}
+				t.updateInvites(&res.newState, additions, cancelations)
+			} else {
+				return res, fmt.Errorf("invites not allowed in root link")
+			}
+		}
 
 		// check that the signer is an owner
 		if res.newState.getUserRole(signer.signer) != keybase1.TeamRole_OWNER {
@@ -817,8 +875,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
-			disallowOwners: prevState.IsSubteam(),
-			allowRemovals:  true,
+			disallowOwners:      prevState.IsSubteam(),
+			allowRemovals:       true,
+			onlyOwnersOrReaders: prevState.IsImplicit(),
 		})
 		if err != nil {
 			return res, err
@@ -832,6 +891,75 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// Only owners can remove owners.
 		if t.roleUpdatesDemoteOwners(prevState, roleUpdates) && !signerIsExplicitOwner {
 			return res, fmt.Errorf("non-owner cannot demote owners")
+		}
+
+		if prevState.IsImplicit() {
+			// In implicit teams there are only 2 kinds of membership changes allowed:
+			// 1. Resolve an invite. Adds 1 user and completes 1 invite.
+			//    Though sometimes a new user is not added, due to a conflict.
+			// 2. Accept a reset user. Adds 1 user and removes 1 user.
+			//    Where the new one has the same UID and role as the old and a greater EldestSeqno.
+
+			// Here's a case that is not straightforward:
+			// There is an impteam alice,leland%2,bob@twitter.
+			// Leland resets and then proves bob@twitter. On the team chain alice accepts Leland's reset.
+			// So she removes leland%2, adds leland%3, and completes the bob@twitter invite.
+
+			// Here's another:
+			// There is an impteam leland#bob@twitter.
+			// Leland proves bob@twitter. On the team chain leland completes the invite.
+			// Now it's just leland.
+
+			// Check that the invites being completed are all active.
+			// For non-implicit teams we are more lenient, but here we need the counts to match up.
+			for inviteID := range team.CompletedInvites {
+				_, ok := prevState.inner.ActiveInvites[inviteID]
+				if !ok {
+					return res, NewImplicitTeamOperationError("completed invite %v but was not active",
+						inviteID)
+				}
+			}
+			nCompleted := len(team.CompletedInvites)
+
+			// Check these two properties:
+			// - Every removal must come with an addition of a successor. Ignore role.
+			// - Every addition must either be paired with a removal, or resolve an invite. Ignore role.
+			// This is a coarse check that ignores role changes.
+
+			type removal struct {
+				uv        keybase1.UserVersion
+				satisfied bool
+			}
+			removals := make(map[keybase1.UID]removal)
+			for _, uv := range roleUpdates[keybase1.TeamRole_NONE] {
+				removals[uv.Uid] = removal{uv: uv}
+			}
+			var nCompletedExpected int
+			// Every addition must either be paired with a removal or resolve an invite.
+			for _, uv := range append(roleUpdates[keybase1.TeamRole_OWNER], roleUpdates[keybase1.TeamRole_READER]...) {
+				removal, ok := removals[uv.Uid]
+				if ok {
+					if removal.uv.EldestSeqno >= uv.EldestSeqno {
+						return res, NewImplicitTeamOperationError("replaced with older eldest seqno: %v -> %v",
+							removal.uv.EldestSeqno, uv.EldestSeqno)
+					}
+					removal.satisfied = true
+					removals[uv.Uid] = removal
+				} else {
+					// This is a new user, so must be a completed invite.
+					nCompletedExpected++
+				}
+			}
+			// All removals must have come with successor.
+			for _, r := range removals {
+				if !r.satisfied {
+					return res, NewImplicitTeamOperationError("removal without addition for %v", r.uv)
+				}
+			}
+			// The number of completed invites must match.
+			if nCompletedExpected != nCompleted {
+				return res, NewImplicitTeamOperationError("illegal membership change")
+			}
 		}
 
 		res.newState = prevState.DeepCopy()
@@ -914,6 +1042,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
+		if prevState.IsImplicit() {
+			NewImplicitTeamOperationError(payload.Body.Type)
+		}
+
 		// Check that the signer is at least a reader.
 		// Implicit admins cannot leave a subteam.
 		signerRole, err := prevState.GetUserRole(signer.signer)
@@ -947,6 +1079,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
+		}
+
+		if prevState.IsImplicit() {
+			NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -986,6 +1122,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
+		if team.Public {
+			return res, fmt.Errorf("public subteams are not supported")
+		}
+
 		// Check the subteam ID
 		if !teamID.IsSubTeam() {
 			return res, fmt.Errorf("malformed subteam id")
@@ -1004,6 +1144,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 		if teamName.IsRootTeam() {
 			return res, fmt.Errorf("subteam has root team name: %s", teamName)
+		}
+		if teamName.IsImplicit() || team.Implicit {
+			NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
@@ -1026,20 +1169,23 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			inner: keybase1.TeamSigChainState{
 				Reader:       t.reader,
 				Id:           teamID,
+				Implicit:     false,
+				Public:       false,
 				RootAncestor: teamName.RootAncestorName(),
 				NameDepth:    teamName.Depth(),
 				NameLog: []keybase1.TeamNameLogPoint{{
 					LastPart: teamName.LastPart(),
 					Seqno:    1,
 				}},
-				LastSeqno:    1,
-				LastLinkID:   link.LinkID().Export(),
-				ParentID:     &parentID,
-				UserLog:      make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
-				SubteamLog:   make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
-				PerTeamKeys:  perTeamKeys,
-				LinkIDs:      make(map[keybase1.Seqno]keybase1.LinkID),
-				StubbedLinks: make(map[keybase1.Seqno]bool),
+				LastSeqno:     1,
+				LastLinkID:    link.LinkID().Export(),
+				ParentID:      &parentID,
+				UserLog:       make(map[keybase1.UserVersion][]keybase1.UserLogPoint),
+				SubteamLog:    make(map[keybase1.TeamID][]keybase1.SubteamLogPoint),
+				PerTeamKeys:   perTeamKeys,
+				LinkIDs:       make(map[keybase1.Seqno]keybase1.LinkID),
+				StubbedLinks:  make(map[keybase1.Seqno]bool),
+				ActiveInvites: make(map[keybase1.TeamInviteID]keybase1.TeamInvite),
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
@@ -1058,6 +1204,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
+		}
+
+		if prevState.IsImplicit() {
+			NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1095,6 +1245,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasCompletedInvites(false))
 		if err != nil {
 			return res, err
+		}
+
+		if prevState.IsImplicit() {
+			NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// These links only occur in subteam.
@@ -1153,6 +1307,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
+		if prevState.IsImplicit() {
+			NewImplicitTeamOperationError(payload.Body.Type)
+		}
+
 		// Check the subteam ID
 		subteamID, err := t.assertIsSubteamID(string(team.Subteam.ID))
 		if err != nil {
@@ -1187,6 +1345,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
+		if prevState.IsImplicit() {
+			NewImplicitTeamOperationError(payload.Body.Type)
+		}
+
 		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
 		if !signer.implicitAdmin {
 			signerRole, err := prevState.GetUserRole(signer.signer)
@@ -1201,7 +1363,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}
 		}
 
-		additions, cancelations, err := t.sanityCheckInvites(signer.signer, *team.Invites)
+		additions, cancelations, err := t.sanityCheckInvites(signer.signer, *team.Invites, sanityCheckInvitesOptions{
+			implicitTeam: prevState.IsImplicit(),
+		})
 		if err != nil {
 			return res, err
 		}
@@ -1271,15 +1435,24 @@ func (t *TeamSigChainPlayer) inflateLinkHelper(
 	return &iRes.newState, nil
 }
 
+type sanityCheckInvitesOptions struct {
+	implicitTeam bool
+}
+
 // sanityCheckInvites sanity checks a raw SCTeamInvites section and coerces it into a
 // format that we can use. It checks:
-//  - that invite IDs are repeated
+//  - no owners are invited
+//  - that invite IDs aren't repeated
 //  - that <name,type> pairs aren't reused
 //  - that IDs parse into proper keybase1.TeamInviteIDs
 //  - that the invite type parses into proper TeamInviteType, or that it's an unknown
 //    invite that we're OK to not act upon.
+// Implicit teams are different:
+// - owners and readers are the only allowed role
 // Returns nicely formatted data structures.
-func (t *TeamSigChainPlayer) sanityCheckInvites(signer keybase1.UserVersion, invites SCTeamInvites) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
+func (t *TeamSigChainPlayer) sanityCheckInvites(
+	signer keybase1.UserVersion, invites SCTeamInvites, options sanityCheckInvitesOptions,
+) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
 
 	type assignment struct {
 		i    SCTeamInvite
@@ -1288,21 +1461,37 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(signer keybase1.UserVersion, inv
 	var all []assignment
 	additions = make(map[keybase1.TeamRole][]keybase1.TeamInvite)
 
-	if invites.Admins != nil {
+	if invites.Owners != nil && len(*invites.Owners) > 0 {
+		if !options.implicitTeam {
+			return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
+		}
+		additions[keybase1.TeamRole_OWNER] = nil
+		for _, i := range *invites.Owners {
+			all = append(all, assignment{i, keybase1.TeamRole_OWNER})
+		}
+	}
+
+	if invites.Admins != nil && len(*invites.Admins) > 0 {
+		if options.implicitTeam {
+			return nil, nil, NewImplicitTeamOperationError("encountered admin invite")
+		}
 		additions[keybase1.TeamRole_ADMIN] = nil
 		for _, i := range *invites.Admins {
 			all = append(all, assignment{i, keybase1.TeamRole_ADMIN})
 		}
 	}
 
-	if invites.Writers != nil {
+	if invites.Writers != nil && len(*invites.Writers) > 0 {
+		if options.implicitTeam {
+			return nil, nil, NewImplicitTeamOperationError("encountered writer invite")
+		}
 		additions[keybase1.TeamRole_WRITER] = nil
 		for _, i := range *invites.Writers {
 			all = append(all, assignment{i, keybase1.TeamRole_WRITER})
 		}
 	}
 
-	if invites.Readers != nil {
+	if invites.Readers != nil && len(*invites.Readers) > 0 {
 		additions[keybase1.TeamRole_READER] = nil
 		for _, i := range *invites.Readers {
 			all = append(all, assignment{i, keybase1.TeamRole_READER})
@@ -1318,6 +1507,9 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(signer keybase1.UserVersion, inv
 	}
 
 	if invites.Cancel != nil {
+		if options.implicitTeam {
+			return nil, nil, NewImplicitTeamOperationError("encountered invite cancellation")
+		}
 		for _, c := range *invites.Cancel {
 			id, err := c.TeamInviteID()
 			if err != nil {
@@ -1359,18 +1551,19 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(signer keybase1.UserVersion, inv
 type chainRoleUpdates map[keybase1.TeamRole][]keybase1.UserVersion
 
 type sanityCheckMembersOptions struct {
-	requireOwners  bool
+	// At least one owner must be added
+	requireOwners bool
+	// Adding owners is blocked
 	disallowOwners bool
-	allowRemovals  bool
+	// Removals are allowed, blocked if false
+	allowRemovals bool
+	// Only additions of OWNER or READER are allowed. Does not affect removals.
+	onlyOwnersOrReaders bool
 }
 
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
 // Do not check that all removals are members. That should be true, but not strictly enforced when reading.
-// `requireOwners` is whether owners must exist.
-// `allowRemovals` is whether removals are allowed.
-// Rotates to a map which has entries for the roles that actually appeared in the input, even if they are empty lists.
-// In other words, if the input has only `admin -> [...]` then the output will have only `admin` in the map.
 func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options sanityCheckMembersOptions) (chainRoleUpdates, error) {
 	type assignment struct {
 		m    SCTeamMember
@@ -1400,31 +1593,37 @@ func (t *TeamSigChainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 	// Map from roles to users.
 	res := make(map[keybase1.TeamRole][]keybase1.UserVersion)
 
-	if members.Owners != nil {
+	if members.Owners != nil && len(*members.Owners) > 0 {
 		res[keybase1.TeamRole_OWNER] = nil
 		for _, m := range *members.Owners {
 			all = append(all, assignment{m, keybase1.TeamRole_OWNER})
 		}
 	}
-	if members.Admins != nil {
+	if members.Admins != nil && len(*members.Admins) > 0 {
+		if options.onlyOwnersOrReaders {
+			return nil, NewImplicitTeamOperationError("encountered add admin")
+		}
 		res[keybase1.TeamRole_ADMIN] = nil
 		for _, m := range *members.Admins {
 			all = append(all, assignment{m, keybase1.TeamRole_ADMIN})
 		}
 	}
-	if members.Writers != nil {
+	if members.Writers != nil && len(*members.Writers) > 0 {
+		if options.onlyOwnersOrReaders {
+			return nil, NewImplicitTeamOperationError("encountered add writer")
+		}
 		res[keybase1.TeamRole_WRITER] = nil
 		for _, m := range *members.Writers {
 			all = append(all, assignment{m, keybase1.TeamRole_WRITER})
 		}
 	}
-	if members.Readers != nil {
+	if members.Readers != nil && len(*members.Readers) > 0 {
 		res[keybase1.TeamRole_READER] = nil
 		for _, m := range *members.Readers {
 			all = append(all, assignment{m, keybase1.TeamRole_READER})
 		}
 	}
-	if members.None != nil {
+	if members.None != nil && len(*members.None) > 0 {
 		res[keybase1.TeamRole_NONE] = nil
 		for _, m := range *members.None {
 			all = append(all, assignment{m, keybase1.TeamRole_NONE})

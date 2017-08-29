@@ -16,14 +16,16 @@ import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
-function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
+const onShareAttachment = function*({
+  payload: {messageKey},
+}: Constants.ShareAttachment): SagaGenerator<any, any> {
   const path = yield call(_saveAttachment, messageKey)
   if (path) {
     yield call(showShareActionSheet, {url: path})
   }
 }
 
-function* onSaveAttachmentNative({
+const onSaveAttachmentNative = function*({
   payload: {messageKey},
 }: Constants.SaveAttachmentNative): SagaGenerator<any, any> {
   const path = yield call(_saveAttachment, messageKey)
@@ -32,17 +34,19 @@ function* onSaveAttachmentNative({
   }
 }
 
-function* onLoadAttachmentPreview({
+const onLoadAttachmentPreview = function*({
   payload: {messageKey},
 }: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
   yield put(Creators.loadAttachment(messageKey, true))
 }
 
-function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): SagaGenerator<any, any> {
+const onSaveAttachment = function*({
+  payload: {messageKey},
+}: Constants.SaveAttachment): SagaGenerator<any, any> {
   yield call(_saveAttachment, messageKey)
 }
 
-function* _saveAttachment(messageKey: Constants.MessageKey) {
+const _saveAttachment = function*(messageKey: Constants.MessageKey) {
   const localMessageState = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
   if (localMessageState.savedPath) {
     console.log('_saveAttachment: message already saved. bailing.', messageKey, localMessageState.savedPath)
@@ -114,7 +118,7 @@ const loadAttachmentSagaMap = (messageKey, loadPreview) => ({
   'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
 })
 
-function* onLoadAttachment({
+const onLoadAttachment = function*({
   payload: {messageKey, loadPreview},
 }: Constants.LoadAttachment): SagaGenerator<any, any> {
   // Check if we should download the attachment. Only one instance of this saga
@@ -199,7 +203,7 @@ function* onLoadAttachment({
   })
 }
 
-function* _appendAttachmentPlaceholder(
+const _appendAttachmentPlaceholder = function*(
   conversationIDKey: Constants.ConversationIDKey,
   outboxIDKey: Constants.OutboxIDKey,
   preview: ChatTypes.MakePreviewRes,
@@ -300,7 +304,9 @@ const postAttachmentSagaMap = (
   'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
 })
 
-function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
+const onSelectAttachment = function*({
+  payload: {input},
+}: Constants.SelectAttachment): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
 
@@ -319,10 +325,11 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
     },
   })
 
-  const header = yield call(Shared.clientHeader, ChatTypes.CommonMessageType.attachment, conversationIDKey)
+  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
-    clientHeader: header,
+    tlfName: inboxConvo.name,
+    visibility: inboxConvo.visibility,
     attachment: {filename},
     preview,
     title,
@@ -386,14 +393,14 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   }
 }
 
-function* onRetryAttachment({
+const onRetryAttachment = function*({
   payload: {input, oldOutboxID},
 }: Constants.RetryAttachment): Generator<any, any, any> {
   yield put(Creators.removeOutboxMessage(input.conversationIDKey, oldOutboxID))
   yield call(onSelectAttachment, {payload: {input}})
 }
 
-function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
+const onOpenAttachmentPopup = function*(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {

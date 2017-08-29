@@ -71,7 +71,7 @@ function updateBillingArgsToApiArgs({
   }
 }
 
-function* updateBillingSaga({payload}: Constants.UpdateBilling): SagaGenerator<any, any> {
+const updateBillingSaga = function*({payload}: Constants.UpdateBilling): SagaGenerator<any, any> {
   let planId = payload.planId
   if (planId == null) {
     const currentPlanIdSelector = ({planBilling: {plan}}: TypedState) => plan && plan.planId
@@ -102,7 +102,7 @@ function* updateBillingSaga({payload}: Constants.UpdateBilling): SagaGenerator<a
   // TODO (MM) some loading indicator: false
 }
 
-function* fetchBillingOverviewSaga(): SagaGenerator<any, any> {
+const fetchBillingOverviewSaga = function*(): SagaGenerator<any, any> {
   try {
     const results: any = yield call(apiserverGetWithSessionRpcPromise, {
       param: {
@@ -144,7 +144,7 @@ function* fetchBillingOverviewSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* fetchBillingAndQuotaSaga(): SagaGenerator<any, any> {
+const fetchBillingAndQuotaSaga = function*(): SagaGenerator<any, any> {
   try {
     const usernameSelector = ({config: {username}}: TypedState) => username
     const username = yield select(usernameSelector)
@@ -169,7 +169,7 @@ function* fetchBillingAndQuotaSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* bootstrapDataSaga(): SagaGenerator<any, any> {
+const bootstrapDataSaga = function*(): SagaGenerator<any, any> {
   const billingStateSelector = ({planBilling}: TypedState) => planBilling
 
   const planBilling: Constants.State = (yield select(billingStateSelector): any)
@@ -178,7 +178,7 @@ function* bootstrapDataSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* billingSaga(): SagaGenerator<any, any> {
+const billingSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.updateBilling, updateBillingSaga)
   yield safeTakeLatest(Constants.fetchBillingAndQuota, fetchBillingAndQuotaSaga)
   yield safeTakeLatest(Constants.fetchBillingOverview, fetchBillingOverviewSaga)

@@ -1,7 +1,6 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {CSSTransitionGroup} from 'react-transition-group'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -9,7 +8,7 @@ import {stateColors} from '../util/tracker'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
 
-class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
+class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
     return (
       <Box style={{position: 'absolute'}}>
@@ -44,7 +43,7 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
   }
 }
 
-class BioRender extends Component<void, Props, void> {
+class BioRender extends Component<Props> {
   render() {
     const {avatarSize, username, userInfo, currentlyFollowing, editFns, loading} = this.props
     if (!userInfo) {
@@ -71,19 +70,13 @@ class BioRender extends Component<void, Props, void> {
 
     return (
       <Box style={{minHeight: 190, ...this.props.style}}>
-        <CSSTransitionGroup
-          transitionName="no-anim"
-          transitionEnterTimeout={250}
-          transitionLeaveTimeout={250}
-        >
-          {loading &&
-            <BioLoading
-              key="loading-state"
-              loading={loading}
-              style={this.props.style}
-              avatarSize={this.props.avatarSize}
-            />}
-        </CSSTransitionGroup>
+        {loading &&
+          <BioLoading
+            key="loading-state"
+            loading={loading}
+            style={this.props.style}
+            avatarSize={this.props.avatarSize}
+          />}
         <Box style={stylesContainer}>
           <Box
             style={{
@@ -135,20 +128,16 @@ class BioRender extends Component<void, Props, void> {
               <Text type="BodySmall" style={{...stylesFollowLabel, marginTop: 4}}>{followLabel}</Text>}
             {userInfo.followersCount !== -1 &&
               <Box style={{...globalStyles.flexBoxRow, margin: 4}}>
-                <Text
-                  type="BodySmallSecondaryLink"
-                  style={globalStyles.fontBold}
-                  onClick={() => this.props.onClickFollowers(username)}
-                >
+                <Text type="BodySmall" style={globalStyles.fontBold}>
                   {userInfo.followersCount}
-                  <Text type="BodySmallSecondaryLink">
+                  <Text type="BodySmall">
                     &nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}
                   </Text>
                 </Text>
                 <Text type="BodySmall">&nbsp; &middot; &nbsp;</Text>
-                <Text type="BodySmallSecondaryLink" onClick={() => this.props.onClickFollowing(username)}>
+                <Text type="BodySmall">
                   Following&nbsp;
-                  <Text type="BodySmallSecondaryLink" style={globalStyles.fontBold}>
+                  <Text type="BodySmall" style={globalStyles.fontBold}>
                     {userInfo.followingCount}
                   </Text>
                 </Text>

@@ -31,7 +31,10 @@ function readImage(): Promise<?ClipboardData> {
   })
 }
 
-export function readImageFromClipboard(event: any, willReadData: () => void): Promise<?ClipboardData> {
+export function readImageFromClipboard(
+  event: SyntheticEvent<>,
+  willReadData: () => void
+): Promise<?ClipboardData> {
   const formats = clipboard.availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))

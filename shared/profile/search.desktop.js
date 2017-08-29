@@ -2,12 +2,12 @@
 import React from 'react'
 import SearchResultsList from '../search/results-list/container'
 import UserInput from '../search/user-input/container.js'
-import {Box, Icon, ProgressIndicator, Text} from '../common-adapters'
+import {Box} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './search'
 
-const Search = (props: Props) =>
+const Search = (props: Props) => (
   <Box style={styleCatcher} onClick={props.onClose}>
     <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
@@ -22,6 +22,7 @@ const Search = (props: Props) =>
       </Box>
     </Box>
   </Box>
+)
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxColumn,
@@ -45,26 +46,9 @@ const styleCatcher = {
   zIndex: 20,
 }
 
-const styleSearchIcon = {
-  alignSelf: 'center',
-  padding: globalMargins.small,
-}
-
 const styleSearchRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-}
-
-const styleServiceRow = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-}
-
-const styleSpinner = {
-  alignSelf: 'center',
-  height: 256,
-  marginTop: globalMargins.small,
 }
 
 export default Search

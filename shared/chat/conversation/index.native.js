@@ -4,7 +4,7 @@ import List from './list/container'
 import HeaderOrSearchHeader from './header-or-search-header'
 import SearchResultsList from '../../search/results-list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
-import React from 'react'
+import * as React from 'react'
 import Banner from './banner/container'
 import {withPropsOnChange, compose, branch} from 'recompose'
 import {Box, LoadingLine, Text, HeaderHoc} from '../../common-adapters'
@@ -12,7 +12,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index'
 
-const Conversation = (props: Props) =>
+const Conversation = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.fullHeight}}>
     {props.threadLoadedOffline &&
       <Box
@@ -69,6 +69,7 @@ const Conversation = (props: Props) =>
               />}
         </Box>}
   </Box>
+)
 
 export default branch(
   ({inSearch}) => inSearch,

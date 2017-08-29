@@ -11,12 +11,12 @@ import type {
   RegisterRekeyListenerAction,
   NewRekeyPopupAction,
 } from '../constants/unlock-folders'
-import type {TypedAsyncAction, AsyncAction, Dispatch} from '../constants/types/flux'
+import type {AsyncAction, Dispatch} from '../constants/types/flux'
 import {
-  delegateUiCtlRegisterRekeyUIRpc,
-  loginPaperKeySubmitRpc,
-  rekeyShowPendingRekeyStatusRpc,
-  rekeyRekeyStatusFinishRpc,
+  delegateUiCtlRegisterRekeyUIRpcPromise,
+  loginPaperKeySubmitRpcPromise,
+  rekeyShowPendingRekeyStatusRpcPromise,
+  rekeyRekeyStatusFinishRpcPromise,
 } from '../constants/types/flow-types'
 
 export function toPaperKeyInput(): ToPaperKeyInput {
@@ -31,23 +31,20 @@ function waiting(currentlyWaiting: boolean): Waiting {
   return {type: Constants.waiting, payload: currentlyWaiting}
 }
 
-export function checkPaperKey(paperKey: HiddenString): TypedAsyncAction<CheckPaperKey | Waiting> {
-  return dispatch => {
-    loginPaperKeySubmitRpc({
+export function checkPaperKey(paperKey: HiddenString) {
+  return (dispatch: Dispatch) => {
+    loginPaperKeySubmitRpcPromise({
       param: {paperPhrase: paperKey.stringValue()},
       waitingHandler: isWaiting => {
         dispatch(waiting(isWaiting))
       },
-      callback: err => {
-        if (err) {
-          dispatch(
-            ({type: Constants.checkPaperKey, error: true, payload: {error: err.message}}: CheckPaperKey)
-          )
-        } else {
-          dispatch({type: Constants.checkPaperKey, payload: {success: true}})
-        }
-      },
     })
+      .then(() => {
+        dispatch({type: Constants.checkPaperKey, payload: {success: true}})
+      })
+      .catch(err => {
+        dispatch(({type: Constants.checkPaperKey, error: true, payload: {error: err.message}}: CheckPaperKey))
+      })
   }
 }
 
@@ -57,13 +54,13 @@ export function finish(): Finish {
 
 export function openDialog(): AsyncAction {
   return dispatch => {
-    rekeyShowPendingRekeyStatusRpc({})
+    rekeyShowPendingRekeyStatusRpcPromise()
   }
 }
 
 export function close(): AsyncAction {
   return (dispatch, getState) => {
-    rekeyRekeyStatusFinishRpc({})
+    rekeyRekeyStatusFinishRpcPromise()
     dispatch({type: Constants.close, payload: {}})
   }
 }
@@ -71,15 +68,13 @@ export function close(): AsyncAction {
 export function registerRekeyListener(): (dispatch: Dispatch) => void {
   return dispatch => {
     engine().listenOnConnect('registerRekeyUI', () => {
-      delegateUiCtlRegisterRekeyUIRpc({
-        callback: (error, response) => {
-          if (error != null) {
-            console.warn('error in registering rekey ui: ', error)
-          } else {
-            console.log('Registered rekey ui')
-          }
-        },
-      })
+      delegateUiCtlRegisterRekeyUIRpcPromise()
+        .then(response => {
+          console.log('Registered rekey ui')
+        })
+        .catch(error => {
+          console.warn('error in registering rekey ui: ', error)
+        })
     })
 
     // we get this with sessionID == 0 if we call openDialog

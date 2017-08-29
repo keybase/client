@@ -15,9 +15,15 @@ const initialState: Constants.State = {
     },
     publicBadge: 0,
   },
+  fuseInstalling: false,
+  fuseStatus: null,
+  fuseStatusLoading: false,
+  kbfsInstalling: false,
+  kbfsOpening: false,
   kbfsStatus: {
     isAsyncWriteHappening: false,
   },
+  kextPermissionError: false,
   viewState: {
     privateIgnoredOpen: false,
     publicIgnoredOpen: false,
@@ -108,6 +114,58 @@ export default function(
       return {
         ...state,
         kbfsStatus: action.payload,
+      }
+
+    case 'fs:fuseStatus':
+      return {
+        ...state,
+        fuseStatusLoading: true,
+      }
+    case 'fs:fuseStatusUpdate':
+      return {
+        ...state,
+        fuseStatus: action.payload.status,
+        fuseStatusLoading: false,
+      }
+    case 'fs:installFuse':
+      return {
+        ...state,
+        fuseInstalling: true,
+        kextPermissionError: false,
+      }
+    case 'fs:installFuseResult':
+      const {kextPermissionError} = action.payload
+      return {
+        ...state,
+        kextPermissionError,
+      }
+    case 'fs:installFuseFinished':
+      return {
+        ...state,
+        fuseInstalling: false,
+      }
+    case 'fs:clearFuseInstall':
+      return {
+        ...state,
+        fuseInstalling: false,
+        kextPermissionError: false,
+      }
+    case 'fs:installKBS':
+      return {
+        ...state,
+        kbfsInstalling: true,
+      }
+
+    case 'fs:installKBSFinished':
+      return {
+        ...state,
+        kbfsInstalling: false,
+      }
+    case 'fs:openDefaultPath':
+      const {opening} = action.payload
+      return {
+        ...state,
+        kbfsOpening: opening,
       }
 
     default:

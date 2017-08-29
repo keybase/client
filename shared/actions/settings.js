@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../constants/settings'
+import * as ChatTypes from '../constants/types/flow-types-chat'
 import HiddenString from '../util/hidden-string'
 import {
   apiserverGetWithSessionRpcPromise,
@@ -11,7 +12,7 @@ import {
   accountHasServerKeysRpcPromise,
   userLoadMySettingsRpcPromise,
 } from '../constants/types/flow-types'
-import {call, put, select, fork, cancel} from 'redux-saga/effects'
+import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import mapValues from 'lodash/mapValues'
 import trim from 'lodash/trim'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
@@ -29,7 +30,6 @@ import type {
   InvitesSent,
   LoadSettings,
   NotificationsRefresh,
-  NotificationsSave,
   NotificationsToggle,
   OnChangeNewEmail,
   OnChangeNewPassphrase,
@@ -92,10 +92,6 @@ function notificationsRefresh(): NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
 }
 
-function notificationsSave(): NotificationsSave {
-  return {type: Constants.notificationsSave, payload: undefined}
-}
-
 function notificationsToggle(group: string, name?: string): NotificationsToggle {
   return {type: Constants.notificationsToggle, payload: {group, name}}
 }
@@ -112,7 +108,7 @@ function loadSettings(): LoadSettings {
   return {type: Constants.loadSettings, payload: undefined}
 }
 
-function* _onUpdatePGPSettings(): SagaGenerator<any, any> {
+const _onUpdatePGPSettings = function*(): SagaGenerator<any, any> {
   try {
     const {hasServerKeys} = yield call(accountHasServerKeysRpcPromise)
     yield put(_onUpdatedPGPSettings(hasServerKeys))
@@ -121,7 +117,7 @@ function* _onUpdatePGPSettings(): SagaGenerator<any, any> {
   }
 }
 
-function* _onSubmitNewEmail(): SagaGenerator<any, any> {
+const _onSubmitNewEmail = function*(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -141,7 +137,7 @@ function* _onSubmitNewEmail(): SagaGenerator<any, any> {
   }
 }
 
-function* _onSubmitNewPassphrase(): SagaGenerator<any, any> {
+const _onSubmitNewPassphrase = function*(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -166,7 +162,7 @@ function* _onSubmitNewPassphrase(): SagaGenerator<any, any> {
   }
 }
 
-function* saveNotificationsSaga(): SagaGenerator<any, any> {
+const toggleNotificationsSaga = function*(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
     const current = yield select(state => state.settings.notifications)
@@ -176,29 +172,46 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
     }
 
     let JSONPayload = []
+    let chatGlobalArg = {}
     for (const groupName in current.groups) {
       const group = current.groups[groupName]
-      for (const key in group.settings) {
-        const setting = group.settings[key]
+      if (groupName === Constants.securityGroup) {
+        // Special case this since it will go to chat settings endpoint
+        for (const key in group.settings) {
+          const setting = group.settings[key]
+          chatGlobalArg[`${ChatTypes.CommonGlobalAppNotificationSetting[setting.name]}`] = setting.subscribed
+        }
+      } else {
+        for (const key in group.settings) {
+          const setting = group.settings[key]
+          JSONPayload.push({
+            key: `${setting.name}|${groupName}`,
+            value: setting.subscribed ? '1' : '0',
+          })
+        }
         JSONPayload.push({
-          key: `${setting.name}|${groupName}`,
-          value: setting.subscribed ? '1' : '0',
+          key: `unsub|${groupName}`,
+          value: group.unsubscribedFromAll ? '1' : '0',
         })
       }
-      JSONPayload.push({
-        key: `unsub|${groupName}`,
-        value: group.unsubscribedFromAll ? '1' : '0',
-      })
     }
 
-    const result = yield call(apiserverPostJSONRpcPromise, {
-      param: {
-        endpoint: 'account/subscribe',
-        args: [],
-        JSONPayload,
-      },
-    })
-
+    const [result] = yield all([
+      call(apiserverPostJSONRpcPromise, {
+        param: {
+          endpoint: 'account/subscribe',
+          args: [],
+          JSONPayload,
+        },
+      }),
+      call(ChatTypes.localSetGlobalAppNotificationSettingsLocalRpcPromise, {
+        param: {
+          settings: {
+            ...chatGlobalArg,
+          },
+        },
+      }),
+    ])
     if (!result || !result.body || JSON.parse(result.body).status.code !== 0) {
       throw new Error(`Invalid response ${result || '(no result)'}`)
     }
@@ -212,7 +225,7 @@ function* saveNotificationsSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* reclaimInviteSaga(invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
+const reclaimInviteSaga = function*(invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
   const {inviteId} = invitesReclaimAction.payload
   try {
     yield call(apiserverPostRpcPromise, {
@@ -240,7 +253,7 @@ function* reclaimInviteSaga(invitesReclaimAction: InvitesReclaim): SagaGenerator
   yield put(invitesRefresh())
 }
 
-function* refreshInvitesSaga(): SagaGenerator<any, any> {
+const refreshInvitesSaga = function*(): SagaGenerator<any, any> {
   const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
     param: {
       endpoint: 'invitations_sent',
@@ -297,7 +310,7 @@ function* refreshInvitesSaga(): SagaGenerator<any, any> {
   })
 }
 
-function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any> {
+const sendInviteSaga = function*(invitesSendAction: InvitesSend): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -351,7 +364,7 @@ function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any
   yield put(invitesRefresh())
 }
 
-function* refreshNotificationsSaga(): SagaGenerator<any, any> {
+const refreshNotificationsSaga = function*(): SagaGenerator<any, any> {
   // If the rpc is fast don't clear it out first
   const delayThenEmptyTask = yield fork(function*() {
     yield call(delay, 500)
@@ -363,13 +376,15 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
     })
   })
 
-  const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
-    param: {
-      endpoint: 'account/subscriptions',
-      args: [],
-    },
-  })
-
+  const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield all([
+    call(apiserverGetWithSessionRpcPromise, {
+      param: {
+        endpoint: 'account/subscriptions',
+        args: [],
+      },
+    }),
+    call(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise, {}),
+  ])
   yield cancel(delayThenEmptyTask)
 
   const results: {
@@ -382,8 +397,29 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
         }>,
         unsub: boolean,
       },
+      security: {
+        settings: Array<{
+          name: string,
+          description: string,
+          subscribed: boolean,
+        }>,
+        unsub: boolean,
+      },
     },
   } = JSON.parse((json && json.body) || '')
+  // Add security group extra since it does not come from API endpoint
+  results.notifications[Constants.securityGroup] = {
+    settings: [
+      {
+        name: 'plaintextmobile',
+        description: 'Display mobile plaintext notifications',
+        subscribed: chatGlobalSettings.settings[
+          `${ChatTypes.CommonGlobalAppNotificationSetting.plaintextmobile}`
+        ],
+      },
+    ],
+    unsub: false,
+  }
 
   const settingsToPayload = s =>
     ({
@@ -404,7 +440,7 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   })
 }
 
-function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
+const deleteAccountForeverSaga = function*(): SagaGenerator<any, any> {
   const username = yield select(state => state.config.username)
   const allowDeleteAccount = yield select(state => state.settings.allowDeleteAccount)
 
@@ -420,17 +456,17 @@ function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
   yield put(setDeletedSelf(username))
 }
 
-function* loadSettingsSaga(): SagaGenerator<any, any> {
+const loadSettingsSaga = function*(): SagaGenerator<any, any> {
   const userSettings = yield call(userLoadMySettingsRpcPromise)
   yield put({type: Constants.loadedSettings, payload: userSettings})
 }
 
-function* settingsSaga(): SagaGenerator<any, any> {
+const settingsSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.invitesReclaim, reclaimInviteSaga)
   yield safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga)
   yield safeTakeEvery(Constants.invitesSend, sendInviteSaga)
   yield safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga)
-  yield safeTakeLatest(Constants.notificationsSave, saveNotificationsSaga)
+  yield safeTakeLatest(Constants.notificationsToggle, toggleNotificationsSaga)
   yield safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga)
   yield safeTakeLatest(Constants.loadSettings, loadSettingsSaga)
   yield safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail)
@@ -444,7 +480,6 @@ export {
   invitesRefresh,
   invitesSend,
   notificationsRefresh,
-  notificationsSave,
   notificationsToggle,
   onChangeNewEmail,
   onChangeNewPassphrase,

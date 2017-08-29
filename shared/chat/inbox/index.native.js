@@ -1,350 +1,13 @@
 // @flow
-import React, {PureComponent} from 'react'
-import {
-  Text,
-  MultiAvatar,
-  Icon,
-  Usernames,
-  Markdown,
-  Box,
-  ClickableBox,
-  LoadingLine,
-  NativeStyleSheet,
-  NativeDimensions,
-  NativeFlatList,
-} from '../../common-adapters/index.native'
+import * as React from 'react'
+import {Text, Icon, Box, NativeDimensions, NativeFlatList} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {List} from 'immutable'
-import {RowConnector} from './row'
+import Row from './row/container'
+import ChatFilterRow from './row/chat-filter-row'
+import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
 import debounce from 'lodash/debounce'
-import memoize from 'lodash/memoize'
 
-import type {Props, RowProps} from './'
-
-const styles = NativeStyleSheet.create({
-  bottomLine: {
-    color: globalColors.black_40,
-    fontSize: 13,
-    lineHeight: 17,
-  },
-})
-
-const AddNewRow = ({onNewChat, isLoading}: {onNewChat: () => void, isLoading: boolean}) => (
-  <Box style={{...globalStyles.flexBoxColumn, minHeight: 48, position: 'relative'}}>
-    <ClickableBox style={{...globalStyles.flexBoxColumn, flex: 1, flexShrink: 0}} onClick={onNewChat}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', justifyContent: 'center', flex: 1}}>
-        <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 9}} />
-        <Text type="BodyBigLink">New chat</Text>
-      </Box>
-    </ClickableBox>
-    {isLoading &&
-      <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
-        <LoadingLine />
-      </Box>}
-  </Box>
-)
-
-// All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and
-// forces us to explicitly choose undefined/the background/ etc. This can be cleaned up when avatar is simplified
-function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor: string) {
-  // Only color the foreground items
-  if (isLastParticipant) {
-    return undefined
-  }
-
-  // We don't want a border if we're a single avatar
-  return !idx && isLastParticipant ? undefined : backgroundColor
-}
-
-class Avatars
-  extends PureComponent<
-    void,
-    {
-      participants: List<string>,
-      youNeedToRekey: boolean,
-      participantNeedToRekey: boolean,
-      isMuted: boolean,
-      isSelected: boolean,
-      backgroundColor: string,
-    },
-    void
-  > {
-  render() {
-    const {
-      participants,
-      youNeedToRekey,
-      participantNeedToRekey,
-      isMuted,
-      isSelected,
-      backgroundColor,
-    } = this.props
-
-    const avatarCount = Math.min(2, participants.count())
-
-    let icon
-    if (isMuted) {
-      icon = <Icon type={isSelected ? 'icon-shh-active-24' : 'icon-shh-24'} style={avatarMutedIconStyle} />
-    } else if (participantNeedToRekey || youNeedToRekey) {
-      icon = (
-        <Icon
-          type={isSelected ? 'icon-addon-lock-active-12' : 'icon-addon-lock-12'}
-          style={avatarLockIconStyle}
-        />
-      )
-    }
-
-    const opacity = youNeedToRekey || participantNeedToRekey ? 0.4 : 1
-    const avatarProps = participants
-      .slice(0, 2)
-      .map((username, idx) => ({
-        borderColor: rowBorderColor(idx, idx === avatarCount - 1, backgroundColor),
-        loadingColor: globalColors.lightGrey,
-        size: 32,
-        username,
-        skipBackground: true,
-      }))
-      .toArray()
-
-    return (
-      <Box style={avatarBoxStyle(backgroundColor)}>
-        <Box style={avatarInnerBoxStyle}>
-          <MultiAvatar
-            singleSize={40}
-            multiSize={32}
-            avatarProps={avatarProps}
-            style={{...multiStyle(backgroundColor), opacity}}
-          />
-          {icon}
-        </Box>
-      </Box>
-    )
-  }
-}
-
-const multiStyle = memoize(backgroundColor => {
-  return {
-    alignSelf: 'center',
-    backgroundColor,
-  }
-})
-
-const avatarBoxStyle = memoize(backgroundColor => {
-  return {
-    ..._avatarBoxStyle,
-    backgroundColor,
-  }
-})
-
-const _avatarBoxStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'flex-end',
-  justifyContent: 'flex-start',
-  maxWidth: 56,
-  minWidth: 56,
-  paddingLeft: globalMargins.xtiny,
-}
-const avatarInnerBoxStyle = {
-  position: 'relative',
-}
-
-class TopLine
-  extends PureComponent<
-    void,
-    {
-      hasUnread: boolean,
-      participants: List<string>,
-      showBold: boolean,
-      subColor: ?string,
-      timestamp: ?string,
-      usernameColor: ?string,
-    },
-    void
-  > {
-  render() {
-    const {hasUnread, showBold, participants, subColor, timestamp, usernameColor} = this.props
-    const boldOverride = showBold ? globalStyles.fontBold : null
-    return (
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: 19, minHeight: 19}}>
-        <Box
-          style={{...globalStyles.flexBoxRow, flex: 1, maxHeight: 19, minHeight: 19, position: 'relative'}}
-        >
-          <Box
-            style={{
-              ...globalStyles.flexBoxColumn,
-              bottom: 0,
-              justifyContent: 'flex-start',
-              left: 0,
-              position: 'absolute',
-              right: 0,
-              top: 0,
-            }}
-          >
-            <Usernames
-              inline={true}
-              plainText={true}
-              type="BodySemibold"
-              containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-              users={participants.map(p => ({username: p})).toArray()}
-              title={participants.join(', ')}
-            />
-          </Box>
-        </Box>
-        <Text type="BodySmall" style={{...boldOverride, color: subColor, lineHeight: 18}}>{timestamp}</Text>
-        {hasUnread && <Box style={unreadDotStyle} />}
-      </Box>
-    )
-  }
-}
-
-class BottomLine
-  extends PureComponent<
-    void,
-    {
-      backgroundColor: ?string,
-      participantNeedToRekey: boolean,
-      showBold: boolean,
-      snippet: ?string,
-      subColor: ?string,
-      youNeedToRekey: boolean,
-    },
-    void
-  > {
-  render() {
-    const {participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet, backgroundColor} = this.props
-    let content
-
-    if (youNeedToRekey) {
-      content = (
-        <Box
-          style={{
-            alignSelf: 'center',
-            backgroundColor: globalColors.red,
-            borderRadius: 2,
-            paddingLeft: globalMargins.xtiny,
-            paddingRight: globalMargins.xtiny,
-          }}
-        >
-          <Text
-            type="BodySmallSemibold"
-            backgroundMode="Terminal"
-            style={{
-              color: globalColors.white,
-              fontSize: 11,
-              lineHeight: 14,
-            }}
-          >
-            REKEY NEEDED
-          </Text>
-        </Box>
-      )
-    } else if (participantNeedToRekey) {
-      content = (
-        <Text type="BodySmall" backgroundMode="Terminal" style={{color: subColor}}>
-          Waiting for participants to rekey
-        </Text>
-      )
-    } else if (snippet) {
-      const baseStyle = styles['bottomLine']
-
-      let style
-      if (subColor !== globalColors.black_40 || showBold) {
-        style = [
-          {
-            color: subColor,
-            ...(showBold ? globalStyles.fontBold : {}),
-          },
-          baseStyle,
-        ]
-      } else {
-        style = baseStyle
-      }
-
-      content = (
-        <Markdown preview={true} style={style}>
-          {snippet}
-        </Markdown>
-      )
-    } else {
-      return null
-    }
-
-    return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          backgroundColor,
-          flexGrow: 1,
-          maxHeight: 16,
-          minHeight: 16,
-          position: 'relative',
-        }}
-      >
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'flex-start',
-            bottom: 0,
-            justifyContent: 'flex-start',
-            left: 0,
-            position: 'absolute',
-            right: 0,
-            top: 0,
-          }}
-        >
-          {content}
-        </Box>
-      </Box>
-    )
-  }
-}
-
-class _Row extends PureComponent<void, RowProps, void> {
-  render() {
-    const props = this.props
-    return (
-      <ClickableBox
-        onClick={() => props.onSelectConversation(props.conversationIDKey)}
-        style={{backgroundColor: props.backgroundColor}}
-      >
-        <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          <Avatars
-            backgroundColor={props.backgroundColor}
-            isMuted={props.isMuted}
-            isSelected={props.isSelected}
-            participantNeedToRekey={props.participantNeedToRekey}
-            participants={props.participants}
-            youNeedToRekey={props.youNeedToRekey}
-          />
-          <Box
-            style={{
-              ...conversationRowStyle,
-              backgroundColor: props.backgroundColor,
-            }}
-          >
-            <TopLine
-              hasUnread={props.hasUnread}
-              participants={props.participants}
-              showBold={props.showBold}
-              subColor={props.subColor}
-              timestamp={props.timestamp}
-              usernameColor={props.usernameColor}
-            />
-            <BottomLine
-              backgroundColor={props.backgroundColor}
-              participantNeedToRekey={props.participantNeedToRekey}
-              showBold={props.showBold}
-              snippet={props.snippet}
-              subColor={props.subColor}
-              youNeedToRekey={props.youNeedToRekey}
-            />
-          </Box>
-        </Box>
-      </ClickableBox>
-    )
-  }
-}
-
-const Row = RowConnector(_Row)
+import type {Props} from './'
 
 const NoChats = () => (
   <Box
@@ -363,37 +26,114 @@ const NoChats = () => (
   </Box>
 )
 
-class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
-  state = {rows: []}
+type State = {
+  showFloating: boolean,
+}
 
-  _renderItem = ({item, index}) => {
-    return index
-      ? <Row conversationIDKey={item} key={item} isActiveRoute={this.props.isActiveRoute} />
-      : <AddNewRow onNewChat={this.props.onNewChat} isLoading={this.props.isLoading} />
+class Inbox extends React.PureComponent<Props, State> {
+  _list: any
+
+  state = {
+    showFloating: false,
   }
 
-  _keyExtractor = (item, index) => item
+  _renderItem = ({item, index}) => {
+    const row = item
+    if (row.type === 'divider') {
+      return (
+        <Divider
+          isExpanded={this.props.smallTeamsExpanded}
+          isBadged={row.isBadged}
+          toggle={this.props.toggleSmallTeamsExpanded}
+        />
+      )
+    }
 
-  _setupDataSource = props => {
-    this.setState({rows: [{}].concat(props.rows.toArray())})
+    if (row.type === 'bigTeamsLabel') {
+      return (
+        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
+          <BigTeamsLabel isFiltered={row.isFiltered} />
+        </Box>
+      )
+    }
+
+    return (
+      <Row
+        conversationIDKey={item.conversationIDKey}
+        filtered={!!this.props.filter}
+        isActiveRoute={this.props.isActiveRoute}
+        teamname={item.teamname}
+        channelname={item.channelname}
+        type={row.type}
+      />
+    )
+  }
+
+  _keyExtractor = (item, index) => {
+    const row = item
+
+    if (row.type === 'divider' || row.type === 'bigTeamsLabel') {
+      return row.type
+    }
+
+    return (
+      (row.type === 'small' && row.conversationIDKey) ||
+      (row.type === 'bigHeader' && row.teamname) ||
+      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
+      'missingkey'
+    )
   }
 
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.rows !== nextProps.rows) {
-      this._setupDataSource(nextProps)
-
       if (nextProps.rows.count()) {
-        const conversationIDKey = nextProps.rows.get(0)
-        this.props.onUntrustedInboxVisible(conversationIDKey, 20)
+        const row = nextProps.rows.get(0)
+        if (row.type === 'small' && row.conversationIDKey) {
+          this.props.onUntrustedInboxVisible(row.conversationIDKey, 20)
+        }
       }
+    }
+
+    if (this.props.smallTeamsExpanded !== nextProps.smallTeamsExpanded && !nextProps.smallTeamsExpanded) {
+      this._list && this._list.scrollToOffset({animated: true, offset: 0})
     }
   }
 
-  _askForUnboxing = (id: any, count: number) => {
-    this.props.onUntrustedInboxVisible(id, count)
+  _askForUnboxing = (row: any, count: number) => {
+    const {conversationIDKey} = row
+    if (conversationIDKey) {
+      this.props.onUntrustedInboxVisible(conversationIDKey, count)
+    }
   }
 
-  _onViewChanged = debounce(data => {
+  _onViewChanged = data => {
+    this._onScrollUnbox(data)
+    this._updateShowFloating(data)
+  }
+
+  _updateShowFloating = data => {
+    if (!data) {
+      return
+    }
+
+    let showFloating = true
+    const {viewableItems} = data
+    const item = viewableItems && viewableItems[viewableItems.length - 1]
+    if (!item) {
+      return
+    }
+    const row = item.item
+
+    if (!row || row.type !== 'small') {
+      showFloating = false
+    }
+
+    if (this.state.showFloating !== showFloating) {
+      this.setState({showFloating})
+    }
+  }
+
+  _onScrollUnbox = debounce(data => {
     if (!data) {
       return
     }
@@ -405,7 +145,6 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
   }, 1000)
 
   componentDidMount() {
-    this._setupDataSource(this.props)
     if (this.props.rows.count()) {
       this._askForUnboxing(this.props.rows.first(), 30)
     }
@@ -413,21 +152,45 @@ class Inbox extends PureComponent<void, Props, {rows: Array<any>}> {
 
   _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
 
+  _setRef = r => {
+    this._list = r
+  }
+
+  // TODO maybe we can put getItemLayout back if we do a bunch of pre-calc. The offset could be figured out based on index if we're very careful
   render() {
     return (
       <Box style={boxStyle}>
         <NativeFlatList
+          ListHeaderComponent={
+            <ChatFilterRow
+              isLoading={this.props.isLoading}
+              filter={this.props.filter}
+              onNewChat={this.props.onNewChat}
+              onSetFilter={this.props.onSetFilter}
+            />
+          }
           loading={this.props.isLoading /* force loading to update */}
-          data={this.state.rows}
+          data={this.props.rows.toArray()}
           isActiveRoute={this.props.isActiveRoute}
           keyExtractor={this._keyExtractor}
           renderItem={this._renderItem}
+          ref={this._setRef}
           onViewableItemsChanged={this._onViewChanged}
-          getItemLayout={(data, index) => ({length: 64, offset: 64 * index, index})}
           initialNumToRender={this._maxVisible}
           windowSize={this._maxVisible}
         />
         {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
+        {this.state.showFloating &&
+          this.props.showSmallTeamsExpandDivider &&
+          <FloatingDivider
+            toggle={this.props.toggleSmallTeamsExpanded}
+            badgeCount={this.props.bigTeamsBadgeCount}
+          />}
+        {/*
+            // TODO when the teams tab exists
+            this.props.showBuildATeam &&
+              <BuildATeam />
+              */}
       </Box>
     )
   }
@@ -440,44 +203,11 @@ const boxStyle = {
   position: 'relative',
 }
 
-const unreadDotStyle = {
-  backgroundColor: globalColors.orange,
-  borderRadius: 3,
-  height: 6,
-  marginLeft: 4,
-  width: 6,
-}
-
-const avatarMutedIconStyle = {
-  bottom: 0,
-  position: 'absolute',
-  right: 0,
-  zIndex: 1,
-}
-
-const avatarLockIconStyle = {
-  bottom: 0,
-  position: 'absolute',
-  right: 0,
-  zIndex: 1,
-}
-
-const conversationRowStyle = {
-  ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
-  justifyContent: 'center',
-  maxHeight: 64,
-  minHeight: 64,
-  paddingRight: 8,
-}
-
-const rowContainerStyle = {
+const _bigTeamLabelStyle = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
   alignItems: 'center',
-  flexGrow: 1,
-  maxHeight: 64,
-  minHeight: 64,
+  height: 32,
+  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

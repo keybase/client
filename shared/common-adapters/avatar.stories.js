@@ -1,6 +1,6 @@
 // @flow
 import Avatar from './avatar'
-import React from 'react'
+import * as React from 'react'
 import Text from './text'
 import Box from './box'
 import {globalStyles} from '../styles'
@@ -28,6 +28,7 @@ const load = () => {
             <Avatar {...commonProps} following={true} />
             <Avatar {...commonProps} followsYou={true} />
             <Avatar {...commonProps} following={true} followsYou={true} />
+            <Avatar {...commonProps} username={undefined} teamname={'keybase'} />
           </Box>
         </Box>
       )

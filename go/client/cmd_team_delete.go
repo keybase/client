@@ -18,7 +18,7 @@ func newCmdTeamDelete(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 	return cli.Command{
 		Name:         "delete",
 		ArgumentHelp: "<team name>",
-		Usage:        "delete a team",
+		Usage:        "Delete a team.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamDeleteRunner(g)
 			cl.ChooseCommand(cmd, "delete", c)

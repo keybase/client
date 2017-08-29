@@ -66,6 +66,8 @@ const (
 	StatusCode_SCDevicePrevProvisioned    StatusCode = 1413
 	StatusCode_SCDeviceNoProvision        StatusCode = 1414
 	StatusCode_SCDeviceProvisionViaDevice StatusCode = 1415
+	StatusCode_SCRevokeCurrentDevice      StatusCode = 1416
+	StatusCode_SCRevokeLastDevice         StatusCode = 1417
 	StatusCode_SCStreamExists             StatusCode = 1501
 	StatusCode_SCStreamNotFound           StatusCode = 1502
 	StatusCode_SCStreamWrongKind          StatusCode = 1503
@@ -85,6 +87,8 @@ const (
 	StatusCode_SCInvalidLocationError     StatusCode = 1802
 	StatusCode_SCServiceStatusError       StatusCode = 1803
 	StatusCode_SCInstallError             StatusCode = 1804
+	StatusCode_SCLoadKextError            StatusCode = 1810
+	StatusCode_SCLoadKextPermError        StatusCode = 1811
 	StatusCode_SCLoginStateTimeout        StatusCode = 2400
 	StatusCode_SCChatInternal             StatusCode = 2500
 	StatusCode_SCChatRateLimit            StatusCode = 2501
@@ -173,6 +177,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCDevicePrevProvisioned":    1413,
 	"SCDeviceNoProvision":        1414,
 	"SCDeviceProvisionViaDevice": 1415,
+	"SCRevokeCurrentDevice":      1416,
+	"SCRevokeLastDevice":         1417,
 	"SCStreamExists":             1501,
 	"SCStreamNotFound":           1502,
 	"SCStreamWrongKind":          1503,
@@ -192,6 +198,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCInvalidLocationError":     1802,
 	"SCServiceStatusError":       1803,
 	"SCInstallError":             1804,
+	"SCLoadKextError":            1810,
+	"SCLoadKextPermError":        1811,
 	"SCLoginStateTimeout":        2400,
 	"SCChatInternal":             2500,
 	"SCChatRateLimit":            2501,
@@ -278,6 +286,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1413: "SCDevicePrevProvisioned",
 	1414: "SCDeviceNoProvision",
 	1415: "SCDeviceProvisionViaDevice",
+	1416: "SCRevokeCurrentDevice",
+	1417: "SCRevokeLastDevice",
 	1501: "SCStreamExists",
 	1502: "SCStreamNotFound",
 	1503: "SCStreamWrongKind",
@@ -297,6 +307,8 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1802: "SCInvalidLocationError",
 	1803: "SCServiceStatusError",
 	1804: "SCInstallError",
+	1810: "SCLoadKextError",
+	1811: "SCLoadKextPermError",
 	2400: "SCLoginStateTimeout",
 	2500: "SCChatInternal",
 	2501: "SCChatRateLimit",

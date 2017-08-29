@@ -1,38 +1,50 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../constants/chat'
 
-export type RowProps = {
-  backgroundColor: string,
-  conversationIDKey: ConversationIDKey,
-  hasUnread: boolean,
-  isMuted: boolean,
-  isSelected: boolean,
-  onSelectConversation: (key: ConversationIDKey) => void,
-  marginRight: number,
-  participantNeedToRekey: boolean,
-  participants: List<string>,
-  rekeyInfo: any,
-  showBold: boolean,
-  snippet: string,
-  subColor: string,
-  timestamp: string,
-  unreadCount: number,
-  usernameColor: string,
-  youNeedToRekey: boolean,
-}
+export type RowItem =
+  | {
+      type: 'small',
+      conversationIDKey: ConversationIDKey,
+    }
+  | {
+      type: 'bigTeamsLabel',
+      isFiltered: boolean,
+    }
+  | {
+      type: 'bigHeader',
+      teamname: string,
+    }
+  | {
+      type: 'big',
+      conversationIDKey: ?ConversationIDKey,
+      teamname: string,
+      channelname: ?string,
+    }
+  | {
+      type: 'divider',
+      isBadged: boolean,
+    }
 
 export type Props = {
-  isLoading: boolean,
-  isActiveRoute: boolean,
-  nowOverride?: number, // just for dumb rendering
-  rows: List<ConversationIDKey>,
-  onNewChat: () => void,
-  loadInbox: () => void,
+  bigTeamsBadgeCount: number,
   children?: React$Element<*>,
+  filter: string,
+  isActiveRoute: boolean,
+  isLoading: boolean,
+  loadInbox: () => void,
+  nowOverride?: number, // just for dumb rendering
+  onNewChat: () => void,
+  onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
+  rows: List<RowItem>,
+  showBuildATeam: boolean,
+  showNewConversation: boolean,
+  showSmallTeamsExpandDivider: boolean,
+  smallTeamsExpanded: boolean,
+  toggleSmallTeamsExpanded: () => void,
 }
 
-export default class Inbox extends Component<void, Props, void> {}
+export default class Inbox extends React.Component<Props> {}

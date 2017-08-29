@@ -10,14 +10,11 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-updater/process"
 )
 
 // Log is the logging interface for this package
@@ -62,12 +59,14 @@ const (
 	ComponentNameHelper ComponentName = "helper"
 	// ComponentNameMountDir is the mount directory
 	ComponentNameMountDir ComponentName = "mountdir"
+	// ComponentNameCLIPaths is for /etc/paths.d/Keybase
+	ComponentNameCLIPaths ComponentName = "clipaths"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
 
 // ComponentNames are all the valid component names
-var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM}
+var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM, ComponentNameCLIPaths}
 
 // String returns string for ComponentName
 func (c ComponentName) String() string {
@@ -93,6 +92,8 @@ func (c ComponentName) Description() string {
 		return "Privileged Helper Tool"
 	case ComponentNameKBNM:
 		return "Browser Native Messaging"
+	case ComponentNameCLIPaths:
+		return "Command Line (privileged)"
 	}
 	return "Unknown"
 }
@@ -116,6 +117,8 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameFuse
 	case string(ComponentNameHelper):
 		return ComponentNameHelper
+	case string(ComponentNameCLIPaths):
+		return ComponentNameCLIPaths
 	}
 	return ComponentNameUnknown
 }
@@ -272,16 +275,4 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(filepath.Dir(path), kbfsBinName()), nil
-}
-
-// TerminateApp will stop the Keybase (UI) app
-func TerminateApp(context Context, log Log) error {
-	appExecName := "Keybase"
-	logf := logger.NewLoggerf(log)
-	log.Info("Stopping Keybase app")
-	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
-	if len(appPIDs) > 0 {
-		log.Info("Terminated %s %v", appExecName, appPIDs)
-	}
-	return nil
 }

@@ -28,6 +28,9 @@
     }
     [installables addObject:environment.fuse];
   }
+  if (options.uninstallOptions & UninstallOptionCLI) {
+    [installables addObject:environment.cli];
+  }
   if (options.uninstallOptions & UninstallOptionHelper) {
     [installables addObject:environment.helperTool];
   }

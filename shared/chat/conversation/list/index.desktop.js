@@ -3,7 +3,7 @@
 import * as Constants from '../../../constants/chat'
 import * as Virtualized from 'react-virtualized'
 import EditPopup from '../edit-popup.desktop'
-import React, {Component} from 'react'
+import * as React from 'react'
 import ReactDOM from 'react-dom'
 import messageFactory from '../messages'
 import {Icon} from '../../../common-adapters'
@@ -24,7 +24,7 @@ type State = {
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
 
-class BaseList extends Component<void, Props, State> {
+class BaseList extends React.Component<Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
     keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
@@ -40,10 +40,10 @@ class BaseList extends Component<void, Props, State> {
     selectedMessageKey: null,
   }
 
-  _onAction = (message: Constants.ServerMessage, event: any) => {
+  _onAction = () => {
     throw new Error('_onAction Implemented in PopupEnabledList')
   }
-  _onShowEditor = (message: Constants.Message, event: any) => {
+  _onShowEditor = () => {
     throw new Error('_onShowEditor Implemented in PopupEnabledList')
   }
   _onEditLastMessage = () => {
@@ -272,6 +272,7 @@ class PopupEnabledList extends BaseList {
 
       const listNode = ReactDOM.findDOMNode(this._list)
       if (listNode) {
+        // $FlowIssue
         const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
         if (messageNodes) {
           const messageNode = messageNodes[0]
@@ -288,7 +289,7 @@ class PopupEnabledList extends BaseList {
     localMessageState: Constants.LocalMessageState,
     style: Object,
     messageRect: any
-  ): ?React$Element<any> {
+  ): ?React.Node {
     switch (message.type) {
       case 'Text':
         return (
@@ -360,11 +361,12 @@ class PopupEnabledList extends BaseList {
   _showPopup(
     message: Constants.TextMessage | Constants.AttachmentMessage,
     localMessageState: Constants.LocalMessageState,
-    event: any
+    event: SyntheticEvent<>
   ) {
-    const clientRect = event.target.getBoundingClientRect()
+    const target = (event.target: any)
+    const clientRect = target.getBoundingClientRect()
 
-    const messageNode = this._findMessageFromDOMNode(event.target)
+    const messageNode = this._findMessageFromDOMNode(target)
     const messageRect = messageNode && this._domNodeToRect(messageNode)
     // Position next to button (client rect)
     // TODO: Measure instead of pixel math
@@ -384,20 +386,21 @@ class PopupEnabledList extends BaseList {
 
     const container = document.getElementById('popupContainer')
     // FIXME: this is the right way to render portals retaining context for now, though it will change in the future.
+    // $FlowIssue
     ReactDOM.unstable_renderSubtreeIntoContainer(this, popupComponent, container)
   }
 
   _onAction = (
     message: Constants.ServerMessage,
     localMessageState: Constants.LocalMessageState,
-    event: any
+    event: SyntheticEvent<>
   ) => {
     if (message.type === 'Text' || message.type === 'Attachment') {
       this._showPopup(message, localMessageState, event)
     }
   }
 
-  _onShowEditor = (message: Constants.Message, event: any) => {
+  _onShowEditor = (message: Constants.Message, event: SyntheticEvent<>) => {
     if (message.type === 'Text') {
       const messageNode = this._findMessageFromDOMNode(event.target)
       const messageRect = messageNode && this._domNodeToRect(messageNode)

@@ -35,7 +35,7 @@ function startTimer(): TrackerActionCreator {
           clearInterval(intervalId)
         }
 
-        RPCTypes.trackCheckTrackingRpc({})
+        RPCTypes.trackCheckTrackingRpcPromise()
       }, Constants.rpcUpdateTimerSeconds)
     }
   }
@@ -114,7 +114,7 @@ function triggerIdentify(
   return (dispatch, getState) =>
     new Promise((resolve, reject) => {
       dispatch({type: Constants.identifyStarted, payload: null})
-      RPCTypes.identifyIdentify2Rpc({
+      RPCTypes.identifyIdentify2RpcPromise({
         param: {
           uid,
           userAssertion,
@@ -132,34 +132,31 @@ function triggerIdentify(
           allowEmptySelfID: true,
           noSkipSelf: true,
         },
-        incomingCallMap: {},
-        callback: (error, response) => {
-          if (error) {
-            dispatch({
-              type: Constants.identifyFinished,
-              error: true,
-              payload: {username: uid || userAssertion, error: error.desc},
-            })
-          }
+      })
+        .then(response => {
           dispatch({type: Constants.identifyFinished, payload: {username: uid || userAssertion}})
           resolve()
-        },
-      })
+        })
+        .catch(error => {
+          dispatch({
+            type: Constants.identifyFinished,
+            error: true,
+            payload: {username: uid || userAssertion, error: error.desc},
+          })
+        })
     })
 }
 
 function registerIdentifyUi(): TrackerActionCreator {
   return (dispatch, getState) => {
     engine().listenOnConnect('registerIdentifyUi', () => {
-      RPCTypes.delegateUiCtlRegisterIdentifyUIRpc({
-        callback: (error, response) => {
-          if (error != null) {
-            console.warn('error in registering identify ui: ', error)
-          } else {
-            console.log('Registered identify ui')
-          }
-        },
-      })
+      RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise({})
+        .then(response => {
+          console.log('Registered identify ui')
+        })
+        .catch(error => {
+          console.warn('error in registering identify ui: ', error)
+        })
     })
 
     const cancelHandler: CancelHandlerType = session => {
@@ -248,21 +245,21 @@ function onUnfollow(username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     dispatch(_onWaiting(username, true))
 
-    RPCTypes.trackUntrackRpc({
+    RPCTypes.trackUntrackRpcPromise({
       param: {username},
-      callback: (err, response) => {
-        dispatch(_onWaiting(username, false))
-        if (err) {
-          console.log('err untracking', err)
-        } else {
-          dispatch({
-            type: Constants.reportLastTrack,
-            payload: {username},
-          })
-          console.log('success in untracking')
-        }
-      },
     })
+      .then(response => {
+        dispatch(_onWaiting(username, false))
+        dispatch({
+          type: Constants.reportLastTrack,
+          payload: {username},
+        })
+        console.log('success in untracking')
+      })
+      .catch(err => {
+        dispatch(_onWaiting(username, false))
+        console.log('err untracking', err)
+      })
 
     dispatch({
       type: Constants.onUnfollow,
@@ -282,18 +279,17 @@ function _trackUser(trackToken: ?string, localIgnore: boolean): Promise<boolean>
 
   return new Promise((resolve, reject) => {
     if (trackToken != null) {
-      RPCTypes.trackTrackWithTokenRpc({
+      RPCTypes.trackTrackWithTokenRpcPromise({
         param: {trackToken, options},
-        callback: (err, response) => {
-          if (err) {
-            console.log('error: Track with token: ', err)
-            reject(err)
-          }
-
+      })
+        .then(response => {
           console.log('Finished tracking', response)
           resolve(true)
-        },
-      })
+        })
+        .catch(err => {
+          console.log('error: Track with token: ', err)
+          reject(err)
+        })
     } else {
       resolve(false)
     }
@@ -351,13 +347,8 @@ function onFollow(
 }
 
 function _dismissWithToken(trackToken) {
-  RPCTypes.trackDismissWithTokenRpc({
-    param: {trackToken},
-    callback: err => {
-      if (err) {
-        console.log('err dismissWithToken', err)
-      }
-    },
+  RPCTypes.trackDismissWithTokenRpcPromise({param: {trackToken}}).catch(err => {
+    console.log('err dismissWithToken', err)
   })
 }
 
@@ -779,24 +770,23 @@ function _listTrackersOrTracking(
   listTrackers: boolean
 ): Promise<Array<FriendshipUserInfo>> {
   return new Promise((resolve, reject) => {
-    RPCTypes.userListTrackers2Rpc({
+    RPCTypes.userListTrackers2RpcPromise({
       param: {
         assertion: username,
         reverse: !listTrackers,
       },
-      callback: (error, response) => {
-        if (error) {
-          console.log('err getting trackers', error)
-          reject(error)
-        } else {
-          if (response.users) {
-            resolve(response.users.map(_parseFriendship))
-          } else {
-            reject(new Error('invalid tracker result'))
-          }
-        }
-      },
     })
+      .then(response => {
+        if (response.users) {
+          resolve(response.users.map(_parseFriendship))
+        } else {
+          reject(new Error('invalid tracker result'))
+        }
+      })
+      .catch(error => {
+        console.log('err getting trackers', error)
+        reject(error)
+      })
   })
 }
 

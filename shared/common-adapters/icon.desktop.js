@@ -2,11 +2,10 @@
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, glamorous} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import Box from './box'
-import glamorous from 'glamorous'
 
 import type {Exact} from '../constants/types/more'
 import type {Props, IconType} from './icon'
@@ -22,7 +21,7 @@ const StyledSpan = glamorous.span(props => ({
     : null),
 }))
 
-class Icon extends Component<void, Exact<Props>, void> {
+class Icon extends Component<Exact<Props>, void> {
   shouldComponentUpdate(nextProps: Exact<Props>, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
@@ -107,6 +106,7 @@ class Icon extends Component<void, Exact<Props>, void> {
       return (
         <img
           className={this.props.className}
+          draggable="false"
           title={this.props.hint}
           style={{
             ...globalStyles.noSelect,

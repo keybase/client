@@ -7,7 +7,7 @@ import debounce from 'lodash/debounce'
 const debounceTimeout = 1e3
 
 type OwnProps = {
-  onChangeSearchText: (s: string) => void,
+  onChangeSearchText: ?(s: string) => void,
   search: (term: string, service: Constants.Service) => void,
   selectedService: Constants.Service,
   searchResultIds: Array<Constants.SearchResultId>,
@@ -60,10 +60,9 @@ const onChangeSelectedSearchResultHoc = compose(
     ) => {
       const index = selectedSearchId ? searchResultIds.indexOf(selectedSearchId) : -1
 
-      const nextIndex =
-        index === -1
-          ? 0
-          : direction === 'down' ? Math.min(index + 1, searchResultIds.length - 1) : Math.max(index - 1, 0)
+      const nextIndex = index === -1
+        ? 0
+        : direction === 'down' ? Math.min(index + 1, searchResultIds.length - 1) : Math.max(index - 1, 0)
       const nextSelectedSearchId = searchResultIds[nextIndex]
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
@@ -81,14 +80,14 @@ const onChangeSelectedSearchResultHoc = compose(
         // See whether the current search result term matches the last one submitted
         if (lastSearchTerm === props.searchResultTerm) {
           props.selectedSearchId && props.onAddUser(props.selectedSearchId)
-          props.onChangeSearchText('')
+          props.onChangeSearchText && props.onChangeSearchText('')
         }
       },
       onMoveSelectUp: ({onMove}) => () => onMove('up'),
       onMoveSelectDown: ({onMove}) => () => onMove('down'),
       onChangeText: (props: OwnPropsWithSearchDebounced) => nextText => {
         lastSearchTerm = nextText
-        props.onChangeSearchText(nextText)
+        props.onChangeSearchText && props.onChangeSearchText(nextText)
         if (nextText === '') {
           // In case we have a search that would fire after our other search
           props._searchDebounced.cancel()

@@ -30,7 +30,7 @@ function customError(error: string, code: ?number) {
   return <Text style={styleErrorBannerText} type="BodySemibold">{error}</Text>
 }
 
-class PrivateEnterUsernameRender extends Component<void, Props, State> {
+class PrivateEnterUsernameRender extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {

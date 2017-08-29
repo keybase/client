@@ -1,22 +1,112 @@
 @namespace("chat.1")
 
 protocol chatUi {
-  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID); 
-  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway; 
-  void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;     
-  void chatAttachmentUploadDone(int sessionID); 
 
-  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;  
-  void chatAttachmentPreviewUploadDone(int sessionID);  
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
-  void chatAttachmentDownloadStart(int sessionID); 
-  void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;     
-  void chatAttachmentDownloadDone(int sessionID);  
+  record UIPagination {
+    string next;
+    string previous;
+    int num;
+    boolean last;
+  }
 
-  void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
-  void chatInboxConversation(int sessionID, ConversationLocal conv);
+  record UnverifiedInboxUIItem {
+    string convID;
+    string name;
+    TLFVisibility visibility;
+    ConversationStatus status;
+    ConversationMembersType membersType;
+    union{ null, ConversationNotificationInfo } notifications;
+    gregor1.Time time;
+  }
+
+  record UnverifiedInboxUIItems {
+    array<UnverifiedInboxUIItem> items;
+    union { null, UIPagination } pagination;
+    boolean offline;
+  }
+
+  record InboxUIItem {
+    string convID;
+    boolean isEmpty;
+    string name;
+    string snippet;
+    string channel;
+    TLFVisibility visibility;
+    array<string> participants;
+    ConversationStatus status;
+    ConversationMembersType membersType;
+    union{ null, ConversationNotificationInfo } notifications;
+    gregor1.Time time;
+
+    // Finalized convo stuff
+    union{ null, ConversationFinalizeInfo } finalizeInfo;
+    array<ConversationMetadata> supersedes;
+    array<ConversationMetadata> supersededBy;
+  }
+
+  record InboxUIItems {
+    array<InboxUIItem> items;
+    union { null, UIPagination } pagination;
+    boolean offline;
+  }
+
+  record UIMessageValid {
+    MessageID messageID;
+    gregor1.Time ctime;
+    union { null, string } outboxID;
+    MessageBody messageBody;
+    string senderUsername;
+    string senderDeviceName;
+    string senderDeviceType;
+    boolean superseded;
+    union {null, gregor1.Time} senderDeviceRevokedAt;
+  }
+
+  record UIMessageOutbox {
+    OutboxState state;
+    string outboxID;
+    MessageType messageType;
+    string body;
+    gregor1.Time ctime;
+  }
+
+  enum MessageUnboxedState {
+    VALID_1,
+    ERROR_2,
+    OUTBOX_3,
+    PLACEHOLDER_4
+  }
+
+  variant UIMessage switch (MessageUnboxedState state) {
+    case VALID: UIMessageValid;
+    case ERROR: MessageUnboxedError;
+    case OUTBOX: UIMessageOutbox;
+    case PLACEHOLDER: MessageUnboxedPlaceholder;
+  }
+
+  record UIMessages {
+    array<UIMessage> messages;
+    union { null, UIPagination } pagination;
+  }
+
+  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);
+  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway;
+  void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
+  void chatAttachmentUploadDone(int sessionID);
+
+  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;
+  void chatAttachmentPreviewUploadDone(int sessionID);
+
+  void chatAttachmentDownloadStart(int sessionID);
+  void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
+  void chatAttachmentDownloadDone(int sessionID);
+
+  void chatInboxUnverified(int sessionID, string inbox);
+  void chatInboxConversation(int sessionID, InboxUIItem conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 
-  void chatThreadCached(int sessionID, union { null, ThreadView } thread) oneway;
-  void chatThreadFull(int sessionID, ThreadView thread) oneway;
+  void chatThreadCached(int sessionID, union { null, string } thread) oneway;
+  void chatThreadFull(int sessionID, string thread) oneway;
 }

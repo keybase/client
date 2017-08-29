@@ -13,7 +13,7 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 import type {Props} from '.'
 
-class LoginRender extends Component<void, Props, void> {
+class LoginRender extends Component<Props> {
   render() {
     const inputProps = {
       hintText: 'Passphrase',

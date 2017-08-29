@@ -1,6 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies, import/no-unresolved, import/extensions */
 // @flow
-import React from 'react'
+import * as React from 'react'
 import ScrollView from '../common-adapters/scroll-view'
 import {StatusBar} from 'react-native'
 import {configure, addDecorator} from '@storybook/react-native'
@@ -16,7 +16,7 @@ const scrollViewDecorator = story => [
 // Load common-adapter stories
 const load = () => {
   configure(() => {
-    stories.chat()
+    stories.chatList()
     // If you want a scroll view, but the load fn after this decorator. Otherewise before
     addDecorator(scrollViewDecorator)
     Object.keys(stories).filter(s => s !== 'chat').forEach(s => stories[s]())

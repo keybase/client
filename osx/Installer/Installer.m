@@ -21,6 +21,8 @@ typedef NS_ENUM (NSInteger, KBExit) {
   KBExitOK = 0,
   KBExitIgnoreError = 0,
   KBExitError = 1,
+  KBExitFuseKextError = 4,
+  KBExitFuseKextPermissionError = 5,
 };
 
 @implementation Installer
@@ -132,31 +134,17 @@ typedef NS_ENUM (NSInteger, KBExit) {
     return;
   }
 
-  // Helper auth canceled, denied or not allowed
-  if ([error.domain isEqualToString:@"keybase.Helper"] &&
-      (error.code == errAuthorizationCanceled || error.code == errAuthorizationDenied || error.code == errAuthorizationInteractionNotAllowed)) {
-    NSString *title = @"Keybase: Installation Required";
-    NSString *message = [NSString stringWithFormat:@"We were unable to install a helper tool needed for Keybase to work properly (%@).", @(error.code)];
-    [self showQuitDialogWithTitle:title message:message error:error environment:environment completion:completion];
-  } else {
-    [self showErrorDialog:error environment:environment completion:completion];
+  if (error.code == KBErrorCodeFuseKextPermission) {
+    completion(nil, KBExitFuseKextPermissionError);
+    return;
   }
-}
 
-- (void)showQuitDialogWithTitle:(NSString *)title message:(NSString *)message error:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
-  NSAlert *alert = [[NSAlert alloc] init];
-  [alert setMessageText:title];
-  [alert setInformativeText:message];
-  [alert addButtonWithTitle:@"Quit"];
-
-  [alert setAlertStyle:NSWarningAlertStyle];
-  NSModalResponse response = [alert runModal];
-  if (response == NSAlertFirstButtonReturn) {
-    completion(error, KBExitError);
-  } else {
-    DDLogError(@"Unknown error dialog return button");
-    completion(error, KBExitError);
+  if (error.code == KBErrorCodeFuseKext) {
+    completion(nil, KBExitFuseKextError);
+    return;
   }
+
+  completion(nil, KBExitError);
 }
 
 - (void)showErrorDialog:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
@@ -169,8 +157,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   }
 
   [alert setInformativeText:info];
-  [alert addButtonWithTitle:@"Quit"];
-  [alert addButtonWithTitle:@"Ignore"];
+  [alert addButtonWithTitle:@"OK"];
 
   NSURL *URL = error.userInfo[NSURLErrorKey];
   if (URL) {
@@ -182,10 +169,8 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [alert setAlertStyle:NSWarningAlertStyle];
   NSModalResponse response = [alert runModal];
   if (response == NSAlertFirstButtonReturn) {
-    completion(error, KBExitError);
-  } else if (response == NSAlertSecondButtonReturn) {
     completion(error, KBExitIgnoreError);
-  } else if (response == NSAlertThirdButtonReturn) {
+  } else if (response == NSAlertSecondButtonReturn) {
     if (URL) {
       [[NSWorkspace sharedWorkspace] openURL:URL];
     } else {
@@ -193,7 +178,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
     }
   } else {
     DDLogError(@"Unknown error dialog return button");
-    completion(error, KBExitError);
+    completion(error, KBExitIgnoreError);
   }
 }
 
@@ -201,8 +186,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:@"Keybase Error"];
   [alert setInformativeText:error.localizedDescription];
-  [alert addButtonWithTitle:@"Quit"];
-  [alert addButtonWithTitle:@"Ignore"];
+  [alert addButtonWithTitle:@"OK"];
 
   KBTextView *textView = [[KBTextView alloc] init];
   textView.editable = NO;
@@ -218,13 +202,9 @@ typedef NS_ENUM (NSInteger, KBExit) {
   textView.frame = CGRectMake(0, 0, 500, 200);
   textView.borderType = NSBezelBorder;
   alert.accessoryView = textView;
+  [alert runModal];
 
-  NSModalResponse response = [alert runModal];
-  if (response == NSAlertFirstButtonReturn) {
-    completion(error, KBExitError);
-  } else if (response == NSAlertSecondButtonReturn) {
-    completion(error, KBExitIgnoreError);
-  }
+  completion(error, KBExitIgnoreError);
 }
 
 @end

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Text, Icon, MultiAvatar, Meta, ClickableBox} from '../common-adapters/index.native'
@@ -23,21 +23,14 @@ const Avatars = ({styles, users, ignored, isPublic}) => {
     <Box
       style={{
         ...globalStyles.flexBoxRow,
-        alignItems: 'flex-end',
+        alignItems: 'flex-start',
+        height: 56,
         justifyContent: 'flex-start',
-        maxWidth: 56,
-        minWidth: 56,
-        paddingLeft: globalMargins.xtiny,
+        padding: globalMargins.xtiny,
+        width: 56,
       }}
     >
-      <Box style={{position: 'relative'}}>
-        <MultiAvatar
-          singleSize={40}
-          multiSize={32}
-          avatarProps={avatarProps}
-          style={{alignSelf: 'center', opacity}}
-        />
-      </Box>
+      <MultiAvatar singleSize={40} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
     </Box>
   )
 }

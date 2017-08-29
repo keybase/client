@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Box, Text, HeaderHoc} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, NotificationType} from './standard-screen'

@@ -33,6 +33,8 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 	ret = keybase1.TeamPlusApplicationKeys{
 		Id:              t.chain().GetID(),
 		Name:            t.Name().String(),
+		Implicit:        t.chain().IsImplicit(),
+		Public:          t.IsPublic(),
 		Application:     application,
 		Writers:         writers,
 		OnlyReaders:     onlyReaders,

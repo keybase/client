@@ -8,6 +8,7 @@ import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import InfoPanel from './conversation/info-panel/container'
+import NewTeamDialog from './conversation/new-team/container'
 
 const conversationRoute = new RouteDefNode({
   component: Conversation,
@@ -43,6 +44,11 @@ const conversationRoute = new RouteDefNode({
     messageAction: {
       component: MessagePopup,
       tags: {keepKeyboardOnLeave: true, layerOnTop: true},
+    },
+    showNewTeamDialog: {
+      component: NewTeamDialog,
+      tags: {layerOnTop: true},
+      children: {},
     },
   },
 })

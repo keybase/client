@@ -63,7 +63,7 @@ func (g *gregorTestConnection) Connect(ctx context.Context) error {
 		TagsFunc:      logger.LogTagsFromContextRPC,
 		WrapErrorFunc: libkb.WrapError,
 	}
-	trans := rpc.NewConnectionTransport(uri, nil, libkb.WrapError)
+	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()), libkb.WrapError)
 	conn := rpc.NewConnectionWithTransport(g, trans, libkb.ErrorUnwrapper{}, g.G().Log, opts)
 	g.cli = conn.GetClient()
 	return nil
@@ -95,7 +95,8 @@ func (g *gregorTestConnection) OnConnect(ctx context.Context, conn *rpc.Connecti
 
 func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	if obm := m.ToOutOfBandMessage(); obm != nil {
-		return g.G().PushHandler.HandleOobm(ctx, obm)
+		_, err := g.G().PushHandler.HandleOobm(ctx, obm)
+		return err
 	}
 	return nil
 }
@@ -621,7 +622,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		select {
 		case ibox := <-inboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
-			require.Zero(t, len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
+			require.Zero(t, len(ibox.InboxRes.Items), "wrong size inbox")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox received")
 		}
@@ -671,7 +672,7 @@ func TestChatSrvGetInboxNonblock(t *testing.T) {
 		select {
 		case ibox := <-inboxCb:
 			require.NotNil(t, ibox.InboxRes, "nil inbox")
-			require.Equal(t, len(convs), len(ibox.InboxRes.ConversationsUnverified), "wrong size inbox")
+			require.Equal(t, len(convs), len(ibox.InboxRes.Items), "wrong size inbox")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox received")
 		}
@@ -1356,7 +1357,7 @@ type serverChatListener struct {
 	newMessage              chan chat1.IncomingMessage
 	threadsStale            chan []chat1.ConversationStaleUpdate
 	inboxStale              chan struct{}
-	joinedConv              chan chat1.ConversationLocal
+	joinedConv              chan chat1.InboxUIItem
 	leftConv                chan chat1.ConversationID
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
@@ -1404,7 +1405,7 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 }
 func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
-func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal) {
+func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem) {
 	n.joinedConv <- conv
 }
 func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
@@ -1416,7 +1417,7 @@ func newServerChatListener() *serverChatListener {
 		newMessage:              make(chan chat1.IncomingMessage, 100),
 		threadsStale:            make(chan []chat1.ConversationStaleUpdate, 100),
 		inboxStale:              make(chan struct{}, 100),
-		joinedConv:              make(chan chat1.ConversationLocal, 100),
+		joinedConv:              make(chan chat1.InboxUIItem, 100),
 		leftConv:                make(chan chat1.ConversationID, 100),
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
@@ -1440,7 +1441,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		t.Logf("send a text message")
 		arg := chat1.PostTextNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Body:             "hi",
@@ -1449,7 +1449,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		tc := ctc.as(t, users[0])
 		res, err := ctc.as(t, users[0]).chatLocalHandler().PostTextNonblock(tc.startCtx, arg)
 		require.NoError(t, err)
-		var unboxed chat1.MessageUnboxed
+		var unboxed chat1.UIMessage
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
 			// pass
@@ -1471,7 +1471,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
 				}
 				require.Equal(t, chat1.MessageType_JOIN, unboxed.GetMessageType(), "unexpected type")
-				require.Nil(t, unboxed.Valid().ClientHeader.OutboxID, "surprise outbox ID on JOIN")
+				require.Nil(t, unboxed.Valid().OutboxID, "surprise outbox ID on JOIN")
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
@@ -1482,8 +1482,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1494,7 +1494,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		require.NoError(t, err)
 		arg = chat1.PostTextNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Body:             "hi",
@@ -1507,9 +1506,9 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, genOutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, genOutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_TEXT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1518,7 +1517,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		t.Logf("edit the message")
 		earg := chat1.PostEditNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Supersedes:       unboxed.GetMessageID(),
@@ -1531,8 +1529,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_EDIT, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1541,7 +1539,6 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		t.Logf("delete the message")
 		darg := chat1.PostDeleteNonblockArg{
 			ConversationID:   created.Id,
-			Conv:             created.Triple,
 			TlfName:          created.TlfName,
 			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
 			Supersedes:       unboxed.GetMessageID(),
@@ -1553,8 +1550,8 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		case info := <-listener.newMessage:
 			unboxed = info.Message
 			require.True(t, unboxed.IsValid(), "invalid message")
-			require.NotNil(t, unboxed.Valid().ClientHeader.OutboxID, "no outbox ID")
-			require.Equal(t, res.OutboxID, *unboxed.Valid().ClientHeader.OutboxID, "mismatch outbox ID")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
@@ -1668,7 +1665,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 	})
 }
 
-func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.ThreadView) {
+func receiveThreadResult(t *testing.T, cb chan kbtest.NonblockThreadResult) (res *chat1.UIMessages) {
 	var tres kbtest.NonblockThreadResult
 	select {
 	case tres = <-cb:
@@ -2054,7 +2051,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case conv := <-listener1.joinedConv:
 			require.Equal(t, conv.GetConvID(), ncres.Conv.GetConvID())
-			require.Equal(t, topicName, utils.GetTopicName(conv))
+			require.Equal(t, topicName, conv.Channel)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get joined notification")
 		}
@@ -2121,7 +2118,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case conv := <-listener1.joinedConv:
 			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, topicName, utils.GetTopicName(conv))
+			require.Equal(t, topicName, conv.Channel)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get joined notification")
 		}
@@ -2173,7 +2170,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case conv := <-listener2.joinedConv:
 			require.Equal(t, conv.GetConvID(), getTLFRes.Convs[1].GetConvID())
-			require.Equal(t, topicName, utils.GetTopicName(conv))
+			require.Equal(t, topicName, conv.Channel)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get joined notification")
 		}

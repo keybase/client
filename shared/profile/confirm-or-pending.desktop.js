@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Box, Text, Button, PlatformIcon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {propsForPlatform} from './confirm-or-pending.shared'
@@ -29,7 +29,7 @@ const Render = (props: Props) => {
           overlay={platformIconOverlay}
           overlayColor={platformIconOverlayColor}
         />
-        <Text type="Header" style={{color: globalColors.blue}}>{username}</Text>
+        <Text type="Header" style={stylePlatformUsername}>{username}</Text>
         {!!usernameSubtitle &&
           <Text type="Body" style={{color: globalColors.black_20}}>{usernameSubtitle}</Text>}
         <Text type="Body" style={{marginTop: globalMargins.large, textAlign: 'center', maxWidth: 560}}>
@@ -45,6 +45,12 @@ const Render = (props: Props) => {
       </Box>
     </Box>
   )
+}
+
+const stylePlatformUsername = {
+  color: globalColors.blue,
+  maxWidth: 400,
+  overflowWrap: 'break-word',
 }
 
 export default Render

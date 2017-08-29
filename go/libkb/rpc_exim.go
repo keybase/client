@@ -580,6 +580,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return e
+	case SCRevokeCurrentDevice:
+		return RevokeCurrentDeviceError{}
+	case SCRevokeLastDevice:
+		return RevokeLastDeviceError{}
 
 	default:
 		ase := AppStatusError{
@@ -2000,5 +2004,21 @@ func (e LoginStateTimeoutError) ToStatus() keybase1.Status {
 			{Key: "AttemptedRequest", Value: e.AttemptedRequest},
 			{Key: "Duration", Value: e.Duration.String()},
 		},
+	}
+}
+
+func (e RevokeCurrentDeviceError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCRevokeCurrentDevice,
+		Name: "SC_DEVICE_REVOKE_CURRENT",
+		Desc: e.Error(),
+	}
+}
+
+func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCRevokeLastDevice,
+		Name: "SC_DEVICE_REVOKE_LAST",
+		Desc: e.Error(),
 	}
 }

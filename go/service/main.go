@@ -92,6 +92,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.TlfProtocol(newTlfHandler(xp, cg)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
+		keybase1.InstallProtocol(NewInstallHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG())),
 		keybase1.KbfsMountProtocol(NewKBFSMountHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
@@ -981,4 +982,15 @@ func (d *Service) stopProfile() {
 		d.G().Log.Warning("could not write memory profile: %s", err)
 	}
 	d.G().Log.Debug("wrote memory profile %s", mem)
+}
+
+func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
+	g.ConnectionManager = libkb.NewConnectionManager()
+	g.NotifyRouter = libkb.NewNotifyRouter(g)
+
+	d.createChatModules()
+	d.startupGregor()
+	d.startChatModules()
+
+	return nil
 }

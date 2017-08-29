@@ -91,9 +91,10 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	typ, err := activity.ActivityType()
 	if err == nil {
 		if typ == chat1.ChatActivityType_INCOMING_MESSAGE && activity.IncomingMessage().Message.IsValid() {
-			header := activity.IncomingMessage().Message.Valid().ClientHeader
-			if header.OutboxID != nil {
-				n.obids = append(n.obids, *activity.IncomingMessage().Message.Valid().ClientHeader.OutboxID)
+			strOutboxID := activity.IncomingMessage().Message.Valid().OutboxID
+			if strOutboxID != nil {
+				outboxID, _ := hex.DecodeString(*strOutboxID)
+				n.obids = append(n.obids, chat1.OutboxID(outboxID))
 				select {
 				case n.incoming <- len(n.obids):
 				case <-time.After(5 * time.Second):
@@ -114,13 +115,8 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	}
 }
 
-func (n *chatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal) {
-
-}
-
-func (n *chatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
-
-}
+func (n *chatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)    {}
+func (n *chatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {}
 
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
 	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username,

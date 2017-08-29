@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import {Button, Input, StandardScreen} from '../../common-adapters'
 import {globalMargins} from '../../styles'
 
@@ -20,15 +20,6 @@ const EditProfileRender = (props: Props) => (
     <Input
       autoCorrect={true}
       style={styleInput}
-      floatingHintTextOverride="Location"
-      hintText="Location"
-      value={props.location}
-      onEnterKeyDown={props.onSubmit}
-      onChangeText={location => props.onLocationChange(location)}
-    />
-    <Input
-      autoCorrect={true}
-      style={styleInput}
       floatingHintTextOverride="Bio"
       hintText="Bio"
       value={props.bio}
@@ -37,6 +28,15 @@ const EditProfileRender = (props: Props) => (
       rowsMax={3}
       errorText={props.bioLengthLeft <= 5 ? props.bioLengthLeft + ' characters left' : ''}
       onChangeText={bio => props.onBioChange(bio)}
+    />
+    <Input
+      autoCorrect={true}
+      style={styleInput}
+      floatingHintTextOverride="Location"
+      hintText="Location"
+      value={props.location}
+      onEnterKeyDown={props.onSubmit}
+      onChangeText={location => props.onLocationChange(location)}
     />
     <Button style={styleButton} type="Primary" fullWidth={true} onClick={props.onSubmit} label="Save" />
   </StandardScreen>

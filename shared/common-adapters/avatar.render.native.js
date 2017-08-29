@@ -1,11 +1,10 @@
 // @flow
 import Icon from './icon'
-import React, {PureComponent} from 'react'
-import {globalColors} from '../styles'
+import * as React from 'react'
+import {globalColors, glamorous} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
 import memoize from 'lodash/memoize'
-import glamorous from 'glamorous-native'
 
 import type {AvatarSize} from './avatar'
 import type {IconType} from './icon'
@@ -15,6 +14,7 @@ type ImageProps = {
   opacity: ?number,
   size: AvatarSize,
   url: string,
+  borderRadius: any,
 }
 
 type Props = {
@@ -23,8 +23,9 @@ type Props = {
   followIconStyle: ?Object,
   followIconType: ?IconType,
   followIconSize: number,
+  isTeam?: boolean,
   loadingColor: ?string,
-  onClick?: ?() => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   opacity: ?number,
   skipBackground?: boolean,
   size: AvatarSize,
@@ -36,72 +37,102 @@ type State = {
   loaded: boolean,
 }
 
-// Android doesn't handle background colors border radius setting
-const backgroundOffset = 1
-const Background = ({loaded, loadingColor, size}) => {
-  const View = glamorous.view(
-    {
-      bottom: backgroundOffset,
-      left: backgroundOffset,
-      position: 'absolute',
-      right: backgroundOffset,
-      top: backgroundOffset,
-    },
-    props => ({
-      backgroundColor: props.loaded ? globalColors.white : props.loadingColor || globalColors.lightGrey,
-      borderRadius: props.size / 2,
-    })
-  )
-  return <View loaded={loaded} loadingColor={loadingColor} size={size} />
+const sizeToTeamBorderRadius = {
+  '112': 12,
+  '12': 3,
+  '16': 4,
+  '176': 24,
+  '24': 4,
+  '32': 5,
+  '40': 6,
+  '48': 6,
+  '64': 8,
+  '80': 10,
 }
 
-class UserImage extends PureComponent<void, ImageProps, void> {
+// Android doesn't handle background colors border radius setting
+const backgroundOffset = 1
+const BackgroundView = glamorous.view(
+  {
+    bottom: backgroundOffset,
+    left: backgroundOffset,
+    position: 'absolute',
+    right: backgroundOffset,
+    top: backgroundOffset,
+  },
+  props => ({
+    backgroundColor: props.loaded ? globalColors.white : props.loadingColor || globalColors.lightGrey,
+    borderRadius: props.borderRadius,
+  })
+)
+
+class Background extends React.PureComponent<{loaded: boolean, loadingColor: any, borderRadius: number}> {
   render() {
-    const {url, size, onLoadEnd, opacity = 1} = this.props
-
-    const Image = glamorous.image(
-      {
-        bottom: 0,
-        left: 0,
-        opacity,
-        position: 'absolute',
-        right: 0,
-        top: 0,
-      },
-      props => ({
-        borderRadius: props.size / 2,
-        height: props.size,
-        width: props.size,
-      })
+    return (
+      <BackgroundView
+        loaded={this.props.loaded}
+        loadingColor={this.props.loadingColor}
+        borderRadius={this.props.borderRadius}
+      />
     )
+  }
+}
 
-    return <Image source={url} onLoadEnd={onLoadEnd} size={size} />
+const UserImageImage = glamorous.image(
+  {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  props => ({
+    opacity: props.opacity,
+    borderRadius: props.borderRadius,
+    height: props.size,
+    width: props.size,
+  })
+)
+class UserImage extends React.PureComponent<ImageProps> {
+  render() {
+    const {borderRadius, url, size, onLoadEnd, opacity = 1} = this.props
+    return (
+      <UserImageImage
+        opacity={opacity}
+        source={url}
+        onLoadEnd={onLoadEnd}
+        size={size}
+        borderRadius={borderRadius}
+      />
+    )
   }
 }
 
 const borderOffset = -1
 const borderSize = 2
 // Layer on top to extend outside of the image
-const Border = ({borderColor, size}) => {
-  const View = glamorous.view(
-    {
-      borderWidth: borderSize,
-      bottom: borderOffset,
-      left: borderOffset,
-      margin: borderSize / 2,
-      position: 'absolute',
-      right: borderOffset,
-      top: borderOffset,
-    },
-    props => ({
-      borderColor: props.borderColor,
-      borderRadius: props.size / 2,
-    })
-  )
-  return <View size={size} borderColor={borderColor} />
+const BorderView = glamorous.view(
+  {
+    borderWidth: borderSize,
+    bottom: borderOffset,
+    left: borderOffset,
+    margin: borderSize / 2,
+    position: 'absolute',
+    right: borderOffset,
+    top: borderOffset,
+  },
+  props => ({
+    borderColor: props.borderColor,
+    borderRadius: props.borderRadius,
+  })
+)
+class Border extends React.PureComponent<{borderColor: any, borderRadius: number}> {
+  render() {
+    return <BorderView borderColor={this.props.borderColor} borderRadius={this.props.borderRadius} />
+  }
 }
 
-class AvatarRender extends PureComponent<void, Props, State> {
+class AvatarRender extends React.PureComponent<Props, State> {
   state: State = {
     loaded: false,
   }
@@ -144,13 +175,24 @@ class AvatarRender extends PureComponent<void, Props, State> {
       skipBackground,
     } = this.props
 
+    const borderRadius = this.props.isTeam
+      ? sizeToTeamBorderRadius[String(this.props.size)]
+      : this.props.size / 2
+
     return (
-      <ClickableBox onClick={onClick} feedback={false}>
+      <ClickableBox onClick={onClick} feedback={false} style={boxStyle(size, style)}>
         <Box style={boxStyle(size, style)}>
           {!skipBackground &&
-            <Background loaded={this.state.loaded} loadingColor={loadingColor} size={size} />}
-          {!!url && <UserImage opacity={opacity} onLoadEnd={this._onLoadOrError} size={size} url={url} />}
-          {!!borderColor && <Border borderColor={borderColor} size={size} />}
+            <Background loaded={this.state.loaded} loadingColor={loadingColor} borderRadius={borderRadius} />}
+          {!!url &&
+            <UserImage
+              opacity={opacity}
+              onLoadEnd={this._onLoadOrError}
+              size={size}
+              url={url}
+              borderRadius={borderRadius}
+            />}
+          {!!borderColor && <Border borderColor={borderColor} borderRadius={borderRadius} />}
           {followIconType &&
             <Icon type={followIconType} style={iconStyle(followIconSize, followIconStyle)} />}
           {children}

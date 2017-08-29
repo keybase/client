@@ -13,30 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Create n TestContexts with logged in users
-// Returns (FakeUsers, TestContexts, CleanupFunction)
-func setupNTests(t *testing.T, n int) ([]*kbtest.FakeUser, []*libkb.TestContext, func()) {
-	require.True(t, n > 0, "must create at least 1 tc")
-	var fus []*kbtest.FakeUser
-	var tcs []*libkb.TestContext
-	for i := 0; i < n; i++ {
-		tc := SetupTest(t, "team", 1)
-		tcs = append(tcs, &tc)
-		fu, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-		require.NoError(t, err)
-		fus = append(fus, fu)
-	}
-	cleanup := func() {
-		for _, tc := range tcs {
-			tc.Cleanup()
-		}
-	}
-	for i, fu := range fus {
-		t.Logf("U%d: %v %v", i, fu.Username, fu.GetUserVersion())
-	}
-	return fus, tcs, cleanup
-}
-
 func TestLoaderBasic(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
@@ -519,4 +495,46 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 
 	t.Logf("U0 sees the 3 implicit admins")
 	assertImpAdmins(tcs[0].G, *subteamID, []keybase1.UserVersion{fus[0].GetUserVersion(), fus[1].GetUserVersion(), fus[2].GetUserVersion()})
+}
+
+// Subteams should be invisible to writers.
+// U0 creates a subteam
+// U0 adds U1 to the root team
+// U1 should not see any subteams
+func TestHiddenSubteam(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	parentName, parentID := createTeam2(*tcs[0])
+
+	subteamName1 := createTeamName(t, parentName.String(), "bbb")
+
+	t.Logf("U0 creates A.B")
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "bbb", parentName)
+	require.NoError(t, err)
+
+	t.Logf("U0 adds U1 to A as a WRITER")
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U0 loads A")
+	team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          parentID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	require.Len(t, team.chain().ListSubteams(), 1, "subteam list")
+	require.Equal(t, *subteamID, team.chain().ListSubteams()[0].ID, "subteam ID")
+	require.Equal(t, subteamName1.String(), team.chain().ListSubteams()[0].Name.String(), "subteam name")
+
+	t.Logf("U1 loads A")
+	team, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          parentID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
+	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
 }

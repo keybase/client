@@ -6,7 +6,7 @@
  * xcpretty (`gem install xcpretty`)
  * Xcode command line tools
 
-### Building the Installer
+### Build the Installer
 
 You probably want to bump the version of the installer in both the "Bundle version" (CFBundleVersion)
 and the "Bundle version string, short" (CFBundleShortVersionString) in [Installer/Info.plist](/osx/Installer/Info.plist).
@@ -15,10 +15,10 @@ and the "Bundle version string, short" (CFBundleShortVersionString) in [Installe
 ./build_installer.sh
 ```
 
-### Test Installer
+### Test the Installer
 
 ```sh
-./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod --timeout=10
+./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod --timeout=10 --install-helper
 ```
 
 ### Releasing Installer
@@ -26,14 +26,7 @@ and the "Bundle version string, short" (CFBundleShortVersionString) in [Installe
 Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the s3://prerelease.keybase.io/darwin-package folder.
 
 Update the scripts that reference the older version such to include this version:
-- `packaging/desktop/package_darwin.sh`
-- `packaging/desktop/kbfuse.sh`
+- [packaging/desktop/package_darwin.sh](/packaging/desktop/package_darwin.sh)
+- [packaging/desktop/kbfuse.sh](/packaging/desktop/kbfuse.sh)
 
-## Overview
-
-When the Keybase.app runs it checks for the following components and compares the bundled version with the installed and running versions to make sure it's installed and up to date:
-
-- Service (Launch Agent)
-- Privileged Helper Tool
-- KBFS (Launch Agent)
-- KBFuse (our custom osxfuse build, see [Fuse/kbfuse](https://github.com/keybase/client/tree/master/osx/Install/Fuse/kbfuse) for more details).
+The installer is bundled into the Keybase.app, in `Keybase.app/Contents/Resources/KeybaseInstaller.app`.

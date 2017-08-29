@@ -29,7 +29,7 @@ type State = {
   visiblePopupMenu: boolean,
 }
 
-class Files extends Component<void, Props, State> {
+class Files extends Component<Props, State> {
   state: State
 
   _checkFolderExistence(props) {

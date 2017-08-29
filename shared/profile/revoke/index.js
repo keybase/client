@@ -1,6 +1,6 @@
 // @flow
 
-import React from 'react'
+import * as React from 'react'
 import {Box, Text, Icon, Button, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {formatMessage, formatConfirmButton} from './index.shared'
@@ -90,7 +90,13 @@ const styleContentContainer = {
 
 const stylePlatformUsername = {
   ...globalStyles.textDecoration('line-through'),
-  ...(isMobile ? {} : {textAlign: 'center'}),
+  ...(isMobile
+    ? {}
+    : {
+        textAlign: 'center',
+        overflowWrap: 'break-word',
+        maxWidth: 400,
+      }),
   color: globalColors.red,
 }
 

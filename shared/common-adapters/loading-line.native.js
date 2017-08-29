@@ -6,7 +6,7 @@ import {globalColors, globalStyles} from '../styles'
 
 import type {Props} from './loading-line'
 
-class LoadingLine extends Component<void, Props, {fadeAnim: any}> {
+class LoadingLine extends Component<Props, {fadeAnim: any}> {
   state = {
     fadeAnim: new NativeAnimated.Value(0),
   }

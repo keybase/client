@@ -120,7 +120,7 @@ function messageCreateComponent(style, allowFontScaling) {
             style={[neutralStyle, style, options.big ? bigStyle : null]}
             allowFontScaling={allowFontScaling}
           >
-            {children.length ? children : '\u200b'}
+            {children && children.length ? children : '\u200b'}
           </Text>
         )
       case 'bold':
@@ -145,7 +145,7 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <EmojiIfExists
             emojiName={String(children)}
-            size={options.bigEmoji ? 32 : 16}
+            size={options.bigEmoji ? 32 : 15}
             key={key}
             allowFontScaling={allowFontScaling}
           />
@@ -154,7 +154,7 @@ function messageCreateComponent(style, allowFontScaling) {
         return (
           <Emoji
             emojiName={String(children)}
-            size={options.bigEmoji ? 32 : 16}
+            size={options.bigEmoji ? 32 : 15}
             key={key}
             allowFontScaling={allowFontScaling}
           />
@@ -165,7 +165,7 @@ function messageCreateComponent(style, allowFontScaling) {
   }
 }
 
-class Markdown extends PureComponent<void, Props, void> {
+class Markdown extends PureComponent<Props> {
   render() {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)

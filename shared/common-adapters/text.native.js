@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
 import {clickableVisible} from '../local-debug'
-import glamorous from 'glamorous-native'
+import {glamorous} from '../styles'
 import shallowEqual from 'shallowequal'
 import {StyleSheet} from 'react-native'
 
@@ -37,7 +37,7 @@ const styles = StyleSheet.create(styleMap)
 
 // Init common styles for perf
 
-class Text extends Component<void, Props, void> {
+class Text extends Component<Props> {
   _nativeText: any
 
   focus() {

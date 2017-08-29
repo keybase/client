@@ -8,14 +8,14 @@ export type ProgressBarProps = {
   style?: Object,
 }
 
-export class ProgressBar extends Component<void, ProgressBarProps, void> {}
+export class ProgressBar extends Component<ProgressBarProps> {}
 
 export type ImageIconProps = {
   type: 'Downloaded' | 'Downloading',
   style: Object,
 }
 
-export class ImageIcon extends Component<void, ImageIconProps, void> {}
+export class ImageIcon extends Component<ImageIconProps> {}
 
 export type Props = {
   message: Constants.AttachmentMessage,
@@ -23,9 +23,9 @@ export type Props = {
   includeHeader: boolean,
   isFirstNewMessage: boolean,
   onDownloadAttachment: () => void,
-  onAction: (event: any) => void,
+  onAction: () => void,
   onOpenInFileUI: () => void,
   onOpenInPopup: () => void,
 }
 
-export default class AttachmentMessageComponent extends Component<void, Props, void> {}
+export default class AttachmentMessageComponent extends Component<Props> {}

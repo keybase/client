@@ -149,7 +149,7 @@
 }
 
 - (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
-  if ([self linkExists:linkPath]) {
+  if ([NSFileManager.defaultManager fileExistsAtPath:linkPath]) {
     [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
   }
   if ([NSFileManager.defaultManager createSymbolicLinkAtPath:linkPath withDestinationPath:path error:nil]) {

@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import get from 'lodash/get'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
@@ -9,13 +9,13 @@ import Icon from './icon'
 import Text from './text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-class TabBarItem extends Component<void, ItemProps, void> {
+class TabBarItem extends React.Component<ItemProps> {
   render() {
     return this.props.children
   }
 }
 
-class SimpleTabBarButton extends Component<void, ItemProps, void> {
+class SimpleTabBarButton extends React.Component<ItemProps> {
   render() {
     const selectedColor = this.props.selectedColor || globalColors.blue
     return (
@@ -85,8 +85,8 @@ const TabBarButton = (props: TabBarButtonProps) => {
   return content
 }
 
-class TabBar extends Component<void, Props, void> {
-  _labels(): Array<React$Element<*>> {
+class TabBar extends React.Component<Props> {
+  _labels(): Array<React.Node> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
       const key = item.props.label || get(item, 'props.tabBarButton.props.label') || i

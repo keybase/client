@@ -298,7 +298,7 @@ function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox 
 
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: Buffer
+  paginationNext: string
 ): Constants.UpdatePaginationNext {
   return {
     payload: {conversationIDKey, paginationNext},
@@ -459,6 +459,10 @@ function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.Load
     payload: {messageKey},
     type: 'chat:loadAttachmentPreview',
   }
+}
+
+function createNewTeam(conversationIDKey: Constants.ConversationIDKey, name: string) {
+  return {payload: {conversationIDKey, name}, type: 'chat:createNewTeam'}
 }
 
 function saveAttachment(messageKey: Constants.MessageKey): Constants.SaveAttachment {
@@ -646,7 +650,7 @@ function setSelectedRouteState(
   return setRouteState(List([chatTab, selectedConversation]), partialState)
 }
 
-function setInboxFilter(filter: Array<string>): Constants.SetInboxFilter {
+function setInboxFilter(filter: string): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
 
@@ -669,7 +673,7 @@ function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.U
 }
 
 function updateThread(
-  thread: ChatTypes.ThreadView,
+  thread: ChatTypes.UIMessages,
   yourName: string,
   yourDeviceName: string,
   conversationIDKey: string
@@ -692,6 +696,7 @@ export {
   clearMessages,
   clearSearchResults,
   clearRekey,
+  createNewTeam,
   deleteMessage,
   downloadProgress,
   editMessage,

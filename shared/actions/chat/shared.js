@@ -49,6 +49,16 @@ function messageOutboxIDSelector(
     .find(m => m.outboxID === outboxID)
 }
 
+function pendingMessageOutboxIDSelector(
+  state: TypedState,
+  conversationIDKey: Constants.ConversationIDKey,
+  outboxID: Constants.OutboxIDKey
+) {
+  return conversationStateSelector(state, conversationIDKey)
+    .get('messages')
+    .find(m => m.outboxID === outboxID && m.state === 'pending')
+}
+
 function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
@@ -73,38 +83,8 @@ function tmpFileName(
   return `kbchat-${conversationID}-${messageID}.${isPreview ? 'preview' : 'download'}`
 }
 
-function* clientHeader(
-  messageType: ChatTypes.MessageType,
-  conversationIDKey: Constants.ConversationIDKey
-): Generator<any, ?ChatTypes.MessageClientHeader, any> {
-  const infoSelector = (state: TypedState) => {
-    const convo = state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-    if (convo) {
-      return convo.get('info')
-    }
-    return null
-  }
-
-  const info = yield select(infoSelector)
-
-  if (!info) {
-    console.warn('No info to postmessage!')
-    return
-  }
-
-  return {
-    conv: info.triple,
-    tlfName: info.tlfName,
-    tlfPublic: info.visibility === ChatTypes.CommonTLFVisibility.public,
-    messageType,
-    supersedes: 0,
-    sender: null,
-    senderDevice: null,
-  }
-}
-
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
-function* startNewConversation(
+const startNewConversation = function*(
   oldConversationIDKey: Constants.ConversationIDKey
 ): Generator<any, ?Constants.ConversationIDKey, any> {
   // Find the participants
@@ -157,7 +137,7 @@ function* startNewConversation(
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
-function* getPostingIdentifyBehavior(
+const getPostingIdentifyBehavior = function*(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, any, any> {
   const metaData = (yield select(metaDataSelector): any)
@@ -178,7 +158,6 @@ function* getPostingIdentifyBehavior(
 
 export {
   alwaysShowSelector,
-  clientHeader,
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
@@ -188,6 +167,7 @@ export {
   messageOutboxIDSelector,
   messageSelector,
   metaDataSelector,
+  pendingMessageOutboxIDSelector,
   routeSelector,
   selectedInboxSelector,
   startNewConversation,

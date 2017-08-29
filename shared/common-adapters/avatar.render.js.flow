@@ -18,7 +18,7 @@ export type Props = {
   followIconSize: number,
   loadingColor?: string,
   onAvatarLoaded?: () => void,
-  onClick?: ?() => void,
+  onClick?: ?(event: SyntheticEvent<>) => void,
   opacity?: number,
   size: AvatarSize,
   style?: ?Object,
@@ -27,4 +27,4 @@ export type Props = {
   username?: ?string,
 }
 
-export default class Avatar extends Component<void, Props, void> {}
+export default class Avatar extends Component<Props> {}

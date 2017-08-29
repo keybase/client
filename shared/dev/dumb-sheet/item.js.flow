@@ -10,4 +10,4 @@ export type Props<C> = {
   mock: PropsOf<C>,
 }
 
-export default class DumbSheetItem<C> extends Component<void, Props<C>, void> {}
+export default class DumbSheetItem<C> extends Component<Props<C>, void> {}

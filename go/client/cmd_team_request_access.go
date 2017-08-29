@@ -17,7 +17,7 @@ func newCmdTeamRequestAccess(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	return cli.Command{
 		Name:         "request-access",
 		ArgumentHelp: "<team name>",
-		Usage:        "request access to a team",
+		Usage:        "Request access to a team.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamRequestAccessRunner(g)
 			cl.ChooseCommand(cmd, "request-access", c)

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Text from './text'
 import BackButton from './back-button'
 import Box from './box'
@@ -8,30 +8,33 @@ import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './header-hoc'
 
-function HeaderHoc<P>(WrappedComponent: ReactClass<P>) {
-  return ({onBack, onCancel, headerStyle, title, theme = 'light', ...restProps}: Props & P) => (
-    <Box style={_containerStyle}>
-      <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
-        {onBack &&
-          <BackButton
-            key="back"
-            onClick={onBack}
-            style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
-          />}
-        {onCancel &&
-          <Icon
-            style={{..._styleClose, ..._styleCloseThemed[theme]}}
-            type="iconfont-close"
-            onClick={onCancel}
-          />}
-        {title &&
-          <Box style={_titleStyle}>
-            <Text type="Header">{title}</Text>
-          </Box>}
+function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
+  return (props: P & Props) => {
+    const {onBack, onCancel, headerStyle, title, theme = 'light'} = props
+    return (
+      <Box style={_containerStyle}>
+        <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
+          {onBack &&
+            <BackButton
+              key="back"
+              onClick={onBack}
+              style={{..._backButtonIconStyle, ..._backButtonIconStyleThemed[theme]}}
+            />}
+          {onCancel &&
+            <Icon
+              style={{..._styleClose, ..._styleCloseThemed[theme]}}
+              type="iconfont-close"
+              onClick={onCancel}
+            />}
+          {title &&
+            <Box style={_titleStyle}>
+              <Text type="Header">{title}</Text>
+            </Box>}
+        </Box>
+        <WrappedComponent {...(props: P)} />
       </Box>
-      <WrappedComponent {...restProps} theme={theme} onBack={onBack} onCancel={onCancel} />
-    </Box>
-  )
+    )
+  }
 }
 
 const _containerStyle = {

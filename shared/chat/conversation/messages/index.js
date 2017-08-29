@@ -4,7 +4,7 @@ import Attachment from './attachment/container'
 import ErrorMessage from './error/container'
 import Header from './header/container'
 import ProfileResetNotice from '../notices/profile-reset-notice/container'
-import React from 'react'
+import * as React from 'react'
 import TextMessage from './text/container'
 import Timestamp from './timestamp/container'
 import Wrapper from './wrapper/container'
@@ -13,8 +13,12 @@ import {Box} from '../../../common-adapters'
 const factory = (
   messageKey: Constants.MessageKey,
   prevMessageKey: ?Constants.MessageKey,
-  onAction: (message: Constants.ServerMessage, event: any) => void,
-  onShowEditor: (message: Constants.ServerMessage, event: any) => void,
+  onAction: (
+    message: Constants.ServerMessage,
+    localMessageState: Constants.LocalMessageState,
+    event: SyntheticEvent<>
+  ) => void,
+  onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
   measure: () => void
 ) => {

@@ -15,8 +15,7 @@ import * as Saga from '../../util/saga'
 import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
 import {onIdlePromise} from '../../util/idle-callback'
 import {SearchError} from '../../util/errors'
-import {OrderedSet, List, Map} from 'immutable'
-import {searchResultMapSelector} from '../../constants/selectors'
+import {OrderedSet, Map} from 'immutable'
 
 import type {ServiceId} from '../../util/platforms'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -171,7 +170,9 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(results => JSON.parse(results.body))
 }
 
-function* search<T>({payload: {term, service, finishedActionTypeToFire, searchKey}}: Constants.Search<T>) {
+const search = function* search<T>({
+  payload: {term, service, finishedActionTypeToFire, searchKey},
+}: Constants.Search<T>) {
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
@@ -215,7 +216,9 @@ function* search<T>({payload: {term, service, finishedActionTypeToFire, searchKe
   }
 }
 
-function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSuggestions) {
+const searchSuggestions = function* searchSuggestions({
+  payload: {maxUsers, searchKey},
+}: Constants.SearchSuggestions) {
   let suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
     param: {
       maxUsers,
@@ -241,7 +244,7 @@ function* updateSelectedSearchResult({payload: {searchKey, id}}: Constants.Updat
 }
 
 function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants.AddResultsToUserInput) {
-  const searchResultMap = yield select(searchResultMapSelector)
+  const searchResultMap = yield select(Selectors.searchResultMapSelector)
   const maybeUpgradedUsers = searchResults.map(u =>
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )
@@ -298,7 +301,7 @@ function* clearSearchInput({payload: {searchKey}}: Constants.UserInputItemsUpdat
   yield put(EntityAction.replaceEntity(['searchKeyToClearSearchInput'], {[searchKey]: clearSearchInput + 1}))
 }
 
-function* searchSaga(): SagaGenerator<any, any> {
+const searchSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('search:search', search)
   yield Saga.safeTakeLatest('search:searchSuggestions', searchSuggestions)
   yield Saga.safeTakeLatest('search:updateSelectedSearchResult', updateSelectedSearchResult)

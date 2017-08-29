@@ -8,16 +8,16 @@ import {globalStyles} from '../../../styles'
 
 import type {Props} from '.'
 
-class ConversationList extends Component<void, Props, void> {
+class ConversationList extends Component<Props> {
   _scrollRef: ?any
 
-  _onAction = (message: Constants.ServerMessage, event: any) => {
+  _onAction = (message: Constants.ServerMessage) => {
     NativeKeyboard.dismiss()
     this.props.onMessageAction(message)
   }
 
   // This is handled slightly differently on mobile, leave this blank
-  _onShowEditor = (message: Constants.Message, event: any) => {}
+  _onShowEditor = () => {}
 
   // This is handled slightly differently on mobile, leave this blank
   _measure = () => {}
@@ -44,8 +44,11 @@ class ConversationList extends Component<void, Props, void> {
 
   _keyExtractor = messageKey => messageKey
 
+  // Don't load if we have no messages in there. This happens a lot when we're dealing with stale messages
   _onEndReached = () => {
-    this.props.onLoadMoreMessages()
+    if (this.props.messageKeys.count() > 1) {
+      this.props.onLoadMoreMessages()
+    }
   }
 
   componentDidUpdate(prevProps: Props) {

@@ -197,7 +197,6 @@ type baseInboxSource struct {
 	types.InboxSource
 
 	getChatInterface func() chat1.RemoteInterface
-	offline          bool
 }
 
 func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
@@ -221,20 +220,6 @@ func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string
 	} else {
 		b.G().UserChanged(finalizeUser.GetUID())
 	}
-}
-
-func (b *baseInboxSource) Connected(ctx context.Context) {
-	b.Debug(ctx, "connected")
-	b.offline = false
-}
-
-func (b *baseInboxSource) Disconnected(ctx context.Context) {
-	b.Debug(ctx, "disconnected")
-	b.offline = true
-}
-
-func (b *baseInboxSource) IsOffline() bool {
-	return b.offline
 }
 
 func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
@@ -308,14 +293,17 @@ type RemoteInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
+	*sourceOfflinable
 }
 
 var _ types.InboxSource = (*RemoteInboxSource)(nil)
 
 func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *RemoteInboxSource {
+	labeler := utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false)
 	s := &RemoteInboxSource{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteInboxSource", false),
+		Contextified:     globals.NewContextified(g),
+		DebugLabeler:     labeler,
+		sourceOfflinable: newSourceOfflinable(labeler),
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, ri)
 	return s
@@ -328,7 +316,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G())
 	}
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		localizer.SetOffline()
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())
@@ -363,7 +351,7 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
 	rquery *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		return chat1.Inbox{}, nil, OfflineError{}
 	}
 
@@ -423,15 +411,18 @@ type HybridInboxSource struct {
 	globals.Contextified
 	utils.DebugLabeler
 	*baseInboxSource
+	*sourceOfflinable
 }
 
 var _ types.InboxSource = (*HybridInboxSource)(nil)
 
 func NewHybridInboxSource(g *globals.Context,
 	getChatInterface func() chat1.RemoteInterface) *HybridInboxSource {
+	labeler := utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false)
 	s := &HybridInboxSource{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "HybridInboxSource", false),
+		Contextified:     globals.NewContextified(g),
+		DebugLabeler:     labeler,
+		sourceOfflinable: newSourceOfflinable(labeler),
 	}
 	s.baseInboxSource = newBaseInboxSource(g, s, getChatInterface)
 	return s
@@ -441,7 +432,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
 
 	// Insta fail if we are offline
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		return chat1.Inbox{}, nil, OfflineError{}
 	}
 
@@ -484,7 +475,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G())
 	}
-	if s.IsOffline() {
+	if s.IsOffline(ctx) {
 		localizer.SetOffline()
 	}
 	s.Debug(ctx, "Read: using localizer: %s", localizer.Name())

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Header from './header/container'
 import _SearchHeader from '../../search/user-input/container'
 import {compose, withState, lifecycle} from 'recompose'

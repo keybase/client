@@ -2,6 +2,7 @@
 import {StatusBar, StyleSheet} from 'react-native'
 import {isAndroid, isIOS} from '../constants/platform'
 import globalColors from './colors'
+import glamorous from 'glamorous-native'
 
 const globalMargins = {
   xtiny: 4,
@@ -113,5 +114,19 @@ function backgroundURL(...path: Array<string>): Object {
 }
 
 const hairlineWidth = StyleSheet.hairlineWidth
+const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
+const collapseStyles = (styles: Array<Object> | Object) => styles
+const lineHeight = (h: number) => h
 
-export {backgroundURL, globalColors, globalMargins, globalStyles, hairlineWidth, statusBarHeight}
+export {
+  backgroundURL,
+  collapseStyles,
+  glamorous,
+  globalColors,
+  globalMargins,
+  globalStyles,
+  hairlineWidth,
+  lineHeight,
+  statusBarHeight,
+  styleSheetCreate,
+}

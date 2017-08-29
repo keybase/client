@@ -11,7 +11,7 @@ import {stateColors} from '../util/tracker'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
 
-class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
+class BioLoading extends Component<{style: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
     const {avatarSize, loading} = this.props
 
@@ -70,7 +70,7 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
   }
 }
 
-class BioRender extends Component<void, Props, void> {
+class BioRender extends Component<Props> {
   render() {
     const {avatarSize, currentlyFollowing, editFns, loading, userInfo, username} = this.props
     if (loading) {
@@ -120,11 +120,7 @@ class BioRender extends Component<void, Props, void> {
           {!!followLabel &&
             <Text type="BodySmall" style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>}
           <Text type="BodySmall" style={stylesFollowing}>
-            <Text
-              type="BodySmallInlineLink"
-              onClick={() => this.props.onClickFollowers(username)}
-              style={stylesFollowingLabel}
-            >
+            <Text type="BodySmall" style={stylesFollowingLabel}>
               <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followersCount}</Text>
               {' '}
               {userInfo.followersCount === 1 ? 'Follower' : 'Followers'}
@@ -132,11 +128,7 @@ class BioRender extends Component<void, Props, void> {
             &nbsp;
             &middot;
             &nbsp;
-            <Text
-              type="BodySmallInlineLink"
-              onClick={() => this.props.onClickFollowing(username)}
-              style={stylesFollowingLabel}
-            >
+            <Text type="BodySmall" style={stylesFollowingLabel}>
               Following <Text type="BodySmall" style={stylesFollowingCount}>{userInfo.followingCount}</Text>
             </Text>
           </Text>

@@ -9,7 +9,7 @@ import throttle from 'lodash/throttle'
 
 type PermissionStatus = 'granted' | 'denied' | 'never_ask_again'
 
-class QR extends Component<void, Props, {permissionGranted: ?boolean}> {
+class QR extends Component<Props, {permissionGranted: ?boolean}> {
   state = {
     permissionGranted: null,
   }

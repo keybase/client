@@ -14,17 +14,16 @@ export type Settings = Array<{
 
 export type Props = {
   allowEdit: boolean,
-  allowSave: boolean,
   groups: {
     app_push?: Group,
     email?: Group,
     sms?: Group,
+    security?: Group,
   },
   onRefresh: () => void,
-  onSave: () => void,
   onToggle: (groupName: string, name: string) => void,
   onToggleUnsubscribeAll: (group: string) => void,
   waitingForResponse: boolean,
 }
 
-export default class Notifications extends Component<void, Props, void> {}
+export default class Notifications extends Component<Props> {}

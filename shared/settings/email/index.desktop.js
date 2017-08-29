@@ -11,7 +11,7 @@ type State = {
   edited: boolean,
 }
 
-class UpdateEmail extends Component<void, Props, State> {
+class UpdateEmail extends Component<Props, State> {
   state: State
 
   constructor(props: Props) {
