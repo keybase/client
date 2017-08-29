@@ -77,12 +77,12 @@ func (s *ObjectStorage) NewEncodedObject() plumbing.EncodedObject {
 	return &plumbing.MemoryObject{}
 }
 
-func (s *ObjectStorage) PackfileWriter() (io.WriteCloser, error) {
+func (s *ObjectStorage) PackfileWriter(statusChan plumbing.StatusChan) (io.WriteCloser, error) {
 	if err := s.requireIndex(); err != nil {
 		return nil, err
 	}
 
-	w, err := s.dir.NewObjectPack()
+	w, err := s.dir.NewObjectPack(statusChan)
 	if err != nil {
 		return nil, err
 	}

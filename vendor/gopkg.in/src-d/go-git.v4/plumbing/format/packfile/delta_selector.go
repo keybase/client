@@ -32,22 +32,47 @@ func newDeltaSelector(s storer.EncodedObjectStorer) *deltaSelector {
 
 // ObjectsToPack creates a list of ObjectToPack from the hashes provided,
 // creating deltas if it's suitable, using an specific internal logic
-func (dw *deltaSelector) ObjectsToPack(hashes []plumbing.Hash) ([]*ObjectToPack, error) {
-	otp, err := dw.objectsToPack(hashes)
+func (dw *deltaSelector) ObjectsToPack(
+	hashes []plumbing.Hash,
+	statusChan plumbing.StatusChan,
+) ([]*ObjectToPack, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusRead,
+		ObjectsTotal: len(hashes),
+	}
+	statusChan.SendUpdate(update)
+
+	otp, err := dw.objectsToPack(hashes, statusChan, update)
 	if err != nil {
 		return nil, err
 	}
 
+	update = plumbing.StatusUpdate{
+		Stage:        plumbing.StatusSort,
+		ObjectsTotal: update.ObjectsTotal,
+	}
+	statusChan.SendUpdate(update)
+
 	dw.sort(otp)
 
-	if err := dw.walk(otp); err != nil {
+	update = plumbing.StatusUpdate{
+		Stage:        plumbing.StatusDelta,
+		ObjectsTotal: update.ObjectsTotal,
+	}
+	statusChan.SendUpdate(update)
+
+	if err := dw.walk(otp, statusChan, update); err != nil {
 		return nil, err
 	}
 
 	return otp, nil
 }
 
-func (dw *deltaSelector) objectsToPack(hashes []plumbing.Hash) ([]*ObjectToPack, error) {
+func (dw *deltaSelector) objectsToPack(
+	hashes []plumbing.Hash,
+	statusChan plumbing.StatusChan,
+	update plumbing.StatusUpdate,
+) ([]*ObjectToPack, error) {
 	var objectsToPack []*ObjectToPack
 	for _, h := range hashes {
 		o, err := dw.encodedDeltaObject(h)
@@ -61,6 +86,9 @@ func (dw *deltaSelector) objectsToPack(hashes []plumbing.Hash) ([]*ObjectToPack,
 		}
 
 		objectsToPack = append(objectsToPack, otp)
+
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	if err := dw.fixAndBreakChains(objectsToPack); err != nil {
@@ -171,7 +199,16 @@ func (dw *deltaSelector) sort(objectsToPack []*ObjectToPack) {
 	sort.Sort(byTypeAndSize(objectsToPack))
 }
 
-func (dw *deltaSelector) walk(objectsToPack []*ObjectToPack) error {
+func (dw *deltaSelector) walk(
+	objectsToPack []*ObjectToPack,
+	statusChan plumbing.StatusChan,
+	update plumbing.StatusUpdate,
+) error {
+	sendUpdate := func() {
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
+	}
+
 	for i := 0; i < len(objectsToPack); i++ {
 		target := objectsToPack[i]
 
@@ -179,11 +216,13 @@ func (dw *deltaSelector) walk(objectsToPack []*ObjectToPack) error {
 		// object. This happens when a delta is set to be reused from an existing
 		// packfile.
 		if target.IsDelta() {
+			sendUpdate()
 			continue
 		}
 
 		// We only want to create deltas from specific types.
 		if !applyDelta[target.Type()] {
+			sendUpdate()
 			continue
 		}
 
@@ -200,6 +239,7 @@ func (dw *deltaSelector) walk(objectsToPack []*ObjectToPack) error {
 				return err
 			}
 		}
+		sendUpdate()
 	}
 
 	return nil

@@ -22,15 +22,16 @@ import (
 type PackWriter struct {
 	Notify func(plumbing.Hash, *packfile.Index)
 
-	fs       billy.Filesystem
-	fr, fw   billy.File
-	synced   *syncedReader
-	checksum plumbing.Hash
-	index    *packfile.Index
-	result   chan error
+	fs         billy.Filesystem
+	fr, fw     billy.File
+	synced     *syncedReader
+	checksum   plumbing.Hash
+	index      *packfile.Index
+	result     chan error
+	statusChan plumbing.StatusChan
 }
 
-func newPackWrite(fs billy.Filesystem) (*PackWriter, error) {
+func newPackWrite(fs billy.Filesystem, statusChan plumbing.StatusChan) (*PackWriter, error) {
 	fw, err := fs.TempFile(fs.Join(objectsPath, packPath), "tmp_pack_")
 	if err != nil {
 		return nil, err
@@ -42,11 +43,12 @@ func newPackWrite(fs billy.Filesystem) (*PackWriter, error) {
 	}
 
 	writer := &PackWriter{
-		fs:     fs,
-		fw:     fw,
-		fr:     fr,
-		synced: newSyncedReader(fw, fr),
-		result: make(chan error),
+		fs:         fs,
+		fw:         fw,
+		fr:         fr,
+		synced:     newSyncedReader(fw, fr),
+		result:     make(chan error),
+		statusChan: statusChan,
 	}
 
 	go writer.buildIndex()
@@ -61,7 +63,7 @@ func (w *PackWriter) buildIndex() {
 		return
 	}
 
-	checksum, err := d.Decode()
+	checksum, err := d.Decode(w.statusChan)
 	if err != nil {
 		w.result <- err
 		return
@@ -149,7 +151,7 @@ func (w *PackWriter) encodeIdx(writer io.Writer) error {
 	idx.PackfileChecksum = w.checksum
 	idx.Version = idxfile.VersionSupported
 	e := idxfile.NewEncoder(writer)
-	_, err := e.Encode(idx)
+	_, err := e.Encode(idx, w.statusChan)
 	return err
 }
 

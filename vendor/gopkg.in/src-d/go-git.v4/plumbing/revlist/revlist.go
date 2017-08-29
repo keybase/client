@@ -20,34 +20,41 @@ func Objects(
 	s storer.EncodedObjectStorer,
 	objs,
 	ignore []plumbing.Hash,
+	statusChan plumbing.StatusChan,
 ) ([]plumbing.Hash, error) {
-	ignore, err := objects(s, ignore, nil, true)
+	ignore, err := objects(s, ignore, nil, nil, true)
 	if err != nil {
 		return nil, err
 	}
 
-	return objects(s, objs, ignore, false)
+	return objects(s, objs, ignore, statusChan, false)
 }
 
 func objects(
 	s storer.EncodedObjectStorer,
 	objects,
 	ignore []plumbing.Hash,
+	statusChan plumbing.StatusChan,
 	allowMissingObjects bool,
 ) ([]plumbing.Hash, error) {
 
 	seen := hashListToSet(ignore)
 	result := make(map[plumbing.Hash]bool)
 
+	update := plumbing.StatusUpdate{Stage: plumbing.StatusCount}
+	statusChan.SendUpdate(update)
+
 	walkerFunc := func(h plumbing.Hash) {
 		if !seen[h] {
 			result[h] = true
 			seen[h] = true
+			update.ObjectsTotal++
+			statusChan.SendUpdateIfPossible(update)
 		}
 	}
 
 	for _, h := range objects {
-		if err := processObject(s, h, seen, ignore, walkerFunc); err != nil {
+		if err := processObject(s, h, seen, ignore, walkerFunc, statusChan); err != nil {
 			if allowMissingObjects && err == plumbing.ErrObjectNotFound {
 				continue
 			}
@@ -56,7 +63,10 @@ func objects(
 		}
 	}
 
-	return hashSetToList(result), nil
+	hashes := hashSetToList(result)
+	update.ObjectsTotal = len(hashes)
+	statusChan.SendUpdate(update)
+	return hashes, nil
 }
 
 // processObject obtains the object using the hash an process it depending of its type
@@ -66,6 +76,7 @@ func processObject(
 	seen map[plumbing.Hash]bool,
 	ignore []plumbing.Hash,
 	walkerFunc func(h plumbing.Hash),
+	statusChan plumbing.StatusChan,
 ) error {
 	if seen[h] {
 		return nil
@@ -88,7 +99,7 @@ func processObject(
 		return iterateCommitTrees(seen, do, walkerFunc)
 	case *object.Tag:
 		walkerFunc(do.Hash)
-		return processObject(s, do.Target, seen, ignore, walkerFunc)
+		return processObject(s, do.Target, seen, ignore, walkerFunc, statusChan)
 	case *object.Blob:
 		walkerFunc(do.Hash)
 	default:

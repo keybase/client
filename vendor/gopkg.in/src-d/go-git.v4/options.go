@@ -133,7 +133,8 @@ type FetchOptions struct {
 	Progress sideband.Progress
 	// Tags describe how the tags will be fetched from the remote repository,
 	// by default is TagFollowing.
-	Tags TagFetchMode
+	Tags       TagFetchMode
+	StatusChan plumbing.StatusChan
 }
 
 // Validate validates the fields and sets the default values.
@@ -159,7 +160,8 @@ type PushOptions struct {
 	// object. A refspec with empty src can be used to delete a reference.
 	RefSpecs []config.RefSpec
 	// Auth credentials, if required, to use with the remote repository.
-	Auth transport.AuthMethod
+	Auth       transport.AuthMethod
+	StatusChan plumbing.StatusChan
 }
 
 // Validate validates the fields and sets the default values.

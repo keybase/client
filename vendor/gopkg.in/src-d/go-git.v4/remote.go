@@ -140,13 +140,13 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) error {
 	var hashesToPush []plumbing.Hash
 	// Avoid the expensive revlist operation if we're only doing deletes.
 	if !allDelete {
-		hashesToPush, err = revlist.Objects(r.s, objects, haves)
+		hashesToPush, err = revlist.Objects(r.s, objects, haves, o.StatusChan)
 		if err != nil {
 			return err
 		}
 	}
 
-	rs, err := pushHashes(ctx, s, r.s, req, hashesToPush)
+	rs, err := pushHashes(ctx, s, r.s, req, hashesToPush, o.StatusChan)
 	if err != nil {
 		return err
 	}
@@ -154,6 +154,13 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) error {
 	if err = rs.Error(); err != nil {
 		return err
 	}
+
+	defer func() {
+		o.StatusChan.SendUpdate(plumbing.StatusUpdate{
+			Stage:        plumbing.StatusDone,
+			ObjectsTotal: len(hashesToPush),
+		})
+	}()
 
 	return r.updateRemoteReferenceStorage(req, rs)
 }
@@ -267,6 +274,12 @@ func (r *Remote) fetch(ctx context.Context, o *FetchOptions) (storer.ReferenceSt
 		return nil, err
 	}
 
+	defer func() {
+		o.StatusChan.SendUpdate(plumbing.StatusUpdate{
+			Stage: plumbing.StatusDone,
+		})
+	}()
+
 	if !updated {
 		return remoteRefs, NoErrAlreadyUpToDate
 	}
@@ -322,6 +335,7 @@ func (r *Remote) fetchPack(ctx context.Context, o *FetchOptions, s transport.Upl
 
 	if err = packfile.UpdateObjectStorage(r.s,
 		buildSidebandIfSupported(req.Capabilities, reader, o.Progress),
+		o.StatusChan,
 	); err != nil {
 		return err
 	}
@@ -498,7 +512,9 @@ func calculateRefs(spec []config.RefSpec,
 	})
 }
 
-func getWants(localStorer storage.Storer, refs memory.ReferenceStorage) ([]plumbing.Hash, error) {
+func getWants(
+	localStorer storage.Storer,
+	refs memory.ReferenceStorage) ([]plumbing.Hash, error) {
 	wants := map[plumbing.Hash]bool{}
 	for _, ref := range refs {
 		hash := ref.Hash()
@@ -742,6 +758,7 @@ func pushHashes(
 	sto storer.EncodedObjectStorer,
 	req *packp.ReferenceUpdateRequest,
 	hs []plumbing.Hash,
+	statusChan plumbing.StatusChan,
 ) (*packp.ReportStatus, error) {
 
 	rd, wr := io.Pipe()
@@ -749,7 +766,7 @@ func pushHashes(
 	done := make(chan error)
 	go func() {
 		e := packfile.NewEncoder(wr, sto, false)
-		if _, err := e.Encode(hs); err != nil {
+		if _, err := e.Encode(hs, statusChan); err != nil {
 			done <- wr.CloseWithError(err)
 			return
 		}

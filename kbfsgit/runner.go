@@ -13,6 +13,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -190,7 +191,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 	// This function might be called multiple times per function, but
 	// the subsequent calls will use the local cache.  So only print
 	// these messages once.
-	r.logSync.Do(func() { r.errput.Write([]byte("Syncing to Keybase... ")) })
+	r.logSync.Do(func() { r.errput.Write([]byte("Syncing with Keybase... ")) })
 	defer func() {
 		r.logSyncDone.Do(func() { r.printDoneOrErr(err) })
 	}()
@@ -255,6 +256,55 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 	return repo, nil
 }
 
+func (r *runner) printJournalStatus(
+	ctx context.Context, jServer *libkbfs.JournalServer, tlf tlf.ID,
+	doneCh <-chan struct{}) {
+	// Note: the "first" status here gets us the number of unflushed
+	// bytes left at the time we started printing.  However, we don't
+	// have the total number of bytes being flushed to the server
+	// throughout the whole operation, which would be more
+	// informative.  It would be better to have that as the
+	// denominator, but there's no easy way to get it right now.
+	firstStatus, err := jServer.JournalStatus(tlf)
+	if err != nil {
+		r.log.CDebugf(ctx, "Error getting status: %+v", err)
+		return
+	}
+	if firstStatus.UnflushedBytes == 0 {
+		return
+	}
+	r.errput.Write([]byte("Syncing data to Keybase: "))
+	bytesFmt := "%d/%d bytes... "
+	str := fmt.Sprintf(bytesFmt, 0, firstStatus.UnflushedBytes)
+	lastByteCount := len(str)
+	r.errput.Write([]byte(str))
+
+	ticker := time.Tick(1 * time.Second)
+	for {
+		select {
+		case <-ticker:
+		case <-doneCh:
+		}
+		status, err := jServer.JournalStatus(tlf)
+		if err != nil {
+			r.log.CDebugf(ctx, "Error getting status: %+v", err)
+			return
+		}
+
+		eraseStr := strings.Repeat("\b", lastByteCount)
+		str := fmt.Sprintf(
+			bytesFmt, firstStatus.UnflushedBytes-status.UnflushedBytes,
+			firstStatus.UnflushedBytes)
+		lastByteCount = len(str)
+		r.errput.Write([]byte(eraseStr + str))
+
+		if status.UnflushedBytes == 0 {
+			r.errput.Write([]byte("done.\n"))
+			return
+		}
+	}
+}
+
 func (r *runner) waitForJournal(ctx context.Context) error {
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
 		ctx, r.h, libkbfs.MasterBranch)
@@ -273,10 +323,20 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		return nil
 	}
 
+	printDoneCh := make(chan struct{})
+	waitDoneCh := make(chan struct{})
+	go func() {
+		r.printJournalStatus(
+			ctx, jServer, rootNode.GetFolderBranch().Tlf, waitDoneCh)
+		close(printDoneCh)
+	}()
+
 	err = jServer.Wait(ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		return err
 	}
+	close(waitDoneCh)
+	<-printDoneCh
 
 	// Make sure that everything is truly flushed.
 	status, err := jServer.JournalStatus(rootNode.GetFolderBranch().Tlf)
@@ -351,6 +411,54 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 	return err
 }
 
+var gogitStagesToStatus = map[plumbing.StatusStage]string{
+	plumbing.StatusCount: "Counting ",
+	plumbing.StatusRead:  "Reading: ",
+	plumbing.StatusSort:  "Sorting... ",
+	plumbing.StatusDelta: "Calculating deltas: ",
+	// For us, a "send" actually means fetch.
+	plumbing.StatusSend: "Fetching: ",
+	// For us, a "fetch" actually means writing objects to
+	// the local journal.
+	plumbing.StatusFetch:       "Preparing: ",
+	plumbing.StatusIndexHash:   "Indexing hashes: ",
+	plumbing.StatusIndexCRC:    "Indexing CRCs: ",
+	plumbing.StatusIndexOffset: "Indexing offsets: ",
+}
+
+func (r *runner) processGogitStatus(
+	ctx context.Context, statusChan <-chan plumbing.StatusUpdate) {
+	currStage := plumbing.StatusUnknown
+	lastByteCount := 0
+	for update := range statusChan {
+		if update.Stage != currStage {
+			r.errput.Write([]byte("done.\n"))
+			r.errput.Write([]byte(gogitStagesToStatus[update.Stage]))
+			lastByteCount = 0
+			currStage = update.Stage
+		}
+		eraseStr := strings.Repeat("\b", lastByteCount)
+		newStr := ""
+
+		switch update.Stage {
+		case plumbing.StatusDone:
+			return
+		case plumbing.StatusCount:
+			newStr = fmt.Sprintf("%d objects... ", update.ObjectsTotal)
+		case plumbing.StatusSort:
+		default:
+			newStr = fmt.Sprintf(
+				"%d/%d objects... ", update.ObjectsDone, update.ObjectsTotal)
+		}
+
+		lastByteCount = len(newStr)
+		r.errput.Write([]byte(eraseStr + newStr))
+
+		currStage = update.Stage
+	}
+	r.errput.Write([]byte("\n"))
+}
+
 // handleFetchBatch: From https://git-scm.com/docs/git-remote-helpers
 //
 // fetch <sha1> <name>
@@ -370,11 +478,6 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 	if err != nil {
 		return err
 	}
-
-	r.errput.Write([]byte("Fetching data from Keybase... "))
-	defer func() {
-		r.printDoneOrErr(err)
-	}()
 
 	r.log.CDebugf(ctx, "Fetching %d refs into %s", len(args), r.gitDir)
 
@@ -405,11 +508,16 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 			fmt.Sprintf(":refs/remotes/%s/%s", r.remote, localTempRef)))
 	}
 
+	statusChan := make(chan plumbing.StatusUpdate)
+	defer close(statusChan)
+	go r.processGogitStatus(ctx, statusChan)
+
 	// Now "push" into the local repo to get it to store objects
 	// from the KBFS bare repo.
 	err = remote.PushContext(ctx, &gogit.PushOptions{
 		RemoteName: localRepoRemoteName,
 		RefSpecs:   refSpecs,
+		StatusChan: plumbing.StatusChan(statusChan),
 	})
 	if err != nil && err != gogit.NoErrAlreadyUpToDate {
 		return err
@@ -469,17 +577,16 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		return err
 	}
 
-	r.errput.Write([]byte("Pushing data to Keybase... "))
-	defer func() {
-		r.printDoneOrErr(err)
-	}()
-
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
 		Name: localRepoRemoteName,
 		URLs: []string{r.gitDir},
 	})
+
+	statusChan := make(chan plumbing.StatusUpdate)
+	defer close(statusChan)
+	go r.processGogitStatus(ctx, statusChan)
 
 	results := make(map[string]error, len(args))
 	// We don't batch the pushes together, because the protocol
@@ -517,6 +624,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			err = remote.FetchContext(ctx, &gogit.FetchOptions{
 				RemoteName: localRepoRemoteName,
 				RefSpecs:   []gogitcfg.RefSpec{refspec},
+				StatusChan: statusChan,
 			})
 		}
 		if err == gogit.NoErrAlreadyUpToDate {

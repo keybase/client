@@ -6,6 +6,7 @@ import (
 	"io"
 	"sort"
 
+	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/utils/binary"
 )
 
@@ -23,10 +24,10 @@ func NewEncoder(w io.Writer) *Encoder {
 }
 
 // Encode encodes an Idxfile to the encoder writer.
-func (e *Encoder) Encode(idx *Idxfile) (int, error) {
+func (e *Encoder) Encode(idx *Idxfile, statusChan plumbing.StatusChan) (int, error) {
 	idx.Entries.Sort()
 
-	flow := []func(*Idxfile) (int, error){
+	flow := []func(*Idxfile, plumbing.StatusChan) (int, error){
 		e.encodeHeader,
 		e.encodeFanout,
 		e.encodeHashes,
@@ -37,7 +38,7 @@ func (e *Encoder) Encode(idx *Idxfile) (int, error) {
 
 	sz := 0
 	for _, f := range flow {
-		i, err := f(idx)
+		i, err := f(idx, statusChan)
 		sz += i
 
 		if err != nil {
@@ -48,7 +49,7 @@ func (e *Encoder) Encode(idx *Idxfile) (int, error) {
 	return sz, nil
 }
 
-func (e *Encoder) encodeHeader(idx *Idxfile) (int, error) {
+func (e *Encoder) encodeHeader(idx *Idxfile, _ plumbing.StatusChan) (int, error) {
 	c, err := e.Write(idxHeader)
 	if err != nil {
 		return c, err
@@ -57,7 +58,7 @@ func (e *Encoder) encodeHeader(idx *Idxfile) (int, error) {
 	return c + 4, binary.WriteUint32(e, idx.Version)
 }
 
-func (e *Encoder) encodeFanout(idx *Idxfile) (int, error) {
+func (e *Encoder) encodeFanout(idx *Idxfile, _ plumbing.StatusChan) (int, error) {
 	fanout := idx.calculateFanout()
 	for _, c := range fanout {
 		if err := binary.WriteUint32(e, c); err != nil {
@@ -68,7 +69,13 @@ func (e *Encoder) encodeFanout(idx *Idxfile) (int, error) {
 	return 1024, nil
 }
 
-func (e *Encoder) encodeHashes(idx *Idxfile) (int, error) {
+func (e *Encoder) encodeHashes(idx *Idxfile, statusChan plumbing.StatusChan) (int, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusIndexHash,
+		ObjectsTotal: len(idx.Entries),
+	}
+	statusChan.SendUpdate(update)
+
 	sz := 0
 	for _, ent := range idx.Entries {
 		i, err := e.Write(ent.Hash[:])
@@ -77,12 +84,20 @@ func (e *Encoder) encodeHashes(idx *Idxfile) (int, error) {
 		if err != nil {
 			return sz, err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return sz, nil
 }
 
-func (e *Encoder) encodeCRC32(idx *Idxfile) (int, error) {
+func (e *Encoder) encodeCRC32(idx *Idxfile, statusChan plumbing.StatusChan) (int, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusIndexCRC,
+		ObjectsTotal: len(idx.Entries),
+	}
+	statusChan.SendUpdate(update)
+
 	sz := 0
 	for _, ent := range idx.Entries {
 		err := binary.Write(e, ent.CRC32)
@@ -91,12 +106,20 @@ func (e *Encoder) encodeCRC32(idx *Idxfile) (int, error) {
 		if err != nil {
 			return sz, err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return sz, nil
 }
 
-func (e *Encoder) encodeOffsets(idx *Idxfile) (int, error) {
+func (e *Encoder) encodeOffsets(idx *Idxfile, statusChan plumbing.StatusChan) (int, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusIndexOffset,
+		ObjectsTotal: len(idx.Entries),
+	}
+	statusChan.SendUpdate(update)
+
 	sz := 0
 
 	var o64bits []uint64
@@ -112,6 +135,8 @@ func (e *Encoder) encodeOffsets(idx *Idxfile) (int, error) {
 		}
 
 		sz += 4
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	for _, o := range o64bits {
@@ -125,7 +150,7 @@ func (e *Encoder) encodeOffsets(idx *Idxfile) (int, error) {
 	return sz, nil
 }
 
-func (e *Encoder) encodeChecksums(idx *Idxfile) (int, error) {
+func (e *Encoder) encodeChecksums(idx *Idxfile, _ plumbing.StatusChan) (int, error) {
 	if _, err := e.Write(idx.PackfileChecksum[:]); err != nil {
 		return 0, err
 	}

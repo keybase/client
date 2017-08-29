@@ -14,10 +14,10 @@ import (
 // Encoder gets the data from the storage and write it into the writer in PACK
 // format
 type Encoder struct {
-	selector     *deltaSelector
-	w            *offsetWriter
-	zw           *zlib.Writer
-	hasher       plumbing.Hasher
+	selector *deltaSelector
+	w        *offsetWriter
+	zw       *zlib.Writer
+	hasher   plumbing.Hasher
 	// offsets is a map of object hashes to corresponding offsets in the packfile.
 	// It is used to determine offset of the base of a delta when a OFS_DELTA is
 	// used.
@@ -47,16 +47,28 @@ func NewEncoder(w io.Writer, s storer.EncodedObjectStorer, useRefDeltas bool) *E
 
 // Encode creates a packfile containing all the objects referenced in hashes
 // and writes it to the writer in the Encoder.
-func (e *Encoder) Encode(hashes []plumbing.Hash) (plumbing.Hash, error) {
-	objects, err := e.selector.ObjectsToPack(hashes)
+func (e *Encoder) Encode(
+	hashes []plumbing.Hash,
+	statusChan plumbing.StatusChan,
+) (plumbing.Hash, error) {
+	objects, err := e.selector.ObjectsToPack(hashes, statusChan)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
 
-	return e.encode(objects)
+	return e.encode(objects, statusChan)
 }
 
-func (e *Encoder) encode(objects []*ObjectToPack) (plumbing.Hash, error) {
+func (e *Encoder) encode(
+	objects []*ObjectToPack,
+	statusChan plumbing.StatusChan,
+) (plumbing.Hash, error) {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusSend,
+		ObjectsTotal: len(objects),
+	}
+	statusChan.SendUpdate(update)
+
 	if err := e.head(len(objects)); err != nil {
 		return plumbing.ZeroHash, err
 	}
@@ -65,6 +77,8 @@ func (e *Encoder) encode(objects []*ObjectToPack) (plumbing.Hash, error) {
 		if err := e.entry(o); err != nil {
 			return plumbing.ZeroHash, err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return e.footer()
@@ -137,7 +151,7 @@ func (e *Encoder) writeOfsDeltaHeader(deltaOffset int64, base plumbing.Hash) err
 
 	// for OFS_DELTA, offset of the base is interpreted as negative offset
 	// relative to the type-byte of the header of the ofs-delta entry.
-	relativeOffset := deltaOffset-baseOffset
+	relativeOffset := deltaOffset - baseOffset
 	if relativeOffset <= 0 {
 		return fmt.Errorf("bad offset for OFS_DELTA entry: %d", relativeOffset)
 	}

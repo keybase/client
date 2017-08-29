@@ -165,7 +165,7 @@ func (s *upSession) UploadPack(ctx context.Context, req *packp.UploadPackRequest
 	pr, pw := io.Pipe()
 	e := packfile.NewEncoder(pw, s.storer, false)
 	go func() {
-		_, err := e.Encode(objs)
+		_, err := e.Encode(objs, nil)
 		pw.CloseWithError(err)
 	}()
 
@@ -175,12 +175,12 @@ func (s *upSession) UploadPack(ctx context.Context, req *packp.UploadPackRequest
 }
 
 func (s *upSession) objectsToUpload(req *packp.UploadPackRequest) ([]plumbing.Hash, error) {
-	haves, err := revlist.Objects(s.storer, req.Haves, nil)
+	haves, err := revlist.Objects(s.storer, req.Haves, nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	return revlist.Objects(s.storer, req.Wants, haves)
+	return revlist.Objects(s.storer, req.Wants, haves, nil)
 }
 
 func (*upSession) setSupportedCapabilities(c *capability.List) error {
@@ -313,7 +313,7 @@ func (s *rpSession) writePackfile(r io.ReadCloser) error {
 		return nil
 	}
 
-	if err := packfile.UpdateObjectStorage(s.storer, r); err != nil {
+	if err := packfile.UpdateObjectStorage(s.storer, r, nil); err != nil {
 		_ = r.Close()
 		return err
 	}

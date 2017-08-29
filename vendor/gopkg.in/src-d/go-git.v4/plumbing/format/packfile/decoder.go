@@ -116,25 +116,38 @@ func canResolveDeltas(s *Scanner, o storer.EncodedObjectStorer) bool {
 
 // Decode reads a packfile and stores it in the value pointed to by s. The
 // offsets and the CRCs are calculated by this method
-func (d *Decoder) Decode() (checksum plumbing.Hash, err error) {
+func (d *Decoder) Decode(statusChan plumbing.StatusChan) (checksum plumbing.Hash, err error) {
 	defer func() { d.isDecoded = true }()
 
 	if d.isDecoded {
 		return plumbing.ZeroHash, ErrAlreadyDecoded
 	}
 
-	if err := d.doDecode(); err != nil {
+	if err := d.doDecode(statusChan); err != nil {
 		return plumbing.ZeroHash, err
 	}
 
 	return d.s.Checksum()
 }
 
-func (d *Decoder) doDecode() error {
+func (d *Decoder) doDecode(statusChan plumbing.StatusChan) error {
+	statusChan.SendUpdate(plumbing.StatusUpdate{
+		Stage: plumbing.StatusCount,
+	})
+
 	_, count, err := d.s.Header()
 	if err != nil {
 		return err
 	}
+
+	statusChan.SendUpdate(plumbing.StatusUpdate{
+		Stage:        plumbing.StatusCount,
+		ObjectsTotal: int(count),
+	})
+	statusChan.SendUpdate(plumbing.StatusUpdate{
+		Stage:        plumbing.StatusFetch,
+		ObjectsTotal: int(count),
+	})
 
 	if !d.hasBuiltIndex {
 		d.idx = NewIndex(int(count))
@@ -144,25 +157,35 @@ func (d *Decoder) doDecode() error {
 	_, isTxStorer := d.o.(storer.Transactioner)
 	switch {
 	case d.o == nil:
-		return d.decodeObjects(int(count))
+		return d.decodeObjects(int(count), statusChan)
 	case isTxStorer:
-		return d.decodeObjectsWithObjectStorerTx(int(count))
+		return d.decodeObjectsWithObjectStorerTx(int(count), statusChan)
 	default:
-		return d.decodeObjectsWithObjectStorer(int(count))
+		return d.decodeObjectsWithObjectStorer(int(count), statusChan)
 	}
 }
 
-func (d *Decoder) decodeObjects(count int) error {
+func (d *Decoder) decodeObjects(count int, statusChan plumbing.StatusChan) error {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusFetch,
+		ObjectsTotal: count,
+	}
 	for i := 0; i < count; i++ {
 		if _, err := d.DecodeObject(); err != nil {
 			return err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return nil
 }
 
-func (d *Decoder) decodeObjectsWithObjectStorer(count int) error {
+func (d *Decoder) decodeObjectsWithObjectStorer(count int, statusChan plumbing.StatusChan) error {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusFetch,
+		ObjectsTotal: count,
+	}
 	for i := 0; i < count; i++ {
 		obj, err := d.DecodeObject()
 		if err != nil {
@@ -172,12 +195,19 @@ func (d *Decoder) decodeObjectsWithObjectStorer(count int) error {
 		if _, err := d.o.SetEncodedObject(obj); err != nil {
 			return err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return nil
 }
 
-func (d *Decoder) decodeObjectsWithObjectStorerTx(count int) error {
+func (d *Decoder) decodeObjectsWithObjectStorerTx(count int, statusChan plumbing.StatusChan) error {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusFetch,
+		ObjectsTotal: count,
+	}
+
 	d.tx = d.o.(storer.Transactioner).Begin()
 
 	for i := 0; i < count; i++ {
@@ -196,6 +226,8 @@ func (d *Decoder) decodeObjectsWithObjectStorerTx(count int) error {
 			return err
 		}
 
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return d.tx.Commit()

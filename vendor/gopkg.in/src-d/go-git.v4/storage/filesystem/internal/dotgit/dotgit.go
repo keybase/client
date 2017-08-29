@@ -137,8 +137,8 @@ func (d *DotGit) Shallow() (billy.File, error) {
 
 // NewObjectPack return a writer for a new packfile, it saves the packfile to
 // disk and also generates and save the index for the given packfile.
-func (d *DotGit) NewObjectPack() (*PackWriter, error) {
-	return newPackWrite(d.fs)
+func (d *DotGit) NewObjectPack(statusChan plumbing.StatusChan) (*PackWriter, error) {
+	return newPackWrite(d.fs, statusChan)
 }
 
 // ObjectPacks returns the list of availables packfiles
@@ -266,11 +266,12 @@ func (d *DotGit) SetRef(r *plumbing.Reference) error {
 // Symbolic references are resolved and included in the output.
 func (d *DotGit) Refs() ([]*plumbing.Reference, error) {
 	var refs []*plumbing.Reference
-	if err := d.addRefsFromPackedRefs(&refs); err != nil {
+	var seen = make(map[plumbing.ReferenceName]bool)
+	if err := d.addRefsFromRefDir(&refs, seen); err != nil {
 		return nil, err
 	}
 
-	if err := d.addRefsFromRefDir(&refs); err != nil {
+	if err := d.addRefsFromPackedRefs(&refs, seen); err != nil {
 		return nil, err
 	}
 
@@ -359,13 +360,16 @@ func (d *DotGit) RemoveRef(name plumbing.ReferenceName) error {
 	return d.rewritePackedRefsWithoutRef(name)
 }
 
-func (d *DotGit) addRefsFromPackedRefs(refs *[]*plumbing.Reference) (err error) {
+func (d *DotGit) addRefsFromPackedRefs(refs *[]*plumbing.Reference, seen map[plumbing.ReferenceName]bool) (err error) {
 	if err := d.syncPackedRefs(); err != nil {
 		return err
 	}
 
-	for _, ref := range d.cachedPackedRefs {
-		*refs = append(*refs, ref)
+	for name, ref := range d.cachedPackedRefs {
+		if !seen[name] {
+			*refs = append(*refs, ref)
+			seen[name] = true
+		}
 	}
 
 	return nil
@@ -448,11 +452,11 @@ func (d *DotGit) processLine(line string) (*plumbing.Reference, error) {
 	}
 }
 
-func (d *DotGit) addRefsFromRefDir(refs *[]*plumbing.Reference) error {
-	return d.walkReferencesTree(refs, []string{refsPath})
+func (d *DotGit) addRefsFromRefDir(refs *[]*plumbing.Reference, seen map[plumbing.ReferenceName]bool) error {
+	return d.walkReferencesTree(refs, []string{refsPath}, seen)
 }
 
-func (d *DotGit) walkReferencesTree(refs *[]*plumbing.Reference, relPath []string) error {
+func (d *DotGit) walkReferencesTree(refs *[]*plumbing.Reference, relPath []string, seen map[plumbing.ReferenceName]bool) error {
 	files, err := d.fs.ReadDir(d.fs.Join(relPath...))
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -465,7 +469,7 @@ func (d *DotGit) walkReferencesTree(refs *[]*plumbing.Reference, relPath []strin
 	for _, f := range files {
 		newRelPath := append(append([]string(nil), relPath...), f.Name())
 		if f.IsDir() {
-			if err = d.walkReferencesTree(refs, newRelPath); err != nil {
+			if err = d.walkReferencesTree(refs, newRelPath, seen); err != nil {
 				return err
 			}
 
@@ -477,8 +481,9 @@ func (d *DotGit) walkReferencesTree(refs *[]*plumbing.Reference, relPath []strin
 			return err
 		}
 
-		if ref != nil {
+		if ref != nil && !seen[ref.Name()] {
 			*refs = append(*refs, ref)
+			seen[ref.Name()] = true
 		}
 	}
 
