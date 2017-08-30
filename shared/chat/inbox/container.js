@@ -28,7 +28,12 @@ const passesParticipantFilter = (participants: I.List<string>, filter: string, y
   if (!filter) {
     return true
   }
-  const names = participants.filter(p => p !== you).toArray()
+
+  // don't filter you out if its just a convo with you!
+  const justYou = participants.count() === 1 && participants.first() === you
+  const filterFunc = justYou ? () => true : p => p !== you
+
+  const names = participants.filter(filterFunc).toArray()
   // No need to worry about Unicode issues with toLowerCase(), since
   // names can only be ASCII.
   return names.some(n => passesStringFilter(filter, n))
