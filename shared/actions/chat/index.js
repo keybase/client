@@ -1116,7 +1116,7 @@ const _setNotifications = function*(action: Constants.SetNotifications) {
   // Send the new post-reducer setNotifications structure to the service.
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox && inbox.notifications) {
-    const notifications = inbox.notifications || {}
+    const {notifications} = inbox
     const param = {
       convID: Constants.keyToConversationID(conversationIDKey),
       channelWide: notifications.channelWide,
