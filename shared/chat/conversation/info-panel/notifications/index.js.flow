@@ -1,0 +1,12 @@
+// @flow
+import {Component} from 'react'
+import type {NotifyType} from '../../../../constants/chat'
+
+export type Props = {
+  desktop: string,
+  mobile: string,
+  onSetDesktop: NotifyType => void,
+  onSetMobile: NotifyType => void,
+}
+
+export default class Notifications extends Component<Props> {}

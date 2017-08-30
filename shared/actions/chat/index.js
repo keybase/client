@@ -16,6 +16,7 @@ import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
+  CommonDeviceType,
   ConstantsStatusCode,
   teamsTeamCreateRpcPromise,
   teamsTeamAddMemberRpcPromise,
@@ -191,6 +192,8 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
           )
         }
       }
+      break
+    case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
       break
     default:
       console.warn(
@@ -1098,6 +1101,42 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   }
 }
 
+const _setNotifications = function*(action: Constants.SetNotifications) {
+  const {payload: {conversationIDKey}} = action
+  // Send the new post-reducer setNotifications structure to the service.
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  if (inbox && inbox.notifications) {
+    const notifications = inbox.notifications || {}
+    const param = {
+      convID: Constants.keyToConversationID(conversationIDKey),
+      channelWide: notifications.channelWide,
+      settings: [
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.desktop.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.desktop.generic,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.mobile.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.mobile.generic,
+        },
+      ],
+    }
+    yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
+  }
+}
+
 const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
@@ -1142,6 +1181,7 @@ const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
+  yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
 }
 
 export default chatSaga

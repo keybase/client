@@ -9,6 +9,7 @@ import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
 
+import type {DeviceType} from '../../constants/types/more'
 import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
 
@@ -351,6 +352,14 @@ function getInboxAndUnbox(
 
 function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constants.ClearMessages {
   return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
+}
+
+function setNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  deviceType: DeviceType,
+  notifyType: Constants.NotifyType
+) {
+  return {payload: {conversationIDKey, deviceType, notifyType}, type: 'chat:setNotifications'}
 }
 
 function clearSearchResults(): Constants.ClearSearchResults {
@@ -744,6 +753,7 @@ export {
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
+  setNotifications,
   setPreviousConversation,
   setSelectedRouteState,
   setTypers,
