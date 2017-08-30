@@ -134,7 +134,7 @@ export function resetRoute(path: Path): ResetRoute {
   }
 }
 
-const _putActionIfOnPath = function*({
+function* _putActionIfOnPath({
   payload: {otherAction, expectedPath, parentPath},
 }: Constants.PutActionIfOnPath<*>) {
   const currentPath = yield select(pathSelector, parentPath)
@@ -143,7 +143,7 @@ const _putActionIfOnPath = function*({
   }
 }
 
-const routeSaga = function*(): any {
+function* routeSaga(): any {
   yield safeTakeEvery('routeTree:putActionIfOnPath', _putActionIfOnPath)
 }
 

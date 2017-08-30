@@ -65,7 +65,7 @@ function tmpFileName(
 }
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
-const startNewConversation = function*(
+function* startNewConversation(
   oldConversationIDKey: Constants.ConversationIDKey
 ): Generator<any, ?Constants.ConversationIDKey, any> {
   // Find the participants
@@ -118,7 +118,7 @@ const startNewConversation = function*(
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
-const getPostingIdentifyBehavior = function*(
+function* getPostingIdentifyBehavior(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, any, any> {
   const metaData = (yield select(metaDataSelector): any)
