@@ -32,7 +32,10 @@ type StartOptions struct {
 func startMounting(options StartOptions,
 	log logger.Logger, mi *libfs.MountInterrupter) error {
 	var mounter = &mounter{options: options, log: log}
-	mi.MountAndSetUnmount(mounter)
+	err := mi.MountAndSetUnmount(mounter)
+	if err != nil {
+		return err
+	}
 	log.Info("Mounting the filesystem was a success!")
 	return mounter.c.BlockTillDone()
 }
@@ -105,6 +108,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 				mi.Done()
 				return libfs.MountError(err.Error())
 			}
+			log.Errorf("Running KBFS without a filesystem mount due to: %v", err)
 		}
 	}
 
