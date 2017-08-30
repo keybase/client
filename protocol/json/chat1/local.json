@@ -1892,6 +1892,24 @@
           "name": "rateLimits"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "AppNotificationSettingLocal",
+      "fields": [
+        {
+          "type": "keybase1.DeviceType",
+          "name": "deviceType"
+        },
+        {
+          "type": "NotificationKind",
+          "name": "kind"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled"
+        }
+      ]
     }
   ],
   "messages": {
@@ -2609,8 +2627,15 @@
           "type": "ConversationID"
         },
         {
+          "name": "channelWide",
+          "type": "boolean"
+        },
+        {
           "name": "settings",
-          "type": "ConversationNotificationInfo"
+          "type": {
+            "type": "array",
+            "items": "AppNotificationSettingLocal"
+          }
         }
       ],
       "response": "SetAppNotificationSettingsLocalRes"

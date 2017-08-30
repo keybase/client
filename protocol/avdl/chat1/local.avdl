@@ -669,7 +669,12 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits;
   }
-  SetAppNotificationSettingsLocalRes setAppNotificationSettingsLocal(ConversationID convID, ConversationNotificationInfo settings);
+  record AppNotificationSettingLocal {
+    keybase1.DeviceType deviceType;
+    NotificationKind kind;
+    boolean enabled;
+  }
+  SetAppNotificationSettingsLocalRes setAppNotificationSettingsLocal(ConversationID convID, boolean channelWide, array<AppNotificationSettingLocal> settings);
   void setGlobalAppNotificationSettingsLocal(map<string, bool> settings);
   GlobalAppNotificationSettings getGlobalAppNotificationSettingsLocal();
 

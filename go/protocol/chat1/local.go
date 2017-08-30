@@ -3004,6 +3004,20 @@ func (o SetAppNotificationSettingsLocalRes) DeepCopy() SetAppNotificationSetting
 	}
 }
 
+type AppNotificationSettingLocal struct {
+	DeviceType keybase1.DeviceType `codec:"deviceType" json:"deviceType"`
+	Kind       NotificationKind    `codec:"kind" json:"kind"`
+	Enabled    bool                `codec:"enabled" json:"enabled"`
+}
+
+func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
+	return AppNotificationSettingLocal{
+		DeviceType: o.DeviceType.DeepCopy(),
+		Kind:       o.Kind.DeepCopy(),
+		Enabled:    o.Enabled,
+	}
+}
+
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
@@ -3621,14 +3635,23 @@ func (o GetTLFConversationsLocalArg) DeepCopy() GetTLFConversationsLocalArg {
 }
 
 type SetAppNotificationSettingsLocalArg struct {
-	ConvID   ConversationID               `codec:"convID" json:"convID"`
-	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+	ConvID      ConversationID                `codec:"convID" json:"convID"`
+	ChannelWide bool                          `codec:"channelWide" json:"channelWide"`
+	Settings    []AppNotificationSettingLocal `codec:"settings" json:"settings"`
 }
 
 func (o SetAppNotificationSettingsLocalArg) DeepCopy() SetAppNotificationSettingsLocalArg {
 	return SetAppNotificationSettingsLocalArg{
-		ConvID:   o.ConvID.DeepCopy(),
-		Settings: o.Settings.DeepCopy(),
+		ConvID:      o.ConvID.DeepCopy(),
+		ChannelWide: o.ChannelWide,
+		Settings: (func(x []AppNotificationSettingLocal) []AppNotificationSettingLocal {
+			var ret []AppNotificationSettingLocal
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Settings),
 	}
 }
 

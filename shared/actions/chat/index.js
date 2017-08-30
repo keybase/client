@@ -1091,26 +1091,36 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
 }
 
 const _setNotifications = function*(action: Constants.SetNotifications) {
-  const {payload: {conversationIDKey, deviceType, notifyType}} = action
+  const {payload: {conversationIDKey}} = action
   // Send the new post-reducer setNotifications structure to the service.
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox && inbox.notifications) {
-    const {notifications} = inbox
+    const notifications = inbox.notifications || {}
     const param = {
       convID: Constants.keyToConversationID(conversationIDKey),
-      settings: {
-        channelWide: notifications.channelWide,
-        settings: {
-          [CommonDeviceType.desktop.toString()]: {
-            [ChatTypes.CommonNotificationKind.atmention.toString()]: notifications.desktop.atmention,
-            [ChatTypes.CommonNotificationKind.generic.toString()]: notifications.desktop.generic,
-          },
-          [CommonDeviceType.mobile.toString()]: {
-            [ChatTypes.CommonNotificationKind.atmention.toString()]: notifications.mobile.atmention,
-            [ChatTypes.CommonNotificationKind.generic.toString()]: notifications.mobile.generic,
-          },
+      channelWide: notifications.channelWide,
+      settings: [
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.desktop.atmention,
         },
-      },
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.desktop.generic,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.mobile.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.mobile.generic,
+        },
+      ],
     }
     console.warn('calling with param', param)
     yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
