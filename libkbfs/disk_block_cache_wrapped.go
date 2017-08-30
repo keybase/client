@@ -80,7 +80,7 @@ func (cache *diskBlockCacheWrapped) enableSyncCache() (err error) {
 func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-	triggeredPrefetch bool, err error) {
+	prefetchStatus PrefetchStatus, err error) {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
 	primaryCache := cache.workingSetCache
@@ -89,12 +89,13 @@ func (cache *diskBlockCacheWrapped) Get(ctx context.Context, tlfID tlf.ID,
 		primaryCache, secondaryCache = secondaryCache, primaryCache
 	}
 	// Check both caches if the primary cache doesn't have the block.
-	buf, serverHalf, triggeredPrefetch, err = primaryCache.Get(ctx, tlfID, blockID)
+	buf, serverHalf, prefetchStatus, err =
+		primaryCache.Get(ctx, tlfID, blockID)
 	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		return secondaryCache.Get(ctx, tlfID, blockID)
 	}
-	return buf, serverHalf, triggeredPrefetch, err
+	return buf, serverHalf, prefetchStatus, err
 }
 
 // GetMetadata implements the DiskBlockCache interface for
@@ -157,22 +158,20 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 // UpdateMetadata implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, triggeredPrefetch, finishedPrefetch *bool) error {
+	blockID kbfsblock.ID, prefetchStatus *PrefetchStatus) error {
 	// This is a write operation but we are only reading the pointers to the
 	// caches. So we use a read lock.
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
 	// Try to update metadata for both caches.
 	if cache.syncCache != nil {
-		err := cache.syncCache.UpdateMetadata(ctx, blockID, triggeredPrefetch,
-			finishedPrefetch)
+		err := cache.syncCache.UpdateMetadata(ctx, blockID, prefetchStatus)
 		_, isNoSuchBlockError := err.(NoSuchBlockError)
 		if !isNoSuchBlockError {
 			return err
 		}
 	}
-	return cache.workingSetCache.UpdateMetadata(ctx, blockID, triggeredPrefetch,
-		finishedPrefetch)
+	return cache.workingSetCache.UpdateMetadata(ctx, blockID, prefetchStatus)
 }
 
 // Size implements the DiskBlockCache interface for diskBlockCacheWrapped.

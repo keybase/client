@@ -788,6 +788,19 @@ const (
 	PermanentEntry
 )
 
+// PrefetchStatus denotes the prefetch status of a block.
+type PrefetchStatus int
+
+const (
+	// NoPrefetch represents an entry that hasn't been prefetched.
+	NoPrefetch PrefetchStatus = iota
+	// TriggeredPrefetch represents a block for which prefetching has been
+	// triggered, but the full tree has not been completed.
+	TriggeredPrefetch
+	// FinishedPrefetch represents a block whose full subtree is synced.
+	FinishedPrefetch
+)
+
 // BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
 // a cache.  These blocks are immutable and identified by their
 // content hash.
@@ -831,14 +844,14 @@ type BlockCache interface {
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
-	// GetWithPrefetch retrieves a block from the cache, along with whether or
-	// not it has triggered a prefetch.
-	GetWithPrefetch(ptr BlockPointer) (
-		block Block, triggeredPrefetch bool, lifetime BlockCacheLifetime, err error)
+	// GetWithPrefetch retrieves a block from the cache, along with the block's
+	// prefetch status.
+	GetWithPrefetch(ptr BlockPointer) (block Block,
+		prefetchStatus PrefetchStatus, lifetime BlockCacheLifetime, err error)
 	// PutWithPrefetch puts a block into the cache, along with whether or not
-	// it has triggered a prefetch.
+	// it has triggered or finished a prefetch.
 	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime, triggeredPrefetch bool) error
+		lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.
@@ -934,7 +947,7 @@ type DiskBlockCache interface {
 	// Get gets a block from the disk cache.
 	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-		triggeredPrefetch bool, err error)
+		prefetchStatus PrefetchStatus, err error)
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
@@ -942,11 +955,10 @@ type DiskBlockCache interface {
 	Delete(ctx context.Context, blockIDs []kbfsblock.ID) (numRemoved int,
 		sizeRemoved int64, err error)
 	// UpdateMetadata updates metadata for a given block in the disk cache.
-	// A `nil` `triggeredPrefetch` or `finishedPrefetch` indicates that they
-	// should remain as they are right now (defaulting to `false` if the
-	// metadata doesn't exist yet).
+	// A `nil` `prefetchStatus` indicates that it should be left unchanged in
+	// the cache (defaulting to `false` if the metadata doesn't exist yet).
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		triggeredPrefetch, finishedPrefetch *bool) error
+		prefetchStatus *PrefetchStatus) error
 	// GetMetadata gets metadata for a given block in the disk cache without
 	// changing it.
 	GetMetadata(ctx context.Context, blockID kbfsblock.ID) (
@@ -2254,6 +2266,6 @@ type BlockRetriever interface {
 	// each channel to monitor the prefetches.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		triggeredPrefetch bool,
+		prefetchStatus PrefetchStatus,
 		prefetchDoneCh, prefetchErrCh chan<- struct{}) error
 }

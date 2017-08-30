@@ -74,17 +74,13 @@ func shutdownPrefetcherTest(q *blockRetrievalQueue) {
 	q.Shutdown()
 }
 
-func testPrefetcherCheckGet(t *testing.T, bcache BlockCache,
-	ptr BlockPointer, expectedBlock Block, expectedHasPrefetch bool,
+func testPrefetcherCheckGet(t *testing.T, bcache BlockCache, ptr BlockPointer,
+	expectedBlock Block, expectedPrefetchStatus PrefetchStatus,
 	expectedLifetime BlockCacheLifetime) {
-	block, hasPrefetched, lifetime, err := bcache.GetWithPrefetch(ptr)
+	block, prefetchStatus, lifetime, err := bcache.GetWithPrefetch(ptr)
 	require.NoError(t, err)
 	require.Equal(t, expectedBlock, block)
-	if expectedHasPrefetch {
-		require.True(t, hasPrefetched)
-	} else {
-		require.False(t, hasPrefetched)
-	}
+	require.Equal(t, expectedPrefetchStatus, prefetchStatus)
 	require.Equal(t, expectedLifetime, lifetime)
 }
 
@@ -130,14 +126,12 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), rootPtr, rootBlock, true, TransientEntry)
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), ptrs[0].BlockPointer, indBlock1, false,
-		TransientEntry)
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), ptrs[1].BlockPointer, indBlock2, false,
-		TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
+		TriggeredPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
+		indBlock1, NoPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
+		indBlock2, NoPrefetch, TransientEntry)
 }
 
 func TestPrefetcherIndirectDirBlock(t *testing.T) {
@@ -182,14 +176,12 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), rootPtr, rootBlock, true, TransientEntry)
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), ptrs[0].BlockPointer, indBlock1, false,
-		TransientEntry)
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), ptrs[1].BlockPointer, indBlock2, false,
-		TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootBlock,
+		TriggeredPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
+		indBlock1, NoPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
+		indBlock2, NoPrefetch, TransientEntry)
 }
 
 func TestPrefetcherDirectDirBlock(t *testing.T) {
@@ -241,14 +233,12 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), rootPtr, rootDir, true, TransientEntry)
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), rootDir.Children["c"].BlockPointer, fileC, false,
-		TransientEntry)
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), rootDir.Children["b"].BlockPointer, dirB, false,
-		TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
+		TriggeredPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		rootDir.Children["c"].BlockPointer, fileC, NoPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		rootDir.Children["b"].BlockPointer, dirB, NoPrefetch, TransientEntry)
 
 	t.Log("Ensure that the largest block isn't in the cache.")
 	block, err = config.BlockCache().Get(rootDir.Children["a"].BlockPointer)
@@ -332,13 +322,11 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 	q.TogglePrefetcher(context.Background(), true)
 
-	testPrefetcherCheckGet(
-		t, cache, dirA.Children["b"].BlockPointer, fileB, false,
-		TransientEntry)
+	testPrefetcherCheckGet(t, cache, dirA.Children["b"].BlockPointer, fileB,
+		NoPrefetch, TransientEntry)
 	// Check that the dir block is marked as having been prefetched.
-	testPrefetcherCheckGet(
-		t, cache, rootDir.Children["a"].BlockPointer, dirA, true,
-		TransientEntry)
+	testPrefetcherCheckGet(t, cache, rootDir.Children["a"].BlockPointer, dirA,
+		TriggeredPrefetch, TransientEntry)
 
 	t.Log("Remove the prefetched file block from the cache.")
 	cache.DeleteTransient(dirA.Children["b"].BlockPointer, kmd.TlfID())
@@ -400,8 +388,8 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Wait for the prefetch to finish, then verify that the prefetched " +
 		"block is in the cache.")
 	<-prefetchErrCh
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), ptrA, fileA, false, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), ptrA, fileA, NoPrefetch,
+		TransientEntry)
 
 	t.Log("Remove the prefetched block from the cache.")
 	cache.DeleteTransient(ptrA, kmd.TlfID())
@@ -453,8 +441,8 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	<-prefetchDoneCh
 
 	t.Log("Ensure that the directory block is in the cache.")
-	testPrefetcherCheckGet(
-		t, config.BlockCache(), rootPtr, rootDir, true, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
+		TriggeredPrefetch, TransientEntry)
 	<-q.Prefetcher().Shutdown()
 }
 
@@ -537,18 +525,24 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	<-prefetchDoneCh
 
 	t.Log("Ensure that the prefetched blocks are all in the cache.")
-	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir, true,
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
+		TriggeredPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		rootDir.Children["c"].BlockPointer, fileC, TriggeredPrefetch,
 		TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		rootDir.Children["c"].BlockPointer, fileC, true, TransientEntry)
+		rootDir.Children["b"].BlockPointer, dirB, TriggeredPrefetch,
+		TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		rootDir.Children["b"].BlockPointer, dirB, true, TransientEntry)
+		rootDir.Children["a"].BlockPointer, fileA, TriggeredPrefetch,
+		TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		rootDir.Children["a"].BlockPointer, fileA, true, TransientEntry)
+		dirB.Children["d"].BlockPointer, dirBfileD, TriggeredPrefetch,
+		TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		dirB.Children["d"].BlockPointer, dirBfileD, true, TransientEntry)
+		dirBfileDptrs[0].BlockPointer, dirBfileDblock1, TriggeredPrefetch,
+		TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		dirBfileDptrs[0].BlockPointer, dirBfileDblock1, true, TransientEntry)
-	testPrefetcherCheckGet(t, config.BlockCache(),
-		dirBfileDptrs[1].BlockPointer, dirBfileDblock2, true, TransientEntry)
+		dirBfileDptrs[1].BlockPointer, dirBfileDblock2, TriggeredPrefetch,
+		TransientEntry)
 }
