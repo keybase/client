@@ -2271,19 +2271,21 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			require.Fail(t, "no new message event")
 		}
 
-		var settings chat1.ConversationNotificationInfo
-		utils.NotificationInfoSet(&settings, keybase1.DeviceType_DESKTOP,
-			chat1.NotificationKind_GENERIC, false)
+		setting := chat1.AppNotificationSettingLocal{
+			DeviceType: keybase1.DeviceType_DESKTOP,
+			Kind:       chat1.NotificationKind_GENERIC,
+			Enabled:    false,
+		}
 		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
 			chat1.SetAppNotificationSettingsLocalArg{
 				ConvID:   conv.Id,
-				Settings: settings,
+				Settings: []chat1.AppNotificationSettingLocal{setting},
 			})
 		require.NoError(t, err)
 		select {
 		case rsettings := <-listener0.appNotificationSettings:
 			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
-			require.Equal(t, 1, len(rsettings.Settings.Settings))
+			require.Equal(t, 2, len(rsettings.Settings.Settings))
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no app notification received")
 		}
