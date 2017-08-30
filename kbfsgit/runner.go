@@ -412,7 +412,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 }
 
 var gogitStagesToStatus = map[plumbing.StatusStage]string{
-	plumbing.StatusCount: "Counting ",
+	plumbing.StatusCount: "Counting: ",
 	plumbing.StatusRead:  "Reading: ",
 	plumbing.StatusSort:  "Sorting... ",
 	plumbing.StatusDelta: "Calculating deltas: ",
