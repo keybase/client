@@ -86,12 +86,31 @@ class BigTeamChannelFilteredRow extends PureComponent<FilteredChannelProps> {
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
-        <Box style={filteredRowStyle}>
+        <Box
+          style={{
+            ...filteredRowStyle,
+            ...(this.props.isSelected ? {backgroundColor: globalColors.blue} : undefined),
+          }}
+        >
           <TeamAvatar teamname={this.props.teamname} />
-          <Text type="BodySemibold" style={teamnameStyle} title={this.props.teamname}>
+          <Text
+            type="BodySemibold"
+            style={{
+              ...teamnameStyle,
+              color: this.props.isSelected ? globalColors.white : globalColors.black_75,
+            }}
+            title={this.props.teamname}
+          >
             {this.props.teamname}
           </Text>
-          <Text type="Body" style={channelnameStyle} title={`#${this.props.channelname}`}>
+          <Text
+            type="Body"
+            style={{
+              ...channelnameStyle,
+              color: this.props.isSelected ? globalColors.white : globalColors.black_75,
+            }}
+            title={`#${this.props.channelname}`}
+          >
             &nbsp;#{this.props.channelname}
           </Text>
         </Box>

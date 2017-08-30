@@ -31,7 +31,7 @@ class Conversation extends Component<Props, State> {
     }
 
     const inSearchChanged = this.props.inSearch !== nextProps.inSearch
-    if ((convoChanged || inSearchChanged) && !nextProps.inSearch) {
+    if ((convoChanged || inSearchChanged) && !nextProps.inSearch && !nextProps.inboxFilter) {
       this.props.onFocusInput()
     }
   }

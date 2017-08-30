@@ -4,7 +4,13 @@ import * as Constants from '../../constants/chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
-import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
+import {
+  loadInbox,
+  newChat,
+  untrustedInboxVisible,
+  setInboxFilter,
+  selectConversation,
+} from '../../actions/chat/creators'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
@@ -173,6 +179,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     .concat(bigTeams)
 
   return {
+    _selected: Constants.getSelectedConversation(state),
     bigTeamsBadgeCount,
     filter,
     isActiveRoute,
@@ -184,18 +191,36 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
   loadInbox: () => dispatch(loadInbox()),
+  onHotkey: cmd => {
+    if (cmd.endsWith('+n')) {
+      dispatch(newChat([]))
+    } else {
+      focusFilter()
+    }
+  },
   onNewChat: () => dispatch(newChat([])),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
+    conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
+const findNextConvo = (rows: I.List<any>, selected, direction) => {
+  const filteredRows = rows.filter(r => ['small', 'big'].includes(r.type))
+  const idx = filteredRows.findIndex(r => r.conversationIDKey === selected)
+  const r = filteredRows.get(idx + direction)
+  return r && r.conversationIDKey
+}
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
   ...stateProps,
   ...dispatchProps,
+  onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
+  onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
   smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
 })
 
@@ -204,8 +229,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
+  withState('filterFocusCount', 'setFilterFocusCount', 0),
   withState('smallTeamsExpanded', 'setSmallTeamsExpanded', false),
   withHandlers({
+    focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
     toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
   }),
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),

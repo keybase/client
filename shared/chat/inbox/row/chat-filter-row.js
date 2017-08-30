@@ -13,8 +13,11 @@ if (!isMobile) {
 type Props = {
   isLoading: boolean,
   filter: string,
+  filterFocusCount: number,
   onNewChat: () => void,
   onSetFilter: (filter: string) => void,
+  onSelectDown: () => void,
+  onSelectUp: () => void,
 }
 
 type State = {
@@ -23,6 +26,7 @@ type State = {
 
 class _ChatFilterRow extends Component<Props, State> {
   state: State
+  _input: any
 
   constructor(props: Props) {
     super(props)
@@ -43,8 +47,26 @@ class _ChatFilterRow extends Component<Props, State> {
     if (e.key === 'Escape' && !isComposingIME) {
       this.props.onSetFilter('')
       this._stopEditing()
+    } else if (e.key === 'ArrowDown') {
+      this.props.onSelectDown()
+    } else if (e.key === 'ArrowUp') {
+      this.props.onSelectUp()
     }
   }
+
+  componentWillReceiveProps(nextProps: Props) {
+    if (this.props.filterFocusCount !== nextProps.filterFocusCount) {
+      this._startEditing()
+    }
+  }
+
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.state.isEditing !== prevState.isEditing && this.state.isEditing) {
+      this._input && this._input.focus()
+    }
+  }
+
+  _setRef = r => (this._input = r)
 
   render() {
     let children
@@ -61,7 +83,6 @@ class _ChatFilterRow extends Component<Props, State> {
           }}
         />,
         <Input
-          autoFocus={true}
           hideUnderline={true}
           key="1"
           small={true}
@@ -71,6 +92,7 @@ class _ChatFilterRow extends Component<Props, State> {
           onFocus={this._startEditing}
           onBlur={this._stopEditing}
           onKeyDown={this._onKeyDown}
+          ref={this._setRef}
         />,
       ]
     } else {
