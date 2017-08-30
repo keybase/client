@@ -29,6 +29,7 @@ type testDiskBlockCacheConfig struct {
 	*testClockGetter
 	limiter DiskLimiter
 	syncedTlfGetterSetter
+	initModeGetter
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
@@ -38,6 +39,7 @@ func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
 		newTestClockGetter(),
 		nil,
 		newTestSyncedTlfGetterSetter(),
+		testInitModeGetter{InitDefault},
 	}
 }
 

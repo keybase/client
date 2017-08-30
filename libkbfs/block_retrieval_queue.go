@@ -34,6 +34,7 @@ type blockRetrievalPartialConfig interface {
 	blockCacher
 	diskBlockCacheGetter
 	syncedTlfGetterSetter
+	initModeGetter
 }
 
 type blockRetrievalConfig interface {

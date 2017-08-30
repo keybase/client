@@ -25,7 +25,6 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
-	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
 )
@@ -61,9 +60,7 @@ const (
 	bgFlushPeriodDefault         = 1 * time.Second
 	keyBundlesCacheCapacityBytes = 10 * cache.MB
 	// folder name for persisted config parameters.
-	persistedConfigFolderName = "config_leveldb"
-	// the persisted config key prefix for representing synced TLFs.
-	syncedTlfsConfigKeyPrefix = "syncedTlfs_"
+	syncedTlfConfigFolderName = "synced_tlf_config"
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -1243,8 +1240,8 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 	return c.resetDiskBlockCacheLocked()
 }
 
-func (c *ConfigLocal) openConfigLevelDB() (*levelDb, error) {
-	dbPath := filepath.Join(c.storageRoot, persistedConfigFolderName)
+func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
+	dbPath := filepath.Join(c.storageRoot, configName)
 	stor, err := storage.OpenFile(dbPath, false)
 	if err != nil {
 		return nil, err
@@ -1261,22 +1258,23 @@ func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
 	if c.storageRoot == "" {
 		return errors.New("empty storageRoot specified for non-test run")
 	}
-	ldb, err := c.openConfigLevelDB()
+	ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
 	if err != nil {
 		return err
 	}
 	defer ldb.Close()
-	tlfPrefix := []byte(syncedTlfsConfigKeyPrefix)
-	rng := util.BytesPrefix([]byte(tlfPrefix))
-	iter := ldb.NewIterator(rng, nil)
+	iter := ldb.NewIterator(nil, nil)
 	defer iter.Release()
 
+	log := c.MakeLogger("")
+	// If there are any un-parseable IDs, delete them.
 	deleteBatch := new(leveldb.Batch)
 	for iter.Next() {
-		key := iter.Key()
-		tlfID, err := tlf.ParseID(string(key[len(tlfPrefix):]))
+		key := string(iter.Key())
+		tlfID, err := tlf.ParseID(key)
 		if err != nil {
-			deleteBatch.Delete(key)
+			log.Debug("deleting TLF %s from synced TLF list", key)
+			deleteBatch.Delete(iter.Key())
 			continue
 		}
 		syncedTlfs[tlfID] = true
@@ -1309,7 +1307,7 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 		if c.storageRoot == "" {
 			return errors.New("empty storageRoot specified for non-test run")
 		}
-		ldb, err := c.openConfigLevelDB()
+		ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
 		if err != nil {
 			return err
 		}
@@ -1318,11 +1316,10 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 		if err != nil {
 			return err
 		}
-		tlfKey := append([]byte(syncedTlfsConfigKeyPrefix), tlfBytes...)
 		if isSynced {
-			err = ldb.Put(tlfKey, nil, nil)
+			err = ldb.Put(tlfBytes, nil, nil)
 		} else {
-			err = ldb.Delete(tlfKey, nil)
+			err = ldb.Delete(tlfBytes, nil)
 		}
 		if err != nil {
 			return err

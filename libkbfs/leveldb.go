@@ -29,7 +29,7 @@ type levelDb struct {
 
 func (ldb *levelDb) Close() (err error) {
 	err = ldb.DB.Close()
-	// Hide the closer error
+	// Hide the closer error.
 	_ = ldb.closer.Close()
 	return err
 }

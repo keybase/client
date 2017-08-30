@@ -107,7 +107,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	// Ignore Prefetcher calls
 	brc := &testBlockRetrievalConfig{nil, newTestLogMaker(t),
 		config.BlockCache(), nil, newTestDiskBlockCacheGetter(t, nil),
-		newTestSyncedTlfGetterSetter()}
+		newTestSyncedTlfGetterSetter(), testInitModeGetter{InitDefault}}
 	pre := newBlockPrefetcher(nil, brc)
 	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(pre)
 	// Ignore BlockRetriever calls

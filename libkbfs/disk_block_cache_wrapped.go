@@ -29,6 +29,7 @@ type diskBlockCacheConfig interface {
 	clockGetter
 	diskLimiterGetter
 	syncedTlfGetterSetter
+	initModeGetter
 }
 
 type diskBlockCacheWrapped struct {
