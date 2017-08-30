@@ -282,6 +282,7 @@ export type NotificationsKindState = {
 }
 
 export type NotificationsState = {
+  channelWide: boolean,
   desktop: NotificationsKindState,
   mobile: NotificationsKindState,
 }

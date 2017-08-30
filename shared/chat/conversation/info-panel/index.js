@@ -15,6 +15,7 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
 
+import Notifications from './notifications/container'
 import Participants from './participants'
 
 import type {SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
@@ -65,11 +66,13 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
       onShowProfile={props.onShowProfile}
     />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={styleDivider} />
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute notifications" />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Notifications />
+
+    <Divider style={styleDivider} />
 
     <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
   </ScrollView>
@@ -88,11 +91,13 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       </Text>
     </Box>
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={styleDivider} />
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Notifications />
+
+    <Divider style={styleDivider} />
 
     <Text style={{paddingLeft: globalMargins.small}} type="BodySmall">
       Members
@@ -109,5 +114,10 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
 const wrap = branch(() => isMobile, HeaderHoc)
 const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
 const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
+
+const styleDivider = {
+  marginBottom: 20,
+  marginTop: 20,
+}
 
 export {SmallTeamInfoPanel, BigTeamInfoPanel}

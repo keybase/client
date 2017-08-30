@@ -659,12 +659,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       if (notifications && notifications[deviceType]) {
         switch (notifyType) {
           case 'generic':
-            console.warn('generic')
             nextNotifications[deviceType].generic = true
             nextNotifications[deviceType].atmention = true
             break
           case 'atmention':
-            console.warn('atmention')
             nextNotifications[deviceType].generic = false
             nextNotifications[deviceType].atmention = true
             break
@@ -674,6 +672,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
             break
         }
       }
+      console.warn({nextNotifications})
       return state.set(
         'inbox',
         inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))

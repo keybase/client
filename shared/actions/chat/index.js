@@ -16,6 +16,7 @@ import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
+  CommonDeviceType,
   ConstantsStatusCode,
   teamsTeamCreateRpcPromise,
   teamsTeamAddMemberRpcPromise,
@@ -1091,6 +1092,29 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
 
 const _setNotifications = function*(action: Constants.SetNotifications) {
   const {payload: {conversationIDKey, deviceType, notifyType}} = action
+  // Send the new post-reducer setNotifications structure to the service.
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  if (inbox && inbox.notifications) {
+    const {notifications} = inbox
+    const param = {
+      convID: Constants.keyToConversationID(conversationIDKey),
+      settings: {
+        channelWide: notifications.channelWide,
+        settings: {
+          [CommonDeviceType.desktop.toString()]: {
+            [ChatTypes.CommonNotificationKind.atmention.toString()]: notifications.desktop.atmention,
+            [ChatTypes.CommonNotificationKind.generic.toString()]: notifications.desktop.generic,
+          },
+          [CommonDeviceType.mobile.toString()]: {
+            [ChatTypes.CommonNotificationKind.atmention.toString()]: notifications.mobile.atmention,
+            [ChatTypes.CommonNotificationKind.generic.toString()]: notifications.mobile.generic,
+          },
+        },
+      },
+    }
+    console.warn('calling with param', param)
+    yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
+  }
 }
 
 const chatSaga = function*(): SagaGenerator<any, any> {

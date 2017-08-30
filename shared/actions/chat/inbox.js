@@ -371,7 +371,9 @@ const _parseNotifications = (c: ChatTypes.InboxUIItem): ?Constants.Notifications
   if (!settings) {
     return null
   }
+  console.warn('in parseNotifications', c.notifications)
   return {
+    channelWide: c.notifications.channelWide,
     desktop: {
       atmention: settings[CommonDeviceType.desktop.toString()][
         ChatTypes.CommonNotificationKind.atmention.toString()
