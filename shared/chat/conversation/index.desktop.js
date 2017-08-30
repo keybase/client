@@ -10,6 +10,7 @@ import InfoPanel from './info-panel/container'
 import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
+import TeamNameBanner from './team-name-banner'
 
 import type {Props} from '.'
 
@@ -132,15 +133,18 @@ class Conversation extends Component<Props, State> {
         {this.props.showSearchPending
           ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
-              ? <SearchResultsList
-                  items={this.props.searchResultIds}
-                  onClick={this.props.onClickSearchResult}
-                  onMouseOver={this.props.onMouseOverSearchResult}
-                  onShowTracker={this.props.onShowTrackerInSearch}
-                  selectedId={this.props.selectedSearchId}
-                  showSearchSuggestions={this.props.showSearchSuggestions}
-                  style={{...globalStyles.scrollable, flexGrow: 1}}
-                />
+              ? <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                  <TeamNameBanner />
+                  <SearchResultsList
+                    items={this.props.searchResultIds}
+                    onClick={this.props.onClickSearchResult}
+                    onMouseOver={this.props.onMouseOverSearchResult}
+                    onShowTracker={this.props.onShowTrackerInSearch}
+                    selectedId={this.props.selectedSearchId}
+                    showSearchSuggestions={this.props.showSearchSuggestions}
+                    style={{...globalStyles.scrollable, flexGrow: 1}}
+                  />
+                </div>
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
                   <List
                     focusInputCounter={this.props.focusInputCounter}
