@@ -157,8 +157,7 @@ const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   borderRadius: 2,
-  marginLeft: 32,
-  paddingLeft: globalMargins.tiny,
+  paddingLeft: 32,
   paddingRight: globalMargins.tiny,
   width: '100%',
 }
@@ -178,7 +177,7 @@ const unreadStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 6,
   flexShrink: 0,
-  height: 6,
-  width: 6,
+  height: 8,
+  width: 8,
 }
 export {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow}
