@@ -393,7 +393,9 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 			case chat1.ConversationMembersType_IMPTEAM:
 				s.Debug(ctx, "identifyTLF: implicit team TLF, looking up display name for %s", tlfName)
 
-				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{Name: tlfName})
+				tlfID := msg.Valid().ClientHeader.Conv.Tlfid
+				teamID := keybase1.TeamID(tlfID)
+				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
 				if err != nil {
 					return err
 				}
