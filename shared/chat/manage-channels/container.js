@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as Constants from '../../constants/teams'
 import ManageChannels from '.'
 import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
@@ -14,15 +15,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   const channels = convIDs
     .map(convID => {
-      const participants = state.entities.getIn(['teams', 'convIDToParticipants', convID], I.Set())
-      const name = state.entities.getIn(['teams', 'convIDToChannelName', convID])
-      const description = state.entities.getIn(['teams', 'convIDToDescription', convID])
+      const info: Constants.ChannelInfoRecord = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
 
-      return name
+      return info && info.channelname
         ? {
-            description,
-            name,
-            selected: !!participants.get(you),
+            description: info.description,
+            name: info.channelname,
+            selected: you && !!info.participants.get(you),
           }
         : null
     })

@@ -10,6 +10,7 @@ import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
+import type {TypedState} from '../../constants/reducer'
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
   const teamname = action.payload.teamname
@@ -25,24 +26,22 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
   )
 
   const convIDs = []
-  const convIDToParticipants = {}
-  const convIDToChannelName = {}
-  const convIDToDescription = {}
+  const convIDToChannelInfo = {}
 
   const convs = results.convs || []
   convs.forEach(conv => {
     const convID = ChatConstants.conversationIDToKey(conv.convID)
     convIDs.push(convID)
-    convIDToParticipants[convID] = I.Set(conv.participants || [])
-    convIDToChannelName[convID] = conv.channel
-    convIDToDescription[convID] = conv.headline
+    convIDToChannelInfo[convID] = Constants.ChannelInfo({
+      channelname: conv.channel,
+      description: conv.headline,
+      participants: I.Set(conv.participants || []),
+    })
   })
 
   yield all([
     put(replaceEntity(['teams', 'teamNameToConvIDs'], I.Map([[teamname, I.Set(convIDs)]]))),
-    put(replaceEntity(['teams', 'convIDToParticipants'], I.Map(convIDToParticipants))),
-    put(replaceEntity(['teams', 'convIDToChannelName'], I.Map(convIDToChannelName))),
-    put(replaceEntity(['teams', 'convIDToDescription'], I.Map(convIDToDescription))),
+    put(replaceEntity(['teams', 'convIDToChannelInfo'], I.Map(convIDToChannelInfo))),
   ])
 }
 
@@ -50,12 +49,14 @@ const _toggleChannelMembership = function*(
   action: Constants.ToggleChannelMembership
 ): SagaGenerator<any, any> {
   const {teamname, channelname} = action.payload
-  const state = yield select(state => state)
-  const conversationIDKey = state.entities
-    .getIn(['teams', 'convIDToChannelName'], I.Map())
-    .findKey(v => v === channelname)
-  const participants = state.entities.getIn(['teams', 'convIDToParticipants', conversationIDKey], I.Set())
-  const you = usernameSelector(state)
+  const {conversationIDKey, participants, you} = yield select((state: TypedState) => {
+    const conversationIDKey = Constants.getConversationIDKeyFromChannelName(state, channelname)
+    return {
+      conversationIDKey,
+      participants: conversationIDKey ? Constants.getParticipants(state, conversationIDKey) : I.Set(),
+      you: usernameSelector(state),
+    }
+  })
 
   if (participants.get(you)) {
     yield call(ChatTypes.localLeaveConversationLocalRpcPromise, {

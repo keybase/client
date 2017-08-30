@@ -1,8 +1,10 @@
 // @flow
 import * as I from 'immutable'
+import * as ChatConstants from './chat'
 import type {KBRecord} from './types/more'
 import type {NoErrorTypedAction} from './types/flux'
 import type {ConversationIDKey} from './chat'
+import type {TypedState} from './reducer'
 
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
 export type ToggleChannelMembership = NoErrorTypedAction<
@@ -12,16 +14,32 @@ export type ToggleChannelMembership = NoErrorTypedAction<
 
 export type Teamname = string
 
+export type ChannelInfoRecord = KBRecord<{
+  channelname: ?string,
+  description: ?string,
+  participants: I.Set<string>,
+}>
+
+export const ChannelInfo = I.Record({
+  channelname: null,
+  description: null,
+  participants: I.Set(),
+})
+
+export const Team = I.Record({
+  convIDToChannelInfo: I.Map(),
+  teamNameToConvIDs: I.Map(),
+})
+
 export type TeamRecord = KBRecord<{
-  convIDToChannelName: I.Map<ConversationIDKey, string>,
-  convIDToDescription: I.Map<ConversationIDKey, string>,
-  convIDToParticipants: I.Map<ConversationIDKey, I.Set<string>>,
+  convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
   teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
 }>
 
-export const Team = I.Record({
-  convIDToChannelName: I.Map(),
-  convIDToDescription: I.Map(),
-  convIDToParticipants: I.Map(),
-  teamNameToConvIDs: I.Map(),
-})
+const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
+  state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map()).findKey(i => i.channelname === channelname)
+
+const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
+  state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
+
+export {getConversationIDKeyFromChannelName, getParticipants}
