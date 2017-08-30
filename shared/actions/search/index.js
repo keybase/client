@@ -168,7 +168,7 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(results => JSON.parse(results.body))
 }
 
-const search = function* search<T>({
+function* search<T>({
   payload: {term, service, pendingActionTypeToFire, finishedActionTypeToFire},
 }: Constants.Search<T>) {
   const searchQuery = _toSearchQuery(service, term)
@@ -209,9 +209,7 @@ const search = function* search<T>({
   }
 }
 
-const searchSuggestions = function* searchSuggestions<T>({
-  payload: {actionTypeToFire, maxUsers},
-}: Constants.SearchSuggestions<T>) {
+function* searchSuggestions<T>({payload: {actionTypeToFire, maxUsers}}: Constants.SearchSuggestions<T>) {
   let suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
     param: {
       maxUsers,
@@ -228,7 +226,7 @@ const searchSuggestions = function* searchSuggestions<T>({
   yield put(Creators.finishedSearch(actionTypeToFire, ids, '', 'Keybase', true))
 }
 
-const searchSaga = function*(): SagaGenerator<any, any> {
+function* searchSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('search:search', search)
   yield Saga.safeTakeLatest('search:searchSuggestions', searchSuggestions)
 }
