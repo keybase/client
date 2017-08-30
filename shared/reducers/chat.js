@@ -676,6 +676,12 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))
       )
     }
+    case 'chat:updatedNotifications': {
+      const {payload: {conversationIDKey, notifications}} = action
+      const inbox = state.get('inbox')
+      const [index] = state.get('inbox').findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
+    }
   }
 
   return state

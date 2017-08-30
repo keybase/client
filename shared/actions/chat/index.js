@@ -194,6 +194,16 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
       }
       break
     case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
+      if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
+        const {convID, settings} = action.payload.activity.setAppNotificationSettings
+        if (convID && settings) {
+          const conversationIDKey = Constants.conversationIDToKey(convID)
+          const notifications = Inbox.parseNotifications(settings)
+          if (notifications) {
+            yield put(Creators.updatedNotifications(conversationIDKey, notifications))
+          }
+        }
+      }
       break
     default:
       console.warn(

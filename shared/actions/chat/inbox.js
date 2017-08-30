@@ -366,13 +366,13 @@ const unboxConversations = function*(
   }
 }
 
-const _parseNotifications = (c: ChatTypes.InboxUIItem): ?Constants.NotificationsState => {
-  if (!c.notifications || !c.notifications.settings) {
+const parseNotifications = (notifications: any): ?Constants.NotificationsState => {
+  if (!notifications || !notifications.settings) {
     return null
   }
-  const {settings} = c.notifications
+  const {settings} = notifications
   return {
-    channelWide: c.notifications.channelWide,
+    channelWide: notifications.channelWide,
     desktop: {
       atmention: settings[CommonDeviceType.desktop.toString()][
         ChatTypes.CommonNotificationKind.atmention.toString()
@@ -419,7 +419,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     isEmpty: c.isEmpty,
     membersType: c.membersType,
     name: c.name,
-    notifications: _parseNotifications(c),
+    notifications: parseNotifications(c.notifications),
     participants: parts,
     snippet: Constants.makeSnippet(c.snippet),
     state: 'unboxed',
@@ -434,6 +434,7 @@ export {
   onInitialInboxLoad,
   onInboxStale,
   onGetInboxAndUnbox,
+  parseNotifications,
   unboxConversations,
   processConversation,
   untrustedInboxVisible,

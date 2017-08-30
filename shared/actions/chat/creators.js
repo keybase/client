@@ -700,6 +700,15 @@ function updateThread(
   }
 }
 
+function updatedNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  notifications: Constants.NotificationsState
+): Constants.UpdatedNotifications {
+  return {
+    payload: {conversationIDKey, notifications},
+    type: 'chat:updatedNotifications',
+  }
+}
 export {
   addPending,
   appendMessages,
@@ -783,5 +792,6 @@ export {
   updateThread,
   updateTyping,
   updatedMetadata,
+  updatedNotifications,
   uploadProgress,
 }

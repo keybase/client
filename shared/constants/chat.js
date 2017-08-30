@@ -650,6 +650,10 @@ export type UpdateSupersedesState = NoErrorTypedAction<
   {supersedesState: SupersedesState}
 >
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {updated: {[key: string]: MetaData}}>
+export type UpdatedNotifications = NoErrorTypedAction<
+  'chat:updatedNotifications',
+  {conversationIDKey: ConversationIDKey, notifications: NotificationsState}
+>
 export type UpdateTyping = NoErrorTypedAction<
   'chat:updateTyping',
   {conversationIDKey: ConversationIDKey, typing: boolean}
@@ -827,6 +831,7 @@ export type Actions =
   | UpdateSearchResults
   | UpdateSupersededByState
   | UpdateSupersedesState
+  | UpdatedNotifications
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')
