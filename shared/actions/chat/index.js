@@ -192,6 +192,8 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
         }
       }
       break
+    case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
+      break
     default:
       console.warn(
         'Unsupported incoming message type for Chat of type:',
