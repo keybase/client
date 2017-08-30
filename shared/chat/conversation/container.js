@@ -76,7 +76,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
         inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
       if (selected && selected.state === 'error') {
         conversationIsError = true
-        conversationErrorText = selected.snippet
+        conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)
       }
       showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline

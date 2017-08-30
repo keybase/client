@@ -32,34 +32,12 @@ function conversationStateSelector(state: TypedState, conversationIDKey: Constan
   return state.chat.get('conversationStates', Map()).get(conversationIDKey)
 }
 
-function messageSelector(
-  state: TypedState,
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID
-) {
-  return conversationStateSelector(state, conversationIDKey)
-    .get('messages')
-    .find(m => m.messageID === messageID)
-}
-
 function messageOutboxIDSelector(
   state: TypedState,
   conversationIDKey: Constants.ConversationIDKey,
   outboxID: Constants.OutboxIDKey
-) {
-  return conversationStateSelector(state, conversationIDKey)
-    .get('messages')
-    .find(m => m.outboxID === outboxID)
-}
-
-function pendingMessageOutboxIDSelector(
-  state: TypedState,
-  conversationIDKey: Constants.ConversationIDKey,
-  outboxID: Constants.OutboxIDKey
-) {
-  return conversationStateSelector(state, conversationIDKey)
-    .get('messages')
-    .find(m => m.outboxID === outboxID && m.state === 'pending')
+): Constants.Message {
+  return Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
 }
 
 function devicenameSelector(state: TypedState) {
@@ -169,9 +147,7 @@ export {
   getPostingIdentifyBehavior,
   inboxUntrustedStateSelector,
   messageOutboxIDSelector,
-  messageSelector,
   metaDataSelector,
-  pendingMessageOutboxIDSelector,
   routeSelector,
   selectedInboxSelector,
   startNewConversation,

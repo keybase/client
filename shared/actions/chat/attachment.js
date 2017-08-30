@@ -14,10 +14,11 @@ import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
 
+import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
 function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
-  const path = yield call(_saveAttachment, messageKey)
+  const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
   if (path) {
     yield call(showShareActionSheet, {url: path})
   }
@@ -26,7 +27,7 @@ function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment):
 function* onSaveAttachmentNative({
   payload: {messageKey},
 }: Constants.SaveAttachmentNative): SagaGenerator<any, any> {
-  const path = yield call(_saveAttachment, messageKey)
+  const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
   if (path) {
     yield call(saveAttachmentDialog, path)
   }
@@ -39,20 +40,19 @@ function* onLoadAttachmentPreview({
 }
 
 function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): SagaGenerator<any, any> {
-  yield call(_saveAttachment, messageKey)
-}
-
-function* _saveAttachment(messageKey: Constants.MessageKey) {
-  const localMessageState = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
-  if (localMessageState.savedPath) {
-    console.log('_saveAttachment: message already saved. bailing.', messageKey, localMessageState.savedPath)
-    return localMessageState.savedPath
+  const {savedPath, downloadedPath} = yield select((s: TypedState) => ({
+    savedPath: Constants.getAttachmentSavedPath(s, messageKey),
+    downloadedPath: Constants.getAttachmentDownloadedPath(s, messageKey),
+  }))
+  if (savedPath) {
+    console.log('_saveAttachment: message already saved. bailing.', messageKey, savedPath)
+    return savedPath
   }
 
   yield put(Creators.attachmentSaveStart(messageKey))
 
   const startTime = Date.now()
-  if (!localMessageState.downloadedPath) {
+  if (!downloadedPath) {
     yield put(Creators.loadAttachment(messageKey, false))
     console.log('_saveAttachment: waiting for attachment to load', messageKey)
     yield take(
@@ -80,8 +80,8 @@ function* _saveAttachment(messageKey: Constants.MessageKey) {
     }
   }
 
-  const {downloadedPath} = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
-  if (!downloadedPath) {
+  const nextDownloadedPath = yield select(Constants.getAttachmentDownloadedPath, messageKey)
+  if (!nextDownloadedPath) {
     console.warn('_saveAttachment: message failed to download!')
     return
   }
@@ -90,7 +90,7 @@ function* _saveAttachment(messageKey: Constants.MessageKey) {
   const destPath = yield call(downloadFilePath, filename)
 
   try {
-    yield copy(downloadedPath, destPath)
+    yield copy(nextDownloadedPath, destPath)
   } catch (err) {
     console.warn('_saveAttachment: copy failed:', err)
     yield put(Creators.attachmentSaveFailed(messageKey))
@@ -120,27 +120,30 @@ function* onLoadAttachment({
   // Check if we should download the attachment. Only one instance of this saga
   // should executes at any time, so that these checks don't interleave with
   // updating initial progress on the download.
-  const localMessageState = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
+  const {previewPath, previewProgress, downloadedPath, downloadProgress} = yield select(
+    Constants.getLocalMessageStateFromMessageKey,
+    messageKey
+  )
 
   if (loadPreview) {
-    if (localMessageState.previewPath || localMessageState.previewProgress !== null) {
+    if (previewPath || previewProgress !== null) {
       // Already downloaded / downloading preview
       console.log(
         'onLoadAttachment: preview already downloaded/downloading. bailing.',
         messageKey,
-        localMessageState.previewPath,
-        localMessageState.previewProgress
+        previewPath,
+        previewProgress
       )
       return
     }
   } else {
-    if (localMessageState.downloadedPath || localMessageState.downloadProgress !== null) {
+    if (downloadedPath || downloadProgress !== null) {
       // Already downloaded / downloading attachment
       console.log(
         'onLoadAttachment: attachment already downloaded/downloading. bailing.',
         messageKey,
-        localMessageState.downloadedPath,
-        localMessageState.downloadProgress
+        downloadedPath,
+        downloadProgress
       )
       return
     }
@@ -171,7 +174,7 @@ function* onLoadAttachment({
   yield spawn(function*() {
     const param = {
       conversationID: Constants.keyToConversationID(conversationIDKey),
-      messageID,
+      messageID: Constants.parseMessageID(messageID).msgID,
       filename: destPath,
       preview: loadPreview,
       identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
