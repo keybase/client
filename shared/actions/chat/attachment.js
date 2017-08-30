@@ -16,9 +16,8 @@ import {usernameSelector} from '../../constants/selectors'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
-const onShareAttachment = function*({
-  payload: {messageKey},
-}: Constants.ShareAttachment): SagaGenerator<any, any> {
+const onShareAttachment = function*(action: Constants.ShareAttachment): SagaGenerator<any, any> {
+  const messageKey: Constants.MessageKey = action.payload.messageKey
   const path = yield call(_saveAttachment, messageKey)
   if (path) {
     yield call(showShareActionSheet, {url: path})
@@ -46,7 +45,7 @@ const onSaveAttachment = function*({
   yield call(_saveAttachment, messageKey)
 }
 
-const _saveAttachment = function*(messageKey: Constants.MessageKey) {
+const _saveAttachment = function*(messageKey: Constants.MessageKey): Generator<*, ?string, *> {
   const localMessageState = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
   if (localMessageState.savedPath) {
     console.log('_saveAttachment: message already saved. bailing.', messageKey, localMessageState.savedPath)
@@ -172,7 +171,7 @@ const onLoadAttachment = function*({
   yield put.resolve(Creators.downloadProgress(messageKey, loadPreview, 0))
 
   // Perform the download in a fork so that the next loadAttachment action can be handled.
-  yield spawn(function*() {
+  yield spawn(function*(): Generator<*, *, *> {
     const param = {
       conversationID: Constants.keyToConversationID(conversationIDKey),
       messageID,
@@ -209,7 +208,7 @@ const _appendAttachmentPlaceholder = function*(
   preview: ChatTypes.MakePreviewRes,
   title: string,
   uploadPath: string
-) {
+): Generator<*, Constants.AttachmentMessage, *> {
   const author = yield select(usernameSelector)
   const message: Constants.AttachmentMessage = {
     author,
@@ -257,15 +256,15 @@ function uploadProgressSubSaga(getCurKey: () => ?Constants.MessageKey) {
 
 function uploadOutboxIDSubSaga(
   conversationIDKey: Constants.ConversationIDKey,
-  preview: boolean,
+  preview: ChatTypes.MakePreviewRes,
   title: string,
   filename: string,
   setCurKey: (key: Constants.MessageKey) => void,
   setOutboxId: Function
 ) {
   return function*({outboxID}) {
-    const outboxIDKey = Constants.outboxIDToKey(outboxID)
-    const placeholderMessage = yield call(
+    const outboxIDKey: Constants.OutboxIDKey = Constants.outboxIDToKey(outboxID)
+    const placeholderMessage: Constants.AttachmentMessage = yield call(
       _appendAttachmentPlaceholder,
       conversationIDKey,
       outboxIDKey,
@@ -282,7 +281,7 @@ function uploadOutboxIDSubSaga(
 // Hacky since curKey can change on us
 const postAttachmentSagaMap = (
   conversationIDKey: Constants.ConversationIDKey,
-  preview: boolean,
+  preview: ChatTypes.MakePreviewRes,
   title: string,
   filename: string,
   getCurKey: () => ?Constants.MessageKey,
@@ -304,10 +303,9 @@ const postAttachmentSagaMap = (
   'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
 })
 
-const onSelectAttachment = function*({
-  payload: {input},
-}: Constants.SelectAttachment): Generator<any, any, any> {
-  const {title, filename} = input
+const onSelectAttachment = function*({payload: {input}}: Constants.SelectAttachment): Generator<*, void, *> {
+  const {title} = input
+  const filename: string = input.filename
   let {conversationIDKey} = input
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
@@ -318,10 +316,11 @@ const onSelectAttachment = function*({
     }
   }
 
-  const preview = yield call(ChatTypes.localMakePreviewRpcPromise, {
+  const outputDir: string = tmpDir()
+  const preview: ChatTypes.MakePreviewRes = yield call(ChatTypes.localMakePreviewRpcPromise, {
     param: {
       attachment: {filename},
-      outputDir: tmpDir(),
+      outputDir,
     },
   })
 
@@ -345,8 +344,8 @@ const onSelectAttachment = function*({
   // local message key basis will change from the outboxID to the messageID.
   // We need to watch for this so that the uploadProgress gets set on the
   // right message key.
-  const getCurKey = () => curKey
-  const getOutboxIdKey = () => outboxID
+  const getCurKey = (): ?Constants.MessageKey => curKey
+  const getOutboxIdKey = (): ?string => outboxID
 
   const setCurKey = nextCurKey => {
     curKey = nextCurKey
@@ -395,9 +394,9 @@ const onSelectAttachment = function*({
 
 const onRetryAttachment = function*({
   payload: {input, oldOutboxID},
-}: Constants.RetryAttachment): Generator<any, any, any> {
+}: Constants.RetryAttachment): Generator<*, void, *> {
   yield put(Creators.removeOutboxMessage(input.conversationIDKey, oldOutboxID))
-  yield call(onSelectAttachment, {payload: {input}})
+  yield call(onSelectAttachment, {type: 'chat:selectAttachment', payload: {input}})
 }
 
 const onOpenAttachmentPopup = function*(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {

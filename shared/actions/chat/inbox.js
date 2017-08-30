@@ -51,11 +51,11 @@ const onInitialInboxLoad = function*(): SagaGenerator<any, any> {
 }
 
 // On desktop we passively unbox inbox items
-const _backgroundUnboxLoop = function*() {
+const _backgroundUnboxLoop = function*(): Generator<*, void, *> {
   try {
     while (true) {
       yield call(delay, 10 * 1000)
-      const inboxes = yield select(state => state.chat.get('inbox'))
+      const inboxes = yield select((state: TypedState): Constants.InboxState => state.chat.get('inbox'))
       const conversationIDKeys = inboxes
         .filter(i => i.state === 'untrusted')
         .take(10)
@@ -74,7 +74,7 @@ const _backgroundUnboxLoop = function*() {
 }
 
 // Update inboxes that have been reset
-const _updateFinalized = function*(inbox: ChatTypes.GetInboxLocalRes) {
+const _updateFinalized = function*(inbox: ChatTypes.UnverifiedInboxUIItems): Generator<*, void, *> {
   const finalizedState: Constants.FinalizedState = Map(
     (inbox.conversationsUnverified || []).filter(c => c.metadata.finalizeInfo).map(convoUnverified => [
       Constants.conversationIDToKey(convoUnverified.metadata.conversationID),
