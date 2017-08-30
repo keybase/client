@@ -121,7 +121,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
 	upakLoader := g.GetUPAKLoader()
 	for id, invite := range invites {
-		username, err := upakLoader.LookupUsername(context.Background(), invite.Inviter.Uid)
+		username, err := upakLoader.LookupUsername(ctx, invite.Inviter.Uid)
 		if err != nil {
 			return annotatedInvites, err
 		}
@@ -148,6 +148,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 			Id:              invite.Id,
 			Type:            invite.Type,
 			Name:            name,
+			Inviter:         invite.Inviter,
 			InviterUsername: username.String(),
 			TeamName:        teamName,
 		}

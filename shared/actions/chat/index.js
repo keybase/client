@@ -370,7 +370,7 @@ const _loadMoreMessages = function*(action: Constants.LoadMoreMessages): SagaGen
 
     const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
 
-    let next
+    let next = null
     if (oldConversationState) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
         console.log('Bailing on chat load more due to already has initial load')
