@@ -115,13 +115,12 @@ func (lx *Lexer) Get() *Token {
 }
 
 type Parser struct {
-	lexer   *Lexer
-	err     error
-	andOnly bool
+	lexer *Lexer
+	err   error
 }
 
 func NewParser(lexer *Lexer) *Parser {
-	ret := &Parser{lexer, nil, false}
+	ret := &Parser{lexer, nil}
 	return ret
 }
 
@@ -196,7 +195,7 @@ func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 	if tok.Typ != OR {
 		ret = term
 		p.lexer.Putback()
-	} else if p.andOnly {
+	} else if true {
 		p.err = NewAssertionParseError("Unexpected 'OR' operator")
 	} else {
 		ex := p.parseExpr(ctx)
@@ -205,16 +204,9 @@ func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 	return ret
 }
 
-func AssertionParse(ctx AssertionContext, s string) (AssertionExpression, error) {
-	lexer := NewLexer(s)
-	parser := Parser{lexer, nil, false}
-	ret := parser.Parse(ctx)
-	return ret, parser.err
-}
-
 func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
-	parser := Parser{lexer, nil, true}
+	parser := Parser{lexer, nil}
 	ret := parser.Parse(ctx)
 	return ret, parser.err
 }
