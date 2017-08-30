@@ -25,6 +25,9 @@ function routeSelector(state: TypedState) {
 function focusedSelector(state: TypedState) {
   return state.config.appFocused
 }
+function activeSelector(state: TypedState) {
+  return state.config.userActive
+}
 function conversationStateSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
   return state.chat.get('conversationStates', Map()).get(conversationIDKey)
 }
@@ -84,7 +87,7 @@ function tmpFileName(
 }
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
-const startNewConversation = function*(
+function* startNewConversation(
   oldConversationIDKey: Constants.ConversationIDKey
 ): Generator<any, ?Constants.ConversationIDKey, any> {
   // Find the participants
@@ -137,7 +140,7 @@ const startNewConversation = function*(
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
-const getPostingIdentifyBehavior = function*(
+function* getPostingIdentifyBehavior(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, any, any> {
   const metaData = (yield select(metaDataSelector): any)
@@ -161,6 +164,7 @@ export {
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
+  activeSelector,
   followingSelector,
   getPostingIdentifyBehavior,
   inboxUntrustedStateSelector,

@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -55,7 +54,15 @@ func (c *CmdChatListChannels) Run() error {
 
 	ui.Printf("Listing channels on %s:\n\n", c.tlfName)
 	for _, c := range listRes.Convs {
-		ui.Printf("#%s\n", utils.GetTopicName(c))
+		convLine := fmt.Sprintf("#%s", c.Channel)
+		if c.Headline != "" {
+			convLine += fmt.Sprintf(" [%s]", c.Headline)
+		}
+		if c.CreatorInfo != nil {
+			convLine += fmt.Sprintf(" (created by: %s on: %s)", c.CreatorInfo.Username,
+				c.CreatorInfo.Ctime.Time().Format("2006-01-02"))
+		}
+		ui.Printf(convLine + "\n")
 	}
 
 	return nil
@@ -64,7 +71,7 @@ func (c *CmdChatListChannels) Run() error {
 func (c *CmdChatListChannels) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
 		cli.ShowCommandHelp(ctx, "list-channels")
-		return fmt.Errorf("Incorrect usage.")
+		return fmt.Errorf("incorrect usage")
 	}
 
 	c.tlfName = ctx.Args().Get(0)

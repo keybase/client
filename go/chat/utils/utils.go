@@ -472,12 +472,17 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 }
 
 func IsConvEmpty(conv chat1.Conversation) bool {
-	for _, msg := range conv.MaxMsgSummaries {
-		if IsVisibleChatMessageType(msg.GetMessageType()) {
-			return false
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return false
+	default:
+		for _, msg := range conv.MaxMsgSummaries {
+			if IsVisibleChatMessageType(msg.GetMessageType()) {
+				return false
+			}
 		}
+		return true
 	}
-	return true
 }
 
 func PluckConvIDsLocal(convs []chat1.ConversationLocal) (res []chat1.ConversationID) {
@@ -584,6 +589,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Name = rawConv.Info.TlfName
 	res.Snippet = GetConvSnippet(rawConv)
 	res.Channel = GetTopicName(rawConv)
+	res.Headline = GetHeadline(rawConv)
 	res.Participants = rawConv.Info.WriterNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -594,6 +600,14 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Supersedes = rawConv.Supersedes
 	res.IsEmpty = rawConv.IsEmpty
 	res.Notifications = rawConv.Notifications
+	res.CreatorInfo = rawConv.CreatorInfo
+	return res
+}
+
+func PresentConversationLocals(convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
+	for _, conv := range convs {
+		res = append(res, PresentConversationLocal(conv))
+	}
 	return res
 }
 
@@ -734,6 +748,17 @@ func GetTopicName(conv chat1.ConversationLocal) string {
 		return ""
 	}
 	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
+}
+
+func GetHeadline(conv chat1.ConversationLocal) string {
+	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_HEADLINE)
+	if err != nil {
+		return ""
+	}
+	if !maxTopicMsg.IsValid() {
+		return ""
+	}
+	return maxTopicMsg.Valid().MessageBody.Headline().Headline
 }
 
 func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,

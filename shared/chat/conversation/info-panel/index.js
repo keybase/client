@@ -1,64 +1,129 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Checkbox, Divider, HeaderHoc, Icon, ScrollView} from '../../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  Checkbox,
+  Divider,
+  HeaderHoc,
+  Icon,
+  ScrollView,
+  Text,
+} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
 
 import Participants from './participants'
 
-import type {Props} from '.'
+import type {SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
-const containerStyle = isMobile
-  ? {
-      flex: 1,
-      width: '100%',
-    }
-  : {
-      backgroundColor: globalColors.white,
-      borderLeft: border,
-      borderRight: border,
-      flex: 1,
-      marginTop: -1,
-      overflowY: 'auto',
-    }
+const scrollViewStyle = {
+  flex: 1,
+  ...(isMobile
+    ? {}
+    : {
+        backgroundColor: globalColors.white,
+        borderLeft: border,
+        borderRight: border,
+      }),
+}
+const contentContainerStyle = {...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}
 
-const _InfoPanel = (props: Props) => (
-  <ScrollView style={containerStyle}>
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
-      <Participants
-        participants={props.participants}
-        onAddParticipant={props.onAddParticipant}
-        onShowProfile={props.onShowProfile}
-      />
+type muteRowProps = {
+  muted: boolean,
+  onMute: (muted: boolean) => void,
+  label: string,
+}
 
-      <Divider style={{marginBottom: 20, marginTop: 20}} />
+const MuteRow = (props: muteRowProps) => (
+  <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+    <Checkbox
+      checked={props.muted}
+      disabled={props.onMute == null}
+      onCheck={props.onMute}
+      label={props.label}
+    />
+    <Icon
+      type="iconfont-shh"
+      style={{
+        color: globalColors.black_20,
+        marginLeft: globalMargins.tiny,
+        ...(isMobile ? {fontSize: 24} : {}),
+      }}
+    />
+  </Box>
+)
 
-      <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-        <Checkbox
-          checked={props.muted}
-          disabled={props.onMuteConversation == null}
-          onCheck={checked => props.onMuteConversation(checked)}
-          label="Mute notifications"
-        />
-        <Icon
-          type="iconfont-shh"
-          style={{
-            color: globalColors.black_20,
-            marginLeft: globalMargins.tiny,
-            ...(isMobile ? {fontSize: 24} : {}),
-          }}
-        />
-      </Box>
+const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
+  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
+    <Participants
+      participants={props.participants}
+      onAddParticipant={props.showTeamButton ? null : props.onAddParticipant}
+      onShowProfile={props.onShowProfile}
+    />
 
-      <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
 
-      <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
-    </Box>
+    {props.showTeamButton
+      ? <Button type="Primary" label="Turn into team" onClick={props.onShowNewTeamDialog} />
+      : null}
+
+    {props.showTeamButton
+      ? <Text style={{alignSelf: 'center', marginTop: globalMargins.tiny}} type="BodySmall">
+          You'll be able to add and delete members as you wish.
+        </Text>
+      : null}
+
+    {props.showTeamButton ? <Divider style={{marginBottom: 20, marginTop: 20}} /> : null}
+
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute notifications" />
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
   </ScrollView>
 )
 
-const InfoPanel = branch(() => isMobile, HeaderHoc)(_InfoPanel)
+const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
+  <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
+    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodySemibold">
+      #{props.channelname}
+    </Text>
 
-export default InfoPanel
+    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+      <Avatar teamname={props.teamname} size={16} />
+      <Text style={{marginLeft: globalMargins.xtiny}} type="BodySmall">
+        {props.teamname}
+      </Text>
+    </Box>
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Button type="Danger" label="Leave channel" onClick={props.onLeaveConversation} />
+
+    <Divider style={{marginBottom: 20, marginTop: 20}} />
+
+    <Text style={{paddingLeft: globalMargins.small}} type="BodySmall">
+      Members
+    </Text>
+
+    <Participants
+      participants={props.participants}
+      onAddParticipant={props.onAddParticipant}
+      onShowProfile={props.onShowProfile}
+    />
+  </ScrollView>
+)
+
+const wrap = branch(() => isMobile, HeaderHoc)
+const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
+const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
+
+export {SmallTeamInfoPanel, BigTeamInfoPanel}

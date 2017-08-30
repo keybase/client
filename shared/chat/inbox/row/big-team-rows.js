@@ -48,6 +48,7 @@ type ChannelProps = {
 
 class BigTeamChannelRow extends PureComponent<ChannelProps> {
   render() {
+    const boldOverride = this.props.hasUnread ? globalStyles.fontBold : null
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box style={channelRowContainerStyle}>
@@ -59,7 +60,10 @@ class BigTeamChannelRow extends PureComponent<ChannelProps> {
           >
             <Text
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
-              style={{color: this.props.isSelected ? globalColors.white : globalColors.black_75}}
+              style={{
+                ...boldOverride,
+                color: this.props.isSelected ? globalColors.white : globalColors.black_75,
+              }}
             >
               {this.props.channelname}
             </Text>
@@ -153,8 +157,7 @@ const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   borderRadius: 2,
-  marginLeft: 32,
-  paddingLeft: globalMargins.tiny,
+  paddingLeft: 32,
   paddingRight: globalMargins.tiny,
   width: '100%',
 }
@@ -174,7 +177,7 @@ const unreadStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 6,
   flexShrink: 0,
-  height: 6,
-  width: 6,
+  height: 8,
+  width: 8,
 }
 export {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow}

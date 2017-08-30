@@ -9,7 +9,7 @@ import {connect} from 'react-redux'
 import {fuseStatus} from '../actions/kbfs'
 import Banner from './install/banner'
 import InstallSecurityPrefs from './install/security-prefs'
-
+import {isLinux} from '../constants/platform'
 import type {TypedState} from '../constants/reducer'
 
 class FoldersRender extends Component<Props> {
@@ -63,7 +63,7 @@ class FoldersRender extends Component<Props> {
           minHeight: 32,
         }}
       >
-        {!this.props.smallMode && <Banner />}
+        {!this.props.smallMode && !isLinux && <Banner />}
         <TabBar
           styleTabBar={{
             ...tabBarStyle,

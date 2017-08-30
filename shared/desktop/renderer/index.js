@@ -20,7 +20,7 @@ import {disable as disableDragDrop} from '../../util/drag-drop'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../../common-adapters'
 import {listenForNotifications} from '../../actions/notifications'
-import {changedFocus} from '../../actions/app'
+import {changedFocus, changedActive} from '../../actions/app'
 import merge from 'lodash/merge'
 import throttle from 'lodash/throttle'
 import {resetEngineOnHMR} from '../../local-debug.desktop'
@@ -34,6 +34,7 @@ import {setupSource} from '../../util/forward-logs'
 import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
+import InputMonitor from './inputmonitor'
 
 let _store
 function setupStore() {
@@ -91,7 +92,13 @@ function setupApp(store) {
   })
   ipcRenderer.send('install-check')
 
+  var inputMonitor = new InputMonitor(function(isActive) {
+    store.dispatch(changedActive(isActive))
+  })
+  inputMonitor.startActiveTimer()
+
   window.addEventListener('focus', () => {
+    inputMonitor.goActive()
     store.dispatch(changedFocus(true))
   })
   window.addEventListener('blur', () => {

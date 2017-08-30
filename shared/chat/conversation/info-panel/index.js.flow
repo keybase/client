@@ -1,15 +1,13 @@
 // @flow
 import {Component} from 'react'
-import {List} from 'immutable'
 
-export type Props = {
+type infoPanelProps = {
   muted: boolean,
   onAddParticipant: () => void,
   onMuteConversation: (muted: boolean) => void,
-  onShowBlockConversationDialog: () => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
-  participants: List<{
+  participants: Array<{
     username: string,
     following: boolean,
     fullname: string,
@@ -18,4 +16,18 @@ export type Props = {
   }>,
 }
 
-export default class InfoPanel extends Component<Props> {}
+export type SmallTeamInfoPanelProps = infoPanelProps & {
+  onShowBlockConversationDialog: () => void,
+  onShowNewTeamDialog: () => void,
+  showTeamButton: boolean,
+}
+
+export class SmallTeamInfoPanel extends Component<SmallTeamInfoPanelProps> {}
+
+export type BigTeamInfoPanelProps = infoPanelProps & {
+  channelname: string,
+  onLeaveConversation: () => void,
+  teamname: string,
+}
+
+export class BigTeamInfoPanel extends Component<BigTeamInfoPanelProps> {}
