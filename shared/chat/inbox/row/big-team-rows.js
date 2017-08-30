@@ -177,7 +177,7 @@ const unreadStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 6,
   flexShrink: 0,
-  height: 9,
-  width: 9,
+  height: 8,
+  width: 8,
 }
 export {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow}
