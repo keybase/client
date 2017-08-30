@@ -20,7 +20,3 @@ func IsSocialAssertion(s string) bool {
 func AssertionParseAndOnly(s string) (libkb.AssertionExpression, error) {
 	return libkb.AssertionParseAndOnly(MakeAssertionContext(), s)
 }
-
-func AssertionParse(s string) (libkb.AssertionExpression, error) {
-	return libkb.AssertionParse(MakeAssertionContext(), s)
-}
