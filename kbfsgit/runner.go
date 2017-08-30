@@ -432,7 +432,9 @@ func (r *runner) processGogitStatus(
 	lastByteCount := 0
 	for update := range statusChan {
 		if update.Stage != currStage {
-			r.errput.Write([]byte("done.\n"))
+			if currStage != plumbing.StatusUnknown {
+				r.errput.Write([]byte("done.\n"))
+			}
 			r.errput.Write([]byte(gogitStagesToStatus[update.Stage]))
 			lastByteCount = 0
 			currStage = update.Stage
