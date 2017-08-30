@@ -366,6 +366,12 @@ function clearSearchResults(): Constants.ClearSearchResults {
   return {payload: {}, type: 'chat:clearSearchResults'}
 }
 
+function toggleChannelWideNotifications(
+  conversationIDKey: Constants.ConversationIDKey
+): Constants.ToggleChannelWideNotifications {
+  return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
+}
+
 function updateConversationUnreadCounts(
   conversationUnreadCounts: Map<Constants.ConversationIDKey, number>
 ): Constants.UpdateConversationUnreadCounts {
@@ -772,6 +778,7 @@ export {
   stageUserForSearch,
   startConversation,
   threadLoadedOffline,
+  toggleChannelWideNotifications,
   unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,

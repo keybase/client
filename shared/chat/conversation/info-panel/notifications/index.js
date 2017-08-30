@@ -1,12 +1,27 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, RadioButton, Text} from '../../../../common-adapters'
+import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
 import {globalMargins, globalStyles} from '../../../../styles'
 
 import type {Props} from '.'
 
-const Notifications = ({desktop, mobile, onSetDesktop, onSetMobile}: Props) => (
+const Notifications = ({
+  channelWide,
+  desktop,
+  mobile,
+  onSetDesktop,
+  onSetMobile,
+  onToggleChannelWide,
+}: Props) => (
   <Box style={globalStyles.flexBoxColumn}>
+    <Box style={styleHeader}>
+      <Checkbox
+        checked={channelWide}
+        label="Receive notifications for @channel messages"
+        onCheck={onToggleChannelWide}
+      />
+    </Box>
+
     <Box style={styleHeader}>
       <Icon style={{paddingRight: globalMargins.xtiny}} type="iconfont-notifications-desktop" />
       <Text type="BodySmallSemibold">Desktop notifications</Text>

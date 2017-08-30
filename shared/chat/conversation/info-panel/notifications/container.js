@@ -34,8 +34,10 @@ const mapStateToProps = (state: TypedState) => {
   const notifications = inbox.get('notifications')
   const desktop = serverStateToProps(notifications, 'desktop')
   const mobile = serverStateToProps(notifications, 'mobile')
+  const {channelWide} = notifications
 
   return {
+    channelWide,
     conversationIDKey,
     desktop,
     mobile,
@@ -48,9 +50,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     deviceType: DeviceType,
     notifyType: Constants.NotifyType
   ) => dispatch(Creators.setNotifications(conversationIDKey, deviceType, notifyType)),
+  onToggleChannelWide: (conversationIDKey: Constants.ConversationIDKey) =>
+    dispatch(Creators.toggleChannelWideNotifications(conversationIDKey)),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
+  channelWide: stateProps.channelWide,
   desktop: stateProps.desktop,
   mobile: stateProps.mobile,
   onSetDesktop: (notifyType: Constants.NotifyType) => {
@@ -58,6 +63,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
   },
   onSetMobile: (notifyType: Constants.NotifyType) => {
     dispatchProps.onSetNotification(stateProps.conversationIDKey, 'mobile', notifyType)
+  },
+  onToggleChannelWide: () => {
+    dispatchProps.onToggleChannelWide(stateProps.conversationIDKey)
   },
 })
 

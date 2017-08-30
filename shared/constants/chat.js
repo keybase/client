@@ -593,6 +593,10 @@ export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
   {users: Array<string>, forceImmediate: boolean, temporary: boolean}
 >
+export type ToggleChannelWideNotifications = NoErrorTypedAction<
+  'chat:toggleChannelWideNotifications',
+  {conversationIDKey: ConversationIDKey}
+>
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {conversationIDKeys: Array<ConversationIDKey>}

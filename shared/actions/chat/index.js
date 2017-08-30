@@ -1192,6 +1192,7 @@ const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
   yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
+  yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
 }
 
 export default chatSaga

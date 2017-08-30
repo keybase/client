@@ -4,6 +4,7 @@ import * as Constants from '../../../../constants/chat'
 import type {DeviceType} from '../../../../constants/types/more'
 
 export type StateProps = {|
+  channelWide: boolean,
   conversationIDKey: string,
   desktop: string,
   mobile: string,
@@ -11,6 +12,7 @@ export type StateProps = {|
 
 export type DispatchProps = {|
   onSetNotification: (conversationIDKey: Constants.ConversationIDKey, deviceType: DeviceType, notifyType: Constants.NotifyType) => void,
+  onToggleChannelWide: (conversationIDKey: Constants.ConversationIDKey) => void,
 |}
 
 export default class Notifications extends Component<{}, void> {}
