@@ -366,7 +366,9 @@ const unboxConversations = function*(
   }
 }
 
-const parseNotifications = (notifications: ChatTypes.ConversationNotificationInfo): ?Constants.NotificationsState => {
+const parseNotifications = (
+  notifications: ChatTypes.ConversationNotificationInfo
+): ?Constants.NotificationsState => {
   if (!notifications || !notifications.settings) {
     return null
   }
