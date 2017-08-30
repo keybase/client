@@ -16,7 +16,7 @@ class InputMonitor {
 
   startActiveTimer = () => {
     // wait 5 minutes before adding listeners
-    this.activeTimeoutID = window.setTimeout(this.goListening, 15000)
+    this.activeTimeoutID = window.setTimeout(this.goListening, 300000)
   }
 
   resetInactiveTimer = () => {
@@ -41,7 +41,7 @@ class InputMonitor {
     window.addEventListener('keypress', this.resetInactiveTimer, true)
 
     // wait 1 minute before calling goInactive
-    this.inactiveTimeoutID = window.setTimeout(this.goInactive, 5000)
+    this.inactiveTimeoutID = window.setTimeout(this.goInactive, 60000)
   }
 
   goActive = () => {
