@@ -655,7 +655,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const notifications = conv && conv.get('notifications')
       const nextNotifications = {[deviceType]: {}}
       // This is the flip-side of the logic in the notifications container.
-      console.warn({deviceType, notifyType})
       if (notifications && notifications[deviceType]) {
         switch (notifyType) {
           case 'generic':
@@ -672,7 +671,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
             break
         }
       }
-      console.warn({nextNotifications})
       return state.set(
         'inbox',
         inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))

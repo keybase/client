@@ -367,13 +367,12 @@ const unboxConversations = function*(
 }
 
 const _parseNotifications = (c: ChatTypes.InboxUIItem): ?Constants.NotificationsState => {
-  const settings = c.notifications && c.notifications.settings
-  if (!settings) {
+  if (!c.notifications || !c.notifications.settings) {
     return null
   }
-  console.warn('in parseNotifications', c.notifications)
+  const {settings} = c.notifications
   return {
-    channelWide: c.notifications ? c.notifications.channelWide : true,
+    channelWide: c.notifications.channelWide,
     desktop: {
       atmention: settings[CommonDeviceType.desktop.toString()][
         ChatTypes.CommonNotificationKind.atmention.toString()

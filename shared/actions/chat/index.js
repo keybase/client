@@ -1124,7 +1124,6 @@ const _setNotifications = function*(action: Constants.SetNotifications) {
         },
       ],
     }
-    console.warn('calling with param', param)
     yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
   }
 }
