@@ -29,7 +29,7 @@ const _onMobileAppStateChanged = function*(action: Constants.MobileAppState): Sa
 
   yield put(changedFocus(focusState))
 
-  const state =
+  const state: Types.AppState =
     {
       active: Types.AppStateAppState.foreground,
       inactive: Types.AppStateAppState.inactive,
