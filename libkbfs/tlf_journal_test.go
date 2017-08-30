@@ -277,6 +277,9 @@ func setupTLFJournalTest(
 
 	switch bwStatus {
 	case TLFJournalBackgroundWorkEnabled:
+		// Same as the single op case.
+		fallthrough
+	case TLFJournalSingleOpBackgroundWorkEnabled:
 		// Read the state changes triggered by the initial
 		// work signal.
 		delegate.requireNextState(ctx, bwIdle)
@@ -1764,6 +1767,79 @@ func testTLFJournalFirstRevNoSquash(t *testing.T, ver MetadataVer) {
 	require.Equal(t, firstRevision+1, squashRange[0].RevisionNumber())
 }
 
+// testTLFJournalSingleOp tests that when the journal is in single op
+// mode, it doesn't flush any MDs until `finishSingleOp()` is called,
+// and then it only flushes one squashed MD.
+func testTLFJournalSingleOp(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalSingleOpBackgroundWorkEnabled)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	var mdserver shimMDServer
+	config.mdserver = &mdserver
+
+	tlfJournal.pauseBackgroundWork()
+	delegate.requireNextState(ctx, bwPaused)
+
+	putBlock(ctx, t, config, tlfJournal, []byte{1, 2})
+	putBlock(ctx, t, config, tlfJournal, []byte{3, 4})
+	putBlock(ctx, t, config, tlfJournal, []byte{5, 6})
+
+	md1 := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
+	irmd, err := tlfJournal.putMD(ctx, md1, tlfJournal.key)
+	require.NoError(t, err)
+	prevRoot := irmd.mdID
+
+	putBlock(ctx, t, config, tlfJournal, []byte{7, 8})
+	putBlock(ctx, t, config, tlfJournal, []byte{9, 10})
+
+	md2 := config.makeMD(kbfsmd.Revision(11), prevRoot)
+	_, err = tlfJournal.putMD(ctx, md2, tlfJournal.key)
+	require.NoError(t, err)
+
+	tlfJournal.resumeBackgroundWork()
+	delegate.requireNextState(ctx, bwIdle)
+	delegate.requireNextState(ctx, bwBusy)
+	delegate.requireNextState(ctx, bwIdle)
+
+	requireJournalEntryCounts(t, tlfJournal, 0, 2)
+
+	// The `finishSingleOp` call below blocks, so we have to do it in
+	// a background goroutine to avoid deadlock.
+	errCh := make(chan error, 1)
+	go func() {
+		errCh <- tlfJournal.finishSingleOp(ctx)
+	}()
+
+	// Background loop awakens after the finish is signaled.
+	// Should now be on a conflict branch.
+	delegate.requireNextState(ctx, bwBusy)
+	delegate.requireNextState(ctx, bwPaused)
+
+	require.Equal(
+		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
+	resolveMD := config.makeMD(kbfsmd.Revision(10), kbfsmd.FakeID(1))
+	_, err = tlfJournal.resolveBranch(ctx,
+		tlfJournal.mdJournal.getBranchID(), nil, resolveMD, tlfJournal.key)
+	require.NoError(t, err)
+
+	// Now the flushing should complete.
+	delegate.requireNextState(ctx, bwIdle)
+	delegate.requireNextState(ctx, bwBusy)
+	delegate.requireNextState(ctx, bwIdle)
+
+	select {
+	case err := <-errCh:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err().Error())
+	}
+	requireJournalEntryCounts(t, tlfJournal, 0, 0)
+
+	require.Len(t, mdserver.rmdses, 1)
+}
+
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testTLFJournalBasic,
@@ -1795,6 +1871,7 @@ func TestTLFJournal(t *testing.T) {
 		testTLFJournalResolveBranch,
 		testTLFJournalSquashByBytes,
 		testTLFJournalFirstRevNoSquash,
+		testTLFJournalSingleOp,
 	}
 	runTestsOverMetadataVers(t, "testTLFJournal", tests)
 }

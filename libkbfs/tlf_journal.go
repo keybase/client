@@ -130,6 +130,19 @@ const (
 	// TLFJournalBackgroundWorkEnabled indicates that the journal
 	// should be doing background work.
 	TLFJournalBackgroundWorkEnabled
+	// TLFJournalSingleOpBackgroundWorkEnabled indicates that the
+	// journal should make all of its work visible to other readers as
+	// a single operation. That means blocks may be uploaded as they
+	// come in, but MDs must be squashed together and only one MD
+	// update total should be uploaded.  The end of the operation will
+	// be indicated by an explicit call to
+	// `tlfJournal.finishSingleOp`.
+	//
+	// Note that this is an explicit per-TLF setting, rather than
+	// taken from `Config.Mode()`, in case we find it useful in the
+	// future to be able to turn this on for individual TLFs running
+	// in normal KBFS mode.
+	TLFJournalSingleOpBackgroundWorkEnabled
 )
 
 type tlfJournalPauseType int
@@ -145,6 +158,8 @@ func (bws TLFJournalBackgroundWorkStatus) String() string {
 		return "Background work enabled"
 	case TLFJournalBackgroundWorkPaused:
 		return "Background work paused"
+	case TLFJournalSingleOpBackgroundWorkEnabled:
+		return "Background work in single-op mode"
 	default:
 		return fmt.Sprintf("TLFJournalBackgroundWorkStatus(%d)", bws)
 	}
@@ -180,6 +195,14 @@ type tlfJournalBWDelegate interface {
 	OnNewState(ctx context.Context, bws bwState)
 	OnShutdown(ctx context.Context)
 }
+
+type singleOpMode int
+
+const (
+	singleOpDisabled singleOpMode = iota
+	singleOpRunning
+	singleOpFinished
+)
 
 // A tlfJournal contains all the journals for a (TLF, user, device)
 // tuple and controls the synchronization between the objects that are
@@ -228,9 +251,12 @@ type tlfJournal struct {
 	// This channel is closed when background work shuts down.
 	backgroundShutdownCh chan struct{}
 
-	// Serializes all flushes.
+	// Serializes all flushes, and protects `lastServerMDCheck` and
+	// `singleOpMode`.
 	flushLock         sync.Mutex
-	lastServerMDCheck time.Time // protected by `flushLock`
+	lastServerMDCheck time.Time
+	singleOpMode      singleOpMode
+	finishSingleOpCh  chan struct{}
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
@@ -394,13 +420,22 @@ func makeTLFJournal(
 		needShutdownCh:       make(chan struct{}, 1),
 		needBranchCheckCh:    make(chan struct{}, 1),
 		backgroundShutdownCh: make(chan struct{}),
+		finishSingleOpCh:     make(chan struct{}, 1),
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
 		flushingBlocks:       make(map[kbfsblock.ID]bool),
 		bwDelegate:           bwDelegate,
 	}
 
-	if bws == TLFJournalBackgroundWorkPaused {
+	switch bws {
+	case TLFJournalSingleOpBackgroundWorkEnabled:
+		j.singleOpMode = singleOpRunning
+		j.log.CDebugf(
+			ctx, "Starting journal for %s in single op mode", tlfID.String())
+		// Now that we've set `j.singleOpMode`, `bws` can be the
+		// normal background work mode again.
+		bws = TLFJournalBackgroundWorkEnabled
+	case TLFJournalBackgroundWorkPaused:
 		j.pauseType |= journalPauseCommand
 	}
 
@@ -516,7 +551,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 		ctx := CtxWithRandomIDReplayable(ctx, CtxJournalIDKey, CtxJournalOpID,
 			j.log)
 		switch {
-		case bws == TLFJournalBackgroundWorkEnabled && errCh == nil:
+		case bws != TLFJournalBackgroundWorkPaused && errCh == nil:
 			// 1) Idle.
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwIdle)
@@ -546,7 +581,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				return
 			}
 
-		case bws == TLFJournalBackgroundWorkEnabled && errCh != nil:
+		case bws != TLFJournalBackgroundWorkPaused && errCh != nil:
 			// 2) Busy.
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwBusy)
@@ -727,6 +762,22 @@ func (j *tlfJournal) getJournalEnds(ctx context.Context) (
 	return blockEnd, mdEnd, nil
 }
 
+func (j *tlfJournal) checkAndFinishSingleOpFlushLocked(
+	ctx context.Context) error {
+	switch j.singleOpMode {
+	case singleOpDisabled:
+		j.log.CDebugf(ctx, "Single op mode is disabled; cannot finish")
+	case singleOpFinished:
+		j.log.CDebugf(ctx, "Single op mode already finished")
+	case singleOpRunning:
+		j.log.CDebugf(ctx, "Marking single op as finished")
+		j.singleOpMode = singleOpFinished
+	default:
+		return errors.Errorf("Unrecognized single op mode: %d", j.singleOpMode)
+	}
+	return nil
+}
+
 func (j *tlfJournal) flush(ctx context.Context) (err error) {
 	j.flushLock.Lock()
 	defer j.flushLock.Unlock()
@@ -745,9 +796,6 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		j.lastFlushErr = err
 		j.journalLock.Unlock()
 	}()
-
-	// TODO: Avoid starving flushing MD ops if there are many
-	// block ops. See KBFS-1502.
 
 	for {
 		select {
@@ -772,6 +820,15 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return nil
 		}
 
+		select {
+		case <-j.finishSingleOpCh:
+			err := j.checkAndFinishSingleOpFlushLocked(ctx)
+			if err != nil {
+				return err
+			}
+		default:
+		}
+
 		converted, err := j.convertMDsToBranchIfOverThreshold(ctx, true)
 		if err != nil {
 			return err
@@ -785,8 +842,14 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			return err
 		}
 
-		if blockEnd == 0 && mdEnd == kbfsmd.RevisionUninitialized {
+		if blockEnd == 0 &&
+			(mdEnd == kbfsmd.RevisionUninitialized ||
+				j.singleOpMode == singleOpRunning) {
 			j.log.CDebugf(ctx, "Nothing else to flush")
+			if j.singleOpMode == singleOpFinished {
+				j.log.CDebugf(ctx, "Resetting single op mode")
+				j.singleOpMode = singleOpRunning
+			}
 			break
 		}
 
@@ -813,6 +876,11 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			// There were no blocks to flush, so we can
 			// flush all of the remaining MDs.
 			maxMDRevToFlush = mdEnd
+		}
+
+		if j.singleOpMode == singleOpRunning {
+			j.log.CDebugf(ctx, "Skipping MD flushes in single-op mode")
+			continue
 		}
 
 		// TODO: Flush MDs in batch.
@@ -1116,8 +1184,12 @@ func (j *tlfJournal) convertMDsToBranch(ctx context.Context) error {
 }
 
 func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
-	doSignal bool) (
-	bool, error) {
+	doSignal bool) (bool, error) {
+	if j.singleOpMode == singleOpRunning {
+		// Don't squash until the single operation is complete.
+		return false, nil
+	}
+
 	j.journalLock.Lock()
 	defer j.journalLock.Unlock()
 	if err := j.checkEnabledLocked(); err != nil {
@@ -1140,7 +1212,13 @@ func (j *tlfJournal) convertMDsToBranchIfOverThreshold(ctx context.Context,
 	}
 
 	squashByRev := false
-	if j.config.BGFlushDirOpBatchSize() == 1 {
+	if j.singleOpMode == singleOpFinished {
+		j.log.CDebugf(ctx, "Squashing due to single op completion")
+		// Always squash if we've finished the single op and have more
+		// than one revision pending.
+		squashByRev = true
+		j.unsquashedBytes = 0
+	} else if j.config.BGFlushDirOpBatchSize() == 1 {
 		squashByRev, err =
 			j.mdJournal.atLeastNNonLocalSquashes(ForcedBranchSquashRevThreshold)
 		if err != nil {
@@ -2247,4 +2325,39 @@ func (j *tlfJournal) wait(ctx context.Context) error {
 			"due to paused journal")
 	}
 	return nil
+}
+
+func (j *tlfJournal) finishSingleOp(ctx context.Context) error {
+	j.log.CDebugf(ctx, "Finishing single op")
+
+	// Let the background flusher know it should change the single op
+	// mode to finished, so we can have it set ASAP without waiting to
+	// take `flushLock` here.
+	select {
+	case j.finishSingleOpCh <- struct{}{}:
+	default:
+	}
+
+	// Now we wait for the journal to completely empty.  Waiting on
+	// the wg isn't enough, because conflicts/squashes can cause the
+	// journal to pause and we'll be called too early.
+	for {
+		blockEntryCount, mdEntryCount, err := j.getJournalEntryCounts()
+		if err != nil {
+			return err
+		}
+		if blockEntryCount == 0 && mdEntryCount == 0 {
+			j.log.CDebugf(ctx, "Single op completely flushed")
+			return nil
+		}
+
+		// Let the background flusher know it should try to flush
+		// everything again, once any conflicts have been resolved.
+		j.signalWork()
+
+		err = j.wg.Wait(ctx)
+		if err != nil {
+			return err
+		}
+	}
 }

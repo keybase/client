@@ -230,7 +230,11 @@ func (j *JournalServer) getTLFJournal(
 		ctx := context.TODO() // plumb through from callers
 		j.log.CDebugf(ctx, "Enabling a new journal for %s (enableAuto=%t, set by user=%t)",
 			tlfID, enableAuto, enableAutoSetByUser)
-		err := j.Enable(ctx, tlfID, h, TLFJournalBackgroundWorkEnabled)
+		bws := TLFJournalBackgroundWorkEnabled
+		if j.config.Mode() == InitSingleOp {
+			bws = TLFJournalSingleOpBackgroundWorkEnabled
+		}
+		err := j.Enable(ctx, tlfID, h, bws)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't enable journal for %s: %+v", tlfID, err)
 			return nil, false
@@ -618,6 +622,20 @@ func (j *JournalServer) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Waiting on journal for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		return tlfJournal.wait(ctx)
+	}
+
+	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
+	return nil
+}
+
+// FinishSingleOp lets the write journal know that the application has
+// finished a single op, and then blocks until the write journal has
+// finished flushing everything.
+func (j *JournalServer) FinishSingleOp(
+	ctx context.Context, tlfID tlf.ID) (err error) {
+	j.log.CDebugf(ctx, "Finishing single op for %s", tlfID)
+	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
+		return tlfJournal.finishSingleOp(ctx)
 	}
 
 	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
