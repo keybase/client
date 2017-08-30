@@ -366,7 +366,7 @@ const unboxConversations = function*(
   }
 }
 
-const parseNotifications = (notifications: any): ?Constants.NotificationsState => {
+const parseNotifications = (notifications: ChatTypes.ConversationNotificationInfo): ?Constants.NotificationsState => {
   if (!notifications || !notifications.settings) {
     return null
   }
@@ -413,13 +413,15 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     channelname = c.channel
   }
 
+  const notifications = c.notifications && parseNotifications(c.notifications)
+
   return new Constants.InboxStateRecord({
     channelname,
     conversationIDKey,
     isEmpty: c.isEmpty,
     membersType: c.membersType,
     name: c.name,
-    notifications: parseNotifications(c.notifications),
+    notifications,
     participants: parts,
     snippet: Constants.makeSnippet(c.snippet),
     state: 'unboxed',
