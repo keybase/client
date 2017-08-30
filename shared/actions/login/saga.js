@@ -40,7 +40,7 @@ const InputCancelError = {
 
 const codePageSelector = ({login: {codePage}}: TypedState) => codePage
 
-const generateQRCode = function*() {
+function* generateQRCode() {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
 
   if (codePage.textCode) {
@@ -75,7 +75,7 @@ const getAccounts = (): AsyncAction => dispatch =>
       })
   })
 
-const setCodePageOtherDeviceRole = function*(otherDeviceRole: DeviceRole) {
+function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
     console.warn("my device role is null, can't setCodePageOtherDeviceRole. Bailing")
@@ -92,7 +92,7 @@ const setCodePageOtherDeviceRole = function*(otherDeviceRole: DeviceRole) {
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
-const navBasedOnLoginState = function*() {
+function* navBasedOnLoginState() {
   const selector = ({
     config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
     login: {justDeletedSelf, loginError},
@@ -161,7 +161,7 @@ const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => ({
   'keybase.1.secretUi.getPassphrase': getPassphraseSaga(onBackSaga),
 })
 
-const cancelLogin = function*() {
+function* cancelLogin() {
   const getNumAccounts = (state: TypedState) =>
     state.login.configuredAccounts && state.login.configuredAccounts.length
   const numAccounts = yield select(getNumAccounts)
@@ -170,7 +170,7 @@ const cancelLogin = function*() {
   yield put(navigateTo(route, [loginTab]))
 }
 
-const selectKeySaga = function*() {
+function* selectKeySaga() {
   return EngineRpc.rpcError(new RPCError('Not supported in GUI', Types.ConstantsStatusCode.sckeynotfound))
 }
 
@@ -418,7 +418,7 @@ const getPassphraseSaga = onBackSaga =>
     }
   }
 
-const handleProvisioningError = function*(error) {
+function* handleProvisioningError(error) {
   yield put(Creators.provisioningError(error))
   yield put(
     navigateAppend(
@@ -437,7 +437,7 @@ const handleProvisioningError = function*(error) {
   yield call(cancelLogin)
 }
 
-const loginFlowSaga = function*(usernameOrEmail) {
+function* loginFlowSaga(usernameOrEmail) {
   const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga)
 
   const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc', {
@@ -473,7 +473,7 @@ const loginFlowSaga = function*(usernameOrEmail) {
   }
 }
 
-const initalizeMyCodeStateForLogin = function*() {
+function* initalizeMyCodeStateForLogin() {
   // We can either be a newDevice or an existingDevice. Here in the login
   // flow, let's set ourselves to be a newDevice
   yield put(
@@ -483,7 +483,7 @@ const initalizeMyCodeStateForLogin = function*() {
   )
 }
 
-const initalizeMyCodeStateForAddingADevice = function*() {
+function* initalizeMyCodeStateForAddingADevice() {
   // We can either be a newDevice or an existingDevice. Here in the adding a device
   // flow, let's set ourselves to be an existing device
   yield put(
@@ -493,7 +493,7 @@ const initalizeMyCodeStateForAddingADevice = function*() {
   )
 }
 
-const startLoginSaga = function*() {
+function* startLoginSaga() {
   yield put(Creators.setLoginFromRevokedDevice(''))
   yield put(Creators.setRevokedSelf(''))
   yield put(Creators.setDeletedSelf(''))
@@ -515,7 +515,7 @@ const startLoginSaga = function*() {
   }
 }
 
-const cameraBrokenModeSaga = function*({payload: {broken}}) {
+function* cameraBrokenModeSaga({payload: {broken}}) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
     console.warn("my device role is null, can't setCameraBrokenMode. Bailing")
@@ -535,7 +535,7 @@ const cameraBrokenModeSaga = function*({payload: {broken}}) {
   yield put(Creators.setCodePageMode(mode))
 }
 
-const loginSuccess = function*() {
+function* loginSuccess() {
   yield put(Creators.loginDone())
   yield put(configurePush())
   yield put(loadDevices())
@@ -555,7 +555,7 @@ function chooseDeviceTypeSaga(role) {
   }
 }
 
-const addNewDeviceSaga = function*({payload: {role}}: DeviceConstants.AddNewDevice) {
+function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
   yield put(setDevicesWaiting(true))
   yield call(initalizeMyCodeStateForAddingADevice)
 
@@ -586,7 +586,7 @@ const addNewDeviceSaga = function*({payload: {role}}: DeviceConstants.AddNewDevi
   yield put(setDevicesWaiting(false))
 }
 
-const reloginSaga = function*({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
+function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
   const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
     ['keybase.1.secretUi.getPassphrase', 'finished'],
     {param: {noPassphrasePrompt: false, username: usernameOrEmail}}
@@ -614,18 +614,18 @@ const reloginSaga = function*({payload: {usernameOrEmail, passphrase}}: Constant
   }
 }
 
-const openAccountResetPageSaga = function*() {
+function* openAccountResetPageSaga() {
   yield call(openURL, 'https://keybase.io/#password-reset')
 }
 
-const logoutDoneSaga = function*() {
+function* logoutDoneSaga() {
   yield put({payload: undefined, type: CommonConstants.resetStore})
 
   yield call(navBasedOnLoginState)
   yield put(bootstrap())
 }
 
-const logoutSaga = function*() {
+function* logoutSaga() {
   yield call(deletePushTokenSaga)
 
   // Add waiting handler
@@ -638,7 +638,7 @@ const logoutSaga = function*() {
   }
 }
 
-const loginSaga = function*(): SagaGenerator<any, any> {
+function* loginSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Constants.startLogin, startLoginSaga)
   yield Saga.safeTakeLatest(Constants.cameraBrokenMode, cameraBrokenModeSaga)
   yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
