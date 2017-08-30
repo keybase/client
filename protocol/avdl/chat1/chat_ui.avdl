@@ -33,15 +33,17 @@ protocol chatUi {
     string name;
     string snippet;
     string channel;
+    string headline;
     TLFVisibility visibility;
     array<string> participants;
     ConversationStatus status;
     ConversationMembersType membersType;
-    union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
+    union { null, ConversationNotificationInfo } notifications;
+    union { null, ConversationCreatorInfoLocal } creatorInfo;
 
     // Finalized convo stuff
-    union{ null, ConversationFinalizeInfo } finalizeInfo;
+    union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
   }

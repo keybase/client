@@ -127,10 +127,11 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
         // it was written by the current user.
         const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
         const appFocused = yield select(Shared.focusedSelector)
+        const userActive = yield select(Shared.activeSelector)
         const selectedTab = yield select(Shared.routeSelector)
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
-          conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
+          conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected && userActive
 
         if (message && message.messageID && conversationIsFocused) {
           try {
@@ -866,6 +867,14 @@ const _blockConversation = function*(action: Constants.BlockConversation): SagaG
   }
 }
 
+const _leaveConversation = function*(action: Constants.LeaveConversation): SagaGenerator<any, any> {
+  const {conversationIDKey} = action.payload
+  const conversationID = Constants.keyToConversationID(conversationIDKey)
+  yield call(ChatTypes.localLeaveConversationLocalRpcPromise, {
+    param: {convID: conversationID},
+  })
+}
+
 const _muteConversation = function*(action: Constants.MuteConversation): SagaGenerator<any, any> {
   const {conversationIDKey, muted} = action.payload
   const conversationID = Constants.keyToConversationID(conversationIDKey)
@@ -1099,6 +1108,7 @@ const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
   yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
+  yield Saga.safeTakeEvery('chat:leaveConversation', _leaveConversation)
   yield Saga.safeTakeSerially('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))

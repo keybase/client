@@ -202,13 +202,14 @@ protocol common {
     ConversationMemberStatus status; // The status of the membership to the convo
   }
 
-  record ConversationAuxiliaryInfo {
-    gregor1.Time conversationCtime;
-    gregor1.UID conversationCreator;
-    union { null, gregor1.Time } headlineMtime;
-    union { null, gregor1.UID } headlineModifier;
-    union { null, MessageID } headlineMessageID;
-    int readerCount;
+  record ConversationCreatorInfo {
+    gregor1.Time ctime;
+    gregor1.UID uid;
+  }
+
+  record ConversationCreatorInfoLocal {
+    gregor1.Time ctime;
+    string username;
   }
 
   record Conversation {
@@ -223,8 +224,8 @@ protocol common {
     // each messageType in the conversation
     array<MessageSummary> maxMsgSummaries;
 
-    // miscellaneous metadata about the conversation
-    union { null, ConversationAuxiliaryInfo } auxiliaryInfo;
+    // creator info for the conversation
+    union { null, ConversationCreatorInfo } creatorInfo;
   }
 
   record MessageSummary {
