@@ -3250,8 +3250,10 @@ export type ImplicitRole = {
   ancestor: TeamID,
 }
 
+export type ImplicitTeamConflictGeneration = int
+
 export type ImplicitTeamConflictInfo = {
-  generation: int,
+  generation: ImplicitTeamConflictGeneration,
   time: Time,
 }
 

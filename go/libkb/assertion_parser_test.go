@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -78,6 +79,23 @@ func TestParser2(t *testing.T) {
 
 func TestNormalization(t *testing.T) {
 	// Test moved to externals/ since it requires knowledge of social networks
+}
+
+func TestParseImplicitTeamDisplayName(t *testing.T) {
+	s := "iteam:public/charlie,bob,jobiwood (conflicted copy 2017-04-29 #2)"
+	expr, err := AssertionParseAndOnlyWithITeamException(testAssertionContext{}, s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	u := expr.CollectUrls(nil)
+	require.Equal(t, len(u), 1)
+	n, ok := u[0].(AssertionImplicitTeamDisplayName)
+	require.True(t, ok)
+	require.Equal(t, int(n.conflict.Time), 1493424000000)
+	require.Equal(t, int(n.conflict.Generation), 2)
+	// No sorting happens as a result of the assertion parsing.
+	require.Equal(t, string(n.name), "charlie,bob,jobiwood")
+	require.True(t, n.isPublic)
 }
 
 type Pair struct {

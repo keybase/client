@@ -16,17 +16,18 @@ import (
 )
 
 type ResolveResult struct {
-	uid                keybase1.UID
-	teamID             keybase1.TeamID
-	body               *jsonw.Wrapper
-	err                error
-	queriedKbUsername  string
-	queriedByUID       bool
-	resolvedKbUsername string
-	queriedByTeamID    bool
-	resolvedTeamName   keybase1.TeamName
-	cachedAt           time.Time
-	mutable            bool
+	uid                      keybase1.UID
+	teamID                   keybase1.TeamID
+	body                     *jsonw.Wrapper
+	err                      error
+	queriedKbUsername        string
+	queriedByUID             bool
+	resolvedKbUsername       string
+	queriedByTeamID          bool
+	resolvedTeamName         keybase1.TeamName
+	resolvedImplicitTeamName string
+	cachedAt                 time.Time
+	mutable                  bool
 }
 
 func (res ResolveResult) HasPrimaryKey() bool {
@@ -133,7 +134,7 @@ func (r *Resolver) resolveFullExpression(ctx context.Context, input string, with
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 
 	var expr AssertionExpression
-	expr, res.err = AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
+	expr, res.err = AssertionParseAndOnlyWithITeamException(r.G().MakeAssertionContext(), input)
 	if res.err != nil {
 		return res
 	}
@@ -268,6 +269,10 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 		return r.resolveTeamViaServerLookup(ctx, au)
 	}
 
+	if au.IsImplicitTeamName() {
+		return r.resolveImplicitTeamViaServerLookup(ctx, au)
+	}
+
 	var key, val string
 	var ares *APIRes
 	var l int
@@ -345,7 +350,24 @@ type teamLookup struct {
 	Status AppStatus         `json:"status"`
 }
 
+type implicitTeamConflict struct {
+	TeamID     keybase1.TeamID                         `json:"team_id"`
+	Generation keybase1.ImplicitTeamConflictGeneration `json:"generation"`
+}
+
+type implicitTeamLookup struct {
+	TeamID      keybase1.TeamID        `json:"team_id"`
+	DisplayName keybase1.TeamNamePart  `json:"name"`
+	Status      AppStatus              `json:"status"`
+	Conflicts   []implicitTeamConflict `json:"conflicts"`
+	IsPrivate   bool                   `json:"is_private"`
+}
+
 func (t *teamLookup) GetAppStatus() *AppStatus {
+	return &t.Status
+}
+
+func (t *implicitTeamLookup) GetAppStatus() *AppStatus {
 	return &t.Status
 }
 
@@ -375,6 +397,47 @@ func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionU
 	res.resolvedTeamName = lookup.Name
 	res.teamID = lookup.ID
 
+	return res
+}
+
+func (r *Resolver) resolveImplicitTeamViaServerLookup(ctx context.Context, au AssertionURL) (res ResolveResult) {
+	r.G().Log.CDebugf(ctx, "resolveImplicitTeamViaServerLookup")
+
+	res.queriedByTeamID = au.IsTeamID()
+	iteam, ok := au.(AssertionImplicitTeamDisplayName)
+	if !ok {
+		res.err = fmt.Errorf("Wrong type of assertion; expected an 'iteam'")
+		return res
+
+	}
+
+	arg := NewRetryAPIArg("team/implicit")
+	arg.NetContext = ctx
+	arg.SessionType = APISessionTypeREQUIRED
+	arg.Args = HTTPArgs{
+		"display_name": S{Val: iteam.Value},
+		"public":       B{Val: iteam.isPublic},
+	}
+
+	var lookup implicitTeamLookup
+	if err := r.G().API.GetDecode(arg, &lookup); err != nil {
+		res.err = err
+		return res
+	}
+
+	res.resolvedTeamName = keybase1.TeamName{Parts: []keybase1.TeamNamePart{lookup.DisplayName}}
+	if iteam.conflict == nil {
+		res.teamID = lookup.TeamID
+		return res
+	}
+
+	for _, c := range lookup.Conflicts {
+		if c.Generation == iteam.conflict.Generation {
+			res.teamID = c.TeamID
+			return res
+		}
+	}
+	res.err = fmt.Errorf("Conflict id wasn't found")
 	return res
 }
 
