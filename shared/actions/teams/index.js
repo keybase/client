@@ -13,32 +13,36 @@ import type {SagaGenerator} from '../../constants/types/saga'
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
   const teamname = action.payload.teamname
-  const results = yield call(ChatTypes.localGetTLFConversationsLocalRpcPromise, {
-    param: {
-      includeAuxiliaryInfo: false,
-      membersType: ChatTypes.CommonConversationMembersType.team,
-      tlfName: teamname,
-      topicType: ChatTypes.CommonTopicType.chat,
-    },
-  })
+  const results: ChatTypes.GetTLFConversationsLocalRes = yield call(
+    ChatTypes.localGetTLFConversationsLocalRpcPromise,
+    {
+      param: {
+        membersType: ChatTypes.CommonConversationMembersType.team,
+        tlfName: teamname,
+        topicType: ChatTypes.CommonTopicType.chat,
+      },
+    }
+  )
 
   const convIDs = []
   const convIDToParticipants = {}
   const convIDToChannelName = {}
+  const convIDToDescription = {}
 
-  results.convs.forEach(conv => {
-    const convID = ChatConstants.conversationIDToKey(conv.info.id)
+  const convs = results.convs || []
+  convs.forEach(conv => {
+    const convID = ChatConstants.conversationIDToKey(conv.convID)
     convIDs.push(convID)
-    convIDToParticipants[convID] = I.Set(
-      [].concat(conv.info.readerNames, conv.info.writerNames).filter(Boolean)
-    )
-    convIDToChannelName[convID] = conv.info.topicName
+    convIDToParticipants[convID] = I.Set(conv.participants || [])
+    convIDToChannelName[convID] = conv.channel
+    convIDToDescription[convID] = conv.headline
   })
 
   yield all([
     put(replaceEntity(['teams', 'teamNameToConvIDs'], I.Map([[teamname, I.Set(convIDs)]]))),
     put(replaceEntity(['teams', 'convIDToParticipants'], I.Map(convIDToParticipants))),
     put(replaceEntity(['teams', 'convIDToChannelName'], I.Map(convIDToChannelName))),
+    put(replaceEntity(['teams', 'convIDToDescription'], I.Map(convIDToDescription))),
   ])
 }
 

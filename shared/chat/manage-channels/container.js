@@ -16,10 +16,11 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     .map(convID => {
       const participants = state.entities.getIn(['teams', 'convIDToParticipants', convID], I.Set())
       const name = state.entities.getIn(['teams', 'convIDToChannelName', convID])
+      const description = state.entities.getIn(['teams', 'convIDToDescription', convID])
 
       return name
         ? {
-            description: '', // TODO we don't have this i think
+            description,
             name,
             selected: !!participants.get(you),
           }

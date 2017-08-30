@@ -14,12 +14,14 @@ export type Teamname = string
 
 export type TeamRecord = KBRecord<{
   convIDToChannelName: I.Map<ConversationIDKey, string>,
+  convIDToDescription: I.Map<ConversationIDKey, string>,
   convIDToParticipants: I.Map<ConversationIDKey, I.Set<string>>,
   teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
 }>
 
 export const Team = I.Record({
   convIDToChannelName: I.Map(),
+  convIDToDescription: I.Map(),
   convIDToParticipants: I.Map(),
   teamNameToConvIDs: I.Map(),
 })
