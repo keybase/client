@@ -334,7 +334,11 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		close(printDoneCh)
 	}()
 
-	err = jServer.Wait(ctx, rootNode.GetFolderBranch().Tlf)
+	// This squashes everything written to the journal into a single
+	// revision, to make sure that no partial states of the bare repo
+	// are seen by other readers of the TLF.  It also waits for any
+	// necessary conflict resolution to complete.
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		return err
 	}

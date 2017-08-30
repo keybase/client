@@ -64,7 +64,7 @@ func initConfigForRunner(t *testing.T) (
 	err = config.EnableDiskLimiter(tempdir)
 	require.NoError(t, err)
 	err = config.EnableJournaling(
-		ctx, tempdir, libkbfs.TLFJournalBackgroundWorkEnabled)
+		ctx, tempdir, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
 	require.NoError(t, err)
 
 	return ctx, config, tempDir

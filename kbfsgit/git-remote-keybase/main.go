@@ -81,6 +81,8 @@ func start() *libfs.Error {
 	defaultParams.EnableDiskCache = false
 	defaultParams.StorageRoot = storageRoot
 	defaultParams.Mode = libkbfs.InitSingleOpString
+	defaultParams.TLFJournalBackgroundWorkStatus =
+		libkbfs.TLFJournalSingleOpBackgroundWorkEnabled
 	defaultLogPath := filepath.Join(
 		kbCtx.GetLogDir(), libkb.GitLogFileName)
 
