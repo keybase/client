@@ -366,9 +366,15 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 		// Load member first to check if their eldest_seqno has not changed.
 		// If it did, the member was nuked and we do not need to lease.
 		_, _, err := loadMember(ctx, t.G(), member.version, true)
-		if err == nil {
-			uids = append(uids, member.version.Uid)
+		if err != nil {
+			if _, reset := err.(libkb.AccountResetError); reset {
+				continue
+			} else {
+				return nil, err
+			}
 		}
+
+		uids = append(uids, member.version.Uid)
 	}
 
 	for _, member := range ms.nonAdmins() {
