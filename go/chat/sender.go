@@ -331,7 +331,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		topicType := msg.ClientHeader.Conv.TopicType
 		newTopicName := msg.MessageBody.Metadata().ConversationTitle
 		convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
-			msg.ClientHeader.Sender, tlfID, topicType, membersType, false)
+			msg.ClientHeader.Sender, tlfID, topicType, membersType)
 		if err != nil {
 			return topicNameState, err
 		}

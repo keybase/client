@@ -129,20 +129,25 @@ const _incomingMessage = function*(action: Constants.IncomingMessage): SagaGener
         // it was written by the current user.
         const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
         const appFocused = yield select(Shared.focusedSelector)
+        const userActive = yield select(Shared.activeSelector)
         const selectedTab = yield select(Shared.routeSelector)
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
-          conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected
+          conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected && userActive
         const {type: msgIDType, msgID: rpcMessageID} = Constants.parseMessageID(message.messageID)
 
         if (message && message.messageID && conversationIsFocused && msgIDType === 'rpcMessageID') {
           // TODO does this have to be sync?
-          yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-            param: {
-              conversationID: incomingMessage.convID,
-              msgID: rpcMessageID,
-            },
-          })
+          try {
+            yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+              param: {
+                conversationID: incomingMessage.convID,
+                msgID: rpcMessageID,
+              },
+            })
+          } catch (err) {
+            console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+          }
         }
 
         const messageFromYou =
@@ -246,6 +251,14 @@ const _setupChatHandlers = function*(): SagaGenerator<any, any> {
       if (updates) {
         dispatch(Creators.markThreadsStale(updates))
       }
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatJoinedConversation', () => {
+      dispatch(Creators.inboxStale())
+    })
+
+    engine().setIncomingHandler('chat.1.NotifyChat.ChatLeftConversation', () => {
+      dispatch(Creators.inboxStale())
     })
   })
 }
@@ -359,7 +372,7 @@ const _loadMoreMessages = function*(action: Constants.LoadMoreMessages): SagaGen
 
     const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
 
-    let next
+    let next = null
     if (oldConversationState) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
         console.log('Bailing on chat load more due to already has initial load')
@@ -757,8 +770,7 @@ const _openFolder = function*(): SagaGenerator<any, any> {
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    // prettier-ignore
-    const helper = inbox.get('info').visibility === ChatTypes.CommonTLFVisibility.public
+    const helper = inbox.visibility === ChatTypes.CommonTLFVisibility.public
       ? publicFolderWithUsers
       : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())
@@ -871,6 +883,14 @@ const _blockConversation = function*(action: Constants.BlockConversation): SagaG
       param: {conversationID, identifyBehavior, status},
     })
   }
+}
+
+const _leaveConversation = function*(action: Constants.LeaveConversation): SagaGenerator<any, any> {
+  const {conversationIDKey} = action.payload
+  const conversationID = Constants.keyToConversationID(conversationIDKey)
+  yield call(ChatTypes.localLeaveConversationLocalRpcPromise, {
+    param: {convID: conversationID},
+  })
 }
 
 const _muteConversation = function*(action: Constants.MuteConversation): SagaGenerator<any, any> {
@@ -1270,6 +1290,7 @@ const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
   yield Saga.safeTakeEvery('chat:incomingMessage', _incomingMessage)
   yield Saga.safeTakeEvery('chat:incomingTyping', _incomingTyping)
+  yield Saga.safeTakeEvery('chat:leaveConversation', _leaveConversation)
   yield Saga.safeTakeSerially('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))

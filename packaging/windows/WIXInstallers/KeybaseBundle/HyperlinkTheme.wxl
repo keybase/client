@@ -34,7 +34,7 @@
   <String Id="ProgressLabel">Processing:</String>
   <String Id="OverallProgressPackageText">Initializing...</String>
   <String Id="ProgressCancelButton">&amp;Cancel</String>
-  <String Id="ModifyHeader">Modify Setup</String>
+  <String Id="ModifyHeader">[modifyprompt]</String>
   <String Id="ModifyRepairButton">&amp;Repair</String>
   <String Id="ModifyUninstallButton">&amp;Uninstall</String>
   <String Id="ModifyCloseButton">&amp;Close</String>

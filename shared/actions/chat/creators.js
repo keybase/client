@@ -228,6 +228,13 @@ function editMessage(message: Constants.Message, text: HiddenString): Constants.
   return {payload: {message, text}, type: 'chat:editMessage'}
 }
 
+function leaveConversation(conversationIDKey: Constants.ConversationIDKey): Constants.LeaveConversation {
+  return {
+    payload: {conversationIDKey},
+    type: 'chat:leaveConversation',
+  }
+}
+
 function muteConversation(
   conversationIDKey: Constants.ConversationIDKey,
   muted: boolean
@@ -290,7 +297,7 @@ function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox 
 
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: Buffer
+  paginationNext: string
 ): Constants.UpdatePaginationNext {
   return {
     payload: {conversationIDKey, paginationNext},
@@ -692,6 +699,7 @@ export {
   inboxStale,
   incomingMessage,
   incomingTyping,
+  leaveConversation,
   loadAttachment,
   loadAttachmentPreview,
   loadInbox,

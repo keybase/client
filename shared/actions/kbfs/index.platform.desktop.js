@@ -2,13 +2,33 @@
 import * as Constants from '../../constants/config'
 import path from 'path'
 import fs from 'fs'
-import {kbfsMountGetCurrentMountDirRpcPromise} from '../../constants/types/flow-types'
+import {
+  installFuseStatusRpcPromise,
+  installInstallFuseRpcPromise,
+  installInstallKBFSRpcPromise,
+  installUninstallKBFSRpcPromise,
+  kbfsMountGetCurrentMountDirRpcPromise,
+} from '../../constants/types/flow-types'
+import {delay} from 'redux-saga'
 import {call, put, select} from 'redux-saga/effects'
-import {shell} from 'electron'
+import electron, {shell} from 'electron'
 import {isWindows} from '../../constants/platform'
+import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
+import {fuseStatus} from './index'
+import {execFile} from 'child_process'
 
-import type {FSOpen, OpenInFileUI} from '../../constants/kbfs'
+import type {
+  FSInstallFuseFinished,
+  FSInstallFuseResult,
+  FSInstallKBFSResult,
+  FSInstallKBFSFinished,
+  FSOpen,
+  FSOpenDefaultPath,
+  FSFuseStatusUpdate,
+  OpenInFileUI,
+} from '../../constants/kbfs'
 import type {SagaGenerator} from '../../constants/types/saga'
+import type {InstallResult, UninstallResult} from '../../constants/types/flow-types'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
@@ -103,6 +123,170 @@ function openInDefault(openPath: string): Promise<*> {
   return _open(openPath)
 }
 
+const fuseStatusSaga = function*(): SagaGenerator<any, any> {
+  const prevStatus = yield select(state => state.favorite.fuseStatus)
+
+  const status = yield call(installFuseStatusRpcPromise)
+  const action: FSFuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}
+  yield put(action)
+}
+
+const fuseStatusUpdateSaga = function*({
+  payload: {prevStatus, status},
+}: FSFuseStatusUpdate): SagaGenerator<any, any> {
+  // If our kextStarted status changed, finish KBFS install
+  if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
+    yield call(installKBFSSaga)
+  }
+}
+
+const installFuseSaga = function*(): SagaGenerator<any, any> {
+  const result: InstallResult = yield call(installInstallFuseRpcPromise)
+  const fuseResults = result && result.componentResults
+    ? result.componentResults.filter(c => c.name === 'fuse')
+    : []
+  const kextPermissionError =
+    fuseResults.length > 0 && fuseResults[0].exitCode === ExitCodeFuseKextPermissionError
+
+  if (kextPermissionError) {
+    // Add a small delay here, since on 10.13 the OS will be a little laggy
+    // when showing a kext permission error.
+    yield delay(1e3)
+  }
+
+  const resultAction: FSInstallFuseResult = {
+    payload: {kextPermissionError},
+    type: 'fs:installFuseResult',
+  }
+  yield put(resultAction)
+
+  yield put(fuseStatus())
+
+  const finishedAction: FSInstallFuseFinished = {payload: undefined, type: 'fs:installFuseFinished'}
+  yield put(finishedAction)
+}
+
+// Invoking the cached installer package has to happen from the topmost process
+// or it won't be visible to the user. The service also does this to support command line
+// operations.
+function installCachedDokan(): Promise<*> {
+  return new Promise((resolve, reject) => {
+    const regedit = require('regedit')
+    regedit.list('HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall', (err, programKeys) => {
+      if (err) {
+        reject(err)
+      } else {
+        var programKeyNames =
+          programKeys['HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'].keys
+
+        for (var keyName of programKeyNames) {
+          var programKey = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + keyName
+
+          regedit.list(programKey, (err, program) => {
+            if (err) {
+              reject(err)
+            } else {
+              for (var p in program) {
+                var vals = program[p]
+                var displayName, publisher
+                var modifyPath = ''
+                for (var v in vals) {
+                  if (vals[v]['DisplayName']) {
+                    displayName = vals[v]['DisplayName'].value
+                  }
+                  if (vals[v]['Publisher']) {
+                    publisher = vals[v]['Publisher'].value
+                  }
+                  if (vals[v]['ModifyPath']) {
+                    modifyPath = vals[v]['ModifyPath'].value
+                  }
+                }
+                if (displayName === 'Keybase' && publisher === 'Keybase, Inc.') {
+                  // Remove double quotes - won't work otherwise
+                  modifyPath = modifyPath.replace(/"/g, '')
+                  // Remove /modify and send it in with the other arguments, below
+                  modifyPath = modifyPath.replace(' /modify', '')
+                  console.log(modifyPath)
+                  execFile(modifyPath, [
+                    '/modify',
+                    'driver=1',
+                    'modifyprompt=Press "Repair" to view files in Explorer',
+                  ])
+                  resolve()
+                }
+              }
+            }
+          })
+        }
+      }
+    })
+  })
+}
+
+const installDokanSaga = function*(): SagaGenerator<any, any> {
+  yield call(installCachedDokan)
+}
+
+function waitForMount(attempt: number): Promise<*> {
+  return new Promise((resolve, reject) => {
+    // Read the KBFS path waiting for files to exist, which means it's mounted
+    fs.readdir(Constants.defaultKBFSPath, (err, files) => {
+      if (!err && files.length > 0) {
+        resolve(true)
+      } else if (attempt > 15) {
+        reject(new Error(`${Constants.defaultKBFSPath} is unavailable. Please try again.`))
+      } else {
+        setTimeout(() => {
+          waitForMount(attempt + 1).then(resolve, reject)
+        }, 1000)
+      }
+    })
+  })
+}
+
+function openDefaultPath(): Promise<*> {
+  return openInDefault(Constants.defaultKBFSPath)
+}
+
+// Wait for /keybase to exist with files in it and then opens in Finder
+function waitForMountAndOpen(): Promise<*> {
+  return waitForMount(0).then(openDefaultPath)
+}
+
+const waitForMountAndOpenSaga = function*(): SagaGenerator<any, any> {
+  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
+  yield put(openAction)
+  try {
+    yield call(waitForMountAndOpen)
+  } finally {
+    const openFinishedAction: FSOpenDefaultPath = {payload: {opening: false}, type: 'fs:openDefaultPath'}
+    yield put(openFinishedAction)
+  }
+}
+
+const installKBFSSaga = function*(): SagaGenerator<any, any> {
+  const result: InstallResult = yield call(installInstallKBFSRpcPromise)
+  const resultAction: FSInstallKBFSResult = {payload: {result}, type: 'fs:installKBFSResult'}
+  yield put(resultAction)
+
+  const openAction: FSOpenDefaultPath = {payload: {opening: true}, type: 'fs:openDefaultPath'}
+  yield put(openAction)
+  const finishedAction: FSInstallKBFSFinished = {payload: undefined, type: 'fs:installKBSFinished'}
+  yield put(finishedAction)
+
+  yield call(waitForMountAndOpenSaga)
+}
+
+const uninstallKBFSSaga = function*(): SagaGenerator<any, any> {
+  const result: UninstallResult = yield call(installUninstallKBFSRpcPromise)
+  yield put({payload: {result}, type: 'fs:uninstallKBFSResult'})
+
+  // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+  const app = electron.remote.app
+  app.relaunch()
+  app.exit(0)
+}
+
 const openInWindows = function*(openPath: string): SagaGenerator<any, any> {
   if (!openPath.startsWith(Constants.defaultKBFSPath)) {
     throw new Error(`openInWindows requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
@@ -152,4 +336,13 @@ const openInFileUISaga = function*({payload: {path}}: OpenInFileUI): SagaGenerat
   yield call(_open, path)
 }
 
-export {openInFileUISaga, openSaga}
+export {
+  fuseStatusSaga,
+  fuseStatusUpdateSaga,
+  installFuseSaga,
+  installKBFSSaga,
+  installDokanSaga,
+  openInFileUISaga,
+  openSaga,
+  uninstallKBFSSaga,
+}

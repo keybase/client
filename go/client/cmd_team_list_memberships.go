@@ -49,7 +49,8 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 	return cli.Command{
 		Name:         "list-memberships",
 		ArgumentHelp: "[team name] [--user=username]",
-		Usage:        "List team memberships.",
+		Aliases:      []string{"list-members"},
+		Usage:        "List your teams, or people on a team.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamListMembershipsRunner(g)
 			cl.ChooseCommand(cmd, "list-memberships", c)

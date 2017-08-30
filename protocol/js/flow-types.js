@@ -194,6 +194,8 @@ export const ConstantsStatusCode = {
   scinvalidlocationerror: 1802,
   scservicestatuserror: 1803,
   scinstallerror: 1804,
+  scloadkexterror: 1810,
+  scloadkextpermerror: 1811,
   scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
@@ -1385,22 +1387,6 @@ export function identifyIdentifyLiteRpcPromise (request: (requestCommon & {callb
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identifyLite', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function identifyIdentifyRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify', request)
-}
-
-export function identifyIdentifyRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam})): Promise<identifyIdentifyResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.identify', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
-export function identifyResolve2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve2', request)
-}
-
-export function identifyResolve2RpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam})): Promise<identifyResolve2Result> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve2', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
 export function identifyResolve3RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve3', request)
 }
@@ -1409,12 +1395,44 @@ export function identifyResolve3RpcPromise (request: (requestCommon & {callback?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function identifyResolveRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.Resolve', request)
+export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 }
 
-export function identifyResolveRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam})): Promise<identifyResolveResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve', request, (error, result) => error ? reject(error) : resolve(result)))
+export function installFuseStatusRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam})): Promise<installFuseStatusResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.fuseStatus', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallCommandLinePrivilegedRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installInstallCommandLinePrivilegedResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installCommandLinePrivileged', request)
+}
+
+export function installInstallCommandLinePrivilegedRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installInstallCommandLinePrivilegedResult) => void})): Promise<installInstallCommandLinePrivilegedResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installCommandLinePrivileged', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallFuseRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installInstallFuseResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installFuse', request)
+}
+
+export function installInstallFuseRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installInstallFuseResult) => void})): Promise<installInstallFuseResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installFuse', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installInstallKBFSRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.installKBFS', request)
+}
+
+export function installInstallKBFSRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installInstallKBFSResult) => void})): Promise<installInstallKBFSResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.installKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function installUninstallKBFSRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.uninstallKBFS', request)
+}
+
+export function installUninstallKBFSRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: installUninstallKBFSResult) => void})): Promise<installUninstallKBFSResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.install.uninstallKBFS', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function kbfsFSEditListRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}): EngineChannel {
@@ -2765,6 +2783,7 @@ export type ClientType =
 export type ComponentResult = {
   name: string,
   status: Status,
+  exitCode: int,
 }
 
 export type Config = {
@@ -3205,13 +3224,6 @@ export type IdentifyReasonType =
   | 6 // RESOURCE_6
   | 7 // BACKGROUND_7
 
-export type IdentifyRes = {
-  user?: ?User,
-  publicKeys?: ?Array<PublicKey>,
-  outcome: IdentifyOutcome,
-  trackToken: TrackToken,
-}
-
 export type IdentifyRow = {
   rowId: int,
   proof: RemoteProof,
@@ -3401,6 +3413,8 @@ export type MDBlock = {
   timestamp: Time,
   block: bytes,
 }
+
+export type MDPriority = int
 
 export type MaskB64 = bytes
 
@@ -4343,6 +4357,8 @@ export type StatusCode =
   | 1802 // SCInvalidLocationError_1802
   | 1803 // SCServiceStatusError_1803
   | 1804 // SCInstallError_1804
+  | 1810 // SCLoadKextError_1810
+  | 1811 // SCLoadKextPermError_1811
   | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
@@ -5124,23 +5140,7 @@ export type identifyIdentifyLiteRpcParam = Exact<{
   forceDisplay?: boolean
 }>
 
-export type identifyIdentifyRpcParam = Exact<{
-  userAssertion: string,
-  forceRemoteCheck?: boolean,
-  useDelegateUI?: boolean,
-  reason: IdentifyReason,
-  source: ClientType
-}>
-
-export type identifyResolve2RpcParam = Exact<{
-  assertion: string
-}>
-
 export type identifyResolve3RpcParam = Exact<{
-  assertion: string
-}>
-
-export type identifyResolveRpcParam = Exact<{
   assertion: string
 }>
 
@@ -5205,6 +5205,10 @@ export type identifyUiStartRpcParam = Exact<{
   username: string,
   reason: IdentifyReason,
   forceDisplay?: boolean
+}>
+
+export type installFuseStatusRpcParam = Exact<{
+  bundleVersion: string
 }>
 
 export type kbfsFSEditListRpcParam = Exact<{
@@ -5381,7 +5385,8 @@ export type metadataPutMetadataRpcParam = Exact<{
   readerKeyBundle: KeyBundle,
   writerKeyBundle: KeyBundle,
   logTags: {[key: string]: string},
-  lockContext?: ?LockContext
+  lockContext?: ?LockContext,
+  priority: MDPriority
 }>
 
 export type metadataRegisterForUpdatesRpcParam = Exact<{
@@ -6021,12 +6026,14 @@ type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
-type identifyIdentifyResult = IdentifyRes
-type identifyResolve2Result = User
 type identifyResolve3Result = UserOrTeamLite
-type identifyResolveResult = UID
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
+type installFuseStatusResult = FuseStatus
+type installInstallCommandLinePrivilegedResult = InstallResult
+type installInstallFuseResult = InstallResult
+type installInstallKBFSResult = InstallResult
+type installUninstallKBFSResult = UninstallResult
 type kbfsMountGetAllAvailableMountDirsResult = ?Array<string>
 type kbfsMountGetCurrentMountDirResult = string
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>

@@ -131,24 +131,23 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
+  [self _installAndLoad:^(NSError *error) {
+    // Resolve kext permission error
+    if (error && [error.localizedDescription gh_endsWith:@"-603946981" options:0]) {
+      completion(KBMakeError(KBErrorCodeFuseKextPermission, @"%@", error.localizedDescription));
+      return;
+    }
+    completion(error);
+  }];
+}
+
+- (void)_installAndLoad:(KBCompletion)completion {
   [self _install:^(NSError *error) {
     if (error) {
       completion(error);
       return;
     }
-    DDLogInfo(@"Loading kext");
-    [self loadKext:^(NSError *error) {
-      if (error.code == -1000) { // KBHelperErrorKext
-        completion([NSError errorWithDomain:@"Keybase" code:-1 userInfo:
-                    @{NSLocalizedDescriptionKey: @"We were unable to load KBFS.",
-                      NSLocalizedRecoveryOptionsErrorKey: @[@"OK"],
-                      NSLocalizedRecoverySuggestionErrorKey: @"This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.",
-                      NSURLErrorKey: [NSURL URLWithString:@"https://github.com/keybase/client/wiki/Troubleshooting#unable-to-load-kbfs-fuse-kext-cant-load"],
-                      }]);
-        return;
-      }
-      completion(error);
-    }];
+    [self _afterInstall:completion];
   }];
 }
 
@@ -174,6 +173,22 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
       DDLogInfo(@"Fuse install is OK");
       completion(nil);
     }
+  }];
+}
+
+- (void)_afterInstall:(KBCompletion)completion {
+  [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
+    if (fuseStatus.installStatus == KBRInstallStatusInstalled && !fuseStatus.kextStarted) {
+      [self loadKext:^(NSError *error) {
+        if (error) {
+          completion(KBMakeError(KBErrorCodeFuseKext, @"%@", error.localizedDescription));
+          return;
+        }
+        completion(nil);
+      }];
+      return;
+    }
+    completion(nil);
   }];
 }
 

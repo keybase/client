@@ -10,6 +10,28 @@
   "types": [
     {
       "type": "record",
+      "name": "UIPagination",
+      "fields": [
+        {
+          "type": "string",
+          "name": "next"
+        },
+        {
+          "type": "string",
+          "name": "previous"
+        },
+        {
+          "type": "int",
+          "name": "num"
+        },
+        {
+          "type": "boolean",
+          "name": "last"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnverifiedInboxUIItem",
       "fields": [
         {
@@ -59,7 +81,7 @@
         {
           "type": [
             null,
-            "Pagination"
+            "UIPagination"
           ],
           "name": "pagination"
         },
@@ -94,6 +116,10 @@
           "name": "channel"
         },
         {
+          "type": "string",
+          "name": "headline"
+        },
+        {
           "type": "TLFVisibility",
           "name": "visibility"
         },
@@ -113,6 +139,10 @@
           "name": "membersType"
         },
         {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
           "type": [
             null,
             "ConversationNotificationInfo"
@@ -120,8 +150,11 @@
           "name": "notifications"
         },
         {
-          "type": "gregor1.Time",
-          "name": "time"
+          "type": [
+            null,
+            "ConversationCreatorInfoLocal"
+          ],
+          "name": "creatorInfo"
         },
         {
           "type": [
@@ -160,7 +193,7 @@
         {
           "type": [
             null,
-            "Pagination"
+            "UIPagination"
           ],
           "name": "pagination"
         },
@@ -306,7 +339,7 @@
         {
           "type": [
             null,
-            "Pagination"
+            "UIPagination"
           ],
           "name": "pagination"
         }

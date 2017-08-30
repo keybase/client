@@ -4,6 +4,13 @@ protocol chatUi {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
+  record UIPagination {
+    string next;
+    string previous;
+    int num;
+    boolean last;
+  }
+
   record UnverifiedInboxUIItem {
     string convID;
     string name;
@@ -16,7 +23,7 @@ protocol chatUi {
 
   record UnverifiedInboxUIItems {
     array<UnverifiedInboxUIItem> items;
-    union { null, Pagination } pagination;
+    union { null, UIPagination } pagination;
     boolean offline;
   }
 
@@ -26,22 +33,24 @@ protocol chatUi {
     string name;
     string snippet;
     string channel;
+    string headline;
     TLFVisibility visibility;
     array<string> participants;
     ConversationStatus status;
     ConversationMembersType membersType;
-    union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
+    union { null, ConversationNotificationInfo } notifications;
+    union { null, ConversationCreatorInfoLocal } creatorInfo;
 
     // Finalized convo stuff
-    union{ null, ConversationFinalizeInfo } finalizeInfo;
+    union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
   }
 
   record InboxUIItems {
     array<InboxUIItem> items;
-    union { null, Pagination } pagination;
+    union { null, UIPagination } pagination;
     boolean offline;
   }
 
@@ -81,7 +90,7 @@ protocol chatUi {
 
   record UIMessages {
     array<UIMessage> messages;
-    union { null, Pagination } pagination;
+    union { null, UIPagination } pagination;
   }
 
   void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);

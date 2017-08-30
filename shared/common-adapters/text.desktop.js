@@ -4,9 +4,8 @@ import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
-import {globalStyles} from '../styles'
+import {globalStyles, glamorous} from '../styles'
 import shallowEqual from 'shallowequal'
-import glamorous from 'glamorous'
 
 import type {Props, TextType, Background} from './text'
 
@@ -40,11 +39,15 @@ class Text extends Component<Props> {
     })
   }
 
-  _className(props) {
+  _className(props: Props) {
     const meta = metaData[props.type]
-    const className = [props.className, meta.isLink ? 'hover-underline' : null].filter(Boolean).join(' ')
-
-    return className || undefined
+    const classNames = [props.className]
+    if (props.underline) {
+      classNames.push('underline')
+    } else if (meta.isLink) {
+      classNames.push('hover-underline')
+    }
+    return classNames.join(' ') || undefined
   }
 
   _urlClick = () => {

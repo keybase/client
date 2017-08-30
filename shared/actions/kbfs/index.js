@@ -2,12 +2,31 @@
 import * as Constants from '../../constants/kbfs'
 import {call, put} from 'redux-saga/effects'
 import {fsListRpcPromise} from '../../constants/types/flow-types'
-import {openSaga, openInFileUISaga} from './index.platform'
+import {
+  fuseStatusSaga,
+  fuseStatusUpdateSaga,
+  installFuseSaga,
+  installKBFSSaga,
+  installDokanSaga,
+  openSaga,
+  openInFileUISaga,
+  uninstallKBFSSaga,
+} from './index.platform'
 import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 
-import type {FSList, FSListed, FSOpen} from '../../constants/kbfs'
+import type {
+  FSClearFuseInstall,
+  FSFuseStatus,
+  FSInstallFuse,
+  FSInstallKBFS,
+  FSList,
+  FSListed,
+  FSOpen,
+  FSUninstallKBFS,
+} from '../../constants/kbfs'
 import type {ListResult} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
+import {isWindows} from '../../constants/platform'
 
 function fsList(path: string): FSList {
   return {payload: {path}, type: Constants.fsList}
@@ -32,11 +51,41 @@ const _listSaga = function*(action: FSList): SagaGenerator<any, any> {
   }
 }
 
+function fuseStatus(): FSFuseStatus {
+  return {payload: undefined, type: 'fs:fuseStatus'}
+}
+
+function installFuse(): FSInstallFuse {
+  return {payload: undefined, type: 'fs:installFuse'}
+}
+
+function installKBFS(): FSInstallKBFS {
+  return {payload: undefined, type: 'fs:installKBFS'}
+}
+
+function uninstallKBFS(): FSUninstallKBFS {
+  return {payload: undefined, type: 'fs:uninstallKBFS'}
+}
+
+function clearFuseInstall(): FSClearFuseInstall {
+  return {payload: undefined, type: 'fs:clearFuseInstall'}
+}
+
 const kbfsSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.fsList, _listSaga)
   yield safeTakeEvery(Constants.fsOpen, openSaga)
   yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)
+  yield safeTakeLatest('fs:fuseStatus', fuseStatusSaga)
+  yield safeTakeLatest('fs:fuseStatusUpdate', fuseStatusUpdateSaga)
+  yield safeTakeLatest('fs:installFuse', installFuseSaga)
+  if (isWindows) {
+    yield safeTakeLatest('fs:installFuse', installDokanSaga)
+  } else {
+    yield safeTakeLatest('fs:installFuse', installFuseSaga)
+  }
+  yield safeTakeLatest('fs:installKBFS', installKBFSSaga)
+  yield safeTakeLatest('fs:uninstallKBFS', uninstallKBFSSaga)
 }
 
 export default kbfsSaga
-export {fsList, openInKBFS}
+export {clearFuseInstall, fsList, fuseStatus, installFuse, installKBFS, openInKBFS, uninstallKBFS}

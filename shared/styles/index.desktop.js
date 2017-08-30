@@ -4,6 +4,7 @@ import globalColors from './colors'
 import {resolveImageAsURL} from '../desktop/resolve-root'
 import path from 'path'
 import isArray from 'lodash/isArray'
+import glamorous from 'glamorous'
 
 const windowStyle = {
   minWidth: 600,
@@ -180,6 +181,7 @@ const lineHeight = (h: number) => `${h}px`
 export {
   backgroundURL,
   collapseStyles,
+  glamorous,
   globalColors,
   globalMargins,
   globalStyles,

@@ -20,7 +20,7 @@ import (
 )
 
 func TestRPCs(t *testing.T) {
-	tc := setupTest(t, "resolve2")
+	tc := setupTest(t, "rpcs")
 	tc2 := cloneContext(tc)
 
 	libkb.G.LocalDb = nil
@@ -41,7 +41,6 @@ func TestRPCs(t *testing.T) {
 	<-startCh
 
 	// Add test RPC methods here.
-	testIdentifyResolve2(t, tc2.G)
 	testIdentifyResolve3(t, tc2.G)
 	testCheckInvitationCode(t, tc2.G)
 	testLoadAllPublicKeysUnverified(t, tc2.G)
@@ -61,58 +60,11 @@ func TestRPCs(t *testing.T) {
 	}
 }
 
-func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
-
-	cli, err := client.GetIdentifyClient(g)
-	if err != nil {
-		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
-
-	if _, err := cli.Resolve(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resolve failed: %v\n", err)
-	}
-
-	// We don't want to hit the cache, since the previous lookup never hit the
-	// server.  For Resolve2, we have to, since we need a username.  So test that
-	// here.
-	if res, err := cli.Resolve2(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resolve failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong username: %s != 't_tracy", res.Username)
-	}
-
-	if res, err := cli.Resolve2(context.TODO(), "t_tracy@rooter"); err != nil {
-		t.Fatalf("Resolve2 failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
-	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
-	}
-
-	if _, err := cli.Resolve2(context.TODO(), "foobag@rooter"); err == nil {
-		t.Fatalf("expected an error on a bad resolve, but got none")
-	} else if _, ok := err.(libkb.ResolutionError); !ok {
-		t.Fatalf("Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
-	}
-
-	if res, err := cli.Resolve2(context.TODO(), "t_tracy"); err != nil {
-		t.Fatalf("Resolve2 failed: %v\n", err)
-	} else if res.Username != "t_tracy" {
-		t.Fatalf("Wrong name: %s != 't_tracy", res.Username)
-	} else if !res.Uid.Equal(keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")) {
-		t.Fatalf("Wrong uid for tracy: %s\n", res.Uid)
-	}
-}
-
 func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
 
 	cli, err := client.GetIdentifyClient(g)
 	if err != nil {
 		t.Fatalf("failed to get new identifyclient: %v", err)
-	}
-
-	if _, err := cli.Resolve(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resolve failed: %v\n", err)
 	}
 
 	// We don't want to hit the cache, since the previous lookup never hit the
@@ -310,6 +262,7 @@ func testIdentifyLite(t *testing.T) {
 	t.Logf("make an implicit team")
 	iTeamCreateName := strings.Join([]string{tt.users[0].username, "bob@github"}, ",")
 	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamCreateName, false /*isPublic*/)
+	require.NoError(t, err)
 	iTeamImpName := getTeamName(iTeamID)
 	require.True(t, iTeamImpName.IsImplicit())
 	require.NoError(t, err)

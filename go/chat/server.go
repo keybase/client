@@ -158,7 +158,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.MembersType = rawConv.GetMembersType()
 		res.Items = append(res.Items, conv)
 	}
-	res.Pagination = vres.Pagination
+	res.Pagination = utils.PresentPagination(vres.Pagination)
 	res.Offline = vres.Offline
 	return res, err
 }
@@ -414,7 +414,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 }
 
 func (h *Server) presentThreadView(tv chat1.ThreadView) (res chat1.UIMessages) {
-	res.Pagination = tv.Pagination
+	res.Pagination = utils.PresentPagination(tv.Pagination)
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(msg))
 	}
@@ -449,6 +449,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		return res, err
 	}
 
+	// Decode presentation form pagination
+	pagination, err := utils.DecodePagination(arg.Pagination)
+	if err != nil {
+		return res, err
+	}
+
 	// Grab local copy first
 	chatUI := h.getChatUI(arg.SessionID)
 
@@ -472,7 +478,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				time.Sleep(*h.cachedThreadDelay)
 			}
 			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
-				gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+				gregor1.UID(uid.ToBytes()), arg.Query, pagination)
 			ch <- err
 		}()
 		select {
@@ -526,7 +532,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		var remoteThread chat1.ThreadView
 		var rl []*chat1.RateLimit
 		remoteThread, rl, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
-			gregor1.UID(uid.ToBytes()), arg.Query, arg.Pagination)
+			gregor1.UID(uid.ToBytes()), arg.Query, pagination)
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return
@@ -1995,7 +2001,7 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 		return res, err
 	}
 	res.RateLimits = utils.AggRateLimits(rl)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2026,11 +2032,10 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 
 	// List all the conversations on the team
 	teamConvs, err := h.remoteClient().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:                nameInfo.ID,
-		MembersType:          chat1.ConversationMembersType_TEAM,
-		TopicType:            arg.TopicType,
-		SummarizeMaxMsgs:     false, // tough call here, depends on if we are in most of convos on the team
-		IncludeAuxiliaryInfo: false,
+		TlfID:            nameInfo.ID,
+		MembersType:      chat1.ConversationMembersType_TEAM,
+		TopicType:        arg.TopicType,
+		SummarizeMaxMsgs: false, // tough call here, depends on if we are in most of convos on the team
 	})
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to list team conversations: %s", err.Error())
@@ -2065,7 +2070,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 		return res, err
 	}
 	res.RateLimits = utils.AggRateLimits(rl)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2091,7 +2096,7 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	}
 
 	res.RateLimits = utils.AggRateLimits(rl)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2119,12 +2124,14 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 		return res, err
 	}
 
-	res.Convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
-		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType, arg.IncludeAuxiliaryInfo)
+	var convs []chat1.ConversationLocal
+	convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
+		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType)
 	if err != nil {
 		return res, err
 	}
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Convs = utils.PresentConversationLocals(convs)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 
@@ -2158,7 +2165,7 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 	}
 
 	res.RateLimits = utils.AggRateLimits(res.RateLimits)
-	res.Offline = h.G().Syncer.IsConnected(ctx)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }
 

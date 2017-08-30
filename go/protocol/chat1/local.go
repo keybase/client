@@ -2149,7 +2149,7 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
-	AuxiliaryInfo    *ConversationAuxiliaryInfo    `codec:"auxiliaryInfo,omitempty" json:"auxiliaryInfo,omitempty"`
+	CreatorInfo      *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -2169,13 +2169,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 		})(o.Error),
 		Info:       o.Info.DeepCopy(),
 		ReaderInfo: o.ReaderInfo.DeepCopy(),
-		AuxiliaryInfo: (func(x *ConversationAuxiliaryInfo) *ConversationAuxiliaryInfo {
+		CreatorInfo: (func(x *ConversationCreatorInfoLocal) *ConversationCreatorInfoLocal {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.AuxiliaryInfo),
+		})(o.CreatorInfo),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -2958,15 +2958,15 @@ func (o JoinLeaveConversationLocalRes) DeepCopy() JoinLeaveConversationLocalRes 
 }
 
 type GetTLFConversationsLocalRes struct {
-	Convs      []ConversationLocal `codec:"convs" json:"convs"`
-	Offline    bool                `codec:"offline" json:"offline"`
-	RateLimits []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+	Convs      []InboxUIItem `codec:"convs" json:"convs"`
+	Offline    bool          `codec:"offline" json:"offline"`
+	RateLimits []RateLimit   `codec:"rateLimits" json:"rateLimits"`
 }
 
 func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
 	return GetTLFConversationsLocalRes{
-		Convs: (func(x []ConversationLocal) []ConversationLocal {
-			var ret []ConversationLocal
+		Convs: (func(x []InboxUIItem) []InboxUIItem {
+			var ret []InboxUIItem
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
@@ -3064,7 +3064,7 @@ type GetThreadNonblockArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
-	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -3079,7 +3079,7 @@ func (o GetThreadNonblockArg) DeepCopy() GetThreadNonblockArg {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Query),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
 			}
@@ -3605,18 +3605,16 @@ func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
 }
 
 type GetTLFConversationsLocalArg struct {
-	TlfName              string                  `codec:"tlfName" json:"tlfName"`
-	TopicType            TopicType               `codec:"topicType" json:"topicType"`
-	MembersType          ConversationMembersType `codec:"membersType" json:"membersType"`
-	IncludeAuxiliaryInfo bool                    `codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	TopicType   TopicType               `codec:"topicType" json:"topicType"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
 func (o GetTLFConversationsLocalArg) DeepCopy() GetTLFConversationsLocalArg {
 	return GetTLFConversationsLocalArg{
-		TlfName:              o.TlfName,
-		TopicType:            o.TopicType.DeepCopy(),
-		MembersType:          o.MembersType.DeepCopy(),
-		IncludeAuxiliaryInfo: o.IncludeAuxiliaryInfo,
+		TlfName:     o.TlfName,
+		TopicType:   o.TopicType.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
 	}
 }
 

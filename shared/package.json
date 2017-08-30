@@ -76,6 +76,7 @@
     "glamorous-native": "1.1.1",
     "iced-runtime": "1.0.3",
     "immutable": "3.8.1",
+    "jsonfile": "^3.0.1",
     "lodash": "4.17.4",
     "menubar": "5.2.3",
     "mkdirp": "0.5.1",
@@ -90,7 +91,7 @@
     "react": "16.0.0-alpha.12",
     "react-dom": "16.0.0-alpha.12",
     "react-list": "0.8.6",
-    "react-native": "0.47.1",
+    "react-native": "0.47.2",
     "react-native-camera": "0.10.0",
     "react-native-fetch-blob": "0.10.8",
     "react-native-image-picker": "0.26.4",
@@ -164,5 +165,8 @@
     "webpack-dashboard": "0.4.0",
     "webpack-dev-server": "2.7.1",
     "webpack-merge": "4.1.0"
+  },
+  "optionalDependencies": {
+    "regedit": "2.2.7"
   }
 }

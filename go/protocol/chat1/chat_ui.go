@@ -10,6 +10,22 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type UIPagination struct {
+	Next     string `codec:"next" json:"next"`
+	Previous string `codec:"previous" json:"previous"`
+	Num      int    `codec:"num" json:"num"`
+	Last     bool   `codec:"last" json:"last"`
+}
+
+func (o UIPagination) DeepCopy() UIPagination {
+	return UIPagination{
+		Next:     o.Next,
+		Previous: o.Previous,
+		Num:      o.Num,
+		Last:     o.Last,
+	}
+}
+
 type UnverifiedInboxUIItem struct {
 	ConvID        string                        `codec:"convID" json:"convID"`
 	Name          string                        `codec:"name" json:"name"`
@@ -40,7 +56,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 
 type UnverifiedInboxUIItems struct {
 	Items      []UnverifiedInboxUIItem `codec:"items" json:"items"`
-	Pagination *Pagination             `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Pagination *UIPagination           `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	Offline    bool                    `codec:"offline" json:"offline"`
 }
 
@@ -54,7 +70,7 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 			}
 			return ret
 		})(o.Items),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
 			}
@@ -71,12 +87,14 @@ type InboxUIItem struct {
 	Name          string                        `codec:"name" json:"name"`
 	Snippet       string                        `codec:"snippet" json:"snippet"`
 	Channel       string                        `codec:"channel" json:"channel"`
+	Headline      string                        `codec:"headline" json:"headline"`
 	Visibility    TLFVisibility                 `codec:"visibility" json:"visibility"`
 	Participants  []string                      `codec:"participants" json:"participants"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
-	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time          gregor1.Time                  `codec:"time" json:"time"`
+	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	CreatorInfo   *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	FinalizeInfo  *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes    []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy  []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -89,6 +107,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		Name:       o.Name,
 		Snippet:    o.Snippet,
 		Channel:    o.Channel,
+		Headline:   o.Headline,
 		Visibility: o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			var ret []string
@@ -100,6 +119,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.Participants),
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		Time:        o.Time.DeepCopy(),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -107,7 +127,13 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time: o.Time.DeepCopy(),
+		CreatorInfo: (func(x *ConversationCreatorInfoLocal) *ConversationCreatorInfoLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CreatorInfo),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
@@ -136,7 +162,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 
 type InboxUIItems struct {
 	Items      []InboxUIItem `codec:"items" json:"items"`
-	Pagination *Pagination   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	Offline    bool          `codec:"offline" json:"offline"`
 }
 
@@ -150,7 +176,7 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 			}
 			return ret
 		})(o.Items),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
 			}
@@ -386,8 +412,8 @@ func (o UIMessage) DeepCopy() UIMessage {
 }
 
 type UIMessages struct {
-	Messages   []UIMessage `codec:"messages" json:"messages"`
-	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages   []UIMessage   `codec:"messages" json:"messages"`
+	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o UIMessages) DeepCopy() UIMessages {
@@ -400,7 +426,7 @@ func (o UIMessages) DeepCopy() UIMessages {
 			}
 			return ret
 		})(o.Messages),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
 			}

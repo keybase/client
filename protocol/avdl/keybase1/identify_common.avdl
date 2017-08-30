@@ -96,13 +96,6 @@ protocol identifyCommon {
     IdentifyReason reason;
   }
 
-  record IdentifyRes {
-    union { null, User } user;
-    array<PublicKey> publicKeys;
-    IdentifyOutcome outcome;
-    TrackToken trackToken;
-  }
-
   record RemoteProof {
     ProofType proofType;
     string key;

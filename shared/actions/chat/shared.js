@@ -25,6 +25,9 @@ function routeSelector(state: TypedState) {
 function focusedSelector(state: TypedState) {
   return state.config.appFocused
 }
+function activeSelector(state: TypedState) {
+  return state.config.userActive
+}
 function conversationStateSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
   return state.chat.get('conversationStates', Map()).get(conversationIDKey)
 }
@@ -139,6 +142,7 @@ export {
   conversationStateSelector,
   devicenameSelector,
   focusedSelector,
+  activeSelector,
   followingSelector,
   getPostingIdentifyBehavior,
   inboxUntrustedStateSelector,

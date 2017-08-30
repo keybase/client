@@ -2,6 +2,8 @@ package utils
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"sort"
@@ -470,12 +472,17 @@ func PluckMessageIDs(msgs []chat1.MessageSummary) []chat1.MessageID {
 }
 
 func IsConvEmpty(conv chat1.Conversation) bool {
-	for _, msg := range conv.MaxMsgSummaries {
-		if IsVisibleChatMessageType(msg.GetMessageType()) {
-			return false
+	switch conv.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		return false
+	default:
+		for _, msg := range conv.MaxMsgSummaries {
+			if IsVisibleChatMessageType(msg.GetMessageType()) {
+				return false
+			}
 		}
+		return true
 	}
-	return true
 }
 
 func PluckConvIDsLocal(convs []chat1.ConversationLocal) (res []chat1.ConversationID) {
@@ -582,6 +589,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Name = rawConv.Info.TlfName
 	res.Snippet = GetConvSnippet(rawConv)
 	res.Channel = GetTopicName(rawConv)
+	res.Headline = GetHeadline(rawConv)
 	res.Participants = rawConv.Info.WriterNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -592,6 +600,14 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Supersedes = rawConv.Supersedes
 	res.IsEmpty = rawConv.IsEmpty
 	res.Notifications = rawConv.Notifications
+	res.CreatorInfo = rawConv.CreatorInfo
+	return res
+}
+
+func PresentConversationLocals(convs []chat1.ConversationLocal) (res []chat1.InboxUIItem) {
+	for _, conv := range convs {
+		res = append(res, PresentConversationLocal(conv))
+	}
 	return res
 }
 
@@ -645,6 +661,34 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 		res = chat1.NewUIMessageWithPlaceholder(rawMsg.Placeholder())
 	}
 	return res
+}
+
+func PresentPagination(p *chat1.Pagination) (res *chat1.UIPagination) {
+	if p == nil {
+		return nil
+	}
+	res = new(chat1.UIPagination)
+	res.Last = p.Last
+	res.Num = p.Num
+	res.Next = hex.EncodeToString(p.Next)
+	res.Previous = hex.EncodeToString(p.Previous)
+	return res
+}
+
+func DecodePagination(p *chat1.UIPagination) (res *chat1.Pagination, err error) {
+	if p == nil {
+		return nil, nil
+	}
+	res = new(chat1.Pagination)
+	res.Last = p.Last
+	res.Num = p.Num
+	if res.Next, err = hex.DecodeString(p.Next); err != nil {
+		return nil, err
+	}
+	if res.Previous, err = hex.DecodeString(p.Previous); err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 type ConvLocalByConvID []chat1.ConversationLocal
@@ -706,6 +750,17 @@ func GetTopicName(conv chat1.ConversationLocal) string {
 	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
 }
 
+func GetHeadline(conv chat1.ConversationLocal) string {
+	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_HEADLINE)
+	if err != nil {
+		return ""
+	}
+	if !maxTopicMsg.IsValid() {
+		return ""
+	}
+	return maxTopicMsg.Valid().MessageBody.Headline().Headline
+}
+
 func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
 	apptype keybase1.DeviceType,
 	kind chat1.NotificationKind, enabled bool) {
@@ -716,4 +771,14 @@ func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
 		settings.Settings[apptype] = make(map[chat1.NotificationKind]bool)
 	}
 	settings.Settings[apptype][kind] = enabled
+}
+
+func DecodeBase64(enc []byte) ([]byte, error) {
+	if len(enc) == 0 {
+		return enc, nil
+	}
+
+	b := make([]byte, base64.StdEncoding.DecodedLen(len(enc)))
+	n, err := base64.StdEncoding.Decode(b, enc)
+	return b[:n], err
 }

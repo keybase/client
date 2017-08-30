@@ -845,16 +845,17 @@ export type Conversation = {
   notifications?: ?ConversationNotificationInfo,
   maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
-  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+  creatorInfo?: ?ConversationCreatorInfo,
 }
 
-export type ConversationAuxiliaryInfo = {
-  conversationCtime: gregor1.Time,
-  conversationCreator: gregor1.UID,
-  headlineMtime?: ?gregor1.Time,
-  headlineModifier?: ?gregor1.UID,
-  headlineMessageID?: ?MessageID,
-  readerCount: int,
+export type ConversationCreatorInfo = {
+  ctime: gregor1.Time,
+  uid: gregor1.UID,
+}
+
+export type ConversationCreatorInfoLocal = {
+  ctime: gregor1.Time,
+  username: string,
 }
 
 export type ConversationErrorLocal = {
@@ -923,7 +924,7 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
-  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+  creatorInfo?: ?ConversationCreatorInfoLocal,
   notifications?: ?ConversationNotificationInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1131,7 +1132,7 @@ export type GetPublicConversationsRes = {
 }
 
 export type GetTLFConversationsLocalRes = {
-  convs?: ?Array<ConversationLocal>,
+  convs?: ?Array<InboxUIItem>,
   offline: boolean,
   rateLimits?: ?Array<RateLimit>,
 }
@@ -1236,12 +1237,14 @@ export type InboxUIItem = {
   name: string,
   snippet: string,
   channel: string,
+  headline: string,
   visibility: TLFVisibility,
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
-  notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
+  notifications?: ?ConversationNotificationInfo,
+  creatorInfo?: ?ConversationCreatorInfoLocal,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1249,7 +1252,7 @@ export type InboxUIItem = {
 
 export type InboxUIItems = {
   items?: ?Array<InboxUIItem>,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
   offline: boolean,
 }
 
@@ -1270,7 +1273,7 @@ export type IncomingMessage = {
   convID: ConversationID,
   displayDesktopNotification: boolean,
   conv?: ?InboxUIItem,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
 }
 
 export type JoinLeaveConversationLocalRes = {
@@ -1867,7 +1870,14 @@ export type UIMessageValid = {
 
 export type UIMessages = {
   messages?: ?Array<UIMessage>,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
+}
+
+export type UIPagination = {
+  next: string,
+  previous: string,
+  num: int,
+  last: boolean,
 }
 
 export type UnreadFirstNumLimit = {
@@ -1900,7 +1910,7 @@ export type UnverifiedInboxUIItem = {
 
 export type UnverifiedInboxUIItems = {
   items?: ?Array<UnverifiedInboxUIItem>,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
   offline: boolean,
 }
 
@@ -2023,8 +2033,7 @@ export type localGetMessagesLocalRpcParam = Exact<{
 export type localGetTLFConversationsLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  membersType: ConversationMembersType,
-  includeAuxiliaryInfo: boolean
+  membersType: ConversationMembersType
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
@@ -2037,7 +2046,7 @@ export type localGetThreadLocalRpcParam = Exact<{
 export type localGetThreadNonblockRpcParam = Exact<{
   conversationID: ConversationID,
   query?: ?GetThreadQuery,
-  pagination?: ?Pagination,
+  pagination?: ?UIPagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -2202,8 +2211,7 @@ export type remoteGetTLFConversationsRpcParam = Exact<{
   tlfID: TLFID,
   topicType: TopicType,
   membersType: ConversationMembersType,
-  summarizeMaxMsgs: boolean,
-  includeAuxiliaryInfo: boolean
+  summarizeMaxMsgs: boolean
 }>
 
 export type remoteGetThreadRemoteRpcParam = Exact<{

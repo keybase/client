@@ -80,7 +80,7 @@ const styleInfoContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
-  alignItems: 'left', // TODO (AW): invalid prop value
+  alignItems: 'flex-start',
   textAlign: 'left',
   marginLeft: globalMargins.small,
 }

@@ -336,6 +336,10 @@ type smuTeam struct {
 	name string
 }
 
+type smuImplicitTeam struct {
+	ID keybase1.TeamID
+}
+
 func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 	return keybase1.TeamsClient{Cli: u.primaryDevice().rpcClient()}
 }
@@ -389,6 +393,21 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 		}
 	}
 	return smuTeam{name: name}
+}
+
+func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public bool) smuImplicitTeam {
+	cli := u.getTeamsClient()
+	var err error
+	var teamID keybase1.TeamID
+	if create {
+		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+	} else {
+		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+	}
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+	return smuImplicitTeam{ID: teamID}
 }
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
