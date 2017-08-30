@@ -69,6 +69,8 @@ export type OutboxIDKey = string
 
 export type MessageID = RPCMessageID
 
+export type NotifyType = 'atmention' | 'generic' | 'never'
+
 export type TextMessage = {
   type: 'Text',
   message: HiddenString,
@@ -274,6 +276,16 @@ export const ConversationBadgeStateRecord = Record({
 
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
 
+export type NotificationsKindState = {
+  generic: boolean,
+  atmention: boolean,
+}
+
+export type NotificationsState = {
+  desktop: NotificationsKindState,
+  mobile: NotificationsKindState,
+}
+
 export const InboxStateRecord = Record({
   conversationIDKey: '',
   info: null,
@@ -281,6 +293,7 @@ export const InboxStateRecord = Record({
   teamname: null,
   channelname: null,
   membersType: 0,
+  notifications: null,
   participants: List(),
   snippet: '',
   snippetKey: null,
@@ -298,6 +311,7 @@ export type InboxState = KBRecord<{
   teamname: ?string,
   channelname: ?string,
   membersType: ConversationMembersType,
+  notifications: NotificationsState,
   participants: List<string>,
   snippet: string,
   snippetKey: any,
@@ -554,6 +568,10 @@ export type SetPreviousConversation = NoErrorTypedAction<
 export type SetLoaded = NoErrorTypedAction<
   'chat:setLoaded',
   {conversationIDKey: ConversationIDKey, isLoaded: boolean}
+>
+export type SetNotifications = NoErrorTypedAction<
+  'chat:setNotifications',
+  {conversationIDKey: ConversationIDKey, deviceType: DeviceType, notifyType: NotifyType}
 >
 export type SetUnboxing = TypedAction<
   'chat:setUnboxing',

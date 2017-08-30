@@ -1089,6 +1089,10 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   }
 }
 
+const _setNotifications = function*(action: Constants.SetNotifications) {
+  const {payload: {conversationIDKey, deviceType, notifyType}} = action
+}
+
 const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
@@ -1132,6 +1136,7 @@ const chatSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
+  yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
 }
 
 export default chatSaga
