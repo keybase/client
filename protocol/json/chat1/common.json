@@ -324,6 +324,13 @@
         {
           "type": {
             "type": "array",
+            "items": "ConversationMemberStatus"
+          },
+          "name": "memberStatus"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ConversationID"
           },
           "name": "convIDs"

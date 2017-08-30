@@ -1085,6 +1085,7 @@ export type GetInboxQuery = {
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
   status?: ?Array<ConversationStatus>,
+  memberStatus?: ?Array<ConversationMemberStatus>,
   convIDs?: ?Array<ConversationID>,
   unreadOnly: boolean,
   readOnly: boolean,
