@@ -677,3 +677,10 @@ func (i InboxUIItem) GetConvID() ConversationID {
 	bConvID, _ := hex.DecodeString(i.ConvID)
 	return ConversationID(bConvID)
 }
+
+func AllConversationMemberStatuses() (res []ConversationMemberStatus) {
+	for status := range ConversationMemberStatusRevMap {
+		res = append(res, status)
+	}
+	return res
+}

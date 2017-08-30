@@ -225,6 +225,16 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	return s.sync(ctx, cli, uid, syncRes)
 }
 
+func (s *Syncer) shouldDoFullReloadFromIncremental(convs []chat1.Conversation) bool {
+	for _, conv := range convs {
+		switch conv.ReaderInfo.Status {
+		case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_REMOVED:
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor1.UID,
 	syncRes *chat1.SyncChatRes) (err error) {
 	if !s.isConnected {
@@ -294,8 +304,14 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			// Send notifications for a full clear
 			s.SendChatStaleNotifications(ctx, uid, nil, true)
 		} else {
-			// Send notifications for a successful partial sync
-			s.SendChatStaleNotifications(ctx, uid, s.getUpdates(incr.Convs), true)
+			if s.shouldDoFullReloadFromIncremental(incr.Convs) {
+				// If we get word we shoudl full clear the inbox (like if the user left a conversation),
+				// then just reload everything
+				s.SendChatStaleNotifications(ctx, uid, nil, true)
+			} else {
+				// Send notifications for a successful partial sync
+				s.SendChatStaleNotifications(ctx, uid, s.getUpdates(incr.Convs), true)
+			}
 		}
 
 		// Queue background conversation loads

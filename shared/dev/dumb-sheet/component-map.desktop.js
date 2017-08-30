@@ -6,9 +6,10 @@ import DeviceRevokeMap from '../../devices/device-revoke/dumb'
 import DevicesMap from '../../devices/dumb'
 import EditProfileMap from '../../profile/edit-profile/dumb'
 import FoldersConfirmMap from '../../folders/confirm/dumb'
-import FoldersMap from '../../folders/dumb'
+// Temp until we fix how the connected stuff renders in a dumb way
+// import FoldersMap from '../../folders/dumb'
 import LoginMap from '../../login/dumb'
-import MenubarMap from '../../menubar/dumb.desktop'
+// import MenubarMap from '../../menubar/dumb.desktop'
 import MessagesMap from '../../chat/conversation/messages/dumb'
 import MessageNoticesMap from '../../chat/conversation/notices/dumb'
 import PgpMap from '../../pgp/dumb.desktop'
@@ -30,9 +31,9 @@ const map: any = {
   ...DevicesMap,
   ...EditProfileMap,
   ...FoldersConfirmMap,
-  ...FoldersMap,
+  // ...FoldersMap,
   ...LoginMap,
-  ...MenubarMap,
+  // ...MenubarMap,
   ...MessagesMap,
   ...MessageNoticesMap,
   ...PgpMap,

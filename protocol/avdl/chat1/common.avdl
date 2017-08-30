@@ -139,6 +139,8 @@ protocol common {
 
     // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;
+    // If left empty, default is to return active and preview status
+    array<ConversationMemberStatus> memberStatus;
 
     // Extended list of conversation IDs to fetch (don't need to set convID, if convID is set then
     // this it will be like appending it to this list)

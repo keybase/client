@@ -23,7 +23,7 @@ import teamsSaga from '../actions/teams'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
-const mainSaga = function*(): SagaGenerator<any, any> {
+function* mainSaga(): SagaGenerator<any, any> {
   yield fork(chatSaga)
   yield fork(configSaga)
   yield fork(deviceSaga)
