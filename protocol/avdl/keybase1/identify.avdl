@@ -30,8 +30,22 @@ protocol identify {
   /*
    * Note that UID can be empty, in which case a resolution is also forced.
    */
-  Identify2Res identify2(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, boolean canSuppressUI=false, TLFIdentifyBehavior identifyBehavior=0, boolean forceDisplay=false);
-
+  Identify2Res identify2(
+    int sessionID,
+    UID uid,
+    string userAssertion,
+    IdentifyReason reason,
+    boolean useDelegateUI=false,
+    boolean alwaysBlock=false,
+    boolean noErrorOnTrackFailure=false,
+    boolean forceRemoteCheck=false,
+    boolean needProofSet=false,
+    boolean allowEmptySelfID=false,
+    boolean noSkipSelf=true,
+    boolean canSuppressUI=false,
+    TLFIdentifyBehavior identifyBehavior=0,
+    boolean forceDisplay=false
+  );
   record IdentifyLiteRes {
     UserOrTeamLite ul;
     union { null, IdentifyTrackBreaks } trackBreaks;
@@ -40,8 +54,21 @@ protocol identify {
   /*
    * Note that UID can be empty, in which case a resolution is also forced.
    */
-  IdentifyLiteRes identifyLite(int sessionID, UserOrTeamID id, string assertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, boolean canSuppressUI=false, TLFIdentifyBehavior identifyBehavior=0, boolean forceDisplay=false);
-
+  IdentifyLiteRes identifyLite(
+    int sessionID,
+    UserOrTeamID id,
+    string assertion, IdentifyReason reason,
+    boolean useDelegateUI=false,
+    boolean alwaysBlock=false,
+    boolean noErrorOnTrackFailure=false,
+    boolean forceRemoteCheck=false,
+    boolean needProofSet=false,
+    boolean allowEmptySelfID=false,
+    boolean noSkipSelf=true,
+    boolean canSuppressUI=false,
+    TLFIdentifyBehavior identifyBehavior=0,
+    boolean forceDisplay=false
+  );
 
   /*
    * Resolve a set of assertions to an implicit team, optionally creating the team and identifying the members.
