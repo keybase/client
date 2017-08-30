@@ -61,7 +61,7 @@ func (cache *diskBlockCacheWrapped) enableCache(
 		// idempotent.
 		return nil
 	}
-	if cache.storageRoot == "" {
+	if cache.config.IsTestMode() {
 		*cachePtr, err = newDiskBlockCacheStandardForTest(
 			cache.config, typ)
 	} else {
