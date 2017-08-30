@@ -845,16 +845,17 @@ export type Conversation = {
   notifications?: ?ConversationNotificationInfo,
   maxMsgs?: ?Array<MessageBoxed>,
   maxMsgSummaries?: ?Array<MessageSummary>,
-  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+  creatorInfo?: ?ConversationCreatorInfo,
 }
 
-export type ConversationAuxiliaryInfo = {
-  conversationCtime: gregor1.Time,
-  conversationCreator: gregor1.UID,
-  headlineMtime?: ?gregor1.Time,
-  headlineModifier?: ?gregor1.UID,
-  headlineMessageID?: ?MessageID,
-  readerCount: int,
+export type ConversationCreatorInfo = {
+  ctime: gregor1.Time,
+  uid: gregor1.UID,
+}
+
+export type ConversationCreatorInfoLocal = {
+  ctime: gregor1.Time,
+  username: string,
 }
 
 export type ConversationErrorLocal = {
@@ -923,7 +924,7 @@ export type ConversationLocal = {
   error?: ?ConversationErrorLocal,
   info: ConversationInfoLocal,
   readerInfo: ConversationReaderInfo,
-  auxiliaryInfo?: ?ConversationAuxiliaryInfo,
+  creatorInfo?: ?ConversationCreatorInfoLocal,
   notifications?: ?ConversationNotificationInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1084,6 +1085,7 @@ export type GetInboxQuery = {
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
   status?: ?Array<ConversationStatus>,
+  memberStatus?: ?Array<ConversationMemberStatus>,
   convIDs?: ?Array<ConversationID>,
   unreadOnly: boolean,
   readOnly: boolean,
@@ -1131,7 +1133,7 @@ export type GetPublicConversationsRes = {
 }
 
 export type GetTLFConversationsLocalRes = {
-  convs?: ?Array<ConversationLocal>,
+  convs?: ?Array<InboxUIItem>,
   offline: boolean,
   rateLimits?: ?Array<RateLimit>,
 }
@@ -1236,12 +1238,14 @@ export type InboxUIItem = {
   name: string,
   snippet: string,
   channel: string,
+  headline: string,
   visibility: TLFVisibility,
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
-  notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
+  notifications?: ?ConversationNotificationInfo,
+  creatorInfo?: ?ConversationCreatorInfoLocal,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -2030,8 +2034,7 @@ export type localGetMessagesLocalRpcParam = Exact<{
 export type localGetTLFConversationsLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  membersType: ConversationMembersType,
-  includeAuxiliaryInfo: boolean
+  membersType: ConversationMembersType
 }>
 
 export type localGetThreadLocalRpcParam = Exact<{
@@ -2209,8 +2212,7 @@ export type remoteGetTLFConversationsRpcParam = Exact<{
   tlfID: TLFID,
   topicType: TopicType,
   membersType: ConversationMembersType,
-  summarizeMaxMsgs: boolean,
-  includeAuxiliaryInfo: boolean
+  summarizeMaxMsgs: boolean
 }>
 
 export type remoteGetThreadRemoteRpcParam = Exact<{

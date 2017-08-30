@@ -10,6 +10,7 @@ import {
   call,
   put,
   race,
+  select,
   fork,
   takeEvery,
   takeLatest,
@@ -19,6 +20,7 @@ import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
 import type {Action} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 import type {ChannelConfig, ChannelMap, SagaGenerator, Channel} from '../constants/types/saga'
 
 type SagaMap = {[key: string]: any}
@@ -99,6 +101,28 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
   }
 
   return takeEvery(pattern, wrappedWorker, ...args)
+}
+
+// Like safeTakeEvery but the worker is pure (not a generator) optionally pass in a third argument
+// Which is a selector function that will select some state and pass it to pureWorker
+// whatever purework returns will be yielded on.
+// i.e. it can return put(someAction). That effectively transforms the input action into another action
+// It can also return all([put(action1), put(action2)]) to dispatch multiple actions
+function safeTakeEveryPure<S, A>(
+  pattern: string | Array<any> | Function,
+  pureWorker: ((action: any) => any) | ((action: any, selectedState: S) => any),
+  selectorFn?: (state: TypedState, action: A) => S
+) {
+  return safeTakeEvery(pattern, function*(action: A) {
+    if (selectorFn) {
+      const selectedState = yield select(selectorFn, action)
+      // $FlowIssue
+      yield pureWorker(action, selectedState)
+    } else {
+      // $FlowIssue
+      yield pureWorker(action)
+    }
+  })
 }
 
 function safeTakeLatestWithCatch(
@@ -182,6 +206,7 @@ export {
   mapSagasToChanMap,
   putOnChannelMap,
   safeTakeEvery,
+  safeTakeEveryPure,
   safeTakeLatest,
   safeTakeLatestWithCatch,
   safeTakeSerially,

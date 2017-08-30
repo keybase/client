@@ -87,12 +87,14 @@ type InboxUIItem struct {
 	Name          string                        `codec:"name" json:"name"`
 	Snippet       string                        `codec:"snippet" json:"snippet"`
 	Channel       string                        `codec:"channel" json:"channel"`
+	Headline      string                        `codec:"headline" json:"headline"`
 	Visibility    TLFVisibility                 `codec:"visibility" json:"visibility"`
 	Participants  []string                      `codec:"participants" json:"participants"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
-	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time          gregor1.Time                  `codec:"time" json:"time"`
+	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	CreatorInfo   *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	FinalizeInfo  *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes    []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy  []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -105,6 +107,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		Name:       o.Name,
 		Snippet:    o.Snippet,
 		Channel:    o.Channel,
+		Headline:   o.Headline,
 		Visibility: o.Visibility.DeepCopy(),
 		Participants: (func(x []string) []string {
 			var ret []string
@@ -116,6 +119,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.Participants),
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		Time:        o.Time.DeepCopy(),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -123,7 +127,13 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time: o.Time.DeepCopy(),
+		CreatorInfo: (func(x *ConversationCreatorInfoLocal) *ConversationCreatorInfoLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CreatorInfo),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

@@ -116,6 +116,10 @@
           "name": "channel"
         },
         {
+          "type": "string",
+          "name": "headline"
+        },
+        {
           "type": "TLFVisibility",
           "name": "visibility"
         },
@@ -135,6 +139,10 @@
           "name": "membersType"
         },
         {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
           "type": [
             null,
             "ConversationNotificationInfo"
@@ -142,8 +150,11 @@
           "name": "notifications"
         },
         {
-          "type": "gregor1.Time",
-          "name": "time"
+          "type": [
+            null,
+            "ConversationCreatorInfoLocal"
+          ],
+          "name": "creatorInfo"
         },
         {
           "type": [

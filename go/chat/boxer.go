@@ -27,6 +27,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/ed25519"
 )
@@ -91,8 +92,17 @@ func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
 	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
 		return true
 	}
+
+	// Check for team not exist error that is in raw form
+	if aerr, ok := err.(libkb.AppStatusError); ok &&
+		keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamNotFound {
+		return true
+	}
+
 	switch err.(type) {
 	case libkb.DeletedError:
+		return true
+	case teams.TeamDoesNotExistError:
 		return true
 	}
 	return false

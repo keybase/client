@@ -6,10 +6,10 @@ const deleteEntity: (keyPath: Array<string>, ids: Array<string>) => Delete = (ke
   type: 'entity:delete',
 })
 
-const mergeEntity: (keyPath: Array<string>, entities: {[id: string]: EntityType}) => Merge = (
-  keyPath,
-  entities
-) => ({
+const mergeEntity: (
+  keyPath: Array<string>,
+  entities: {[id: string]: EntityType} | Array<EntityType>
+) => Merge = (keyPath, entities) => ({
   payload: {entities, keyPath},
   type: 'entity:merge',
 })

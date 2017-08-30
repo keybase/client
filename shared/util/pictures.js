@@ -9,128 +9,93 @@ type Info = {
   callbacks: Array<(username: string, urlMap: ?URLMap) => void>,
   done: boolean,
   error: boolean,
+  requesting: boolean,
 }
 
-// Done
-const _nameToURL: {[key: string]: ?Info} = {}
-// Not done
-const _pendingNameToURL: {[key: string]: ?Info} = {}
+const _nameToInfo: {[key: string]: ?Info} = {}
 
-const _getUserImages = throttle(() => {
-  const usersToResolve = Object.keys(_pendingNameToURL)
-  if (!usersToResolve.length) {
+const _getPictures = (names: Array<string>, endpoint: string, paramName: string) => {
+  if (!names.length) {
     return
   }
 
-  // Move pending to non-pending state
-  usersToResolve.forEach(username => {
-    const info: ?Info = _pendingNameToURL[username]
-    _nameToURL[username] = info
-    delete _pendingNameToURL[username]
-  })
-
-  const [good, bad] = partition(usersToResolve, u => validUsername(u))
-
-  bad.forEach(username => {
-    const info = _nameToURL[username]
-    const urlMap = {}
+  names.forEach(n => {
+    const info = _nameToInfo[n]
     if (info) {
-      info.done = true
-      info.error = true
-      info.callbacks.forEach(cb => cb(username, urlMap))
-      info.callbacks = []
+      info.requesting = true
     }
   })
 
-  if (!good.length) {
-    return
-  }
+  apiserverGetRpcPromise({
+    param: {
+      args: [
+        {key: paramName, value: names.join(',')},
+        {key: 'formats', value: 'square_360,square_200,square_40'},
+      ],
+      endpoint,
+    },
+  })
+    .then(response => {
+      JSON.parse(response.body).pictures.forEach((picMap, idx) => {
+        const name = names[idx]
+        let urlMap = {
+          ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
+          ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
+          ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
+        }
 
-  const [teamnames, usernames] = partition(good, g => _nameToURL[g].isTeam)
-
-  if (usernames.length) {
-    apiserverGetRpcPromise({
-      param: {
-        args: [
-          {key: 'usernames', value: good.join(',')},
-          {key: 'formats', value: 'square_360,square_200,square_40'},
-        ],
-        endpoint: 'image/username_pic_lookups',
-      },
+        const info = _nameToInfo[name]
+        if (info) {
+          info.done = true
+          info.error = false
+          info.requesting = false
+          info.urlMap = urlMap
+          const callbacks = info.callbacks
+          info.callbacks = []
+          callbacks.forEach(cb => cb(name, info.urlMap))
+        }
+      })
     })
-      .then(response => {
-        JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-          const username = usernames[idx]
-          let urlMap = {
-            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-          }
-
-          const info = _nameToURL[username]
-          if (info) {
-            info.done = true
-            info.urlMap = urlMap
-            info.callbacks.forEach(cb => cb(username, urlMap))
-            info.callbacks = []
-          }
-        })
+    .catch(() => {
+      names.forEach(name => {
+        const info = _nameToInfo[name]
+        if (info) {
+          info.done = true
+          info.requesting = false
+          info.error = true
+          info.urlMap = {}
+          const callbacks = info.callbacks
+          info.callbacks = []
+          callbacks.forEach(cb => cb(name, info.urlMap))
+        }
       })
-      .catch(() => {
-        usernames.forEach(username => {
-          const info = _nameToURL[username]
-          const urlMap = {}
-          if (info) {
-            info.done = true
-            info.error = true
-            info.callbacks.forEach(cb => cb(username, urlMap))
-            info.callbacks = []
-          }
-        })
-      })
-  }
-
-  if (teamnames.length) {
-    apiserverGetRpcPromise({
-      param: {
-        args: [
-          {key: 'team_names', value: good.join(',')},
-          {key: 'formats', value: 'square_360,square_200,square_40'},
-        ],
-        endpoint: 'image/team_avatar_lookups',
-      },
     })
-      .then(response => {
-        JSON.parse(response.body).pictures.forEach((picMap, idx) => {
-          const teamname = teamnames[idx]
-          let urlMap = {
-            ...(picMap['square_200'] ? {'200': picMap['square_200']} : null),
-            ...(picMap['square_360'] ? {'360': picMap['square_360']} : null),
-            ...(picMap['square_40'] ? {'40': picMap['square_40']} : null),
-          }
+}
 
-          const info = _nameToURL[teamname]
-          if (info) {
-            info.done = true
-            info.urlMap = urlMap
-            info.callbacks.forEach(cb => cb(teamname, urlMap))
-            info.callbacks = []
-          }
-        })
-      })
-      .catch(() => {
-        teamnames.forEach(teamname => {
-          const info = _nameToURL[teamname]
-          const urlMap = {}
-          if (info) {
-            info.done = true
-            info.error = true
-            info.callbacks.forEach(cb => cb(teamname, urlMap))
-            info.callbacks = []
-          }
-        })
-      })
-  }
+const _getUserImages = throttle(() => {
+  const names = Object.keys(_nameToInfo).filter(n => {
+    const i = _nameToInfo[n]
+    return i && !i.done && !i.requesting
+  })
+
+  const [good, bad] = partition(names, validUsername)
+
+  bad.forEach(username => {
+    const info = _nameToInfo[username]
+    const urlMap = {}
+    if (info) {
+      info.requesting = false
+      info.done = true
+      info.error = true
+      const cbs = info.callbacks
+      info.callbacks = []
+      cbs.forEach(cb => cb(username, urlMap))
+    }
+  })
+
+  const [teamnames, usernames] = partition(good, n => _nameToInfo[n].isTeam)
+  _getPictures(usernames, 'image/username_pic_lookups', 'usernames')
+  _getPictures(teamnames, 'image/team_avatar_lookups', 'team_names')
 }, 200)
 
 function validUsername(name: ?string) {
@@ -142,7 +107,7 @@ function validUsername(name: ?string) {
 }
 
 function getUserImageMap(username: string): ?URLMap {
-  const info = _nameToURL[username]
+  const info = _nameToInfo[username]
   return info ? info.urlMap : null
 }
 
@@ -159,7 +124,7 @@ function loadUserImageMap(
   callback: (username: string, urlMap: ?URLMap) => void,
   isTeam: boolean = false
 ) {
-  const info = _nameToURL[username] || _pendingNameToURL[username]
+  const info = _nameToInfo[username]
   if (info) {
     if (!info.done) {
       info.callbacks.push(callback)
@@ -169,12 +134,12 @@ function loadUserImageMap(
       })
     }
   } else {
-    _pendingNameToURL[username] = {
+    _nameToInfo[username] = {
       callbacks: [callback],
       done: false,
       error: false,
       isTeam,
-      requested: false,
+      requesting: false,
       urlMap: null,
     }
     _getUserImages()
@@ -182,9 +147,9 @@ function loadUserImageMap(
 }
 
 function clearErrors() {
-  Object.keys(_nameToURL).forEach(k => {
-    if (_nameToURL[k] && _nameToURL[k].error) {
-      delete _nameToURL[k]
+  Object.keys(_nameToInfo).forEach(k => {
+    if (_nameToInfo[k] && _nameToInfo[k].error) {
+      delete _nameToInfo[k]
     }
   })
 }

@@ -21,14 +21,6 @@ const updateTempMessageTransformer = ({
   type,
 })
 
-const updateMessageTransformer = ({
-  type,
-  payload: {conversationIDKey, messageID},
-}: Constants.UpdateMessage) => ({
-  payload: {conversationIDKey, messageID},
-  type,
-})
-
 const loadedInboxActionTransformer = action => ({
   payload: {
     inbox: action.payload.inbox.map(i => {
@@ -234,6 +226,13 @@ function showEditor(message: ?Constants.Message): Constants.ShowEditor {
 
 function editMessage(message: Constants.Message, text: HiddenString): Constants.EditMessage {
   return {payload: {message, text}, type: 'chat:editMessage'}
+}
+
+function leaveConversation(conversationIDKey: Constants.ConversationIDKey): Constants.LeaveConversation {
+  return {
+    payload: {conversationIDKey},
+    type: 'chat:leaveConversation',
+  }
 }
 
 function muteConversation(
@@ -631,18 +630,6 @@ function threadLoadedOffline(conversationIDKey: Constants.ConversationIDKey): Co
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
 
-function updateMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>,
-  messageID: Constants.MessageID
-): Constants.UpdateMessage {
-  return {
-    logTransformer: updateMessageTransformer,
-    payload: {conversationIDKey, messageID, message},
-    type: 'chat:updateMessage',
-  }
-}
-
 function setSelectedRouteState(
   selectedConversation: Constants.ConversationIDKey,
   partialState: Object
@@ -684,6 +671,13 @@ function updateThread(
   }
 }
 
+function updateSnippet(
+  conversationIDKey: Constants.ConversationIDKey,
+  snippet: HiddenString
+): Constants.UpdateSnippet {
+  return {payload: {conversationIDKey, snippet}, type: 'chat:updateSnippet'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -705,6 +699,7 @@ export {
   inboxStale,
   incomingMessage,
   incomingTyping,
+  leaveConversation,
   loadAttachment,
   loadAttachmentPreview,
   loadInbox,
@@ -756,7 +751,6 @@ export {
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
   updateLatestMessage,
-  updateMessage,
   updateMetadata,
   updatePaginationNext,
   updateSupersededByState,
@@ -766,4 +760,5 @@ export {
   updateTyping,
   updatedMetadata,
   uploadProgress,
+  updateSnippet,
 }

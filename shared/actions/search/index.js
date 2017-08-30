@@ -170,9 +170,7 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(results => JSON.parse(results.body))
 }
 
-const search = function* search<T>({
-  payload: {term, service, finishedActionTypeToFire, searchKey},
-}: Constants.Search<T>) {
+function* search<T>({payload: {term, service, finishedActionTypeToFire, searchKey}}: Constants.Search<T>) {
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
@@ -216,9 +214,7 @@ const search = function* search<T>({
   }
 }
 
-const searchSuggestions = function* searchSuggestions({
-  payload: {maxUsers, searchKey},
-}: Constants.SearchSuggestions) {
+function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSuggestions) {
   let suggestions: Array<InterestingPerson> = yield call(userInterestingPeopleRpcPromise, {
     param: {
       maxUsers,
@@ -301,7 +297,7 @@ function* clearSearchInput({payload: {searchKey}}: Constants.UserInputItemsUpdat
   yield put(EntityAction.replaceEntity(['searchKeyToClearSearchInput'], {[searchKey]: clearSearchInput + 1}))
 }
 
-const searchSaga = function*(): SagaGenerator<any, any> {
+function* searchSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('search:search', search)
   yield Saga.safeTakeLatest('search:searchSuggestions', searchSuggestions)
   yield Saga.safeTakeLatest('search:updateSelectedSearchResult', updateSelectedSearchResult)

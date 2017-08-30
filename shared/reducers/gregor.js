@@ -17,6 +17,7 @@ export default function(
     case CommonConstants.resetStore:
       return {...initialState}
     case Constants.updateSeenMsgs:
+      // TODO do we ever use this?
       if (!action.error) {
         const newMsgs: Constants.MsgMap = keyBy(action.payload.seenMsgs, m => m.md.msgID.toString('base64'))
         return {

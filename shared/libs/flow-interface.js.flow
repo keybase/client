@@ -1,5 +1,49 @@
 /*eslint-disable */
-
+declare module 'react-hot-loader' {
+  declare var exports: any
+}
+declare module 'devtron' {
+  declare var exports: any
+}
+declare module 'core-js/es6/array' {
+  declare var exports: any
+}
+declare module 'core-js/es6/string' {
+  declare var exports: any
+}
+declare module 'core-js/es6/map' {
+  declare var exports: any
+}
+declare module 'core-js/es6/object' {
+  declare var exports: any
+}
+declare module 'emoji-datasource' {
+  declare var exports: any
+}
+declare module '@storybook/react' {
+  declare var exports: any
+}
+declare module '@storybook/react-native' {
+  declare var exports: any
+}
+declare module '@storybook/addon-actions' {
+  declare var exports: any
+}
+declare module 'core-js/es6/reflect' {
+  declare var exports: any
+}
+declare module 'emoji-mart' {
+  declare var exports: any
+}
+declare module 'emoji-datasource-apple/img/apple/sheets/64.png' {
+  declare var exports: any
+}
+declare module 'electron-packager' {
+  declare var exports: any
+}
+declare module 'webpack' {
+  declare var exports: any
+}
 declare module 'buffer' {
   declare var exports: {Buffer: any}
 }
@@ -7,9 +51,6 @@ declare module 'electron' {
   declare var exports: any
 }
 declare module 'getenv' {
-  declare var exports: any
-}
-declare module 'lodash' {
   declare var exports: any
 }
 declare module 'moment' {
