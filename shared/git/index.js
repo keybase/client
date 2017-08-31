@@ -89,8 +89,8 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
         </ClickableBox>
         {this.state.expanded &&
           <Box style={_rowBottomStyle}>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-              <Text type="BodySmall" style={{marginBottom: 5, marginTop: 2}}>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: 5, marginTop: 2}}>
+              <Text type="BodySmall">
                 Last push {this.props.lastEdit} ago, signed and encrypted using device&nbsp;
               </Text>
               <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
