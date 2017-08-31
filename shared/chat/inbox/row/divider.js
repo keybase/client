@@ -46,7 +46,7 @@ const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
   >
     <DividerBox>
       <Box style={_dividerIconStyle}>
-        <Icon type={isExpanded ? 'iconfont-keybase' : 'iconfont-down-arrow'} inheritColor={true} />
+        <Icon type={isExpanded ? 'iconfont-up-arrow' : 'iconfont-down-arrow'} inheritColor={true} />
       </Box>
     </DividerBox>
   </ClickableBox>
@@ -63,7 +63,7 @@ const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
       <BigTeamsLabel isFiltered={false} />
       {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}
       <Box style={_iconStyle}>
-        <Icon type="iconfont-keybase" inheritColor={true} />
+        <Icon type="iconfont-up-arrow" inheritColor={true} />
       </Box>
     </DividerBox>
   </ClickableBox>
