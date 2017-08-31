@@ -658,7 +658,7 @@ func (cache *DiskBlockCacheStandard) GetMetadata(ctx context.Context,
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheStandard.
 func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, prefetchStatus *PrefetchStatus) (err error) {
+	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) (err error) {
 	cache.lock.Lock()
 	defer cache.lock.Unlock()
 	err = cache.checkCacheLocked("UpdateMetadata")
@@ -675,16 +675,14 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 	if err != nil {
 		return NoSuchBlockError{blockID}
 	}
-	if prefetchStatus != nil {
-		md.TriggeredPrefetch = false
-		md.FinishedPrefetch = false
-		switch *prefetchStatus {
-		case TriggeredPrefetch:
-			md.TriggeredPrefetch = true
-		case FinishedPrefetch:
-			md.TriggeredPrefetch = true
-			md.FinishedPrefetch = true
-		}
+	md.TriggeredPrefetch = false
+	md.FinishedPrefetch = false
+	switch prefetchStatus {
+	case TriggeredPrefetch:
+		md.TriggeredPrefetch = true
+	case FinishedPrefetch:
+		md.TriggeredPrefetch = true
+		md.FinishedPrefetch = true
 	}
 	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md)
 }

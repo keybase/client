@@ -248,7 +248,7 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(ctx context.Context,
 	dbc := brq.config.DiskBlockCache()
 	if dbc != nil {
 		prefetchStatus := FinishedPrefetch
-		err := dbc.UpdateMetadata(ctx, ptr.ID, &prefetchStatus)
+		err := dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
 		if err != nil {
 			brq.log.CWarningf(ctx, "Error updating metadata after "+
 				"prefetch: %+v", err)
@@ -286,7 +286,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		if dbc != nil {
 			go func() {
 				// Leave FinishedPrefetch unchanged at this point.
-				err := dbc.UpdateMetadata(ctx, ptr.ID, &prefetchStatus)
+				err := dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
 				close(didUpdateCh)
 				switch err.(type) {
 				case nil:
@@ -374,7 +374,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	if dbc == nil {
 		return NoSuchBlockError{ptr.ID}
 	}
-	blockBuf, serverHalf, triggeredPrefetch, err := dbc.Get(ctx, kmd.TlfID(),
+	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(ctx, kmd.TlfID(),
 		ptr.ID)
 	if err != nil {
 		return err
@@ -391,7 +391,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	}
 
 	return brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
-		triggeredPrefetch, prefetchDoneCh, prefetchErrCh)
+		prefetchStatus, prefetchDoneCh, prefetchErrCh)
 }
 
 // RequestWithPrefetch implements the BlockRetriever interface for

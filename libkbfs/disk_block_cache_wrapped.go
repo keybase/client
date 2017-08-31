@@ -158,7 +158,7 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 // UpdateMetadata implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, prefetchStatus *PrefetchStatus) error {
+	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
 	// This is a write operation but we are only reading the pointers to the
 	// caches. So we use a read lock.
 	cache.mtx.RLock()
