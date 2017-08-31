@@ -60,7 +60,7 @@ const BetaNote = (props: BetaNoteProps) => (
       using the command line.
     </Text>
     <Text
-      type="BodySmall"
+      type="BodySmallSemibold"
       className="underline"
       onClick={props.onReadDoc}
       style={{...globalStyles.clickable}}
