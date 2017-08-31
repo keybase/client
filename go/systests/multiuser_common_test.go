@@ -378,7 +378,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 		u.ctx.t.Fatal(err)
 	}
 	cli := u.getTeamsClient()
-	err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
+	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
