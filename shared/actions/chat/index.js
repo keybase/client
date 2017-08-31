@@ -17,6 +17,7 @@ import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
+  CommonDeviceType,
   ConstantsStatusCode,
   teamsTeamCreateRpcPromise,
   teamsTeamAddMemberRpcPromise,
@@ -194,6 +195,18 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               svcShouldDisplayNotification
             )
           )
+        }
+      }
+      break
+    case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
+      if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
+        const {convID, settings} = action.payload.activity.setAppNotificationSettings
+        if (convID && settings) {
+          const conversationIDKey = Constants.conversationIDToKey(convID)
+          const notifications = Inbox.parseNotifications(settings)
+          if (notifications) {
+            yield put(Creators.updatedNotifications(conversationIDKey, notifications))
+          }
         }
       }
       break
@@ -1220,6 +1233,42 @@ function* _createNewTeam(action: Constants.CreateNewTeam) {
   }
 }
 
+const _setNotifications = function*(action: Constants.SetNotifications) {
+  const {payload: {conversationIDKey}} = action
+  // Send the new post-reducer setNotifications structure to the service.
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  if (inbox && inbox.notifications) {
+    const {notifications} = inbox
+    const param = {
+      convID: Constants.keyToConversationID(conversationIDKey),
+      channelWide: notifications.channelWide,
+      settings: [
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.desktop.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.desktop.generic,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.mobile.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.mobile.generic,
+        },
+      ],
+    }
+    yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
+  }
+}
+
 function updateProgress(action: Constants.DownloadProgress | Constants.UploadProgress) {
   const {type, payload: {progress, messageKey}} = action
   if (type === 'chat:downloadProgress') {
@@ -1329,6 +1378,8 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
+  yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
+  yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
 }
 
 export default chatSaga
