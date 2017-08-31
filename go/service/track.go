@@ -99,9 +99,7 @@ func (h *TrackHandler) CheckTracking(_ context.Context, sessionID int) error {
 }
 
 func (h *TrackHandler) FakeTrackingChanged(_ context.Context, arg keybase1.FakeTrackingChangedArg) error {
-	user, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name: arg.Username,
-	})
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(h.G(), arg.Username))
 	if err != nil {
 		return err
 	}

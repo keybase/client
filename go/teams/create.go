@@ -28,8 +28,9 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	loadUsernameList := func(usernames []string) (res []*keybase1.UserPlusKeysV2, err error) {
 		for _, username := range usernames {
 			upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{
-				Name:       username,
-				NetContext: ctx,
+				Name:         username,
+				NetContext:   ctx,
+				Contextified: libkb.NewContextified(g),
 			})
 			if err != nil {
 				g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", username, err)

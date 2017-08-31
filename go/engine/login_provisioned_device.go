@@ -88,10 +88,8 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 	}
 
 	var config *libkb.UserConfig
-	loadUserArg := libkb.LoadUserArg{
-		PublicKeyOptional: true,
-		ForceReload:       true,
-	}
+	loadUserArg := libkb.NewLoadUserPubOptionalArg(e.G())
+	loadUserArg.ForceReload = true
 	var nu libkb.NormalizedUsername
 	if len(e.username) == 0 {
 		e.G().Log.Debug("| using current username")

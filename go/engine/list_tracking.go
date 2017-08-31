@@ -65,7 +65,7 @@ func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 	if len(e.arg.ForAssertion) > 0 {
 		arg = libkb.NewLoadUserByNameArg(e.G(), e.arg.ForAssertion)
 	} else {
-		arg.Self = true
+		arg = libkb.NewLoadUserSelfArg(e.G())
 	}
 
 	err = e.G().GetFullSelfer().WithUser(arg, func(user *libkb.User) error {

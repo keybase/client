@@ -211,10 +211,9 @@ func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 
 func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string) {
 	// Let the rest of the system know this user has changed
-	finalizeUser, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name:              username,
-		PublicKeyOptional: true,
-	})
+	arg := libkb.NewLoadUserByNameArg(b.G().ExternalG(), username)
+	arg.PublicKeyOptional = true
+	finalizeUser, err := libkb.LoadUser(arg)
 	if err != nil {
 		b.Debug(ctx, "notifyTlfFinalize: failed to load finalize user, skipping user changed notification: err: %s", err.Error())
 	} else {
