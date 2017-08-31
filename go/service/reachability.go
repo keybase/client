@@ -91,3 +91,8 @@ func (h *reachability) IsConnected(ctx context.Context) libkb.ConnectivityMonito
 		return libkb.ConnectivityMonitorUnknown
 	}
 }
+
+func (h *reachability) CheckReachability(ctx context.Context) error {
+	h.check()
+	return nil
+}

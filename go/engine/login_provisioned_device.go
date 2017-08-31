@@ -173,6 +173,16 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 
 func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
 
+	// CORE-5876 idea that lksec will be unusable if reachablity state is NO
+	// and the user changed passphrase with a different device since it won't
+	// be able to sync the new server half.
+	if e.G().ConnectivityMonitor.IsConnected(ctx.NetContext) != libkb.ConnectivityMonitorYes {
+		e.G().Log.Debug("LoginProvisionedDevice: in unlockDeviceKeys, ConnectivityMonitor says not reachable, check to make sure")
+		if err := e.G().ConnectivityMonitor.CheckReachability(ctx.NetContext); err != nil {
+			e.G().Log.Debug("error checking reachability: %s", err)
+		}
+	}
+
 	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
