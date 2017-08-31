@@ -39,6 +39,7 @@ let _backgroundLoopTask
 function* onInitialInboxLoad(): SagaGenerator<any, any> {
   try {
     yield put(Creators.inboxStale())
+
     if (!isMobile) {
       // Only allow one loop at a time
       if (!_backgroundLoopTask) {
