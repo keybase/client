@@ -59,7 +59,7 @@ func (u *UsageStat) AccumOne(change int, usage UsageType) {
 	if change == 0 {
 		return
 	}
-	if usage < UsageWrite || usage > UsageRead {
+	if usage == UsageMDWrite || usage >= NumUsage {
 		return
 	}
 	u.Bytes[usage] += int64(change)
