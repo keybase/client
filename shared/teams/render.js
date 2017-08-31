@@ -48,11 +48,14 @@ const BetaNote = (props: BetaNoteProps) => {
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Box style={{...globalStyles.flexBoxRow}}>
         <Text type="BodySmall">&mdash;&mdash;</Text>
-        <Icon style={{paddingLeft: 5, paddingRight: 5}} type="iconfont-info" />
+        <Icon
+          style={{paddingLeft: globalMargins.tiny, paddingRight: globalMargins.tiny}}
+          type="iconfont-info"
+        />
         <Text type="BodySmall">&mdash;&mdash;</Text>
       </Box>
       <Text type="BodySmall">Teams are still very early-stage!</Text>
-      <Text style={{textAlign: 'center', width: 426}} type="BodySmall">
+      <Text style={{maxWidth: 426, textAlign: 'center'}} type="BodySmall">
         For now the GUI only allows you to create simple teams
         no channels or subteams, but you can get to more complex teams
         using the command line.
@@ -75,7 +78,11 @@ const Render = (props: Props) => {
       <Header {...props} />
       <ScrollView
         style={{alignSelf: 'stretch'}}
-        contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 10}}
+        contentContainerStyle={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+          margin: globalMargins.tiny,
+        }}
       >
         <BetaNote {...props} />
       </ScrollView>
