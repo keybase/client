@@ -53,10 +53,7 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
           ...(this.state.expanded
             ? {
                 backgroundColor: globalColors.blue5,
-                borderBottomWidth: 1,
                 borderColor: globalColors.black_05,
-                borderStyle: 'solid',
-                borderTopWidth: 1,
               }
             : {}),
         }}
@@ -149,7 +146,7 @@ const _deviceStyle = {
 
 const _rowBottomStyle = {
   ...globalStyles.flexBoxColumn,
-  paddingLeft: 22,
+  paddingLeft: 32,
 }
 
 const _iconCaretStyle = {
@@ -167,12 +164,18 @@ const _iconRepoStyle = {
 const _rowTopStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  paddingLeft: 8,
 }
 
 const _rowStyle = {
   ...globalStyles.flexBoxColumn,
+  borderBottomWidth: 1,
+  borderColor: globalColors.transparent,
+  borderStyle: 'solid',
+  borderTopWidth: 1,
   minHeight: globalMargins.large,
   padding: globalMargins.tiny,
+  paddingLeft: 0,
   paddingTop: 11,
   width: '100%',
 }
