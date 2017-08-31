@@ -54,6 +54,12 @@ func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
 type blockRetrievalRequest struct {
 	block  Block
 	doneCh chan error
+	// channel to notify when this retrieval and its entire subtree is done
+	// prefetching
+	prefetchDoneCh chan<- struct{}
+	// channel to notify when a prefetch in the subtree for this retrieval
+	// fails for any reason
+	prefetchErrCh chan<- struct{}
 }
 
 // blockRetrieval contains the metadata for a given block retrieval. May
@@ -76,12 +82,6 @@ type blockRetrieval struct {
 	requests []*blockRetrievalRequest
 	// the cache lifetime for the retrieval
 	cacheLifetime BlockCacheLifetime
-	// channel to notify when this retrieval and its entire subtree is done
-	// prefetching
-	prefetchDoneCh chan<- struct{}
-	// channel to notify when a prefetch in the subtree for this retrieval
-	// fails for any reason
-	prefetchErrCh chan<- struct{}
 
 	//// Queueing Metadata
 	// the index of the retrieval in the heap
@@ -472,19 +472,13 @@ func (brq *blockRetrievalQueue) RequestWithPrefetch(ctx context.Context,
 		}
 		br.reqMtx.Lock()
 		br.requests = append(br.requests, &blockRetrievalRequest{
-			block:  block,
-			doneCh: ch,
+			block:          block,
+			doneCh:         ch,
+			prefetchDoneCh: prefetchDoneCh,
+			prefetchErrCh:  prefetchErrCh,
 		})
 		if lifetime > br.cacheLifetime {
 			br.cacheLifetime = lifetime
-		}
-		if br.prefetchDoneCh != nil {
-			// We already have a goroutine waiting for a prefetch.
-			prefetchErrCh <- struct{}{}
-		} else {
-			// We can set the prefetch channels for this retrieval.
-			br.prefetchDoneCh = prefetchDoneCh
-			br.prefetchErrCh = prefetchErrCh
 		}
 		br.reqMtx.Unlock()
 		// If the new request priority is higher, elevate the retrieval in the
@@ -556,10 +550,6 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	doneChans := make([]chan<- struct{}, 0, len(retrieval.requests))
 	errChans := make([]chan<- struct{}, 0, len(retrieval.requests))
 
-	// TODO: remove these lines and switch to looping over requests.
-	doneChans = append(doneChans, retrieval.prefetchDoneCh)
-	errChans = append(errChans, retrieval.prefetchErrCh)
-
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {
@@ -569,6 +559,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// Since we created this channel with a buffer size of 1, this won't
 		// block.
 		req.doneCh <- err
+		doneChans = append(doneChans, r.prefetchDoneCh)
+		errChans = append(errChans, r.prefetchErrCh)
 	}
 
 	go func() {
