@@ -3,6 +3,7 @@ import * as React from 'react'
 import type {IconType} from '../common-adapters/icon.constants'
 import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
+import {isMobile} from '../constants/platform'
 
 import type {Props} from './render'
 
@@ -12,16 +13,16 @@ type HeaderButtonProps = {
   onClick: () => void,
 }
 
+const marginHorizontal = isMobile ? globalMargins.tiny : globalMargins.medium
+const headerButtonBoxStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  marginLeft: marginHorizontal,
+  marginRight: marginHorizontal,
+}
+
 const HeaderButton = (props: HeaderButtonProps) => (
-  <ClickableBox
-    onClick={props.onClick}
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      marginLeft: globalMargins.medium,
-      marginRight: globalMargins.medium,
-    }}
-  >
+  <ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>
     <Icon type={props.iconType} style={{color: globalColors.blue}} />
     <Text type="HeaderLink" style={{margin: globalMargins.tiny}}>{props.label}</Text>
   </ClickableBox>
