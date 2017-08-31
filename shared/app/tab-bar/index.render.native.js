@@ -14,7 +14,7 @@ const _icons = {
   [Tabs.profileTab]: {selected: 'icon-nav-people-selected-40', unselected: 'icon-nav-people-40'},
   [Tabs.settingsTab]: {selected: 'icon-nav-settings-selected-40', unselected: 'icon-nav-settings-40'},
   // TODO: Use teams icon when it becomes available.
-  [Tabs.teamsTab]: {selected: 'icon-nav-chat-selected-32', unselected: 'icon-nav-chat-32'},
+  [Tabs.teamsTab]: {selected: 'icon-nav-chat-selected-40', unselected: 'icon-nav-chat-40'},
 }
 
 // TODO: Implement a ... icon and put folderTab and settingsTab behind
