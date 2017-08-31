@@ -37,4 +37,4 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 ## Phase 5: Update the flowtype and fonts on both apps
 
 1. Go to `shared/`
-1. Run ```yarn run updated-fonts```
+1. Run ```yarn run updated-fonts``` (it's okay if this doesn't do anything)
