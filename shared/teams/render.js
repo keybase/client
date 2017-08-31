@@ -27,6 +27,7 @@ function TeamsRender(props: Props) {
           no channels or subteams, but you can get to more complex teams
           using the command line.
         </Text>
+        // TODO: Add link to page, when it exists.
         <Text type="BodySmall">Read the doc</Text>
       </ScrollView>
     </Box>
