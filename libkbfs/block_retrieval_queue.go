@@ -215,9 +215,10 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	}
 }
 
-func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(ctx context.Context,
-	ptr BlockPointer, block Block, kmd KeyMetadata, prefetchDoneCh,
-	prefetchErrCh chan<- struct{}, didUpdateCh <-chan struct{}) {
+func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
+	ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata,
+	lifetime BlockCacheLifetime, prefetchDoneCh, prefetchErrCh chan<- struct{},
+	didUpdateCh <-chan struct{}) {
 	prefetcher := brq.Prefetcher()
 	childPrefetchDoneCh, childPrefetchErrCh, numBlocks :=
 		prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
@@ -244,13 +245,18 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(ctx context.Context,
 
 	// Make sure we've already updated the metadata once to avoid a race.
 	<-didUpdateCh
-	// Prefetches are done. Update the disk cache metadata.
+	// Prefetches are done. Update the caches.
+	err := brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
+		block, lifetime, FinishedPrefetch)
+	if err != nil {
+		brq.log.CWarningf(ctx, "Error updating cache after prefetch: %+v",
+			err)
+	}
 	dbc := brq.config.DiskBlockCache()
 	if dbc != nil {
-		prefetchStatus := FinishedPrefetch
-		err := dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
+		err := dbc.UpdateMetadata(ctx, ptr.ID, FinishedPrefetch)
 		if err != nil {
-			brq.log.CWarningf(ctx, "Error updating metadata after "+
+			brq.log.CWarningf(ctx, "Error updating disk cache after "+
 				"prefetch: %+v", err)
 		}
 	}
@@ -285,7 +291,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		}
 		if dbc != nil {
 			go func() {
-				// Leave FinishedPrefetch unchanged at this point.
+				// Leave prefetchStatus unchanged at this point.
 				err := dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
 				close(didUpdateCh)
 				switch err.(type) {
@@ -299,10 +305,14 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			close(didUpdateCh)
 		}
 	}()
-	// TODO: If the working set cache has triggered a prefetch in the past, and
-	// we've switched to a sync cache, we still need to re-trigger prefetches
-	// so that it goes down the tree.
-	// In that case, this `if` should check for `finishedPrefetch` instead.
+	if prefetchStatus == FinishedPrefetch {
+		// Finished prefetches can always be short circuited and respond on the
+		// success channel (upstream prefetches might need to block on other
+		// parallel prefetches too).
+		prefetchDoneCh <- struct{}{}
+		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
+			block, lifetime, FinishedPrefetch)
+	}
 	if brq.config.IsSyncedTlf(kmd.TlfID()) && dbc != nil {
 		switch prefetchStatus {
 		case NoPrefetch:
@@ -310,15 +320,14 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			// We still need to register this requestor for receiving
 			// notifications about this prefetch.
 			// TODO: handle
-		case FinishedPrefetch:
-			prefetchDoneCh <- struct{}{}
-			return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
-				block, lifetime, prefetchStatus)
 		}
 	} else if prefetchStatus == TriggeredPrefetch {
+		// Non-synced TLF prefetches that have already triggered can be short
+		// circuited. We respond on the error channel to allow upstream
+		// prefetches to stop waiting.
 		prefetchErrCh <- struct{}{}
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-			lifetime, prefetchStatus)
+			lifetime, TriggeredPrefetch)
 	}
 	if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
@@ -346,8 +355,8 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
-	go brq.triggerAndMonitorPrefetch(ctx, ptr, block, kmd, prefetchDoneCh,
-		prefetchErrCh, didUpdateCh)
+	go brq.triggerAndMonitorPrefetch(ctx, ptr, block, kmd, lifetime,
+		prefetchDoneCh, prefetchErrCh, didUpdateCh)
 	return nil
 }
 
@@ -529,6 +538,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	defer retrieval.reqMtx.Unlock()
 
 	// Cache the block and trigger prefetches if there is no error.
+	prefetchDoneCh := make(chan struct{}, 1)
+	prefetchErrCh := make(chan struct{}, 1)
 	if err == nil {
 		// We treat this request as not having been prefetched, because the
 		// only way to get here is if the request wasn't already cached.
@@ -537,8 +548,17 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// TODO: verify that this is the case.
 		brq.CacheAndPrefetch(context.Background(), retrieval.blockPtr, block,
 			retrieval.kmd, retrieval.priority, retrieval.cacheLifetime,
-			NoPrefetch, retrieval.prefetchDoneCh, retrieval.prefetchErrCh)
+			NoPrefetch, prefetchDoneCh, prefetchErrCh)
+	} else {
+		prefetchErrCh <- struct{}{}
 	}
+
+	doneChans := make([]chan<- struct{}, 0, len(retrieval.requests))
+	errChans := make([]chan<- struct{}, 0, len(retrieval.requests))
+
+	// TODO: remove these lines and switch to looping over requests.
+	doneChans = append(doneChans, retrieval.prefetchDoneCh)
+	errChans = append(errChans, retrieval.prefetchErrCh)
 
 	for _, r := range retrieval.requests {
 		req := r
@@ -550,6 +570,22 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// block.
 		req.doneCh <- err
 	}
+
+	go func() {
+		// Fan-out the prefetch result to the channel of each individual
+		// request. Since the slice was created before the request mutex was
+		// released, this won't race.
+		var prefetchChans []chan<- struct{}
+		select {
+		case <-prefetchDoneCh:
+			prefetchChans = doneChans
+		case <-prefetchErrCh:
+			prefetchChans = errChans
+		}
+		for _, ch := range prefetchChans {
+			ch <- struct{}{}
+		}
+	}()
 }
 
 // Shutdown is called when we are no longer accepting requests.
