@@ -11,6 +11,7 @@ const common = {
   name: '',
   teamname: null,
   url: '',
+  isNew: false,
 }
 
 const helper = (teamname, name) => ({
@@ -31,7 +32,7 @@ const load = () => {
         teams={[
           {...common, ...helper('siggis', 'docs')},
           {...common, ...helper('siggis.board', 'media')},
-          {...common, ...helper('zorkclub', 'walkthroughs')},
+          {...common, ...helper('zorkclub', 'walkthroughs'), isNew: true},
         ]}
         onCopy={action('onCopy')}
         onDelete={action('onDelete')}

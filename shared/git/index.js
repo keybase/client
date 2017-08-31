@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, ClickableBox, Input, Button} from '../common-adapters'
+import {Box, Text, Icon, ClickableBox, Input, Button, Avatar, Meta} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type RowProps = {
@@ -9,6 +9,7 @@ type RowProps = {
   name: string,
   teamname: ?string,
   url: string,
+  isNew: boolean,
 }
 
 type RowAndOwnProps = RowProps & {
@@ -73,15 +74,23 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
               type={this.props.teamname ? 'iconfont-repo-team' : 'iconfont-repo-personal'}
               style={_iconRepoStyle}
             />
+            {this.props.teamname &&
+              <Avatar
+                size={12}
+                isTeam={true}
+                teamname={this.props.teamname}
+                style={{marginRight: globalMargins.xtiny}}
+              />}
             <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
+            {!!this.props.teamname && this.props.isNew && <Meta title="New" style={_metaStyle} />}
           </Box>
         </ClickableBox>
         {this.state.expanded &&
           <Box style={_rowBottomStyle}>
             <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-              <Text type="BodySmall" style={{marginTop: 2, marginBottom: 5}}>
+              <Text type="BodySmall" style={{marginBottom: 5, marginTop: 2}}>
                 Last push {this.props.lastEdit} ago, signed and encrypted using device&nbsp;
               </Text>
               <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
@@ -165,6 +174,12 @@ const _iconCaretStyle = {
   display: 'inline-block',
   fontSize: 12,
   marginBottom: 2,
+}
+
+const _metaStyle = {
+  backgroundColor: globalColors.orange,
+  alignSelf: 'center',
+  marginLeft: 6,
 }
 
 const _iconRepoStyle = {
