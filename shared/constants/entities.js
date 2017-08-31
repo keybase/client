@@ -1,6 +1,7 @@
 // @flow
 import {Map, Record, List, Set} from 'immutable'
 import * as SearchConstants from './search'
+import * as Teams from './teams'
 import * as ChatConstants from './chat'
 import HiddenString from '../util/hidden-string'
 
@@ -26,6 +27,7 @@ export type Actions = Delete | Merge | Replace
 // State
 export type State = KBRecord<{
   devices: Map<string, DeviceDetailRecord>,
+  teams: Teams.TeamRecord,
   searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
   messages: Map<ChatConstants.MessageKey, ChatConstants.Message>,
@@ -46,6 +48,7 @@ export type State = KBRecord<{
 
 const StateRecord = Record({
   devices: Map(),
+  teams: new Teams.Team(),
   searchResults: Map(),
   searchQueryToResult: Map(),
   messages: Map(),

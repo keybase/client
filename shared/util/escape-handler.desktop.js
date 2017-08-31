@@ -11,11 +11,11 @@ class EscapeHandler extends Component<Props> {
   }
 
   componentDidMount() {
-    this.context.addESCHandler(this)
+    this.context.addESCHandler && this.context.addESCHandler(this)
   }
 
   componentWillUnmount() {
-    this.context.removeESCHandler(this)
+    this.context.removeESCHandler && this.context.removeESCHandler(this)
   }
 
   onESC() {

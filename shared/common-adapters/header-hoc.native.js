@@ -10,10 +10,11 @@ import type {Props} from './header-hoc'
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => {
-    const {onBack, onCancel, headerStyle, title, theme = 'light'} = props
+    const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light'} = props
     return (
       <Box style={_containerStyle}>
         <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
+          {customComponent}
           <Box style={_titleStyle}>
             <Text type="Header">{title}</Text>
           </Box>
