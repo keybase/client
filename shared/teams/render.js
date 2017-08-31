@@ -56,7 +56,7 @@ const BetaNote = (props: BetaNoteProps) => (
     <Text type="BodySmall">Teams are still very early-stage!</Text>
     <Text style={{maxWidth: 426, textAlign: 'center'}} type="BodySmall">
       For now the GUI only allows you to create simple teams
-      no channels or subteams, but you can get to more complex teams
+      with no channels or subteams, but you can get to more complex teams
       using the command line.
     </Text>
     <Text
