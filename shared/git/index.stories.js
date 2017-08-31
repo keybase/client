@@ -57,6 +57,7 @@ const load = () => {
           isTeam={true}
           onClose={action('onClose')}
           onCreate={action('onCreate')}
+          onNewTeam={action('onNewTeam')}
           teams={['fortgreenmoms', 'siggis', 'siggis.board']}
         />
       </Box>

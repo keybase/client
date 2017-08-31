@@ -7,6 +7,7 @@ import text from '../common-adapters/text.stories'
 import chatList from '../chat/conversation/list/index.stories'
 import chatInboxRow from '../chat/inbox/row/index.stories'
 import chatManageChannels from '../chat/manage-channels/index.stories'
+import dropdown from '../common-adapters/dropdown.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
 import search from '../search/search.stories'
 import git from '../git/index.stories'
@@ -18,6 +19,7 @@ const stories = {
   chatList,
   chatManageChannels,
   checkbox,
+  dropdown,
   git,
   icon,
   radiobutton,

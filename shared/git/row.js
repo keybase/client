@@ -27,7 +27,7 @@ class Row extends React.Component<_Props, State> {
   _input: any
 
   state = {
-    expanded: true,
+    expanded: false,
   }
 
   _toggleExpand = () => {
