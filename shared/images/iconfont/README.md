@@ -2,7 +2,7 @@
 
 ## Phase 1: Update svgs
 - Go to the Icon font zeplin sheet (https://zpl.io/pbL9pM2)
-- Export all the icons to this folderl
+- Export all the icons to this folder
   - On the right panel you can click the assets tab and download all SVGs into this folder.
   - Delete all non-icon font svgs from that folder (anything thats not 'kb-iconfont-.*')
 
@@ -25,17 +25,14 @@
 Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 
 1. choose expert
-1. upload the font
+1. upload `kb.ttf`
 1. only select trueType in the formats
 1. remove the ‘-webfont’ as the suffix
-1. check the agree then download
-1. rename the file and replace
-
-### For kb.ttf
-
 1. turn off fix missing glyphs
 1. turn off subsetting
 1. truetype hinting = keep existing
+1. check the agree then download
+1. rename the file and replace
 
 ## Update the flowtype and fonts on both apps
 
