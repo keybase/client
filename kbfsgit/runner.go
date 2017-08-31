@@ -274,15 +274,18 @@ func (r *runner) printJournalStatus(
 		return
 	}
 	r.errput.Write([]byte("Syncing data to Keybase: "))
+	// TODO: should we "humanize" the units of these bytes if they are
+	// more than a KB, MB, etc?
 	bytesFmt := "%d/%d bytes... "
 	str := fmt.Sprintf(bytesFmt, 0, firstStatus.UnflushedBytes)
 	lastByteCount := len(str)
 	r.errput.Write([]byte(str))
 
-	ticker := time.Tick(1 * time.Second)
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
 	for {
 		select {
-		case <-ticker:
+		case <-ticker.C:
 		case <-doneCh:
 		}
 		status, err := jServer.JournalStatus(tlf)
