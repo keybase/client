@@ -177,8 +177,8 @@ const _iconCaretStyle = {
 }
 
 const _metaStyle = {
-  backgroundColor: globalColors.orange,
   alignSelf: 'center',
+  backgroundColor: globalColors.orange,
   marginLeft: 6,
 }
 
@@ -219,6 +219,10 @@ type Props = {
 
 const Git = (props: Props) => (
   <Box style={_gitStyle}>
+    <Box style={_headerStyle}>
+      <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+      <Text type="BodyBigLink">New encrypted git repository...</Text>
+    </Box>
     <Box style={_sectionHeaderStyle}>
       <Text type="BodySmallSemibold">Personal repositories</Text>
     </Box>
@@ -236,6 +240,12 @@ const _sectionHeaderStyle = {
   height: 24,
   paddingLeft: globalMargins.tiny,
   width: '100%',
+}
+
+const _headerStyle = {
+  ...globalStyles.flexBoxCenter,
+  flexShrink: 0,
+  height: 48,
 }
 
 const _gitStyle = {
