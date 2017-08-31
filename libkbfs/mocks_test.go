@@ -8341,25 +8341,25 @@ func (mr *MockBlockRetrieverMockRecorder) Request(ctx, priority, kmd, ptr, block
 }
 
 // RequestWithPrefetch mocks base method
-func (m *MockBlockRetriever) RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime, prefetchDoneCh, prefetchErrCh chan<- struct{}) <-chan error {
-	ret := m.ctrl.Call(m, "RequestWithPrefetch", ctx, priority, kmd, ptr, block, lifetime, prefetchDoneCh, prefetchErrCh)
+func (m *MockBlockRetriever) RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, lifetime BlockCacheLifetime, deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) <-chan error {
+	ret := m.ctrl.Call(m, "RequestWithPrefetch", ctx, priority, kmd, ptr, block, lifetime, deepPrefetchDoneCh, deepPrefetchCancelCh)
 	ret0, _ := ret[0].(<-chan error)
 	return ret0
 }
 
 // RequestWithPrefetch indicates an expected call of RequestWithPrefetch
-func (mr *MockBlockRetrieverMockRecorder) RequestWithPrefetch(ctx, priority, kmd, ptr, block, lifetime, prefetchDoneCh, prefetchErrCh interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestWithPrefetch", reflect.TypeOf((*MockBlockRetriever)(nil).RequestWithPrefetch), ctx, priority, kmd, ptr, block, lifetime, prefetchDoneCh, prefetchErrCh)
+func (mr *MockBlockRetrieverMockRecorder) RequestWithPrefetch(ctx, priority, kmd, ptr, block, lifetime, deepPrefetchDoneCh, deepPrefetchCancelCh interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestWithPrefetch", reflect.TypeOf((*MockBlockRetriever)(nil).RequestWithPrefetch), ctx, priority, kmd, ptr, block, lifetime, deepPrefetchDoneCh, deepPrefetchCancelCh)
 }
 
 // CacheAndPrefetch mocks base method
-func (m *MockBlockRetriever) CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus, prefetchDoneCh, prefetchErrCh chan<- struct{}) error {
-	ret := m.ctrl.Call(m, "CacheAndPrefetch", ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, prefetchDoneCh, prefetchErrCh)
+func (m *MockBlockRetriever) CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) error {
+	ret := m.ctrl.Call(m, "CacheAndPrefetch", ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CacheAndPrefetch indicates an expected call of CacheAndPrefetch
-func (mr *MockBlockRetrieverMockRecorder) CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, prefetchDoneCh, prefetchErrCh interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CacheAndPrefetch", reflect.TypeOf((*MockBlockRetriever)(nil).CacheAndPrefetch), ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, prefetchDoneCh, prefetchErrCh)
+func (mr *MockBlockRetrieverMockRecorder) CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CacheAndPrefetch", reflect.TypeOf((*MockBlockRetriever)(nil).CacheAndPrefetch), ctx, ptr, block, kmd, priority, lifetime, prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
 }

@@ -2255,15 +2255,15 @@ type BlockRetriever interface {
 	// to notify when child blocks are done prefetching.
 	RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
-		prefetchDoneCh, prefetchErrCh chan<- struct{}) <-chan error
+		deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) <-chan error
 	// CacheAndPrefetch caches a block along with its prefetch status, and then
 	// triggers prefetches as appropriate.
-	// `prefetchDoneCh` and `prefetchErrCh` can be nil so the caller doesn't always
+	// `deepPrefetchDoneCh` and `deepPrefetchCancelCh` can be nil so the caller doesn't always
 	// have to instantiate a channel if it doesn't care about waiting for the
 	// prefetch to complete. In that case, the `blockRetrievalQueue` instantiates
 	// each channel to monitor the prefetches.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus,
-		prefetchDoneCh, prefetchErrCh chan<- struct{}) error
+		deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) error
 }
