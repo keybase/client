@@ -12,6 +12,7 @@ type BlockType int
 const (
 	BlockType_DATA BlockType = 0
 	BlockType_MD   BlockType = 1
+	BlockType_GIT  BlockType = 2
 )
 
 func (o BlockType) DeepCopy() BlockType { return o }
@@ -19,11 +20,13 @@ func (o BlockType) DeepCopy() BlockType { return o }
 var BlockTypeMap = map[string]BlockType{
 	"DATA": 0,
 	"MD":   1,
+	"GIT":  2,
 }
 
 var BlockTypeRevMap = map[BlockType]string{
 	0: "DATA",
 	1: "MD",
+	2: "GIT",
 }
 
 func (e BlockType) String() string {
