@@ -20,6 +20,8 @@ const (
 	UsageMDWrite
 	// UsageGitWrite indicates a git block is written
 	UsageGitWrite
+	// UsageGitArchive indicates an existing git block is archived
+	UsageGitArchive
 	// NumUsage indicates the number of usage types
 	NumUsage
 )
