@@ -65,6 +65,7 @@ export const AppStateAppState = {
 export const BackendCommonBlockType = {
   data: 0,
   md: 1,
+  git: 2,
 }
 
 export const CommonClientType = {
@@ -2703,6 +2704,7 @@ export type BlockReferenceCount = {
 export type BlockType =
     0 // DATA_0
   | 1 // MD_1
+  | 2 // GIT_2
 
 export type BootstrapStatus = {
   registered: boolean,
