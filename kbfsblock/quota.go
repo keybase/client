@@ -18,6 +18,8 @@ const (
 	UsageRead
 	// UsageMDWrite indicates a MD block is written
 	UsageMDWrite
+	// UsageGitWrite indicates a git block is written
+	UsageGitWrite
 	// NumUsage indicates the number of usage types
 	NumUsage
 )
@@ -81,9 +83,10 @@ func (u *UsageStat) Accum(another *UsageStat, accumF func(int64, int64) int64) {
 
 // QuotaInfo contains a user's quota usage information
 type QuotaInfo struct {
-	Folders map[string]*UsageStat
-	Total   *UsageStat
-	Limit   int64
+	Folders  map[string]*UsageStat
+	Total    *UsageStat
+	Limit    int64
+	GitLimit int64
 }
 
 // NewQuotaInfo returns a newly constructed QuotaInfo.
