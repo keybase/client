@@ -1,6 +1,10 @@
 // @flow
 import * as React from 'react'
 
-export type Props = {}
+export type Props = {
+  onCreateTeam: () => void,
+  onJoinTeam: () => void,
+  onReadDoc: () => void,
+}
 
 export default class Render extends React.Component<Props> {}

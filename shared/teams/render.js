@@ -41,7 +41,14 @@ function TeamsRender(props: Props) {
           no channels or subteams, but you can get to more complex teams
           using the command line.
         </Text>
-        <Text type="BodySmall">Read the doc</Text>
+        <Text
+          type="BodySmall"
+          className="underline"
+          onClick={props.onReadDoc}
+          style={{...globalStyles.clickable}}
+        >
+          Read the doc
+        </Text>
       </ScrollView>
     </Box>
   )
