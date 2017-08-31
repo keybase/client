@@ -12,29 +12,32 @@ type HeaderButtonProps = {
   onClick: () => void,
 }
 
-const HeaderButton = (props: HeaderButtonProps) => {
-  return (
-    <ClickableBox
-      onClick={props.onClick}
-      style={{...globalStyles.flexBoxRow, alignItems: 'center', marginRight: 40}}
-    >
-      <Icon type={props.iconType} style={{color: globalColors.blue}} />
-      <Text type="HeaderLink" style={{padding: 5}}>{props.label}</Text>
-    </ClickableBox>
-  )
+const HeaderButton = (props: HeaderButtonProps) => (
+  <ClickableBox
+    onClick={props.onClick}
+    style={{...globalStyles.flexBoxRow, alignItems: 'center', marginRight: 40}}
+  >
+    <Icon type={props.iconType} style={{color: globalColors.blue}} />
+    <Text type="HeaderLink" style={{padding: 5}}>{props.label}</Text>
+  </ClickableBox>
+)
+
+type HeaderProps = {
+  onCreateTeam: () => void,
+  onJoinTeam: () => void,
 }
+
+const Header = (props: HeaderProps) => (
+  <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
+    <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
+    <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
+  </Box>
+)
 
 const TeamsRender = (props: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
-        <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
-
-        <ClickableBox onClick={props.onJoinTeam} style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Icon type="iconfont-team-join" style={{color: globalColors.blue}} />
-          <Text type="HeaderLink" style={{padding: 5}}>Join a team</Text>
-        </ClickableBox>
-      </Box>
+      <Header {...props} />
       <ScrollView
         style={{alignSelf: 'stretch'}}
         contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 10}}
