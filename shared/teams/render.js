@@ -1,18 +1,30 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, ScrollView, Text} from '../common-adapters'
-import {globalStyles} from '../styles'
+import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
+import {globalColors, globalStyles} from '../styles'
 
 import type {Props} from './render'
 
 function TeamsRender(props: Props) {
+  // TODO: Find right icon for "Join a team" button.
+  //
   // TODO: Add link to "Read the doc" text, when a page to link to
   // exists.
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
-        <Text type="Body">Create a team</Text>
-        <Text type="Body">Join a team</Text>
+        <ClickableBox
+          onClick={() => {}}
+          style={{...globalStyles.flexBoxRow, alignItems: 'center', marginRight: 40}}
+        >
+          <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+          <Text type="HeaderLink" style={{padding: 5}}>Create a team</Text>
+        </ClickableBox>
+
+        <ClickableBox onClick={() => {}} style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+          <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+          <Text type="HeaderLink" style={{padding: 5}}>Join a team</Text>
+        </ClickableBox>
       </Box>
       <ScrollView
         style={{alignSelf: 'stretch'}}
