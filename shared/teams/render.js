@@ -2,7 +2,7 @@
 import * as React from 'react'
 import type {IconType} from '../common-adapters/icon.constants'
 import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './render'
 
@@ -15,10 +15,15 @@ type HeaderButtonProps = {
 const HeaderButton = (props: HeaderButtonProps) => (
   <ClickableBox
     onClick={props.onClick}
-    style={{...globalStyles.flexBoxRow, alignItems: 'center', marginRight: 40}}
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      marginLeft: globalMargins.medium,
+      marginRight: globalMargins.medium,
+    }}
   >
     <Icon type={props.iconType} style={{color: globalColors.blue}} />
-    <Text type="HeaderLink" style={{padding: 5}}>{props.label}</Text>
+    <Text type="HeaderLink" style={{margin: globalMargins.tiny}}>{props.label}</Text>
   </ClickableBox>
 )
 
