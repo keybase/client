@@ -10,7 +10,7 @@ import InfoPanel from './info-panel/container'
 import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
-import TeamNameBanner from './team-name-banner'
+import CreateTeamNotice from './notices/create-team-notice/container'
 
 import type {Props} from '.'
 
@@ -134,7 +134,6 @@ class Conversation extends Component<Props, State> {
           ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
               ? <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-                  <TeamNameBanner />
                   <SearchResultsList
                     items={this.props.searchResultIds}
                     onClick={this.props.onClickSearchResult}
@@ -146,6 +145,7 @@ class Conversation extends Component<Props, State> {
                   />
                 </div>
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                  {this.props.inSearch && this.props.showTeamOffer && <CreateTeamNotice />}
                   <List
                     focusInputCounter={this.props.focusInputCounter}
                     listScrollDownCounter={this.props.listScrollDownCounter}

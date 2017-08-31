@@ -12,6 +12,8 @@ import {withState, withHandlers, compose, branch, renderNothing, renderComponent
 import {selectedSearchIdHoc} from '../../search/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
+import {CommonConversationMembersType} from '../../constants/types/flow-types-chat'
+import flags from '../../util/feature-flags'
 
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
@@ -32,6 +34,7 @@ type StateProps = {|
   conversationIsError: boolean,
   conversationErrorText: string,
   defaultChatText: string,
+  showTeamOffer: boolean,
 |}
 
 type DispatchProps = {|
@@ -60,6 +63,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   let threadLoadedOffline = false
   let conversationIsError = false
   let conversationErrorText = ''
+  let showTeamOffer = false
   const defaultChatText =
     (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
 
@@ -80,6 +84,12 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
       }
       showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
+      showTeamOffer =
+        flags.teamChatEnabled &&
+        inbox &&
+        inbox.membersType !== CommonConversationMembersType.team &&
+        inbox.get('participants') &&
+        inbox.get('participants').count() > 2
     }
   }
 
@@ -100,6 +110,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     showSearchResults: !!searchResults,
     showSearchSuggestions: searchShowingSuggestions,
     defaultChatText,
+    showTeamOffer,
   }
 }
 
