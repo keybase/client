@@ -86,7 +86,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		fmt.Printf("Go: DNS Server: %s\n", srv)
 	}
 
-	kbCtx = libkb.G
+	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
 	usage := libkb.Usage{
