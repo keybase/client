@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Icon, ClickableBox, Input, Button} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type RowProps = {
   devicename: string,
@@ -24,7 +24,7 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
   _input: any
 
   state = {
-    expanded: false,
+    expanded: Math.random() > 0.5,
   }
 
   _toggleExpand = () => {
@@ -52,22 +52,31 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
           ..._rowStyle,
           ...(this.state.expanded
             ? {
-                backgroundColor: globalColors.blue2,
+                backgroundColor: globalColors.blue5,
+                borderBottomWidth: 1,
+                borderColor: globalColors.black_05,
+                borderStyle: 'solid',
+                borderTopWidth: 1,
               }
             : {}),
         }}
       >
-        <ClickableBox onClick={this._toggleExpand} style={_rowClickStyle}>
+        <ClickableBox
+          onClick={this._toggleExpand}
+          style={_rowClickStyle}
+          hoverColor={globalColors.transparent}
+          underlayColor={globalColors.transparent}
+        >
           <Box style={_rowTopStyle}>
             <Icon
               type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
               style={_iconCaretStyle}
             />
             <Icon
-              type={this.state.expanded ? 'iconfont-keybase' : 'iconfont-keybase'}
+              type={this.props.teamname ? 'iconfont-repo-team' : 'iconfont-repo-personal'}
               style={_iconRepoStyle}
             />
-            <Text type="BodySemibold">
+            <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
           </Box>
@@ -75,7 +84,7 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
         {this.state.expanded &&
           <Box style={_rowBottomStyle}>
             <Box style={globalStyles.flexBoxRow}>
-              <Text type="BodySmall">
+              <Text type="BodySmall" style={{marginTop: 2, marginBottom: 2}}>
                 Last push {this.props.lastEdit} ago, signed and encrypted using device&nbsp;
               </Text>
               <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
@@ -144,21 +153,27 @@ const _rowBottomStyle = {
 }
 
 const _iconCaretStyle = {
+  display: 'inline-block',
   fontSize: 12,
+  marginBottom: 2,
 }
 
 const _iconRepoStyle = {
+  color: globalColors.darkBlue,
   marginLeft: 12,
-  marginRight: 12,
+  marginRight: 6,
 }
 
 const _rowTopStyle = {
   ...globalStyles.flexBoxRow,
+  alignItems: 'center',
 }
 
 const _rowStyle = {
   ...globalStyles.flexBoxColumn,
-  padding: 12,
+  minHeight: globalMargins.large,
+  padding: globalMargins.tiny,
+  paddingTop: 11,
   width: '100%',
 }
 const _rowClickStyle = {
@@ -174,12 +189,24 @@ type Props = {
 
 const Git = (props: Props) => (
   <Box style={_gitStyle}>
-    <Text type="BodySemibold">Personal repositories</Text>
+    <Box style={_sectionHeaderStyle}>
+      <Text type="BodySmallSemibold">Personal repositories</Text>
+    </Box>
     {props.personals.map(p => <Row {...p} key={p.url} onCopy={props.onCopy} onDelete={props.onDelete} />)}
-    <Text type="BodySemibold">Team repositories</Text>
+    <Box style={_sectionHeaderStyle}>
+      <Text type="BodySmallSemibold">Team repositories</Text>
+    </Box>
     {props.teams.map(p => <Row {...p} key={p.url} onCopy={props.onCopy} onDelete={props.onDelete} />)}
   </Box>
 )
+
+const _sectionHeaderStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  height: 24,
+  paddingLeft: globalMargins.tiny,
+  width: '100%',
+}
 
 const _gitStyle = {
   ...globalStyles.flexBoxColumn,
