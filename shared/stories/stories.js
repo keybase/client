@@ -8,13 +8,15 @@ import chatList from '../chat/conversation/list/index.stories'
 import chatInboxRow from '../chat/inbox/row/index.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
 import search from '../search/search.stories'
+import git from '../git/index.stories'
 
 const stories = {
   avatar,
   box,
-  chatList,
   chatInboxRow,
+  chatList,
   checkbox,
+  git,
   icon,
   radiobutton,
   search,
