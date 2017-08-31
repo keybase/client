@@ -7,9 +7,6 @@ import type {Props} from './render'
 
 function TeamsRender(props: Props) {
   // TODO: Find right icon for "Join a team" button.
-  //
-  // TODO: Add link to "Read the doc" text, when a page to link to
-  // exists.
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
