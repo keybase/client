@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -605,7 +607,7 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	nAts := strings.Count(s, "@")
 	nDelimiters := nColons + nAts
 	if nDelimiters > 1 {
-		return "", "", fmt.Errorf("Invalid implicit team part, can have at most one ':' xor '@'")
+		return "", "", fmt.Errorf("Invalid implicit team part, can have at most one ':' xor '@': %v", s)
 	}
 	if nDelimiters == 0 {
 		if CheckUsername.F(s) {
@@ -621,21 +623,21 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	return string(assertion.GetKey()), assertion.GetValue(), nil
 }
 
-func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
-	// TODO perhaps this should parse out public/private and conflict
-	// TODO in which case it woudln't take isPublic as an argument
+var implicitTeamDisplayNameConflictRxx = regexp.MustCompile(`^\(conflicted (\d{4}-\d{2}-\d{2})\ #(\d+)\)$`)
 
+func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
 	// Turn the whole string tolower
 	s = strings.ToLower(s)
 
-	parts := strings.Split(s, "#")
-	if len(parts) > 2 {
+	split1 := strings.SplitN(s, " ", 2)     // split1: [assertions, ?conflict]
+	split2 := strings.Split(split1[0], "#") // split2: [writers, ?readers]
+	if len(split2) > 2 {
 		return ret, NewImplicitTeamDisplayNameError("can have at most one '#' separator")
 	}
 
 	seen := make(map[string]bool)
 	var readers, writers keybase1.ImplicitTeamUserSet
-	writers, err = parseImplicitTeamUserSet(ctx, parts[0], seen)
+	writers, err = parseImplicitTeamUserSet(ctx, split2[0], seen)
 	if err != nil {
 		return ret, err
 	}
@@ -644,16 +646,47 @@ func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool)
 		return ret, NewImplicitTeamDisplayNameError("need at least one writer")
 	}
 
-	if len(parts) == 2 {
-		readers, err = parseImplicitTeamUserSet(ctx, parts[1], seen)
+	if len(split2) == 2 {
+		readers, err = parseImplicitTeamUserSet(ctx, split2[1], seen)
 		if err != nil {
 			return ret, err
 		}
 	}
 
+	var conflictInfo *keybase1.ImplicitTeamConflictInfo
+	if len(split1) > 1 {
+		suffix := split1[1]
+		if len(suffix) == 0 {
+			return ret, NewImplicitTeamDisplayNameError("empty suffix")
+		}
+		matches := implicitTeamDisplayNameConflictRxx.FindStringSubmatch(suffix)
+		if len(matches) == 0 {
+			return ret, NewImplicitTeamDisplayNameError("malformed suffix: '%s'", suffix)
+		}
+		const expectedMatches = 2
+		if len(matches) != expectedMatches+1 {
+			return ret, NewImplicitTeamDisplayNameError("malformed suffix: %v != %v", len(matches)+1, expectedMatches)
+		}
+
+		conflictTime, err := time.Parse("2006-01-02", matches[1])
+		if err != nil {
+			return ret, NewImplicitTeamDisplayNameError("malformed suffix time: %v", conflictTime)
+		}
+
+		generation, err := strconv.Atoi(matches[2])
+		if err != nil || generation < 0 {
+			return ret, NewImplicitTeamDisplayNameError("malformed suffix generation: %v", matches[2])
+		}
+
+		conflictInfo = &keybase1.ImplicitTeamConflictInfo{
+			Generation: generation,
+			Time:       keybase1.ToTime(conflictTime.UTC()),
+		}
+	}
+
 	ret = keybase1.ImplicitTeamDisplayName{
 		IsPublic:     isPublic,
-		ConflictInfo: nil,
+		ConflictInfo: conflictInfo,
 		Writers:      writers,
 		Readers:      readers,
 	}
