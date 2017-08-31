@@ -11,18 +11,16 @@ type RowProps = {
   url: string,
 }
 
+type RowAndOwnProps = RowProps & {
+  onCopy: (url: string) => void,
+  onDelete: (url: string) => void,
+}
+
 type RowState = {
   expanded: boolean,
 }
 
-class Row
-  extends React.Component<
-    RowProps & {
-      onCopy: (url: string) => void,
-      onDelete: (url: string) => void,
-    },
-    RowState
-  > {
+class Row extends React.Component<RowAndOwnProps, RowState> {
   _input: any
 
   state = {
@@ -69,7 +67,9 @@ class Row
               type={this.state.expanded ? 'iconfont-keybase' : 'iconfont-keybase'}
               style={_iconRepoStyle}
             />
-            <Text type="BodySemibold">{this.props.name}</Text>
+            <Text type="BodySemibold">
+              {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
+            </Text>
           </Box>
         </ClickableBox>
         {this.state.expanded &&
@@ -93,11 +93,10 @@ class Row
                 />
                 <Box style={_copyStyle}>
                   <Icon
-                    type="iconfont-team-join"
+                    type={/* temp */ 'iconfont-team-join'}
                     style={{color: globalColors.white, hoverColor: globalColors.grey}}
                     onClick={this._onCopy}
                   />
-                  {/* TEMP icon */}
                 </Box>
               </Box>
               <Button type="Danger" label="Delete repo" onClick={this._onDelete} />
