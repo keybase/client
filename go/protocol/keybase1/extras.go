@@ -443,6 +443,11 @@ func (t TeamID) IsSubTeam() bool {
 	return suffix == SUB_TEAMID_SUFFIX_HEX
 }
 
+func (t TeamID) IsRootTeam() bool {
+	suffix := t[len(t)-2:]
+	return suffix == TEAMID_SUFFIX_HEX
+}
+
 func (t TeamID) String() string {
 	return string(t)
 }
@@ -1779,6 +1784,26 @@ func (m MemberInfo) TeamName() (TeamName, error) {
 
 func (i ImplicitTeamUserSet) NumTotalUsers() int {
 	return len(i.KeybaseUsers) + len(i.UnresolvedUsers)
+}
+
+func (i ImplicitTeamUserSet) List() string {
+	var names []string
+	names = append(names, i.KeybaseUsers...)
+	for _, u := range i.UnresolvedUsers {
+		names = append(names, u.String())
+	}
+	sort.Strings(names)
+	return strings.Join(names, ",")
+}
+
+func (n ImplicitTeamDisplayName) String() string {
+	name := n.Writers.List()
+
+	if n.Readers.NumTotalUsers() > 0 {
+		name += "#" + n.Readers.List()
+	}
+
+	return name
 }
 
 // LockIDFromBytes takes the first 8 bytes of the sha512 over data, interprets

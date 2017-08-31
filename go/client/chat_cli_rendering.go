@@ -102,7 +102,7 @@ func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.Conver
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
 		return v.convNameTeam(g, conv)
-	case chat1.ConversationMembersType_KBFS:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
 		return v.convNameKBFS(g, conv, myUsername)
 	}
 	return ""
