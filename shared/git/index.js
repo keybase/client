@@ -80,13 +80,14 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
         </ClickableBox>
         {this.state.expanded &&
           <Box style={_rowBottomStyle}>
-            <Box style={globalStyles.flexBoxRow}>
-              <Text type="BodySmall" style={{marginTop: 2, marginBottom: 2}}>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+              <Text type="BodySmall" style={{marginTop: 2, marginBottom: 5}}>
                 Last push {this.props.lastEdit} ago, signed and encrypted using device&nbsp;
               </Text>
               <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
             </Box>
-            <Box style={globalStyles.flexBoxRow}>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+              <Text type="Body">Clone:</Text>
               <Box style={_bubbleStyle}>
                 <Input
                   small={true}
@@ -95,17 +96,18 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
                   onClick={this._inputOnClick}
                   ref={this._setRef}
                   style={_inputStyle}
+                  inputStyle={_inputInputStyle}
                   hideUnderline={true}
                 />
                 <Box style={_copyStyle}>
                   <Icon
                     type={/* temp */ 'iconfont-team-join'}
-                    style={{color: globalColors.white, hoverColor: globalColors.grey}}
+                    style={{color: globalColors.white, hoverColor: globalColors.blue5}}
                     onClick={this._onCopy}
                   />
                 </Box>
               </Box>
-              <Button type="Danger" label="Delete repo" onClick={this._onDelete} />
+              <Button type="Danger" small={true} label="Delete repo" onClick={this._onDelete} />
             </Box>
           </Box>}
       </Box>
@@ -122,26 +124,36 @@ const _copyStyle = {
   paddingRight: 12,
 }
 
+const _inputInputStyle = {
+  ...globalStyles.fontTerminal,
+  color: globalColors.darkBlue,
+  fontSize: 13,
+}
+
 const _inputStyle = {
   width: '100%',
 }
 
 const _bubbleStyle = {
   ...globalStyles.flexBoxCenter,
-  borderColor: globalColors.blue,
-  borderRadius: 20,
+  backgroundColor: globalColors.white,
+  borderColor: globalColors.black_05,
+  borderRadius: 100,
   borderStyle: 'solid',
   borderWidth: 1,
+  marginLeft: 8,
   marginRight: 8,
-  minHeight: 30,
-  minWidth: 430,
+  minHeight: 28,
+  minWidth: 367,
   overflow: 'hidden',
+  paddingLeft: globalMargins.small,
   position: 'relative',
 }
 
 const _deviceStyle = {
-  ...globalStyles.fontBold,
+  ...globalStyles.fontSemibold,
   ...globalStyles.italic,
+  color: globalColors.black_60,
 }
 
 const _rowBottomStyle = {
