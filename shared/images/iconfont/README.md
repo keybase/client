@@ -20,7 +20,7 @@
 - run `yarn run apply-new-fonts`
 - Delete `./kb/`
 
-## Fixing Vertical Metrics
+## Phase 4: Fix Vertical Metrics
 
 Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 
@@ -34,7 +34,7 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 1. check the agree then download
 1. replace `kb.ttf` with the file of the same name from the downloaded zip file
 
-## Update the flowtype and fonts on both apps
+## Phase 5: Update the flowtype and fonts on both apps
 
 1. Go to `shared/`
 1. Run ```yarn run updated-fonts```
