@@ -5,8 +5,7 @@ import {globalColors, globalStyles} from '../styles'
 
 import type {Props} from './render'
 
-function TeamsRender(props: Props) {
-  // TODO: Find right icon for "Join a team" button.
+const TeamsRender = (props: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
@@ -19,7 +18,7 @@ function TeamsRender(props: Props) {
         </ClickableBox>
 
         <ClickableBox onClick={props.onJoinTeam} style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+          <Icon type="iconfont-team-join" style={{color: globalColors.blue}} />
           <Text type="HeaderLink" style={{padding: 5}}>Join a team</Text>
         </ClickableBox>
       </Box>
