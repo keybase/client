@@ -64,7 +64,7 @@ const BetaNote = (props: BetaNoteProps) => {
   )
 }
 
-const TeamsRender = (props: Props) => {
+const Render = (props: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
       <Header {...props} />
@@ -78,4 +78,4 @@ const TeamsRender = (props: Props) => {
   )
 }
 
-export default TeamsRender
+export default Render

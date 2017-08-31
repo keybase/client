@@ -1,5 +1,5 @@
 // @flow
-import TeamsRender from './render'
+import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 
@@ -23,4 +23,4 @@ const mapDispatchToProps = (dispatch, {routePath}: RouteProps<{}, {}>) => ({
 })
 
 // $FlowIssue type this connector
-export default pausableConnect(mapStateToProps, mapDispatchToProps)(TeamsRender)
+export default pausableConnect(mapStateToProps, mapDispatchToProps)(Render)

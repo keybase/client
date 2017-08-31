@@ -7,4 +7,4 @@ export type Props = {
   onReadDoc: () => void,
 }
 
-export default class TeamsRender extends React.Component<Props> {}
+export default class Render extends React.Component<Props> {}
