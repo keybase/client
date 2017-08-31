@@ -648,8 +648,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		case chat1.ConversationMembersType_TEAM:
 			n.topicName = &DefaultTeamTopic
 		}
-	} else if n.membersType == chat1.ConversationMembersType_IMPTEAM {
-		return res, rl, errors.New("no topic name allowed for implicit teams")
 	}
 
 	var findConvsTopicName string
@@ -674,12 +672,14 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		return convs[0], rl, err
 	}
 
-	// if KBFS, return an error. Need to use IMPTEAM now.
-	if n.membersType == chat1.ConversationMembersType_KBFS {
-		// let it slide in devel for tests
-		if n.G().ExternalG().Env.GetRunMode() != libkb.DevelRunMode {
-			n.Debug(ctx, "KBFS conversations deprecated; switching membersType from KBFS to IMPTEAM")
-			n.membersType = chat1.ConversationMembersType_IMPTEAM
+	if n.G().ExternalG().Env.GetChatMemberType() == "impteam" {
+		// if KBFS, return an error. Need to use IMPTEAM now.
+		if n.membersType == chat1.ConversationMembersType_KBFS {
+			// let it slide in devel for tests
+			if n.G().ExternalG().Env.GetRunMode() != libkb.DevelRunMode {
+				n.Debug(ctx, "KBFS conversations deprecated; switching membersType from KBFS to IMPTEAM")
+				n.membersType = chat1.ConversationMembersType_IMPTEAM
+			}
 		}
 	}
 
