@@ -7,11 +7,13 @@ import Git from '.'
 
 const common = {
   devicename: 'Home Laptop',
-  lastEdit: '5 mins',
+  isNew: false,
+  lastEditTime: '5 mins',
+  lastEditUser: 'max',
+  lastEditUserFollowing: true,
   name: '',
   teamname: null,
   url: '',
-  isNew: false,
 }
 
 const helper = (teamname, name) => ({
@@ -33,6 +35,7 @@ const load = () => {
           {...common, ...helper('siggis', 'docs')},
           {...common, ...helper('siggis.board', 'media')},
           {...common, ...helper('zorkclub', 'walkthroughs'), isNew: true},
+          {...common, ...helper('notfollowingmax', 'test'), lastEditUserFollowing: false},
         ]}
         onCopy={action('onCopy')}
         onDelete={action('onDelete')}

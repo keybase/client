@@ -1,11 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, ClickableBox, Input, Button, Avatar, Meta} from '../common-adapters'
+import {Box, Text, Icon, ClickableBox, Input, Button, Avatar, Meta, Usernames} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type RowProps = {
   devicename: string,
-  lastEdit: string,
+  lastEditTime: string,
+  lastEditUser: string,
+  lastEditUserFollowing: boolean,
   name: string,
   teamname: ?string,
   url: string,
@@ -25,7 +27,7 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
   _input: any
 
   state = {
-    expanded: Math.random() > 0.5,
+    expanded: true,
   }
 
   _toggleExpand = () => {
@@ -91,7 +93,31 @@ class Row extends React.Component<RowAndOwnProps, RowState> {
           <Box style={_rowBottomStyle}>
             <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: 5, marginTop: 2}}>
               <Text type="BodySmall">
-                Last push {this.props.lastEdit} ago, signed and encrypted using device&nbsp;
+                Last push
+                {' '}
+                {this.props.lastEditTime}
+                {' '}
+                ago
+                {' '}
+                {!!this.props.teamname && !!this.props.lastEditUser && ' by'}
+              </Text>
+              {!!this.props.teamname &&
+                !!this.props.lastEditUser &&
+                <Avatar
+                  username={this.props.lastEditUser}
+                  size={12}
+                  style={{marginLeft: 2, marginRight: 2}}
+                />}
+              {!!this.props.teamname &&
+                !!this.props.lastEditUser &&
+                <Usernames
+                  type="BodySmall"
+                  colorFollowing={true}
+                  users={[{username: this.props.lastEditUser, following: this.props.lastEditUserFollowing}]}
+                  style={{marginLeft: 2, marginRight: 2}}
+                />}
+              <Text type="BodySmall">
+                , signed and encrypted using device&nbsp;
               </Text>
               <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
             </Box>
