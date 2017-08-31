@@ -366,9 +366,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:toggleChannelWideNotifications': {
       const {payload: {conversationIDKey}} = action
       const inbox = state.get('inbox')
-      const [index, conv] = state
-        .get('inbox')
-        .findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
       const notifications = conv && conv.get('notifications')
       const nextNotifications = {channelWide: !notifications.channelWide}
       return state.set(
@@ -380,7 +378,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       // We received an updated inbox.notifications from the server
       const {payload: {conversationIDKey, notifications}} = action
       const inbox = state.get('inbox')
-      const [index] = state.get('inbox').findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
       return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
     }
   }
