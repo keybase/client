@@ -232,6 +232,9 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
 				// after which we know the subtree of this block is done
 				// prefetching.
 				continue
+			case <-ctx.Done():
+				deepPrefetchCancelCh <- struct{}{}
+				return
 			case <-childPrefetchErrCh:
 				// One error means this block didn't finish prefetching.
 				deepPrefetchCancelCh <- struct{}{}
@@ -314,13 +317,9 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			block, lifetime, FinishedPrefetch)
 	}
 	if brq.config.IsSyncedTlf(kmd.TlfID()) && dbc != nil {
-		switch prefetchStatus {
-		case NoPrefetch:
-		case TriggeredPrefetch:
-			// We still need to register this requestor for receiving
-			// notifications about this prefetch.
-			// TODO: handle
-		}
+		// For synced blocks we need to allow callers to wait for deep prefetch
+		// to complete, even if a prefetch has already been triggered for this
+		// block.
 	} else if prefetchStatus == TriggeredPrefetch {
 		// Non-synced TLF prefetches that have already triggered can be short
 		// circuited. We respond on the error channel to allow upstream
@@ -524,12 +523,17 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	brq.mtx.Unlock()
 	defer retrieval.cancelFunc()
 
-	// This is a symbolic lock, since there shouldn't be any other goroutines
-	// accessing requests at this point. But requests had contentious access
-	// earlier, so we'll lock it here as well to maintain the integrity of the
-	// lock.
-	retrieval.reqMtx.Lock()
-	defer retrieval.reqMtx.Unlock()
+	// This is a lock that exists for the race detector, since there shouldn't
+	// be any other goroutines accessing the retrieval at this point. In
+	// `RequestWithPrefetch`, the requests slice can be modified while locked
+	// by `brq.mtx`. But once we delete `bpLookup` from `brq.ptrs` here (while
+	// locked by `brq.mtx`), there is no longer a way for anyone else to write
+	// `retrieval.requests`. However, the race detector still notices that
+	// we're reading `retrieval.requests` without a lock, where it was written
+	// by a different goroutine in `RequestWithPrefetch`. So, we lock it with
+	// its own mutex in both places.
+	retrieval.reqMtx.RLock()
+	defer retrieval.reqMtx.RUnlock()
 
 	// Cache the block and trigger prefetches if there is no error.
 	deepPrefetchDoneCh := make(chan struct{}, 1)
@@ -565,8 +569,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 
 	go func() {
 		// Fan-out the prefetch result to the channel of each individual
-		// request. Since the slice was created before the request mutex was
-		// released, this won't race.
+		// request.
 		var prefetchChans []chan<- struct{}
 		select {
 		case <-deepPrefetchDoneCh:

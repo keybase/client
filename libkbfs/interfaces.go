@@ -1222,8 +1222,14 @@ type Prefetcher interface {
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
-	// block. Returns a channel that is closed once the all the underlying
-	// prefetches are complete.
+	// block.
+	// `doneCh` is a semaphore with a `numBlocks` count. Once we've read from
+	// it `numBlocks` times, the whole underlying block tree has been
+	// prefetched.
+	// `errCh` can be read up to `numBlocks` times, but any writes to it mean
+	// that the deep prefetch won't complete. So even a single read from
+	// `errCh` by a caller can be used to communicate failure of the deep
+	// prefetch to its parent.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
 		kmd KeyMetadata) (doneCh, errCh <-chan struct{}, numBlocks int)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
