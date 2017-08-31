@@ -3,11 +3,9 @@ import UserInput from '.'
 import ServiceFilter from '../services-filter'
 import React from 'react'
 import {connect} from 'react-redux'
-import {List} from 'immutable'
 import * as Constants from '../../constants/search'
 import * as Creators from '../../actions/search/creators'
 import {createShallowEqualSelector} from '../../constants/selectors'
-import {createSelector} from 'reselect'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withState, withHandlers, compose, lifecycle} from 'recompose'
 import * as HocHelpers from '../helpers'
@@ -107,7 +105,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
   onRemoveUser: id => dispatch(Creators.removeResultsToUserInput(searchKey, [id])),
   search: (term: string, service) => {
     if (term) {
-      dispatch(Creators.search(term, 'todo:remove', 'todo:remove', searchKey, service))
+      dispatch(Creators.search(term, searchKey, service))
     } else {
       dispatch(Creators.searchSuggestions(searchKey))
     }

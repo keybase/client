@@ -170,7 +170,7 @@ function _apiSearch(searchTerm: string, service: string = '', limit: number = 20
   }).then(results => JSON.parse(results.body))
 }
 
-function* search<T>({payload: {term, service, finishedActionTypeToFire, searchKey}}: Constants.Search<T>) {
+function* search({payload: {term, service, searchKey}}: Constants.Search) {
   const searchQuery = _toSearchQuery(service, term)
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {

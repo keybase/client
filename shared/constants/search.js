@@ -63,13 +63,11 @@ export type SearchResult = {
 }
 
 // Actions
-export type Search<TypeToFire> = NoErrorTypedAction<
+export type Search = NoErrorTypedAction<
   'search:search',
   {
     term: string,
     service: Service,
-    pendingActionTypeToFire: TypeToFire,
-    finishedActionTypeToFire: TypeToFire,
     searchKey: string,
   }
 >
@@ -126,8 +124,6 @@ export type SearchSuggestions = NoErrorTypedAction<
   'search:searchSuggestions',
   {maxUsers: number, searchKey: string}
 >
-
-export type PendingSearch<TypeToFire> = NoErrorTypedAction<TypeToFire, {pending: boolean}>
 
 export type FinishedSearch = NoErrorTypedAction<
   'search:finishedSearch',

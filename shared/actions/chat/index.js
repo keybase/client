@@ -37,7 +37,7 @@ import {toDeviceType} from '../../constants/types/more'
 import {usernameSelector, inboxSearchSelector, previousConversationSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
-import type {KBOrderedSet} from '../../constants/types/more'
+import type {KBOrderedSet, ReturnValue} from '../../constants/types/more'
 import type {ChangedFocus} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -1172,15 +1172,16 @@ function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUp
   yield all(actionsToPut)
 }
 
-function* _exitSearch() {
-  const inboxSearch = yield select(inboxSearchSelector)
-  yield put(SearchCreators.clearSearchResults('chatSearch'))
-  yield put(SearchCreators.setUserInputItems('chatSearch', []))
-  yield put(Creators.setInboxSearch([]))
-  yield put(Creators.removeTempPendingConversations())
-  if (inboxSearch.count() === 0) {
-    yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
-  }
+function* _exitSearch(_, inboxSearch: ReturnValue<typeof inboxSearchSelector>) {
+  return all([
+    put(SearchCreators.clearSearchResults('chatSearch')),
+    put(SearchCreators.setUserInputItems('chatSearch', [])),
+    put(Creators.setInboxSearch([])),
+    put(Creators.removeTempPendingConversations()),
+    inboxSearch.count() === 0
+      ? yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
+      : null,
+  ])
 }
 
 function* _createNewTeam(action: Constants.CreateNewTeam) {
@@ -1318,7 +1319,7 @@ function* chatSaga(): SagaGenerator<any, any> {
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     _updateTempSearchConversation
   )
-  yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
+  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch, inboxSearchSelector)
 }
 
 export default chatSaga

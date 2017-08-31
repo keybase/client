@@ -1,25 +1,15 @@
 // @flow
 import * as Constants from '../../constants/search'
 
-function search<T>(
-  term: string,
-  pendingActionTypeToFire: T,
-  finishedActionTypeToFire: T,
-  searchKey: string,
-  service: Constants.Service = 'Keybase'
-): Constants.Search<T> {
+function search(term: string, searchKey: string, service: Constants.Service = 'Keybase'): Constants.Search {
   return {
     type: 'search:search',
-    payload: {finishedActionTypeToFire, pendingActionTypeToFire, service, term, searchKey},
+    payload: {service, term, searchKey},
   }
 }
 
 function searchSuggestions(searchKey: string, maxUsers?: number = 50): Constants.SearchSuggestions {
   return {type: 'search:searchSuggestions', payload: {maxUsers, searchKey}}
-}
-
-function pendingSearch<T>(actionTypeToFire: T, pending: boolean): Constants.PendingSearch<T> {
-  return {type: actionTypeToFire, payload: {pending}}
 }
 
 function finishedSearch(
@@ -83,7 +73,6 @@ export {
   addResultsToUserInput,
   clearSearchResults,
   finishedSearch,
-  pendingSearch,
   removeResultsToUserInput,
   search,
   searchSuggestions,

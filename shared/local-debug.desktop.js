@@ -48,9 +48,9 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printOutstandingRPCs = true
   config.printRPC = false
   config.printRoutes = false
-  config.filterActionLogs = null // '^chat|entity'
+  config.filterActionLogs = '^search|chat|entity'
   config.redirectOnLogout = false
-  config.reduxSagaLogger = false
+  config.reduxSagaLogger = true
   config.reduxSagaLoggerMasked = false
 
   const envJson = envVarDebugJson()
