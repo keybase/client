@@ -80,7 +80,10 @@ const Render = (props: Props) => (
       contentContainerStyle={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
-        margin: globalMargins.tiny,
+        marginBottom: globalMargins.tiny,
+        marginLeft: globalMargins.large,
+        marginRight: globalMargins.large,
+        marginTop: globalMargins.tiny,
       }}
     >
       <BetaNote {...props} />
