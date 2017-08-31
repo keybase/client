@@ -39,6 +39,8 @@ const load = () => {
         ]}
         onCopy={action('onCopy')}
         onDelete={action('onDelete')}
+        onNewPersonalRepo={action('onNewPersonalRepo')}
+        onNewTeamRepo={action('onNewTeamRepo')}
       />
     </Box>
   ))
