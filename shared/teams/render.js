@@ -6,6 +6,8 @@ import {globalStyles} from '../styles'
 import type {Props} from './render'
 
 function TeamsRender(props: Props) {
+  // TODO: Add link to "Read the doc" text, when a page to link to
+  // exists.
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
@@ -27,7 +29,6 @@ function TeamsRender(props: Props) {
           no channels or subteams, but you can get to more complex teams
           using the command line.
         </Text>
-        // TODO: Add link to page, when it exists.
         <Text type="BodySmall">Read the doc</Text>
       </ScrollView>
     </Box>
