@@ -1801,3 +1801,8 @@ const (
 	// remote helpers.
 	MDPriorityGit = 32
 )
+
+// IsValid returns true is p is a valid MDPriority, or false otherwise.
+func (p MDPriority) IsValid() bool {
+	return p < 256 && p >= 0
+}

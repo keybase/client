@@ -36,7 +36,7 @@ function openInKBFS(path: string = ''): FSOpen {
   return {payload: {path}, type: Constants.fsOpen}
 }
 
-const _listSaga = function*(action: FSList): SagaGenerator<any, any> {
+function* _listSaga(action: FSList): SagaGenerator<any, any> {
   try {
     const result: ?ListResult = yield call(fsListRpcPromise, {param: {path: action.payload.path}})
 
@@ -71,7 +71,7 @@ function clearFuseInstall(): FSClearFuseInstall {
   return {payload: undefined, type: 'fs:clearFuseInstall'}
 }
 
-const kbfsSaga = function*(): SagaGenerator<any, any> {
+function* kbfsSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.fsList, _listSaga)
   yield safeTakeEvery(Constants.fsOpen, openSaga)
   yield safeTakeEvery('fs:openInFileUI', openInFileUISaga)

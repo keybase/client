@@ -22,14 +22,6 @@ const updateTempMessageTransformer = ({
   type,
 })
 
-const updateMessageTransformer = ({
-  type,
-  payload: {conversationIDKey, messageID},
-}: Constants.UpdateMessage) => ({
-  payload: {conversationIDKey, messageID},
-  type,
-})
-
 const loadedInboxActionTransformer = action => ({
   payload: {
     inbox: action.payload.inbox.map(i => {
@@ -653,18 +645,6 @@ function threadLoadedOffline(conversationIDKey: Constants.ConversationIDKey): Co
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
 
-function updateMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>,
-  messageID: Constants.MessageID
-): Constants.UpdateMessage {
-  return {
-    logTransformer: updateMessageTransformer,
-    payload: {conversationIDKey, messageID, message},
-    type: 'chat:updateMessage',
-  }
-}
-
 function setSelectedRouteState(
   selectedConversation: Constants.ConversationIDKey,
   partialState: Object
@@ -715,6 +695,14 @@ function updatedNotifications(
     type: 'chat:updatedNotifications',
   }
 }
+
+function updateSnippet(
+  conversationIDKey: Constants.ConversationIDKey,
+  snippet: HiddenString
+): Constants.UpdateSnippet {
+  return {payload: {conversationIDKey, snippet}, type: 'chat:updateSnippet'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -790,7 +778,6 @@ export {
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
   updateLatestMessage,
-  updateMessage,
   updateMetadata,
   updatePaginationNext,
   updateSupersededByState,
@@ -801,4 +788,5 @@ export {
   updatedMetadata,
   updatedNotifications,
   uploadProgress,
+  updateSnippet,
 }
