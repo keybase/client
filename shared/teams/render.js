@@ -11,14 +11,14 @@ function TeamsRender(props: Props) {
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
         <ClickableBox
-          onClick={() => {}}
+          onClick={props.onCreateTeam}
           style={{...globalStyles.flexBoxRow, alignItems: 'center', marginRight: 40}}
         >
           <Icon type="iconfont-new" style={{color: globalColors.blue}} />
           <Text type="HeaderLink" style={{padding: 5}}>Create a team</Text>
         </ClickableBox>
 
-        <ClickableBox onClick={() => {}} style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+        <ClickableBox onClick={props.onJoinTeam} style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon type="iconfont-new" style={{color: globalColors.blue}} />
           <Text type="HeaderLink" style={{padding: 5}}>Join a team</Text>
         </ClickableBox>
