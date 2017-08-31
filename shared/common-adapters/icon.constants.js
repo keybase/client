@@ -860,6 +860,26 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-reddit-logo-64.png'),
   },
+  'icon-repo-personal-add-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-repo-personal-add-48.png'),
+  },
+  'icon-repo-personal-delete-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-repo-personal-delete-48.png'),
+  },
+  'icon-repo-team-add-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-repo-team-add-48.png'),
+  },
+  'icon-repo-team-delete-48': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-repo-team-delete-48.png'),
+  },
   'icon-search-facebook-active-32': {
     isFont: false,
     extension: 'png',
