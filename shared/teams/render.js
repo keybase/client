@@ -36,7 +36,7 @@ function TeamsRender(props: Props) {
           <Text type="BodySmall">&mdash;&mdash;</Text>
         </Box>
         <Text type="BodySmall">Teams are still very early-stage!</Text>
-        <Text type="BodySmall">
+        <Text style={{textAlign: 'center', width: 426}} type="BodySmall">
           For now the GUI only allows you to create simple teams
           no channels or subteams, but you can get to more complex teams
           using the command line.
