@@ -23,7 +23,6 @@ type OwnProps = {
 }
 
 const UserInputWithServiceFilter = props => {
-  console.log('rendering')
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
       <UserInput
@@ -90,7 +89,6 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   const selectedSearchId = entities.getIn(['searchKeyToSelectedId', searchKey])
   const userItems = getUserItems(state, {searchKey})
   const clearSearchInput = Constants.getClearSearchInput(state, {searchKey})
-  console.log('clear search', clearSearchInput)
   return {
     clearSearchInput,
     searchResultIds,

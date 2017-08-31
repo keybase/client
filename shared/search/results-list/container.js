@@ -22,7 +22,6 @@ const mapStateToProps = ({entities}: TypedState, {searchKey}: OwnProps) => {
   const pending = entities.getIn(['searchKeyToPending', searchKey], false)
   const showSearchSuggestions = entities.getIn(['searchKeyToShowSearchSuggestion', searchKey], false)
   const selectedId = entities.getIn(['searchKeyToSelectedId', searchKey])
-  console.log('pending', pending)
   return {
     items: searchResultIds && searchResultIds.toArray(),
     showSearchSuggestions,
