@@ -1,21 +1,34 @@
 // @flow
 import * as React from 'react'
+import type {IconType} from '../common-adapters/icon.constants'
 import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles'
 
 import type {Props} from './render'
 
+type HeaderButtonProps = {
+  iconType: IconType,
+  label: string,
+  onClick: () => void,
+}
+
+const HeaderButton = (props: HeaderButtonProps) => {
+  return (
+    <ClickableBox
+      onClick={props.onClick}
+      style={{...globalStyles.flexBoxRow, alignItems: 'center', marginRight: 40}}
+    >
+      <Icon type={props.iconType} style={{color: globalColors.blue}} />
+      <Text type="HeaderLink" style={{padding: 5}}>{props.label}</Text>
+    </ClickableBox>
+  )
+}
+
 const TeamsRender = (props: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
-        <ClickableBox
-          onClick={props.onCreateTeam}
-          style={{...globalStyles.flexBoxRow, alignItems: 'center', marginRight: 40}}
-        >
-          <Icon type="iconfont-new" style={{color: globalColors.blue}} />
-          <Text type="HeaderLink" style={{padding: 5}}>Create a team</Text>
-        </ClickableBox>
+        <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
 
         <ClickableBox onClick={props.onJoinTeam} style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
           <Icon type="iconfont-team-join" style={{color: globalColors.blue}} />
