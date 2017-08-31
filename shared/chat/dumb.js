@@ -4,7 +4,7 @@ import {UsernameHeader} from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import NoConversation from './conversation/no-conversation'
-import {SmallTeamInfoPanel} from './conversation/info-panel'
+// import {SmallTeamInfoPanel} from './conversation/info-panel'
 import HiddenString from '../util/hidden-string'
 import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/rekey/participant-rekey'
@@ -342,7 +342,7 @@ const list = {
     },
   },
 }
-
+/*
 const commonInfoPanel = {
   parentProps: {
     style: {
@@ -372,7 +372,7 @@ const infoPanel = {
     },
   },
 }
-
+*/
 const inboxParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
@@ -539,7 +539,8 @@ export default {
   ChatInput: input,
   ChatList: list,
   ChatParticipantRekey: participantRekey,
-  ChatInfoPanel: infoPanel,
+  // XXX: Temp disabled, contains a connected component
+  // ChatInfoPanel: infoPanel,
   ChatNoConversation: noConversationMap,
   YouRekey: youRekey,
 }
