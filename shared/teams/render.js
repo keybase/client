@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, ScrollView, Text} from '../common-adapters'
+import {Box, Icon, ScrollView, Text} from '../common-adapters'
 import {globalStyles} from '../styles'
 
 import type {Props} from './render'
@@ -16,6 +16,11 @@ function TeamsRender(props: Props) {
         style={{alignSelf: 'stretch'}}
         contentContainerStyle={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 10}}
       >
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Text type="BodySmall">&mdash;&mdash;</Text>
+          <Icon style={{paddingLeft: 5, paddingRight: 5}} type="iconfont-info" />
+          <Text type="BodySmall">&mdash;&mdash;</Text>
+        </Box>
         <Text type="BodySmall">Teams are still very early-stage!</Text>
         <Text type="BodySmall">
           For now the GUI only allows you to create simple teams
