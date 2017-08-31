@@ -1,5 +1,5 @@
 // @flow
-import TeamsContainer from './render'
+import TeamsRender from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 
@@ -22,4 +22,4 @@ export default pausableConnect(
       openURL('https://keybase.io/docs/command_line/teams_alpha')
     },
   })
-)(TeamsContainer)
+)(TeamsRender)
