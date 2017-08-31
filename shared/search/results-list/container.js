@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import {connect} from 'react-redux'
-import {List} from 'immutable'
 import {isMobile} from '../../constants/platform'
 import {ProgressIndicator} from '../../common-adapters'
 import SearchResultsList from '.'
@@ -14,24 +13,29 @@ import type {TypedState} from '../../constants/reducer'
 type OwnProps = {
   searchKey: string,
   onShowTracker: (id: string) => void,
+  onClick?: (id: string) => void,
+  disableListBuilding: boolean,
 }
 
 const mapStateToProps = ({entities}: TypedState, {searchKey}: OwnProps) => {
-  const searchResultIds = entities.getIn(['searchKeyToResults', searchKey], List()).toArray()
+  const searchResultIds = entities.getIn(['searchKeyToResults', searchKey])
   const pending = entities.getIn(['searchKeyToPending', searchKey], false)
   const showSearchSuggestions = entities.getIn(['searchKeyToShowSearchSuggestion', searchKey], false)
   const selectedId = entities.getIn(['searchKeyToSelectedId', searchKey])
   console.log('pending', pending)
   return {
-    items: searchResultIds,
+    items: searchResultIds && searchResultIds.toArray(),
     showSearchSuggestions,
     selectedId,
     pending,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {searchKey}: OwnProps) => ({
-  onClick: id => dispatch(Creators.addResultsToUserInput(searchKey, [id])),
+const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
+  onClick: id => {
+    !disableListBuilding && dispatch(Creators.addResultsToUserInput(searchKey, [id]))
+    onClick && onClick(id)
+  },
   onMouseOver: id => dispatch(Creators.updateSelectedSearchResult(searchKey, id)),
 })
 

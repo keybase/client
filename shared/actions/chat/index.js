@@ -43,6 +43,8 @@ import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
+const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
+
 function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
     case ChatTypes.NotifyChatChatActivityType.setStatus:
@@ -838,7 +840,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   }
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
-  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
+  const inSearch = yield select(inSearchSelector)
   if (inbox) {
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
@@ -1151,7 +1153,11 @@ function* _updateTyping({
 // TODO this is kinda confusing. I think there is duplicated state...
 function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUpdated) {
   const {payload: {userInputItemIds}} = action
-  const me = yield select(usernameSelector)
+  const [me, inSearch] = yield all([select(usernameSelector), select(inSearchSelector)])
+
+  if (!inSearch) {
+    return
+  }
 
   const actionsToPut = []
   if (userInputItemIds.length) {
@@ -1169,6 +1175,7 @@ function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUp
 function* _exitSearch() {
   const inboxSearch = yield select(inboxSearchSelector)
   yield put(SearchCreators.clearSearchResults('chatSearch'))
+  yield put(SearchCreators.setUserInputItems('chatSearch', []))
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.removeTempPendingConversations())
   if (inboxSearch.count() === 0) {

@@ -18,7 +18,7 @@ const Search = (props: Props) => (
         </Box>
       </Box>
       <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
-        <SearchResultsList searchKey="profileSearch" />
+        <SearchResultsList searchKey="profileSearch" onClick={props.onClick} disableListBuilding={true} />
       </Box>
     </Box>
   </Box>
