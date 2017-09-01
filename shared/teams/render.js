@@ -72,6 +72,7 @@ const BetaNote = (props: BetaNoteProps) => (
 type TeamListProps = {
   teams: Array<{
     name: string,
+    // TODO: Add member count, onClick handler, and folder/chat icons.
   }>,
 }
 
@@ -89,11 +90,11 @@ export const TeamList = (props: TeamListProps) => (
             }}
           >
             <Avatar size={32} teamname={info.name} />
-            <Text type="BodySmall" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+            <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
               {info.name}
             </Text>
           </Box>
-          {index < arr.length - 1 ? <Divider style={{marginLeft: 44}} /> : null}
+          <Divider style={{marginLeft: 44}} />
         </Box>
       )
     })}
