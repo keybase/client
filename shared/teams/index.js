@@ -5,6 +5,12 @@ import openURL from '../util/open-url'
 
 const mapStateToProps = state => ({})
 
+type DispatchProps = {
+  onCreateTeam: () => void,
+  onJoinTeam: () => void,
+  onReadDoc: () => void,
+}
+
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onCreateTeam: () => {
     // TODO: Hook this up. Need to change onShowNewTeamDialog to
@@ -20,7 +26,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps: DispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
 })
