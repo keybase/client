@@ -204,7 +204,7 @@ type ResolveIdentifyImplicitTeamArg struct {
 	IsPublic         bool                `codec:"isPublic" json:"isPublic"`
 	DoIdentifies     bool                `codec:"doIdentifies" json:"doIdentifies"`
 	Create           bool                `codec:"create" json:"create"`
-	Reason           string              `codec:"reason" json:"reason"`
+	Reason           IdentifyReason      `codec:"reason" json:"reason"`
 	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -216,7 +216,7 @@ func (o ResolveIdentifyImplicitTeamArg) DeepCopy() ResolveIdentifyImplicitTeamAr
 		IsPublic:         o.IsPublic,
 		DoIdentifies:     o.DoIdentifies,
 		Create:           o.Create,
-		Reason:           o.Reason,
+		Reason:           o.Reason.DeepCopy(),
 		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
 	}
 }

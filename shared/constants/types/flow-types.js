@@ -5223,7 +5223,7 @@ export type identifyResolveIdentifyImplicitTeamRpcParam = Exact<{
   isPublic: boolean,
   doIdentifies: boolean,
   create: boolean,
-  reason: string,
+  reason: IdentifyReason,
   identifyBehavior: TLFIdentifyBehavior
 }>
 
