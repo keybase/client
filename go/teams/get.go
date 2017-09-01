@@ -48,6 +48,14 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 	return team, fixupTeamGetError(ctx, g, err, name)
 }
 
+func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, needAdmin bool) (*Team, error) {
+	return Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		ForceRepoll: true,
+		NeedAdmin:   needAdmin,
+	})
+}
+
 // Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't
 // know whether you are an admin. This always causes roundtrips. Doesn't work for implicit admins.
 func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {

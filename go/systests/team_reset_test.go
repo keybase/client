@@ -5,10 +5,13 @@ import (
 	"strings"
 	"testing"
 
+	"golang.org/x/net/context"
+
 	client "github.com/keybase/client/go/client"
 	libkb "github.com/keybase/client/go/libkb"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	teams "github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
 
@@ -349,4 +352,90 @@ func TestImplicitTeamReset(t *testing.T) {
 	iteam3 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
 	require.Equal(t, iteam.ID, iteam3.ID, "lookup after reset should return same team")
 	divDebug(ctx, "team looked up before reset")
+}
+
+func TestImplicitTeamUserReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	// Sign up two users, bob and alice.
+	alice := ctx.installKeybaseForUser("alice", 10)
+	alice.signup()
+	divDebug(ctx, "Signed up alice (%s)", alice.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	displayName := strings.Join([]string{alice.username, bob.username}, ",")
+	team := alice.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+
+	divDebug(ctx, "Created implicit team %s\n", team.ID)
+
+	// Reset bob and reprovision.
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	// Setup team loader on alice
+	G := alice.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+
+	tryLoad := func(teamID keybase1.TeamID) (res *teams.Team) {
+		res, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
+			ID:          teamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		return res
+	}
+
+	resTeam := tryLoad(team.ID)
+	teamName := resTeam.Name().String()
+
+	// Bob's role should be NONE since he's still reset.
+	role, err := teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+
+	// Alice re-adds bob.
+	alice.reAddUserAfterReset(team, bob)
+	divDebug(ctx, "Re-Added bob as an owner")
+
+	// Check if sigchain still plays back correctly
+	tryLoad(team.ID)
+
+	// Check if bob is back as OWNER.
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_OWNER)
+
+	// Reset and re-provision bob again.
+	bob.reset()
+	divDebug(ctx, "Reset bob again (%s) (poor bob)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	// Check if sigchain plays correctly, check if role is NONE.
+	tryLoad(team.ID)
+
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+
+	// Alice re-adds bob, again.
+	alice.reAddUserAfterReset(team, bob)
+	divDebug(ctx, "Re-Added bob as an owner again")
+
+	// Check if sigchain plays correctly, at this point there are two
+	// sigs similar to:
+	//   "change_membership: { owner: ['xxxx%6'], none: ['xxxx%3'] }"
+	// with uids and eldest from before and after reset.
+	tryLoad(team.ID)
+
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }

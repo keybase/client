@@ -446,6 +446,17 @@ func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
 	}
 }
 
+func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
+	cli := u.getTeamsClient()
+	err := cli.TeamReAddMemberAfterReset(context.TODO(), keybase1.TeamReAddMemberAfterResetArg{
+		Id:       team.ID,
+		Username: w.username,
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
 func (u *smuUser) reset() {
 	err := u.primaryDevice().userClient().ResetUser(context.TODO(), 0)
 	if err != nil {

@@ -92,6 +92,10 @@ func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase
 	return t.chain().GetUserRole(uv)
 }
 
+func (t *Team) UserVersionByUID(ctx context.Context, uid keybase1.UID) (keybase1.UserVersion, error) {
+	return t.chain().GetLatestUVWithUID(uid)
+}
+
 func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
 	return t.chain().GetUsersWithRole(role)
 }
@@ -356,9 +360,20 @@ func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
 	return res, nil
 }
 
-func (t *Team) getDowngradedUsers(ms *memberSet) (uids []keybase1.UID, err error) {
+func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []keybase1.UID, err error) {
 
 	for _, member := range ms.None {
+		// Load member first to check if their eldest_seqno has not changed.
+		// If it did, the member was nuked and we do not need to lease.
+		_, _, err := loadMember(ctx, t.G(), member.version, true)
+		if err != nil {
+			if _, reset := err.(libkb.AccountResetError); reset {
+				continue
+			} else {
+				return nil, err
+			}
+		}
+
 		uids = append(uids, member.version.Uid)
 	}
 
@@ -389,7 +404,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	var merkleRoot *libkb.MerkleRoot
 	var lease *libkb.Lease
 
-	downgrades, err := t.getDowngradedUsers(memberSet)
+	downgrades, err := t.getDowngradedUsers(ctx, memberSet)
 	if err != nil {
 		return err
 	}
@@ -406,6 +421,7 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		implicitAdminBoxes: implicitAdminBoxes,
 		lease:              lease,
 	}
+
 	if err := t.postChangeItem(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs); err != nil {
 		return err
 	}
@@ -783,7 +799,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	section.PerTeamKey = perTeamKeySection
 
 	section.CompletedInvites = req.CompletedInvites
-
+	section.Implicit = t.chain().IsImplicit()
 	return section, secretBoxes, implicitAdminBoxes, memSet, nil
 }
 
