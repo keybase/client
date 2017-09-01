@@ -84,6 +84,37 @@ func (o IdentifyLiteRes) DeepCopy() IdentifyLiteRes {
 	}
 }
 
+type ResolveIdentifyImplicitTeamRes struct {
+	DisplayName string                              `codec:"displayName" json:"displayName"`
+	TeamID      TeamID                              `codec:"teamID" json:"teamID"`
+	Writers     []UserVersion                       `codec:"writers" json:"writers"`
+	TrackBreaks map[UserVersion]IdentifyTrackBreaks `codec:"trackBreaks" json:"trackBreaks"`
+}
+
+func (o ResolveIdentifyImplicitTeamRes) DeepCopy() ResolveIdentifyImplicitTeamRes {
+	return ResolveIdentifyImplicitTeamRes{
+		DisplayName: o.DisplayName,
+		TeamID:      o.TeamID.DeepCopy(),
+		Writers: (func(x []UserVersion) []UserVersion {
+			var ret []UserVersion
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Writers),
+		TrackBreaks: (func(x map[UserVersion]IdentifyTrackBreaks) map[UserVersion]IdentifyTrackBreaks {
+			ret := make(map[UserVersion]IdentifyTrackBreaks)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.TrackBreaks),
+	}
+}
+
 type Resolve3Arg struct {
 	Assertion string `codec:"assertion" json:"assertion"`
 }
@@ -166,11 +197,36 @@ func (o IdentifyLiteArg) DeepCopy() IdentifyLiteArg {
 	}
 }
 
+type ResolveIdentifyImplicitTeamArg struct {
+	SessionID        int                 `codec:"sessionID" json:"sessionID"`
+	Assertions       string              `codec:"assertions" json:"assertions"`
+	Suffix           string              `codec:"suffix" json:"suffix"`
+	IsPublic         bool                `codec:"isPublic" json:"isPublic"`
+	DoIdentifies     bool                `codec:"doIdentifies" json:"doIdentifies"`
+	Create           bool                `codec:"create" json:"create"`
+	Reason           string              `codec:"reason" json:"reason"`
+	IdentifyBehavior TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+func (o ResolveIdentifyImplicitTeamArg) DeepCopy() ResolveIdentifyImplicitTeamArg {
+	return ResolveIdentifyImplicitTeamArg{
+		SessionID:        o.SessionID,
+		Assertions:       o.Assertions,
+		Suffix:           o.Suffix,
+		IsPublic:         o.IsPublic,
+		DoIdentifies:     o.DoIdentifies,
+		Create:           o.Create,
+		Reason:           o.Reason,
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+	}
+}
+
 type IdentifyInterface interface {
 	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
 	Resolve3(context.Context, string) (UserOrTeamLite, error)
 	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
 	IdentifyLite(context.Context, IdentifyLiteArg) (IdentifyLiteRes, error)
+	ResolveIdentifyImplicitTeam(context.Context, ResolveIdentifyImplicitTeamArg) (ResolveIdentifyImplicitTeamRes, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -225,6 +281,22 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"resolveIdentifyImplicitTeam": {
+				MakeArg: func() interface{} {
+					ret := make([]ResolveIdentifyImplicitTeamArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ResolveIdentifyImplicitTeamArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ResolveIdentifyImplicitTeamArg)(nil), args)
+						return
+					}
+					ret, err = i.ResolveIdentifyImplicitTeam(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -247,5 +319,10 @@ func (c IdentifyClient) Identify2(ctx context.Context, __arg Identify2Arg) (res 
 
 func (c IdentifyClient) IdentifyLite(ctx context.Context, __arg IdentifyLiteArg) (res IdentifyLiteRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify.identifyLite", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) ResolveIdentifyImplicitTeam(ctx context.Context, __arg ResolveIdentifyImplicitTeamArg) (res ResolveIdentifyImplicitTeamRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identify.resolveIdentifyImplicitTeam", []interface{}{__arg}, &res)
 	return
 }

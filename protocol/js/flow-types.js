@@ -1396,6 +1396,14 @@ export function identifyResolve3RpcPromise (request: (requestCommon & {callback?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function identifyResolveIdentifyImplicitTeamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolveIdentifyImplicitTeamResult) => void} & {param: identifyResolveIdentifyImplicitTeamRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveIdentifyImplicitTeam', request)
+}
+
+export function identifyResolveIdentifyImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolveIdentifyImplicitTeamResult) => void} & {param: identifyResolveIdentifyImplicitTeamRpcParam})): Promise<identifyResolveIdentifyImplicitTeamResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.install.fuseStatus', request)
 }
@@ -3960,6 +3968,13 @@ export type RemoveArgs = {
   path: Path,
 }
 
+export type ResolveIdentifyImplicitTeamRes = {
+  displayName: string,
+  teamID: TeamID,
+  writers?: ?Array<UserVersion>,
+  trackBreaks: {[key: string]: IdentifyTrackBreaks},
+}
+
 export type RevokeWarning = {
   endangeredTLFs?: ?Array<TLF>,
 }
@@ -5158,6 +5173,16 @@ export type identifyResolve3RpcParam = Exact<{
   assertion: string
 }>
 
+export type identifyResolveIdentifyImplicitTeamRpcParam = Exact<{
+  assertions: string,
+  suffix: string,
+  isPublic: boolean,
+  doIdentifies: boolean,
+  create: boolean,
+  reason: string,
+  identifyBehavior: TLFIdentifyBehavior
+}>
+
 export type identifyUiConfirmRpcParam = Exact<{
   outcome: IdentifyOutcome
 }>
@@ -6048,6 +6073,7 @@ type gregorGetStateResult = gregor1.State
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyResolve3Result = UserOrTeamLite
+type identifyResolveIdentifyImplicitTeamResult = ResolveIdentifyImplicitTeamRes
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
 type installFuseStatusResult = FuseStatus

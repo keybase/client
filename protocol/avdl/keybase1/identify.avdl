@@ -30,8 +30,22 @@ protocol identify {
   /*
    * Note that UID can be empty, in which case a resolution is also forced.
    */
-  Identify2Res identify2(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, boolean canSuppressUI=false, TLFIdentifyBehavior identifyBehavior=0, boolean forceDisplay=false);
-
+  Identify2Res identify2(
+    int sessionID,
+    UID uid,
+    string userAssertion,
+    IdentifyReason reason,
+    boolean useDelegateUI=false,
+    boolean alwaysBlock=false,
+    boolean noErrorOnTrackFailure=false,
+    boolean forceRemoteCheck=false,
+    boolean needProofSet=false,
+    boolean allowEmptySelfID=false,
+    boolean noSkipSelf=true,
+    boolean canSuppressUI=false,
+    TLFIdentifyBehavior identifyBehavior=0,
+    boolean forceDisplay=false
+  );
   record IdentifyLiteRes {
     UserOrTeamLite ul;
     union { null, IdentifyTrackBreaks } trackBreaks;
@@ -40,7 +54,41 @@ protocol identify {
   /*
    * Note that UID can be empty, in which case a resolution is also forced.
    */
-  IdentifyLiteRes identifyLite(int sessionID, UserOrTeamID id, string assertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, boolean canSuppressUI=false, TLFIdentifyBehavior identifyBehavior=0, boolean forceDisplay=false);
+  IdentifyLiteRes identifyLite(
+    int sessionID,
+    UserOrTeamID id,
+    string assertion, IdentifyReason reason,
+    boolean useDelegateUI=false,
+    boolean alwaysBlock=false,
+    boolean noErrorOnTrackFailure=false,
+    boolean forceRemoteCheck=false,
+    boolean needProofSet=false,
+    boolean allowEmptySelfID=false,
+    boolean noSkipSelf=true,
+    boolean canSuppressUI=false,
+    TLFIdentifyBehavior identifyBehavior=0,
+    boolean forceDisplay=false
+  );
 
+  /*
+   * Resolve a set of assertions to an implicit team, optionally creating the team and identifying the members.
+   */
+  ResolveIdentifyImplicitTeamRes resolveIdentifyImplicitTeam(
+    int sessionID,
+    string assertions,
+    string suffix,
+    boolean isPublic,
+    boolean doIdentifies, // Whether core runs identifies on all the people or assertions
+    boolean create,       // Whether to create the team if none exists
+    string reason,     // Displayed in the header of the tracker popup
+    TLFIdentifyBehavior identifyBehavior
+  );
+  record ResolveIdentifyImplicitTeamRes {
+    // Display name possibly updated by resolutions and conflicts. With the logged-in user first (so not a canonical CORE display name).
+    string displayName; // example: "alice,bob,zed#bot (conflicted copy 2017-05-08 #3)"
+    TeamID teamID;
+    array<UserVersion> writers; // Members of the team that can write. The team OWNERs.
+    map<UserVersion,IdentifyTrackBreaks> trackBreaks;
+  }
 
 }

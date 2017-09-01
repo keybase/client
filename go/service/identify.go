@@ -147,6 +147,10 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 	return res.UserOrTeam(), nil
 }
 
+func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
+	return res, fmt.Errorf("TODO: implement ResolveIdentifyImplicitTeam")
+}
+
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {
 	return context.WithTimeout(context.Background(), libkb.RemoteIdentifyUITimeout)
 }

@@ -82,6 +82,35 @@
           "name": "trackBreaks"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ResolveIdentifyImplicitTeamRes",
+      "fields": [
+        {
+          "type": "string",
+          "name": "displayName"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "IdentifyTrackBreaks",
+            "keys": "UserVersion"
+          },
+          "name": "trackBreaks"
+        }
+      ]
     }
   ],
   "messages": {
@@ -237,6 +266,43 @@
         }
       ],
       "response": "IdentifyLiteRes"
+    },
+    "resolveIdentifyImplicitTeam": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "assertions",
+          "type": "string"
+        },
+        {
+          "name": "suffix",
+          "type": "string"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "doIdentifies",
+          "type": "boolean"
+        },
+        {
+          "name": "create",
+          "type": "boolean"
+        },
+        {
+          "name": "reason",
+          "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "TLFIdentifyBehavior"
+        }
+      ],
+      "response": "ResolveIdentifyImplicitTeamRes"
     }
   },
   "namespace": "keybase.1"
