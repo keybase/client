@@ -70,7 +70,8 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 
 	b.log.LazyTrace(ctx, "BOps: Requesting %s", blockPtr.ID)
 
-	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd, blockPtr, block, lifetime)
+	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd,
+		blockPtr, block, lifetime)
 	err := <-errCh
 
 	b.log.LazyTrace(ctx, "BOps: Request fulfilled for %s (err=%v)", blockPtr.ID, err)

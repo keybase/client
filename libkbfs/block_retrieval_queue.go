@@ -54,6 +54,12 @@ func (c *realBlockRetrievalConfig) blockGetter() blockGetter {
 type blockRetrievalRequest struct {
 	block  Block
 	doneCh chan error
+	// channel to notify when this retrieval and its entire subtree is done
+	// prefetching
+	deepPrefetchDoneCh chan<- struct{}
+	// channel to notify when a prefetch in the subtree for this retrieval
+	// fails for any reason
+	deepPrefetchCancelCh chan<- struct{}
 }
 
 // blockRetrieval contains the metadata for a given block retrieval. May
@@ -69,7 +75,7 @@ type blockRetrieval struct {
 	// cancel function for the context
 	cancelFunc context.CancelFunc
 
-	// protects requests and lifetime
+	// protects requests, cacheLifetime, and the prefetch channels
 	reqMtx sync.RWMutex
 	// the individual requests for this block pointer: they must be notified
 	// once the block is returned
@@ -209,23 +215,87 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	}
 }
 
+func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
+	ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata,
+	lifetime BlockCacheLifetime, deepPrefetchDoneCh,
+	deepPrefetchCancelCh chan<- struct{}, didUpdateCh <-chan struct{}) {
+	prefetcher := brq.Prefetcher()
+	childPrefetchDoneCh, childPrefetchErrCh, numBlocks :=
+		prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
+
+	// If we have child blocks to prefetch, wait for them.
+	if numBlocks > 0 {
+		for i := 0; i < numBlocks; i++ {
+			select {
+			case <-childPrefetchDoneCh:
+				// We expect to receive from this channel `numBlocks` times,
+				// after which we know the subtree of this block is done
+				// prefetching.
+				continue
+			case <-ctx.Done():
+				deepPrefetchCancelCh <- struct{}{}
+				return
+			case <-childPrefetchErrCh:
+				// One error means this block didn't finish prefetching.
+				deepPrefetchCancelCh <- struct{}{}
+				return
+			case <-prefetcher.ShutdownCh():
+				deepPrefetchCancelCh <- struct{}{}
+				return
+			}
+		}
+	}
+
+	// Make sure we've already updated the metadata once to avoid a race.
+	<-didUpdateCh
+	// Prefetches are done. Update the caches.
+	err := brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
+		block, lifetime, FinishedPrefetch)
+	if err != nil {
+		brq.log.CWarningf(ctx, "Error updating cache after prefetch: %+v",
+			err)
+	}
+	dbc := brq.config.DiskBlockCache()
+	if dbc != nil {
+		err := dbc.UpdateMetadata(ctx, ptr.ID, FinishedPrefetch)
+		if err != nil {
+			brq.log.CWarningf(ctx, "Error updating disk cache after "+
+				"prefetch: %+v", err)
+		}
+	}
+	// Now prefetching is actually done.
+	deepPrefetchDoneCh <- struct{}{}
+}
+
 // CacheAndPrefetch implements the BlockRetrieval interface for
 // blockRetrievalQueue. It also updates the LRU time for the block in the disk
 // cache.
+// `deepPrefetchDoneCh` and `deepPrefetchCancelCh` can be nil so the caller
+// doesn't always have to instantiate a channel if it doesn't care about
+// waiting for the prefetch to complete. In this case, the
+// `blockRetrievalQueue` instantiates each channel to monitor the prefetches.
 func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
-	lifetime BlockCacheLifetime, triggeredPrefetch bool) (err error) {
+	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
+	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) (err error) {
+	// Avoid having to check for nil channels below this point.
+	if deepPrefetchDoneCh == nil {
+		deepPrefetchDoneCh = make(chan struct{}, 1)
+	}
+	if deepPrefetchCancelCh == nil {
+		deepPrefetchCancelCh = make(chan struct{}, 1)
+	}
 	didUpdateCh := make(chan struct{})
-	finishedPrefetch := triggeredPrefetch
+	dbc := brq.config.DiskBlockCache()
 	defer func() {
 		if err != nil {
 			brq.log.CWarningf(ctx, "Error Putting into the block cache: %+v",
 				err)
 		}
-		dbc := brq.config.DiskBlockCache()
 		if dbc != nil {
 			go func() {
-				err := dbc.UpdateMetadata(ctx, ptr.ID, triggeredPrefetch, finishedPrefetch)
+				// Leave prefetchStatus unchanged at this point.
+				err := dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
 				close(didUpdateCh)
 				switch err.(type) {
 				case nil:
@@ -238,22 +308,38 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			close(didUpdateCh)
 		}
 	}()
-	if triggeredPrefetch {
+	if prefetchStatus == FinishedPrefetch {
+		// Finished prefetches can always be short circuited and respond on the
+		// success channel (upstream prefetches might need to block on other
+		// parallel prefetches too).
+		deepPrefetchDoneCh <- struct{}{}
+		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
+			block, lifetime, FinishedPrefetch)
+	}
+	if brq.config.IsSyncedTlf(kmd.TlfID()) && dbc != nil {
+		// For synced blocks we need to allow callers to wait for deep prefetch
+		// to complete, even if a prefetch has already been triggered for this
+		// block.
+	} else if prefetchStatus == TriggeredPrefetch {
+		// Non-synced TLF prefetches that have already triggered can be short
+		// circuited. We respond on the error channel to allow upstream
+		// prefetches to stop waiting.
+		deepPrefetchCancelCh <- struct{}{}
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-			lifetime, triggeredPrefetch)
+			lifetime, TriggeredPrefetch)
 	}
 	if priority < lowestTriggerPrefetchPriority {
-		// Only high priority requests can trigger prefetches.
-		triggeredPrefetch = false
+		// Only high priority requests can trigger prefetches. Leave the
+		// prefetchStatus unchanged.
+		deepPrefetchCancelCh <- struct{}{}
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-			lifetime, triggeredPrefetch)
+			lifetime, prefetchStatus)
 	}
 	// To prevent any other Gets from prefetching, we must let the cache know
 	// at this point that we've prefetched.
-	triggeredPrefetch = true
-	finishedPrefetch = false
+	prefetchStatus = TriggeredPrefetch
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-		lifetime, triggeredPrefetch)
+		lifetime, TriggeredPrefetch)
 	switch err.(type) {
 	case nil:
 	case cachePutCacheFullError:
@@ -263,44 +349,32 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	default:
 		// We should return the error here because otherwise we could thrash
 		// the prefetcher.
+		deepPrefetchCancelCh <- struct{}{}
 		return err
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
-	go func() {
-		<-brq.Prefetcher().PrefetchAfterBlockRetrieved(block,
-			ptr, kmd)
-		// Make sure we've already updated the metadata once to avoid a race.
-		<-didUpdateCh
-		// Prefetches are done. Update the disk cache metadata.
-		// TODO: implement deep prefetch done tracking.
-		//dbc := brq.config.DiskBlockCache()
-		//if dbc != nil {
-		//	err := dbc.UpdateMetadata(ctx, ptr.ID, true, true)
-		//	if err != nil {
-		//		brq.log.CWarningf(ctx, "Error updating metadata after "+
-		//			"prefetch: %+v", err)
-		//	}
-		//}
-	}()
+	go brq.triggerAndMonitorPrefetch(ctx, ptr, block, kmd, lifetime,
+		deepPrefetchDoneCh, deepPrefetchCancelCh, didUpdateCh)
 	return nil
 }
 
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime) error {
+	lifetime BlockCacheLifetime,
+	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) error {
 	// Attempt to retrieve the block from the cache. This might be a specific
 	// type where the request blocks are CommonBlocks, but that direction can
-	// Set correctly. The cache will never have CommonBlocks.  TODO: verify
-	// that the returned lifetime here matches `lifetime` (which should always
-	// be TransientEntry, since a PermanentEntry would have been served
-	// directly from the cache elsewhere)?
-	cachedBlock, triggeredPrefetch, _, err :=
+	// Set correctly. The cache will never have CommonBlocks.
+	// TODO: verify that the returned lifetime here matches `lifetime` (which
+	// should always be TransientEntry, since a PermanentEntry would have been
+	// served directly from the cache elsewhere)?
+	cachedBlock, prefetchStatus, _, err :=
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
 		block.Set(cachedBlock)
 		return brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority,
-			lifetime, triggeredPrefetch)
+			lifetime, prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
 	}
 
 	// Check the disk cache.
@@ -308,7 +382,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	if dbc == nil {
 		return NoSuchBlockError{ptr.ID}
 	}
-	blockBuf, serverHalf, triggeredPrefetch, err := dbc.Get(ctx, kmd.TlfID(),
+	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(ctx, kmd.TlfID(),
 		ptr.ID)
 	if err != nil {
 		return err
@@ -325,28 +399,37 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	}
 
 	return brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
-		triggeredPrefetch)
+		prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
 }
 
-// Request submits a block request to the queue.
-func (brq *blockRetrievalQueue) Request(ctx context.Context,
+// RequestWithPrefetch implements the BlockRetriever interface for
+// blockRetrievalQueue.
+func (brq *blockRetrievalQueue) RequestWithPrefetch(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime) <-chan error {
+	lifetime BlockCacheLifetime,
+	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) <-chan error {
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
 	select {
 	case <-brq.doneCh:
 		ch <- io.EOF
+		if deepPrefetchCancelCh != nil {
+			deepPrefetchCancelCh <- struct{}{}
+		}
 		return ch
 	default:
 	}
 	if block == nil {
 		ch <- errors.New("nil block passed to blockRetrievalQueue.Request")
+		if deepPrefetchCancelCh != nil {
+			deepPrefetchCancelCh <- struct{}{}
+		}
 		return ch
 	}
 
 	// Check caches before locking the mutex.
-	err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime)
+	err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime,
+		deepPrefetchDoneCh, deepPrefetchCancelCh)
 	if err == nil {
 		ch <- nil
 		return ch
@@ -388,8 +471,10 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 		}
 		br.reqMtx.Lock()
 		br.requests = append(br.requests, &blockRetrievalRequest{
-			block:  block,
-			doneCh: ch,
+			block:                block,
+			doneCh:               ch,
+			deepPrefetchDoneCh:   deepPrefetchDoneCh,
+			deepPrefetchCancelCh: deepPrefetchCancelCh,
 		})
 		if lifetime > br.cacheLifetime {
 			br.cacheLifetime = lifetime
@@ -416,6 +501,14 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	}
 }
 
+// Request implements the BlockRetriever interface for blockRetrievalQueue.
+func (brq *blockRetrievalQueue) Request(ctx context.Context,
+	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime) <-chan error {
+	return brq.RequestWithPrefetch(ctx, priority, kmd, ptr, block, lifetime,
+		make(chan struct{}, 1), make(chan struct{}, 1))
+}
+
 // FinalizeRequest is the last step of a retrieval request once a block has
 // been obtained. It removes the request from the blockRetrievalQueue,
 // preventing more requests from mutating the retrieval, then notifies all
@@ -430,22 +523,37 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	brq.mtx.Unlock()
 	defer retrieval.cancelFunc()
 
+	// This is a lock that exists for the race detector, since there shouldn't
+	// be any other goroutines accessing the retrieval at this point. In
+	// `RequestWithPrefetch`, the requests slice can be modified while locked
+	// by `brq.mtx`. But once we delete `bpLookup` from `brq.ptrs` here (while
+	// locked by `brq.mtx`), there is no longer a way for anyone else to write
+	// `retrieval.requests`. However, the race detector still notices that
+	// we're reading `retrieval.requests` without a lock, where it was written
+	// by a different goroutine in `RequestWithPrefetch`. So, we lock it with
+	// its own mutex in both places.
+	retrieval.reqMtx.RLock()
+	defer retrieval.reqMtx.RUnlock()
+
 	// Cache the block and trigger prefetches if there is no error.
+	deepPrefetchDoneCh := make(chan struct{}, 1)
+	deepPrefetchCancelCh := make(chan struct{}, 1)
 	if err == nil {
 		// We treat this request as not having been prefetched, because the
 		// only way to get here is if the request wasn't already cached.
 		// Need to call with context.Background() because the retrieval's
 		// context will be canceled as soon as this method returns.
+		// TODO: verify that this is the case.
 		brq.CacheAndPrefetch(context.Background(), retrieval.blockPtr, block,
-			retrieval.kmd, retrieval.priority, retrieval.cacheLifetime, false)
+			retrieval.kmd, retrieval.priority, retrieval.cacheLifetime,
+			NoPrefetch, deepPrefetchDoneCh, deepPrefetchCancelCh)
+	} else {
+		deepPrefetchCancelCh <- struct{}{}
 	}
 
-	// This is a symbolic lock, since there shouldn't be any other goroutines
-	// accessing requests at this point. But requests had contentious access
-	// earlier, so we'll lock it here as well to maintain the integrity of the
-	// lock.
-	retrieval.reqMtx.Lock()
-	defer retrieval.reqMtx.Unlock()
+	doneChans := make([]chan<- struct{}, 0, len(retrieval.requests))
+	errChans := make([]chan<- struct{}, 0, len(retrieval.requests))
+
 	for _, r := range retrieval.requests {
 		req := r
 		if block != nil {
@@ -455,7 +563,24 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// Since we created this channel with a buffer size of 1, this won't
 		// block.
 		req.doneCh <- err
+		doneChans = append(doneChans, r.deepPrefetchDoneCh)
+		errChans = append(errChans, r.deepPrefetchCancelCh)
 	}
+
+	go func() {
+		// Fan-out the prefetch result to the channel of each individual
+		// request.
+		var prefetchChans []chan<- struct{}
+		select {
+		case <-deepPrefetchDoneCh:
+			prefetchChans = doneChans
+		case <-deepPrefetchCancelCh:
+			prefetchChans = errChans
+		}
+		for _, ch := range prefetchChans {
+			ch <- struct{}{}
+		}
+	}()
 }
 
 // Shutdown is called when we are no longer accepting requests.

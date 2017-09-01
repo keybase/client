@@ -788,6 +788,19 @@ const (
 	PermanentEntry
 )
 
+// PrefetchStatus denotes the prefetch status of a block.
+type PrefetchStatus int
+
+const (
+	// NoPrefetch represents an entry that hasn't been prefetched.
+	NoPrefetch PrefetchStatus = iota
+	// TriggeredPrefetch represents a block for which prefetching has been
+	// triggered, but the full tree has not been completed.
+	TriggeredPrefetch
+	// FinishedPrefetch represents a block whose full subtree is synced.
+	FinishedPrefetch
+)
+
 // BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
 // a cache.  These blocks are immutable and identified by their
 // content hash.
@@ -831,14 +844,14 @@ type BlockCache interface {
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf tlf.ID, block *FileBlock) error
-	// GetWithPrefetch retrieves a block from the cache, along with whether or
-	// not it has triggered a prefetch.
-	GetWithPrefetch(ptr BlockPointer) (
-		block Block, triggeredPrefetch bool, lifetime BlockCacheLifetime, err error)
+	// GetWithPrefetch retrieves a block from the cache, along with the block's
+	// prefetch status.
+	GetWithPrefetch(ptr BlockPointer) (block Block,
+		prefetchStatus PrefetchStatus, lifetime BlockCacheLifetime, err error)
 	// PutWithPrefetch puts a block into the cache, along with whether or not
-	// it has triggered a prefetch.
+	// it has triggered or finished a prefetch.
 	PutWithPrefetch(ptr BlockPointer, tlf tlf.ID, block Block,
-		lifetime BlockCacheLifetime, triggeredPrefetch bool) error
+		lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error
 
 	// SetCleanBytesCapacity atomically sets clean bytes capacity for block
 	// cache.
@@ -934,7 +947,7 @@ type DiskBlockCache interface {
 	// Get gets a block from the disk cache.
 	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
-		triggeredPrefetch bool, err error)
+		prefetchStatus PrefetchStatus, err error)
 	// Put puts a block to the disk cache.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
@@ -943,7 +956,7 @@ type DiskBlockCache interface {
 		sizeRemoved int64, err error)
 	// UpdateMetadata updates metadata for a given block in the disk cache.
 	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		triggeredPrefetch, finishedPrefetch bool) error
+		prefetchStatus PrefetchStatus) error
 	// GetMetadata gets metadata for a given block in the disk cache without
 	// changing it.
 	GetMetadata(ctx context.Context, blockID kbfsblock.ID) (
@@ -1205,20 +1218,29 @@ type KeyOps interface {
 type Prefetcher interface {
 	// PrefetchBlock directs the prefetcher to prefetch a block.
 	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
-		priority int) error
+		priority int) (doneCh, errCh <-chan struct{}, err error)
 	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
 	// after a block has been retrieved. Whichever component is responsible for
 	// retrieving blocks will call this method once it's done retrieving a
-	// block. Returns a channel that is closed once the all the underlying
-	// prefetches are complete.
+	// block.
+	// `doneCh` is a semaphore with a `numBlocks` count. Once we've read from
+	// it `numBlocks` times, the whole underlying block tree has been
+	// prefetched.
+	// `errCh` can be read up to `numBlocks` times, but any writes to it mean
+	// that the deep prefetch won't complete. So even a single read from
+	// `errCh` by a caller can be used to communicate failure of the deep
+	// prefetch to its parent.
 	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
-		kmd KeyMetadata) <-chan struct{}
+		kmd KeyMetadata) (doneCh, errCh <-chan struct{}, numBlocks int)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
 	// complete. This feature is mainly used for testing, but also to toggle
 	// the prefetcher on and off.
 	Shutdown() <-chan struct{}
+	// ShutdownCh returns a channel that is closed if and when the prefetcher
+	// is shut down.
+	ShutdownCh() <-chan struct{}
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs
@@ -2235,9 +2257,19 @@ type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+	// RequestWithPrefetch retrieves blocks asynchronously and accepts channels
+	// to notify when child blocks are done prefetching.
+	RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
+		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
+		deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) <-chan error
 	// CacheAndPrefetch caches a block along with its prefetch status, and then
 	// triggers prefetches as appropriate.
+	// `deepPrefetchDoneCh` and `deepPrefetchCancelCh` can be nil so the caller doesn't always
+	// have to instantiate a channel if it doesn't care about waiting for the
+	// prefetch to complete. In that case, the `blockRetrievalQueue` instantiates
+	// each channel to monitor the prefetches.
 	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		triggeredPrefetch bool) error
+		prefetchStatus PrefetchStatus,
+		deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) error
 }

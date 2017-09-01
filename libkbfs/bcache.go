@@ -17,8 +17,8 @@ import (
 )
 
 type blockContainer struct {
-	block             Block
-	triggeredPrefetch bool
+	block          Block
+	prefetchStatus PrefetchStatus
 }
 
 type idCacheKey struct {
@@ -75,14 +75,14 @@ func NewBlockCacheStandard(transientCapacity int,
 
 // GetWithPrefetch implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
-	Block, bool, BlockCacheLifetime, error) {
+	Block, PrefetchStatus, BlockCacheLifetime, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
 			bc, ok := tmp.(blockContainer)
 			if !ok {
-				return nil, false, NoCacheEntry, BadDataError{ptr.ID}
+				return nil, NoPrefetch, NoCacheEntry, BadDataError{ptr.ID}
 			}
-			return bc.block, bc.triggeredPrefetch, TransientEntry, nil
+			return bc.block, bc.prefetchStatus, TransientEntry, nil
 		}
 	}
 
@@ -95,11 +95,11 @@ func (b *BlockCacheStandard) GetWithPrefetch(ptr BlockPointer) (
 		// A permanent entry can only be created if this client is performing a
 		// write. Since the client is writing, it knows what goes into it,
 		// including any potential directory entries or indirect blocks.
-		// Thus, it is treated as already prefetched.
-		return block, true, PermanentEntry, nil
+		// Thus, it is treated as having triggered a prefetch.
+		return block, TriggeredPrefetch, PermanentEntry, nil
 	}
 
-	return nil, false, NoCacheEntry, NoSuchBlockError{ptr.ID}
+	return nil, NoPrefetch, NoCacheEntry, NoSuchBlockError{ptr.ID}
 }
 
 // Get implements the BlockCache interface for BlockCacheStandard.
@@ -242,7 +242,7 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 // again.
 func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
-	triggeredPrefetch bool) (err error) {
+	prefetchStatus PrefetchStatus) (err error) {
 	// Just in case we tried to cache a block type that shouldn't be cached,
 	// return an error. This is an insurance check. That said, this got rid of
 	// a flake in TestSBSConflicts, so we should still look for the underlying
@@ -281,7 +281,12 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		var bc interface{}
 		bc, wasInCache = b.cleanTransient.Get(ptr.ID)
 		if wasInCache {
-			triggeredPrefetch = (triggeredPrefetch || bc.(blockContainer).triggeredPrefetch)
+			oldPrefetchStatus := bc.(blockContainer).prefetchStatus
+			// If the cache believes our prefetch status is greater than the
+			// passed-in status, then that is the authoritative status.
+			if oldPrefetchStatus > prefetchStatus {
+				prefetchStatus = oldPrefetchStatus
+			}
 		}
 		// Cache it later, once we know there's room
 
@@ -312,7 +317,7 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 		if !transientCacheHasRoom {
 			return cachePutCacheFullError{ptr.ID}
 		}
-		b.cleanTransient.Add(ptr.ID, blockContainer{block, triggeredPrefetch})
+		b.cleanTransient.Add(ptr.ID, blockContainer{block, prefetchStatus})
 	}
 
 	return nil
@@ -323,7 +328,7 @@ func (b *BlockCacheStandard) Put(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime) error {
 	// Default should be to assume that a prefetch has happened, and thus it
 	// won't trigger prefetches in the future.
-	return b.PutWithPrefetch(ptr, tlf, block, lifetime, true)
+	return b.PutWithPrefetch(ptr, tlf, block, lifetime, TriggeredPrefetch)
 }
 
 // DeletePermanent implements the BlockCache interface for
