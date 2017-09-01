@@ -130,6 +130,4 @@ const styleDivider = {
   marginTop: 20,
 }
 
-export type {MuteRowProps}
-
 export {SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}
