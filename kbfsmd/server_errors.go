@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -216,12 +217,16 @@ func (e ServerErrorWriteAccess) ToStatus() (s keybase1.Status) {
 
 // ServerErrorThrottle is returned when the server wants the client to backoff.
 type ServerErrorThrottle struct {
-	Err error
+	Err              error
+	SuggestedRetryIn *time.Duration
 }
 
 // Error implements the Error interface for ServerErrorThrottle.
 func (e ServerErrorThrottle) Error() string {
-	return "ServerErrorThrottle{" + e.Err.Error() + "}"
+	if e.SuggestedRetryIn == nil {
+		return fmt.Sprintf("ServerErrorThrottle{%s}", e.Err.Error())
+	}
+	return fmt.Sprintf("ServerErrorThrottle[%s]{%s}", *e.SuggestedRetryIn, e.Err.Error())
 }
 
 // ToStatus implements the ExportableError interface for ServerErrorThrottle.
@@ -229,6 +234,12 @@ func (e ServerErrorThrottle) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeServerErrorThrottle
 	s.Name = "THROTTLE"
 	s.Desc = e.Err.Error()
+	if e.SuggestedRetryIn != nil {
+		s.Fields = append(s.Fields, keybase1.StringKVPair{
+			Key:   "suggestedRetryInMS",
+			Value: strconv.FormatInt(int64((*e.SuggestedRetryIn)/time.Millisecond), 10),
+		})
+	}
 	return
 }
 
@@ -372,7 +383,20 @@ func (eu ServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dis
 		appError = ServerErrorUnauthorized{}
 		break
 	case StatusCodeServerErrorThrottle:
-		appError = ServerErrorThrottle{errors.New(s.Desc)}
+		var suggestedRetryIn *time.Duration
+		for _, kv := range s.Fields {
+			if kv.Key == "suggestedRetryInMS" {
+				if ms, err := strconv.Atoi(kv.Value); err != nil {
+					d := time.Duration(ms) * time.Millisecond
+					suggestedRetryIn = &d
+				}
+				break
+			}
+		}
+		appError = ServerErrorThrottle{
+			Err:              errors.New(s.Desc),
+			SuggestedRetryIn: suggestedRetryIn,
+		}
 		break
 	case StatusCodeServerErrorConditionFailed:
 		shouldThrottle := false
