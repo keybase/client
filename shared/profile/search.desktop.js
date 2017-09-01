@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import SearchResultsList from '../search/results-list/container'
-import UserInput from '../search/user-input/container.js'
+import UserInput from '../search/user-input/container'
 import {Box} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
