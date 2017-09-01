@@ -10,6 +10,8 @@ type StateProps = {
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
+  // TODO: Figure out better way to get list of teams -- this won't
+  // work until the inbox is loaded.
   const inbox = state.chat.get('inbox')
   const teams = {}
   inbox.forEach(i => {
