@@ -142,6 +142,7 @@ export const ConstantsStatusCode = {
   scinvalidaddress: 281,
   scnosession: 283,
   scaccountreset: 290,
+  scidentifiesfailed: 295,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -224,6 +225,27 @@ export const ConstantsStatusCode = {
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
+  scteamnotreleased: 2666,
+  scteampermanentlyleft: 2667,
+  scteamneedrootid: 2668,
+  scteamhaslivechildren: 2669,
+  scteamdeleteerror: 2670,
+  scteambadrootteam: 2671,
+  scteamnameconflictswithuser: 2672,
+  scteamdeletenouppointer: 2673,
+  scteamneedowner: 2674,
+  scteamnoownerallowed: 2675,
+  scteamimplicitnononsbs: 2676,
+  scteamimplicitbadhash: 2677,
+  scteamimplicitbadname: 2678,
+  scteamimplicitclash: 2679,
+  scteamimplicitduplicate: 2680,
+  scteamimplicitbadop: 2681,
+  scteamimplicitbadrole: 2682,
+  scteamimplicitnotfound: 2683,
+  scteambadadminseqnotype: 2684,
+  scteamimplicitbadadd: 2685,
+  scteamimplicitbadremove: 2686,
 }
 
 export const CtlDbType = {
@@ -4329,6 +4351,7 @@ export type StatusCode =
   | 281 // SCInvalidAddress_281
   | 283 // SCNoSession_283
   | 290 // SCAccountReset_290
+  | 295 // SCIdentifiesFailed_295
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
@@ -4411,6 +4434,27 @@ export type StatusCode =
   | 2663 // SCTeamTarDuplicate_2663
   | 2664 // SCTeamTarNotFound_2664
   | 2665 // SCTeamMemberExists_2665
+  | 2666 // SCTeamNotReleased_2666
+  | 2667 // SCTeamPermanentlyLeft_2667
+  | 2668 // SCTeamNeedRootId_2668
+  | 2669 // SCTeamHasLiveChildren_2669
+  | 2670 // SCTeamDeleteError_2670
+  | 2671 // SCTeamBadRootTeam_2671
+  | 2672 // SCTeamNameConflictsWithUser_2672
+  | 2673 // SCTeamDeleteNoUpPointer_2673
+  | 2674 // SCTeamNeedOwner_2674
+  | 2675 // SCTeamNoOwnerAllowed_2675
+  | 2676 // SCTeamImplicitNoNonSbs_2676
+  | 2677 // SCTeamImplicitBadHash_2677
+  | 2678 // SCTeamImplicitBadName_2678
+  | 2679 // SCTeamImplicitClash_2679
+  | 2680 // SCTeamImplicitDuplicate_2680
+  | 2681 // SCTeamImplicitBadOp_2681
+  | 2682 // SCTeamImplicitBadRole_2682
+  | 2683 // SCTeamImplicitNotFound_2683
+  | 2684 // SCTeamBadAdminSeqnoType_2684
+  | 2685 // SCTeamImplicitBadAdd_2685
+  | 2686 // SCTeamImplicitBadRemove_2686
 
 export type Stream = {
   fd: int,
