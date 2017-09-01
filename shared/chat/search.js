@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Creators from '../actions/chat/creators'
 import UserInput from '../search/user-input/container'
-import SearchResultsList from '../search/results-list'
+import SearchResultsList from '../search/results-list/container'
 import ServiceFilter from '../search/services-filter'
 import {Box, Icon, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {branch, compose, defaultProps, withPropsOnChange} from 'recompose'
@@ -39,11 +39,8 @@ const SearchHeader = props => (
       ? <ProgressIndicator style={{width: globalMargins.large}} />
       : <SearchResultsList
           style={{flex: 1}}
-          items={props.searchResultIds}
-          onClick={props.onClickSearchResult}
+          searchKey={'chatSearch'}
           onShowTracker={props.onShowTrackerInSearch}
-          selectedId={props.selectedSearchId}
-          showSearchSuggestions={props.showSearchSuggestions}
         />}
   </Box>
 )
