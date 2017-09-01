@@ -42,7 +42,7 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) c
 				TopicType: chat1.TopicType_CHAT,
 				TopicID:   randBytes(8),
 			},
-			Visibility: chat1.TLFVisibility_PRIVATE,
+			Visibility: keybase1.TLFVisibility_PRIVATE,
 			Status:     chat1.ConversationStatus_UNFILED,
 		},
 		ReaderInfo: &chat1.ConversationReaderInfo{
@@ -152,7 +152,7 @@ func TestInboxQueries(t *testing.T) {
 	devs = append(devs, []chat1.Conversation{convs[7], convs[3]}...)
 
 	// Make one public convos
-	convs[13].Metadata.Visibility = chat1.TLFVisibility_PUBLIC
+	convs[13].Metadata.Visibility = keybase1.TLFVisibility_PUBLIC
 	publics = append(publics, convs[13])
 
 	// Make three unread convos
@@ -210,7 +210,7 @@ func TestInboxQueries(t *testing.T) {
 	mergeReadAndCheck(t, devs, "devs")
 
 	t.Logf("merging public query")
-	publicVis := chat1.TLFVisibility_PUBLIC
+	publicVis := keybase1.TLFVisibility_PUBLIC
 	q = &chat1.GetInboxQuery{TlfVisibility: &publicVis}
 	mergeReadAndCheck(t, publics, "public")
 
