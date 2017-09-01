@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {routeSelected}: RouteProps<{}, {}>)
   selectedTab: (routeSelected: any),
 })
 
-export type DispatchProps = {
+type DispatchProps = {
   onLogout: () => void,
   onTabChange: (tab: Tab) => void,
 }
@@ -34,12 +34,10 @@ type OwnProps = {
   children: React.Node,
 }
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
-  return {
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
-  }
-}
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  ...ownProps,
+})
 
 export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)
