@@ -1,25 +1,22 @@
 // @flow
 import React from 'react'
-import {storiesOf} from '../../../stories/storybook'
-import {SmallTeamInfoPanel} from './index'
-import type {SmallTeamInfoPanelProps} from './index'
-
-const props: SmallTeamInfoPanelProps = {
-  muted: false,
-  onAddParticipant: () => {},
-  onMuteConversation: (muted: boolean) => {},
-  onShowBlockConversationDialog: () => {},
-  onShowNewTeamDialog: () => {},
-  onShowProfile: (username: string) => {},
-  onToggleInfoPanel: () => {},
-  participants: [],
-  showTeamButton: false,
-}
+import {storiesOf, action} from '../../../stories/storybook'
+import {MuteRow} from './index'
 
 const load = () => {
-  storiesOf('Chat/Conversation/InfoPanel', module).add('Small team', () => {
-    return <SmallTeamInfoPanel {...props} />
-  })
+  storiesOf('Chat/Conversation/InfoPanel', module)
+    .add('Mute row (small)', () => {
+      return <MuteRow label="Mute notifications" muted={false} onMute={action('onMute')} />
+    })
+    .add('Mute row (small, muted)', () => {
+      return <MuteRow label="Mute notifications" muted={true} onMute={action('onMute')} />
+    })
+    .add('Mute row (big)', () => {
+      return <MuteRow label="Mute channel" muted={false} onMute={action('onMute')} />
+    })
+    .add('Mute row (big, muted)', () => {
+      return <MuteRow label="Mute channel" muted={true} onMute={action('onMute')} />
+    })
 }
 
 export default load

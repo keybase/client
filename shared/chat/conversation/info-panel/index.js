@@ -18,7 +18,7 @@ import {branch} from 'recompose'
 import Notifications from './notifications/container'
 import Participants from './participants'
 
-import type {SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
+import type {MuteRowProps, SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -33,13 +33,7 @@ const scrollViewStyle = {
 }
 const contentContainerStyle = {...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}
 
-type muteRowProps = {
-  muted: boolean,
-  onMute: (muted: boolean) => void,
-  label: string,
-}
-
-const MuteRow = (props: muteRowProps) => (
+const MuteRow = (props: MuteRowProps) => (
   <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
     <Checkbox
       checked={props.muted}
@@ -136,4 +130,6 @@ const styleDivider = {
   marginTop: 20,
 }
 
-export {SmallTeamInfoPanel, BigTeamInfoPanel}
+export type {MuteRowProps}
+
+export {SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}

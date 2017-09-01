@@ -1,6 +1,14 @@
 // @flow
 import {Component} from 'react'
 
+export type MuteRowProps = {
+  muted: boolean,
+  onMute: (muted: boolean) => void,
+  label: string,
+}
+
+export class MuteRow extends Component<MuteRowProps> {}
+
 type infoPanelProps = {
   muted: boolean,
   onAddParticipant: () => void,
