@@ -133,17 +133,15 @@ class Conversation extends Component<Props, State> {
         {this.props.showSearchPending
           ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
-              ? <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-                  <SearchResultsList
-                    items={this.props.searchResultIds}
-                    onClick={this.props.onClickSearchResult}
-                    onMouseOver={this.props.onMouseOverSearchResult}
-                    onShowTracker={this.props.onShowTrackerInSearch}
-                    selectedId={this.props.selectedSearchId}
-                    showSearchSuggestions={this.props.showSearchSuggestions}
-                    style={{...globalStyles.scrollable, flexGrow: 1}}
-                  />
-                </div>
+              ? <SearchResultsList
+                  items={this.props.searchResultIds}
+                  onClick={this.props.onClickSearchResult}
+                  onMouseOver={this.props.onMouseOverSearchResult}
+                  onShowTracker={this.props.onShowTrackerInSearch}
+                  selectedId={this.props.selectedSearchId}
+                  showSearchSuggestions={this.props.showSearchSuggestions}
+                  style={{...globalStyles.scrollable, flexGrow: 1}}
+                />
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
                   {this.props.showTeamOffer && <CreateTeamHeader />}
                   <List
