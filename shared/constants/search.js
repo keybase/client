@@ -227,18 +227,6 @@ function platformToLogo16(service: Service): IconType {
   }[service]
 }
 
-// TODO delete these unused helpers
-const isAddResultsToUserInputWithSearchKey = (searchKey: string) => (action: any) =>
-  action.type === 'search:addResultsToUserInput' && action.payload && action.payload.searchKey === searchKey
-
-const isRemoveResultsToUserInputWithSearchKey = (searchKey: string) => (action: any) =>
-  action.type === 'search:removeResultsToUserInput' &&
-  action.payload &&
-  action.payload.searchKey === searchKey
-
-const isSetUserInputItemsWithSearchKey = (searchKey: string) => (action: any) =>
-  action.type === 'search:setUserInputItems' && action.payload && action.payload.searchKey === searchKey
-
 const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
   action.type === 'search:userInputItemsUpdated' && action.payload && action.payload.searchKey === searchKey
 
@@ -266,8 +254,5 @@ export {
   getSearchResultIdsArray,
   getUserInputItemIds,
   getUserInputItemIdsOrderedSet,
-  isAddResultsToUserInputWithSearchKey,
-  isRemoveResultsToUserInputWithSearchKey,
-  isSetUserInputItemsWithSearchKey,
   isUserInputItemsUpdated,
 }
