@@ -12,7 +12,6 @@ import {withState, withHandlers, compose, branch, renderNothing, renderComponent
 import {selectedSearchIdHoc} from '../../search/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
-import {CommonConversationMembersType} from '../../constants/types/flow-types-chat'
 import flags from '../../util/feature-flags'
 
 import type {Props} from '.'
@@ -84,16 +83,15 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
       }
       showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
-      showTeamOffer =
-        flags.teamChatEnabled &&
-        inbox &&
-        inbox.membersType !== CommonConversationMembersType.team &&
-        inbox.get('participants') &&
-        inbox.get('participants').count() > 2
     }
   }
 
-  const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
+  const {inSearch, searchPending, searchResults, searchShowingSuggestions, selectedUsersInSearch} = state.chat
+
+  // If it's a multi-user chat that isn't a team, offer to make a new team.
+  showTeamOffer =
+    flags.teamChatEnabled && inSearch && selectedUsersInSearch && selectedUsersInSearch.count() > 1
+
   return {
     conversationErrorText,
     conversationIsError,

@@ -10,7 +10,7 @@ import InfoPanel from './info-panel/container'
 import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
-import CreateTeamNotice from './notices/create-team-notice/container'
+import CreateTeamHeader from './create-team-header/container'
 
 import type {Props} from '.'
 
@@ -145,7 +145,7 @@ class Conversation extends Component<Props, State> {
                   />
                 </div>
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-                  {this.props.inSearch && this.props.showTeamOffer && <CreateTeamNotice />}
+                  {this.props.showTeamOffer && <CreateTeamHeader />}
                   <List
                     focusInputCounter={this.props.focusInputCounter}
                     listScrollDownCounter={this.props.listScrollDownCounter}

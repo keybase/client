@@ -772,9 +772,11 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
   } else {
     // Make a pending conversation so it appears in the inbox
     const conversationIDKey = Constants.pendingConversationIDKey(tlfName)
-    yield put(Creators.addPending(users, temporary))
-    yield put(Creators.selectConversation(conversationIDKey, false))
-    yield put(switchTo([chatTab]))
+    yield all([
+      put(Creators.addPending(users, temporary)),
+      put(Creators.selectConversation(conversationIDKey, false)),
+      put(switchTo([chatTab])),
+    ])
   }
 }
 
