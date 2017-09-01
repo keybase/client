@@ -43,7 +43,7 @@ type BetaNoteProps = {
 }
 
 const BetaNote = (props: BetaNoteProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginTop: globalMargins.xlarge}}>
     <Box style={{...globalStyles.flexBoxRow}}>
       <Text type="BodySmall">&mdash;&mdash;</Text>
       <Icon
