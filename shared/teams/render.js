@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from '../common-adapters/icon.constants'
-import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
+import {Avatar, Box, ClickableBox, Divider, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
 
@@ -68,6 +68,44 @@ const BetaNote = (props: BetaNoteProps) => (
     </Text>
   </Box>
 )
+
+type TeamListProps = {
+  teams: Array<{
+    name: string,
+  }>,
+}
+
+export const TeamList = (props: TeamListProps) => (
+  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
+    {props.teams.map((info, index, arr) => {
+      return (
+        <Box key={info.name} style={rowStyle}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              flex: 1,
+              marginRight: globalMargins.tiny,
+            }}
+          >
+            <Avatar size={32} teamname={info.name} />
+            <Text type="BodySmall" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+              {info.name}
+            </Text>
+          </Box>
+          {index < arr.length - 1 ? <Divider style={{marginLeft: 44}} /> : null}
+        </Box>
+      )
+    })}
+  </Box>
+)
+
+const rowStyle = {
+  ...globalStyles.flexBoxColumn,
+  minHeight: globalMargins.large,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+}
 
 type Props = {
   onCreateTeam: () => void,
