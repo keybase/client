@@ -108,7 +108,7 @@ function loadSettings(): LoadSettings {
   return {type: Constants.loadSettings, payload: undefined}
 }
 
-const _onUpdatePGPSettings = function*(): SagaGenerator<any, any> {
+function* _onUpdatePGPSettings(): SagaGenerator<any, any> {
   try {
     const {hasServerKeys} = yield call(accountHasServerKeysRpcPromise)
     yield put(_onUpdatedPGPSettings(hasServerKeys))
@@ -117,7 +117,7 @@ const _onUpdatePGPSettings = function*(): SagaGenerator<any, any> {
   }
 }
 
-const _onSubmitNewEmail = function*(): SagaGenerator<any, any> {
+function* _onSubmitNewEmail(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -137,7 +137,7 @@ const _onSubmitNewEmail = function*(): SagaGenerator<any, any> {
   }
 }
 
-const _onSubmitNewPassphrase = function*(): SagaGenerator<any, any> {
+function* _onSubmitNewPassphrase(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -162,7 +162,7 @@ const _onSubmitNewPassphrase = function*(): SagaGenerator<any, any> {
   }
 }
 
-const toggleNotificationsSaga = function*(): SagaGenerator<any, any> {
+function* toggleNotificationsSaga(): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
     const current = yield select(state => state.settings.notifications)
@@ -225,7 +225,7 @@ const toggleNotificationsSaga = function*(): SagaGenerator<any, any> {
   }
 }
 
-const reclaimInviteSaga = function*(invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
+function* reclaimInviteSaga(invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
   const {inviteId} = invitesReclaimAction.payload
   try {
     yield call(apiserverPostRpcPromise, {
@@ -253,7 +253,7 @@ const reclaimInviteSaga = function*(invitesReclaimAction: InvitesReclaim): SagaG
   yield put(invitesRefresh())
 }
 
-const refreshInvitesSaga = function*(): SagaGenerator<any, any> {
+function* refreshInvitesSaga(): SagaGenerator<any, any> {
   const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
     param: {
       endpoint: 'invitations_sent',
@@ -310,7 +310,7 @@ const refreshInvitesSaga = function*(): SagaGenerator<any, any> {
   })
 }
 
-const sendInviteSaga = function*(invitesSendAction: InvitesSend): SagaGenerator<any, any> {
+function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -364,7 +364,7 @@ const sendInviteSaga = function*(invitesSendAction: InvitesSend): SagaGenerator<
   yield put(invitesRefresh())
 }
 
-const refreshNotificationsSaga = function*(): SagaGenerator<any, any> {
+function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   // If the rpc is fast don't clear it out first
   const delayThenEmptyTask = yield fork(function*() {
     yield call(delay, 500)
@@ -440,7 +440,7 @@ const refreshNotificationsSaga = function*(): SagaGenerator<any, any> {
   })
 }
 
-const deleteAccountForeverSaga = function*(): SagaGenerator<any, any> {
+function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
   const username = yield select(state => state.config.username)
   const allowDeleteAccount = yield select(state => state.settings.allowDeleteAccount)
 
@@ -456,12 +456,12 @@ const deleteAccountForeverSaga = function*(): SagaGenerator<any, any> {
   yield put(setDeletedSelf(username))
 }
 
-const loadSettingsSaga = function*(): SagaGenerator<any, any> {
+function* loadSettingsSaga(): SagaGenerator<any, any> {
   const userSettings = yield call(userLoadMySettingsRpcPromise)
   yield put({type: Constants.loadedSettings, payload: userSettings})
 }
 
-const settingsSaga = function*(): SagaGenerator<any, any> {
+function* settingsSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.invitesReclaim, reclaimInviteSaga)
   yield safeTakeLatest(Constants.invitesRefresh, refreshInvitesSaga)
   yield safeTakeEvery(Constants.invitesSend, sendInviteSaga)

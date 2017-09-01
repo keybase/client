@@ -168,7 +168,7 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 		}
 		if !namesEq {
 			s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
-			return fmt.Errorf("TlfName does not match reference message")
+			return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
 		}
 	}
 
@@ -331,7 +331,7 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		topicType := msg.ClientHeader.Conv.TopicType
 		newTopicName := msg.MessageBody.Metadata().ConversationTitle
 		convs, _, err := GetTLFConversations(ctx, s.G(), s.DebugLabeler, s.getRi,
-			msg.ClientHeader.Sender, tlfID, topicType, membersType, false)
+			msg.ClientHeader.Sender, tlfID, topicType, membersType)
 		if err != nil {
 			return topicNameState, err
 		}

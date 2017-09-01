@@ -1130,9 +1130,9 @@
         {
           "type": [
             null,
-            "ConversationAuxiliaryInfo"
+            "ConversationCreatorInfoLocal"
           ],
-          "name": "auxiliaryInfo"
+          "name": "creatorInfo"
         },
         {
           "type": [
@@ -1859,7 +1859,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationLocal"
+            "items": "InboxUIItem"
           },
           "name": "convs"
         },
@@ -1890,6 +1890,24 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AppNotificationSettingLocal",
+      "fields": [
+        {
+          "type": "keybase1.DeviceType",
+          "name": "deviceType"
+        },
+        {
+          "type": "NotificationKind",
+          "name": "kind"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled"
         }
       ]
     }
@@ -2594,10 +2612,6 @@
         {
           "name": "membersType",
           "type": "ConversationMembersType"
-        },
-        {
-          "name": "includeAuxiliaryInfo",
-          "type": "boolean"
         }
       ],
       "response": "GetTLFConversationsLocalRes"
@@ -2609,8 +2623,15 @@
           "type": "ConversationID"
         },
         {
+          "name": "channelWide",
+          "type": "boolean"
+        },
+        {
           "name": "settings",
-          "type": "ConversationNotificationInfo"
+          "type": {
+            "type": "array",
+            "items": "AppNotificationSettingLocal"
+          }
         }
       ],
       "response": "SetAppNotificationSettingsLocalRes"

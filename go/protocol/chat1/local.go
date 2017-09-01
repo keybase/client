@@ -2149,7 +2149,7 @@ type ConversationLocal struct {
 	Error            *ConversationErrorLocal       `codec:"error,omitempty" json:"error,omitempty"`
 	Info             ConversationInfoLocal         `codec:"info" json:"info"`
 	ReaderInfo       ConversationReaderInfo        `codec:"readerInfo" json:"readerInfo"`
-	AuxiliaryInfo    *ConversationAuxiliaryInfo    `codec:"auxiliaryInfo,omitempty" json:"auxiliaryInfo,omitempty"`
+	CreatorInfo      *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -2169,13 +2169,13 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 		})(o.Error),
 		Info:       o.Info.DeepCopy(),
 		ReaderInfo: o.ReaderInfo.DeepCopy(),
-		AuxiliaryInfo: (func(x *ConversationAuxiliaryInfo) *ConversationAuxiliaryInfo {
+		CreatorInfo: (func(x *ConversationCreatorInfoLocal) *ConversationCreatorInfoLocal {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.AuxiliaryInfo),
+		})(o.CreatorInfo),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -2958,15 +2958,15 @@ func (o JoinLeaveConversationLocalRes) DeepCopy() JoinLeaveConversationLocalRes 
 }
 
 type GetTLFConversationsLocalRes struct {
-	Convs      []ConversationLocal `codec:"convs" json:"convs"`
-	Offline    bool                `codec:"offline" json:"offline"`
-	RateLimits []RateLimit         `codec:"rateLimits" json:"rateLimits"`
+	Convs      []InboxUIItem `codec:"convs" json:"convs"`
+	Offline    bool          `codec:"offline" json:"offline"`
+	RateLimits []RateLimit   `codec:"rateLimits" json:"rateLimits"`
 }
 
 func (o GetTLFConversationsLocalRes) DeepCopy() GetTLFConversationsLocalRes {
 	return GetTLFConversationsLocalRes{
-		Convs: (func(x []ConversationLocal) []ConversationLocal {
-			var ret []ConversationLocal
+		Convs: (func(x []InboxUIItem) []InboxUIItem {
+			var ret []InboxUIItem
 			for _, v := range x {
 				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
@@ -3001,6 +3001,20 @@ func (o SetAppNotificationSettingsLocalRes) DeepCopy() SetAppNotificationSetting
 			}
 			return ret
 		})(o.RateLimits),
+	}
+}
+
+type AppNotificationSettingLocal struct {
+	DeviceType keybase1.DeviceType `codec:"deviceType" json:"deviceType"`
+	Kind       NotificationKind    `codec:"kind" json:"kind"`
+	Enabled    bool                `codec:"enabled" json:"enabled"`
+}
+
+func (o AppNotificationSettingLocal) DeepCopy() AppNotificationSettingLocal {
+	return AppNotificationSettingLocal{
+		DeviceType: o.DeviceType.DeepCopy(),
+		Kind:       o.Kind.DeepCopy(),
+		Enabled:    o.Enabled,
 	}
 }
 
@@ -3605,30 +3619,37 @@ func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
 }
 
 type GetTLFConversationsLocalArg struct {
-	TlfName              string                  `codec:"tlfName" json:"tlfName"`
-	TopicType            TopicType               `codec:"topicType" json:"topicType"`
-	MembersType          ConversationMembersType `codec:"membersType" json:"membersType"`
-	IncludeAuxiliaryInfo bool                    `codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
+	TlfName     string                  `codec:"tlfName" json:"tlfName"`
+	TopicType   TopicType               `codec:"topicType" json:"topicType"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
 func (o GetTLFConversationsLocalArg) DeepCopy() GetTLFConversationsLocalArg {
 	return GetTLFConversationsLocalArg{
-		TlfName:              o.TlfName,
-		TopicType:            o.TopicType.DeepCopy(),
-		MembersType:          o.MembersType.DeepCopy(),
-		IncludeAuxiliaryInfo: o.IncludeAuxiliaryInfo,
+		TlfName:     o.TlfName,
+		TopicType:   o.TopicType.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
 	}
 }
 
 type SetAppNotificationSettingsLocalArg struct {
-	ConvID   ConversationID               `codec:"convID" json:"convID"`
-	Settings ConversationNotificationInfo `codec:"settings" json:"settings"`
+	ConvID      ConversationID                `codec:"convID" json:"convID"`
+	ChannelWide bool                          `codec:"channelWide" json:"channelWide"`
+	Settings    []AppNotificationSettingLocal `codec:"settings" json:"settings"`
 }
 
 func (o SetAppNotificationSettingsLocalArg) DeepCopy() SetAppNotificationSettingsLocalArg {
 	return SetAppNotificationSettingsLocalArg{
-		ConvID:   o.ConvID.DeepCopy(),
-		Settings: o.Settings.DeepCopy(),
+		ConvID:      o.ConvID.DeepCopy(),
+		ChannelWide: o.ChannelWide,
+		Settings: (func(x []AppNotificationSettingLocal) []AppNotificationSettingLocal {
+			var ret []AppNotificationSettingLocal
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Settings),
 	}
 }
 

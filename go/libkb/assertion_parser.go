@@ -31,6 +31,8 @@ func (t Token) unexpectedError() error {
 	switch t.Typ {
 	case EOF:
 		return NewAssertionParseError("Unexpected EOF")
+	case ERROR:
+		return NewAssertionParseError("Unexpected ERROR: (%v)", t.getString())
 	default:
 		return NewAssertionParseError("Unexpected token: %s", t.getString())
 	}
@@ -62,10 +64,12 @@ type Lexer struct {
 	putback bool
 }
 
-// We're allowing '||' or ',' for disjunction
-// We're allowing '&&' or '+' for conjunction
-var re = regexp.MustCompile(`^(\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+)`)
-var wss = regexp.MustCompile(`^([\n\t ]+)`)
+// Disjunction: '||' ','
+// Conjunction: '&&' '+'
+// Parens: '(' ')'
+// URL: Characters except for ' \n\t&|(),+'
+var lexerItemRxx = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+))`)
+var lexerWhitespaceRxx = regexp.MustCompile(`^([\n\t ]+)`)
 
 func NewLexer(s string) *Lexer {
 	l := &Lexer{buffer: []byte(s)}
@@ -73,9 +77,10 @@ func NewLexer(s string) *Lexer {
 	return l
 }
 
+// strip whitespace off the front
 func (lx *Lexer) stripBuffer() {
 	if len(lx.buffer) > 0 {
-		if match := wss.FindSubmatchIndex(lx.buffer); match != nil {
+		if match := lexerWhitespaceRxx.FindSubmatchIndex(lx.buffer); match != nil {
 			lx.buffer = lx.buffer[match[3]:]
 		}
 	}
@@ -97,9 +102,10 @@ func (lx *Lexer) Get() *Token {
 		lx.putback = false
 	} else if len(lx.buffer) == 0 {
 		ret = NewToken(EOF)
-	} else if match := re.FindSubmatchIndex(lx.buffer); match != nil {
-		seq := []int{NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
-		for i := 1; i <= len(seq); i++ {
+	} else if match := lexerItemRxx.FindSubmatchIndex(lx.buffer); match != nil {
+		// first 2 in seq are NONE: one for the full expr, another for the outer ^() group
+		seq := []int{NONE, NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
+		for i := 2; i <= len(seq); i++ {
 			if match[i*2] >= 0 {
 				ret = &Token{seq[i], lx.buffer[match[2*i]:match[2*i+1]]}
 				lx.advanceBuffer(match[2*i+1])
@@ -139,7 +145,14 @@ func (p *Parser) Parse(ctx AssertionContext) AssertionExpression {
 	ret := p.parseExpr(ctx)
 	if ret != nil {
 		tok := p.lexer.Get()
-		if tok.Typ != EOF {
+		switch tok.Typ {
+		case EOF:
+			// expected
+		case ERROR:
+			p.err = NewAssertionParseError("Found error at end of input (%s)",
+				tok.value)
+			ret = nil
+		default:
 			p.err = NewAssertionParseError("Found junk at end of input: %s",
 				tok.value)
 			ret = nil

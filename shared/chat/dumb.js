@@ -1,10 +1,10 @@
 // @flow
 import {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner} from './conversation/banner'
-import ConversationHeader from './conversation/header'
+import {UsernameHeader} from './conversation/header'
 import ConversationInput from './conversation/input'
 import ConversationList from './conversation/list'
 import NoConversation from './conversation/no-conversation'
-import ConversationInfoPanel from './conversation/info-panel'
+// import {SmallTeamInfoPanel} from './conversation/info-panel'
 import HiddenString from '../util/hidden-string'
 import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/rekey/participant-rekey'
@@ -14,6 +14,7 @@ import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {RouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
+import * as EntityConstants from '../constants/entities'
 
 import type {ConversationIDKey} from '../constants/chat'
 
@@ -193,6 +194,14 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       selectedConversation: null,
       supersededByState: Map(),
     }),
+    entities: EntityConstants.StateRecord({
+      convIDToSnippet: Map(
+        inbox.reduce((acc, m) => {
+          acc[m.conversationIDKey] = m.snippet
+          return acc
+        }, {})
+      ),
+    }),
     config: {
       username: 'chris',
     },
@@ -218,7 +227,7 @@ const emptyConversationsProps = {
 }
 
 const header = {
-  component: ConversationHeader,
+  component: UsernameHeader,
   mocks: {
     Normal: {
       ...commonConvoProps,
@@ -333,7 +342,7 @@ const list = {
     },
   },
 }
-
+/*
 const commonInfoPanel = {
   parentProps: {
     style: {
@@ -352,7 +361,7 @@ const commonInfoPanel = {
 }
 
 const infoPanel = {
-  component: ConversationInfoPanel,
+  component: SmallTeamInfoPanel,
   mocks: {
     Normal: {
       ...commonInfoPanel,
@@ -363,7 +372,7 @@ const infoPanel = {
     },
   },
 }
-
+*/
 const inboxParentProps = {
   style: {
     ...globalStyles.flexBoxColumn,
@@ -530,7 +539,8 @@ export default {
   ChatInput: input,
   ChatList: list,
   ChatParticipantRekey: participantRekey,
-  ChatInfoPanel: infoPanel,
+  // XXX: Temp disabled, contains a connected component
+  // ChatInfoPanel: infoPanel,
   ChatNoConversation: noConversationMap,
   YouRekey: youRekey,
 }

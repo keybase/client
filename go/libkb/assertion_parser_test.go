@@ -13,7 +13,8 @@ func testLexer(t *testing.T, name string, s string, expected []Token) {
 	for {
 		tok := lexer.Get()
 		if !tok.Eq(expected[i]) {
-			t.Errorf("%s, token %d: %v != %v", name, i, tok, expected[i])
+			t.Errorf("%s, token %d: [T%v: '%v'] != [T%v: '%v']",
+				name, i, tok.Typ, string(tok.value), expected[i].Typ, string(expected[i].value))
 		}
 		if tok.Typ == EOF {
 			break
@@ -52,6 +53,17 @@ func TestLexer2(t *testing.T) {
 		{EOF, []byte{}},
 	}
 	testLexer(t, "test2", s, expected)
+}
+
+func TestLexer3(t *testing.T) {
+	s := "aa && |bb"
+	expected := []Token{
+		{URL, []byte("aa")},
+		{AND, []byte("&&")},
+		{ERROR, []byte("")},
+		{EOF, []byte{}},
+	}
+	testLexer(t, "test3", s, expected)
 }
 
 func TestParser1(t *testing.T) {
@@ -97,6 +109,7 @@ func TestParserFail1(t *testing.T) {
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
+		{"aa && |bb", "Unexpected ERROR: ()"},
 	}
 
 	for _, bad := range bads {

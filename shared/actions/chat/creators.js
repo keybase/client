@@ -9,6 +9,7 @@ import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
 
+import type {DeviceType} from '../../constants/types/more'
 import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
 
@@ -18,14 +19,6 @@ const updateTempMessageTransformer = ({
   payload: {conversationIDKey, outboxID},
 }: Constants.UpdateTempMessage) => ({
   payload: {conversationIDKey, outboxID},
-  type,
-})
-
-const updateMessageTransformer = ({
-  type,
-  payload: {conversationIDKey, messageID},
-}: Constants.UpdateMessage) => ({
-  payload: {conversationIDKey, messageID},
   type,
 })
 
@@ -236,6 +229,13 @@ function editMessage(message: Constants.Message, text: HiddenString): Constants.
   return {payload: {message, text}, type: 'chat:editMessage'}
 }
 
+function leaveConversation(conversationIDKey: Constants.ConversationIDKey): Constants.LeaveConversation {
+  return {
+    payload: {conversationIDKey},
+    type: 'chat:leaveConversation',
+  }
+}
+
 function muteConversation(
   conversationIDKey: Constants.ConversationIDKey,
   muted: boolean
@@ -346,8 +346,22 @@ function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constant
   return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
 }
 
+function setNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  deviceType: DeviceType,
+  notifyType: Constants.NotifyType
+) {
+  return {payload: {conversationIDKey, deviceType, notifyType}, type: 'chat:setNotifications'}
+}
+
 function clearSearchResults(): Constants.ClearSearchResults {
   return {payload: {}, type: 'chat:clearSearchResults'}
+}
+
+function toggleChannelWideNotifications(
+  conversationIDKey: Constants.ConversationIDKey
+): Constants.ToggleChannelWideNotifications {
+  return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
 }
 
 function updateConversationUnreadCounts(
@@ -631,18 +645,6 @@ function threadLoadedOffline(conversationIDKey: Constants.ConversationIDKey): Co
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
 
-function updateMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>,
-  messageID: Constants.MessageID
-): Constants.UpdateMessage {
-  return {
-    logTransformer: updateMessageTransformer,
-    payload: {conversationIDKey, messageID, message},
-    type: 'chat:updateMessage',
-  }
-}
-
 function setSelectedRouteState(
   selectedConversation: Constants.ConversationIDKey,
   partialState: Object
@@ -684,6 +686,23 @@ function updateThread(
   }
 }
 
+function updatedNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  notifications: Constants.NotificationsState
+): Constants.UpdatedNotifications {
+  return {
+    payload: {conversationIDKey, notifications},
+    type: 'chat:updatedNotifications',
+  }
+}
+
+function updateSnippet(
+  conversationIDKey: Constants.ConversationIDKey,
+  snippet: HiddenString
+): Constants.UpdateSnippet {
+  return {payload: {conversationIDKey, snippet}, type: 'chat:updateSnippet'}
+}
+
 export {
   addPending,
   appendMessages,
@@ -705,6 +724,7 @@ export {
   inboxStale,
   incomingMessage,
   incomingTyping,
+  leaveConversation,
   loadAttachment,
   loadAttachmentPreview,
   loadInbox,
@@ -736,6 +756,7 @@ export {
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
+  setNotifications,
   setPreviousConversation,
   setSelectedRouteState,
   setTypers,
@@ -745,6 +766,7 @@ export {
   stageUserForSearch,
   startConversation,
   threadLoadedOffline,
+  toggleChannelWideNotifications,
   unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
@@ -756,7 +778,6 @@ export {
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
   updateLatestMessage,
-  updateMessage,
   updateMetadata,
   updatePaginationNext,
   updateSupersededByState,
@@ -765,5 +786,7 @@ export {
   updateThread,
   updateTyping,
   updatedMetadata,
+  updatedNotifications,
   uploadProgress,
+  updateSnippet,
 }

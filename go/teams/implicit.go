@@ -73,6 +73,9 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName
 		return res, impTeamName, fmt.Errorf("implicit team name mismatch: %s != %s", teamDisplayName,
 			formatImpName)
 	}
+	if team.IsPublic() != public {
+		return res, impTeamName, fmt.Errorf("implicit team public-ness mismatch: %v != %v", team.IsPublic(), public)
+	}
 
 	return imp.TeamID, impTeamName, nil
 }
@@ -120,13 +123,9 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 			impTeamName.ConflictInfo.Generation)
 	}
 
-	normalized, err := kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
-	if err != nil {
-		return "", err
+	if len(writerNames) == 0 {
+		return "", fmt.Errorf("invalid implicit team name: no writers")
 	}
-	prefix := "private/"
-	if impTeamName.IsPublic {
-		prefix = "public/"
-	}
-	return prefix + normalized, nil
+
+	return kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
 }

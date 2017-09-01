@@ -1,15 +1,18 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import InfoPanel from '.'
+import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
-import {compose} from 'recompose'
+import {compose, renderComponent, branch} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
-import {navigateAppend} from '../../../actions/route-tree'
+import {navigateAppend, navigateTo} from '../../../actions/route-tree'
+import {chatTab} from '../../../constants/tabs'
 import {showUserProfile} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
+
+import flags from '../../../util/feature-flags'
 
 const getParticipants = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
@@ -32,18 +35,33 @@ const getParticipants = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState) => ({
-  muted: Constants.getMuted(state),
-  participants: getParticipants(state),
-  selectedConversationIDKey: Constants.getSelectedConversation(state),
-})
+const mapStateToProps = (state: TypedState) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const inbox = Constants.getSelectedInbox(state)
+  const channelname = inbox.get('channelname')
+  const teamname = inbox.get('teamname')
+  const showTeamButton = flags.teamChatEnabled
+
+  return {
+    channelname,
+    muted: Constants.getMuted(state),
+    participants: getParticipants(state),
+    selectedConversationIDKey,
+    showTeamButton,
+    teamname,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
-  onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
+  _navToRootChat: () => dispatch(navigateTo([], [chatTab])),
+  _onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
+  _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
+    dispatch(Creators.leaveConversation(conversationIDKey))
+  },
+  _onMuteConversation: (conversationIDKey: Constants.ConversationIDKey, muted: boolean) => {
     dispatch(Creators.muteConversation(conversationIDKey, muted))
   },
-  onShowBlockConversationDialog: (selectedConversation, participants) => {
+  _onShowBlockConversationDialog: (selectedConversation, participants) => {
     dispatch(
       navigateAppend([
         {
@@ -53,25 +71,51 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       ])
     )
   },
-  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
+  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {conversationIDKey},
+          selected: 'showNewTeamDialog',
+        },
+      ])
+    )
+  },
+  // Used by HeaderHoc.
   onBack: () => dispatch(navigateUp()),
+  onShowProfile: (username: string) => dispatch(showUserProfile(username)),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.map(p => p.username)),
+  onAddParticipant: () => dispatchProps._onAddParticipant(stateProps.participants.map(p => p.username)),
+  onLeaveConversation: () => {
+    if (stateProps.selectedConversationIDKey) {
+      dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
+      dispatchProps._navToRootChat()
+    }
+  },
   onMuteConversation: stateProps.selectedConversationIDKey &&
     !Constants.isPendingConversationIDKey(stateProps.selectedConversationIDKey)
     ? (muted: boolean) =>
         stateProps.selectedConversationIDKey &&
-        dispatchProps.onMuteConversation(stateProps.selectedConversationIDKey, muted)
+        dispatchProps._onMuteConversation(stateProps.selectedConversationIDKey, muted)
     : null,
   onShowBlockConversationDialog: () =>
-    dispatchProps.onShowBlockConversationDialog(
+    dispatchProps._onShowBlockConversationDialog(
       stateProps.selectedConversationIDKey,
       stateProps.participants.map(p => p.username).join(',')
     ),
+  onShowNewTeamDialog: () => {
+    stateProps.selectedConversationIDKey &&
+      dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey)
+  },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(InfoPanel)
+const ConnectedInfoPanel = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => props.channelname, renderComponent(BigTeamInfoPanel))
+)(SmallTeamInfoPanel)
+
+export default ConnectedInfoPanel

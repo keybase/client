@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -485,6 +486,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, rl, err
 	}
+	s.Debug(ctx, "Read: tlfInfo: %+v", tlfInfo)
 	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
 		return inbox, rl, err
@@ -880,6 +882,15 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
+	// Pick a source of usernames based on offline status, if we are offline then just use a
+	// type that just returns errors all the time (this will just use TLF name as the ordering)
+	var uloader utils.ReorderUsernameSource
+	if s.offline {
+		uloader = nullUsernameSource{}
+	} else {
+		uloader = s.G().GetUPAKLoader()
+	}
+
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
 	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v", unverifiedTLFName,
 		conversationRemote.GetConvID(), s.offline)
@@ -906,7 +917,17 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 	conversationLocal.Notifications = conversationRemote.Notifications
-	conversationLocal.AuxiliaryInfo = conversationRemote.AuxiliaryInfo
+	if conversationRemote.CreatorInfo != nil {
+		nname, err := uloader.LookupUsername(ctx, keybase1.UID(conversationRemote.CreatorInfo.Uid.String()))
+		if err != nil {
+			s.Debug(ctx, "localizeConversation: failed to load creator username: %s", err)
+		} else {
+			conversationLocal.CreatorInfo = &chat1.ConversationCreatorInfoLocal{
+				Username: nname.String(),
+				Ctime:    conversationRemote.CreatorInfo.Ctime,
+			}
+		}
+	}
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"
@@ -915,16 +936,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Conversation is not empty as long as we have a visible message, even if they are
-	// errors
-	conversationLocal.IsEmpty = true
-	for _, maxMsg := range conversationRemote.MaxMsgSummaries {
-		if utils.IsVisibleChatMessageType(maxMsg.GetMessageType()) {
-			conversationLocal.IsEmpty = false
-			break
-		}
-	}
-
+	conversationLocal.IsEmpty = utils.IsConvEmpty(conversationRemote)
 	errTyp := chat1.ConversationErrorType_PERMANENT
 	if len(conversationRemote.MaxMsgs) == 0 {
 		// Fetch max messages unboxed, using either a custom function or through
@@ -1031,6 +1043,30 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
+	// if this is an implicit team conversation, then the TLF name is the internal team name.
+	// Lookup the display name and use it instead.
+	if conversationLocal.GetMembersType() == chat1.ConversationMembersType_IMPTEAM {
+		teamID, err := keybase1.TeamIDFromString(conversationLocal.Info.Triple.Tlfid.String())
+		if err != nil {
+			errMsg := fmt.Sprintf("teams.Load failed for implicit team %q: %s", conversationLocal.Info.TlfName, err)
+			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+		team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
+		if err != nil {
+			errMsg := fmt.Sprintf("teams.Load failed for implicit team %q: %s", conversationLocal.Info.TlfName, err)
+			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+		display, err := team.ImplicitTeamDisplayName(ctx)
+		if err != nil {
+			errMsg := fmt.Sprintf("implicit team display name error for %q: %s", conversationLocal.Info.TlfName, err)
+			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
+			return conversationLocal
+		}
+		conversationLocal.Info.TlfName = display.String()
+	}
+
 	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
 	// this if we are online
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
@@ -1048,19 +1084,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.Info.TlfName = info.CanonicalName
 	}
 
-	// Pick a source of usernames based on offline status, if we are offline then just use a
-	// type that just returns errors all the time (this will just use TLF name as the ordering)
-	var uloader utils.ReorderUsernameSource
-	if s.offline {
-		uloader = nullUsernameSource{}
-	} else {
-		uloader = s.G().GetUPAKLoader()
-	}
-
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_TEAM:
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 		for _, uid := range conversationRemote.Metadata.AllList {
 			uname, err := uloader.LookupUsername(ctx, keybase1.UID(uid.String()))
 			if err != nil {

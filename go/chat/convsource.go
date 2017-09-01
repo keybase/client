@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 )
 
@@ -383,14 +384,31 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				return nil
 			}
 
+			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
+
 			switch conv.GetMembersType() {
 			case chat1.ConversationMembersType_TEAM:
 				// early out of team convs
 				return nil
-			default:
+			case chat1.ConversationMembersType_IMPTEAM:
+				s.Debug(ctx, "identifyTLF: implicit team TLF, looking up display name for %s", tlfName)
+
+				tlfID := msg.Valid().ClientHeader.Conv.Tlfid
+				teamID, err := keybase1.TeamIDFromString(tlfID.String())
+				if err != nil {
+					return err
+				}
+				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
+				if err != nil {
+					return err
+				}
+				display, err := team.ImplicitTeamDisplayName(ctx)
+				if err != nil {
+					return err
+				}
+				tlfName = display.String()
 			}
 
-			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
 				msg.GetMessageID(), tlfName, conv.GetConvID())
 

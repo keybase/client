@@ -83,7 +83,7 @@ func (c *CmdChatSend) Run() (err error) {
 	// in finding existing conversations.
 	if c.G().Standalone {
 		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 			c.G().StartStandaloneChat()
 		default:
 			err = CantRunInStandaloneError{}

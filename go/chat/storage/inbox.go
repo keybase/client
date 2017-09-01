@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 12
+const inboxVersion = 13
 
 type queryHash []byte
 
@@ -880,6 +880,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 			conv.Notifications.Settings[apptype][kind] = enabled
 		}
 	}
+	conv.Notifications.ChannelWide = settings.ChannelWide
 
 	// Write out to disk
 	ibox.InboxVersion = vers

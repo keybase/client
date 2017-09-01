@@ -148,7 +148,7 @@ function registerGregorListeners() {
   }
 }
 
-const handleTLFUpdate = function*(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleTLFUpdate(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
   const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
@@ -161,7 +161,7 @@ const handleTLFUpdate = function*(items: Array<NonNullGregorItem>): SagaGenerato
   }
 }
 
-const handlePushState = function*(pushAction: PushState): SagaGenerator<any, any> {
+function* handlePushState(pushAction: PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -175,7 +175,7 @@ const handlePushState = function*(pushAction: PushState): SagaGenerator<any, any
   }
 }
 
-const handleKbfsFavoritesOOBM = function*(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
+function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
@@ -193,7 +193,7 @@ const handleKbfsFavoritesOOBM = function*(kbfsFavoriteMessages: Array<OutOfBandM
   )
 }
 
-const handlePushOOBM = function*(pushOOBM: pushOOBM) {
+function* handlePushOOBM(pushOOBM: pushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
@@ -202,12 +202,12 @@ const handlePushOOBM = function*(pushOOBM: pushOOBM) {
   }
 }
 
-const handleCheckReachability = function*(): SagaGenerator<any, any> {
+function* handleCheckReachability(): SagaGenerator<any, any> {
   const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
   yield put({type: Constants.updateReachability, payload: {reachability}})
 }
 
-const gregorSaga = function*(): SagaGenerator<any, any> {
+function* gregorSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.pushState, handlePushState)
   yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
   yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)

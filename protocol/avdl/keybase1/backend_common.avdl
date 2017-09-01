@@ -5,7 +5,8 @@ protocol backendCommon {
 
   enum BlockType {
     DATA_0,
-    MD_1
+    MD_1,
+    GIT_2
   }
 
   @lint("ignore")

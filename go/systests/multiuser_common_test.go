@@ -378,7 +378,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 		u.ctx.t.Fatal(err)
 	}
 	cli := u.getTeamsClient()
-	err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
+	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
@@ -440,6 +440,17 @@ func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
 		Name:     team.name,
 		Username: w.username,
 		Role:     keybase1.TeamRole_OWNER,
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
+	cli := u.getTeamsClient()
+	err := cli.TeamReAddMemberAfterReset(context.TODO(), keybase1.TeamReAddMemberAfterResetArg{
+		Id:       team.ID,
+		Username: w.username,
 	})
 	if err != nil {
 		u.ctx.t.Fatal(err)

@@ -110,10 +110,10 @@ class FilteredTopLine extends PureComponent<FilteredTopLineProps> {
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
-  borderRadius: 3,
-  height: 6,
+  borderRadius: 6,
+  height: 8,
   marginLeft: 4,
-  width: 6,
+  width: 8,
 }
 
 export {SimpleTopLine, FilteredTopLine}

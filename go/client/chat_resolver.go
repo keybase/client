@@ -89,7 +89,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 
 	var nameQuery *chat1.NameQuery
 	switch req.MembersType {
-	case chat1.ConversationMembersType_KBFS:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
 
 		if len(req.TopicName) > 0 && req.TopicType == chat1.TopicType_CHAT {
 			return chat1.GetInboxAndUnboxLocalArg{},
@@ -97,13 +97,16 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 		}
 
 		if len(req.TlfName) > 0 {
-			err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req)
-			if err != nil {
-				return chat1.GetInboxAndUnboxLocalArg{}, err
-			}
 			nameQuery = &chat1.NameQuery{
-				Name:        req.ctx.canonicalizedTlfName,
-				MembersType: chat1.ConversationMembersType_KBFS,
+				Name:        req.TlfName,
+				MembersType: req.MembersType,
+			}
+			if req.MembersType == chat1.ConversationMembersType_KBFS {
+				// resolve KBFS TLF
+				if err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req); err != nil {
+					return chat1.GetInboxAndUnboxLocalArg{}, err
+				}
+				nameQuery.Name = req.ctx.canonicalizedTlfName
 			}
 		}
 	case chat1.ConversationMembersType_TEAM:
@@ -191,6 +194,7 @@ func (r *chatConversationResolver) resolveWithCliUIInteractively(ctx context.Con
 
 func (r *chatConversationResolver) create(ctx context.Context, req chatConversationResolvingRequest) (
 	conversationInfo *chat1.ConversationLocal, err error) {
+
 	var newConversation string
 	if req.TopicType == chat1.TopicType_CHAT {
 		newConversation = fmt.Sprintf("Creating a new %s %s conversation", req.Visibility, req.TopicType)

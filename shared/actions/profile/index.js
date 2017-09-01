@@ -30,7 +30,7 @@ function editProfile(bio: string, fullName: string, location: string): Constants
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
 }
 
-const _editProfile = function*(action: Constants.EditProfile): SagaGenerator<any, any> {
+function* _editProfile(action: Constants.EditProfile): SagaGenerator<any, any> {
   const {bio, fullName, location} = action.payload
   yield call(userProfileEditRpcPromise, {
     param: {bio, fullName, location},
@@ -59,7 +59,7 @@ function finishRevoking(): Constants.FinishRevoking {
   return {payload: undefined, type: Constants.finishRevoking}
 }
 
-const _finishRevoking = function*(): SagaGenerator<any, any> {
+function* _finishRevoking(): SagaGenerator<any, any> {
   yield put(getMyProfile(true))
   yield put(_revokedFinishResponse())
   yield put(navigateUp())
@@ -69,7 +69,7 @@ function showUserProfile(username: string): Constants.ShowUserProfile {
   return {payload: {username}, type: Constants.showUserProfile}
 }
 
-const _showUserProfile = function*(action: Constants.ShowUserProfile): SagaGenerator<any, any> {
+function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any, any> {
   const {username: userId} = action.payload
   const searchResultMap = yield select(Selectors.searchResultMapSelector)
   const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
@@ -112,7 +112,7 @@ function onClickAvatar(username: string, openWebsite?: boolean): Constants.OnCli
   }
 }
 
-const _onClickAvatar = function*(action: Constants.OnClickFollowers): SagaGenerator<any, any> {
+function* _onClickAvatar(action: Constants.OnClickFollowers): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -135,7 +135,7 @@ function onClickFollowers(username: string, openWebsite?: boolean): Constants.On
   }
 }
 
-const _onClickFollowers = function*(action: Constants.OnClickFollowers): SagaGenerator<any, any> {
+function* _onClickFollowers(action: Constants.OnClickFollowers): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -158,7 +158,7 @@ function onClickFollowing(username: string, openWebsite?: boolean): Constants.On
   }
 }
 
-const _onClickFollowing = function*(action: Constants.OnClickFollowing): SagaGenerator<any, any> {
+function* _onClickFollowing(action: Constants.OnClickFollowing): SagaGenerator<any, any> {
   if (!action.payload.username) {
     return
   }
@@ -175,7 +175,7 @@ function submitRevokeProof(proofId: string): Constants.SubmitRevokeProof {
   return {payload: {proofId}, type: Constants.submitRevokeProof}
 }
 
-const _submitRevokeProof = function*(action: Constants.SubmitRevokeProof): SagaGenerator<any, any> {
+function* _submitRevokeProof(action: Constants.SubmitRevokeProof): SagaGenerator<any, any> {
   try {
     yield put(_revokedWaitingForResponse(true))
     yield call(revokeRevokeSigsRpcPromise, {param: {sigIDQueries: [action.payload.proofId]}})
@@ -203,7 +203,7 @@ function outputInstructionsActionLink(): Constants.OutputInstructionsActionLink 
   return {payload: undefined, type: Constants.outputInstructionsActionLink}
 }
 
-const _onAppLink = function*(action: AppLink): SagaGenerator<any, any> {
+function* _onAppLink(action: AppLink): SagaGenerator<any, any> {
   const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)$/)
   const username = match && match[1]
   if (username) {
@@ -211,7 +211,7 @@ const _onAppLink = function*(action: AppLink): SagaGenerator<any, any> {
   }
 }
 
-const _outputInstructionsActionLink = function*(): SagaGenerator<any, any> {
+function* _outputInstructionsActionLink(): SagaGenerator<any, any> {
   const getProfile = (state: TypedState) => state.profile
   const profile: Constants.State = (yield select(getProfile): any)
   switch (profile.platform) {
@@ -248,12 +248,12 @@ function clearSearchResults(): Constants.ClearSearchResults {
   return {payload: undefined, type: Constants.clearSearchResults}
 }
 
-const _backToProfile = function*(): SagaGenerator<any, any> {
+function* _backToProfile(): SagaGenerator<any, any> {
   yield put(getMyProfile())
   yield put(navigateTo([], [profileTab]))
 }
 
-const _profileSaga = function*(): SagaGenerator<any, any> {
+function* _profileSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.backToProfile, _backToProfile)
   yield safeTakeEvery(Constants.editProfile, _editProfile)
   yield safeTakeEvery(Constants.finishRevoking, _finishRevoking)
@@ -266,7 +266,7 @@ const _profileSaga = function*(): SagaGenerator<any, any> {
   yield safeTakeEvery('app:link', _onAppLink)
 }
 
-const profileSaga = function*(): SagaGenerator<any, any> {
+function* profileSaga(): SagaGenerator<any, any> {
   yield fork(_profileSaga)
   yield fork(pgpSaga)
   yield fork(proofsSaga)

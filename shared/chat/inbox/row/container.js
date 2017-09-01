@@ -4,16 +4,12 @@ import pausableConnect from '../../../util/pausable-connect'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
-import {
-  isPendingConversationIDKey,
-  newestConversationIDKey,
-  participantFilter,
-  getSelectedConversation,
-} from '../../../constants/chat'
+import * as Constants from '../../../constants/chat'
 import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 import {compose, renderComponent, branch} from 'recompose'
+import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
@@ -49,13 +45,15 @@ const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 const getYou = state => state.config.username || ''
 const makeGetConversation = conversationIDKey => state =>
   state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
+const makeGetSnippet = conversationIDKey => state => Constants.getSnippet(state, conversationIDKey)
 const makeGetIsSelected = conversationIDKey => state =>
-  newestConversationIDKey(getSelectedConversation(state), state.chat) === conversationIDKey
+  Constants.newestConversationIDKey(Constants.getSelectedConversation(state), state.chat) ===
+  conversationIDKey
 const makeGetRekeyInfo = conversationIDKey => state => state.chat.get('rekeyInfos').get(conversationIDKey)
 const makeGetUnreadCounts = conversationIDKey => state =>
   state.chat.get('conversationUnreadCounts').get(conversationIDKey)
 const makeGetParticipants = conversationIDKey => state =>
-  participantFilter(
+  Constants.participantFilter(
     state.chat.get('pendingConversations').get(conversationIDKey),
     state.config.username || ''
   )
@@ -64,7 +62,7 @@ const makeGetFinalizedInfo = conversationIDKey => state =>
   state.chat.get('finalizedState').get(conversationIDKey)
 
 const makeSelector = conversationIDKey => {
-  const isPending = isPendingConversationIDKey(conversationIDKey)
+  const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
   if (isPending) {
     return createImmutableEqualSelector(
       [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey), getNowOverride],
@@ -75,7 +73,6 @@ const makeSelector = conversationIDKey => {
         isSelected,
         participants,
         rekeyInfo: null,
-        snippet: '',
         timestamp: formatTimeForConversationList(Date.now(), nowOverride),
         unreadCount: 0,
         ..._rowDerivedProps(null, null, 0, false, isSelected),
@@ -85,6 +82,7 @@ const makeSelector = conversationIDKey => {
     return createImmutableEqualSelector(
       [
         makeGetConversation(conversationIDKey),
+        makeGetSnippet(conversationIDKey),
         makeGetIsSelected(conversationIDKey),
         makeGetUnreadCounts(conversationIDKey),
         getYou,
@@ -92,11 +90,10 @@ const makeSelector = conversationIDKey => {
         getNowOverride,
         makeGetFinalizedInfo(conversationIDKey),
       ],
-      (conversation, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => {
+      (conversation, snippet, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => {
         const isError = conversation.get('state') === 'error'
         const isMuted = conversation.get('status') === 'muted'
-        const participants = participantFilter(conversation.get('participants'), you)
-        const snippet = conversation.get('snippet')
+        const participants = Constants.participantFilter(conversation.get('participants'), you)
         const timestamp = formatTimeForConversationList(conversation.get('time'), nowOverride)
         const channelname = conversation.get('channelname')
         const teamname = conversation.get('teamname')
@@ -133,6 +130,8 @@ const mapDispatchToProps = dispatch => ({
     dispatch(setInboxFilter(''))
     dispatch(selectConversation(key, true))
   },
+  _onShowMenu: (teamname: string) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -140,6 +139,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
+  onShowMenu: () => dispatchProps._onShowMenu(stateProps.teamname),
 })
 
 const ConnectedRow = compose(

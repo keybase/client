@@ -7,6 +7,7 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTeamInviteRooter(t *testing.T) {
@@ -60,6 +61,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	if exists {
 		t.Error("after accepting invite, active invite still exists")
 	}
+	require.Equal(t, 0, t0.NumActiveInvites(), "after accepting invite, active invites still exists")
 }
 
 func TestTeamInviteEmail(t *testing.T) {
