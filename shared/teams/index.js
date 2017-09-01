@@ -3,11 +3,9 @@ import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 
-import type {RouteProps} from '../route-tree/render-route'
+const mapStateToProps = state => ({})
 
-const mapStateToProps = (state, {routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({})
-
-const mapDispatchToProps = (dispatch, {routePath}: RouteProps<{}, {}>) => ({
+const mapDispatchToProps = dispatch => ({
   onCreateTeam: () => {
     // TODO: Hook this up. Need to change onShowNewTeamDialog to
     // make its conversationIDKey parameter optional first.
