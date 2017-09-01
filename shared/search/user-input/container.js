@@ -81,7 +81,6 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
-// todo use selectors
 const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   const {entities} = state
   const searchResultTerm = getSearchResultTerm(state, {searchKey})
@@ -98,7 +97,6 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   }
 }
 
-// TODO
 const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
   onRemoveUser: id => dispatch(Creators.removeResultsToUserInput(searchKey, [id])),
   search: (term: string, service) => {
