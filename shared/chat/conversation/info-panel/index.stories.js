@@ -1,11 +1,24 @@
 // @flow
 import React from 'react'
-import {Box} from '../../../common-adapters'
 import {storiesOf} from '../../../stories/storybook'
+import {SmallTeamInfoPanel} from './index'
+import type {SmallTeamInfoPanelProps} from './index'
+
+const props: SmallTeamInfoPanelProps = {
+  muted: false,
+  onAddParticipant: () => {},
+  onMuteConversation: (muted: boolean) => {},
+  onShowBlockConversationDialog: () => {},
+  onShowNewTeamDialog: () => {},
+  onShowProfile: (username: string) => {},
+  onToggleInfoPanel: () => {},
+  participants: [],
+  showTeamButton: false,
+}
 
 const load = () => {
   storiesOf('Chat/Conversation/InfoPanel', module).add('Small team', () => {
-    return <Box>Hello world!</Box>
+    return <SmallTeamInfoPanel {...props} />
   })
 }
 
