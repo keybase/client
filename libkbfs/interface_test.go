@@ -75,3 +75,13 @@ func (t *testSyncedTlfGetterSetter) SetTlfSyncState(tlfID tlf.ID,
 	t.syncedTlfs[tlfID] = isSynced
 	return nil
 }
+
+type testInitModeGetter struct {
+	InitMode
+}
+
+var _ initModeGetter = (*testInitModeGetter)(nil)
+
+func (t testInitModeGetter) IsTestMode() bool {
+	return true
+}

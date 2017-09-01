@@ -36,22 +36,25 @@ func (a SyncAction) String() string {
 // given TLF.
 func (a SyncAction) Execute(
 	ctx context.Context, c libkbfs.Config, fb libkbfs.FolderBranch,
-	h *libkbfs.TlfHandle) error {
+	h *libkbfs.TlfHandle) (err error) {
 	if fb == (libkbfs.FolderBranch{}) {
 		panic("zero fb in SyncAction.Execute")
 	}
 
 	switch a {
 	case SyncEnable:
-		c.SetTlfSyncState(fb.Tlf, true)
+		err = c.SetTlfSyncState(fb.Tlf, true)
 
 	case SyncDisable:
-		c.SetTlfSyncState(fb.Tlf, false)
+		err = c.SetTlfSyncState(fb.Tlf, false)
 
 	default:
 		return fmt.Errorf("Unknown action %s", a)
 	}
+	if err != nil {
+		return err
+	}
 	// Re-trigger prefetches.
-	_, _, err := c.KBFSOps().GetRootNode(ctx, h, fb.Branch)
+	_, _, err = c.KBFSOps().GetRootNode(ctx, h, fb.Branch)
 	return err
 }

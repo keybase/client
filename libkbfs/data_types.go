@@ -801,6 +801,11 @@ type RekeyResult struct {
 type InitMode int
 
 const (
+	// InitModeMask masks out mode flags.
+	InitModeMask InitMode = 0xffff
+	// InitTest is a mode flag that represents whether we're running in a test.
+	InitTest InitMode = 1 << 16
+
 	// InitDefault is the normal mode for when KBFS data will be read
 	// and written.
 	InitDefault InitMode = iota
@@ -814,12 +819,24 @@ const (
 	InitSingleOp
 )
 
+// Mode returns the mode absent any mode flags.
+func (im InitMode) Mode() InitMode {
+	return im & InitModeMask
+}
+
+// HasFlags returns whether all the specified flags are set.
+func (im InitMode) HasFlags(flags InitMode) bool {
+	return im&flags > 0
+}
+
 func (im InitMode) String() string {
-	switch im {
+	switch im.Mode() {
 	case InitDefault:
 		return InitDefaultString
 	case InitMinimal:
 		return InitMinimalString
+	case InitSingleOp:
+		return InitSingleOpString
 	default:
 		return "unknown"
 	}

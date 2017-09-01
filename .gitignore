@@ -7,8 +7,6 @@ kbfsfuse/kbfs_key/
 kbfsfuse/kbfs_md/
 kbfsfuse/revision
 kbfsgit/git-remote-keybase/git-remote-keybase
-libkbfs/kbfs_block_cache/
-libkbfs/kbfs_sync_cache/
 *.test
 
 **/vim-go-test-compile

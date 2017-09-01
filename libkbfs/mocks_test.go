@@ -5461,6 +5461,53 @@ func (mr *MockTracerMockRecorder) MaybeFinishTrace(ctx, err interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeFinishTrace", reflect.TypeOf((*MockTracer)(nil).MaybeFinishTrace), ctx, err)
 }
 
+// MockinitModeGetter is a mock of initModeGetter interface
+type MockinitModeGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockinitModeGetterMockRecorder
+}
+
+// MockinitModeGetterMockRecorder is the mock recorder for MockinitModeGetter
+type MockinitModeGetterMockRecorder struct {
+	mock *MockinitModeGetter
+}
+
+// NewMockinitModeGetter creates a new mock instance
+func NewMockinitModeGetter(ctrl *gomock.Controller) *MockinitModeGetter {
+	mock := &MockinitModeGetter{ctrl: ctrl}
+	mock.recorder = &MockinitModeGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockinitModeGetter) EXPECT() *MockinitModeGetterMockRecorder {
+	return m.recorder
+}
+
+// Mode mocks base method
+func (m *MockinitModeGetter) Mode() InitMode {
+	ret := m.ctrl.Call(m, "Mode")
+	ret0, _ := ret[0].(InitMode)
+	return ret0
+}
+
+// Mode indicates an expected call of Mode
+func (mr *MockinitModeGetterMockRecorder) Mode() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mode", reflect.TypeOf((*MockinitModeGetter)(nil).Mode))
+}
+
+// IsTestMode mocks base method
+func (m *MockinitModeGetter) IsTestMode() bool {
+	ret := m.ctrl.Call(m, "IsTestMode")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsTestMode indicates an expected call of IsTestMode
+func (mr *MockinitModeGetterMockRecorder) IsTestMode() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTestMode", reflect.TypeOf((*MockinitModeGetter)(nil).IsTestMode))
+}
+
 // MockConfig is a mock of Config interface
 type MockConfig struct {
 	ctrl     *gomock.Controller
@@ -5674,6 +5721,30 @@ func (m *MockConfig) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 // SetTlfSyncState indicates an expected call of SetTlfSyncState
 func (mr *MockConfigMockRecorder) SetTlfSyncState(tlfID, isSynced interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MockConfig)(nil).SetTlfSyncState), tlfID, isSynced)
+}
+
+// Mode mocks base method
+func (m *MockConfig) Mode() InitMode {
+	ret := m.ctrl.Call(m, "Mode")
+	ret0, _ := ret[0].(InitMode)
+	return ret0
+}
+
+// Mode indicates an expected call of Mode
+func (mr *MockConfigMockRecorder) Mode() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mode", reflect.TypeOf((*MockConfig)(nil).Mode))
+}
+
+// IsTestMode mocks base method
+func (m *MockConfig) IsTestMode() bool {
+	ret := m.ctrl.Call(m, "IsTestMode")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsTestMode indicates an expected call of IsTestMode
+func (mr *MockConfigMockRecorder) IsTestMode() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTestMode", reflect.TypeOf((*MockConfig)(nil).IsTestMode))
 }
 
 // MaybeStartTrace mocks base method
@@ -6244,18 +6315,6 @@ func (m *MockConfig) SetRekeyWithPromptWaitTime(arg0 time.Duration) {
 // SetRekeyWithPromptWaitTime indicates an expected call of SetRekeyWithPromptWaitTime
 func (mr *MockConfigMockRecorder) SetRekeyWithPromptWaitTime(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRekeyWithPromptWaitTime", reflect.TypeOf((*MockConfig)(nil).SetRekeyWithPromptWaitTime), arg0)
-}
-
-// Mode mocks base method
-func (m *MockConfig) Mode() InitMode {
-	ret := m.ctrl.Call(m, "Mode")
-	ret0, _ := ret[0].(InitMode)
-	return ret0
-}
-
-// Mode indicates an expected call of Mode
-func (mr *MockConfigMockRecorder) Mode() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mode", reflect.TypeOf((*MockConfig)(nil).Mode))
 }
 
 // DelayedCancellationGracePeriod mocks base method

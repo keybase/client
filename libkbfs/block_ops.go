@@ -21,6 +21,7 @@ type blockOpsConfig interface {
 	keyGetterGetter
 	diskBlockCacheGetter
 	syncedTlfGetterSetter
+	initModeGetter
 }
 
 // BlockOpsStandard implements the BlockOps interface by relaying

@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"github.com/syndtr/goleveldb/leveldb/errors"
-	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
 )
@@ -30,6 +29,7 @@ type testDiskBlockCacheConfig struct {
 	*testClockGetter
 	limiter DiskLimiter
 	syncedTlfGetterSetter
+	initModeGetter
 }
 
 func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
@@ -39,6 +39,7 @@ func newTestDiskBlockCacheConfig(t *testing.T) *testDiskBlockCacheConfig {
 		newTestClockGetter(),
 		nil,
 		newTestSyncedTlfGetterSetter(),
+		testInitModeGetter{InitDefault},
 	}
 }
 
@@ -46,18 +47,16 @@ func (c testDiskBlockCacheConfig) DiskLimiter() DiskLimiter {
 	return c.limiter
 }
 
-func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
+func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
 	maxBytes int64) (DiskBlockCache, error) {
 	maxFiles := int64(10000)
-	workingSetCache, err := newDiskBlockCacheStandardFromStorage(
-		config, workingSetCacheLimitTrackerType, storage.NewMemStorage(),
-		storage.NewMemStorage(), storage.NewMemStorage())
+	workingSetCache, err := newDiskBlockCacheStandardForTest(config,
+		workingSetCacheLimitTrackerType)
 	if err != nil {
 		return nil, err
 	}
-	syncCache, err := newDiskBlockCacheStandardFromStorage(
-		config, syncCacheLimitTrackerType, storage.NewMemStorage(),
-		storage.NewMemStorage(), storage.NewMemStorage())
+	syncCache, err := newDiskBlockCacheStandardForTest(
+		config, syncCacheLimitTrackerType)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +100,7 @@ func newDiskBlockCacheStandardForTest(config *testDiskBlockCacheConfig,
 func initDiskBlockCacheTest(t *testing.T) (DiskBlockCache,
 	*testDiskBlockCacheConfig) {
 	config := newTestDiskBlockCacheConfig(t)
-	cache, err := newDiskBlockCacheStandardForTest(config,
+	cache, err := newDiskBlockCacheForTest(config,
 		testDiskBlockCacheMaxBytes)
 	require.NoError(t, err)
 	return cache, config

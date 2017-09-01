@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -22,6 +23,8 @@ import (
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/shirou/gopsutil/mem"
+	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/storage"
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
 )
@@ -56,6 +59,8 @@ const (
 	// batch to fill up before syncing a set of changes to the servers.
 	bgFlushPeriodDefault         = 1 * time.Second
 	keyBundlesCacheCapacityBytes = 10 * cache.MB
+	// folder name for persisted config parameters.
+	syncedTlfConfigFolderName = "synced_tlf_config"
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -309,8 +314,8 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 		loggerFn:    loggerFn,
 		storageRoot: storageRoot,
 		mode:        mode,
-		syncedTlfs:  make(map[tlf.ID]bool),
 	}
+	config.loadSyncedTlfsLocked()
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
@@ -330,7 +335,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 
 	// Don't bother creating the registry if UseNilMetrics is set, or
 	// if we're in minimal mode.
-	if !metrics.UseNilMetrics && mode != InitMinimal {
+	if !metrics.UseNilMetrics && config.Mode() != InitMinimal {
 		registry := metrics.NewRegistry()
 		config.SetMetricsRegistry(registry)
 	}
@@ -342,7 +347,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	config.quotaUsage =
 		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
 
-	switch config.mode {
+	switch config.mode.Mode() {
 	case InitDefault:
 		// In normal desktop app, we limit to 16 routines.
 		config.rekeyFSMLimiter = NewOngoingWorkLimiter(16)
@@ -731,7 +736,7 @@ func (c *ConfigLocal) DataVersion() DataVer {
 
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DoBackgroundFlushes() bool {
-	if c.mode == InitMinimal {
+	if c.Mode() == InitMinimal {
 		// Don't do background flushes when in minimal mode, since
 		// there shouldn't be any data writes.
 		return false
@@ -767,7 +772,13 @@ func (c *ConfigLocal) SetRekeyWithPromptWaitTime(d time.Duration) {
 
 // Mode implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Mode() InitMode {
-	return c.mode
+	// We return the mode with the test flag masked out.
+	return c.mode.Mode()
+}
+
+// IsTestMode implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) IsTestMode() bool {
+	return c.mode.HasFlags(InitTest)
 }
 
 // DelayedCancellationGracePeriod implements the Config interface for ConfigLocal.
@@ -835,7 +846,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	}
 	c.bcache = NewBlockCacheStandard(10000, capacity)
 
-	if c.mode == InitMinimal {
+	if c.Mode() == InitMinimal {
 		// No blocks will be dirtied in minimal mode, so don't bother
 		// with the dirty block cache.
 		return nil
@@ -1229,6 +1240,49 @@ func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 	return c.resetDiskBlockCacheLocked()
 }
 
+func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
+	dbPath := filepath.Join(c.storageRoot, configName)
+	stor, err := storage.OpenFile(dbPath, false)
+	if err != nil {
+		return nil, err
+	}
+	return openLevelDB(stor)
+}
+
+func (c *ConfigLocal) loadSyncedTlfsLocked() (err error) {
+	syncedTlfs := make(map[tlf.ID]bool)
+	if c.IsTestMode() {
+		c.syncedTlfs = syncedTlfs
+		return nil
+	}
+	if c.storageRoot == "" {
+		return errors.New("empty storageRoot specified for non-test run")
+	}
+	ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
+	if err != nil {
+		return err
+	}
+	defer ldb.Close()
+	iter := ldb.NewIterator(nil, nil)
+	defer iter.Release()
+
+	log := c.MakeLogger("")
+	// If there are any un-parseable IDs, delete them.
+	deleteBatch := new(leveldb.Batch)
+	for iter.Next() {
+		key := string(iter.Key())
+		tlfID, err := tlf.ParseID(key)
+		if err != nil {
+			log.Debug("deleting TLF %s from synced TLF list", key)
+			deleteBatch.Delete(iter.Key())
+			continue
+		}
+		syncedTlfs[tlfID] = true
+	}
+	c.syncedTlfs = syncedTlfs
+	return ldb.Write(deleteBatch, nil)
+}
+
 // IsSyncedTlf implements the isSyncedTlfGetter interface for ConfigLocal.
 func (c *ConfigLocal) IsSyncedTlf(tlfID tlf.ID) bool {
 	c.lock.RLock()
@@ -1243,9 +1297,31 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	if isSynced {
 		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 		if !ok {
-			return errors.Errorf("Invalid disk cache type to set TLF sync state.")
+			return errors.New("invalid disk cache type to set TLF sync state")
 		}
-		if err := diskCacheWrapped.enableSyncCache(); err != nil {
+		if !diskCacheWrapped.IsSyncCacheEnabled() {
+			return errors.New("sync block cache is not enabled")
+		}
+	}
+	if !c.IsTestMode() {
+		if c.storageRoot == "" {
+			return errors.New("empty storageRoot specified for non-test run")
+		}
+		ldb, err := c.openConfigLevelDB(syncedTlfConfigFolderName)
+		if err != nil {
+			return err
+		}
+		defer ldb.Close()
+		tlfBytes, err := tlfID.MarshalText()
+		if err != nil {
+			return err
+		}
+		if isSynced {
+			err = ldb.Put(tlfBytes, nil, nil)
+		} else {
+			err = ldb.Delete(tlfBytes, nil)
+		}
+		if err != nil {
 			return err
 		}
 	}

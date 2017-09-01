@@ -85,6 +85,7 @@ type testBlockOpsConfig struct {
 	cache   BlockCache
 	diskBlockCacheGetter
 	*testSyncedTlfGetterSetter
+	initModeGetter
 }
 
 var _ blockOpsConfig = (*testBlockOpsConfig)(nil)
@@ -118,7 +119,7 @@ func makeTestBlockOpsConfig(t *testing.T) testBlockOpsConfig {
 	dbcg := newTestDiskBlockCacheGetter(t, nil)
 	stgs := newTestSyncedTlfGetterSetter()
 	return testBlockOpsConfig{codecGetter, lm, bserver, crypto, cache, dbcg,
-		stgs}
+		stgs, testInitModeGetter{InitDefault}}
 }
 
 // TestBlockOpsReadySuccess checks that BlockOpsStandard.Ready()
