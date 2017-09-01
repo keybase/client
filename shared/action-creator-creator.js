@@ -35,6 +35,9 @@ const parsed: FileDesc = {
           errorCode: 'number',
         },
       },
+      addRoom: {
+        bam: 'string',
+      },
     },
     devices: {},
   },
@@ -77,7 +80,7 @@ function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
 
 function compileActionType(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
   if (!desc.canError) {
-    return `expor type ${actionTypeName(ns, actionName)} = NoErrorTypedAction<${actionReduxTypeName(ns, actionName)}, ${JSON.stringify(desc)}>`
+    return `export type ${actionTypeName(ns, actionName)} = NoErrorTypedAction<${actionReduxTypeName(ns, actionName)}, ${JSON.stringify(desc)}>`
   }
 
   const {canError: errorPayload, ...noErrorPayload} = desc
@@ -96,7 +99,7 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
     (canError
       ? `
 
-export function create${capitalize(ns)}${capitalize(actionName)}Error(payload: ${JSON.stringify(canError)}) {
+export function create${capitalize(ns)}${capitalize(actionName)}Error(payload: ${JSON.stringify(canError)}): ${actionTypeName(ns, actionName)} {
   return {
     type: ${actionReduxTypeName(ns, actionName)},
     error: true,
