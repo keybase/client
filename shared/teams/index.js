@@ -20,10 +20,9 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  ...ownProps,
 })
 
 export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Render)
