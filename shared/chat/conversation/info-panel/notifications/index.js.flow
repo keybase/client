@@ -2,12 +2,10 @@
 import {Component} from 'react'
 import type {NotifyType} from '../../../../constants/chat'
 
-type NotificationType = 'generic' | 'atmention' | 'never'
-
 export type Props = {
   channelWide: boolean,
-  desktop: NotificationType,
-  mobile: NotificationType,
+  desktop: NotifyType,
+  mobile: NotifyType,
   onSetDesktop: NotifyType => void,
   onSetMobile: NotifyType => void,
   onToggleChannelWide: () => void,
