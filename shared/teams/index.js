@@ -5,7 +5,7 @@ import openURL from '../util/open-url'
 
 const mapStateToProps = state => ({})
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   onCreateTeam: () => {
     // TODO: Hook this up. Need to change onShowNewTeamDialog to
     // make its conversationIDKey parameter optional first.
@@ -20,5 +20,10 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-// $FlowIssue type this connector
-export default pausableConnect(mapStateToProps, mapDispatchToProps)(Render)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  ...ownProps,
+})
+
+export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Render)
