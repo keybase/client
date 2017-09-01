@@ -551,7 +551,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 		ctx := CtxWithRandomIDReplayable(ctx, CtxJournalIDKey, CtxJournalOpID,
 			j.log)
 		switch {
-		case bws != TLFJournalBackgroundWorkPaused && errCh == nil:
+		case bws == TLFJournalBackgroundWorkEnabled && errCh == nil:
 			// 1) Idle.
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwIdle)
@@ -581,7 +581,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(
 				return
 			}
 
-		case bws != TLFJournalBackgroundWorkPaused && errCh != nil:
+		case bws == TLFJournalBackgroundWorkEnabled && errCh != nil:
 			// 2) Busy.
 			if j.bwDelegate != nil {
 				j.bwDelegate.OnNewState(ctx, bwBusy)
