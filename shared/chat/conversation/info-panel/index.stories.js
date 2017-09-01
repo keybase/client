@@ -31,7 +31,7 @@ const participants: Array<{
     following: true,
     fullname: 'Max Krohn',
     isYou: false,
-    username: 'Max',
+    username: 'max',
   },
 ]
 
