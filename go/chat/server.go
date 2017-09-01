@@ -2152,9 +2152,17 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 		return res, err
 	}
 
+	var nsettings chat1.ConversationNotificationInfo
+	nsettings.ChannelWide = arg.ChannelWide
+	nsettings.Settings = make(map[keybase1.DeviceType]map[chat1.NotificationKind]bool)
+	nsettings.Settings[keybase1.DeviceType_MOBILE] = make(map[chat1.NotificationKind]bool)
+	nsettings.Settings[keybase1.DeviceType_DESKTOP] = make(map[chat1.NotificationKind]bool)
+	for _, setting := range arg.Settings {
+		nsettings.Settings[setting.DeviceType][setting.Kind] = setting.Enabled
+	}
 	setRes, err := h.remoteClient().SetAppNotificationSettings(ctx, chat1.SetAppNotificationSettingsArg{
 		ConvID:   arg.ConvID,
-		Settings: arg.Settings,
+		Settings: nsettings,
 	})
 	if err != nil {
 		h.Debug(ctx, "SetAppNotificationSettings: failed to post to remote: %s", err.Error())

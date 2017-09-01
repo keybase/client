@@ -195,6 +195,7 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("KBFS Stage Begin")
 	f(chat1.ConversationMembersType_KBFS)
 	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
+
 	useRemoteMock = false
 	t.Logf("Team Stage Begin")
 	start = time.Now()
@@ -358,7 +359,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	// Create conversation name based on list of users
 	var name string
 	switch membersType {
-	case chat1.ConversationMembersType_KBFS:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
 		var memberStr []string
 		for _, other := range others {
 			memberStr = append(memberStr, other.Username)
@@ -375,6 +376,8 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 		} else {
 			name = tn
 		}
+	default:
+		t.Fatalf("unhandled membersType: %v", membersType)
 	}
 	tc := ctc.as(t, creator)
 	ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
@@ -2273,19 +2276,22 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			require.Fail(t, "no new message event")
 		}
 
-		var settings chat1.ConversationNotificationInfo
-		utils.NotificationInfoSet(&settings, keybase1.DeviceType_DESKTOP,
-			chat1.NotificationKind_GENERIC, false)
+		setting := chat1.AppNotificationSettingLocal{
+			DeviceType: keybase1.DeviceType_DESKTOP,
+			Kind:       chat1.NotificationKind_GENERIC,
+			Enabled:    false,
+		}
 		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
 			chat1.SetAppNotificationSettingsLocalArg{
 				ConvID:   conv.Id,
-				Settings: settings,
+				Settings: []chat1.AppNotificationSettingLocal{setting},
 			})
 		require.NoError(t, err)
 		select {
 		case rsettings := <-listener0.appNotificationSettings:
 			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
-			require.Equal(t, 1, len(rsettings.Settings.Settings))
+			require.Equal(t, 2, len(rsettings.Settings.Settings))
+			require.False(t, rsettings.Settings.ChannelWide)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no app notification received")
 		}
@@ -2303,6 +2309,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		require.Equal(t, 2, len(gconv.Notifications.Settings))
 		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP]))
 		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_MOBILE]))
+		require.False(t, gconv.Notifications.ChannelWide)
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -2325,6 +2332,20 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			}
 		}
 		validateDisplayAtMention(users[0].Username)
+
+		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
+			chat1.SetAppNotificationSettingsLocalArg{
+				ConvID:      conv.Id,
+				ChannelWide: true,
+			})
+		require.NoError(t, err)
+		select {
+		case rsettings := <-listener0.appNotificationSettings:
+			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
+			require.True(t, rsettings.Settings.ChannelWide)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no app notification received")
+		}
 		validateDisplayAtMention("channel")
 		validateDisplayAtMention("everyone")
 		validateDisplayAtMention("here")
@@ -2485,4 +2506,123 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		require.Equal(t, fmt.Sprintf("%s (%s#%s): PUSH", users[0].Username, conv.TlfName, "general"),
 			unboxRes)
 	})
+}
+
+func TestChatSrvImplicitConversation(t *testing.T) {
+	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	useRemoteMock = false
+	defer func() {
+		useRemoteMock = true
+	}()
+	ctc := makeChatTestContext(t, "ImplicitConversation", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+	displayName := users[0].Username + "," + users[1].Username
+
+	tc := ctc.world.Tcs[users[0].Username]
+	ctx := ctc.as(t, users[0]).startCtx
+	res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+		chat1.FindConversationsLocalArg{
+			TlfName:          displayName,
+			MembersType:      chat1.ConversationMembersType_IMPTEAM,
+			Visibility:       chat1.TLFVisibility_PRIVATE,
+			TopicType:        chat1.TopicType_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	require.Equal(t, 0, len(res.Conversations), "conv found")
+
+	// make the implicit team
+	implicitTeamDesc := keybase1.ImplicitTeamDisplayName{
+		Writers: keybase1.ImplicitTeamUserSet{
+			KeybaseUsers: []string{users[0].Username, users[1].Username},
+		},
+	}
+	impTeamID, err := teams.CreateImplicitTeam(ctx, tc.G, implicitTeamDesc)
+	require.NoError(t, err)
+	require.True(t, impTeamID.IsRootTeam(), "not root team")
+
+	// create a new conversation
+	ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+		chat1.NewConversationLocalArg{
+			TlfName:          displayName,
+			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+			TopicType:        chat1.TopicType_CHAT,
+			MembersType:      chat1.ConversationMembersType_IMPTEAM,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+
+	ctx = ctc.as(t, users[0]).startCtx
+	uid := users[0].User.GetUID().ToBytes()
+	conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
+	require.NoError(t, err)
+	require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
+	require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAM, "implicit team")
+
+	t.Logf("ncres tlf name: %s", ncres.Conv.Info.TlfName)
+
+	// user 0 sends a message to conv
+	_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+		ConversationID: ncres.Conv.Info.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        ncres.Conv.Info.Triple,
+				MessageType: chat1.MessageType_TEXT,
+				TlfName:     ncres.Conv.Info.TlfName,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "HI",
+			}),
+		},
+	})
+	require.NoError(t, err)
+
+	// user 1 sends a message to conv
+	ctx = ctc.as(t, users[1]).startCtx
+	_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+		ConversationID: ncres.Conv.Info.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        ncres.Conv.Info.Triple,
+				MessageType: chat1.MessageType_TEXT,
+				TlfName:     ncres.Conv.Info.TlfName,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "Hello",
+			}),
+		},
+	})
+	require.NoError(t, err)
+
+	// user 1 finds the conversation
+	tc = ctc.world.Tcs[users[1].Username]
+	ctx = ctc.as(t, users[1]).startCtx
+	res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
+		chat1.FindConversationsLocalArg{
+			TlfName:          displayName,
+			MembersType:      chat1.ConversationMembersType_IMPTEAM,
+			Visibility:       chat1.TLFVisibility_PRIVATE,
+			TopicType:        chat1.TopicType_CHAT,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res.Conversations), "no convs found")
+}
+
+func TestImpTeamExistingKBFS(t *testing.T) {
+	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+
+	c1 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_KBFS, ctc.as(t, users[1]).user())
+	c2 := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_IMPTEAM, ctc.as(t, users[1]).user())
+
+	t.Logf("c1: %v c2: %v", c1, c2)
+	if !c2.Id.Eq(c1.Id) {
+		t.Fatalf("2nd call to NewConversationLocal as IMPTEAM for a KBFS conversation did not return the same conversation ID")
+	}
 }

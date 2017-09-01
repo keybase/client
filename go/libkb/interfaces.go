@@ -577,6 +577,7 @@ const (
 
 type ConnectivityMonitor interface {
 	IsConnected(ctx context.Context) ConnectivityMonitorResult
+	CheckReachability(ctx context.Context) error
 }
 
 type TeamLoader interface {

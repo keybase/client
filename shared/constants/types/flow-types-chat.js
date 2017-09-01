@@ -728,6 +728,12 @@ export function remoteUpdateTypingRemoteRpcPromise (request: (requestCommon & re
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.updateTypingRemote', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export type AppNotificationSettingLocal = {
+  deviceType: keybase1.DeviceType,
+  kind: NotificationKind,
+  enabled: boolean,
+}
+
 export type Asset = {
   filename: string,
   region: string,
@@ -2158,7 +2164,8 @@ export type localRetryPostRpcParam = Exact<{
 
 export type localSetAppNotificationSettingsLocalRpcParam = Exact<{
   convID: ConversationID,
-  settings: ConversationNotificationInfo
+  channelWide: boolean,
+  settings?: ?Array<AppNotificationSettingLocal>
 }>
 
 export type localSetConversationStatusLocalRpcParam = Exact<{

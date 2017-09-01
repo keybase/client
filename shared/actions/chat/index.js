@@ -18,6 +18,7 @@ import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
+  CommonDeviceType,
   ConstantsStatusCode,
   teamsTeamCreateRpcPromise,
   teamsTeamAddMemberRpcPromise,
@@ -191,6 +192,18 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               svcShouldDisplayNotification
             )
           )
+        }
+      }
+      break
+    case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
+      if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
+        const {convID, settings} = action.payload.activity.setAppNotificationSettings
+        if (convID && settings) {
+          const conversationIDKey = Constants.conversationIDToKey(convID)
+          const notifications = Inbox.parseNotifications(settings)
+          if (notifications) {
+            yield put(Creators.updatedNotifications(conversationIDKey, notifications))
+          }
         }
       }
       break
@@ -1172,15 +1185,19 @@ function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUp
   yield all(actionsToPut)
 }
 
-function* _exitSearch(_, inboxSearch: ReturnValue<typeof inboxSearchSelector>) {
+function _exitSearch(
+  _,
+  [inboxSearch, previousConversation]: [
+    ReturnValue<typeof inboxSearchSelector>,
+    ReturnValue<typeof previousConversationSelector>,
+  ]
+) {
   return all([
     put(SearchCreators.clearSearchResults('chatSearch')),
     put(SearchCreators.setUserInputItems('chatSearch', [])),
     put(Creators.setInboxSearch([])),
     put(Creators.removeTempPendingConversations()),
-    inboxSearch.count() === 0
-      ? yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
-      : null,
+    inboxSearch.count() === 0 ? put(Creators.selectConversation(previousConversation, false)) : null,
   ])
 }
 
@@ -1206,6 +1223,42 @@ function* _createNewTeam(action: Constants.CreateNewTeam) {
         })
       }
     }
+  }
+}
+
+const _setNotifications = function*(action: Constants.SetNotifications) {
+  const {payload: {conversationIDKey}} = action
+  // Send the new post-reducer setNotifications structure to the service.
+  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  if (inbox && inbox.notifications) {
+    const {notifications} = inbox
+    const param = {
+      convID: Constants.keyToConversationID(conversationIDKey),
+      channelWide: notifications.channelWide,
+      settings: [
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.desktop.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.desktop.generic,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.mobile.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.mobile.generic,
+        },
+      ],
+    }
+    yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
   }
 }
 
@@ -1319,7 +1372,12 @@ function* chatSaga(): SagaGenerator<any, any> {
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
     _updateTempSearchConversation
   )
-  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch, inboxSearchSelector)
+  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch, s => [
+    inboxSearchSelector(s),
+    previousConversationSelector(s),
+  ])
+  yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
+  yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
 }
 
 export default chatSaga

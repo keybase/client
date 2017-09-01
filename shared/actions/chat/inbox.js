@@ -5,7 +5,7 @@ import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import {RPCTimeoutError} from '../../util/errors'
 import {List, Map} from 'immutable'
-import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {CommonDeviceType, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select, cancelled, take, spawn} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
@@ -39,6 +39,7 @@ let _backgroundLoopTask
 function* onInitialInboxLoad(): SagaGenerator<any, any> {
   try {
     yield put(Creators.inboxStale())
+
     if (!isMobile) {
       // Only allow one loop at a time
       if (!_backgroundLoopTask) {
@@ -374,6 +375,34 @@ function* unboxConversations(
   }
 }
 
+const parseNotifications = (
+  notifications: ChatTypes.ConversationNotificationInfo
+): ?Constants.NotificationsState => {
+  if (!notifications || !notifications.settings) {
+    return null
+  }
+  const {settings} = notifications
+  return {
+    channelWide: notifications.channelWide,
+    desktop: {
+      atmention: settings[CommonDeviceType.desktop.toString()][
+        ChatTypes.CommonNotificationKind.atmention.toString()
+      ],
+      generic: settings[CommonDeviceType.desktop.toString()][
+        ChatTypes.CommonNotificationKind.generic.toString()
+      ],
+    },
+    mobile: {
+      atmention: settings[CommonDeviceType.mobile.toString()][
+        ChatTypes.CommonNotificationKind.atmention.toString()
+      ],
+      generic: settings[CommonDeviceType.mobile.toString()][
+        ChatTypes.CommonNotificationKind.generic.toString()
+      ],
+    },
+  }
+}
+
 // Convert server to our data type. Make timestamps and snippets
 function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.InboxState {
   if (
@@ -395,12 +424,15 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     channelname = c.channel
   }
 
+  const notifications = c.notifications && parseNotifications(c.notifications)
+
   return new Constants.InboxStateRecord({
     channelname,
     conversationIDKey,
     isEmpty: c.isEmpty,
     membersType: c.membersType,
     name: c.name,
+    notifications,
     participants: parts,
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
@@ -414,6 +446,7 @@ export {
   onInitialInboxLoad,
   onInboxStale,
   onGetInboxAndUnbox,
+  parseNotifications,
   unboxConversations,
   processConversation,
   untrustedInboxVisible,

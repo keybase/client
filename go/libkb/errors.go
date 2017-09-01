@@ -2082,6 +2082,6 @@ func (e ImplicitTeamDisplayNameError) Error() string {
 	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
 }
 
-func NewImplicitTeamDisplayNameError(s string) ImplicitTeamDisplayNameError {
-	return ImplicitTeamDisplayNameError{s}
+func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
 }
