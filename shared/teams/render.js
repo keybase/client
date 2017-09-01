@@ -42,7 +42,7 @@ type BetaNoteProps = {
   onReadDoc: () => void,
 }
 
-const BetaNote = (props: BetaNoteProps) => (
+export const BetaNote = (props: BetaNoteProps) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
     <Box style={{...globalStyles.flexBoxRow}}>
       <Text type="BodySmall">&mdash;&mdash;</Text>
