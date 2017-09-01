@@ -105,12 +105,6 @@ func (o TopicNameState) DeepCopy() TopicNameState {
 	})(o)
 }
 
-type TLFVisibility keybase1.TLFVisibility
-
-func (o TLFVisibility) DeepCopy() TLFVisibility {
-	return o.DeepCopy()
-}
-
 type ConversationMembersType int
 
 const (

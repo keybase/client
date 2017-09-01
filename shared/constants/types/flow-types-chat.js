@@ -1809,8 +1809,6 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
-export type TLFVisibility = keybase1.TLFVisibility
-
 export type ThreadID = bytes
 
 export type ThreadView = {

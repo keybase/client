@@ -77,12 +77,6 @@
       "typedef": "bytes"
     },
     {
-      "type": "record",
-      "name": "TLFVisibility",
-      "fields": [],
-      "typedef": "keybase1.TLFVisibility"
-    },
-    {
       "type": "enum",
       "name": "ConversationMembersType",
       "symbols": [
