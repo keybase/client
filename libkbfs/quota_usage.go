@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -25,9 +26,11 @@ type ECQUCtxTagKey struct{}
 const ECQUID = "ECQU"
 
 type cachedQuotaUsage struct {
-	timestamp  time.Time
-	usageBytes int64
-	limitBytes int64
+	timestamp     time.Time
+	usageBytes    int64
+	limitBytes    int64
+	gitUsageBytes int64
+	gitLimitBytes int64
 }
 
 // EventuallyConsistentQuotaUsage keeps tracks of quota usage, in a way user of
@@ -83,8 +86,10 @@ func (q *EventuallyConsistentQuotaUsage) getAndCache(
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.cached.limitBytes = quotaInfo.Limit
+	q.cached.gitLimitBytes = quotaInfo.GitLimit
 	if quotaInfo.Total != nil {
 		q.cached.usageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageWrite]
+		q.cached.gitUsageBytes = quotaInfo.Total.Bytes[kbfsblock.UsageGitWrite]
 	} else {
 		q.cached.usageBytes = 0
 	}
@@ -99,10 +104,12 @@ func (q *EventuallyConsistentQuotaUsage) getCached() cachedQuotaUsage {
 	return q.cached
 }
 
-// Get returns KBFS bytes used and limit for user. To help avoid having too
-// frequent calls into bserver, caller can provide a positive tolerance, to
-// accept stale LimitBytes and UsageBytes data. If tolerance is 0 or negative,
-// this always makes a blocking RPC to bserver and return latest quota usage.
+// Get returns KBFS bytes used and limit for user, for the current
+// default block type. To help avoid having too frequent calls into
+// bserver, caller can provide a positive tolerance, to accept stale
+// LimitBytes and UsageBytes data. If tolerance is 0 or negative, this
+// always makes a blocking RPC to bserver and return latest quota
+// usage.
 //
 // 1) If the age of cached data is more than blockTolerance, a blocking RPC is
 // issued and the function only returns after RPC finishes, with the newest
@@ -121,5 +128,30 @@ func (q *EventuallyConsistentQuotaUsage) Get(
 	}
 
 	c = q.getCached()
-	return c.timestamp, c.usageBytes, c.limitBytes, nil
+	switch q.config.DefaultBlockType() {
+	case keybase1.BlockType_DATA:
+		return c.timestamp, c.usageBytes, c.limitBytes, nil
+	case keybase1.BlockType_GIT:
+		return c.timestamp, c.gitUsageBytes, c.gitLimitBytes, nil
+	default:
+		return time.Time{}, -1, -1, errors.Errorf(
+			"Unknown default block type: %d", q.config.DefaultBlockType())
+	}
+}
+
+// GetAllTypes is the same as Get, except it returns usage and limits
+// for all block types.
+func (q *EventuallyConsistentQuotaUsage) GetAllTypes(
+	ctx context.Context, bgTolerance, blockTolerance time.Duration) (
+	timestamp time.Time,
+	usageBytes, limitBytes, gitUsageBytes, getLimitBytes int64, err error) {
+	c := q.getCached()
+	err = q.fetcher.Do(ctx, bgTolerance, blockTolerance, c.timestamp)
+	if err != nil {
+		return time.Time{}, -1, -1, -1, -1, err
+	}
+
+	c = q.getCached()
+	return c.timestamp,
+		c.usageBytes, c.limitBytes, c.gitUsageBytes, c.gitLimitBytes, nil
 }

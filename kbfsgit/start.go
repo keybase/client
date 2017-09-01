@@ -8,6 +8,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -73,6 +74,10 @@ func Start(ctx context.Context, options StartOptions,
 		return libfs.InitError(err.Error())
 	}
 	defer config.Shutdown(ctx)
+
+	// Make any blocks written by via this config charged to the git
+	// quota.
+	config.SetDefaultBlockType(keybase1.BlockType_GIT)
 
 	errput.Write([]byte("done.\n"))
 

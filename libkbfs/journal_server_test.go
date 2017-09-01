@@ -93,13 +93,15 @@ type quotaBlockServer struct {
 }
 
 func (qbs *quotaBlockServer) setUserQuotaInfo(
-	remoteUsageBytes, limitBytes int64) {
+	remoteUsageBytes, limitBytes, remoteGitUsageBytes, gitLimitBytes int64) {
 	qbs.quotaInfoLock.Lock()
 	defer qbs.quotaInfoLock.Unlock()
 	qbs.userQuotaInfo.Limit = limitBytes
+	qbs.userQuotaInfo.GitLimit = gitLimitBytes
 	qbs.userQuotaInfo.Total = &kbfsblock.UsageStat{
 		Bytes: map[kbfsblock.UsageType]int64{
-			kbfsblock.UsageWrite: remoteUsageBytes,
+			kbfsblock.UsageWrite:    remoteUsageBytes,
+			kbfsblock.UsageGitWrite: remoteGitUsageBytes,
 		},
 	}
 }
@@ -159,7 +161,7 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 	config.SetClock(clock)
 
 	// Set initial quota usage and refresh quotaUsage's cache.
-	qbs.setUserQuotaInfo(1010, 1000)
+	qbs.setUserQuotaInfo(1010, 1000, 2010, 2000)
 	_, _, _, err = quotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
@@ -269,7 +271,7 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	config.SetClock(clock)
 
 	// Set initial quota usage and refresh quotaUsage's cache.
-	qbs.setUserQuotaInfo(1010, 1000)
+	qbs.setUserQuotaInfo(1010, 1000, 2010, 2000)
 	_, _, _, err := quotaUsage.Get(ctx, 0, 0)
 	require.NoError(t, err)
 
@@ -828,7 +830,7 @@ func TestJournalQuotaStatus(t *testing.T) {
 	// Set initial quota usage and refresh quotaUsage's cache.
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
 	config.SetBlockServer(qbs)
-	qbs.setUserQuotaInfo(10, 1000)
+	qbs.setUserQuotaInfo(10, 1000, 20, 2000)
 
 	// Make sure the quota status is correct, even if we haven't
 	// written anything yet.
@@ -838,4 +840,24 @@ func TestJournalQuotaStatus(t *testing.T) {
 		t, int64(10), bs.JournalTrackerStatus.QuotaStatus.RemoteUsedBytes)
 	require.Equal(
 		t, int64(1000), bs.JournalTrackerStatus.QuotaStatus.QuotaBytes)
+}
+
+func TestJournalQuotaStatusForGitBlocks(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
+	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+	config.SetDefaultBlockType(keybase1.BlockType_GIT)
+
+	// Set initial quota usage and refresh quotaUsage's cache.
+	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
+	config.SetBlockServer(qbs)
+	qbs.setUserQuotaInfo(10, 1000, 20, 2000)
+
+	// Make sure the quota status is correct, even if we haven't
+	// written anything yet.
+	s, _ := jServer.Status(ctx)
+	bs := s.DiskLimiterStatus.(backpressureDiskLimiterStatus)
+	require.Equal(
+		t, int64(20), bs.JournalTrackerStatus.QuotaStatus.RemoteUsedBytes)
+	require.Equal(
+		t, int64(2000), bs.JournalTrackerStatus.QuotaStatus.QuotaBytes)
 }

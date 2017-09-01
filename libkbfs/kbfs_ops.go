@@ -656,15 +656,16 @@ func (fs *KBFSOpsStandard) FolderStatus(
 func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	KBFSStatus, <-chan StatusUpdate, error) {
 	session, err := fs.config.KBPKI().GetCurrentSession(ctx)
-	var usageBytes int64 = -1
-	var limitBytes int64 = -1
+	var usageBytes, limitBytes int64 = -1, -1
+	var gitUsageBytes, gitLimitBytes int64 = -1, -1
 	// Don't request the quota info until we're sure we've
 	// authenticated with our password.  TODO: fix this in the
 	// service/GUI by handling multiple simultaneous passphrase
 	// requests at once.
 	if err == nil && fs.config.MDServer().IsConnected() {
 		var quErr error
-		_, usageBytes, limitBytes, quErr = fs.quotaUsage.Get(ctx, 0, 0)
+		_, usageBytes, limitBytes, gitUsageBytes, gitLimitBytes, quErr =
+			fs.quotaUsage.GetAllTypes(ctx, 0, 0)
 		if quErr != nil {
 			// The error is ignored here so that other fields can still be populated
 			// even if this fails.
@@ -701,6 +702,8 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		IsConnected:     fs.config.MDServer().IsConnected(),
 		UsageBytes:      usageBytes,
 		LimitBytes:      limitBytes,
+		GitUsageBytes:   gitUsageBytes,
+		GitLimitBytes:   gitLimitBytes,
 		FailingServices: failures,
 		JournalServer:   jServerStatus,
 		DiskCacheStatus: dbcStatus,

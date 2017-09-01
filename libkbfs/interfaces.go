@@ -1770,6 +1770,8 @@ type Config interface {
 	SetConflictRenamer(ConflictRenamer)
 	MetadataVersion() MetadataVer
 	SetMetadataVersion(MetadataVer)
+	DefaultBlockType() keybase1.BlockType
+	SetDefaultBlockType(blockType keybase1.BlockType)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations

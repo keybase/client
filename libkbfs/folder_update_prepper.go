@@ -195,7 +195,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 	var uid keybase1.UID
 	for len(newPath.path) < len(dir.path)+1 {
 		info, plainSize, err := fup.readyBlockMultiple(
-			ctx, md.ReadOnly(), currBlock, chargedTo, bps, keybase1.BlockType_DATA)
+			ctx, md.ReadOnly(), currBlock, chargedTo, bps,
+			fup.config.DefaultBlockType())
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
 		}

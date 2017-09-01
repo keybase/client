@@ -1370,7 +1370,7 @@ func ResetRootBlock(ctx context.Context, config Config,
 	info, plainSize, readyBlockData, err :=
 		ReadyBlock(ctx, config.BlockCache(), config.BlockOps(),
 			config.Crypto(), rmd.ReadOnly(), newDblock, chargedTo,
-			keybase1.BlockType_DATA)
+			config.DefaultBlockType())
 	if err != nil {
 		return nil, BlockInfo{}, ReadyBlockData{}, err
 	}
@@ -2641,7 +2641,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 		DataVer:    fbo.config.DataVersion(),
 		DirectType: DirectBlock,
 		Context: kbfsblock.MakeFirstContext(
-			chargedTo, keybase1.BlockType_DATA),
+			chargedTo, fbo.config.DefaultBlockType()),
 	}
 	co.AddRefBlock(newPtr)
 	co.AddSelfUpdate(parentPtr)

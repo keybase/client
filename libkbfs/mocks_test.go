@@ -6263,6 +6263,28 @@ func (mr *MockConfigMockRecorder) SetMetadataVersion(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetMetadataVersion", reflect.TypeOf((*MockConfig)(nil).SetMetadataVersion), arg0)
 }
 
+// DefaultBlockType mocks base method
+func (m *MockConfig) DefaultBlockType() keybase1.BlockType {
+	ret := m.ctrl.Call(m, "DefaultBlockType")
+	ret0, _ := ret[0].(keybase1.BlockType)
+	return ret0
+}
+
+// DefaultBlockType indicates an expected call of DefaultBlockType
+func (mr *MockConfigMockRecorder) DefaultBlockType() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DefaultBlockType", reflect.TypeOf((*MockConfig)(nil).DefaultBlockType))
+}
+
+// SetDefaultBlockType mocks base method
+func (m *MockConfig) SetDefaultBlockType(blockType keybase1.BlockType) {
+	m.ctrl.Call(m, "SetDefaultBlockType", blockType)
+}
+
+// SetDefaultBlockType indicates an expected call of SetDefaultBlockType
+func (mr *MockConfigMockRecorder) SetDefaultBlockType(blockType interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetDefaultBlockType", reflect.TypeOf((*MockConfig)(nil).SetDefaultBlockType), blockType)
+}
+
 // RekeyQueue mocks base method
 func (m *MockConfig) RekeyQueue() RekeyQueue {
 	ret := m.ctrl.Call(m, "RekeyQueue")

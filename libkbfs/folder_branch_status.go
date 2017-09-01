@@ -53,6 +53,8 @@ type KBFSStatus struct {
 	IsConnected     bool
 	UsageBytes      int64
 	LimitBytes      int64
+	GitUsageBytes   int64
+	GitLimitBytes   int64
 	FailingServices map[string]error
 	JournalServer   *JournalServerStatus            `json:",omitempty"`
 	DiskCacheStatus map[string]DiskBlockCacheStatus `json:",omitempty"`

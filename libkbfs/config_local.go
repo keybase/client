@@ -61,41 +61,46 @@ const (
 	keyBundlesCacheCapacityBytes = 10 * cache.MB
 	// folder name for persisted config parameters.
 	syncedTlfConfigFolderName = "synced_tlf_config"
+
+	// By default, this will be the block type given to all blocks
+	// that aren't explicitly some other type.
+	defaultBlockTypeDefault = keybase1.BlockType_DATA
 )
 
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	lock           sync.RWMutex
-	kbfs           KBFSOps
-	keyman         KeyManager
-	rep            Reporter
-	kcache         KeyCache
-	kbcache        KeyBundleCache
-	bcache         BlockCache
-	dirtyBcache    DirtyBlockCache
-	diskBlockCache DiskBlockCache
-	codec          kbfscodec.Codec
-	mdops          MDOps
-	kops           KeyOps
-	crypto         Crypto
-	mdcache        MDCache
-	bops           BlockOps
-	mdserv         MDServer
-	bserv          BlockServer
-	keyserv        KeyServer
-	service        KeybaseService
-	bsplit         BlockSplitter
-	notifier       Notifier
-	clock          Clock
-	kbpki          KBPKI
-	renamer        ConflictRenamer
-	registry       metrics.Registry
-	loggerFn       func(prefix string) logger.Logger
-	noBGFlush      bool // logic opposite so the default value is the common setting
-	rwpWaitTime    time.Duration
-	diskLimiter    DiskLimiter
-	syncedTlfs     map[tlf.ID]bool
+	lock             sync.RWMutex
+	kbfs             KBFSOps
+	keyman           KeyManager
+	rep              Reporter
+	kcache           KeyCache
+	kbcache          KeyBundleCache
+	bcache           BlockCache
+	dirtyBcache      DirtyBlockCache
+	diskBlockCache   DiskBlockCache
+	codec            kbfscodec.Codec
+	mdops            MDOps
+	kops             KeyOps
+	crypto           Crypto
+	mdcache          MDCache
+	bops             BlockOps
+	mdserv           MDServer
+	bserv            BlockServer
+	keyserv          KeyServer
+	service          KeybaseService
+	bsplit           BlockSplitter
+	notifier         Notifier
+	clock            Clock
+	kbpki            KBPKI
+	renamer          ConflictRenamer
+	registry         metrics.Registry
+	loggerFn         func(prefix string) logger.Logger
+	noBGFlush        bool // logic opposite so the default value is the common setting
+	rwpWaitTime      time.Duration
+	diskLimiter      DiskLimiter
+	syncedTlfs       map[tlf.ID]bool
+	defaultBlockType keybase1.BlockType
 
 	maxNameBytes uint32
 	maxDirBytes  uint64
@@ -344,6 +349,7 @@ func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
 	config.bgFlushDirOpBatchSize = bgFlushDirOpBatchSizeDefault
 	config.bgFlushPeriod = bgFlushPeriodDefault
 	config.metadataVersion = defaultClientMetadataVer
+	config.defaultBlockType = defaultBlockTypeDefault
 	config.quotaUsage =
 		make(map[keybase1.UserOrTeamID]*EventuallyConsistentQuotaUsage)
 
@@ -732,6 +738,20 @@ func (c *ConfigLocal) SetMetadataVersion(mdVer MetadataVer) {
 // DataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DataVersion() DataVer {
 	return AtLeastTwoLevelsOfChildrenDataVer
+}
+
+// DefaultBlockType implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) DefaultBlockType() keybase1.BlockType {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.defaultBlockType
+}
+
+// SetDefaultBlockType implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetDefaultBlockType(blockType keybase1.BlockType) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.defaultBlockType = blockType
 }
 
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
