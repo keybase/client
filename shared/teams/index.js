@@ -3,6 +3,26 @@ import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 
+import type {TypedState} from '../constants/reducer'
+
+type StateProps = {
+  teams: Array<{name: string}>,
+}
+
+const mapStateToProps = (state: TypedState): StateProps => {
+  const inbox = state.chat.get('inbox')
+  const teams = {}
+  inbox.forEach(i => {
+    teams[i.teamname] = {}
+  })
+  let teamNames = Object.keys(teams)
+  // TODO: Sort case-insensitively?
+  teamNames.sort()
+  return {
+    teams: teamNames.map(name => ({name})),
+  }
+}
+
 type DispatchProps = {
   onCreateTeam: () => void,
   onJoinTeam: () => void,
@@ -24,4 +44,4 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   },
 })
 
-export default pausableConnect(null, mapDispatchToProps)(Render)
+export default pausableConnect(mapStateToProps, mapDispatchToProps)(Render)

@@ -108,13 +108,9 @@ const rowStyle = {
   paddingRight: globalMargins.small,
 }
 
-type Props = {
-  onCreateTeam: () => void,
-  onJoinTeam: () => void,
-  onReadDoc: () => void,
-}
+type Props = HeaderProps & BetaNoteProps & TeamListProps
 
-// TODO: Add banner and team rows.
+// TODO: Add banner.
 const Render = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
     <Header {...props} />
@@ -129,6 +125,7 @@ const Render = (props: Props) => (
         marginTop: globalMargins.tiny,
       }}
     >
+      <TeamList {...props} />
       <BetaNote {...props} />
     </ScrollView>
   </Box>
