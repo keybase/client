@@ -2291,6 +2291,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		case rsettings := <-listener0.appNotificationSettings:
 			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
 			require.Equal(t, 2, len(rsettings.Settings.Settings))
+			require.False(t, rsettings.Settings.ChannelWide)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no app notification received")
 		}
@@ -2308,6 +2309,7 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 		require.Equal(t, 2, len(gconv.Notifications.Settings))
 		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_DESKTOP]))
 		require.Equal(t, 2, len(gconv.Notifications.Settings[keybase1.DeviceType_MOBILE]))
+		require.False(t, gconv.Notifications.ChannelWide)
 
 		mustPostLocalForTest(t, ctc, users[1], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
@@ -2330,6 +2332,20 @@ func TestChatSrvSetAppNotificationSettings(t *testing.T) {
 			}
 		}
 		validateDisplayAtMention(users[0].Username)
+
+		_, err = ctc.as(t, users[0]).chatLocalHandler().SetAppNotificationSettingsLocal(ctx,
+			chat1.SetAppNotificationSettingsLocalArg{
+				ConvID:      conv.Id,
+				ChannelWide: true,
+			})
+		require.NoError(t, err)
+		select {
+		case rsettings := <-listener0.appNotificationSettings:
+			require.Equal(t, gconv.GetConvID(), rsettings.ConvID)
+			require.True(t, rsettings.Settings.ChannelWide)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no app notification received")
+		}
 		validateDisplayAtMention("channel")
 		validateDisplayAtMention("everyone")
 		validateDisplayAtMention("here")
