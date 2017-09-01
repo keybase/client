@@ -5,14 +5,25 @@ import pausableConnect from '../util/pausable-connect'
 import {switchTo} from '../actions/route-tree'
 import {logout} from '../actions/login/creators'
 
+import type {Tab} from '../constants/settings'
 import type {TypedState} from '../constants/reducer'
 import type {RouteProps} from '../route-tree/render-route'
+
+type StateProps = {
+  badgeNumbers: {[key: Tab]: number},
+  selectedTab: Tab,
+}
 
 const mapStateToProps = (state: TypedState, {routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
   badgeNumbers: {}, // TODO add badging logic
   isModal: routeLeafTags.modal,
   selectedTab: (routeSelected: any),
 })
+
+export type DispatchProps = {
+  onLogout: () => void,
+  onTabChange: (tab: Tab) => void,
+}
 
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>) => ({
   onLogout: () => dispatch(logout()),
@@ -24,7 +35,7 @@ type OwnProps = {
   showComingSoon: boolean,
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
