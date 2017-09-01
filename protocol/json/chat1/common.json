@@ -77,6 +77,12 @@
       "typedef": "bytes"
     },
     {
+      "type": "record",
+      "name": "TLFVisibility",
+      "fields": [],
+      "typedef": "keybase1.TLFVisibility"
+    },
+    {
       "type": "enum",
       "name": "ConversationMembersType",
       "symbols": [
@@ -253,15 +259,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "TLFVisibility",
-      "symbols": [
-        "ANY_0",
-        "PUBLIC_1",
-        "PRIVATE_2"
-      ]
-    },
-    {
       "type": "record",
       "name": "GetInboxQuery",
       "fields": [
@@ -289,7 +286,7 @@
         {
           "type": [
             null,
-            "TLFVisibility"
+            "keybase1.TLFVisibility"
           ],
           "name": "tlfVisibility"
         },
@@ -417,7 +414,7 @@
           "name": "conversationID"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {

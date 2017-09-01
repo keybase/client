@@ -320,18 +320,14 @@ func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
 	return (p.Id == other.Id) && (p.Hash.Eq(other.Hash))
 }
 
-func (t TLFVisibility) Eq(r TLFVisibility) bool {
-	return int(t) == int(r)
-}
-
 // Visibility is a helper to get around a nil pointer for visibility,
 // and to get around TLFVisibility_ANY.  The default is PRIVATE.
 // Note:  not sure why visibility is a pointer, or what TLFVisibility_ANY
 // is for, but don't want to change the API.
-func (q *GetInboxLocalQuery) Visibility() TLFVisibility {
-	visibility := TLFVisibility_PRIVATE
-	if q.TlfVisibility != nil && *q.TlfVisibility == TLFVisibility_PUBLIC {
-		visibility = TLFVisibility_PUBLIC
+func (q *GetInboxLocalQuery) Visibility() keybase1.TLFVisibility {
+	visibility := keybase1.TLFVisibility_PRIVATE
+	if q.TlfVisibility != nil && *q.TlfVisibility == keybase1.TLFVisibility_PUBLIC {
+		visibility = keybase1.TLFVisibility_PUBLIC
 	}
 	return visibility
 }
@@ -340,10 +336,10 @@ func (q *GetInboxLocalQuery) Visibility() TLFVisibility {
 // and to get around TLFVisibility_ANY.  The default is PRIVATE.
 // Note:  not sure why visibility is a pointer, or what TLFVisibility_ANY
 // is for, but don't want to change the API.
-func (q *GetInboxQuery) Visibility() TLFVisibility {
-	visibility := TLFVisibility_PRIVATE
-	if q.TlfVisibility != nil && *q.TlfVisibility == TLFVisibility_PUBLIC {
-		visibility = TLFVisibility_PUBLIC
+func (q *GetInboxQuery) Visibility() keybase1.TLFVisibility {
+	visibility := keybase1.TLFVisibility_PRIVATE
+	if q.TlfVisibility != nil && *q.TlfVisibility == keybase1.TLFVisibility_PUBLIC {
+		visibility = keybase1.TLFVisibility_PUBLIC
 	}
 	return visibility
 }

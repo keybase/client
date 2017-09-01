@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 const publicConvNamePrefix = "(public) "
@@ -33,7 +34,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		}
 		participants := strings.Split(conv.Info.TlfName, ",")
 		vis := "private"
-		if conv.Info.Visibility == chat1.TLFVisibility_PUBLIC {
+		if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
 			vis = "public"
 		}
 		var reset string
@@ -77,7 +78,7 @@ func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.Co
 
 func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	var name string
-	if conv.Info.Visibility == chat1.TLFVisibility_PUBLIC {
+	if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
 		name = publicConvNamePrefix + strings.Join(conv.Info.WriterNames, ",")
 	} else {
 		name = strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
@@ -134,13 +135,13 @@ func (v conversationListView) convNameLite(g *libkb.GlobalContext, convErr chat1
 // visiblity. Cobble together a poor man's conversation name from those, by
 // hacking out the current user's name. This should only be displayed next to
 // an indication that it's unverified.
-func formatUnverifiedConvName(unverifiedTLFName string, visibility chat1.TLFVisibility, myUsername string) string {
+func formatUnverifiedConvName(unverifiedTLFName string, visibility keybase1.TLFVisibility, myUsername string) string {
 	// Strip the user's name out if it's got a comma next to it. (Two cases to
 	// handle: leading and trailing.) This both takes care of dangling commas,
 	// and preserves the user's name if it's by itself.
 	strippedTLFName := strings.Replace(unverifiedTLFName, ","+myUsername, "", -1)
 	strippedTLFName = strings.Replace(strippedTLFName, myUsername+",", "", -1)
-	if visibility == chat1.TLFVisibility_PUBLIC {
+	if visibility == keybase1.TLFVisibility_PUBLIC {
 		return publicConvNamePrefix + strippedTLFName
 	}
 	return strippedTLFName

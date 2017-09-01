@@ -8,6 +8,7 @@ import * as Creators from './creators'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
+import {CommonTLFVisibility} from '../../constants/types/flow-types'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -70,7 +71,7 @@ const _toggleChannelMembership = function*(
         tlfName: teamname,
         topicName: channelname,
         topicType: ChatTypes.CommonTopicType.chat,
-        visibility: ChatTypes.CommonTLFVisibility.private,
+        visibility: CommonTLFVisibility.private,
       },
     })
   }

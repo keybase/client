@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CmdChatRenameChannel struct {
@@ -67,8 +68,8 @@ func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 	c.resolvingRequest.MembersType = chat1.ConversationMembersType_TEAM
-	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
-		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
+	if c.resolvingRequest.Visibility == keybase1.TLFVisibility_ANY {
+		c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
 	}
 	if c.setTopicName == "" {
 		return fmt.Errorf("Must supply non-epty channel name.")

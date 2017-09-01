@@ -1831,3 +1831,7 @@ const (
 func (p MDPriority) IsValid() bool {
 	return p < 256 && p >= 0
 }
+
+func (t TLFVisibility) Eq(r TLFVisibility) bool {
+	return int(t) == int(r)
+}

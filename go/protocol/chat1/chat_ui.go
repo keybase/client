@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -29,7 +30,7 @@ func (o UIPagination) DeepCopy() UIPagination {
 type UnverifiedInboxUIItem struct {
 	ConvID        string                        `codec:"convID" json:"convID"`
 	Name          string                        `codec:"name" json:"name"`
-	Visibility    TLFVisibility                 `codec:"visibility" json:"visibility"`
+	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
 	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
@@ -88,7 +89,7 @@ type InboxUIItem struct {
 	Snippet       string                        `codec:"snippet" json:"snippet"`
 	Channel       string                        `codec:"channel" json:"channel"`
 	Headline      string                        `codec:"headline" json:"headline"`
-	Visibility    TLFVisibility                 `codec:"visibility" json:"visibility"`
+	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants  []string                      `codec:"participants" json:"participants"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
