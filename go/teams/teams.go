@@ -576,6 +576,10 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	return t.postMulti(payload)
 }
 
+func (t *Team) NumActiveInvites() int {
+	return t.chain().NumActiveInvites()
+}
+
 func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
 	return t.chain().HasActiveInvite(name, typ)
 }

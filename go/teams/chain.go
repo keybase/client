@@ -454,6 +454,10 @@ func (t *TeamSigChainState) SubteamRenameOccurred(
 		subteamID, newName, seqno)
 }
 
+func (t *TeamSigChainState) NumActiveInvites() int {
+	return len(t.inner.ActiveInvites)
+}
+
 func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
 	i, err := t.FindActiveInvite(name, typ)
 	if err != nil {
