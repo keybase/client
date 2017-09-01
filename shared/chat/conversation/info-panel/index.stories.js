@@ -56,7 +56,7 @@ const load = () => {
         />
       </Box>
     ))
-    .add('Participants (with add participant button)', () => (
+    .add('Participants (with add button)', () => (
       <Box style={{maxWidth: 320}}>
         <Participants
           onAddParticipant={action('onAddParticipant')}
