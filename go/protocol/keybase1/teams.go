@@ -1092,6 +1092,16 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 	}
 }
 
+type TeamCreateResult struct {
+	ChatSent bool `codec:"chatSent" json:"chatSent"`
+}
+
+func (o TeamCreateResult) DeepCopy() TeamCreateResult {
+	return TeamCreateResult{
+		ChatSent: o.ChatSent,
+	}
+}
+
 type ImplicitTeamUserSet struct {
 	KeybaseUsers    []string          `codec:"keybaseUsers" json:"keybaseUsers"`
 	UnresolvedUsers []SocialAssertion `codec:"unresolvedUsers" json:"unresolvedUsers"`
@@ -1154,26 +1164,30 @@ func (o ImplicitTeamConflictInfo) DeepCopy() ImplicitTeamConflictInfo {
 }
 
 type TeamCreateArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Name      TeamName `codec:"name" json:"name"`
+	SessionID            int      `codec:"sessionID" json:"sessionID"`
+	Name                 TeamName `codec:"name" json:"name"`
+	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
 func (o TeamCreateArg) DeepCopy() TeamCreateArg {
 	return TeamCreateArg{
-		SessionID: o.SessionID,
-		Name:      o.Name.DeepCopy(),
+		SessionID:            o.SessionID,
+		Name:                 o.Name.DeepCopy(),
+		SendChatNotification: o.SendChatNotification,
 	}
 }
 
 type TeamCreateSubteamArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Name      TeamName `codec:"name" json:"name"`
+	SessionID            int      `codec:"sessionID" json:"sessionID"`
+	Name                 TeamName `codec:"name" json:"name"`
+	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
 }
 
 func (o TeamCreateSubteamArg) DeepCopy() TeamCreateSubteamArg {
 	return TeamCreateSubteamArg{
-		SessionID: o.SessionID,
-		Name:      o.Name.DeepCopy(),
+		SessionID:            o.SessionID,
+		Name:                 o.Name.DeepCopy(),
+		SendChatNotification: o.SendChatNotification,
 	}
 }
 
@@ -1420,8 +1434,8 @@ func (o GetTeamRootIDArg) DeepCopy() GetTeamRootIDArg {
 }
 
 type TeamsInterface interface {
-	TeamCreate(context.Context, TeamCreateArg) error
-	TeamCreateSubteam(context.Context, TeamCreateSubteamArg) error
+	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
+	TeamCreateSubteam(context.Context, TeamCreateSubteamArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
@@ -1460,7 +1474,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamCreateArg)(nil), args)
 						return
 					}
-					err = i.TeamCreate(ctx, (*typedArgs)[0])
+					ret, err = i.TeamCreate(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1476,7 +1490,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamCreateSubteamArg)(nil), args)
 						return
 					}
-					err = i.TeamCreateSubteam(ctx, (*typedArgs)[0])
+					ret, err = i.TeamCreateSubteam(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1777,13 +1791,13 @@ type TeamsClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res TeamCreateResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TeamsClient) TeamCreateSubteam(ctx context.Context, __arg TeamCreateSubteamArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSubteam", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamCreateSubteam(ctx context.Context, __arg TeamCreateSubteamArg) (res TeamCreateResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSubteam", []interface{}{__arg}, &res)
 	return
 }
 

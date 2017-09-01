@@ -1022,6 +1022,16 @@
     },
     {
       "type": "record",
+      "name": "TeamCreateResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "chatSent"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamUserSet",
       "fields": [
         {
@@ -1091,9 +1101,13 @@
         {
           "name": "name",
           "type": "TeamName"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamCreateResult"
     },
     "teamCreateSubteam": {
       "request": [
@@ -1104,9 +1118,13 @@
         {
           "name": "name",
           "type": "TeamName"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
         }
       ],
-      "response": null
+      "response": "TeamCreateResult"
     },
     "teamGet": {
       "request": [

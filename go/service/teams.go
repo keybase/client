@@ -35,23 +35,35 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 	}
 }
 
-func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (err error) {
-	return teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name.String())
+func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
+	if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name.String()); err != nil {
+		return res, err
+	}
+	if arg.SendChatNotification {
+		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name.String(), h.G().Env.GetUsername().String())
+	}
+	return res, nil
 }
 
-func (h *TeamsHandler) TeamCreateSubteam(ctx context.Context, arg keybase1.TeamCreateSubteamArg) (err error) {
+func (h *TeamsHandler) TeamCreateSubteam(ctx context.Context, arg keybase1.TeamCreateSubteamArg) (res keybase1.TeamCreateResult, err error) {
 	if arg.Name.Depth() == 0 {
-		return fmt.Errorf("empty team name")
+		return res, fmt.Errorf("empty team name")
 	}
 	if arg.Name.IsRootTeam() {
-		return fmt.Errorf("cannot create subteam with root team name")
+		return res, fmt.Errorf("cannot create subteam with root team name")
 	}
 	parentName, err := arg.Name.Parent()
 	if err != nil {
-		return err
+		return res, err
 	}
-	_, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(arg.Name.LastPart()), parentName)
-	return err
+	if _, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(arg.Name.LastPart()), parentName); err != nil {
+		return res, err
+	}
+	if arg.SendChatNotification {
+		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name.String(), h.G().Env.GetUsername().String())
+	}
+
+	return res, nil
 }
 
 func (h *TeamsHandler) TeamGet(ctx context.Context, arg keybase1.TeamGetArg) (keybase1.TeamDetails, error) {

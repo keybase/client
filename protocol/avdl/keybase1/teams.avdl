@@ -397,8 +397,12 @@ protocol teams {
     boolean admin; // Whether the user is an admin, explicit or implicit.
   }
 
-  void teamCreate(int sessionID, TeamName name);
-  void teamCreateSubteam(int sessionID, TeamName name);
+  record TeamCreateResult {
+    boolean chatSent;
+  }
+
+  TeamCreateResult teamCreate(int sessionID, TeamName name, boolean sendChatNotification);
+  TeamCreateResult teamCreateSubteam(int sessionID, TeamName name, boolean sendChatNotification);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);

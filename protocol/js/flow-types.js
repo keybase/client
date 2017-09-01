@@ -2252,19 +2252,19 @@ export function teamsTeamChangeMembershipRpcPromise (request: (requestCommon & r
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamCreateRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}): EngineChannel {
+export function teamsTeamCreateRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateResult) => void} & {param: teamsTeamCreateRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreate', request)
 }
 
-export function teamsTeamCreateRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam})): Promise<void> {
+export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateResult) => void} & {param: teamsTeamCreateRpcParam})): Promise<teamsTeamCreateResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamCreateSubteamRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamCreateSubteamRpcParam}): EngineChannel {
+export function teamsTeamCreateSubteamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSubteamResult) => void} & {param: teamsTeamCreateSubteamRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSubteam', request)
 }
 
-export function teamsTeamCreateSubteamRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamCreateSubteamRpcParam})): Promise<void> {
+export function teamsTeamCreateSubteamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSubteamResult) => void} & {param: teamsTeamCreateSubteamRpcParam})): Promise<teamsTeamCreateSubteamResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateSubteam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -4483,6 +4483,10 @@ export type TeamChangeSet = {
   renamed: boolean,
 }
 
+export type TeamCreateResult = {
+  chatSent: boolean,
+}
+
 export type TeamData = {
   secretless: boolean,
   name: TeamName,
@@ -5790,11 +5794,13 @@ export type teamsTeamChangeMembershipRpcParam = Exact<{
 }>
 
 export type teamsTeamCreateRpcParam = Exact<{
-  name: TeamName
+  name: TeamName,
+  sendChatNotification: boolean
 }>
 
 export type teamsTeamCreateSubteamRpcParam = Exact<{
-  name: TeamName
+  name: TeamName,
+  sendChatNotification: boolean
 }>
 
 export type teamsTeamDeleteRpcParam = Exact<{
@@ -6097,6 +6103,8 @@ type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsLookupImplicitTeamResult = TeamID
 type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
+type teamsTeamCreateResult = TeamCreateResult
+type teamsTeamCreateSubteamResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
