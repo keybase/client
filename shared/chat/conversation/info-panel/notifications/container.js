@@ -69,5 +69,4 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
   },
 })
 
-// $FlowIssue
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Notifications)
