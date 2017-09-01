@@ -14,9 +14,8 @@ type StateProps = {
   selectedTab: Tab,
 }
 
-const mapStateToProps = (state: TypedState, {routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
+const mapStateToProps = (state: TypedState, {routeSelected}: RouteProps<{}, {}>) => ({
   badgeNumbers: {}, // TODO add badging logic
-  isModal: routeLeafTags.modal,
   // TODO: Is there a way to validate that routeSelected is a Tab?
   selectedTab: (routeSelected: any),
 })
