@@ -23,8 +23,7 @@ type StatusUpdate struct {
 	ObjectsTotal int
 	ObjectsDone  int
 
-	BytesTotal int
-	BytesDone  int
+	// TODO: BytesTotal and BytesDone?
 }
 
 type StatusChan chan<- StatusUpdate

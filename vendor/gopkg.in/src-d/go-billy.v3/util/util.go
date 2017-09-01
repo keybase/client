@@ -1,11 +1,11 @@
 package util
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"os"
-	"sync/atomic"
+	"path/filepath"
+	"strconv"
+	"sync"
 	"time"
 
 	"gopkg.in/src-d/go-billy.v3"
@@ -114,38 +114,58 @@ func WriteFile(fs billy.Basic, filename string, data []byte, perm os.FileMode) e
 	return err
 }
 
-var (
-	MaxTempFiles int32 = 1024 * 4
-	tempCount    int32
-)
+// Random number state.
+// We generate random temporary file names so that there's a good
+// chance the file doesn't exist yet - keeps the number of tries in
+// TempFile to a minimum.
+var rand uint32
+var randmu sync.Mutex
+
+func reseed() uint32 {
+	return uint32(time.Now().UnixNano() + int64(os.Getpid()))
+}
+
+func nextSuffix() string {
+	randmu.Lock()
+	r := rand
+	if r == 0 {
+		r = reseed()
+	}
+	r = r*1664525 + 1013904223 // constants from Numerical Recipes
+	rand = r
+	randmu.Unlock()
+	return strconv.Itoa(int(1e9 + r%1e9))[1:]
+}
 
 // TempFile creates a new temporary file in the directory dir with a name
 // beginning with prefix, opens the file for reading and writing, and returns
 // the resulting *os.File. If dir is the empty string, TempFile uses the default
-// directory for temporary files (see os.TempDir).
-//
-// Multiple programs calling TempFile simultaneously will not choose the same
-// file. The caller can use f.Name() to find the pathname of the file.
-//
-// It is the caller's responsibility to remove the file when no longer needed.
-func TempFile(fs billy.Basic, dir, prefix string) (billy.File, error) {
-	var fullpath string
-	for {
-		if tempCount >= MaxTempFiles {
-			return nil, errors.New("max. number of tempfiles reached")
-		}
+// directory for temporary files (see os.TempDir). Multiple programs calling
+// TempFile simultaneously will not choose the same file. The caller can use
+// f.Name() to find the pathname of the file. It is the caller's responsibility
+// to remove the file when no longer needed.
+func TempFile(fs billy.Basic, dir, prefix string) (f billy.File, err error) {
+	// This implementation is based on stdlib ioutil.TempFile.
 
-		fullpath = getTempFilename(fs, dir, prefix)
-		break
+	if dir == "" {
+		dir = os.TempDir()
 	}
 
-	return fs.Create(fullpath)
-}
-
-func getTempFilename(fs billy.Basic, dir, prefix string) string {
-	atomic.AddInt32(&tempCount, 1)
-	filename := fmt.Sprintf("%s_%d_%d", prefix, tempCount, time.Now().UnixNano())
-	return fs.Join(dir, filename)
+	nconflict := 0
+	for i := 0; i < 10000; i++ {
+		name := filepath.Join(dir, prefix+nextSuffix())
+		f, err = fs.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0600)
+		if os.IsExist(err) {
+			if nconflict++; nconflict > 10 {
+				randmu.Lock()
+				rand = reseed()
+				randmu.Unlock()
+			}
+			continue
+		}
+		break
+	}
+	return
 }
 
 type underlying interface {
