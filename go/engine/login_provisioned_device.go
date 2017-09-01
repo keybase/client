@@ -180,6 +180,9 @@ func (e *LoginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) 
 		e.G().Log.Debug("LoginProvisionedDevice: in unlockDeviceKeys, ConnectivityMonitor says not reachable, check to make sure")
 		if err := e.G().ConnectivityMonitor.CheckReachability(ctx.NetContext); err != nil {
 			e.G().Log.Debug("error checking reachability: %s", err)
+		} else {
+			connected := e.G().ConnectivityMonitor.IsConnected(ctx.NetContext)
+			e.G().Log.Debug("after CheckReachability(), IsConnected() => %v (connected? %v)", connected, connected == libkb.ConnectivityMonitorYes)
 		}
 	}
 
