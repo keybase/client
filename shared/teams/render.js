@@ -77,7 +77,7 @@ type TeamListProps = {
 }
 
 export const TeamList = (props: TeamListProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
+  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, width: '100%'}}>
     {props.teams.map((info, index, arr) => {
       return (
         <Box key={info.name} style={rowStyle}>
@@ -104,8 +104,6 @@ export const TeamList = (props: TeamListProps) => (
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   minHeight: globalMargins.large,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
 }
 
 type Props = HeaderProps & BetaNoteProps & TeamListProps
@@ -120,8 +118,8 @@ const Render = (props: Props) => (
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
         marginBottom: globalMargins.tiny,
-        marginLeft: globalMargins.large,
-        marginRight: globalMargins.large,
+        marginLeft: globalMargins.tiny,
+        marginRight: globalMargins.tiny,
         marginTop: globalMargins.tiny,
       }}
     >

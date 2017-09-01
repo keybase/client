@@ -13,7 +13,9 @@ const mapStateToProps = (state: TypedState): StateProps => {
   const inbox = state.chat.get('inbox')
   const teams = {}
   inbox.forEach(i => {
-    teams[i.teamname] = {}
+    if (i.teamname) {
+      teams[i.teamname] = {}
+    }
   })
   let teamNames = Object.keys(teams)
   // TODO: Sort case-insensitively?
