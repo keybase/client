@@ -13,8 +13,9 @@ const mapStateToProps = (state: TypedState, {routeSelected, routeLeafTags}: Rout
   selectedTab: routeSelected,
 })
 
-// $FlowIssue type this connector
-export default pausableConnect(mapStateToProps, (dispatch, {routePath}: RouteProps<{}, {}>) => ({
-  onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>) => ({
   onLogout: () => dispatch(logout()),
-}))(SettingsContainer)
+  onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
+})
+
+export default pausableConnect(mapStateToProps, mapDispatchToProps)(SettingsContainer)
