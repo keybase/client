@@ -32,7 +32,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>)
 
 type OwnProps = {
   children: React.Node,
-  showComingSoon: boolean,
 }
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
