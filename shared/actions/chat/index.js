@@ -1366,7 +1366,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
-  yield Saga.safeTakeEvery('chat:createNewTeamFromConversation', _createNewTeam)
+  yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('chat:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
