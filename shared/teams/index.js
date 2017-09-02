@@ -4,6 +4,7 @@ import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 import {getTeams} from '../actions/teams/creators'
+import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../constants/reducer'
@@ -29,9 +30,14 @@ type DispatchProps = {
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   _loadTeams: () => dispatch(getTeams()),
   onCreateTeam: () => {
-    // TODO: Hook this up. Need to change onShowNewTeamDialog to
-    // make its conversationIDKey parameter optional first.
-    console.log('onCreateTeam not implemented yet')
+    dispatch(
+      navigateAppend([
+        {
+          props: {conversationIDKey: null},
+          selected: 'showNewTeamDialog',
+        },
+      ])
+    )
   },
   onJoinTeam: () => {
     // TODO: Hook this up once we have a join team dialog.
