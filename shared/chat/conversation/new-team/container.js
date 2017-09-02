@@ -5,13 +5,12 @@ import {compose, withState, withHandlers} from 'recompose'
 import {navigateTo} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
 import {createNewTeamFromConversation, selectConversation} from '../../../actions/chat/creators'
-import {getSelectedConversation} from '../../../constants/chat'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
 
-const mapStateToProps = (state: TypedState) => ({
-  conversationIDKey: getSelectedConversation(state),
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  conversationIDKey: routeProps.conversationIDKey,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
