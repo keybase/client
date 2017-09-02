@@ -19,10 +19,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onCreateNewTeam: (conversationIDKey: ?ConversationIDKey, name: string) => {
     if (conversationIDKey) {
       dispatch(createNewTeamFromConversation(conversationIDKey, name))
+      dispatch(selectConversation(null, true))
     } else {
       dispatch(createNewTeam(name))
+      dispatch(navigateUp())
     }
-    dispatch(selectConversation(null, true))
   },
   onBack: () => dispatch(navigateUp()),
 })
