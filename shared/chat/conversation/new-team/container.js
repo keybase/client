@@ -2,8 +2,6 @@
 import NewTeamDialog from './'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {navigateTo} from '../../../actions/route-tree'
-import {chatTab} from '../../../constants/tabs'
 import {createNewTeamFromConversation, selectConversation} from '../../../actions/chat/creators'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -14,18 +12,18 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  navToRootChat: () => dispatch(navigateTo([], [chatTab])),
-  onBack: () => dispatch(navigateUp()),
-  onCreateTeam: (conversationIDKey: ConversationIDKey, name: string) => {
+  _onCreateNewTeamFromConversation: (conversationIDKey: ConversationIDKey, name: string) => {
     dispatch(createNewTeamFromConversation(conversationIDKey, name))
     dispatch(selectConversation(null, true))
   },
+  onBack: () => dispatch(navigateUp()),
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('name', 'onNameChange', ''),
   withHandlers({
-    onSubmit: ({conversationIDKey, name, onCreateTeam}) => () => onCreateTeam(conversationIDKey, name),
+    onSubmit: ({conversationIDKey, name, _onCreateNewTeamFromConversation}) => () =>
+      _onCreateNewTeamFromConversation(conversationIDKey, name),
   })
 )(NewTeamDialog)
