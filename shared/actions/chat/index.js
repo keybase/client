@@ -1233,7 +1233,7 @@ function* _exitSearch() {
   }
 }
 
-function* _createNewTeam(action: Constants.CreateNewTeam) {
+function* _createNewTeamFromConversation(action: Constants.CreateNewTeamFromConversation) {
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
@@ -1359,7 +1359,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
-  yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('chat:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
