@@ -669,6 +669,13 @@ export type SaveAttachment = NoErrorTypedAction<
   }
 >
 
+export type CreateNewTeam = NoErrorTypedAction<
+  'chat:createNewTeam',
+  {
+    name: string,
+  }
+>
+
 export type CreateNewTeamFromConversation = NoErrorTypedAction<
   'chat:createNewTeamFromConversation',
   {
@@ -778,6 +785,7 @@ export type Actions =
   | AddPendingConversation
   | AppendMessages
   | ClearRekey
+  | CreateNewTeam
   | CreateNewTeamFromConversation
   | DeleteMessage
   | EditMessage

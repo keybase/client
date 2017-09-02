@@ -1233,6 +1233,13 @@ function* _exitSearch() {
   }
 }
 
+function* _createNewTeam(action: Constants.CreateNewTeam) {
+  const {payload: {name}} = action
+  yield call(teamsTeamCreateRpcPromise, {
+    param: {name: {parts: [name]}},
+  })
+}
+
 function* _createNewTeamFromConversation(action: Constants.CreateNewTeamFromConversation) {
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
@@ -1359,6 +1366,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
+  yield Saga.safeTakeEvery('chat:createNewTeamFromConversation', _createNewTeam)
   yield Saga.safeTakeEvery('chat:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)

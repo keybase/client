@@ -475,6 +475,10 @@ function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.Load
   }
 }
 
+function createNewTeam(name: string) {
+  return {payload: {name}, type: 'chat:createNewTeam'}
+}
+
 function createNewTeamFromConversation(conversationIDKey: Constants.ConversationIDKey, name: string) {
   return {payload: {conversationIDKey, name}, type: 'chat:createNewTeamFromConversation'}
 }
@@ -715,6 +719,7 @@ export {
   clearMessages,
   clearSearchResults,
   clearRekey,
+  createNewTeam,
   createNewTeamFromConversation,
   deleteMessage,
   downloadProgress,
