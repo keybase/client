@@ -1,11 +1,8 @@
 // @flow
 import * as React from 'react'
 
-import type {ConversationIDKey} from '../../../constants/chat'
-
 export type Props = {
   name: string,
-  conversationIDKey: ConversationIDKey,
   onBack: () => void,
   onNameChange: () => void,
   onSubmit: () => void,
