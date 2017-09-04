@@ -628,7 +628,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	if arg.TopicType != chat1.TopicType_NONE {
 		queryBase.TopicType = &arg.TopicType
 	}
-	if arg.Visibility != chat1.TLFVisibility_ANY {
+	if arg.Visibility != keybase1.TLFVisibility_ANY {
 		queryBase.TlfVisibility = &arg.Visibility
 	}
 	queryBase.Status = arg.Status
@@ -1172,7 +1172,7 @@ type postAttachmentArg struct {
 	SessionID        int
 	ConversationID   chat1.ConversationID
 	TlfName          string
-	Visibility       chat1.TLFVisibility
+	Visibility       keybase1.TLFVisibility
 	Attachment       assetSource
 	Preview          *attachmentPreview
 	Title            string
@@ -1303,7 +1303,7 @@ func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg)
 	// set msg client header explicitly
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENT
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == chat1.TLFVisibility_PUBLIC
+	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
 
 	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1369,7 +1369,7 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 			IdentifyBehavior: arg.IdentifyBehavior,
 			Supersedes:       placeholder.MessageID,
 			TlfName:          arg.TlfName,
-			TlfPublic:        arg.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:        arg.Visibility == keybase1.TLFVisibility_PUBLIC,
 		}
 		_, derr := h.PostDeleteNonblock(ctx, deleteArg)
 		if derr != nil {
@@ -1462,7 +1462,7 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENTUPLOADED
 	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == chat1.TLFVisibility_PUBLIC
+	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
 
 	h.Debug(ctx, "postAttachmentLocalInOrder: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1684,7 +1684,7 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				TlfName:     arg.TlfName,
-				TlfPublic:   arg.Visibility == chat1.TLFVisibility_PUBLIC,
+				TlfPublic:   arg.Visibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_ATTACHMENT,
 				OutboxID:    &obid,
 			},
@@ -2024,7 +2024,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, chat1.ConversationMembersType_TEAM,
-		arg.Visibility == chat1.TLFVisibility_PUBLIC)
+		arg.Visibility == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err

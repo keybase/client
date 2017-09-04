@@ -1998,7 +1998,7 @@ type ConversationInfoLocal struct {
 	Triple       ConversationIDTriple      `codec:"triple" json:"triple"`
 	TlfName      string                    `codec:"tlfName" json:"tlfName"`
 	TopicName    string                    `codec:"topicName" json:"topicName"`
-	Visibility   TLFVisibility             `codec:"visibility" json:"visibility"`
+	Visibility   keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus        `codec:"status" json:"status"`
 	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
 	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
@@ -2397,18 +2397,18 @@ func (o NameQuery) DeepCopy() NameQuery {
 }
 
 type GetInboxLocalQuery struct {
-	Name              *NameQuery           `codec:"name,omitempty" json:"name,omitempty"`
-	TopicName         *string              `codec:"topicName,omitempty" json:"topicName,omitempty"`
-	ConvIDs           []ConversationID     `codec:"convIDs" json:"convIDs"`
-	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfVisibility     *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before            *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
-	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	Status            []ConversationStatus `codec:"status" json:"status"`
-	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
-	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
+	Name              *NameQuery              `codec:"name,omitempty" json:"name,omitempty"`
+	TopicName         *string                 `codec:"topicName,omitempty" json:"topicName,omitempty"`
+	ConvIDs           []ConversationID        `codec:"convIDs" json:"convIDs"`
+	TopicType         *TopicType              `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfVisibility     *keybase1.TLFVisibility `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time           `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time           `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool                   `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	Status            []ConversationStatus    `codec:"status" json:"status"`
+	UnreadOnly        bool                    `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool                    `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool                    `codec:"computeActiveList" json:"computeActiveList"`
 }
 
 func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
@@ -2442,7 +2442,7 @@ func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TopicType),
-		TlfVisibility: (func(x *TLFVisibility) *TLFVisibility {
+		TlfVisibility: (func(x *keybase1.TLFVisibility) *keybase1.TLFVisibility {
 			if x == nil {
 				return nil
 			}
@@ -2640,14 +2640,14 @@ func (o NewConversationLocalRes) DeepCopy() NewConversationLocalRes {
 }
 
 type GetInboxSummaryForCLILocalQuery struct {
-	TopicType           TopicType            `codec:"topicType" json:"topicType"`
-	After               string               `codec:"after" json:"after"`
-	Before              string               `codec:"before" json:"before"`
-	Visibility          TLFVisibility        `codec:"visibility" json:"visibility"`
-	Status              []ConversationStatus `codec:"status" json:"status"`
-	UnreadFirst         bool                 `codec:"unreadFirst" json:"unreadFirst"`
-	UnreadFirstLimit    UnreadFirstNumLimit  `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
-	ActivitySortedLimit int                  `codec:"activitySortedLimit" json:"activitySortedLimit"`
+	TopicType           TopicType              `codec:"topicType" json:"topicType"`
+	After               string                 `codec:"after" json:"after"`
+	Before              string                 `codec:"before" json:"before"`
+	Visibility          keybase1.TLFVisibility `codec:"visibility" json:"visibility"`
+	Status              []ConversationStatus   `codec:"status" json:"status"`
+	UnreadFirst         bool                   `codec:"unreadFirst" json:"unreadFirst"`
+	UnreadFirstLimit    UnreadFirstNumLimit    `codec:"unreadFirstLimit" json:"unreadFirstLimit"`
+	ActivitySortedLimit int                    `codec:"activitySortedLimit" json:"activitySortedLimit"`
 }
 
 func (o GetInboxSummaryForCLILocalQuery) DeepCopy() GetInboxSummaryForCLILocalQuery {
@@ -3314,7 +3314,7 @@ func (o SetConversationStatusLocalArg) DeepCopy() SetConversationStatusLocalArg 
 type NewConversationLocalArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
-	TlfVisibility    TLFVisibility                `codec:"tlfVisibility" json:"tlfVisibility"`
+	TlfVisibility    keybase1.TLFVisibility       `codec:"tlfVisibility" json:"tlfVisibility"`
 	TopicName        *string                      `codec:"topicName,omitempty" json:"topicName,omitempty"`
 	MembersType      ConversationMembersType      `codec:"membersType" json:"membersType"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -3384,7 +3384,7 @@ type PostAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
-	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
+	Visibility       keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
 	Attachment       LocalSource                  `codec:"attachment" json:"attachment"`
 	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
@@ -3421,7 +3421,7 @@ type PostFileAttachmentLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
-	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
+	Visibility       keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
 	Attachment       LocalFileSource              `codec:"attachment" json:"attachment"`
 	Preview          *MakePreviewRes              `codec:"preview,omitempty" json:"preview,omitempty"`
 	Title            string                       `codec:"title" json:"title"`
@@ -3545,7 +3545,7 @@ func (o MarkAsReadLocalArg) DeepCopy() MarkAsReadLocalArg {
 type FindConversationsLocalArg struct {
 	TlfName          string                       `codec:"tlfName" json:"tlfName"`
 	MembersType      ConversationMembersType      `codec:"membersType" json:"membersType"`
-	Visibility       TLFVisibility                `codec:"visibility" json:"visibility"`
+	Visibility       keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
 	TopicType        TopicType                    `codec:"topicType" json:"topicType"`
 	TopicName        string                       `codec:"topicName" json:"topicName"`
 	OneChatPerTLF    *bool                        `codec:"oneChatPerTLF,omitempty" json:"oneChatPerTLF,omitempty"`
@@ -3583,10 +3583,10 @@ func (o UpdateTypingArg) DeepCopy() UpdateTypingArg {
 }
 
 type JoinConversationLocalArg struct {
-	TlfName    string        `codec:"tlfName" json:"tlfName"`
-	TopicType  TopicType     `codec:"topicType" json:"topicType"`
-	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
-	TopicName  string        `codec:"topicName" json:"topicName"`
+	TlfName    string                 `codec:"tlfName" json:"tlfName"`
+	TopicType  TopicType              `codec:"topicType" json:"topicType"`
+	Visibility keybase1.TLFVisibility `codec:"visibility" json:"visibility"`
+	TopicName  string                 `codec:"topicName" json:"topicName"`
 }
 
 func (o JoinConversationLocalArg) DeepCopy() JoinConversationLocalArg {

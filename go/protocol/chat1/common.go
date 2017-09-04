@@ -421,40 +421,11 @@ func (o RateLimit) DeepCopy() RateLimit {
 	}
 }
 
-type TLFVisibility int
-
-const (
-	TLFVisibility_ANY     TLFVisibility = 0
-	TLFVisibility_PUBLIC  TLFVisibility = 1
-	TLFVisibility_PRIVATE TLFVisibility = 2
-)
-
-func (o TLFVisibility) DeepCopy() TLFVisibility { return o }
-
-var TLFVisibilityMap = map[string]TLFVisibility{
-	"ANY":     0,
-	"PUBLIC":  1,
-	"PRIVATE": 2,
-}
-
-var TLFVisibilityRevMap = map[TLFVisibility]string{
-	0: "ANY",
-	1: "PUBLIC",
-	2: "PRIVATE",
-}
-
-func (e TLFVisibility) String() string {
-	if v, ok := TLFVisibilityRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
 type GetInboxQuery struct {
 	ConvID            *ConversationID            `codec:"convID,omitempty" json:"convID,omitempty"`
 	TopicType         *TopicType                 `codec:"topicType,omitempty" json:"topicType,omitempty"`
 	TlfID             *TLFID                     `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
-	TlfVisibility     *TLFVisibility             `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	TlfVisibility     *keybase1.TLFVisibility    `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
 	Before            *gregor1.Time              `codec:"before,omitempty" json:"before,omitempty"`
 	After             *gregor1.Time              `codec:"after,omitempty" json:"after,omitempty"`
 	OneChatTypePerTLF *bool                      `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
@@ -490,7 +461,7 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TlfID),
-		TlfVisibility: (func(x *TLFVisibility) *TLFVisibility {
+		TlfVisibility: (func(x *keybase1.TLFVisibility) *keybase1.TLFVisibility {
 			if x == nil {
 				return nil
 			}
@@ -592,7 +563,7 @@ func (o ConversationResolveInfo) DeepCopy() ConversationResolveInfo {
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
-	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
+	Visibility     keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
 	Status         ConversationStatus        `codec:"status" json:"status"`
 	MembersType    ConversationMembersType   `codec:"membersType" json:"membersType"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`

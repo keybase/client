@@ -122,17 +122,11 @@ protocol common {
     int maxCalls; // Max amount of calls allowed in a window for the given RPC
   }
 
-  enum TLFVisibility {
-    ANY_0,
-    PUBLIC_1,
-    PRIVATE_2
-  }
-
   record GetInboxQuery {
     union { null, ConversationID } convID;
     union { null, TopicType } topicType;
     union { null, TLFID } tlfID;
-    union { null, TLFVisibility } tlfVisibility;
+    union { null, keybase1.TLFVisibility } tlfVisibility;
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
@@ -173,7 +167,7 @@ protocol common {
   record ConversationMetadata  {
     ConversationIDTriple idTriple;
     ConversationID conversationID;
-    TLFVisibility visibility;
+    keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
 

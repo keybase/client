@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CmdChatRead struct {
@@ -56,7 +57,7 @@ func (c *CmdChatRead) SetTeamChatForTest(n string) {
 			TopicName:   chat.DefaultTeamTopic,
 			MembersType: chat1.ConversationMembersType_TEAM,
 			TopicType:   chat1.TopicType_CHAT,
-			Visibility:  chat1.TLFVisibility_PRIVATE,
+			Visibility:  keybase1.TLFVisibility_PRIVATE,
 		},
 	}
 }

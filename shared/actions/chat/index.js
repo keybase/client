@@ -18,6 +18,7 @@ import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
   CommonDeviceType,
+  CommonTLFVisibility,
   ConstantsStatusCode,
   teamsTeamCreateRpcPromise,
   teamsTeamAddMemberRpcPromise,
@@ -100,10 +101,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         // If it's a public chat, the GUI (currently) wants no part of it. We
         // especially don't want to surface the conversation as if it were a
         // private one, which is what we were doing before this change.
-        if (
-          incomingMessage.conv &&
-          incomingMessage.conv.visibility !== ChatTypes.CommonTLFVisibility.private
-        ) {
+        if (incomingMessage.conv && incomingMessage.conv.visibility !== CommonTLFVisibility.private) {
           return
         }
 
@@ -783,7 +781,7 @@ function* _openFolder(): SagaGenerator<any, any> {
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    const helper = inbox.visibility === ChatTypes.CommonTLFVisibility.public
+    const helper = inbox.visibility === CommonTLFVisibility.public
       ? publicFolderWithUsers
       : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())

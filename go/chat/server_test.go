@@ -332,7 +332,7 @@ func (c *chatTestContext) users() (users []*kbtest.FakeUser) {
 func mustCreatePublicConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
 	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType,
-		chat1.TLFVisibility_PUBLIC, membersType, others...)
+		keybase1.TLFVisibility_PUBLIC, membersType, others...)
 	ctc.advanceFakeClock(time.Second)
 	return created
 }
@@ -340,13 +340,13 @@ func mustCreatePublicConversationForTest(t *testing.T, ctc *chatTestContext, cre
 func mustCreateConversationForTest(t *testing.T, ctc *chatTestContext, creator *kbtest.FakeUser,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
 	created = mustCreateConversationForTestNoAdvanceClock(t, ctc, creator, topicType,
-		chat1.TLFVisibility_PRIVATE, membersType, others...)
+		keybase1.TLFVisibility_PRIVATE, membersType, others...)
 	ctc.advanceFakeClock(time.Second)
 	return created
 }
 
 func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext,
-	creator *kbtest.FakeUser, topicType chat1.TopicType, visibility chat1.TLFVisibility,
+	creator *kbtest.FakeUser, topicType chat1.TopicType, visibility keybase1.TLFVisibility,
 	membersType chat1.ConversationMembersType, others ...*kbtest.FakeUser) (created chat1.ConversationInfoLocal) {
 	var err error
 
@@ -514,7 +514,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 			TlfName:       conv.TlfName,
 			TopicName:     &topicName,
 			TopicType:     chat1.TopicType_CHAT,
-			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 			MembersType:   mt,
 		}
 		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
@@ -722,7 +722,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 			name = ctc.teamCache[teamKey(ctc.users())]
 		}
 
-		visibility := chat1.TLFVisibility_PRIVATE
+		visibility := keybase1.TLFVisibility_PRIVATE
 		ctx := ctc.as(t, users[0]).startCtx
 		gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Query: &chat1.GetInboxLocalQuery{
@@ -1450,7 +1450,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		arg := chat1.PostTextNonblockArg{
 			ConversationID:   created.Id,
 			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			Body:             "hi",
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}
@@ -1503,7 +1503,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		arg = chat1.PostTextNonblockArg{
 			ConversationID:   created.Id,
 			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			Body:             "hi",
 			OutboxID:         &genOutboxID,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -1526,7 +1526,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		earg := chat1.PostEditNonblockArg{
 			ConversationID:   created.Id,
 			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			Supersedes:       unboxed.GetMessageID(),
 			Body:             "hi2",
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -1548,7 +1548,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		darg := chat1.PostDeleteNonblockArg{
 			ConversationID:   created.Id,
 			TlfName:          created.TlfName,
-			TlfPublic:        created.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
 			Supersedes:       unboxed.GetMessageID(),
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}
@@ -1582,7 +1582,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 			mt, users[1])
 		convRemote := ctc.world.GetConversationByID(created.Id)
 		require.NotNil(t, convRemote)
-		convRemote.Metadata.Visibility = chat1.TLFVisibility_PUBLIC
+		convRemote.Metadata.Visibility = keybase1.TLFVisibility_PUBLIC
 		convRemote.Metadata.ActiveList =
 			[]gregor1.UID{users[2].User.GetUID().ToBytes(), users[1].User.GetUID().ToBytes()}
 
@@ -1592,7 +1592,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 			chat1.FindConversationsLocalArg{
 				TlfName:          created.TlfName,
 				MembersType:      mt,
-				Visibility:       chat1.TLFVisibility_PUBLIC,
+				Visibility:       keybase1.TLFVisibility_PUBLIC,
 				TopicType:        chat1.TopicType_CHAT,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
@@ -1651,7 +1651,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 			chat1.FindConversationsLocalArg{
 				TlfName:          created.TlfName,
 				MembersType:      mt,
-				Visibility:       chat1.TLFVisibility_PUBLIC,
+				Visibility:       keybase1.TLFVisibility_PUBLIC,
 				TopicType:        chat1.TopicType_CHAT,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
@@ -1662,7 +1662,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 			chat1.FindConversationsLocalArg{
 				TlfName:          created.TlfName,
 				MembersType:      mt,
-				Visibility:       chat1.TLFVisibility_PUBLIC,
+				Visibility:       keybase1.TLFVisibility_PUBLIC,
 				TopicType:        chat1.TopicType_CHAT,
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 				TopicName:        "MIKE",
@@ -2032,7 +2032,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				TlfName:       conv.TlfName,
 				TopicName:     &topicName,
 				TopicType:     chat1.TopicType_CHAT,
-				TlfVisibility: chat1.TLFVisibility_PRIVATE,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
@@ -2086,7 +2086,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				TlfName:       conv.TlfName,
 				TopicName:     &topicName,
 				TopicType:     chat1.TopicType_CHAT,
-				TlfVisibility: chat1.TLFVisibility_PRIVATE,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
@@ -2114,7 +2114,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,
 			TopicType:  chat1.TopicType_CHAT,
-			Visibility: chat1.TLFVisibility_PRIVATE,
+			Visibility: keybase1.TLFVisibility_PRIVATE,
 			TopicName:  topicName,
 		})
 		require.NoError(t, err)
@@ -2191,7 +2191,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,
 			TopicType:  chat1.TopicType_CHAT,
-			Visibility: chat1.TLFVisibility_PRIVATE,
+			Visibility: keybase1.TLFVisibility_PRIVATE,
 			TopicName:  topicName,
 		})
 		require.NoError(t, err)
@@ -2379,7 +2379,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 			TlfName:       conv.TlfName,
 			TopicName:     &topicName,
 			TopicType:     chat1.TopicType_CHAT,
-			TlfVisibility: chat1.TLFVisibility_PRIVATE,
+			TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 			MembersType:   chat1.ConversationMembersType_TEAM,
 		}
 		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
@@ -2526,7 +2526,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		chat1.FindConversationsLocalArg{
 			TlfName:          displayName,
 			MembersType:      chat1.ConversationMembersType_IMPTEAM,
-			Visibility:       chat1.TLFVisibility_PRIVATE,
+			Visibility:       keybase1.TLFVisibility_PRIVATE,
 			TopicType:        chat1.TopicType_CHAT,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
@@ -2547,7 +2547,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 		chat1.NewConversationLocalArg{
 			TlfName:          displayName,
-			TlfVisibility:    chat1.TLFVisibility_PRIVATE,
+			TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
 			TopicType:        chat1.TopicType_CHAT,
 			MembersType:      chat1.ConversationMembersType_IMPTEAM,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
@@ -2603,7 +2603,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		chat1.FindConversationsLocalArg{
 			TlfName:          displayName,
 			MembersType:      chat1.ConversationMembersType_IMPTEAM,
-			Visibility:       chat1.TLFVisibility_PRIVATE,
+			Visibility:       keybase1.TLFVisibility_PRIVATE,
 			TopicType:        chat1.TopicType_CHAT,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})

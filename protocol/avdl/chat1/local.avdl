@@ -347,7 +347,7 @@ protocol local {
 
     string tlfName;
     string topicName;
-    TLFVisibility visibility;
+    keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
 
@@ -469,7 +469,7 @@ protocol local {
 
     array<ConversationID> convIDs;
     union { null, TopicType } topicType;
-    union { null, TLFVisibility } tlfVisibility;
+    union { null, keybase1.TLFVisibility } tlfVisibility;
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
     union { null, boolean } oneChatTypePerTLF;
@@ -519,7 +519,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
+  NewConversationLocalRes newConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility tlfVisibility, union { null, string } topicName, ConversationMembersType membersType, keybase1.TLFIdentifyBehavior identifyBehavior);
   record NewConversationLocalRes {
     ConversationLocal conv;
     array<RateLimit> rateLimits;
@@ -533,7 +533,7 @@ protocol local {
     TopicType topicType;
     string after;
     string before;
-    TLFVisibility visibility;
+    keybase1.TLFVisibility visibility;
 
     // If left empty, default is to show all.
     array<ConversationStatus> status;
@@ -589,7 +589,7 @@ protocol local {
   }
 
   // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, TLFVisibility visibility, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalSource attachment, union { null, MakePreviewRes} preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // LocalFileSource is a file attachment source.  Filename must be readable
   // by the service for the duration of the attachment upload.
@@ -598,7 +598,7 @@ protocol local {
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, TLFVisibility visibility, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID, string tlfName, keybase1.TLFVisibility visibility, LocalFileSource attachment, union { null, MakePreviewRes } preview, string title, bytes metadata, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
     boolean offline;
@@ -642,7 +642,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
+  FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, keybase1.TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
   void updateTyping(ConversationID conversationID, boolean typing);
@@ -652,7 +652,7 @@ protocol local {
     boolean offline;
     array<RateLimit> rateLimits;
   }
-  JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, TLFVisibility visibility, string topicName);
+  JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility visibility, string topicName);
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
 

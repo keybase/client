@@ -76,7 +76,7 @@ func (c *CmdChatLeaveChannel) ParseArgv(ctx *cli.Context) (err error) {
 
 	// Force team for now
 	c.resolvingRequest.MembersType = chat1.ConversationMembersType_TEAM
-	c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
+	c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
 	c.resolvingRequest.TopicName = utils.SanitizeTopicName(topicName)
 
 	return nil

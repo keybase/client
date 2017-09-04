@@ -105,6 +105,18 @@ export const CommonSeqType = {
   semiprivate: 3,
 }
 
+export const CommonTLFVisibility = {
+  any: 0,
+  public: 1,
+  private: 2,
+}
+
+export const CommonTeamType = {
+  none: 0,
+  legacy: 1,
+  modern: 2,
+}
+
 export const CommonUserOrTeamResult = {
   user: 1,
   team: 2,
@@ -2820,6 +2832,10 @@ export type ClientType =
   | 3 // KBFS_3
   | 4 // GUI_HELPER_4
 
+export type CompatibilityTeamID =
+    { typ: 1, legacy: ?TLFID }
+  | { typ: 2, modern: ?TeamID }
+
 export type ComponentResult = {
   name: string,
   status: Status,
@@ -4503,6 +4519,11 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TLFVisibility =
+    0 // ANY_0
+  | 1 // PUBLIC_1
+  | 2 // PRIVATE_2
+
 export type TeamAddMemberResult = {
   invited: boolean,
   user?: ?User,
@@ -4570,6 +4591,11 @@ export type TeamDetails = {
 }
 
 export type TeamID = string
+
+export type TeamIDWithVisibility = {
+  teamID: TeamID,
+  visibility: TLFVisibility,
+}
 
 export type TeamInvite = {
   role: TeamRole,
@@ -4707,6 +4733,11 @@ export type TeamTreeEntry = {
 export type TeamTreeResult = {
   entries?: ?Array<TeamTreeEntry>,
 }
+
+export type TeamType =
+    0 // NONE_0
+  | 1 // LEGACY_1
+  | 2 // MODERN_2
 
 export type Test = {
   reply: string,

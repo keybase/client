@@ -180,7 +180,7 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibility) (res types.NameInfo, err error) {
+func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
 	name := CanonicalTlfNameForTest(tlfName)
 	res.CanonicalName = name.String()
@@ -188,7 +188,7 @@ func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibi
 		return res, err
 	}
 	res.ID = tlfID.ToBytes()
-	if vis == chat1.TLFVisibility_PRIVATE {
+	if vis == keybase1.TLFVisibility_PRIVATE {
 		cres, err := m.CryptKeys(ctx, tlfName)
 		if err != nil {
 			return res, err
@@ -345,7 +345,7 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 func (m *ChatRemoteMock) GetPublicConversations(ctx context.Context, arg chat1.GetPublicConversationsArg) (res chat1.GetPublicConversationsRes, err error) {
 
 	for _, conv := range m.world.conversations {
-		if conv.Metadata.Visibility == chat1.TLFVisibility_PUBLIC &&
+		if conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC &&
 			conv.Metadata.IdTriple.Tlfid.Eq(arg.TlfID) &&
 			conv.Metadata.IdTriple.TopicType == arg.TopicType {
 
@@ -535,7 +535,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		Metadata: chat1.ConversationMetadata{
 			IdTriple:       arg.IdTriple,
 			ConversationID: res.ConvID,
-			Visibility:     chat1.TLFVisibility_PRIVATE,
+			Visibility:     keybase1.TLFVisibility_PRIVATE,
 			MembersType:    arg.MembersType,
 		},
 		MaxMsgs:         []chat1.MessageBoxed{first},

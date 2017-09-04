@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CmdChatCreateChannel struct {
@@ -68,7 +69,7 @@ func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) (err error) {
 	c.resolvingRequest.TopicType = topicType
 	c.resolvingRequest.TopicName = topicName
 	c.resolvingRequest.MembersType = chat1.ConversationMembersType_TEAM
-	c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
+	c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
 
 	return nil
 }

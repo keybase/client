@@ -55,6 +55,30 @@ protocol Common {
   @typedef("string")
   record UserOrTeamID {}
 
+  enum TeamType {
+    NONE_0,
+    LEGACY_1,
+    MODERN_2
+  }
+
+  // CompatibilityTeamID can refer to either a legacy TLF ID or a new-style team ID.
+  // Might eventually be useful but haven't found a need yet.
+  variant CompatibilityTeamID switch (TeamType typ) {
+    case LEGACY: TLFID;
+    case MODERN: TeamID;
+  }
+
+  enum TLFVisibility {
+    ANY_0,
+    PUBLIC_1,
+    PRIVATE_2
+  }
+
+  record TeamIDWithVisibility {
+    TeamID teamID;
+    TLFVisibility visibility;
+  }
+
   @typedef("int64") @lint("ignore")
   record Seqno {}
 
@@ -245,7 +269,6 @@ protocol Common {
     that the user posts a Keybase proof on the asserted service as the asserted
     user.
     */
-  
   record SocialAssertion {
       string user;
       SocialAssertionService service;

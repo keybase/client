@@ -2,6 +2,7 @@
 
 protocol chatUi {
 
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   record UIPagination {
@@ -14,7 +15,7 @@ protocol chatUi {
   record UnverifiedInboxUIItem {
     string convID;
     string name;
-    TLFVisibility visibility;
+    keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
     union{ null, ConversationNotificationInfo } notifications;
@@ -34,7 +35,7 @@ protocol chatUi {
     string snippet;
     string channel;
     string headline;
-    TLFVisibility visibility;
+    keybase1.TLFVisibility visibility;
     array<string> participants;
     ConversationStatus status;
     ConversationMembersType membersType;

@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CmdChatJoinChannel struct {
@@ -46,7 +47,7 @@ func (c *CmdChatJoinChannel) Run() error {
 	_, err = chatClient.JoinConversationLocal(ctx, chat1.JoinConversationLocalArg{
 		TlfName:    c.teamName,
 		TopicType:  c.topicType,
-		Visibility: chat1.TLFVisibility_PRIVATE,
+		Visibility: keybase1.TLFVisibility_PRIVATE,
 		TopicName:  c.topicName,
 	})
 	if err != nil {
