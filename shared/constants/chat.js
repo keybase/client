@@ -449,6 +449,7 @@ export type BlockConversation = NoErrorTypedAction<
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
+export type CreateChannel = NoErrorTypedAction<'chat:createChannel', {teamname: string, channelname: string}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
 export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>

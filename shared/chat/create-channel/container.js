@@ -1,21 +1,30 @@
 // @flow
+import * as I from 'immutable'
+import * as Constants from '../../constants/teams'
+import ManageChannels from '.'
+import {compose, lifecycle, withHandlers, withState} from 'recompose'
 import {connect} from 'react-redux'
-import * as React from 'react'
-import {Box, Button} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {createChannel} from '../../actions/teams/creators'
+import {navigateTo} from '../../actions/route-tree'
 
 import type {TypedState} from '../../constants/reducer'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState, {routeProps}) => {
+  return {
+    teamname: routeProps.teamname,
+  }
+}
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
+  onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
   onClose: () => dispatch(navigateUp()),
+  onCreateChannel: (teamname, channelname) => { console.warn('in onCreateChannel', channelname, teamname); dispatch(createChannel(teamname, channelname)) },
 })
 
-const TEMP = ({onClose}) => (
-  <Box style={{...globalStyles.fillAbsolute, backgroundColor: 'white'}}>
-    <Button type="Primary" onClick={onClose} label="TODO create channel" />
-  </Box>
-)
-
-export default connect(mapStateToProps, mapDispatchToProps)(TEMP)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withState('channelname', 'onChannelnameChange', props => props.channelname),
+  withHandlers({
+    onSubmit: ({channelname, onCreateChannel, teamname}) => () => { console.warn('in onsubmit', teamname, channelname); onCreateChannel(teamname, channelname) },
+  }),
+)(ManageChannels)
