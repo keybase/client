@@ -11,7 +11,7 @@ type Teamer interface {
 	LookupOrCreate(ctx context.Context, folder keybase1.Folder) (teamID keybase1.TeamIDWithVisibility, err error)
 }
 
-// Cryptoer handles crypto operations to encrypt and decrypt data as its
+// Cryptoer handles crypto operations to encrypt and decrypt data as it is
 // sent to or received from the server-side Git index.
 type Cryptoer interface {
 	// Box encrypts the plaintext with the most current key for the given team. It yields a NaCl
