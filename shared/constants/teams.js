@@ -11,6 +11,10 @@ export type ToggleChannelMembership = NoErrorTypedAction<
   'teams:toggleChannelMembership',
   {teamname: string, channelname: string}
 >
+export type CreateChannel = NoErrorTypedAction<
+  'teams:createChannel',
+  {channelname: string, description: string, teamname: string}
+>
 
 export type Teamname = string
 

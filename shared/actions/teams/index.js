@@ -5,10 +5,11 @@ import * as ChatConstants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
+import * as ChatCreators from '../chat/creators'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
-import {CommonTLFVisibility} from '../../constants/types/flow-types'
+import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -80,9 +81,46 @@ const _toggleChannelMembership = function*(
   yield put(Creators.getChannels(teamname))
 }
 
+function* _createChannel(action: Constants.CreateChannel) {
+  const {payload: {channelname, description, teamname}} = action
+  const tlfName = teamname
+  const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
+    param: {
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      membersType: ChatTypes.CommonConversationMembersType.team,
+      tlfName,
+      tlfVisibility: CommonTLFVisibility.private,
+      topicType: ChatTypes.CommonTopicType.chat,
+      topicName: channelname,
+    },
+  })
+
+  const newConversationIDKey = result ? ChatConstants.conversationIDToKey(result.conv.info.id) : null
+  if (!newConversationIDKey) {
+    console.warn('No convoid from newConvoRPC')
+    return null
+  }
+
+  // Select the new channel
+  yield put(ChatCreators.selectConversation(newConversationIDKey, false))
+
+  // If we were given a description, set it.
+  yield call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
+    param: {
+      conversationID: result.conv.info.id,
+      tlfName,
+      tlfPublic: false,
+      headline: description,
+      clientPrev: null,
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    },
+  })
+}
+
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
+  yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
 }
 
 export default teamsSaga
