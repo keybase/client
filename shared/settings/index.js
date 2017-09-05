@@ -1,5 +1,4 @@
 // @flow
-import * as React from 'react'
 import SettingsContainer from './render'
 import pausableConnect from '../util/pausable-connect'
 import {switchTo} from '../actions/route-tree'
@@ -35,14 +34,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>)
   onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
 })
 
-type OwnProps = {
-  children: React.Node,
-}
-
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
-})
-
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)
+export default pausableConnect(mapStateToProps, mapDispatchToProps)(SettingsContainer)
