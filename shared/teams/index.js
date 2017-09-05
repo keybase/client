@@ -23,7 +23,9 @@ const headerButtonBoxStyle = {
 const HeaderButton = (props: HeaderButtonProps) => (
   <ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>
     <Icon type={props.iconType} style={{color: globalColors.blue}} />
-    <Text type="HeaderLink" style={{margin: globalMargins.tiny}}>{props.label}</Text>
+    <Text type={isMobile ? 'BodySemiboldLink' : 'HeaderLink'} style={{margin: globalMargins.tiny}}>
+      {props.label}
+    </Text>
   </ClickableBox>
 )
 
@@ -42,22 +44,45 @@ const Header = (props: HeaderProps) => (
 const Banner = ({onReadDoc, onHideBanner}) => (
   <Box
     style={{
-      ...globalStyles.flexBoxRow,
+      ...(isMobile
+        ? {
+            ...globalStyles.flexBoxColumn,
+            padding: 24,
+          }
+        : {
+            ...globalStyles.flexBoxRow,
+            height: 212,
+          }),
       alignItems: 'center',
       backgroundColor: globalColors.blue,
       flexShrink: 0,
-      height: 212,
       justifyContent: 'center',
       position: 'relative',
       width: '100%',
     }}
   >
-    <Icon type="icon-illustration-teams-180" />
-    <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium, maxWidth: 330}}>
-      <Text backgroundMode="Terminal" type="Header" style={{marginBottom: globalMargins.small}}>
+    <Icon type={isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'} />
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        ...(isMobile ? {alignItems: 'center'} : {marginLeft: globalMargins.medium, maxWidth: 330}),
+      }}
+    >
+      <Text
+        backgroundMode="Terminal"
+        type="Header"
+        style={{
+          marginBottom: 15,
+          marginTop: 15,
+        }}
+      >
         Now supporting teams!
       </Text>
-      <Text backgroundMode="Terminal" type="BodySemibold" style={{marginBottom: globalMargins.small}}>
+      <Text
+        backgroundMode="Terminal"
+        type="BodySemibold"
+        style={{marginBottom: globalMargins.small, ...(isMobile ? {textAlign: 'center'} : {})}}
+      >
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to large communities.
       </Text>
       <Text backgroundMode="Terminal" type="BodySemiboldLink" className="underline" onClick={onReadDoc}>
@@ -77,7 +102,7 @@ type BetaNoteProps = {
 }
 
 const BetaNote = (props: BetaNoteProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginTop: globalMargins.small}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Box style={{height: 1, width: 24, backgroundColor: globalColors.black_05}} />
       <Icon
@@ -111,26 +136,25 @@ type Props = {
   onCreateTeam: () => void,
   onJoinTeam: () => void,
   onReadDoc: () => void,
+  onHideBanner: () => void,
 }
 
 // TODO: Add team rows.
 const Render = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
     <Header {...props} />
-    <Banner onReadDoc={props.onReadDoc} onHideBanner={props.onHideBanner} />
-    <ScrollView
-      style={{alignSelf: 'stretch'}}
-      contentContainerStyle={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        marginBottom: globalMargins.tiny,
-        marginLeft: globalMargins.large,
-        marginRight: globalMargins.large,
-        marginTop: globalMargins.tiny,
-      }}
-    >
-      <BetaNote {...props} />
-    </ScrollView>
+    <Box style={{flex: 1, width: '100%'}}>
+      <ScrollView
+        style={{alignSelf: 'stretch', height: '100%', width: '100%'}}
+        contentContainerStyle={{
+          ...globalStyles.flexBoxColumn,
+          alignItems: 'center',
+        }}
+      >
+        <Banner onReadDoc={props.onReadDoc} onHideBanner={props.onHideBanner} />
+        <BetaNote {...props} />
+      </ScrollView>
+    </Box>
   </Box>
 )
 
