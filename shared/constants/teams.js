@@ -7,6 +7,7 @@ import type {ConversationIDKey} from './chat'
 import type {TypedState} from './reducer'
 
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
+export type GetTeams = NoErrorTypedAction<'teams:getTeams', {username: string}>
 export type ToggleChannelMembership = NoErrorTypedAction<
   'teams:toggleChannelMembership',
   {teamname: string, channelname: string}
@@ -33,6 +34,7 @@ export const Team = I.Record({
 
 export type TeamRecord = KBRecord<{
   convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
+  teamNames: I.Set<Teamname>,
   teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
 }>
 
