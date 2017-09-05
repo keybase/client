@@ -3,7 +3,11 @@ import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 
-const mapStateToProps = state => ({})
+import type {TypedState} from '../constants/reducer'
+
+type StateProps = {}
+
+const mapStateToProps = (state: TypedState): StateProps => ({})
 
 type DispatchProps = {
   onCreateTeam: () => void,
