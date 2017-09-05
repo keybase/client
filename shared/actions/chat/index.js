@@ -92,7 +92,10 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       return
     case ChatTypes.NotifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        yield call(Inbox.processConversation, action.payload.activity.readMessage.conv)
+        const inboxUIItem: ?ChatTypes.InboxUIItem = action.payload.activity.readMessage.conv
+        if (inboxUIItem) {
+          yield call(Inbox.processConversation, inboxUIItem)
+        }
       }
       return
     case ChatTypes.NotifyChatChatActivityType.incomingMessage:
