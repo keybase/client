@@ -14,10 +14,10 @@ type StateProps = {
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
-  let teamNames = state.entities.getIn(['teams', 'teamNames'], I.Set())
+  let teamnames = state.entities.getIn(['teams', 'teamNames'], I.Set())
   // TODO: Sort?
   return {
-    teams: teamNames,
+    teams: teamnames,
   }
 }
 

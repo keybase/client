@@ -55,14 +55,14 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
     },
   })
 
-  const teamNames = []
+  const teamnames = []
 
   const teams = results.teams || []
   teams.forEach(team => {
-    teamNames.push(team.fqName)
+    teamnames.push(team.fqName)
   })
 
-  yield all([put(replaceEntity(['teams', 'teamNames'], I.Set(teamNames)))])
+  yield all([put(replaceEntity(['teams', 'teamnames'], I.Set(teamnames)))])
 }
 
 const _toggleChannelMembership = function*(
