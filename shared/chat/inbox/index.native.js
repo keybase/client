@@ -85,7 +85,10 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.rows !== nextProps.rows) {
+    if (
+      (this.props.rows !== nextProps.rows && nextProps.isActiveRoute) ||
+      (!this.props.isActiveRoute && nextProps.isActiveRoute)
+    ) {
       if (nextProps.rows.count()) {
         const row = nextProps.rows.get(0)
         if (row.type === 'small' && row.conversationIDKey) {
@@ -145,7 +148,7 @@ class Inbox extends React.PureComponent<Props, State> {
   }, 1000)
 
   componentDidMount() {
-    if (this.props.rows.count()) {
+    if (this.props.rows.count() && this.props.isActiveRoute) {
       this._askForUnboxing(this.props.rows.first(), 30)
     }
   }
