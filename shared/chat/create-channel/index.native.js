@@ -8,37 +8,26 @@ import type {Props} from '.'
 
 const CreateChannel = (props: Props) => (
   <Box style={_boxStyle}>
-    <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
-      <Box style={_inputStyle}>
-        <Input
-          autoFocus={true}
-          style={{minWidth: 450}}
-          hintText="Channel name"
-          value={props.channelname}
-          onEnterKeyDown={props.onSubmit}
-          onChangeText={channelname => props.onChannelnameChange(channelname)}
-        />
-      </Box>
-      <Box style={_inputStyle}>
-        <Input
-          autoFocus={false}
-          style={{minWidth: 450}}
-          hintText="Description or topic (optional)"
-          value={props.description}
-          onEnterKeyDown={props.onSubmit}
-          onChangeText={description => props.onDescriptionChange(description)}
-        />
-      </Box>
-      <Box style={_buttonsStyle}>
-        <Button
-          type="Secondary"
-          onClick={props.onClose}
-          label="Cancel"
-          style={{marginRight: globalMargins.tiny}}
-        />
-        <Button type="Primary" onClick={props.onSubmit} label="Save" />
-      </Box>
-    </ScrollView>
+    <Box style={_inputStyle}>
+      <Input
+        autoFocus={true}
+        hintText="Channel name"
+        value={props.channelname}
+        onChangeText={channelname => props.onChannelnameChange(channelname)}
+      />
+    </Box>
+    <Box style={_inputStyle}>
+      <Input
+        autoCorrect={true}
+        autoFocus={false}
+        hintText="Description or topic (optional)"
+        value={props.description}
+        onChangeText={description => props.onDescriptionChange(description)}
+      />
+    </Box>
+    <Box style={_buttonsStyle}>
+      <Button type="Primary" onClick={props.onSubmit} label="Save" />
+    </Box>
   </Box>
 )
 
@@ -55,7 +44,7 @@ const Header = (props: Props) => (
       </Text>
     </Box>
     <Text type="BodySmallSemibold" style={{color: globalColors.black_75}}>
-      New chat channel
+      New channel
     </Text>
   </Box>
 )
@@ -67,24 +56,20 @@ const _headerStyle = {
 }
 
 const _boxStyle = {
-  ...globalStyles.flexBoxColumn,
-  height: '100%',
   padding: 16,
-  width: '100%',
 }
 
 const _buttonsStyle = {
-  ...globalStyles.flexBoxRow,
+  alignItems: 'center',  
   marginTop: globalMargins.large,
 }
 
 const _inputStyle = {
-  ...globalStyles.flexBoxRow,
   marginTop: globalMargins.large,
 }
 
 export default compose(
-  renameProp('onClose', 'onBack'),
+  renameProp('onBack', 'onCancel'),
   withProps(props => ({
     customComponent: <Header {...props} />,
   })),

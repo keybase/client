@@ -99,7 +99,6 @@ if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
 
-middlewares.push(createLogger())
 export default function configureStore(initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
   theStore = store
