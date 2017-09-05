@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Dropdown} from '../common-adapters'
+import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type Props = {
@@ -70,7 +70,9 @@ class NewRepo extends React.Component<Props, State> {
     if (node && node.key === NewTeamSentry) {
       this.props.onNewTeam()
     } else {
-      this.setState({selectedTeam: (node && node.key) || null})
+      // $FlowIssue doesn't understand key will be string
+      const selectedTeam: string = (node && node.key) || null
+      this.setState({selectedTeam})
     }
   }
 
@@ -94,12 +96,20 @@ class NewRepo extends React.Component<Props, State> {
             items={this._makeDropdownItems()}
             selected={this._makeDropdownItem(this.state.selectedTeam)}
             onChanged={this._dropdownChanged}
+            style={{marginBottom: globalMargins.small}}
           />}
         <Input
           value={this.state.name}
           onChangeText={name => this.setState({name})}
           hintText="Name your respository"
         />
+        {this.props.isTeam &&
+          <Checkbox
+            label="Notify the team"
+            checked={this.state.notifyTeam}
+            onCheck={notifyTeam => this.setState({notifyTeam})}
+            style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
+          />}
         <Box style={{flex: 1}} />
         <Box style={globalStyles.flexBoxRow}>
           <Button

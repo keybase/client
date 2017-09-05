@@ -48,7 +48,12 @@ const load = () => {
     ))
     .add('NewPersonalRepo', () => (
       <Box style={{height: 500, width: '100%'}}>
-        <NewRepo isTeam={false} onCreate={action('onCreate')} onClose={action('onClose')} />
+        <NewRepo
+          isTeam={false}
+          onCreate={action('onCreate')}
+          onClose={action('onClose')}
+          onNewTeam={action('onNewTeam')}
+        />
       </Box>
     ))
     .add('NewTeamRepo', () => (
