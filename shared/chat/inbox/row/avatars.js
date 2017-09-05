@@ -129,15 +129,15 @@ class TeamAvatar extends PureComponent<{teamname: string}> {
 }
 
 const avatarMutedIconStyle = {
-  marginLeft: -globalMargins.small,
-  marginTop: 32,
-  zIndex: 1,
+  bottom: 5,
+  position: 'absolute',
+  right: 0,
 }
 
 const avatarLockIconStyle = {
-  marginLeft: -10,
-  marginTop: 20,
-  zIndex: 1,
+  bottom: 5,
+  position: 'absolute',
+  right: 0,
 }
 
 export {Avatars, TeamAvatar}
