@@ -460,6 +460,7 @@ func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBod
 		Attachmentuploaded__: &chat1.MessageAttachmentUploaded{},
 		Join__:               &chat1.MessageJoin{},
 		Leave__:              &chat1.MessageLeave{},
+		Headline__:           &chat1.MessageHeadline{},
 	}
 }
 
