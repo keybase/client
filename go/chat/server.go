@@ -907,7 +907,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 }
 
 func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNonblockArg) (chat1.PostLocalNonblockRes, error) {
-
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -922,7 +921,6 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 }
 
 func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
-
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -941,7 +939,6 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {
-
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -955,7 +952,36 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	})
 
 	return h.PostLocalNonblock(ctx, parg)
+}
 
+func (h *Server) PostHeadlineNonblock(ctx context.Context, arg chat1.PostHeadlineNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
+		Headline: arg.Headline,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
+func (h *Server) PostHeadline(ctx context.Context, arg chat1.PostHeadlineArg) (chat1.PostLocalRes, error) {
+	var parg chat1.PostLocalArg
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
+		Headline: arg.Headline,
+	})
+
+	return h.PostLocal(ctx, parg)
 }
 
 func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err error) {

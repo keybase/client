@@ -426,6 +426,22 @@ export function localPostFileAttachmentLocalRpcPromise (request: (requestCommon 
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postFileAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localPostHeadlineNonblockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineNonblockResult) => void} & {param: localPostHeadlineNonblockRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadlineNonblock', request)
+}
+
+export function localPostHeadlineNonblockRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineNonblockResult) => void} & {param: localPostHeadlineNonblockRpcParam})): Promise<localPostHeadlineNonblockResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postHeadlineNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localPostHeadlineRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineResult) => void} & {param: localPostHeadlineRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadline', request)
+}
+
+export function localPostHeadlineRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineResult) => void} & {param: localPostHeadlineRpcParam})): Promise<localPostHeadlineResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postHeadline', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localPostLocalNonblockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostLocalNonblockResult) => void} & {param: localPostLocalNonblockRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postLocalNonblock', request)
 }
@@ -2123,6 +2139,24 @@ export type localPostFileAttachmentLocalRpcParam = Exact<{
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
+export type localPostHeadlineNonblockRpcParam = Exact<{
+  conversationID: ConversationID,
+  tlfName: string,
+  tlfPublic: boolean,
+  headline: string,
+  outboxID?: ?OutboxID,
+  clientPrev: MessageID,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localPostHeadlineRpcParam = Exact<{
+  conversationID: ConversationID,
+  tlfName: string,
+  tlfPublic: boolean,
+  headline: string,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
 export type localPostLocalNonblockRpcParam = Exact<{
   conversationID: ConversationID,
   msg: MessagePlaintext,
@@ -2350,6 +2384,8 @@ type localPostAttachmentLocalResult = PostLocalRes
 type localPostDeleteNonblockResult = PostLocalNonblockRes
 type localPostEditNonblockResult = PostLocalNonblockRes
 type localPostFileAttachmentLocalResult = PostLocalRes
+type localPostHeadlineNonblockResult = PostLocalNonblockRes
+type localPostHeadlineResult = PostLocalRes
 type localPostLocalNonblockResult = PostLocalNonblockRes
 type localPostLocalResult = PostLocalRes
 type localPostTextNonblockResult = PostLocalNonblockRes

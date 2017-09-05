@@ -3297,6 +3297,52 @@ func (o PostEditNonblockArg) DeepCopy() PostEditNonblockArg {
 	}
 }
 
+type PostHeadlineNonblockArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	Headline         string                       `codec:"headline" json:"headline"`
+	OutboxID         *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+func (o PostHeadlineNonblockArg) DeepCopy() PostHeadlineNonblockArg {
+	return PostHeadlineNonblockArg{
+		ConversationID: o.ConversationID.DeepCopy(),
+		TlfName:        o.TlfName,
+		TlfPublic:      o.TlfPublic,
+		Headline:       o.Headline,
+		OutboxID: (func(x *OutboxID) *OutboxID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OutboxID),
+		ClientPrev:       o.ClientPrev.DeepCopy(),
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+	}
+}
+
+type PostHeadlineArg struct {
+	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
+	TlfName          string                       `codec:"tlfName" json:"tlfName"`
+	TlfPublic        bool                         `codec:"tlfPublic" json:"tlfPublic"`
+	Headline         string                       `codec:"headline" json:"headline"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+func (o PostHeadlineArg) DeepCopy() PostHeadlineArg {
+	return PostHeadlineArg{
+		ConversationID:   o.ConversationID.DeepCopy(),
+		TlfName:          o.TlfName,
+		TlfPublic:        o.TlfPublic,
+		Headline:         o.Headline,
+		IdentifyBehavior: o.IdentifyBehavior.DeepCopy(),
+	}
+}
+
 type SetConversationStatusLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Status           ConversationStatus           `codec:"status" json:"status"`
@@ -3713,6 +3759,8 @@ type LocalInterface interface {
 	PostTextNonblock(context.Context, PostTextNonblockArg) (PostLocalNonblockRes, error)
 	PostDeleteNonblock(context.Context, PostDeleteNonblockArg) (PostLocalNonblockRes, error)
 	PostEditNonblock(context.Context, PostEditNonblockArg) (PostLocalNonblockRes, error)
+	PostHeadlineNonblock(context.Context, PostHeadlineNonblockArg) (PostLocalNonblockRes, error)
+	PostHeadline(context.Context, PostHeadlineArg) (PostLocalRes, error)
 	SetConversationStatusLocal(context.Context, SetConversationStatusLocalArg) (SetConversationStatusLocalRes, error)
 	NewConversationLocal(context.Context, NewConversationLocalArg) (NewConversationLocalRes, error)
 	GetInboxSummaryForCLILocal(context.Context, GetInboxSummaryForCLILocalQuery) (GetInboxSummaryForCLILocalRes, error)
@@ -3909,6 +3957,38 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PostEditNonblock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postHeadlineNonblock": {
+				MakeArg: func() interface{} {
+					ret := make([]PostHeadlineNonblockArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostHeadlineNonblockArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostHeadlineNonblockArg)(nil), args)
+						return
+					}
+					ret, err = i.PostHeadlineNonblock(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"postHeadline": {
+				MakeArg: func() interface{} {
+					ret := make([]PostHeadlineArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PostHeadlineArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PostHeadlineArg)(nil), args)
+						return
+					}
+					ret, err = i.PostHeadline(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4336,6 +4416,16 @@ func (c LocalClient) PostDeleteNonblock(ctx context.Context, __arg PostDeleteNon
 
 func (c LocalClient) PostEditNonblock(ctx context.Context, __arg PostEditNonblockArg) (res PostLocalNonblockRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.postEditNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostHeadlineNonblock(ctx context.Context, __arg PostHeadlineNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postHeadlineNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) PostHeadline(ctx context.Context, __arg PostHeadlineArg) (res PostLocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postHeadline", []interface{}{__arg}, &res)
 	return
 }
 
