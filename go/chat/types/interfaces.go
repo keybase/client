@@ -153,3 +153,7 @@ type AppState interface {
 	State() keybase1.AppState
 	NextUpdate() chan keybase1.AppState
 }
+
+type Identifier interface {
+	Identify(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error)
+}
