@@ -1,0 +1,114 @@
+{
+  "protocol": "git",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "favorite.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "RepoID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "GitLocalMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "repoName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitServerMetadata",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "ctime"
+        },
+        {
+          "type": "Time",
+          "name": "mtime"
+        },
+        {
+          "type": "string",
+          "name": "lastModifyingUsername"
+        },
+        {
+          "type": "DeviceID",
+          "name": "lastModifyingDeviceID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitRepoResult",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "RepoID",
+          "name": "repoID"
+        },
+        {
+          "type": "GitLocalMetadata",
+          "name": "localMetadata"
+        },
+        {
+          "type": "GitServerMetadata",
+          "name": "serverMetadata"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "putGitMetadata": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        },
+        {
+          "name": "metadata",
+          "type": "GitLocalMetadata"
+        }
+      ],
+      "response": null
+    },
+    "getGitMetadata": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "GitRepoResult"
+      }
+    },
+    "getAllGitMetadata": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "GitRepoResult"
+      }
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -1398,6 +1398,30 @@ export function fsListRpcPromise (request: (requestCommon & {callback?: ?(err: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.fs.List', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function gitGetAllGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
+}
+
+export function gitGetAllGitMetadataRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void})): Promise<gitGetAllGitMetadataResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitGetGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetGitMetadataResult) => void} & {param: gitGetGitMetadataRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getGitMetadata', request)
+}
+
+export function gitGetGitMetadataRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitGetGitMetadataResult) => void} & {param: gitGetGitMetadataRpcParam})): Promise<gitGetGitMetadataResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.getGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitPutGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitPutGitMetadataRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.putGitMetadata', request)
+}
+
+export function gitPutGitMetadataRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitPutGitMetadataRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.putGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function gregorGetStateRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
 }
@@ -3211,6 +3235,24 @@ export type GetTLFCryptKeysRes = {
   CryptKeys?: ?Array<CryptKey>,
 }
 
+export type GitLocalMetadata = {
+  repoName: string,
+}
+
+export type GitRepoResult = {
+  folder: Folder,
+  repoID: RepoID,
+  localMetadata: GitLocalMetadata,
+  serverMetadata: GitServerMetadata,
+}
+
+export type GitServerMetadata = {
+  ctime: Time,
+  mtime: Time,
+  lastModifyingUsername: string,
+  lastModifyingDeviceID: DeviceID,
+}
+
 export type HasServerKeysRes = {
   hasServerKeys: boolean,
 }
@@ -4005,6 +4047,8 @@ export type RemoveArgs = {
   opID: OpID,
   path: Path,
 }
+
+export type RepoID = string
 
 export type ResolveIdentifyImplicitTeamRes = {
   displayName: string,
@@ -5190,6 +5234,16 @@ export type fsListRpcParam = Exact<{
   path: string
 }>
 
+export type gitGetGitMetadataRpcParam = Exact<{
+  folder: Folder
+}>
+
+export type gitPutGitMetadataRpcParam = Exact<{
+  folder: Folder,
+  repoID: RepoID,
+  metadata: GitLocalMetadata
+}>
+
 export type gpgUiSelectKeyAndPushOptionRpcParam = Exact<{
   keys?: ?Array<GPGKey>
 }>
@@ -6138,6 +6192,8 @@ type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 type deviceDeviceListResult = ?Array<Device>
 type favoriteGetFavoritesResult = FavoritesResult
 type fsListResult = ListResult
+type gitGetAllGitMetadataResult = ?Array<GitRepoResult>
+type gitGetGitMetadataResult = ?Array<GitRepoResult>
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
 type gpgUiGetTTYResult = string
 type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
