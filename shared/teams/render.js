@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import type {IconType} from '../common-adapters/icon.constants'
 import {Avatar, Box, ClickableBox, Divider, Icon, ScrollView, Text} from '../common-adapters'
@@ -74,13 +73,13 @@ const BetaNote = (props: BetaNoteProps) => (
 
 type TeamListProps = {
   // TODO: Change to map to member count.
-  teams: I.Set<Teamname>,
+  teamnames: Array<Teamname>,
   // TODO: Add onClick handler and folder/chat icons.
 }
 
 export const TeamList = (props: TeamListProps) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, width: '100%'}}>
-    {props.teams.map((name, index, arr) => {
+    {props.teamnames.map((name, index, arr) => {
       return (
         <Box key={name} style={rowStyle}>
           <Box
@@ -119,10 +118,6 @@ const Render = (props: Props) => (
       contentContainerStyle={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
-        marginBottom: globalMargins.tiny,
-        marginLeft: globalMargins.tiny,
-        marginRight: globalMargins.tiny,
-        marginTop: globalMargins.tiny,
       }}
     >
       <TeamList {...props} />
