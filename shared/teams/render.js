@@ -96,7 +96,7 @@ export const TeamList = (props: TeamListProps) => (
               {name}
             </Text>
           </Box>
-          {isMobile ? null : <Divider style={{marginLeft: 44}} />}
+          {isMobile && <Divider style={{marginLeft: 44}} />}
         </Box>
       )
     })}
