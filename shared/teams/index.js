@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as Creators from '../actions/chat/creators'
 import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
@@ -33,7 +34,12 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(
       navigateAppend([
         {
-          props: {conversationIDKey: null},
+          props: {
+            onCreateNewTeam: (name, navigateUp) => {
+              dispatch(Creators.createNewTeam(name))
+              dispatch(navigateUp())
+            },
+          },
           selected: 'showNewTeamDialog',
         },
       ])

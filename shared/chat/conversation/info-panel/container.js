@@ -75,7 +75,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(
       navigateAppend([
         {
-          props: {conversationIDKey},
+          props: {
+            onCreateNewTeam: name => {
+              dispatch(Creators.createNewTeamFromConversation(conversationIDKey, name))
+              dispatch(Creators.selectConversation(null, true))
+            },
+          },
           selected: 'showNewTeamDialog',
         },
       ])

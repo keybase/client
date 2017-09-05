@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
+import * as Creators from '../../../../actions/chat/creators'
 import CreateTeamNotice from '.'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../../actions/route-tree'
@@ -23,7 +24,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(
       navigateAppend([
         {
-          props: {conversationIDKey},
+          props: {
+            onCreateNewTeam: name => {
+              dispatch(Creators.createNewTeamFromConversation(conversationIDKey, name))
+              dispatch(Creators.selectConversation(null, true))
+            },
+          },
           selected: 'showNewTeamDialog',
         },
       ])
