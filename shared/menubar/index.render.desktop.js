@@ -1,5 +1,5 @@
 // @flow
-import Folders from '../folders/render'
+import Folders from '../folders'
 import React, {Component} from 'react'
 import UserAdd from './user-add'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'

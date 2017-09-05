@@ -1,7 +1,7 @@
 // @flow
 import File from './files/file/render'
 import Files from './files/render'
-import Folders from './render'
+import Folders from '.'
 import type {Folder} from './list'
 import type {Props as FilesProps} from './files/render'
 import type {PropsOf, DumbComponentMap} from '../constants/types/more'
