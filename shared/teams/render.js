@@ -78,7 +78,16 @@ type TeamListProps = {
 }
 
 export const TeamList = (props: TeamListProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, width: '100%'}}>
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      marginBottom: globalMargins.tiny,
+      marginLeft: globalMargins.tiny,
+      marginRight: globalMargins.tiny,
+      marginTop: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
     {props.teamnames.map((name, index, arr) => {
       return (
         <Box key={name} style={rowStyle}>
