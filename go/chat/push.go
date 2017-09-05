@@ -345,14 +345,13 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		kind := chat1.NotificationKind_GENERIC
 		switch typ {
 		case chat1.MessageType_TEXT:
-			atMentions, chanMention := utils.ParseAtMentionedUIDs(ctx,
-				msg.Valid().MessageBody.Text().Body, g.G().GetUPAKLoader(), &g.DebugLabeler)
-			for _, at := range atMentions {
+			for _, at := range msg.Valid().AtMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION
 					break
 				}
 			}
+			chanMention := msg.Valid().ChannelMention
 			notifyFromChanMention := false
 			if chanMention == chat1.ChannelMention_HERE || chanMention == chat1.ChannelMention_ALL {
 				notifyFromChanMention = conv.Notifications.ChannelWide
@@ -454,7 +453,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: utils.PresentMessageUnboxed(ctx, g.G().GetUPAKLoader(), decmsg),
+					Message: utils.PresentMessageUnboxed(decmsg),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(conv),
 					DisplayDesktopNotification: desktopNotification,

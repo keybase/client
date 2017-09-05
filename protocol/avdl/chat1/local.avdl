@@ -295,6 +295,10 @@ protocol local {
     // We aren't sure whether the device was revoked when the message was sent.
     // Re-evaluated when unboxed or pulled from the cache.
     union {null, gregor1.Time} senderDeviceRevokedAt;
+
+    array<string> atMentionUsernames;
+    array<gregor1.UID> atMentions;
+    ChannelMention channelMention;
   }
 
   enum MessageUnboxedErrorType {

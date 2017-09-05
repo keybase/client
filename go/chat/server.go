@@ -416,7 +416,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 func (h *Server) presentThreadView(ctx context.Context, tv chat1.ThreadView) (res chat1.UIMessages) {
 	res.Pagination = utils.PresentPagination(tv.Pagination)
 	for _, msg := range tv.Messages {
-		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(ctx, h.G().GetUPAKLoader(), msg))
+		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(msg))
 	}
 	return res
 }

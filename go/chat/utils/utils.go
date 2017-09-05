@@ -611,35 +611,7 @@ func PresentConversationLocals(convs []chat1.ConversationLocal) (res []chat1.Inb
 	return res
 }
 
-func getAtMentionUsernames(ctx context.Context, upak libkb.UPAKLoader, body chat1.MessageBody) (res []string) {
-	typ, err := body.MessageType()
-	if err != nil {
-		return nil
-	}
-
-	var atMentions []gregor1.UID
-	switch typ {
-	case chat1.MessageType_TEXT:
-		atMentions, _ = ParseAtMentionedUIDs(ctx, body.Text().Body, upak, nil)
-	case chat1.MessageType_EDIT:
-		atMentions, _ = ParseAtMentionedUIDs(ctx, body.Edit().Body, upak, nil)
-	}
-
-	usernames := make(map[string]bool)
-	for _, uid := range atMentions {
-		name, err := upak.LookupUsername(ctx, keybase1.UID(uid.String()))
-		if err != nil {
-			continue
-		}
-		usernames[name.String()] = true
-	}
-	for u := range usernames {
-		res = append(res, u)
-	}
-	return res
-}
-
-func PresentMessageUnboxed(ctx context.Context, upak libkb.UPAKLoader, rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
+func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 	state, err := rawMsg.State()
 	if err != nil {
 		res = chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
@@ -666,7 +638,7 @@ func PresentMessageUnboxed(ctx context.Context, upak libkb.UPAKLoader, rawMsg ch
 			SenderDeviceType:      rawMsg.Valid().SenderDeviceType,
 			SenderDeviceRevokedAt: rawMsg.Valid().SenderDeviceRevokedAt,
 			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
-			AtMentions:            getAtMentionUsernames(ctx, upak, rawMsg.Valid().MessageBody),
+			AtMentions:            rawMsg.Valid().AtMentionUsernames,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

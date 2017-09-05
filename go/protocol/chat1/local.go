@@ -1742,6 +1742,9 @@ type MessageUnboxedValid struct {
 	HeaderSignature       *SignatureInfo              `codec:"headerSignature,omitempty" json:"headerSignature,omitempty"`
 	VerificationKey       *[]byte                     `codec:"verificationKey,omitempty" json:"verificationKey,omitempty"`
 	SenderDeviceRevokedAt *gregor1.Time               `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	AtMentionUsernames    []string                    `codec:"atMentionUsernames" json:"atMentionUsernames"`
+	AtMentions            []gregor1.UID               `codec:"atMentions" json:"atMentions"`
+	ChannelMention        ChannelMention              `codec:"channelMention" json:"channelMention"`
 }
 
 func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
@@ -1780,6 +1783,23 @@ func (o MessageUnboxedValid) DeepCopy() MessageUnboxedValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SenderDeviceRevokedAt),
+		AtMentionUsernames: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentionUsernames),
+		AtMentions: (func(x []gregor1.UID) []gregor1.UID {
+			var ret []gregor1.UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentions),
+		ChannelMention: o.ChannelMention.DeepCopy(),
 	}
 }
 
