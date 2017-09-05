@@ -56,7 +56,22 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return Promise.resolve(filePath)
 }
 
-function displayNewMessageNotification(text: string, convID: string, badgeCount: number) {
+function displayNewMessageNotification(text: string, convID: string, badgeCount: number, myMsgID: number) {
+  PushNotificationIOS.getDeliveredNotifications(param => {
+    let idents = []
+    for (const n of param) {
+      if (n.userInfo && n.userInfo.msgID) {
+        const ident = n.identifier
+        const msgID = n.userInfo.msgID
+        if (msgID === myMsgID) {
+          idents.push(ident)
+          console.warn(`removing notification: ${ident} msgID: ${msgID}`)
+        }
+      }
+    }
+    PushNotificationIOS.removeDeliveredNotifications(idents)
+  })
+
   PushNotifications.localNotification({
     message: text,
     soundName: 'keybasemessage.wav',
