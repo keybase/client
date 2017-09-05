@@ -701,6 +701,7 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Check for a delete, if so just auto return a version mismatch to resync. The reason
 	// is it is tricky to update max messages in this case.
 	if msg.GetMessageType() == chat1.MessageType_DELETE {
+		i.Debug(ctx, "NewMessage: returning fake version mismatch error because of delete")
 		return NewVersionMismatchError(ibox.InboxVersion, vers)
 	}
 

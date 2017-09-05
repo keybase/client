@@ -304,6 +304,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.FetchRetrier.Connected(context.TODO())
 	g.FetchRetrier.Start(context.TODO(), uid)
 
+	g.ConvLoader = NewBackgroundConvLoader(g)
+
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
@@ -777,7 +779,8 @@ func TestChatSrvPostLocal(t *testing.T) {
 		// we just posted this message, so should be the first one.
 		uid := users[0].User.GetUID().ToBytes()
 		tc := ctc.world.Tcs[users[0].Username]
-		tv, _, err := tc.Context().ConvSource.Pull(ctc.as(t, users[0]).startCtx, created.Id, uid, nil,
+		ctx := ctc.as(t, users[0]).startCtx
+		tv, _, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
 			nil)
 		require.NoError(t, err)
 		require.NotZero(t, len(tv.Messages))
@@ -788,6 +791,22 @@ func TestChatSrvPostLocal(t *testing.T) {
 		}
 		require.NotZero(t, len(msg.Valid().ClientHeader.Sender.Bytes()))
 		require.NotZero(t, len(msg.Valid().ClientHeader.SenderDevice.Bytes()))
+
+		t.Logf("try headline specific RPC interface")
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadline(ctx, chat1.PostHeadlineArg{
+			ConversationID:   created.Id,
+			TlfName:          created.TlfName,
+			TlfPublic:        false,
+			Headline:         "HI",
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		})
+		require.NoError(t, err)
+		tv, _, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid, nil,
+			nil)
+		require.NoError(t, err)
+		require.NotZero(t, len(tv.Messages))
+		msg = tv.Messages[0]
+		require.Equal(t, chat1.MessageType_HEADLINE, msg.GetMessageType())
 	})
 }
 
@@ -1441,6 +1460,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 		listener := newServerChatListener()
 		ctc.as(t, users[0]).h.G().SetService()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		var err error
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
@@ -1561,6 +1581,32 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
 			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
 			require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no event received")
+		}
+
+		t.Logf("post headline")
+		headline := "SILENCE!"
+		harg := chat1.PostHeadlineNonblockArg{
+			ConversationID:   created.Id,
+			TlfName:          created.TlfName,
+			TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			Headline:         headline,
+		}
+		res, err = ctc.as(t, users[0]).chatLocalHandler().PostHeadlineNonblock(tc.startCtx, harg)
+		require.NoError(t, err)
+		select {
+		case info := <-listener.newMessage:
+			unboxed = info.Message
+			require.True(t, unboxed.IsValid(), "invalid message")
+			require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+			require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+			require.Equal(t, chat1.MessageType_HEADLINE, unboxed.GetMessageType(), "invalid type")
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				require.Equal(t, headline, unboxed.Valid().MessageBody.Headline().Headline)
+			}
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no event received")
 		}
