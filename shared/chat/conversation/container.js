@@ -145,7 +145,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch((props: Props) => !props.selectedConversationIDKey, renderNothing),
+  branch((props: Props) => !props.selectedConversationIDKey && !props.inSearch, renderNothing),
   branch(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)
