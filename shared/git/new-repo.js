@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalMargins} from '../styles'
 
 type Props = {
   isTeam: boolean,
   teams?: Array<string>,
-  onCreate: (name: string) => void,
+  onCreate: (name: string, notifyTeam: boolean) => void,
   onClose: () => void,
   onNewTeam: () => void,
 }
@@ -120,7 +120,7 @@ class NewRepo extends React.Component<Props, State> {
           />
           <Button
             type="Primary"
-            onClick={() => this.props.onCreate(this.state.name)}
+            onClick={() => this.props.onCreate(this.state.name, this.props.isTeam && this.state.notifyTeam)}
             label="Create"
             disabled={!this.state.name}
           />

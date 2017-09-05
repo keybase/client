@@ -5,6 +5,7 @@ import {storiesOf, action} from '../stories/storybook'
 
 import Git from '.'
 import NewRepo from './new-repo'
+import DeleteRepo from './delete-repo'
 
 const common = {
   devicename: 'Home Laptop',
@@ -64,6 +65,21 @@ const load = () => {
           onCreate={action('onCreate')}
           onNewTeam={action('onNewTeam')}
           teams={['fortgreenmoms', 'siggis', 'siggis.board']}
+        />
+      </Box>
+    ))
+    .add('DeleteRepo', () => (
+      <Box style={{height: '100%', width: '100%'}}>
+        <DeleteRepo name="docs" onClose={action('onClose')} onDelete={action('onDelete')} />
+      </Box>
+    ))
+    .add('DeleteTeamRepo', () => (
+      <Box style={{height: '100%', width: '100%'}}>
+        <DeleteRepo
+          teamname="siggis.board"
+          name="media"
+          onClose={action('onClose')}
+          onDelete={action('onDelete')}
         />
       </Box>
     ))
