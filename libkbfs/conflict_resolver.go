@@ -330,7 +330,8 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
 	if branchPoint >= kbfsmd.RevisionInitial {
 		fetchFrom = branchPoint
 	}
-	merged, err = getMergedMDUpdates(ctx, cr.fbo.config, cr.fbo.id(), fetchFrom)
+	merged, err = getMergedMDUpdates(
+		ctx, cr.fbo.config, cr.fbo.id(), fetchFrom, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3131,7 +3132,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		} else {
 			branchPoint := unmergedMDs[0].Revision() - 1
 			mostRecentMergedMD, err = getSingleMD(ctx, cr.config, cr.fbo.id(),
-				NullBranchID, branchPoint, Merged)
+				NullBranchID, branchPoint, Merged, nil)
 			if err != nil {
 				return
 			}

@@ -216,7 +216,8 @@ func (md *MDServerDisk) getHandleID(ctx context.Context, handle tlf.Handle,
 
 // GetForHandle implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetForHandle(ctx context.Context, handle tlf.Handle,
-	mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
+	mStatus MergeStatus, _ *keybase1.LockID) (
+	tlf.ID, *RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return tlf.NullID, nil, err
 	}
@@ -230,7 +231,7 @@ func (md *MDServerDisk) GetForHandle(ctx context.Context, handle tlf.Handle,
 		return id, nil, nil
 	}
 
-	rmds, err := md.GetForTLF(ctx, id, NullBranchID, mStatus)
+	rmds, err := md.GetForTLF(ctx, id, NullBranchID, mStatus, nil)
 	if err != nil {
 		return tlf.NullID, nil, err
 	}
@@ -330,7 +331,8 @@ func (md *MDServerDisk) deleteBranchID(ctx context.Context, id tlf.ID) error {
 
 // GetForTLF implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+	bid BranchID, mStatus MergeStatus, _ *keybase1.LockID) (
+	*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -362,8 +364,8 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
-	[]*RootMetadataSigned, error) {
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	_ *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -397,7 +399,7 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata) error {
+	extra ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -437,6 +439,18 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
 	return nil
 }
 
+// Lock (does not) implement the MDServer interface for MDServerDisk.
+func (*MDServerDisk) Lock(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) error {
+	panic("Lock called on *MDServerDisk")
+}
+
+// ReleaseLock (does not) implement the MDServer interface for MDServerDisk.
+func (*MDServerDisk) ReleaseLock(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) error {
+	panic("ReleaseLock called on *MDServerDisk")
+}
+
 // PruneBranch implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID) error {
 	if err := checkContext(ctx); err != nil {
@@ -463,7 +477,7 @@ func (md *MDServerDisk) PruneBranch(ctx context.Context, id tlf.ID, bid BranchID
 
 func (md *MDServerDisk) getCurrentMergedHeadRevision(
 	ctx context.Context, id tlf.ID) (rev kbfsmd.Revision, err error) {
-	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged)
+	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged, nil)
 	if err != nil {
 		return 0, err
 	}

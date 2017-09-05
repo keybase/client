@@ -386,7 +386,8 @@ func TestJournalServerRestart(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey)
+	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	// Simulate a restart.
@@ -411,7 +412,7 @@ func TestJournalServerRestart(t *testing.T) {
 
 	// Get the MD.
 
-	head, err := mdOps.GetForTLF(ctx, tlfID)
+	head, err := mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, rmd.Revision(), head.Revision())
 }
@@ -457,7 +458,8 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey)
+	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	// Simulate a log out.
@@ -471,7 +473,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	// Get the head, which should be empty.
 
-	head, err := mdOps.GetForTLF(ctx, tlfID)
+	head, err := mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, head)
 
@@ -487,7 +489,7 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 
 	// Get the MD.
 
-	head, err = mdOps.GetForTLF(ctx, tlfID)
+	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, rmd.Revision(), head.Revision())
 }
@@ -565,7 +567,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	require.NoError(t, err)
 
-	_, err = mdOps.Put(ctx, rmd1, session.VerifyingKey)
+	_, err = mdOps.Put(ctx, rmd1, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	// Log in user 2.
@@ -589,7 +592,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	_, _, err = blockServer.Get(ctx, tlfID, bID1, bCtx1)
 	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
-	head, err := mdOps.GetForTLF(ctx, tlfID)
+	head, err := mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, head)
 
@@ -613,7 +616,8 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
 
-	_, err = mdOps.Put(ctx, rmd2, session.VerifyingKey)
+	_, err = mdOps.Put(ctx, rmd2, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	// Log out.
@@ -628,7 +632,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
 	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
-	head, err = mdOps.GetForTLF(ctx, tlfID)
+	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, head)
 
@@ -652,7 +656,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	_, _, err = blockServer.Get(ctx, tlfID, bID2, bCtx2)
 	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 
-	head, err = mdOps.GetForTLF(ctx, tlfID)
+	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, id1.AsUserOrBust(), head.LastModifyingWriter())
 
@@ -678,7 +682,7 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.Equal(t, data2, buf)
 	require.Equal(t, serverHalf2, key)
 
-	head, err = mdOps.GetForTLF(ctx, tlfID)
+	head, err = mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, id2.AsUserOrBust(), head.LastModifyingWriter())
 }
@@ -780,7 +784,8 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 	require.NoError(t, err)
 	rmd.bareMd.SetLatestKeyGenerationForTeamTLF(FirstValidKeyGen)
 
-	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey)
+	_, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	// Simulate a restart.
@@ -811,7 +816,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 
 	// Get the MD.
 
-	head, err := mdOps.GetForTLF(ctx, tlfID)
+	head, err := mdOps.GetForTLF(ctx, tlfID, nil)
 	require.NoError(t, err)
 	require.Equal(t, rmd.Revision(), head.Revision())
 }

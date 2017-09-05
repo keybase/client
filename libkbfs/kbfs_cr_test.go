@@ -542,7 +542,7 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	if unembedChanges {
 		// Make sure the MD has an unembedded change block.
 		md, err := config1.MDOps().GetForTLF(ctx,
-			rootNode1.GetFolderBranch().Tlf)
+			rootNode1.GetFolderBranch().Tlf, nil)
 		require.NoError(t, err)
 		require.NotEqual(t, zeroPtr, md.data.cachedChanges.Info.BlockPointer)
 	}

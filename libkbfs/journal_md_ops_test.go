@@ -112,7 +112,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
@@ -122,7 +122,8 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
 
-	irmd, err = mdOps.Put(ctx, rmd, session.VerifyingKey)
+	irmd, err = mdOps.Put(ctx, rmd, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 	prevRoot := irmd.mdID
 
@@ -130,35 +131,36 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	for i := kbfsmd.Revision(2); i < 8; i++ {
 		rmd.SetRevision(kbfsmd.Revision(i))
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey)
+		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey,
+			nil, keybase1.MDPriorityNormal)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 	}
 
-	id, head, err := mdOps.GetForHandle(ctx, h, Merged)
+	id, head, err := mdOps.GetForHandle(ctx, h, Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(7), head.Revision())
 
-	head, err = mdOps.GetForTLF(ctx, id)
+	head, err = mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(7), head.Revision())
 
-	head, err = oldMDOps.GetForTLF(ctx, id)
+	head, err = oldMDOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, head)
 
 	err = jServer.Flush(ctx, id)
 	require.NoError(t, err)
 
-	head, err = mdOps.GetForTLF(ctx, id)
+	head, err = mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(7), head.Revision())
 
-	head, err = oldMDOps.GetForTLF(ctx, id)
+	head, err = oldMDOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(7), head.Revision())
@@ -168,13 +170,15 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	rmd.SetPrevRoot(prevRoot)
 	resolveMD, err := rmd.deepCopy(config.Codec())
 	require.NoError(t, err)
-	_, err = oldMDOps.Put(ctx, rmd, session.VerifyingKey)
+	_, err = oldMDOps.Put(ctx, rmd, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	for i := kbfsmd.Revision(8); i <= 10; i++ {
 		rmd.SetRevision(kbfsmd.Revision(i))
 		rmd.SetPrevRoot(prevRoot)
-		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey)
+		irmd, err := mdOps.Put(ctx, rmd, session.VerifyingKey,
+			nil, keybase1.MDPriorityNormal)
 		require.NoError(t, err, "i=%d", i)
 		prevRoot = irmd.mdID
 	}
@@ -182,12 +186,12 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	err = jServer.Flush(ctx, id)
 	require.NoError(t, err)
 
-	head, err = mdOps.GetForTLF(ctx, id)
+	head, err = mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(8), head.Revision())
 
-	head, err = oldMDOps.GetForTLF(ctx, id)
+	head, err = oldMDOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(8), head.Revision())
@@ -202,7 +206,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(10), head.Revision())
 
-	_, head, err = mdOps.GetForHandle(ctx, h, Unmerged)
+	_, head, err = mdOps.GetForHandle(ctx, h, Unmerged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(10), head.Revision())
@@ -259,13 +263,13 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.Equal(t, 0, len(rmdses))
 
 	// (10) check for proper merged head
-	head, err = mdOps.GetForTLF(ctx, id)
+	head, err = mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableRootMetadata{}, head)
 	require.Equal(t, kbfsmd.Revision(8), head.Revision())
 
 	// (11) try to get merged range
-	rmdses, err = mdOps.GetRange(ctx, id, 1, 100)
+	rmdses, err = mdOps.GetRange(ctx, id, 1, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 8, len(rmdses))
 	for i := kbfsmd.Revision(1); i <= 8; i++ {
@@ -292,7 +296,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
@@ -324,7 +328,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 
 	mdOps := jServer.mdOps()
 
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, tlf.NullID, id)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
@@ -353,7 +357,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	require.NoError(t, err)
 
 	mdOps := jServer.mdOps()
-	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
+	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
@@ -392,7 +396,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 
 	// The merged head should still be the initial rmd, because we
 	// marked it as a squash and it shouldn't have gotten converted.
-	irmd, err = mdOps.GetForTLF(ctx, id)
+	irmd, err = mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.Equal(t, initialMdID, irmd.mdID)
 	require.Equal(t, firstRevision, irmd.Revision())
@@ -406,7 +410,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 
 	// The merged range should just be the initial MD.
 	stopRevision := firstRevision + kbfsmd.Revision(mdCount*2)
-	irmds, err := mdOps.GetRange(ctx, id, firstRevision, stopRevision)
+	irmds, err := mdOps.GetRange(ctx, id, firstRevision, stopRevision, nil)
 	require.NoError(t, err)
 	require.Len(t, irmds, 1)
 	require.Equal(t, initialMdID, irmds[0].mdID)

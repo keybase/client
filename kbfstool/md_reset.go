@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -103,7 +104,8 @@ func mdResetOne(
 		return err
 	}
 
-	newIrmd, err := config.MDOps().Put(ctx, rmdNext, session.VerifyingKey)
+	newIrmd, err := config.MDOps().Put(ctx, rmdNext, session.VerifyingKey,
+		nil, keybase1.MDPriorityNormal)
 	if err != nil {
 		return err
 	}

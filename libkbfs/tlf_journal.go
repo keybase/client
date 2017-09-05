@@ -832,7 +832,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 
 		if !flushedOneMD {
-			err = j.checkServerForConflicts(ctx)
+			err = j.checkServerForConflicts(ctx, nil)
 			if err != nil {
 				return err
 			}
@@ -862,7 +862,8 @@ func (e errTLFJournalNotEmpty) Error() string {
 	return "tlfJournal is not empty"
 }
 
-func (j *tlfJournal) checkServerForConflicts(ctx context.Context) error {
+func (j *tlfJournal) checkServerForConflicts(ctx context.Context,
+	needLock *keybase1.LockID) error {
 	durSinceCheck := j.config.Clock().Now().Sub(j.lastServerMDCheck)
 	if durSinceCheck < tlfJournalServerMDCheckInterval {
 		return nil
@@ -894,7 +895,7 @@ func (j *tlfJournal) checkServerForConflicts(ctx context.Context) error {
 	// returns the latest revision number, so we don't have to fetch
 	// the entire MD?
 	currHead, err := j.config.MDServer().GetForTLF(
-		ctx, j.tlfID, NullBranchID, Merged)
+		ctx, j.tlfID, NullBranchID, Merged, needLock)
 	if err != nil {
 		return err
 	}
@@ -1349,11 +1350,12 @@ func (j *tlfJournal) flushOneMDOp(
 
 	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
 		rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
-	pushErr := mdServer.Put(ctx, rmds, extra)
+	// TODO: take care of locking in journal.
+	pushErr := mdServer.Put(ctx, rmds, extra, nil, keybase1.MDPriorityNormal)
 	if isRevisionConflict(pushErr) {
 		headMdID, err := getMdID(ctx, mdServer, j.config.Codec(),
 			rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.MergedStatus(),
-			rmds.MD.RevisionNumber())
+			rmds.MD.RevisionNumber(), nil)
 		if err != nil {
 			j.log.CWarningf(ctx,
 				"getMdID failed for TLF %s, BID %s, and revision %d: %v",

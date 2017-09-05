@@ -509,7 +509,7 @@ func (md *MDServerRemote) get(ctx context.Context, arg keybase1.GetMetadataArg) 
 
 // GetForHandle implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForHandle(ctx context.Context,
-	handle tlf.Handle, mStatus MergeStatus) (
+	handle tlf.Handle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
 	tlfID tlf.ID, rmds *RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	// TODO: Ideally, *tlf.Handle would have a nicer String() function.
@@ -526,9 +526,10 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 	// NullBranchID signals that the folder's current branch ID
 	// should be looked up.
 	arg := keybase1.GetMetadataArg{
-		FolderHandle: encodedHandle,
-		BranchID:     NullBranchID.String(),
-		Unmerged:     mStatus == Unmerged,
+		FolderHandle:  encodedHandle,
+		BranchID:      NullBranchID.String(),
+		Unmerged:      mStatus == Unmerged,
+		LockBeforeGet: lockBeforeGet,
 	}
 
 	id, rmdses, err := md.get(ctx, arg)
@@ -544,7 +545,7 @@ func (md *MDServerRemote) GetForHandle(ctx context.Context,
 
 // GetForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus) (rmds *RootMetadataSigned, err error) {
+	bid BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (rmds *RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetForTLF %s %s %s", id, bid, mStatus)
 	defer func() {
@@ -552,9 +553,10 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 	}()
 
 	arg := keybase1.GetMetadataArg{
-		FolderID: id.String(),
-		BranchID: bid.String(),
-		Unmerged: mStatus == Unmerged,
+		FolderID:      id.String(),
+		BranchID:      bid.String(),
+		Unmerged:      mStatus == Unmerged,
+		LockBeforeGet: lockBeforeGet,
 	}
 
 	_, rmdses, err := md.get(ctx, arg)
@@ -570,8 +572,8 @@ func (md *MDServerRemote) GetForTLF(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
-	rmdses []*RootMetadataSigned, err error) {
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	lockBeforeGet *keybase1.LockID) (rmdses []*RootMetadataSigned, err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: GetRange %s %s %s %d-%d", id, bid, mStatus, start, stop)
 	defer func() {
@@ -584,6 +586,7 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 		Unmerged:      mStatus == Unmerged,
 		StartRevision: start.Number(),
 		StopRevision:  stop.Number(),
+		LockBeforeGet: lockBeforeGet,
 	}
 
 	_, rmds, err := md.get(ctx, arg)
@@ -592,7 +595,8 @@ func (md *MDServerRemote) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata) (err error) {
+	extra ExtraMetadata, lockContext *keybase1.LockContext,
+	priority keybase1.MDPriority) (err error) {
 	ctx = rpc.WithFireNow(ctx)
 	md.log.LazyTrace(ctx, "MDServer: Put %s %d", rmds.MD.TlfID(), rmds.MD.RevisionNumber())
 	defer func() {
@@ -611,7 +615,12 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 			Version: int(rmds.Version()),
 			Block:   rmdsBytes,
 		},
-		LogTags: nil,
+		LogTags:  nil,
+		Priority: priority,
+	}
+	if lockContext != nil {
+		copied := *lockContext
+		arg.LockContext = &copied
 	}
 
 	if rmds.Version() < SegregatedKeyBundlesVer {
@@ -651,6 +660,34 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	return md.getClient().PutMetadata(ctx, arg)
+}
+
+// Lock implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) Lock(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) error {
+	ctx = rpc.WithFireNow(ctx)
+	md.log.LazyTrace(ctx, "MDServer: Lock %s %s", tlfID, lockID)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: Lock %s %s", tlfID, lockID)
+	}()
+	return md.getClient().Lock(ctx, keybase1.LockArg{
+		FolderID: tlfID.String(),
+		LockID:   lockID,
+	})
+}
+
+// ReleaseLock implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) ReleaseLock(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) error {
+	ctx = rpc.WithFireNow(ctx)
+	md.log.LazyTrace(ctx, "MDServer: ReleaseLock %s %s", tlfID, lockID)
+	defer func() {
+		md.deferLog.LazyTrace(ctx, "MDServer: ReleaseLock %s %s", tlfID, lockID)
+	}()
+	return md.getClient().ReleaseLock(ctx, keybase1.ReleaseLockArg{
+		FolderID: tlfID.String(),
+		LockID:   lockID,
+	})
 }
 
 // PruneBranch implements the MDServer interface for MDServerRemote.

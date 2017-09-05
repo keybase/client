@@ -174,7 +174,8 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle tlf.Handle,
 
 // GetForHandle implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForHandle(ctx context.Context, handle tlf.Handle,
-	mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
+	mStatus MergeStatus, _ *keybase1.LockID) (
+	tlf.ID, *RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return tlf.NullID, nil, err
 	}
@@ -188,7 +189,7 @@ func (md *MDServerMemory) GetForHandle(ctx context.Context, handle tlf.Handle,
 		return id, nil, nil
 	}
 
-	rmds, err := md.GetForTLF(ctx, id, NullBranchID, mStatus)
+	rmds, err := md.GetForTLF(ctx, id, NullBranchID, mStatus, nil)
 	if err != nil {
 		return tlf.NullID, nil, err
 	}
@@ -242,7 +243,8 @@ func (md *MDServerMemory) checkGetParamsRLocked(
 
 // GetForTLF implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetForTLF(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+	bid BranchID, mStatus MergeStatus, _ *keybase1.LockID) (
+	*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -385,8 +387,8 @@ func (md *MDServerMemory) getRangeRLocked(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
-	[]*RootMetadataSigned, error) {
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	_ *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -398,7 +400,7 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata) error {
+	extra ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -543,6 +545,22 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 		md.updateManager.setHead(id, md)
 	}
 
+	return nil
+}
+
+// Lock (does not) implement the MDServer interface for MDServerMemory.
+func (*MDServerMemory) Lock(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) error {
+	// In-memory MD server doesn't need to do anything about locking since it's
+	// all within the same session.
+	return nil
+}
+
+// ReleaseLock (does not) implement the MDServer interface for MDServerMemory.
+func (*MDServerMemory) ReleaseLock(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) error {
+	// In-memory MD server doesn't need to do anything about locking since it's
+	// all within the same session.
 	return nil
 }
 
@@ -764,7 +782,7 @@ func (md *MDServerMemory) addNewAssertionForTest(uid keybase1.UID,
 
 func (md *MDServerMemory) getCurrentMergedHeadRevision(
 	ctx context.Context, id tlf.ID) (rev kbfsmd.Revision, err error) {
-	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged)
+	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged, nil)
 	if err != nil {
 		return 0, err
 	}
@@ -775,8 +793,8 @@ func (md *MDServerMemory) getCurrentMergedHeadRevision(
 }
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) GetLatestHandleForTLF(
-	ctx context.Context, id tlf.ID) (tlf.Handle, error) {
+func (md *MDServerMemory) GetLatestHandleForTLF(ctx context.Context,
+	id tlf.ID) (tlf.Handle, error) {
 	if err := checkContext(ctx); err != nil {
 		return tlf.Handle{}, err
 	}

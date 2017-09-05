@@ -146,7 +146,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	// Make sure the MD has an unembedded change block.
 	rootNode := GetRootNodeOrBust(
 		ctx, t, config, userName.String(), tlf.Private)
-	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
+	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	if err != nil {
 		t.Fatalf("Couldn't get MD: %+v", err)
 	}
@@ -751,7 +751,8 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 
 	// Make sure the head has a GCOp that doesn't point to just the
 	// previous revision.
-	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
+	md, err := config.MDOps().GetForTLF(
+		ctx, rootNode.GetFolderBranch().Tlf, nil)
 	if err != nil {
 		t.Fatalf("Couldn't get MD: %+v", err)
 	}
@@ -767,7 +768,8 @@ func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
 			t.Fatalf("Couldn't wait for QR: %+v", err)
 		}
 
-		md, err = config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
+		md, err = config.MDOps().GetForTLF(
+			ctx, rootNode.GetFolderBranch().Tlf, nil)
 		if err != nil {
 			t.Fatalf("Couldn't get MD: %+v", err)
 		}

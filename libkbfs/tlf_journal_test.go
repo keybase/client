@@ -764,8 +764,8 @@ type hangingMDServer struct {
 	onPutCh chan struct{}
 }
 
-func (md hangingMDServer) Put(
-	ctx context.Context, rmds *RootMetadataSigned, _ ExtraMetadata) error {
+func (md hangingMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
+	_ ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	close(md.onPutCh)
 	// Hang until the context is cancelled.
 	<-ctx.Done()
@@ -856,14 +856,14 @@ type shimMDServer struct {
 
 func (s *shimMDServer) GetRange(
 	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus,
-	start, stop kbfsmd.Revision) ([]*RootMetadataSigned, error) {
+	start, stop kbfsmd.Revision, _ *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	rmdses := s.nextGetRange
 	s.nextGetRange = nil
 	return rmdses, nil
 }
 
 func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata) error {
+	extra ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	if s.nextErr != nil {
 		err := s.nextErr
 		s.nextErr = nil
@@ -881,7 +881,7 @@ func (s *shimMDServer) Put(ctx context.Context, rmds *RootMetadataSigned,
 }
 
 func (s *shimMDServer) GetForTLF(
-	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (
+	ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, _ *keybase1.LockID) (
 	*RootMetadataSigned, error) {
 	s.getForTLFCalled = true
 	if len(s.rmdses) == 0 {
@@ -1041,7 +1041,8 @@ type orderedMDServer struct {
 }
 
 func (s *orderedMDServer) Put(
-	ctx context.Context, rmds *RootMetadataSigned, _ ExtraMetadata) error {
+	ctx context.Context, rmds *RootMetadataSigned, _ ExtraMetadata,
+	_ *keybase1.LockContext, _ keybase1.MDPriority) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	*s.puts = append(*s.puts, rmds.MD.RevisionNumber())

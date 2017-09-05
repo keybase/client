@@ -546,7 +546,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, ty tlf.Type) {
 	config.mockMdops.EXPECT().GetUnmergedForTLF(
 		gomock.Any(), id, gomock.Any()).Return(ImmutableRootMetadata{}, nil)
 	irmd := makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1))
-	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(irmd, nil)
+	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id, nil).Return(irmd, nil)
 
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))
@@ -590,10 +590,11 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		},
 	}
 
-	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, Unmerged).Return(
-		tlf.ID{}, ImmutableRootMetadata{}, nil)
-	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, Merged).Return(
-		tlf.ID{}, makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1)), nil)
+	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, Unmerged,
+		nil).Return(tlf.ID{}, ImmutableRootMetadata{}, nil)
+	config.mockMdops.EXPECT().GetForHandle(
+		gomock.Any(), h, Merged, nil).Return(tlf.ID{},
+		makeImmutableRMDForTest(t, config, rmd, kbfsmd.FakeID(1)), nil)
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))
 

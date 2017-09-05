@@ -67,7 +67,7 @@ func TestMDServerBasics(t *testing.T) {
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	id, rmds, err := mdServer.GetForHandle(ctx, h, Merged)
+	id, rmds, err := mdServer.GetForHandle(ctx, h, Merged, nil)
 	require.NoError(t, err)
 	require.Nil(t, rmds)
 
@@ -78,7 +78,7 @@ func TestMDServerBasics(t *testing.T) {
 		brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 		// MDv3 TODO: pass actual key bundles
-		err = mdServer.Put(ctx, rmds, nil)
+		err = mdServer.Put(ctx, rmds, nil, nil, keybase1.MDPriorityNormal)
 		require.NoError(t, err)
 		prevRoot, err = kbfsmd.MakeID(config.Codec(), rmds.MD)
 		require.NoError(t, err)
@@ -91,7 +91,7 @@ func TestMDServerBasics(t *testing.T) {
 	brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, 10, uid, prevRoot)
 	rmds = signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 	// MDv3 TODO: pass actual key bundles
-	err = mdServer.Put(ctx, rmds, nil)
+	err = mdServer.Put(ctx, rmds, nil, nil, keybase1.MDPriorityNormal)
 	require.IsType(t, kbfsmd.ServerErrorConflictRevision{}, err)
 
 	// (4) push some new unmerged metadata blocks linking to the
@@ -105,20 +105,20 @@ func TestMDServerBasics(t *testing.T) {
 		brmd.SetBranchID(bid)
 		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 		// MDv3 TODO: pass actual key bundles
-		err = mdServer.Put(ctx, rmds, nil)
+		err = mdServer.Put(ctx, rmds, nil, nil, keybase1.MDPriorityNormal)
 		require.NoError(t, err)
 		prevRoot, err = kbfsmd.MakeID(config.Codec(), rmds.MD)
 		require.NoError(t, err)
 	}
 
 	// (5) check for proper unmerged head
-	head, err := mdServer.GetForTLF(ctx, id, bid, Unmerged)
+	head, err := mdServer.GetForTLF(ctx, id, bid, Unmerged, nil)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, kbfsmd.Revision(40), head.MD.RevisionNumber())
 
 	// (6a) try to get unmerged range
-	rmdses, err := mdServer.GetRange(ctx, id, bid, Unmerged, 1, 100)
+	rmdses, err := mdServer.GetRange(ctx, id, bid, Unmerged, 1, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 35, len(rmdses))
 	for i := kbfsmd.Revision(6); i < 41; i++ {
@@ -126,7 +126,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (6b) try to get unmerged range subset.
-	rmdses, err = mdServer.GetRange(ctx, id, bid, Unmerged, 7, 14)
+	rmdses, err = mdServer.GetRange(ctx, id, bid, Unmerged, 7, 14, nil)
 	require.NoError(t, err)
 	require.Equal(t, 8, len(rmdses))
 	for i := kbfsmd.Revision(7); i <= 14; i++ {
@@ -138,23 +138,23 @@ func TestMDServerBasics(t *testing.T) {
 	require.NoError(t, err)
 
 	// (8) verify head is pruned
-	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Unmerged)
+	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Unmerged, nil)
 	require.NoError(t, err)
 	require.Nil(t, head)
 
 	// (9) verify revision history is pruned
-	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Unmerged, 1, 100)
+	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Unmerged, 1, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(rmdses))
 
 	// (10) check for proper merged head
-	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Merged)
+	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Merged, nil)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, kbfsmd.Revision(10), head.MD.RevisionNumber())
 
 	// (11) try to get merged range
-	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Merged, 1, 100)
+	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Merged, 1, 100, nil)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
 	for i := kbfsmd.Revision(1); i <= 10; i++ {
@@ -180,7 +180,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	h1, err := tlf.MakeHandle([]keybase1.UserOrTeamID{id}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	id1, _, err := mdServer.GetForHandle(ctx, h1, Merged)
+	id1, _, err := mdServer.GetForHandle(ctx, h1, Merged, nil)
 	require.NoError(t, err)
 
 	// Create second TLF, which should end up being different from
@@ -190,7 +190,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 		nil, nil, nil)
 	require.NoError(t, err)
 
-	id2, _, err := mdServer.GetForHandle(ctx, h2, Merged)
+	id2, _, err := mdServer.GetForHandle(ctx, h2, Merged, nil)
 	require.NoError(t, err)
 	require.NotEqual(t, id1, id2)
 

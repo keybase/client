@@ -145,7 +145,7 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 		// that aren't yet in the cache).  That should be so rare that
 		// it's not worth optimizing.
 		prevMDs, err := getMDRange(ctx, md.config, rmds.MD.TlfID(),
-			rmds.MD.BID(), startRev, prevHead, rmds.MD.MergedStatus())
+			rmds.MD.BID(), startRev, prevHead, rmds.MD.MergedStatus(), nil)
 		if err != nil {
 			return err
 		}
@@ -306,7 +306,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
-	mStatus MergeStatus) (id tlf.ID, rmd ImmutableRootMetadata, err error) {
+	mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
+	id tlf.ID, rmd ImmutableRootMetadata, err error) {
 	md.log.CDebugf(
 		ctx, "GetForHandle: %s %s", handle.GetCanonicalPath(), mStatus)
 	defer func() {
@@ -329,7 +330,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
 
-	id, rmds, err := mdserv.GetForHandle(ctx, bh, mStatus)
+	id, rmds, err := mdserv.GetForHandle(ctx, bh, mStatus, lockBeforeGet)
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
 	}
@@ -401,8 +402,10 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 }
 
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus) (ImmutableRootMetadata, error) {
-	rmds, err := md.config.MDServer().GetForTLF(ctx, id, bid, mStatus)
+	bid BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
+	ImmutableRootMetadata, error) {
+	rmds, err := md.config.MDServer().GetForTLF(
+		ctx, id, bid, mStatus, lockBeforeGet)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -430,16 +433,17 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 }
 
 // GetForTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForTLF(ctx context.Context, id tlf.ID) (
+func (md *MDOpsStandard) GetForTLF(
+	ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (
 	ImmutableRootMetadata, error) {
-	return md.getForTLF(ctx, id, NullBranchID, Merged)
+	return md.getForTLF(ctx, id, NullBranchID, Merged, lockBeforeGet)
 }
 
 // GetUnmergedForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedForTLF(
 	ctx context.Context, id tlf.ID, bid BranchID) (
 	ImmutableRootMetadata, error) {
-	return md.getForTLF(ctx, id, bid, Unmerged)
+	return md.getForTLF(ctx, id, bid, Unmerged, nil)
 }
 
 func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
@@ -553,10 +557,10 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 }
 
 func (md *MDOpsStandard) getRange(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
-	[]ImmutableRootMetadata, error) {
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	lockBeforeGet *keybase1.LockID) ([]ImmutableRootMetadata, error) {
 	rmds, err := md.config.MDServer().GetRange(
-		ctx, id, bid, mStatus, start, stop)
+		ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	if err != nil {
 		return nil, err
 	}
@@ -569,19 +573,22 @@ func (md *MDOpsStandard) getRange(ctx context.Context, id tlf.ID,
 
 // GetRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetRange(ctx context.Context, id tlf.ID,
-	start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
-	return md.getRange(ctx, id, NullBranchID, Merged, start, stop)
+	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
+	[]ImmutableRootMetadata, error) {
+	return md.getRange(
+		ctx, id, NullBranchID, Merged, start, stop, lockBeforeGet)
 }
 
 // GetUnmergedRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id tlf.ID,
-	bid BranchID, start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
-	return md.getRange(ctx, id, bid, Unmerged, start, stop)
+	bid BranchID, start, stop kbfsmd.Revision) (
+	[]ImmutableRootMetadata, error) {
+	return md.getRange(ctx, id, bid, Unmerged, start, stop, nil)
 }
 
-func (md *MDOpsStandard) put(
-	ctx context.Context, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
+	priority keybase1.MDPriority) (ImmutableRootMetadata, error) {
 	session, err := md.config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
@@ -609,7 +616,7 @@ func (md *MDOpsStandard) put(
 		return ImmutableRootMetadata{}, err
 	}
 
-	err = md.config.MDServer().Put(ctx, rmds, rmd.extra)
+	err = md.config.MDServer().Put(ctx, rmds, rmd.extra, lockContext, priority)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -633,13 +640,13 @@ func (md *MDOpsStandard) put(
 }
 
 // Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(
-	ctx context.Context, rmd *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
+func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata,
+	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
+	priority keybase1.MDPriority) (ImmutableRootMetadata, error) {
 	if rmd.MergedStatus() == Unmerged {
 		return ImmutableRootMetadata{}, UnexpectedUnmergedPutError{}
 	}
-	return md.put(ctx, rmd, verifyingKey)
+	return md.put(ctx, rmd, verifyingKey, lockContext, priority)
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
@@ -655,7 +662,7 @@ func (md *MDOpsStandard) PutUnmerged(
 		}
 		rmd.SetBranchID(bid)
 	}
-	return md.put(ctx, rmd, verifyingKey)
+	return md.put(ctx, rmd, verifyingKey, nil, keybase1.MDPriorityNormal)
 }
 
 // PruneBranch implements the MDOps interface for MDOpsStandard.
@@ -670,7 +677,7 @@ func (md *MDOpsStandard) ResolveBranch(
 	rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (
 	ImmutableRootMetadata, error) {
 	// Put the MD first.
-	irmd, err := md.Put(ctx, rmd, verifyingKey)
+	irmd, err := md.Put(ctx, rmd, verifyingKey, nil, keybase1.MDPriorityNormal)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}

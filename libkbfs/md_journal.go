@@ -909,9 +909,9 @@ func (j *mdJournal) removeFlushedEntry(
 
 func getMdID(ctx context.Context, mdserver MDServer, codec kbfscodec.Codec,
 	tlfID tlf.ID, bid BranchID, mStatus MergeStatus,
-	revision kbfsmd.Revision) (kbfsmd.ID, error) {
+	revision kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (kbfsmd.ID, error) {
 	rmdses, err := mdserver.GetRange(
-		ctx, tlfID, bid, mStatus, revision, revision)
+		ctx, tlfID, bid, mStatus, revision, revision, lockBeforeGet)
 	if err != nil {
 		return kbfsmd.ID{}, err
 	} else if len(rmdses) == 0 {

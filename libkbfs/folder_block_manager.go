@@ -514,7 +514,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 		// us here.
 		rmds, err := getMDRange(
 			ctx, fbm.config, fbm.id, toDelete.md.BID(), toDelete.md.Revision(),
-			toDelete.md.Revision(), toDelete.md.MergedStatus())
+			toDelete.md.Revision(), toDelete.md.MergedStatus(), nil)
 		if err != nil {
 			fbm.log.CDebugf(ctx,
 				"Error trying to get MD %d; retrying after a delay",
@@ -761,7 +761,7 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
-			currHead, Merged)
+			currHead, Merged, nil)
 		if err != nil {
 			return kbfsmd.RevisionUninitialized,
 				kbfsmd.RevisionUninitialized, err
@@ -867,7 +867,7 @@ outer:
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
-			currHead, Merged)
+			currHead, Merged, nil)
 		if err != nil {
 			return nil, kbfsmd.RevisionUninitialized, false, err
 		}

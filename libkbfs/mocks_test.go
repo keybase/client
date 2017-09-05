@@ -3797,8 +3797,8 @@ func (m *MockMDOps) EXPECT() *MockMDOpsMockRecorder {
 }
 
 // GetForHandle mocks base method
-func (m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (tlf.ID, ImmutableRootMetadata, error) {
-	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus)
+func (m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, ImmutableRootMetadata, error) {
+	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(ImmutableRootMetadata)
 	ret2, _ := ret[2].(error)
@@ -3806,21 +3806,21 @@ func (m *MockMDOps) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus
 }
 
 // GetForHandle indicates an expected call of GetForHandle
-func (mr *MockMDOpsMockRecorder) GetForHandle(ctx, handle, mStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockMDOps)(nil).GetForHandle), ctx, handle, mStatus)
+func (mr *MockMDOpsMockRecorder) GetForHandle(ctx, handle, mStatus, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockMDOps)(nil).GetForHandle), ctx, handle, mStatus, lockBeforeGet)
 }
 
 // GetForTLF mocks base method
-func (m *MockMDOps) GetForTLF(ctx context.Context, id tlf.ID) (ImmutableRootMetadata, error) {
-	ret := m.ctrl.Call(m, "GetForTLF", ctx, id)
+func (m *MockMDOps) GetForTLF(ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (ImmutableRootMetadata, error) {
+	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, lockBeforeGet)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetForTLF indicates an expected call of GetForTLF
-func (mr *MockMDOpsMockRecorder) GetForTLF(ctx, id interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDOps)(nil).GetForTLF), ctx, id)
+func (mr *MockMDOpsMockRecorder) GetForTLF(ctx, id, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDOps)(nil).GetForTLF), ctx, id, lockBeforeGet)
 }
 
 // GetUnmergedForTLF mocks base method
@@ -3837,16 +3837,16 @@ func (mr *MockMDOpsMockRecorder) GetUnmergedForTLF(ctx, id, bid interface{}) *go
 }
 
 // GetRange mocks base method
-func (m *MockMDOps) GetRange(ctx context.Context, id tlf.ID, start, stop kbfsmd.Revision) ([]ImmutableRootMetadata, error) {
-	ret := m.ctrl.Call(m, "GetRange", ctx, id, start, stop)
+func (m *MockMDOps) GetRange(ctx context.Context, id tlf.ID, start, stop kbfsmd.Revision, lockID *keybase1.LockID) ([]ImmutableRootMetadata, error) {
+	ret := m.ctrl.Call(m, "GetRange", ctx, id, start, stop, lockID)
 	ret0, _ := ret[0].([]ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRange indicates an expected call of GetRange
-func (mr *MockMDOpsMockRecorder) GetRange(ctx, id, start, stop interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockMDOps)(nil).GetRange), ctx, id, start, stop)
+func (mr *MockMDOpsMockRecorder) GetRange(ctx, id, start, stop, lockID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockMDOps)(nil).GetRange), ctx, id, start, stop, lockID)
 }
 
 // GetUnmergedRange mocks base method
@@ -3863,16 +3863,16 @@ func (mr *MockMDOpsMockRecorder) GetUnmergedRange(ctx, id, bid, start, stop inte
 }
 
 // Put mocks base method
-func (m *MockMDOps) Put(ctx context.Context, rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey) (ImmutableRootMetadata, error) {
-	ret := m.ctrl.Call(m, "Put", ctx, rmd, verifyingKey)
+func (m *MockMDOps) Put(ctx context.Context, rmd *RootMetadata, verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext, priority keybase1.MDPriority) (ImmutableRootMetadata, error) {
+	ret := m.ctrl.Call(m, "Put", ctx, rmd, verifyingKey, lockContext, priority)
 	ret0, _ := ret[0].(ImmutableRootMetadata)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Put indicates an expected call of Put
-func (mr *MockMDOpsMockRecorder) Put(ctx, rmd, verifyingKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDOps)(nil).Put), ctx, rmd, verifyingKey)
+func (mr *MockMDOpsMockRecorder) Put(ctx, rmd, verifyingKey, lockContext, priority interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDOps)(nil).Put), ctx, rmd, verifyingKey, lockContext, priority)
 }
 
 // PutUnmerged mocks base method
@@ -4262,8 +4262,8 @@ func (mr *MockMDServerMockRecorder) RefreshAuthToken(arg0 interface{}) *gomock.C
 }
 
 // GetForHandle mocks base method
-func (m *MockMDServer) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
-	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus)
+func (m *MockMDServer) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, *RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
 	ret2, _ := ret[2].(error)
@@ -4271,46 +4271,70 @@ func (m *MockMDServer) GetForHandle(ctx context.Context, handle tlf.Handle, mSta
 }
 
 // GetForHandle indicates an expected call of GetForHandle
-func (mr *MockMDServerMockRecorder) GetForHandle(ctx, handle, mStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockMDServer)(nil).GetForHandle), ctx, handle, mStatus)
+func (mr *MockMDServerMockRecorder) GetForHandle(ctx, handle, mStatus, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockMDServer)(nil).GetForHandle), ctx, handle, mStatus, lockBeforeGet)
 }
 
 // GetForTLF mocks base method
-func (m *MockMDServer) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
-	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus)
+func (m *MockMDServer) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetForTLF indicates an expected call of GetForTLF
-func (mr *MockMDServerMockRecorder) GetForTLF(ctx, id, bid, mStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDServer)(nil).GetForTLF), ctx, id, bid, mStatus)
+func (mr *MockMDServerMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockMDServer)(nil).GetForTLF), ctx, id, bid, mStatus, lockBeforeGet)
 }
 
 // GetRange mocks base method
-func (m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) ([]*RootMetadataSigned, error) {
-	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop)
+func (m *MockMDServer) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRange indicates an expected call of GetRange
-func (mr *MockMDServerMockRecorder) GetRange(ctx, id, bid, mStatus, start, stop interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockMDServer)(nil).GetRange), ctx, id, bid, mStatus, start, stop)
+func (mr *MockMDServerMockRecorder) GetRange(ctx, id, bid, mStatus, start, stop, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockMDServer)(nil).GetRange), ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 }
 
 // Put mocks base method
-func (m *MockMDServer) Put(ctx context.Context, rmds *RootMetadataSigned, extra ExtraMetadata) error {
-	ret := m.ctrl.Call(m, "Put", ctx, rmds, extra)
+func (m *MockMDServer) Put(ctx context.Context, rmds *RootMetadataSigned, extra ExtraMetadata, lockContext *keybase1.LockContext, priority keybase1.MDPriority) error {
+	ret := m.ctrl.Call(m, "Put", ctx, rmds, extra, lockContext, priority)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Put indicates an expected call of Put
-func (mr *MockMDServerMockRecorder) Put(ctx, rmds, extra interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDServer)(nil).Put), ctx, rmds, extra)
+func (mr *MockMDServerMockRecorder) Put(ctx, rmds, extra, lockContext, priority interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockMDServer)(nil).Put), ctx, rmds, extra, lockContext, priority)
+}
+
+// Lock mocks base method
+func (m *MockMDServer) Lock(ctx context.Context, tlfID tlf.ID, lockID keybase1.LockID) error {
+	ret := m.ctrl.Call(m, "Lock", ctx, tlfID, lockID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Lock indicates an expected call of Lock
+func (mr *MockMDServerMockRecorder) Lock(ctx, tlfID, lockID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lock", reflect.TypeOf((*MockMDServer)(nil).Lock), ctx, tlfID, lockID)
+}
+
+// ReleaseLock mocks base method
+func (m *MockMDServer) ReleaseLock(ctx context.Context, tlfID tlf.ID, lockID keybase1.LockID) error {
+	ret := m.ctrl.Call(m, "ReleaseLock", ctx, tlfID, lockID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReleaseLock indicates an expected call of ReleaseLock
+func (mr *MockMDServerMockRecorder) ReleaseLock(ctx, tlfID, lockID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseLock", reflect.TypeOf((*MockMDServer)(nil).ReleaseLock), ctx, tlfID, lockID)
 }
 
 // PruneBranch mocks base method
@@ -4512,8 +4536,8 @@ func (mr *MockmdServerLocalMockRecorder) RefreshAuthToken(arg0 interface{}) *gom
 }
 
 // GetForHandle mocks base method
-func (m *MockmdServerLocal) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus) (tlf.ID, *RootMetadataSigned, error) {
-	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus)
+func (m *MockmdServerLocal) GetForHandle(ctx context.Context, handle tlf.Handle, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (tlf.ID, *RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetForHandle", ctx, handle, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(tlf.ID)
 	ret1, _ := ret[1].(*RootMetadataSigned)
 	ret2, _ := ret[2].(error)
@@ -4521,46 +4545,70 @@ func (m *MockmdServerLocal) GetForHandle(ctx context.Context, handle tlf.Handle,
 }
 
 // GetForHandle indicates an expected call of GetForHandle
-func (mr *MockmdServerLocalMockRecorder) GetForHandle(ctx, handle, mStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockmdServerLocal)(nil).GetForHandle), ctx, handle, mStatus)
+func (mr *MockmdServerLocalMockRecorder) GetForHandle(ctx, handle, mStatus, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForHandle", reflect.TypeOf((*MockmdServerLocal)(nil).GetForHandle), ctx, handle, mStatus, lockBeforeGet)
 }
 
 // GetForTLF mocks base method
-func (m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
-	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus)
+func (m *MockmdServerLocal) GetForTLF(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (*RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetForTLF", ctx, id, bid, mStatus, lockBeforeGet)
 	ret0, _ := ret[0].(*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetForTLF indicates an expected call of GetForTLF
-func (mr *MockmdServerLocalMockRecorder) GetForTLF(ctx, id, bid, mStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockmdServerLocal)(nil).GetForTLF), ctx, id, bid, mStatus)
+func (mr *MockmdServerLocalMockRecorder) GetForTLF(ctx, id, bid, mStatus, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetForTLF", reflect.TypeOf((*MockmdServerLocal)(nil).GetForTLF), ctx, id, bid, mStatus, lockBeforeGet)
 }
 
 // GetRange mocks base method
-func (m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) ([]*RootMetadataSigned, error) {
-	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop)
+func (m *MockmdServerLocal) GetRange(ctx context.Context, id tlf.ID, bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
+	ret := m.ctrl.Call(m, "GetRange", ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	ret0, _ := ret[0].([]*RootMetadataSigned)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRange indicates an expected call of GetRange
-func (mr *MockmdServerLocalMockRecorder) GetRange(ctx, id, bid, mStatus, start, stop interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockmdServerLocal)(nil).GetRange), ctx, id, bid, mStatus, start, stop)
+func (mr *MockmdServerLocalMockRecorder) GetRange(ctx, id, bid, mStatus, start, stop, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRange", reflect.TypeOf((*MockmdServerLocal)(nil).GetRange), ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 }
 
 // Put mocks base method
-func (m *MockmdServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned, extra ExtraMetadata) error {
-	ret := m.ctrl.Call(m, "Put", ctx, rmds, extra)
+func (m *MockmdServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned, extra ExtraMetadata, lockContext *keybase1.LockContext, priority keybase1.MDPriority) error {
+	ret := m.ctrl.Call(m, "Put", ctx, rmds, extra, lockContext, priority)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Put indicates an expected call of Put
-func (mr *MockmdServerLocalMockRecorder) Put(ctx, rmds, extra interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockmdServerLocal)(nil).Put), ctx, rmds, extra)
+func (mr *MockmdServerLocalMockRecorder) Put(ctx, rmds, extra, lockContext, priority interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Put", reflect.TypeOf((*MockmdServerLocal)(nil).Put), ctx, rmds, extra, lockContext, priority)
+}
+
+// Lock mocks base method
+func (m *MockmdServerLocal) Lock(ctx context.Context, tlfID tlf.ID, lockID keybase1.LockID) error {
+	ret := m.ctrl.Call(m, "Lock", ctx, tlfID, lockID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Lock indicates an expected call of Lock
+func (mr *MockmdServerLocalMockRecorder) Lock(ctx, tlfID, lockID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lock", reflect.TypeOf((*MockmdServerLocal)(nil).Lock), ctx, tlfID, lockID)
+}
+
+// ReleaseLock mocks base method
+func (m *MockmdServerLocal) ReleaseLock(ctx context.Context, tlfID tlf.ID, lockID keybase1.LockID) error {
+	ret := m.ctrl.Call(m, "ReleaseLock", ctx, tlfID, lockID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ReleaseLock indicates an expected call of ReleaseLock
+func (mr *MockmdServerLocalMockRecorder) ReleaseLock(ctx, tlfID, lockID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReleaseLock", reflect.TypeOf((*MockmdServerLocal)(nil).ReleaseLock), ctx, tlfID, lockID)
 }
 
 // PruneBranch mocks base method

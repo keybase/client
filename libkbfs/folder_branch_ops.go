@@ -1069,7 +1069,7 @@ func (fbo *folderBranchOps) getMDForWriteOrRekeyLocked(
 		return ImmutableRootMetadata{}, err
 	}
 
-	mergedMD, err := mdops.GetForTLF(ctx, fbo.id())
+	mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1158,7 +1158,7 @@ func (fbo *folderBranchOps) getMostRecentFullyMergedMD(ctx context.Context) (
 
 	// Otherwise, use the specified revision.
 	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
-		mergedRev, Merged)
+		mergedRev, Merged, nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1506,7 +1506,8 @@ func (fbo *folderBranchOps) initMDLocked(
 	// about delayed conflicts (since this is essentially a rekey, and
 	// we always bypass the journal for rekeys).  The caller will have
 	// to intelligently deal with a conflict.
-	irmd, err := fbo.config.MDOps().Put(ctx, md, session.VerifyingKey)
+	irmd, err := fbo.config.MDOps().Put(
+		ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
 	if err != nil {
 		return err
 	}
@@ -1627,7 +1628,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 
 		if md.MergedStatus() == Unmerged {
 			mdops := fbo.config.MDOps()
-			mergedMD, err := mdops.GetForTLF(ctx, fbo.id())
+			mergedMD, err := mdops.GetForTLF(ctx, fbo.id(), nil)
 			if err != nil {
 				return err
 			}
@@ -2146,7 +2147,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	if fbo.isMasterBranchLocked(lState) {
 		// only do a normal Put if we're not already staged.
-		irmd, err = mdops.Put(ctx, md, session.VerifyingKey)
+		irmd, err = mdops.Put(
+			ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
 		if doUnmergedPut = isRevisionConflict(err); doUnmergedPut {
 			fbo.log.CDebugf(ctx, "Conflict: %v", err)
 			mergedRev = md.Revision()
@@ -2336,7 +2338,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		key = session.VerifyingKey
 	}
 
-	irmd, err := mdOps.Put(ctx, md, key)
+	irmd, err := mdOps.Put(ctx, md, key, nil, keybase1.MDPriorityNormal)
 	isConflict := isRevisionConflict(err)
 	if err != nil && !isConflict {
 		return err
@@ -2417,7 +2419,8 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	// finally, write out the new metadata
-	irmd, err := fbo.config.MDOps().Put(ctx, md, session.VerifyingKey)
+	irmd, err := fbo.config.MDOps().Put(
+		ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
 	if err != nil {
 		// Don't allow garbage collection to put us into a conflicting
 		// state; just wait for the next period.
@@ -4843,7 +4846,7 @@ func (fbo *folderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	lState *lockState, applyFunc applyMDUpdatesFunc) error {
 	// first look up all MD revisions newer than my current head
 	start := fbo.getLatestMergedRevision(lState) + 1
-	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(), start)
+	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(), start, nil)
 	if err != nil {
 		return err
 	}
@@ -4951,7 +4954,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	fbo.setBranchIDLocked(lState, NullBranchID)
 
 	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
-		currHead, Merged)
+		currHead, Merged, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -5449,7 +5452,7 @@ func (fbo *folderBranchOps) maybeFastForward(ctx context.Context,
 
 	fbo.log.CDebugf(ctx, "Checking head for possible "+
 		"fast-forwarding (last update time=%s)", lastUpdate)
-	currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id())
+	currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
 	if err != nil {
 		return false, err
 	}
@@ -6074,7 +6077,7 @@ func (fbo *folderBranchOps) handleMDFlush(ctx context.Context, bid BranchID,
 
 	// Get that revision.
 	rmd, err := getSingleMD(ctx, fbo.config, fbo.id(), NullBranchID,
-		rev, Merged)
+		rev, Merged, nil)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
 			rev, err)
@@ -6184,7 +6187,7 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 	}
 
 	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(),
-		kbfsmd.RevisionInitial)
+		kbfsmd.RevisionInitial, nil)
 	if err != nil {
 		return TLFUpdateHistory{}, err
 	}
@@ -6328,7 +6331,7 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		defer cancelFunc()
 
 		fbo.log.CDebugf(ctx, "Forcing a fast-forward")
-		currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id())
+		currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Fast-forward failed: %v", err)
 			return

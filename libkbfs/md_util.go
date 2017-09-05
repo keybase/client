@@ -78,8 +78,8 @@ func isReadableOrError(
 }
 
 func getMDRange(ctx context.Context, config Config, id tlf.ID, bid BranchID,
-	start kbfsmd.Revision, end kbfsmd.Revision, mStatus MergeStatus) (
-	rmds []ImmutableRootMetadata, err error) {
+	start kbfsmd.Revision, end kbfsmd.Revision, mStatus MergeStatus,
+	lockBeforeGet *keybase1.LockID) (rmds []ImmutableRootMetadata, err error) {
 	// The range is invalid.  Don't treat as an error though; it just
 	// indicates that we don't yet know about any revisions.
 	if start < kbfsmd.RevisionInitial || end < kbfsmd.RevisionInitial {
@@ -120,7 +120,7 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid BranchID,
 		switch mStatus {
 		case Merged:
 			fetchedRmds, err = config.MDOps().GetRange(
-				ctx, id, r.start, r.end)
+				ctx, id, r.start, r.end, lockBeforeGet)
 		case Unmerged:
 			fetchedRmds, err = config.MDOps().GetUnmergedRange(
 				ctx, id, bid, r.start, r.end)
@@ -167,9 +167,10 @@ func getMDRange(ctx context.Context, config Config, id tlf.ID, bid BranchID,
 
 // getSingleMD returns an MD that is required to exist.
 func getSingleMD(ctx context.Context, config Config, id tlf.ID, bid BranchID,
-	rev kbfsmd.Revision, mStatus MergeStatus) (
+	rev kbfsmd.Revision, mStatus MergeStatus, lockBeforeGet *keybase1.LockID) (
 	ImmutableRootMetadata, error) {
-	rmds, err := getMDRange(ctx, config, id, bid, rev, rev, mStatus)
+	rmds, err := getMDRange(
+		ctx, config, id, bid, rev, rev, mStatus, lockBeforeGet)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -189,7 +190,8 @@ func getSingleMD(ctx context.Context, config Config, id tlf.ID, bid BranchID,
 // TODO: Accept a parameter to express that we want copies of the MDs
 // instead of the cached versions.
 func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
-	startRev kbfsmd.Revision) (mergedRmds []ImmutableRootMetadata, err error) {
+	startRev kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
+	mergedRmds []ImmutableRootMetadata, err error) {
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
 	if startRev < kbfsmd.RevisionInitial {
@@ -200,7 +202,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 	for {
 		end := start + maxMDsAtATime - 1 // range is inclusive
 		rmds, err := getMDRange(ctx, config, id, NullBranchID, start, end,
-			Merged)
+			Merged, lockBeforeGet)
 		if err != nil {
 			return nil, err
 		}
@@ -304,7 +306,7 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id tlf.ID,
 		}
 
 		rmds, err := getMDRange(ctx, config, id, bid, startRev, currHead,
-			Unmerged)
+			Unmerged, nil)
 		if err != nil {
 			return kbfsmd.RevisionUninitialized, nil, err
 		}

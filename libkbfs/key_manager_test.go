@@ -962,7 +962,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	}
 
 	// GetTLFCryptKeys needs to return the same error.
-	rmd, err := config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf)
+	rmd, err := config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf, nil)
 	if err != nil {
 		t.Fatalf("Couldn't get latest md: %+v", err)
 	}
@@ -1122,7 +1122,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 
 	// Make sure the server-side keys for the revoked device are gone
 	// for all keygens.
-	rmd, err = config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf)
+	rmd, err = config1.MDOps().GetForTLF(ctx, rootNode1.GetFolderBranch().Tlf, nil)
 	if err != nil {
 		t.Fatalf("Couldn't get latest md: %+v", err)
 	}

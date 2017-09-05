@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"sync"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -407,24 +408,25 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 }
 
 func (m *stallingMDOps) GetForHandle(
-	ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (
+	ctx context.Context, handle *TlfHandle, mStatus MergeStatus,
+	lockBeforeGet *keybase1.LockID) (
 	tlfID tlf.ID, md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForHandle)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetForHandle error
 		tlfID, md, errGetForHandle =
-			m.delegate.GetForHandle(ctx, handle, mStatus)
+			m.delegate.GetForHandle(ctx, handle, mStatus, lockBeforeGet)
 		return errGetForHandle
 	})
 	return tlfID, md, err
 }
 
-func (m *stallingMDOps) GetForTLF(ctx context.Context, id tlf.ID) (
-	md ImmutableRootMetadata, err error) {
+func (m *stallingMDOps) GetForTLF(ctx context.Context, id tlf.ID,
+	lockBeforeGet *keybase1.LockID) (md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForTLF)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetForTLF error
-		md, errGetForTLF = m.delegate.GetForTLF(ctx, id)
+		md, errGetForTLF = m.delegate.GetForTLF(ctx, id, lockBeforeGet)
 		return errGetForTLF
 	})
 	return md, err
@@ -435,7 +437,8 @@ func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	m.maybeStall(ctx, StallableMDGetLatestHandleForTLF)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetLatestHandleForTLF error
-		h, errGetLatestHandleForTLF = m.delegate.GetLatestHandleForTLF(ctx, id)
+		h, errGetLatestHandleForTLF = m.delegate.GetLatestHandleForTLF(
+			ctx, id)
 		return errGetLatestHandleForTLF
 	})
 	return h, err
@@ -453,12 +456,13 @@ func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id tlf.ID,
 }
 
 func (m *stallingMDOps) GetRange(ctx context.Context, id tlf.ID,
-	start, stop kbfsmd.Revision) (
+	start, stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
 	mds []ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetRange)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetRange error
-		mds, errGetRange = m.delegate.GetRange(ctx, id, start, stop)
+		mds, errGetRange = m.delegate.GetRange(
+			ctx, id, start, stop, lockBeforeGet)
 		return errGetRange
 	})
 	return mds, err
@@ -469,18 +473,19 @@ func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id tlf.ID,
 	m.maybeStall(ctx, StallableMDGetUnmergedRange)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetUnmergedRange error
-		mds, errGetUnmergedRange = m.delegate.GetUnmergedRange(ctx, id, bid, start, stop)
+		mds, errGetUnmergedRange = m.delegate.GetUnmergedRange(
+			ctx, id, bid, start, stop)
 		return errGetUnmergedRange
 	})
 	return mds, err
 }
 
 func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata,
-	verifyingKey kbfscrypto.VerifyingKey) (
-	irmd ImmutableRootMetadata, err error) {
+	verifyingKey kbfscrypto.VerifyingKey, lockContext *keybase1.LockContext,
+	priority keybase1.MDPriority) (irmd ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDPut)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
-		irmd, err = m.delegate.Put(ctx, md, verifyingKey)
+		irmd, err = m.delegate.Put(ctx, md, verifyingKey, lockContext, priority)
 		m.maybeStall(ctx, StallableMDAfterPut)
 		return err
 	})
