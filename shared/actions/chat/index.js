@@ -45,7 +45,7 @@ import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 import type {Action} from '../../constants/types/flux'
 import type {KBOrderedSet} from '../../constants/types/more'
-import type {ChangedFocus} from '../../constants/app'
+import type {ChangedFocus, ChangedActive} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -944,6 +944,24 @@ function* _changedFocus(action: ChangedFocus): SagaGenerator<any, any> {
   }
 }
 
+function* _changedActive(action: ChangedActive): SagaGenerator<any, any> {
+  // Update badging and the latest message due to changing active state.
+  const {userActive} = action.payload
+  const appFocused = yield select(Shared.focusedSelector)
+  const conversationIDKey = yield select(Constants.getSelectedConversation)
+  const selectedTab = yield select(Shared.routeSelector)
+  const chatTabSelected = selectedTab === chatTab
+  // Only do this if focus is retained - otherwise, focus changing logic prevails
+  if (conversationIDKey && chatTabSelected && appFocused) {
+    if (userActive) {
+      yield put(Creators.updateBadging(conversationIDKey))
+    } else {
+      // Reset the orange line when becoming inactive
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
+  }
+}
+
 function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
   let conversationsWithKeys = {}
@@ -1308,6 +1326,7 @@ function attachmentLoaded(action: Constants.AttachmentLoaded) {
 
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery('app:changedActive', _changedActive)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
   yield Saga.safeTakeEvery('chat:clearMessages', _clearConversationMessages)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _storeMessageToEntity)
