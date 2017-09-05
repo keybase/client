@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, HeaderHoc, Input, ScrollView, Text} from '../../common-adapters'
+import {Avatar, Box, Button, HeaderHoc, Input, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
@@ -60,7 +60,7 @@ const _boxStyle = {
 }
 
 const _buttonsStyle = {
-  alignItems: 'center',  
+  alignItems: 'center',
   marginTop: globalMargins.large,
 }
 

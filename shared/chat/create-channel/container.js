@@ -25,6 +25,7 @@ export default compose(
   withState('channelname', 'onChannelnameChange'),
   withState('description', 'onDescriptionChange'),
   withHandlers({
-    onSubmit: ({channelname, description, onCreateChannel, teamname}) => () => channelname && onCreateChannel({channelname, description, teamname}),
+    onSubmit: ({channelname, description, onCreateChannel, teamname}) => () =>
+      channelname && onCreateChannel({channelname, description, teamname}),
   })
 )(CreateChannel)
