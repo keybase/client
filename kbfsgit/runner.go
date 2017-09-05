@@ -10,14 +10,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsmd"
-	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -195,39 +194,9 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 	defer func() {
 		r.logSyncDone.Do(func() { r.printDoneOrErr(err) })
 	}()
-	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
-		ctx, r.h, libkbfs.MasterBranch)
-	if err != nil {
-		return nil, err
-	}
 
-	lookupOrCreateDir := func(n libkbfs.Node, name string) (
-		libkbfs.Node, error) {
-		newNode, _, err := r.config.KBFSOps().Lookup(ctx, n, name)
-		switch errors.Cause(err).(type) {
-		case libkbfs.NoSuchNameError:
-			newNode, _, err = r.config.KBFSOps().CreateDir(ctx, n, name)
-			if err != nil {
-				return nil, err
-			}
-		case nil:
-		default:
-			return nil, err
-		}
-		return newNode, nil
-	}
-
-	repoDir, err := lookupOrCreateDir(rootNode, kbfsRepoDir)
-	if err != nil {
-		return nil, err
-	}
-	_, err = lookupOrCreateDir(repoDir, r.repo)
-	if err != nil {
-		return nil, err
-	}
-
-	fs, err := libfs.NewFS(
-		ctx, r.config, r.h, path.Join(kbfsRepoDir, r.repo), r.uniqID)
+	fs, _, err := libgit.GetOrCreateRepoAndID(
+		ctx, r.config, r.h, r.repo, r.uniqID)
 	if err != nil {
 		return nil, err
 	}
