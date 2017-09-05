@@ -104,17 +104,19 @@ function* _createChannel(action: Constants.CreateChannel) {
   // Select the new channel
   yield put(ChatCreators.selectConversation(newConversationIDKey, false))
 
-  // If we were given a description, set it.
-  yield call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
-    param: {
-      conversationID: result.conv.info.id,
-      tlfName,
-      tlfPublic: false,
-      headline: description,
-      clientPrev: null,
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-    },
-  })
+  // If we were given a description, set it
+  if (description) {
+    yield call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
+      param: {
+        conversationID: result.conv.info.id,
+        tlfName,
+        tlfPublic: false,
+        headline: description,
+        clientPrev: null,
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      },
+    })
+  }
 }
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
