@@ -440,3 +440,81 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }
+
+// Remove a member who was in a team and reset.
+func TestTeamRemoveAfterReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	cli := ann.getTeamsClient()
+	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+	})
+	require.NoError(t, err)
+
+	G := ann.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+}
+
+// Add a member after reset in a normal (non-implicit) team
+func TestTeamReAddAfterReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	cli := ann.getTeamsClient()
+	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+		// Note: any role would do! Does not have to be the same as before
+		// reset. This does not apply to imp-teams though, it requires the
+		// same role there.
+		Role: keybase1.TeamRole_READER,
+	})
+	require.NoError(t, err)
+
+	G := ann.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_READER)
+
+	readChats(team, bob, 1)
+}

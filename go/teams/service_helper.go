@@ -144,6 +144,17 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err == nil {
+		// Case where same UV (uid+seqno) already exists is covered by
+		// `t.IsMember` check above. This only checks if there is a reset
+		// member in the team to automatically remove them (so AddMember
+		// can function as a Re-Add).
+		if existingUV.EldestSeqno > uv.EldestSeqno {
+			return keybase1.TeamAddMemberResult{}, fmt.Errorf("EldestSeqno is going backwards")
+		}
+		req.None = []keybase1.UserVersion{existingUV}
+	}
 
 	if err := t.ChangeMembership(ctx, req); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
@@ -209,7 +220,9 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if err != nil {
 		return err
 	}
-	if !t.IsMember(ctx, uv) {
+
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err != nil {
 		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
 	}
 
@@ -221,7 +234,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
 		return Leave(ctx, g, teamname, false)
 	}
-	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{uv}}
+	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 	return t.ChangeMembership(ctx, req)
 }
 
@@ -497,7 +510,7 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	if existingUV.EldestSeqno == uv.EldestSeqno {
 		return fmt.Errorf("No need to re-add member, user has not reset")
 	} else if existingUV.EldestSeqno > uv.EldestSeqno {
-		return fmt.Errorf("EldestSeqno going backwards?")
+		return fmt.Errorf("EldestSeqno going backwards")
 	}
 
 	existingRole, err := t.MemberRole(ctx, existingUV)
