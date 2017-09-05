@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {Avatar, Box, Text, Icon, Input, Button, Checkbox} from '../common-adapters'
+import {globalStyles, globalMargins} from '../styles'
 
 type Props = {
   teamname?: string,
@@ -19,6 +19,18 @@ class DeleteRepo extends React.Component<Props, State> {
   state = {
     name: '',
     notifyTeam: true,
+  }
+
+  _matchesName = () => {
+    if (this.state.name === this.props.name) {
+      return true
+    }
+
+    if (this.props.teamname && this.state.name === `${this.props.teamname || ''}/${this.props.name}`) {
+      return true
+    }
+
+    return false
   }
 
   render() {
@@ -70,10 +82,7 @@ class DeleteRepo extends React.Component<Props, State> {
             type="Danger"
             onClick={() => this.props.onDelete(this.state.notifyTeam)}
             label="Delete this repository"
-            disabled={
-              this.state.name !== this.props.name &&
-                this.state.name !== `${this.props.teamname}/${this.props.name}`
-            }
+            disabled={!this._matchesName()}
           />
         </Box>
       </Box>
