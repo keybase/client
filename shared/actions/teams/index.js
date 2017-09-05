@@ -59,7 +59,7 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
 
   const teams = results.teams || []
   teams.forEach(team => {
-    teamNames.push(team.teamID)
+    teamNames.push(team.fqName)
   })
 
   yield all([put(replaceEntity(['teams', 'teamNames'], I.Set(teamNames)))])
