@@ -84,8 +84,7 @@ class Avatars extends PureComponent<AvatarProps> {
 
 const multiStyle = memoize(backgroundColor => {
   return {
-    ...(isMobile ? {paddingBottom: 10, paddingTop: 10} : {}),
-    backgroundColor,
+    ...(isMobile ? {paddingBottom: 10, paddingTop: 10, backgroundColor} : {}),
     height: '100%',
     width: '100%',
   }
