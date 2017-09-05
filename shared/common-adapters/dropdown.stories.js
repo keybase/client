@@ -21,19 +21,19 @@ const load = () => {
     >
       <Dropdown
         items={[
-          <Text type="Header">Pick a value</Text>,
-          <Text type="Header">One</Text>,
-          <Text type="Header">Two</Text>,
-          <Text type="Header">Three</Text>,
+          <Text type="Header" key="pick">Pick a value</Text>,
+          <Text type="Header" key="one">One</Text>,
+          <Text type="Header" key="two">Two</Text>,
+          <Text type="Header" key="three">Three</Text>,
         ]}
         onChanged={action('onChange')}
       />
       <Dropdown
         items={[
-          <Text type="Header">Pick a value</Text>,
-          <Text type="Header">One</Text>,
-          <Text type="Header">Two</Text>,
-          <Text type="Header">Three</Text>,
+          <Text type="Header" key="pick">Pick a value</Text>,
+          <Text type="Header" key="one">One</Text>,
+          <Text type="Header" key="two">Two</Text>,
+          <Text type="Header" key="trhee">Three</Text>,
         ]}
         onChanged={action('onChange')}
         selected={<Text type="Header">Pick a value</Text>}
