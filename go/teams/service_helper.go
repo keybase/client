@@ -504,11 +504,11 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 
 	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 	if err != nil {
-		return fmt.Errorf("User %s has never been a member of this team.", username)
+		return libkb.NotFoundError{Msg: fmt.Sprintf("user %s has never been a member of this team.", username)}
 	}
 
 	if existingUV.EldestSeqno == uv.EldestSeqno {
-		return fmt.Errorf("No need to re-add member, user has not reset")
+		return libkb.ExistsError{Msg: fmt.Sprintf("user %s has not reset, not need to re-add", username)}
 	} else if existingUV.EldestSeqno > uv.EldestSeqno {
 		return fmt.Errorf("EldestSeqno going backwards")
 	}
