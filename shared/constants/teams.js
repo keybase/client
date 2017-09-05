@@ -13,6 +13,21 @@ export type ToggleChannelMembership = NoErrorTypedAction<
   {teamname: string, channelname: string}
 >
 
+export type CreateNewTeam = NoErrorTypedAction<
+  'chat:createNewTeam',
+  {
+    name: string,
+  }
+>
+
+export type CreateNewTeamFromConversation = NoErrorTypedAction<
+  'chat:createNewTeamFromConversation',
+  {
+    conversationIDKey: ConversationIDKey,
+    name: string,
+  }
+>
+
 export type Teamname = string
 
 export type ChannelInfoRecord = KBRecord<{

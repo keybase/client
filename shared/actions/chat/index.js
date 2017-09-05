@@ -20,9 +20,6 @@ import {
   CommonDeviceType,
   CommonTLFVisibility,
   ConstantsStatusCode,
-  teamsTeamCreateRpcPromise,
-  teamsTeamAddMemberRpcPromise,
-  TeamsTeamRole,
 } from '../../constants/types/flow-types'
 import {call, put, all, take, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
@@ -1233,38 +1230,6 @@ function* _exitSearch() {
   }
 }
 
-function* _createNewTeam(action: Constants.CreateNewTeam) {
-  const {payload: {name}} = action
-  yield call(teamsTeamCreateRpcPromise, {
-    param: {name: {parts: [name]}},
-  })
-}
-
-function* _createNewTeamFromConversation(action: Constants.CreateNewTeamFromConversation) {
-  const {payload: {conversationIDKey, name}} = action
-  const me = yield select(usernameSelector)
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
-  if (inbox) {
-    yield call(teamsTeamCreateRpcPromise, {
-      param: {name: {parts: [name]}},
-    })
-    const participants = inbox.get('participants').toArray()
-    for (const username of participants) {
-      if (username !== me) {
-        yield call(teamsTeamAddMemberRpcPromise, {
-          param: {
-            email: '',
-            name,
-            role: TeamsTeamRole.writer,
-            sendChatNotification: true,
-            username,
-          },
-        })
-      }
-    }
-  }
-}
-
 const _setNotifications = function*(action: Constants.SetNotifications) {
   const {payload: {conversationIDKey}} = action
   // Send the new post-reducer setNotifications structure to the service.
@@ -1366,8 +1331,6 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
-  yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
-  yield Saga.safeTakeEvery('chat:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
