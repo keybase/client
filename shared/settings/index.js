@@ -15,7 +15,10 @@ type StateProps = {
   selectedTab: Tab,
 }
 
-const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: RouteProps<{}, {}>) => ({
+const mapStateToProps = (
+  state: TypedState,
+  {routeLeafTags, routeSelected}: RouteProps<{}, {}>
+): StateProps => ({
   badgeNumbers: {}, // TODO add badging logic
   isModal: routeLeafTags.modal,
   // TODO: Is there a way to validate that routeSelected is a Tab?
@@ -27,7 +30,7 @@ type DispatchProps = {
   onTabChange: (tab: Tab) => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routePath}: RouteProps<{}, {}>): DispatchProps => ({
   onLogout: () => dispatch(logout()),
   onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
 })
