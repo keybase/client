@@ -48,7 +48,7 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
 }
 
 const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any> {
-  const username = action.payload.username
+  const username = yield select(usernameSelector)
   const results: AnnotatedTeamList = yield call(teamsTeamListRpcPromise, {
     param: {
       userAssertion: username,

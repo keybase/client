@@ -7,7 +7,7 @@ import type {ConversationIDKey} from './chat'
 import type {TypedState} from './reducer'
 
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
-export type GetTeams = NoErrorTypedAction<'teams:getTeams', {username: string}>
+export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
 export type ToggleChannelMembership = NoErrorTypedAction<
   'teams:toggleChannelMembership',
   {teamname: string, channelname: string}
