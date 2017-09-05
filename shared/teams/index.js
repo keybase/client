@@ -159,3 +159,5 @@ const Render = (props: Props) => (
 )
 
 export default Render
+
+export {Header, BetaNote}

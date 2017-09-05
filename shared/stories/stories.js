@@ -9,6 +9,7 @@ import chatInboxRow from '../chat/inbox/row/index.stories'
 import chatManageChannels from '../chat/manage-channels/index.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
 import search from '../search/search.stories'
+import teams from '../teams/index.stories'
 
 const stories = {
   avatar,
@@ -20,6 +21,7 @@ const stories = {
   icon,
   radiobutton,
   search,
+  teams,
   text,
 }
 
