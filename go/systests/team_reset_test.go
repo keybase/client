@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -31,11 +32,19 @@ func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
 	ctx.log.Debug(div+" "+fmt+" "+div, arg...)
 }
 
-func readChatsWithError(team smuTeam, u *smuUser) ([]chat1.MessageUnboxed, error) {
+func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnboxed, err error) {
 	tctx := u.primaryDevice().popClone()
-	runner := client.NewCmdChatReadRunner(tctx.G)
-	runner.SetTeamChatForTest(team.name)
-	_, messages, err := runner.Fetch()
+	for i := 0; i < 5; i++ {
+		runner := client.NewCmdChatReadRunner(tctx.G)
+		runner.SetTeamChatForTest(team.name)
+		_, messages, err = runner.Fetch()
+		if err == nil {
+			return messages, err
+		}
+
+		time.Sleep(250 * time.Millisecond)
+	}
+
 	return messages, err
 }
 
