@@ -8,7 +8,8 @@ import "encoding/json"
 
 // Config is a KBFS git repo config file.
 type Config struct {
-	ID ID
+	ID   ID
+	Name string // the original user-supplied format of the name
 }
 
 func configFromBytes(buf []byte) (*Config, error) {

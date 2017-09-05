@@ -11,6 +11,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strings"
 
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -63,7 +64,7 @@ func createNewRepoAndID(
 	config.MakeLogger("").CDebugf(ctx,
 		"Creating a new repo %s in %s: repoID=%s",
 		repoName, tlfHandle.GetCanonicalPath(), repoID)
-	c := &Config{repoID}
+	c := &Config{repoID, repoName}
 	buf, err := c.toBytes()
 	if err != nil {
 		return NullID, err
@@ -93,6 +94,7 @@ func GetOrCreateRepoAndID(
 	if err != nil {
 		return nil, NullID, err
 	}
+	normalizedRepoName := strings.ToLower(repoName)
 
 	lookupOrCreateDir := func(n libkbfs.Node, name string) (
 		libkbfs.Node, error) {
@@ -114,13 +116,14 @@ func GetOrCreateRepoAndID(
 	if err != nil {
 		return nil, NullID, err
 	}
-	_, err = lookupOrCreateDir(repoDir, repoName)
+	_, err = lookupOrCreateDir(repoDir, normalizedRepoName)
 	if err != nil {
 		return nil, NullID, err
 	}
 
 	fs, err := libfs.NewFS(
-		ctx, config, tlfHandle, path.Join(kbfsRepoDir, repoName), uniqID)
+		ctx, config, tlfHandle, path.Join(kbfsRepoDir, normalizedRepoName),
+		uniqID)
 	if err != nil {
 		return nil, NullID, err
 	}
