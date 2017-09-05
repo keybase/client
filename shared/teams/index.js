@@ -14,7 +14,7 @@ type StateProps = {
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
-  let teamnames = state.entities.getIn(['teams', 'teamNames'], I.Set())
+  let teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
   return {
     _teamnames: teamnames,
   }
@@ -46,6 +46,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   let teamnames = stateProps._teamnames.toArray()
   // TODO: Sort case-insensitively?
   teamnames.sort()
+  console.log('XXX')
+  console.log(stateProps._teamnames)
+  console.log(teamnames)
   return {
     teamnames,
     ...dispatchProps,
