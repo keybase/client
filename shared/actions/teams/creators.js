@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../../constants/teams'
 
-function createChannel(teamname: string, channelname: string) {
-  return {payload: {channelname, teamname}, type: 'teams:createChannel'}
+function createChannel(teamname: string, channelname: string, description: ?string) {
+  return {payload: {channelname, description, teamname}, type: 'teams:createChannel'}
 }
 
 function getChannels(teamname: string): Constants.GetChannels {

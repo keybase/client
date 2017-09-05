@@ -83,7 +83,7 @@ const _toggleChannelMembership = function*(
 }
 
 function* _createChannel(action: Constants.CreateChannel) {
-  const {payload: {channelname, teamname}} = action
+  const {payload: {channelname, description, teamname}} = action
   const tlfName = teamname
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
     param: {
@@ -104,6 +104,9 @@ function* _createChannel(action: Constants.CreateChannel) {
 
   // Select the new channel
   yield put(ChatCreators.selectConversation(newConversationIDKey, false))
+
+  // If we were given a description, set it.
+  // yield call(ChatTypes.localPostLocalNonblockRpcPromise, {
 }
 
 const teamsSaga = function*(): SagaGenerator<any, any> {

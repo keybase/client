@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
-import ManageChannels from '.'
+import CreateChannel  from '.'
 import {compose, lifecycle, withHandlers, withState} from 'recompose'
 import {connect} from 'react-redux'
 import {createChannel} from '../../actions/teams/creators'
@@ -18,13 +18,14 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
   onClose: () => dispatch(navigateUp()),
-  onCreateChannel: (teamname, channelname) => { console.warn('in onCreateChannel', channelname, teamname); dispatch(createChannel(teamname, channelname)) },
+  onCreateChannel: ({channelname, description, teamname}) => dispatch(createChannel(teamname, channelname, description)),
 })
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
-  withState('channelname', 'onChannelnameChange', props => props.channelname),
+  withState('channelname', 'onChannelnameChange'),
+  withState('description', 'onDescriptionChange'),
   withHandlers({
-    onSubmit: ({channelname, onCreateChannel, teamname}) => () => { console.warn('in onsubmit', teamname, channelname); onCreateChannel(teamname, channelname) },
+    onSubmit: ({channelname, description, onCreateChannel, teamname}) => () => onCreateChannel({channelname, description, teamname}),
   }),
-)(ManageChannels)
+)(CreateChannel)

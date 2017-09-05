@@ -3,7 +3,7 @@ import * as React from 'react'
 import {Avatar, Text, Box, Button, Input, PopupDialog, ScrollView, Checkbox, Icon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
-import type {Props, RowProps} from '.'
+import type {Props} from '.'
 
 const CreateChannel = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
@@ -27,10 +27,19 @@ const CreateChannel = (props: Props) => (
           onEnterKeyDown={props.onSubmit}
           onChangeText={channelname => props.onChannelnameChange(channelname)} />
       </Box>
+      <Box style={_inputStyle}>
+        <Input
+          autoFocus={true}
+          style={{minWidth: 450}}
+          hintText="Description or topic (optional)"
+          value={props.description}
+          onEnterKeyDown={props.onSubmit}
+          onChangeText={description => props.onDescriptionChange(description)} />
+      </Box>
       <Box style={_buttonsStyle}>
         <Button
           type="Secondary"
-          onClick={props.onCancel}
+          onClick={props.onClose}
           label="Cancel"
           style={{marginRight: globalMargins.tiny}}
         />
@@ -42,7 +51,7 @@ const CreateChannel = (props: Props) => (
 
 const _inputStyle = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.xlarge,
+  marginTop: globalMargins.large,
 }
 
 const _buttonsStyle = {
