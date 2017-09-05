@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
+import {createNewTeamFromConversation} from '../../../actions/teams/creators'
 import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
 import {compose, renderComponent, branch} from 'recompose'
@@ -77,7 +78,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
         {
           props: {
             onCreateNewTeam: name => {
-              dispatch(Creators.createNewTeamFromConversation(conversationIDKey, name))
+              dispatch(createNewTeamFromConversation(conversationIDKey, name))
               dispatch(Creators.selectConversation(null, true))
             },
           },

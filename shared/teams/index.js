@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import * as Creators from '../actions/chat/creators'
+import {createNewTeam} from '../actions/teams/creators'
 import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
         {
           props: {
             onCreateNewTeam: (name, navigateUp) => {
-              dispatch(Creators.createNewTeam(name))
+              dispatch(createNewTeam(name))
               dispatch(navigateUp())
             },
           },
