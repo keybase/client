@@ -5,8 +5,6 @@ import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
 
-import type {Props} from './render'
-
 type HeaderButtonProps = {
   iconType: IconType,
   label: string,
@@ -70,6 +68,12 @@ const BetaNote = (props: BetaNoteProps) => (
     </Text>
   </Box>
 )
+
+type Props = {
+  onCreateTeam: () => void,
+  onJoinTeam: () => void,
+  onReadDoc: () => void,
+}
 
 // TODO: Add banner and team rows.
 const Render = (props: Props) => (
