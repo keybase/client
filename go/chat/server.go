@@ -413,10 +413,10 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 	}, nil
 }
 
-func (h *Server) presentThreadView(tv chat1.ThreadView) (res chat1.UIMessages) {
+func (h *Server) presentThreadView(ctx context.Context, tv chat1.ThreadView) (res chat1.UIMessages) {
 	res.Pagination = utils.PresentPagination(tv.Pagination)
 	for _, msg := range tv.Messages {
-		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(msg))
+		res.Messages = append(res.Messages, utils.PresentMessageUnboxed(ctx, h.G().GetUPAKLoader(), msg))
 	}
 	return res
 }
@@ -508,7 +508,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: %d messages", len(resThread.Messages))
 			var jsonPt []byte
 			var err error
-			pt := h.presentThreadView(*resThread)
+			pt := h.presentThreadView(ctx, *resThread)
 			if jsonPt, err = json.Marshal(pt); err != nil {
 				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
 				return
@@ -543,7 +543,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		h.Debug(ctx, "GetThreadNonblock: sending full response: %d messages", len(remoteThread.Messages))
 		uilock.Lock()
 		defer uilock.Unlock()
-		uires := h.presentThreadView(remoteThread)
+		uires := h.presentThreadView(bctx, remoteThread)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)

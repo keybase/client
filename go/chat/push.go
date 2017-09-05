@@ -454,7 +454,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				}
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
 				activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: utils.PresentMessageUnboxed(decmsg),
+					Message: utils.PresentMessageUnboxed(ctx, g.G().GetUPAKLoader(), decmsg),
 					ConvID:  nm.ConvID,
 					Conv:    g.presentUIItem(conv),
 					DisplayDesktopNotification: desktopNotification,

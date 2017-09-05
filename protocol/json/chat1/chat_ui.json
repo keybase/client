@@ -210,20 +210,6 @@
     },
     {
       "type": "record",
-      "name": "UIAtMention",
-      "fields": [
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "int",
-          "name": "position"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -271,7 +257,7 @@
         {
           "type": {
             "type": "array",
-            "items": "UIAtMention"
+            "items": "string"
           },
           "name": "atMentions"
         }
