@@ -81,10 +81,10 @@ export const TeamList = (props: TeamListProps) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
-      marginBottom: globalMargins.tiny,
-      marginLeft: globalMargins.tiny,
-      marginRight: globalMargins.tiny,
-      marginTop: globalMargins.tiny,
+      paddingBottom: globalMargins.tiny,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+      paddingTop: globalMargins.tiny,
       width: '100%',
     }}
   >
