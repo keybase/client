@@ -83,12 +83,11 @@ const _toggleChannelMembership = function*(
 
 function* _createChannel(action: Constants.CreateChannel) {
   const {payload: {channelname, description, teamname}} = action
-  const tlfName = teamname
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
     param: {
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       membersType: ChatTypes.CommonConversationMembersType.team,
-      tlfName,
+      tlfName: teamname,
       tlfVisibility: CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
       topicName: channelname,
@@ -109,7 +108,7 @@ function* _createChannel(action: Constants.CreateChannel) {
     yield call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
       param: {
         conversationID: result.conv.info.id,
-        tlfName,
+        tlfName: teamname,
         tlfPublic: false,
         headline: description,
         clientPrev: null,
