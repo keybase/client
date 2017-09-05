@@ -851,6 +851,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.True(t, info.Message.IsValid())
 			require.Equal(t, chat1.MessageType_TEXT, info.Message.GetMessageType())
 			require.Zero(t, len(info.Message.Valid().AtMentions))
+			require.Equal(t, chat1.ChannelMention_ALL, info.Message.Valid().ChannelMention)
 			require.True(t, info.DisplayDesktopNotification)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no new message")

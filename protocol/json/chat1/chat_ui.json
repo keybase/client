@@ -260,6 +260,10 @@
             "items": "string"
           },
           "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
         }
       ]
     },

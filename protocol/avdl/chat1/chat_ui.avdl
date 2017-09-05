@@ -66,6 +66,7 @@ protocol chatUi {
     boolean superseded;
     union {null, gregor1.Time} senderDeviceRevokedAt;
     array<string> atMentions;
+    ChannelMention channelMention;
   }
 
   record UIMessageOutbox {

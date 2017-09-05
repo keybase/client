@@ -1882,6 +1882,7 @@ export type UIMessageValid = {
   superseded: boolean,
   senderDeviceRevokedAt?: ?gregor1.Time,
   atMentions?: ?Array<string>,
+  channelMention: ChannelMention,
 }
 
 export type UIMessages = {

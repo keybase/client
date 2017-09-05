@@ -639,6 +639,7 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 			SenderDeviceRevokedAt: rawMsg.Valid().SenderDeviceRevokedAt,
 			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
 			AtMentions:            rawMsg.Valid().AtMentionUsernames,
+			ChannelMention:        rawMsg.Valid().ChannelMention,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
