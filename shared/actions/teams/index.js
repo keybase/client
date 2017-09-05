@@ -21,14 +21,16 @@ import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-function* _createNewTeam(action: Constants.CreateNewTeam) {
+const _createNewTeam = function*(action: Constants.CreateNewTeam): SagaGenerator<any, any> {
   const {payload: {name}} = action
   yield call(teamsTeamCreateRpcPromise, {
     param: {name: {parts: [name]}},
   })
 }
 
-function* _createNewTeamFromConversation(action: Constants.CreateNewTeamFromConversation) {
+const _createNewTeamFromConversation = function*(
+  action: Constants.CreateNewTeamFromConversation
+): SagaGenerator<any, any> {
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
