@@ -11,11 +11,13 @@ import type {RouteProps} from '../route-tree/render-route'
 
 type StateProps = {
   badgeNumbers: {[key: Tab]: number},
+  isModal: boolean,
   selectedTab: Tab,
 }
 
-const mapStateToProps = (state: TypedState, {routeSelected}: RouteProps<{}, {}>) => ({
+const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: RouteProps<{}, {}>) => ({
   badgeNumbers: {}, // TODO add badging logic
+  isModal: routeLeafTags.modal,
   // TODO: Is there a way to validate that routeSelected is a Tab?
   selectedTab: (routeSelected: any),
 })
