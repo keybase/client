@@ -11,7 +11,7 @@ const load = () => {
     .add('Header', () => <Header onCreateTeam={action('onCreateTeam')} onJoinTeam={action('onJoinTeam')} />)
     .add('BetaNote', () => <BetaNote onReadDoc={action('onReadDoc')} />)
     .add('TeamList', () => (
-      <Box style={{marginLeft: 10, marginRight: 10, maxWidth: 320}}>
+      <Box style={{maxWidth: 320}}>
         <TeamList teamnames={teamnames} />
       </Box>
     ))
