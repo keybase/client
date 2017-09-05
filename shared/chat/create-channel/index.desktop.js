@@ -15,8 +15,8 @@ const CreateChannel = (props: Props) => (
       <Text type="Header" style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
         New chat channel
       </Text>
-      <Box style={_createStyle}>
-        <Icon style={_createIcon} type="iconfont-back" onClick={props.onBack} />
+      <Box style={_backStyle}>
+        <Icon style={_backIcon} type="iconfont-back" onClick={props.onBack} />
       </Box>
       <Box style={_inputStyle}>
         <Input
@@ -29,7 +29,7 @@ const CreateChannel = (props: Props) => (
       </Box>
       <Box style={_inputStyle}>
         <Input
-          autoFocus={true}
+          autoFocus={false}
           style={{minWidth: 450}}
           hintText="Description or topic (optional)"
           value={props.description}
@@ -70,12 +70,12 @@ const _boxStyle = {
   width: '100%',
 }
 
-const _createIcon = {
+const _backIcon = {
   display: 'block',
   marginRight: globalMargins.xtiny,
 }
 
-const _createStyle = {
+const _backStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   left: 32,
