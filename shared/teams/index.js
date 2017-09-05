@@ -46,9 +46,6 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   let teamnames = stateProps._teamnames.toArray()
   // TODO: Sort case-insensitively?
   teamnames.sort()
-  console.log('XXX')
-  console.log(stateProps._teamnames)
-  console.log(teamnames)
   return {
     teamnames,
     ...dispatchProps,
