@@ -117,6 +117,9 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+        if (message.type === 'Unhandled') {
+          return
+        }
         const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
         const pagination = incomingMessage.pagination
@@ -331,7 +334,10 @@ function* _updateThread({
       // about to add a newly received version of the same message.
       yield put(Creators.removeOutboxMessage(conversationIDKey, message.outboxID))
     }
-    newMessages.push(message)
+
+    if (message.type !== 'Unhandled') {
+      newMessages.push(message)
+    }
   }
 
   newMessages = newMessages.reverse()
