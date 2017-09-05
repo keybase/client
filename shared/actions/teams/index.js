@@ -119,10 +119,7 @@ function* _createChannel(action: Constants.CreateChannel) {
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
-  yield Saga.safeTakeEvery(
-    'teams:toggleChannelMembership',
-    _toggleChannelMembership
-  )
+  yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
 }
 

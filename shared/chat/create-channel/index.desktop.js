@@ -25,7 +25,8 @@ const CreateChannel = (props: Props) => (
           hintText="Channel name"
           value={props.channelname}
           onEnterKeyDown={props.onSubmit}
-          onChangeText={channelname => props.onChannelnameChange(channelname)} />
+          onChangeText={channelname => props.onChannelnameChange(channelname)}
+        />
       </Box>
       <Box style={_inputStyle}>
         <Input
@@ -34,7 +35,8 @@ const CreateChannel = (props: Props) => (
           hintText="Description or topic (optional)"
           value={props.description}
           onEnterKeyDown={props.onSubmit}
-          onChangeText={description => props.onDescriptionChange(description)} />
+          onChangeText={description => props.onDescriptionChange(description)}
+        />
       </Box>
       <Box style={_buttonsStyle}>
         <Button
