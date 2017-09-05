@@ -95,4 +95,6 @@ const Render = (props: Props) => (
   </Box>
 )
 
+export {Header, BetaNote}
+
 export default Render
