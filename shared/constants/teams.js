@@ -30,12 +30,13 @@ export const ChannelInfo = I.Record({
 export const Team = I.Record({
   convIDToChannelInfo: I.Map(),
   teamNameToConvIDs: I.Map(),
+  teamNames: I.Set(),
 })
 
 export type TeamRecord = KBRecord<{
   convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
-  teamNames: I.Set<Teamname>,
   teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
+  teamNames: I.Set<Teamname>,
 }>
 
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
