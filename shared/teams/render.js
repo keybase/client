@@ -5,18 +5,18 @@ import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
 
+type HeaderButtonProps = {
+  iconType: IconType,
+  label: string,
+  onClick: () => void,
+}
+
 const marginHorizontal = isMobile ? globalMargins.tiny : globalMargins.medium
 const headerButtonBoxStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   marginLeft: marginHorizontal,
   marginRight: marginHorizontal,
-}
-
-type HeaderButtonProps = {
-  iconType: IconType,
-  label: string,
-  onClick: () => void,
 }
 
 const HeaderButton = (props: HeaderButtonProps) => (
