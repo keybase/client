@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Text, Box, Button, Input, PopupDialog, ScrollView, Checkbox, Icon} from '../../common-adapters'
+import {Avatar, Box, Button, Icon, Input, PopupDialog, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from '.'

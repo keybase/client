@@ -6,7 +6,6 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
-import * as Inbox from '../chat/inbox'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
@@ -90,7 +89,7 @@ function* _createChannel(action: Constants.CreateChannel) {
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       membersType: ChatTypes.CommonConversationMembersType.team,
       tlfName,
-      tlfVisibility: ChatTypes.CommonTLFVisibility.private,
+      tlfVisibility: CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
       topicName: channelname,
     },
@@ -106,13 +105,25 @@ function* _createChannel(action: Constants.CreateChannel) {
   yield put(ChatCreators.selectConversation(newConversationIDKey, false))
 
   // If we were given a description, set it.
-  // yield call(ChatTypes.localPostLocalNonblockRpcPromise, {
+  yield call(ChatTypes.localPostHeadlineNonblockRpcPromise, {
+    param: {
+      conversationID: result.conv.info.id,
+      tlfName,
+      tlfPublic: false,
+      headline: description,
+      clientPrev: null,
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    },
+  })
 }
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
-  yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership),
-  yield Saga.safeTakeEvery('teams:createChannel', _createChannel)  
+  yield Saga.safeTakeEvery(
+    'teams:toggleChannelMembership',
+    _toggleChannelMembership
+  )
+  yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
 }
 
 export default teamsSaga

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Text, Box, ScrollView, Checkbox, Icon, HeaderHoc} from '../../common-adapters'
+import {Avatar, Box, Button, HeaderHoc, Icon, Input, ScrollView, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
@@ -9,10 +9,35 @@ import type {Props} from '.'
 const CreateChannel = (props: Props) => (
   <Box style={_boxStyle}>
     <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
-      <Box style={_backStyle}>
-        <Icon style={_backIcon} type="iconfont-back" onClick={props.onBack} />
+      <Box style={_inputStyle}>
+        <Input
+          autoFocus={true}
+          style={{minWidth: 450}}
+          hintText="Channel name"
+          value={props.channelname}
+          onEnterKeyDown={props.onSubmit}
+          onChangeText={channelname => props.onChannelnameChange(channelname)}
+        />
       </Box>
-      {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
+      <Box style={_inputStyle}>
+        <Input
+          autoFocus={false}
+          style={{minWidth: 450}}
+          hintText="Description or topic (optional)"
+          value={props.description}
+          onEnterKeyDown={props.onSubmit}
+          onChangeText={description => props.onDescriptionChange(description)}
+        />
+      </Box>
+      <Box style={_buttonsStyle}>
+        <Button
+          type="Secondary"
+          onClick={props.onClose}
+          label="Cancel"
+          style={{marginRight: globalMargins.tiny}}
+        />
+        <Button type="Primary" onClick={props.onSubmit} label="Save" />
+      </Box>
     </ScrollView>
   </Box>
 )
@@ -59,6 +84,16 @@ const _backStyle = {
 const _backIcon = {
   color: globalColors.blue,
   marginRight: globalMargins.xtiny,
+}
+
+const _buttonsStyle = {
+  ...globalStyles.flexBoxRow,
+  marginTop: globalMargins.large,
+}
+
+const _inputStyle = {
+  ...globalStyles.flexBoxRow,
+  marginTop: globalMargins.large,
 }
 
 export default compose(
