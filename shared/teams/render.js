@@ -31,7 +31,7 @@ type HeaderProps = {
   onJoinTeam: () => void,
 }
 
-export const Header = (props: HeaderProps) => (
+const Header = (props: HeaderProps) => (
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
     <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
     <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
@@ -42,7 +42,7 @@ type BetaNoteProps = {
   onReadDoc: () => void,
 }
 
-export const BetaNote = (props: BetaNoteProps) => (
+const BetaNote = (props: BetaNoteProps) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
     <Box style={{...globalStyles.flexBoxRow}}>
       <Text type="BodySmall">&mdash;&mdash;</Text>
@@ -94,5 +94,7 @@ const Render = (props: Props) => (
     </ScrollView>
   </Box>
 )
+
+export {Header, BetaNote}
 
 export default Render
