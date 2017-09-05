@@ -11,7 +11,7 @@ type DispatchProps = {
   onReadDoc: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onCreateTeam: () => {
     // TODO: Hook this up. Need to change onShowNewTeamDialog to
     // make its conversationIDKey parameter optional first.
@@ -26,9 +26,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps: DispatchProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-})
-
-export default pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps)(Render)
+export default pausableConnect(mapStateToProps, mapDispatchToProps)(Render)
