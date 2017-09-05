@@ -114,12 +114,6 @@ export const CommonNotificationKind = {
   atmention: 1,
 }
 
-export const CommonTLFVisibility = {
-  any: 0,
-  public: 1,
-  private: 2,
-}
-
 export const CommonTopicType = {
   none: 0,
   chat: 1,
@@ -430,6 +424,22 @@ export function localPostFileAttachmentLocalRpcChannelMap (configKeys: Array<str
 
 export function localPostFileAttachmentLocalRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localPostFileAttachmentLocalResult) => void} & {param: localPostFileAttachmentLocalRpcParam})): Promise<localPostFileAttachmentLocalResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postFileAttachmentLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localPostHeadlineNonblockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineNonblockResult) => void} & {param: localPostHeadlineNonblockRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadlineNonblock', request)
+}
+
+export function localPostHeadlineNonblockRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineNonblockResult) => void} & {param: localPostHeadlineNonblockRpcParam})): Promise<localPostHeadlineNonblockResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postHeadlineNonblock', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localPostHeadlineRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineResult) => void} & {param: localPostHeadlineRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.postHeadline', request)
+}
+
+export function localPostHeadlineRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localPostHeadlineResult) => void} & {param: localPostHeadlineRpcParam})): Promise<localPostHeadlineResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.postHeadline', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function localPostLocalNonblockRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localPostLocalNonblockResult) => void} & {param: localPostLocalNonblockRpcParam}): EngineChannel {
@@ -918,7 +928,7 @@ export type ConversationInfoLocal = {
   triple: ConversationIDTriple,
   tlfName: string,
   topicName: string,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
   writerNames?: ?Array<string>,
@@ -958,7 +968,7 @@ export type ConversationMembersType =
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -1064,7 +1074,7 @@ export type GetInboxLocalQuery = {
   topicName?: ?string,
   convIDs?: ?Array<ConversationID>,
   topicType?: ?TopicType,
-  tlfVisibility?: ?TLFVisibility,
+  tlfVisibility?: ?keybase1.TLFVisibility,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
@@ -1086,7 +1096,7 @@ export type GetInboxQuery = {
   convID?: ?ConversationID,
   topicType?: ?TopicType,
   tlfID?: ?TLFID,
-  tlfVisibility?: ?TLFVisibility,
+  tlfVisibility?: ?keybase1.TLFVisibility,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
   oneChatTypePerTLF?: ?boolean,
@@ -1108,7 +1118,7 @@ export type GetInboxSummaryForCLILocalQuery = {
   topicType: TopicType,
   after: string,
   before: string,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   status?: ?Array<ConversationStatus>,
   unreadFirst: boolean,
   unreadFirstLimit: UnreadFirstNumLimit,
@@ -1245,7 +1255,7 @@ export type InboxUIItem = {
   snippet: string,
   channel: string,
   headline: string,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
@@ -1815,11 +1825,6 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
-export type TLFVisibility =
-    0 // ANY_0
-  | 1 // PUBLIC_1
-  | 2 // PRIVATE_2
-
 export type ThreadID = bytes
 
 export type ThreadView = {
@@ -1908,7 +1913,7 @@ export type UnreadUpdateFull = {
 export type UnverifiedInboxUIItem = {
   convID: string,
   name: string,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
   notifications?: ?ConversationNotificationInfo,
@@ -1995,7 +2000,7 @@ export type localDownloadFileAttachmentLocalRpcParam = Exact<{
 export type localFindConversationsLocalRpcParam = Exact<{
   tlfName: string,
   membersType: ConversationMembersType,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   topicType: TopicType,
   topicName: string,
   oneChatPerTLF?: ?boolean,
@@ -2064,7 +2069,7 @@ export type localJoinConversationByIDLocalRpcParam = Exact<{
 export type localJoinConversationLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   topicName: string
 }>
 
@@ -2085,7 +2090,7 @@ export type localMarkAsReadLocalRpcParam = Exact<{
 export type localNewConversationLocalRpcParam = Exact<{
   tlfName: string,
   topicType: TopicType,
-  tlfVisibility: TLFVisibility,
+  tlfVisibility: keybase1.TLFVisibility,
   topicName?: ?string,
   membersType: ConversationMembersType,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -2094,7 +2099,7 @@ export type localNewConversationLocalRpcParam = Exact<{
 export type localPostAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   tlfName: string,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   attachment: LocalSource,
   preview?: ?MakePreviewRes,
   title: string,
@@ -2126,11 +2131,29 @@ export type localPostEditNonblockRpcParam = Exact<{
 export type localPostFileAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   tlfName: string,
-  visibility: TLFVisibility,
+  visibility: keybase1.TLFVisibility,
   attachment: LocalFileSource,
   preview?: ?MakePreviewRes,
   title: string,
   metadata: bytes,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localPostHeadlineNonblockRpcParam = Exact<{
+  conversationID: ConversationID,
+  tlfName: string,
+  tlfPublic: boolean,
+  headline: string,
+  outboxID?: ?OutboxID,
+  clientPrev: MessageID,
+  identifyBehavior: keybase1.TLFIdentifyBehavior
+}>
+
+export type localPostHeadlineRpcParam = Exact<{
+  conversationID: ConversationID,
+  tlfName: string,
+  tlfPublic: boolean,
+  headline: string,
   identifyBehavior: keybase1.TLFIdentifyBehavior
 }>
 
@@ -2361,6 +2384,8 @@ type localPostAttachmentLocalResult = PostLocalRes
 type localPostDeleteNonblockResult = PostLocalNonblockRes
 type localPostEditNonblockResult = PostLocalNonblockRes
 type localPostFileAttachmentLocalResult = PostLocalRes
+type localPostHeadlineNonblockResult = PostLocalNonblockRes
+type localPostHeadlineResult = PostLocalRes
 type localPostLocalNonblockResult = PostLocalNonblockRes
 type localPostLocalResult = PostLocalRes
 type localPostTextNonblockResult = PostLocalNonblockRes

@@ -295,7 +295,7 @@
         },
         {
           "name": "reason",
-          "type": "string"
+          "type": "IdentifyReason"
         },
         {
           "name": "identifyBehavior",

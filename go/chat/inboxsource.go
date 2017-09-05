@@ -238,7 +238,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
 		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
-			lquery.Visibility() == chat1.TLFVisibility_PUBLIC)
+			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			return nil, info, err
 		}
@@ -287,7 +287,7 @@ func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 		return types.NameInfo{}, nil
 	}
 	return CtxKeyFinder(ctx, g).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
-		lquery.Visibility() == chat1.TLFVisibility_PUBLIC)
+		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 }
 
 type RemoteInboxSource struct {
@@ -1072,7 +1072,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
 		info, err := CtxKeyFinder(ctx, s.G()).Find(ctx,
 			conversationLocal.Info.TLFNameExpanded(), conversationLocal.GetMembersType(),
-			conversationLocal.Info.Visibility == chat1.TLFVisibility_PUBLIC)
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			errMsg := err.Error()
 			conversationLocal.Error = chat1.NewConversationErrorLocal(

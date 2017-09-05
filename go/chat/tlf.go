@@ -45,11 +45,11 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 }
 
 func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string,
-	visibility chat1.TLFVisibility) (res types.NameInfo, err error) {
+	visibility keybase1.TLFVisibility) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", tlfName))()
 	var lastErr error
 	for i := 0; i < 5; i++ {
-		if visibility == chat1.TLFVisibility_PUBLIC {
+		if visibility == keybase1.TLFVisibility_PUBLIC {
 			var pres keybase1.CanonicalTLFNameAndIDWithBreaks
 			pres, err = t.PublicCanonicalTLFNameAndID(ctx, tlfName)
 			res.CanonicalName = pres.CanonicalName.String()

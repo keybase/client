@@ -22,7 +22,7 @@ type chatConversationResolvingRequest struct {
 	TlfName     string
 	TopicName   string
 	TopicType   chat1.TopicType
-	Visibility  chat1.TLFVisibility
+	Visibility  keybase1.TLFVisibility
 	MembersType chat1.ConversationMembersType
 
 	ctx *chatConversationResolvingRequestContext
@@ -62,7 +62,7 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 	var cname keybase1.CanonicalTLFNameAndIDWithBreaks
 	var err error
 	var visout string
-	if req.Visibility == chat1.TLFVisibility_PUBLIC {
+	if req.Visibility == keybase1.TLFVisibility_PUBLIC {
 		visout = "public"
 		cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
 	} else {
