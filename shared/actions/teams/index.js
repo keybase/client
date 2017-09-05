@@ -136,8 +136,8 @@ const _toggleChannelMembership = function*(
 }
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
-  yield Saga.safeTakeEvery('chat:createNewTeamFromConversation', _createNewTeamFromConversation)
+  yield Saga.safeTakeEvery('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)

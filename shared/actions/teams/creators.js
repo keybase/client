@@ -3,11 +3,11 @@ import * as Constants from '../../constants/teams'
 import type {ConversationIDKey} from '../../constants/chat'
 
 function createNewTeam(name: string) {
-  return {payload: {name}, type: 'chat:createNewTeam'}
+  return {payload: {name}, type: 'teams:createNewTeam'}
 }
 
 function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, name: string) {
-  return {payload: {conversationIDKey, name}, type: 'chat:createNewTeamFromConversation'}
+  return {payload: {conversationIDKey, name}, type: 'teams:createNewTeamFromConversation'}
 }
 
 function getChannels(teamname: string): Constants.GetChannels {

@@ -6,26 +6,28 @@ import type {NoErrorTypedAction} from './types/flux'
 import type {ConversationIDKey} from './chat'
 import type {TypedState} from './reducer'
 
-export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
-export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
-export type ToggleChannelMembership = NoErrorTypedAction<
-  'teams:toggleChannelMembership',
-  {teamname: string, channelname: string}
->
-
 export type CreateNewTeam = NoErrorTypedAction<
-  'chat:createNewTeam',
+  'teams:createNewTeam',
   {
     name: string,
   }
 >
 
 export type CreateNewTeamFromConversation = NoErrorTypedAction<
-  'chat:createNewTeamFromConversation',
+  'teams:createNewTeamFromConversation',
   {
     conversationIDKey: ConversationIDKey,
     name: string,
   }
+>
+
+export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
+
+export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
+
+export type ToggleChannelMembership = NoErrorTypedAction<
+  'teams:toggleChannelMembership',
+  {teamname: string, channelname: string}
 >
 
 export type Teamname = string
