@@ -1,9 +1,11 @@
 // @flow
 import * as React from 'react'
 import type {IconType} from '../common-adapters/icon.constants'
-import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
+import {Avatar, Box, ClickableBox, Divider, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
+
+import type {Teamname} from '../constants/teams'
 
 type HeaderButtonProps = {
   iconType: IconType,
@@ -43,7 +45,7 @@ type BetaNoteProps = {
 }
 
 const BetaNote = (props: BetaNoteProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginTop: globalMargins.xlarge}}>
     <Box style={{...globalStyles.flexBoxRow}}>
       <Text type="BodySmall">&mdash;&mdash;</Text>
       <Icon
@@ -69,13 +71,54 @@ const BetaNote = (props: BetaNoteProps) => (
   </Box>
 )
 
-type Props = {
-  onCreateTeam: () => void,
-  onJoinTeam: () => void,
-  onReadDoc: () => void,
+type TeamListProps = {
+  // TODO: Change to map to member count.
+  teamnames: Array<Teamname>,
+  // TODO: Add onClick handler and folder/chat icons.
 }
 
-// TODO: Add banner and team rows.
+export const TeamList = (props: TeamListProps) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      paddingBottom: globalMargins.tiny,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+      paddingTop: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
+    {props.teamnames.map((name, index, arr) => {
+      return (
+        <Box key={name} style={rowStyle}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              flex: 1,
+              marginRight: globalMargins.tiny,
+            }}
+          >
+            <Avatar size={32} teamname={name} />
+            <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+              {name}
+            </Text>
+          </Box>
+          {isMobile && <Divider style={{marginLeft: 44}} />}
+        </Box>
+      )
+    })}
+  </Box>
+)
+
+const rowStyle = {
+  ...globalStyles.flexBoxColumn,
+  minHeight: globalMargins.large,
+}
+
+type Props = HeaderProps & BetaNoteProps & TeamListProps
+
+// TODO: Add banner.
 const Render = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
     <Header {...props} />
@@ -84,12 +127,9 @@ const Render = (props: Props) => (
       contentContainerStyle={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
-        marginBottom: globalMargins.tiny,
-        marginLeft: globalMargins.large,
-        marginRight: globalMargins.large,
-        marginTop: globalMargins.tiny,
       }}
     >
+      <TeamList {...props} />
       <BetaNote {...props} />
     </ScrollView>
   </Box>

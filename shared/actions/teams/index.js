@@ -8,8 +8,9 @@ import * as Creators from './creators'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
-import {CommonTLFVisibility} from '../../constants/types/flow-types'
+import {CommonTLFVisibility, teamsTeamListRpcPromise} from '../../constants/types/flow-types'
 
+import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
@@ -44,6 +45,19 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
     put(replaceEntity(['teams', 'teamNameToConvIDs'], I.Map([[teamname, I.Set(convIDs)]]))),
     put(replaceEntity(['teams', 'convIDToChannelInfo'], I.Map(convIDToChannelInfo))),
   ])
+}
+
+const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any> {
+  const username = yield select(usernameSelector)
+  const results: AnnotatedTeamList = yield call(teamsTeamListRpcPromise, {
+    param: {
+      userAssertion: username,
+    },
+  })
+
+  const teams = results.teams || []
+  const teamnames = teams.map(team => team.fqName)
+  yield all([put(replaceEntity(['teams', 'teamnames'], I.Set(teamnames)))])
 }
 
 const _toggleChannelMembership = function*(
@@ -82,6 +96,7 @@ const _toggleChannelMembership = function*(
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
+  yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
 }
 
