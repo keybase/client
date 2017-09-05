@@ -1,5 +1,5 @@
 // @flow
-import TeamsContainer from './index'
+import TeamsContainer from './container'
 import {RouteDefNode} from '../route-tree'
 
 const routeTree = new RouteDefNode({
