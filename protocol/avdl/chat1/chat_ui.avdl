@@ -55,6 +55,11 @@ protocol chatUi {
     boolean offline;
   }
 
+  record UIAtMention {
+    string username;
+    int position;
+  }
+
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
@@ -65,6 +70,7 @@ protocol chatUi {
     string senderDeviceType;
     boolean superseded;
     union {null, gregor1.Time} senderDeviceRevokedAt;
+    array<UIAtMention> atMentions;
   }
 
   record UIMessageOutbox {

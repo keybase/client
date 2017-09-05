@@ -210,6 +210,20 @@
     },
     {
       "type": "record",
+      "name": "UIAtMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "int",
+          "name": "position"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -253,6 +267,13 @@
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIAtMention"
+          },
+          "name": "atMentions"
         }
       ]
     },

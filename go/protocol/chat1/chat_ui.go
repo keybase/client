@@ -188,6 +188,18 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 	}
 }
 
+type UIAtMention struct {
+	Username string `codec:"username" json:"username"`
+	Position int    `codec:"position" json:"position"`
+}
+
+func (o UIAtMention) DeepCopy() UIAtMention {
+	return UIAtMention{
+		Username: o.Username,
+		Position: o.Position,
+	}
+}
+
 type UIMessageValid struct {
 	MessageID             MessageID     `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time  `codec:"ctime" json:"ctime"`
@@ -198,6 +210,7 @@ type UIMessageValid struct {
 	SenderDeviceType      string        `codec:"senderDeviceType" json:"senderDeviceType"`
 	Superseded            bool          `codec:"superseded" json:"superseded"`
 	SenderDeviceRevokedAt *gregor1.Time `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	AtMentions            []UIAtMention `codec:"atMentions" json:"atMentions"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -223,6 +236,14 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SenderDeviceRevokedAt),
+		AtMentions: (func(x []UIAtMention) []UIAtMention {
+			var ret []UIAtMention
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentions),
 	}
 }
 

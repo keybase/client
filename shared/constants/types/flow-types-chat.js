@@ -1854,6 +1854,11 @@ export type TyperInfo = {
   deviceType: string,
 }
 
+export type UIAtMention = {
+  username: string,
+  position: int,
+}
+
 export type UIMessage =
     { state: 1, valid: ?UIMessageValid }
   | { state: 2, error: ?MessageUnboxedError }
@@ -1878,6 +1883,7 @@ export type UIMessageValid = {
   senderDeviceType: string,
   superseded: boolean,
   senderDeviceRevokedAt?: ?gregor1.Time,
+  atMentions?: ?Array<UIAtMention>,
 }
 
 export type UIMessages = {
