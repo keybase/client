@@ -2,14 +2,10 @@
 import NewTeamDialog from './'
 import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
-import {
-  createNewTeam,
-  createNewTeamFromConversation,
-  selectConversation,
-} from '../../../actions/chat/creators'
+import {createNewTeam, createNewTeamFromConversation, selectConversation} from '../../actions/chat/creators'
 
-import type {TypedState} from '../../../constants/reducer'
-import type {ConversationIDKey} from '../../../constants/chat'
+import type {TypedState} from '../../constants/reducer'
+import type {ConversationIDKey} from '../../constants/chat'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   conversationIDKey: routeProps.conversationIDKey,
