@@ -1,10 +1,11 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import {storiesOf, action} from '../stories/storybook'
 import {Box} from '../common-adapters'
 import {BetaNote, Header, TeamList} from './render'
 
-const teams = [{name: 'stripe'}, {name: 'stripe.usa'}, {name: 'techtonica'}]
+const teams = I.Set(['stripe', 'stripe.usa', 'techtonica'])
 
 const load = () => {
   storiesOf('Teams', module)

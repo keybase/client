@@ -1,9 +1,12 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import type {IconType} from '../common-adapters/icon.constants'
 import {Avatar, Box, ClickableBox, Divider, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
+
+import type {Teamname} from '../constants/teams'
 
 type HeaderButtonProps = {
   iconType: IconType,
@@ -70,17 +73,16 @@ const BetaNote = (props: BetaNoteProps) => (
 )
 
 type TeamListProps = {
-  teams: Array<{
-    name: string,
-    // TODO: Add member count, onClick handler, and folder/chat icons.
-  }>,
+  // TODO: Change to map to member count.
+  teams: I.Set<Teamname>,
+  // TODO: Add onClick handler and folder/chat icons.
 }
 
 export const TeamList = (props: TeamListProps) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny, width: '100%'}}>
-    {props.teams.map((info, index, arr) => {
+    {props.teams.map((name, index, arr) => {
       return (
-        <Box key={info.name} style={rowStyle}>
+        <Box key={name} style={rowStyle}>
           <Box
             style={{
               ...globalStyles.flexBoxRow,
@@ -89,9 +91,9 @@ export const TeamList = (props: TeamListProps) => (
               marginRight: globalMargins.tiny,
             }}
           >
-            <Avatar size={32} teamname={info.name} />
+            <Avatar size={32} teamname={name} />
             <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
-              {info.name}
+              {name}
             </Text>
           </Box>
           {isMobile ? null : <Divider style={{marginLeft: 44}} />}

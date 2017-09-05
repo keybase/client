@@ -1,29 +1,23 @@
 // @flow
+import * as I from 'immutable'
 import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
+import {getTeams} from '../actions/teams/creators'
+import {compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../constants/reducer'
+import type {Teamname} from '../constants/teams'
 
 type StateProps = {
-  teams: Array<{name: string}>,
+  teams: I.Set<Teamname>,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
-  // TODO: Figure out better way to get list of teams -- this won't
-  // work until the inbox is loaded.
-  const inbox = state.chat.get('inbox')
-  const teams = {}
-  inbox.forEach(i => {
-    if (i.teamname) {
-      teams[i.teamname] = {}
-    }
-  })
-  let teamNames = Object.keys(teams)
-  // TODO: Sort case-insensitively?
-  teamNames.sort()
+  let teamNames = state.entities.getIn(['teams', 'teamNames'], I.Set())
+  // TODO: Sort?
   return {
-    teams: teamNames.map(name => ({name})),
+    teams: teamNames,
   }
 }
 
@@ -34,6 +28,7 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  _loadTeams: () => dispatch(getTeams()),
   onCreateTeam: () => {
     // TODO: Hook this up. Need to change onShowNewTeamDialog to
     // make its conversationIDKey parameter optional first.
@@ -48,4 +43,11 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   },
 })
 
-export default pausableConnect(mapStateToProps, mapDispatchToProps)(Render)
+export default compose(
+  pausableConnect(mapStateToProps, mapDispatchToProps),
+  lifecycle({
+    componentDidMount: function() {
+      this.props._loadTeams()
+    },
+  })
+)(Render)
