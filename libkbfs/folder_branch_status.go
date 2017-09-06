@@ -27,6 +27,8 @@ type FolderBranchStatus struct {
 	FolderID            string
 	Revision            kbfsmd.Revision
 	MDVersion           MetadataVer
+	SyncEnabled         bool
+	PrefetchStatus      string
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.

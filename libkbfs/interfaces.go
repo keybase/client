@@ -788,19 +788,6 @@ const (
 	PermanentEntry
 )
 
-// PrefetchStatus denotes the prefetch status of a block.
-type PrefetchStatus int
-
-const (
-	// NoPrefetch represents an entry that hasn't been prefetched.
-	NoPrefetch PrefetchStatus = iota
-	// TriggeredPrefetch represents a block for which prefetching has been
-	// triggered, but the full tree has not been completed.
-	TriggeredPrefetch
-	// FinishedPrefetch represents a block whose full subtree is synced.
-	FinishedPrefetch
-)
-
 // BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
 // a cache.  These blocks are immutable and identified by their
 // content hash.

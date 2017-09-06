@@ -1932,7 +1932,7 @@ func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
 }
 
 func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
-	ei NodeMetadata, err error) {
+	res NodeMetadata, err error) {
 	fbo.log.CDebugf(ctx, "GetNodeMetadata %s", getNodeIDStr(node))
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "GetNodeMetadata %s done: %+v",
@@ -1944,7 +1944,6 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 		de, err = fbo.statEntry(ctx, node)
 		return err
 	})
-	var res NodeMetadata
 	if err != nil {
 		return res, err
 	}
@@ -1962,6 +1961,15 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	if err != nil {
 		return res, err
 	}
+	_, prefetchStatus, _, err :=
+		fbo.config.BlockCache().GetWithPrefetch(res.BlockInfo)
+	if err != nil {
+		_, _, prefetchStatus, _ = fbo.config.DiskBlockCache().Get(ctx,
+			fbo.TlfID(), res.BlockInfo.ID)
+		// Swallow cache errors since we don't want to communicate
+		// errors for uncached blocks.
+	}
+	res.PrefetchStatus = prefetchStatus.String()
 	return res, nil
 }
 
