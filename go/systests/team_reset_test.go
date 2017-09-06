@@ -56,7 +56,6 @@ func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnbox
 
 		time.Sleep(wait)
 		totalWait += wait
-		wait = wait * 2
 	}
 
 	u.ctx.t.Logf("Failed to readChatsWithError after polling for %s", totalWait)
