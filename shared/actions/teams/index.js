@@ -9,7 +9,11 @@ import * as ChatCreators from '../chat/creators'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
-import {CommonTLFVisibility, teamsTeamListRpcPromise, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {
+  CommonTLFVisibility,
+  teamsTeamListRpcPromise,
+  TlfKeysTLFIdentifyBehavior,
+} from '../../constants/types/flow-types'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
