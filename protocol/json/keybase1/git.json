@@ -13,6 +13,28 @@
   "types": [
     {
       "type": "record",
+      "name": "EncryptedGitMetadata",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RepoID",
       "fields": [],
       "typedef": "string"

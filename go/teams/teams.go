@@ -266,6 +266,8 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase
 		derivationString = libkb.TeamChatDerivationString
 	case keybase1.TeamApplication_SALTPACK:
 		derivationString = libkb.TeamSaltpackDerivationString
+	case keybase1.TeamApplication_GIT_METADATA:
+		derivationString = libkb.TeamGitMetadataDerivationString
 	default:
 		return keybase1.TeamApplicationKey{}, errors.New("invalid application id")
 	}

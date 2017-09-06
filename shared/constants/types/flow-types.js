@@ -3012,6 +3012,13 @@ export type Email = {
 
 export type EncryptedBytes32 = any
 
+export type EncryptedGitMetadata = {
+  v: int,
+  e: bytes,
+  n: BoxNonce,
+  gen: PerTeamKeyGeneration,
+}
+
 export type ErrorNum = int
 
 export type ExitCode =
