@@ -26,7 +26,7 @@ import type {TypedState} from '../../constants/reducer'
 const _createNewTeam = function(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
   return call(teamsTeamCreateRpcPromise, {
-    param: {name: {parts: [name]}},
+    param: {name: {parts: [name]}, sendChatNotification: true},
   })
 }
 
@@ -38,7 +38,7 @@ const _createNewTeamFromConversation = function*(
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
   if (inbox) {
     yield call(teamsTeamCreateRpcPromise, {
-      param: {name: {parts: [name]}},
+      param: {name: {parts: [name]}, sendChatNotification: true},
     })
     const participants = inbox.get('participants').toArray()
     for (const username of participants) {

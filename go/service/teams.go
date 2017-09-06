@@ -121,8 +121,8 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 		lines = append(lines, fmt.Sprintf("  readers: %s", strings.Join(readerNames, ",")))
 	}
 	memberBody := strings.Join(lines, "\n")
-	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
-		user, memberBody)
+	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current members:\n\n```​%s```\n\n_More info on teams:_ keybase.io/blog/introducing-keybase-teams\n_To leave this team, visit the team tab or run `keybase team leave %s`_",
+		user, memberBody, team)
 
 	// Ensure we have chat available, since TeamAddMember may also be
 	// coming from a standalone launch.
