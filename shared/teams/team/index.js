@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {Avatar, Box, Text, Tabs, List, Icon} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
-// import {isMobile} from '../../constants/platform'
+import {isMobile} from '../../constants/platform'
 
 export type RowProps = {
   ...Constants.MemberInfo,
@@ -38,12 +38,12 @@ class Team extends React.PureComponent<Props> {
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
           flexShrink: 0,
-          height: 48,
+          height: isMobile ? 56 : 48,
           padding: globalMargins.tiny,
           width: '100%',
         }}
       >
-        <Avatar username={item.username} size={32} />
+        <Avatar username={item.username} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
           <Text type={this.props.you === item.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
             {item.username}
