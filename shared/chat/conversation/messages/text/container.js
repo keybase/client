@@ -2,6 +2,7 @@
 import * as Constants from '../../../../constants/chat'
 import TextMessage from '.'
 import createCachedSelector from 're-reselect'
+import {Set} from 'immutable'
 import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 
@@ -17,6 +18,8 @@ const getProps = createCachedSelector(
       isEditing: message === editingMessage,
       text: message ? message.message.stringValue() : null,
       type: message ? message.messageState : null,
+      mentions: message ? message.mentions : Set(),
+      channelMention: message ? message.channelMention : 'None',
     }
   }
 )((state, messageKey) => messageKey)

@@ -5,7 +5,7 @@ import Text from './text'
 import parser, {emojiIndexByName, isPlainText} from '../markdown/parser'
 
 import type {Props as EmojiProps} from './emoji'
-import type {MarkdownCreateComponent} from './markdown'
+import type {MarkdownCreateComponent, MarkdownMeta} from './markdown'
 
 function processAST(ast, createComponent) {
   const stack = [ast]
@@ -38,13 +38,34 @@ function processAST(ast, createComponent) {
   return ast.component
 }
 
-export function parseMarkdown(markdown: ?string, markdownCreateComponent: MarkdownCreateComponent) {
+function preprocessMarkdown(markdown: string, meta: ?MarkdownMeta) {
+  if (!meta || !meta.mentions || !meta.channelMention) {
+    return markdown
+  }
+  const {channelMention, mentions} = meta
+  if (channelMention === 'None' && mentions.length === 0) {
+    return markdown
+  }
+
+  return markdown.replace(/\B@([a-z][a-z0-9_]+)/g, (match, matchedGroup) => {
+    if (matchedGroup === 'here' || matchedGroup === 'channel' || mentions.has(matchedGroup)) {
+      return `${match}@keybase`
+    }
+    return match
+  })
+}
+
+export function parseMarkdown(
+  markdown: ?string,
+  markdownCreateComponent: MarkdownCreateComponent,
+  meta: ?MarkdownMeta
+) {
   const plainText = isPlainText(markdown)
   if (plainText) {
     return plainText
   }
   try {
-    return processAST(parser.parse(markdown || ''), markdownCreateComponent)
+    return processAST(parser.parse(preprocessMarkdown(markdown || '', meta)), markdownCreateComponent)
   } catch (err) {
     console.warn('Markdown parsing failed:', err)
     return markdown

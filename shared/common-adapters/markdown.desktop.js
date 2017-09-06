@@ -97,7 +97,8 @@ class Markdown extends PureComponent<Props> {
   render() {
     const content = parseMarkdown(
       this.props.children,
-      this.props.preview ? previewCreateComponent : messageCreateComponent
+      this.props.preview ? previewCreateComponent : messageCreateComponent,
+      this.props.meta
     )
     return <Text type="Body" style={{whiteSpace: 'pre', ...this.props.style}}>{content}</Text>
   }
