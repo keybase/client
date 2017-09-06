@@ -53,7 +53,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
-  onViewTeam: () => dispatch(navigateAppend(['team'])),
+  onViewTeam: (teamname: Teamname) => dispatch(navigateAppend([{props: {teamname}, selected: 'team'}])),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {

@@ -19,7 +19,7 @@ type RowProps = {
   onManageChat: () => void,
   onViewTeam: () => void,
 }
-// onClick={onViewTeam}
+
 const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
   <Box style={rowStyle}>
     <Box
