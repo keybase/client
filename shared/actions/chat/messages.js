@@ -120,19 +120,17 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     )
   )
 
-  if (lastMessageID) {
-    yield call(ChatTypes.localPostTextNonblockRpcPromise, {
-      param: {
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-        outboxID,
-        body: action.payload.text.stringValue(),
-        identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-        clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-      },
-    })
-  }
+  yield call(ChatTypes.localPostTextNonblockRpcPromise, {
+    param: {
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      tlfName: inboxConvo.name,
+      tlfPublic: false,
+      outboxID,
+      body: action.payload.text.stringValue(),
+      identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+    },
+  })
 }
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
