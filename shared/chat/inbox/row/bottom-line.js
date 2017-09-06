@@ -42,7 +42,7 @@ class BottomLine extends PureComponent<BottomLineProps> {
             style={{
               color: globalColors.white,
               fontSize: 11,
-              lineHeight: 14,
+              lineHeight: lineHeight(14),
             }}
           >
             REKEY NEEDED

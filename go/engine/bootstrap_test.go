@@ -129,4 +129,8 @@ func (s OfflineConnectivityMonitor) IsConnected(ctx context.Context) libkb.Conne
 	return libkb.ConnectivityMonitorNo
 }
 
+func (s OfflineConnectivityMonitor) CheckReachability(ctx context.Context) error {
+	return nil
+}
+
 var _ libkb.ConnectivityMonitor = OfflineConnectivityMonitor{}

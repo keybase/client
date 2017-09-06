@@ -49,7 +49,7 @@ func (c *CmdChatListMembers) Run() error {
 		MembersType:      chat1.ConversationMembersType_TEAM,
 		TopicName:        c.topicName,
 		TopicType:        c.topicType,
-		Visibility:       chat1.TLFVisibility_PRIVATE,
+		Visibility:       keybase1.TLFVisibility_PRIVATE,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	})
 	if err != nil {

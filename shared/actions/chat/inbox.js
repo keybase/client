@@ -5,7 +5,11 @@ import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import {RPCTimeoutError} from '../../util/errors'
 import {List, Map} from 'immutable'
-import {CommonDeviceType, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {
+  CommonDeviceType,
+  CommonTLFVisibility,
+  TlfKeysTLFIdentifyBehavior,
+} from '../../constants/types/flow-types'
 import {call, put, select, cancelled, take, spawn} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
@@ -28,7 +32,7 @@ const _getInboxQuery = {
   status: Object.keys(ChatTypes.CommonConversationStatus)
     .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
     .map(k => ChatTypes.CommonConversationStatus[k]),
-  tlfVisibility: ChatTypes.CommonTLFVisibility.private,
+  tlfVisibility: CommonTLFVisibility.private,
   topicType: ChatTypes.CommonTopicType.chat,
   unreadOnly: false,
 }
@@ -407,7 +411,7 @@ const parseNotifications = (
 function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.InboxState {
   if (
     !c ||
-    c.visibility !== ChatTypes.CommonTLFVisibility.private || // private chats only
+    c.visibility !== CommonTLFVisibility.private || // private chats only
     c.name.includes('#') // We don't support mixed reader/writers
   ) {
     return null

@@ -4,11 +4,15 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
+
+	"golang.org/x/net/context"
 
 	client "github.com/keybase/client/go/client"
 	libkb "github.com/keybase/client/go/libkb"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	teams "github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,11 +32,33 @@ func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
 	ctx.log.Debug(div+" "+fmt+" "+div, arg...)
 }
 
-func readChatsWithError(team smuTeam, u *smuUser) ([]chat1.MessageUnboxed, error) {
+func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnboxed, err error) {
 	tctx := u.primaryDevice().popClone()
-	runner := client.NewCmdChatReadRunner(tctx.G)
-	runner.SetTeamChatForTest(team.name)
-	_, messages, err := runner.Fetch()
+
+	wait := 100 * time.Millisecond
+	var totalWait time.Duration
+	for i := 0; i < 10; i++ {
+		runner := client.NewCmdChatReadRunner(tctx.G)
+		runner.SetTeamChatForTest(team.name)
+		_, messages, err = runner.Fetch()
+
+		if err == nil {
+			if i != 0 {
+				u.ctx.t.Logf("readChatsWithError success after retrying %d times, polling for %s", i, totalWait)
+			}
+			return messages, nil
+		}
+
+		if !strings.Contains(err.Error(), "KBFS client not found") {
+			// Only retry on KBFS errors
+			return messages, err
+		}
+
+		time.Sleep(wait)
+		totalWait += wait
+	}
+
+	u.ctx.t.Logf("Failed to readChatsWithError after polling for %s", totalWait)
 	return messages, err
 }
 
@@ -349,4 +375,172 @@ func TestImplicitTeamReset(t *testing.T) {
 	iteam3 := ann.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
 	require.Equal(t, iteam.ID, iteam3.ID, "lookup after reset should return same team")
 	divDebug(ctx, "team looked up before reset")
+}
+
+func TestImplicitTeamUserReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	// Sign up two users, bob and alice.
+	alice := ctx.installKeybaseForUser("alice", 10)
+	alice.signup()
+	divDebug(ctx, "Signed up alice (%s)", alice.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	displayName := strings.Join([]string{alice.username, bob.username}, ",")
+	team := alice.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+
+	divDebug(ctx, "Created implicit team %s\n", team.ID)
+
+	// Reset bob and reprovision.
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	// Setup team loader on alice
+	G := alice.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+
+	tryLoad := func(teamID keybase1.TeamID) (res *teams.Team) {
+		res, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
+			ID:          teamID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		return res
+	}
+
+	resTeam := tryLoad(team.ID)
+	teamName := resTeam.Name().String()
+
+	// Bob's role should be NONE since he's still reset.
+	role, err := teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+
+	// Alice re-adds bob.
+	alice.reAddUserAfterReset(team, bob)
+	divDebug(ctx, "Re-Added bob as an owner")
+
+	// Check if sigchain still plays back correctly
+	tryLoad(team.ID)
+
+	// Check if bob is back as OWNER.
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_OWNER)
+
+	// Reset and re-provision bob again.
+	bob.reset()
+	divDebug(ctx, "Reset bob again (%s) (poor bob)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	// Check if sigchain plays correctly, check if role is NONE.
+	tryLoad(team.ID)
+
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+
+	// Alice re-adds bob, again.
+	alice.reAddUserAfterReset(team, bob)
+	divDebug(ctx, "Re-Added bob as an owner again")
+
+	// Check if sigchain plays correctly, at this point there are two
+	// sigs similar to:
+	//   "change_membership: { owner: ['xxxx%6'], none: ['xxxx%3'] }"
+	// with uids and eldest from before and after reset.
+	tryLoad(team.ID)
+
+	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_OWNER)
+}
+
+// Remove a member who was in a team and reset.
+func TestTeamRemoveAfterReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+
+	cli := ann.getTeamsClient()
+	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+	})
+	require.NoError(t, err)
+
+	G := ann.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_NONE)
+}
+
+// Add a member after reset in a normal (non-implicit) team
+func TestTeamReAddAfterReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	team := ann.createTeam([]*smuUser{bob})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	bob.loginAfterReset(10)
+	divDebug(ctx, "Bob logged in after reset")
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+
+	cli := ann.getTeamsClient()
+	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+		Name:     team.name,
+		Username: bob.username,
+		// Note: any role would do! Does not have to be the same as before
+		// reset. This does not apply to imp-teams though, it requires the
+		// same role there.
+		Role: keybase1.TeamRole_READER,
+	})
+	require.NoError(t, err)
+
+	G := ann.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_READER)
+
+	readChats(team, bob, 1)
 }

@@ -12,7 +12,8 @@
       "name": "BlockType",
       "symbols": [
         "DATA_0",
-        "MD_1"
+        "MD_1",
+        "GIT_2"
       ]
     },
     {

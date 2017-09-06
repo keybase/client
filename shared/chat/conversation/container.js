@@ -51,7 +51,7 @@ type DispatchProps = {|
 |}
 
 const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
-  const selectedConversationIDKey = routePath.last()
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
   const routeState = Constants.getSelectedRouteState(state)
 
   let finalizeInfo = null
@@ -66,7 +66,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   const defaultChatText =
     (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
 
-  if (selectedConversationIDKey !== Constants.nothingSelected) {
+  if (selectedConversationIDKey !== Constants.nothingSelected && !!selectedConversationIDKey) {
     rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
     finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
     supersedes = Constants.convSupersedesInfo(selectedConversationIDKey, state.chat)
@@ -154,7 +154,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch((props: Props) => !props.selectedConversationIDKey, renderNothing),
+  branch((props: Props) => !props.selectedConversationIDKey && !props.inSearch, renderNothing),
   branch(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)

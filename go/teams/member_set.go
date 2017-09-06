@@ -77,17 +77,24 @@ func (m *memberSet) loadMembers(ctx context.Context, g *libkb.GlobalContext, req
 }
 
 func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group []keybase1.UserVersion, storeRecipient, force bool) ([]member, error) {
-	members := make([]member, len(group))
-	var err error
-	for i, uv := range group {
-		members[i], err = m.loadMember(ctx, g, uv, storeRecipient, force)
+	var members []member
+	for _, uv := range group {
+		mem, err := m.loadMember(ctx, g, uv, storeRecipient, force)
 		if _, reset := err.(libkb.AccountResetError); reset {
-			g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
+			if !storeRecipient {
+				// If caller doesn't care about keys, it probably expects
+				// reset users to be passed through as well. This is used
+				// in readding reset users in impteams.
+				members = append(members, member{version: uv})
+			} else {
+				g.Log.CDebugf(ctx, "Skipping reset account %s in team load", uv.String())
+			}
 			continue
 		}
 		if err != nil {
 			return nil, err
 		}
+		members = append(members, mem)
 	}
 	return members, nil
 }

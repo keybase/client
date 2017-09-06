@@ -2,7 +2,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import {Map} from 'immutable'
-import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {unboxConversations} from './inbox'
 import {pendingToRealConversation, replaceConversation, selectConversation} from './creators'
@@ -89,7 +89,7 @@ function* startNewConversation(
     param: {
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       tlfName,
-      tlfVisibility: ChatTypes.CommonTLFVisibility.private,
+      tlfVisibility: CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
     },
   })

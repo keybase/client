@@ -253,15 +253,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "TLFVisibility",
-      "symbols": [
-        "ANY_0",
-        "PUBLIC_1",
-        "PRIVATE_2"
-      ]
-    },
-    {
       "type": "record",
       "name": "GetInboxQuery",
       "fields": [
@@ -289,7 +280,7 @@
         {
           "type": [
             null,
-            "TLFVisibility"
+            "keybase1.TLFVisibility"
           ],
           "name": "tlfVisibility"
         },
@@ -417,7 +408,7 @@
           "name": "conversationID"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {

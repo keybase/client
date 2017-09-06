@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -337,7 +338,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
 			ok = false
 		}
-		if query.TlfVisibility != nil && *query.TlfVisibility != chat1.TLFVisibility_ANY &&
+		if query.TlfVisibility != nil && *query.TlfVisibility != keybase1.TLFVisibility_ANY &&
 			*query.TlfVisibility != conv.Metadata.Visibility {
 			ok = false
 		}
@@ -700,6 +701,7 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Check for a delete, if so just auto return a version mismatch to resync. The reason
 	// is it is tricky to update max messages in this case.
 	if msg.GetMessageType() == chat1.MessageType_DELETE {
+		i.Debug(ctx, "NewMessage: returning fake version mismatch error because of delete")
 		return NewVersionMismatchError(ibox.InboxVersion, vers)
 	}
 
@@ -880,6 +882,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 			conv.Notifications.Settings[apptype][kind] = enabled
 		}
 	}
+	conv.Notifications.ChannelWide = settings.ChannelWide
 
 	// Write out to disk
 	ibox.InboxVersion = vers

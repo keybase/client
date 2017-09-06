@@ -2,11 +2,37 @@
 import CreateTeamHeader from '.'
 import {connect} from 'react-redux'
 import {navigateAppend} from '../../../actions/route-tree'
+import * as Constants from '../../../constants/chat'
+import type {TypedState} from '../../../constants/reducer'
+
+import type {StateProps, DispatchProps} from './container'
+
+const mapStateToProps = (state: TypedState) => {
+  const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  if (!selectedConversationIDKey) {
+    throw new Error('no selected conversation')
+  }
+
+  return {
+    selectedConversationIDKey,
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onShowNewTeamDialog: () => {
-    dispatch(navigateAppend(['showNewTeamDialog']))
+  _onShowNewTeamDialog: (conversationIDKey: Constants.ConversationIDKey) => {
+    dispatch(
+      navigateAppend([
+        {
+          props: {conversationIDKey},
+          selected: 'showNewTeamDialog',
+        },
+      ])
+    )
   },
 })
 
-export default connect(null, mapDispatchToProps)(CreateTeamHeader)
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
+  onShowNewTeamDialog: () => dispatchProps._onShowNewTeamDialog(stateProps.selectedConversationIDKey),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(CreateTeamHeader)
