@@ -38,19 +38,17 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-    if (lastMessageID) {
-      yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
-        param: {
-          clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-          conversationID: Constants.keyToConversationID(conversationIDKey),
-          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-          outboxID,
-          supersedes: messageID,
-          tlfName: inboxConvo.name,
-          tlfPublic: false,
-        },
-      })
-    }
+    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
+      param: {
+        clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+        conversationID: Constants.keyToConversationID(conversationIDKey),
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        outboxID,
+        supersedes: messageID,
+        tlfName: inboxConvo.name,
+        tlfPublic: false,
+      },
+    })
   } else {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
@@ -160,20 +158,18 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   yield put(Creators.showEditor(null))
 
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-  if (lastMessageID) {
-    yield call(ChatTypes.localPostEditNonblockRpcPromise, {
-      param: {
-        body: action.payload.text.stringValue(),
-        clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        outboxID,
-        supersedes: messageID,
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-      },
-    })
-  }
+  yield call(ChatTypes.localPostEditNonblockRpcPromise, {
+    param: {
+      body: action.payload.text.stringValue(),
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID,
+      supersedes: messageID,
+      tlfName: inboxConvo.name,
+      tlfPublic: false,
+    },
+  })
 }
 
 function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
