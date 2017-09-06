@@ -1,10 +1,9 @@
 // @flow
 import * as I from 'immutable'
-import {createNewTeam} from '../actions/teams/creators'
 import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
-import {getTeams} from '../actions/teams/creators'
+import {createNewTeam, getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle} from 'recompose'
 
