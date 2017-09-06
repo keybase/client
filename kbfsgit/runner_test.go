@@ -42,7 +42,7 @@ func TestRunnerCapabilities(t *testing.T) {
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
-	require.Equal(t, "fetch\npush\n\n", output.String())
+	require.Equal(t, "fetch\npush\noption\n\n", output.String())
 }
 
 func initConfigForRunner(t *testing.T) (

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -30,6 +31,10 @@ const (
 	gitCmdList         = "list"
 	gitCmdFetch        = "fetch"
 	gitCmdPush         = "push"
+	gitCmdOption       = "option"
+
+	gitOptionVerbosity = "verbosity"
+	gitOptionProgress  = "progress"
 
 	// Debug tag ID for an individual git command passed to the process.
 	ctxCommandOpID = "GITCMDID"
@@ -97,6 +102,9 @@ type runner struct {
 	output io.Writer
 	errput io.Writer
 
+	verbosity int64
+	progress  bool
+
 	logSync     sync.Once
 	logSyncDone sync.Once
 }
@@ -144,16 +152,19 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	uniqID := fmt.Sprintf("%s-%d", session.VerifyingKey.String(), os.Getpid())
 
 	return &runner{
-		config: config,
-		log:    config.MakeLogger(""),
-		h:      h,
-		remote: remote,
-		repo:   parts[2],
-		gitDir: gitDir,
-		uniqID: uniqID,
-		input:  input,
-		output: output,
-		errput: errput}, nil
+		config:    config,
+		log:       config.MakeLogger(""),
+		h:         h,
+		remote:    remote,
+		repo:      parts[2],
+		gitDir:    gitDir,
+		uniqID:    uniqID,
+		input:     input,
+		output:    output,
+		errput:    errput,
+		verbosity: 1,
+		progress:  true,
+	}, nil
 }
 
 // handleCapabilities: from https://git-scm.com/docs/git-remote-helpers
@@ -166,6 +177,7 @@ func (r *runner) handleCapabilities() error {
 	caps := []string{
 		gitCmdFetch,
 		gitCmdPush,
+		gitCmdOption,
 	}
 	for _, c := range caps {
 		_, err := r.output.Write([]byte(c + "\n"))
@@ -177,11 +189,23 @@ func (r *runner) handleCapabilities() error {
 	return err
 }
 
-func (r *runner) printDoneOrErr(err error) {
+func (r *runner) getElapsedStr(startTime time.Time) string {
+	if r.verbosity < 2 {
+		return ""
+	}
+	elapsed := r.config.Clock().Now().Sub(startTime)
+	return fmt.Sprintf(" [%s]", elapsed)
+}
+
+func (r *runner) printDoneOrErr(err error, startTime time.Time) {
+	if r.verbosity < 1 {
+		return
+	}
+	elapsedStr := r.getElapsedStr(startTime)
 	if err != nil {
-		r.errput.Write([]byte(err.Error() + "\n"))
+		r.errput.Write([]byte(err.Error() + elapsedStr + "\n"))
 	} else {
-		r.errput.Write([]byte("done.\n"))
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
 	}
 }
 
@@ -190,10 +214,16 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 	// This function might be called multiple times per function, but
 	// the subsequent calls will use the local cache.  So only print
 	// these messages once.
-	r.logSync.Do(func() { r.errput.Write([]byte("Syncing with Keybase... ")) })
-	defer func() {
-		r.logSyncDone.Do(func() { r.printDoneOrErr(err) })
-	}()
+	if r.verbosity >= 1 {
+		var startTime time.Time
+		r.logSync.Do(func() {
+			startTime = r.config.Clock().Now()
+			r.errput.Write([]byte("Syncing with Keybase... "))
+		})
+		defer func() {
+			r.logSyncDone.Do(func() { r.printDoneOrErr(err, startTime) })
+		}()
+	}
 
 	fs, _, err := libgit.GetOrCreateRepoAndID(
 		ctx, r.config, r.h, r.repo, r.uniqID)
@@ -242,13 +272,19 @@ func (r *runner) printJournalStatus(
 	if firstStatus.UnflushedBytes == 0 {
 		return
 	}
-	r.errput.Write([]byte("Syncing data to Keybase: "))
+	if r.verbosity >= 1 {
+		r.errput.Write([]byte("Syncing data to Keybase: "))
+	}
+	startTime := r.config.Clock().Now()
+
 	// TODO: should we "humanize" the units of these bytes if they are
 	// more than a KB, MB, etc?
 	bytesFmt := "%d/%d bytes... "
 	str := fmt.Sprintf(bytesFmt, 0, firstStatus.UnflushedBytes)
 	lastByteCount := len(str)
-	r.errput.Write([]byte(str))
+	if r.progress {
+		r.errput.Write([]byte(str))
+	}
 
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
@@ -263,15 +299,20 @@ func (r *runner) printJournalStatus(
 			return
 		}
 
-		eraseStr := strings.Repeat("\b", lastByteCount)
-		str := fmt.Sprintf(
-			bytesFmt, firstStatus.UnflushedBytes-status.UnflushedBytes,
-			firstStatus.UnflushedBytes)
-		lastByteCount = len(str)
-		r.errput.Write([]byte(eraseStr + str))
+		if r.verbosity >= 1 && r.progress {
+			eraseStr := strings.Repeat("\b", lastByteCount)
+			str := fmt.Sprintf(
+				bytesFmt, firstStatus.UnflushedBytes-status.UnflushedBytes,
+				firstStatus.UnflushedBytes)
+			lastByteCount = len(str)
+			r.errput.Write([]byte(eraseStr + str))
+		}
 
 		if status.UnflushedBytes == 0 {
-			r.errput.Write([]byte("done.\n"))
+			elapsedStr := r.getElapsedStr(startTime)
+			if r.verbosity >= 1 {
+				r.errput.Write([]byte("done." + elapsedStr + "\n"))
+			}
 			return
 		}
 	}
@@ -405,15 +446,18 @@ var gogitStagesToStatus = map[plumbing.StatusStage]string{
 func (r *runner) processGogitStatus(
 	ctx context.Context, statusChan <-chan plumbing.StatusUpdate) {
 	currStage := plumbing.StatusUnknown
+	var startTime time.Time
 	lastByteCount := 0
 	for update := range statusChan {
 		if update.Stage != currStage {
 			if currStage != plumbing.StatusUnknown {
-				r.errput.Write([]byte("done.\n"))
+				elapsedStr := r.getElapsedStr(startTime)
+				r.errput.Write([]byte("done." + elapsedStr + "\n"))
 			}
 			r.errput.Write([]byte(gogitStagesToStatus[update.Stage]))
 			lastByteCount = 0
 			currStage = update.Stage
+			startTime = r.config.Clock().Now()
 		}
 		eraseStr := strings.Repeat("\b", lastByteCount)
 		newStr := ""
@@ -430,7 +474,9 @@ func (r *runner) processGogitStatus(
 		}
 
 		lastByteCount = len(newStr)
-		r.errput.Write([]byte(eraseStr + newStr))
+		if r.progress {
+			r.errput.Write([]byte(eraseStr + newStr))
+		}
 
 		currStage = update.Stage
 	}
@@ -486,16 +532,20 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 			fmt.Sprintf(":refs/remotes/%s/%s", r.remote, localTempRef)))
 	}
 
-	statusChan := make(chan plumbing.StatusUpdate)
-	defer close(statusChan)
-	go r.processGogitStatus(ctx, statusChan)
+	var statusChan plumbing.StatusChan
+	if r.verbosity >= 1 {
+		s := make(chan plumbing.StatusUpdate)
+		defer close(s)
+		statusChan = plumbing.StatusChan(s)
+		go r.processGogitStatus(ctx, s)
+	}
 
 	// Now "push" into the local repo to get it to store objects
 	// from the KBFS bare repo.
 	err = remote.PushContext(ctx, &gogit.PushOptions{
 		RemoteName: localRepoRemoteName,
 		RefSpecs:   refSpecs,
-		StatusChan: plumbing.StatusChan(statusChan),
+		StatusChan: statusChan,
 	})
 	if err != nil && err != gogit.NoErrAlreadyUpToDate {
 		return err
@@ -562,9 +612,13 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		URLs: []string{r.gitDir},
 	})
 
-	statusChan := make(chan plumbing.StatusUpdate)
-	defer close(statusChan)
-	go r.processGogitStatus(ctx, statusChan)
+	var statusChan plumbing.StatusChan
+	if r.verbosity >= 1 {
+		s := make(chan plumbing.StatusUpdate)
+		defer close(s)
+		statusChan = plumbing.StatusChan(s)
+		go r.processGogitStatus(ctx, s)
+	}
 
 	results := make(map[string]error, len(args))
 	// We don't batch the pushes together, because the protocol
@@ -634,6 +688,53 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	return err
 }
 
+// handleOption: https://git-scm.com/docs/git-remote-helpers#git-remote-helpers-emoptionemltnamegtltvaluegt
+//
+// option <name> <value>
+// Sets the transport helper option <name> to <value>. Outputs a
+// single line containing one of ok (option successfully set),
+// unsupported (option not recognized) or error <msg> (option <name>
+// is supported but <value> is not valid for it). Options should be
+// set before other commands, and may influence the behavior of those
+// commands.
+func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
+	defer func() {
+		if err != nil {
+			r.output.Write([]byte(fmt.Sprintf("error %s\n", err.Error())))
+		}
+	}()
+
+	if len(args) != 2 {
+		return errors.Errorf("Bad option request: %v", args)
+	}
+
+	option := args[0]
+	result := ""
+	switch option {
+	case gitOptionVerbosity:
+		v, err := strconv.ParseInt(args[1], 10, 64)
+		if err != nil {
+			return err
+		}
+		r.verbosity = v
+		r.log.CDebugf(ctx, "Setting verbosity to %d", v)
+		result = "ok"
+	case gitOptionProgress:
+		b, err := strconv.ParseBool(args[1])
+		if err != nil {
+			return err
+		}
+		r.progress = b
+		r.log.CDebugf(ctx, "Setting progress to %t", b)
+		result = "ok"
+	default:
+		result = "unsupported"
+	}
+
+	_, err = r.output.Write([]byte(result + "\n"))
+	return err
+}
+
 func (r *runner) processCommands(ctx context.Context) (err error) {
 	r.log.CDebugf(ctx, "Ready to process")
 	reader := bufio.NewReader(r.input)
@@ -691,6 +792,8 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 				return errors.New("Cannot push in the middle of a fetch batch")
 			}
 			pushBatch = append(pushBatch, cmdParts[1:])
+		case gitCmdOption:
+			err = r.handleOption(ctx, cmdParts[1:])
 		default:
 			err = errors.Errorf("Unsupported command: %s", cmdParts[0])
 		}

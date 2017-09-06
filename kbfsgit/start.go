@@ -48,6 +48,9 @@ func Start(ctx context.Context, options StartOptions,
 		return libfs.InitError(err.Error())
 	}
 
+	// Ideally we wouldn't print this if the verbosity is 0, but we
+	// don't know that until we start parsing options.  TODO: get rid
+	// of this once we integrate with the kbfs daemon.
 	errput.Write([]byte("Initializing Keybase... "))
 
 	// Assign a unique ID to each remote-helper instance, since
