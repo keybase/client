@@ -171,7 +171,6 @@ func TestTeamReset(t *testing.T) {
 // add bob (a user who has reset his account) to a team
 // that he was never a member of
 func TestTeamResetAdd(t *testing.T) {
-	t.Skip("this is flaky as of 2017-09-05")
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
