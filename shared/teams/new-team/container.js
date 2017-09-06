@@ -4,12 +4,6 @@ import {connect} from 'react-redux'
 import {compose, withState, withHandlers} from 'recompose'
 import {createNewTeam} from '../../actions/teams/creators'
 
-import type {TypedState} from '../../constants/reducer'
-
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  _onCreateNewTeam: routeProps.onCreateNewTeam,
-})
-
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onCreateNewTeam: name => {
     dispatch(createNewTeam(name))
@@ -19,9 +13,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(null, mapDispatchToProps),
   withState('name', 'onNameChange', ''),
   withHandlers({
-    onSubmit: ({name, _onCreateNewTeam, _navigateUp}) => () => _onCreateNewTeam(name),
+    onSubmit: ({name, _onCreateNewTeam}) => () => _onCreateNewTeam(name),
   })
 )(NewTeamDialog)
