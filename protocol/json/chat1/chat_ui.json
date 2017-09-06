@@ -253,6 +253,17 @@
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
         }
       ]
     },

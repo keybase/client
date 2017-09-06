@@ -1514,6 +1514,9 @@ export type MessageUnboxedValid = {
   headerSignature?: ?SignatureInfo,
   verificationKey?: ?bytes,
   senderDeviceRevokedAt?: ?gregor1.Time,
+  atMentionUsernames?: ?Array<string>,
+  atMentions?: ?Array<gregor1.UID>,
+  channelMention: ChannelMention,
 }
 
 export type NameQuery = {
@@ -1878,6 +1881,8 @@ export type UIMessageValid = {
   senderDeviceType: string,
   superseded: boolean,
   senderDeviceRevokedAt?: ?gregor1.Time,
+  atMentions?: ?Array<string>,
+  channelMention: ChannelMention,
 }
 
 export type UIMessages = {

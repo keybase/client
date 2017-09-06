@@ -189,15 +189,17 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 }
 
 type UIMessageValid struct {
-	MessageID             MessageID     `codec:"messageID" json:"messageID"`
-	Ctime                 gregor1.Time  `codec:"ctime" json:"ctime"`
-	OutboxID              *string       `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	MessageBody           MessageBody   `codec:"messageBody" json:"messageBody"`
-	SenderUsername        string        `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName      string        `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType      string        `codec:"senderDeviceType" json:"senderDeviceType"`
-	Superseded            bool          `codec:"superseded" json:"superseded"`
-	SenderDeviceRevokedAt *gregor1.Time `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	MessageID             MessageID      `codec:"messageID" json:"messageID"`
+	Ctime                 gregor1.Time   `codec:"ctime" json:"ctime"`
+	OutboxID              *string        `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	MessageBody           MessageBody    `codec:"messageBody" json:"messageBody"`
+	SenderUsername        string         `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName      string         `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType      string         `codec:"senderDeviceType" json:"senderDeviceType"`
+	Superseded            bool           `codec:"superseded" json:"superseded"`
+	SenderDeviceRevokedAt *gregor1.Time  `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	AtMentions            []string       `codec:"atMentions" json:"atMentions"`
+	ChannelMention        ChannelMention `codec:"channelMention" json:"channelMention"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -223,6 +225,15 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SenderDeviceRevokedAt),
+		AtMentions: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentions),
+		ChannelMention: o.ChannelMention.DeepCopy(),
 	}
 }
 
