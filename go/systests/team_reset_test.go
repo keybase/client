@@ -485,6 +485,8 @@ func TestTeamRemoveAfterReset(t *testing.T) {
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+
 	cli := ann.getTeamsClient()
 	err := cli.TeamRemoveMember(context.TODO(), keybase1.TeamRemoveMemberArg{
 		Name:     team.name,
@@ -521,6 +523,8 @@ func TestTeamReAddAfterReset(t *testing.T) {
 
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
 
 	cli := ann.getTeamsClient()
 	_, err := cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
