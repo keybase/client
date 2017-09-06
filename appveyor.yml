@@ -65,6 +65,7 @@ build_script:
   - echo github.com/keybase/kbfs/kbfssync >> testlist.txt
   - echo github.com/keybase/kbfs/tlf >> testlist.txt
   - echo github.com/keybase/kbfs/libfs >> testlist.txt
+  - echo github.com/keybase/kbfs/libgit >> testlist.txt
   - echo github.com/keybase/kbfs/libkbfs >> testlist.txt
   - echo github.com/keybase/kbfs/libdokan >> testlist.txt
   - echo github.com/keybase/kbfs/kbfsgit >> testlist.txt
