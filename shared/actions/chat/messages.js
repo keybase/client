@@ -38,19 +38,17 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-    if (lastMessageID) {
-      yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
-        param: {
-          clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-          conversationID: Constants.keyToConversationID(conversationIDKey),
-          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-          outboxID,
-          supersedes: messageID,
-          tlfName: inboxConvo.name,
-          tlfPublic: false,
-        },
-      })
-    }
+    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
+      param: {
+        clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+        conversationID: Constants.keyToConversationID(conversationIDKey),
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        outboxID,
+        supersedes: messageID,
+        tlfName: inboxConvo.name,
+        tlfPublic: false,
+      },
+    })
   } else {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
@@ -92,12 +90,12 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
   const message: Constants.Message = {
     author,
-    conversationIDKey: action.payload.conversationIDKey,
+    conversationIDKey: conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     editedCount: 0,
     failureDescription: '',
-    key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxIDKey),
+    key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
     message: new HiddenString(action.payload.text.stringValue()),
     messageState: 'pending',
     outboxID: outboxIDKey,
@@ -120,19 +118,17 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     )
   )
 
-  if (lastMessageID) {
-    yield call(ChatTypes.localPostTextNonblockRpcPromise, {
-      param: {
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-        outboxID,
-        body: action.payload.text.stringValue(),
-        identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-        clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-      },
-    })
-  }
+  yield call(ChatTypes.localPostTextNonblockRpcPromise, {
+    param: {
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      tlfName: inboxConvo.name,
+      tlfPublic: false,
+      outboxID,
+      body: action.payload.text.stringValue(),
+      identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+    },
+  })
 }
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
@@ -162,20 +158,18 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   yield put(Creators.showEditor(null))
 
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-  if (lastMessageID) {
-    yield call(ChatTypes.localPostEditNonblockRpcPromise, {
-      param: {
-        body: action.payload.text.stringValue(),
-        clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        outboxID,
-        supersedes: messageID,
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-      },
-    })
-  }
+  yield call(ChatTypes.localPostEditNonblockRpcPromise, {
+    param: {
+      body: action.payload.text.stringValue(),
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID,
+      supersedes: messageID,
+      tlfName: inboxConvo.name,
+      tlfPublic: false,
+    },
+  })
 }
 
 function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
