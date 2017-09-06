@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import Render from './render'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
-import {createNewTeam, getTeams} from '../actions/teams/creators'
+import {getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle} from 'recompose'
 
@@ -33,12 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     dispatch(
       navigateAppend([
         {
-          props: {
-            onCreateNewTeam: (name, navigateUp) => {
-              dispatch(createNewTeam(name))
-              dispatch(navigateUp())
-            },
-          },
+          props: {},
           selected: 'showNewTeamDialog',
         },
       ])
