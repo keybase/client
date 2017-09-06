@@ -433,7 +433,9 @@ func makeTLFJournal(
 		j.log.CDebugf(
 			ctx, "Starting journal for %s in single op mode", tlfID.String())
 		// Now that we've set `j.singleOpMode`, `bws` can be the
-		// normal background work mode again.
+		// normal background work mode again, just to keep the
+		// transition logic in `doBackgroundWorkLoop` simple (it
+		// doesn't depend on single-opness).
 		bws = TLFJournalBackgroundWorkEnabled
 	case TLFJournalBackgroundWorkPaused:
 		j.pauseType |= journalPauseCommand
