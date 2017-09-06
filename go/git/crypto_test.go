@@ -156,3 +156,14 @@ func TestCryptoData(t *testing.T) {
 	require.IsType(tc.T, libkb.DecryptOpenError{}, err)
 	require.Nil(tc.T, unboxed)
 }
+
+func TestCryptoVersion(t *testing.T) {
+	tc, c, teamSpec, boxed := setupBox(t)
+	defer tc.Cleanup()
+
+	// bump version
+	boxed.V++
+	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
+	require.Error(tc.T, err)
+	require.Nil(tc.T, unboxed)
+}
