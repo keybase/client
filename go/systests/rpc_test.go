@@ -550,7 +550,7 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 	})
 	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
-	require.Equal(t, res.DisplayName, iTeamNameCreate1)
+	require.Equal(t, res.DisplayName, iTeamNameCreate1+" "+libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]))
 	require.Equal(t, res.TeamID, iTeamID2)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "track breaks")

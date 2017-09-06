@@ -189,8 +189,8 @@ func (e TeamDoesNotExistError) Error() string {
 	return fmt.Sprintf("Team %q does not exist", e.descriptor)
 }
 
-func NewTeamDoesNotExistError(descriptor string) error {
-	return TeamDoesNotExistError{descriptor}
+func NewTeamDoesNotExistError(format string, args ...interface{}) error {
+	return TeamDoesNotExistError{descriptor: fmt.Sprintf(format, args...)}
 }
 
 type ImplicitTeamOperationError struct {
