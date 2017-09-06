@@ -40,6 +40,40 @@
       "typedef": "string"
     },
     {
+      "type": "enum",
+      "name": "GitLocalMetadataVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitLocalMetadataV1",
+      "fields": [
+        {
+          "type": "GitRepoName",
+          "name": "repoName"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "GitLocalMetadataVersioned",
+      "switch": {
+        "type": "GitLocalMetadataVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "GitLocalMetadataV1"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "GitLocalMetadata",
       "fields": [

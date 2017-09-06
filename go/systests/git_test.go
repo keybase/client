@@ -27,7 +27,7 @@ func TestGitTeamer(t *testing.T) {
 
 	t.Logf("team that doesn't exist")
 	res, err := teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "/keybase/team/notateamxxx",
+		Name:       "notateamxxx",
 		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	})
@@ -37,7 +37,7 @@ func TestGitTeamer(t *testing.T) {
 	t.Logf("team that exists")
 	teamID, teamName := tt.users[0].createTeam2()
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "/keybase/team/" + teamName.String(),
+		Name:       teamName.String(),
 		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	})
@@ -48,7 +48,7 @@ func TestGitTeamer(t *testing.T) {
 	t.Logf("public team")
 	teamID, teamName = tt.users[0].createTeam2()
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "/keybase/team/" + teamName.String(),
+		Name:       teamName.String(),
 		Private:    false,
 		FolderType: keybase1.FolderType_TEAM,
 	})
@@ -60,7 +60,7 @@ func TestGitTeamer(t *testing.T) {
 	gil := tt.addUser("gil")
 	frag := fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "/keybase/private/" + frag,
+		Name:       frag,
 		Private:    true,
 		FolderType: keybase1.FolderType_PRIVATE,
 	})
@@ -76,7 +76,7 @@ func TestGitTeamer(t *testing.T) {
 	frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
 	teamID, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, false /*isPublic*/)
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "/keybase/private/" + frag,
+		Name:       frag,
 		Private:    true,
 		FolderType: keybase1.FolderType_PRIVATE,
 	})
@@ -90,7 +90,7 @@ func TestGitTeamer(t *testing.T) {
 	frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
 	teamID, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, true /*isPublic*/)
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "/keybase/private/" + frag,
+		Name:       frag,
 		Private:    false,
 		FolderType: keybase1.FolderType_PUBLIC,
 	})
@@ -116,20 +116,11 @@ func TestGitTeamer(t *testing.T) {
 	require.Len(t, conflicts, 1)
 	t.Logf("check")
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "/keybase/private/" + iTeamNameCreate1 + " " + libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
+		Name:       iTeamNameCreate1 + " " + libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
 		Private:    true,
 		FolderType: keybase1.FolderType_PRIVATE,
 	})
 	require.NoError(t, err)
 	require.Equal(t, res.TeamID, iTeamID2, "teamer should return the old conflicted team")
 	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
-
-	t.Logf("invalid tlf name")
-	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       "notapathxxx",
-		Private:    true,
-		FolderType: keybase1.FolderType_TEAM,
-	})
-	require.Error(t, err)
-	require.Regexp(t, `(?i)invalid.*name`, err.Error())
 }

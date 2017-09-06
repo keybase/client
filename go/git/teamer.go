@@ -48,12 +48,11 @@ func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.Folder) (re
 	if !folder.Private {
 		return res, fmt.Errorf("public team git repos not supported")
 	}
-	teamName, err := libkb.ParseTeamPrivateKBFSPath(folder.Name)
 	if err != nil {
 		return res, err
 	}
 	team, err := teams.Load(ctx, t.G(), keybase1.LoadTeamArg{
-		Name:        teamName.String(),
+		Name:        folder.Name,
 		ForceRepoll: false, // if subteams get renamed in a racy way, just let this fail
 	})
 	if err != nil {
@@ -78,7 +77,7 @@ func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keyb
 		visibility = keybase1.TLFVisibility_PUBLIC
 	}
 
-	impName, err := libkb.ParseImplicitTeamTLFName(t.G().MakeAssertionContext(), folder.Name)
+	impName, err := libkb.ParseImplicitTeamTLFName(t.G().MakeAssertionContext(), "/keybase/"+folder.ToString())
 	if err != nil {
 		return res, err
 	}
