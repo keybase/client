@@ -935,7 +935,8 @@ type DiskBlockCache interface {
 	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
-	// Put puts a block to the disk cache.
+	// Put puts a block to the disk cache. Returns after it has updated the
+	// metadata but before it has finished writing the block.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// Delete deletes some blocks from the disk cache.
