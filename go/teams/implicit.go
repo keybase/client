@@ -11,9 +11,14 @@ import (
 )
 
 type implicitTeamConflict struct {
+	// Note this TeamID is not validated by LookupImplicitTeam. Be aware of server trust.
 	TeamID       keybase1.TeamID `json:"team_id"`
 	Generation   int             `json:"generation"`
 	ConflictDate string          `json:"conflict_date"`
+}
+
+func (i *implicitTeamConflict) parse() (*keybase1.ImplicitTeamConflictInfo, error) {
+	return libkb.ParseImplicitTeamDisplayNameSuffix(fmt.Sprintf("(conflicted %s #%d)", i.ConflictDate, i.Generation))
 }
 
 type implicitTeam struct {
@@ -28,10 +33,19 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
+	teamID keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+
+	teamID, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public)
+	return teamID, impTeamName, err
+}
+
+func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
+	res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
+
 	impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public /*isPublic*/)
 	if err != nil {
-		return res, impTeamName, err
+		return res, impTeamName, conflicts, err
 	}
 	impTeamMembers := make(map[string]bool)
 	for _, u := range impTeamName.Writers.KeybaseUsers {
@@ -49,38 +63,47 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName
 	if err = g.API.GetDecode(arg, &imp); err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok &&
 			keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError {
-			return res, impTeamName, NewTeamDoesNotExistError(displayName)
+			return res, impTeamName, conflicts, NewTeamDoesNotExistError(displayName)
 		}
-		return res, impTeamName, err
+		return res, impTeamName, conflicts, err
 	}
 	if len(imp.Conflicts) > 0 {
 		g.Log.CDebugf(ctx, "LookupImplicitTeam found %v conflicts", len(imp.Conflicts))
+	}
+	for _, conflict := range imp.Conflicts {
+		conflictInfo, err := conflict.parse()
+		if err != nil {
+			// warn, don't fail
+			g.Log.CWarningf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
+		} else {
+			conflicts = append(conflicts, *conflictInfo)
+		}
 	}
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          imp.TeamID,
 		ForceRepoll: true,
 	})
 	if err != nil {
-		return res, impTeamName, err
+		return res, impTeamName, conflicts, err
 	}
 
 	teamDisplayName, err := team.ImplicitTeamDisplayNameString(ctx)
 	if err != nil {
-		return res, impTeamName, err
+		return res, impTeamName, conflicts, err
 	}
 	formatImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamName)
 	if err != nil {
-		return res, impTeamName, err
+		return res, impTeamName, conflicts, err
 	}
 	if teamDisplayName != formatImpName {
-		return res, impTeamName, fmt.Errorf("implicit team name mismatch: %s != %s", teamDisplayName,
+		return res, impTeamName, conflicts, fmt.Errorf("implicit team name mismatch: %s != %s", teamDisplayName,
 			formatImpName)
 	}
 	if team.IsPublic() != public {
-		return res, impTeamName, fmt.Errorf("implicit team public-ness mismatch: %v != %v", team.IsPublic(), public)
+		return res, impTeamName, conflicts, fmt.Errorf("implicit team public-ness mismatch: %v != %v", team.IsPublic(), public)
 	}
 
-	return imp.TeamID, impTeamName, nil
+	return imp.TeamID, impTeamName, conflicts, nil
 }
 
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
@@ -138,9 +161,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 
 	var suffix string
 	if impTeamName.ConflictInfo != nil {
-		suffix = fmt.Sprintf("(conflicted %v #%v)",
-			impTeamName.ConflictInfo.Time.Time().UTC().Format("2006-01-02"),
-			impTeamName.ConflictInfo.Generation)
+		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 
 	if len(writerNames) == 0 {
