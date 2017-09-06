@@ -297,13 +297,16 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			go func() {
 				// Leave prefetchStatus unchanged at this point.
 				err := dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
-				close(didUpdateCh)
 				switch err.(type) {
 				case nil:
 				case NoSuchBlockError:
+					// TODO: Add the block to the DBC.
+					brq.log.CWarningf(ctx, "Block missing for disk block "+
+						"cache metadata update")
 				default:
 					brq.log.CWarningf(ctx, "Error updating metadata: %+v", err)
 				}
+				close(didUpdateCh)
 			}()
 		} else {
 			close(didUpdateCh)

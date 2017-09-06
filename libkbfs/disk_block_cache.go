@@ -633,12 +633,15 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 				"Error writing to TLF cache database: %+v", err)
 		}
 	}
-	// Initially set TriggeredPrefetch and FinishedPrefetch to false; rely on
-	// the later-called UpdateMetadata to fix it.
-	return cache.updateMetadataLocked(ctx, blockKey, DiskBlockCacheMetadata{
-		TlfID:     tlfID,
-		BlockSize: uint32(encodedLen),
-	})
+	md, err := cache.getMetadataLocked(blockID)
+	if err != nil {
+		// Only set the relevant fields if we had trouble getting the metadata.
+		// Initially leave TriggeredPrefetch and FinishedPrefetch as false;
+		// rely on the later-called UpdateMetadata to fix it.
+		md.TlfID = tlfID
+		md.BlockSize = uint32(encodedLen)
+	}
+	return cache.updateMetadataLocked(ctx, blockKey, md)
 }
 
 // GetMetadata implements the DiskBlockCache interface for
