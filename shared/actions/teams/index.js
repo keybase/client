@@ -21,9 +21,9 @@ import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-const _createNewTeam = function*(action: Constants.CreateNewTeam): SagaGenerator<any, any> {
+const _createNewTeam = function(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
-  yield call(teamsTeamCreateRpcPromise, {
+  return call(teamsTeamCreateRpcPromise, {
     param: {name: {parts: [name]}},
   })
 }
@@ -136,7 +136,7 @@ const _toggleChannelMembership = function*(
 }
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
