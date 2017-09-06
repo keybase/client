@@ -50,6 +50,10 @@ func (t *Team) IsPublic() bool {
 	return t.chain().IsPublic()
 }
 
+func (t *Team) IsImplicit() bool {
+	return t.chain().IsImplicit()
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()

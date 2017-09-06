@@ -627,3 +627,5 @@ const (
 	SubteamIDTag       = 0x25
 	InviteIDTag        = 0x27
 )
+
+const CurrentGitMetadataEncryptionVersion = 1

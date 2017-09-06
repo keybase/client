@@ -49,7 +49,7 @@ func (c *Crypto) Box(ctx context.Context, plaintext []byte, teamSpec keybase1.Te
 	sealed := secretbox.Seal(nil, plaintext, &naclNonce, &encKey)
 
 	return &keybase1.EncryptedGitMetadata{
-		V:   1,
+		V:   libkb.CurrentGitMetadataEncryptionVersion,
 		E:   sealed,
 		N:   nonce,
 		Gen: key.KeyGeneration,

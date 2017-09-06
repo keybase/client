@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -33,6 +34,85 @@ type RepoID string
 
 func (o RepoID) DeepCopy() RepoID {
 	return o
+}
+
+type GitLocalMetadataVersion int
+
+const (
+	GitLocalMetadataVersion_V1 GitLocalMetadataVersion = 1
+)
+
+func (o GitLocalMetadataVersion) DeepCopy() GitLocalMetadataVersion { return o }
+
+var GitLocalMetadataVersionMap = map[string]GitLocalMetadataVersion{
+	"V1": 1,
+}
+
+var GitLocalMetadataVersionRevMap = map[GitLocalMetadataVersion]string{
+	1: "V1",
+}
+
+func (e GitLocalMetadataVersion) String() string {
+	if v, ok := GitLocalMetadataVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GitLocalMetadataV1 struct {
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+func (o GitLocalMetadataV1) DeepCopy() GitLocalMetadataV1 {
+	return GitLocalMetadataV1{
+		RepoName: o.RepoName.DeepCopy(),
+	}
+}
+
+type GitLocalMetadataVersioned struct {
+	Version__ GitLocalMetadataVersion `codec:"version" json:"version"`
+	V1__      *GitLocalMetadataV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *GitLocalMetadataVersioned) Version() (ret GitLocalMetadataVersion, err error) {
+	switch o.Version__ {
+	case GitLocalMetadataVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.Version__, nil
+}
+
+func (o GitLocalMetadataVersioned) V1() (res GitLocalMetadataV1) {
+	if o.Version__ != GitLocalMetadataVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return
+	}
+	return *o.V1__
+}
+
+func NewGitLocalMetadataVersionedWithV1(v GitLocalMetadataV1) GitLocalMetadataVersioned {
+	return GitLocalMetadataVersioned{
+		Version__: GitLocalMetadataVersion_V1,
+		V1__:      &v,
+	}
+}
+
+func (o GitLocalMetadataVersioned) DeepCopy() GitLocalMetadataVersioned {
+	return GitLocalMetadataVersioned{
+		Version__: o.Version__.DeepCopy(),
+		V1__: (func(x *GitLocalMetadataV1) *GitLocalMetadataV1 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V1__),
+	}
 }
 
 type GitLocalMetadata struct {

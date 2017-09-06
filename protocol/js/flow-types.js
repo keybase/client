@@ -278,6 +278,10 @@ export const FavoriteFolderType = {
   team: 3,
 }
 
+export const GitGitLocalMetadataVersion = {
+  v1: 1,
+}
+
 export const GregorUIPushReason = {
   none: 0,
   reconnected: 1,
@@ -3270,6 +3274,16 @@ export type GetTLFCryptKeysRes = {
 export type GitLocalMetadata = {
   repoName: GitRepoName,
 }
+
+export type GitLocalMetadataV1 = {
+  repoName: GitRepoName,
+}
+
+export type GitLocalMetadataVersion =
+    1 // V1_1
+
+export type GitLocalMetadataVersioned =
+    { version: 1, v1: ?GitLocalMetadataV1 }
 
 export type GitRepoName = string
 

@@ -16,10 +16,25 @@ protocol git {
   @typedef("string")
   record RepoID {}
 
-  // Right now, the only metadata in our locally-encrypted-then-server-stored
-  // blob is the name of the repo. Everything else (mtime, last editing user)
-  // is inferred by the server based on who's doing the push, and stored in the
-  // clear.
+  enum GitLocalMetadataVersion {
+    V1_1
+  }
+
+  record GitLocalMetadataV1 {
+    GitRepoName repoName;
+  }
+
+  // GitLocalMetadataVersioned is a variant container for all the
+  // versions of GitLocalMetadata.
+  variant GitLocalMetadataVersioned switch (GitLocalMetadataVersion version) {
+    case V1 : GitLocalMetadataV1;
+  }
+
+  // GitLocalMetadata is the struct that local RPCs use to read and write repo
+  // metadata. It's decoupled from GitLocalMetadataVersioned, which is the
+  // format that we serialize and encrypt, in case we ever need to support
+  // multiple versions. Right now, however, its fields are exactly the same as
+  // the only current variant, GitLocalMetadataV1.
   record GitLocalMetadata {
     GitRepoName repoName;
   }
