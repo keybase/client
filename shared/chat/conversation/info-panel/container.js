@@ -75,9 +75,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(
       navigateAppend([
         {
-          props: {
-            conversationIDKey: conversationIDKey,
-          },
+          props: {conversationIDKey},
           selected: 'showNewTeamDialog',
         },
       ])
