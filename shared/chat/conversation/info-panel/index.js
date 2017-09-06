@@ -15,9 +15,8 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
 
+import Notifications from './notifications/container'
 import Participants from './participants'
-
-import type {SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -32,13 +31,13 @@ const scrollViewStyle = {
 }
 const contentContainerStyle = {...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}
 
-type muteRowProps = {
+type MuteRowProps = {
   muted: boolean,
   onMute: (muted: boolean) => void,
   label: string,
 }
 
-const MuteRow = (props: muteRowProps) => (
+const MuteRow = (props: MuteRowProps) => (
   <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
     <Checkbox
       checked={props.muted}
@@ -56,6 +55,27 @@ const MuteRow = (props: muteRowProps) => (
     />
   </Box>
 )
+
+type infoPanelProps = {
+  muted: boolean,
+  onAddParticipant: () => void,
+  onMuteConversation: (muted: boolean) => void,
+  onShowProfile: (username: string) => void,
+  onToggleInfoPanel: () => void,
+  participants: Array<{
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+    isYou: boolean,
+  }>,
+}
+
+type SmallTeamInfoPanelProps = infoPanelProps & {
+  onShowBlockConversationDialog: () => void,
+  onShowNewTeamDialog: () => void,
+  showTeamButton: boolean,
+}
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
@@ -77,15 +97,23 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
         </Text>
       : null}
 
-    {props.showTeamButton ? <Divider style={{marginBottom: 20, marginTop: 20}} /> : null}
+    {props.showTeamButton ? <Divider style={styleDivider} /> : null}
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute notifications" />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Notifications />
+
+    <Divider style={styleDivider} />
 
     <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
   </ScrollView>
 )
+
+type BigTeamInfoPanelProps = infoPanelProps & {
+  channelname: string,
+  onLeaveConversation: () => void,
+  teamname: string,
+}
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
@@ -100,15 +128,17 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       </Text>
     </Box>
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={styleDivider} />
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Notifications />
+
+    <Divider style={styleDivider} />
 
     <Button type="Danger" label="Leave channel" onClick={props.onLeaveConversation} />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={styleDivider} />
 
     <Text style={{paddingLeft: globalMargins.small}} type="BodySmall">
       Members
@@ -126,4 +156,9 @@ const wrap = branch(() => isMobile, HeaderHoc)
 const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
 const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
 
-export {SmallTeamInfoPanel, BigTeamInfoPanel}
+const styleDivider = {
+  marginBottom: 20,
+  marginTop: 20,
+}
+
+export {SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}

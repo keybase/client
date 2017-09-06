@@ -685,7 +685,13 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 	defer mc.G().CVTrace(ctx, VLog0, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
 	// Poll for 10s and ask for a race-free state.
-	q.Add("poll", I{10})
+	w := 10
+	if mc.G().Env.GetRunMode() == DevelRunMode {
+		// CI can be slow. EXTREMELY slow. So bump this way up to 30.
+		w = 30
+	}
+
+	q.Add("poll", I{w})
 
 	// Add the local db sigHints version
 	if sigHints != nil {

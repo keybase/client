@@ -29,6 +29,7 @@ import type {
   TyperInfo,
   ConversationStaleUpdate,
 } from './types/flow-types-chat'
+import {CommonTLFVisibility} from './types/flow-types'
 import type {DeviceType, KBRecord, KBOrderedSet} from './types/more'
 import type {TypedState} from './reducer'
 
@@ -67,6 +68,8 @@ export type OutboxID = RPCOutboxID
 export type OutboxIDKey = string
 
 export type MessageID = string
+
+export type NotifyType = 'atmention' | 'generic' | 'never'
 
 export type TextMessage = {
   type: 'Text',
@@ -263,6 +266,17 @@ export const ConversationBadgeStateRecord = Record({
 
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
 
+export type NotificationsKindState = {
+  generic: boolean,
+  atmention: boolean,
+}
+
+export type NotificationsState = {
+  channelWide: boolean,
+  desktop: NotificationsKindState,
+  mobile: NotificationsKindState,
+}
+
 export const InboxStateRecord = Record({
   conversationIDKey: '',
   info: null,
@@ -270,12 +284,13 @@ export const InboxStateRecord = Record({
   teamname: null,
   channelname: null,
   membersType: 0,
+  notifications: null,
   participants: List(),
   state: 'untrusted',
   status: 'unfiled',
   time: 0,
   name: '',
-  visibility: ChatTypes.CommonTLFVisibility.private,
+  visibility: CommonTLFVisibility.private,
 })
 
 export type InboxState = KBRecord<{
@@ -286,6 +301,7 @@ export type InboxState = KBRecord<{
   channelname: ?string,
   name: ?string,
   membersType: ConversationMembersType,
+  notifications: NotificationsState,
   participants: List<string>,
   state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
@@ -529,6 +545,10 @@ export type SetLoaded = NoErrorTypedAction<
   'chat:setLoaded',
   {conversationIDKey: ConversationIDKey, isLoaded: boolean}
 >
+export type SetNotifications = NoErrorTypedAction<
+  'chat:setNotifications',
+  {conversationIDKey: ConversationIDKey, deviceType: DeviceType, notifyType: NotifyType}
+>
 export type SetUnboxing = TypedAction<
   'chat:setUnboxing',
   {conversationIDKeys: Array<ConversationIDKey>},
@@ -543,6 +563,10 @@ export type StageUserForSearch = NoErrorTypedAction<
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
   {users: Array<string>, forceImmediate: boolean, temporary: boolean}
+>
+export type ToggleChannelWideNotifications = NoErrorTypedAction<
+  'chat:toggleChannelWideNotifications',
+  {conversationIDKey: ConversationIDKey}
 >
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
@@ -593,6 +617,10 @@ export type UpdateSupersedesState = NoErrorTypedAction<
   {supersedesState: SupersedesState}
 >
 export type UpdatedMetadata = NoErrorTypedAction<'chat:updatedMetadata', {updated: {[key: string]: MetaData}}>
+export type UpdatedNotifications = NoErrorTypedAction<
+  'chat:updatedNotifications',
+  {conversationIDKey: ConversationIDKey, notifications: NotificationsState}
+>
 export type UpdateTyping = NoErrorTypedAction<
   'chat:updateTyping',
   {conversationIDKey: ConversationIDKey, typing: boolean}
@@ -638,14 +666,6 @@ export type SaveAttachment = NoErrorTypedAction<
   'chat:saveAttachment',
   {
     messageKey: MessageKey,
-  }
->
-
-export type CreateNewTeam = NoErrorTypedAction<
-  'chat:createNewTeam',
-  {
-    conversationIDKey: ConversationIDKey,
-    name: string,
   }
 >
 
@@ -750,7 +770,6 @@ export type Actions =
   | AddPendingConversation
   | AppendMessages
   | ClearRekey
-  | CreateNewTeam
   | DeleteMessage
   | EditMessage
   | ShowEditor
@@ -778,6 +797,7 @@ export type Actions =
   | UpdateSearchResults
   | UpdateSupersededByState
   | UpdateSupersedesState
+  | UpdatedNotifications
 
 function conversationIDToKey(conversationID: ConversationID): ConversationIDKey {
   return conversationID.toString('hex')

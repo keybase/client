@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
@@ -56,6 +59,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		formatName, err := FormatImplicitTeamDisplayName(context.TODO(), tc.G, impTeamName)
 		require.NoError(t, err)
 		require.Equal(t, teamDisplay, formatName)
+		require.Equal(t, team.IsPublic(), public)
 	}
 
 	displayName := strings.Join(usernames, ",")
@@ -132,4 +136,69 @@ func TestImplicitTeamReader(t *testing.T) {
 	u1Role, err := team.chain().GetUserRole(fus[1].GetUserVersion())
 	require.NoError(t, err)
 	require.Equal(t, keybase1.TeamRole_READER, u1Role)
+}
+
+// Check that ParseImplicitTeamDisplayName and FormatImplicitTeamDisplayName agree.
+func TestImplicitDisplayTeamNameParse(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	// TODO test this with keybase assertions (puk-less users).
+	// It will probably fail because <uid>@keybase is the wrong format.
+
+	makeAssertionContext := func() libkb.AssertionContext {
+		return libkb.MakeAssertionContext(externals.GetServices())
+	}
+
+	for _, public := range []bool{true, false} {
+		for _, hasConflict := range []bool{true, false} {
+			var conflictInfo *keybase1.ImplicitTeamConflictInfo
+			if hasConflict {
+				conflictTime, err := time.Parse("2006-01-02", "2017-08-30")
+				require.NoError(t, err)
+				conflictInfo = &keybase1.ImplicitTeamConflictInfo{
+					Generation: 3,
+					Time:       keybase1.ToTime(conflictTime.UTC()),
+				}
+			}
+			obj1 := keybase1.ImplicitTeamDisplayName{
+				IsPublic: public,
+				Writers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"alice", "bob"},
+					UnresolvedUsers: []keybase1.SocialAssertion{
+						keybase1.SocialAssertion{User: "twwwww", Service: keybase1.SocialAssertionService("twitter")},
+						keybase1.SocialAssertion{User: "reeeee", Service: keybase1.SocialAssertionService("reddit")},
+					},
+				},
+				Readers: keybase1.ImplicitTeamUserSet{
+					KeybaseUsers: []string{"trust", "worthy"},
+					UnresolvedUsers: []keybase1.SocialAssertion{
+						keybase1.SocialAssertion{User: "ghhhh", Service: keybase1.SocialAssertionService("github")},
+						keybase1.SocialAssertion{User: "fbbbb", Service: keybase1.SocialAssertionService("facebook")},
+					},
+				},
+				ConflictInfo: conflictInfo,
+			}
+			str1, err := FormatImplicitTeamDisplayName(context.Background(), tc.G, obj1)
+			t.Logf("str1 '%v'", str1)
+			require.NoError(t, err)
+			obj2, err := libkb.ParseImplicitTeamDisplayName(makeAssertionContext(), str1, obj1.IsPublic)
+			require.NoError(t, err)
+			require.Equal(t, obj2.IsPublic, public)
+			require.Len(t, obj2.Writers.KeybaseUsers, 2)
+			require.Len(t, obj2.Writers.UnresolvedUsers, 2)
+			require.Len(t, obj2.Readers.KeybaseUsers, 2)
+			require.Len(t, obj2.Readers.UnresolvedUsers, 2)
+			if hasConflict {
+				require.NotNil(t, obj2.ConflictInfo)
+				require.Equal(t, obj2.ConflictInfo.Generation, obj1.ConflictInfo.Generation)
+				require.Equal(t, obj2.ConflictInfo.Time, obj1.ConflictInfo.Time)
+			} else {
+				require.Nil(t, obj2.ConflictInfo)
+			}
+			str2, err := FormatImplicitTeamDisplayName(context.Background(), tc.G, obj2)
+			require.NoError(t, err)
+			require.Equal(t, str2, str1)
+		}
+	}
 }

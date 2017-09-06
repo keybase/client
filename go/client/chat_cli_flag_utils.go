@@ -143,11 +143,11 @@ func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req ch
 	}
 
 	if ctx.Bool("private") {
-		req.Visibility = chat1.TLFVisibility_PRIVATE
+		req.Visibility = keybase1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		req.Visibility = chat1.TLFVisibility_PUBLIC
+		req.Visibility = keybase1.TLFVisibility_PUBLIC
 	} else {
-		req.Visibility = chat1.TLFVisibility_ANY
+		req.Visibility = keybase1.TLFVisibility_ANY
 	}
 
 	return req, nil
@@ -164,7 +164,11 @@ func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResol
 	}
 	switch *userOrTeamResult {
 	case keybase1.UserOrTeamResult_USER:
-		req.MembersType = chat1.ConversationMembersType_KBFS
+		if g.Env.GetChatMemberType() == "impteam" {
+			req.MembersType = chat1.ConversationMembersType_IMPTEAM
+		} else {
+			req.MembersType = chat1.ConversationMembersType_KBFS
+		}
 	case keybase1.UserOrTeamResult_TEAM:
 		req.MembersType = chat1.ConversationMembersType_TEAM
 	}
@@ -217,11 +221,11 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 	fetcher.query.After = ctx.String("since")
 
 	if ctx.Bool("private") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PRIVATE
+		fetcher.query.Visibility = keybase1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PUBLIC
+		fetcher.query.Visibility = keybase1.TLFVisibility_PUBLIC
 	} else {
-		fetcher.query.Visibility = chat1.TLFVisibility_ANY
+		fetcher.query.Visibility = keybase1.TLFVisibility_ANY
 	}
 
 	if !ctx.Bool("include-hidden") {
@@ -245,11 +249,11 @@ func makeChatCLIInboxFetcherUnreadFirst(ctx *cli.Context) (fetcher chatCLIInboxF
 	fetcher.query.After = ctx.String("since")
 
 	if ctx.Bool("private") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PRIVATE
+		fetcher.query.Visibility = keybase1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PUBLIC
+		fetcher.query.Visibility = keybase1.TLFVisibility_PUBLIC
 	} else {
-		fetcher.query.Visibility = chat1.TLFVisibility_ANY
+		fetcher.query.Visibility = keybase1.TLFVisibility_ANY
 	}
 
 	if !ctx.Bool("include-hidden") {

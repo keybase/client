@@ -16,7 +16,6 @@ type PaperProvisionEngine struct {
 	Username       string
 	DeviceName     string
 	PaperKey       string
-	keepPaperKey   bool
 	result         error
 	lks            *libkb.LKSec
 	User           *libkb.User

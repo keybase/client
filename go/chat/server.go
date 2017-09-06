@@ -628,7 +628,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	if arg.TopicType != chat1.TopicType_NONE {
 		queryBase.TopicType = &arg.TopicType
 	}
-	if arg.Visibility != chat1.TLFVisibility_ANY {
+	if arg.Visibility != keybase1.TLFVisibility_ANY {
 		queryBase.TlfVisibility = &arg.Visibility
 	}
 	queryBase.Status = arg.Status
@@ -907,7 +907,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 }
 
 func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNonblockArg) (chat1.PostLocalNonblockRes, error) {
-
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -922,7 +921,6 @@ func (h *Server) PostDeleteNonblock(ctx context.Context, arg chat1.PostDeleteNon
 }
 
 func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonblockArg) (chat1.PostLocalNonblockRes, error) {
-
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -941,7 +939,6 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 }
 
 func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonblockArg) (chat1.PostLocalNonblockRes, error) {
-
 	var parg chat1.PostLocalNonblockArg
 	parg.ClientPrev = arg.ClientPrev
 	parg.ConversationID = arg.ConversationID
@@ -955,7 +952,36 @@ func (h *Server) PostTextNonblock(ctx context.Context, arg chat1.PostTextNonbloc
 	})
 
 	return h.PostLocalNonblock(ctx, parg)
+}
 
+func (h *Server) PostHeadlineNonblock(ctx context.Context, arg chat1.PostHeadlineNonblockArg) (chat1.PostLocalNonblockRes, error) {
+	var parg chat1.PostLocalNonblockArg
+	parg.ClientPrev = arg.ClientPrev
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.OutboxID = arg.OutboxID
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
+		Headline: arg.Headline,
+	})
+
+	return h.PostLocalNonblock(ctx, parg)
+}
+
+func (h *Server) PostHeadline(ctx context.Context, arg chat1.PostHeadlineArg) (chat1.PostLocalRes, error) {
+	var parg chat1.PostLocalArg
+	parg.ConversationID = arg.ConversationID
+	parg.IdentifyBehavior = arg.IdentifyBehavior
+	parg.Msg.ClientHeader.MessageType = chat1.MessageType_HEADLINE
+	parg.Msg.ClientHeader.TlfName = arg.TlfName
+	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
+	parg.Msg.MessageBody = chat1.NewMessageBodyWithHeadline(chat1.MessageHeadline{
+		Headline: arg.Headline,
+	})
+
+	return h.PostLocal(ctx, parg)
 }
 
 func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err error) {
@@ -1172,7 +1198,7 @@ type postAttachmentArg struct {
 	SessionID        int
 	ConversationID   chat1.ConversationID
 	TlfName          string
-	Visibility       chat1.TLFVisibility
+	Visibility       keybase1.TLFVisibility
 	Attachment       assetSource
 	Preview          *attachmentPreview
 	Title            string
@@ -1303,7 +1329,7 @@ func (h *Server) postAttachmentLocal(ctx context.Context, arg postAttachmentArg)
 	// set msg client header explicitly
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENT
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == chat1.TLFVisibility_PUBLIC
+	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
 
 	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1369,7 +1395,7 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 			IdentifyBehavior: arg.IdentifyBehavior,
 			Supersedes:       placeholder.MessageID,
 			TlfName:          arg.TlfName,
-			TlfPublic:        arg.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:        arg.Visibility == keybase1.TLFVisibility_PUBLIC,
 		}
 		_, derr := h.PostDeleteNonblock(ctx, deleteArg)
 		if derr != nil {
@@ -1462,7 +1488,7 @@ func (h *Server) postAttachmentLocalInOrder(ctx context.Context, arg postAttachm
 	postArg.Msg.ClientHeader.MessageType = chat1.MessageType_ATTACHMENTUPLOADED
 	postArg.Msg.ClientHeader.Supersedes = placeholder.MessageID
 	postArg.Msg.ClientHeader.TlfName = arg.TlfName
-	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == chat1.TLFVisibility_PUBLIC
+	postArg.Msg.ClientHeader.TlfPublic = arg.Visibility == keybase1.TLFVisibility_PUBLIC
 
 	h.Debug(ctx, "postAttachmentLocalInOrder: attachment assets uploaded, posting attachment message")
 	plres, err := h.PostLocal(ctx, postArg)
@@ -1684,7 +1710,7 @@ func (h *Server) postAttachmentPlaceholder(ctx context.Context, arg postAttachme
 		Msg: chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				TlfName:     arg.TlfName,
-				TlfPublic:   arg.Visibility == chat1.TLFVisibility_PUBLIC,
+				TlfPublic:   arg.Visibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_ATTACHMENT,
 				OutboxID:    &obid,
 			},
@@ -2024,7 +2050,7 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 
 	// Fetch the TLF ID from specified name
 	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, chat1.ConversationMembersType_TEAM,
-		arg.Visibility == chat1.TLFVisibility_PUBLIC)
+		arg.Visibility == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err
@@ -2152,9 +2178,17 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 		return res, err
 	}
 
+	var nsettings chat1.ConversationNotificationInfo
+	nsettings.ChannelWide = arg.ChannelWide
+	nsettings.Settings = make(map[keybase1.DeviceType]map[chat1.NotificationKind]bool)
+	nsettings.Settings[keybase1.DeviceType_MOBILE] = make(map[chat1.NotificationKind]bool)
+	nsettings.Settings[keybase1.DeviceType_DESKTOP] = make(map[chat1.NotificationKind]bool)
+	for _, setting := range arg.Settings {
+		nsettings.Settings[setting.DeviceType][setting.Kind] = setting.Enabled
+	}
 	setRes, err := h.remoteClient().SetAppNotificationSettings(ctx, chat1.SetAppNotificationSettingsArg{
 		ConvID:   arg.ConvID,
-		Settings: arg.Settings,
+		Settings: nsettings,
 	})
 	if err != nil {
 		h.Debug(ctx, "SetAppNotificationSettings: failed to post to remote: %s", err.Error())

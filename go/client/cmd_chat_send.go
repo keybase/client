@@ -17,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	isatty "github.com/mattn/go-isatty"
 )
 
@@ -45,7 +46,7 @@ func (c *CmdChatSend) SetTeamChatForTest(n string) {
 		TopicName:   chat.DefaultTeamTopic,
 		MembersType: chat1.ConversationMembersType_TEAM,
 		TopicType:   chat1.TopicType_CHAT,
-		Visibility:  chat1.TLFVisibility_PRIVATE,
+		Visibility:  keybase1.TLFVisibility_PRIVATE,
 	}
 }
 
@@ -74,8 +75,8 @@ func (c *CmdChatSend) Run() (err error) {
 		return err
 	}
 	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
-	if c.resolvingRequest.Visibility == chat1.TLFVisibility_ANY {
-		c.resolvingRequest.Visibility = chat1.TLFVisibility_PRIVATE
+	if c.resolvingRequest.Visibility == keybase1.TLFVisibility_ANY {
+		c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
 	}
 
 	// TODO: Right now this command cannot be run in standalone at
@@ -83,7 +84,7 @@ func (c *CmdChatSend) Run() (err error) {
 	// in finding existing conversations.
 	if c.G().Standalone {
 		switch c.resolvingRequest.MembersType {
-		case chat1.ConversationMembersType_TEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 			c.G().StartStandaloneChat()
 		default:
 			err = CantRunInStandaloneError{}

@@ -162,7 +162,7 @@
     "style-loader": "0.18.2",
     "uglifyjs-webpack-plugin": "1.0.0-beta.1",
     "webpack": "3.5.5",
-    "webpack-dashboard": "1.0.0-5",
+    "webpack-dashboard": "0.4.0",
     "webpack-dev-server": "2.7.1",
     "webpack-merge": "4.1.0"
   },

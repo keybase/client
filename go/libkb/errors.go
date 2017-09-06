@@ -1358,6 +1358,15 @@ func (e IdentifyFailedError) Error() string {
 
 //=============================================================================
 
+type IdentifiesFailedError struct {
+}
+
+func (e IdentifiesFailedError) Error() string {
+	return "one or more identifies failed"
+}
+
+//=============================================================================
+
 type IdentifySummaryError struct {
 	username NormalizedUsername
 	problems []string
@@ -2082,6 +2091,6 @@ func (e ImplicitTeamDisplayNameError) Error() string {
 	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
 }
 
-func NewImplicitTeamDisplayNameError(s string) ImplicitTeamDisplayNameError {
-	return ImplicitTeamDisplayNameError{s}
+func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
 }

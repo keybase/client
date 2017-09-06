@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 )
 
 func SendTextByName(ctx context.Context, g *globals.Context, name string, topicName *string,
@@ -98,7 +99,7 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 	}
 	uid := gregor1.UID(kuid.ToBytes())
 	conv, _, err := NewConversation(ctx, s.G(), uid, s.canonicalName, s.topicName,
-		chat1.TopicType_CHAT, s.membersType, chat1.TLFVisibility_PRIVATE, s.remoteInterface)
+		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface)
 	if err != nil {
 		return err
 	}
@@ -318,8 +319,23 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 
 func FindConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType, vis chat1.TLFVisibility, topicName string,
+	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+
+	if membersType == chat1.ConversationMembersType_IMPTEAM {
+		// in this case, we need to get the hidden implicit team name from the display name
+		_, teamName, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == keybase1.TLFVisibility_PUBLIC)
+		if err != nil {
+			if _, ok := err.(teams.TeamDoesNotExistError); ok {
+				// no exist is just empty response
+				return res, rl, nil
+			}
+			return res, rl, err
+		}
+		debugger.Debug(ctx, "FindConversations: using implicit team name %q for display name %q", teamName, tlfName)
+		tlfName = teamName.String()
+	}
+
 	query := &chat1.GetInboxLocalQuery{
 		Name: &chat1.NameQuery{
 			Name:        tlfName,
@@ -330,6 +346,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		TopicType:         &topicType,
 		OneChatTypePerTLF: oneChatPerTLF,
 	}
+
 	inbox, irl, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
 	if err != nil {
 		return res, rl, err
@@ -371,7 +388,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		if len(res) > 0 {
 			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
 		}
-	} else if vis == chat1.TLFVisibility_PUBLIC {
+	} else if vis == keybase1.TLFVisibility_PUBLIC {
 		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
 
 		// Check for offline and return an error
@@ -455,7 +472,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:         conv.Info.Triple,
 			TlfName:      conv.Info.TlfName,
-			TlfPublic:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:    conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
 			MessageType:  typ,
 			Supersedes:   chat1.MessageID(0),
 			Deletes:      nil,
@@ -557,7 +574,7 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 }
 
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis chat1.TLFVisibility,
+	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface) (chat1.ConversationLocal, []chat1.RateLimit, error) {
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
@@ -572,13 +589,18 @@ type newConversationHelper struct {
 	topicName   *string
 	topicType   chat1.TopicType
 	membersType chat1.ConversationMembersType
-	vis         chat1.TLFVisibility
+	vis         keybase1.TLFVisibility
 	ri          func() chat1.RemoteInterface
 }
 
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis chat1.TLFVisibility,
+	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface) *newConversationHelper {
+
+	if membersType == chat1.ConversationMembersType_IMPTEAM && g.ExternalG().Env.GetChatMemberType() != "impteam" {
+		membersType = chat1.ConversationMembersType_KBFS
+	}
+
 	return &newConversationHelper{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "newConversationHelper", false),
@@ -592,6 +614,31 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	}
 }
 
+func (n *newConversationHelper) findConversations(ctx context.Context, membersType chat1.ConversationMembersType, topicName string) ([]chat1.ConversationLocal, []chat1.RateLimit, error) {
+	onechatpertlf := true
+	return FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType, membersType, n.vis, topicName, &onechatpertlf)
+}
+
+func (n *newConversationHelper) findExisting(ctx context.Context, topicName string) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+	switch n.membersType {
+	case chat1.ConversationMembersType_IMPTEAM:
+		// if IMPTEAM, check if a KBFS conversation exists already
+		convs, rl, err := n.findConversations(ctx, chat1.ConversationMembersType_KBFS, topicName)
+		if err != nil {
+			n.Debug(ctx, "error looking for KBFS conversation for IMPTEAM: %s", err)
+		} else if len(convs) == 1 {
+			// If we find one conversation, then just return it as if we created it.
+			n.Debug(ctx, "IMPTEAM conv requested, but found previous KBFS conversation that matches, returning (%s)", n.tlfName)
+			return convs, rl, nil
+		}
+
+		n.Debug(ctx, "no KBFS conversation found for IMPTEAM (%s)", n.tlfName)
+	}
+
+	// proceed to findConversations for requested member type
+	return n.findConversations(ctx, n.membersType, topicName)
+}
+
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, rl []chat1.RateLimit, reserr error) {
 	defer n.Trace(ctx, func() error { return reserr }, "newConversationHelper")()
 	// Handle a nil topic name with default values for the members type specified
@@ -602,6 +649,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			n.topicName = &DefaultTeamTopic
 		}
 	}
+
 	var findConvsTopicName string
 	if n.topicName != nil {
 		findConvsTopicName = *n.topicName
@@ -614,12 +662,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
-	onechatpertlf := true
-	convs, irl, err := FindConversations(ctx, n.G(), n.DebugLabeler, n.ri, n.uid, n.tlfName, n.topicType,
-		n.membersType, n.vis, findConvsTopicName, &onechatpertlf)
-	if err != nil {
-		return res, rl, err
-	}
+
+	convs, irl, err := n.findExisting(ctx, findConvsTopicName)
+
 	// If we find one conversation, then just return it as if we created it.
 	rl = append(rl, irl...)
 	if len(convs) == 1 {
@@ -627,10 +672,39 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		return convs[0], rl, err
 	}
 
-	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType,
-		n.vis == chat1.TLFVisibility_PUBLIC)
+	if n.G().ExternalG().Env.GetChatMemberType() == "impteam" {
+		// if KBFS, return an error. Need to use IMPTEAM now.
+		if n.membersType == chat1.ConversationMembersType_KBFS {
+			// let it slide in devel for tests
+			if n.G().ExternalG().Env.GetRunMode() != libkb.DevelRunMode {
+				n.Debug(ctx, "KBFS conversations deprecated; switching membersType from KBFS to IMPTEAM")
+				n.membersType = chat1.ConversationMembersType_IMPTEAM
+			}
+		}
+	}
+
+	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
+
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
+	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
 	if err != nil {
-		return res, rl, err
+		if n.membersType != chat1.ConversationMembersType_IMPTEAM {
+			return res, rl, err
+		}
+		if _, ok := err.(teams.TeamDoesNotExistError); !ok {
+			return res, rl, err
+		}
+
+		// couldn't find implicit team, so make one
+		n.Debug(ctx, "making new implicit team %q", n.tlfName)
+		_, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
+		if err != nil {
+			return res, rl, err
+		}
+		info, err = CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
+		if err != nil {
+			return res, rl, err
+		}
 	}
 
 	triple := chat1.ConversationIDTriple{
@@ -722,7 +796,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 		// Send a message to the channel after joining.
 		switch n.membersType {
-		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		case chat1.ConversationMembersType_TEAM:
 			joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
 			irl, err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody)
 			if err != nil {
@@ -741,7 +815,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 }
 
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
-	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
+	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility keybase1.TLFVisibility,
 	topicName *string) (*chat1.MessageBoxed, *chat1.TopicNameState, error) {
 	var msg chat1.MessagePlaintext
 	if topicName != nil {
@@ -749,7 +823,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
 				TlfName:     tlfName,
-				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
+				TlfPublic:   tlfVisibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_METADATA,
 				Prev:        nil, // TODO
 				// Sender and SenderDevice filled by prepareMessageForRemote
@@ -764,7 +838,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
 				TlfName:     tlfName,
-				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
+				TlfPublic:   tlfVisibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_TLFNAME,
 				Prev:        nil, // TODO
 				// Sender and SenderDevice filled by prepareMessageForRemote

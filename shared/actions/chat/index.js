@@ -17,10 +17,9 @@ import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
   TlfKeysTLFIdentifyBehavior,
+  CommonDeviceType,
+  CommonTLFVisibility,
   ConstantsStatusCode,
-  teamsTeamCreateRpcPromise,
-  teamsTeamAddMemberRpcPromise,
-  TeamsTeamRole,
 } from '../../constants/types/flow-types'
 import {call, put, all, take, select, race} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
@@ -43,7 +42,7 @@ import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 import type {Action} from '../../constants/types/flux'
 import type {KBOrderedSet} from '../../constants/types/more'
-import type {ChangedFocus} from '../../constants/app'
+import type {ChangedFocus, ChangedActive} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -90,7 +89,10 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       return
     case ChatTypes.NotifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        yield call(Inbox.processConversation, action.payload.activity.readMessage.conv)
+        const inboxUIItem: ?ChatTypes.InboxUIItem = action.payload.activity.readMessage.conv
+        if (inboxUIItem) {
+          yield call(Inbox.processConversation, inboxUIItem)
+        }
       }
       return
     case ChatTypes.NotifyChatChatActivityType.incomingMessage:
@@ -99,10 +101,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         // If it's a public chat, the GUI (currently) wants no part of it. We
         // especially don't want to surface the conversation as if it were a
         // private one, which is what we were doing before this change.
-        if (
-          incomingMessage.conv &&
-          incomingMessage.conv.visibility !== ChatTypes.CommonTLFVisibility.private
-        ) {
+        if (incomingMessage.conv && incomingMessage.conv.visibility !== CommonTLFVisibility.private) {
           return
         }
 
@@ -115,6 +114,9 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+        if (message.type === 'Unhandled') {
+          return
+        }
         const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
         const pagination = incomingMessage.pagination
@@ -194,6 +196,18 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
               svcShouldDisplayNotification
             )
           )
+        }
+      }
+      break
+    case ChatTypes.NotifyChatChatActivityType.setAppNotificationSettings:
+      if (action.payload.activity && action.payload.activity.setAppNotificationSettings) {
+        const {convID, settings} = action.payload.activity.setAppNotificationSettings
+        if (convID && settings) {
+          const conversationIDKey = Constants.conversationIDToKey(convID)
+          const notifications = Inbox.parseNotifications(settings)
+          if (notifications) {
+            yield put(Creators.updatedNotifications(conversationIDKey, notifications))
+          }
         }
       }
       break
@@ -317,7 +331,10 @@ function* _updateThread({
       // about to add a newly received version of the same message.
       yield put(Creators.removeOutboxMessage(conversationIDKey, message.outboxID))
     }
-    newMessages.push(message)
+
+    if (message.type !== 'Unhandled') {
+      newMessages.push(message)
+    }
   }
 
   newMessages = newMessages.reverse()
@@ -770,7 +787,7 @@ function* _openFolder(): SagaGenerator<any, any> {
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    const helper = inbox.visibility === ChatTypes.CommonTLFVisibility.public
+    const helper = inbox.visibility === CommonTLFVisibility.public
       ? publicFolderWithUsers
       : privateFolderWithUsers
     const path = helper(inbox.get('participants').toArray())
@@ -928,6 +945,24 @@ function* _changedFocus(action: ChangedFocus): SagaGenerator<any, any> {
       yield put(Creators.updateBadging(conversationIDKey))
     } else {
       // Reset the orange line when focus leaves the app.
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
+  }
+}
+
+function* _changedActive(action: ChangedActive): SagaGenerator<any, any> {
+  // Update badging and the latest message due to changing active state.
+  const {userActive} = action.payload
+  const appFocused = yield select(Shared.focusedSelector)
+  const conversationIDKey = yield select(Constants.getSelectedConversation)
+  const selectedTab = yield select(Shared.routeSelector)
+  const chatTabSelected = selectedTab === chatTab
+  // Only do this if focus is retained - otherwise, focus changing logic prevails
+  if (conversationIDKey && chatTabSelected && appFocused) {
+    if (userActive) {
+      yield put(Creators.updateBadging(conversationIDKey))
+    } else {
+      // Reset the orange line when becoming inactive
       yield put(Creators.updateLatestMessage(conversationIDKey))
     }
   }
@@ -1195,28 +1230,39 @@ function* _exitSearch() {
   }
 }
 
-function* _createNewTeam(action: Constants.CreateNewTeam) {
-  const {payload: {conversationIDKey, name}} = action
-  const me = yield select(usernameSelector)
+const _setNotifications = function*(action: Constants.SetNotifications) {
+  const {payload: {conversationIDKey}} = action
+  // Send the new post-reducer setNotifications structure to the service.
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
-  if (inbox) {
-    yield call(teamsTeamCreateRpcPromise, {
-      param: {name: {parts: [name]}},
-    })
-    const participants = inbox.get('participants').toArray()
-    for (const username of participants) {
-      if (username !== me) {
-        yield call(teamsTeamAddMemberRpcPromise, {
-          param: {
-            email: '',
-            name,
-            role: TeamsTeamRole.writer,
-            sendChatNotification: true,
-            username,
-          },
-        })
-      }
+  if (inbox && inbox.notifications) {
+    const {notifications} = inbox
+    const param = {
+      convID: Constants.keyToConversationID(conversationIDKey),
+      channelWide: notifications.channelWide,
+      settings: [
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.desktop.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.desktop,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.desktop.generic,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.atmention,
+          enabled: notifications.mobile.atmention,
+        },
+        {
+          deviceType: CommonDeviceType.mobile,
+          kind: ChatTypes.CommonNotificationKind.generic,
+          enabled: notifications.mobile.generic,
+        },
+      ],
     }
+    yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
   }
 }
 
@@ -1261,6 +1307,7 @@ function attachmentLoaded(action: Constants.AttachmentLoaded) {
 
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery('app:changedActive', _changedActive)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
   yield Saga.safeTakeEvery('chat:clearMessages', _clearConversationMessages)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _storeMessageToEntity)
@@ -1284,7 +1331,6 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)
   yield Saga.safeTakeEvery('chat:blockConversation', _blockConversation)
-  yield Saga.safeTakeEvery('chat:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('chat:deleteMessage', Messages.deleteMessage)
   yield Saga.safeTakeEvery('chat:editMessage', Messages.editMessage)
   yield Saga.safeTakeEvery('chat:getInboxAndUnbox', Inbox.onGetInboxAndUnbox)
@@ -1329,6 +1375,8 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
+  yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
+  yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
 }
 
 export default chatSaga

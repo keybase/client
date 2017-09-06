@@ -280,10 +280,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return IdentifyDidNotCompleteError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
-	case SCNoUIDelegation:
-		return UIDelegationUnavailableError{}
 	case SCNoUI:
 		return NoUIError{Which: s.Desc}
+	case SCNoUIDelegation:
+		return UIDelegationUnavailableError{}
 	case SCProfileNotPublic:
 		return ProfileNotPublicError{msg: s.Desc}
 	case SCIdentifyFailed:
@@ -292,6 +292,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			assertion = s.Fields[0].Value
 		}
 		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
+	case SCIdentifiesFailed:
+		return IdentifiesFailedError{}
 	case SCIdentifySummaryError:
 		ret := IdentifySummaryError{}
 		for _, pair := range s.Fields {
@@ -1570,6 +1572,14 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 		Fields: []keybase1.StringKVPair{
 			{Key: "assertion", Value: e.Assertion},
 		},
+	}
+}
+
+func (e IdentifiesFailedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCIdentifiesFailed,
+		Name: "SC_IDENTIFIES_FAILED",
+		Desc: e.Error(),
 	}
 }
 

@@ -9,6 +9,7 @@ import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
 
+import type {DeviceType} from '../../constants/types/more'
 import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
 
@@ -345,8 +346,22 @@ function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constant
   return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
 }
 
+function setNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  deviceType: DeviceType,
+  notifyType: Constants.NotifyType
+) {
+  return {payload: {conversationIDKey, deviceType, notifyType}, type: 'chat:setNotifications'}
+}
+
 function clearSearchResults(): Constants.ClearSearchResults {
   return {payload: {}, type: 'chat:clearSearchResults'}
+}
+
+function toggleChannelWideNotifications(
+  conversationIDKey: Constants.ConversationIDKey
+): Constants.ToggleChannelWideNotifications {
+  return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
 }
 
 function updateConversationUnreadCounts(
@@ -458,10 +473,6 @@ function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.Load
     payload: {messageKey},
     type: 'chat:loadAttachmentPreview',
   }
-}
-
-function createNewTeam(conversationIDKey: Constants.ConversationIDKey, name: string) {
-  return {payload: {conversationIDKey, name}, type: 'chat:createNewTeam'}
 }
 
 function saveAttachment(messageKey: Constants.MessageKey): Constants.SaveAttachment {
@@ -671,6 +682,16 @@ function updateThread(
   }
 }
 
+function updatedNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  notifications: Constants.NotificationsState
+): Constants.UpdatedNotifications {
+  return {
+    payload: {conversationIDKey, notifications},
+    type: 'chat:updatedNotifications',
+  }
+}
+
 function updateSnippet(
   conversationIDKey: Constants.ConversationIDKey,
   snippet: HiddenString
@@ -690,7 +711,6 @@ export {
   clearMessages,
   clearSearchResults,
   clearRekey,
-  createNewTeam,
   deleteMessage,
   downloadProgress,
   editMessage,
@@ -731,6 +751,7 @@ export {
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
+  setNotifications,
   setPreviousConversation,
   setSelectedRouteState,
   setTypers,
@@ -740,6 +761,7 @@ export {
   stageUserForSearch,
   startConversation,
   threadLoadedOffline,
+  toggleChannelWideNotifications,
   unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
@@ -759,6 +781,7 @@ export {
   updateThread,
   updateTyping,
   updatedMetadata,
+  updatedNotifications,
   uploadProgress,
   updateSnippet,
 }
