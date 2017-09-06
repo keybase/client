@@ -403,20 +403,11 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	chanMention := chat1.ChannelMention_NONE
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
-		var newBody string
-		newBody, atMentions, chanMention = utils.ParseAndDecorateAtMentionedUIDs(ctx,
+		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
-		msg.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: newBody,
-		})
 	case chat1.MessageType_EDIT:
-		var newBody string
-		newBody, atMentions, chanMention = utils.ParseAndDecorateAtMentionedUIDs(ctx,
+		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
-		msg.MessageBody = chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-			MessageID: plaintext.MessageBody.Edit().MessageID,
-			Body:      newBody,
-		})
 	}
 
 	if len(atMentions) > 0 {
