@@ -26,4 +26,11 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
-export {createNewTeam, createNewTeamFromConversation, createChannel, getChannels, getTeams, toggleChannelMembership}
+export {
+  createChannel,
+  createNewTeam,
+  createNewTeamFromConversation,
+  getChannels,
+  getTeams,
+  toggleChannelMembership
+}
