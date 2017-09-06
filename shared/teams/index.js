@@ -191,7 +191,6 @@ const rowStyle = {
 
 type Props = HeaderProps & BetaNoteProps & TeamListProps & BannerProps
 
-// TODO: Add team rows.
 const Render = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
     <Header {...props} />
