@@ -6,7 +6,7 @@ import openURL from '../util/open-url'
 type DispatchProps = {
   onCreateTeam: () => void,
   onJoinTeam: () => void,
-  onReadDoc: () => void,
+  onReadMore: () => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
@@ -19,8 +19,8 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
     // TODO: Hook this up once we have a join team dialog.
     console.log('onJoinTeam not implemented yet')
   },
-  onReadDoc: () => {
-    openURL('https://keybase.io/docs/command_line/teams_alpha')
+  onReadMore: () => {
+    openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
   onHideBanner: () => {
     // TODO: Need a way to store this from CORE

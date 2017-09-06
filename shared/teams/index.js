@@ -41,7 +41,7 @@ const Header = (props: HeaderProps) => (
   </Box>
 )
 
-const Banner = ({onReadDoc, onHideBanner}) => (
+const Banner = ({onReadMore, onHideBanner}) => (
   <Box
     style={{
       ...(isMobile
@@ -85,7 +85,7 @@ const Banner = ({onReadDoc, onHideBanner}) => (
       >
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to large communities.
       </Text>
-      <Text backgroundMode="Terminal" type="BodySemiboldLink" className="underline" onClick={onReadDoc}>
+      <Text backgroundMode="Terminal" type="BodySemiboldLink" className="underline" onClick={onReadMore}>
         Read our announcement
       </Text>
     </Box>
@@ -98,7 +98,7 @@ const Banner = ({onReadDoc, onHideBanner}) => (
 )
 
 type BetaNoteProps = {
-  onReadDoc: () => void,
+  onReadMore: () => void,
 }
 
 const BetaNote = (props: BetaNoteProps) => (
@@ -124,10 +124,10 @@ const BetaNote = (props: BetaNoteProps) => (
     <Text
       type="BodySmallSemibold"
       className="hover-underline"
-      onClick={props.onReadDoc}
+      onClick={props.onReadMore}
       style={{...globalStyles.clickable}}
     >
-      Read the doc
+      Read more
     </Text>
   </Box>
 )
@@ -135,7 +135,7 @@ const BetaNote = (props: BetaNoteProps) => (
 type Props = {
   onCreateTeam: () => void,
   onJoinTeam: () => void,
-  onReadDoc: () => void,
+  onReadMore: () => void,
   onHideBanner: () => void,
 }
 
@@ -151,7 +151,7 @@ const Render = (props: Props) => (
           alignItems: 'center',
         }}
       >
-        <Banner onReadDoc={props.onReadDoc} onHideBanner={props.onHideBanner} />
+        <Banner onReadMore={props.onReadMore} onHideBanner={props.onHideBanner} />
         <BetaNote {...props} />
       </ScrollView>
     </Box>

@@ -6,7 +6,7 @@ import {BetaNote, Header} from '.'
 const load = () => {
   storiesOf('Teams', module)
     .add('Header', () => <Header onCreateTeam={action('onCreateTeam')} onJoinTeam={action('onJoinTeam')} />)
-    .add('BetaNote', () => <BetaNote onReadDoc={action('onReadDoc')} />)
+    .add('BetaNote', () => <BetaNote onReadMore={action('onReadMore')} />)
 }
 
 export default load
