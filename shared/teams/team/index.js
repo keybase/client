@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Text, Tabs, List, Icon} from '../../common-adapters'
+import {Avatar, Box, Text, Tabs, List, Icon, PopupMenu} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -13,6 +13,9 @@ export type Props = {
   you: string,
   name: Constants.Teamname,
   members: Array<RowProps>,
+  setShowMenu: (s: boolean) => void,
+  onLeaveTeam: () => void,
+  onManageChat: () => void,
 }
 
 const typeToLabel = {
@@ -67,7 +70,7 @@ class Team extends React.PureComponent<Props> {
   }
 
   render() {
-    const {name, members} = this.props
+    const {name, members, setShowMenu, onLeaveTeam, onManageChat} = this.props
     const tabs = [
       <Text key="members" type="BodySmallSemibold" style={{color: globalColors.black_75, padding: 10}}>
         MEMBERS ({members.length})
@@ -90,9 +93,45 @@ class Team extends React.PureComponent<Props> {
           style={{alignSelf: 'flex-start', height: globalMargins.large}}
         />
         <List items={members} fixedHeight={48} renderItem={this._renderItem} style={{alignSelf: 'stretch'}} />
+        {this.props.showMenu &&
+          <PopupMenu
+            items={[
+              {onClick: onLeaveTeam, title: 'Leave Team'},
+              {onClick: onManageChat, title: 'Manage Chat Channels'},
+            ]}
+            onHidden={() => setShowMenu(false)}
+            style={{position: 'absolute', right: 20, top: 20}}
+          />}
       </Box>
     )
   }
 }
 
 export default Team
+
+type CustomProps = {
+  onOpenFolder: () => void,
+  onManageChat: () => void,
+  onShowMenu: () => void,
+}
+
+const CustomComponent = ({onOpenFolder, onManageChat, onShowMenu}: CustomProps) => (
+  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 0, top: 16}}>
+    <Icon
+      onClick={onManageChat}
+      type="iconfont-chat"
+      style={{fontSize: 22, marginRight: globalMargins.tiny}}
+    />
+    <Icon
+      onClick={onOpenFolder}
+      type="iconfont-folder-private"
+      style={{fontSize: 22, marginRight: globalMargins.tiny}}
+    />
+    <Icon
+      onClick={onShowMenu}
+      type="iconfont-ellipsis"
+      style={{fontSize: 22, marginRight: globalMargins.tiny}}
+    />
+  </Box>
+)
+export {CustomComponent}

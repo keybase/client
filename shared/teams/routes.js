@@ -18,7 +18,13 @@ const routeTree = new RouteDefNode({
       tags: {layerOnTop: true},
     },
     team: {
-      children: {},
+      children: {
+        manageChannels: {
+          children: {},
+          component: ManageChannels,
+          tags: {layerOnTop: true},
+        },
+      },
       component: Team,
     },
   },

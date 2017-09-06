@@ -49,6 +49,7 @@ const _backButtonIconStyleThemed = {
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
+  position: 'relative',
   height: '100%',
   width: '100%',
 }

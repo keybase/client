@@ -36,23 +36,9 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
           {name}
         </Text>
       </ClickableBox>
+      {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
       {!isMobile &&
-        <Icon
-          type="iconfont-folder-private"
-          onClick={e => {
-            e.stopPropagation()
-            onOpenFolder()
-          }}
-        />}
-      {!isMobile &&
-        <Icon
-          type="iconfont-chat"
-          style={{marginLeft: globalMargins.small}}
-          onClick={e => {
-            e.stopPropagation()
-            onManageChat()
-          }}
-        />}
+        <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />}
     </Box>
     {!isMobile && <Divider style={{marginLeft: 44}} />}
   </Box>
