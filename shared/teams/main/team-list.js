@@ -19,9 +19,9 @@ type RowProps = {
   onManageChat: () => void,
   onViewTeam: () => void,
 }
-
+// onClick={onViewTeam}
 const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
-  <ClickableBox style={rowStyle} onClick={onViewTeam}>
+  <Box style={rowStyle}>
     <Box
       style={{
         ...globalStyles.flexBoxRow,
@@ -30,15 +30,30 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
         marginRight: globalMargins.tiny,
       }}
     >
-      <Avatar size={32} teamname={name} isTeam={true} />
-      <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
-        {name}
-      </Text>
-      <Icon type="iconfont-folder-private" onClick={onOpenFolder} />
-      <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />
+      <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
+        <Avatar size={32} teamname={name} isTeam={true} />
+        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+          {name}
+        </Text>
+      </ClickableBox>
+      <Icon
+        type="iconfont-folder-private"
+        onClick={e => {
+          e.stopPropagation()
+          onOpenFolder()
+        }}
+      />
+      <Icon
+        type="iconfont-chat"
+        style={{marginLeft: globalMargins.small}}
+        onClick={e => {
+          e.stopPropagation()
+          onManageChat()
+        }}
+      />
     </Box>
     {!isMobile && <Divider style={{marginLeft: 44}} />}
-  </ClickableBox>
+  </Box>
 )
 
 const TeamList = (props: Props) => (
