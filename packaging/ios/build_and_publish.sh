@@ -10,6 +10,7 @@ ios_dir="$gopath/src/github.com/keybase/client/shared/react-native/ios"
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
+check_ci=${CHECK_CI:-1}
 
 "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 
@@ -47,7 +48,7 @@ fi
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
-  CHECK_CI=1 yarn run rn-gobuild-ios
+  CHECK_CI="$check_ci" yarn run rn-gobuild-ios
 fi
 
 "$client_dir/packaging/manage_react_native_packager.sh" &
