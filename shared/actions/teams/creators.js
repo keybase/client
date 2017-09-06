@@ -10,6 +10,10 @@ function createNewTeamFromConversation(conversationIDKey: ConversationIDKey, nam
   return {payload: {conversationIDKey, name}, type: 'teams:createNewTeamFromConversation'}
 }
 
+function createChannel(teamname: string, channelname: string, description: ?string) {
+  return {payload: {channelname, description, teamname}, type: 'teams:createChannel'}
+}
+
 function getChannels(teamname: string): Constants.GetChannels {
   return {payload: {teamname}, type: 'teams:getChannels'}
 }
@@ -22,4 +26,11 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
-export {createNewTeam, createNewTeamFromConversation, getChannels, getTeams, toggleChannelMembership}
+export {
+  createChannel,
+  createNewTeam,
+  createNewTeamFromConversation,
+  getChannels,
+  getTeams,
+  toggleChannelMembership,
+}
