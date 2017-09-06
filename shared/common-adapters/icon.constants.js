@@ -1172,7 +1172,7 @@ const iconMeta_ = {
   },
   'iconfont-chat': {
     isFont: true,
-    gridSize: 24,
+    gridSize: 16,
     charCode: 0xe938,
   },
   'iconfont-check': {
@@ -1519,7 +1519,7 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 24,
     charCode: 0xe94b,
-  },/* eslint-enable */
+  } /* eslint-enable */,
 }
 
 export type IconType = $Keys<typeof iconMeta_>
