@@ -201,6 +201,17 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 		fbs.FolderID = fbsk.md.TlfID().String()
 		fbs.Revision = fbsk.md.Revision()
 		fbs.MDVersion = fbsk.md.Version()
+		fbs.SyncEnabled = fbsk.config.IsSyncedTlf(fbsk.md.TlfID())
+		rootPointer := fbsk.md.Data().Dir.BlockPointer
+		_, prefetchStatus, _, err :=
+			fbsk.config.BlockCache().GetWithPrefetch(rootPointer)
+		if err != nil {
+			_, _, prefetchStatus, _ = fbsk.config.DiskBlockCache().Get(ctx,
+				fbsk.md.TlfID(), rootPointer.ID)
+			// Swallow cache errors since we don't want to communicate
+			// errors for uncached blocks.
+		}
+		fbs.PrefetchStatus = prefetchStatus.String()
 
 		// TODO: Ideally, the journal would push status
 		// updates to this object instead, so we can notify

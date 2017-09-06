@@ -774,7 +774,6 @@ type NodeMetadata struct {
 	LastWriterUnverified libkb.NormalizedUsername
 	BlockInfo            BlockInfo
 	PrefetchStatus       string
-	CacheStatus          string
 }
 
 // FavoritesOp defines an operation related to favorites.
