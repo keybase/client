@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box, Icon, ScrollView, Text} from '../common-adapters'
+import {Avatar, ClickableBox, Box, Divider, Icon, ScrollView, Text} from '../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
-
+import type {Teamname} from '../constants/teams'
 import type {IconType} from '../common-adapters/icon.constants'
 
 type HeaderButtonProps = {
@@ -41,7 +41,12 @@ const Header = (props: HeaderProps) => (
   </Box>
 )
 
-const Banner = ({onReadMore, onHideBanner}) => (
+type BannerProps = {
+  onReadMore: () => void,
+  onHideBanner: () => void,
+}
+
+const Banner = ({onReadMore, onHideBanner}: BannerProps) => (
   <Box
     style={{
       ...(isMobile
@@ -102,18 +107,25 @@ type BetaNoteProps = {
 }
 
 const BetaNote = (props: BetaNoteProps) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginTop: globalMargins.small}}>
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      marginBottom: globalMargins.small,
+      marginTop: globalMargins.small,
+    }}
+  >
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-      <Box style={{height: 1, width: 24, backgroundColor: globalColors.black_05}} />
+      <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
       <Icon
         style={{
+          color: globalColors.black_10,
           paddingLeft: globalMargins.tiny,
           paddingRight: globalMargins.tiny,
-          color: globalColors.black_10,
         }}
         type="iconfont-info"
       />
-      <Box style={{height: 1, width: 24, backgroundColor: globalColors.black_05}} />
+      <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
     </Box>
     <Text type="BodySmall">Teams are still very early-stage!</Text>
     <Text style={{maxWidth: 426, textAlign: 'center'}} type="BodySmall">
@@ -132,26 +144,67 @@ const BetaNote = (props: BetaNoteProps) => (
   </Box>
 )
 
-type Props = {
-  onCreateTeam: () => void,
-  onJoinTeam: () => void,
-  onReadMore: () => void,
-  onHideBanner: () => void,
+type TeamListProps = {
+  // TODO: Change to map to member count.
+  teamnames: Array<Teamname>,
+  // TODO: Add onClick handler and folder/chat icons.
 }
+
+const TeamList = (props: TeamListProps) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      paddingBottom: globalMargins.tiny,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
+      paddingTop: globalMargins.tiny,
+      width: '100%',
+    }}
+  >
+    {props.teamnames.map((name, index, arr) => {
+      return (
+        <Box key={name} style={rowStyle}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              flex: 1,
+              marginRight: globalMargins.tiny,
+            }}
+          >
+            <Avatar size={32} teamname={name} />
+            <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+              {name}
+            </Text>
+          </Box>
+          {isMobile && <Divider style={{marginLeft: 44}} />}
+        </Box>
+      )
+    })}
+  </Box>
+)
+
+const rowStyle = {
+  ...globalStyles.flexBoxColumn,
+  minHeight: globalMargins.large,
+}
+
+type Props = HeaderProps & BetaNoteProps & TeamListProps & BannerProps
 
 // TODO: Add team rows.
 const Render = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
     <Header {...props} />
-    <Box style={{flex: 1, width: '100%'}}>
+    <Box style={{flex: 1, position: 'relative', width: '100%'}}>
       <ScrollView
-        style={{alignSelf: 'stretch', height: '100%', width: '100%'}}
+        style={globalStyles.fillAbsolute}
         contentContainerStyle={{
           ...globalStyles.flexBoxColumn,
           alignItems: 'center',
         }}
       >
         <Banner onReadMore={props.onReadMore} onHideBanner={props.onHideBanner} />
+        <TeamList {...props} />
         <BetaNote {...props} />
       </ScrollView>
     </Box>
@@ -160,4 +213,4 @@ const Render = (props: Props) => (
 
 export default Render
 
-export {Header, BetaNote}
+export {Header, BetaNote, TeamList}

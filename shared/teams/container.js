@@ -1,7 +1,25 @@
 // @flow
+import * as I from 'immutable'
 import Teams from '.'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
+import {getTeams} from '../actions/teams/creators'
+import {navigateAppend} from '../actions/route-tree'
+import {compose, lifecycle} from 'recompose'
+
+import type {TypedState} from '../constants/reducer'
+import type {Teamname} from '../constants/teams'
+
+type StateProps = {
+  _teamnames: I.Set<Teamname>,
+}
+
+const mapStateToProps = (state: TypedState): StateProps => {
+  let teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  return {
+    _teamnames: teamnames,
+  }
+}
 
 type DispatchProps = {
   onCreateTeam: () => void,
@@ -10,10 +28,16 @@ type DispatchProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
+  _loadTeams: () => dispatch(getTeams()),
   onCreateTeam: () => {
-    // TODO: Hook this up. Need to change onShowNewTeamDialog to
-    // make its conversationIDKey parameter optional first.
-    console.log('onCreateTeam not implemented yet')
+    dispatch(
+      navigateAppend([
+        {
+          props: {},
+          selected: 'showNewTeamDialog',
+        },
+      ])
+    )
   },
   onJoinTeam: () => {
     // TODO: Hook this up once we have a join team dialog.
@@ -22,10 +46,23 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
-  onHideBanner: () => {
-    // TODO: Need a way to store this from CORE
-    console.log('onHideBanner not implemented yet')
-  },
 })
 
-export default pausableConnect(null, mapDispatchToProps)(Teams)
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
+  let teamnames = stateProps._teamnames.toArray()
+  // TODO: Sort case-insensitively?
+  teamnames.sort()
+  return {
+    teamnames,
+    ...dispatchProps,
+  }
+}
+
+export default compose(
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  lifecycle({
+    componentDidMount: function() {
+      this.props._loadTeams()
+    },
+  })
+)(Teams)

@@ -5,8 +5,10 @@ import pausableConnect from '../util/pausable-connect'
 import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
+import flags from '../util/feature-flags'
+import {settingsTab} from '../constants/tabs'
 
-import {switchTo, navigateAppend} from '../actions/route-tree'
+import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
 
 import type {RouteProps} from '../route-tree/render-route'
 import type {TypedState} from '../constants/reducer'
@@ -24,6 +26,7 @@ export type Props = {
   switchTab: (showingPrivate: boolean) => void,
   onToggleShowIgnored: () => void,
   showingIgnored: boolean,
+  onBack?: () => void,
 }
 
 class Folders extends Component<Props> {
@@ -44,6 +47,7 @@ class Folders extends Component<Props> {
         username={this.props.username || ''}
         onToggleShowIgnored={this.props.onToggleShowIgnored}
         showingIgnored={this.props.showingIgnored}
+        onBack={this.props.onBack}
       />
     )
   }
@@ -68,6 +72,11 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   switchTab: showingPrivate =>
     dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))),
   onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.showingIgnored}),
+  ...(flags.teamChatEnabled
+    ? {
+        onBack: () => dispatch(navigateTo([settingsTab], [])),
+      }
+    : {}),
 })
 
 const ConnectedFolders = pausableConnect(mapStateToProps, mapDispatchToProps)(Folders)
