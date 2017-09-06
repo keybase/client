@@ -274,6 +274,10 @@ func (u *userPlusDevice) devices() []keybase1.Device {
 	return d
 }
 
+func (u *userPlusDevice) userVersion() keybase1.UserVersion {
+	return keybase1.UserVersion{Uid: u.uid, EldestSeqno: 1}
+}
+
 func (u *userPlusDevice) paperKeyID() keybase1.DeviceID {
 	for _, d := range u.devices() {
 		if d.Type == libkb.DeviceTypePaper {
@@ -338,11 +342,19 @@ func (u *userPlusDevice) waitForTeamChangedAndRotated(team string, toSeqno keyba
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
-func (u *userPlusDevice) prooveRooter() {
+func (u *userPlusDevice) proveRooter() {
 	cmd := client.NewCmdProveRooterRunner(u.tc.G, u.username)
 	if err := cmd.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
+}
+
+func (u *userPlusDevice) track(username string) {
+	trackCmd := client.NewCmdTrackRunner(u.tc.G)
+	trackCmd.SetUser(username)
+	trackCmd.SetOptions(keybase1.TrackOptions{BypassConfirm: true})
+	err := trackCmd.Run()
+	require.NoError(u.tc.T, err)
 }
 
 func (u *userPlusDevice) kickTeamRekeyd() {

@@ -72,6 +72,7 @@ protocol identify {
 
   /*
    * Resolve a set of assertions to an implicit team, optionally creating the team and identifying the members.
+   * When doIdentifies is not set, social assertion resolutions are server trust.
    */
   ResolveIdentifyImplicitTeamRes resolveIdentifyImplicitTeam(
     int sessionID,

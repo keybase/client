@@ -21,10 +21,12 @@ type AssertionExpression interface {
 	HasOr() bool
 	NeedsParens() bool
 	CollectUrls([]AssertionURL) []AssertionURL
+	ToSocialAssertion() (keybase1.SocialAssertion, error)
 }
 
 type AssertionOr struct {
-	terms []AssertionExpression
+	symbol string
+	terms  []AssertionExpression
 }
 
 func (a AssertionOr) HasOr() bool { return true }
@@ -60,6 +62,10 @@ func (a AssertionOr) String() string {
 		v[i] = t.String()
 	}
 	return strings.Join(v, ",")
+}
+
+func (a AssertionOr) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert OR expression to single social assertion")
 }
 
 type AssertionAnd struct {
@@ -123,6 +129,10 @@ func (a AssertionAnd) String() string {
 		}
 	}
 	return strings.Join(v, "+")
+}
+
+func (a AssertionAnd) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AND expression to single social assertion")
 }
 
 type AssertionURL interface {
@@ -206,6 +216,43 @@ func (b AssertionURLBase) ToTeamID() (ret keybase1.TeamID)     { return ret }
 func (b AssertionURLBase) ToTeamName() (ret keybase1.TeamName) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
+}
+
+func (b AssertionURLBase) ToSocialAssertionHelper() (sa keybase1.SocialAssertion, err error) {
+	return keybase1.SocialAssertion{
+		User:    b.GetValue(),
+		Service: keybase1.SocialAssertionService(b.GetKey()),
+	}, nil
+}
+func (a AssertionUID) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionUID to social assertion")
+}
+func (a AssertionTeamID) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionTeamID to social assertion")
+}
+func (a AssertionTeamName) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionTeamName to social assertion")
+}
+func (a AssertionKeybase) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionKeybase to social assertion")
+}
+func (a AssertionWeb) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionSocial) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionHTTP) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionHTTPS) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionDNS) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionFingerprint) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
 }
 
 func (a AssertionSocial) GetValue() string {
@@ -739,4 +786,44 @@ func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.Implicit
 	}
 	isPublic := parts[2] == "public"
 	return ParseImplicitTeamDisplayName(ctx, parts[3], isPublic)
+}
+
+// Unpack an assertion with one or more comma-separated parts. Only AND assertions are allowed within each part.
+func UnpackAssertionList(expr AssertionExpression) (res []AssertionExpression, err error) {
+	switch expr := expr.(type) {
+	case AssertionOr:
+		// List (or recursive tree) of comma-separated items.
+
+		if expr.symbol != "," {
+			// Don't allow "||". That would be confusing.
+			return res, fmt.Errorf("disallowed OR expression: '%v'", expr.symbol)
+		}
+		for _, sub := range expr.terms {
+			// Recurse because "a,b,c" could look like (OR a (OR b c))
+			sublist, err := UnpackAssertionList(sub)
+			if err != nil {
+				return res, err
+			}
+			res = append(res, sublist...)
+		}
+		return res, nil
+	default:
+		// Just one item.
+		err = checkAssertionListItem(expr)
+		return []AssertionExpression{expr}, err
+	}
+}
+
+// A single item in a comma-separated assertion list must have any ORs in its subtree.
+func checkAssertionListItem(expr AssertionExpression) error {
+	if expr.HasOr() {
+		return fmt.Errorf("assertions with OR are not allowed here")
+	}
+	switch expr.(type) {
+	case AssertionOr:
+		// this should never happen
+		return fmt.Errorf("assertion parse fault: unexpected OR")
+	}
+	// Anything else is allowed.
+	return nil
 }

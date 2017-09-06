@@ -53,6 +53,9 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName
 		}
 		return res, impTeamName, err
 	}
+	if len(imp.Conflicts) > 0 {
+		g.Log.CDebugf(ctx, "LookupImplicitTeam found %v conflicts", len(imp.Conflicts))
+	}
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          imp.TeamID,
 		ForceRepoll: true,
@@ -98,6 +101,15 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 }
 
 func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName) (string, error) {
+	return formatImplicitTeamDisplayNameCommon(ctx, g, impTeamName, nil)
+}
+
+// Format an implicit display name, but order the specified username first in each of the writer and reader lists if it appears.
+func FormatImplicitTeamDisplayNameWithUserFront(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName, frontName libkb.NormalizedUsername) (string, error) {
+	return formatImplicitTeamDisplayNameCommon(ctx, g, impTeamName, &frontName)
+}
+
+func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName, optionalFrontName *libkb.NormalizedUsername) (string, error) {
 	var writerNames []string
 	for _, u := range impTeamName.Writers.KeybaseUsers {
 		writerNames = append(writerNames, u)
@@ -105,7 +117,11 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	for _, u := range impTeamName.Writers.UnresolvedUsers {
 		writerNames = append(writerNames, u.String())
 	}
-	sort.Strings(writerNames)
+	if optionalFrontName == nil {
+		sort.Strings(writerNames)
+	} else {
+		sortStringsFront(writerNames, optionalFrontName.String())
+	}
 
 	var readerNames []string
 	for _, u := range impTeamName.Readers.KeybaseUsers {
@@ -114,7 +130,11 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	for _, u := range impTeamName.Readers.UnresolvedUsers {
 		readerNames = append(readerNames, u.String())
 	}
-	sort.Strings(readerNames)
+	if optionalFrontName == nil {
+		sort.Strings(readerNames)
+	} else {
+		sortStringsFront(readerNames, optionalFrontName.String())
+	}
 
 	var suffix string
 	if impTeamName.ConflictInfo != nil {
@@ -128,4 +148,19 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	}
 
 	return kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
+}
+
+// Sort a list of strings but order `front` in front IF it appears.
+func sortStringsFront(ss []string, front string) {
+	sort.Slice(ss, func(i, j int) bool {
+		a := ss[i]
+		b := ss[j]
+		if a == front {
+			return true
+		}
+		if b == front {
+			return false
+		}
+		return a < b
+	})
 }

@@ -1362,7 +1362,11 @@ type IdentifiesFailedError struct {
 }
 
 func (e IdentifiesFailedError) Error() string {
-	return "one or more identifies failed"
+	return fmt.Sprintf("one or more identifies failed")
+}
+
+func NewIdentifiesFailedError() IdentifiesFailedError {
+	return IdentifiesFailedError{}
 }
 
 //=============================================================================

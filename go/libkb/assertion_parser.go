@@ -3,9 +3,7 @@
 
 package libkb
 
-import (
-	"regexp"
-)
+import "regexp"
 
 const (
 	NONE = iota
@@ -136,9 +134,16 @@ func NewAssertionAnd(left, right AssertionExpression) AssertionAnd {
 	return AssertionAnd{factors}
 }
 
-func NewAssertionOr(left, right AssertionExpression) AssertionOr {
+func NewAssertionOr(left, right AssertionExpression, symbol string) AssertionOr {
 	terms := []AssertionExpression{left, right}
-	return AssertionOr{terms}
+	return AssertionOr{
+		terms:  terms,
+		symbol: symbol,
+	}
+}
+
+func NewAssertionKeybaseUsername(username string) AssertionKeybase {
+	return AssertionKeybase{AssertionURLBase: AssertionURLBase{Key: "keybase", Value: username}}
 }
 
 func (p *Parser) Parse(ctx AssertionContext) AssertionExpression {
@@ -213,7 +218,7 @@ func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 		p.err = NewAssertionParseError("Unexpected 'OR' operator")
 	} else {
 		ex := p.parseExpr(ctx)
-		ret = NewAssertionOr(term, ex)
+		ret = NewAssertionOr(term, ex, string(tok.value))
 	}
 	return ret
 }
