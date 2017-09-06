@@ -1304,6 +1304,8 @@ function applyMessageUpdates(message: Message, updates: KBOrderedSet<EditingMess
       return {
         ...message,
         message: update.message,
+        mentions: update.mentions,
+        channelMention: update.channelMention,
       }
     } else if (update.type === 'UpdateAttachment') {
       return {
