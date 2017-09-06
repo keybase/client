@@ -14,7 +14,12 @@ const load = () => {
     .add('BetaNote', () => <BetaNote onReadMore={action('onReadMore')} />)
     .add('TeamList', () => (
       <Box style={{maxWidth: 320}}>
-        <TeamList teamnames={teamnames} />
+        <TeamList
+          teamnames={teamnames}
+          onOpenFolder={action('onOpenFolder')}
+          onManageChat={action('onManageChat')}
+          onViewTeam={action('onViewTeam')}
+        />
       </Box>
     ))
 }
