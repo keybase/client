@@ -1,8 +1,10 @@
 // @flow
 import * as React from 'react'
-import {storiesOf, action} from '../stories/storybook'
-import {BetaNote, Header, TeamList} from '.'
+import BetaNote from './main/beta-note'
+import Header from './main/header'
+import TeamList from './main/team-list'
 import {Box} from '../common-adapters'
+import {storiesOf, action} from '../stories/storybook'
 
 const teamnames = ['stripe', 'stripe.usa', 'techtonica']
 
