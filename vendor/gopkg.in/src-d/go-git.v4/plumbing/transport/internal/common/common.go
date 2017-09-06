@@ -18,6 +18,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/format/pktline"
 	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp"
 	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/capability"
+	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/sideband"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
@@ -298,13 +299,26 @@ func (s *session) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateReq
 	}
 
 	if !req.Capabilities.Supports(capability.ReportStatus) {
-		// If we have neither report-status or sideband, we can only
+		// If we don't have report-status, we can only
 		// check return value error.
 		return nil, s.Command.Close()
 	}
 
+	r := s.StdoutContext(ctx)
+
+	var d *sideband.Demuxer
+	if req.Capabilities.Supports(capability.Sideband64k) {
+		d = sideband.NewDemuxer(sideband.Sideband64k, r)
+	} else if req.Capabilities.Supports(capability.Sideband) {
+		d = sideband.NewDemuxer(sideband.Sideband, r)
+	}
+	if d != nil {
+		d.Progress = req.Progress
+		r = d
+	}
+
 	report := packp.NewReportStatus()
-	if err := report.Decode(s.StdoutContext(ctx)); err != nil {
+	if err := report.Decode(r); err != nil {
 		return nil, err
 	}
 

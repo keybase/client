@@ -9,6 +9,8 @@ import (
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp"
+	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/capability"
+	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/sideband"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/utils/ioutil"
 )
@@ -50,6 +52,17 @@ func (s *rpSession) ReceivePack(ctx context.Context, req *packp.ReferenceUpdateR
 
 	if err != nil {
 		return nil, err
+	}
+
+	var d *sideband.Demuxer
+	if req.Capabilities.Supports(capability.Sideband64k) {
+		d = sideband.NewDemuxer(sideband.Sideband64k, r)
+	} else if req.Capabilities.Supports(capability.Sideband) {
+		d = sideband.NewDemuxer(sideband.Sideband, r)
+	}
+	if d != nil {
+		d.Progress = req.Progress
+		r = d
 	}
 
 	rc := ioutil.NewReadCloser(r, res.Body)

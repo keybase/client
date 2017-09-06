@@ -107,7 +107,10 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 		return err
 	}
 
-	if err := w.Reset(&ResetOptions{Commit: ref.Hash()}); err != nil {
+	if err := w.Reset(&ResetOptions{
+		Mode:   MergeReset,
+		Commit: ref.Hash(),
+	}); err != nil {
 		return err
 	}
 
@@ -270,17 +273,88 @@ func (w *Worktree) Reset(opts *ResetOptions) error {
 		}
 	}
 
-	changes, err := w.diffCommitWithStaging(opts.Commit, true)
+	if err := w.setHEADCommit(opts.Commit); err != nil {
+		return err
+	}
+
+	if opts.Mode == SoftReset {
+		return nil
+	}
+
+	t, err := w.getTreeFromCommitHash(opts.Commit)
 	if err != nil {
 		return err
 	}
 
+	if opts.Mode == MixedReset || opts.Mode == MergeReset || opts.Mode == HardReset {
+		if err := w.resetIndex(t); err != nil {
+			return err
+		}
+	}
+
+	if opts.Mode == MergeReset || opts.Mode == HardReset {
+		if err := w.resetWorktree(t); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (w *Worktree) resetIndex(t *object.Tree) error {
 	idx, err := w.r.Storer.Index()
 	if err != nil {
 		return err
 	}
 
-	t, err := w.getTreeFromCommitHash(opts.Commit)
+	changes, err := w.diffTreeWithStaging(t, true)
+	if err != nil {
+		return err
+	}
+
+	for _, ch := range changes {
+		a, err := ch.Action()
+		if err != nil {
+			return err
+		}
+
+		var name string
+		var e *object.TreeEntry
+
+		switch a {
+		case merkletrie.Modify, merkletrie.Insert:
+			name = ch.To.String()
+			e, err = t.FindEntry(name)
+			if err != nil {
+				return err
+			}
+		case merkletrie.Delete:
+			name = ch.From.String()
+		}
+
+		_, _ = idx.Remove(name)
+		if e == nil {
+			continue
+		}
+
+		idx.Entries = append(idx.Entries, &index.Entry{
+			Name: name,
+			Hash: e.Hash,
+			Mode: e.Mode,
+		})
+
+	}
+
+	return w.r.Storer.SetIndex(idx)
+}
+
+func (w *Worktree) resetWorktree(t *object.Tree) error {
+	changes, err := w.diffStagingWithWorktree(true)
+	if err != nil {
+		return err
+	}
+
+	idx, err := w.r.Storer.Index()
 	if err != nil {
 		return err
 	}
@@ -291,20 +365,59 @@ func (w *Worktree) Reset(opts *ResetOptions) error {
 		}
 	}
 
-	if err := w.r.Storer.SetIndex(idx); err != nil {
+	return w.r.Storer.SetIndex(idx)
+}
+
+func (w *Worktree) checkoutChange(ch merkletrie.Change, t *object.Tree, idx *index.Index) error {
+	a, err := ch.Action()
+	if err != nil {
 		return err
 	}
 
-	return w.setHEADCommit(opts.Commit)
+	var e *object.TreeEntry
+	var name string
+	var isSubmodule bool
+
+	switch a {
+	case merkletrie.Modify, merkletrie.Insert:
+		name = ch.To.String()
+		e, err = t.FindEntry(name)
+		if err != nil {
+			return err
+		}
+
+		isSubmodule = e.Mode == filemode.Submodule
+	case merkletrie.Delete:
+		return rmFileAndDirIfEmpty(w.Filesystem, ch.From.String())
+	}
+
+	if isSubmodule {
+		return w.checkoutChangeSubmodule(name, a, e, idx)
+	}
+
+	return w.checkoutChangeRegularFile(name, a, t, e, idx)
 }
 
 func (w *Worktree) containsUnstagedChanges() (bool, error) {
-	ch, err := w.diffStagingWithWorktree()
+	ch, err := w.diffStagingWithWorktree(false)
 	if err != nil {
 		return false, err
 	}
 
-	return len(ch) != 0, nil
+	for _, c := range ch {
+		a, err := c.Action()
+		if err != nil {
+			return false, err
+		}
+
+		if a == merkletrie.Insert {
+			continue
+		}
+
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (w *Worktree) setHEADCommit(commit plumbing.Hash) error {
@@ -331,42 +444,6 @@ func (w *Worktree) setHEADCommit(commit plumbing.Hash) error {
 	return w.r.Storer.SetReference(branch)
 }
 
-func (w *Worktree) checkoutChange(ch merkletrie.Change, t *object.Tree, idx *index.Index) error {
-	a, err := ch.Action()
-	if err != nil {
-		return err
-	}
-
-	var e *object.TreeEntry
-	var name string
-	var isSubmodule bool
-
-	switch a {
-	case merkletrie.Modify, merkletrie.Insert:
-		name = ch.To.String()
-		e, err = t.FindEntry(name)
-		if err != nil {
-			return err
-		}
-
-		isSubmodule = e.Mode == filemode.Submodule
-	case merkletrie.Delete:
-		name = ch.From.String()
-		ie, err := idx.Entry(name)
-		if err != nil {
-			return err
-		}
-
-		isSubmodule = ie.Mode == filemode.Submodule
-	}
-
-	if isSubmodule {
-		return w.checkoutChangeSubmodule(name, a, e, idx)
-	}
-
-	return w.checkoutChangeRegularFile(name, a, t, e, idx)
-}
-
 func (w *Worktree) checkoutChangeSubmodule(name string,
 	a merkletrie.Action,
 	e *object.TreeEntry,
@@ -383,17 +460,7 @@ func (w *Worktree) checkoutChangeSubmodule(name string,
 			return nil
 		}
 
-		if err := w.rmIndexFromFile(name, idx); err != nil {
-			return err
-		}
-
-		if err := w.addIndexFromTreeEntry(name, e, idx); err != nil {
-			return err
-		}
-
-		// TODO: the submodule update should be reviewed as reported at:
-		// https://github.com/src-d/go-git/issues/415
-		return sub.update(context.TODO(), &SubmoduleUpdateOptions{}, e.Hash)
+		return w.addIndexFromTreeEntry(name, e, idx)
 	case merkletrie.Insert:
 		mode, err := e.Mode.ToOSFileMode()
 		if err != nil {
@@ -405,12 +472,6 @@ func (w *Worktree) checkoutChangeSubmodule(name string,
 		}
 
 		return w.addIndexFromTreeEntry(name, e, idx)
-	case merkletrie.Delete:
-		if err := rmFileAndDirIfEmpty(w.Filesystem, name); err != nil {
-			return err
-		}
-
-		return w.rmIndexFromFile(name, idx)
 	}
 
 	return nil
@@ -424,9 +485,7 @@ func (w *Worktree) checkoutChangeRegularFile(name string,
 ) error {
 	switch a {
 	case merkletrie.Modify:
-		if err := w.rmIndexFromFile(name, idx); err != nil {
-			return err
-		}
+		_, _ = idx.Remove(name)
 
 		// to apply perm changes the file is deleted, billy doesn't implement
 		// chmod
@@ -446,12 +505,6 @@ func (w *Worktree) checkoutChangeRegularFile(name string,
 		}
 
 		return w.addIndexFromFile(name, e.Hash, idx)
-	case merkletrie.Delete:
-		if err := rmFileAndDirIfEmpty(w.Filesystem, name); err != nil {
-			return err
-		}
-
-		return w.rmIndexFromFile(name, idx)
 	}
 
 	return nil
@@ -503,6 +556,7 @@ func (w *Worktree) checkoutFileSymlink(f *object.File) (err error) {
 }
 
 func (w *Worktree) addIndexFromTreeEntry(name string, f *object.TreeEntry, idx *index.Index) error {
+	_, _ = idx.Remove(name)
 	idx.Entries = append(idx.Entries, &index.Entry{
 		Hash: f.Hash,
 		Name: name,
@@ -513,6 +567,7 @@ func (w *Worktree) addIndexFromTreeEntry(name string, f *object.TreeEntry, idx *
 }
 
 func (w *Worktree) addIndexFromFile(name string, h plumbing.Hash, idx *index.Index) error {
+	_, _ = idx.Remove(name)
 	fi, err := w.Filesystem.Lstat(name)
 	if err != nil {
 		return err
@@ -538,19 +593,6 @@ func (w *Worktree) addIndexFromFile(name string, h plumbing.Hash, idx *index.Ind
 	}
 
 	idx.Entries = append(idx.Entries, e)
-	return nil
-}
-
-func (w *Worktree) rmIndexFromFile(name string, idx *index.Index) error {
-	for i, e := range idx.Entries {
-		if e.Name != name {
-			continue
-		}
-
-		idx.Entries = append(idx.Entries[:i], idx.Entries[i+1:]...)
-		return nil
-	}
-
 	return nil
 }
 

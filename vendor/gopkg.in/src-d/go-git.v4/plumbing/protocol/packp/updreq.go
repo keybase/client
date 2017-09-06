@@ -6,6 +6,7 @@ import (
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/capability"
+	"gopkg.in/src-d/go-git.v4/plumbing/protocol/packp/sideband"
 )
 
 var (
@@ -21,6 +22,9 @@ type ReferenceUpdateRequest struct {
 	Shallow      *plumbing.Hash
 	// Packfile contains an optional packfile reader.
 	Packfile io.ReadCloser
+
+	// Progress receives sideband progress messages from the server
+	Progress sideband.Progress
 }
 
 // New returns a pointer to a new ReferenceUpdateRequest value.

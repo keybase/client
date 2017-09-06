@@ -379,7 +379,8 @@ func (d *Decoder) fillRegularObjectContent(obj plumbing.EncodedObject) (uint32, 
 }
 
 func (d *Decoder) fillREFDeltaObjectContent(obj plumbing.EncodedObject, ref plumbing.Hash) (uint32, error) {
-	buf := bytes.NewBuffer(nil)
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
 	_, crc, err := d.s.NextObject(buf)
 	if err != nil {
 		return 0, err
@@ -396,6 +397,7 @@ func (d *Decoder) fillREFDeltaObjectContent(obj plumbing.EncodedObject, ref plum
 	obj.SetType(base.Type())
 	err = ApplyDelta(obj, base, buf.Bytes())
 	d.cachePut(obj)
+	bufPool.Put(buf)
 
 	return crc, err
 }

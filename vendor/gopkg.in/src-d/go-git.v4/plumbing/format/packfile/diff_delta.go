@@ -60,13 +60,15 @@ func GetDelta(base, target plumbing.EncodedObject) (plumbing.EncodedObject, erro
 
 // DiffDelta returns the delta that transforms src into tgt.
 func DiffDelta(src []byte, tgt []byte) []byte {
-	buf := bytes.NewBuffer(nil)
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
 	buf.Write(deltaEncodeSize(len(src)))
 	buf.Write(deltaEncodeSize(len(tgt)))
 
 	sindex := initMatch(src)
 
-	ibuf := bytes.NewBuffer(nil)
+	ibuf := bufPool.Get().(*bytes.Buffer)
+	ibuf.Reset()
 	for i := 0; i < len(tgt); i++ {
 		offset, l := findMatch(src, tgt, sindex, i)
 
@@ -93,8 +95,12 @@ func DiffDelta(src []byte, tgt []byte) []byte {
 	}
 
 	encodeInsertOperation(ibuf, buf)
+	bytes := buf.Bytes()
 
-	return buf.Bytes()
+	bufPool.Put(buf)
+	bufPool.Put(ibuf)
+
+	return bytes
 }
 
 func encodeInsertOperation(ibuf, buf *bytes.Buffer) {

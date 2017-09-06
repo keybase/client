@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"sync"
@@ -429,10 +431,11 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 }
 
 var gogitStagesToStatus = map[plumbing.StatusStage]string{
-	plumbing.StatusCount: "Counting: ",
-	plumbing.StatusRead:  "Reading: ",
-	plumbing.StatusSort:  "Sorting... ",
-	plumbing.StatusDelta: "Calculating deltas: ",
+	plumbing.StatusCount:     "Counting: ",
+	plumbing.StatusRead:      "Reading: ",
+	plumbing.StatusFixChains: "Fixing: ",
+	plumbing.StatusSort:      "Sorting... ",
+	plumbing.StatusDelta:     "Calculating deltas: ",
 	// For us, a "send" actually means fetch.
 	plumbing.StatusSend: "Fetching: ",
 	// For us, a "fetch" actually means writing objects to
@@ -450,6 +453,17 @@ func (r *runner) processGogitStatus(
 	lastByteCount := 0
 	for update := range statusChan {
 		if update.Stage != currStage {
+			if r.verbosity >= 3 {
+				f, err := os.Create(filepath.Join(
+					os.TempDir(), fmt.Sprintf("memprof.%d.prof", update.Stage)))
+				if err != nil {
+					r.log.CDebugf(ctx, err.Error())
+				} else {
+					pprof.WriteHeapProfile(f)
+					f.Close()
+				}
+			}
+
 			if currStage != plumbing.StatusUnknown {
 				elapsedStr := r.getElapsedStr(startTime)
 				r.errput.Write([]byte("done." + elapsedStr + "\n"))

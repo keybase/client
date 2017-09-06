@@ -9,6 +9,7 @@ import (
 	"hash/crc32"
 	"io"
 	stdioutil "io/ioutil"
+	"sync"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/utils/binary"
@@ -291,8 +292,16 @@ func (s *Scanner) copyObject(w io.Writer) (n int64, err error) {
 	}
 
 	defer ioutil.CheckClose(s.zr, &err)
-	n, err = io.Copy(w, s.zr)
+	buf := byteSlicePool.Get().([]byte)
+	n, err = io.CopyBuffer(w, s.zr, buf)
+	byteSlicePool.Put(buf)
 	return
+}
+
+var byteSlicePool = sync.Pool{
+	New: func() interface{} {
+		return make([]byte, 32*1024)
+	},
 }
 
 // SeekFromStart sets a new offset from start, returns the old position before
@@ -324,7 +333,9 @@ func (s *Scanner) Checksum() (plumbing.Hash, error) {
 
 // Close reads the reader until io.EOF
 func (s *Scanner) Close() error {
-	_, err := io.Copy(stdioutil.Discard, s.r)
+	buf := byteSlicePool.Get().([]byte)
+	_, err := io.CopyBuffer(stdioutil.Discard, s.r, buf)
+	byteSlicePool.Put(buf)
 	return err
 }
 

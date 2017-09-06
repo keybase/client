@@ -91,7 +91,7 @@ func (dw *deltaSelector) objectsToPack(
 		statusChan.SendUpdateIfPossible(update)
 	}
 
-	if err := dw.fixAndBreakChains(objectsToPack); err != nil {
+	if err := dw.fixAndBreakChains(objectsToPack, statusChan); err != nil {
 		return nil, err
 	}
 
@@ -111,7 +111,16 @@ func (dw *deltaSelector) encodedObject(h plumbing.Hash) (plumbing.EncodedObject,
 	return dw.storer.EncodedObject(plumbing.AnyObject, h)
 }
 
-func (dw *deltaSelector) fixAndBreakChains(objectsToPack []*ObjectToPack) error {
+func (dw *deltaSelector) fixAndBreakChains(
+	objectsToPack []*ObjectToPack,
+	statusChan plumbing.StatusChan,
+) error {
+	update := plumbing.StatusUpdate{
+		Stage:        plumbing.StatusFixChains,
+		ObjectsTotal: len(objectsToPack),
+	}
+	statusChan.SendUpdate(update)
+
 	m := make(map[plumbing.Hash]*ObjectToPack, len(objectsToPack))
 	for _, otp := range objectsToPack {
 		m[otp.Hash()] = otp
@@ -121,6 +130,8 @@ func (dw *deltaSelector) fixAndBreakChains(objectsToPack []*ObjectToPack) error 
 		if err := dw.fixAndBreakChainsOne(m, otp); err != nil {
 			return err
 		}
+		update.ObjectsDone++
+		statusChan.SendUpdateIfPossible(update)
 	}
 
 	return nil

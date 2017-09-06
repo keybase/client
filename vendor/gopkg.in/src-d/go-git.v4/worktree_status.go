@@ -65,7 +65,7 @@ func (w *Worktree) status(commit plumbing.Hash) (Status, error) {
 		}
 	}
 
-	right, err := w.diffStagingWithWorktree()
+	right, err := w.diffStagingWithWorktree(false)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func nameFromAction(ch *merkletrie.Change) string {
 	return name
 }
 
-func (w *Worktree) diffStagingWithWorktree() (merkletrie.Changes, error) {
+func (w *Worktree) diffStagingWithWorktree(reverse bool) (merkletrie.Changes, error) {
 	idx, err := w.r.Storer.Index()
 	if err != nil {
 		return nil, err
@@ -117,11 +117,19 @@ func (w *Worktree) diffStagingWithWorktree() (merkletrie.Changes, error) {
 	}
 
 	to := filesystem.NewRootNode(w.Filesystem, submodules)
-	res, err := merkletrie.DiffTree(from, to, diffTreeIsEquals)
-	if err == nil {
-		res = w.excludeIgnoredChanges(res)
+
+	var c merkletrie.Changes
+	if reverse {
+		c, err = merkletrie.DiffTree(to, from, diffTreeIsEquals)
+	} else {
+		c, err = merkletrie.DiffTree(from, to, diffTreeIsEquals)
 	}
-	return res, err
+
+	if err != nil {
+		return nil, err
+	}
+
+	return w.excludeIgnoredChanges(c), nil
 }
 
 func (w *Worktree) excludeIgnoredChanges(changes merkletrie.Changes) merkletrie.Changes {
@@ -179,27 +187,35 @@ func (w *Worktree) getSubmodulesStatus() (map[string]plumbing.Hash, error) {
 }
 
 func (w *Worktree) diffCommitWithStaging(commit plumbing.Hash, reverse bool) (merkletrie.Changes, error) {
-	idx, err := w.r.Storer.Index()
-	if err != nil {
-		return nil, err
-	}
-
-	var from noder.Noder
+	var t *object.Tree
 	if !commit.IsZero() {
 		c, err := w.r.CommitObject(commit)
 		if err != nil {
 			return nil, err
 		}
 
-		t, err := c.Tree()
+		t, err = c.Tree()
 		if err != nil {
 			return nil, err
 		}
+	}
 
+	return w.diffTreeWithStaging(t, reverse)
+}
+
+func (w *Worktree) diffTreeWithStaging(t *object.Tree, reverse bool) (merkletrie.Changes, error) {
+	var from noder.Noder
+	if t != nil {
 		from = object.NewTreeRootNode(t)
 	}
 
+	idx, err := w.r.Storer.Index()
+	if err != nil {
+		return nil, err
+	}
+
 	to := mindex.NewRootNode(idx)
+
 	if reverse {
 		return merkletrie.DiffTree(to, from, diffTreeIsEquals)
 	}
@@ -236,6 +252,9 @@ func (w *Worktree) Add(path string) (plumbing.Hash, error) {
 
 	h, err := w.copyFileToStorage(path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			h, err = w.deleteFromIndex(path)
+		}
 		return h, err
 	}
 

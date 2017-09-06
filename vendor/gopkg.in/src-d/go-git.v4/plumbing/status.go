@@ -5,6 +5,7 @@ type StatusStage int
 const (
 	StatusCount StatusStage = iota
 	StatusRead
+	StatusFixChains
 	StatusSort
 	StatusDelta
 	StatusSend

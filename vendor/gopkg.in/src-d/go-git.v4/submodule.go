@@ -62,14 +62,17 @@ func (s *Submodule) Status() (*SubmoduleStatus, error) {
 }
 
 func (s *Submodule) status(idx *index.Index) (*SubmoduleStatus, error) {
+	status := &SubmoduleStatus{
+		Path: s.c.Path,
+	}
+
 	e, err := idx.Entry(s.c.Path)
-	if err != nil {
+	if err != nil && err != index.ErrEntryNotFound {
 		return nil, err
 	}
 
-	status := &SubmoduleStatus{
-		Path:     s.c.Path,
-		Expected: e.Hash,
+	if e != nil {
+		status.Expected = e.Hash
 	}
 
 	if !s.initialized {

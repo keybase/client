@@ -1,7 +1,9 @@
 package packfile
 
 import (
+	"bytes"
 	"io"
+	"sync"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/storer"
@@ -55,4 +57,10 @@ func writePackfileToObjectStorage(
 	defer ioutil.CheckClose(w, &err)
 	_, err = io.Copy(w, packfile)
 	return err
+}
+
+var bufPool = sync.Pool{
+	New: func() interface{} {
+		return bytes.NewBuffer(nil)
+	},
 }
