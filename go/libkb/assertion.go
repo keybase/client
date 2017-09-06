@@ -676,6 +676,7 @@ func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictI
 		conflict.Generation)
 }
 
+// Parse a name like "mlsteele,malgorithms@twitter#bot (conflicted 2017-03-04 #2)"
 func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
 	// Turn the whole string tolower
 	s = strings.ToLower(s)
@@ -780,6 +781,7 @@ func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bo
 	return ret, nil
 }
 
+// Parse a name like "/keybase/private/mlsteele,malgorithms@twitter#bot (conflicted 2017-03-04 #2)"
 func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamDisplayName, error) {
 	ret := keybase1.ImplicitTeamDisplayName{}
 	s = strings.ToLower(s)
@@ -792,4 +794,17 @@ func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.Implicit
 	}
 	isPublic := parts[2] == "public"
 	return ParseImplicitTeamDisplayName(ctx, parts[3], isPublic)
+}
+
+// Parse a name like "/keybase/team/happy.toucans"
+func ParseTeamPrivateKBFSPath(s string) (ret keybase1.TeamName, err error) {
+	s = strings.ToLower(s)
+	parts := strings.Split(s, "/")
+	if len(parts) != 4 {
+		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
+	}
+	if parts[0] != "" || parts[1] != "keybase" || parts[2] != "team" {
+		return ret, fmt.Errorf("Invalid team TLF name")
+	}
+	return keybase1.TeamNameFromString(parts[3])
 }

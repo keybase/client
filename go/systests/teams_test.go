@@ -195,6 +195,15 @@ func (u *userPlusDevice) createTeam() string {
 	return create.TeamName.String()
 }
 
+func (u *userPlusDevice) createTeam2() (teamID keybase1.TeamID, teamName keybase1.TeamName) {
+	name := u.createTeam()
+	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
+		Name: name,
+	})
+	require.NoError(u.tc.T, err)
+	return team.ID, team.Name()
+}
+
 func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.TeamRole) {
 	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
 	add.Team = team
@@ -306,6 +315,36 @@ func (u *userPlusDevice) waitForTeamChangedGregor(team string, toSeqno keybase1.
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
+func (u *userPlusDevice) waitForTeamIDChangedGregor(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.rotateCh:
+			u.tc.T.Logf("membership change received: %+v", arg)
+			if arg.TeamID.Eq(teamID) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("change matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring change message (expected teamID = %q, seqno = %d)", teamID.String(), toSeqno)
+		case <-time.After(1 * time.Second):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID.String())
+}
+
+func (u *userPlusDevice) drainGregor() {
+	for i := 0; i < 1000; i++ {
+		select {
+		case <-u.notifications.rotateCh:
+			u.tc.T.Logf("dropped notification")
+			// drop
+		case <-time.After(500 * time.Millisecond):
+			u.tc.T.Logf("no notification received, drain complete")
+			return
+		}
+	}
+}
+
 func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 	// jump start the clkr queue processing loop
 	u.kickTeamRekeyd()
@@ -356,6 +395,15 @@ func (u *userPlusDevice) track(username string) {
 	trackCmd.SetOptions(keybase1.TrackOptions{BypassConfirm: true})
 	err := trackCmd.Run()
 	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) getTeamSeqno(teamID keybase1.TeamID) keybase1.Seqno {
+	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	require.NoError(u.tc.T, err)
+	return team.CurrentSeqno()
 }
 
 func (u *userPlusDevice) kickTeamRekeyd() {
