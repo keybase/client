@@ -21,7 +21,7 @@ const (
 	dirEntryPrefetchPriority          int           = -200
 	updatePointerPrefetchPriority     int           = 0
 	defaultPrefetchPriority           int           = -1024
-	prefetchTimeout                   time.Duration = time.Minute
+	prefetchTimeout                   time.Duration = 15 * time.Minute
 )
 
 type prefetcherConfig interface {
