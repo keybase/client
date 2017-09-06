@@ -1,5 +1,5 @@
 // @flow
-import TeamsContainer from './index'
+import TeamsContainer from './container'
 import {RouteDefNode} from '../route-tree'
 import NewTeamDialog from './new-team/container'
 

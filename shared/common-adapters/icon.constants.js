@@ -420,6 +420,16 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-history-clear-64.png'),
   },
+  'icon-illustration-teams-180': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-illustration-teams-180.png'),
+  },
+  'icon-illustration-teams-216': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-illustration-teams-216.png'),
+  },
   'icon-invite-code-48': {
     isFont: false,
     extension: 'png',
