@@ -2,19 +2,26 @@
 import * as Tabs from '../../constants/tabs'
 import * as React from 'react'
 import {Box} from '../../common-adapters'
+import flags from '../../util/feature-flags'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './index.render'
 
 const _icons = {
-  [Tabs.chatTab]: {selected: 'icon-nav-chat-selected-40', unselected: 'icon-nav-chat-40'},
-  [Tabs.folderTab]: {selected: 'icon-nav-folders-selected-40', unselected: 'icon-nav-folders-40'},
-  [Tabs.profileTab]: {selected: 'icon-nav-people-selected-40', unselected: 'icon-nav-people-40'},
-  [Tabs.settingsTab]: {selected: 'icon-nav-settings-selected-40', unselected: 'icon-nav-settings-40'},
+  [Tabs.chatTab]: 'iconfont-nav-chat',
+  [Tabs.profileTab]: 'iconfont-nav-people',
+  [Tabs.folderTab]: 'iconfont-nav-folders',
+  [Tabs.settingsTab]: 'iconfont-nav-more',
+  [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
-const _tabs = [Tabs.profileTab, Tabs.folderTab, Tabs.chatTab, Tabs.settingsTab].filter(Boolean)
+const _tabs = [
+  Tabs.profileTab,
+  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
+  Tabs.chatTab,
+  Tabs.settingsTab,
+].filter(Boolean)
 
 const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>
@@ -26,12 +33,24 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
         isNav={true}
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
-        source={{icon: _icons[tab][selectedTab === tab ? 'selected' : 'unselected'], type: 'icon'}}
-        styleIcon={{opacity: selectedTab === tab ? 1 : 0.6}}
+        source={{icon: _icons[tab], type: 'icon'}}
+        styleIcon={selectedTab === tab ? _selectedIconStyle : _iconStyle}
       />
     ))}
   </Box>
 )
+
+const _iconStyle = {
+  color: globalColors.blue3_40,
+  fontSize: 32,
+}
+const _selectedIconStyle = {
+  ..._iconStyle,
+  color: globalColors.white,
+  borderBottomWidth: 1,
+  borderStyle: 'solid',
+  borderColor: globalColors.white,
+}
 
 const tabBarHeight = 48
 

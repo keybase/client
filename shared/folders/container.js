@@ -5,8 +5,9 @@ import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
 import {compose, lifecycle, withProps} from 'recompose'
-
-import {switchTo, navigateAppend} from '../actions/route-tree'
+import flags from '../util/feature-flags'
+import {settingsTab} from '../constants/tabs'
+import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
 
 import type {RouteProps} from '../route-tree/render-route'
 import type {TypedState} from '../constants/reducer'
@@ -30,6 +31,11 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   onSwitchTab: showingPrivate =>
     dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))),
   onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.showingIgnored}),
+  ...(flags.teamChatEnabled
+    ? {
+        onBack: () => dispatch(navigateTo([settingsTab], [])),
+      }
+    : {}),
 })
 
 const ConnectedFolders = compose(
