@@ -1,7 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import {createNewTeamFromConversation} from '../../../actions/teams/creators'
 import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
 import {compose, renderComponent, branch} from 'recompose'
@@ -77,10 +76,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
       navigateAppend([
         {
           props: {
-            onCreateNewTeam: name => {
-              dispatch(createNewTeamFromConversation(conversationIDKey, name))
-              dispatch(Creators.selectConversation(null, true))
-            },
+            conversationIDKey: conversationIDKey,
           },
           selected: 'showNewTeamDialog',
         },
