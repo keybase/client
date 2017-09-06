@@ -92,12 +92,12 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
   const message: Constants.Message = {
     author,
-    conversationIDKey: action.payload.conversationIDKey,
+    conversationIDKey: conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     editedCount: 0,
     failureDescription: '',
-    key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxIDKey),
+    key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
     message: new HiddenString(action.payload.text.stringValue()),
     messageState: 'pending',
     outboxID: outboxIDKey,
