@@ -2295,6 +2295,14 @@ export function teamsLookupOrCreateImplicitTeamRpcPromise (request: (requestComm
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamAcceptInviteOrRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
+}
+
+export function teamsTeamAcceptInviteOrRequestAccessRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamAcceptInviteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 }
@@ -5945,6 +5953,10 @@ export type teamsLookupImplicitTeamRpcParam = Exact<{
 export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
   name: string,
   public: boolean
+}>
+
+export type teamsTeamAcceptInviteOrRequestAccessRpcParam = Exact<{
+  tokenOrName: string
 }>
 
 export type teamsTeamAcceptInviteRpcParam = Exact<{

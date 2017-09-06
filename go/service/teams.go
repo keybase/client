@@ -184,6 +184,10 @@ func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamR
 	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
 }
 
+func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteArg) error {
+	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
+}
+
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) ([]keybase1.TeamJoinRequest, error) {
 	return teams.ListRequests(ctx, h.G().ExternalG())
 }

@@ -420,6 +420,16 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 	return err
 }
 
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
+	// First try to accept as an invite
+	err := AcceptInvite(ctx, g, tokenOrName)
+	if err != nil {
+		// Failing that, request access as a team name
+		err = RequestAccess(ctx, g, tokenOrName)
+	}
+	return err
+}
+
 type accessRequest struct {
 	FQName   string          `json:"fq_name"`
 	TeamID   keybase1.TeamID `json:"team_id"`

@@ -414,6 +414,8 @@ protocol teams {
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
   void teamAcceptInvite(int sessionID, string token);
   void teamRequestAccess(int sessionID, string name);
+  // Accept an invite or request to join a team, try both.
+  void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
   array<TeamJoinRequest> teamListRequests(int sessionID);
   void teamIgnoreRequest(int sessionID, string name, string username);
   // Get a list of all recursive subteams recursively. Sorted alphabetically like a tree.
