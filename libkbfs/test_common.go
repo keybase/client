@@ -79,6 +79,8 @@ func MakeTestBlockServerOrBust(t logger.TestLogBackend,
 	}
 }
 
+var libkbGOnce sync.Once
+
 // MakeTestConfigOrBustLoggedInWithMode creates and returns a config
 // suitable for unit-testing with the given mode and list of
 // users. loggedInIndex specifies the index (in the list) of the user
@@ -144,11 +146,13 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		}
 		runner.Run(t)
 
-		// initialize libkb -- this probably isn't the best place to do this
-		// but it seems as though the MDServer rpc client is the first thing to
-		// use things from it which require initialization.
-		libkb.G.Init()
-		libkb.G.ConfigureLogging()
+		libkbGOnce.Do(func() {
+			// initialize libkb -- this probably isn't the best place to do this
+			// but it seems as though the MDServer rpc client is the first thing to
+			// use things from it which require initialization.
+			libkb.G.Init()
+			libkb.G.ConfigureLogging()
+		})
 
 		// connect to server
 		mdServer = NewMDServerRemote(config, mdServerAddr, env.NewContext().NewRPCLogFactory())
