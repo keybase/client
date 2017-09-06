@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RpcTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
@@ -10,14 +11,6 @@ import {selectedInboxSelector} from '../chat/shared'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
-import {
-  CommonTLFVisibility,
-  teamsTeamAddMemberRpcPromise,
-  teamsTeamCreateRpcPromise,
-  teamsTeamListRpcPromise,
-  TeamsTeamRole,
-  TlfKeysTLFIdentifyBehavior,
-} from '../../constants/types/flow-types'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -25,7 +18,7 @@ import type {TypedState} from '../../constants/reducer'
 
 const _createNewTeam = function(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
-  return call(teamsTeamCreateRpcPromise, {
+  return call(RpcTypes.teamsTeamCreateRpcPromise, {
     param: {name: {parts: [name]}},
   })
 }
@@ -37,17 +30,17 @@ const _createNewTeamFromConversation = function*(
   const me = yield select(usernameSelector)
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    yield call(teamsTeamCreateRpcPromise, {
+    yield call(RpcTypes.teamsTeamCreateRpcPromise, {
       param: {name: {parts: [name]}},
     })
     const participants = inbox.get('participants').toArray()
     for (const username of participants) {
       if (username !== me) {
-        yield call(teamsTeamAddMemberRpcPromise, {
+        yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
           param: {
             email: '',
             name,
-            role: TeamsTeamRole.writer,
+            role: RpcTypes.TeamsTeamRole.writer,
             sendChatNotification: true,
             username,
           },
@@ -55,6 +48,31 @@ const _createNewTeamFromConversation = function*(
       }
     }
   }
+}
+
+const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, any> {
+  const teamname = action.payload.teamname
+  const results: RpcTypes.TeamDetails = yield call(RpcTypes.teamsTeamGetRpcPromise, {
+    param: {
+      name: teamname,
+    },
+  })
+
+  const infos = []
+  const types = ['admins', 'owners', 'readers', 'writers']
+  types.forEach(type => {
+    const details = results.members[type] || []
+    details.forEach(({username}) => {
+      infos.push(
+        Constants.MemberInfo({
+          type,
+          username,
+        })
+      )
+    })
+  })
+
+  yield put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]])))
 }
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
@@ -92,7 +110,7 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
 
 const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any> {
   const username = yield select(usernameSelector)
-  const results: AnnotatedTeamList = yield call(teamsTeamListRpcPromise, {
+  const results: AnnotatedTeamList = yield call(RpcTypes.teamsTeamListRpcPromise, {
     param: {
       userAssertion: username,
     },
@@ -128,7 +146,7 @@ const _toggleChannelMembership = function*(
         tlfName: teamname,
         topicName: channelname,
         topicType: ChatTypes.CommonTopicType.chat,
-        visibility: CommonTLFVisibility.private,
+        visibility: RpcTypes.CommonTLFVisibility.private,
       },
     })
   }
@@ -141,10 +159,10 @@ function* _createChannel(action: Constants.CreateChannel) {
   const {payload: {channelname, description, teamname}} = action
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
     param: {
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
       membersType: ChatTypes.CommonConversationMembersType.team,
       tlfName: teamname,
-      tlfVisibility: CommonTLFVisibility.private,
+      tlfVisibility: RpcTypes.CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
       topicName: channelname,
     },
@@ -168,7 +186,7 @@ function* _createChannel(action: Constants.CreateChannel) {
         tlfPublic: false,
         headline: description,
         clientPrev: null,
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
       },
     })
   }
@@ -176,6 +194,7 @@ function* _createChannel(action: Constants.CreateChannel) {
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
