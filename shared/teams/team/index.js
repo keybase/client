@@ -96,8 +96,8 @@ class Team extends React.PureComponent<Props> {
         {this.props.showMenu &&
           <PopupMenu
             items={[
-              {onClick: onLeaveTeam, title: 'Leave Team'},
               {onClick: onManageChat, title: 'Manage Chat Channels'},
+              {onClick: onLeaveTeam, title: 'Leave Team', danger: true},
             ]}
             onHidden={() => setShowMenu(false)}
             style={{position: 'absolute', right: 20, top: 20}}

@@ -21,6 +21,7 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
   }
 >
 
+export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
 
 export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>

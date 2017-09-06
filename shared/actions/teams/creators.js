@@ -30,6 +30,10 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
+function leaveTeam(teamname: string): Constants.LeaveTeam {
+  return {payload: {teamname}, type: 'teams:leaveTeam'}
+}
+
 export {
   createChannel,
   createNewTeam,
@@ -37,5 +41,6 @@ export {
   getChannels,
   getDetails,
   getTeams,
+  leaveTeam,
   toggleChannelMembership,
 }

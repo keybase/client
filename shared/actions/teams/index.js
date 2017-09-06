@@ -23,6 +23,13 @@ const _createNewTeam = function(action: Constants.CreateNewTeam) {
   })
 }
 
+const _leaveTeam = function(action: Constants.LeaveTeam) {
+  const {payload: {teamname}} = action
+  return call(RpcTypes.teamsTeamLeaveRpcPromise, {
+    param: {name: teamname},
+  })
+}
+
 const _createNewTeamFromConversation = function*(
   action: Constants.CreateNewTeamFromConversation
 ): SagaGenerator<any, any> {
@@ -193,6 +200,7 @@ function* _createChannel(action: Constants.CreateChannel) {
 }
 
 const teamsSaga = function*(): SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
   yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
