@@ -32,5 +32,5 @@ export {
   createNewTeamFromConversation,
   getChannels,
   getTeams,
-  toggleChannelMembership
+  toggleChannelMembership,
 }
