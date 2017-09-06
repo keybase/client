@@ -113,7 +113,7 @@ class Row extends React.Component<_Props, State> {
                 <Usernames
                   type="BodySmall"
                   colorFollowing={true}
-                  users={[{username: this.props.lastEditUser, following: this.props.lastEditUserFollowing}]}
+                  users={[{following: this.props.lastEditUserFollowing, username: this.props.lastEditUser}]}
                   style={{marginLeft: 2, marginRight: 2}}
                 />}
               <Text type="BodySmall">
@@ -136,7 +136,7 @@ class Row extends React.Component<_Props, State> {
                 />
                 <Box style={_copyStyle}>
                   <Icon
-                    type={/* temp */ 'iconfont-team-join'}
+                    type="iconfont-clipboard"
                     style={{color: globalColors.white, hoverColor: globalColors.blue5}}
                     onClick={this._onCopy}
                   />
