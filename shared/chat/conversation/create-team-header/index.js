@@ -7,9 +7,10 @@ import type {Props} from '.'
 
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   <Box style={stylesContainer}>
-    <Text type="BodySemibold" style={{textAlign: 'center'}} backgroundMode="HighRisk">
-      Create a team? You’ll be able to add and remove members as you wish.
-      <br />
+    <Box style={{textAlign: 'center'}}>
+      <Text type="BodySemibold" backgroundMode="HighRisk">
+        Create a team? You’ll be able to add and remove members as you wish.{' '}
+      </Text>
       <Text
         type="BodySemiboldLink"
         style={{color: globalColors.white}}
@@ -18,7 +19,7 @@ const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
       >
         Enter a team name
       </Text>
-    </Text>
+    </Box>
   </Box>
 )
 

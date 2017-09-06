@@ -1210,15 +1210,29 @@ function* _exitSearch() {
   }
 }
 
+function getPendingConvParticpants(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
+  if (!Constants.isPendingConversationIDKey(conversationIDKey)) return null
+
+  return state.chat.pendingConversations.get(conversationIDKey)
+}
+
 function* _createNewTeam(action: Constants.CreateNewTeam) {
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  var participants
+
   if (inbox) {
+    participants = inbox.get('participants').toArray()
+  } else {
+    participants = yield select(getPendingConvParticpants, conversationIDKey)
+  }
+
+  if (participants) {
     yield call(teamsTeamCreateRpcPromise, {
       param: {name: {parts: [name]}},
     })
-    const participants = inbox.get('participants').toArray()
+
     for (const username of participants) {
       if (username !== me) {
         yield call(teamsTeamAddMemberRpcPromise, {
