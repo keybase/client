@@ -151,7 +151,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		// member in the team to automatically remove them (so AddMember
 		// can function as a Re-Add).
 		if existingUV.EldestSeqno > uv.EldestSeqno {
-			return keybase1.TeamAddMemberResult{}, fmt.Errorf("EldestSeqno is going backwards")
+			return keybase1.TeamAddMemberResult{}, fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
 		}
 		req.None = []keybase1.UserVersion{existingUV}
 	}
@@ -504,13 +504,13 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 
 	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 	if err != nil {
-		return libkb.NotFoundError{Msg: fmt.Sprintf("user %s has never been a member of this team.", username)}
+		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q has never been a member of this team.", username)}
 	}
 
 	if existingUV.EldestSeqno == uv.EldestSeqno {
-		return libkb.ExistsError{Msg: fmt.Sprintf("user %s has not reset, not need to re-add", username)}
+		return libkb.ExistsError{Msg: fmt.Sprintf("user %q has not reset, no need to re-add", username)}
 	} else if existingUV.EldestSeqno > uv.EldestSeqno {
-		return fmt.Errorf("EldestSeqno going backwards")
+		return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", username, teamID, existingUV.EldestSeqno, uv.EldestSeqno)
 	}
 
 	existingRole, err := t.MemberRole(ctx, existingUV)
