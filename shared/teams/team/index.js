@@ -117,16 +117,18 @@ type CustomProps = {
 
 const CustomComponent = ({onOpenFolder, onManageChat, onShowMenu}: CustomProps) => (
   <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 0, top: 16}}>
-    <Icon
-      onClick={onManageChat}
-      type="iconfont-chat"
-      style={{fontSize: 22, marginRight: globalMargins.tiny}}
-    />
-    <Icon
-      onClick={onOpenFolder}
-      type="iconfont-folder-private"
-      style={{fontSize: 22, marginRight: globalMargins.tiny}}
-    />
+    {!isMobile &&
+      <Icon
+        onClick={onManageChat}
+        type="iconfont-chat"
+        style={{fontSize: 22, marginRight: globalMargins.tiny}}
+      />}
+    {!isMobile &&
+      <Icon
+        onClick={onOpenFolder}
+        type="iconfont-folder-private"
+        style={{fontSize: 22, marginRight: globalMargins.tiny}}
+      />}
     <Icon
       onClick={onShowMenu}
       type="iconfont-ellipsis"
