@@ -1369,6 +1369,7 @@ type serverChatListener struct {
 	leftConv                chan chat1.ConversationID
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
+	identifyUpdate          chan keybase1.CanonicalTLFNameAndIDWithBreaks
 }
 
 func (n *serverChatListener) Logout()                                                             {}
@@ -1387,7 +1388,9 @@ func (n *serverChatListener) KeyfamilyChanged(uid keybase1.UID)                 
 func (n *serverChatListener) PGPKeyInSecretStoreFile()                                            {}
 func (n *serverChatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
 func (n *serverChatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
-func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks)  {}
+func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
+	n.identifyUpdate <- update
+}
 func (n *serverChatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
 func (n *serverChatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
@@ -1429,6 +1432,7 @@ func newServerChatListener() *serverChatListener {
 		leftConv:                make(chan chat1.ConversationID, 100),
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
+		identifyUpdate:          make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 100),
 	}
 }
 
@@ -2517,8 +2521,13 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	}()
 	ctc := makeChatTestContext(t, "ImplicitConversation", 2)
 	defer ctc.cleanup()
+
 	users := ctc.users()
 	displayName := users[0].Username + "," + users[1].Username
+
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().SetService()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 
 	tc := ctc.world.Tcs[users[0].Username]
 	ctx := ctc.as(t, users[0]).startCtx
@@ -2578,6 +2587,17 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
+
+	// check identify updates
+	var update keybase1.CanonicalTLFNameAndIDWithBreaks
+	select {
+	case update = <-listener.identifyUpdate:
+		t.Logf("identify update: %+v", update)
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for identify update")
+	}
+	require.EqualValues(t, update.CanonicalName, ncres.Conv.Info.TlfName)
+	require.Empty(t, update.Breaks.Breaks)
 
 	// user 1 sends a message to conv
 	ctx = ctc.as(t, users[1]).startCtx
