@@ -18,8 +18,6 @@ import {branch} from 'recompose'
 import Notifications from './notifications/container'
 import Participants from './participants'
 
-import type {SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
-
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
   flex: 1,
@@ -33,13 +31,13 @@ const scrollViewStyle = {
 }
 const contentContainerStyle = {...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}
 
-type muteRowProps = {
+type MuteRowProps = {
   muted: boolean,
   onMute: (muted: boolean) => void,
   label: string,
 }
 
-const MuteRow = (props: muteRowProps) => (
+const MuteRow = (props: MuteRowProps) => (
   <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
     <Checkbox
       checked={props.muted}
@@ -57,6 +55,27 @@ const MuteRow = (props: muteRowProps) => (
     />
   </Box>
 )
+
+type infoPanelProps = {
+  muted: boolean,
+  onAddParticipant: () => void,
+  onMuteConversation: (muted: boolean) => void,
+  onShowProfile: (username: string) => void,
+  onToggleInfoPanel: () => void,
+  participants: Array<{
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+    isYou: boolean,
+  }>,
+}
+
+type SmallTeamInfoPanelProps = infoPanelProps & {
+  onShowBlockConversationDialog: () => void,
+  onShowNewTeamDialog: () => void,
+  showTeamButton: boolean,
+}
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
@@ -89,6 +108,12 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
     <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
   </ScrollView>
 )
+
+type BigTeamInfoPanelProps = infoPanelProps & {
+  channelname: string,
+  onLeaveConversation: () => void,
+  teamname: string,
+}
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
@@ -136,4 +161,4 @@ const styleDivider = {
   marginTop: 20,
 }
 
-export {SmallTeamInfoPanel, BigTeamInfoPanel}
+export {SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}

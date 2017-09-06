@@ -84,8 +84,7 @@ class Avatars extends PureComponent<AvatarProps> {
 
 const multiStyle = memoize(backgroundColor => {
   return {
-    ...(isMobile ? {paddingBottom: 10, paddingTop: 10} : {}),
-    backgroundColor,
+    ...(isMobile ? {paddingBottom: 10, paddingTop: 10, backgroundColor} : {}),
     height: '100%',
     width: '100%',
   }
@@ -129,15 +128,15 @@ class TeamAvatar extends PureComponent<{teamname: string}> {
 }
 
 const avatarMutedIconStyle = {
-  marginLeft: -globalMargins.small,
-  marginTop: 32,
-  zIndex: 1,
+  bottom: 5,
+  position: 'absolute',
+  right: 0,
 }
 
 const avatarLockIconStyle = {
-  marginLeft: -10,
-  marginTop: 20,
-  zIndex: 1,
+  bottom: 5,
+  position: 'absolute',
+  right: 0,
 }
 
 export {Avatars, TeamAvatar}

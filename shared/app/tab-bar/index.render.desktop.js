@@ -16,6 +16,8 @@ const _icons = {
   [Tabs.profileTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
   [Tabs.searchTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
   [Tabs.settingsTab]: {selected: 'icon-nav-settings-selected-32', unselected: 'icon-nav-settings-32'},
+  // TODO: Use teams icon when it becomes available.
+  [Tabs.teamsTab]: {selected: 'icon-nav-chat-selected-32', unselected: 'icon-nav-chat-32'},
 }
 
 const _labels = {
@@ -26,12 +28,14 @@ const _labels = {
   [Tabs.profileTab]: 'People',
   [Tabs.searchTab]: 'Search',
   [Tabs.settingsTab]: 'Settings',
+  [Tabs.teamsTab]: 'Teams',
 }
 
 const _tabs = [
   ...(flags.tabPeopleEnabled ? [Tabs.profileTab] : []),
   Tabs.folderTab,
   Tabs.chatTab,
+  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : []),
   Tabs.devicesTab,
   Tabs.settingsTab,
 ].filter(Boolean)
@@ -68,8 +72,8 @@ const stylesTabBar = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue2,
   justifyContent: 'flex-start',
-  paddingTop: 15,
   paddingBottom: 15,
+  paddingTop: 15,
   width: 80,
 }
 

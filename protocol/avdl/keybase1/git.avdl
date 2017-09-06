@@ -1,0 +1,42 @@
+@namespace("keybase.1")
+
+protocol git {
+  import idl "common.avdl";
+  // for Folder and FolderType -- maybe these should be in kbfs_common?
+  import idl "favorite.avdl";
+
+  @typedef("string")
+  record RepoID {}
+
+  // Right now, the only metadata in our locally-encrypted-then-server-stored
+  // blob is the name of the repo. Everything else (mtime, last editing user)
+  // is inferred by the server based on who's doing the push, and stored in the
+  // clear.
+  record GitLocalMetadata {
+    string repoName;
+  }
+
+  // Additional metadata maintained by the server, returned with query results.
+  record GitServerMetadata {
+    Time ctime;
+    Time mtime;
+    string lastModifyingUsername;
+    DeviceID lastModifyingDeviceID;
+  }
+
+  void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata);
+
+  record GitRepoResult {
+    Folder folder;
+    RepoID repoID;
+    GitLocalMetadata localMetadata;
+    GitServerMetadata serverMetadata;
+  }
+
+  // fetch git repos for a single team / implicit team
+  // (note that non-team TLFs are mapped to implicit teams on the core side of this)
+  array<GitRepoResult> getGitMetadata(Folder folder);
+
+  // fetch git repos for all teams that the user has access to
+  array<GitRepoResult> getAllGitMetadata();
+}

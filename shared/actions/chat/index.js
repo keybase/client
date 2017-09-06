@@ -45,7 +45,7 @@ import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 import type {Action} from '../../constants/types/flux'
 import type {KBOrderedSet} from '../../constants/types/more'
-import type {ChangedFocus} from '../../constants/app'
+import type {ChangedFocus, ChangedActive} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -92,7 +92,10 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       return
     case ChatTypes.NotifyChatChatActivityType.readMessage:
       if (action.payload.activity.readMessage) {
-        yield call(Inbox.processConversation, action.payload.activity.readMessage.conv)
+        const inboxUIItem: ?ChatTypes.InboxUIItem = action.payload.activity.readMessage.conv
+        if (inboxUIItem) {
+          yield call(Inbox.processConversation, inboxUIItem)
+        }
       }
       return
     case ChatTypes.NotifyChatChatActivityType.incomingMessage:
@@ -114,6 +117,9 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const yourDeviceName = yield select(Shared.devicenameSelector)
         const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
+        if (message.type === 'Unhandled') {
+          return
+        }
         const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
         const pagination = incomingMessage.pagination
@@ -328,7 +334,10 @@ function* _updateThread({
       // about to add a newly received version of the same message.
       yield put(Creators.removeOutboxMessage(conversationIDKey, message.outboxID))
     }
-    newMessages.push(message)
+
+    if (message.type !== 'Unhandled') {
+      newMessages.push(message)
+    }
   }
 
   newMessages = newMessages.reverse()
@@ -944,6 +953,24 @@ function* _changedFocus(action: ChangedFocus): SagaGenerator<any, any> {
   }
 }
 
+function* _changedActive(action: ChangedActive): SagaGenerator<any, any> {
+  // Update badging and the latest message due to changing active state.
+  const {userActive} = action.payload
+  const appFocused = yield select(Shared.focusedSelector)
+  const conversationIDKey = yield select(Constants.getSelectedConversation)
+  const selectedTab = yield select(Shared.routeSelector)
+  const chatTabSelected = selectedTab === chatTab
+  // Only do this if focus is retained - otherwise, focus changing logic prevails
+  if (conversationIDKey && chatTabSelected && appFocused) {
+    if (userActive) {
+      yield put(Creators.updateBadging(conversationIDKey))
+    } else {
+      // Reset the orange line when becoming inactive
+      yield put(Creators.updateLatestMessage(conversationIDKey))
+    }
+  }
+}
+
 function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
   let conversationsWithKeys = {}
@@ -1308,6 +1335,7 @@ function attachmentLoaded(action: Constants.AttachmentLoaded) {
 
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
+  yield Saga.safeTakeEvery('app:changedActive', _changedActive)
   yield Saga.safeTakeEvery('chat:appendMessages', _sendNotifications)
   yield Saga.safeTakeEvery('chat:clearMessages', _clearConversationMessages)
   yield Saga.safeTakeEvery(['chat:appendMessages', 'chat:prependMessages'], _storeMessageToEntity)
