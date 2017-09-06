@@ -230,7 +230,6 @@ const settingsNavBase = {
     console.log('onTabChange', tab)
   },
   onLogout: () => {},
-  showComingSoon: false,
 }
 
 const settingsContainerMap: DumbComponentMap<SettingsContainer> = {

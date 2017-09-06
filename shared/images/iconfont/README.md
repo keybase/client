@@ -16,9 +16,9 @@
 1. run `yarn run generate-font-project` (this updates our Icon constants for you)
 1. On icomoon.io import the generated project [menu -> Projects -> Import Project -> kb-icomoon-project-generated.json]
 1. Generate font and download
-1. Unzip kb.zip into `./kb/` in `shared/fonts`.
+1. Unzip kb.zip into `./kb/` in `shared/images/iconfont`.
 1. run `yarn run apply-new-fonts`
-1. Delete `./kb/`
+1. Delete `shared/images/iconfont/kb/`
 
 ## Phase 4: Fix Vertical Metrics
 

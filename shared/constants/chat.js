@@ -29,6 +29,7 @@ import type {
   TyperInfo,
   ConversationStaleUpdate,
 } from './types/flow-types-chat'
+import {CommonTLFVisibility} from './types/flow-types'
 import type {DeviceType, KBRecord, KBOrderedSet} from './types/more'
 import type {TypedState} from './reducer'
 
@@ -289,7 +290,7 @@ export const InboxStateRecord = Record({
   status: 'unfiled',
   time: 0,
   name: '',
-  visibility: ChatTypes.CommonTLFVisibility.private,
+  visibility: CommonTLFVisibility.private,
 })
 
 export type InboxState = KBRecord<{
@@ -668,14 +669,6 @@ export type SaveAttachment = NoErrorTypedAction<
   }
 >
 
-export type CreateNewTeam = NoErrorTypedAction<
-  'chat:createNewTeam',
-  {
-    conversationIDKey: ConversationIDKey,
-    name: string,
-  }
->
-
 export type AttachmentSaveStart = NoErrorTypedAction<
   'chat:attachmentSaveStart',
   {
@@ -777,7 +770,6 @@ export type Actions =
   | AddPendingConversation
   | AppendMessages
   | ClearRekey
-  | CreateNewTeam
   | DeleteMessage
   | EditMessage
   | ShowEditor

@@ -25,7 +25,7 @@ type CryptKey interface {
 }
 
 type NameInfoSource interface {
-	Lookup(ctx context.Context, name string, vis chat1.TLFVisibility) (NameInfo, error)
+	Lookup(ctx context.Context, name string, vis keybase1.TLFVisibility) (NameInfo, error)
 }
 
 type ConversationSource interface {

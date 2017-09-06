@@ -4,8 +4,8 @@ import type {NotifyType} from '../../../../constants/chat'
 
 export type Props = {
   channelWide: boolean,
-  desktop: string,
-  mobile: string,
+  desktop: NotifyType,
+  mobile: NotifyType,
   onSetDesktop: NotifyType => void,
   onSetMobile: NotifyType => void,
   onToggleChannelWide: () => void,

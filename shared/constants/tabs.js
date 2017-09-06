@@ -9,6 +9,7 @@ const peopleTab = 'tabs:peopleTab'
 const profileTab = 'tabs:profileTab'
 const searchTab = 'tabs:searchTab'
 const settingsTab = 'tabs:settingsTab'
+const teamsTab = 'tabs:teamsTab'
 
 type ChatTab = 'tabs:chatTab'
 type DevicesTab = 'tabs:devicesTab'
@@ -18,6 +19,7 @@ type PeopleTab = 'tabs:peopleTab'
 type ProfileTab = 'tabs:profileTab'
 type SearchTab = 'tabs:searchTab'
 type SettingsTab = 'tabs:settingsTab'
+type TeamsTab = 'tabs:teamsTab'
 
 export type Tab =
   | ChatTab
@@ -28,12 +30,13 @@ export type Tab =
   | ProfileTab
   | SettingsTab
   | SearchTab
+  | TeamsTab
 
 function isValidInitialTab(tab: ?Tab) {
   if (isMobile) {
     return [chatTab, folderTab, profileTab, searchTab, settingsTab].includes(tab)
   } else {
-    return [chatTab, folderTab, profileTab, devicesTab, searchTab, settingsTab].includes(tab)
+    return [chatTab, folderTab, profileTab, devicesTab, searchTab, settingsTab, teamsTab].includes(tab)
   }
 }
 
@@ -47,4 +50,5 @@ export {
   profileTab,
   searchTab,
   settingsTab,
+  teamsTab,
 }

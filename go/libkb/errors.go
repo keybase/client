@@ -1358,6 +1358,15 @@ func (e IdentifyFailedError) Error() string {
 
 //=============================================================================
 
+type IdentifiesFailedError struct {
+}
+
+func (e IdentifiesFailedError) Error() string {
+	return "one or more identifies failed"
+}
+
+//=============================================================================
+
 type IdentifySummaryError struct {
 	username NormalizedUsername
 	problems []string

@@ -56,7 +56,7 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 	// msgV1.ClientHeader.{Sender,SenderDevice} are filled by service
 	msg.ClientHeader.Conv = conversationInfo.Triple
 	msg.ClientHeader.TlfName = conversationInfo.TlfName
-	msg.ClientHeader.TlfPublic = (conversationInfo.Visibility == chat1.TLFVisibility_PUBLIC)
+	msg.ClientHeader.TlfPublic = (conversationInfo.Visibility == keybase1.TLFVisibility_PUBLIC)
 
 	// Whether the user is really sure they want to send to the selected conversation.
 	// We require an additional confirmation if the choose menu was used.

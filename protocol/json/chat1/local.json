@@ -868,6 +868,24 @@
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentionUsernames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
         }
       ]
     },
@@ -997,7 +1015,7 @@
           "name": "topicName"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {
@@ -1369,7 +1387,7 @@
         {
           "type": [
             null,
-            "TLFVisibility"
+            "keybase1.TLFVisibility"
           ],
           "name": "tlfVisibility"
         },
@@ -1562,7 +1580,7 @@
           "name": "before"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {
@@ -2216,6 +2234,67 @@
       ],
       "response": "PostLocalNonblockRes"
     },
+    "postHeadlineNonblock": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "headline",
+          "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
+    },
+    "postHeadline": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "headline",
+          "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
     "SetConversationStatusLocal": {
       "request": [
         {
@@ -2246,7 +2325,7 @@
         },
         {
           "name": "tlfVisibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "topicName",
@@ -2325,7 +2404,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "attachment",
@@ -2369,7 +2448,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "attachment",
@@ -2523,7 +2602,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "topicType",
@@ -2572,7 +2651,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "topicName",
