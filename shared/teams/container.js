@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import Teams from '.'
+import Teams from './main'
 import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 import {getTeams} from '../actions/teams/creators'
