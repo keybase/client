@@ -31,26 +31,28 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
       }}
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
-        <Avatar size={32} teamname={name} isTeam={true} />
+        <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
         <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
           {name}
         </Text>
       </ClickableBox>
-      <Icon
-        type="iconfont-folder-private"
-        onClick={e => {
-          e.stopPropagation()
-          onOpenFolder()
-        }}
-      />
-      <Icon
-        type="iconfont-chat"
-        style={{marginLeft: globalMargins.small}}
-        onClick={e => {
-          e.stopPropagation()
-          onManageChat()
-        }}
-      />
+      {!isMobile &&
+        <Icon
+          type="iconfont-folder-private"
+          onClick={e => {
+            e.stopPropagation()
+            onOpenFolder()
+          }}
+        />}
+      {!isMobile &&
+        <Icon
+          type="iconfont-chat"
+          style={{marginLeft: globalMargins.small}}
+          onClick={e => {
+            e.stopPropagation()
+            onManageChat()
+          }}
+        />}
     </Box>
     {!isMobile && <Divider style={{marginLeft: 44}} />}
   </Box>
@@ -79,7 +81,7 @@ const TeamList = (props: Props) => (
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   flexShrink: 0,
-  minHeight: 48,
+  minHeight: isMobile ? 64 : 48,
 }
 
 export default TeamList

@@ -35,6 +35,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
+  headerStyle: {borderBottomWidth: 0},
   members: stateProps._memberInfo.toJS().sort((a, b) => a.username.localeCompare(b.username)),
 })
 
