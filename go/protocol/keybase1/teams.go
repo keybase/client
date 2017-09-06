@@ -47,23 +47,26 @@ func (e TeamRole) String() string {
 type TeamApplication int
 
 const (
-	TeamApplication_KBFS     TeamApplication = 1
-	TeamApplication_CHAT     TeamApplication = 2
-	TeamApplication_SALTPACK TeamApplication = 3
+	TeamApplication_KBFS         TeamApplication = 1
+	TeamApplication_CHAT         TeamApplication = 2
+	TeamApplication_SALTPACK     TeamApplication = 3
+	TeamApplication_GIT_METADATA TeamApplication = 4
 )
 
 func (o TeamApplication) DeepCopy() TeamApplication { return o }
 
 var TeamApplicationMap = map[string]TeamApplication{
-	"KBFS":     1,
-	"CHAT":     2,
-	"SALTPACK": 3,
+	"KBFS":         1,
+	"CHAT":         2,
+	"SALTPACK":     3,
+	"GIT_METADATA": 4,
 }
 
 var TeamApplicationRevMap = map[TeamApplication]string{
 	1: "KBFS",
 	2: "CHAT",
 	3: "SALTPACK",
+	4: "GIT_METADATA",
 }
 
 func (e TeamApplication) String() string {
