@@ -34,17 +34,31 @@ func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
 
 func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnboxed, err error) {
 	tctx := u.primaryDevice().popClone()
-	for i := 0; i < 5; i++ {
+
+	wait := 100 * time.Millisecond
+	var totalWait time.Duration
+	for i := 0; i < 20; i++ {
 		runner := client.NewCmdChatReadRunner(tctx.G)
 		runner.SetTeamChatForTest(team.name)
 		_, messages, err = runner.Fetch()
+
 		if err == nil {
+			if i != 0 {
+				u.ctx.t.Logf("readChatsWithError success after retrying %d times, polling for %s", i, totalWait)
+			}
+			return messages, nil
+		}
+
+		if !strings.Contains(err.Error(), "KBFS client not found") {
+			// Only retry on KBFS errors
 			return messages, err
 		}
 
-		time.Sleep(250 * time.Millisecond)
+		time.Sleep(wait)
+		totalWait += wait
 	}
 
+	u.ctx.t.Logf("Failed to readChatsWithError after polling for %s", totalWait)
 	return messages, err
 }
 
