@@ -220,7 +220,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		return res, err
 	}
 
-	lookupNameStr, err := teams.FormatImplicitTeamDisplayName(context.TODO(), h.G(), lookupName)
+	lookupNameStr, err := teams.FormatImplicitTeamDisplayName(ctx, h.G(), lookupName)
 	if err != nil {
 		return res, err
 	}
@@ -248,9 +248,9 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 			return res, err
 		}
 		// display name with the logged-in user first
-		displayNameKBFS, err = teams.FormatImplicitTeamDisplayNameWithUserFront(context.TODO(), h.G(), impName, name)
+		displayNameKBFS, err = teams.FormatImplicitTeamDisplayNameWithUserFront(ctx, h.G(), impName, name)
 	} else {
-		displayNameKBFS, err = teams.FormatImplicitTeamDisplayName(context.TODO(), h.G(), impName)
+		displayNameKBFS, err = teams.FormatImplicitTeamDisplayName(ctx, h.G(), impName)
 	}
 	if err != nil {
 		return res, err
