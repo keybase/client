@@ -5,6 +5,7 @@ import NewTeamDialog from './new-team/container'
 import ManageChannels from '../chat/manage-channels/container'
 import ReallyLeaveTeam from './really-leave-team/container'
 import Team from './team/container'
+import {isMobile} from '../constants/platform'
 
 const routeTree = new RouteDefNode({
   children: {
@@ -28,7 +29,7 @@ const routeTree = new RouteDefNode({
         reallyLeaveTeam: {
           children: {},
           component: ReallyLeaveTeam,
-          tags: {layerOnTop: true},
+          tags: {layerOnTop: !isMobile},
         },
       },
       component: Team,
