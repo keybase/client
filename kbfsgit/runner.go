@@ -29,6 +29,7 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/storage"
 )
 
 const (
@@ -238,7 +239,7 @@ func (r *runner) printDoneOrErr(
 	}
 }
 
-func (r *runner) initRepoIfNeeded(ctx context.Context) (
+func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	repo *gogit.Repository, err error) {
 	// This function might be called multiple times per function, but
 	// the subsequent calls will use the local cache.  So only print
@@ -265,17 +266,51 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 	// backslashes in remote URLs, and 2) we don't want to persist the
 	// remotes anyway since they'll contain local paths and wouldn't
 	// make sense to other devices, plus that could leak local info.
-	storer, err := newConfigWithoutRemotesStorer(fs)
+	var storage storage.Storer
+	storage, err = newConfigWithoutRemotesStorer(fs)
 	if err != nil {
 		return nil, err
+	}
+
+	if forCmd == gitCmdFetch {
+		r.log.CDebugf(ctx, "Using on-demand storer")
+		// Wrap it in an on-demand storer, so we don't try to read all the
+		// objects of big repos into memory at once.
+		storage, err = newOnDemandStorer(storage)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	config, err := storage.Config()
+	if err != nil {
+		return nil, err
+	}
+	if config.Pack.Window > 0 {
+		// Turn delta compression off, both to avoid messing up the
+		// on-demand storer, and to avoid the unnecessary computation
+		// since we're not transferring the objects over a network.
+		// TODO: this results in uncompressed local git repo after
+		// fetches, so we should either run:
+		//
+		// `git repack -a -d -f --depth=250 --window=250` as needed.
+		// (via https://stackoverflow.com/questions/7102053/git-pull-without-remotely-compressing-objects)
+		//
+		// or we should document that the user should do so.
+		r.log.CDebugf(ctx, "Disabling pack compression by using a 0 window")
+		config.Pack.Window = 0
+		err = storage.SetConfig(config)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// TODO: This needs to take a server lock when initializing a
 	// repo.
 	r.log.CDebugf(ctx, "Attempting to init or open repo %s", r.repo)
-	repo, err = gogit.Init(storer, nil)
+	repo, err = gogit.Init(storage, nil)
 	if err == gogit.ErrRepositoryAlreadyExists {
-		repo, err = gogit.Open(storer, nil)
+		repo, err = gogit.Open(storage, nil)
 	}
 	if err != nil {
 		return nil, err
@@ -412,7 +447,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		return errors.Errorf("Bad list request: %v", args)
 	}
 
-	repo, err := r.initRepoIfNeeded(ctx)
+	repo, err := r.initRepoIfNeeded(ctx, gitCmdList)
 	if err != nil {
 		return err
 	}
@@ -647,7 +682,7 @@ func (r *runner) recursiveCopy(
 // a single ref will show up for the user.  TODO: Maybe we should run
 // `git gc` for the user on the local repo?
 func (r *runner) handleClone(ctx context.Context) (err error) {
-	_, err = r.initRepoIfNeeded(ctx)
+	_, err = r.initRepoIfNeeded(ctx, "clone")
 	if err != nil {
 		return err
 	}
@@ -720,7 +755,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 // suitably updated.
 func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 	err error) {
-	repo, err := r.initRepoIfNeeded(ctx)
+	repo, err := r.initRepoIfNeeded(ctx, gitCmdFetch)
 	if err != nil {
 		return err
 	}
@@ -822,7 +857,7 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 // an LF.
 func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	err error) {
-	repo, err := r.initRepoIfNeeded(ctx)
+	repo, err := r.initRepoIfNeeded(ctx, gitCmdPush)
 	if err != nil {
 		return err
 	}
