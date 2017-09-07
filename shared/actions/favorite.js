@@ -167,6 +167,9 @@ function _getFavoritesRPCToFolders(
     return []
   }
 
+  // kill team folders for now
+  json.favorites = json.favorites.filter(f => f.folderType !== FavoriteFolderType.team)
+
   const myKID = findKey(json.users, name => name === username)
 
   // inject our meta tag
