@@ -30,7 +30,7 @@ const (
 // internal reason to be so restrictive, but it probably makes sense
 // to start off more restrictive and then relax things later as we
 // test.
-var repoNameRE = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_.-]+)$`)
+var repoNameRE = regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_\.-]*)$`)
 
 func checkValidRepoName(repoName string, config libkbfs.Config) bool {
 	return len(repoName) >= 1 &&

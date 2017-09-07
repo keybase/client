@@ -61,6 +61,10 @@ func TestRepo(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, id1, id3)
 
+	// A one letter repo name is ok.
+	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "r", "")
+	require.NoError(t, err)
+
 	// Invalid names.
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, ".repo2", "")
 	require.NotNil(t, err)
