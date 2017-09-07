@@ -216,10 +216,12 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	}
 }
 
-func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
-	ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata,
-	lifetime BlockCacheLifetime, deepPrefetchDoneCh,
-	deepPrefetchCancelCh chan<- struct{}, didUpdateCh <-chan struct{}) {
+func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(ptr BlockPointer,
+	block Block, kmd KeyMetadata, lifetime BlockCacheLifetime,
+	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{},
+	didUpdateCh <-chan struct{}) {
+	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
+	defer cancel()
 	prefetcher := brq.Prefetcher()
 	childPrefetchDoneCh, childPrefetchCancelCh, numBlocks :=
 		prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
@@ -234,10 +236,13 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
 				// prefetching.
 				continue
 			case <-ctx.Done():
+				brq.log.Warning("Prefetch canceled for block %s", ptr.ID)
 				deepPrefetchCancelCh <- struct{}{}
 				return
 			case <-childPrefetchCancelCh:
 				// One error means this block didn't finish prefetching.
+				brq.log.Warning("Prefetch canceled for block %s due to "+
+					"downstream failure", ptr.ID)
 				deepPrefetchCancelCh <- struct{}{}
 				return
 			case <-prefetcher.ShutdownCh():
@@ -262,8 +267,11 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
 		if err != nil {
 			brq.log.CWarningf(ctx, "Error updating disk cache after "+
 				"prefetch: %+v", err)
+			deepPrefetchCancelCh <- struct{}{}
+			return
 		}
 	}
+	brq.log.CDebugf(ctx, "Finished prefetching for block %s", ptr.ID)
 	// Now prefetching is actually done.
 	deepPrefetchDoneCh <- struct{}{}
 }
@@ -343,7 +351,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	// at this point that we've prefetched.
 	prefetchStatus = TriggeredPrefetch
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
-		lifetime, TriggeredPrefetch)
+		lifetime, prefetchStatus)
 	switch err.(type) {
 	case nil:
 	case cachePutCacheFullError:
@@ -358,7 +366,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
-	go brq.triggerAndMonitorPrefetch(ctx, ptr, block, kmd, lifetime,
+	go brq.triggerAndMonitorPrefetch(ptr, block, kmd, lifetime,
 		deepPrefetchDoneCh, deepPrefetchCancelCh, didUpdateCh)
 	return nil
 }
