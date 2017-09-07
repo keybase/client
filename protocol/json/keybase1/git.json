@@ -44,7 +44,7 @@
       "name": "GitLocalMetadata",
       "fields": [
         {
-          "type": "string",
+          "type": "GitRepoName",
           "name": "repoName"
         }
       ]

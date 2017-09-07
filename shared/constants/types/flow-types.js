@@ -631,6 +631,14 @@ export function BTCRegisterBTCRpcPromise (request: (requestCommon & requestError
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.BTC.registerBTC', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function KBFSGitCreateRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: KBFSGitCreateRepoResult) => void} & {param: KBFSGitCreateRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.createRepo', request)
+}
+
+export function KBFSGitCreateRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: KBFSGitCreateRepoResult) => void} & {param: KBFSGitCreateRepoRpcParam})): Promise<KBFSGitCreateRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function Kex2Provisionee2DidCounterSign2RpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
 }
@@ -3244,8 +3252,10 @@ export type GetTLFCryptKeysRes = {
 }
 
 export type GitLocalMetadata = {
-  repoName: string,
+  repoName: GitRepoName,
 }
+
+export type GitRepoName = string
 
 export type GitRepoResult = {
   folder: Folder,
@@ -3396,6 +3406,11 @@ export type InterestingPerson = {
   uid: UID,
   username: string,
 }
+
+export type KBFSGitCreateRepoRpcParam = Exact<{
+  folder: Folder,
+  name: GitRepoName
+}>
 
 export type KID = string
 
@@ -6154,6 +6169,7 @@ export type userProfileEditRpcParam = Exact<{
 export type userSearchRpcParam = Exact<{
   query: string
 }>
+type KBFSGitCreateRepoResult = RepoID
 type Kex2Provisionee2Hello2Result = Hello2Res
 type Kex2ProvisioneeHelloResult = HelloRes
 type SecretKeysGetSecretKeysResult = SecretKeys

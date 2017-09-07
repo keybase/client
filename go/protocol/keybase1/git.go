@@ -36,12 +36,12 @@ func (o RepoID) DeepCopy() RepoID {
 }
 
 type GitLocalMetadata struct {
-	RepoName string `codec:"repoName" json:"repoName"`
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
 }
 
 func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 	return GitLocalMetadata{
-		RepoName: o.RepoName,
+		RepoName: o.RepoName.DeepCopy(),
 	}
 }
 
