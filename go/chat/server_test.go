@@ -824,6 +824,7 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 		listener := newServerChatListener()
 		ctc.as(t, users[1]).h.G().SetService()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+		ctx := ctc.as(t, users[0]).startCtx
 
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user())
@@ -844,6 +845,60 @@ func TestChatSrvPostLocalAtMention(t *testing.T) {
 			require.Fail(t, "no new message")
 		}
 
+		// Test that edits work
+		postRes, err := ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+			ConversationID: created.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        created.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     created.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "HI",
+				}),
+			},
+		})
+		require.NoError(t, err)
+		consumeNewMsg(t, listener, chat1.MessageType_TEXT)
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+			ConversationID: created.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        created.Triple,
+					MessageType: chat1.MessageType_EDIT,
+					TlfName:     created.TlfName,
+					Supersedes:  postRes.MessageID,
+				},
+				MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
+					MessageID: postRes.MessageID,
+					Body:      fmt.Sprintf("@%s", users[1].Username),
+				}),
+			},
+		})
+		require.NoError(t, err)
+		select {
+		case info := <-listener.newMessage:
+			require.True(t, info.Message.IsValid())
+			require.Equal(t, chat1.MessageType_EDIT, info.Message.GetMessageType())
+			require.Equal(t, 1, len(info.Message.Valid().AtMentions))
+			require.Equal(t, users[1].Username, info.Message.Valid().AtMentions[0])
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
+		threadRes, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+			ConversationID: created.Id,
+			Query: &chat1.GetThreadQuery{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+			},
+		})
+		require.NoError(t, err)
+		require.Equal(t, 2, len(threadRes.Thread.Messages))
+		require.True(t, threadRes.Thread.Messages[0].IsValid())
+		require.Equal(t, 1, len(threadRes.Thread.Messages[0].Valid().AtMentionUsernames))
+		require.Equal(t, users[1].Username, threadRes.Thread.Messages[0].Valid().AtMentionUsernames[0])
+
+		// Make sure @channel works
 		mustPostLocalForTest(t, ctc, users[0], created,
 			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "@channel"}))
 		select {
