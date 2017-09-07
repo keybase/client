@@ -6,8 +6,10 @@ package service
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -278,9 +280,26 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 	}
 
 	if arg.DoIdentifies {
-		var identifyError error
-		// Identify everyone who resolved, checking that they match their resolved UID and original assertions.
-		for _, resolvedAssertion := range resolvedAssertions {
+		return h.resolveIdentifyImplicitTeamDoIdentifies(ctx, arg, res, resolvedAssertions)
+	}
+	return res, nil
+}
+
+func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
+	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []resolvedAssertion) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
+
+	// errgroup collects errors and returns the first non-nil.
+	// subctx is canceled when the group finishes.
+	group, subctx := errgroup.WithContext(ctx)
+
+	// lock guarding res.TrackBreaks
+	var trackBreaksLock sync.Mutex
+
+	// Identify everyone who resolved in parallel, checking that they match their resolved UID and original assertions.
+	for _, resolvedAssertion := range resolvedAssertions {
+		resolvedAssertion := resolvedAssertion // https://golang.org/doc/faq#closures_and_goroutines
+		group.Go(func() error {
+			h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String())
 
 			id2arg := keybase1.Identify2Arg{
 				SessionID:             arg.SessionID,
@@ -305,30 +324,34 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 				LogUI:      logui,
 				IdentifyUI: iui,
 				SessionID:  arg.SessionID,
-				NetContext: ctx,
+				NetContext: subctx,
 			}
 
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
-			err = engine.RunEngine(eng, &engCtx)
+			err := engine.RunEngine(eng, &engCtx)
 			idRes := eng.Result()
 			if err != nil {
-				h.G().Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
-				identifyError = libkb.NewIdentifiesFailedError()
+				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 				if idRes != nil && idRes.TrackBreaks != nil {
+					trackBreaksLock.Lock()
+					defer trackBreaksLock.Unlock()
 					if res.TrackBreaks == nil {
 						res.TrackBreaks = make(map[keybase1.UserVersion]keybase1.IdentifyTrackBreaks)
 					}
 					res.TrackBreaks[idRes.Upk.ToUserVersion()] = *idRes.TrackBreaks
 				}
+				return err
 			}
-		}
-		if identifyError != nil {
-			// Return the error together with a populated response.
-			return res, identifyError
-		}
+			return nil
+		})
 	}
 
-	return res, nil
+	err := group.Wait()
+	if err != nil {
+		// Return the masked error together with a populated response.
+		return res, libkb.NewIdentifiesFailedError()
+	}
+	return res, err
 }
 
 // Parse a string into one or more assertions. Only AND assertions are allowed within each part.
