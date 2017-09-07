@@ -234,10 +234,10 @@ const BadgeIcon = ({
   }
 
   const iconType = {
-    [folderTab]: 'iconfont-folder',
-    [profileTab]: 'iconfont-people',
-    [chatTab]: 'iconfont-chat',
-    [devicesTab]: 'iconfont-device',
+    [folderTab]: 'iconfont-nav-folders',
+    [profileTab]: 'iconfont-nav-people',
+    [chatTab]: 'iconfont-nav-chat',
+    [devicesTab]: 'iconfont-nav-devices',
     // $FlowIssue TODO
   }[tab]
 

@@ -1,0 +1,23 @@
+// @flow
+import {connect} from 'react-redux'
+import * as Creators from '../../actions/teams/creators'
+import ReallyLeaveTeam from '.'
+import {navigateTo} from '../../actions/route-tree'
+import {teamsTab} from '../../constants/tabs'
+
+import type {TypedState} from '../../constants/reducer'
+
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  name: routeProps.teamname,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+  onClose: () => dispatch(navigateUp()),
+  onLeave: () => {
+    dispatch(Creators.leaveTeam(routeProps.teamname))
+    dispatch(navigateTo([teamsTab]))
+    dispatch(Creators.getTeams())
+  },
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(ReallyLeaveTeam)
