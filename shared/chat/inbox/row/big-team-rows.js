@@ -67,7 +67,7 @@ class BigTeamChannelRow extends PureComponent<ChannelProps> {
                 color: this.props.isSelected ? globalColors.white : globalColors.black_75,
               }}
             >
-              {this.props.channelname}
+              #{this.props.channelname}
             </Text>
             {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
             {this.props.hasUnread && <UnreadIcon />}
