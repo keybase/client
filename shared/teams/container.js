@@ -13,6 +13,7 @@ import type {Teamname} from '../constants/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
+  loaded: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
