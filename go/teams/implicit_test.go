@@ -103,7 +103,7 @@ func TestImplicitPukless(t *testing.T) {
 	u1Role, err := team.chain().GetUserRole(fus[1].GetUserVersion())
 	require.True(t, err != nil || u1Role == keybase1.TeamRole_NONE, "u1 should not yet be a member")
 	t.Logf("invites: %v", spew.Sdump(team.chain().inner.ActiveInvites))
-	invite, err := team.chain().FindActiveInvite(fus[1].GetUserVersion().Uid.String(), "keybase")
+	invite, err := team.chain().FindActiveInvite(fus[1].GetUserVersion().PercentForm(), "keybase")
 	require.NoError(t, err, "team should have invite for the puk-less user")
 	require.Equal(t, keybase1.TeamRole_OWNER, invite.Role)
 	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
