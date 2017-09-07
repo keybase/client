@@ -901,6 +901,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Triple:      conversationRemote.Metadata.IdTriple,
 		Status:      conversationRemote.Metadata.Status,
 		MembersType: conversationRemote.Metadata.MembersType,
+		TeamType:    conversationRemote.Metadata.TeamType,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {

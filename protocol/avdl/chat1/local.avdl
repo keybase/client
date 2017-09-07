@@ -354,6 +354,7 @@ protocol local {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;

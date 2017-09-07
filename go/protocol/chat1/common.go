@@ -202,6 +202,35 @@ var TopicTypeRevMap = map[TopicType]string{
 	2: "DEV",
 }
 
+type TeamType int
+
+const (
+	TeamType_NONE    TeamType = 0
+	TeamType_SIMPLE  TeamType = 1
+	TeamType_COMPLEX TeamType = 2
+)
+
+func (o TeamType) DeepCopy() TeamType { return o }
+
+var TeamTypeMap = map[string]TeamType{
+	"NONE":    0,
+	"SIMPLE":  1,
+	"COMPLEX": 2,
+}
+
+var TeamTypeRevMap = map[TeamType]string{
+	0: "NONE",
+	1: "SIMPLE",
+	2: "COMPLEX",
+}
+
+func (e TeamType) String() string {
+	if v, ok := TeamTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type NotificationKind int
 
 const (
@@ -566,6 +595,7 @@ type ConversationMetadata struct {
 	Visibility     keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
 	Status         ConversationStatus        `codec:"status" json:"status"`
 	MembersType    ConversationMembersType   `codec:"membersType" json:"membersType"`
+	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -580,6 +610,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		Visibility:     o.Visibility.DeepCopy(),
 		Status:         o.Status.DeepCopy(),
 		MembersType:    o.MembersType.DeepCopy(),
+		TeamType:       o.TeamType.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
