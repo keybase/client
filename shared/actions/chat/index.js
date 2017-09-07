@@ -863,7 +863,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
-  if (inbox) {
+  if (inbox && !inbox.teamname) {
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
