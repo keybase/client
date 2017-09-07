@@ -47,6 +47,7 @@ func setupBox(t *testing.T) (libkb.TestContext, *Crypto, keybase1.TeamIDWithVisi
 	require.NotNil(tc.T, boxed)
 	require.EqualValues(tc.T, boxed.Gen, 1)
 	require.Len(tc.T, boxed.N, libkb.NaclDHNonceSize)
+	require.NotZero(tc.T, boxed.N)
 	require.NotEmpty(tc.T, boxed.E)
 
 	return tc, c, teamSpec, boxed
