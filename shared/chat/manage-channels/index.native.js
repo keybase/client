@@ -66,6 +66,7 @@ const _headerStyle = {
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
   height: '100%',
   padding: 16,
   width: '100%',
