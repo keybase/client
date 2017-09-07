@@ -490,9 +490,6 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	}
 
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d, "+
-			"prefetchStatus=%s err=%+v", blockID, tlfID, len(buf),
-			prefetchStatus.String(), err)
 		if err == nil {
 			cache.hitMeter.Mark(1)
 		} else {
