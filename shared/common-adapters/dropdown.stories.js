@@ -26,7 +26,7 @@ const load = () => {
           <Text type="Header" key="two">Two</Text>,
           <Text type="Header" key="three">Three</Text>,
         ]}
-        onChanged={action('onChange')}
+        onChanged={action('onChanged')}
       />
       <Dropdown
         items={[
@@ -35,7 +35,7 @@ const load = () => {
           <Text type="Header" key="two">Two</Text>,
           <Text type="Header" key="trhee">Three</Text>,
         ]}
-        onChanged={action('onChange')}
+        onChanged={action('onChanged')}
         selected={<Text type="Header">Pick a value</Text>}
         style={{marginTop: 100}}
       />

@@ -26,7 +26,7 @@ class DeleteRepo extends React.Component<Props, State> {
       return true
     }
 
-    if (this.props.teamname && this.state.name === `${this.props.teamname || ''}/${this.props.name}`) {
+    if (this.props.teamname && this.state.name === `${this.props.teamname}/${this.props.name}`) {
       return true
     }
 
