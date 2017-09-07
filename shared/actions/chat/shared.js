@@ -82,7 +82,7 @@ function* startNewConversation(
 
   if (!tlfName) {
     console.warn("Shouldn't happen in practice")
-    return null
+    return [null, null]
   }
 
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
@@ -97,7 +97,7 @@ function* startNewConversation(
   const newConversationIDKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
   if (!newConversationIDKey) {
     console.warn('No convoid from newConvoRPC')
-    return null
+    return [null, null]
   }
 
   // Replace any existing convo
