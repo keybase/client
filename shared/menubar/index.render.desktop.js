@@ -1,5 +1,5 @@
 // @flow
-import Folders from '../folders/render'
+import Folders from '../folders'
 import React, {Component} from 'react'
 import UserAdd from './user-add'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
@@ -234,10 +234,10 @@ const BadgeIcon = ({
   }
 
   const iconType = {
-    [folderTab]: 'iconfont-folder',
-    [profileTab]: 'iconfont-people',
-    [chatTab]: 'iconfont-chat',
-    [devicesTab]: 'iconfont-device',
+    [folderTab]: 'iconfont-nav-folders',
+    [profileTab]: 'iconfont-nav-people',
+    [chatTab]: 'iconfont-nav-chat',
+    [devicesTab]: 'iconfont-nav-devices',
     // $FlowIssue TODO
   }[tab]
 

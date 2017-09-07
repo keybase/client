@@ -570,6 +570,7 @@ export const TeamsTeamApplication = {
   kbfs: 1,
   chat: 2,
   saltpack: 3,
+  gitMetadata: 4,
 }
 
 export const TeamsTeamInviteCategory = {
@@ -628,6 +629,14 @@ export function BTCRegisterBTCRpcChannelMap (configKeys: Array<string>, request:
 
 export function BTCRegisterBTCRpcPromise (request: (requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.BTC.registerBTC', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function KBFSGitCreateRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: KBFSGitCreateRepoResult) => void} & {param: KBFSGitCreateRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.createRepo', request)
+}
+
+export function KBFSGitCreateRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: KBFSGitCreateRepoResult) => void} & {param: KBFSGitCreateRepoRpcParam})): Promise<KBFSGitCreateRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function Kex2Provisionee2DidCounterSign2RpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): EngineChannel {
@@ -1428,6 +1437,14 @@ export function gregorGetStateRpcChannelMap (configKeys: Array<string>, request:
 
 export function gregorGetStateRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void})): Promise<gregorGetStateResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.getState', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gregorInjectItemRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorInjectItemResult) => void} & {param: gregorInjectItemRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.injectItem', request)
+}
+
+export function gregorInjectItemRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gregorInjectItemResult) => void} & {param: gregorInjectItemRpcParam})): Promise<gregorInjectItemResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.injectItem', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function identifyIdentify2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}): EngineChannel {
@@ -2294,6 +2311,14 @@ export function teamsLookupOrCreateImplicitTeamRpcPromise (request: (requestComm
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamAcceptInviteOrRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
+}
+
+export function teamsTeamAcceptInviteOrRequestAccessRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamAcceptInviteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 }
@@ -3011,6 +3036,13 @@ export type Email = {
 
 export type EncryptedBytes32 = any
 
+export type EncryptedGitMetadata = {
+  v: int,
+  e: bytes,
+  n: BoxNonce,
+  gen: PerTeamKeyGeneration,
+}
+
 export type ErrorNum = int
 
 export type ExitCode =
@@ -3236,8 +3268,10 @@ export type GetTLFCryptKeysRes = {
 }
 
 export type GitLocalMetadata = {
-  repoName: string,
+  repoName: GitRepoName,
 }
+
+export type GitRepoName = string
 
 export type GitRepoResult = {
   folder: Folder,
@@ -3388,6 +3422,11 @@ export type InterestingPerson = {
   uid: UID,
   username: string,
 }
+
+export type KBFSGitCreateRepoRpcParam = Exact<{
+  folder: Folder,
+  name: GitRepoName
+}>
 
 export type KID = string
 
@@ -4579,6 +4618,7 @@ export type TeamApplication =
     1 // KBFS_1
   | 2 // CHAT_2
   | 3 // SALTPACK_3
+  | 4 // GIT_METADATA_4
 
 export type TeamApplicationKey = {
   application: TeamApplication,
@@ -5255,6 +5295,12 @@ export type gpgUiSelectKeyRpcParam = Exact<{
 export type gpgUiSignRpcParam = Exact<{
   msg: bytes,
   fingerprint: bytes
+}>
+
+export type gregorInjectItemRpcParam = Exact<{
+  cat: string,
+  body: string,
+  dtime: gregor1.TimeOrOffset
 }>
 
 export type gregorUIPushOutOfBandMessagesRpcParam = Exact<{
@@ -5938,6 +5984,10 @@ export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
   public: boolean
 }>
 
+export type teamsTeamAcceptInviteOrRequestAccessRpcParam = Exact<{
+  tokenOrName: string
+}>
+
 export type teamsTeamAcceptInviteRpcParam = Exact<{
   token: string
 }>
@@ -6145,6 +6195,7 @@ export type userProfileEditRpcParam = Exact<{
 export type userSearchRpcParam = Exact<{
   query: string
 }>
+type KBFSGitCreateRepoResult = RepoID
 type Kex2Provisionee2Hello2Result = Hello2Res
 type Kex2ProvisioneeHelloResult = HelloRes
 type SecretKeysGetSecretKeysResult = SecretKeys
@@ -6201,6 +6252,7 @@ type gpgUiSelectKeyResult = string
 type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
+type gregorInjectItemResult = gregor1.MsgID
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyResolve3Result = UserOrTeamLite

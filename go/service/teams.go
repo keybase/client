@@ -121,8 +121,8 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 		lines = append(lines, fmt.Sprintf("  readers: %s", strings.Join(readerNames, ",")))
 	}
 	memberBody := strings.Join(lines, "\n")
-	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current team membership: \n\n%s\n\nKeybase teams are in very early alpha, and more info is available here: https://keybase.io/docs/command_line/teams_alpha.",
-		user, memberBody)
+	body := fmt.Sprintf("Hello @channel! I've just added @%s to this team. Current members:\n\n```​%s```\n\n_More info on teams:_ keybase.io/blog/introducing-keybase-teams\n_To leave this team, visit the team tab or run `keybase team leave %s`_",
+		user, memberBody, team)
 
 	// Ensure we have chat available, since TeamAddMember may also be
 	// coming from a standalone launch.
@@ -182,6 +182,10 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 
 func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) error {
 	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
+}
+
+func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteOrRequestAccessArg) error {
+	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
 }
 
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) ([]keybase1.TeamJoinRequest, error) {

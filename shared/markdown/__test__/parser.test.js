@@ -156,4 +156,10 @@ this is a code block with two newline above\`\`\`
     *http://keybase.io/~_*
 `)
   })
+  it('parses mentions correctly', () => {
+    check('hello there @marco@keybase')
+  })
+  it('parses mentions correctly, regardless of case', () => {
+    check('hello there @marco@Keybase')
+  })
 })

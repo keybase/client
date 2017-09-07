@@ -41,7 +41,7 @@ class NewConversation extends PureComponent<{}> {
             }}
           >
             <Icon
-              type="iconfont-people"
+              type="iconfont-chat"
               style={{
                 color: globalColors.blue,
                 fontSize: 24,

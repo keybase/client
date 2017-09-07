@@ -501,6 +501,17 @@ function _decodeFailureDescription(typ: ChatTypes.OutboxErrorType): string {
   return `unknown error type ${typ}`
 }
 
+function _parseChannelMention(channelMention: ChatTypes.ChannelMention): Constants.ChannelMention {
+  switch (channelMention) {
+    case ChatTypes.RemoteChannelMention.all:
+      return 'All'
+    case ChatTypes.RemoteChannelMention.here:
+      return 'Here'
+    default:
+      return 'None'
+  }
+}
+
 function _unboxedToMessage(
   message: ChatTypes.UIMessage,
   yourName,
@@ -557,6 +568,8 @@ function _unboxedToMessage(
         timestamp: payload.ctime,
         you: yourName,
         outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
+        mentions: Set(payload.atMentions || []),
+        channelMention: _parseChannelMention(payload.channelMention),
       }
 
       switch (payload.messageBody.messageType) {
@@ -649,6 +662,8 @@ function _unboxedToMessage(
             message,
             messageID: common.messageID,
             outboxID: common.outboxID,
+            mentions: common.mentions,
+            channelMention: common.channelMention,
             targetMessageID,
             timestamp: common.timestamp,
             type: 'Edit',
@@ -863,7 +878,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
-  if (inbox) {
+  if (inbox && !inbox.teamname) {
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter

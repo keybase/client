@@ -8,7 +8,7 @@ import * as Constants from '../../../constants/chat'
 import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
-import {compose, renderComponent, branch} from 'recompose'
+import {compose, renderComponent, branch, renderNothing} from 'recompose'
 import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
@@ -54,7 +54,7 @@ const makeGetUnreadCounts = conversationIDKey => state =>
   state.chat.get('conversationUnreadCounts').get(conversationIDKey)
 const makeGetParticipants = conversationIDKey => state =>
   Constants.participantFilter(
-    state.chat.get('pendingConversations').get(conversationIDKey),
+    state.chat.get('pendingConversations').get(conversationIDKey) || I.List(),
     state.config.username || ''
   )
 const getNowOverride = state => state.chat.get('nowOverride')
@@ -116,8 +116,10 @@ const makeSelector = conversationIDKey => {
   }
 }
 
+const isSmallOrBig = type => ['small', 'big'].includes(type)
+
 const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname, type}) => {
-  if (['small', 'big'].includes(type)) {
+  if (isSmallOrBig(type)) {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
   } else {
@@ -145,6 +147,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const ConnectedRow = compose(
   // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(
+    ({participants, type}) => isSmallOrBig(type) && (!participants || participants.isEmpty() === 0),
+    renderNothing
+  ),
   branch(props => props.filtered && props.type === 'small', renderComponent(SmallTeamFilteredRow)),
   branch(props => props.filtered && props.type === 'big', renderComponent(BigTeamChannelFilteredRow)),
   branch(props => props.type === 'bigHeader', renderComponent(BigTeamHeaderRow)),

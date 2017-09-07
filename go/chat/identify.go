@@ -4,12 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
+
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -193,4 +197,139 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	}
 
 	return nil
+}
+
+type NameIdentifier struct {
+	globals.Contextified
+}
+
+func NewNameIdentifier(g *globals.Context) *NameIdentifier {
+	return &NameIdentifier{
+		Contextified: globals.NewContextified(g),
+	}
+}
+
+func (t *NameIdentifier) Identify(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
+	// need new context as errgroup will cancel it.
+	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
+	assertions := make(chan string)
+
+	group.Go(func() error {
+		defer close(assertions)
+		pieces := strings.Split(strings.Fields(arg.TlfName)[0], ",")
+		for _, p := range pieces {
+			select {
+			case assertions <- p:
+			case <-ectx.Done():
+				return ectx.Err()
+			}
+		}
+		return nil
+	})
+
+	fails := make(chan keybase1.TLFIdentifyFailure)
+	const numIdentifiers = 3
+	for i := 0; i < numIdentifiers; i++ {
+		group.Go(func() error {
+			for assertion := range assertions {
+				f, err := t.identifyUser(ectx, assertion, private, arg.IdentifyBehavior)
+				if err != nil {
+					return err
+				}
+				if f.Breaks == nil {
+					continue
+				}
+				select {
+				case fails <- f:
+				case <-ectx.Done():
+					return ectx.Err()
+				}
+			}
+			return nil
+		})
+	}
+
+	go func() {
+		group.Wait()
+		close(fails)
+	}()
+
+	var res []keybase1.TLFIdentifyFailure
+	for f := range fails {
+		res = append(res, f)
+	}
+
+	if err := group.Wait(); err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (t *NameIdentifier) identifyUser(ctx context.Context, assertion string, private bool, idBehavior keybase1.TLFIdentifyBehavior) (keybase1.TLFIdentifyFailure, error) {
+	reason := "You accessed a public conversation."
+	if private {
+		reason = fmt.Sprintf("You accessed a private conversation with %s.", assertion)
+	}
+
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    assertion,
+		UseDelegateUI:    false,
+		Reason:           keybase1.IdentifyReason{Reason: reason},
+		CanSuppressUI:    true,
+		IdentifyBehavior: idBehavior,
+	}
+
+	ectx := engine.Context{
+		IdentifyUI: chatNullIdentifyUI{},
+		NetContext: ctx,
+	}
+
+	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
+	err := engine.RunEngine(eng, &ectx)
+	if err != nil {
+		// Ignore these errors
+		if _, ok := err.(libkb.NotFoundError); ok {
+			return keybase1.TLFIdentifyFailure{}, nil
+		}
+		if _, ok := err.(libkb.ResolutionError); ok {
+			return keybase1.TLFIdentifyFailure{}, nil
+		}
+
+		// Special treatment is needed for GUI strict mode, since we need to
+		// simultaneously plumb identify breaks up to the UI, and make sure the
+		// overall process returns an error. Swallow the error here so the rest of
+		// the identify can proceed, but we will check later (in GetTLFCryptKeys) for breaks with this
+		// mode and return an error there.
+		if !(libkb.IsIdentifyProofError(err) &&
+			idBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT) {
+			return keybase1.TLFIdentifyFailure{}, err
+		}
+	}
+	resp := eng.Result()
+
+	var frep keybase1.TLFIdentifyFailure
+	if resp != nil && resp.TrackBreaks != nil {
+		frep.User = keybase1.User{
+			Uid:      resp.Upk.Uid,
+			Username: resp.Upk.Username,
+		}
+		frep.Breaks = resp.TrackBreaks
+	}
+
+	return frep, nil
+}
+
+func appendBreaks(l []keybase1.TLFIdentifyFailure, r []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+	m := make(map[string]bool)
+	var res []keybase1.TLFIdentifyFailure
+	for _, f := range l {
+		m[f.User.Username] = true
+		res = append(res, f)
+	}
+	for _, f := range r {
+		if !m[f.User.Username] {
+			res = append(res, f)
+		}
+	}
+	return res
 }

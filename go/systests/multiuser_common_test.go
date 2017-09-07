@@ -355,7 +355,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 			u.ctx.t.Fatal(err)
 		}
 		if details.KeyGeneration == kg {
-			u.ctx.log.Debug("found key generation 2")
+			u.ctx.log.Debug("found key generation %d", kg)
 			return details
 		}
 		if i == 9 {

@@ -2094,3 +2094,9 @@ func (e ImplicitTeamDisplayNameError) Error() string {
 func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
 	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
 }
+
+type TeamVisibilityError struct{}
+
+func (e TeamVisibilityError) Error() string {
+	return "loaded team doesn't match specified visibility"
+}

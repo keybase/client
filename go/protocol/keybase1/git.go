@@ -8,6 +8,27 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type EncryptedGitMetadata struct {
+	V   int                  `codec:"v" json:"v"`
+	E   []byte               `codec:"e" json:"e"`
+	N   BoxNonce             `codec:"n" json:"n"`
+	Gen PerTeamKeyGeneration `codec:"gen" json:"gen"`
+}
+
+func (o EncryptedGitMetadata) DeepCopy() EncryptedGitMetadata {
+	return EncryptedGitMetadata{
+		V: o.V,
+		E: (func(x []byte) []byte {
+			if x == nil {
+				return nil
+			}
+			return append([]byte(nil), x...)
+		})(o.E),
+		N:   o.N.DeepCopy(),
+		Gen: o.Gen.DeepCopy(),
+	}
+}
+
 type RepoID string
 
 func (o RepoID) DeepCopy() RepoID {
@@ -15,12 +36,12 @@ func (o RepoID) DeepCopy() RepoID {
 }
 
 type GitLocalMetadata struct {
-	RepoName string `codec:"repoName" json:"repoName"`
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
 }
 
 func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 	return GitLocalMetadata{
-		RepoName: o.RepoName,
+		RepoName: o.RepoName.DeepCopy(),
 	}
 }
 

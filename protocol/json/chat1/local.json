@@ -868,6 +868,24 @@
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentionUsernames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
         }
       ]
     },
@@ -1007,6 +1025,10 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
         },
         {
           "type": {

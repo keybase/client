@@ -60,6 +60,10 @@
           "name": "membersType"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": [
             null,
             "ConversationNotificationInfo"
@@ -142,6 +146,10 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
         },
         {
           "type": "gregor1.Time",
@@ -253,6 +261,17 @@
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
         }
       ]
     },

@@ -1,0 +1,15 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {
+  channelname: string,
+  description: string,
+  onBack: () => void,
+  onClose: () => void,
+  onSubmit: () => void,
+  onDescriptionChange: (description: string) => void,
+  onChannelnameChange: (channelname: string) => void,
+  teamname: string,
+}
+
+declare export default class CreateChannel extends React.Component<Props> {}

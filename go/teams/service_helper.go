@@ -144,6 +144,17 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err == nil {
+		// Case where same UV (uid+seqno) already exists is covered by
+		// `t.IsMember` check above. This only checks if there is a reset
+		// member in the team to automatically remove them (so AddMember
+		// can function as a Re-Add).
+		if existingUV.EldestSeqno > uv.EldestSeqno {
+			return keybase1.TeamAddMemberResult{}, fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
+		}
+		req.None = []keybase1.UserVersion{existingUV}
+	}
 
 	if err := t.ChangeMembership(ctx, req); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
@@ -209,7 +220,9 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if err != nil {
 		return err
 	}
-	if !t.IsMember(ctx, uv) {
+
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err != nil {
 		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
 	}
 
@@ -221,7 +234,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
 		return Leave(ctx, g, teamname, false)
 	}
-	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{uv}}
+	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 	return t.ChangeMembership(ctx, req)
 }
 
@@ -407,6 +420,16 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 	return err
 }
 
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
+	// First try to accept as an invite
+	err := AcceptInvite(ctx, g, tokenOrName)
+	if err != nil {
+		// Failing that, request access as a team name
+		err = RequestAccess(ctx, g, tokenOrName)
+	}
+	return err
+}
+
 type accessRequest struct {
 	FQName   string          `json:"fq_name"`
 	TeamID   keybase1.TeamID `json:"team_id"`
@@ -491,13 +514,13 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 
 	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 	if err != nil {
-		return fmt.Errorf("User %s has never been a member of this team.", username)
+		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q has never been a member of this team.", username)}
 	}
 
 	if existingUV.EldestSeqno == uv.EldestSeqno {
-		return fmt.Errorf("No need to re-add member, user has not reset")
+		return libkb.ExistsError{Msg: fmt.Sprintf("user %q has not reset, no need to re-add", username)}
 	} else if existingUV.EldestSeqno > uv.EldestSeqno {
-		return fmt.Errorf("EldestSeqno going backwards?")
+		return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", username, teamID, existingUV.EldestSeqno, uv.EldestSeqno)
 	}
 
 	existingRole, err := t.MemberRole(ctx, existingUV)

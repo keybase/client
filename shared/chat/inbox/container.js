@@ -157,7 +157,13 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     }
   }
 
-  const bigTeamsBadgeCount = 0 // TODO real number
+  const badgeCountMap = state.chat.get('conversationUnreadCounts')
+  const bigTeamsBadgeCount = bigTeams.reduce((total, team) => {
+    if (team.type === 'big') {
+      return total + badgeCountMap.get(team.conversationIDKey, 0)
+    }
+    return total
+  }, 0)
   const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'}
   const bigTeamsLabel = {isFiltered: !!filter, type: 'bigTeamsLabel'}
   const showBuildATeam = bigTeams.count() === 0

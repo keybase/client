@@ -601,6 +601,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.IsEmpty = rawConv.IsEmpty
 	res.Notifications = rawConv.Notifications
 	res.CreatorInfo = rawConv.CreatorInfo
+	res.TeamType = rawConv.Info.TeamType
 	return res
 }
 
@@ -638,6 +639,8 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 			SenderDeviceType:      rawMsg.Valid().SenderDeviceType,
 			SenderDeviceRevokedAt: rawMsg.Valid().SenderDeviceRevokedAt,
 			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
+			AtMentions:            rawMsg.Valid().AtMentionUsernames,
+			ChannelMention:        rawMsg.Valid().ChannelMention,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
