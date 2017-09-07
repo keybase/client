@@ -39,17 +39,7 @@ class NewConversation extends PureComponent<{}> {
               padding: globalMargins.tiny,
               width: globalMargins.large,
             }}
-          >
-            <Icon
-              type="iconfont-people"
-              style={{
-                color: globalColors.blue,
-                fontSize: 24,
-                marginLeft: 1,
-                marginTop: 1,
-              }}
-            />
-          </div>
+          />
           <Text style={{color: globalColors.white}} type="BodySemibold">New conversation</Text>
         </div>
       </div>
