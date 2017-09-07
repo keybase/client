@@ -7,7 +7,7 @@ import type {
   OutOfBandMessage,
 } from '../constants/types/flow-types-gregor'
 import type {PushReason, Reachability} from '../constants/types/flow-types'
-import type {TypedAction} from '../constants/types/flux'
+import type {TypedAction, NoErrorTypedAction} from '../constants/types/flux'
 
 export type NonNullGregorItem = {
   md: Metadata,
@@ -29,6 +29,12 @@ export type CheckReachability = TypedAction<'gregor:checkReachability', void, vo
 
 export const updateSeenMsgs = 'gregor:updateSeenMsgs'
 export type UpdateSeenMsgs = TypedAction<'gregor:updateSeenMsgs', {seenMsgs: Array<NonNullGregorItem>}, void>
+
+export const injectItem = 'gregor:injectItem'
+export type InjectItem = NoErrorTypedAction<
+  'gregor:injectItem',
+  {category: string, body: string, dtime?: ?Date}
+>
 
 export type GregorActions = PushState | UpdateSeenMsgs
 
