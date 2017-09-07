@@ -27,6 +27,8 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 
 const passesStringFilter = (filter: string, toCheck: string): boolean => {
+  // No need to worry about Unicode issues with toLowerCase(), since
+  // names can only be ASCII.
   return toCheck.toLowerCase().indexOf(filter.toLowerCase()) >= 0
 }
 
@@ -37,11 +39,7 @@ const passesParticipantFilter = (participants: I.List<string>, filter: string, y
 
   // don't filter you out if its just a convo with you!
   const justYou = participants.count() === 1 && participants.first() === you
-  const filterFunc = justYou ? () => true : p => p !== you
-
-  const names = participants.filter(filterFunc).toArray()
-  // No need to worry about Unicode issues with toLowerCase(), since
-  // names can only be ASCII.
+  const names = justYou ? participants : participants.filter(p => p !== you)
   return names.some(n => passesStringFilter(filter, n))
 }
 
@@ -211,7 +209,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
 const findNextConvo = (rows: I.List<any>, selected, direction) => {
   const filteredRows = rows.filter(r => ['small', 'big'].includes(r.type))
   const idx = filteredRows.findIndex(r => r.conversationIDKey === selected)
-  const r = filteredRows.get(idx + direction)
+  let nextIdx
+  if (idx === -1) {
+    nextIdx = 0
+  } else {
+    nextIdx = Math.min(filteredRows.count() - 1, Math.max(0, idx + direction))
+  }
+  const r = filteredRows.get(nextIdx)
   return r && r.conversationIDKey
 }
 
