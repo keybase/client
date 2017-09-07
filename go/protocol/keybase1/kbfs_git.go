@@ -21,8 +21,8 @@ func (o CreateRepoArg) DeepCopy() CreateRepoArg {
 }
 
 type KBFSGitInterface interface {
-	// * createRepo creates a care empty repo on KBFS under the given name in the given TLF.
-	// * It return the ID of the repo created.
+	// * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.
+	// * It returns the ID of the repo created.
 	CreateRepo(context.Context, CreateRepoArg) (RepoID, error)
 }
 
@@ -54,8 +54,8 @@ type KBFSGitClient struct {
 	Cli rpc.GenericClient
 }
 
-// * createRepo creates a care empty repo on KBFS under the given name in the given TLF.
-// * It return the ID of the repo created.
+// * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.
+// * It returns the ID of the repo created.
 func (c KBFSGitClient) CreateRepo(ctx context.Context, __arg CreateRepoArg) (res RepoID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.createRepo", []interface{}{__arg}, &res)
 	return

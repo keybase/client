@@ -24,7 +24,7 @@
         }
       ],
       "response": "RepoID",
-      "doc": "* createRepo creates a care empty repo on KBFS under the given name in the given TLF.\n   * It return the ID of the repo created."
+      "doc": "* createRepo creates a bare empty repo on KBFS under the given name in the given TLF.\n   * It returns the ID of the repo created."
     }
   },
   "namespace": "keybase.1"
