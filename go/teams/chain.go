@@ -3,8 +3,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -20,29 +18,6 @@ func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserV
 		Uid:         uid,
 		EldestSeqno: eldestSeqno,
 	}
-}
-
-func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
-	parts := strings.Split(s, "%")
-	if len(parts) == 1 {
-		// default to seqno 1
-		parts = append(parts, "1")
-	}
-	if len(parts) != 2 {
-		return res, fmt.Errorf("invalid user version: %s", s)
-	}
-	uid, err := libkb.UIDFromHex(parts[0])
-	if err != nil {
-		return res, err
-	}
-	eldestSeqno, err := strconv.ParseInt(parts[1], 10, 64)
-	if err != nil {
-		return res, fmt.Errorf("invalid eldest seqno: %s", err)
-	}
-	return keybase1.UserVersion{
-		Uid:         uid,
-		EldestSeqno: keybase1.Seqno(eldestSeqno),
-	}, nil
 }
 
 const TeamSigChainPlayerSupportedLinkVersion = 2
@@ -493,8 +468,28 @@ func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamIn
 		if err != nil {
 			return nil, err
 		}
-		if invite.Name == keybase1.TeamInviteName(name) && styp == typ {
-			return &invite, nil
+		if styp == typ {
+			ctyp, err := invite.Type.C()
+			if err != nil {
+				return nil, err
+			}
+			if ctyp == keybase1.TeamInviteCategory_KEYBASE {
+				uv1, err := libkb.ParseUserVersion(string(invite.Name))
+				if err != nil {
+					return nil, err
+				}
+				uv2, err := libkb.ParseUserVersion(name)
+				if err != nil {
+					return nil, err
+				}
+				if uv1.Eq(uv2) {
+					return &invite, nil
+				}
+			} else {
+				if invite.Name == keybase1.TeamInviteName(name) {
+					return &invite, nil
+				}
+			}
 		}
 	}
 	return nil, libkb.NotFoundError{}

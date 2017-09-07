@@ -87,7 +87,7 @@ func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
 }
 
 func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
-	uv, err := ParseUserVersion(keybase1.Unquote(b))
+	uv, err := libkb.ParseUserVersion(keybase1.Unquote(b))
 	if err != nil {
 		return err
 	}
