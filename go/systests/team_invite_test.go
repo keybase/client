@@ -54,7 +54,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	}
 
 	// the invite should not be in the active invite map
-	exists, err := t0.HasActiveInvite(tt.users[1].username, "rooter")
+	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(tt.users[1].username), "rooter")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +112,7 @@ func TestTeamInviteEmail(t *testing.T) {
 	}
 
 	// the invite should not be in the active invite map
-	exists, err := t0.HasActiveInvite(email, "email")
+	exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(email), "email")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -135,6 +135,8 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	case keybase1.TeamInviteCategory_EMAIL:
 		// nothing to verify, need to trust the server
 	case keybase1.TeamInviteCategory_KEYBASE:
+		// XXX this is crap, but make a failing test first
+		// XXX and check the seqno
 		uid, err := keybase1.UIDFromString(string(invite.Name))
 		if err != nil {
 			return err
