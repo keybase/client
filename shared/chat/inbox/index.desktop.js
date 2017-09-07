@@ -211,8 +211,8 @@ class Inbox extends PureComponent<Props, State> {
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  boxShadow: `inset -1px 0 0 ${globalColors.black_05}`,
+  backgroundColor: globalColors.blue5,
+  borderRight: `1px solid ${globalColors.black_05}`,
   height: '100%',
   maxWidth: 241,
   minWidth: 241,

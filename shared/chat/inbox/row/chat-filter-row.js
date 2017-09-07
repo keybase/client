@@ -103,7 +103,11 @@ class _ChatFilterRow extends Component<Props, State> {
         {children}
         <Icon
           type="iconfont-compose"
-          style={{color: globalColors.blue, marginLeft: globalMargins.tiny, marginRight: globalMargins.tiny}}
+          style={{
+            color: globalColors.blue,
+            marginLeft: globalMargins.medium,
+            marginRight: globalMargins.small,
+          }}
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading &&
@@ -118,13 +122,13 @@ class _ChatFilterRow extends Component<Props, State> {
 const styleFilterContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.lightGrey,
+  backgroundColor: globalColors.black_05,
   borderRadius: 19,
   flexGrow: 1,
   height: globalMargins.medium,
   justifyContent: 'center',
-  marginLeft: globalMargins.tiny,
-  width: 160,
+  marginLeft: globalMargins.medium,
+  maxWidth: 160,
 }
 
 const ChatFilterRow = branch(() => !isMobile, KeyHandler)(_ChatFilterRow)

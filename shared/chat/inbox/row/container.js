@@ -10,6 +10,7 @@ import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 import {compose, renderComponent, branch, renderNothing} from 'recompose'
 import {navigateAppend} from '../../../actions/route-tree'
+import {isMobile} from '../../../constants/platform'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
@@ -28,7 +29,8 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount: Constants.Unread
     ? globalColors.red
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const showBold = !isSelected && hasUnread
-  const backgroundColor = isSelected ? globalColors.blue : globalColors.white
+  const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
+  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
 
   return {

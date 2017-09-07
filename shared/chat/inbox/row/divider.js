@@ -104,7 +104,7 @@ const _dividerStyle = {
 
 const _floatingStyle = {
   ...globalStyles.fillAbsolute,
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.blue5,
   flexShrink: 0,
   height: 32,
   top: undefined,
