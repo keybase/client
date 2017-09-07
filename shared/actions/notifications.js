@@ -11,6 +11,7 @@ import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupChatHandlers, badgeAppForChat} from './chat'
 import {setupKBFSChangedHandler} from './favorite'
+import {setupTeamHandlers} from './teams/creators'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -53,7 +54,7 @@ function* _listenSaga(): SagaGenerator<any, any> {
     service: true,
     session: true,
     tracking: true,
-    team: false,
+    team: true,
     users: true,
   }
 
@@ -80,6 +81,7 @@ function* _listenSaga(): SagaGenerator<any, any> {
 function* _listenKBFSSaga(): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
   yield put(setupChatHandlers())
+  yield put(setupTeamHandlers())
 }
 
 function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {

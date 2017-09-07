@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Avatar, Box, Divider, Text} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -52,6 +52,7 @@ const TeamList = (props: Props) => (
       width: '100%',
     }}
   >
+    {!props.loaded && <ProgressIndicator style={{alignSelf: 'center', width: 20}} />}
     {props.teamnames.map((name, index, arr) => (
       <Row
         key={name}

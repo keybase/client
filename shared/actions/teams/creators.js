@@ -34,6 +34,10 @@ function leaveTeam(teamname: string): Constants.LeaveTeam {
   return {payload: {teamname}, type: 'teams:leaveTeam'}
 }
 
+function setupTeamHandlers(): Constants.SetupTeamHandlers {
+  return {payload: undefined, type: 'teams:setupTeamHandlers'}
+}
+
 export {
   createChannel,
   createNewTeam,
@@ -42,5 +46,6 @@ export {
   getDetails,
   getTeams,
   leaveTeam,
+  setupTeamHandlers,
   toggleChannelMembership,
 }

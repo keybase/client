@@ -26,7 +26,13 @@ const Contents = ({name, onNameChange, onSubmit}: Props) => (
         justifyContent: 'center',
       }}
     >
-      <Input autoFocus={true} hintText="Name your team" value={name} onChangeText={onNameChange} />
+      <Input
+        autoFocus={true}
+        hintText="Name your team"
+        value={name}
+        onChangeText={onNameChange}
+        onEnterKeyDown={onSubmit}
+      />
       <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
         <Button
           type="Primary"
