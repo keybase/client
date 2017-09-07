@@ -5,8 +5,10 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 const MaybePopup = isMobile
-  ? (props: any) => <Box style={{height: '100%', width: '100%'}} children={props.children} />
-  : (props: any) => (
+  ? (props: {onClose: () => void, children: React.Node}) => (
+      <Box style={{height: '100%', width: '100%'}} children={props.children} />
+    )
+  : (props: {onClose: () => void, children: React.Node}) => (
       <PopupDialog
         onClose={props.onClose}
         styleCover={_styleCover}
@@ -15,7 +17,13 @@ const MaybePopup = isMobile
       />
     )
 
-const ReallyLeaveTeam = (props: any) => (
+type Props = {
+  onClose: () => void,
+  onLeave: () => void,
+  name: string,
+}
+
+const ReallyLeaveTeam = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
       <Avatar teamname={props.name} size={64} />
@@ -24,7 +32,7 @@ const ReallyLeaveTeam = (props: any) => (
         Are you sure you want to leave {props.name}?
       </Text>
       <Text type="Body" style={{maxWidth: 430, textAlign: 'center'}}>
-        You will loose access to all the
+        You will lose access to all the
         {' '}
         {props.name}
         {' '}
