@@ -26,20 +26,20 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
 
 type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
-  onBack: () => void,
   _onOpenFolder: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
+  onBack: () => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
-  onBack: () => dispatch(navigateUp()),
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onManageChat: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Constants.Teamname) => dispatch(openInKBFS(`/keybase/team/${teamname}`)),
+  onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
