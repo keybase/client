@@ -57,11 +57,12 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         Read our announcement
       </Text>
     </Box>
-    <Icon
-      type="iconfont-close"
-      onClick={onHideBanner}
-      style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.tiny}}
-    />
+    {false && // TEMP until core supports this
+      <Icon
+        type="iconfont-close"
+        onClick={onHideBanner}
+        style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.tiny}}
+      />}
   </Box>
 )
 
