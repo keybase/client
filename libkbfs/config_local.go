@@ -1329,6 +1329,23 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	return nil
 }
 
+// PrefetchStatus implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
+	ptr BlockPointer) PrefetchStatus {
+	_, prefetchStatus, _, err := c.BlockCache().GetWithPrefetch(ptr)
+	if err != nil {
+		prefetchStatus = NoPrefetch
+		dbc := c.DiskBlockCache()
+		if dbc != nil {
+			_, _, prefetchStatus, err = dbc.Get(ctx, tlfID, ptr.ID)
+			if err != nil {
+				prefetchStatus = NoPrefetch
+			}
+		}
+	}
+	return prefetchStatus
+}
+
 // GetRekeyFSMLimiter implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 	return c.rekeyFSMLimiter

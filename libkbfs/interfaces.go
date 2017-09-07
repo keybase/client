@@ -1790,6 +1790,8 @@ type Config interface {
 	// setting the rekey bit, before prompting for a paper key.
 	RekeyWithPromptWaitTime() time.Duration
 	SetRekeyWithPromptWaitTime(time.Duration)
+	// PrefetchStatus returns the prefetch status of a block.
+	PrefetchStatus(context.Context, tlf.ID, BlockPointer) PrefetchStatus
 
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving

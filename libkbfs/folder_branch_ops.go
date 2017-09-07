@@ -1961,17 +1961,8 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	if err != nil {
 		return res, err
 	}
-	_, prefetchStatus, _, err :=
-		fbo.config.BlockCache().GetWithPrefetch(res.BlockInfo.BlockPointer)
-	if err != nil {
-		dbc := fbo.config.DiskBlockCache()
-		if dbc != nil {
-			_, _, prefetchStatus, _ = fbo.config.DiskBlockCache().Get(ctx,
-				fbo.id(), res.BlockInfo.ID)
-		}
-		// Swallow cache errors since we don't want to communicate
-		// errors for uncached blocks.
-	}
+	prefetchStatus := fbo.config.PrefetchStatus(ctx, fbo.id(),
+		res.BlockInfo.BlockPointer)
 	res.PrefetchStatus = prefetchStatus.String()
 	return res, nil
 }
