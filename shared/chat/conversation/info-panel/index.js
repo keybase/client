@@ -81,7 +81,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants
       participants={props.participants}
-      onAddParticipant={props.showTeamButton ? null : props.onAddParticipant}
+      onAddParticipant={null /* off until this works */}
       onShowProfile={props.onShowProfile}
     />
 
@@ -146,7 +146,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
 
     <Participants
       participants={props.participants}
-      onAddParticipant={props.onAddParticipant}
+      onAddParticipant={null /* until this works TODO */}
       onShowProfile={props.onShowProfile}
     />
   </ScrollView>
