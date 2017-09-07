@@ -70,6 +70,8 @@ export type OutboxIDKey = string
 export type MessageID = string
 
 export type NotifyType = 'atmention' | 'generic' | 'never'
+export type Mentions = Set<string>
+export type ChannelMention = 'None' | 'All' | 'Here'
 
 export type TextMessage = {
   type: 'Text',
@@ -87,6 +89,8 @@ export type TextMessage = {
   senderDeviceRevokedAt: ?number,
   key: MessageKey,
   editedCount: number, // increase as we edit it
+  mentions: Mentions,
+  channelMention: ChannelMention,
 }
 
 export type ErrorMessage = {
@@ -190,6 +194,8 @@ export type EditingMessage = {
   outboxID?: ?OutboxIDKey,
   targetMessageID: MessageID,
   timestamp: number,
+  mentions: Mentions,
+  channelMention: ChannelMention,
 }
 
 export type UpdatingAttachment = {
@@ -1298,6 +1304,8 @@ function applyMessageUpdates(message: Message, updates: KBOrderedSet<EditingMess
       return {
         ...message,
         message: update.message,
+        mentions: update.mentions,
+        channelMention: update.channelMention,
       }
     } else if (update.type === 'UpdateAttachment') {
       return {

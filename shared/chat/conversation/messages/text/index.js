@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../../../constants/chat'
 import {Markdown} from '../../../../common-adapters'
 import {globalStyles, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
@@ -8,10 +9,14 @@ export type Props = {
   text: string,
   type: 'failed' | 'pending' | 'sent',
   isEditing: boolean,
+  mentions: Constants.Mentions,
+  channelMention: Constants.ChannelMention,
 }
 
-const MessageText = ({text, type, isEditing}: Props) => (
-  <Markdown style={getStyle(type, isEditing)} allowFontScaling={true}>{text}</Markdown>
+const MessageText = ({text, type, isEditing, mentions, channelMention}: Props) => (
+  <Markdown style={getStyle(type, isEditing)} meta={{mentions, channelMention}} allowFontScaling={true}>
+    {text}
+  </Markdown>
 )
 
 // Encoding all 4 states as static objects so we don't re-render

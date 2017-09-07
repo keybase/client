@@ -72,12 +72,8 @@ const messageKeysSelector = immutableCreateSelector(
   }
 )
 
-const getMessageFromMessageKeyFnSelector = createSelector(
-  [state => state.entities.messages],
-  (messageMap: Map<Constants.MessageKey, Constants.Message>) => {
-    return (messageKey: Constants.MessageKey) => messageMap.get(messageKey)
-  }
-)
+const getMessageFromMessageKeyFnSelector = (state: TypedState) => (messageKey: Constants.MessageKey) =>
+  Constants.getMessageFromMessageKey(state, messageKey)
 
 const convStateProps = createSelector(
   [Constants.getSelectedConversation, supersedesIfNoMoreToLoadSelector, getValidatedState],
