@@ -60,8 +60,8 @@ function buildParser() {
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
   // $FlowIssue Unclear why flow isn't accepting String.raw here
   const prependJS = String.raw`
-    const linkExp = /^(:?\/\/)?(?:www\.)?[-a-zA-Z0-9@%._\+~#=]{2,256}(?::[0-9]{1,6})?\.[a-z]{2,6}\b(?:[-a-zA-Z0-9@:%_\+.~#?&\/=]*)/i
-    const dotDotExp = /[^/]\.\.[^/]/
+    const linkExp = /^(:?\/\/)?(?:www\.)?[-a-zA-Z0-9@%._\+~#=]{1,256}(?::[0-9]{1,6})?\.((?!(json|png|jpg|gif|docx|pdf|txt))[a-z]{2,6})\b(?:(\([-a-zA-Z0-9@:%_\+.~#?&\/= ]*\)|[-a-zA-Z0-9@:%_\+.~#?&\/= ]|[,!#]+[-a-zA-Z0-9@:%_\+.~#?&\/= ])*)/i
+    const dotDotExp = /[^/]\.\.\s/
     const emojiExp = ${emojiRegex}
     const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
     const emojiIndexByName = ${JSON.stringify(invert(emojiIndexByChar))}
