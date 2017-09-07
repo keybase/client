@@ -773,6 +773,7 @@ type NodeMetadata struct {
 	// A more thorough check is possible in the future.
 	LastWriterUnverified libkb.NormalizedUsername
 	BlockInfo            BlockInfo
+	PrefetchStatus       string
 }
 
 // FavoritesOp defines an operation related to favorites.
@@ -839,5 +840,31 @@ func (im InitMode) String() string {
 		return InitSingleOpString
 	default:
 		return "unknown"
+	}
+}
+
+// PrefetchStatus denotes the prefetch status of a block.
+type PrefetchStatus int
+
+const (
+	// NoPrefetch represents an entry that hasn't been prefetched.
+	NoPrefetch PrefetchStatus = iota
+	// TriggeredPrefetch represents a block for which prefetching has been
+	// triggered, but the full tree has not been completed.
+	TriggeredPrefetch
+	// FinishedPrefetch represents a block whose full subtree is synced.
+	FinishedPrefetch
+)
+
+func (s PrefetchStatus) String() string {
+	switch s {
+	case NoPrefetch:
+		return "NoPrefetch"
+	case TriggeredPrefetch:
+		return "TriggeredPrefetch"
+	case FinishedPrefetch:
+		return "FinishedPrefetch"
+	default:
+		return "Unknown"
 	}
 }

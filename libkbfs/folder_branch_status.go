@@ -27,6 +27,8 @@ type FolderBranchStatus struct {
 	FolderID            string
 	Revision            kbfsmd.Revision
 	MDVersion           MetadataVer
+	SyncEnabled         bool
+	PrefetchStatus      string
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -199,6 +201,10 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 		fbs.FolderID = fbsk.md.TlfID().String()
 		fbs.Revision = fbsk.md.Revision()
 		fbs.MDVersion = fbsk.md.Version()
+		fbs.SyncEnabled = fbsk.config.IsSyncedTlf(fbsk.md.TlfID())
+		prefetchStatus := fbsk.config.PrefetchStatus(ctx, fbsk.md.TlfID(),
+			fbsk.md.Data().Dir.BlockPointer)
+		fbs.PrefetchStatus = prefetchStatus.String()
 
 		// TODO: Ideally, the journal would push status
 		// updates to this object instead, so we can notify

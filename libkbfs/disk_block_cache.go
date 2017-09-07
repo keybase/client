@@ -396,8 +396,8 @@ func (cache *DiskBlockCacheStandard) updateMetadataLocked(ctx context.Context,
 	}
 	err = cache.metaDb.Put(blockKey, encodedMetadata, nil)
 	if err != nil {
-		cache.log.CWarningf(ctx, "Error writing to LRU cache database: %+v",
-			err)
+		cache.log.CWarningf(ctx, "Error writing to disk cache meta "+
+			"database: %+v", err)
 	}
 	return err
 }
@@ -490,8 +490,9 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	}
 
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d err=%+v",
-			blockID, tlfID, len(buf), err)
+		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d, "+
+			"prefetchStatus=%s err=%+v", blockID, tlfID, len(buf),
+			prefetchStatus.String(), err)
 		if err == nil {
 			cache.hitMeter.Mark(1)
 		} else {
@@ -581,6 +582,8 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	blockKey := blockID.Bytes()
 	hasKey, err := cache.blockDb.Has(blockKey, nil)
 	if err != nil {
+		cache.log.CDebugf(ctx, "Cache Put failed due to error from "+
+			"blockDb.Has: %+v", err)
 		return err
 	}
 	if !hasKey {

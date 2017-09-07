@@ -221,7 +221,7 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
 	lifetime BlockCacheLifetime, deepPrefetchDoneCh,
 	deepPrefetchCancelCh chan<- struct{}, didUpdateCh <-chan struct{}) {
 	prefetcher := brq.Prefetcher()
-	childPrefetchDoneCh, childPrefetchErrCh, numBlocks :=
+	childPrefetchDoneCh, childPrefetchCancelCh, numBlocks :=
 		prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
 
 	// If we have child blocks to prefetch, wait for them.
@@ -236,7 +236,7 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(
 			case <-ctx.Done():
 				deepPrefetchCancelCh <- struct{}{}
 				return
-			case <-childPrefetchErrCh:
+			case <-childPrefetchCancelCh:
 				// One error means this block didn't finish prefetching.
 				deepPrefetchCancelCh <- struct{}{}
 				return

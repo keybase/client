@@ -788,19 +788,6 @@ const (
 	PermanentEntry
 )
 
-// PrefetchStatus denotes the prefetch status of a block.
-type PrefetchStatus int
-
-const (
-	// NoPrefetch represents an entry that hasn't been prefetched.
-	NoPrefetch PrefetchStatus = iota
-	// TriggeredPrefetch represents a block for which prefetching has been
-	// triggered, but the full tree has not been completed.
-	TriggeredPrefetch
-	// FinishedPrefetch represents a block whose full subtree is synced.
-	FinishedPrefetch
-)
-
 // BlockCacheSimple gets and puts plaintext dir blocks and file blocks into
 // a cache.  These blocks are immutable and identified by their
 // content hash.
@@ -948,7 +935,8 @@ type DiskBlockCache interface {
 	Get(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
-	// Put puts a block to the disk cache.
+	// Put puts a block to the disk cache. Returns after it has updated the
+	// metadata but before it has finished writing the block.
 	Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
 		serverHalf kbfscrypto.BlockCryptKeyServerHalf) error
 	// Delete deletes some blocks from the disk cache.
@@ -1802,6 +1790,8 @@ type Config interface {
 	// setting the rekey bit, before prompting for a paper key.
 	RekeyWithPromptWaitTime() time.Duration
 	SetRekeyWithPromptWaitTime(time.Duration)
+	// PrefetchStatus returns the prefetch status of a block.
+	PrefetchStatus(context.Context, tlf.ID, BlockPointer) PrefetchStatus
 
 	// GracePeriod specifies a grace period for which a delayed cancellation
 	// waits before actual cancels the context. This is useful for giving
