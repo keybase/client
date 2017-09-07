@@ -67,7 +67,7 @@ function tmpFileName(
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
 function* startNewConversation(
   oldConversationIDKey: Constants.ConversationIDKey
-): Generator<any, ?Constants.ConversationIDKey, any> {
+): Generator<any, [?Constants.ConversationIDKey, ?string], any> {
   // Find the participants
   const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldConversationIDKey)
   let tlfName
@@ -114,7 +114,7 @@ function* startNewConversation(
   }
   // Load the inbox so we can post, we wait till this is done
   yield call(unboxConversations, [newConversationIDKey])
-  return newConversationIDKey
+  return [newConversationIDKey, tlfName]
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict

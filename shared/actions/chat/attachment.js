@@ -306,10 +306,11 @@ const postAttachmentSagaMap = (
 function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
+  let newConvoTlfName
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    conversationIDKey = yield call(Shared.startNewConversation, conversationIDKey)
+    [conversationIDKey, newConvoTlfName] = yield call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
@@ -325,7 +326,7 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
   const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
-    tlfName: inboxConvo.name,
+    tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
     visibility: inboxConvo.visibility,
     attachment: {filename},
     preview,
