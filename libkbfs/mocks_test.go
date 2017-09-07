@@ -6365,6 +6365,18 @@ func (mr *MockConfigMockRecorder) SetRekeyWithPromptWaitTime(arg0 interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRekeyWithPromptWaitTime", reflect.TypeOf((*MockConfig)(nil).SetRekeyWithPromptWaitTime), arg0)
 }
 
+// PrefetchStatus mocks base method
+func (m *MockConfig) PrefetchStatus(arg0 context.Context, arg1 tlf.ID, arg2 BlockPointer) PrefetchStatus {
+	ret := m.ctrl.Call(m, "PrefetchStatus", arg0, arg1, arg2)
+	ret0, _ := ret[0].(PrefetchStatus)
+	return ret0
+}
+
+// PrefetchStatus indicates an expected call of PrefetchStatus
+func (mr *MockConfigMockRecorder) PrefetchStatus(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PrefetchStatus", reflect.TypeOf((*MockConfig)(nil).PrefetchStatus), arg0, arg1, arg2)
+}
+
 // DelayedCancellationGracePeriod mocks base method
 func (m *MockConfig) DelayedCancellationGracePeriod() time.Duration {
 	ret := m.ctrl.Call(m, "DelayedCancellationGracePeriod")
