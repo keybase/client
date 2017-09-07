@@ -115,7 +115,7 @@ func newTeamTester(t *testing.T) *teamTester {
 	return &teamTester{t: t}
 }
 
-func (tt *teamTester) addUser(pre string) {
+func (tt *teamTester) addUser(pre string) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	var u userPlusDevice
 	u.device = &deviceWrapper{tctx: tctx}
@@ -160,6 +160,7 @@ func (tt *teamTester) addUser(pre string) {
 	}
 
 	tt.users = append(tt.users, &u)
+	return &u
 }
 
 func (tt *teamTester) cleanup() {

@@ -456,6 +456,51 @@ func TestResolveIdentifyImplicitTeamWithReaders(t *testing.T) {
 	require.Regexp(t, `^Team.*does not exist$`, err.Error())
 }
 
+// test ResolveIdentifyImplicitTeam with duplicates
+func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("abc")
+	g := alice.tc.G
+
+	bob := tt.addUser("bob")
+
+	iTeamNameCreate := strings.Join([]string{alice.username, bob.username}, ",")
+	// simple duplicate
+	iTeamNameLookup1 := strings.Join([]string{alice.username, bob.username, bob.username}, ",")
+	// duplicate after resolution
+	iTeamNameLookup2 := strings.Join([]string{alice.username, bob.username, bob.username + "@rooter"}, ",")
+	// duplicate across reader boundary
+	iTeamNameLookup3 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",") + "#" + bob.username
+
+	t.Logf("make an implicit team")
+	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+
+	bob.proveRooter()
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+
+	for _, lookup := range []string{iTeamNameLookup1, iTeamNameLookup2, iTeamNameLookup3} {
+		t.Logf("checking: %v", lookup)
+		res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+			Assertions:       lookup,
+			Suffix:           "",
+			IsPublic:         false,
+			DoIdentifies:     false,
+			Create:           false,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+		})
+		require.NoError(t, err, "%v %v", err, spew.Sdump(res))
+		require.Equal(t, res.TeamID, iTeamID)
+		require.Equal(t, res.DisplayName, iTeamNameCreate)
+		require.True(t, compareUserVersionSets([]keybase1.UserVersion{alice.userVersion(), bob.userVersion()}, res.Writers))
+		require.Nil(t, res.TrackBreaks, "track breaks")
+	}
+}
+
 func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()

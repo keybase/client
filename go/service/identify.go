@@ -209,9 +209,6 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		}
 	}
 
-	// TODO probably creates conflicts with duplicates such as "me,chris,chris" or "me,t_tracy,t_tracy@rooter"
-	// also "me,chris#chris"->"me,chris" and "me,bob@github#bob"->"me,bob"
-
 	var resolvedAssertions []resolvedAssertion
 
 	err = h.resolveImplicitTeamSet(ctx, writerAssertions, &lookupName.Writers, &resolvedAssertions)
@@ -227,10 +224,13 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 	if err != nil {
 		return res, err
 	}
+	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam looking up:'%v'", lookupNameStr)
 
 	var teamID keybase1.TeamID
 	var impName keybase1.ImplicitTeamDisplayName
 	// Lookup*ImplicitTeam is responsible for making sure the returned team has the members from lookupName.
+	// Duplicates are also handled by Lookup*. So we might end up doing extra identifies of duplicates out here.
+	// (Duplicates e.g. "me,chris,chris", "me,chris#chris", "me,chris@rooter#chris")
 	if arg.Create {
 		teamID, impName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
 	} else {
