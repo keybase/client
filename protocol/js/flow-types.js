@@ -1439,6 +1439,14 @@ export function gregorGetStateRpcPromise (request: ?(requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.getState', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function gregorInjectItemRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorInjectItemResult) => void} & {param: gregorInjectItemRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.injectItem', request)
+}
+
+export function gregorInjectItemRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gregorInjectItemResult) => void} & {param: gregorInjectItemRpcParam})): Promise<gregorInjectItemResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.injectItem', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function identifyIdentify2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.identify2', request)
 }
@@ -5281,6 +5289,12 @@ export type gpgUiSignRpcParam = Exact<{
   fingerprint: bytes
 }>
 
+export type gregorInjectItemRpcParam = Exact<{
+  cat: string,
+  body: string,
+  dtime: gregor1.TimeOrOffset
+}>
+
 export type gregorUIPushOutOfBandMessagesRpcParam = Exact<{
   oobm?: ?Array<gregor1.OutOfBandMessage>
 }>
@@ -6226,6 +6240,7 @@ type gpgUiSelectKeyResult = string
 type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
+type gregorInjectItemResult = gregor1.MsgID
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyResolve3Result = UserOrTeamLite
