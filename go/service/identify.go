@@ -209,7 +209,8 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		}
 	}
 
-	// TODO probably creates conflicts with duplicates such as "me,chris,chris" or "me,t_tracy,t_tracy@rooter".
+	// TODO probably creates conflicts with duplicates such as "me,chris,chris" or "me,t_tracy,t_tracy@rooter"
+	// also "me,chris#chris"->"me,chris" and "me,bob@github#bob"->"me,bob"
 
 	var resolvedAssertions []resolvedAssertion
 
