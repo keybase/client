@@ -30,6 +30,8 @@ export type ToggleChannelMembership = NoErrorTypedAction<
   'teams:toggleChannelMembership',
   {teamname: string, channelname: string}
 >
+
+export type SetupTeamHandlers = NoErrorTypedAction<'teams:setupTeamHandlers', void>
 export type GetDetails = NoErrorTypedAction<'teams:getDetails', {teamname: string}>
 export type CreateChannel = NoErrorTypedAction<
   'teams:createChannel',
@@ -65,6 +67,7 @@ export const Team = I.Record({
   teamNameToConvIDs: I.Map(),
   teamNameToMembers: I.Map(),
   teamnames: I.Set(),
+  loaded: false,
 })
 
 export type TeamRecord = KBRecord<{
@@ -72,6 +75,7 @@ export type TeamRecord = KBRecord<{
   teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamnames: I.Set<Teamname>,
+  loaded: boolean,
 }>
 
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>

@@ -13,12 +13,15 @@ import type {Teamname} from '../constants/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
+  loaded: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
-  let teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const loaded = state.entities.getIn(['teams', 'loaded'], false)
   return {
     _teamnames: teamnames,
+    loaded,
   }
 }
 
@@ -62,6 +65,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   teamnames.sort()
   return {
     teamnames,
+    loaded: stateProps.loaded,
     ...dispatchProps,
   }
 }
