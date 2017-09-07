@@ -4,7 +4,7 @@ import {Avatar, Box, Text, Icon, PopupDialog, Button} from '../../common-adapter
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
-const Wrap = isMobile
+const MaybePopup = isMobile
   ? (props: any) => <Box style={{height: '100%', width: '100%'}} children={props.children} />
   : (props: any) => (
       <PopupDialog
@@ -16,7 +16,7 @@ const Wrap = isMobile
     )
 
 const ReallyLeaveTeam = (props: any) => (
-  <Wrap onClose={props.onClose}>
+  <MaybePopup onClose={props.onClose}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
       <Avatar teamname={props.name} size={64} />
       <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
@@ -49,7 +49,7 @@ const ReallyLeaveTeam = (props: any) => (
         <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} />
       </Box>
     </Box>
-  </Wrap>
+  </MaybePopup>
 )
 
 const _styleCover = {
