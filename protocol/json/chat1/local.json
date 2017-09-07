@@ -1027,6 +1027,10 @@
           "name": "membersType"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"

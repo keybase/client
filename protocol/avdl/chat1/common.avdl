@@ -43,6 +43,12 @@ protocol common {
     DEV_2
   }
 
+  enum TeamType {
+    NONE_0,
+    SIMPLE_1,
+    COMPLEX_2
+  }
+
   @go("nostring")
   enum NotificationKind {
     GENERIC_0,
@@ -170,6 +176,7 @@ protocol common {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;

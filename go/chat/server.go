@@ -156,6 +156,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.Visibility = rawConv.Metadata.Visibility
 		conv.Notifications = rawConv.Notifications
 		conv.MembersType = rawConv.GetMembersType()
+		conv.TeamType = rawConv.Metadata.TeamType
 		res.Items = append(res.Items, conv)
 	}
 	res.Pagination = utils.PresentPagination(vres.Pagination)

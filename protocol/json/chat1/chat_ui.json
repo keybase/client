@@ -60,6 +60,10 @@
           "name": "membersType"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": [
             null,
             "ConversationNotificationInfo"
@@ -142,6 +146,10 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
         },
         {
           "type": "gregor1.Time",
