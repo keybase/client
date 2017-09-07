@@ -13,10 +13,10 @@ export type Props = {
 
 const mentionStyles = {
   follow: {
-    color: globalColors.blue,
+    color: globalColors.green2,
   },
   nonFollow: {
-    color: globalColors.green2,
+    color: globalColors.blue,
   },
   highlight: {
     backgroundColor: globalColors.yellow,
