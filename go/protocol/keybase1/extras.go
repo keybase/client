@@ -806,6 +806,14 @@ func (sa SocialAssertion) String() string {
 	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
 }
 
+func (sa SocialAssertion) TeamInviteType() string {
+	return string(sa.Service)
+}
+
+func (sa SocialAssertion) TeamInviteName() TeamInviteName {
+	return TeamInviteName(sa.User)
+}
+
 func (a GetArg) GetEndpoint() string {
 	return a.Endpoint
 }
@@ -1456,6 +1464,10 @@ func (u UserVersion) Eq(v UserVersion) bool {
 	return u.Uid.Equal(v.Uid) && u.EldestSeqno.Eq(v.EldestSeqno)
 }
 
+func (u UserVersion) TeamInviteName() TeamInviteName {
+	return TeamInviteName(u.PercentForm())
+}
+
 type ByUserVersionID []UserVersion
 
 func (b ByUserVersionID) Len() int      { return len(b) }
@@ -1772,6 +1784,33 @@ func (t TeamInviteType) String() (string, error) {
 	}
 
 	return "", nil
+}
+
+func TeamInviteTypeEq(a, b TeamInviteType) bool {
+	ac, err := a.C()
+	if err != nil {
+		return false
+	}
+	bc, err := b.C()
+	if err != nil {
+		return false
+	}
+	if ac != bc {
+		return false
+	}
+
+	switch ac {
+	case TeamInviteCategory_KEYBASE:
+		return true
+	case TeamInviteCategory_EMAIL:
+		return true
+	case TeamInviteCategory_SBS:
+		return a.Sbs() == b.Sbs()
+	case TeamInviteCategory_UNKNOWN:
+		return a.Unknown() == b.Unknown()
+	}
+
+	return false
 }
 
 func (m MemberInfo) TeamName() (TeamName, error) {

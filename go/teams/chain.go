@@ -448,7 +448,7 @@ func (t *TeamSigChainState) NumActiveInvites() int {
 	return len(t.inner.ActiveInvites)
 }
 
-func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
+func (t *TeamSigChainState) HasActiveInvite(name keybase1.TeamInviteName, typ keybase1.TeamInviteType) (bool, error) {
 	i, err := t.FindActiveInvite(name, typ)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
@@ -462,34 +462,10 @@ func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
 	return false, nil
 }
 
-func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamInvite, error) {
-	for _, invite := range t.inner.ActiveInvites {
-		styp, err := invite.Type.String()
-		if err != nil {
-			return nil, err
-		}
-		if styp == typ {
-			ctyp, err := invite.Type.C()
-			if err != nil {
-				return nil, err
-			}
-			if ctyp == keybase1.TeamInviteCategory_KEYBASE {
-				uv1, err := libkb.ParseUserVersion(string(invite.Name))
-				if err != nil {
-					return nil, err
-				}
-				uv2, err := libkb.ParseUserVersion(name)
-				if err != nil {
-					return nil, err
-				}
-				if uv1.Eq(uv2) {
-					return &invite, nil
-				}
-			} else {
-				if invite.Name == keybase1.TeamInviteName(name) {
-					return &invite, nil
-				}
-			}
+func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ keybase1.TeamInviteType) (*keybase1.TeamInvite, error) {
+	for _, active := range t.inner.ActiveInvites {
+		if active.Name == name && keybase1.TeamInviteTypeEq(active.Type, typ) {
+			return &active, nil
 		}
 	}
 	return nil, libkb.NotFoundError{}

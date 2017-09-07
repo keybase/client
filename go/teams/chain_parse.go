@@ -50,9 +50,9 @@ type SCTeamInvites struct {
 }
 
 type SCTeamInvite struct {
-	Type string         `json:"type"`
-	Name string         `json:"name"`
-	ID   SCTeamInviteID `json:"id"`
+	Type string                  `json:"type"`
+	Name keybase1.TeamInviteName `json:"name"`
+	ID   SCTeamInviteID          `json:"id"`
 }
 
 type SCTeamParent struct {
