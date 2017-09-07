@@ -25,7 +25,7 @@ type AssertionExpression interface {
 }
 
 type AssertionOr struct {
-	symbol string
+	symbol string // the divider symbol used e.g. "," or "||"
 	terms  []AssertionExpression
 }
 
@@ -820,7 +820,7 @@ func UnpackAssertionList(expr AssertionExpression) (res []AssertionExpression, e
 	}
 }
 
-// A single item in a comma-separated assertion list must have any ORs in its subtree.
+// A single item in a comma-separated assertion list must not have any ORs in its subtree.
 func checkAssertionListItem(expr AssertionExpression) error {
 	if expr.HasOr() {
 		return fmt.Errorf("assertions with OR are not allowed here")
