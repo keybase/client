@@ -70,7 +70,7 @@ func TestBackgroundIdentifier(t *testing.T) {
 		select {
 		case ret = <-snoopCh:
 		case <-time.After(30 * time.Second):
-			t.Errorf("Failing after 10s of inactivity")
+			t.Errorf("Failing after 30s of inactivity")
 			t.Logf("Now is: %s", fakeClock.Now())
 			t.Logf("Queue has:")
 			for _, e := range bgi.queue {
