@@ -1305,6 +1305,19 @@
       ],
       "response": null
     },
+    "teamAcceptInviteOrRequestAccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "tokenOrName",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "teamListRequests": {
       "request": [
         {

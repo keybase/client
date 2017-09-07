@@ -251,6 +251,11 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 	}
 }
 
+func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) {
+	err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) revokePaperKey() {
 	id := u.paperKeyID()
 
