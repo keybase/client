@@ -453,19 +453,23 @@ func (r *runner) processGogitStatus(
 	lastByteCount := 0
 	for update := range statusChan {
 		if update.Stage != currStage {
-			if r.verbosity >= 3 {
-				f, err := os.Create(filepath.Join(
-					os.TempDir(), fmt.Sprintf("memprof.%d.prof", update.Stage)))
-				if err != nil {
-					r.log.CDebugf(ctx, err.Error())
-				} else {
-					pprof.WriteHeapProfile(f)
-					f.Close()
-				}
-			}
-
 			if currStage != plumbing.StatusUnknown {
 				elapsedStr := r.getElapsedStr(startTime)
+
+				if r.verbosity >= 3 {
+					profName := filepath.Join(
+						os.TempDir(),
+						fmt.Sprintf("memprof.%d.prof", update.Stage))
+					f, err := os.Create(profName)
+					if err != nil {
+						r.log.CDebugf(ctx, err.Error())
+					} else {
+						pprof.WriteHeapProfile(f)
+						f.Close()
+					}
+					elapsedStr += " [memprof " + profName + "]"
+				}
+
 				r.errput.Write([]byte("done." + elapsedStr + "\n"))
 			}
 			r.errput.Write([]byte(gogitStagesToStatus[update.Stage]))
