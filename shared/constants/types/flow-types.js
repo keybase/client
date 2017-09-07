@@ -570,6 +570,7 @@ export const TeamsTeamApplication = {
   kbfs: 1,
   chat: 2,
   saltpack: 3,
+  gitMetadata: 4,
 }
 
 export const TeamsTeamInviteCategory = {
@@ -3011,6 +3012,13 @@ export type Email = {
 
 export type EncryptedBytes32 = any
 
+export type EncryptedGitMetadata = {
+  v: int,
+  e: bytes,
+  n: BoxNonce,
+  gen: PerTeamKeyGeneration,
+}
+
 export type ErrorNum = int
 
 export type ExitCode =
@@ -4579,6 +4587,7 @@ export type TeamApplication =
     1 // KBFS_1
   | 2 // CHAT_2
   | 3 // SALTPACK_3
+  | 4 // GIT_METADATA_4
 
 export type TeamApplicationKey = {
   application: TeamApplication,
