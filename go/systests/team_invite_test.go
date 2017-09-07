@@ -120,3 +120,47 @@ func TestTeamInviteEmail(t *testing.T) {
 		t.Error("after accepting invite, active invite still exists")
 	}
 }
+
+func TestTeamInviteAcceptOrRequest(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("own")
+	tt.addUser("eml")
+
+	// user 0 creates a team
+	team := tt.users[0].createTeam()
+
+	// user 1 requests access
+	tt.users[1].acceptInviteOrRequestAccess(team)
+
+	// user 0 adds a user by email
+	email := tt.users[1].username + "@keybase.io"
+	tt.users[0].addTeamMemberEmail(team, email, keybase1.TeamRole_WRITER)
+
+	// user 1 gets the email
+	tokens := tt.users[1].readInviteEmails(email)
+	require.Len(t, tokens, 1)
+
+	// user 1 accepts the invitation
+	tt.users[1].acceptInviteOrRequestAccess(tokens[0])
+
+	// user 0 kicks rekeyd so it notices the accepted invite
+	tt.users[0].kickTeamRekeyd()
+
+	// user 0 should get gregor notification that the team changed
+	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+
+	// user 1 should also get gregor notification that the team changed
+	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+
+	// the team should have user 1 in it now as a writer
+	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
+	require.NoError(t, err)
+	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	require.Len(t, writers, 1)
+	if !writers[0].Uid.Equal(tt.users[1].uid) {
+		t.Errorf("writer uid: %s, expected %s", writers[0].Uid, tt.users[1].uid)
+	}
+}
