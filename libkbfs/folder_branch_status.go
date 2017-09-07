@@ -27,6 +27,7 @@ type FolderBranchStatus struct {
 	FolderID            string
 	Revision            kbfsmd.Revision
 	MDVersion           MetadataVer
+	RootBlockID         string
 	SyncEnabled         bool
 	PrefetchStatus      string
 
@@ -205,6 +206,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 		prefetchStatus := fbsk.config.PrefetchStatus(ctx, fbsk.md.TlfID(),
 			fbsk.md.Data().Dir.BlockPointer)
 		fbs.PrefetchStatus = prefetchStatus.String()
+		fbs.RootBlockID = fbsk.md.Data().Dir.BlockPointer.ID.String()
 
 		// TODO: Ideally, the journal would push status
 		// updates to this object instead, so we can notify
