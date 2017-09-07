@@ -5,7 +5,15 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
-const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPanel, teamName}: Props) => (
+const ChannelHeader = ({
+  badgeNumber,
+  channelName,
+  muted,
+  onBack,
+  onToggleInfoPanel,
+  teamName,
+  isPendingConversation,
+}: Props) => (
   <Box style={containerStyle}>
     <BackButton
       badgeNumber={badgeNumber}
@@ -39,11 +47,12 @@ const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPan
           style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}}
         />}
     </Box>
-    <Icon
-      type="iconfont-info"
-      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
-      onClick={onToggleInfoPanel}
-    />
+    {!isPendingConversation &&
+      <Icon
+        type="iconfont-info"
+        style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
+        onClick={onToggleInfoPanel}
+      />}
   </Box>
 )
 
@@ -55,6 +64,7 @@ const UsernameHeader = ({
   onShowProfile,
   onToggleInfoPanel,
   users,
+  isPendingConversation,
 }: Props) => (
   <Box style={containerStyle}>
     <BackButton
@@ -88,11 +98,12 @@ const UsernameHeader = ({
           style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}}
         />}
     </Box>
-    <Icon
-      type="iconfont-info"
-      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
-      onClick={onToggleInfoPanel}
-    />
+    {!isPendingConversation &&
+      <Icon
+        type="iconfont-info"
+        style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
+        onClick={onToggleInfoPanel}
+      />}
   </Box>
 )
 

@@ -34,4 +34,9 @@ export default (props: Props) =>
         infoPanelOpen={props.infoPanelOpen}
         onToggleInfoPanel={props.onToggleInfoPanel}
         onBack={props.onBack}
+        isPendingConversation={
+          props.selectedConversationIDKey
+            ? ChatConstants.isPendingConversationIDKey(props.selectedConversationIDKey)
+            : false
+        }
       />

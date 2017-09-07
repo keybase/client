@@ -13,6 +13,7 @@ export type Props = {|
   infoPanelOpen: boolean,
   teamName: ?string,
   users: UserList,
+  isPendingConversation: ?boolean,
 |}
 
 export class ChannelHeader extends Component<Props> {}
