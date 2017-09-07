@@ -34,15 +34,7 @@ func (c *Crypto) Box(ctx context.Context, plaintext []byte, teamSpec keybase1.Te
 		return nil, err
 	}
 
-	// For v1 of this, we'll use KBFS key so that we don't need to backfill in
-	// reader key masks for a new application type.  But once we can do that,
-	// then this should be used:
-	//
-	//    key, err := team.GitMetadataKey(ctx)
-	//
-	// and the version should change below from 1 to 2, and Unbox should handle
-	// both versions.
-	key, err := team.KBFSKey(ctx)
+	key, err := team.GitMetadataKey(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +67,7 @@ func (c *Crypto) Unbox(ctx context.Context, teamSpec keybase1.TeamIDWithVisibili
 	if err != nil {
 		return nil, err
 	}
-	key, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_KBFS, metadata.Gen)
+	key, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
 	if err != nil {
 		return nil, err
 	}
