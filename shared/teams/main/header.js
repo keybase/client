@@ -37,7 +37,8 @@ export type Props = {
 const Header = (props: Props) => (
   <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 48}}>
     <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
-    <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
+    {/* off until this works */}
+    {false && <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />}
   </Box>
 )
 
