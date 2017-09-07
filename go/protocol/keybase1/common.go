@@ -120,6 +120,12 @@ func (o UserOrTeamID) DeepCopy() UserOrTeamID {
 	return o
 }
 
+type GitRepoName string
+
+func (o GitRepoName) DeepCopy() GitRepoName {
+	return o
+}
+
 type TeamType int
 
 const (

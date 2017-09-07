@@ -4,7 +4,7 @@ protocol git {
   import idl "common.avdl";
   // for Folder and FolderType -- maybe these should be in kbfs_common?
   import idl "favorite.avdl";
-  
+
   // The same format as in chat1.EncryptedData (and KBFS)
   record EncryptedGitMetadata {
     int   v;                  // version = 1
@@ -21,7 +21,7 @@ protocol git {
   // is inferred by the server based on who's doing the push, and stored in the
   // clear.
   record GitLocalMetadata {
-    string repoName;
+    GitRepoName repoName;
   }
 
   // Additional metadata maintained by the server, returned with query results.
