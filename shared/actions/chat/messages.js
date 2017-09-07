@@ -69,7 +69,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    [conversationIDKey, newConvoTlfName] = yield call(Shared.startNewConversation, conversationIDKey)
+    ;[conversationIDKey, newConvoTlfName] = yield call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
