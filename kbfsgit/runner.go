@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"strconv"
 	"strings"
@@ -464,6 +465,7 @@ func (r *runner) processGogitStatus(
 					if err != nil {
 						r.log.CDebugf(ctx, err.Error())
 					} else {
+						runtime.GC()
 						pprof.WriteHeapProfile(f)
 						f.Close()
 					}
