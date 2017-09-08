@@ -126,6 +126,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
 			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
