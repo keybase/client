@@ -1822,23 +1822,7 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 		return UserVersion{}, errors.New("KeybaseUserVersion: invalid invite category, must be keybase")
 	}
 
-	pieces := strings.Split(string(t.Name), "%")
-	uid, err := UIDFromString(pieces[0])
-	if err != nil {
-		return UserVersion{}, err
-	}
-	if len(pieces) == 1 {
-		// old style for version 1
-		return UserVersion{Uid: uid, EldestSeqno: 1}, nil
-	}
-	if len(pieces) != 2 {
-		return UserVersion{}, fmt.Errorf("invalid user version percent form in invite name: %q", t.Name)
-	}
-	seqno, err := strconv.ParseInt(pieces[1], 10, 64)
-	if err != nil {
-		return UserVersion{}, fmt.Errorf("invalid eldest seqno in invite name percent form: %q (%s)", t.Name, err)
-	}
-	return UserVersion{Uid: uid, EldestSeqno: Seqno(seqno)}, nil
+	return ParseUserVersion(string(t.Name))
 }
 
 func (m MemberInfo) TeamName() (TeamName, error) {
@@ -1897,4 +1881,27 @@ func (p MDPriority) IsValid() bool {
 
 func (t TLFVisibility) Eq(r TLFVisibility) bool {
 	return int(t) == int(r)
+}
+
+func ParseUserVersion(s string) (res UserVersion, err error) {
+	parts := strings.Split(s, "%")
+	if len(parts) == 1 {
+		// default to seqno 1
+		parts = append(parts, "1")
+	}
+	if len(parts) != 2 {
+		return res, fmt.Errorf("invalid user version: %s", s)
+	}
+	uid, err := UIDFromString(parts[0])
+	if err != nil {
+		return res, err
+	}
+	eldestSeqno, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return res, fmt.Errorf("invalid eldest seqno: %s", err)
+	}
+	return UserVersion{
+		Uid:         uid,
+		EldestSeqno: Seqno(eldestSeqno),
+	}, nil
 }
