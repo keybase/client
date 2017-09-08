@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import {reduxTimings} from '../local-debug'
 
 const perf = typeof performance !== 'undefined' && performance // eslint-disable-line
@@ -64,22 +64,28 @@ const getLabel = obj => {
     } else if (obj.effect.CALL) {
       label = obj.effect.CALL.fn && obj.effect.CALL.fn.name
     } else if (obj.effect.SELECT) {
-      label = obj.effect.SELECT.selector.name
+      label = obj.effect.SELECT.selector.name || `select:${obj.effectId}`
+    } else if (obj.effect.RACE) {
+      label = `race:${Object.keys(obj.effect.RACE).join(',')}`
+    } else if (obj.effect.JOIN) {
+      label = obj.effect.JOIN.name
     } else if (obj.effect.TAKE) {
       label = obj.effect.TAKE.pattern || (obj.effect.TAKE.channel && 'take:channel')
+    } else if (obj.effect.CANCELLED) {
+      label = `cancelled:${obj.effectId}`
     } else if (obj.effect.CANCEL) {
       label = obj.effect.CANCEL.name
     } else if (obj.effect.ACTION_CHANNEL) {
       label = obj.effect.ACTION_CHANNEL.pattern
+    } else if (obj.effect instanceof Promise) {
+      label = `promise:${obj.effectId}`
     } else if (obj.effect.PUT) {
       label =
-        (obj.effect.PUT.action && obj.effect.PUT.action.payload && obj.effect.PUT.action.payload.type) ||
-        (obj.effect.PUT.action && obj.effect.PUT.action.name)
+        (obj.effect.PUT.action && obj.effect.PUT.action.type) ||
+        (obj.effect.PUT.action && obj.effect.PUT.action.name) ||
+        (typeof obj.effect.PUT.action === 'function' && `put:${obj.effectId}`)
     }
   } catch (err) {}
-  if (!label) {
-    debugger
-  }
   return label || obj.effectId
 }
 const effectIdToLabel = {}
