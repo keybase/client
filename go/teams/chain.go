@@ -464,7 +464,7 @@ func (t *TeamSigChainState) HasActiveInvite(name keybase1.TeamInviteName, typ ke
 
 func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ keybase1.TeamInviteType) (*keybase1.TeamInvite, error) {
 	for _, active := range t.inner.ActiveInvites {
-		if active.Name == name && keybase1.TeamInviteTypeEq(active.Type, typ) {
+		if active.Name == name && active.Type.Eq(typ) {
 			return &active, nil
 		}
 	}

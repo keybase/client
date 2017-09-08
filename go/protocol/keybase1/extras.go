@@ -1790,7 +1790,7 @@ func (t TeamInviteType) String() (string, error) {
 	return "", nil
 }
 
-func TeamInviteTypeEq(a, b TeamInviteType) bool {
+func (a TeamInviteType) Eq(b TeamInviteType) bool {
 	ac, err := a.C()
 	if err != nil {
 		return false
