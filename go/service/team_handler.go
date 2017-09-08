@@ -54,7 +54,12 @@ func (r *teamHandler) rotateTeam(ctx context.Context, item gregor.Item) error {
 	}
 	r.G().Log.Debug("team.clkr unmarshaled: %+v", msg)
 
-	return teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation))
+	if err := teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation)); err != nil {
+		return err
+	}
+
+	r.G().Log.Debug("dismissing team.clkr item since rotate succeeded")
+	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 }
 
 func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes keybase1.TeamChangeSet) error {
@@ -65,7 +70,12 @@ func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes 
 	}
 	r.G().Log.Debug("team.(change|rename) unmarshaled: %+v", rows)
 
-	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
+	if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
+		return err
+	}
+
+	r.G().Log.Debug("dismissing team.(change|rename) item since it succeeded")
+	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item) error {
@@ -77,7 +87,12 @@ func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item)
 	}
 	r.G().Log.Debug("team.sbs unmarshaled: %+v", msg)
 
-	return teams.HandleSBSRequest(ctx, r.G(), msg)
+	if err := teams.HandleSBSRequest(ctx, r.G(), msg); err != nil {
+		return err
+	}
+
+	r.G().Log.Debug("dismissing team.sbs item since it succeeded")
+	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 }
 
 func (r *teamHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
