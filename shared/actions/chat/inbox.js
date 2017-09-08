@@ -154,12 +154,13 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 
-    // Unbox teams so we can get their names
-    yield put(
-      Creators.unboxConversations(
-        conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
-      )
-    )
+    // Load the first visible simple and teams so we can get the channel names
+    const toUnbox = conversations
+      .filter(c => !c.teamname)
+      .take(20)
+      .concat(conversations.filter(c => c.teamname))
+
+    yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
 
     const {
       initialConversation,
