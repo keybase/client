@@ -251,7 +251,3 @@ you're you. We suggest one of the following:
    - reset your account and start fresh: https://keybase.io/#account-reset
 `)
 }
-
-func (c *CmdLogin) SetUsername(u string) {
-	c.username = u
-}
