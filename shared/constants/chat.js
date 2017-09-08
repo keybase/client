@@ -15,19 +15,21 @@ import {parseUserId, serviceIdToIcon} from '../util/platforms'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {
-  Asset,
-  AssetMetadata,
-  ChatActivity,
-  ConversationInfoLocal,
-  ConversationMembersType,
-  ConversationFinalizeInfo,
-  MessageBody,
-  MessageID as RPCMessageID,
-  OutboxID as RPCOutboxID,
-  ConversationID as RPCConversationID,
-  TyperInfo,
-  ConversationStaleUpdate,
+import {
+  CommonTeamType,
+  type Asset,
+  type AssetMetadata,
+  type ChatActivity,
+  type ConversationInfoLocal,
+  type ConversationMembersType,
+  type ConversationFinalizeInfo,
+  type MessageBody,
+  type MessageID as RPCMessageID,
+  type OutboxID as RPCOutboxID,
+  type ConversationID as RPCConversationID,
+  type TeamType,
+  type TyperInfo,
+  type ConversationStaleUpdate,
 } from './types/flow-types-chat'
 import {CommonTLFVisibility} from './types/flow-types'
 import type {DeviceType, KBRecord, KBOrderedSet} from './types/more'
@@ -297,6 +299,7 @@ export const InboxStateRecord = Record({
   time: 0,
   name: '',
   visibility: CommonTLFVisibility.private,
+  teamType: CommonTeamType.none,
 })
 
 export type InboxState = KBRecord<{
@@ -312,6 +315,7 @@ export type InboxState = KBRecord<{
   state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
   time: number,
+  teamType: TeamType,
 }>
 
 export type SupersedeInfo = {

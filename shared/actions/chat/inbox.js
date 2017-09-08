@@ -144,6 +144,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
             participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
             status: Constants.ConversationStatusByEnum[c.status || 0],
             teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+            teamType: c.teamType,
             time: c.time,
           })
         })
@@ -259,8 +260,8 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
     return
   }
 
-  // Collect items to unbox
-  const total = rowsVisible * 2
+  // Collect items to unbox, sanity max at 40
+  const total = Math.max(rowsVisible + 2, 40)
   const conversationIDKeys = inboxes
     .slice(idx, idx + total)
     .map(i => (i.state === 'untrusted' ? i.conversationIDKey : null))
@@ -442,7 +443,7 @@ const parseNotifications = (
   }
 }
 
-// Convert server to our data type. Make timestamps and snippets
+// Convert server to our data type
 function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.InboxState {
   if (
     !c ||
@@ -476,6 +477,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
     teamname,
+    teamType: c.teamType,
     time: c.time,
     visibility: c.visibility,
   })
