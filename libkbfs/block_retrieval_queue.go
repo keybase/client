@@ -221,6 +221,8 @@ func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(ptr BlockPointer,
 	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{},
 	didUpdateCh <-chan struct{}) {
 	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
+	ctx = CtxWithRandomIDReplayable(ctx, "prefetchForBlockID", ptr.ID.String(),
+		brq.log)
 	defer cancel()
 	prefetcher := brq.Prefetcher()
 	childPrefetchDoneCh, childPrefetchCancelCh, numBlocks :=
@@ -371,19 +373,12 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	return nil
 }
 
-// checkCaches returns a block if it's in one of our caches. If it's
-// successful, it triggers CacheAndPrefetch. Otherwise, it doesn't trigger it
-// since the caller will attempt to find the block elsewhere.
-// TODO: Clearly the caller should be responsible for CacheAndPrefetch in both
-// scenarios.
+// checkCaches copies a block into `block` if it's in one of our caches.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	kmd KeyMetadata, ptr BlockPointer, block Block) (PrefetchStatus, error) {
 	// Attempt to retrieve the block from the cache. This might be a specific
 	// type where the request blocks are CommonBlocks, but that direction can
 	// Set correctly. The cache will never have CommonBlocks.
-	// TODO: verify that the returned lifetime here matches `lifetime` (which
-	// should always be TransientEntry, since a PermanentEntry would have been
-	// served directly from the cache elsewhere)?
 	cachedBlock, prefetchStatus, _, err :=
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
@@ -443,7 +438,7 @@ func (brq *blockRetrievalQueue) RequestWithPrefetch(ctx context.Context,
 			prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
 		if err != nil {
 			brq.log.CWarningf(ctx, "An error occurred when caching and/or "+
-				"prefetching disk cached block %s", ptr.ID)
+				"prefetching cached block %s: %+v", ptr.ID, err)
 		}
 		ch <- nil
 		return ch
