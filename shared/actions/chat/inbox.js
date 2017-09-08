@@ -354,7 +354,6 @@ const unboxConversationsSagaMap = {
   'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
 }
 
-const _TEMP = {}
 // Loads the trusted inbox segments
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
   let {conversationIDKeys} = action.payload
@@ -377,14 +376,6 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   if (!conversationIDKeys.length) {
     return
   }
-  // TEMP
-  const TEMP = yield select()
-  conversationIDKeys.forEach(k => {
-    if (_TEMP[k]) {
-      debugger
-    }
-    _TEMP[k] = true
-  })
 
   yield put.resolve(Creators.setUnboxing(conversationIDKeys, false))
 
