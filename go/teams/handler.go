@@ -63,7 +63,9 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	return nil
 }
 
-func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow, changes keybase1.TeamChangeSet) error {
+func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow, changes keybase1.TeamChangeSet) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, "HandleChangeNotification", func() error { return err })()
 	for _, row := range rows {
 		if err := handleChangeSingle(ctx, g, row, changes); err != nil {
 			return err
@@ -72,7 +74,9 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 	return nil
 }
 
-func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSBSMsg) error {
+func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSBSMsg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, "HandleSBSRequest", func() error { return err })()
 	for _, invitee := range msg.Invitees {
 		if err := handleSBSSingle(ctx, g, msg.TeamID, invitee); err != nil {
 			return err
@@ -81,14 +85,15 @@ func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 	return nil
 }
 
-func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, invitee keybase1.TeamInvitee) error {
-	uv := NewUserVersion(invitee.Uid, invitee.EldestSeqno)
-	req, err := reqFromRole(uv, invitee.Role)
+func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, untrustedInviteeFromGregor keybase1.TeamInvitee) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("team.handleSBSSingle(teamID: %v, invitee: %+v)", teamID, untrustedInviteeFromGregor), func() error { return err })()
+	uv := NewUserVersion(untrustedInviteeFromGregor.Uid, untrustedInviteeFromGregor.EldestSeqno)
+	req, err := reqFromRole(uv, untrustedInviteeFromGregor.Role)
 	if err != nil {
 		return err
 	}
-	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UID)
-	req.CompletedInvites[invitee.InviteID] = invitee.Uid
+	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+	req.CompletedInvites[untrustedInviteeFromGregor.InviteID] = uv.PercentForm()
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
@@ -101,7 +106,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	// verify the invite info:
 
 	// find the invite in the team chain
-	invite, found := team.chain().FindActiveInviteByID(invitee.InviteID)
+	invite, found := team.chain().FindActiveInviteByID(untrustedInviteeFromGregor.InviteID)
 	if !found {
 		return libkb.NotFoundError{}
 	}
@@ -116,7 +121,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		if err != nil {
 			return err
 		}
-		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, invitee.Uid)
+		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, untrustedInviteeFromGregor.Uid)
 
 		arg := keybase1.Identify2Arg{
 			UserAssertion:    assertion,
@@ -135,16 +140,35 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	case keybase1.TeamInviteCategory_EMAIL:
 		// nothing to verify, need to trust the server
 	case keybase1.TeamInviteCategory_KEYBASE:
-		uid, err := keybase1.UIDFromString(string(invite.Name))
-		if err != nil {
+		if err := assertCanAcceptKeybaseInvite(ctx, g, untrustedInviteeFromGregor, invite); err != nil {
 			return err
-		}
-		if uid != invitee.Uid {
-			return fmt.Errorf("chain keybase invite link uid %s does not match uid %s in team.sbs message", uid, invitee.Uid)
 		}
 	default:
 		return fmt.Errorf("no verification implemented for invite category %s (%+v)", category, invite)
 	}
 
+	g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)
+
 	return team.ChangeMembership(ctx, req)
+}
+
+func assertCanAcceptKeybaseInvite(ctx context.Context, g *libkb.GlobalContext, untrustedInviteeFromGregor keybase1.TeamInvitee, chainInvite keybase1.TeamInvite) error {
+	chainUV, err := chainInvite.KeybaseUserVersion()
+	if err != nil {
+		return err
+	}
+	if chainUV.Uid.NotEqual(untrustedInviteeFromGregor.Uid) {
+		return fmt.Errorf("chain keybase invite link uid %s does not match uid %s in team.sbs message", chainUV.Uid, untrustedInviteeFromGregor.Uid)
+	}
+
+	if chainUV.EldestSeqno.Eq(untrustedInviteeFromGregor.EldestSeqno) {
+		return nil
+	}
+
+	if chainUV.EldestSeqno == 0 {
+		g.Log.CDebugf(ctx, "team.sbs invitee eldest seqno: %d, allowing it to take the invite for eldest seqno 0 (reset account)", untrustedInviteeFromGregor.EldestSeqno)
+		return nil
+	}
+
+	return fmt.Errorf("chain keybase invite link eldest seqno %d does not match eldest seqno %d in team.sbs message", chainUV.EldestSeqno, untrustedInviteeFromGregor.EldestSeqno)
 }

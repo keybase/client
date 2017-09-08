@@ -806,6 +806,14 @@ func (sa SocialAssertion) String() string {
 	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
 }
 
+func (sa SocialAssertion) TeamInviteType() string {
+	return string(sa.Service)
+}
+
+func (sa SocialAssertion) TeamInviteName() TeamInviteName {
+	return TeamInviteName(sa.User)
+}
+
 func (a GetArg) GetEndpoint() string {
 	return a.Endpoint
 }
@@ -1444,12 +1452,12 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 	}
 }
 
-// "foo" for seqno 1 or "foo%6"
-func (u UserVersion) PercentForm() string {
-	if u.EldestSeqno == 1 {
-		return string(u.Uid)
-	}
-	return u.String()
+func (u UserVersionPercentForm) String() string {
+	return string(u)
+}
+
+func (u UserVersion) PercentForm() UserVersionPercentForm {
+	return UserVersionPercentForm(u.String())
 }
 
 func (u UserVersion) String() string {
@@ -1458,6 +1466,10 @@ func (u UserVersion) String() string {
 
 func (u UserVersion) Eq(v UserVersion) bool {
 	return u.Uid.Equal(v.Uid) && u.EldestSeqno.Eq(v.EldestSeqno)
+}
+
+func (u UserVersion) TeamInviteName() TeamInviteName {
+	return TeamInviteName(u.PercentForm())
 }
 
 type ByUserVersionID []UserVersion
@@ -1778,6 +1790,45 @@ func (t TeamInviteType) String() (string, error) {
 	return "", nil
 }
 
+func (a TeamInviteType) Eq(b TeamInviteType) bool {
+	ac, err := a.C()
+	if err != nil {
+		return false
+	}
+	bc, err := b.C()
+	if err != nil {
+		return false
+	}
+	if ac != bc {
+		return false
+	}
+
+	switch ac {
+	case TeamInviteCategory_KEYBASE:
+		return true
+	case TeamInviteCategory_EMAIL:
+		return true
+	case TeamInviteCategory_SBS:
+		return a.Sbs() == b.Sbs()
+	case TeamInviteCategory_UNKNOWN:
+		return a.Unknown() == b.Unknown()
+	}
+
+	return false
+}
+
+func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
+	category, err := t.Type.C()
+	if err != nil {
+		return UserVersion{}, err
+	}
+	if category != TeamInviteCategory_KEYBASE {
+		return UserVersion{}, errors.New("KeybaseUserVersion: invalid invite category, must be keybase")
+	}
+
+	return ParseUserVersion(UserVersionPercentForm(t.Name))
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }
@@ -1834,4 +1885,27 @@ func (p MDPriority) IsValid() bool {
 
 func (t TLFVisibility) Eq(r TLFVisibility) bool {
 	return int(t) == int(r)
+}
+
+func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
+	parts := strings.Split(string(s), "%")
+	if len(parts) == 1 {
+		// default to seqno 1
+		parts = append(parts, "1")
+	}
+	if len(parts) != 2 {
+		return res, fmt.Errorf("invalid user version: %s", s)
+	}
+	uid, err := UIDFromString(parts[0])
+	if err != nil {
+		return res, err
+	}
+	eldestSeqno, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return res, fmt.Errorf("invalid eldest seqno: %s", err)
+	}
+	return UserVersion{
+		Uid:         uid,
+		EldestSeqno: Seqno(eldestSeqno),
+	}, nil
 }

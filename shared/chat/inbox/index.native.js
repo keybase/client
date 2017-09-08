@@ -85,15 +85,6 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.rows !== nextProps.rows) {
-      if (nextProps.rows.count()) {
-        const row = nextProps.rows.get(0)
-        if (row.type === 'small' && row.conversationIDKey) {
-          this.props.onUntrustedInboxVisible(row.conversationIDKey, 20)
-        }
-      }
-    }
-
     if (this.props.smallTeamsExpanded !== nextProps.smallTeamsExpanded && !nextProps.smallTeamsExpanded) {
       this._list && this._list.scrollToOffset({animated: true, offset: 0})
     }

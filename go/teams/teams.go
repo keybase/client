@@ -104,6 +104,10 @@ func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, er
 	return t.chain().GetUsersWithRole(role)
 }
 
+func (t *Team) UsersWithRoleOrAbove(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
+	return t.chain().GetUsersWithRoleOrAbove(role)
+}
+
 func (t *Team) Members() (keybase1.TeamMembers, error) {
 	var members keybase1.TeamMembers
 
@@ -602,8 +606,12 @@ func (t *Team) NumActiveInvites() int {
 	return t.chain().NumActiveInvites()
 }
 
-func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
-	return t.chain().HasActiveInvite(name, typ)
+func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, error) {
+	it, err := keybase1.TeamInviteTypeFromString(typ, t.G().Env.GetRunMode() == libkb.DevelRunMode)
+	if err != nil {
+		return false, err
+	}
+	return t.chain().HasActiveInvite(name, it)
 }
 
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
@@ -629,7 +637,7 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 
 	invite := SCTeamInvite{
 		Type: "email",
-		Name: email,
+		Name: keybase1.TeamInviteName(email),
 		ID:   NewInviteID(),
 	}
 	return t.postInvite(ctx, invite, role)
@@ -639,9 +647,10 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
 	invite := SCTeamInvite{
 		Type: "keybase",
-		Name: uv.PercentForm(),
+		Name: uv.TeamInviteName(),
 		ID:   NewInviteID(),
 	}
+	t.G().Log.CDebugf(ctx, "invite: %+v", invite)
 	if err := t.postInvite(ctx, invite, role); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -662,7 +671,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 
 	invite := SCTeamInvite{
 		Type: typ,
-		Name: name,
+		Name: keybase1.TeamInviteName(name),
 		ID:   NewInviteID(),
 	}
 

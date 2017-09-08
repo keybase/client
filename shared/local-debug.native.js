@@ -13,7 +13,7 @@ const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 // console.disableYellowBox = true
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true
+const PERF = false
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
@@ -45,14 +45,15 @@ let config: {[key: string]: any} = {
 }
 
 if (__DEV__ && true) {
-  config.isDevApplePushToken = true
   config.clickableVisible = false
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = true
+  config.enableStoreLogging = false
+  config.forwardLogs = false
   config.forwardLogs = true
   config.immediateStateLogging = false
+  config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true
@@ -60,8 +61,8 @@ if (__DEV__ && true) {
   config.redirectOnLogout = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
-  config.showAllTrackers = false
   config.reduxTimings = true
+  config.showAllTrackers = false
 }
 
 if (PERF) {

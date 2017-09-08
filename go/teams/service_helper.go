@@ -126,6 +126,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
 			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
@@ -405,12 +406,12 @@ func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Iden
 	return res, errors.New("could not identify team by ID or name")
 }
 
-func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username, typ string) (*keybase1.TeamInvite, error) {
+func memberInvite(ctx context.Context, g *libkb.GlobalContext, teamname string, iname keybase1.TeamInviteName, itype keybase1.TeamInviteType) (*keybase1.TeamInvite, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return nil, err
 	}
-	return t.chain().FindActiveInvite(username, typ)
+	return t.chain().FindActiveInvite(iname, itype)
 }
 
 func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) error {

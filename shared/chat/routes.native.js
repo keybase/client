@@ -38,6 +38,11 @@ const conversationRoute = new RouteDefNode({
           tags: {hideStatusBar: true},
           children: {},
         },
+        showNewTeamDialog: {
+          component: NewTeamDialog,
+          tags: {layerOnTop: true},
+          children: {},
+        },
       },
     },
     enterPaperkey: {

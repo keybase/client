@@ -251,6 +251,26 @@
     },
     {
       "type": "record",
+      "name": "UserVersion",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersionPercentForm",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TeamChangeReq",
       "fields": [
         {
@@ -291,24 +311,10 @@
         {
           "type": {
             "type": "map",
-            "values": "UID",
+            "values": "UserVersionPercentForm",
             "keys": "TeamInviteID"
           },
           "name": "completedInvites"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UserVersion",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "uid"
-        },
-        {
-          "type": "Seqno",
-          "name": "eldestSeqno"
         }
       ]
     },
