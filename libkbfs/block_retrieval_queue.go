@@ -377,9 +377,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 // TODO: Clearly the caller should be responsible for CacheAndPrefetch in both
 // scenarios.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
-	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
-	lifetime BlockCacheLifetime,
-	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) error {
+	kmd KeyMetadata, ptr BlockPointer, block Block) (PrefetchStatus, error) {
 	// Attempt to retrieve the block from the cache. This might be a specific
 	// type where the request blocks are CommonBlocks, but that direction can
 	// Set correctly. The cache will never have CommonBlocks.
@@ -390,45 +388,27 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 		brq.config.BlockCache().GetWithPrefetch(ptr)
 	if err == nil && cachedBlock != nil {
 		block.Set(cachedBlock)
-		err := brq.CacheAndPrefetch(ctx, ptr, cachedBlock, kmd, priority,
-			lifetime, prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
-		if err != nil {
-			brq.log.CWarningf(ctx, "An error occurred when caching and/or "+
-				"prefetching cached block %s", ptr.ID)
-		}
-		// We need to return nil because the block was already cached.
-		return nil
+		return prefetchStatus, nil
 	}
 
 	// Check the disk cache.
 	dbc := brq.config.DiskBlockCache()
 	if dbc == nil {
-		return NoSuchBlockError{ptr.ID}
+		return NoPrefetch, NoSuchBlockError{ptr.ID}
 	}
 	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(ctx, kmd.TlfID(),
 		ptr.ID)
 	if err != nil {
-		return err
+		return NoPrefetch, err
 	}
 	if len(blockBuf) == 0 {
-		return NoSuchBlockError{ptr.ID}
+		return NoPrefetch, NoSuchBlockError{ptr.ID}
 	}
 
 	// Assemble the block from the encrypted block buffer.
-	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block,
-		blockBuf, serverHalf)
-	if err != nil {
-		return err
-	}
-
-	err = brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
-		prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
-	if err != nil {
-		brq.log.CWarningf(ctx, "An error occurred when caching and/or "+
-			"prefetching disk cached block %s", ptr.ID)
-	}
-	// We need to return nil because the block was already cached.
-	return nil
+	err = brq.config.blockGetter().assembleBlock(ctx, kmd, ptr, block, blockBuf,
+		serverHalf)
+	return prefetchStatus, err
 }
 
 // RequestWithPrefetch implements the BlockRetriever interface for
@@ -457,9 +437,14 @@ func (brq *blockRetrievalQueue) RequestWithPrefetch(ctx context.Context,
 	}
 
 	// Check caches before locking the mutex.
-	err := brq.checkCaches(ctx, priority, kmd, ptr, block, lifetime,
-		deepPrefetchDoneCh, deepPrefetchCancelCh)
+	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
 	if err == nil {
+		err = brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
+			prefetchStatus, deepPrefetchDoneCh, deepPrefetchCancelCh)
+		if err != nil {
+			brq.log.CWarningf(ctx, "An error occurred when caching and/or "+
+				"prefetching disk cached block %s", ptr.ID)
+		}
 		ch <- nil
 		return ch
 	}
