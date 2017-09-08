@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strconv"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -83,4 +84,27 @@ func CheckUIDAgainstCasedUsername(uid keybase1.UID, username string) (err error)
 		err = UIDMismatchError{fmt.Sprintf("%s != %s (via %s)", uid, u2, username)}
 	}
 	return
+}
+
+func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
+	parts := strings.Split(s, "%")
+	if len(parts) == 1 {
+		// default to seqno 1
+		parts = append(parts, "1")
+	}
+	if len(parts) != 2 {
+		return res, fmt.Errorf("invalid user version: %s", s)
+	}
+	uid, err := UIDFromHex(parts[0])
+	if err != nil {
+		return res, err
+	}
+	eldestSeqno, err := strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return res, fmt.Errorf("invalid eldest seqno: %s", err)
+	}
+	return keybase1.UserVersion{
+		Uid:         uid,
+		EldestSeqno: keybase1.Seqno(eldestSeqno),
+	}, nil
 }

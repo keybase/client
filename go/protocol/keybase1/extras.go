@@ -1444,11 +1444,7 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 	}
 }
 
-// "foo" for seqno 1 or "foo%6"
 func (u UserVersion) PercentForm() string {
-	if u.EldestSeqno == 1 {
-		return string(u.Uid)
-	}
 	return u.String()
 }
 

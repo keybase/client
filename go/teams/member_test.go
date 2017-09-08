@@ -348,7 +348,7 @@ func TestMemberAddNoPUK(t *testing.T) {
 		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
 	}
 
-	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819%1", "keybase", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
 	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
@@ -356,7 +356,7 @@ func TestMemberAddNoPUK(t *testing.T) {
 	}
 
 	// existing invite should be untouched
-	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819%1", "keybase", keybase1.TeamRole_READER)
 }
 
 // add user without keys to a team, should create invite link
