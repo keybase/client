@@ -174,8 +174,10 @@ const teamStyle = {
 const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderRadius: 2,
-  paddingLeft: 32,
+  borderTopLeftRadius: 2,
+  borderBottomLeftRadius: 2,
+  marginLeft: globalMargins.medium,
+  paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
   width: '100%',
 }

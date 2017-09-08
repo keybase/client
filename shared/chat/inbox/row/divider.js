@@ -39,17 +39,12 @@ const DividerBox = glamorous(Box)({
 })
 
 const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
-  <ClickableBox
-    onClick={toggle}
-    style={_dividerStyle}
-    className={isExpanded ? 'smallTeamsDividerExpanded' : ''}
-  >
-    <DividerBox>
-      <Box style={_dividerIconStyle}>
-        <Icon type={isExpanded ? 'iconfont-up-arrow' : 'iconfont-down-arrow'} inheritColor={true} />
-      </Box>
-    </DividerBox>
-  </ClickableBox>
+  <Box style={_toggleContainer}>
+    <ClickableBox onClick={toggle} style={_toggleButton}>
+      <Text type="BodySmallSemibold">{isExpanded ? 'Show less' : '+452 more'}</Text>
+      <Badge badgeStyle={_badgeToggleStyle} badgeNumber={2} />
+    </ClickableBox>
+  </Box>
 )
 
 type FloatingDividerProps = {
@@ -63,7 +58,7 @@ const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
       <BigTeamsLabel isFiltered={false} />
       {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}
       <Box style={_iconStyle}>
-        <Icon type="iconfont-up-arrow" inheritColor={true} />
+        <Icon type="iconfont-up-arrow" inheritColor={true} style={{fontSize: isMobile ? 20 : 16}} />
       </Box>
     </DividerBox>
   </ClickableBox>
@@ -86,27 +81,57 @@ const _iconStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'center',
-}
-
-const _dividerIconStyle = {
-  ..._iconStyle,
-  alignItems: 'center',
+  marginTop: isMobile ? globalMargins.tiny : 0,
 }
 
 const _badgeStyle = {
   marginRight: 0,
 }
 
-const _dividerStyle = {
-  flexShrink: 0,
-  height: isMobile ? 25 : 16,
+const _badgeToggleStyle = {
+  ..._badgeStyle,
+  marginLeft: globalMargins.xtiny,
+}
+
+const _toggleButton = {
+  ...(isMobile
+    ? {
+        backgroundColor: globalColors.black_05,
+        color: globalColors.black_60,
+      }
+    : {
+        ':hover': {
+          backgroundColor: globalColors.black_10,
+          color: globalColors.black_75,
+        },
+        backgroundColor: globalColors.black_05,
+        color: globalColors.black_60,
+        cursor: 'hand',
+      }),
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  alignSelf: 'center',
+  borderRadius: 19,
+  height: isMobile ? 24 : 16,
+  marginBottom: isMobile ? 16 : 8,
+  paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
+  paddingRight: isMobile ? globalMargins.small : globalMargins.tiny,
+}
+
+const _toggleContainer = {
+  ...globalStyles.flexBoxColumn,
+  borderBottomColor: globalColors.black_05,
+  borderBottomWidth: 1,
+  borderStyle: 'solid',
+  height: isMobile ? 56 : 32,
+  justifyContent: 'center',
 }
 
 const _floatingStyle = {
   ...globalStyles.fillAbsolute,
-  backgroundColor: globalColors.blue5,
+  backgroundColor: isMobile ? globalColors.white : globalColors.blue5,
   flexShrink: 0,
-  height: 32,
+  height: isMobile ? 56 : 32,
   top: undefined,
 }
 
