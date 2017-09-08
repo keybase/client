@@ -116,7 +116,8 @@ func (e *PGPProvision) provision(ctx *Context) error {
 		return err
 	}
 
-	// Get a per-user key
+	// Get a per-user key.
+	// Wait for attempt but only warn on error.
 	eng := NewPerUserKeyUpgrade(e.G(), &PerUserKeyUpgradeArgs{})
 	err = RunEngine(eng, ctx)
 	if err != nil {
