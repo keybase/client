@@ -5,7 +5,6 @@ package service
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -171,28 +170,10 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 
 	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
-	if len(arg.Assertions) == 0 {
-		return res, fmt.Errorf("empty assertions")
-	}
-
-	split := strings.Split(arg.Assertions, "#")
-	if len(split) > 2 {
-		return res, fmt.Errorf("too many reader divison ('#') in assertions: %v", arg.Assertions)
-	}
-
-	writerAssertions, err := h.parseAssertionList(ctx, split[0])
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(arg.Assertions)
 	if err != nil {
 		return res, err
 	}
-
-	var readerAssertions []libkb.AssertionExpression
-	if len(split) >= 2 && len(split[1]) > 0 {
-		readerAssertions, err = h.parseAssertionList(ctx, split[1])
-		if err != nil {
-			return res, err
-		}
-	}
-
 	return h.resolveIdentifyImplicitTeamHelper(ctx, arg, writerAssertions, readerAssertions)
 }
 
@@ -353,15 +334,6 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 		return res, libkb.NewIdentifiesFailedError()
 	}
 	return res, err
-}
-
-// Parse a string into one or more assertions. Only AND assertions are allowed within each part.
-func (h *IdentifyHandler) parseAssertionList(ctx context.Context, assertionsStr string) (res []libkb.AssertionExpression, err error) {
-	expr, err := externals.AssertionParse(assertionsStr)
-	if err != nil {
-		return res, err
-	}
-	return libkb.UnpackAssertionList(expr)
 }
 
 type resolvedAssertion struct {
