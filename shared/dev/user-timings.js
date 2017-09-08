@@ -34,9 +34,9 @@ const infect = allowTiming
         const ident = String(connectCount)
         connectCount++
         return _connect(
-          mapStateToProps ? timingWrap(`🔑 state${ident}:`, mapStateToProps) : null,
-          mapDispatchToProps ? timingWrap(`🔑 disp${ident}:`, mapDispatchToProps) : null,
-          mergeProps ? timingWrap(`🔑 merge${ident}:`, mergeProps) : null,
+          mapStateToProps ? timingWrap(`🔑 redux:state:${ident}`, mapStateToProps) : null,
+          mapDispatchToProps ? timingWrap(`🔑 redux:disp:${ident}`, mapDispatchToProps) : null,
+          mergeProps ? timingWrap(`🔑 redux:merge:${ident}`, mergeProps) : null,
           options
         )
       }
@@ -57,6 +57,8 @@ const getLabel = obj => {
       label = obj.effect && obj.effect.saga && obj.effect.saga.name
     } else if (Array.isArray(obj.effect)) {
       label = obj.effect.map(effect => getLabel({effect})).join(':')
+    } else if (obj.effect.ALL) {
+      label = obj.effect.ALL.map(effect => getLabel({effect})).join(':')
     } else if (obj.effect.FORK) {
       label = obj.effect.FORK.fn && obj.effect.FORK.fn.name
     } else if (obj.effect.CALL) {
@@ -64,13 +66,20 @@ const getLabel = obj => {
     } else if (obj.effect.SELECT) {
       label = obj.effect.SELECT.selector.name
     } else if (obj.effect.TAKE) {
-      label = obj.effect.TAKE.pattern
+      label = obj.effect.TAKE.pattern || (obj.effect.TAKE.channel && 'take:channel')
     } else if (obj.effect.CANCEL) {
       label = obj.effect.CANCEL.name
+    } else if (obj.effect.ACTION_CHANNEL) {
+      label = obj.effect.ACTION_CHANNEL.pattern
     } else if (obj.effect.PUT) {
-      label = obj.effect.PUT.action && obj.effect.PUT.action.payload && obj.effect.PUT.action.payload.type
+      label =
+        (obj.effect.PUT.action && obj.effect.PUT.action.payload && obj.effect.PUT.action.payload.type) ||
+        (obj.effect.PUT.action && obj.effect.PUT.action.name)
     }
   } catch (err) {}
+  if (!label) {
+    debugger
+  }
   return label || obj.effectId
 }
 const effectIdToLabel = {}
