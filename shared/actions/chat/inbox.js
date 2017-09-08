@@ -206,7 +206,7 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   const isBigTeam = c.teamType === ChatTypes.CommonTeamType.complex
   const isTeam = c.membersType === ChatTypes.CommonConversationMembersType.team
 
-  if (isBigTeam) {
+  if (!isTeam) {
     const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
     if (supersedes) {
       yield put(Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes})))
@@ -224,7 +224,7 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
 
   const inboxState = _conversationLocalToInboxState(c)
 
-  if (isTeam && c && c.snippet) {
+  if (!isBigTeam && c && c.snippet) {
     const snippet = c.snippet
     yield put(
       Creators.updateSnippet(conversationIDKey, new HiddenString(Constants.makeSnippet(snippet) || ''))
