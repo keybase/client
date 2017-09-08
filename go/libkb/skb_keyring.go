@@ -315,11 +315,13 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 		}
 	}
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
+	defer b64.Close()
+
 	if err = packets.EncodeTo(b64); err != nil {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
-	b64.Close()
+
 	return 0, nil
 }
 
