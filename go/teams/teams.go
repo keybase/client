@@ -104,6 +104,10 @@ func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, er
 	return t.chain().GetUsersWithRole(role)
 }
 
+func (t *Team) UsersWithRoleOrAbove(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
+	return t.chain().GetUsersWithRoleOrAbove(role)
+}
+
 func (t *Team) Members() (keybase1.TeamMembers, error) {
 	var members keybase1.TeamMembers
 

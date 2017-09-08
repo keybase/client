@@ -26,7 +26,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	tt.users[0].addTeamMember(team, rooterUser, keybase1.TeamRole_WRITER)
 
 	// user 1 proves rooter
-	tt.users[1].prooveRooter()
+	tt.users[1].proveRooter()
 
 	// user 0 kicks rekeyd so it notices the proof
 	tt.users[0].kickTeamRekeyd()
