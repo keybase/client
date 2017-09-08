@@ -1299,7 +1299,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 }
 
 // getDirtyDirLocked composes getDirLocked and
-// updatedWithDirtyEntriesLocked. Note that a dirty dir means that it
+// updateWithDirtyEntriesLocked. Note that a dirty dir means that it
 // has entries possibly pointing to dirty files, and/or that its
 // children list is dirty.
 func (fbo *folderBlockOps) getDirtyDirLocked(ctx context.Context,
@@ -1481,11 +1481,6 @@ func (fbo *folderBlockOps) Lookup(
 
 	if de.Type == Sym {
 		return nil, de, nil
-	}
-
-	err = checkDataVersion(fbo.config, childPath, de.BlockPointer)
-	if err != nil {
-		return nil, DirEntry{}, err
 	}
 
 	node, err := fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
