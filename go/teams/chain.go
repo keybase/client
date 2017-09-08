@@ -1717,7 +1717,7 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 	}
 }
 
-func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UID) {
+func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersion) {
 	for id := range completed {
 		stateToUpdate.informCompletedInvite(id)
 	}

@@ -303,13 +303,31 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 	}
 }
 
+type UserVersion struct {
+	Uid         UID   `codec:"uid" json:"uid"`
+	EldestSeqno Seqno `codec:"eldestSeqno" json:"eldestSeqno"`
+}
+
+func (o UserVersion) DeepCopy() UserVersion {
+	return UserVersion{
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+	}
+}
+
+type UserVersionPercentForm string
+
+func (o UserVersionPercentForm) DeepCopy() UserVersionPercentForm {
+	return o
+}
+
 type TeamChangeReq struct {
-	Owners           []UserVersion        `codec:"owners" json:"owners"`
-	Admins           []UserVersion        `codec:"admins" json:"admins"`
-	Writers          []UserVersion        `codec:"writers" json:"writers"`
-	Readers          []UserVersion        `codec:"readers" json:"readers"`
-	None             []UserVersion        `codec:"none" json:"none"`
-	CompletedInvites map[TeamInviteID]UID `codec:"completedInvites" json:"completedInvites"`
+	Owners           []UserVersion                           `codec:"owners" json:"owners"`
+	Admins           []UserVersion                           `codec:"admins" json:"admins"`
+	Writers          []UserVersion                           `codec:"writers" json:"writers"`
+	Readers          []UserVersion                           `codec:"readers" json:"readers"`
+	None             []UserVersion                           `codec:"none" json:"none"`
+	CompletedInvites map[TeamInviteID]UserVersionPercentForm `codec:"completedInvites" json:"completedInvites"`
 }
 
 func (o TeamChangeReq) DeepCopy() TeamChangeReq {
@@ -354,8 +372,8 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.None),
-		CompletedInvites: (func(x map[TeamInviteID]UID) map[TeamInviteID]UID {
-			ret := make(map[TeamInviteID]UID)
+		CompletedInvites: (func(x map[TeamInviteID]UserVersionPercentForm) map[TeamInviteID]UserVersionPercentForm {
+			ret := make(map[TeamInviteID]UserVersionPercentForm)
 			for k, v := range x {
 				kCopy := k.DeepCopy()
 				vCopy := v.DeepCopy()
@@ -363,18 +381,6 @@ func (o TeamChangeReq) DeepCopy() TeamChangeReq {
 			}
 			return ret
 		})(o.CompletedInvites),
-	}
-}
-
-type UserVersion struct {
-	Uid         UID   `codec:"uid" json:"uid"`
-	EldestSeqno Seqno `codec:"eldestSeqno" json:"eldestSeqno"`
-}
-
-func (o UserVersion) DeepCopy() UserVersion {
-	return UserVersion{
-		Uid:         o.Uid.DeepCopy(),
-		EldestSeqno: o.EldestSeqno.DeepCopy(),
 	}
 }
 

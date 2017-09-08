@@ -506,6 +506,31 @@ func (u *smuUser) loginAfterResetNoPUK(numClones int) *smuDeviceWrapper {
 	return dev
 }
 
+func (u *smuUser) logout() {
+	g := u.primary.tctx.G
+	cmd := client.NewCmdLogoutRunner(g)
+	if err := cmd.Run(); err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) login() {
+	g := u.primary.tctx.G
+	ui := genericUI{
+		g:           g,
+		SecretUI:    smuSecretUI{u},
+		LoginUI:     smuLoginUI{u},
+		ProvisionUI: nullProvisionUI{randomDevice()},
+	}
+	g.SetUI(&ui)
+	cmd := client.NewCmdLoginRunner(g)
+	cmd.SetUsername(u.username)
+	err := cmd.Run()
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
 func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
 	cli := u.getTeamsClient()
 	details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})

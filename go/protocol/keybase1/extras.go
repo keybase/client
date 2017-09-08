@@ -1813,6 +1813,34 @@ func TeamInviteTypeEq(a, b TeamInviteType) bool {
 	return false
 }
 
+func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
+	category, err := t.Type.C()
+	if err != nil {
+		return UserVersion{}, err
+	}
+	if category != TeamInviteCategory_KEYBASE {
+		return UserVersion{}, errors.New("KeybaseUserVersion: invalid invite category, must be keybase")
+	}
+
+	pieces := strings.Split(string(t.Name), "%")
+	uid, err := UIDFromString(pieces[0])
+	if err != nil {
+		return UserVersion{}, err
+	}
+	if len(pieces) == 1 {
+		// old style for version 1
+		return UserVersion{Uid: uid, EldestSeqno: 1}, nil
+	}
+	if len(pieces) != 2 {
+		return UserVersion{}, fmt.Errorf("invalid user version percent form in invite name: %q", t.Name)
+	}
+	seqno, err := strconv.ParseInt(pieces[1], 10, 64)
+	if err != nil {
+		return UserVersion{}, fmt.Errorf("invalid eldest seqno in invite name percent form: %q (%s)", t.Name, err)
+	}
+	return UserVersion{Uid: uid, EldestSeqno: Seqno(seqno)}, nil
+}
+
 func (m MemberInfo) TeamName() (TeamName, error) {
 	return TeamNameFromString(m.FqName)
 }

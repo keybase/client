@@ -20,17 +20,17 @@ func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFr
 type SCTeamMember keybase1.UserVersion
 
 type SCTeamSection struct {
-	ID               SCTeamID                               `json:"id"`
-	Name             *SCTeamName                            `json:"name,omitempty"`
-	Members          *SCTeamMembers                         `json:"members,omitempty"`
-	Parent           *SCTeamParent                          `json:"parent,omitempty"`
-	Subteam          *SCSubteam                             `json:"subteam,omitempty"`
-	PerTeamKey       *SCPerTeamKey                          `json:"per_team_key,omitempty"`
-	Admin            *SCTeamAdmin                           `json:"admin,omitempty"`
-	Invites          *SCTeamInvites                         `json:"invites,omitempty"`
-	CompletedInvites map[keybase1.TeamInviteID]keybase1.UID `json:"completed_invites,omitempty"`
-	Implicit         bool                                   `json:"is_implicit,omitempty"`
-	Public           bool                                   `json:"is_public,omitempty"`
+	ID               SCTeamID                                                  `json:"id"`
+	Name             *SCTeamName                                               `json:"name,omitempty"`
+	Members          *SCTeamMembers                                            `json:"members,omitempty"`
+	Parent           *SCTeamParent                                             `json:"parent,omitempty"`
+	Subteam          *SCSubteam                                                `json:"subteam,omitempty"`
+	PerTeamKey       *SCPerTeamKey                                             `json:"per_team_key,omitempty"`
+	Admin            *SCTeamAdmin                                              `json:"admin,omitempty"`
+	Invites          *SCTeamInvites                                            `json:"invites,omitempty"`
+	CompletedInvites map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm `json:"completed_invites,omitempty"`
+	Implicit         bool                                                      `json:"is_implicit,omitempty"`
+	Public           bool                                                      `json:"is_public,omitempty"`
 }
 
 type SCTeamMembers struct {

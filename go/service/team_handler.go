@@ -64,6 +64,7 @@ func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes 
 		return err
 	}
 	r.G().Log.Debug("team.(change|rename) unmarshaled: %+v", rows)
+
 	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
 }
 
