@@ -69,7 +69,7 @@ const _backgroundUnboxLoop = function*() {
         .toArray()
 
       if (conversationIDKeys.length) {
-        yield call(unboxConversations, conversationIDKeys)
+        yield put(Creators.unboxConversations(conversationIDKeys))
       } else {
         break
       }
@@ -144,6 +144,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
             participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
             status: Constants.ConversationStatusByEnum[c.status || 0],
             teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+            teamType: c.teamType,
             time: c.time,
           })
         })
@@ -153,11 +154,13 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 
-    // Unbox teams so we can get their names
-    yield call(
-      unboxConversations,
-      conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
-    )
+    // Load the first visible simple and teams so we can get the channel names
+    const toUnbox = conversations
+      .filter(c => !c.teamname)
+      .take(20)
+      .concat(conversations.filter(c => c.teamname))
+
+    yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
 
     const {
       initialConversation,
@@ -183,7 +186,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
 function* onGetInboxAndUnbox({
   payload: {conversationIDKeys},
 }: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
-  yield call(unboxConversations, conversationIDKeys)
+  yield put(Creators.unboxConversations(conversationIDKeys))
 }
 
 function _toSupersedeInfo(
@@ -258,8 +261,8 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
     return
   }
 
-  // Collect items to unbox
-  const total = rowsVisible * 2
+  // Collect items to unbox, sanity max at 40
+  const total = Math.max(rowsVisible + 2, 40)
   const conversationIDKeys = inboxes
     .slice(idx, idx + total)
     .map(i => (i.state === 'untrusted' ? i.conversationIDKey : null))
@@ -267,7 +270,7 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
     .toArray()
 
   if (conversationIDKeys.length) {
-    yield call(unboxConversations, conversationIDKeys)
+    yield put(Creators.unboxConversations(conversationIDKeys))
   }
 }
 
@@ -347,15 +350,14 @@ function* _chatInboxFailedSubSaga(params) {
 }
 
 const unboxConversationsSagaMap = {
-  'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
   'chat.1.chatUi.chatInboxConversation': _chatInboxConversationSubSaga,
   'chat.1.chatUi.chatInboxFailed': _chatInboxFailedSubSaga,
+  'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
 }
 
 // Loads the trusted inbox segments
-function* unboxConversations(
-  conversationIDKeys: Array<Constants.ConversationIDKey>
-): Generator<any, any, any> {
+function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
+  let {conversationIDKeys} = action.payload
   conversationIDKeys = yield select(
     (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
       const inbox = state.chat.get('inbox')
@@ -376,7 +378,7 @@ function* unboxConversations(
     return
   }
 
-  yield put(Creators.setUnboxing(conversationIDKeys, false))
+  yield put.resolve(Creators.setUnboxing(conversationIDKeys, false))
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     unboxConversationsSagaMap,
@@ -398,7 +400,7 @@ function* unboxConversations(
   } catch (error) {
     if (error instanceof RPCTimeoutError) {
       console.warn('timed out request for unboxConversations, bailing')
-      yield put(Creators.setUnboxing(conversationIDKeys, true))
+      yield put.resolve(Creators.setUnboxing(conversationIDKeys, true))
     } else {
       console.warn('Error in loadInboxRpc', error)
     }
@@ -433,7 +435,7 @@ const parseNotifications = (
   }
 }
 
-// Convert server to our data type. Make timestamps and snippets
+// Convert server to our data type
 function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.InboxState {
   if (
     !c ||
@@ -467,6 +469,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
     teamname,
+    teamType: c.teamType,
     time: c.time,
     visibility: c.visibility,
   })

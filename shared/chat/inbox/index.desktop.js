@@ -68,12 +68,6 @@ class Inbox extends PureComponent<Props, State> {
 
   _list: any
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (this.props.rows !== nextProps.rows && nextProps.rows.count()) {
-      this._onScrollUnbox()
-    }
-  }
-
   componentDidUpdate(prevProps: Props) {
     if (
       (this.props.rows !== prevProps.rows && prevProps.rows.count()) ||
