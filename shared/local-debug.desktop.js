@@ -35,6 +35,7 @@ let config: {[key: string]: any} = {
   showAllTrackers: false,
   showDevTools: false,
   skipSecondaryDevtools: true,
+  reduxTimings: false,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -53,6 +54,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
 
+  config.reduxTimings = true
   const envJson = envVarDebugJson()
   config = {...config, ...envJson}
 }
@@ -111,6 +113,7 @@ export const {
   showDevTools,
   skipSecondaryDevtools,
   filterActionLogs,
+  reduxTimings,
 } = config
 
 export function envVarDebugJson() {

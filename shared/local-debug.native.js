@@ -13,7 +13,7 @@ const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 // console.disableYellowBox = true
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+const PERF = true
 
 let config: {[key: string]: any} = {
   actionStatFrequency: 0,
@@ -41,6 +41,7 @@ let config: {[key: string]: any} = {
   reduxSagaLoggerMasked: true,
   redirectOnLogout: true,
   showAllTrackers: false,
+  reduxTimings: false,
 }
 
 if (__DEV__ && true) {
@@ -51,15 +52,16 @@ if (__DEV__ && true) {
   config.enableActionLogging = false
   config.enableStoreLogging = true
   config.forwardLogs = true
-  config.immediateStateLogging = true
+  config.immediateStateLogging = false
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true
   config.reactPerf = false
   config.redirectOnLogout = false
-  config.reduxSagaLogger = true
+  config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.showAllTrackers = false
+  config.reduxTimings = true
 }
 
 if (PERF) {
@@ -98,6 +100,7 @@ if (PERF) {
     reduxSagaLoggerMasked: false,
     redirectOnLogout: false,
     showAllTrackers: false,
+    reduxTimings: false,
   }
 }
 
@@ -128,6 +131,7 @@ export const {
   showAllTrackers,
   showDevTools,
   filterActionLogs,
+  reduxTimings,
 } = config
 
 export function setup(store: any) {

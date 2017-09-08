@@ -2,7 +2,8 @@
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 
 const injectReactQueryParams = (url: string): string => {
-  if (!__DEV__ || process.env.KEYBASE_DISABLE_REACT_PERF) {
+  // if (!__DEV__ || process.env.KEYBASE_DISABLE_REACT_PERF) {
+  if (true) {
     return url
   }
 
