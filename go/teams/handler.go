@@ -140,13 +140,19 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	case keybase1.TeamInviteCategory_EMAIL:
 		// nothing to verify, need to trust the server
 	case keybase1.TeamInviteCategory_KEYBASE:
-		// XXX and check the seqno
 		uv, err := invite.KeybaseUserVersion()
 		if err != nil {
 			return err
 		}
 		if uv.Uid.NotEqual(invitee.Uid) {
 			return fmt.Errorf("chain keybase invite link uid %s does not match uid %s in team.sbs message", uv.Uid, invitee.Uid)
+		}
+		if !uv.EldestSeqno.Eq(invitee.EldestSeqno) {
+			if uv.EldestSeqno == 0 {
+				g.Log.CDebugf(ctx, "team.sbs invitee eldest seqno: %d, allowing it to take the invite for eldest seqno 0 (reset account)")
+			} else {
+				return fmt.Errorf("chain keybase invite link eldest seqno %d does not match eldest seqno %d in team.sbs message", uv.EldestSeqno, invitee.EldestSeqno)
+			}
 		}
 	default:
 		return fmt.Errorf("no verification implemented for invite category %s (%+v)", category, invite)

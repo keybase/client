@@ -70,12 +70,7 @@ func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes 
 	}
 	r.G().Log.Debug("team.(change|rename) unmarshaled: %+v", rows)
 
-	if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
-		return err
-	}
-
-	r.G().Log.Debug("dismissing team.(change|rename) item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
+	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item) error {
