@@ -40,7 +40,7 @@ const DividerBox = glamorous(Box)({
 
 const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
   <Box style={_toggleContainer}>
-    <ClickableBox onClick={toggle} style={_toggleButton}>
+    <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
       <Text type="BodySmallSemibold">{isExpanded ? 'Show less' : '+452 more'}</Text>
       <Badge badgeStyle={_badgeToggleStyle} badgeNumber={2} />
     </ClickableBox>
@@ -93,25 +93,13 @@ const _badgeToggleStyle = {
   marginLeft: globalMargins.xtiny,
 }
 
-const _toggleButton = {
-  ...(isMobile
-    ? {
-        backgroundColor: globalColors.black_05,
-        color: globalColors.black_60,
-      }
-    : {
-        ':hover': {
-          backgroundColor: globalColors.black_10,
-          color: globalColors.black_75,
-        },
-        backgroundColor: globalColors.black_05,
-        color: globalColors.black_60,
-        cursor: 'hand',
-      }),
+const _toggleButtonStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
+  backgroundColor: globalColors.black_05,
   borderRadius: 19,
+  color: globalColors.black_60,
   height: isMobile ? 24 : 16,
   marginBottom: isMobile ? 16 : 8,
   paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
