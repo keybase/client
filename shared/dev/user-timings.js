@@ -4,15 +4,19 @@ import {reduxTimings} from '../local-debug'
 const perf = typeof performance !== 'undefined' && performance // eslint-disable-line
 const mark = perf && perf.mark.bind(perf)
 const measure = perf && perf.measure.bind(perf)
+const clearMarks = perf && perf.clearMarks.bind(perf)
+const clearMeasures = perf && perf.clearMeasures.bind(perf)
 
 const allowTiming = __DEV__ && reduxTimings && mark && measure
 
-const timingWrap = (prefix, call) => {
+const timingWrap = (name, call) => {
   return (...args) => {
-    mark(prefix + 'Start')
+    const markName = `${name}:mark`
+    mark(markName)
     const ret = call(...args)
-    mark(prefix + 'End')
-    measure(prefix + 'Dur', prefix + 'Start', prefix + 'End')
+    measure(name, markName)
+    clearMarks(markName)
+    clearMeasures(name)
     return ret
   }
 }
@@ -40,8 +44,11 @@ const infect = allowTiming
     }
   : () => {}
 const endSaga = effectId => {
-  mark(`🔑 sagaEnd${effectId}`)
-  measure(`🔑 saga:${effectIdToLabel[effectId]}`, `🔑 sagaStart${effectId}`, `🔑 sagaEnd${effectId}`)
+  const markName = `🔑 saga:${effectId}`
+  const name = `🔑 saga:${effectIdToLabel[effectId]}`
+  measure(name, markName)
+  clearMarks(markName)
+  clearMeasures(name)
 }
 const getLabel = obj => {
   let label
@@ -71,7 +78,7 @@ const sagaTimer = allowTiming
   ? {
       effectTriggered: desc => {
         effectIdToLabel[desc.effectId] = getLabel(desc)
-        mark(`🔑 sagaStart${desc.effectId}`)
+        mark(`🔑 saga:${desc.effectId}`)
       },
       effectResolved: endSaga,
       effectRejected: endSaga,
