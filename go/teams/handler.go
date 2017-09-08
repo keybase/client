@@ -92,8 +92,8 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	if err != nil {
 		return err
 	}
-	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersion)
-	req.CompletedInvites[invitee.InviteID] = uv
+	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+	req.CompletedInvites[invitee.InviteID] = uv.PercentForm()
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,

@@ -96,7 +96,7 @@ func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
-	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm()), nil
+	return keybase1.Quote(string(keybase1.UserVersion(*s).PercentForm())), nil
 }
 
 // Non-team-specific stuff below the line

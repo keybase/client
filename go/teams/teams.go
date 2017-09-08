@@ -646,7 +646,7 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 		Name: uv.TeamInviteName(),
 		ID:   NewInviteID(),
 	}
-	fmt.Printf("invite: %+v\n", invite)
+	t.G().Log.CDebugf(ctx, "invite: %+v", invite)
 	if err := t.postInvite(ctx, invite, role); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}

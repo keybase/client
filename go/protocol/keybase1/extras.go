@@ -1452,8 +1452,8 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 	}
 }
 
-func (u UserVersion) PercentForm() string {
-	return u.String()
+func (u UserVersion) PercentForm() UserVersionPercentForm {
+	return UserVersionPercentForm(u.String())
 }
 
 func (u UserVersion) String() string {

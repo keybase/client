@@ -1,7 +1,6 @@
 package systests
 
 import (
-	"fmt"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -179,58 +178,24 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 	// user 0 creates a team
 	team := tt.users[0].createTeam()
 
+	// user 0 should get gregor notification that the team changed and rotated key
+	tt.users[0].waitForTeamChangedAndRotated(team, keybase1.Seqno(1))
+
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
 	divDebug(ctx, "Signed up bob (%s)", bob.username)
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
-	/*
-		bob.loginAfterResetNoPUK(10)
-		divDebug(ctx, "Bob logged in after reset, no puk")
-	*/
-
-	fmt.Printf("bob username: %q\n", bob.username)
-
 	tt.users[0].addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 	divDebug(ctx, "Added bob as a writer")
-
-	/*
-		t0, err := teams.GetForTeamManagementByStringName(context.Background(), tt.users[0].tc.G, team, true)
-		if err != nil {
-			t.Fatal(err)
-		}
-		exists, err := t0.HasActiveInvite(keybase1.TeamInviteName(bob.uid+"%6"), "keybase")
-		if err != nil {
-			t.Fatal(err)
-		}
-		if exists {
-			t.Fatal("invite exists for bob with no version string")
-		}
-	*/
-
-	details, err := teams.Details(context.Background(), tt.users[0].tc.G, team, true)
-	if err != nil {
-		t.Fatal(err)
-	}
-	fmt.Printf("team details: %+v\n", details)
 
 	// user 0 kicks rekeyd so it notices the puk
 	tt.users[0].kickTeamRekeyd()
 
-	// bob.logout()
-	// bob.login()
 	bob.loginAfterReset(10)
 	divDebug(ctx, "Bob logged in after reset")
 
-	// force a puk on bob?
-	/*
-		ectx := &engine.Context{NetContext: context.Background()}
-		if err := engine.PerUserKeyUpgradeBackgroundRound(bob.primary.tctx.G, ectx); err != nil {
-			t.Fatal(err)
-		}
-	*/
-
 	// user 0 should get gregor notification that the team changed
-	tt.users[0].waitForTeamChangedAndRotated(team, keybase1.Seqno(2))
+	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 }
