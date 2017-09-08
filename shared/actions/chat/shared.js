@@ -113,7 +113,7 @@ function* startNewConversation(
     yield put(selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield call(unboxConversations, [newConversationIDKey])
+  yield call(unboxConversations, [newConversationIDKey], false)
   return [newConversationIDKey, tlfName]
 }
 

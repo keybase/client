@@ -700,9 +700,10 @@ function updateSnippet(
 }
 
 function unboxConversations(
-  conversationIDKeys: Array<Constants.ConversationIDKey>
+  conversationIDKeys: Array<Constants.ConversationIDKey>,
+  force: boolean,
 ): Constants.UnboxConversations {
-  return {payload: {conversationIDKeys}, type: 'chat:unboxConversations'}
+  return {payload: {conversationIDKeys, force}, type: 'chat:unboxConversations'}
 }
 
 export {

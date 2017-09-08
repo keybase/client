@@ -419,7 +419,7 @@ export const blankChat = 'chat:blankChat'
 
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
-  {conversationIDKeys: Array<ConversationIDKey>}
+  {conversationIDKeys: Array<ConversationIDKey>, force: boolean}
 >
 
 export type AddPendingConversation = NoErrorTypedAction<
