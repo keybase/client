@@ -24,7 +24,7 @@ import (
 
 var (
 	ErrInvalidReference        = errors.New("invalid reference, should be a tag or a branch")
-	ErrRepositoryNotExists     = errors.New("repository not exists")
+	ErrRepositoryNotExists     = errors.New("repository does not exist")
 	ErrRepositoryAlreadyExists = errors.New("repository already exists")
 	ErrRemoteNotFound          = errors.New("remote not found")
 	ErrRemoteExists            = errors.New("remote already exists	")

@@ -39,7 +39,6 @@ func objects(
 ) ([]plumbing.Hash, error) {
 	seen := hashListToSet(ignore)
 	result := make(map[plumbing.Hash]bool)
-	visited := make(map[plumbing.Hash]bool)
 
 	update := plumbing.StatusUpdate{Stage: plumbing.StatusCount}
 	statusChan.SendUpdate(update)
@@ -54,7 +53,7 @@ func objects(
 	}
 
 	for _, h := range objects {
-		if err := processObject(s, h, seen, visited, ignore, walkerFunc, statusChan); err != nil {
+		if err := processObject(s, h, seen, ignore, walkerFunc, statusChan); err != nil {
 			if allowMissingObjects && err == plumbing.ErrObjectNotFound {
 				continue
 			}
@@ -74,7 +73,6 @@ func processObject(
 	s storer.EncodedObjectStorer,
 	h plumbing.Hash,
 	seen map[plumbing.Hash]bool,
-	visited map[plumbing.Hash]bool,
 	ignore []plumbing.Hash,
 	walkerFunc func(h plumbing.Hash),
 	statusChan plumbing.StatusChan,
@@ -95,12 +93,12 @@ func processObject(
 
 	switch do := do.(type) {
 	case *object.Commit:
-		return reachableObjects(do, seen, visited, ignore, walkerFunc)
+		return reachableObjects(do, seen, ignore, walkerFunc)
 	case *object.Tree:
 		return iterateCommitTrees(seen, do, walkerFunc)
 	case *object.Tag:
 		walkerFunc(do.Hash)
-		return processObject(s, do.Target, seen, visited, ignore, walkerFunc, statusChan)
+		return processObject(s, do.Target, seen, ignore, walkerFunc, statusChan)
 	case *object.Blob:
 		walkerFunc(do.Hash)
 	default:
@@ -115,14 +113,9 @@ func processObject(
 // objects from the specified commit. To avoid to iterate over seen commits,
 // if a commit hash is into the 'seen' set, we will not iterate all his trees
 // and blobs objects.
-// We assume all commits have the same parents, unless a commit has no parents.
-// So when we've visited a commit before, we can stop iterating commits, as we've
-// already processed all its ancestors before as well. `visited` keeps track of
-// all the commits that have been visited that had parents.
 func reachableObjects(
 	commit *object.Commit,
 	seen map[plumbing.Hash]bool,
-	visited map[plumbing.Hash]bool,
 	ignore []plumbing.Hash,
 	cb func(h plumbing.Hash),
 ) error {
@@ -137,18 +130,11 @@ func reachableObjects(
 			return err
 		}
 
-		if visited[commit.Hash] {
-			break
-		}
-
 		if seen[commit.Hash] {
 			continue
 		}
 
 		cb(commit.Hash)
-		if commit.NumParents() > 0 {
-			visited[commit.Hash] = true
-		}
 
 		tree, err := commit.Tree()
 		if err != nil {

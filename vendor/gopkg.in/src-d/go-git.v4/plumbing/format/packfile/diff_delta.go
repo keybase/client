@@ -2,7 +2,6 @@ package packfile
 
 import (
 	"bytes"
-	"hash/adler32"
 	"io/ioutil"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -26,6 +25,10 @@ const (
 // To generate target again, you will need the obtained object and "base" one.
 // Error will be returned if base or target object cannot be read.
 func GetDelta(base, target plumbing.EncodedObject) (plumbing.EncodedObject, error) {
+	return getDelta(new(deltaIndex), base, target)
+}
+
+func getDelta(index *deltaIndex, base, target plumbing.EncodedObject) (plumbing.EncodedObject, error) {
 	br, err := base.Reader()
 	if err != nil {
 		return nil, err
@@ -45,7 +48,7 @@ func GetDelta(base, target plumbing.EncodedObject) (plumbing.EncodedObject, erro
 		return nil, err
 	}
 
-	db := DiffDelta(bb, tb)
+	db := diffDelta(index, bb, tb)
 	delta := &plumbing.MemoryObject{}
 	_, err = delta.Write(db)
 	if err != nil {
@@ -59,21 +62,41 @@ func GetDelta(base, target plumbing.EncodedObject) (plumbing.EncodedObject, erro
 }
 
 // DiffDelta returns the delta that transforms src into tgt.
-func DiffDelta(src []byte, tgt []byte) []byte {
+func DiffDelta(src, tgt []byte) []byte {
+	return diffDelta(new(deltaIndex), src, tgt)
+}
+
+func diffDelta(index *deltaIndex, src []byte, tgt []byte) []byte {
 	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
 	buf.Write(deltaEncodeSize(len(src)))
 	buf.Write(deltaEncodeSize(len(tgt)))
 
-	sindex := initMatch(src)
+	if len(index.entries) == 0 {
+		index.init(src)
+	}
 
 	ibuf := bufPool.Get().(*bytes.Buffer)
 	ibuf.Reset()
 	for i := 0; i < len(tgt); i++ {
-		offset, l := findMatch(src, tgt, sindex, i)
+		offset, l := index.findMatch(src, tgt, i)
 
-		if l < s {
+		if l == 0 {
+			// couldn't find a match, just write the current byte and continue
 			ibuf.WriteByte(tgt[i])
+		} else if l < 0 {
+			// src is less than blksz, copy the rest of the target to avoid
+			// calls to findMatch
+			for ; i < len(tgt); i++ {
+				ibuf.WriteByte(tgt[i])
+			}
+		} else if l < s {
+			// remaining target is less than blksz, copy what's left of it
+			// and avoid calls to findMatch
+			for j := i; j < i+l; j++ {
+				ibuf.WriteByte(tgt[j])
+			}
+			i += l - 1
 		} else {
 			encodeInsertOperation(ibuf, buf)
 
@@ -124,52 +147,6 @@ func encodeInsertOperation(ibuf, buf *bytes.Buffer) {
 	buf.Write(b[o : o+s])
 
 	ibuf.Reset()
-}
-
-func initMatch(src []byte) map[uint32]int {
-	i := 0
-	index := make(map[uint32]int)
-	for {
-		if i+s > len(src) {
-			break
-		}
-
-		ch := adler32.Checksum(src[i : i+s])
-		index[ch] = i
-		i += s
-	}
-
-	return index
-}
-
-func findMatch(src, tgt []byte, sindex map[uint32]int, tgtOffset int) (srcOffset, l int) {
-	if len(tgt) >= tgtOffset+s {
-		ch := adler32.Checksum(tgt[tgtOffset : tgtOffset+s])
-		var ok bool
-		srcOffset, ok = sindex[ch]
-		if !ok {
-			return
-		}
-
-		l = matchLength(src, tgt, tgtOffset, srcOffset)
-	}
-
-	return
-}
-
-func matchLength(src, tgt []byte, otgt, osrc int) int {
-	l := 0
-	for {
-		if (osrc >= len(src) || otgt >= len(tgt)) || src[osrc] != tgt[otgt] {
-			break
-		}
-
-		l++
-		osrc++
-		otgt++
-	}
-
-	return l
 }
 
 func deltaEncodeSize(size int) []byte {
