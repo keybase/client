@@ -254,6 +254,11 @@ func (f *JSONFile) save() (err error) {
 		f.G().Log.Debug("| File info: mode = %s", info.Mode())
 		f.G().Log.Debug("| File info: mod time = %s", info.ModTime())
 
+		if info.Size() != int64(len(encoded)) {
+			f.G().Log.Errorf("| File info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
+			return fmt.Errorf("file info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
+		}
+
 		f.G().Log.Debug("| Android extra-checking done")
 	}
 
