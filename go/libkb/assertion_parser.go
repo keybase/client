@@ -245,7 +245,7 @@ func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression,
 // OR nodes are not allowed (asides from the commas)
 func ParseAssertionsWithReaders(ctx AssertionContext, assertions string) (writers, readers []AssertionExpression, err error) {
 	if len(assertions) == 0 {
-		return writers, readers, fmt.Errorf("empty assertions")
+		return writers, readers, fmt.Errorf("empty assertion")
 	}
 
 	split := strings.Split(assertions, "#")
