@@ -105,7 +105,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
       >
         {this.props.selected && <HighlightLine />}
         <Avatar
-          size={32}
+          size={24}
           onClick={this.props.onClick}
           username={this.props.source.username}
           loadingColor={globalColors.blue3_40}
@@ -150,13 +150,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           className={'nav-item' + (this.props.selected ? ' selected' : '')}
         >
           {this.props.selected && <HighlightLine />}
-          <Icon
-            type={this.props.source.icon}
-            style={{
-              color: this.props.selected ? globalColors.white : globalColors.blue3_40,
-              ...this.props.styleIcon,
-            }}
-          />
+          <Icon type={this.props.source.icon} style={this.props.styleIcon} className="img" />
           {badgeNumber > 0 &&
             <Box style={styleBadgeNav}>
               <Badge
@@ -304,9 +298,9 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
-  .nav-item img { opacity: 0.6; }
-  .nav-item:hover img { opacity: 1.0; }
-  .nav-item.selected img { opacity: 1.0; }
+  .nav-item .img { color: ${globalColors.blue3_40}; }
+  .nav-item:hover .img { color: ${globalColors.blue3_60}; }
+  .nav-item.selected .img { color: ${globalColors.white}; }
 
   .nav-item .title { color: transparent; }
   .nav-item-avatar .title { color: ${globalColors.blue3_60}; }
@@ -317,18 +311,18 @@ const navRealCSS = `
 
 const stylesNavText = {
   fontSize: 10,
-  marginTop: -3,
+  marginTop: 0,
 }
 
 const styleBadgeAvatar = {
   position: 'absolute',
-  left: 45,
+  left: 46,
   top: -5,
 }
 
 const styleBadgeNav = {
   position: 'absolute',
-  left: 45,
+  left: 46,
   top: 5,
 }
 
