@@ -1,5 +1,5 @@
 // @noflow
-import {reduxTimings} from '../local-debug'
+import {userTimings} from '../local-debug'
 
 const perf = typeof performance !== 'undefined' && performance // eslint-disable-line
 const mark = perf && perf.mark.bind(perf)
@@ -7,7 +7,7 @@ const measure = perf && perf.measure.bind(perf)
 const clearMarks = perf && perf.clearMarks.bind(perf)
 const clearMeasures = perf && perf.clearMeasures.bind(perf)
 
-const allowTiming = __DEV__ && reduxTimings && mark && measure
+const allowTiming = __DEV__ && userTimings && mark && measure
 const markPrefix = '🔑'
 const measureStart = allowTiming
   ? (name: string) => {

@@ -41,7 +41,7 @@ let config: {[key: string]: any} = {
   reduxSagaLoggerMasked: true,
   redirectOnLogout: true,
   showAllTrackers: false,
-  reduxTimings: false,
+  userTimings: false,
 }
 
 if (__DEV__ && true) {
@@ -61,7 +61,7 @@ if (__DEV__ && true) {
   config.redirectOnLogout = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
-  config.reduxTimings = true
+  config.userTimings = true
   config.showAllTrackers = false
 }
 
@@ -101,7 +101,7 @@ if (PERF) {
     reduxSagaLoggerMasked: false,
     redirectOnLogout: false,
     showAllTrackers: false,
-    reduxTimings: false,
+    userTimings: false,
   }
 }
 
@@ -132,7 +132,7 @@ export const {
   showAllTrackers,
   showDevTools,
   filterActionLogs,
-  reduxTimings,
+  userTimings,
 } = config
 
 export function setup(store: any) {
