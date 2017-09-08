@@ -179,7 +179,7 @@ func testListAndGetHeads(t *testing.T, ctx context.Context,
 // 3) User pushes from that repo into the remote KBFS repo.
 // 4) Initializes a second new repo on the local file system.
 // 5) User pulls from the remote KBFS repo into the second repo.
-func TestRunnerPushFetch(t *testing.T) {
+func testRunnerPushFetch(t *testing.T, cloning bool) {
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer os.RemoveAll(tempdir)
 
@@ -206,17 +206,24 @@ func TestRunnerPushFetch(t *testing.T) {
 	heads := testListAndGetHeads(t, ctx, config, git2,
 		[]string{"refs/heads/master", "HEAD"})
 
+	cloningStr := ""
+	cloningRetStr := ""
+	if cloning {
+		cloningStr = "option cloning true\n"
+		cloningRetStr = "ok\n"
+	}
+
 	// Use the runner to fetch the KBFS data into the new git repo.
 	input := bytes.NewBufferString(
-		fmt.Sprintf("fetch %s refs/heads/master\n\n", heads[0]))
+		fmt.Sprintf("%sfetch %s refs/heads/master\n\n", cloningStr, heads[0]))
 	var output3 bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		git2, input, &output3, testErrput{t})
+		dotgit2, input, &output3, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
 	// Just one symref, from HEAD to master (and master has no commits yet).
-	require.Equal(t, output3.String(), "\n")
+	require.Equal(t, cloningRetStr+"\n", output3.String())
 
 	// Checkout the head directly (fetching directly via the runner
 	// doesn't leave any refs, those would normally be created by the
@@ -229,6 +236,14 @@ func TestRunnerPushFetch(t *testing.T) {
 	data, err := ioutil.ReadFile(filepath.Join(git2, "foo"))
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
+}
+
+func TestRunnerPushFetch(t *testing.T) {
+	testRunnerPushFetch(t, false)
+}
+
+func TestRunnerPushClone(t *testing.T) {
+	testRunnerPushFetch(t, true)
 }
 
 func TestRunnerDeleteBranch(t *testing.T) {
@@ -252,4 +267,8 @@ func TestRunnerDeleteBranch(t *testing.T) {
 	testPush(t, ctx, config, git, ":refs/heads/test")
 	testListAndGetHeads(t, ctx, config, git,
 		[]string{"refs/heads/master", "HEAD"})
+}
+
+func TestRunnerClone(t *testing.T) {
+
 }

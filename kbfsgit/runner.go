@@ -196,6 +196,10 @@ func (r *runner) handleCapabilities() error {
 	return err
 }
 
+// getElapsedStr gets an additional string to append to the errput
+// message at the end of a phase.  It includes the measured time of
+// the phase, and if verbosity is high enough, it includes the
+// location of a memory profile taken at the end of the phase.
 func (r *runner) getElapsedStr(
 	ctx context.Context, startTime time.Time, profName string) string {
 	if r.verbosity < 2 {
@@ -510,6 +514,9 @@ func (r *runner) processGogitStatus(
 	r.errput.Write([]byte("\n"))
 }
 
+// recursiveByteCount returns a sum of the size of all files under the
+// directory represented by `fs`, added to `totalSoFar`.  It also
+// returns the length of the last string it printed to `r.errput`.
 func (r *runner) recursiveByteCount(
 	ctx context.Context, fs billy.Filesystem, totalSoFar int64, toErase int) (
 	bytes int64, toEraseRet int, err error) {
@@ -543,6 +550,8 @@ func (r *runner) recursiveByteCount(
 	return totalSoFar, toErase, nil
 }
 
+// statusWriter is a simple io.Writer shim that logs to `r.errput` the
+// number of bytes written to `output`.
 type statusWriter struct {
 	r           *runner
 	output      io.Writer
@@ -550,6 +559,8 @@ type statusWriter struct {
 	totalBytes  int64
 	nextToErase int
 }
+
+var _ io.Writer = (*statusWriter)(nil)
 
 func (sw *statusWriter) Write(p []byte) (n int, err error) {
 	n, err = sw.output.Write(p)
@@ -580,6 +591,8 @@ func (r *runner) copyFile(
 	defer localF.Close()
 
 	var w io.Writer = localF
+	// Wrap the destination file in a status shim if we are supposed
+	// to report progress.
 	if sw != nil && r.progress {
 		sw.output = localF
 		w = sw
@@ -588,6 +601,8 @@ func (r *runner) copyFile(
 	return err
 }
 
+// recursiveCopy copies the entire subdirectory rooted at `fs` to
+// `localFS`.
 func (r *runner) recursiveCopy(
 	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem,
 	sw *statusWriter) (err error) {
@@ -624,6 +639,12 @@ func (r *runner) recursiveCopy(
 	return nil
 }
 
+// handleClone copies all the object files of a KBFS repo directly
+// into the local git dir, instead of using go-git to calculate the
+// full set of objects that are to be transferred (which is slow and
+// memory inefficient).  If the user requested only a single branch of
+// cloning, this will copy more objects that necessary, but still only
+// a single ref will show up for the user.
 func (r *runner) handleClone(ctx context.Context) (err error) {
 	_, err = r.initRepoIfNeeded(ctx)
 	if err != nil {
