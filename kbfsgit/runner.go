@@ -510,6 +510,39 @@ func (r *runner) processGogitStatus(
 	r.errput.Write([]byte("\n"))
 }
 
+func (r *runner) recursiveByteCount(
+	ctx context.Context, fs billy.Filesystem, totalSoFar int64, toErase int) (
+	bytes int64, toEraseRet int, err error) {
+	fileInfos, err := fs.ReadDir("/")
+	if err != nil {
+		return 0, 0, err
+	}
+
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			chrootFS, err := fs.Chroot(fi.Name())
+			if err != nil {
+				return 0, 0, err
+			}
+			totalSoFar, toErase, err = r.recursiveByteCount(
+				ctx, chrootFS, totalSoFar, toErase)
+			if err != nil {
+				return 0, 0, err
+			}
+		} else {
+			totalSoFar += fi.Size()
+			if r.progress {
+				// This function only runs if r.verbosity >= 1.
+				eraseStr := strings.Repeat("\b", toErase)
+				newStr := fmt.Sprintf("%d bytes... ", totalSoFar)
+				toErase = len(newStr)
+				r.errput.Write([]byte(eraseStr + newStr))
+			}
+		}
+	}
+	return totalSoFar, toErase, nil
+}
+
 type statusWriter struct {
 	r           *runner
 	output      io.Writer
@@ -526,7 +559,7 @@ func (sw *statusWriter) Write(p []byte) (n int, err error) {
 
 	sw.soFar += int64(len(p))
 	eraseStr := strings.Repeat("\b", sw.nextToErase)
-	newStr := fmt.Sprintf("%d/%d bytes...", sw.soFar, sw.totalBytes)
+	newStr := fmt.Sprintf("%d/%d bytes... ", sw.soFar, sw.totalBytes)
 	sw.r.errput.Write([]byte(eraseStr + newStr))
 	sw.nextToErase = len(newStr)
 	return n, nil
@@ -558,13 +591,7 @@ func (r *runner) copyFile(
 func (r *runner) recursiveCopy(
 	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem,
 	sw *statusWriter) (err error) {
-	defer func() {
-		if err != nil {
-			r.log.CloneWithAddedDepth(1).CDebugf(ctx, "Error at %s: %+v", fs.Root(), err)
-		}
-	}()
-
-	fileInfos, err := fs.ReadDir("/")
+	fileInfos, err := fs.ReadDir("")
 	if err != nil {
 		return err
 	}
@@ -623,15 +650,26 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 	localFSObjects := osfs.New(localObjectsPath)
 
 	var sw *statusWriter
-	startTime := r.config.Clock().Now()
 	if r.verbosity >= 1 {
-		sw = &statusWriter{r, nil, 0, 0, 0}
+		// Get the total number of bytes we expect to fetch, for the
+		// progress report.
+		startTime := r.config.Clock().Now()
+		r.errput.Write([]byte("Counting: "))
+		b, _, err := r.recursiveByteCount(ctx, fsObjects, 0, 0)
+		if err != nil {
+			return err
+		}
+		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.count.prof")
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+
+		sw = &statusWriter{r, nil, 0, b, 0}
 		r.errput.Write([]byte("Cloning: "))
 	}
 
 	// Copy the entire objects subdirectory straight into the git
 	// directory.  This saves time and memory from having to calculate
 	// packfiles.
+	startTime := r.config.Clock().Now()
 	err = r.recursiveCopy(ctx, fsObjects, localFSObjects, sw)
 	if err != nil {
 		return err
@@ -639,7 +677,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 
 	if r.verbosity >= 1 {
 		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.clone.prof")
-		r.errput.Write([]byte("done" + elapsedStr + "\n"))
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
 	}
 	_, err = r.output.Write([]byte("\n"))
 	return err
