@@ -61,7 +61,11 @@ const HighlightLine = () => (
   <Box
     style={{
       ...globalStyles.fillAbsolute,
+      borderTopRightRadius: 4,
+      borderBottomRightRadius: 4,
       backgroundColor: globalColors.white,
+      marginTop: globalMargins.xtiny,
+      marginBottom: globalMargins.tiny,
       right: undefined,
       width: 2,
     }}
