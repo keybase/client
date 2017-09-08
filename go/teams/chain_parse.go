@@ -20,17 +20,17 @@ func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFr
 type SCTeamMember keybase1.UserVersion
 
 type SCTeamSection struct {
-	ID               SCTeamID                               `json:"id"`
-	Name             *SCTeamName                            `json:"name,omitempty"`
-	Members          *SCTeamMembers                         `json:"members,omitempty"`
-	Parent           *SCTeamParent                          `json:"parent,omitempty"`
-	Subteam          *SCSubteam                             `json:"subteam,omitempty"`
-	PerTeamKey       *SCPerTeamKey                          `json:"per_team_key,omitempty"`
-	Admin            *SCTeamAdmin                           `json:"admin,omitempty"`
-	Invites          *SCTeamInvites                         `json:"invites,omitempty"`
-	CompletedInvites map[keybase1.TeamInviteID]keybase1.UID `json:"completed_invites,omitempty"`
-	Implicit         bool                                   `json:"is_implicit,omitempty"`
-	Public           bool                                   `json:"is_public,omitempty"`
+	ID               SCTeamID                                                  `json:"id"`
+	Name             *SCTeamName                                               `json:"name,omitempty"`
+	Members          *SCTeamMembers                                            `json:"members,omitempty"`
+	Parent           *SCTeamParent                                             `json:"parent,omitempty"`
+	Subteam          *SCSubteam                                                `json:"subteam,omitempty"`
+	PerTeamKey       *SCPerTeamKey                                             `json:"per_team_key,omitempty"`
+	Admin            *SCTeamAdmin                                              `json:"admin,omitempty"`
+	Invites          *SCTeamInvites                                            `json:"invites,omitempty"`
+	CompletedInvites map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm `json:"completed_invites,omitempty"`
+	Implicit         bool                                                      `json:"is_implicit,omitempty"`
+	Public           bool                                                      `json:"is_public,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -50,9 +50,9 @@ type SCTeamInvites struct {
 }
 
 type SCTeamInvite struct {
-	Type string         `json:"type"`
-	Name string         `json:"name"`
-	ID   SCTeamInviteID `json:"id"`
+	Type string                  `json:"type"`
+	Name keybase1.TeamInviteName `json:"name"`
+	ID   SCTeamInviteID          `json:"id"`
 }
 
 type SCTeamParent struct {
@@ -87,7 +87,7 @@ func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
 }
 
 func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
-	uv, err := libkb.ParseUserVersion(keybase1.Unquote(b))
+	uv, err := keybase1.ParseUserVersion(keybase1.UserVersionPercentForm(keybase1.Unquote(b)))
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
-	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm()), nil
+	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm().String()), nil
 }
 
 // Non-team-specific stuff below the line

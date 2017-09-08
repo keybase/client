@@ -133,7 +133,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 		}
 		if category == keybase1.TeamInviteCategory_KEYBASE {
 			// "keybase" invites (i.e. pukless users) have user version for name
-			uv, err := libkb.ParseUserVersion(string(invite.Name))
+			uv, err := invite.KeybaseUserVersion()
 			if err != nil {
 				return nil, err
 			}

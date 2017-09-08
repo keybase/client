@@ -581,7 +581,12 @@ func assertRole(tc libkb.TestContext, name, username string, expected keybase1.T
 }
 
 func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
-	invite, err := MemberInvite(context.TODO(), tc.G, name, username, typ)
+	iname := keybase1.TeamInviteName(username)
+	itype, err := keybase1.TeamInviteTypeFromString(typ, true)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	invite, err := memberInvite(context.TODO(), tc.G, name, iname, itype)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

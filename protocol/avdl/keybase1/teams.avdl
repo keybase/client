@@ -90,18 +90,22 @@ protocol teams {
     map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
   }
 
+  record UserVersion {
+    UID uid;
+    Seqno eldestSeqno;
+  }
+
+  @typedef("string")
+  record UserVersionPercentForm {}
+  
+
   record TeamChangeReq {
     array<UserVersion> owners;
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> none;
-    map<TeamInviteID,UID> completedInvites;
-  }
-
-  record UserVersion {
-    UID uid;
-    Seqno eldestSeqno;
+    map<TeamInviteID,UserVersionPercentForm> completedInvites;
   }
 
   record TeamPlusApplicationKeys {

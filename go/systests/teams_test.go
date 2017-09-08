@@ -321,6 +321,23 @@ func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
 }
 
+func (u *userPlusDevice) waitForTeamChangedAndRotated(team string, toSeqno keybase1.Seqno) {
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.rotateCh:
+			u.tc.T.Logf("membership change received: %+v", arg)
+			if arg.TeamName == team && arg.Changes.MembershipChanged && arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("change matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring change message (expected team = %q, seqno = %d)", team, toSeqno)
+		case <-time.After(1 * time.Second):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
 func (u *userPlusDevice) prooveRooter() {
 	cmd := client.NewCmdProveRooterRunner(u.tc.G, u.username)
 	if err := cmd.Run(); err != nil {

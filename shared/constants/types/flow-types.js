@@ -4638,7 +4638,7 @@ export type TeamChangeReq = {
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
-  completedInvites: {[key: string]: UID},
+  completedInvites: {[key: string]: UserVersionPercentForm},
 }
 
 export type TeamChangeRow = {
@@ -5026,6 +5026,8 @@ export type UserVersion = {
   uid: UID,
   eldestSeqno: Seqno,
 }
+
+export type UserVersionPercentForm = string
 
 export type UserVersionVector = {
   id: long,
