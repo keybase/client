@@ -196,19 +196,37 @@ func (r *runner) handleCapabilities() error {
 	return err
 }
 
-func (r *runner) getElapsedStr(startTime time.Time) string {
+func (r *runner) getElapsedStr(
+	ctx context.Context, startTime time.Time, profName string) string {
 	if r.verbosity < 2 {
 		return ""
 	}
 	elapsed := r.config.Clock().Now().Sub(startTime)
-	return fmt.Sprintf(" [%s]", elapsed)
+	elapsedStr := fmt.Sprintf(" [%s]", elapsed)
+
+	if r.verbosity >= 3 {
+		profName = filepath.Join(os.TempDir(), profName)
+		f, err := os.Create(profName)
+		if err != nil {
+			r.log.CDebugf(ctx, err.Error())
+		} else {
+			runtime.GC()
+			pprof.WriteHeapProfile(f)
+			f.Close()
+		}
+		elapsedStr += " [memprof " + profName + "]"
+	}
+
+	return elapsedStr
 }
 
-func (r *runner) printDoneOrErr(err error, startTime time.Time) {
+func (r *runner) printDoneOrErr(
+	ctx context.Context, err error, startTime time.Time) {
 	if r.verbosity < 1 {
 		return
 	}
-	elapsedStr := r.getElapsedStr(startTime)
+	profName := "mem.init.prof"
+	elapsedStr := r.getElapsedStr(ctx, startTime, profName)
 	if err != nil {
 		r.errput.Write([]byte(err.Error() + elapsedStr + "\n"))
 	} else {
@@ -228,7 +246,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context) (
 			r.errput.Write([]byte("Syncing with Keybase... "))
 		})
 		defer func() {
-			r.logSyncDone.Do(func() { r.printDoneOrErr(err, startTime) })
+			r.logSyncDone.Do(func() { r.printDoneOrErr(ctx, err, startTime) })
 		}()
 	}
 
@@ -316,7 +334,7 @@ func (r *runner) printJournalStatus(
 		}
 
 		if status.UnflushedBytes == 0 {
-			elapsedStr := r.getElapsedStr(startTime)
+			elapsedStr := r.getElapsedStr(ctx, startTime, "mem.flush.prof")
 			if r.verbosity >= 1 {
 				r.errput.Write([]byte("done." + elapsedStr + "\n"))
 			}
@@ -459,23 +477,8 @@ func (r *runner) processGogitStatus(
 	for update := range statusChan {
 		if update.Stage != currStage {
 			if currStage != plumbing.StatusUnknown {
-				elapsedStr := r.getElapsedStr(startTime)
-
-				if r.verbosity >= 3 {
-					profName := filepath.Join(
-						os.TempDir(),
-						fmt.Sprintf("memprof.%d.prof", update.Stage))
-					f, err := os.Create(profName)
-					if err != nil {
-						r.log.CDebugf(ctx, err.Error())
-					} else {
-						runtime.GC()
-						pprof.WriteHeapProfile(f)
-						f.Close()
-					}
-					elapsedStr += " [memprof " + profName + "]"
-				}
-
+				profName := fmt.Sprintf("mem.%d.prof", update.Stage)
+				elapsedStr := r.getElapsedStr(ctx, startTime, profName)
 				r.errput.Write([]byte("done." + elapsedStr + "\n"))
 			}
 			r.errput.Write([]byte(gogitStagesToStatus[update.Stage]))
@@ -507,9 +510,31 @@ func (r *runner) processGogitStatus(
 	r.errput.Write([]byte("\n"))
 }
 
+type statusWriter struct {
+	r           *runner
+	output      io.Writer
+	soFar       int64
+	totalBytes  int64
+	nextToErase int
+}
+
+func (sw *statusWriter) Write(p []byte) (n int, err error) {
+	n, err = sw.output.Write(p)
+	if err != nil {
+		return n, err
+	}
+
+	sw.soFar += int64(len(p))
+	eraseStr := strings.Repeat("\b", sw.nextToErase)
+	newStr := fmt.Sprintf("%d/%d bytes...", sw.soFar, sw.totalBytes)
+	sw.r.errput.Write([]byte(eraseStr + newStr))
+	sw.nextToErase = len(newStr)
+	return n, nil
+}
+
 func (r *runner) copyFile(
 	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem,
-	name string) (err error) {
+	name string, sw *statusWriter) (err error) {
 	f, err := fs.Open(name)
 	if err != nil {
 		return err
@@ -521,13 +546,18 @@ func (r *runner) copyFile(
 	}
 	defer localF.Close()
 
-	_, err = io.Copy(localF, f)
+	var w io.Writer = localF
+	if sw != nil && r.progress {
+		sw.output = localF
+		w = sw
+	}
+	_, err = io.Copy(w, f)
 	return err
 }
 
 func (r *runner) recursiveCopy(
-	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem) (
-	err error) {
+	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem,
+	sw *statusWriter) (err error) {
 	defer func() {
 		if err != nil {
 			r.log.CloneWithAddedDepth(1).CDebugf(ctx, "Error at %s: %+v", fs.Root(), err)
@@ -553,12 +583,12 @@ func (r *runner) recursiveCopy(
 			if err != nil {
 				return err
 			}
-			err = r.recursiveCopy(ctx, chrootFS, chrootLocalFS)
+			err = r.recursiveCopy(ctx, chrootFS, chrootLocalFS, sw)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := r.copyFile(ctx, fs, localFS, fi.Name())
+			err := r.copyFile(ctx, fs, localFS, fi.Name(), sw)
 			if err != nil {
 				return err
 			}
@@ -592,14 +622,25 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 	}
 	localFSObjects := osfs.New(localObjectsPath)
 
+	var sw *statusWriter
+	startTime := r.config.Clock().Now()
+	if r.verbosity >= 1 {
+		sw = &statusWriter{r, nil, 0, 0, 0}
+		r.errput.Write([]byte("Cloning: "))
+	}
+
 	// Copy the entire objects subdirectory straight into the git
 	// directory.  This saves time and memory from having to calculate
 	// packfiles.
-	err = r.recursiveCopy(ctx, fsObjects, localFSObjects)
+	err = r.recursiveCopy(ctx, fsObjects, localFSObjects, sw)
 	if err != nil {
 		return err
 	}
 
+	if r.verbosity >= 1 {
+		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.clone.prof")
+		r.errput.Write([]byte("done" + elapsedStr + "\n"))
+	}
 	_, err = r.output.Write([]byte("\n"))
 	return err
 }
