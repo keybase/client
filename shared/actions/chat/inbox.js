@@ -69,7 +69,7 @@ const _backgroundUnboxLoop = function*() {
         .toArray()
 
       if (conversationIDKeys.length) {
-        yield call(unboxConversations, conversationIDKeys)
+        yield put(Creators.unboxConversations(conversationIDKeys))
       } else {
         break
       }
@@ -154,9 +154,10 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.loadedInbox(conversations))
 
     // Unbox teams so we can get their names
-    yield call(
-      unboxConversations,
-      conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
+    yield put(
+      Creators.unboxConversations(
+        conversations.filter(c => c.teamname).map(c => c.conversationIDKey).toArray()
+      )
     )
 
     const {
@@ -183,7 +184,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
 function* onGetInboxAndUnbox({
   payload: {conversationIDKeys},
 }: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
-  yield call(unboxConversations, conversationIDKeys)
+  yield put(Creators.unboxConversations(conversationIDKeys))
 }
 
 function _toSupersedeInfo(
@@ -267,7 +268,7 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
     .toArray()
 
   if (conversationIDKeys.length) {
-    yield call(unboxConversations, conversationIDKeys)
+    yield put(Creators.unboxConversations(conversationIDKeys))
   }
 }
 
@@ -347,15 +348,15 @@ function* _chatInboxFailedSubSaga(params) {
 }
 
 const unboxConversationsSagaMap = {
-  'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
   'chat.1.chatUi.chatInboxConversation': _chatInboxConversationSubSaga,
   'chat.1.chatUi.chatInboxFailed': _chatInboxFailedSubSaga,
+  'chat.1.chatUi.chatInboxUnverified': EngineRpc.passthroughResponseSaga,
 }
 
+const _TEMP = {}
 // Loads the trusted inbox segments
-function* unboxConversations(
-  conversationIDKeys: Array<Constants.ConversationIDKey>
-): Generator<any, any, any> {
+function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
+  let {conversationIDKeys} = action.payload
   conversationIDKeys = yield select(
     (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
       const inbox = state.chat.get('inbox')
@@ -375,8 +376,16 @@ function* unboxConversations(
   if (!conversationIDKeys.length) {
     return
   }
+  // TEMP
+  const TEMP = yield select()
+  conversationIDKeys.forEach(k => {
+    if (_TEMP[k]) {
+      debugger
+    }
+    _TEMP[k] = true
+  })
 
-  yield put(Creators.setUnboxing(conversationIDKeys, false))
+  yield put.resolve(Creators.setUnboxing(conversationIDKeys, false))
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     unboxConversationsSagaMap,
@@ -398,7 +407,7 @@ function* unboxConversations(
   } catch (error) {
     if (error instanceof RPCTimeoutError) {
       console.warn('timed out request for unboxConversations, bailing')
-      yield put(Creators.setUnboxing(conversationIDKeys, true))
+      yield put.resolve(Creators.setUnboxing(conversationIDKeys, true))
     } else {
       console.warn('Error in loadInboxRpc', error)
     }

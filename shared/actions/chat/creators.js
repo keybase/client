@@ -699,18 +699,24 @@ function updateSnippet(
   return {payload: {conversationIDKey, snippet}, type: 'chat:updateSnippet'}
 }
 
+function unboxConversations(
+  conversationIDKeys: Array<Constants.ConversationIDKey>
+): Constants.UnboxConversations {
+  return {payload: {conversationIDKeys}, type: 'chat:unboxConversations'}
+}
+
 export {
   addPending,
   appendMessages,
   attachmentLoaded,
-  attachmentSaved,
-  attachmentSaveStart,
   attachmentSaveFailed,
+  attachmentSaveStart,
+  attachmentSaved,
   badgeAppForChat,
   blockConversation,
   clearMessages,
-  clearSearchResults,
   clearRekey,
+  clearSearchResults,
   deleteMessage,
   downloadProgress,
   editMessage,
@@ -762,6 +768,7 @@ export {
   startConversation,
   threadLoadedOffline,
   toggleChannelWideNotifications,
+  unboxConversations,
   unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
@@ -775,6 +782,7 @@ export {
   updateLatestMessage,
   updateMetadata,
   updatePaginationNext,
+  updateSnippet,
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,
@@ -783,5 +791,4 @@ export {
   updatedMetadata,
   updatedNotifications,
   uploadProgress,
-  updateSnippet,
 }
