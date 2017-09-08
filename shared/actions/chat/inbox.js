@@ -203,23 +203,28 @@ function _toSupersedeInfo(
 function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any> {
   const conversationIDKey = c.convID
 
-  const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
-  if (supersedes) {
-    yield put(Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes})))
-  }
+  const isBigTeam = c.teamType === ChatTypes.CommonTeamType.complex
+  const isTeam = c.membersType === ChatTypes.CommonConversationMembersType.team
 
-  const supersededBy = _toSupersedeInfo(conversationIDKey, c.supersededBy || [])
-  if (supersededBy) {
-    yield put(Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy})))
-  }
+  if (!isTeam) {
+    const supersedes = _toSupersedeInfo(conversationIDKey, c.supersedes || [])
+    if (supersedes) {
+      yield put(Creators.updateSupersedesState(Map({[conversationIDKey]: supersedes})))
+    }
 
-  if (c.finalizeInfo) {
-    yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.finalizeInfo})))
+    const supersededBy = _toSupersedeInfo(conversationIDKey, c.supersededBy || [])
+    if (supersededBy) {
+      yield put(Creators.updateSupersededByState(Map({[conversationIDKey]: supersededBy})))
+    }
+
+    if (c.finalizeInfo) {
+      yield put(Creators.updateFinalizedState(Map({[conversationIDKey]: c.finalizeInfo})))
+    }
   }
 
   const inboxState = _conversationLocalToInboxState(c)
 
-  if (c && c.snippet) {
+  if (!isBigTeam && c && c.snippet) {
     const snippet = c.snippet
     yield put(
       Creators.updateSnippet(conversationIDKey, new HiddenString(Constants.makeSnippet(snippet) || ''))
@@ -229,8 +234,10 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   if (inboxState) {
     yield put(Creators.updateInbox(inboxState))
 
-    // inbox loaded so rekeyInfo is now clear
-    yield put(Creators.clearRekey(inboxState.get('conversationIDKey')))
+    if (!isBigTeam) {
+      // inbox loaded so rekeyInfo is now clear
+      yield put(Creators.clearRekey(inboxState.get('conversationIDKey')))
+    }
 
     // Try and load messages if the updated item is the selected one
     const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -349,7 +356,26 @@ const unboxConversationsSagaMap = {
 function* unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>
 ): Generator<any, any, any> {
-  conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
+  conversationIDKeys = yield select(
+    (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
+      const inbox = state.chat.get('inbox')
+
+      return conversationIDKeys.filter(c => {
+        if (Constants.isPendingConversationIDKey(c)) {
+          return false
+        }
+
+        const state = inbox.find(i => i.get('conversationIDKey') === c)
+        return !state || state.state === 'untrusted'
+      })
+    },
+    conversationIDKeys
+  )
+
+  if (!conversationIDKeys.length) {
+    return
+  }
+
   yield put(Creators.setUnboxing(conversationIDKeys, false))
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
