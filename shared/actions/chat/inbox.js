@@ -365,7 +365,7 @@ function* unboxConversations(
         }
 
         const state = inbox.find(i => i.get('conversationIDKey') === c)
-        return !state || state.state !== 'unboxed'
+        return !state || state.state === 'untrusted'
       })
     },
     conversationIDKeys
