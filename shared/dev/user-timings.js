@@ -8,20 +8,20 @@ const clearMarks = perf && perf.clearMarks.bind(perf)
 const clearMeasures = perf && perf.clearMeasures.bind(perf)
 
 const allowTiming = __DEV__ && reduxTimings && mark && measure
-
+const markPrefix = '🔑'
 const measureStart = allowTiming
   ? (name: string) => {
-      mark(`${name}Start`)
+      mark(name)
     }
   : () => {}
 const measureStop = allowTiming
   ? (name: string) => {
-      measure(name, `${name}Start`)
-      clearMarks(`${name}Start`)
-      clearMeasures(name)
+      const measureName = `${markPrefix} ${name}`
+      measure(measureName, name)
+      clearMarks(name)
+      clearMeasures(measureName)
     }
   : () => {}
-
 const timingWrap = (name, call) => {
   return (...args) => {
     measureStart(name)
@@ -30,7 +30,6 @@ const timingWrap = (name, call) => {
     return ret
   }
 }
-
 const infect = allowTiming
   ? () => {
       console.log(
@@ -39,14 +38,13 @@ const infect = allowTiming
       const redux = require('react-redux')
       const _connect = redux.connect
       let connectCount = 1
-
       const wrappedConnect = (mapStateToProps, mapDispatchToProps, mergeProps, options) => {
         const ident = String(connectCount)
         connectCount++
         return _connect(
-          mapStateToProps ? timingWrap(`🔑 redux:state:${ident}`, mapStateToProps) : null,
-          mapDispatchToProps ? timingWrap(`🔑 redux:disp:${ident}`, mapDispatchToProps) : null,
-          mergeProps ? timingWrap(`🔑 redux:merge:${ident}`, mergeProps) : null,
+          mapStateToProps ? timingWrap(`${markPrefix} redux:state:${ident}`, mapStateToProps) : null,
+          mapDispatchToProps ? timingWrap(`${markPrefix} redux:disp:${ident}`, mapDispatchToProps) : null,
+          mergeProps ? timingWrap(`{markPrefix} redux:merge:${ident}`, mergeProps) : null,
           options
         )
       }
@@ -54,8 +52,8 @@ const infect = allowTiming
     }
   : () => {}
 const endSaga = effectId => {
-  const markName = `🔑 saga:${effectId}`
-  const name = `🔑 saga:${effectIdToLabel[effectId]}`
+  const markName = `${markPrefix} saga:${effectId}`
+  const name = `${markPrefix} saga:${effectIdToLabel[effectId]}`
   measure(name, markName)
   clearMarks(markName)
   clearMeasures(name)
@@ -107,7 +105,7 @@ const sagaTimer = allowTiming
       effectResolved: endSaga,
       effectTriggered: desc => {
         effectIdToLabel[desc.effectId] = getLabel(desc)
-        mark(`🔑 saga:${desc.effectId}`)
+        mark(`${markPrefix} saga:${desc.effectId}`)
       },
     }
   : null
@@ -121,7 +119,7 @@ const reducerTimer = allowTiming
           const key = finalReducerKeys[i]
           const reducer = finalReducers[key]
           const previousStateForKey = state[key]
-          const name = `🔑 reducer:${key}`
+          const name = `reducer:${key}`
           measureStart(name)
           const nextStateForKey = reducer(previousStateForKey, action)
           measureStop(name)
@@ -133,4 +131,4 @@ const reducerTimer = allowTiming
     }
   : null
 infect()
-export {sagaTimer, reducerTimer, measureStart, measureStop}
+export {sagaTimer, reducerTimer, measureStart, measureStop, allowTiming}

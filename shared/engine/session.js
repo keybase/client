@@ -6,6 +6,7 @@ import {IncomingRequest, OutgoingRequest} from './request'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {rpcLog} from './index.platform'
 import {RPCError} from '../util/errors'
+import {measureStart, measureStop} from '../dev/user-timings'
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -98,6 +99,9 @@ class Session {
   }
 
   end() {
+    if (this._startMethod) {
+      measureStop(`engine:${this._startMethod}:${this.id}`)
+    }
     this._endHandler && this._endHandler(this)
   }
 
@@ -129,11 +133,13 @@ class Session {
       this._invoke
     )
     this._outgoingRequests.push(outgoingRequest)
+    measureStart(`engine:${method}:${this.id}`)
     outgoingRequest.send()
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
   incomingCall(method: MethodKey, param: Object, response: ?Object): boolean {
+    measureStart(`engine:${method}:${this.id}`)
     rpcLog('engineInternal', 'session incoming call', {id: this.id, method, this: this, response})
     const handler = this._incomingCallMap[method]
 
