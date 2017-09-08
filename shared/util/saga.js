@@ -27,8 +27,11 @@ type SagaMap = {[key: string]: any}
 type Effect = any
 
 function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
-  return mapValues(channelConfig, v => {
-    return channel(v())
+  return mapValues(channelConfig, (v, k) => {
+    const ret = channel(v())
+    // to help debug what's going on in dev/user-timings
+    ret.userTimingName = k
+    return ret
   })
 }
 

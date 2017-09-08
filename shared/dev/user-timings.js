@@ -17,7 +17,9 @@ const measureStart = allowTiming
 const measureStop = allowTiming
   ? (name: string) => {
       const measureName = `${markPrefix} ${name}`
-      measure(measureName, name)
+      try {
+        measure(measureName, name)
+      } catch (_) {}
       clearMarks(name)
       clearMeasures(measureName)
     }
@@ -54,7 +56,9 @@ const infect = allowTiming
 const endSaga = effectId => {
   const markName = `${markPrefix} saga:${effectId}`
   const name = `${markPrefix} saga:${effectIdToLabel[effectId]}`
-  measure(name, markName)
+  try {
+    measure(name, markName)
+  } catch (_) {}
   clearMarks(markName)
   clearMeasures(name)
 }
@@ -70,15 +74,25 @@ const getLabel = obj => {
     } else if (obj.effect.FORK) {
       label = obj.effect.FORK.fn && obj.effect.FORK.fn.name
     } else if (obj.effect.CALL) {
-      label = obj.effect.CALL.fn && obj.effect.CALL.fn.name
+      const contextName =
+        (obj.effect.CALL.context &&
+          obj.effect.CALL.context.constructor &&
+          obj.effect.CALL.context.constructor.name) ||
+        ''
+      const fnName = (obj.effect.CALL.fn && obj.effect.CALL.fn.name) || ''
+      label = `${contextName}:${fnName}`
     } else if (obj.effect.SELECT) {
       label = obj.effect.SELECT.selector.name || `select:${obj.effectId}`
     } else if (obj.effect.RACE) {
-      label = `race:${Object.keys(obj.effect.RACE).join(',')}`
+      label = `race:${Object.keys(obj.effect.RACE).join(':')}`
     } else if (obj.effect.JOIN) {
       label = obj.effect.JOIN.name
     } else if (obj.effect.TAKE) {
-      label = obj.effect.TAKE.pattern || (obj.effect.TAKE.channel && 'take:channel')
+      label =
+        obj.effect.TAKE.pattern ||
+        (obj.effect.TAKE.channel &&
+          obj.effect.TAKE.channel.userTimingName &&
+          `take:${obj.effect.TAKE.channel.userTimingName}`)
     } else if (obj.effect.CANCELLED) {
       label = `cancelled:${obj.effectId}`
     } else if (obj.effect.CANCEL) {
