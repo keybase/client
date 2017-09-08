@@ -599,21 +599,11 @@ func (e *loginProvision) route(ctx *Context) error {
 	}
 
 	if e.hasDevice {
-		err := e.chooseDevice(ctx, e.hasPGP)
-		if err != nil {
-			return err
-		}
-		e.perUserKeyUpgradeSoft(ctx)
-		return nil
+		return e.chooseDevice(ctx, e.hasPGP)
 	}
 
 	if e.hasPGP {
-		err := e.tryPGP(ctx)
-		if err != nil {
-			return err
-		}
-		e.perUserKeyUpgradeSoft(ctx)
-		return nil
+		return e.tryPGP(ctx)
 	}
 
 	if !e.arg.User.GetEldestKID().IsNil() {
@@ -1070,17 +1060,6 @@ func (e *loginProvision) cleanup() {
 	// the best way to cleanup is to logout...
 	e.G().Log.Debug("an error occurred during provisioning, logging out")
 	e.G().Logout()
-}
-
-// Get a per-user key.
-// Wait for attempt but only warn on error.
-func (e *loginProvision) perUserKeyUpgradeSoft(ctx *Context) error {
-	eng := NewPerUserKeyUpgrade(e.G(), &PerUserKeyUpgradeArgs{})
-	err := RunEngine(eng, ctx)
-	if err != nil {
-		e.G().Log.CWarningf(ctx.GetNetContext(), "loginProvision PerUserKeyUpgrade failed: %v", err)
-	}
-	return err
 }
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}
