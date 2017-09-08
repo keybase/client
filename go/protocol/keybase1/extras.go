@@ -1452,6 +1452,10 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 	}
 }
 
+func (u UserVersionPercentForm) String() string {
+	return string(u)
+}
+
 func (u UserVersion) PercentForm() UserVersionPercentForm {
 	return UserVersionPercentForm(u.String())
 }
@@ -1822,7 +1826,7 @@ func (t TeamInvite) KeybaseUserVersion() (UserVersion, error) {
 		return UserVersion{}, errors.New("KeybaseUserVersion: invalid invite category, must be keybase")
 	}
 
-	return ParseUserVersion(string(t.Name))
+	return ParseUserVersion(UserVersionPercentForm(t.Name))
 }
 
 func (m MemberInfo) TeamName() (TeamName, error) {
@@ -1883,8 +1887,8 @@ func (t TLFVisibility) Eq(r TLFVisibility) bool {
 	return int(t) == int(r)
 }
 
-func ParseUserVersion(s string) (res UserVersion, err error) {
-	parts := strings.Split(s, "%")
+func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
+	parts := strings.Split(string(s), "%")
 	if len(parts) == 1 {
 		// default to seqno 1
 		parts = append(parts, "1")

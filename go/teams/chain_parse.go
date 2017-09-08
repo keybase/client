@@ -87,7 +87,7 @@ func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
 }
 
 func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
-	uv, err := keybase1.ParseUserVersion(keybase1.Unquote(b))
+	uv, err := keybase1.ParseUserVersion(keybase1.UserVersionPercentForm(keybase1.Unquote(b)))
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (s *SCTeamMember) UnmarshalJSON(b []byte) (err error) {
 }
 
 func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
-	return keybase1.Quote(string(keybase1.UserVersion(*s).PercentForm())), nil
+	return keybase1.Quote(keybase1.UserVersion(*s).PercentForm().String()), nil
 }
 
 // Non-team-specific stuff below the line
