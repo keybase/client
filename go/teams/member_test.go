@@ -361,7 +361,6 @@ func TestMemberAddNoPUK(t *testing.T) {
 
 // add user without keys to a team, should create invite link
 func TestMemberAddNoKeys(t *testing.T) {
-	t.Skip()
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
