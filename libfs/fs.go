@@ -30,6 +30,7 @@ type FS struct {
 	ctx      context.Context
 	config   libkbfs.Config
 	root     libkbfs.Node
+	rootInfo libkbfs.EntryInfo
 	h        *libkbfs.TlfHandle
 	subdir   string
 	uniqID   string
@@ -51,7 +52,7 @@ const (
 // name is recommended.
 func NewFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, subdir string, uniqID string) (*FS, error) {
-	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+	rootNode, ei, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, tlfHandle, libkbfs.MasterBranch)
 	if err != nil {
 		return nil, err
@@ -64,7 +65,6 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 		parts = strings.Split(subdir, "/")
 	}
 	for i, p := range parts {
-		var ei libkbfs.EntryInfo
 		n, ei, err = config.KBFSOps().Lookup(ctx, n, p)
 		if err != nil {
 			return nil, err
@@ -83,6 +83,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 		ctx:      ctx,
 		config:   config,
 		root:     n,
+		rootInfo: ei,
 		h:        tlfHandle,
 		subdir:   subdir,
 		uniqID:   uniqID,
@@ -225,6 +226,11 @@ func (fs *FS) lookupParent(filename string) (
 func (fs *FS) lookupOrCreateEntry(
 	filename string, flag int, perm os.FileMode) (
 	n libkbfs.Node, ei libkbfs.EntryInfo, err error) {
+	// Shortcut the case where there's nothing to look up.
+	if filename == "" || filename == "/" {
+		return fs.root, fs.rootInfo, nil
+	}
+
 	for i := 0; i < maxSymlinkLevels; i++ {
 		var parentDir, fName string
 		n, parentDir, fName, err = fs.lookupParent(filename)

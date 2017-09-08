@@ -24,6 +24,8 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
+	billy "gopkg.in/src-d/go-billy.v3"
+	"gopkg.in/src-d/go-billy.v3/osfs"
 	gogit "gopkg.in/src-d/go-git.v4"
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -38,6 +40,7 @@ const (
 
 	gitOptionVerbosity = "verbosity"
 	gitOptionProgress  = "progress"
+	gitOptionCloning   = "cloning"
 
 	// Debug tag ID for an individual git command passed to the process.
 	ctxCommandOpID = "GITCMDID"
@@ -107,6 +110,7 @@ type runner struct {
 
 	verbosity int64
 	progress  bool
+	cloning   bool
 
 	logSync     sync.Once
 	logSyncDone sync.Once
@@ -503,6 +507,103 @@ func (r *runner) processGogitStatus(
 	r.errput.Write([]byte("\n"))
 }
 
+func (r *runner) copyFile(
+	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem,
+	name string) (err error) {
+	f, err := fs.Open(name)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	localF, err := localFS.Create(name)
+	if err != nil {
+		return err
+	}
+	defer localF.Close()
+
+	_, err = io.Copy(localF, f)
+	return err
+}
+
+func (r *runner) recursiveCopy(
+	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem) (
+	err error) {
+	defer func() {
+		if err != nil {
+			r.log.CloneWithAddedDepth(1).CDebugf(ctx, "Error at %s: %+v", fs.Root(), err)
+		}
+	}()
+
+	fileInfos, err := fs.ReadDir("/")
+	if err != nil {
+		return err
+	}
+
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			err := localFS.MkdirAll(fi.Name(), 0775)
+			if err != nil {
+				return err
+			}
+			chrootFS, err := fs.Chroot(fi.Name())
+			if err != nil {
+				return err
+			}
+			chrootLocalFS, err := localFS.Chroot(fi.Name())
+			if err != nil {
+				return err
+			}
+			err = r.recursiveCopy(ctx, chrootFS, chrootLocalFS)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := r.copyFile(ctx, fs, localFS, fi.Name())
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r *runner) handleClone(ctx context.Context) (err error) {
+	_, err = r.initRepoIfNeeded(ctx)
+	if err != nil {
+		return err
+	}
+
+	r.log.CDebugf(ctx, "Cloning into %s", r.gitDir)
+
+	fs, _, err := libgit.GetOrCreateRepoAndID(
+		ctx, r.config, r.h, r.repo, r.uniqID)
+	if err != nil {
+		return err
+	}
+	fsObjects, err := fs.Chroot("objects")
+	if err != nil {
+		return err
+	}
+
+	localObjectsPath := filepath.Join(r.gitDir, "objects")
+	err = os.MkdirAll(localObjectsPath, 0775)
+	if err != nil {
+		return err
+	}
+	localFSObjects := osfs.New(localObjectsPath)
+
+	// Copy the entire objects subdirectory straight into the git
+	// directory.  This saves time and memory from having to calculate
+	// packfiles.
+	err = r.recursiveCopy(ctx, fsObjects, localFSObjects)
+	if err != nil {
+		return err
+	}
+
+	_, err = r.output.Write([]byte("\n"))
+	return err
+}
+
 // handleFetchBatch: From https://git-scm.com/docs/git-remote-helpers
 //
 // fetch <sha1> <name>
@@ -747,6 +848,14 @@ func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 		r.progress = b
 		r.log.CDebugf(ctx, "Setting progress to %t", b)
 		result = "ok"
+	case gitOptionCloning:
+		b, err := strconv.ParseBool(args[1])
+		if err != nil {
+			return err
+		}
+		r.cloning = b
+		r.log.CDebugf(ctx, "Setting cloning to %t", b)
+		result = "ok"
 	default:
 		result = "unsupported"
 	}
@@ -774,10 +883,18 @@ func (r *runner) processCommands(ctx context.Context) (err error) {
 		cmdParts := strings.Fields(cmd)
 		if len(cmdParts) == 0 {
 			if len(fetchBatch) > 0 {
-				r.log.CDebugf(ctx, "Processing fetch batch")
-				err = r.handleFetchBatch(ctx, fetchBatch)
-				if err != nil {
-					return err
+				if r.cloning {
+					r.log.CDebugf(ctx, "Processing clone")
+					err = r.handleClone(ctx)
+					if err != nil {
+						return err
+					}
+				} else {
+					r.log.CDebugf(ctx, "Processing fetch batch")
+					err = r.handleFetchBatch(ctx, fetchBatch)
+					if err != nil {
+						return err
+					}
 				}
 				fetchBatch = nil
 				continue
