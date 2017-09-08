@@ -9,14 +9,24 @@ const clearMeasures = perf && perf.clearMeasures.bind(perf)
 
 const allowTiming = __DEV__ && reduxTimings && mark && measure
 
+const measureStart = allowTiming
+  ? (name: string) => {
+      mark(`${name}Start`)
+    }
+  : () => {}
+const measureStop = allowTiming
+  ? (name: string) => {
+      measure(name, `${name}Start`)
+      clearMarks(`${name}Start`)
+      clearMeasures(name)
+    }
+  : () => {}
+
 const timingWrap = (name, call) => {
   return (...args) => {
-    const markName = `${name}:mark`
-    mark(markName)
+    measureStart(name)
     const ret = call(...args)
-    measure(name, markName)
-    clearMarks(markName)
-    clearMeasures(name)
+    measureStop(name)
     return ret
   }
 }
@@ -91,15 +101,36 @@ const getLabel = obj => {
 const effectIdToLabel = {}
 const sagaTimer = allowTiming
   ? {
+      actionDispatched: () => {},
+      effectCancelled: endSaga,
+      effectRejected: endSaga,
+      effectResolved: endSaga,
       effectTriggered: desc => {
         effectIdToLabel[desc.effectId] = getLabel(desc)
         mark(`🔑 saga:${desc.effectId}`)
       },
-      effectResolved: endSaga,
-      effectRejected: endSaga,
-      effectCancelled: endSaga,
-      actionDispatched: () => {},
+    }
+  : null
+const reducerTimer = allowTiming
+  ? finalReducers => {
+      const finalReducerKeys = Object.keys(finalReducers)
+      return function combination(state = {}, action) {
+        let hasChanged = false
+        const nextState = {}
+        for (let i = 0; i < finalReducerKeys.length; i++) {
+          const key = finalReducerKeys[i]
+          const reducer = finalReducers[key]
+          const previousStateForKey = state[key]
+          const name = `🔑 reducer:${key}`
+          measureStart(name)
+          const nextStateForKey = reducer(previousStateForKey, action)
+          measureStop(name)
+          nextState[key] = nextStateForKey
+          hasChanged = hasChanged || nextStateForKey !== previousStateForKey
+        }
+        return hasChanged ? nextState : state
+      }
     }
   : null
 infect()
-export {sagaTimer}
+export {sagaTimer, reducerTimer, measureStart, measureStop}
