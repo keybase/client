@@ -44,9 +44,9 @@ const infect = allowTiming
         const ident = String(connectCount)
         connectCount++
         return _connect(
-          mapStateToProps ? timingWrap(`${markPrefix} redux:state:${ident}`, mapStateToProps) : null,
-          mapDispatchToProps ? timingWrap(`${markPrefix} redux:disp:${ident}`, mapDispatchToProps) : null,
-          mergeProps ? timingWrap(`{markPrefix} redux:merge:${ident}`, mergeProps) : null,
+          mapStateToProps ? timingWrap(`redux:state:${ident}`, mapStateToProps) : null,
+          mapDispatchToProps ? timingWrap(`redux:disp:${ident}`, mapDispatchToProps) : null,
+          mergeProps ? timingWrap(`redux:merge:${ident}`, mergeProps) : null,
           options
         )
       }
