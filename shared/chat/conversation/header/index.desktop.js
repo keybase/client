@@ -13,12 +13,14 @@ const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, te
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: 48,
+        marginLeft: 24,
       }}
     >
-      <Text type="BodyBig" style={{color: globalColors.black_40}}>{teamName}</Text>
-      <Text type="Header" style={{color: globalColors.black_75}}>&nbsp;#{channelName}</Text>
-      {muted && <Icon type="iconfont-shh" style={styleLeft} />}
+      <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>{teamName}</Text>
+      <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
+        #{channelName}
+      </Text>
+      {muted && <Icon type="iconfont-shh" style={shhIconStyle} />}
     </Box>
     <Icon
       type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
@@ -47,7 +49,7 @@ const UsernameHeader = ({
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile}
       />
-      {muted && <Icon type="iconfont-shh" style={styleLeft} />}
+      {muted && <Icon type="iconfont-shh" style={shhIconStyle} />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
     <Icon
@@ -74,6 +76,14 @@ const styleCenter = {
 
 const styleLeft = {
   marginLeft: globalMargins.tiny,
+}
+
+const shhIconStyle = {
+  color: globalColors.black_20,
+  fontSize: 20,
+  marginLeft: globalMargins.xtiny,
+  top: globalMargins.tiny,
+  position: 'absolute',
 }
 
 export {ChannelHeader, UsernameHeader}
