@@ -175,8 +175,15 @@ type PushOptions struct {
 	Auth transport.AuthMethod
 	// Progress is where the human readable information sent by the server is
 	// stored, if nil nothing is stored.
-	Progress   sideband.Progress
-	StatusChan plumbing.StatusChan
+	Progress sideband.Progress
+	// SkipCompression can be true if the caller doesn't need
+	// delta-compressed objects pushed to the remote.  This can be useful to
+	// avoid CPU overhead when the objects don't need to be
+	// transferred across a network.  If the remote wants a compressed
+	// repo after the transfer, it can run `git gc --aggressive` or
+	// `git repack -a -d -f --depth=250 --window=250` as needed.
+	SkipCompression bool
+	StatusChan      plumbing.StatusChan
 }
 
 // Validate validates the fields and sets the default values.

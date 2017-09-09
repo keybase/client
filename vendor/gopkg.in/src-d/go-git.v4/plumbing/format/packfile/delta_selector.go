@@ -35,6 +35,7 @@ func newDeltaSelector(s storer.EncodedObjectStorer) *deltaSelector {
 // creating deltas if it's suitable, using an specific internal logic
 func (dw *deltaSelector) ObjectsToPack(
 	hashes []plumbing.Hash,
+	skipCompression bool,
 	statusChan plumbing.StatusChan,
 ) ([]*ObjectToPack, error) {
 	update := plumbing.StatusUpdate{
@@ -43,9 +44,13 @@ func (dw *deltaSelector) ObjectsToPack(
 	}
 	statusChan.SendUpdate(update)
 
-	otp, err := dw.objectsToPack(hashes, statusChan, update)
+	otp, err := dw.objectsToPack(hashes, skipCompression, statusChan, update)
 	if err != nil {
 		return nil, err
+	}
+
+	if skipCompression {
+		return otp, nil
 	}
 
 	update = plumbing.StatusUpdate{
@@ -101,12 +106,19 @@ func (dw *deltaSelector) ObjectsToPack(
 
 func (dw *deltaSelector) objectsToPack(
 	hashes []plumbing.Hash,
+	skipCompression bool,
 	statusChan plumbing.StatusChan,
 	update plumbing.StatusUpdate,
 ) ([]*ObjectToPack, error) {
 	var objectsToPack []*ObjectToPack
 	for _, h := range hashes {
-		o, err := dw.encodedDeltaObject(h)
+		var o plumbing.EncodedObject
+		var err error
+		if skipCompression {
+			o, err = dw.encodedObject(h)
+		} else {
+			o, err = dw.encodedDeltaObject(h)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -120,6 +132,10 @@ func (dw *deltaSelector) objectsToPack(
 
 		update.ObjectsDone++
 		statusChan.SendUpdateIfPossible(update)
+	}
+
+	if skipCompression {
+		return objectsToPack, nil
 	}
 
 	if err := dw.fixAndBreakChains(objectsToPack, statusChan); err != nil {

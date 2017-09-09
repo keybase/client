@@ -49,9 +49,11 @@ func NewEncoder(w io.Writer, s storer.EncodedObjectStorer, useRefDeltas bool) *E
 // and writes it to the writer in the Encoder.
 func (e *Encoder) Encode(
 	hashes []plumbing.Hash,
+	skipCompression bool,
 	statusChan plumbing.StatusChan,
 ) (plumbing.Hash, error) {
-	objects, err := e.selector.ObjectsToPack(hashes, statusChan)
+	objects, err := e.selector.ObjectsToPack(
+		hashes, skipCompression, statusChan)
 	if err != nil {
 		return plumbing.ZeroHash, err
 	}
