@@ -308,8 +308,8 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 // WriteTo is similar to GetFilename described just above in terms of
 // locking discipline.
 func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
-	k.G().Log.Debug("+ WriteTo")
-	defer k.G().Log.Debug("- WriteTo")
+	k.G().Log.Debug("+ SKBKeyringFile WriteTo")
+	defer k.G().Log.Debug("- SKBKeyringFile WriteTo")
 	packets := make(KeybasePackets, len(k.Blocks))
 	var err error
 	for i, b := range k.Blocks {
@@ -324,6 +324,13 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
+
+	// explicitly check for error on Close:
+	if err := b64.Close(); err != nil {
+		k.G().Log.Warning("SKBKeyringFile: WriteTo b64.Close() error: %s", err)
+		return 0, err
+	}
+	k.G().Log.Debug("SKBKeyringFile: b64 stream closed successfully")
 
 	return 0, nil
 }
