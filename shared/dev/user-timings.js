@@ -86,9 +86,9 @@ const _getLabel = obj => {
     } else if (Array.isArray(obj.effect)) {
       label = obj.effect.map(effect => _getLabel({effect})).join(':')
     } else if (obj.effect.ALL) {
-      label = obj.effect.ALL.map(effect => _getLabel({effect})).join(':')
+      label = `all:${obj.effect.ALL.map(effect => _getLabel({effect})).join(':')}`
     } else if (obj.effect.FORK) {
-      label = obj.effect.FORK.fn && obj.effect.FORK.fn.name
+      label = `fork:${obj.effect.FORK.fn && obj.effect.FORK.fn.name}`
     } else if (obj.effect.CALL) {
       const contextName =
         (obj.effect.CALL.context &&
@@ -96,25 +96,25 @@ const _getLabel = obj => {
           obj.effect.CALL.context.constructor.name) ||
         ''
       const fnName = (obj.effect.CALL.fn && obj.effect.CALL.fn.name) || ''
-      label = `${contextName}:${fnName}`
+      label = `call:${contextName}:${fnName}`
     } else if (obj.effect.SELECT) {
       label = obj.effect.SELECT.selector.name || `select:${obj.effectId}`
     } else if (obj.effect.RACE) {
       label = `race:${Object.keys(obj.effect.RACE).join(':')}`
     } else if (obj.effect.JOIN) {
-      label = obj.effect.JOIN.name
+      label = `join:${obj.effect.JOIN.name}`
     } else if (obj.effect.TAKE) {
       label =
-        obj.effect.TAKE.pattern ||
+        (obj.effect.TAKE.pattern && `take:${obj.effect.TAKE.pattern}`) ||
         (obj.effect.TAKE.channel &&
           obj.effect.TAKE.channel.userTimingName &&
           `take:${obj.effect.TAKE.channel.userTimingName}`)
     } else if (obj.effect.CANCELLED) {
       label = `cancelled:${obj.effectId}`
     } else if (obj.effect.CANCEL) {
-      label = obj.effect.CANCEL.name
+      label = `cancel:${obj.effect.CANCEL.name}`
     } else if (obj.effect.ACTION_CHANNEL) {
-      label = obj.effect.ACTION_CHANNEL.pattern
+      label = `actionchannel:${obj.effect.ACTION_CHANNEL.pattern}`
     } else if (obj.effect instanceof Promise) {
       label = `promise:${obj.effectId}`
     } else if (obj.effect.PUT) {
