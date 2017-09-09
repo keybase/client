@@ -69,7 +69,7 @@ const _backgroundUnboxLoop = function*() {
         .toArray()
 
       if (conversationIDKeys.length) {
-        yield put(Creators.unboxConversations(conversationIDKeys, false))
+        yield put(Creators.unboxConversations(conversationIDKeys))
       } else {
         break
       }
@@ -160,7 +160,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       .take(20)
       .concat(conversations.filter(c => c.teamname))
 
-    yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray(), false))
+    yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
 
     const {
       initialConversation,
@@ -186,7 +186,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
 function* onGetInboxAndUnbox({
   payload: {conversationIDKeys},
 }: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
-  yield put(Creators.unboxConversations(conversationIDKeys, false))
+  yield put(Creators.unboxConversations(conversationIDKeys))
 }
 
 function _toSupersedeInfo(
@@ -270,7 +270,7 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
     .toArray()
 
   if (conversationIDKeys.length) {
-    yield put(Creators.unboxConversations(conversationIDKeys, false))
+    yield put(Creators.unboxConversations(conversationIDKeys))
   }
 }
 
@@ -360,6 +360,7 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   let {conversationIDKeys, force} = action.payload
   conversationIDKeys = yield select(
     (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
+      console.warn('in unbox, force', force)
       const inbox = state.chat.get('inbox')
 
       return conversationIDKeys.filter(c => {

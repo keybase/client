@@ -1152,7 +1152,7 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {updates} = action.payload
   const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-  yield put(Creators.unboxConversations(convIDs, false))
+  yield put(Creators.unboxConversations(convIDs))
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
