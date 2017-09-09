@@ -447,6 +447,10 @@ func (n *teamNotifyHandler) TeamChanged(ctx context.Context, arg keybase1.TeamCh
 	return nil
 }
 
+func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.TeamID) error {
+	return nil
+}
+
 func TestGetTeamRootID(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()

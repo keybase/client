@@ -40,6 +40,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.changeTeam(ctx, item, keybase1.TeamChangeSet{})
 	case "team.rename":
 		return true, r.changeTeam(ctx, item, keybase1.TeamChangeSet{Renamed: true})
+	case "team.delete":
+		return true, r.deleteTeam(ctx, item)
 	default:
 		return false, fmt.Errorf("unknown teamHandler category: %q", category)
 	}
@@ -71,6 +73,16 @@ func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes 
 	r.G().Log.Debug("team.(change|rename) unmarshaled: %+v", rows)
 
 	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
+}
+
+func (r *teamHandler) deleteTeam(ctx context.Context, item gregor.Item) error {
+	var rows []keybase1.TeamChangeRow
+	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
+		r.G().Log.Debug("error unmarshaling team.(change|rename) item: %s", err)
+		return err
+	}
+	r.G().Log.Debug("team.delete unmarshaled: %+v", rows)
+	return teams.HandleDeleteNotification(ctx, r.G(), rows)
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item) error {

@@ -1516,6 +1516,7 @@ func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFName
 }
 func (n *serverChatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
+func (n *serverChatListener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *serverChatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
 }
 func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
