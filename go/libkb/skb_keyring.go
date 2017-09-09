@@ -240,13 +240,16 @@ func (k *SKBKeyringFile) Save() error {
 
 func (k *SKBKeyringFile) saveLocked() error {
 	if !k.dirty {
+		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: not dirty, so skipping save", k.filename)
 		return nil
 	}
+	k.G().Log.Debug("SKBKeyringFile: saveLocked %s: dirty, safe saving", k.filename)
 	if err := SafeWriteToFile(k.G().Log, k, 0); err != nil {
+		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: SafeWriteToFile error: %s", k.filename, err)
 		return err
 	}
 	k.dirty = false
-	k.G().Log.Debug("Updated keyring %s", k.filename)
+	k.G().Log.Debug("SKBKeyringFile: saveLocked success for %s", k.filename)
 	return nil
 }
 
