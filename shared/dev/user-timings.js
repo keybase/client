@@ -1,4 +1,11 @@
 // @noflow
+/*
+ * This file injects performance marks using the performance api (see the chrome timeline view). It:
+ * 1. Monkeypatches redux connect to time mapStateToProps, mapDispatchToProps, mergeProps helpers
+ * 2. Exports a saga monitor to time effect durations
+ * 3. Exports a redux combine reducers alternative which times each sub reducer
+ * 4. Exports a generic measuring function (measureStart, measureStop) to help add your own for debugging sessions
+ */
 import {userTimings} from '../local-debug'
 
 const perf = typeof performance !== 'undefined' && performance // eslint-disable-line
@@ -6,24 +13,29 @@ const mark = perf && perf.mark.bind(perf)
 const measure = perf && perf.measure.bind(perf)
 const clearMarks = perf && perf.clearMarks.bind(perf)
 const clearMeasures = perf && perf.clearMeasures.bind(perf)
-
 const allowTiming = __DEV__ && userTimings && mark && measure
-const markPrefix = '🔑'
+const markPrefix = '\uD83D\uDD11' // key unicode. inlining this actually screws up prettier so i had to escape it
+
+const noop = () => {}
+
 const measureStart = allowTiming
   ? (name: string) => {
       mark(name)
     }
-  : () => {}
+  : noop
+
 const measureStop = allowTiming
   ? (name: string) => {
       const measureName = `${markPrefix} ${name}`
       try {
+        // measure can throw if you mention something it hasn't seen
         measure(measureName, name)
       } catch (_) {}
       clearMarks(name)
       clearMeasures(measureName)
     }
-  : () => {}
+  : noop
+
 const timingWrap = (name, call) => {
   return (...args) => {
     measureStart(name)
@@ -32,7 +44,8 @@ const timingWrap = (name, call) => {
     return ret
   }
 }
-const infect = allowTiming
+
+const _infect = allowTiming
   ? () => {
       console.log(
         '\n\n\n-=============================== Running user timings!!! ===============================-'
@@ -52,25 +65,28 @@ const infect = allowTiming
       }
       redux.connect = wrappedConnect
     }
-  : () => {}
-const endSaga = effectId => {
+  : noop
+
+const _endSaga = effectId => {
   const markName = `${markPrefix} saga:${effectId}`
-  const name = `${markPrefix} saga:${effectIdToLabel[effectId]}`
+  const name = `${markPrefix} saga:${_effectIdToLabel[effectId]}`
   try {
     measure(name, markName)
   } catch (_) {}
   clearMarks(markName)
   clearMeasures(name)
 }
-const getLabel = obj => {
+
+const _getLabel = obj => {
   let label
   try {
+    // Try and extract a userful name from saga events
     if (obj.effect.saga) {
       label = obj.effect && obj.effect.saga && obj.effect.saga.name
     } else if (Array.isArray(obj.effect)) {
-      label = obj.effect.map(effect => getLabel({effect})).join(':')
+      label = obj.effect.map(effect => _getLabel({effect})).join(':')
     } else if (obj.effect.ALL) {
-      label = obj.effect.ALL.map(effect => getLabel({effect})).join(':')
+      label = obj.effect.ALL.map(effect => _getLabel({effect})).join(':')
     } else if (obj.effect.FORK) {
       label = obj.effect.FORK.fn && obj.effect.FORK.fn.name
     } else if (obj.effect.CALL) {
@@ -110,19 +126,22 @@ const getLabel = obj => {
   } catch (err) {}
   return label || obj.effectId
 }
-const effectIdToLabel = {}
+
+const _effectIdToLabel = {}
+
 const sagaTimer = allowTiming
   ? {
       actionDispatched: () => {},
-      effectCancelled: endSaga,
-      effectRejected: endSaga,
-      effectResolved: endSaga,
+      effectCancelled: _endSaga,
+      effectRejected: _endSaga,
+      effectResolved: _endSaga,
       effectTriggered: desc => {
-        effectIdToLabel[desc.effectId] = getLabel(desc)
+        _effectIdToLabel[desc.effectId] = _getLabel(desc)
         mark(`${markPrefix} saga:${desc.effectId}`)
       },
     }
   : null
+
 const reducerTimer = allowTiming
   ? finalReducers => {
       const finalReducerKeys = Object.keys(finalReducers)
@@ -144,5 +163,8 @@ const reducerTimer = allowTiming
       }
     }
   : null
-infect()
+
+// auto monkey patch
+_infect()
+
 export {sagaTimer, reducerTimer, measureStart, measureStop, allowTiming}
