@@ -8,9 +8,10 @@ import (
 )
 
 type commitPreIterator struct {
-	seen  map[plumbing.Hash]bool
-	stack []CommitIter
-	start *Commit
+	seenExternal map[plumbing.Hash]bool
+	seen         map[plumbing.Hash]bool
+	stack        []CommitIter
+	start        *Commit
 }
 
 // NewCommitPreorderIter returns a CommitIter that walks the commit history,
@@ -20,16 +21,21 @@ type commitPreIterator struct {
 // and will return the error. Other errors might be returned if the history
 // cannot be traversed (e.g. missing objects). Ignore allows to skip some
 // commits from being iterated.
-func NewCommitPreorderIter(c *Commit, ignore []plumbing.Hash) CommitIter {
+func NewCommitPreorderIter(
+	c *Commit,
+	seenExternal map[plumbing.Hash]bool,
+	ignore []plumbing.Hash,
+) CommitIter {
 	seen := make(map[plumbing.Hash]bool)
 	for _, h := range ignore {
 		seen[h] = true
 	}
 
 	return &commitPreIterator{
-		seen:  seen,
-		stack: make([]CommitIter, 0),
-		start: c,
+		seenExternal: seenExternal,
+		seen:         seen,
+		stack:        make([]CommitIter, 0),
+		start:        c,
 	}
 }
 
@@ -57,7 +63,7 @@ func (w *commitPreIterator) Next() (*Commit, error) {
 			}
 		}
 
-		if w.seen[c.Hash] {
+		if w.seen[c.Hash] || w.seenExternal[c.Hash] {
 			continue
 		}
 

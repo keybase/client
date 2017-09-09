@@ -119,7 +119,7 @@ func reachableObjects(
 	ignore []plumbing.Hash,
 	cb func(h plumbing.Hash),
 ) error {
-	i := object.NewCommitPreorderIter(commit, ignore)
+	i := object.NewCommitPreorderIter(commit, seen, ignore)
 	for {
 		commit, err := i.Next()
 		if err == io.EOF {

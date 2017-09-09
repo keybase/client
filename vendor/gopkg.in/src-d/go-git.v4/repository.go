@@ -720,7 +720,7 @@ func (r *Repository) Log(o *LogOptions) (object.CommitIter, error) {
 		return nil, err
 	}
 
-	return object.NewCommitPreorderIter(commit, nil), nil
+	return object.NewCommitPreorderIter(commit, nil, nil), nil
 }
 
 // Tags returns all the References from Tags. This method returns all the tag
@@ -949,7 +949,7 @@ func (r *Repository) ResolveRevision(rev plumbing.Revision) (*plumbing.Hash, err
 				commit = c
 			}
 		case revision.CaretReg:
-			history := object.NewCommitPreorderIter(commit, nil)
+			history := object.NewCommitPreorderIter(commit, nil, nil)
 
 			re := item.(revision.CaretReg).Regexp
 			negate := item.(revision.CaretReg).Negate
@@ -979,7 +979,7 @@ func (r *Repository) ResolveRevision(rev plumbing.Revision) (*plumbing.Hash, err
 
 			commit = c
 		case revision.AtDate:
-			history := object.NewCommitPreorderIter(commit, nil)
+			history := object.NewCommitPreorderIter(commit, nil, nil)
 
 			date := item.(revision.AtDate).Date
 
