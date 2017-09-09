@@ -72,7 +72,7 @@ func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
 		c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
 	}
 	if c.setTopicName == "" {
-		return fmt.Errorf("Must supply non-epty channel name.")
+		return fmt.Errorf("Must supply non-empty channel name.")
 	}
 	if len(ctx.Args()) > 1 {
 		return fmt.Errorf("cannot send text message and set channel name simultaneously")
