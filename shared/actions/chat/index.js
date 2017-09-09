@@ -229,6 +229,7 @@ function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, 
   }
 }
 
+// todo
 function* _setupChatHandlers(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
