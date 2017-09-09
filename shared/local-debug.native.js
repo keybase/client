@@ -51,7 +51,6 @@ if (__DEV__ && true) {
   config.enableActionLogging = false
   config.enableStoreLogging = false
   config.forwardLogs = false
-  config.forwardLogs = true
   config.immediateStateLogging = false
   config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
