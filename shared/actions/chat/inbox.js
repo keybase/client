@@ -360,7 +360,6 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   let {conversationIDKeys, force} = action.payload
   conversationIDKeys = yield select(
     (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
-      console.warn('in unbox, force', force)
       const inbox = state.chat.get('inbox')
 
       return conversationIDKeys.filter(c => {
