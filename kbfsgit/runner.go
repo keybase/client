@@ -577,24 +577,24 @@ func (sw *statusWriter) Write(p []byte) (n int, err error) {
 }
 
 func (r *runner) copyFile(
-	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem,
+	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
 	name string, sw *statusWriter) (err error) {
-	f, err := fs.Open(name)
+	f, err := from.Open(name)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	localF, err := localFS.Create(name)
+	toF, err := to.Create(name)
 	if err != nil {
 		return err
 	}
-	defer localF.Close()
+	defer toF.Close()
 
-	var w io.Writer = localF
+	var w io.Writer = toF
 	// Wrap the destination file in a status shim if we are supposed
 	// to report progress.
 	if sw != nil && r.progress {
-		sw.output = localF
+		sw.output = toF
 		w = sw
 	}
 	_, err = io.Copy(w, f)
@@ -604,33 +604,33 @@ func (r *runner) copyFile(
 // recursiveCopy copies the entire subdirectory rooted at `fs` to
 // `localFS`.
 func (r *runner) recursiveCopy(
-	ctx context.Context, fs billy.Filesystem, localFS billy.Filesystem,
+	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
 	sw *statusWriter) (err error) {
-	fileInfos, err := fs.ReadDir("")
+	fileInfos, err := from.ReadDir("")
 	if err != nil {
 		return err
 	}
 
 	for _, fi := range fileInfos {
 		if fi.IsDir() {
-			err := localFS.MkdirAll(fi.Name(), 0775)
+			err := to.MkdirAll(fi.Name(), 0775)
 			if err != nil {
 				return err
 			}
-			chrootFS, err := fs.Chroot(fi.Name())
+			chrootFrom, err := from.Chroot(fi.Name())
 			if err != nil {
 				return err
 			}
-			chrootLocalFS, err := localFS.Chroot(fi.Name())
+			chrootTo, err := to.Chroot(fi.Name())
 			if err != nil {
 				return err
 			}
-			err = r.recursiveCopy(ctx, chrootFS, chrootLocalFS, sw)
+			err = r.recursiveCopy(ctx, chrootFrom, chrootTo, sw)
 			if err != nil {
 				return err
 			}
 		} else {
-			err := r.copyFile(ctx, fs, localFS, fi.Name(), sw)
+			err := r.copyFile(ctx, from, to, fi.Name(), sw)
 			if err != nil {
 				return err
 			}
@@ -644,7 +644,8 @@ func (r *runner) recursiveCopy(
 // full set of objects that are to be transferred (which is slow and
 // memory inefficient).  If the user requested only a single branch of
 // cloning, this will copy more objects that necessary, but still only
-// a single ref will show up for the user.
+// a single ref will show up for the user.  TODO: Maybe we should run
+// `git gc` for the user on the local repo?
 func (r *runner) handleClone(ctx context.Context) (err error) {
 	_, err = r.initRepoIfNeeded(ctx)
 	if err != nil {
