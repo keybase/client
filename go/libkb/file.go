@@ -30,10 +30,6 @@ func (f File) GetFilename() string {
 	return f.filename
 }
 
-func (f File) DataLen() int64 {
-	return int64(len(f.data))
-}
-
 // WriteTo is for SafeWriter
 func (f File) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(f.data)

@@ -243,7 +243,7 @@ func (f *JSONFile) save() (err error) {
 	f.G().Log.Debug("- saved %s file %s", f.which, filename)
 
 	if runtime.GOOS == "android" {
-		f.G().Log.Debug("| Android extra-checking in JSONFile.save")
+		f.G().Log.Debug("| Android extra checks in JSONFile.save")
 		info, err := os.Stat(filename)
 		if err != nil {
 			f.G().Log.Errorf("| Error os.Stat(%s): %s", filename, err)
@@ -259,7 +259,7 @@ func (f *JSONFile) save() (err error) {
 			return fmt.Errorf("file info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
 		}
 
-		f.G().Log.Debug("| Android extra-checking done")
+		f.G().Log.Debug("| Android extra checks done")
 	}
 
 	return nil
