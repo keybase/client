@@ -105,14 +105,19 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           return
         }
 
+        const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         if (incomingMessage.conv) {
           yield call(Inbox.processConversation, incomingMessage.conv)
+        } else {
+          // Sometimes (just for deletes?) we get an incomingMessage without
+          // a conv object -- in that case, ask the service to give us an
+          // updated one so that the snippet etc gets updated.
+          yield put(Creators.unboxConversations([conversationIDKey], true))
         }
 
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(Shared.devicenameSelector)
-        const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
         if (message.type === 'Unhandled') {
           return

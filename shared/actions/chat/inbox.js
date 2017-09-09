@@ -357,7 +357,7 @@ const unboxConversationsSagaMap = {
 
 // Loads the trusted inbox segments
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
-  let {conversationIDKeys} = action.payload
+  let {conversationIDKeys, force} = action.payload
   conversationIDKeys = yield select(
     (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
       const inbox = state.chat.get('inbox')
@@ -368,7 +368,7 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
         }
 
         const state = inbox.find(i => i.get('conversationIDKey') === c)
-        return !state || state.state === 'untrusted'
+        return force || !state || state.state === 'untrusted'
       })
     },
     conversationIDKeys
