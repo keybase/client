@@ -701,7 +701,7 @@ function updateSnippet(
 
 function unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>,
-  force: boolean,
+  force: boolean
 ): Constants.UnboxConversations {
   return {payload: {conversationIDKeys, force}, type: 'chat:unboxConversations'}
 }
