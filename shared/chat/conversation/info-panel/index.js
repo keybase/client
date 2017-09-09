@@ -134,7 +134,7 @@ type BigTeamInfoPanelProps = infoPanelProps & {
 
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodySemibold">
+    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodyBig">
       #{props.channelname}
     </Text>
 
