@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"os"
+	"runtime"
 	"sync"
 	"testing"
 )
@@ -22,6 +23,9 @@ func TestFileSave(t *testing.T) {
 }
 
 func TestFileSaveConcurrent(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skip this on windows")
+	}
 	filename := "file_test.tmp"
 	defer os.Remove(filename)
 
