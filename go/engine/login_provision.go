@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 
 	"golang.org/x/net/context"
@@ -132,6 +133,9 @@ func (e *loginProvision) Run(ctx *Context) error {
 	}
 
 	e.G().KeyfamilyChanged(e.arg.User.GetUID())
+
+	// check to make sure local files stored correctly
+	e.verifyLocalStorage()
 
 	return nil
 }
@@ -1060,6 +1064,50 @@ func (e *loginProvision) cleanup() {
 	// the best way to cleanup is to logout...
 	e.G().Log.Debug("an error occurred during provisioning, logging out")
 	e.G().Logout()
+}
+
+func (e *loginProvision) verifyLocalStorage() {
+	e.G().Log.Debug("loginProvision: verifying local storage")
+	defer e.G().Log.Debug("loginProvision: done verifying local storage")
+	normUsername := libkb.NewNormalizedUsername(e.username)
+
+	// check config.json looks ok
+	e.verifyRegularFile("config", e.G().Env.GetConfigFilename())
+	cr := e.G().Env.GetConfig()
+	if cr.GetUsername() != normUsername {
+		e.G().Log.Debug("loginProvision(verify): config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
+	}
+	if cr.GetUID().NotEqual(e.arg.User.GetUID()) {
+		e.G().Log.Debug("loginProvision(verify): config uid %q doesn't match engine uid %q", cr.GetUID(), e.arg.User.GetUID())
+	}
+
+	// check session.json is valid
+	e.verifyRegularFile("session", e.G().Env.GetSessionFilename())
+
+	// check keys in secretkeys.mpack
+	e.verifyRegularFile("secretkeys", e.G().SKBFilenameForUser(normUsername))
+
+	// check secret stored
+	secret, err := e.G().SecretStoreAll.RetrieveSecret(normUsername)
+	if err != nil {
+		e.G().Log.Debug("loginProvision(verify): failed to retrieve secret for %s: %s", e.username, err)
+	}
+	if secret.IsNil() || len(secret.Bytes()) == 0 {
+		e.G().Log.Debug("loginProvision(verify): retrieved nil/empty secret for %s", e.username)
+	}
+}
+
+func (e *loginProvision) verifyRegularFile(name, filename string) {
+	info, err := os.Stat(filename)
+	if err != nil {
+		e.G().Log.Debug("loginProvision(verify): stat %s file %q error: %s", name, filename, err)
+		return
+	}
+
+	e.G().Log.Debug("loginProvision(verify): %s file %q size: %d", name, filename, info.Size())
+	if !info.Mode().IsRegular() {
+		e.G().Log.Debug("loginProvision(verify): %s file %q not regular: %s", name, filename, info.Mode())
+	}
 }
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}

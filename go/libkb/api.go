@@ -76,6 +76,9 @@ func NewAPIEngines(g *GlobalContext) (*InternalAPIEngine, *ExternalAPIEngine, er
 		return nil, nil, err
 	}
 	scraperConfig, err := g.Env.GenClientConfigForScrapers()
+	if err != nil {
+		return nil, nil, err
+	}
 	x := &ExternalAPIEngine{
 		BaseAPIEngine{
 			config:       scraperConfig,
