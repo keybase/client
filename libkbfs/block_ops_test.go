@@ -332,7 +332,8 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	kmd2 := makeFakeKeyMetadata(tlfID, keyGen+3)
 	decryptedBlock := &FileBlock{}
 	err = bops.Get(ctx, kmd2,
-		BlockPointer{ID: id, KeyGen: keyGen, Context: bCtx},
+		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+			KeyGen: keyGen, Context: bCtx},
 		decryptedBlock, NoCacheEntry)
 	require.NoError(t, err)
 	require.Equal(t, block, decryptedBlock)
@@ -358,7 +359,8 @@ func TestBlockOpsGetFailServerGet(t *testing.T) {
 		keybase1.MakeTestUID(1).AsUserOrTeam(), keybase1.BlockType_DATA)
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+			KeyGen: latestKeyGen, Context: bCtx},
 		&decryptedBlock, NoCacheEntry)
 	require.IsType(t, kbfsblock.BServerErrorBlockNonExistent{}, err)
 }
@@ -404,7 +406,8 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+			KeyGen: latestKeyGen, Context: bCtx},
 		&decryptedBlock, NoCacheEntry)
 	require.IsType(t, kbfshash.HashMismatchError{}, errors.Cause(err))
 }
@@ -433,7 +436,8 @@ func TestBlockOpsGetFailKeyGet(t *testing.T) {
 
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, KeyGen: latestKeyGen + 1, Context: bCtx},
+		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+			KeyGen: latestKeyGen + 1, Context: bCtx},
 		&decryptedBlock, NoCacheEntry)
 	require.EqualError(t, err, fmt.Sprintf(
 		"no key for block decryption (keygen=%d)", latestKeyGen+1))
@@ -503,7 +507,8 @@ func TestBlockOpsGetFailDecode(t *testing.T) {
 
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+			KeyGen: latestKeyGen, Context: bCtx},
 		&decryptedBlock, NoCacheEntry)
 	require.Equal(t, decodeErr, err)
 }
@@ -542,7 +547,8 @@ func TestBlockOpsGetFailDecrypt(t *testing.T) {
 
 	var decryptedBlock FileBlock
 	err = bops.Get(ctx, kmd,
-		BlockPointer{ID: id, KeyGen: latestKeyGen, Context: bCtx},
+		BlockPointer{ID: id, DataVer: FirstValidDataVer,
+			KeyGen: latestKeyGen, Context: bCtx},
 		&decryptedBlock, NoCacheEntry)
 	require.EqualError(t, err, "could not decrypt block")
 }

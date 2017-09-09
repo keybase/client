@@ -443,6 +443,14 @@ func (brq *blockRetrievalQueue) RequestWithPrefetch(ctx context.Context,
 		ch <- nil
 		return ch
 	}
+	err = checkDataVersion(brq.config, path{}, ptr)
+	if err != nil {
+		if deepPrefetchCancelCh != nil {
+			deepPrefetchCancelCh <- struct{}{}
+		}
+		ch <- err
+		return ch
+	}
 
 	bpLookup := blockPtrLookup{ptr, reflect.TypeOf(block)}
 
