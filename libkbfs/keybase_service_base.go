@@ -905,6 +905,13 @@ func (k *KeybaseServiceBase) TeamChanged(
 	return nil
 }
 
+// TeamDeleted implements keybase1.NotifyTeamInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) TeamDeleted(ctx context.Context,
+	teamID keybase1.TeamID) error {
+	return nil
+}
+
 // GetTLFCryptKeys implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
