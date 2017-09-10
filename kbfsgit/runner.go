@@ -530,6 +530,7 @@ func (r *runner) processGogitStatus(
 
 		switch update.Stage {
 		case plumbing.StatusDone:
+			r.log.CDebugf(ctx, "Status processing done")
 			return
 		case plumbing.StatusCount:
 			newStr = fmt.Sprintf("%d objects... ", update.ObjectsTotal)
@@ -546,6 +547,7 @@ func (r *runner) processGogitStatus(
 
 		currStage = update.Stage
 	}
+	r.log.CDebugf(ctx, "Status channel closed")
 	r.errput.Write([]byte("\n"))
 }
 
@@ -869,18 +871,8 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		URLs: []string{r.gitDir},
 	})
 
-	var statusChan plumbing.StatusChan
-	if r.verbosity >= 1 {
-		s := make(chan plumbing.StatusUpdate)
-		defer close(s)
-		statusChan = plumbing.StatusChan(s)
-		go r.processGogitStatus(ctx, s)
-	}
-
 	results := make(map[string]error, len(args))
-	// We don't batch the pushes together, because the protocol
-	// requires a separate ok/error line for each individual ref, and
-	// we can't get that with a batched fetch operation.
+	var refspecs []gogitcfg.RefSpec
 	for _, push := range args {
 		if len(push) != 1 {
 			return errors.Errorf("Bad push request: %v", push)
@@ -891,38 +883,60 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			return err
 		}
 
-		if !refspec.IsForceUpdate() {
-			r.log.CDebugf(
-				ctx, "Turning a non-force push into a force push for now: %s",
-				refspec)
-		}
-
-		start := strings.Index(push[0], ":") + 1
-		dst := push[0][start:]
-
 		// Delete the reference in the repo if needed; otherwise,
 		// fetch from the local repo into the remote repo.
 		if refspec.IsDelete() {
+			start := strings.Index(push[0], ":") + 1
+			dst := push[0][start:]
+
 			if refspec.IsWildcard() {
 				results[dst] = errors.Errorf(
 					"Wildcards not supported for deletes: %s", refspec)
 				continue
 			}
 			err = repo.Storer.RemoveReference(plumbing.ReferenceName(dst))
+			if err == gogit.NoErrAlreadyUpToDate {
+				err = nil
+			}
+			results[dst] = err
 		} else {
-			err = remote.FetchContext(ctx, &gogit.FetchOptions{
-				RemoteName: localRepoRemoteName,
-				RefSpecs:   []gogitcfg.RefSpec{refspec},
-				StatusChan: statusChan,
-			})
-		}
-		if err == gogit.NoErrAlreadyUpToDate {
-			err = nil
+			if !refspec.IsForceUpdate() {
+				r.log.CDebugf(ctx,
+					"Turning a non-force push into a force push for now: %s",
+					refspec)
+			}
+
+			refspecs = append(refspecs, refspec)
 		}
 		if err != nil {
 			r.log.CDebugf(ctx, "Error fetching %s: %+v", refspec, err)
 		}
-		results[dst] = err
+	}
+
+	if len(refspecs) > 0 {
+		var statusChan plumbing.StatusChan
+		if r.verbosity >= 1 {
+			s := make(chan plumbing.StatusUpdate)
+			defer close(s)
+			statusChan = plumbing.StatusChan(s)
+			go r.processGogitStatus(ctx, s)
+		}
+
+		err = remote.FetchContext(ctx, &gogit.FetchOptions{
+			RemoteName: localRepoRemoteName,
+			RefSpecs:   refspecs,
+			StatusChan: statusChan,
+		})
+		if err == gogit.NoErrAlreadyUpToDate {
+			err = nil
+		}
+		// All refspecs in the batch get the same error.
+		for _, refspec := range refspecs {
+			refStr := refspec.String()
+			start := strings.Index(refStr, ":") + 1
+			dst := refStr[start:]
+			results[dst] = err
+		}
 	}
 
 	err = r.waitForJournal(ctx)
