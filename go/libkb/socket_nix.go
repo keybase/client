@@ -122,6 +122,15 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	return
 }
 
+func NewSocketWithFiles(
+	log logger.Logger, bindFile string, dialFiles []string) Socket {
+	return SocketInfo{
+		log:       log,
+		bindFile:  bindFile,
+		dialFiles: dialFiles,
+	}
+}
+
 // net.errClosing isn't exported, so do this.. UGLY!
 func IsSocketClosedError(e error) bool {
 	return strings.HasSuffix(e.Error(), "use of closed network connection")

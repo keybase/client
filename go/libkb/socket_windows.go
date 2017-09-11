@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/npipe"
 )
 
@@ -27,11 +28,26 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 		return
 	}
 	s = `\\.\pipe\kbservice` + strings.TrimPrefix(s, filepath.VolumeName(s))
+	log := g.Log
+	if log == nil {
+		log = logger.NewNull()
+	}
 	return SocketInfo{
-		Contextified: NewContextified(g),
-		bindFile:     s,
-		dialFiles:    []string{s},
+		log:       log,
+		bindFile:  s,
+		dialFiles: []string{s},
 	}, nil
+}
+
+func NewSocketWithFiles(
+	log logger.Logger, bindFile string, _ []string) Socket {
+	s := `\\.\pipe\kbservice` +
+		strings.TrimPrefix(bindFile, filepath.VolumeName(bindFile))
+	return SocketInfo{
+		log:       log,
+		bindFile:  s,
+		dialFiles: []string{s},
+	}
 }
 
 func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
