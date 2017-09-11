@@ -38,17 +38,33 @@ func startMounting(
 		return err
 	}
 
-	<-mounter.c.Ready
-	err = mounter.c.MountError
-	if err != nil {
-		return err
-	}
-
 	log.CDebugf(ctx, "Creating filesystem")
 	fs := NewFS(config, mounter.c, options.KbfsParams.Debug, options.PlatformParams)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	ctx = context.WithValue(ctx, libfs.CtxAppIDKey, fs)
+
+	go func() {
+		select {
+		case <-mounter.c.Ready:
+			// We wait for the mounter to finish asynchronously with
+			// calling fs.Serve() below, for the rare osxfuse case
+			// where `mount(2)` makes a blocking STATFS call before
+			// completing.  If we aren't listening for the STATFS call
+			// when this happens, there will be a deadlock, and the
+			// mount will silently fail after two minutes.  See
+			// KBFS-2409.
+			err = mounter.c.MountError
+			if err != nil {
+				log.CWarningf(ctx, "Mount error: %+v", err)
+				cancel()
+				return
+			}
+			log.CDebugf(ctx, "Mount ready")
+		case <-ctx.Done():
+		}
+	}()
+
 	log.CDebugf(ctx, "Serving filesystem")
 	if err = fs.Serve(ctx); err != nil {
 		return err
