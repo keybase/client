@@ -930,7 +930,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		if err == gogit.NoErrAlreadyUpToDate {
 			err = nil
 		}
-		// All refspecs in the batch get the same error.
+		// All non-delete refspecs in the batch get the same error.
 		for _, refspec := range refspecs {
 			refStr := refspec.String()
 			start := strings.Index(refStr, ":") + 1
