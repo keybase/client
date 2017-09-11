@@ -1017,78 +1017,121 @@ func (r *runner) handleOption(ctx context.Context, args []string) (err error) {
 	return err
 }
 
+func (r *runner) processCommand(
+	ctx context.Context, commandChan <-chan string) (err error) {
+	var fetchBatch, pushBatch [][]string
+	for {
+		select {
+		case cmd := <-commandChan:
+			ctx := libkbfs.CtxWithRandomIDReplayable(
+				ctx, ctxCommandIDKey, ctxCommandOpID, r.log)
+
+			cmdParts := strings.Fields(cmd)
+			if len(cmdParts) == 0 {
+				if len(fetchBatch) > 0 {
+					if r.cloning {
+						r.log.CDebugf(ctx, "Processing clone")
+						err = r.handleClone(ctx)
+						if err != nil {
+							return err
+						}
+					} else {
+						r.log.CDebugf(ctx, "Processing fetch batch")
+						err = r.handleFetchBatch(ctx, fetchBatch)
+						if err != nil {
+							return err
+						}
+					}
+					fetchBatch = nil
+					continue
+				} else if len(pushBatch) > 0 {
+					r.log.CDebugf(ctx, "Processing push batch")
+					err = r.handlePushBatch(ctx, pushBatch)
+					if err != nil {
+						return err
+					}
+					pushBatch = nil
+					continue
+				} else {
+					r.log.CDebugf(ctx, "Done processing commands")
+					return nil
+				}
+			}
+
+			switch cmdParts[0] {
+			case gitCmdCapabilities:
+				err = r.handleCapabilities()
+			case gitCmdList:
+				err = r.handleList(ctx, cmdParts[1:])
+			case gitCmdFetch:
+				if len(pushBatch) > 0 {
+					return errors.New(
+						"Cannot fetch in the middle of a push batch")
+				}
+				fetchBatch = append(fetchBatch, cmdParts[1:])
+			case gitCmdPush:
+				if len(fetchBatch) > 0 {
+					return errors.New(
+						"Cannot push in the middle of a fetch batch")
+				}
+				pushBatch = append(pushBatch, cmdParts[1:])
+			case gitCmdOption:
+				err = r.handleOption(ctx, cmdParts[1:])
+			default:
+				err = errors.Errorf("Unsupported command: %s", cmdParts[0])
+			}
+			if err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
 func (r *runner) processCommands(ctx context.Context) (err error) {
 	r.log.CDebugf(ctx, "Ready to process")
 	reader := bufio.NewReader(r.input)
-	var fetchBatch, pushBatch [][]string
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	// Process the commands with a separate queue in a separate
+	// goroutine, so we can exit as soon as EOF is received
+	// (indicating the corresponding `git` command has been
+	// interrupted).
+	commandChan := make(chan string, 100)
+	processorErrChan := make(chan error, 1)
+	go func() {
+		processorErrChan <- r.processCommand(ctx, commandChan)
+	}()
+
 	for {
-		cmd, err := reader.ReadString('\n')
-		if errors.Cause(err) == io.EOF {
-			r.log.CDebugf(ctx, "Done processing commands")
-			return nil
-		} else if err != nil {
-			return err
-		}
+		stdinErrChan := make(chan error, 1)
+		go func() {
+			cmd, err := reader.ReadString('\n')
+			if err != nil {
+				stdinErrChan <- err
+				return
+			}
 
-		ctx := libkbfs.CtxWithRandomIDReplayable(
-			ctx, ctxCommandIDKey, ctxCommandOpID, r.log)
+			r.log.CDebugf(ctx, "Received command: %s", cmd)
+			commandChan <- cmd
+			stdinErrChan <- nil
+		}()
 
-		cmdParts := strings.Fields(cmd)
-		if len(cmdParts) == 0 {
-			if len(fetchBatch) > 0 {
-				if r.cloning {
-					r.log.CDebugf(ctx, "Processing clone")
-					err = r.handleClone(ctx)
-					if err != nil {
-						return err
-					}
-				} else {
-					r.log.CDebugf(ctx, "Processing fetch batch")
-					err = r.handleFetchBatch(ctx, fetchBatch)
-					if err != nil {
-						return err
-					}
-				}
-				fetchBatch = nil
-				continue
-			} else if len(pushBatch) > 0 {
-				r.log.CDebugf(ctx, "Processing push batch")
-				err = r.handlePushBatch(ctx, pushBatch)
-				if err != nil {
-					return err
-				}
-				pushBatch = nil
-				continue
-			} else {
+		select {
+		case err := <-stdinErrChan:
+			if errors.Cause(err) == io.EOF {
 				r.log.CDebugf(ctx, "Done processing commands")
 				return nil
+			} else if err != nil {
+				return err
 			}
-		}
-
-		r.log.CDebugf(ctx, "Received command: %s", cmd)
-
-		switch cmdParts[0] {
-		case gitCmdCapabilities:
-			err = r.handleCapabilities()
-		case gitCmdList:
-			err = r.handleList(ctx, cmdParts[1:])
-		case gitCmdFetch:
-			if len(pushBatch) > 0 {
-				return errors.New("Cannot fetch in the middle of a push batch")
-			}
-			fetchBatch = append(fetchBatch, cmdParts[1:])
-		case gitCmdPush:
-			if len(fetchBatch) > 0 {
-				return errors.New("Cannot push in the middle of a fetch batch")
-			}
-			pushBatch = append(pushBatch, cmdParts[1:])
-		case gitCmdOption:
-			err = r.handleOption(ctx, cmdParts[1:])
-		default:
-			err = errors.Errorf("Unsupported command: %s", cmdParts[0])
-		}
-		if err != nil {
+			// Otherwise continue to read the next command.
+		case err := <-processorErrChan:
 			return err
+		case <-ctx.Done():
+			return ctx.Err()
 		}
 	}
 }

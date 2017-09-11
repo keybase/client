@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -35,10 +36,16 @@ func TestRunnerCapabilities(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	config := libkbfs.MakeTestConfigOrBust(t, "user1")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
-	input := bytes.NewBufferString("capabilities\n\n")
+
+	inputReader, inputWriter := io.Pipe()
+	defer inputWriter.Close()
+	go func() {
+		inputWriter.Write([]byte("capabilities\n\n"))
+	}()
+
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		"", input, &output, testErrput{t})
+		"", inputReader, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -74,10 +81,15 @@ func TestRunnerInitRepo(t *testing.T) {
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer os.RemoveAll(tempdir)
 
-	input := bytes.NewBufferString("list\n\n")
+	inputReader, inputWriter := io.Pipe()
+	defer inputWriter.Close()
+	go func() {
+		inputWriter.Write([]byte("list\n\n"))
+	}()
+
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		"", input, &output, testErrput{t})
+		"", inputReader, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -125,26 +137,35 @@ func makeLocalRepoWithOneFile(t *testing.T,
 func testPush(t *testing.T, ctx context.Context, config libkbfs.Config,
 	gitDir, refspec string) {
 	// Use the runner to push the local data into the KBFS repo.
-	input := bytes.NewBufferString(fmt.Sprintf(
-		"push %s\n\n", refspec))
+	inputReader, inputWriter := io.Pipe()
+	defer inputWriter.Close()
+	go func() {
+		inputWriter.Write([]byte(fmt.Sprintf("push %s\n\n\n", refspec)))
+	}()
+
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		filepath.Join(gitDir, ".git"), input, &output, testErrput{t})
+		filepath.Join(gitDir, ".git"), inputReader, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
 	// Just one symref, from HEAD to master (and master has no commits yet).
 	dst := gogitcfg.RefSpec(refspec).Dst("")
-	require.Equal(t, output.String(), fmt.Sprintf("ok %s\n\n", dst))
+	require.Equal(t, fmt.Sprintf("ok %s\n\n", dst), output.String())
 }
 
 func testListAndGetHeads(t *testing.T, ctx context.Context,
 	config libkbfs.Config, gitDir string, expectedRefs []string) (
 	heads []string) {
-	input := bytes.NewBufferString("list\n\n")
+	inputReader, inputWriter := io.Pipe()
+	defer inputWriter.Close()
+	go func() {
+		inputWriter.Write([]byte("list\n\n"))
+	}()
+
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		filepath.Join(gitDir, ".git"), input, &output, testErrput{t})
+		filepath.Join(gitDir, ".git"), inputReader, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -214,11 +235,16 @@ func testRunnerPushFetch(t *testing.T, cloning bool) {
 	}
 
 	// Use the runner to fetch the KBFS data into the new git repo.
-	input := bytes.NewBufferString(
-		fmt.Sprintf("%sfetch %s refs/heads/master\n\n", cloningStr, heads[0]))
+	inputReader, inputWriter := io.Pipe()
+	defer inputWriter.Close()
+	go func() {
+		inputWriter.Write([]byte(fmt.Sprintf(
+			"%sfetch %s refs/heads/master\n\n\n", cloningStr, heads[0])))
+	}()
+
 	var output3 bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
-		dotgit2, input, &output3, testErrput{t})
+		dotgit2, inputReader, &output3, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
@@ -269,6 +295,37 @@ func TestRunnerDeleteBranch(t *testing.T) {
 		[]string{"refs/heads/master", "HEAD"})
 }
 
-func TestRunnerClone(t *testing.T) {
+func TestRunnerExitEarlyOnEOF(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer os.RemoveAll(tempdir)
 
+	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git)
+
+	makeLocalRepoWithOneFile(t, git, "foo", "hello")
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+
+	// Pause journal to force the processing to pause.
+	jServer, err := libkbfs.GetJournalServer(config)
+	require.NoError(t, err)
+	jServer.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
+
+	// Input a full push batch, but let the reader EOF without giving
+	// the final \n.
+	input := bytes.NewBufferString(
+		"push refs/heads/master:refs/heads/master\n\n")
+	var output bytes.Buffer
+	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
+		filepath.Join(git, ".git"), input, &output, testErrput{t})
+	require.NoError(t, err)
+
+	// Make sure we don't hang when EOF comes early.
+	err = r.processCommands(ctx)
+	require.NoError(t, err)
 }
