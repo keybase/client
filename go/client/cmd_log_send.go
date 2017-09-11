@@ -200,6 +200,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 			Start:   status.Start.Log,
 			Install: installLogPath,
 			System:  install.SystemLogPath(),
+			Git:     status.Git.Log,
 		}
 	}
 
@@ -209,6 +210,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 		Service: filepath.Join(logDir, libkb.ServiceLogFileName),
 		Updater: filepath.Join(logDir, libkb.UpdaterLogFileName),
 		Start:   filepath.Join(logDir, libkb.StartLogFileName),
+		Git:     filepath.Join(logDir, libkb.GitLogFileName),
 		Install: installLogPath,
 	}
 }
