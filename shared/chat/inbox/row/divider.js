@@ -42,7 +42,7 @@ const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
   <Box style={_toggleContainer}>
     <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
       <Text type="BodySmallSemibold">{isExpanded ? 'Show less' : '+452 more'}</Text>
-      <Badge badgeStyle={_badgeToggleStyle} badgeNumber={222} />
+      {!isExpanded && <Badge badgeStyle={_badgeToggleStyle} badgeNumber={222} />}
     </ClickableBox>
   </Box>
 )
