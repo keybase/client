@@ -5,8 +5,8 @@ import {globalStyles, globalColors, globalMargins, glamorous} from '../../../sty
 import {isMobile} from '../../../constants/platform'
 
 type DividerProps = {
+  badgeCount: number,
   isExpanded: boolean,
-  isBadged: boolean,
   toggle: () => void,
 }
 
@@ -38,11 +38,11 @@ const DividerBox = glamorous(Box)({
   width: '100%',
 })
 
-const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
+const Divider = ({badgeCount, isExpanded, toggle}: DividerProps) => (
   <Box style={_toggleContainer}>
     <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
       <Text type="BodySmallSemibold">{isExpanded ? 'Show less' : '+452 more'}</Text>
-      {!isExpanded && <Badge badgeStyle={_badgeToggleStyle} badgeNumber={222} />}
+      {badgeCount > 0 && !isExpanded && <Badge badgeStyle={_badgeToggleStyle} badgeNumber={badgeCount} />}
     </ClickableBox>
   </Box>
 )

@@ -96,9 +96,9 @@ class Inbox extends PureComponent<Props, State> {
     if (row.type === 'divider') {
       return (
         <Divider
+          badgeCount={this.props.bigTeamsBadgeCount}
           key="divider"
           isExpanded={this.props.smallTeamsExpanded}
-          isBadged={row.isBadged}
           toggle={this.props.toggleSmallTeamsExpanded}
         />
       )

@@ -158,7 +158,7 @@ const getRows = createSelector(
       return total
     }, 0)
 
-    const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'}
+    const divider = {type: 'divider'}
     const bigTeamsLabel = {isFiltered: !!filter, type: 'bigTeamsLabel'}
     const showBuildATeam = bigTeams.count() === 0
 
