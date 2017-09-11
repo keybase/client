@@ -36,3 +36,7 @@ func (h *GitHandler) GetGitMetadata(ctx context.Context, folder keybase1.Folder)
 func (h *GitHandler) GetAllGitMetadata(ctx context.Context) ([]keybase1.GitRepoResult, error) {
 	return git.GetAllMetadata(ctx, h.G())
 }
+
+func (h *GitHandler) CreateGitRepo(ctx context.Context, arg keybase1.CreateGitRepoArg) (keybase1.RepoID, error) {
+	return "", nil
+}

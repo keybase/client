@@ -164,6 +164,19 @@
         "type": "array",
         "items": "GitRepoResult"
       }
+    },
+    "createGitRepo": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "name",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": "RepoID"
     }
   },
   "namespace": "keybase.1"

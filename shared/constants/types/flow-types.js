@@ -1411,6 +1411,14 @@ export function fsListRpcPromise (request: (requestCommon & {callback?: ?(err: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.fs.List', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function gitCreateGitRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitCreateGitRepoResult) => void} & {param: gitCreateGitRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createGitRepo', request)
+}
+
+export function gitCreateGitRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreateGitRepoResult) => void} & {param: gitCreateGitRepoRpcParam})): Promise<gitCreateGitRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createGitRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function gitGetAllGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
 }
@@ -5294,6 +5302,11 @@ export type fsListRpcParam = Exact<{
   path: string
 }>
 
+export type gitCreateGitRepoRpcParam = Exact<{
+  folder: Folder,
+  name: GitRepoName
+}>
+
 export type gitGetGitMetadataRpcParam = Exact<{
   folder: Folder
 }>
@@ -6263,6 +6276,7 @@ type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 type deviceDeviceListResult = ?Array<Device>
 type favoriteGetFavoritesResult = FavoritesResult
 type fsListResult = ListResult
+type gitCreateGitRepoResult = RepoID
 type gitGetAllGitMetadataResult = ?Array<GitRepoResult>
 type gitGetGitMetadataResult = ?Array<GitRepoResult>
 type gpgUiConfirmDuplicateKeyChosenResult = boolean

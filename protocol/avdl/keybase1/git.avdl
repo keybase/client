@@ -62,4 +62,7 @@ protocol git {
 
   // fetch git repos for all teams that the user has access to
   array<GitRepoResult> getAllGitMetadata();
+ 
+  // create a repo 
+  RepoID createGitRepo(Folder folder, GitRepoName name);
 }

@@ -188,10 +188,23 @@ func (o GetAllGitMetadataArg) DeepCopy() GetAllGitMetadataArg {
 	return GetAllGitMetadataArg{}
 }
 
+type CreateGitRepoArg struct {
+	Folder Folder      `codec:"folder" json:"folder"`
+	Name   GitRepoName `codec:"name" json:"name"`
+}
+
+func (o CreateGitRepoArg) DeepCopy() CreateGitRepoArg {
+	return CreateGitRepoArg{
+		Folder: o.Folder.DeepCopy(),
+		Name:   o.Name.DeepCopy(),
+	}
+}
+
 type GitInterface interface {
 	PutGitMetadata(context.Context, PutGitMetadataArg) error
 	GetGitMetadata(context.Context, Folder) ([]GitRepoResult, error)
 	GetAllGitMetadata(context.Context) ([]GitRepoResult, error)
+	CreateGitRepo(context.Context, CreateGitRepoArg) (RepoID, error)
 }
 
 func GitProtocol(i GitInterface) rpc.Protocol {
@@ -241,6 +254,22 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"createGitRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]CreateGitRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CreateGitRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CreateGitRepoArg)(nil), args)
+						return
+					}
+					ret, err = i.CreateGitRepo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -262,5 +291,10 @@ func (c GitClient) GetGitMetadata(ctx context.Context, folder Folder) (res []Git
 
 func (c GitClient) GetAllGitMetadata(ctx context.Context) (res []GitRepoResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.git.getAllGitMetadata", []interface{}{GetAllGitMetadataArg{}}, &res)
+	return
+}
+
+func (c GitClient) CreateGitRepo(ctx context.Context, __arg CreateGitRepoArg) (res RepoID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.createGitRepo", []interface{}{__arg}, &res)
 	return
 }
