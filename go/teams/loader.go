@@ -261,7 +261,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*keybase1.T
 		readSubteamID = *arg.readSubteamID
 	}
 
-	proofSet := newProofSet()
+	proofSet := newProofSet(l.G())
 	var parentChildOperations []*parentChildOperation
 
 	// Backfill stubbed links that need to be filled now.
