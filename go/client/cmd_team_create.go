@@ -63,9 +63,9 @@ func (v *CmdTeamCreate) Run() (err error) {
 	if err != nil {
 		return err
 	}
-	dui.Printf("Success!\n")
-	dui.Printf("NOTE: you can adminster %s, but you won't see its files or chats\n", v.TeamName)
-	dui.Printf("unless you add yourself explicitly with `keybase team add-member`.\n")
+	dui.Printf("Success!\n\n")
+	dui.Printf("NOTE: you can administer %s, but you won't see its files or chats\n", v.TeamName)
+	dui.Printf("unless you add yourself explicitly with `keybase team add-member`.\n\n")
 
 	return nil
 }
