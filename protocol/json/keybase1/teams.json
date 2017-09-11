@@ -1116,23 +1116,6 @@
       ],
       "response": "TeamCreateResult"
     },
-    "teamCreateSubteam": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "TeamName"
-        },
-        {
-          "name": "sendChatNotification",
-          "type": "boolean"
-        }
-      ],
-      "response": "TeamCreateResult"
-    },
     "teamGet": {
       "request": [
         {

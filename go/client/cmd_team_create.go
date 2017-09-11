@@ -42,20 +42,7 @@ func (v *CmdTeamCreate) Run() (err error) {
 		return err
 	}
 
-	if v.TeamName.IsRootTeam() {
-		_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
-			Name:                 v.TeamName,
-			SessionID:            v.SessionID,
-			SendChatNotification: true,
-		})
-		if err != nil {
-			return err
-		}
-		dui.Printf("Success!\n")
-		return nil
-	}
-
-	_, err = cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
+	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
 		Name:                 v.TeamName,
 		SessionID:            v.SessionID,
 		SendChatNotification: true,

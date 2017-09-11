@@ -1186,20 +1186,6 @@ func (o TeamCreateArg) DeepCopy() TeamCreateArg {
 	}
 }
 
-type TeamCreateSubteamArg struct {
-	SessionID            int      `codec:"sessionID" json:"sessionID"`
-	Name                 TeamName `codec:"name" json:"name"`
-	SendChatNotification bool     `codec:"sendChatNotification" json:"sendChatNotification"`
-}
-
-func (o TeamCreateSubteamArg) DeepCopy() TeamCreateSubteamArg {
-	return TeamCreateSubteamArg{
-		SessionID:            o.SessionID,
-		Name:                 o.Name.DeepCopy(),
-		SendChatNotification: o.SendChatNotification,
-	}
-}
-
 type TeamGetArg struct {
 	SessionID   int    `codec:"sessionID" json:"sessionID"`
 	Name        string `codec:"name" json:"name"`
@@ -1470,7 +1456,6 @@ func (o GetTeamRootIDArg) DeepCopy() GetTeamRootIDArg {
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
-	TeamCreateSubteam(context.Context, TeamCreateSubteamArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
@@ -1512,22 +1497,6 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamCreate(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"teamCreateSubteam": {
-				MakeArg: func() interface{} {
-					ret := make([]TeamCreateSubteamArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]TeamCreateSubteamArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]TeamCreateSubteamArg)(nil), args)
-						return
-					}
-					ret, err = i.TeamCreateSubteam(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1862,11 +1831,6 @@ type TeamsClient struct {
 
 func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res TeamCreateResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, &res)
-	return
-}
-
-func (c TeamsClient) TeamCreateSubteam(ctx context.Context, __arg TeamCreateSubteamArg) (res TeamCreateResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSubteam", []interface{}{__arg}, &res)
 	return
 }
 
