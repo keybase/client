@@ -86,7 +86,6 @@ function* _listenKBFSSaga(): SagaGenerator<any, any> {
 
 function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
   const {conversations} = action.payload.badgeState
-  console.warn(`CONVS: ${JSON.stringify(conversations)}`)
   yield put(badgeAppForChat(conversations))
 }
 

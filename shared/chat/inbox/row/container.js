@@ -66,6 +66,7 @@ const makeGetFinalizedInfo = conversationIDKey => state =>
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
   if (isPending) {
+    const blankUnreadCounts = {total: 0, badged: 0}
     return createImmutableEqualSelector(
       [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey), getNowOverride],
       (isSelected, participants, nowOverride) => ({
@@ -76,8 +77,8 @@ const makeSelector = conversationIDKey => {
         participants,
         rekeyInfo: null,
         timestamp: formatTimeForConversationList(Date.now(), nowOverride),
-        unreadCount: {total: 0, badged: 0},
-        ..._rowDerivedProps(null, null, {total: 0, badged: 0}, false, isSelected),
+        unreadCount: blankUnreadCounts,
+        ..._rowDerivedProps(null, null, blankUnreadCounts, false, isSelected),
       })
     )
   } else {
