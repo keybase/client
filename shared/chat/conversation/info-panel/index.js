@@ -21,13 +21,13 @@ import Participants from './participants'
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
   flex: 1,
-  marginTop: -1,
   ...(isMobile
     ? {}
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
         borderRight: border,
+        marginTop: -1,
       }),
 }
 const contentContainerStyle = {
