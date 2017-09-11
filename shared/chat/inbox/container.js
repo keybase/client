@@ -203,12 +203,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  ...stateProps,
-  ...dispatchProps,
-})
-
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
@@ -218,7 +212,7 @@ export default compose(
   withHandlers({
     toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
   }),
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {
