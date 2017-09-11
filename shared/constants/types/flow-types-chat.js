@@ -202,6 +202,7 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
   membersUpdate: 6,
   setAppNotificationSettings: 7,
+  teamtype: 8,
 }
 
 export const NotifyChatStaleUpdateType = {
@@ -845,6 +846,7 @@ export type ChatActivity =
   | { activityType: 5, failedMessage: ?FailedMessageInfo }
   | { activityType: 6, membersUpdate: ?MembersUpdateInfo }
   | { activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo }
+  | { activityType: 8, teamtype: ?TeamTypeInfo }
 
 export type ChatActivityType =
     0 // RESERVED_0
@@ -855,6 +857,7 @@ export type ChatActivityType =
   | 5 // FAILED_MESSAGE_5
   | 6 // MEMBERS_UPDATE_6
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
+  | 8 // TEAMTYPE_8
 
 export type ConvTypingUpdate = {
   convID: ConversationID,
@@ -1841,6 +1844,19 @@ export type TeamType =
     0 // NONE_0
   | 1 // SIMPLE_1
   | 2 // COMPLEX_2
+
+export type TeamTypeInfo = {
+  convID: ConversationID,
+  teamType: TeamType,
+}
+
+export type TeamTypePayload = {
+  Action: string,
+  convID: ConversationID,
+  teamType: TeamType,
+  inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
+}
 
 export type ThreadID = bytes
 

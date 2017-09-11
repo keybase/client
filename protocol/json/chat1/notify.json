@@ -19,7 +19,8 @@
         "SET_STATUS_4",
         "FAILED_MESSAGE_5",
         "MEMBERS_UPDATE_6",
-        "SET_APP_NOTIFICATION_SETTINGS_7"
+        "SET_APP_NOTIFICATION_SETTINGS_7",
+        "TEAMTYPE_8"
       ]
     },
     {
@@ -152,6 +153,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "TeamTypeInfo",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "ChatActivity",
       "switch": {
@@ -207,6 +222,13 @@
             "def": false
           },
           "body": "SetAppNotificationSettingsInfo"
+        },
+        {
+          "label": {
+            "name": "TEAMTYPE",
+            "def": false
+          },
+          "body": "TeamTypeInfo"
         }
       ]
     },

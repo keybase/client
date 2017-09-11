@@ -117,6 +117,30 @@ func (o SetStatusPayload) DeepCopy() SetStatusPayload {
 	}
 }
 
+type TeamTypePayload struct {
+	Action       string         `codec:"Action" json:"Action"`
+	ConvID       ConversationID `codec:"convID" json:"convID"`
+	TeamType     TeamType       `codec:"teamType" json:"teamType"`
+	InboxVers    InboxVers      `codec:"inboxVers" json:"inboxVers"`
+	UnreadUpdate *UnreadUpdate  `codec:"unreadUpdate,omitempty" json:"unreadUpdate,omitempty"`
+}
+
+func (o TeamTypePayload) DeepCopy() TeamTypePayload {
+	return TeamTypePayload{
+		Action:    o.Action,
+		ConvID:    o.ConvID.DeepCopy(),
+		TeamType:  o.TeamType.DeepCopy(),
+		InboxVers: o.InboxVers.DeepCopy(),
+		UnreadUpdate: (func(x *UnreadUpdate) *UnreadUpdate {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadUpdate),
+	}
+}
+
 type SetAppNotificationSettingsPayload struct {
 	Action    string                       `codec:"Action" json:"Action"`
 	ConvID    ConversationID               `codec:"convID" json:"convID"`

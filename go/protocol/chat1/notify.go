@@ -21,6 +21,7 @@ const (
 	ChatActivityType_FAILED_MESSAGE                ChatActivityType = 5
 	ChatActivityType_MEMBERS_UPDATE                ChatActivityType = 6
 	ChatActivityType_SET_APP_NOTIFICATION_SETTINGS ChatActivityType = 7
+	ChatActivityType_TEAMTYPE                      ChatActivityType = 8
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -34,6 +35,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"FAILED_MESSAGE":                5,
 	"MEMBERS_UPDATE":                6,
 	"SET_APP_NOTIFICATION_SETTINGS": 7,
+	"TEAMTYPE":                      8,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -45,6 +47,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	5: "FAILED_MESSAGE",
 	6: "MEMBERS_UPDATE",
 	7: "SET_APP_NOTIFICATION_SETTINGS",
+	8: "TEAMTYPE",
 }
 
 func (e ChatActivityType) String() string {
@@ -177,6 +180,18 @@ func (o MembersUpdateInfo) DeepCopy() MembersUpdateInfo {
 	}
 }
 
+type TeamTypeInfo struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	TeamType TeamType       `codec:"teamType" json:"teamType"`
+}
+
+func (o TeamTypeInfo) DeepCopy() TeamTypeInfo {
+	return TeamTypeInfo{
+		ConvID:   o.ConvID.DeepCopy(),
+		TeamType: o.TeamType.DeepCopy(),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -186,6 +201,7 @@ type ChatActivity struct {
 	FailedMessage__              *FailedMessageInfo              `codec:"failedMessage,omitempty" json:"failedMessage,omitempty"`
 	MembersUpdate__              *MembersUpdateInfo              `codec:"membersUpdate,omitempty" json:"membersUpdate,omitempty"`
 	SetAppNotificationSettings__ *SetAppNotificationSettingsInfo `codec:"setAppNotificationSettings,omitempty" json:"setAppNotificationSettings,omitempty"`
+	Teamtype__                   *TeamTypeInfo                   `codec:"teamtype,omitempty" json:"teamtype,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -223,6 +239,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
 		if o.SetAppNotificationSettings__ == nil {
 			err = errors.New("unexpected nil value for SetAppNotificationSettings__")
+			return ret, err
+		}
+	case ChatActivityType_TEAMTYPE:
+		if o.Teamtype__ == nil {
+			err = errors.New("unexpected nil value for Teamtype__")
 			return ret, err
 		}
 	}
@@ -299,6 +320,16 @@ func (o ChatActivity) SetAppNotificationSettings() (res SetAppNotificationSettin
 	return *o.SetAppNotificationSettings__
 }
 
+func (o ChatActivity) Teamtype() (res TeamTypeInfo) {
+	if o.ActivityType__ != ChatActivityType_TEAMTYPE {
+		panic("wrong case accessed")
+	}
+	if o.Teamtype__ == nil {
+		return
+	}
+	return *o.Teamtype__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -345,6 +376,13 @@ func NewChatActivityWithSetAppNotificationSettings(v SetAppNotificationSettingsI
 	return ChatActivity{
 		ActivityType__:               ChatActivityType_SET_APP_NOTIFICATION_SETTINGS,
 		SetAppNotificationSettings__: &v,
+	}
+}
+
+func NewChatActivityWithTeamtype(v TeamTypeInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__: ChatActivityType_TEAMTYPE,
+		Teamtype__:     &v,
 	}
 }
 
@@ -400,6 +438,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SetAppNotificationSettings__),
+		Teamtype__: (func(x *TeamTypeInfo) *TeamTypeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Teamtype__),
 	}
 }
 
