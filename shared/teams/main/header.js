@@ -39,8 +39,9 @@ const Header = (props: Props) => (
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
+      borderBottomColor: globalColors.black_05,
+      borderBottomWidth: 1,
       height: 48,
-      borderBottom: `1px solid ${globalColors.black_05}`,
     }}
   >
     <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
