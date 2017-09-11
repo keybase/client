@@ -27,7 +27,7 @@ const scrollViewStyle = {
         backgroundColor: globalColors.white,
         borderLeft: border,
         borderRight: border,
-        marginTop: -1,
+        marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 const contentContainerStyle = {
