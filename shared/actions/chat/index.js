@@ -229,7 +229,6 @@ function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, 
   }
 }
 
-// todo
 function* _setupChatHandlers(): SagaGenerator<any, any> {
   engine().setIncomingActionCreator('chat.1.NotifyChat.NewChatActivity', ({activity}) =>
     Creators.incomingMessage(activity)
