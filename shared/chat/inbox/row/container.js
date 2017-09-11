@@ -65,8 +65,8 @@ const makeGetFinalizedInfo = conversationIDKey => state =>
 
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
+  const blankUnreadCounts: Constants.UnreadCounts = {total: 0, badged: 0}
   if (isPending) {
-    const blankUnreadCounts = {total: 0, badged: 0}
     return createImmutableEqualSelector(
       [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey), getNowOverride],
       (isSelected, participants, nowOverride) => ({
@@ -111,7 +111,7 @@ const makeSelector = conversationIDKey => {
           snippet,
           teamname,
           timestamp,
-          unreadCount,
+          unreadCount: unreadCount || blankUnreadCounts,
           ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected),
         }
       }
