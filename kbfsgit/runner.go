@@ -552,8 +552,9 @@ func (r *runner) processGogitStatus(
 }
 
 // recursiveByteCount returns a sum of the size of all files under the
-// directory represented by `fs`, added to `totalSoFar`.  It also
-// returns the length of the last string it printed to `r.errput`.
+// directory represented by `fs`.  It also returns the length of the
+// last string it printed to `r.errput` as `toErase`, to aid in
+// overwriting the text on the next update.
 func (r *runner) recursiveByteCount(
 	ctx context.Context, fs billy.Filesystem, totalSoFar int64, toErase int) (
 	bytes int64, toEraseRet int, err error) {
@@ -568,23 +569,25 @@ func (r *runner) recursiveByteCount(
 			if err != nil {
 				return 0, 0, err
 			}
-			totalSoFar, toErase, err = r.recursiveByteCount(
-				ctx, chrootFS, totalSoFar, toErase)
+			var chrootBytes int64
+			chrootBytes, toErase, err = r.recursiveByteCount(
+				ctx, chrootFS, totalSoFar+bytes, toErase)
 			if err != nil {
 				return 0, 0, err
 			}
+			bytes += chrootBytes
 		} else {
-			totalSoFar += fi.Size()
+			bytes += fi.Size()
 			if r.progress {
 				// This function only runs if r.verbosity >= 1.
 				eraseStr := strings.Repeat("\b", toErase)
-				newStr := fmt.Sprintf("%d bytes... ", totalSoFar)
+				newStr := fmt.Sprintf("%d bytes... ", totalSoFar+bytes)
 				toErase = len(newStr)
 				r.errput.Write([]byte(eraseStr + newStr))
 			}
 		}
 	}
-	return totalSoFar, toErase, nil
+	return bytes, toErase, nil
 }
 
 // statusWriter is a simple io.Writer shim that logs to `r.errput` the
