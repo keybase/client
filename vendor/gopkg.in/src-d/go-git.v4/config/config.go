@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strconv"
 
 	format "gopkg.in/src-d/go-git.v4/plumbing/format/config"
 )
@@ -40,6 +41,14 @@ type Config struct {
 		// Worktree is the path to the root of the working tree.
 		Worktree string
 	}
+
+	Pack struct {
+		// Window controls the size of the sliding window for delta
+		// compression.  The default is 10.  A value of 0 turns off
+		// delta compression entirely.
+		Window uint
+	}
+
 	// Remotes list of repository remotes, the key of the map is the name
 	// of the remote, should equal to RemoteConfig.Name.
 	Remotes map[string]*RemoteConfig
@@ -81,10 +90,14 @@ const (
 	remoteSection    = "remote"
 	submoduleSection = "submodule"
 	coreSection      = "core"
+	packSection      = "pack"
 	fetchKey         = "fetch"
 	urlKey           = "url"
 	bareKey          = "bare"
 	worktreeKey      = "worktree"
+	windowKey        = "window"
+
+	defaultPackWindow = uint(10)
 )
 
 // Unmarshal parses a git-config file and stores it.
@@ -98,6 +111,9 @@ func (c *Config) Unmarshal(b []byte) error {
 	}
 
 	c.unmarshalCore()
+	if err := c.unmarshalPack(); err != nil {
+		return err
+	}
 	c.unmarshalSubmodules()
 	return c.unmarshalRemotes()
 }
@@ -109,6 +125,21 @@ func (c *Config) unmarshalCore() {
 	}
 
 	c.Core.Worktree = s.Options.Get(worktreeKey)
+}
+
+func (c *Config) unmarshalPack() error {
+	s := c.Raw.Section(packSection)
+	window := s.Options.Get(windowKey)
+	if window == "" {
+		c.Pack.Window = defaultPackWindow
+	} else {
+		winUint, err := strconv.ParseUint(window, 10, 32)
+		if err != nil {
+			return err
+		}
+		c.Pack.Window = uint(winUint)
+	}
+	return nil
 }
 
 func (c *Config) unmarshalRemotes() error {
@@ -138,6 +169,7 @@ func (c *Config) unmarshalSubmodules() {
 // Marshal returns Config encoded as a git-config file.
 func (c *Config) Marshal() ([]byte, error) {
 	c.marshalCore()
+	c.marshalPack()
 	c.marshalRemotes()
 	c.marshalSubmodules()
 
@@ -155,6 +187,13 @@ func (c *Config) marshalCore() {
 
 	if c.Core.Worktree != "" {
 		s.SetOption(worktreeKey, c.Core.Worktree)
+	}
+}
+
+func (c *Config) marshalPack() {
+	s := c.Raw.Section(packSection)
+	if c.Pack.Window != defaultPackWindow {
+		s.SetOption(windowKey, fmt.Sprintf("%d", c.Pack.Window))
 	}
 }
 

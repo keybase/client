@@ -149,8 +149,7 @@ func (r *Remote) PushContext(ctx context.Context, o *PushOptions) error {
 		}
 	}
 
-	rs, err := pushHashes(
-		ctx, s, r.s, req, hashesToPush, o.SkipCompression, o.StatusChan)
+	rs, err := pushHashes(ctx, s, r.s, req, hashesToPush, o.StatusChan)
 	if err != nil {
 		return err
 	}
@@ -814,19 +813,22 @@ func referencesToHashes(refs storer.ReferenceStorer) ([]plumbing.Hash, error) {
 func pushHashes(
 	ctx context.Context,
 	sess transport.ReceivePackSession,
-	sto storer.EncodedObjectStorer,
+	s storage.Storer,
 	req *packp.ReferenceUpdateRequest,
 	hs []plumbing.Hash,
-	skipCompression bool,
 	statusChan plumbing.StatusChan,
 ) (*packp.ReportStatus, error) {
 
 	rd, wr := io.Pipe()
 	req.Packfile = rd
+	config, err := s.Config()
+	if err != nil {
+		return nil, err
+	}
 	done := make(chan error)
 	go func() {
-		e := packfile.NewEncoder(wr, sto, false)
-		if _, err := e.Encode(hs, skipCompression, statusChan); err != nil {
+		e := packfile.NewEncoder(wr, s, false)
+		if _, err := e.Encode(hs, config.Pack.Window, statusChan); err != nil {
 			done <- wr.CloseWithError(err)
 			return
 		}
