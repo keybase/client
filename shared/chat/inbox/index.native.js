@@ -43,6 +43,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return (
         <Divider
           badgeCount={this.props.bigTeamsBadgeCount}
+          hiddenCount={this.props.smallTeamsExpanded ? 0 : 453}
           isExpanded={this.props.smallTeamsExpanded}
           toggle={this.props.toggleSmallTeamsExpanded}
         />
