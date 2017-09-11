@@ -64,13 +64,12 @@ func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 			FolderType: folderType,
 			Private:    !team.IsPublic(),
 		}, nil
-	} else {
-		return keybase1.Folder{
-			Name:       team.Name().String(),
-			FolderType: keybase1.FolderType_TEAM,
-			Private:    !team.IsPublic(),
-		}, nil
 	}
+	return keybase1.Folder{
+		Name:       team.Name().String(),
+		FolderType: keybase1.FolderType_TEAM,
+		Private:    !team.IsPublic(),
+	}, nil
 }
 
 func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keybase1.Folder) ([]keybase1.GitRepoResult, error) {
