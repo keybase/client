@@ -16,6 +16,15 @@ class List extends PureComponent<Props<*>, void> {
     offset: (this.props.fixedHeight || 0) * index,
   })
 
+  _keyExtractor = (item, index: number) => {
+    if (!item) {
+      return String(index)
+    }
+
+    const keyProp = this.props.keyProperty || 'key'
+    return item[keyProp]
+  }
+
   render() {
     return (
       <View
@@ -30,6 +39,7 @@ class List extends PureComponent<Props<*>, void> {
             renderItem={this._itemRender}
             data={this.props.items}
             getItemLayout={this.props.fixedHeight ? this._getItemLayout : undefined}
+            keyExtractor={this._keyExtractor}
           />
         </View>
       </View>
