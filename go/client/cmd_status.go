@@ -91,6 +91,9 @@ type fstatus struct {
 	Start struct {
 		Log string
 	}
+	Git struct {
+		Log string
+	}
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
@@ -191,6 +194,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.Updater.Log = filepath.Join(extStatus.LogDir, libkb.UpdaterLogFileName)
 
 	status.Start.Log = filepath.Join(extStatus.LogDir, libkb.StartLogFileName)
+	status.Git.Log = filepath.Join(extStatus.LogDir, libkb.GitLogFileName)
 
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
