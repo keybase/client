@@ -570,11 +570,13 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	encodedLen := int64(len(entry))
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
-			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
 		if err == nil {
 			cache.putMeter.Mark(1)
+		} else {
+			err = errors.WithStack(err)
 		}
+		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
+			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
 	}()
 	blockKey := blockID.Bytes()
 	hasKey, err := cache.blockDb.Has(blockKey, nil)
