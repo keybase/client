@@ -157,6 +157,14 @@ func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	return ret
 }
 
+func (d *smuDeviceWrapper) recloneContexts(ctx *libkb.TestContext) {
+	numClones := len(d.clones)
+	d.clones = []*libkb.TestContext{}
+	for i := 0; i < numClones; i++ {
+		d.clones = append(d.clones, cloneContext(ctx))
+	}
+}
+
 func (smc *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
 	tctx := setupTest(smc.t, u.usernamePrefix)
 	tctx.G.SetClock(smc.fakeClock)
@@ -296,6 +304,11 @@ func (u *smuUser) signup() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reload config and clone contexts again - config subsystem has
+	// to be reloaded after username change.
+	tctx.G.ConfigureConfig()
+	dw.recloneContexts(tctx)
 }
 
 func (u *smuUser) signupNoPUK() {
@@ -395,7 +408,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 	return smuTeam{name: name}
 }
 
-func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public bool) smuImplicitTeam {
+func (u *smuUser) lookupImplicitTeamError(create bool, displayName string, public bool) (smuImplicitTeam, error) {
 	cli := u.getTeamsClient()
 	var err error
 	var teamID keybase1.TeamID
@@ -404,10 +417,19 @@ func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public boo
 	} else {
 		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
+
+	if err != nil {
+		return smuImplicitTeam{}, err
+	}
+	return smuImplicitTeam{ID: teamID}, nil
+}
+
+func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public bool) smuImplicitTeam {
+	team, err := u.lookupImplicitTeamError(create, displayName, public)
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
-	return smuImplicitTeam{ID: teamID}
+	return team
 }
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {

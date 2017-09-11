@@ -1,10 +1,13 @@
 package systests
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
+	client "github.com/keybase/client/go/client"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -198,4 +201,60 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 
 	// user 0 should get gregor notification that the team changed
 	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+}
+
+func prooveRooter(user *smuUser) {
+	tctx := user.primaryDevice().popClone()
+	runner := client.NewCmdProveRooterRunner(tctx.G, user.username)
+	if err := runner.Run(); err != nil {
+		user.ctx.t.Fatal(err)
+	}
+}
+
+func TestImpTeamInvite(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	// Sign up two users
+	alice := ctx.installKeybaseForUser("alice", 10)
+	alice.signup()
+	divDebug(ctx, "Signed up alice (%s)", alice.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	rooterUser := bob.username + "@rooter"
+	displayName := strings.Join([]string{alice.username, rooterUser}, ",")
+
+	team := alice.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+
+	divDebug(ctx, "Created implicit team %s\n", team.ID)
+
+	// TODO: Test chats, but it might be hard since implicit team tlf
+	// name resolution for chat commands needs KBFS running.
+
+	prooveRooter(bob)
+
+	aliceCtx := alice.primaryDevice().popClone()
+	kickTeamRekeyd(aliceCtx.G, t)
+
+	// Poll for new team name, without the "@rooter"
+	newDisplayName := strings.Join([]string{alice.username, bob.username}, ",")
+
+	var team2 smuImplicitTeam
+	var err error
+	for i := 0; i < 5; i++ {
+		team2, err = alice.lookupImplicitTeamError(false /*create*/, newDisplayName, false /*isPublic*/)
+		if err == nil {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	require.NoError(t, err)
+	require.Equal(t, team2.ID, team.ID)
+
+	// Lookup by old name should fail
+	_, err = alice.lookupImplicitTeamError(false /*create*/, displayName, false /*isPublic*/)
+	require.Error(t, err)
 }
