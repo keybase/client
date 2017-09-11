@@ -274,20 +274,31 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
   }
 }
 
+const _chatInboxToProcess = []
+
 function* _chatInboxConversationSubSaga({conv}) {
-  // Wait for an idle
-  yield call(onIdlePromise, 100)
-  // TODO might be better to make this a put with an associated takeEvery
-  yield spawn(processConversation, conv)
+  _chatInboxToProcess.push(conv)
+  yield put(Creators.unboxMore())
   return EngineRpc.rpcResult()
+}
+
+function* unboxMore(): SagaGenerator<any, any> {
+  if (!_chatInboxToProcess.length) {
+    return
+  }
+
+  const conv = _chatInboxToProcess.pop()
+  yield spawn(processConversation, conv)
+
+  if (_chatInboxToProcess.length) {
+    yield call(delay, 100)
+    yield put(Creators.unboxMore())
+  }
 }
 
 function* _chatInboxFailedSubSaga(params) {
   const {convID, error} = params
   console.log('chatInboxFailed', params)
-  yield call(onIdlePromise, 100)
-
-  yield call(delay, 1)
   const conversationIDKey = Constants.conversationIDToKey(convID)
 
   // Valid inbox item for rekey errors only
@@ -483,4 +494,5 @@ export {
   unboxConversations,
   processConversation,
   untrustedInboxVisible,
+  unboxMore,
 }

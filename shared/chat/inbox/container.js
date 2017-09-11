@@ -47,6 +47,10 @@ const getSimpleRows = createSelector(
 
         return !isEmpty && !isSuperseded && !isFilteredOut
       })
+      .map(i => ({
+        conversationIDKey: i.conversationIDKey,
+        time: i.time,
+      }))
       .sort((a, b) => {
         if (a.time === b.time) {
           return a.conversationIDKey.localeCompare(b.conversationIDKey)
