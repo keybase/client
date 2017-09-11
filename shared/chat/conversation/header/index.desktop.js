@@ -5,6 +5,12 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
+const ShhIcon = () => (
+  <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>
+    <Icon type="iconfont-shh" style={shhIconStyle} />
+  </Box>
+)
+
 const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, teamName}: Props) => (
   <Box style={containerStyle}>
     <Box
@@ -20,7 +26,7 @@ const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, te
       <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
         #{channelName}
       </Text>
-      {muted && <Icon type="iconfont-shh" style={shhIconStyle} />}
+      {muted && <ShhIcon />}
     </Box>
     <Icon
       type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
@@ -49,7 +55,7 @@ const UsernameHeader = ({
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile}
       />
-      {muted && <Icon type="iconfont-shh" style={shhIconStyle} />}
+      {muted && <ShhIcon />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
     <Icon
@@ -82,8 +88,6 @@ const shhIconStyle = {
   color: globalColors.black_20,
   fontSize: 20,
   marginLeft: globalMargins.xtiny,
-  top: globalMargins.tiny,
-  position: 'absolute',
 }
 
 export {ChannelHeader, UsernameHeader}
