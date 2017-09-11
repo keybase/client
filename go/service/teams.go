@@ -35,8 +35,23 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 	}
 }
 
+func (h *TeamsHandler) TeamCreateWithString(ctx context.Context, arg keybase1.TeamCreateWithStringArg) (res keybase1.TeamCreateResult, err error) {
+	h.G().CTrace(ctx, fmt.Sprintf("TeamCreateWithString(%s)", arg.Name), func() error { return err })()
+	teamName, err := keybase1.TeamNameFromString(arg.Name)
+	if err != nil {
+		return res, err
+	}
+	return h.TeamCreate(ctx, keybase1.TeamCreateArg{
+		SessionID:            arg.SessionID,
+		Name:                 teamName,
+		SendChatNotification: arg.SendChatNotification,
+	})
+}
+
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
+	h.G().CTrace(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), func() error { return err })()
 	if !arg.Name.IsRootTeam() {
+		h.G().Log.CDebugf(ctx, "TeamCreate: creating a new subteam: %s", arg.Name)
 		if arg.Name.Depth() == 0 {
 			return res, fmt.Errorf("empty team name")
 		}
@@ -51,6 +66,7 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name.String()); err != nil {
 			return res, err
 		}
+		res.CreatorAdded = true
 	}
 
 	if arg.SendChatNotification {

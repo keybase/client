@@ -1034,6 +1034,10 @@
         {
           "type": "boolean",
           "name": "chatSent"
+        },
+        {
+          "type": "boolean",
+          "name": "creatorAdded"
         }
       ]
     },
@@ -1108,6 +1112,23 @@
         {
           "name": "name",
           "type": "TeamName"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamCreateResult"
+    },
+    "teamCreateWithString": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
         },
         {
           "name": "sendChatNotification",

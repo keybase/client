@@ -1102,12 +1102,14 @@ func (o TeamTreeEntry) DeepCopy() TeamTreeEntry {
 }
 
 type TeamCreateResult struct {
-	ChatSent bool `codec:"chatSent" json:"chatSent"`
+	ChatSent     bool `codec:"chatSent" json:"chatSent"`
+	CreatorAdded bool `codec:"creatorAdded" json:"creatorAdded"`
 }
 
 func (o TeamCreateResult) DeepCopy() TeamCreateResult {
 	return TeamCreateResult{
-		ChatSent: o.ChatSent,
+		ChatSent:     o.ChatSent,
+		CreatorAdded: o.CreatorAdded,
 	}
 }
 
@@ -1182,6 +1184,20 @@ func (o TeamCreateArg) DeepCopy() TeamCreateArg {
 	return TeamCreateArg{
 		SessionID:            o.SessionID,
 		Name:                 o.Name.DeepCopy(),
+		SendChatNotification: o.SendChatNotification,
+	}
+}
+
+type TeamCreateWithStringArg struct {
+	SessionID            int    `codec:"sessionID" json:"sessionID"`
+	Name                 string `codec:"name" json:"name"`
+	SendChatNotification bool   `codec:"sendChatNotification" json:"sendChatNotification"`
+}
+
+func (o TeamCreateWithStringArg) DeepCopy() TeamCreateWithStringArg {
+	return TeamCreateWithStringArg{
+		SessionID:            o.SessionID,
+		Name:                 o.Name,
 		SendChatNotification: o.SendChatNotification,
 	}
 }
@@ -1456,6 +1472,7 @@ func (o GetTeamRootIDArg) DeepCopy() GetTeamRootIDArg {
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
+	TeamCreateWithString(context.Context, TeamCreateWithStringArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
@@ -1497,6 +1514,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamCreate(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamCreateWithString": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamCreateWithStringArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamCreateWithStringArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamCreateWithStringArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateWithString(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1831,6 +1864,11 @@ type TeamsClient struct {
 
 func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res TeamCreateResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreate", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamCreateWithString(ctx context.Context, __arg TeamCreateWithStringArg) (res TeamCreateResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithString", []interface{}{__arg}, &res)
 	return
 }
 
