@@ -417,6 +417,7 @@ export const maxMessagesToLoadAtATime = 50
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
 
+export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
   {conversationIDKeys: Array<ConversationIDKey>}

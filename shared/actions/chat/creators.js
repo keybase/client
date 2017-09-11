@@ -705,6 +705,10 @@ function unboxConversations(
   return {payload: {conversationIDKeys}, type: 'chat:unboxConversations'}
 }
 
+function unboxMore(): Constants.UnboxMore {
+  return {type: 'chat:unboxMore', payload: undefined}
+}
+
 export {
   addPending,
   appendMessages,
@@ -769,6 +773,7 @@ export {
   threadLoadedOffline,
   toggleChannelWideNotifications,
   unboxConversations,
+  unboxMore,
   unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
