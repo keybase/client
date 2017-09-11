@@ -99,7 +99,6 @@ class Inbox extends PureComponent<Props, State> {
           badgeCount={this.props.bigTeamsBadgeCount}
           key="divider"
           hiddenCount={this.props.smallTeamsExpanded ? 0 : 453}
-          isExpanded={this.props.smallTeamsExpanded}
           toggle={this.props.toggleSmallTeamsExpanded}
         />
       )
