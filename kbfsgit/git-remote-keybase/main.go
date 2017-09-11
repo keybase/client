@@ -59,7 +59,7 @@ func getLocalGitDir() (gitDir string, err error) {
 	return filepath.FromSlash(gitDir), nil
 }
 
-func start() *libfs.Error {
+func start() (startErr *libfs.Error) {
 	kbCtx := env.NewContext()
 
 	// TODO: Also remove all kbfsgit directories older than 24h.
@@ -94,6 +94,17 @@ func start() *libfs.Error {
 		return libfs.InitError(err.Error())
 	}
 	defer stderrFile.Close()
+
+	defer func() {
+		// Now that the stderr has been duplicated, print all errors
+		// to the duplicate as well as to the new `os.Stderr` down in
+		// `main()`, so that the error shows up both in the log and to
+		// the user.
+		if startErr != nil {
+			fmt.Fprintf(stderrFile, "git-remote-keybase error: (%d) %s\n",
+				startErr.Code, startErr.Message)
+		}
+	}()
 
 	kbfsParams := libkbfs.AddFlagsWithDefaults(
 		flag.CommandLine, defaultParams, defaultLogPath)
