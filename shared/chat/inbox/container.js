@@ -34,27 +34,34 @@ const passesParticipantFilter = (participants: I.List<string>, filter: string, y
 const getSimpleRows = createSelector(
   [getInbox, getAlwaysShow, getFilter, getSupersededByState, Constants.getYou],
   (inbox, alwaysShow, filter, supersededByState, you) => {
-    return inbox
-      .filter(i => {
-        if (i.teamType === ChatTypes.CommonTeamType.complex) {
-          return false
-        }
+    return (
+      inbox
+        .filter(i => {
+          if (i.teamType === ChatTypes.CommonTeamType.complex) {
+            return false
+          }
 
-        const id = i.conversationIDKey
-        const isEmpty = i.isEmpty && !alwaysShow.has(id)
-        const isSuperseded = !!supersededByState.get(id)
-        const isFilteredOut = !!(filter && !passesParticipantFilter(i.get('participants'), filter, you))
+          const id = i.conversationIDKey
+          const isEmpty = i.isEmpty && !alwaysShow.has(id)
+          const isSuperseded = !!supersededByState.get(id)
+          const isFilteredOut = !!(filter && !passesParticipantFilter(i.get('participants'), filter, you))
 
-        return !isEmpty && !isSuperseded && !isFilteredOut
-      })
-      .sort((a, b) => {
-        if (a.time === b.time) {
-          return a.conversationIDKey.localeCompare(b.conversationIDKey)
-        }
+          return !isEmpty && !isSuperseded && !isFilteredOut
+        })
+        // this is done for perf reasons and that sorting immutable lists is slow
+        .map(i => ({
+          conversationIDKey: i.conversationIDKey,
+          time: i.time,
+        }))
+        .sort((a, b) => {
+          if (a.time === b.time) {
+            return a.conversationIDKey.localeCompare(b.conversationIDKey)
+          }
 
-        return b.time - a.time
-      })
-      .map(i => i.conversationIDKey)
+          return b.time - a.time
+        })
+        .map(i => i.conversationIDKey)
+    )
   }
 )
 
