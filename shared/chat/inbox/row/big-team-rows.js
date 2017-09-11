@@ -45,6 +45,7 @@ type ChannelProps = {
   isMuted?: boolean,
   showBold?: boolean,
   hasUnread?: boolean,
+  hasBadge?: boolean,
   onSelectConversation: () => void,
 }
 
@@ -70,7 +71,7 @@ class BigTeamChannelRow extends PureComponent<ChannelProps> {
               #{this.props.channelname}
             </Text>
             {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
-            {this.props.hasUnread && <UnreadIcon />}
+            {this.props.hasBadge && <UnreadIcon />}
           </Box>
         </Box>
       </ClickableBox>

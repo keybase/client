@@ -249,11 +249,13 @@ export type ConversationState = KBRecord<{
 export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
   unreadMessages: number,
+  badgeCounts: {[key: string]: number},
 }>
 
 export const ConversationBadgeStateRecord = Record({
   convID: undefined,
   unreadMessages: 0,
+  badgeCounts: {},
 })
 
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
@@ -379,6 +381,11 @@ export const StateRecord: KBRecord<T> = Record({
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
+export type UnreadCounts = {
+  total: number,
+  badged: number,
+}
+
 export type State = KBRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
@@ -391,7 +398,7 @@ export type State = KBRecord<{
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
   metaData: MetaDataMap,
-  conversationUnreadCounts: Map<ConversationIDKey, number>,
+  conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
@@ -582,7 +589,7 @@ export type UntrustedInboxVisible = NoErrorTypedAction<
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateConversationUnreadCounts = NoErrorTypedAction<
   'chat:updateConversationUnreadCounts',
-  {conversationUnreadCounts: Map<ConversationIDKey, number>}
+  {conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>}
 >
 export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',

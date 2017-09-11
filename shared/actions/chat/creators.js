@@ -365,7 +365,7 @@ function toggleChannelWideNotifications(
 }
 
 function updateConversationUnreadCounts(
-  conversationUnreadCounts: Map<Constants.ConversationIDKey, number>
+  conversationUnreadCounts: Map<Constants.ConversationIDKey, Constants.UnreadCounts>
 ): Constants.UpdateConversationUnreadCounts {
   return {
     payload: {conversationUnreadCounts},

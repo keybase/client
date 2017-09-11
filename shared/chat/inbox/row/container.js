@@ -14,7 +14,7 @@ import {navigateAppend} from '../../../actions/route-tree'
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
 
-function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected) {
+function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount: Constants.UnreadCounts, isError, isSelected) {
   // Derived props
 
   // If it's finalized we don't show the rekey as they can't solve it themselves
@@ -22,7 +22,8 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     !finalizeInfo && rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
   const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
 
-  const hasUnread = !participantNeedToRekey && !youNeedToRekey && !!unreadCount
+  const hasUnread = !participantNeedToRekey && !youNeedToRekey && (unreadCount && unreadCount.total > 0)
+  const hasBadge = hasUnread && unreadCount.badged > 0
   const subColor = isError
     ? globalColors.red
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
@@ -38,6 +39,7 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     subColor,
     usernameColor,
     youNeedToRekey,
+    hasBadge,
   }
 }
 
@@ -74,8 +76,8 @@ const makeSelector = conversationIDKey => {
         participants,
         rekeyInfo: null,
         timestamp: formatTimeForConversationList(Date.now(), nowOverride),
-        unreadCount: 0,
-        ..._rowDerivedProps(null, null, 0, false, isSelected),
+        unreadCount: {total: 0, badged: 0},
+        ..._rowDerivedProps(null, null, {total: 0, badged: 0}, false, isSelected),
       })
     )
   } else {
@@ -108,7 +110,7 @@ const makeSelector = conversationIDKey => {
           snippet,
           teamname,
           timestamp,
-          unreadCount: unreadCount || 0,
+          unreadCount,
           ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected),
         }
       }
