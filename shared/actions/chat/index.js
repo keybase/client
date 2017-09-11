@@ -993,9 +993,7 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   const conversationUnreadCounts = conversations.reduce((map, conv) => {
     const unreadCounts: Constants.UnreadCounts = {
       total: conv.get('unreadMessages'),
-      badged: isMobile
-        ? conv.get('badgeCounts')[`${CommonDeviceType.mobile}`]
-        : conv.get('badgeCounts')[`${CommonDeviceType.desktop}`],
+      badged: conv.get('badgeCounts')[`${isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop}`],
     }
     if (!unreadCounts.total) {
       return map
