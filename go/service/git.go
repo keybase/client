@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/git"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -38,5 +40,27 @@ func (h *GitHandler) GetAllGitMetadata(ctx context.Context) ([]keybase1.GitRepoR
 }
 
 func (h *GitHandler) CreateGitRepo(ctx context.Context, arg keybase1.CreateGitRepoArg) (keybase1.RepoID, error) {
-	return "", nil
+	client, err := h.kbfsClient()
+	if err != nil {
+		return "", err
+	}
+	carg := keybase1.CreateRepoArg{
+		Folder: arg.Folder,
+		Name:   arg.Name,
+	}
+	return client.CreateRepo(ctx, carg)
+}
+
+func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
+	if h.G().ConnectionManager == nil {
+		return nil, fmt.Errorf("no connection manager available")
+	}
+	xp := h.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+	if xp == nil {
+		return nil, libkb.KBFSNotRunningError{}
+	}
+	return &keybase1.KBFSGitClient{
+		Cli: rpc.NewClient(
+			xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),
+	}, nil
 }
