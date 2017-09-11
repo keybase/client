@@ -12,7 +12,7 @@ import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
-const smallteamsCollapsedMaxShown = 5
+const smallTeamsCollapsedMaxShown = 5
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
@@ -142,11 +142,12 @@ const getRows = createSelector(
 
     let smallTeams = pids.concat(sids)
     let showSmallTeamsExpandDivider = false
-
-    if (!filter && bigTeams.count() && smallTeams.count() > smallteamsCollapsedMaxShown) {
+    let smallTeamsHiddenCount = 0
+    if (!filter && bigTeams.count() && smallTeams.count() > smallTeamsCollapsedMaxShown) {
       showSmallTeamsExpandDivider = true
       if (!smallTeamsExpanded) {
-        smallTeams = smallTeams.slice(0, smallteamsCollapsedMaxShown)
+        smallTeamsHiddenCount = smallTeams.count() - smallTeamsCollapsedMaxShown
+        smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
       }
     }
 
@@ -167,15 +168,18 @@ const getRows = createSelector(
       .concat(I.List(bigTeams.count() ? [bigTeamsLabel] : []))
       .concat(bigTeams)
 
-    return {bigTeamsBadgeCount, rows, showBuildATeam, showSmallTeamsExpandDivider}
+    return {bigTeamsBadgeCount, rows, showBuildATeam, showSmallTeamsExpandDivider, smallTeamsHiddenCount}
   }
 )
 
 const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
-  const {rows, showBuildATeam, showSmallTeamsExpandDivider, bigTeamsBadgeCount} = getRows(
-    state,
-    smallTeamsExpanded
-  )
+  const {
+    bigTeamsBadgeCount,
+    rows,
+    showBuildATeam,
+    showSmallTeamsExpandDivider,
+    smallTeamsHiddenCount,
+  } = getRows(state, smallTeamsExpanded)
   const filter = getFilter(state)
 
   return {
@@ -187,6 +191,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     showSmallTeamsExpandDivider,
+    smallTeamsHiddenCount,
   }
 }
 
@@ -202,7 +207,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
   ...stateProps,
   ...dispatchProps,
-  smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
 })
 
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper

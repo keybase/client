@@ -71,7 +71,7 @@ class Inbox extends PureComponent<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (
       (this.props.rows !== prevProps.rows && prevProps.rows.count()) ||
-      this.props.smallTeamsExpanded !== prevProps.smallTeamsExpanded
+      this.props.smallTeamsHiddenCount > 0 !== prevProps.smallTeamsHiddenCount > 0
     ) {
       this._updateShowFloating()
     }
@@ -98,7 +98,7 @@ class Inbox extends PureComponent<Props, State> {
         <Divider
           badgeCount={this.props.bigTeamsBadgeCount}
           key="divider"
-          hiddenCount={this.props.smallTeamsExpanded ? 0 : 453}
+          hiddenCount={this.props.smallTeamsHiddenCount}
           toggle={this.props.toggleSmallTeamsExpanded}
         />
       )

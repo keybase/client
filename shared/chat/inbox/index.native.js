@@ -43,7 +43,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return (
         <Divider
           badgeCount={this.props.bigTeamsBadgeCount}
-          hiddenCount={this.props.smallTeamsExpanded ? 0 : 453}
+          hiddenCount={this.props.smallTeamsHiddenCount}
           toggle={this.props.toggleSmallTeamsExpanded}
         />
       )
@@ -85,7 +85,7 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.smallTeamsExpanded !== nextProps.smallTeamsExpanded && !nextProps.smallTeamsExpanded) {
+    if (this.props.smallTeamsHiddenCount === 0 && nextProps.smallTeamsHiddenCount > 0) {
       this._list && this._list.scrollToOffset({animated: true, offset: 0})
     }
   }
