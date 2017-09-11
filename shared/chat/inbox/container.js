@@ -145,7 +145,8 @@ const getRows = createSelector(
 
     const bigTeamsBadgeCount = bigTeams.reduce((total, team) => {
       if (team.type === 'big') {
-        return total + badgeCountMap.get(team.conversationIDKey, 0)
+        const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
+        return total + (unreadCount ? unreadCount.badged : 0)
       }
       return total
     }, 0)

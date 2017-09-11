@@ -23,6 +23,7 @@ type SimpleProps = {
   timestamp: string,
   usernameColor: string,
   youNeedToRekey: boolean,
+  hasBadge: boolean,
 }
 
 class SmallTeamRow extends PureComponent<SimpleProps> {
@@ -49,6 +50,7 @@ class SmallTeamRow extends PureComponent<SimpleProps> {
           >
             <SimpleTopLine
               hasUnread={props.hasUnread}
+              hasBadge={props.hasBadge}
               participants={props.teamname ? List.of(props.teamname) : props.participants}
               showBold={props.showBold}
               subColor={props.subColor}

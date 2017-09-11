@@ -990,16 +990,15 @@ function* _changedActive(action: ChangedActive): SagaGenerator<any, any> {
 
 function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  let conversationsWithKeys = {}
-  conversations.map(conv => {
-    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('unreadMessages')
-  })
   const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const count = conv.get('unreadMessages')
-    if (!count) {
+    const unreadCounts: Constants.UnreadCounts = {
+      total: conv.get('unreadMessages'),
+      badged: conv.get('badgeCounts')[`${isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop}`],
+    }
+    if (!unreadCounts.total) {
       return map
     } else {
-      return map.set(Constants.conversationIDToKey(conv.get('convID')), count)
+      return map.set(Constants.conversationIDToKey(conv.get('convID')), unreadCounts)
     }
   }, Map())
   yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
