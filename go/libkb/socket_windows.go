@@ -35,7 +35,7 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 }
 
 func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
-	s.G().Log.Info("Binding to pipe:%s", s.bindFile)
+	s.log.Info("Binding to pipe:%s", s.bindFile)
 	return npipe.Listen(s.bindFile)
 }
 
