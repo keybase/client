@@ -4,7 +4,12 @@ import * as Constants from '../../constants/chat'
 import {Map} from 'immutable'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
-import {pendingToRealConversation, replaceConversation, selectConversation, unboxConversations} from './creators'
+import {
+  pendingToRealConversation,
+  replaceConversation,
+  selectConversation,
+  unboxConversations,
+} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
