@@ -490,9 +490,6 @@ func (cache *DiskBlockCacheStandard) Get(ctx context.Context, tlfID tlf.ID,
 	}
 
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache Get id=%s tlf=%s bSize=%d, "+
-			"prefetchStatus=%s err=%+v", blockID, tlfID, len(buf),
-			prefetchStatus.String(), err)
 		if err == nil {
 			cache.hitMeter.Mark(1)
 		} else {
@@ -573,11 +570,13 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 	}
 	encodedLen := int64(len(entry))
 	defer func() {
-		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
-			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
 		if err == nil {
 			cache.putMeter.Mark(1)
+		} else {
+			err = errors.WithStack(err)
 		}
+		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
+			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
 	}()
 	blockKey := blockID.Bytes()
 	hasKey, err := cache.blockDb.Has(blockKey, nil)

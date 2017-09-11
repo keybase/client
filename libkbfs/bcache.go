@@ -243,6 +243,11 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64, lifetime BlockCacheLif
 func (b *BlockCacheStandard) PutWithPrefetch(
 	ptr BlockPointer, tlf tlf.ID, block Block, lifetime BlockCacheLifetime,
 	prefetchStatus PrefetchStatus) (err error) {
+	// We first check if the block shouldn't be cached, since CommonBlocks can
+	// take this path.
+	if lifetime == NoCacheEntry {
+		return nil
+	}
 	// Just in case we tried to cache a block type that shouldn't be cached,
 	// return an error. This is an insurance check. That said, this got rid of
 	// a flake in TestSBSConflicts, so we should still look for the underlying
@@ -259,9 +264,6 @@ func (b *BlockCacheStandard) PutWithPrefetch(
 	var wasInCache bool
 
 	switch lifetime {
-	case NoCacheEntry:
-		return nil
-
 	case TransientEntry:
 		// If it's the right type of block, store the hash -> ID mapping.
 		if fBlock, isFileBlock := block.(*FileBlock); b.ids != nil &&

@@ -122,12 +122,6 @@ func (p *blockPrefetcher) run() {
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 	ptr BlockPointer, block Block, entryName string,
 	doneCh, errCh chan<- struct{}) error {
-	if _, err := p.config.BlockCache().Get(ptr); err == nil {
-		return nil
-	}
-	if err := checkDataVersion(p.config, path{}, ptr); err != nil {
-		return err
-	}
 	select {
 	case p.progressCh <- prefetchRequest{
 		priority, kmd, ptr, block, doneCh, errCh}:

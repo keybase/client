@@ -308,6 +308,11 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 		return 0, InvalidBlockRefError{ptr.Ref()}
 	}
 
+	// Try to get the encoded size from the cache before escalating to the
+	// block retriever (even though it's supposed to do a similar thing with
+	// checking caches before checking the data version).
+	// TODO: Figure out how to remove this without breaking journal tests in
+	// kbfs/test.
 	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
 		return block.GetEncodedSize(), nil
 	}
@@ -369,21 +374,6 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 	if block, err := fbo.config.DirtyBlockCache().Get(
 		fbo.id(), ptr, branch); err == nil {
 		return block, nil
-	}
-
-	if block, prefetchStatus, lifetime, err :=
-		fbo.config.BlockCache().GetWithPrefetch(ptr); err == nil {
-		// If the block was cached in the past, we need to handle it as if it's
-		// an on-demand request so that its downstream prefetches are triggered
-		// correctly according to the new on-demand fetch priority.
-		fbo.config.BlockOps().BlockRetriever().CacheAndPrefetch(ctx,
-			ptr, block, kmd, defaultOnDemandRequestPriority, lifetime,
-			prefetchStatus, nil, nil)
-		return block, nil
-	}
-
-	if err := checkDataVersion(fbo.config, notifyPath, ptr); err != nil {
-		return nil, err
 	}
 
 	if notifyPath.isValidForNotification() {
@@ -1299,7 +1289,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 }
 
 // getDirtyDirLocked composes getDirLocked and
-// updatedWithDirtyEntriesLocked. Note that a dirty dir means that it
+// updateWithDirtyEntriesLocked. Note that a dirty dir means that it
 // has entries possibly pointing to dirty files, and/or that its
 // children list is dirty.
 func (fbo *folderBlockOps) getDirtyDirLocked(ctx context.Context,
@@ -1481,11 +1471,6 @@ func (fbo *folderBlockOps) Lookup(
 
 	if de.Type == Sym {
 		return nil, de, nil
-	}
-
-	err = checkDataVersion(fbo.config, childPath, de.BlockPointer)
-	if err != nil {
-		return nil, DirEntry{}, err
 	}
 
 	node, err := fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
