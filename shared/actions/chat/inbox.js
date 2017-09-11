@@ -16,7 +16,6 @@ import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
 import {navigateTo} from '../route-tree'
 import {parseFolderNameToUsers} from '../../util/kbfs'
-import {onIdlePromise} from '../../util/idle-callback'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
@@ -287,6 +286,8 @@ function* unboxMore(): SagaGenerator<any, any> {
     return
   }
 
+  // the most recent thing you asked for is likely what you want
+  // (aka scrolling)
   const conv = _chatInboxToProcess.pop()
   yield spawn(processConversation, conv)
 
