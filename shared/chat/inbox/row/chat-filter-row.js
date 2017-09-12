@@ -105,6 +105,7 @@ class _ChatFilterRow extends Component<Props, State> {
           type="iconfont-compose"
           style={{
             color: globalColors.blue,
+            fontSize: isMobile ? 20 : 16,
             marginLeft: globalMargins.medium,
             marginRight: globalMargins.small,
           }}
