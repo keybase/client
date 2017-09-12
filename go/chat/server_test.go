@@ -1493,6 +1493,7 @@ type serverChatListener struct {
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	identifyUpdate          chan keybase1.CanonicalTLFNameAndIDWithBreaks
+	teamType                chan chat1.TeamTypeInfo
 }
 
 func (n *serverChatListener) Logout()                                                             {}
@@ -1536,6 +1537,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.membersUpdate <- activity.MembersUpdate()
 	case chat1.ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
 		n.appNotificationSettings <- activity.SetAppNotificationSettings()
+	case chat1.ChatActivityType_TEAMTYPE:
+		n.teamType <- activity.Teamtype()
 	}
 }
 func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
@@ -1557,6 +1560,7 @@ func newServerChatListener() *serverChatListener {
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
 		identifyUpdate:          make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 100),
+		teamType:                make(chan chat1.TeamTypeInfo, 100),
 	}
 }
 
@@ -2782,7 +2786,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 	require.Equal(t, 1, len(res.Conversations), "no convs found")
 }
 
-func TestImpTeamExistingKBFS(t *testing.T) {
+func TestChatSrvImpTeamExistingKBFS(t *testing.T) {
 	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
 	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
 	ctc := makeChatTestContext(t, "NewConversationLocal", 2)
@@ -2796,4 +2800,46 @@ func TestImpTeamExistingKBFS(t *testing.T) {
 	if !c2.Id.Eq(c1.Id) {
 		t.Fatalf("2nd call to NewConversationLocal as IMPTEAM for a KBFS conversation did not return the same conversation ID")
 	}
+}
+
+func TestChatSrvTeamTypeChanged(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvTeamTypeChanged", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		listener := newServerChatListener()
+		ctc.as(t, users[1]).h.G().SetService()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+		consumeNewMsg(t, listener, chat1.MessageType_JOIN)
+
+		topicName := "zjoinonsend"
+		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       conv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
+		require.NoError(t, err)
+		select {
+		case info := <-listener.teamType:
+			require.Equal(t, conv.Id, info.ConvID)
+			require.Equal(t, chat1.TeamType_COMPLEX, info.TeamType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no team type")
+		}
+	})
 }
