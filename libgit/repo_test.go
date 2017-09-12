@@ -61,10 +61,15 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, id1, id3)
 
-	// A one letter repo name is ok.
-	_, id4, err := GetOrCreateRepoAndID(ctx, config, h, "r", "")
+	// A trailing ".git" should be ignored.
+	_, id4, err := GetOrCreateRepoAndID(ctx, config, h, "repo1.git", "")
 	require.NoError(t, err)
-	require.NotEqual(t, id1, id4)
+	require.Equal(t, id1, id4)
+
+	// A one letter repo name is ok.
+	_, id5, err := GetOrCreateRepoAndID(ctx, config, h, "r", "")
+	require.NoError(t, err)
+	require.NotEqual(t, id1, id5)
 
 	// Invalid names.
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, ".repo2", "")

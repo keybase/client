@@ -19,8 +19,9 @@ import (
 )
 
 const (
-	kbfsRepoDir    = ".kbfs_git"
-	kbfsConfigName = "kbfs_config"
+	kbfsRepoDir       = ".kbfs_git"
+	kbfsConfigName    = "kbfs_config"
+	gitSuffixToIgnore = ".git"
 )
 
 // This character set is what Github supports in repo names.  It's
@@ -114,7 +115,8 @@ func getOrCreateRepoAndID(
 	if err != nil {
 		return nil, NullID, err
 	}
-	normalizedRepoName := strings.ToLower(repoName)
+	normalizedRepoName := strings.TrimSuffix(
+		strings.ToLower(repoName), gitSuffixToIgnore)
 
 	lookupOrCreateDir := func(n libkbfs.Node, name string) (
 		libkbfs.Node, error) {
