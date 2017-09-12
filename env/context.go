@@ -6,10 +6,16 @@ package env
 
 import (
 	"net"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+)
+
+const (
+	KBFSSocketFile = "kbfsd.sock"
 )
 
 // Context is an implementation for libkbfs.Context
@@ -60,4 +66,26 @@ func (c Context) ConfigureSocketInfo() error {
 // NewRPCLogFactory constructs an RPC logger
 func (c Context) NewRPCLogFactory() *libkb.RPCLogFactory {
 	return &libkb.RPCLogFactory{Contextified: libkb.NewContextified(c.g)}
+}
+
+func (c Context) getSandboxSocketFile() string {
+	sandboxDir := c.g.Env.HomeFinder.SandboxCacheDir()
+	if sandboxDir == "" {
+		return ""
+	}
+	return filepath.Join(sandboxDir, KBFSSocketFile)
+}
+
+func (c Context) getKBFSSocketFile() string {
+	e := c.g.Env
+	return e.GetString(
+		func() string { return c.getSandboxSocketFile() },
+		func() string { return "TODO: KBFS cmd line option" },
+		func() string { return os.Getenv("KBFS_SOCKET_FILE") },
+		func() string { return filepath.Join(e.GetRuntimeDir(), KBFSSocketFile) },
+	)
+}
+
+func (c Context) GetKBFSSocket() (net.Conn, rpc.Transporter, bool, error) {
+	return nil, nil, false, nil
 }
