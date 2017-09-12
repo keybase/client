@@ -26,6 +26,7 @@ type KeybaseServiceMeasured struct {
 	favoriteDeleteTimer       metrics.Timer
 	favoriteListTimer         metrics.Timer
 	notifyTimer               metrics.Timer
+	putGitMetadataTimer       metrics.Timer
 }
 
 var _ KeybaseService = KeybaseServiceMeasured{}
@@ -44,6 +45,8 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KeybaseService.FavoriteList", r)
 	notifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Notify", r)
+	putGitMetadataTimer := metrics.GetOrRegisterTimer(
+		"KeybaseService.PutGitMetadata", r)
 	return KeybaseServiceMeasured{
 		delegate:                  delegate,
 		resolveTimer:              resolveTimer,
@@ -57,6 +60,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		favoriteDeleteTimer:       favoriteDeleteTimer,
 		favoriteListTimer:         favoriteListTimer,
 		notifyTimer:               notifyTimer,
+		putGitMetadataTimer:       putGitMetadataTimer,
 	}
 }
 
@@ -190,6 +194,17 @@ func (k KeybaseServiceMeasured) FlushUserUnverifiedKeysFromLocalCache(
 // EstablishMountDir implements the KeybaseDaemon interface for KeybaseDaemonLocal.
 func (k KeybaseServiceMeasured) EstablishMountDir(ctx context.Context) (string, error) {
 	return k.delegate.EstablishMountDir(ctx)
+}
+
+// PutGitMetadata implements the KeybaseDaemon interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) PutGitMetadata(
+	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	repoName keybase1.GitRepoName) (err error) {
+	k.putGitMetadataTimer.Time(func() {
+		err = k.delegate.PutGitMetadata(ctx, folder, repoID, repoName)
+	})
+	return err
 }
 
 // Shutdown implements the KeybaseService interface for

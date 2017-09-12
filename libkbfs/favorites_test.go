@@ -45,7 +45,7 @@ func TestFavoritesAddTwice(t *testing.T) {
 	// Call Add twice in a row, but only get one Add KBPKI call
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
-	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.toKBFolder()).
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Return(nil)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
@@ -113,7 +113,7 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 
 	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
-	folder1 := fav1.toKBFolder()
+	folder1 := fav1.ToKBFolder()
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), folder1).
 		Times(2).Return(nil)
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1).
@@ -144,7 +144,7 @@ func TestFavoritesAddAsync(t *testing.T) {
 
 	c := make(chan struct{})
 	// Block until thereare multiple outstanding calls
-	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.toKBFolder()).
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Do(func(_ context.Context, _ keybase1.Folder) {
 			<-c
 		}).Return(nil)
@@ -182,7 +182,7 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 	// and one gets added, even if its context gets added
 	c := make(chan struct{})
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
-	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.toKBFolder()).
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Do(func(_ context.Context, _ keybase1.Folder) {
 			c <- struct{}{}
 		}).Return(nil)

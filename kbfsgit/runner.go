@@ -20,6 +20,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -225,7 +226,7 @@ func (r *runner) printDoneOrErr(
 }
 
 func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
-	repo *gogit.Repository, err error) {
+	repo *gogit.Repository, fs *libfs.FS, err error) {
 	// This function might be called multiple times per function, but
 	// the subsequent calls will use the local cache.  So only print
 	// these messages once.
@@ -240,10 +241,10 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		}()
 	}
 
-	fs, _, err := libgit.GetOrCreateRepoAndID(
+	fs, _, err = libgit.GetOrCreateRepoAndID(
 		ctx, r.config, r.h, r.repo, r.uniqID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// We don't persist remotes to the config on disk for two
@@ -254,7 +255,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	var storage storage.Storer
 	storage, err = newConfigWithoutRemotesStorer(fs)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if forCmd == gitCmdFetch {
@@ -263,13 +264,13 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		// objects of big repos into memory at once.
 		storage, err = newOnDemandStorer(storage)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	config, err := storage.Config()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if config.Pack.Window > 0 {
 		// Turn delta compression off, both to avoid messing up the
@@ -286,7 +287,7 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		config.Pack.Window = 0
 		err = storage.SetConfig(config)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -298,10 +299,10 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 		repo, err = gogit.Open(storage, nil)
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return repo, nil
+	return repo, fs, nil
 }
 
 func (r *runner) printJournalStatus(
@@ -432,7 +433,7 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		return errors.Errorf("Bad list request: %v", args)
 	}
 
-	repo, err := r.initRepoIfNeeded(ctx, gitCmdList)
+	repo, _, err := r.initRepoIfNeeded(ctx, gitCmdList)
 	if err != nil {
 		return err
 	}
@@ -672,7 +673,7 @@ func (r *runner) recursiveCopy(
 // a single ref will show up for the user.  TODO: Maybe we should run
 // `git gc` for the user on the local repo?
 func (r *runner) handleClone(ctx context.Context) (err error) {
-	_, err = r.initRepoIfNeeded(ctx, "clone")
+	_, _, err = r.initRepoIfNeeded(ctx, "clone")
 	if err != nil {
 		return err
 	}
@@ -745,7 +746,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 // suitably updated.
 func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 	err error) {
-	repo, err := r.initRepoIfNeeded(ctx, gitCmdFetch)
+	repo, _, err := r.initRepoIfNeeded(ctx, gitCmdFetch)
 	if err != nil {
 		return err
 	}
@@ -847,7 +848,7 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 // an LF.
 func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	err error) {
-	repo, err := r.initRepoIfNeeded(ctx, gitCmdPush)
+	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
 	if err != nil {
 		return err
 	}
@@ -941,6 +942,11 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			result = fmt.Sprintf("error %s %s", d, e.Error())
 		}
 		_, err = r.output.Write([]byte(result + "\n"))
+	}
+
+	err = libgit.UpdateRepoMD(ctx, r.config, r.h, fs)
+	if err != nil {
+		return err
 	}
 
 	_, err = r.output.Write([]byte("\n"))

@@ -28,6 +28,7 @@ type KeybaseServiceBase struct {
 	favoriteClient  keybase1.FavoriteInterface
 	kbfsClient      keybase1.KbfsInterface
 	kbfsMountClient keybase1.KbfsMountInterface
+	gitClient       keybase1.GitInterface
 	log             logger.Logger
 
 	config     Config
@@ -90,7 +91,8 @@ func (k *KeybaseServiceBase) FillClients(
 	sessionClient keybase1.SessionInterface,
 	favoriteClient keybase1.FavoriteInterface,
 	kbfsClient keybase1.KbfsInterface,
-	kbfsMountClient keybase1.KbfsMountInterface) {
+	kbfsMountClient keybase1.KbfsMountInterface,
+	gitClient keybase1.GitInterface) {
 	k.identifyClient = identifyClient
 	k.userClient = userClient
 	k.teamsClient = teamsClient
@@ -99,6 +101,7 @@ func (k *KeybaseServiceBase) FillClients(
 	k.favoriteClient = favoriteClient
 	k.kbfsClient = kbfsClient
 	k.kbfsMountClient = kbfsMountClient
+	k.gitClient = gitClient
 }
 
 type addVerifyingKeyFunc func(kbfscrypto.VerifyingKey)
@@ -990,4 +993,18 @@ func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 		k.log.CDebugf(ctx, "Choosing mountdir %s from %v", dir, dirs)
 	}
 	return dir, err
+}
+
+// PutGitMetadata implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) PutGitMetadata(
+	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	repoName keybase1.GitRepoName) error {
+	return k.gitClient.PutGitMetadata(ctx, keybase1.PutGitMetadataArg{
+		Folder: folder,
+		RepoID: repoID,
+		Metadata: keybase1.GitLocalMetadata{
+			RepoName: repoName,
+		},
+	})
 }

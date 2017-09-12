@@ -672,6 +672,14 @@ func (k *KeybaseDaemonLocal) EstablishMountDir(ctx context.Context) (string, err
 	return "", nil
 }
 
+// PutGitMetadata implements the KeybaseService interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) PutGitMetadata(
+	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	repoName keybase1.GitRepoName) error {
+	return nil
+}
+
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Shutdown() {
 	k.favoriteStore.Shutdown()

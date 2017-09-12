@@ -21,8 +21,8 @@ type favToAdd struct {
 	created bool
 }
 
-func (f favToAdd) toKBFolder() keybase1.Folder {
-	return f.Favorite.toKBFolder(f.created)
+func (f favToAdd) ToKBFolder() keybase1.Folder {
+	return f.Favorite.ToKBFolder(f.created)
 }
 
 // favReq represents a request to access the logged-in user's
@@ -125,7 +125,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		if !fav.created && f.cache[fav.Favorite] {
 			continue
 		}
-		err := kbpki.FavoriteAdd(req.ctx, fav.toKBFolder())
+		err := kbpki.FavoriteAdd(req.ctx, fav.ToKBFolder())
 		if err != nil {
 			f.config.MakeLogger("").CDebugf(req.ctx,
 				"Failure adding favorite %v: %v", fav, err)
@@ -137,7 +137,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	for _, fav := range req.toDel {
 		// Since our cache isn't necessarily up-to-date, always delete
 		// the favorite.
-		folder := fav.toKBFolder(false)
+		folder := fav.ToKBFolder(false)
 		err := kbpki.FavoriteDelete(req.ctx, folder)
 		if err != nil {
 			return err

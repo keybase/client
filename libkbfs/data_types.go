@@ -443,7 +443,8 @@ func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
 	}
 }
 
-func (f Favorite) toKBFolder(created bool) keybase1.Folder {
+// ToKBFolder creates a keybase1.Folder from a Favorite.
+func (f Favorite) ToKBFolder(created bool) keybase1.Folder {
 	return keybase1.Folder{
 		Name:       f.Name,
 		FolderType: f.Type.FolderType(),

@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
@@ -63,6 +64,40 @@ func (race RepoAlreadyCreatedError) Error() string {
 		race.ExistingConfig.ID, race.DesiredName)
 }
 
+// UpdateRepoMD lets the Keybase service know that a repo's MD has
+// been updated.
+func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle, fs *libfs.FS) error {
+	folder := tlfHandle.ToFavorite().ToKBFolder(false)
+
+	// Get the user-formatted repo name.
+	f, err := fs.Open(kbfsConfigName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+	c, err := configFromBytes(buf)
+	if err != nil {
+		return err
+	}
+
+	log := config.MakeLogger("")
+	log.CDebugf(ctx, "Putting git MD update")
+	err = config.KBPKI().PutGitMetadata(
+		ctx, folder, keybase1.RepoID(c.ID.String()),
+		keybase1.GitRepoName(c.Name))
+	if err != nil {
+		// Just log the put error, it shouldn't block the success of
+		// the overall git operation.
+		log.CDebugf(ctx, "Failed to put git metadata: %+v", err)
+	}
+	return nil
+}
+
 func createNewRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, fs *libfs.FS) (ID, error) {
@@ -104,6 +139,12 @@ func createNewRepoAndID(
 	if err != nil {
 		return NullID, err
 	}
+
+	err = UpdateRepoMD(ctx, config, tlfHandle, fs)
+	if err != nil {
+		return NullID, err
+	}
+
 	return repoID, nil
 }
 

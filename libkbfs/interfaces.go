@@ -372,10 +372,16 @@ type merkleRootGetter interface {
 	GetCurrentMerkleRoot(ctx context.Context) (keybase1.MerkleRootV2, error)
 }
 
+type gitMetadataPutter interface {
+	PutGitMetadata(ctx context.Context, folder keybase1.Folder,
+		repoID keybase1.RepoID, repoName keybase1.GitRepoName) error
+}
+
 // KeybaseService is an interface for communicating with the keybase
 // service.
 type KeybaseService interface {
 	merkleRootGetter
+	gitMetadataPutter
 
 	// Resolve, given an assertion, resolves it to a username/UID
 	// pair. The username <-> UID mapping is trusted and
@@ -565,6 +571,7 @@ type KBPKI interface {
 	TeamMembershipChecker
 	teamKeysGetter
 	teamRootIDGetter
+	gitMetadataPutter
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.

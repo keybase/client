@@ -313,6 +313,14 @@ func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) 
 	return k.serviceOwner.KeybaseService().LoadUnverifiedKeys(ctx, uid)
 }
 
+// PutGitMetadata implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) PutGitMetadata(
+	ctx context.Context, folder keybase1.Folder, repoID keybase1.RepoID,
+	repoName keybase1.GitRepoName) error {
+	return k.serviceOwner.KeybaseService().PutGitMetadata(
+		ctx, folder, repoID, repoName)
+}
+
 // GetCurrentSessionIfPossible returns the current username and UID
 // from kbpki.GetCurrentSession.  If sessionNotRequired is true
 // NoCurrentSessionError is ignored and empty username and uid will be
