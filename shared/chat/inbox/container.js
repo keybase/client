@@ -21,13 +21,13 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 const getUnreadCounts = (state: TypedState) => state.chat.get('conversationUnreadCounts')
 
 const passesStringFilter = (filter: string, toCheck: string): boolean => {
+  // No need to worry about Unicode issues with toLowerCase(), since
+  // names can only be ASCII.
   return toCheck.toLowerCase().indexOf(filter.toLowerCase()) >= 0
 }
 
 const passesParticipantFilter = (participants: I.List<string>, filter: string, you: ?string): boolean => {
   const names = participants.filter(p => p !== you).toArray()
-  // No need to worry about Unicode issues with toLowerCase(), since
-  // names can only be ASCII.
   return names.some(n => passesStringFilter(filter, n))
 }
 
