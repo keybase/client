@@ -71,7 +71,7 @@ class Inbox extends PureComponent<Props, State> {
   componentDidUpdate(prevProps: Props) {
     if (
       (this.props.rows !== prevProps.rows && prevProps.rows.count()) ||
-      this.props.smallTeamsExpanded !== prevProps.smallTeamsExpanded
+      this.props.smallTeamsHiddenRowCount > 0 !== prevProps.smallTeamsHiddenRowCount > 0
     ) {
       this._updateShowFloating()
     }
@@ -96,9 +96,9 @@ class Inbox extends PureComponent<Props, State> {
     if (row.type === 'divider') {
       return (
         <Divider
+          badgeCount={this.props.smallTeamsHiddenBadgeCount}
           key="divider"
-          isExpanded={this.props.smallTeamsExpanded}
-          isBadged={row.isBadged}
+          hiddenCount={this.props.smallTeamsHiddenRowCount}
           toggle={this.props.toggleSmallTeamsExpanded}
         />
       )
@@ -211,11 +211,11 @@ class Inbox extends PureComponent<Props, State> {
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  boxShadow: `inset -1px 0 0 ${globalColors.black_05}`,
+  backgroundColor: globalColors.blue5,
+  borderRight: `1px solid ${globalColors.black_05}`,
   height: '100%',
-  maxWidth: 241,
-  minWidth: 241,
+  maxWidth: 240,
+  minWidth: 240,
   position: 'relative',
 }
 

@@ -12,7 +12,7 @@ import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
-const smallteamsCollapsedMaxShown = 5
+const smallTeamsCollapsedMaxShown = 5
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
@@ -142,11 +142,22 @@ const getRows = createSelector(
 
     let smallTeams = pids.concat(sids)
     let showSmallTeamsExpandDivider = false
-
-    if (!filter && bigTeams.count() && smallTeams.count() > smallteamsCollapsedMaxShown) {
+    const smallTeamsRowsToHideCount = Math.max(0, smallTeams.count() - smallTeamsCollapsedMaxShown)
+    let smallTeamsHiddenBadgeCount = 0
+    let smallTeamsHiddenRowCount = 0
+    if (!filter && bigTeams.count() && smallTeamsRowsToHideCount) {
       showSmallTeamsExpandDivider = true
       if (!smallTeamsExpanded) {
-        smallTeams = smallTeams.slice(0, smallteamsCollapsedMaxShown)
+        const smallTeamsHidden = smallTeams.slice(smallTeamsCollapsedMaxShown)
+        smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
+        smallTeamsHiddenBadgeCount = smallTeamsHidden.reduce((total, team) => {
+          if (team.type === 'small') {
+            const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
+            return total + (unreadCount ? unreadCount.badged : 0)
+          }
+          return total
+        }, 0)
+        smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
       }
     }
 
@@ -158,7 +169,7 @@ const getRows = createSelector(
       return total
     }, 0)
 
-    const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'}
+    const divider = {type: 'divider'}
     const bigTeamsLabel = {isFiltered: !!filter, type: 'bigTeamsLabel'}
     const showBuildATeam = bigTeams.count() === 0
 
@@ -167,15 +178,26 @@ const getRows = createSelector(
       .concat(I.List(bigTeams.count() ? [bigTeamsLabel] : []))
       .concat(bigTeams)
 
-    return {bigTeamsBadgeCount, rows, showBuildATeam, showSmallTeamsExpandDivider}
+    return {
+      bigTeamsBadgeCount,
+      rows,
+      showBuildATeam,
+      showSmallTeamsExpandDivider,
+      smallTeamsHiddenBadgeCount,
+      smallTeamsHiddenRowCount,
+    }
   }
 )
 
 const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
-  const {rows, showBuildATeam, showSmallTeamsExpandDivider, bigTeamsBadgeCount} = getRows(
-    state,
-    smallTeamsExpanded
-  )
+  const {
+    bigTeamsBadgeCount,
+    rows,
+    showBuildATeam,
+    showSmallTeamsExpandDivider,
+    smallTeamsHiddenBadgeCount,
+    smallTeamsHiddenRowCount,
+  } = getRows(state, smallTeamsExpanded)
   const filter = getFilter(state)
 
   return {
@@ -187,6 +209,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     showSmallTeamsExpandDivider,
+    smallTeamsHiddenBadgeCount,
+    smallTeamsHiddenRowCount,
   }
 }
 
@@ -198,13 +222,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  ...stateProps,
-  ...dispatchProps,
-  smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
-})
-
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
@@ -214,7 +231,7 @@ export default compose(
   withHandlers({
     toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
   }),
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {

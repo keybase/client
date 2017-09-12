@@ -7,6 +7,7 @@ import {List} from 'immutable'
 import {SimpleTopLine, FilteredTopLine} from './top-line'
 import BottomLine from './bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
+import {isMobile} from '../../../constants/platform'
 
 type SimpleProps = {
   backgroundColor: string,
@@ -128,12 +129,14 @@ const conversationRowStyle = {
   paddingRight: 8,
 }
 
+const rowHeight = isMobile ? 64 : 56
+
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   flexShrink: 0,
-  maxHeight: 56,
-  minHeight: 56,
+  maxHeight: rowHeight,
+  minHeight: rowHeight,
 }
 
 export {SmallTeamRow, SmallTeamFilteredRow}

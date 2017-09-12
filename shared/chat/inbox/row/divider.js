@@ -5,8 +5,8 @@ import {globalStyles, globalColors, globalMargins, glamorous} from '../../../sty
 import {isMobile} from '../../../constants/platform'
 
 type DividerProps = {
-  isExpanded: boolean,
-  isBadged: boolean,
+  badgeCount: number,
+  hiddenCount: number,
   toggle: () => void,
 }
 
@@ -31,25 +31,20 @@ const DividerBox = glamorous(Box)({
   borderTopColor: globalColors.black_05,
   borderTopWidth: 1,
   height: '100%',
-  justifyContent: 'space-between',
+  justifyContent: 'flex-start',
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
   position: 'relative',
   width: '100%',
 })
 
-const Divider = ({isExpanded, isBadged, toggle}: DividerProps) => (
-  <ClickableBox
-    onClick={toggle}
-    style={_dividerStyle}
-    className={isExpanded ? 'smallTeamsDividerExpanded' : ''}
-  >
-    <DividerBox>
-      <Box style={_dividerIconStyle}>
-        <Icon type={isExpanded ? 'iconfont-up-arrow' : 'iconfont-down-arrow'} inheritColor={true} />
-      </Box>
-    </DividerBox>
-  </ClickableBox>
+const Divider = ({badgeCount, hiddenCount, toggle}: DividerProps) => (
+  <Box style={_toggleContainer}>
+    <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
+      <Text type="BodySmallSemibold">{hiddenCount > 0 ? `+${hiddenCount} more` : 'Show less'}</Text>
+      {hiddenCount > 0 && badgeCount > 0 && <Badge badgeStyle={_badgeToggleStyle} badgeNumber={badgeCount} />}
+    </ClickableBox>
+  </Box>
 )
 
 type FloatingDividerProps = {
@@ -63,7 +58,7 @@ const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
       <BigTeamsLabel isFiltered={false} />
       {badgeCount > 0 && <Badge badgeStyle={_badgeStyle} badgeNumber={badgeCount} />}
       <Box style={_iconStyle}>
-        <Icon type="iconfont-up-arrow" inheritColor={true} />
+        <Icon type="iconfont-up-arrow" inheritColor={true} style={{fontSize: isMobile ? 20 : 16}} />
       </Box>
     </DividerBox>
   </ClickableBox>
@@ -86,27 +81,47 @@ const _iconStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'center',
-}
-
-const _dividerIconStyle = {
-  ..._iconStyle,
-  alignItems: 'center',
+  marginTop: isMobile ? globalMargins.tiny : 0,
 }
 
 const _badgeStyle = {
+  marginLeft: globalMargins.xtiny,
   marginRight: 0,
+  position: 'relative',
 }
 
-const _dividerStyle = {
-  flexShrink: 0,
-  height: isMobile ? 25 : 16,
+const _badgeToggleStyle = {
+  ..._badgeStyle,
+  marginLeft: globalMargins.xtiny,
+}
+
+const _toggleButtonStyle = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  alignSelf: 'center',
+  backgroundColor: globalColors.black_05,
+  borderRadius: 19,
+  color: globalColors.black_60,
+  height: isMobile ? 24 : 20,
+  marginBottom: isMobile ? 16 : 8,
+  paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
+  paddingRight: isMobile ? globalMargins.small : globalMargins.tiny,
+}
+
+const _toggleContainer = {
+  ...globalStyles.flexBoxColumn,
+  borderBottomColor: globalColors.black_05,
+  borderBottomWidth: 1,
+  borderStyle: 'solid',
+  height: isMobile ? 56 : 40,
+  justifyContent: 'center',
 }
 
 const _floatingStyle = {
   ...globalStyles.fillAbsolute,
-  backgroundColor: globalColors.white,
+  backgroundColor: isMobile ? globalColors.white : globalColors.blue5,
   flexShrink: 0,
-  height: 32,
+  height: isMobile ? 56 : 32,
   top: undefined,
 }
 

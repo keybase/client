@@ -8,7 +8,7 @@ import type {Props} from './badge'
 
 function Badge({badgeStyle, badgeNumber, badgeNumberStyle, outlineColor}: Props) {
   const outlineStyle = outlineColor
-    ? {minWidth: 18, height: 18, border: `2px solid ${outlineColor}`}
+    ? {minWidth: 20, height: 20, border: `3px solid ${outlineColor}`}
     : {minWidth: 14, height: 14, border: 'none'}
   return (
     <Box style={{...defaultBadgeStyle, ...badgeStyle, ...outlineStyle}}>
@@ -21,11 +21,10 @@ const defaultBadgeStyle = {
   ...globalStyles.flexBoxRow,
   backgroundColor: globalColors.orange,
   borderRadius: 10,
-  flex: 0,
   alignItems: 'center',
   justifyContent: 'center',
   paddingLeft: 4,
-  paddingRight: 4,
+  paddingRight: 5,
   marginLeft: 'auto',
   marginRight: 8,
 }
