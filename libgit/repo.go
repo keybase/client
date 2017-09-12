@@ -48,6 +48,20 @@ func (e InvalidRepoNameError) Error() string {
 	return fmt.Sprintf("Invalid repo name %q", e.name)
 }
 
+// RepoAlreadyCreatedError is returned when trying to create a repo
+// that already exists.
+type RepoAlreadyCreatedError struct {
+	DesiredName    string
+	ExistingConfig Config
+}
+
+func (race RepoAlreadyCreatedError) Error() string {
+	return fmt.Sprintf(
+		"A repo named %s (id=%s) already existed when trying to create "+
+			"a repo named %s", race.ExistingConfig.Name,
+		race.ExistingConfig.ID, race.DesiredName)
+}
+
 func createNewRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, fs *libfs.FS) (ID, error) {
@@ -64,7 +78,18 @@ func createNewRepoAndID(
 	config.MakeLogger("").CDebugf(ctx,
 		"Creating a new repo %s in %s: repoID=%s",
 		repoName, tlfHandle.GetCanonicalPath(), repoID)
-	c := &Config{repoID, repoName}
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return NullID, err
+	}
+
+	c := &Config{
+		ID:         repoID,
+		Name:       repoName,
+		CreatorUID: session.UID.String(),
+		Ctime:      config.Clock().Now().UnixNano(),
+	}
 	buf, err := c.toBytes()
 	if err != nil {
 		return NullID, err
@@ -81,14 +106,9 @@ func createNewRepoAndID(
 	return repoID, nil
 }
 
-// GetOrCreateRepoAndID returns a filesystem object rooted at the
-// specified repo, along with the stable repo ID.  If the repo hasn't
-// been created yet, it generates a new ID and creates the repo.  The
-// caller is responsible for syncing the FS and flushing the journal,
-// if desired.
-func GetOrCreateRepoAndID(
+func getOrCreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
-	repoName string, uniqID string) (*libfs.FS, ID, error) {
+	repoName string, uniqID string, createOnly bool) (*libfs.FS, ID, error) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, tlfHandle, libkbfs.MasterBranch)
 	if err != nil {
@@ -149,5 +169,53 @@ func GetOrCreateRepoAndID(
 	if err != nil {
 		return nil, NullID, err
 	}
+
+	if createOnly {
+		// If this was already created, but we were expected to create
+		// it, then send back an error.
+		return nil, NullID, RepoAlreadyCreatedError{repoName, *c}
+	}
+
 	return fs, c.ID, nil
+}
+
+// GetOrCreateRepoAndID returns a filesystem object rooted at the
+// specified repo, along with the stable repo ID.  If the repo hasn't
+// been created yet, it generates a new ID and creates the repo.  The
+// caller is responsible for syncing the FS and flushing the journal,
+// if desired.
+func GetOrCreateRepoAndID(
+	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
+	repoName string, uniqID string) (*libfs.FS, ID, error) {
+	return getOrCreateRepoAndID(
+		ctx, config, tlfHandle, repoName, uniqID, false)
+}
+
+// CreateRepoAndID returns a new stable repo ID for the provided
+// repoName in the given TLF.  If the repo has already been created,
+// it returns a `RepoAlreadyCreatedError`.  The caller is responsible
+// for syncing the FS and flushing the journal, if desired.  It
+// expects the `config` object to be unique during the lifetime of
+// this call.
+func CreateRepoAndID(
+	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
+	repoName string) (ID, error) {
+	// Create a unique ID using the verifying key and the `config`
+	// object, which should be unique to each call in practice.
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return NullID, err
+	}
+	uniqID := fmt.Sprintf("%s-%p", session.VerifyingKey.String(), config)
+
+	fs, id, err := getOrCreateRepoAndID(
+		ctx, config, tlfHandle, repoName, uniqID, true)
+	if err != nil {
+		return NullID, err
+	}
+	err = fs.SyncAll()
+	if err != nil {
+		return NullID, err
+	}
+	return id, err
 }

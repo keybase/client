@@ -40,7 +40,7 @@ func initConfig(t *testing.T) (
 	return ctx, config, tempDir
 }
 
-func TestRepo(t *testing.T) {
+func TestGetOrCreateRepoAndID(t *testing.T) {
 	ctx, config, tempdir := initConfig(t)
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
@@ -62,8 +62,9 @@ func TestRepo(t *testing.T) {
 	require.Equal(t, id1, id3)
 
 	// A one letter repo name is ok.
-	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "r", "")
+	_, id4, err := GetOrCreateRepoAndID(ctx, config, h, "r", "")
 	require.NoError(t, err)
+	require.NotEqual(t, id1, id4)
 
 	// Invalid names.
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, ".repo2", "")
@@ -74,6 +75,39 @@ func TestRepo(t *testing.T) {
 	require.NotNil(t, err)
 
 	fs.SyncAll()
+
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	jServer, err := libkbfs.GetJournalServer(config)
+	require.NoError(t, err)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	require.NoError(t, err)
+}
+
+func TestCreateRepoAndID(t *testing.T) {
+	ctx, config, tempdir := initConfig(t)
+	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+
+	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")
+	require.NoError(t, err)
+
+	id2, err := CreateRepoAndID(ctx, config, h, "Repo2")
+	require.NoError(t, err)
+	require.NotEqual(t, id1, id2)
+
+	_, err = CreateRepoAndID(ctx, config, h, "Repo1")
+	require.IsType(t, RepoAlreadyCreatedError{}, err)
+
+	_, err = CreateRepoAndID(ctx, config, h, "rePo1")
+	require.IsType(t, RepoAlreadyCreatedError{}, err)
+
+	_, err = CreateRepoAndID(ctx, config, h, "repo2")
+	require.IsType(t, RepoAlreadyCreatedError{}, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)

@@ -8,8 +8,10 @@ import "encoding/json"
 
 // Config is a KBFS git repo config file.
 type Config struct {
-	ID   ID
-	Name string // the original user-supplied format of the name
+	ID         ID
+	Name       string // the original user-supplied format of the name
+	CreatorUID string
+	Ctime      int64 // create time in unix nanoseconds, by creator's clock
 }
 
 func configFromBytes(buf []byte) (*Config, error) {
