@@ -810,6 +810,7 @@ func ParseTeamPrivateKBFSPath(s string) (ret keybase1.TeamName, err error) {
 }
 
 type ResolvedAssertion struct {
-	Assertion AssertionExpression
-	UID       keybase1.UID
+	UID           keybase1.UID
+	Assertion     AssertionExpression
+	ResolveResult ResolveResult
 }

@@ -115,7 +115,7 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
 
 	for _, expr := range sourceAssertions {
-		u, err := g.Resolver.ResolveUser(ctx, expr.String())
+		u, resolveRes, err := g.Resolver.ResolveUser(ctx, expr.String())
 		if err != nil {
 			// Resolution failed. Could still be an SBS assertion.
 			sa, err := expr.ToSocialAssertion()
@@ -131,8 +131,9 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 			resSet.KeybaseUsers = append(resSet.KeybaseUsers, u.Username)
 			// Append the resolvee and assertion to resolvedAssertions, in case we identify later.
 			*resolvedAssertions = append(*resolvedAssertions, libkb.ResolvedAssertion{
-				UID:       u.Uid,
-				Assertion: expr,
+				UID:           u.Uid,
+				Assertion:     expr,
+				ResolveResult: resolveRes,
 			})
 		}
 	}
@@ -145,8 +146,11 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	defer g.CTrace(ctx, fmt.Sprintf("verifyResolveResult ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String()),
 		func() error { return err })()
 
-	// TODO it might be worth short-circuiting on local assertions. Because Identify might try and go do a bunch of remote proofs
-	// that aren't relevant.
+	if resolvedAssertion.ResolveResult.WasKBAssertion() {
+		// The resolver does not use server-trust for these sorts of assertions.
+		// So early out to avoid the performance cost of a full identify.
+		return nil
+	}
 
 	id2arg := keybase1.Identify2Arg{
 		Uid:           resolvedAssertion.UID,
