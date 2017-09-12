@@ -142,12 +142,13 @@ const getRows = createSelector(
 
     let smallTeams = pids.concat(sids)
     let showSmallTeamsExpandDivider = false
+    const smallTeamsToHideCount = Math.max(0, smallTeams.count() - smallTeamsCollapsedMaxShown)
     let smallTeamsHiddenCount = 0
-    if (!filter && bigTeams.count() && smallTeams.count() > smallTeamsCollapsedMaxShown) {
+    if (!filter && bigTeams.count() && smallTeamsToHideCount) {
       showSmallTeamsExpandDivider = true
       if (!smallTeamsExpanded) {
-        smallTeamsHiddenCount = smallTeams.count() - smallTeamsCollapsedMaxShown
         smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
+        smallTeamsHiddenCount = smallTeamsToHideCount
       }
     }
 
