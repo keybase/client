@@ -7,7 +7,7 @@ import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import Text from './text'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, hairlineWidth} from '../styles'
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
@@ -31,6 +31,21 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
     )
   }
 }
+
+const UnderlineHighlight = () => (
+  <Box
+    style={{
+      position: 'absolute',
+      bottom: 0,
+      left: 10,
+      right: 10,
+      height: hairlineWidth,
+      borderTopLeftRadius: 3,
+      borderTopRightRadius: 3,
+      backgroundColor: globalColors.white,
+    }}
+  />
+)
 
 const TabBarButton = (props: TabBarButtonProps) => {
   const badgeNumber = props.badgeNumber || 0
@@ -73,6 +88,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
           {props.label}
         </Text>}
       {badgeComponent}
+      {props.underlined && <UnderlineHighlight />}
     </Box>
   )
   if (props.onClick) {
