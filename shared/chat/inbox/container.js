@@ -149,6 +149,13 @@ const getRows = createSelector(
       showSmallTeamsExpandDivider = true
       if (!smallTeamsExpanded) {
         smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
+        smallTeamsHiddenBadgeCount = smallTeams.slice(smallTeamsCollapsedMaxShown).reduce((total, team) => {
+          if (team.type === 'small') {
+            const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
+            return total + (unreadCount ? unreadCount.badged : 0)
+          }
+          return total
+        }, 0)
         smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
       }
     }
