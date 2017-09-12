@@ -62,6 +62,15 @@ func getLocalGitDir() (gitDir string, err error) {
 func start() (startErr *libfs.Error) {
 	kbCtx := env.NewContext()
 
+	switch kbCtx.GetRunMode() {
+	case libkb.StagingRunMode:
+		fmt.Fprintf(os.Stderr, "Running in staging mode\n")
+	case libkb.DevelRunMode:
+		fallthrough
+	case libkb.NoRunMode:
+		fmt.Fprintf(os.Stderr, "Running in devel mode\n")
+	}
+
 	defaultParams, storageRoot, err := libgit.Params(kbCtx, kbCtx.GetDataDir())
 	if err != nil {
 		return libfs.InitError(err.Error())
@@ -138,6 +147,12 @@ func start() (startErr *libfs.Error) {
 }
 
 func main() {
+	runMode := os.Getenv("KEYBASE_RUN_MODE")
+	if len(runMode) == 0 {
+		// Default to prod.
+		os.Setenv("KEYBASE_RUN_MODE", "prod")
+	}
+
 	err := start()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "git-remote-keybase error: (%d) %s\n",
