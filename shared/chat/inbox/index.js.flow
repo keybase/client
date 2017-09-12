@@ -43,7 +43,8 @@ export type Props = {
   showBuildATeam: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,
-  smallTeamsHiddenCount: number,
+  smallTeamsHiddenBadgeCount: number,
+  smallTeamsHiddenRowCount: number,
   toggleSmallTeamsExpanded: () => void,
 }
 

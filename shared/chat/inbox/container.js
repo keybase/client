@@ -142,13 +142,13 @@ const getRows = createSelector(
 
     let smallTeams = pids.concat(sids)
     let showSmallTeamsExpandDivider = false
-    const smallTeamsToHideCount = Math.max(0, smallTeams.count() - smallTeamsCollapsedMaxShown)
-    let smallTeamsHiddenCount = 0
-    if (!filter && bigTeams.count() && smallTeamsToHideCount) {
+    const smallTeamsRowsToHideCount = Math.max(0, smallTeams.count() - smallTeamsCollapsedMaxShown)
+    let smallTeamsHiddenRowCount = 0
+    if (!filter && bigTeams.count() && smallTeamsRowsToHideCount) {
       showSmallTeamsExpandDivider = true
       if (!smallTeamsExpanded) {
         smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
-        smallTeamsHiddenCount = smallTeamsToHideCount
+        smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
       }
     }
 
@@ -169,7 +169,7 @@ const getRows = createSelector(
       .concat(I.List(bigTeams.count() ? [bigTeamsLabel] : []))
       .concat(bigTeams)
 
-    return {bigTeamsBadgeCount, rows, showBuildATeam, showSmallTeamsExpandDivider, smallTeamsHiddenCount}
+    return {bigTeamsBadgeCount, rows, showBuildATeam, showSmallTeamsExpandDivider, smallTeamsHiddenRowCount}
   }
 )
 
@@ -179,7 +179,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     rows,
     showBuildATeam,
     showSmallTeamsExpandDivider,
-    smallTeamsHiddenCount,
+    smallTeamsHiddenRowCount,
   } = getRows(state, smallTeamsExpanded)
   const filter = getFilter(state)
 
@@ -192,7 +192,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     showSmallTeamsExpandDivider,
-    smallTeamsHiddenCount,
+    smallTeamsHiddenRowCount,
   }
 }
 
