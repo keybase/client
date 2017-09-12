@@ -2355,14 +2355,6 @@ export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamCreateWithStringRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateWithStringResult) => void} & {param: teamsTeamCreateWithStringRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithString', request)
-}
-
-export function teamsTeamCreateWithStringRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateWithStringResult) => void} & {param: teamsTeamCreateWithStringRpcParam})): Promise<teamsTeamCreateWithStringResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateWithString', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
 export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 }
@@ -6027,11 +6019,6 @@ export type teamsTeamChangeMembershipRpcParam = Exact<{
 }>
 
 export type teamsTeamCreateRpcParam = Exact<{
-  name: TeamName,
-  sendChatNotification: boolean
-}>
-
-export type teamsTeamCreateWithStringRpcParam = Exact<{
   name: string,
   sendChatNotification: boolean
 }>
@@ -6347,7 +6334,6 @@ type teamsLookupImplicitTeamResult = TeamID
 type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
-type teamsTeamCreateWithStringResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList

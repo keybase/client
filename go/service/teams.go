@@ -35,42 +35,33 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 	}
 }
 
-func (h *TeamsHandler) TeamCreateWithString(ctx context.Context, arg keybase1.TeamCreateWithStringArg) (res keybase1.TeamCreateResult, err error) {
-	h.G().CTrace(ctx, fmt.Sprintf("TeamCreateWithString(%s)", arg.Name), func() error { return err })()
+func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
+	h.G().CTrace(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), func() error { return err })()
 	teamName, err := keybase1.TeamNameFromString(arg.Name)
 	if err != nil {
 		return res, err
 	}
-	return h.TeamCreate(ctx, keybase1.TeamCreateArg{
-		SessionID:            arg.SessionID,
-		Name:                 teamName,
-		SendChatNotification: arg.SendChatNotification,
-	})
-}
-
-func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
-	h.G().CTrace(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), func() error { return err })()
-	if !arg.Name.IsRootTeam() {
+	if !teamName.IsRootTeam() {
 		h.G().Log.CDebugf(ctx, "TeamCreate: creating a new subteam: %s", arg.Name)
-		if arg.Name.Depth() == 0 {
+		if teamName.Depth() == 0 {
 			return res, fmt.Errorf("empty team name")
 		}
-		parentName, err := arg.Name.Parent()
+		parentName, err := teamName.Parent()
 		if err != nil {
 			return res, err
 		}
-		if _, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(arg.Name.LastPart()), parentName); err != nil {
+		if _, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()), parentName); err != nil {
 			return res, err
 		}
 	} else {
-		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name.String()); err != nil {
+		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String()); err != nil {
 			return res, err
 		}
 		res.CreatorAdded = true
 	}
 
 	if arg.SendChatNotification {
-		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name.String(), h.G().Env.GetUsername().String())
+		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, teamName.String(), h.G().Env.GetUsername().String())
 	}
 	return res, nil
 }

@@ -43,7 +43,7 @@ func (v *CmdTeamCreate) Run() (err error) {
 	}
 
 	createRes, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
-		Name:                 v.TeamName,
+		Name:                 v.TeamName.String(),
 		SessionID:            v.SessionID,
 		SendChatNotification: true,
 	})
