@@ -17,6 +17,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// RPCHandler handles service->KBFS git RPC calls.
 type RPCHandler struct {
 	config libkbfs.Config
 	log    logger.Logger
@@ -33,19 +34,20 @@ func NewRPCHandler(config libkbfs.Config) keybase1.KBFSGitInterface {
 var _ keybase1.KBFSGitInterface = (*RPCHandler)(nil)
 
 func (rh *RPCHandler) waitForJournal(
-	ctx context.Context, config libkbfs.Config, h *libkbfs.TlfHandle) error {
-	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+	ctx context.Context, gitConfig libkbfs.Config,
+	h *libkbfs.TlfHandle) error {
+	rootNode, _, err := gitConfig.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	if err != nil {
 		return err
 	}
 
-	err = config.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
+	err = gitConfig.KBFSOps().SyncAll(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalServer(gitConfig)
 	if err != nil {
 		rh.log.CDebugf(ctx, "No journal server: %+v", err)
 		return nil
@@ -130,19 +132,19 @@ func (rh *RPCHandler) CreateRepo(
 	params.LogToFile = false
 	params.LogFileConfig.Path = ""
 
-	ctx, config, err := Init(
+	ctx, gitConfig, err := Init(
 		ctx, params, kbCtx, keybaseServicePassthrough{rh.config}, "")
 	if err != nil {
 		return "", err
 	}
-	defer config.Shutdown(ctx)
+	defer gitConfig.Shutdown(ctx)
 
-	gitID, err := CreateRepoAndID(ctx, config, tlfHandle, string(arg.Name))
+	gitID, err := CreateRepoAndID(ctx, gitConfig, tlfHandle, string(arg.Name))
 	if err != nil {
 		return "", err
 	}
 
-	err = rh.waitForJournal(ctx, config, tlfHandle)
+	err = rh.waitForJournal(ctx, gitConfig, tlfHandle)
 	if err != nil {
 		return "", err
 	}
