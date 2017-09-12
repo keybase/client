@@ -600,7 +600,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if conv, err = g.G().InboxSource.TeamTypeChanged(ctx, uid, nm.InboxVers, nm.ConvID, nm.TeamType); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
-
 			activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
 				ConvID:   nm.ConvID,
 				TeamType: nm.TeamType,
