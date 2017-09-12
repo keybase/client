@@ -5,6 +5,7 @@ export type OwnProps = {|
   onBack: () => void,
   onToggleInfoPanel: () => void,
   infoPanelOpen: boolean,
+  isPendingConversation: boolean,
 |}
 
 export default class HeaderContainer extends Component<OwnProps> {}

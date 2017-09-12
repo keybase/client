@@ -32,11 +32,15 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
   users: getUsers(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {onBack, onToggleInfoPanel}: OwnProps) => ({
+const mapDispatchToProps = (
+  dispatch: Dispatch,
+  {onBack, onToggleInfoPanel, isPendingConversation}: OwnProps
+) => ({
   onBack,
   onOpenFolder: () => dispatch(Creators.openFolder()),
   onShowProfile: (username: string) => dispatch(showUserProfile(username)),
   onToggleInfoPanel,
+  isPendingConversation,
 })
 
 export default compose(
