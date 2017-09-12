@@ -80,7 +80,9 @@ class Checkbox extends Component<Props, State> {
 
 const styleContainer = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center',
+  alignItems: 'flex-start',
+  paddingBottom: globalMargins.xtiny,
+  paddingTop: globalMargins.xtiny,
 }
 
 const styleOuter = {
@@ -103,8 +105,9 @@ const styleInner = {
 
 const styleText = {
   marginLeft: globalMargins.tiny,
-  marginBottom: 2,
+  marginTop: globalMargins.xtiny,
   color: globalColors.black_75,
+  flex: 1,
 }
 
 export default Checkbox

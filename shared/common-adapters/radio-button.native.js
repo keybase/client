@@ -3,7 +3,7 @@ import React from 'react'
 import ClickableBox from './clickable-box'
 import Text from './text'
 import glamorous from 'glamorous-native'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 import type {Props} from './radio-button'
 
@@ -56,6 +56,8 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  paddingBottom: globalMargins.xtiny,
+  paddingTop: globalMargins.xtiny,
 }
 
 export default RadioButton
