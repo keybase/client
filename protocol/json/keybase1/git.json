@@ -164,6 +164,28 @@
         "type": "array",
         "items": "GitRepoResult"
       }
+    },
+    "createPersonalRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": "RepoID"
+    },
+    "createTeamRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "RepoID"
     }
   },
   "namespace": "keybase.1"

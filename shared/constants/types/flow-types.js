@@ -1411,6 +1411,22 @@ export function fsListRpcPromise (request: (requestCommon & {callback?: ?(err: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.fs.List', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function gitCreatePersonalRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitCreatePersonalRepoResult) => void} & {param: gitCreatePersonalRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createPersonalRepo', request)
+}
+
+export function gitCreatePersonalRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreatePersonalRepoResult) => void} & {param: gitCreatePersonalRepoRpcParam})): Promise<gitCreatePersonalRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createPersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitCreateTeamRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createTeamRepo', request)
+}
+
+export function gitCreateTeamRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam})): Promise<gitCreateTeamRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function gitGetAllGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
 }
@@ -5287,6 +5303,15 @@ export type fsListRpcParam = Exact<{
   path: string
 }>
 
+export type gitCreatePersonalRepoRpcParam = Exact<{
+  repoName: GitRepoName
+}>
+
+export type gitCreateTeamRepoRpcParam = Exact<{
+  repoName: GitRepoName,
+  teamName: TeamName
+}>
+
 export type gitGetGitMetadataRpcParam = Exact<{
   folder: Folder
 }>
@@ -6251,6 +6276,8 @@ type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 type deviceDeviceListResult = ?Array<Device>
 type favoriteGetFavoritesResult = FavoritesResult
 type fsListResult = ListResult
+type gitCreatePersonalRepoResult = RepoID
+type gitCreateTeamRepoResult = RepoID
 type gitGetAllGitMetadataResult = ?Array<GitRepoResult>
 type gitGetGitMetadataResult = ?Array<GitRepoResult>
 type gpgUiConfirmDuplicateKeyChosenResult = boolean

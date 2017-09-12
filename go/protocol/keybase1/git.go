@@ -188,10 +188,34 @@ func (o GetAllGitMetadataArg) DeepCopy() GetAllGitMetadataArg {
 	return GetAllGitMetadataArg{}
 }
 
+type CreatePersonalRepoArg struct {
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+func (o CreatePersonalRepoArg) DeepCopy() CreatePersonalRepoArg {
+	return CreatePersonalRepoArg{
+		RepoName: o.RepoName.DeepCopy(),
+	}
+}
+
+type CreateTeamRepoArg struct {
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+	TeamName TeamName    `codec:"teamName" json:"teamName"`
+}
+
+func (o CreateTeamRepoArg) DeepCopy() CreateTeamRepoArg {
+	return CreateTeamRepoArg{
+		RepoName: o.RepoName.DeepCopy(),
+		TeamName: o.TeamName.DeepCopy(),
+	}
+}
+
 type GitInterface interface {
 	PutGitMetadata(context.Context, PutGitMetadataArg) error
 	GetGitMetadata(context.Context, Folder) ([]GitRepoResult, error)
 	GetAllGitMetadata(context.Context) ([]GitRepoResult, error)
+	CreatePersonalRepo(context.Context, GitRepoName) (RepoID, error)
+	CreateTeamRepo(context.Context, CreateTeamRepoArg) (RepoID, error)
 }
 
 func GitProtocol(i GitInterface) rpc.Protocol {
@@ -241,6 +265,38 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"createPersonalRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]CreatePersonalRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CreatePersonalRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CreatePersonalRepoArg)(nil), args)
+						return
+					}
+					ret, err = i.CreatePersonalRepo(ctx, (*typedArgs)[0].RepoName)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"createTeamRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]CreateTeamRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CreateTeamRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CreateTeamRepoArg)(nil), args)
+						return
+					}
+					ret, err = i.CreateTeamRepo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -262,5 +318,16 @@ func (c GitClient) GetGitMetadata(ctx context.Context, folder Folder) (res []Git
 
 func (c GitClient) GetAllGitMetadata(ctx context.Context) (res []GitRepoResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.git.getAllGitMetadata", []interface{}{GetAllGitMetadataArg{}}, &res)
+	return
+}
+
+func (c GitClient) CreatePersonalRepo(ctx context.Context, repoName GitRepoName) (res RepoID, err error) {
+	__arg := CreatePersonalRepoArg{RepoName: repoName}
+	err = c.Cli.Call(ctx, "keybase.1.git.createPersonalRepo", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GitClient) CreateTeamRepo(ctx context.Context, __arg CreateTeamRepoArg) (res RepoID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.createTeamRepo", []interface{}{__arg}, &res)
 	return
 }
