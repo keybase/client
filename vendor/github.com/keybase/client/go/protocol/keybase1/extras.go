@@ -711,11 +711,16 @@ func (s *SigID) MarshalJSON() ([]byte, error) {
 }
 
 func (f Folder) ToString() string {
-	prefix := "public/"
-	if f.Private {
-		prefix = "private/"
+	prefix := "<unrecognized>"
+	switch f.FolderType {
+	case FolderType_PRIVATE:
+		prefix = "private"
+	case FolderType_PUBLIC:
+		prefix = "public"
+	case FolderType_TEAM:
+		prefix = "team"
 	}
-	return prefix + f.Name
+	return prefix + "/" + f.Name
 }
 
 func (t TrackToken) String() string {
