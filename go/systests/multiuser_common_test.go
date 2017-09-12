@@ -157,14 +157,6 @@ func (d *smuDeviceWrapper) popClone() *libkb.TestContext {
 	return ret
 }
 
-func (d *smuDeviceWrapper) recloneContexts(ctx *libkb.TestContext) {
-	numClones := len(d.clones)
-	d.clones = []*libkb.TestContext{}
-	for i := 0; i < numClones; i++ {
-		d.clones = append(d.clones, cloneContext(ctx))
-	}
-}
-
 func (smc *smuContext) setupDevice(u *smuUser) *smuDeviceWrapper {
 	tctx := setupTest(smc.t, u.usernamePrefix)
 	tctx.G.SetClock(smc.fakeClock)
@@ -305,10 +297,13 @@ func (u *smuUser) signup() {
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
 
-	// Reload config and clone contexts again - config subsystem has
-	// to be reloaded after username change.
-	tctx.G.ConfigureConfig()
-	dw.recloneContexts(tctx)
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
 }
 
 func (u *smuUser) signupNoPUK() {
@@ -343,6 +338,14 @@ func (u *smuUser) signupNoPUK() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
 }
 
 type smuTeam struct {
