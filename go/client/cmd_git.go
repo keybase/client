@@ -17,6 +17,7 @@ func NewCmdGit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Subcommands: []cli.Command{
 			NewCmdGitMdput(cl, g),
 			NewCmdGitMdget(cl, g),
+			newCmdGitCreate(cl, g),
 		},
 	}
 }

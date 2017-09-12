@@ -165,15 +165,24 @@
         "items": "GitRepoResult"
       }
     },
-    "createGitRepo": {
+    "createPersonalRepo": {
       "request": [
         {
-          "name": "folder",
-          "type": "Folder"
+          "name": "repoName",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": "RepoID"
+    },
+    "createTeamRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
         },
         {
-          "name": "name",
-          "type": "GitRepoName"
+          "name": "teamName",
+          "type": "TeamName"
         }
       ],
       "response": "RepoID"

@@ -63,6 +63,9 @@ protocol git {
   // fetch git repos for all teams that the user has access to
   array<GitRepoResult> getAllGitMetadata();
  
-  // create a repo 
-  RepoID createGitRepo(Folder folder, GitRepoName name);
+  // create a personal, private repo 
+  RepoID createPersonalRepo(GitRepoName repoName);
+  
+  // create a team repo 
+  RepoID createTeamRepo(GitRepoName repoName, TeamName teamName);
 }

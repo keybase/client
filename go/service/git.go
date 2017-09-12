@@ -39,19 +39,42 @@ func (h *GitHandler) GetAllGitMetadata(ctx context.Context) ([]keybase1.GitRepoR
 	return git.GetAllMetadata(ctx, h.G())
 }
 
-func (h *GitHandler) CreateGitRepo(ctx context.Context, arg keybase1.CreateGitRepoArg) (keybase1.RepoID, error) {
+func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) (keybase1.RepoID, error) {
 	client, err := h.kbfsClient()
 	if err != nil {
 		return "", err
 	}
+	folder := keybase1.Folder{
+		Name:       h.G().Env.GetUsername().String(),
+		FolderType: keybase1.FolderType_PRIVATE,
+	}
 	carg := keybase1.CreateRepoArg{
-		Folder: arg.Folder,
-		Name:   arg.Name,
+		Folder: folder,
+		Name:   repoName,
+	}
+	return client.CreateRepo(ctx, carg)
+}
+
+func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (keybase1.RepoID, error) {
+	client, err := h.kbfsClient()
+	if err != nil {
+		return "", err
+	}
+	folder := keybase1.Folder{
+		Name:       arg.TeamName.String(),
+		FolderType: keybase1.FolderType_TEAM,
+	}
+	carg := keybase1.CreateRepoArg{
+		Folder: folder,
+		Name:   arg.RepoName,
 	}
 	return client.CreateRepo(ctx, carg)
 }
 
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
+	if !h.G().ActiveDevice.Valid() {
+		return nil, libkb.LoginRequiredError{}
+	}
 	if h.G().ConnectionManager == nil {
 		return nil, fmt.Errorf("no connection manager available")
 	}
