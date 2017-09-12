@@ -2355,14 +2355,6 @@ export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamCreateSubteamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSubteamResult) => void} & {param: teamsTeamCreateSubteamRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSubteam', request)
-}
-
-export function teamsTeamCreateSubteamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSubteamResult) => void} & {param: teamsTeamCreateSubteamRpcParam})): Promise<teamsTeamCreateSubteamResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateSubteam', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
 export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 }
@@ -4675,6 +4667,7 @@ export type TeamChangeSet = {
 
 export type TeamCreateResult = {
   chatSent: boolean,
+  creatorAdded: boolean,
 }
 
 export type TeamData = {
@@ -6026,12 +6019,7 @@ export type teamsTeamChangeMembershipRpcParam = Exact<{
 }>
 
 export type teamsTeamCreateRpcParam = Exact<{
-  name: TeamName,
-  sendChatNotification: boolean
-}>
-
-export type teamsTeamCreateSubteamRpcParam = Exact<{
-  name: TeamName,
+  name: string,
   sendChatNotification: boolean
 }>
 
@@ -6346,7 +6334,6 @@ type teamsLookupImplicitTeamResult = TeamID
 type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
-type teamsTeamCreateSubteamResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList

@@ -97,7 +97,7 @@ protocol teams {
 
   @typedef("string")
   record UserVersionPercentForm {}
-  
+
 
   record TeamChangeReq {
     array<UserVersion> owners;
@@ -404,10 +404,10 @@ protocol teams {
 
   record TeamCreateResult {
     boolean chatSent;
+    boolean creatorAdded;
   }
 
-  TeamCreateResult teamCreate(int sessionID, TeamName name, boolean sendChatNotification);
-  TeamCreateResult teamCreateSubteam(int sessionID, TeamName name, boolean sendChatNotification);
+  TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);

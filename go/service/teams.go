@@ -36,33 +36,33 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 }
 
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
-	if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), arg.Name.String()); err != nil {
-		return res, err
-	}
-	if arg.SendChatNotification {
-		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name.String(), h.G().Env.GetUsername().String())
-	}
-	return res, nil
-}
-
-func (h *TeamsHandler) TeamCreateSubteam(ctx context.Context, arg keybase1.TeamCreateSubteamArg) (res keybase1.TeamCreateResult, err error) {
-	if arg.Name.Depth() == 0 {
-		return res, fmt.Errorf("empty team name")
-	}
-	if arg.Name.IsRootTeam() {
-		return res, fmt.Errorf("cannot create subteam with root team name")
-	}
-	parentName, err := arg.Name.Parent()
+	h.G().CTrace(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), func() error { return err })()
+	teamName, err := keybase1.TeamNameFromString(arg.Name)
 	if err != nil {
 		return res, err
 	}
-	if _, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(arg.Name.LastPart()), parentName); err != nil {
-		return res, err
-	}
-	if arg.SendChatNotification {
-		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name.String(), h.G().Env.GetUsername().String())
+	if !teamName.IsRootTeam() {
+		h.G().Log.CDebugf(ctx, "TeamCreate: creating a new subteam: %s", arg.Name)
+		if teamName.Depth() == 0 {
+			return res, fmt.Errorf("empty team name")
+		}
+		parentName, err := teamName.Parent()
+		if err != nil {
+			return res, err
+		}
+		if _, err = teams.CreateSubteam(ctx, h.G().ExternalG(), string(teamName.LastPart()), parentName); err != nil {
+			return res, err
+		}
+	} else {
+		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String()); err != nil {
+			return res, err
+		}
+		res.CreatorAdded = true
 	}
 
+	if arg.SendChatNotification {
+		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, teamName.String(), h.G().Env.GetUsername().String())
+	}
 	return res, nil
 }
 
