@@ -32,20 +32,20 @@ class Feedback extends Component<Props> {
     const {showSuccessBanner, sendLogs, onChangeSendLogs, feedback, onChangeFeedback, sending} = this.props
     return (
       <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
-        {showSuccessBanner &&
-          <Box
-            style={{
-              flex: 0,
-              height: globalMargins.large,
-              ...globalStyles.flexBoxRow,
-              backgroundColor: globalColors.green,
-              alignItems: 'center',
-            }}
-          >
-            <Text type="BodySemibold" backgroundMode="Success" style={{flex: 1, textAlign: 'center'}}>
-              Thanks! Your feedback was sent.
-            </Text>
-          </Box>}
+        <Box
+          style={{
+            flex: 0,
+            height: globalMargins.large,
+            ...globalStyles.flexBoxRow,
+            backgroundColor: globalColors.green,
+            alignItems: 'center',
+            opacity: showSuccessBanner ? 1 : 0,
+          }}
+        >
+          <Text type="BodySemibold" backgroundMode="Success" style={{flex: 1, textAlign: 'center'}}>
+            Thanks! Your feedback was sent.
+          </Text>
+        </Box>
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
@@ -61,10 +61,17 @@ class Feedback extends Component<Props> {
             type="icon-fancy-feedback-96"
             style={{height: 96, width: 96, alignSelf: 'center', marginBottom: globalMargins.tiny}}
           />
-          <Text style={{textAlign: 'center'}} type="Body">
+          <Text style={{textAlign: 'center'}} type="BodySemibold">
             Please send us any feedback or describe any bugs you’ve encountered.
           </Text>
-          <Box style={{flex: 1, ...globalStyles.flexBoxRow, paddingTop: globalMargins.tiny}}>
+          <Box
+            style={{
+              flex: 1,
+              ...globalStyles.flexBoxRow,
+              paddingTop: globalMargins.medium,
+              paddingBottom: globalMargins.small,
+            }}
+          >
             <Input
               autoCapitalize="sentences"
               autoCorrect={true}
@@ -72,7 +79,7 @@ class Feedback extends Component<Props> {
               inputStyle={{textAlign: 'left'}}
               multiline={true}
               small={true}
-              rowsMin={4}
+              rowsMin={2}
               hintText="Write a comment"
               value={feedback}
               onChangeText={onChangeFeedback}
@@ -81,18 +88,18 @@ class Feedback extends Component<Props> {
           <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}>
             <Checkbox
               label=""
-              style={{alignItems: 'flex-start'}}
+              style={{alignItems: 'flex-start', marginRight: globalMargins.tiny}}
               checked={sendLogs}
               onCheck={onChangeSendLogs}
             />
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-              <Text type="Body">Include my logs</Text>
+              <Text type="Body">Include your logs</Text>
               <Text type="BodySmall">
                 This includes some private metadata info (e.g., filenames, but not contents) but it will help the developers fix bugs more quickly.
               </Text>
             </Box>
           </Box>
-          <Box style={{alignSelf: 'center', marginTop: globalMargins.small}}>
+          <Box style={{alignSelf: 'center', marginTop: globalMargins.large}}>
             <Button label="Send" type="Primary" onClick={this._onSubmit} waiting={sending} />
           </Box>
         </Box>

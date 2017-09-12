@@ -5,6 +5,12 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
+const ShhIcon = () => (
+  <Box style={{position: 'relative', alignSelf: 'flex-start'}}>
+    <Icon type="iconfont-shh" style={shhIconStyle} />
+  </Box>
+)
+
 const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPanel, teamName}: Props) => (
   <Box style={containerStyle}>
     <BackButton
@@ -28,18 +34,7 @@ const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPan
         </Box>
         <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
           <Text type="BodyBig" style={{color: globalColors.black_75}}>#{channelName}</Text>
-          {muted &&
-            <Icon
-              type="iconfont-shh"
-              style={{
-                ...styleCenter,
-                ...styleLeft,
-                color: globalColors.black_20,
-                fontSize: 22,
-                position: 'absolute',
-                right: -26,
-              }}
-            />}
+          {muted && <ShhIcon />}
         </Box>
       </Box>
 
@@ -87,11 +82,7 @@ const UsernameHeader = ({
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile}
       />
-      {muted &&
-        <Icon
-          type="iconfont-shh"
-          style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}}
-        />}
+      {muted && <ShhIcon />}
     </Box>
     <Icon
       type="iconfont-info"
@@ -117,6 +108,12 @@ const styleCenter = {
 
 const styleLeft = {
   marginLeft: globalMargins.xtiny,
+}
+
+const shhIconStyle = {
+  ...styleLeft,
+  color: globalColors.black_20,
+  fontSize: 22,
 }
 
 export {ChannelHeader, UsernameHeader}

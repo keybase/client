@@ -4,9 +4,9 @@ import type {Props} from './checkbox'
 import {NativeTouchableWithoutFeedback, NativeAnimated, NativeEasing} from './native-wrappers.native'
 import Box from './box'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
-const checkedOffset = 14
+const checkedOffset = 20
 
 type State = {
   left: any,
@@ -84,17 +84,17 @@ const styleContainer = {
 }
 
 const styleOuter = {
-  height: 22,
-  width: 36,
+  height: 28,
+  width: 48,
   borderWidth: 1,
   borderColor: globalColors.blue,
   borderRadius: 55,
-  padding: 1,
+  padding: 2,
 }
 
 const styleInner = {
-  height: 18,
-  width: 18,
+  height: 22,
+  width: 22,
   backgroundColor: globalColors.white,
   borderWidth: 1,
   borderColor: globalColors.blue,
@@ -102,8 +102,8 @@ const styleInner = {
 }
 
 const styleText = {
-  marginLeft: 8,
-  marginBottom: 3,
+  marginLeft: globalMargins.tiny,
+  marginBottom: 2,
   color: globalColors.black_75,
 }
 
