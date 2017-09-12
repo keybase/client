@@ -102,7 +102,7 @@ const _toggleButtonStyle = {
   backgroundColor: globalColors.black_05,
   borderRadius: 19,
   color: globalColors.black_60,
-  height: isMobile ? 24 : 20,
+  height: isMobile ? 28 : 20,
   marginBottom: isMobile ? 16 : 8,
   paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
   paddingRight: isMobile ? globalMargins.small : globalMargins.tiny,
