@@ -107,7 +107,7 @@ const styleText = {
   marginLeft: globalMargins.tiny,
   marginTop: globalMargins.xtiny,
   color: globalColors.black_75,
-  flex: 1,
+  flexShrink: 1,
 }
 
 export default Checkbox
