@@ -17,7 +17,7 @@ const makeManageChannels = () => ({
   createChannel: {
     children: {},
     component: CreateChannel,
-    tags: {layerOnTop: true},
+    tags: {layerOnTop: !isMobile},
   },
 })
 
