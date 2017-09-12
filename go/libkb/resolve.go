@@ -129,6 +129,19 @@ func (r *Resolver) ResolveFullExpressionWithBody(ctx context.Context, input stri
 	return r.resolveFullExpression(ctx, input, true, false)
 }
 
+func (r *Resolver) ResolveUser(ctx context.Context, assertion string) (u keybase1.User, err error) {
+	res := r.ResolveFullExpressionNeedUsername(ctx, assertion)
+	err = res.GetError()
+	if err != nil {
+		return u, err
+	}
+	u = res.User()
+	if !u.Uid.Exists() {
+		return u, fmt.Errorf("no resolution for: %v", assertion)
+	}
+	return u, nil
+}
+
 func (r *Resolver) resolveFullExpression(ctx context.Context, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 

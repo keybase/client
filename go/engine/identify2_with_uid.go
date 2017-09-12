@@ -310,7 +310,7 @@ func (e *Identify2WithUID) resetError(err error) error {
 	}
 
 	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
-		e.G().Log.Debug("| Reset err from %v -> nil since caller is 'CHAT_GUI'", err)
+		e.G().Log.Debug("| Reset err from %v -> nil since caller is '%s' %d", err, e.arg.IdentifyBehavior, e.arg.IdentifyBehavior)
 		return nil
 	}
 

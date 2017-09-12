@@ -3,7 +3,12 @@ package teams
 import (
 	"context"
 	"fmt"
+	"strings"
 
+	"golang.org/x/sync/errgroup"
+
+	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -39,4 +44,124 @@ func ResolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.
 	}
 
 	return id, nil
+}
+
+// Resolve assertions in an implicit team display name and verify the result.
+// Resolve an implicit team name with assertions like "alice,bob+bob@twitter#char (conflicted 2017-03-04 #1)"
+// Into "alice,bob#char (conflicted 2017-03-04 #1)"
+// The input can contain compound assertions, but if compound assertions are left unresolved, an error will be returned.
+func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
+	name string, public bool) (res keybase1.ImplicitTeamDisplayName, err error) {
+
+	defer g.CTrace(ctx, "resolvedAndCheckImplicitTeamDisplayName", func() error { return err })()
+
+	split1 := strings.SplitN(name, " ", 2) // split1: [assertions, ?conflict]
+	assertions := split1[0]
+	var suffix string
+	if len(split1) > 1 {
+		suffix = split1[1]
+	}
+
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(assertions)
+	if err != nil {
+		return res, err
+	}
+
+	res = keybase1.ImplicitTeamDisplayName{
+		IsPublic: public,
+	}
+	if len(suffix) > 0 {
+		res.ConflictInfo, err = libkb.ParseImplicitTeamDisplayNameSuffix(suffix)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	var resolvedAssertions []libkb.ResolvedAssertion
+
+	err = ResolveImplicitTeamSetUntrusted(ctx, g, writerAssertions, &res.Writers, &resolvedAssertions)
+	if err != nil {
+		return res, err
+	}
+	err = ResolveImplicitTeamSetUntrusted(ctx, g, readerAssertions, &res.Readers, &resolvedAssertions)
+	if err != nil {
+		return res, err
+	}
+
+	// errgroup collects errors and returns the first non-nil.
+	// subctx is canceled when the group finishes.
+	group, subctx := errgroup.WithContext(ctx)
+
+	// Identify everyone who resolved in parallel, checking that they match their resolved UID and original assertions.
+	for _, resolvedAssertion := range resolvedAssertions {
+		resolvedAssertion := resolvedAssertion // https://golang.org/doc/faq#closures_and_goroutines
+		group.Go(func() error {
+			return verifyResolveResult(subctx, g, resolvedAssertion)
+		})
+	}
+
+	err = group.Wait()
+	return res, err
+}
+
+// Try to resolve implicit team members.
+// Modifies the arguments `resSet` and appends to `resolvedAssertions`.
+// For each assertion in `sourceAssertions`, try to resolve them.
+//   If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
+//   If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
+func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext,
+	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
+
+	for _, expr := range sourceAssertions {
+		u, err := g.Resolver.ResolveUser(ctx, expr.String())
+		if err != nil {
+			// Resolution failed. Could still be an SBS assertion.
+			sa, err := expr.ToSocialAssertion()
+			if err != nil {
+				// Could not convert to a social assertion.
+				// This could be because it is a compound assertion, which we do not support when SBS.
+				// Or it could be because it's a team assertion or something weird like that.
+				return err
+			}
+			resSet.UnresolvedUsers = append(resSet.UnresolvedUsers, sa)
+		} else {
+			// Resolution succeeded
+			resSet.KeybaseUsers = append(resSet.KeybaseUsers, u.Username)
+			// Append the resolvee and assertion to resolvedAssertions, in case we identify later.
+			*resolvedAssertions = append(*resolvedAssertions, libkb.ResolvedAssertion{
+				UID:       u.Uid,
+				Assertion: expr,
+			})
+		}
+	}
+	return nil
+}
+
+// Verify using Identify that a UID matches an assertion.
+func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAssertion libkb.ResolvedAssertion) (err error) {
+
+	defer g.CTrace(ctx, fmt.Sprintf("verifyResolveResult ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String()),
+		func() error { return err })()
+
+	id2arg := keybase1.Identify2Arg{
+		Uid:           resolvedAssertion.UID,
+		UserAssertion: resolvedAssertion.Assertion.String(),
+		CanSuppressUI: true,
+		// Use CHAT_CLI to avoid tracker popups but DO externals checks.
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+
+	engCtx := engine.Context{
+		// Send a nil IdentifyUI, this IdentifyBehavior should not use it anyway.
+		IdentifyUI: nil,
+		NetContext: ctx,
+	}
+
+	eng := engine.NewIdentify2WithUID(g, &id2arg)
+	err = engine.RunEngine(eng, &engCtx)
+	if err != nil {
+		idRes := eng.Result()
+		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
+	}
+	return err
 }
