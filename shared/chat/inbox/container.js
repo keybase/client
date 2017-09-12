@@ -44,9 +44,12 @@ const getSimpleRows = createSelector(
           const id = i.conversationIDKey
           const isEmpty = i.isEmpty && !alwaysShow.has(id)
           const isSuperseded = !!supersededByState.get(id)
-          const isFilteredOut = !!(filter && !passesParticipantFilter(i.get('participants'), filter, you))
+          const passesFilter =
+            !filter ||
+            (i.teamname && passesStringFilter(filter, i.teamname)) ||
+            passesParticipantFilter(i.get('participants'), filter, you)
 
-          return !isEmpty && !isSuperseded && !isFilteredOut
+          return !isEmpty && !isSuperseded && passesFilter
         })
         // this is done for perf reasons and that sorting immutable lists is slow
         .map(i => ({
