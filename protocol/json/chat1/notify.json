@@ -163,6 +163,13 @@
         {
           "type": "TeamType",
           "name": "teamType"
+        },
+        {
+          "type": [
+            null,
+            "InboxUIItem"
+          ],
+          "name": "conv"
         }
       ]
     },

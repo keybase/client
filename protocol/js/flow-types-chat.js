@@ -1848,6 +1848,7 @@ export type TeamType =
 export type TeamTypeInfo = {
   convID: ConversationID,
   teamType: TeamType,
+  conv?: ?InboxUIItem,
 }
 
 export type TeamTypePayload = {

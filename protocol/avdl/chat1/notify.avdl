@@ -58,6 +58,7 @@ protocol NotifyChat {
   record TeamTypeInfo {
     ConversationID convID;
     TeamType teamType;
+    union { null, InboxUIItem } conv;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {

@@ -183,12 +183,20 @@ func (o MembersUpdateInfo) DeepCopy() MembersUpdateInfo {
 type TeamTypeInfo struct {
 	ConvID   ConversationID `codec:"convID" json:"convID"`
 	TeamType TeamType       `codec:"teamType" json:"teamType"`
+	Conv     *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o TeamTypeInfo) DeepCopy() TeamTypeInfo {
 	return TeamTypeInfo{
 		ConvID:   o.ConvID.DeepCopy(),
 		TeamType: o.TeamType.DeepCopy(),
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Conv),
 	}
 }
 
