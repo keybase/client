@@ -204,58 +204,45 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 }
 
-func prooveRooter(g *libkb.GlobalContext, user *smuUser) {
-	runner := client.NewCmdProveRooterRunner(g, user.username)
-	err := runner.Run()
-	require.NoError(user.ctx.t, err)
-}
-
 func TestImpTeamInvite(t *testing.T) {
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
+	tt := newTeamTester(t)
+	defer tt.cleanup()
 
-	// Sign up two users
-	alice := ctx.installKeybaseForUser("alice", 10)
-	alice.signup()
-	divDebug(ctx, "Signed up alice (%s)", alice.username)
-	bob := ctx.installKeybaseForUser("bob", 10)
-	bob.signup()
-	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
 
 	rooterUser := bob.username + "@rooter"
 	displayName := strings.Join([]string{alice.username, rooterUser}, ",")
 
-	team := alice.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	team, err := alice.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
 
-	divDebug(ctx, "Created implicit team %s\n", team.ID)
+	t.Logf("Created implicit team %v\n", team)
 
 	// TODO: Test chats, but it might be hard since implicit team tlf
 	// name resolution for chat commands needs KBFS running.
+	bob.proveRooter()
 
-	prooveRooter(bob.getPrimaryGlobalContext(), bob)
+	alice.kickTeamRekeyd()
 
-	G := alice.getPrimaryGlobalContext()
-	kickTeamRekeyd(G, t)
+	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
 
 	// Poll for new team name, without the "@rooter"
 	newDisplayName := strings.Join([]string{alice.username, bob.username}, ",")
 
-	var team2 smuImplicitTeam
-	var err error
-	for i := 0; i < 5; i++ {
-		team2, err = alice.lookupImplicitTeamError(false /*create*/, newDisplayName, false /*isPublic*/)
-		if err == nil {
-			break
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
-
+	team2, err := alice.lookupImplicitTeam(false /*create*/, newDisplayName, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, team2.ID, team.ID)
+	require.Equal(t, team2, team)
 
 	// Lookup by old name should fail
-	_, err = alice.lookupImplicitTeamError(false /*create*/, displayName, false /*isPublic*/)
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
 	require.Error(t, err)
+}
+
+func prooveRooter(g *libkb.GlobalContext, user *smuUser) {
+	runner := client.NewCmdProveRooterRunner(g, user.username)
+	err := runner.Run()
+	require.NoError(user.ctx.t, err)
 }
 
 func TestImpTeamInviteWithConflicts(t *testing.T) {
