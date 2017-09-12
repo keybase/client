@@ -161,6 +161,8 @@ func (tt *teamTester) addUser(pre string) *userPlusDevice {
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
 
+	g.ConfigureConfig()
+
 	tt.users = append(tt.users, &u)
 	return &u
 }
