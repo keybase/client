@@ -53,7 +53,7 @@ func ResolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.
 func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	name string, public bool) (res keybase1.ImplicitTeamDisplayName, err error) {
 
-	defer g.CTrace(ctx, "resolvedAndCheckImplicitTeamDisplayName", func() error { return err })()
+	defer g.CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeamDisplayName(%v, public:%v)", name, public), func() error { return err })()
 
 	split1 := strings.SplitN(name, " ", 2) // split1: [assertions, ?conflict]
 	assertions := split1[0]
@@ -87,6 +87,8 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return res, err
 	}
+
+	deduplicateImplicitTeamDisplayName(&res)
 
 	// errgroup collects errors and returns the first non-nil.
 	// subctx is canceled when the group finishes.
@@ -150,8 +152,8 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 		Uid:           resolvedAssertion.UID,
 		UserAssertion: resolvedAssertion.Assertion.String(),
 		CanSuppressUI: true,
-		// Use CHAT_CLI to avoid tracker popups but DO externals checks.
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		// Use CHAT_GUI to avoid tracker popups and DO externals checks.
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	}
 
 	engCtx := engine.Context{
@@ -167,4 +169,47 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 		g.Log.CDebugf(ctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
 	}
 	return err
+}
+
+// Remove duplicates from a team display name.
+// Does not do any resolution nor resolution of UIDs.
+// "alice" -> "alice"
+// "alice,bob,alice" -> "alice"
+// "alice#alice" -> "alice"
+// "alice,bob#alice#char" -> "alice,bob#char"
+func deduplicateImplicitTeamDisplayName(name *keybase1.ImplicitTeamDisplayName) {
+	seen := make(map[string]bool)
+
+	unseen := func(idx string) bool {
+		seenBefore := seen[idx]
+		seen[idx] = true
+		return !seenBefore
+	}
+
+	var writers keybase1.ImplicitTeamUserSet
+	var readers keybase1.ImplicitTeamUserSet
+
+	for _, u := range name.Writers.KeybaseUsers {
+		if unseen(u) {
+			writers.KeybaseUsers = append(writers.KeybaseUsers, u)
+		}
+	}
+	for _, u := range name.Writers.UnresolvedUsers {
+		if unseen(u.String()) {
+			writers.UnresolvedUsers = append(writers.UnresolvedUsers, u)
+		}
+	}
+	for _, u := range name.Readers.KeybaseUsers {
+		if unseen(u) {
+			readers.KeybaseUsers = append(readers.KeybaseUsers, u)
+		}
+	}
+	for _, u := range name.Readers.UnresolvedUsers {
+		if unseen(u.String()) {
+			readers.UnresolvedUsers = append(readers.UnresolvedUsers, u)
+		}
+	}
+
+	name.Writers = writers
+	name.Readers = readers
 }

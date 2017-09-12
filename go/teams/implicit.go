@@ -56,6 +56,8 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName) (
 	teamID keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 
+	defer g.CTraceTimed(ctx, fmt.Sprintf("lookupImplicitTeamAndConflicts(%v)", preResolveDisplayName), func() error { return err })()
+
 	impTeamName = impTeamNameInput
 
 	// Use a copy without the conflict info to hit the api endpoint
