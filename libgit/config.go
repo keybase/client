@@ -24,5 +24,5 @@ func configFromBytes(buf []byte) (*Config, error) {
 }
 
 func (c *Config) toBytes() ([]byte, error) {
-	return json.Marshal(c)
+	return json.MarshalIndent(c, "", " ")
 }

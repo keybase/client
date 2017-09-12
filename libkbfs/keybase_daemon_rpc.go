@@ -32,6 +32,9 @@ type KeybaseDaemonRPC struct {
 
 	// simplefs is the simplefs implementation used (if not nil)
 	simplefs keybase1.SimpleFSInterface
+
+	// gitHandler is the git implementation used (if not nil)
+	gitHandler keybase1.KBFSGitInterface
 }
 
 var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
@@ -52,12 +55,16 @@ var _ KeybaseService = (*KeybaseDaemonRPC)(nil)
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger,
 	debug bool, createSimpleFS func(Config) keybase1.SimpleFSInterface,
+	createGitHandler func(Config) keybase1.KBFSGitInterface,
 ) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(config, kbCtx, log)
 	k.config = config
 	k.daemonLog = logger.NewWithCallDepth("daemon", 1)
 	if createSimpleFS != nil {
 		k.simplefs = createSimpleFS(config)
+	}
+	if createGitHandler != nil {
+		k.gitHandler = createGitHandler(config)
 	}
 	if debug {
 		k.daemonLog.Configure("", true, "")
@@ -263,6 +270,11 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// Add simplefs if set
 	if k.simplefs != nil {
 		protocols = append(protocols, keybase1.SimpleFSProtocol(k.simplefs))
+	}
+
+	// Add git if set
+	if k.gitHandler != nil {
+		protocols = append(protocols, keybase1.KBFSGitProtocol(k.gitHandler))
 	}
 
 	if k.protocols != nil {

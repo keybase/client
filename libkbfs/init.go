@@ -85,6 +85,10 @@ type InitParams struct {
 	// If this is nil then simplefs will be omitted in the rpc api.
 	CreateSimpleFSInstance func(Config) keybase1.SimpleFSInterface
 
+	// CreateGitHandlerInstance creates a KBFSGitInterface from config.
+	// If this is nil then git will be omitted in the rpc api.
+	CreateGitHandlerInstance func(Config) keybase1.KBFSGitInterface
+
 	// EnableJournal enables journaling.
 	EnableJournal bool
 

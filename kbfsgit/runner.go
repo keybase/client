@@ -81,22 +81,6 @@ const (
 	ctxCommandIDKey ctxCommandTagKey = iota
 )
 
-func getHandleFromFolderName(ctx context.Context, config libkbfs.Config,
-	tlfName string, t tlf.Type) (*libkbfs.TlfHandle, error) {
-	for {
-		tlfHandle, err := libkbfs.ParseTlfHandle(
-			ctx, config.KBPKI(), tlfName, t)
-		switch e := errors.Cause(err).(type) {
-		case libkbfs.TlfNameNotCanonical:
-			tlfName = e.NameToTry
-		case nil:
-			return tlfHandle, nil
-		default:
-			return nil, err
-		}
-	}
-}
-
 type runner struct {
 	config libkbfs.Config
 	log    logger.Logger
@@ -145,7 +129,8 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 		return nil, errors.Errorf("Unrecognized TLF type: %s", parts[0])
 	}
 
-	h, err := getHandleFromFolderName(ctx, config, parts[1], t)
+	h, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, config.KBPKI(), parts[1], t)
 	if err != nil {
 		return nil, err
 	}

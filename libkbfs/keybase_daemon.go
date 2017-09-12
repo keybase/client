@@ -25,7 +25,10 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 		if err != nil {
 			return nil, err
 		}
-		return NewKeybaseDaemonRPC(config, ctx, log, params.Debug, params.CreateSimpleFSInstance), nil
+		return NewKeybaseDaemonRPC(
+			config, ctx, log, params.Debug, params.CreateSimpleFSInstance,
+			params.CreateGitHandlerInstance,
+		), nil
 	}
 
 	users := []libkb.NormalizedUsername{

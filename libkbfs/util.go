@@ -146,3 +146,35 @@ func chargedToForTLF(ctx context.Context, sessionGetter CurrentSessionGetter,
 	}
 	return session.UID.AsUserOrTeam(), nil
 }
+
+// GetHandleFromFolderNameAndType returns a TLFHandle given a folder
+// name (e.g., "u1,u2#u3") and a TLF type.
+func GetHandleFromFolderNameAndType(
+	ctx context.Context, kbpki KBPKI, tlfName string, t tlf.Type) (
+	*TlfHandle, error) {
+	for {
+		tlfHandle, err := ParseTlfHandle(ctx, kbpki, tlfName, t)
+		switch e := err.(type) {
+		case TlfNameNotCanonical:
+			tlfName = e.NameToTry
+		case nil:
+			return tlfHandle, nil
+		default:
+			return nil, err
+		}
+	}
+}
+
+// getHandleFromFolderName returns a TLFHandle given a folder
+// name (e.g., "u1,u2#u3") and a public/private bool.  DEPRECATED.
+func getHandleFromFolderName(
+	ctx context.Context, kbpki KBPKI, tlfName string, public bool) (
+	*TlfHandle, error) {
+	// TODO(KBFS-2185): update the protocol to support requests
+	// for single-team TLFs.
+	t := tlf.Private
+	if public {
+		t = tlf.Public
+	}
+	return GetHandleFromFolderNameAndType(ctx, kbpki, tlfName, t)
+}

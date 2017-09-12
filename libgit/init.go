@@ -8,6 +8,7 @@ import (
 	"context"
 	"io/ioutil"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -48,8 +49,8 @@ func Params(kbCtx libkbfs.Context, storageRoot string) (
 // Init initializes a context and a libkbfs.Config for git operations.
 // The config should be shutdown when it is done being used.
 func Init(ctx context.Context, kbfsParams libkbfs.InitParams,
-	kbCtx libkbfs.Context, defaultLogPath string) (
-	context.Context, libkbfs.Config, error) {
+	kbCtx libkbfs.Context, keybaseServiceCn libkbfs.KeybaseServiceCn,
+	defaultLogPath string) (context.Context, libkbfs.Config, error) {
 	log, err := libkbfs.InitLogWithPrefix(
 		kbfsParams, kbCtx, "git", defaultLogPath)
 	if err != nil {
@@ -67,9 +68,14 @@ func Init(ctx context.Context, kbfsParams libkbfs.InitParams,
 	log.CDebugf(ctx, "Initialized new git config")
 
 	config, err := libkbfs.InitWithLogPrefix(
-		ctx, kbCtx, kbfsParams, nil, nil, log, "git")
+		ctx, kbCtx, kbfsParams, keybaseServiceCn, nil, log, "git")
 	if err != nil {
 		return ctx, nil, err
 	}
+
+	// Make any blocks written by via this config charged to the git
+	// quota.
+	config.SetDefaultBlockType(keybase1.BlockType_GIT)
+
 	return ctx, config, nil
 }

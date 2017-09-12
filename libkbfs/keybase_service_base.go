@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -789,27 +788,6 @@ const (
 // enqueued rekey ID tag.
 const CtxKeybaseServiceOpID = "KSID"
 
-func (k *KeybaseServiceBase) getHandleFromFolderName(ctx context.Context,
-	tlfName string, public bool) (*TlfHandle, error) {
-	for {
-		// TODO(KBFS-2185): update the protocol to support requests
-		// for single-team TLFs.
-		t := tlf.Private
-		if public {
-			t = tlf.Public
-		}
-		tlfHandle, err := ParseTlfHandle(ctx, k.config.KBPKI(), tlfName, t)
-		switch e := err.(type) {
-		case TlfNameNotCanonical:
-			tlfName = e.NameToTry
-		case nil:
-			return tlfHandle, nil
-		default:
-			return nil, err
-		}
-	}
-}
-
 // FSEditListRequest implements keybase1.NotifyFSRequestInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
@@ -818,8 +796,8 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 		k.log)
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
-	tlfHandle, err := k.getHandleFromFolderName(ctx, req.Folder.Name,
-		!req.Folder.Private)
+	tlfHandle, err := getHandleFromFolderName(
+		ctx, k.config.KBPKI(), req.Folder.Name, !req.Folder.Private)
 	if err != nil {
 		return err
 	}
@@ -924,7 +902,8 @@ func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 
-	tlfHandle, err := k.getHandleFromFolderName(ctx, query.TlfName, false)
+	tlfHandle, err := getHandleFromFolderName(
+		ctx, k.config.KBPKI(), query.TlfName, false)
 	if err != nil {
 		return res, err
 	}
@@ -965,8 +944,8 @@ func (k *KeybaseServiceBase) GetPublicCanonicalTLFNameAndID(
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
 
-	tlfHandle, err := k.getHandleFromFolderName(
-		ctx, query.TlfName, true /* public */)
+	tlfHandle, err := getHandleFromFolderName(
+		ctx, k.config.KBPKI(), query.TlfName, true /* public */)
 	if err != nil {
 		return res, err
 	}

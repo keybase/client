@@ -8,7 +8,6 @@ import (
 	"context"
 	"io"
 
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
@@ -38,15 +37,11 @@ func Start(ctx context.Context, options StartOptions,
 	// of this once we integrate with the kbfs daemon.
 	errput.Write([]byte("Initializing Keybase... "))
 	ctx, config, err := libgit.Init(
-		ctx, options.KbfsParams, kbCtx, defaultLogPath)
+		ctx, options.KbfsParams, kbCtx, nil, defaultLogPath)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
 	defer config.Shutdown(ctx)
-
-	// Make any blocks written by via this config charged to the git
-	// quota.
-	config.SetDefaultBlockType(keybase1.BlockType_GIT)
 
 	config.MakeLogger("").CDebugf(
 		ctx, "Running Git remote helper: remote=%s, repo=%s, storageRoot=%s",

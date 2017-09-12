@@ -73,6 +73,21 @@ func (t Type) FolderType() keybase1.FolderType {
 	}
 }
 
+// TypeFromFolderType returns the Type corresponding to the given
+// keybase1.FolderType.
+func TypeFromFolderType(ft keybase1.FolderType) Type {
+	switch ft {
+	case keybase1.FolderType_PRIVATE:
+		return Private
+	case keybase1.FolderType_PUBLIC:
+		return Public
+	case keybase1.FolderType_TEAM:
+		return SingleTeam
+	default:
+		return Unknown
+	}
+}
+
 // ID is a top-level folder ID
 type ID struct {
 	id [idByteLen]byte

@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/simplefs"
 	"golang.org/x/net/context"
@@ -44,6 +45,8 @@ func startMounting(options StartOptions,
 func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
 	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
+	// Hook git implementation in.
+	options.KbfsParams.CreateGitHandlerInstance = libgit.NewRPCHandler
 
 	log, err := libkbfs.InitLog(options.KbfsParams, kbCtx)
 	if err != nil {
