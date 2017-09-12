@@ -216,6 +216,10 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         }
       }
       break
+    case ChatTypes.NotifyChatChatActivityType.teamtype:
+      // Just reload everything if we get one of these
+      yield put(Creators.inboxStale())
+      break
     default:
       console.warn(
         'Unsupported incoming message type for Chat of type:',

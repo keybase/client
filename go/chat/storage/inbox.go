@@ -1003,7 +1003,11 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 	return vers, nil
 }
 
-func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (err Error) {
+type InboxSyncRes struct {
+	TeamTypeChanged bool
+}
+
+func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "Sync")()
@@ -1012,7 +1016,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		// Return MissError, since it should be unexpected if are calling this
-		return err
+		return res, err
 	}
 
 	// Sync inbox with new conversations
@@ -1024,6 +1028,11 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	}
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
+			if ibox.Conversations[index].Metadata.TeamType != newConv.Metadata.TeamType {
+				// Changing the team type might be hard for clients of the inbox system to process,
+				// so call it out so they can know a hard update happened here.
+				res.TeamTypeChanged = true
+			}
 			ibox.Conversations[index] = newConv
 			delete(convMap, conv.GetConvID().String())
 		}
@@ -1036,10 +1045,10 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 
 	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
+		return res, err
 	}
 
-	return nil
+	return res, nil
 }
 
 func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
