@@ -2816,12 +2816,17 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		}
 
 		ctx := ctc.as(t, users[0]).startCtx
-		listener := newServerChatListener()
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().SetService()
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
-		consumeNewMsg(t, listener, chat1.MessageType_JOIN)
+		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
 
 		topicName := "zjoinonsend"
 		channel, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
@@ -2834,12 +2839,31 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 			})
 		t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
 		require.NoError(t, err)
+		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		select {
-		case info := <-listener.teamType:
+		case info := <-listener1.teamType:
 			require.Equal(t, conv.Id, info.ConvID)
 			require.Equal(t, chat1.TeamType_COMPLEX, info.TeamType)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no team type")
 		}
+		select {
+		case info := <-listener0.teamType:
+			require.Equal(t, conv.Id, info.ConvID)
+			require.Equal(t, chat1.TeamType_COMPLEX, info.TeamType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no team type")
+		}
+
+		inboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{
+				Query: &chat1.GetInboxLocalQuery{
+					ConvIDs: []chat1.ConversationID{conv.Id},
+				},
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(inboxRes.Conversations))
+		require.Equal(t, chat1.TeamType_COMPLEX, inboxRes.Conversations[0].Info.TeamType)
 	})
+
 }
