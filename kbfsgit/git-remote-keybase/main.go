@@ -10,7 +10,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfsgit"
 	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
 )
@@ -62,8 +62,7 @@ func getLocalGitDir() (gitDir string, err error) {
 func start() (startErr *libfs.Error) {
 	kbCtx := env.NewContext()
 
-	// TODO: Also remove all kbfsgit directories older than 24h.
-	storageRoot, err := ioutil.TempDir(kbCtx.GetDataDir(), "kbfsgit")
+	defaultParams, storageRoot, err := libgit.Params(kbCtx, kbCtx.GetDataDir())
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
@@ -74,17 +73,7 @@ func start() (startErr *libfs.Error) {
 				"Error cleaning storage dir %s: %+v\n", storageRoot, rmErr)
 		}
 	}()
-
-	defaultParams := libkbfs.DefaultInitParams(kbCtx)
-	defaultParams.LogToFile = true
-	defaultParams.Debug = true
-	defaultParams.EnableDiskCache = false
-	defaultParams.StorageRoot = storageRoot
-	defaultParams.Mode = libkbfs.InitSingleOpString
-	defaultParams.TLFJournalBackgroundWorkStatus =
-		libkbfs.TLFJournalSingleOpBackgroundWorkEnabled
-	defaultLogPath := filepath.Join(
-		kbCtx.GetLogDir(), libkb.GitLogFileName)
+	defaultLogPath := filepath.Join(kbCtx.GetLogDir(), libkb.GitLogFileName)
 
 	// Duplicate the stderr fd, so that when the logger closes it when
 	// redirecting log messages to a file, we will still be able to
