@@ -3,12 +3,9 @@ package systests
 import (
 	"strings"
 	"testing"
-	"time"
 
 	"golang.org/x/net/context"
 
-	client "github.com/keybase/client/go/client"
-	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -239,50 +236,45 @@ func TestImpTeamInvite(t *testing.T) {
 	require.Error(t, err)
 }
 
-func prooveRooter(g *libkb.GlobalContext, user *smuUser) {
-	runner := client.NewCmdProveRooterRunner(g, user.username)
-	err := runner.Run()
-	require.NoError(user.ctx.t, err)
-}
-
 func TestImpTeamInviteWithConflicts(t *testing.T) {
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
+	tt := newTeamTester(t)
+	defer tt.cleanup()
 
-	// Sign up two users
-	alice := ctx.installKeybaseForUser("alice", 10)
-	alice.signup()
-	divDebug(ctx, "Signed up alice (%s)", alice.username)
-	bob := ctx.installKeybaseForUser("bob", 10)
-	bob.signup()
-	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
 
 	rooterUser := bob.username + "@rooter"
 	displayNameRooter := strings.Join([]string{alice.username, rooterUser}, ",")
 
-	team := alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
+	team, err := alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
+	require.NoError(t, err)
 
-	divDebug(ctx, "Created implicit team %q -> %s\n", displayNameRooter, team.ID)
+	t.Logf("Created implicit team %q -> %s\n", displayNameRooter, team)
 
+	// Bob has not proven rooter yet, so this will create a new, separate team.
 	displayNameKeybase := strings.Join([]string{alice.username, bob.username}, ",")
-	team2 := alice.lookupImplicitTeam(true /*create*/, displayNameKeybase, false /*isPublic*/)
+	team2, err := alice.lookupImplicitTeam(true /*create*/, displayNameKeybase, false /*isPublic*/)
+	require.NoError(t, err)
+	require.NotEqual(t, team, team2)
 
-	divDebug(ctx, "Created implicit team %q -> %s\n", displayNameKeybase, team2.ID)
+	t.Logf("Created implicit team %q -> %s\n", displayNameKeybase, team2)
 
-	prooveRooter(bob.getPrimaryGlobalContext(), bob)
+	bob.proveRooter()
 
-	G := alice.getPrimaryGlobalContext()
-	kickTeamRekeyd(G, t)
+	alice.kickTeamRekeyd()
 
-	var err error
-	for i := 0; i < 10; i++ {
-		// Poll until the rooter display name stops resolving
-		_, err = alice.lookupImplicitTeamError(false /*create*/, displayNameRooter, false /*isPublic*/)
-		if err != nil {
-			break
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
+	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
 
-	require.NotNil(t, err)
+	// Display name with rooter name is no longer usable.
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter, false /*isPublic*/)
+	require.Error(t, err)
+
+	// "LookupOrCreate" rooter name should fail as well.
+	_, err = alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
+	require.Error(t, err)
+
+	// Clients should refer to this team using comma-separated usernames.
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameKeybase, false /*isPublic*/)
+	require.NoError(t, err)
+
 }
