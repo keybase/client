@@ -18,8 +18,8 @@ const _icons = {
 
 const _tabs = [
   Tabs.profileTab,
-  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
   Tabs.chatTab,
+  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
   Tabs.settingsTab,
 ].filter(Boolean)
 

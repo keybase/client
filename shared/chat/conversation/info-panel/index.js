@@ -46,7 +46,8 @@ const MuteRow = (props: MuteRowProps) => (
   <Box
     style={{
       ...globalStyles.flexBoxRow,
-      alignSelf: 'left',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
       marginBottom: globalMargins.xtiny,
       marginLeft: globalMargins.small,
     }}

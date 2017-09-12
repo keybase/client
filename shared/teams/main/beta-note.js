@@ -13,10 +13,12 @@ const BetaNote = (props: Props) => (
       ...globalStyles.flexBoxColumn,
       alignItems: 'center',
       marginBottom: globalMargins.small,
+      marginLeft: globalMargins.medium,
+      marginRight: globalMargins.medium,
       marginTop: globalMargins.small,
     }}
   >
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: globalMargins.tiny}}>
       <Box style={{backgroundColor: globalColors.black_05, height: 1, width: 24}} />
       <Icon
         style={{

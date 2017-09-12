@@ -128,6 +128,12 @@ class Input extends Component<Props, State> {
     this.props.onBlur && this.props.onBlur()
   }
 
+  _lineHeight() {
+    if (this.props.small) {
+      return 20
+    } else return 28
+  }
+
   _underlineColor() {
     if (this.props.hideUnderline) {
       return globalColors.transparent
@@ -141,7 +147,8 @@ class Input extends Component<Props, State> {
   }
 
   _rowsToHeight(rows) {
-    return rows * _lineHeight + 1 // border
+    const border = this.props.hideUnderline ? 0 : 1
+    return rows * this._lineHeight() + border
   }
 
   _containerStyle(underlineColor) {
@@ -161,19 +168,21 @@ class Input extends Component<Props, State> {
 
   render() {
     const underlineColor = this._underlineColor()
+    const lineHeight = this._lineHeight()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
 
     const commonInputStyle = {
-      ...globalStyles.fontSemibold,
-      fontSize: _headerTextStyle.fontSize,
-      lineHeight: _lineHeight,
+      color: globalColors.black_75,
+      lineHeight: lineHeight,
       backgroundColor: globalColors.transparent,
       flexGrow: 1,
       borderWidth: 0,
       ...(this.props.small
-        ? {textAlign: 'left'}
+        ? {...globalStyles.fontRegular, fontSize: _bodyTextStyle.fontSize, textAlign: 'left'}
         : {
+            ...globalStyles.fontSemibold,
+            fontSize: _headerTextStyle.fontSize,
             textAlign: 'center',
             minWidth: 200,
           }),
@@ -181,8 +190,8 @@ class Input extends Component<Props, State> {
 
     const singlelineStyle = {
       ...commonInputStyle,
-      maxHeight: _lineHeight, // ensure it doesn't grow or shrink
-      minHeight: _lineHeight,
+      maxHeight: lineHeight, // ensure it doesn't grow or shrink
+      minHeight: lineHeight,
       padding: 0,
     }
 
@@ -248,7 +257,7 @@ class Input extends Component<Props, State> {
     const smallLabelStyle = {
       ...globalStyles.fontSemibold,
       fontSize: _headerTextStyle.fontSize,
-      lineHeight: _lineHeight,
+      lineHeight: lineHeight,
       marginRight: 8,
       color: globalColors.blue,
       ...this.props.smallLabelStyle,
@@ -272,8 +281,8 @@ class Input extends Component<Props, State> {
   }
 }
 
-const _lineHeight = 28
 const _headerTextStyle = getTextStyle('Header')
+const _bodyTextStyle = getTextStyle('Body')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
 const _bodyErrorTextStyle = getTextStyle('BodyError')
 

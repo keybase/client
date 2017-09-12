@@ -144,7 +144,7 @@ const Intro = (props: Props) => (
         <Box style={{minHeight: 100, width: 1}} />
         <Text style={stylesLoginHeader} type="Body" onClick={props.onLogin}>Already on Keybase?</Text>
         <Button style={stylesLoginButton} type="Secondary" onClick={props.onLogin} label="Log in" />
-        <Text style={stylesFeedback} type="BodySmallPrimaryLink" onClick={props.onFeedback}>
+        <Text style={stylesFeedback} type="BodySmallSecondaryLink" onClick={props.onFeedback}>
           Problems logging in?
         </Text>
       </Box>
@@ -153,7 +153,7 @@ const Intro = (props: Props) => (
 )
 
 const stylesFeedback = {
-  alignSelf: 'flex-end',
+  alignSelf: 'center',
   margin: globalMargins.tiny,
 }
 

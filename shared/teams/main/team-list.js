@@ -32,7 +32,7 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
         <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
-        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.small}}>
           {name}
         </Text>
       </ClickableBox>
@@ -40,7 +40,7 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
       {!isMobile &&
         <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />}
     </Box>
-    {!isMobile && <Divider style={{marginLeft: 44}} />}
+    {!isMobile && <Divider style={{marginLeft: 48}} />}
   </Box>
 )
 

@@ -167,11 +167,7 @@ const styleActionButton = {
   paddingRight: globalMargins.tiny,
 }
 
-const styleInputText = {
-  ...globalStyles.fontRegular,
-  fontSize: 15,
-  lineHeight: 20,
-}
+const styleInputText = {}
 
 const styleContainer = {
   ...globalStyles.flexBoxRow,
