@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box, Checkbox, Icon, RadioButton, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../../styles'
-
+import {isMobile} from '../../../../constants/platform'
 import type {Props} from '.'
 
 const Notifications = ({
@@ -20,16 +20,17 @@ const Notifications = ({
       paddingRight: globalMargins.small,
     }}
   >
+
     <Checkbox
       checked={channelWide}
       label="Receive notifications for @channel messages"
       onCheck={onToggleChannelWide}
     />
 
-    <Box style={styleHeader}>
+    <Box style={isMobile ? styleHeaderMobile : styleHeader}>
       <Text type="BodySmallSemibold">Desktop notifications</Text>
       <Icon
-        style={{paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
         type="iconfont-notifications-desktop"
       />
     </Box>
@@ -62,7 +63,7 @@ const Notifications = ({
     <Box style={styleHeader}>
       <Text type="BodySmallSemibold">Mobile notifications</Text>
       <Icon
-        style={{paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
+        style={{fontSize: isMobile ? 20 : 16, paddingLeft: globalMargins.xtiny, color: globalColors.black_20}}
         type="iconfont-notifications-mobile"
       />
     </Box>
@@ -97,6 +98,12 @@ const Notifications = ({
 const styleHeader = {
   ...globalStyles.flexBoxRow,
   paddingTop: globalMargins.small,
+}
+
+const styleHeaderMobile = {
+  ...styleHeader,
+  paddingTop: globalMargins.medium,
+  paddingBottom: globalMargins.tiny,
 }
 
 const styleRadioButton = {
