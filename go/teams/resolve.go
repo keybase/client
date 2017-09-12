@@ -143,6 +143,9 @@ func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAs
 	defer g.CTrace(ctx, fmt.Sprintf("verifyResolveResult ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String()),
 		func() error { return err })()
 
+	// TODO it might be worth short-circuiting on local assertions. Because Identify might try and go do a bunch of remote proofs
+	// that aren't relevant.
+
 	id2arg := keybase1.Identify2Arg{
 		Uid:           resolvedAssertion.UID,
 		UserAssertion: resolvedAssertion.Assertion.String(),
