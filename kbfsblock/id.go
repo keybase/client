@@ -19,15 +19,19 @@ type ID struct {
 	h kbfshash.Hash
 }
 
+var ZeroID = ID{}
+
 var _ encoding.BinaryMarshaler = ID{}
 var _ encoding.BinaryUnmarshaler = (*ID)(nil)
 
 var _ encoding.TextMarshaler = ID{}
 var _ encoding.TextUnmarshaler = (*ID)(nil)
 
-// MaxIDStringLength is the maximum length of the string
-// representation of a ID.
-const MaxIDStringLength = kbfshash.MaxHashStringLength
+const (
+	// MaxIDStringLength is the maximum length of the string
+	// representation of a ID.
+	MaxIDStringLength = kbfshash.MaxHashStringLength
+)
 
 // IDFromString creates a ID from the given string. If the
 // returned error is nil, the returned ID is valid.

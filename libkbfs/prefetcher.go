@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -33,12 +34,16 @@ type prefetcherConfig interface {
 }
 
 type prefetchRequest struct {
-	priority int
-	kmd      KeyMetadata
-	ptr      BlockPointer
-	block    Block
-	doneCh   chan<- struct{}
-	errCh    chan<- struct{}
+	priority      int
+	kmd           KeyMetadata
+	ptr           BlockPointer
+	block         Block
+	parentBlockID kbfsblock.ID
+}
+
+type prefetch struct {
+	remainingChildBlockCount int
+	parentBlockIDs           []kbfsblock.ID
 }
 
 type blockPrefetcher struct {
@@ -53,6 +58,11 @@ type blockPrefetcher struct {
 	// channel that is closed when a shutdown completes and all pending
 	// prefetch requests are complete
 	doneCh chan struct{}
+	// channels to track the success or failure of prefetches
+	prefetchMonitorSuccessCh chan kbfsblock.ID
+	prefetchMonitorCancelCh  chan kbfsblock.ID
+	// map to store prefetch metadata
+	prefetches map[kbfsblock.ID]prefetch
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -90,12 +100,33 @@ func (p *blockPrefetcher) run() {
 	}()
 	for {
 		select {
+		case blockID := <-p.prefetchMonitorSuccessCh:
+			p, ok := prefetches[blockID]
+			if !ok {
+				p.log.Debug("Missing prefetch completed for block %s", blockID)
+				continue
+			}
+			p.remainingChildBlockCount--
+			if p.remainingChildBlockCount <= 0 {
+				delete(p.prefetches, blockID)
+				// TODO: handle completion
+			}
+		case blockID := <-p.prefetchMonitorCancelCh:
+			p, ok := prefetches[blockID]
+			if !ok {
+				p.log.Debug("Missing prefetch canceled for block %s", blockID)
+				continue
+			}
+			delete(p.prefetches, blockID)
+			// TODO: handle cancelation
 		case req := <-p.progressCh:
+			// TODO: this goroutine should actually trigger all prefetches.
+			// `PrefetchBlock` and `prefetchAfterBlockRetrieved` should all
+			// happen here.
 			ctx, cancel := context.WithTimeout(context.Background(),
 				prefetchTimeout)
 			errCh := p.retriever.RequestWithPrefetch(ctx, req.priority,
-				req.kmd, req.ptr, req.block, TransientEntry, req.doneCh,
-				req.errCh)
+				req.kmd, req.ptr, req.block, TransientEntry, req.parentBlockID)
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -127,10 +158,10 @@ func (p *blockPrefetcher) runMonitor() {
 
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 	ptr BlockPointer, block Block, entryName string,
-	doneCh, errCh chan<- struct{}) error {
+	parentBlockID kbfsblock.ID) error {
 	select {
 	case p.progressCh <- prefetchRequest{
-		priority, kmd, ptr, block, doneCh, errCh}:
+		priority, kmd, ptr, block, parentBlockID}:
 		return nil
 	case <-p.shutdownCh:
 		return errors.Wrapf(io.EOF, "Skipping prefetch for block %v since "+
@@ -149,18 +180,16 @@ func (p *blockPrefetcher) calculatePriority(basePriority int,
 }
 
 func (p *blockPrefetcher) prefetchIndirectFileBlock(b *FileBlock,
-	kmd KeyMetadata) (<-chan struct{}, <-chan struct{}, int) {
+	kmd KeyMetadata, parentBlockID kbfsblock.ID) (numBlocks int) {
 	// Prefetch indirect block pointers.
 	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect file "+
 		"block. Num pointers to prefetch: %d", len(b.IPtrs))
 	startingPriority :=
 		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
-	numBlocks := len(b.IPtrs)
-	doneCh := make(chan struct{}, numBlocks)
-	errCh := make(chan struct{}, numBlocks)
+	numBlocks = len(b.IPtrs)
 	for i, ptr := range b.IPtrs {
 		_ = p.request(startingPriority-i, kmd, ptr.BlockPointer,
-			b.NewEmpty(), "", doneCh, errCh)
+			b.NewEmpty(), "", parentBlockID)
 	}
 	return doneCh, errCh, numBlocks
 }
@@ -219,14 +248,12 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ptr BlockPointer, b *DirBlock,
 
 // PrefetchBlock implements the Prefetcher interface for blockPrefetcher.
 func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer,
-	kmd KeyMetadata, priority int) (<-chan struct{}, <-chan struct{}, error) {
+	kmd KeyMetadata, priority int) error {
 	// TODO: Remove this log line.
 	p.log.CDebugf(context.TODO(), "Prefetching block by request from "+
 		"upstream component. Priority: %d", priority)
-	doneCh := make(chan struct{}, 1)
-	errCh := make(chan struct{}, 1)
 	return doneCh, errCh,
-		p.request(priority, kmd, ptr, block, "", doneCh, errCh)
+		p.request(priority, kmd, ptr, block, "", kbfsblock.ID{})
 }
 
 // prefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
@@ -262,14 +289,12 @@ func (p *blockPrefetcher) prefetchAfterBlockRetrieved(b Block,
 
 func (p *blockPrefetcher) TriggerAndMonitorPrefetch(ptr BlockPointer,
 	block Block, kmd KeyMetadata, lifetime BlockCacheLifetime,
-	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{},
-	didUpdateCh <-chan struct{}) {
+	parentBlockIDs []kbfsblock.ID, didUpdateCh <-chan struct{}) {
 	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
 	ctx = CtxWithRandomIDReplayable(ctx, "prefetchForBlockID", ptr.ID.String(),
 		p.log)
 	defer cancel()
-	childPrefetchDoneCh, childPrefetchCancelCh, numBlocks :=
-		p.prefetchAfterBlockRetrieved(block, ptr, kmd)
+	numBlocks := p.prefetchAfterBlockRetrieved(block, ptr, kmd)
 
 	// If we have child blocks to prefetch, wait for them.
 	if numBlocks > 0 {
@@ -319,6 +344,14 @@ func (p *blockPrefetcher) TriggerAndMonitorPrefetch(ptr BlockPointer,
 	p.log.CDebugf(ctx, "Finished prefetching for block %s", ptr.ID)
 	// Now prefetching is actually done.
 	deepPrefetchDoneCh <- struct{}{}
+}
+
+func (p *blockPrefetcher) CancelPrefetch(parentBlockID kbfsblock.ID) {
+	p.prefetchMonitorCancelCh <- parentBlockID
+}
+
+func (p *blockPrefetcher) NotifyPrefetchDone(parentBlockID kbfsblock.ID) {
+	p.prefetchMonitorSuccessCh <- parentBlockID
 }
 
 // Shutdown implements the Prefetcher interface for blockPrefetcher.

@@ -1236,8 +1236,17 @@ type KeyOps interface {
 type Prefetcher interface {
 	// PrefetchBlock directs the prefetcher to prefetch a block.
 	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
-		priority int) (doneCh, errCh <-chan struct{}, err error)
-	TriggerAndMonitorPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata, lifetime BlockCacheLifetime, deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}, didUpdateCh <-chan struct{})
+		priority int) (err error)
+	// TriggerAndMonitorPrefetch triggers and monitors a prefetch.
+	TriggerAndMonitorPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata,
+		lifetime BlockCacheLifetime, parentBlockIDs []kbfsblock.ID,
+		didUpdateCh <-chan struct{})
+	// CancelPrefetch notifies the prefetcher that a prefetch should be
+	// canceled.
+	CancelPrefetch(kbfsblock.ID)
+	// NotifyPrefetchDone notifies the prefetcher that a prefetch has
+	// completed.
+	NotifyPrefetchDone(kbfsblock.ID)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -2311,5 +2320,5 @@ type BlockRetriever interface {
 	// to notify when child blocks are done prefetching.
 	RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
-		deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) <-chan error
+		parentBlockID kbfsblock.ID) <-chan error
 }
