@@ -1237,19 +1237,7 @@ type Prefetcher interface {
 	// PrefetchBlock directs the prefetcher to prefetch a block.
 	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
 		priority int) (doneCh, errCh <-chan struct{}, err error)
-	// PrefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
-	// after a block has been retrieved. Whichever component is responsible for
-	// retrieving blocks will call this method once it's done retrieving a
-	// block.
-	// `doneCh` is a semaphore with a `numBlocks` count. Once we've read from
-	// it `numBlocks` times, the whole underlying block tree has been
-	// prefetched.
-	// `errCh` can be read up to `numBlocks` times, but any writes to it mean
-	// that the deep prefetch won't complete. So even a single read from
-	// `errCh` by a caller can be used to communicate failure of the deep
-	// prefetch to its parent.
-	PrefetchAfterBlockRetrieved(b Block, blockPtr BlockPointer,
-		kmd KeyMetadata) (doneCh, errCh <-chan struct{}, numBlocks int)
+	TriggerAndMonitorPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata, lifetime BlockCacheLifetime, deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}, didUpdateCh <-chan struct{})
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
@@ -2324,14 +2312,4 @@ type BlockRetriever interface {
 	RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
 		deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) <-chan error
-	// CacheAndPrefetch caches a block along with its prefetch status, and then
-	// triggers prefetches as appropriate.
-	// `deepPrefetchDoneCh` and `deepPrefetchCancelCh` can be nil so the caller doesn't always
-	// have to instantiate a channel if it doesn't care about waiting for the
-	// prefetch to complete. In that case, the `blockRetrievalQueue` instantiates
-	// each channel to monitor the prefetches.
-	CacheAndPrefetch(ctx context.Context, ptr BlockPointer, block Block,
-		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		prefetchStatus PrefetchStatus,
-		deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{}) error
 }

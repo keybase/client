@@ -216,71 +216,9 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	}
 }
 
-func (brq *blockRetrievalQueue) triggerAndMonitorPrefetch(ptr BlockPointer,
-	block Block, kmd KeyMetadata, lifetime BlockCacheLifetime,
-	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{},
-	didUpdateCh <-chan struct{}) {
-	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
-	ctx = CtxWithRandomIDReplayable(ctx, "prefetchForBlockID", ptr.ID.String(),
-		brq.log)
-	defer cancel()
-	prefetcher := brq.Prefetcher()
-	childPrefetchDoneCh, childPrefetchCancelCh, numBlocks :=
-		prefetcher.PrefetchAfterBlockRetrieved(block, ptr, kmd)
-
-	// If we have child blocks to prefetch, wait for them.
-	if numBlocks > 0 {
-		for i := 0; i < numBlocks; i++ {
-			select {
-			case <-childPrefetchDoneCh:
-				// We expect to receive from this channel `numBlocks` times,
-				// after which we know the subtree of this block is done
-				// prefetching.
-				continue
-			case <-ctx.Done():
-				brq.log.Warning("Prefetch canceled for block %s", ptr.ID)
-				deepPrefetchCancelCh <- struct{}{}
-				return
-			case <-childPrefetchCancelCh:
-				// One error means this block didn't finish prefetching.
-				brq.log.Warning("Prefetch canceled for block %s due to "+
-					"downstream failure", ptr.ID)
-				deepPrefetchCancelCh <- struct{}{}
-				return
-			case <-prefetcher.ShutdownCh():
-				deepPrefetchCancelCh <- struct{}{}
-				return
-			}
-		}
-	}
-
-	// Make sure we've already updated the metadata once to avoid a race.
-	<-didUpdateCh
-	// Prefetches are done. Update the caches.
-	err := brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
-		block, lifetime, FinishedPrefetch)
-	if err != nil {
-		brq.log.CWarningf(ctx, "Error updating cache after prefetch: %+v",
-			err)
-	}
-	dbc := brq.config.DiskBlockCache()
-	if dbc != nil {
-		err := dbc.UpdateMetadata(ctx, ptr.ID, FinishedPrefetch)
-		if err != nil {
-			brq.log.CWarningf(ctx, "Error updating disk cache after "+
-				"prefetch: %+v", err)
-			deepPrefetchCancelCh <- struct{}{}
-			return
-		}
-	}
-	brq.log.CDebugf(ctx, "Finished prefetching for block %s", ptr.ID)
-	// Now prefetching is actually done.
-	deepPrefetchDoneCh <- struct{}{}
-}
-
-// CacheAndPrefetch implements the BlockRetrieval interface for
-// blockRetrievalQueue. It also updates the LRU time for the block in the disk
-// cache.
+// CacheAndPrefetch caches a block along with its prefetch status, and then
+// triggers prefetches as appropriate.  It also updates the LRU time for
+// the block in the disk cache.
 // `deepPrefetchDoneCh` and `deepPrefetchCancelCh` can be nil so the caller
 // doesn't always have to instantiate a channel if it doesn't care about
 // waiting for the prefetch to complete. In this case, the
@@ -338,6 +276,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		// Non-synced TLF prefetches that have already triggered can be short
 		// circuited. We respond on the error channel to allow upstream
 		// prefetches to stop waiting.
+		// FIXME: race here with other prefetching goroutines
 		deepPrefetchCancelCh <- struct{}{}
 		return brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 			lifetime, TriggeredPrefetch)
@@ -351,6 +290,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	}
 	// To prevent any other Gets from prefetching, we must let the cache know
 	// at this point that we've prefetched.
+	// FIXME: race here with other prefetching goroutines
 	prefetchStatus = TriggeredPrefetch
 	err = brq.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(), block,
 		lifetime, prefetchStatus)
@@ -368,8 +308,11 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	}
 	// This must be called in a goroutine to prevent deadlock in case this
 	// CacheAndPrefetch call was triggered by the prefetcher itself.
-	go brq.triggerAndMonitorPrefetch(ptr, block, kmd, lifetime,
-		deepPrefetchDoneCh, deepPrefetchCancelCh, didUpdateCh)
+	// TODO: move this to the prefetcher and dedupe the prefetch paths.
+	// E.g. b1 -> b3, b2 -> b3 are both allowed to wait on the b3 prefetch
+	// channels, but only one for each of {b1, b2}.
+	go brq.Prefetcher().TriggerAndMonitorPrefetch(ptr, block, kmd,
+		lifetime, deepPrefetchDoneCh, deepPrefetchCancelCh, didUpdateCh)
 	return nil
 }
 

@@ -29,6 +29,7 @@ type prefetcherConfig interface {
 	dataVersioner
 	logMaker
 	blockCacher
+	diskBlockCacheGetter
 }
 
 type prefetchRequest struct {
@@ -116,6 +117,11 @@ func (p *blockPrefetcher) run() {
 		case <-p.shutdownCh:
 			return
 		}
+	}
+}
+
+func (p *blockPrefetcher) runMonitor() {
+	for {
 	}
 }
 
@@ -223,10 +229,18 @@ func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer,
 		p.request(priority, kmd, ptr, block, "", doneCh, errCh)
 }
 
-// PrefetchAfterBlockRetrieved implements the Prefetcher interface for
-// blockPrefetcher. Returns a channel that is closed once all the prefetches
-// complete.
-func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block,
+// prefetchAfterBlockRetrieved allows the prefetcher to trigger prefetches
+// after a block has been retrieved. Whichever component is responsible for
+// retrieving blocks will call this method once it's done retrieving a
+// block.
+// `doneCh` is a semaphore with a `numBlocks` count. Once we've read from
+// it `numBlocks` times, the whole underlying block tree has been
+// prefetched.
+// `errCh` can be read up to `numBlocks` times, but any writes to it mean
+// that the deep prefetch won't complete. So even a single read from
+// `errCh` by a caller can be used to communicate failure of the deep
+// prefetch to its parent.
+func (p *blockPrefetcher) prefetchAfterBlockRetrieved(b Block,
 	ptr BlockPointer, kmd KeyMetadata) (doneCh, errCh <-chan struct{},
 	numBlocks int) {
 	switch b := b.(type) {
@@ -244,6 +258,67 @@ func (p *blockPrefetcher) PrefetchAfterBlockRetrieved(b Block,
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
 	}
 	return doneCh, errCh, numBlocks
+}
+
+func (p *blockPrefetcher) TriggerAndMonitorPrefetch(ptr BlockPointer,
+	block Block, kmd KeyMetadata, lifetime BlockCacheLifetime,
+	deepPrefetchDoneCh, deepPrefetchCancelCh chan<- struct{},
+	didUpdateCh <-chan struct{}) {
+	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
+	ctx = CtxWithRandomIDReplayable(ctx, "prefetchForBlockID", ptr.ID.String(),
+		p.log)
+	defer cancel()
+	childPrefetchDoneCh, childPrefetchCancelCh, numBlocks :=
+		p.prefetchAfterBlockRetrieved(block, ptr, kmd)
+
+	// If we have child blocks to prefetch, wait for them.
+	if numBlocks > 0 {
+		for i := 0; i < numBlocks; i++ {
+			select {
+			case <-childPrefetchDoneCh:
+				// We expect to receive from this channel `numBlocks` times,
+				// after which we know the subtree of this block is done
+				// prefetching.
+				continue
+			case <-ctx.Done():
+				p.log.Warning("Prefetch canceled for block %s", ptr.ID)
+				deepPrefetchCancelCh <- struct{}{}
+				return
+			case <-childPrefetchCancelCh:
+				// One error means this block didn't finish prefetching.
+				p.log.Warning("Prefetch canceled for block %s due to "+
+					"downstream failure", ptr.ID)
+				deepPrefetchCancelCh <- struct{}{}
+				return
+			case <-p.ShutdownCh():
+				deepPrefetchCancelCh <- struct{}{}
+				return
+			}
+		}
+	}
+
+	// Make sure we've already updated the metadata once to avoid a race.
+	<-didUpdateCh
+	// Prefetches are done. Update the caches.
+	err := p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
+		block, lifetime, FinishedPrefetch)
+	if err != nil {
+		p.log.CWarningf(ctx, "Error updating cache after prefetch: %+v",
+			err)
+	}
+	dbc := p.config.DiskBlockCache()
+	if dbc != nil {
+		err := dbc.UpdateMetadata(ctx, ptr.ID, FinishedPrefetch)
+		if err != nil {
+			p.log.CWarningf(ctx, "Error updating disk cache after "+
+				"prefetch: %+v", err)
+			deepPrefetchCancelCh <- struct{}{}
+			return
+		}
+	}
+	p.log.CDebugf(ctx, "Finished prefetching for block %s", ptr.ID)
+	// Now prefetching is actually done.
+	deepPrefetchDoneCh <- struct{}{}
 }
 
 // Shutdown implements the Prefetcher interface for blockPrefetcher.
