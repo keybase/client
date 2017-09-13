@@ -466,7 +466,7 @@ func TestChatMessageRevokedKeyThenSent(t *testing.T) {
 		defer tc.Cleanup()
 
 		// need a real user
-		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		u, err := kbtest.CreateAndSignupFakeUserPaper("unbox", tc.G)
 		require.NoError(t, err)
 		t.Logf("using username:%+v uid: %+v", u.Username, u.User.GetUID())
 
@@ -532,7 +532,7 @@ func TestChatMessageSentThenRevokedSenderKey(t *testing.T) {
 		defer tc.Cleanup()
 
 		// need a real user
-		u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+		u, err := kbtest.CreateAndSignupFakeUserPaper("unbox", tc.G)
 		require.NoError(t, err)
 		t.Logf("using username:%+v uid: %+v", u.Username, u.User.GetUID())
 
