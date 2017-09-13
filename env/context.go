@@ -27,8 +27,10 @@ type Context interface {
 	ConfigureSocketInfo() (err error)
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	NewRPCLogFactory() *libkb.RPCLogFactory
-	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
-	BindToKBFSSocket() (net.Listener, error)
+	// TODO: uncomment once we've added changes to allow gobind to create a
+	// KBFS context from a *libkb.GlobalContext
+	//GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
+	//BindToKBFSSocket() (net.Listener, error)
 }
 
 // KBFSContext is an implementation for libkbfs.Context
