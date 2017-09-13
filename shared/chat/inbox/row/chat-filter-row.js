@@ -94,7 +94,7 @@ class _ChatFilterRow extends Component<Props, State> {
       )
     }
     return (
-      <Box style={isMobile ? styleContainerMobile : styleContainer}>
+      <Box style={styleContainer}>
         {children}
         <Icon
           type="iconfont-compose"
@@ -118,12 +118,6 @@ const styleContainer = {
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
   position: 'relative',
-}
-
-const styleContainerMobile = {
-  ...styleContainer,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
 }
 
 const styleFilterContainer = {
