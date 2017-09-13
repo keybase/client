@@ -14,7 +14,7 @@ const Contents = ({name, onNameChange, onSubmit}: Props) => (
         type="BodySemibold"
         backgroundMode="Announcements"
       >
-        Team names are unique for security reasons.
+        For security reasons, team names are unique and can't be changed, so choose carefully.
       </Text>
     </Box>
 
@@ -55,7 +55,11 @@ const styleContainer = {
   ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.blue,
   cursor: 'default',
-  paddingTop: 6,
+  minHeight: 40,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  borderTopLeftRadius: 4,
+  borderTopRightRadius: 4,
 }
 
 const stylePadding = isMobile
