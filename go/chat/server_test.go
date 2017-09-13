@@ -2196,6 +2196,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+		consumeNewMsg(t, listener2, chat1.MessageType_TEXT)
 		_, err = postLocalForTest(t, ctc, users[1], ncres.Conv.Info, chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: fmt.Sprintf("JOINME"),
 		}))
