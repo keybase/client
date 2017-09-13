@@ -884,13 +884,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		// If we created a complex team in the process of creating this conversation, send a special
 		// message into the general channel letting everyone know about the change.
 		if ncrres.CreatedComplexTeam {
-			go func() {
-				if err := SendTextByNameNonblock(ctx, n.G(), n.tlfName, &DefaultTeamTopic,
-					chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_GUI,
-					n.complexTeamIntroMessage(), n.ri); err != nil {
-					n.Debug(ctx, "failed to send complex team intro message: %s", err)
-				}
-			}()
+			if err := SendTextByNameNonblock(ctx, n.G(), n.tlfName, &DefaultTeamTopic,
+				chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_GUI,
+				n.complexTeamIntroMessage(), n.ri); err != nil {
+				n.Debug(ctx, "failed to send complex team intro message: %s", err)
+			}
 		}
 
 		return res, rl, nil
