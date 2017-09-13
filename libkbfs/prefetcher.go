@@ -42,8 +42,9 @@ type prefetchRequest struct {
 }
 
 type prefetch struct {
-	remainingChildBlockCount int
-	parentBlockIDs           map[kbfsblock.ID]bool
+	blockID           kbfsblock.ID
+	subtreeBlockCount int
+	parents           map[kbfsblock.ID]bool
 }
 
 type blockPrefetcher struct {
@@ -62,7 +63,7 @@ type blockPrefetcher struct {
 	prefetchMonitorSuccessCh chan kbfsblock.ID
 	prefetchMonitorCancelCh  chan kbfsblock.ID
 	// map to store prefetch metadata
-	prefetches map[kbfsblock.ID]prefetch
+	prefetches map[kbfsblock.ID]*prefetch
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -92,6 +93,27 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	return p
 }
 
+func blockMapToSlice(m map[kbfsblock.ID]bool) []kbfsblock.ID {
+	s := make([]kbfsblock.ID, 0, len(m))
+	for b := range m {
+		s = append(s, b)
+	}
+	return s
+}
+
+func (p *blockPrefetcher) applyToParentsRecursive(f func(*prefetch),
+	pre *prefetch) {
+	for b := range pre.parents {
+		parent, ok := p.prefetches[b]
+		if !ok {
+			delete(pre.parents, b)
+			continue
+		}
+		p.applyToParentsRecursive(f, parent)
+	}
+	f(pre)
+}
+
 func (p *blockPrefetcher) run() {
 	var wg sync.WaitGroup
 	defer func() {
@@ -106,24 +128,26 @@ func (p *blockPrefetcher) run() {
 				p.log.Debug("Missing prefetch completed for block %s", blockID)
 				continue
 			}
-			pre.remainingChildBlockCount--
-			if pre.remainingChildBlockCount <= 0 {
-				delete(p.prefetches, blockID)
-				// TODO: handle completion
-				// Walk up the block tree decrementing each node by one. Any
-				// zeroes we hit get marked complete and deleted. If we ever
-				// hit a lower number than the child, panic.
-			}
+			// Walk up the block tree decrementing each node by one. Any
+			// zeroes we hit get marked complete and deleted.
+			// TODO: If we ever hit a lower number than the child, panic.
+			p.applyToParentsRecursive(func(pp *prefetch) {
+				pp.subtreeBlockCount--
+				if pp.subtreeBlockCount == 0 {
+					// TODO: mark complete.
+					delete(p.prefetches, pp.blockID)
+				}
+			}, pre)
 		case blockID := <-p.prefetchMonitorCancelCh:
 			pre, ok := p.prefetches[blockID]
 			if !ok {
 				p.log.Debug("Missing prefetch canceled for block %s", blockID)
 				continue
 			}
-			delete(p.prefetches, blockID)
-			// TODO: handle cancelation
-			// Walk up the block tree and delete every parent all the way to
-			// the root.
+			// Walk up the block tree and delete every parent.
+			p.applyToParentsRecursive(func(pp *prefetch) {
+				delete(p.prefetches, pp.blockID)
+			}, pre)
 		case req := <-p.prefetchRequestCh:
 			// TODO: this goroutine should actually trigger all prefetches.
 			// `PrefetchBlock` and `prefetchAfterBlockRetrieved` should all
