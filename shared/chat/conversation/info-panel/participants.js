@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, Usernames, Divider, Icon} from '../../../common-adapters'
+import {Box, ClickableBox, Avatar, Text, Usernames, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
 type Props = {
@@ -41,7 +41,6 @@ const Participants = ({participants, onShowProfile, onAddParticipant}: Props) =>
                 {fullname}
               </Text>
             </Box>
-            {index < arr.length - 1 || onAddParticipant ? <Divider style={{marginLeft: 44}} /> : null}
           </Box>
         </ClickableBox>
       )

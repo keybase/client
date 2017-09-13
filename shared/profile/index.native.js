@@ -301,12 +301,20 @@ class Profile extends Component<Props, State> {
             ...globalStyles.flexBoxRow,
             backgroundColor: globalColors.white,
             paddingTop: globalMargins.tiny + statusBarHeight,
+            borderBottomWidth: 1,
+            borderBottomColor: globalColors.black_05,
+            borderStyle: 'solid',
           }}
         >
           {['Followers', 'Following'].map(f => (
             <ClickableBox
               key={f}
-              style={{...globalStyles.flexBoxColumn, width: '50%', alignItems: 'center'}}
+              style={{
+                ...globalStyles.flexBoxColumn,
+                width: '50%',
+                alignItems: 'center',
+                marginBottom: -1,
+              }}
               onClick={() => {
                 this.setState({currentFriendshipsTab: f}, () => {
                   this._list &&
@@ -484,8 +492,8 @@ const styleActions = {
 }
 
 const styleProofsAndFolders = {
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleFolderLine = {
@@ -520,12 +528,14 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.white,
-  padding: 3,
+  color: globalColors.white_75,
+  fontSize: 12,
+  padding: globalMargins.xtiny,
 }
 
 const styleSearchText = {
   ...styleSearch,
+  fontSize: 15,
   position: 'relative',
   top: -1,
 }
