@@ -22,7 +22,7 @@ var _ keybase1.GitInterface = (*GitHandler)(nil)
 
 func NewGitHandler(xp rpc.Transporter, g *libkb.GlobalContext) *GitHandler {
 	return &GitHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -84,6 +84,6 @@ func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
 	}
 	return &keybase1.KBFSGitClient{
 		Cli: rpc.NewClient(
-			xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),
+			xp, libkb.NewContextifiedErrorUnwrapper(h.G()), libkb.LogTagsFromContext),
 	}, nil
 }

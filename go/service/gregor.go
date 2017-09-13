@@ -74,7 +74,7 @@ func newGregorFirehoseHandler(g *libkb.GlobalContext, connID libkb.ConnectionID,
 	return &gregorFirehoseHandler{
 		Contextified: libkb.NewContextified(g),
 		connID:       connID,
-		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil)},
+		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)},
 	}
 }
 
@@ -1379,10 +1379,10 @@ func (g *gregorHandler) connectTLS() error {
 	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{
 		TagsFunc:         logger.LogTagsFromContextRPC,
-		WrapErrorFunc:    libkb.WrapError,
+		WrapErrorFunc:    libkb.MakeWrapError(g.G().ExternalG()),
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -1415,10 +1415,10 @@ func (g *gregorHandler) connectNoTLS() error {
 	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{
 		TagsFunc:         logger.LogTagsFromContextRPC,
-		WrapErrorFunc:    libkb.WrapError,
+		WrapErrorFunc:    libkb.MakeWrapError(g.G().ExternalG()),
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
+	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g.G().Log, opts)
 
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout,
 		chat.ErrChatServerTimeout)

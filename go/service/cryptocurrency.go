@@ -18,7 +18,7 @@ type CryptocurrencyHandler struct {
 
 func NewCryptocurrencyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *CryptocurrencyHandler {
 	return &CryptocurrencyHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

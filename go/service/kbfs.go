@@ -25,7 +25,7 @@ type KBFSHandler struct {
 
 func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.ChatContext) *KBFSHandler {
 	return &KBFSHandler{
-		BaseHandler:      NewBaseHandler(xp),
+		BaseHandler:      NewBaseHandler(g, xp),
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: globals.NewChatContextified(cg),
 	}

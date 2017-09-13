@@ -18,7 +18,7 @@ type SignupHandler struct {
 
 func NewSignupHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SignupHandler {
 	return &SignupHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

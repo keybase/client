@@ -20,7 +20,7 @@ type AccountHandler struct {
 
 func NewAccountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AccountHandler {
 	return &AccountHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
