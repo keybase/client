@@ -63,12 +63,12 @@ const conversationRoute = new RouteDefNode({
 const manageChannelsRoute = new RouteDefNode({
   component: ManageChannels,
   children: {},
-  tags: {hideStatusBar: true, underStatusBar: true},
+  tags: {hideStatusBar: true},
 })
 
 const createChannelRoute = new RouteDefNode({
   component: CreateChannel,
-  tags: {hideStatusBar: true, underStatusBar: true},
+  tags: {hideStatusBar: true},
   children: {},
 })
 

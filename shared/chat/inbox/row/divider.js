@@ -41,7 +41,9 @@ const DividerBox = glamorous(Box)({
 const Divider = ({badgeCount, hiddenCount, toggle}: DividerProps) => (
   <Box style={_toggleContainer}>
     <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
-      <Text type="BodySmallSemibold">{hiddenCount > 0 ? `+${hiddenCount} more` : 'Show less'}</Text>
+      <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
+        {hiddenCount > 0 ? `+${hiddenCount} more` : 'Show less'}
+      </Text>
       {hiddenCount > 0 && badgeCount > 0 && <Badge badgeStyle={_badgeToggleStyle} badgeNumber={badgeCount} />}
     </ClickableBox>
   </Box>
@@ -101,7 +103,6 @@ const _toggleButtonStyle = {
   alignSelf: 'center',
   backgroundColor: globalColors.black_05,
   borderRadius: 19,
-  color: globalColors.black_60,
   height: isMobile ? 28 : 20,
   marginBottom: isMobile ? 16 : 8,
   paddingLeft: isMobile ? globalMargins.small : globalMargins.tiny,
