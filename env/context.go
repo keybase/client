@@ -22,7 +22,7 @@ const (
 // Context is an implementation for libkbfs.Context
 type Context struct {
 	g                 *libkb.GlobalContext
-	KBFSSocketInfo    libkb.SocketInfo
+	KBFSSocket        libkb.Socket
 	kbfsSocketMtx     sync.RWMutex
 	kbfsSocketWrapper *libkb.SocketWrapper
 }
@@ -40,7 +40,7 @@ func NewContext() *Context {
 		libkb.G.ConfigureMerkleClient()
 	})
 	c := &Context{g: libkb.G}
-	c.InitKBFSSocketInfo()
+	c.InitKBFSSocket()
 	return c
 }
 
@@ -111,7 +111,7 @@ func (c *Context) GetKBFSSocket(clearError bool) (
 	if c.kbfsSocketWrapper == nil {
 		needWrapper = true
 		c.g.Log.Debug("| empty socket wrapper; need a new one")
-	} else if c.kbfsSocketWrapper.xp != nil && !c.kbfsSocketWrapper.xp.IsConnected() {
+	} else if c.kbfsSocketWrapper.Transporter != nil && !c.kbfsSocketWrapper.Transporter.IsConnected() {
 		// need reconnect
 		c.g.Log.Debug("| rpc transport isn't connected, reconnecting...")
 		needWrapper = true
@@ -119,40 +119,40 @@ func (c *Context) GetKBFSSocket(clearError bool) (
 
 	isNew := false
 	if needWrapper {
-		sw := SocketWrapper{}
-		if c.KBFSSocketInfo == nil {
-			sw.err = fmt.Errorf("Cannot get socket")
+		sw := libkb.SocketWrapper{}
+		if c.KBFSSocket == nil {
+			sw.Err = fmt.Errorf("Cannot get socket")
 		} else {
-			sw.conn, sw.err = c.KBFSSocketInfo.DialSocket()
-			c.g.Log.Debug("| DialSocket -> %s", ErrToOk(sw.err))
+			sw.Conn, sw.Err = c.KBFSSocket.DialSocket()
+			c.g.Log.Debug("| DialSocket -> %s", libkb.ErrToOk(sw.Err))
 			isNew = true
 		}
-		if sw.err == nil {
-			sw.xp = NewTransportFromSocket(g, sw.conn)
+		if sw.Err == nil {
+			sw.Transporter = c.newTransportFromSocket(sw.Conn)
 		}
 		c.kbfsSocketWrapper = &sw
 	}
 
 	// Return the current error no matter what
-	err := c.kbfsSocketWrapper.err
-	if err != nil && clearError {
+	sw := c.kbfsSocketWrapper
+	if sw.Err != nil && clearError {
 		c.kbfsSocketWrapper = nil
 	}
 
-	return sw.conn, sw.xp, isNew, err
+	return sw.Conn, sw.Transporter, isNew, err
 }
 
 func (c *Context) BindToSocket() (net.Listener, error) {
 	c.kbfsSocketMtx.RLock()
 	defer c.kbfsSocketMtx.RUnlock()
-	return c.KBFSSocketInfo.BindToSocket()
+	return c.KBFSSocket.BindToSocket()
 }
 
-func (c *Context) InitKBFSSocketInfo() {
+func (c *Context) InitKBFSSocket() {
 	c.kbfsSocketMtx.Lock()
 	defer c.kbfsSocketMtx.Unlock()
 	log := c.g.Log
 	bindFile := c.getKBFSSocketFile()
 	dialFiles := []string{bindFile}
-	c.KBFSSocketInfo = NewSocketWithFiles(log, bindFile, dialFiles)
+	c.KBFSSocket = libkb.NewSocketWithFiles(log, bindFile, dialFiles)
 }
