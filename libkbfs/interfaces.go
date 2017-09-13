@@ -1239,8 +1239,7 @@ type Prefetcher interface {
 		priority int) (err error)
 	// TriggerAndMonitorPrefetch triggers and monitors a prefetch.
 	TriggerAndMonitorPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata,
-		lifetime BlockCacheLifetime, parentBlockIDs []kbfsblock.ID,
-		didUpdateCh <-chan struct{})
+		lifetime BlockCacheLifetime)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(kbfsblock.ID)
@@ -1776,8 +1775,6 @@ type Config interface {
 	SetConflictRenamer(ConflictRenamer)
 	MetadataVersion() MetadataVer
 	SetMetadataVersion(MetadataVer)
-	DefaultBlockType() keybase1.BlockType
-	SetDefaultBlockType(blockType keybase1.BlockType)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations
@@ -2316,9 +2313,4 @@ type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
-	// RequestWithPrefetch retrieves blocks asynchronously and accepts channels
-	// to notify when child blocks are done prefetching.
-	RequestWithPrefetch(ctx context.Context, priority int, kmd KeyMetadata,
-		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
-		parentBlockID kbfsblock.ID) <-chan error
 }

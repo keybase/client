@@ -43,7 +43,7 @@ type prefetchRequest struct {
 
 type prefetch struct {
 	remainingChildBlockCount int
-	parentBlockIDs           []kbfsblock.ID
+	parentBlockIDs           map[kbfsblock.ID]bool
 }
 
 type blockPrefetcher struct {
@@ -52,7 +52,7 @@ type blockPrefetcher struct {
 	// blockRetriever to retrieve blocks from the server
 	retriever BlockRetriever
 	// channel to synchronize prefetch requests with the prefetcher shutdown
-	progressCh chan prefetchRequest
+	prefetchRequestCh chan prefetchRequest
 	// channel that is idempotently closed when a shutdown occurs
 	shutdownCh chan struct{}
 	// channel that is closed when a shutdown completes and all pending
@@ -70,11 +70,11 @@ var _ Prefetcher = (*blockPrefetcher)(nil)
 func newBlockPrefetcher(retriever BlockRetriever,
 	config prefetcherConfig) *blockPrefetcher {
 	p := &blockPrefetcher{
-		config:     config,
-		retriever:  retriever,
-		progressCh: make(chan prefetchRequest),
-		shutdownCh: make(chan struct{}),
-		doneCh:     make(chan struct{}),
+		config:            config,
+		retriever:         retriever,
+		prefetchRequestCh: make(chan prefetchRequest),
+		shutdownCh:        make(chan struct{}),
+		doneCh:            make(chan struct{}),
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -101,32 +101,37 @@ func (p *blockPrefetcher) run() {
 	for {
 		select {
 		case blockID := <-p.prefetchMonitorSuccessCh:
-			p, ok := prefetches[blockID]
+			pre, ok := p.prefetches[blockID]
 			if !ok {
 				p.log.Debug("Missing prefetch completed for block %s", blockID)
 				continue
 			}
-			p.remainingChildBlockCount--
-			if p.remainingChildBlockCount <= 0 {
+			pre.remainingChildBlockCount--
+			if pre.remainingChildBlockCount <= 0 {
 				delete(p.prefetches, blockID)
 				// TODO: handle completion
+				// Walk up the block tree decrementing each node by one. Any
+				// zeroes we hit get marked complete and deleted. If we ever
+				// hit a lower number than the child, panic.
 			}
 		case blockID := <-p.prefetchMonitorCancelCh:
-			p, ok := prefetches[blockID]
+			pre, ok := p.prefetches[blockID]
 			if !ok {
 				p.log.Debug("Missing prefetch canceled for block %s", blockID)
 				continue
 			}
 			delete(p.prefetches, blockID)
 			// TODO: handle cancelation
-		case req := <-p.progressCh:
+			// Walk up the block tree and delete every parent all the way to
+			// the root.
+		case req := <-p.prefetchRequestCh:
 			// TODO: this goroutine should actually trigger all prefetches.
 			// `PrefetchBlock` and `prefetchAfterBlockRetrieved` should all
 			// happen here.
 			ctx, cancel := context.WithTimeout(context.Background(),
 				prefetchTimeout)
-			errCh := p.retriever.RequestWithPrefetch(ctx, req.priority,
-				req.kmd, req.ptr, req.block, TransientEntry, req.parentBlockID)
+			errCh := p.retriever.Request(ctx, req.priority,
+				req.kmd, req.ptr, req.block, TransientEntry)
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -151,16 +156,11 @@ func (p *blockPrefetcher) run() {
 	}
 }
 
-func (p *blockPrefetcher) runMonitor() {
-	for {
-	}
-}
-
 func (p *blockPrefetcher) request(priority int, kmd KeyMetadata,
 	ptr BlockPointer, block Block, entryName string,
 	parentBlockID kbfsblock.ID) error {
 	select {
-	case p.progressCh <- prefetchRequest{
+	case p.prefetchRequestCh <- prefetchRequest{
 		priority, kmd, ptr, block, parentBlockID}:
 		return nil
 	case <-p.shutdownCh:
@@ -267,9 +267,8 @@ func (p *blockPrefetcher) PrefetchBlock(block Block, ptr BlockPointer,
 // that the deep prefetch won't complete. So even a single read from
 // `errCh` by a caller can be used to communicate failure of the deep
 // prefetch to its parent.
-func (p *blockPrefetcher) prefetchAfterBlockRetrieved(b Block,
-	ptr BlockPointer, kmd KeyMetadata) (doneCh, errCh <-chan struct{},
-	numBlocks int) {
+func (p *blockPrefetcher) prefetchAfterBlockRetrieved(ctx context.Context,
+	b Block, ptr BlockPointer, kmd KeyMetadata) (numBlocks int) {
 	switch b := b.(type) {
 	case *FileBlock:
 		if b.IsInd {
@@ -288,8 +287,7 @@ func (p *blockPrefetcher) prefetchAfterBlockRetrieved(b Block,
 }
 
 func (p *blockPrefetcher) TriggerAndMonitorPrefetch(ptr BlockPointer,
-	block Block, kmd KeyMetadata, lifetime BlockCacheLifetime,
-	parentBlockIDs []kbfsblock.ID, didUpdateCh <-chan struct{}) {
+	block Block, kmd KeyMetadata, lifetime BlockCacheLifetime) {
 	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
 	ctx = CtxWithRandomIDReplayable(ctx, "prefetchForBlockID", ptr.ID.String(),
 		p.log)
@@ -322,8 +320,6 @@ func (p *blockPrefetcher) TriggerAndMonitorPrefetch(ptr BlockPointer,
 		}
 	}
 
-	// Make sure we've already updated the metadata once to avoid a race.
-	<-didUpdateCh
 	// Prefetches are done. Update the caches.
 	err := p.config.BlockCache().PutWithPrefetch(ptr, kmd.TlfID(),
 		block, lifetime, FinishedPrefetch)
@@ -346,12 +342,18 @@ func (p *blockPrefetcher) TriggerAndMonitorPrefetch(ptr BlockPointer,
 	deepPrefetchDoneCh <- struct{}{}
 }
 
-func (p *blockPrefetcher) CancelPrefetch(parentBlockID kbfsblock.ID) {
-	p.prefetchMonitorCancelCh <- parentBlockID
+func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
+	select {
+	case <-p.shutdownCh:
+	case p.prefetchMonitorCancelCh <- blockID:
+	}
 }
 
-func (p *blockPrefetcher) NotifyPrefetchDone(parentBlockID kbfsblock.ID) {
-	p.prefetchMonitorSuccessCh <- parentBlockID
+func (p *blockPrefetcher) NotifyPrefetchDone(blockID kbfsblock.ID) {
+	select {
+	case <-p.shutdownCh:
+	case p.prefetchMonitorSuccessCh <- blockID:
+	}
 }
 
 // Shutdown implements the Prefetcher interface for blockPrefetcher.
