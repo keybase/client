@@ -187,7 +187,7 @@ const channelBackgroundStyle = {
   marginLeft: globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  width: '100%',
+  width: '95%',
 }
 
 const mutedStyle = {
