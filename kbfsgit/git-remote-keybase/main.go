@@ -63,12 +63,13 @@ func start() (startErr *libfs.Error) {
 	kbCtx := env.NewContext()
 
 	switch kbCtx.GetRunMode() {
+	case libkb.ProductionRunMode:
 	case libkb.StagingRunMode:
 		fmt.Fprintf(os.Stderr, "Running in staging mode\n")
 	case libkb.DevelRunMode:
-		fallthrough
-	case libkb.NoRunMode:
 		fmt.Fprintf(os.Stderr, "Running in devel mode\n")
+	default:
+		panic(fmt.Sprintf("Unexpected run mode: %s", kbCtx.GetRunMode()))
 	}
 
 	defaultParams, storageRoot, err := libgit.Params(kbCtx, kbCtx.GetDataDir())
