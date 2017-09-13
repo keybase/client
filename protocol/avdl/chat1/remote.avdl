@@ -79,6 +79,7 @@ protocol remote {
 
   record NewConversationRemoteRes {
     ConversationID convID;
+    boolean createdComplexTeam;
     union { null, RateLimit } rateLimit;
   }
 
