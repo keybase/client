@@ -887,7 +887,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			go func() {
 				if err := SendTextByNameNonblock(ctx, n.G(), n.tlfName, &DefaultTeamTopic,
 					chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_GUI,
-					n.complexTeamIntroMessage(n.tlfName), n.ri); err != nil {
+					n.complexTeamIntroMessage(), n.ri); err != nil {
 					n.Debug(ctx, "failed to send complex team intro message: %s", err)
 				}
 			}()
@@ -899,8 +899,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	return res, rl, reserr
 }
 
-func (n *newConversationHelper) complexTeamIntroMessage(tlfName string) string {
-	return fmt.Sprintf("Attention @channel!\n\n%s has just created a new channel in team *%s*. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the \"Big Teams\" section of the inbox.\n3.) You can hit the three dots next to #general in the inbox view to manage channel membership.\n\nEnjoy!", n.G().Env.GetUsername(), tlfName)
+func (n *newConversationHelper) complexTeamIntroMessage() string {
+	return fmt.Sprintf("Attention @channel!\n\n%s has just created a new channel in team *%s*. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the \"Big Teams\" section of the inbox.\n3.) You can hit the three dots next to #general in the inbox view to manage channel membership.\n\nEnjoy!", n.G().Env.GetUsername(), n.tlfName)
 }
 
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
