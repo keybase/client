@@ -54,7 +54,7 @@ const PopupWrapped = (props: Props) => (
 const styleContainer = {
   ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.blue,
-  cursor: 'default',
+  ...(isMobile ? {} : {cursor: 'default'}),
   minHeight: 40,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
