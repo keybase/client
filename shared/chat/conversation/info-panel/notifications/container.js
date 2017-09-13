@@ -3,6 +3,7 @@ import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import Notifications from '.'
 import {connect} from 'react-redux'
+import {compose, branch, renderNothing} from 'recompose'
 
 import type {DeviceType} from '../../../../constants/types/more'
 import type {TypedState} from '../../../../constants/reducer'
@@ -28,7 +29,8 @@ const serverStateToProps = (notifications: Constants.NotificationsState, type: '
 const mapStateToProps = (state: TypedState) => {
   const conversationIDKey = Constants.getSelectedConversation(state)
   if (!conversationIDKey) {
-    throw new Error('no selected conversation')
+    console.warn('no selected conversation')
+    return {}
   }
   const inbox = Constants.getSelectedInbox(state)
   const notifications = inbox.get('notifications')
@@ -54,19 +56,30 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Creators.toggleChannelWideNotifications(conversationIDKey)),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
-  channelWide: stateProps.channelWide,
-  desktop: stateProps.desktop,
-  mobile: stateProps.mobile,
-  onSetDesktop: (notifyType: Constants.NotifyType) => {
-    dispatchProps.onSetNotification(stateProps.conversationIDKey, 'desktop', notifyType)
-  },
-  onSetMobile: (notifyType: Constants.NotifyType) => {
-    dispatchProps.onSetNotification(stateProps.conversationIDKey, 'mobile', notifyType)
-  },
-  onToggleChannelWide: () => {
-    dispatchProps.onToggleChannelWide(stateProps.conversationIDKey)
-  },
-})
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
+  if (stateProps.conversationIDKey) {
+    const {conversationIDKey} = stateProps
+    return {
+      conversationIDKey: stateProps.conversationIDKey,
+      channelWide: stateProps.channelWide,
+      desktop: stateProps.desktop,
+      mobile: stateProps.mobile,
+      onSetDesktop: (notifyType: Constants.NotifyType) => {
+        dispatchProps.onSetNotification(conversationIDKey, 'desktop', notifyType)
+      },
+      onSetMobile: (notifyType: Constants.NotifyType) => {
+        dispatchProps.onSetNotification(conversationIDKey, 'mobile', notifyType)
+      },
+      onToggleChannelWide: () => {
+        dispatchProps.onToggleChannelWide(conversationIDKey)
+      },
+    }
+  } else {
+    return {}
+  }
+}
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Notifications)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => !props.conversationIDKey, renderNothing)
+)(Notifications)
