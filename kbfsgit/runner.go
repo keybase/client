@@ -188,7 +188,8 @@ func (r *runner) handleCapabilities() error {
 // the phase, and if verbosity is high enough, it includes the
 // location of a memory profile taken at the end of the phase.
 func (r *runner) getElapsedStr(
-	ctx context.Context, startTime time.Time, profName string) string {
+	ctx context.Context, startTime time.Time, profName string,
+	cpuProfFullPath string) string {
 	if r.verbosity < 2 {
 		return ""
 	}
@@ -208,6 +209,11 @@ func (r *runner) getElapsedStr(
 		elapsedStr += " [memprof " + profName + "]"
 	}
 
+	if cpuProfFullPath != "" {
+		pprof.StopCPUProfile()
+		elapsedStr += " [cpuprof " + cpuProfFullPath + "]"
+	}
+
 	return elapsedStr
 }
 
@@ -217,7 +223,7 @@ func (r *runner) printDoneOrErr(
 		return
 	}
 	profName := "mem.init.prof"
-	elapsedStr := r.getElapsedStr(ctx, startTime, profName)
+	elapsedStr := r.getElapsedStr(ctx, startTime, profName, "")
 	if err != nil {
 		r.errput.Write([]byte(err.Error() + elapsedStr + "\n"))
 	} else {
@@ -326,6 +332,8 @@ func (r *runner) printJournalStatus(
 		r.errput.Write([]byte("Syncing data to Keybase: "))
 	}
 	startTime := r.config.Clock().Now()
+	r.log.CDebugf(ctx, "Waiting for %d journal bytes to flush",
+		firstStatus.UnflushedBytes)
 
 	// TODO: should we "humanize" the units of these bytes if they are
 	// more than a KB, MB, etc?
@@ -359,7 +367,7 @@ func (r *runner) printJournalStatus(
 		}
 
 		if status.UnflushedBytes == 0 {
-			elapsedStr := r.getElapsedStr(ctx, startTime, "mem.flush.prof")
+			elapsedStr := r.getElapsedStr(ctx, startTime, "mem.flush.prof", "")
 			if r.verbosity >= 1 {
 				r.errput.Write([]byte("done." + elapsedStr + "\n"))
 			}
@@ -499,17 +507,32 @@ func (r *runner) processGogitStatus(
 	currStage := plumbing.StatusUnknown
 	var startTime time.Time
 	lastByteCount := 0
+	cpuProf := ""
 	for update := range statusChan {
 		if update.Stage != currStage {
 			if currStage != plumbing.StatusUnknown {
-				profName := fmt.Sprintf("mem.%d.prof", update.Stage)
-				elapsedStr := r.getElapsedStr(ctx, startTime, profName)
+				memProf := fmt.Sprintf("mem.%d.prof", currStage)
+				elapsedStr := r.getElapsedStr(ctx, startTime, memProf, cpuProf)
 				r.errput.Write([]byte("done." + elapsedStr + "\n"))
+			}
+			if r.verbosity >= 4 {
+				cpuProf = filepath.Join(
+					os.TempDir(), fmt.Sprintf("cpu.%d.prof", update.Stage))
+				f, err := os.Create(cpuProf)
+				if err != nil {
+					r.log.CDebugf(
+						ctx, "Couldn't create CPU profile: %s", cpuProf)
+					cpuProf = ""
+				} else {
+					pprof.StartCPUProfile(f)
+				}
 			}
 			r.errput.Write([]byte(gogitStagesToStatus[update.Stage]))
 			lastByteCount = 0
 			currStage = update.Stage
 			startTime = r.config.Clock().Now()
+			r.log.CDebugf(ctx, "Entering stage: %s %s total",
+				gogitStagesToStatus[update.Stage], update.ObjectsTotal)
 		}
 		eraseStr := strings.Repeat("\b", lastByteCount)
 		newStr := ""
@@ -707,7 +730,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 		if err != nil {
 			return err
 		}
-		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.count.prof")
+		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.count.prof", "")
 		r.errput.Write([]byte("done." + elapsedStr + "\n"))
 
 		sw = &statusWriter{r, nil, 0, b, 0}
@@ -724,7 +747,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 	}
 
 	if r.verbosity >= 1 {
-		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.clone.prof")
+		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.clone.prof", "")
 		r.errput.Write([]byte("done." + elapsedStr + "\n"))
 	}
 	_, err = r.output.Write([]byte("\n"))
