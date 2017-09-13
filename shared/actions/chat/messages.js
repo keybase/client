@@ -35,7 +35,7 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
       select(Shared.selectedInboxSelector, conversationIDKey),
       select(Constants.lastMessageID, conversationIDKey),
     ])
-    yield put(navigateTo([conversationIDKey], [chatTab]))
+    yield put(navigateTo([], [chatTab, conversationIDKey]))
 
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
     yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
