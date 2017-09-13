@@ -36,11 +36,17 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 		return nil, err
 	}
 
-	// Path can't be longer than 108 characters.
-	// In this case Chdir to the file directory first.
+	// Path can't be longer than N characters.
+	// In this case Chdir to the file directory first and use a local path.
+	// On many linuxes, N=108, on some N=106, and on macOS N=104.
+	// N=104 is the lowest I know of.
+	// It's the length of the path buffer in sockaddr_un.
+	// And there may be a null-terminator in there, not sure, so make it 103 for good luck.
 	// https://github.com/golang/go/issues/6895#issuecomment-98006662
-	if len(bindFile) >= 108 {
-
+	// https://gist.github.com/mlsteele/16dc5b6eb3d112b914183928c9af71b8#file-un-h-L79
+	// We could always Chdir, but then this function would be non-threadsafe more of the time.
+	// Pick your poison.
+	if len(bindFile) >= 103 {
 		prevWd, err := os.Getwd()
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
