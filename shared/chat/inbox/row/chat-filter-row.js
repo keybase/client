@@ -87,7 +87,7 @@ class _ChatFilterRow extends Component<Props, State> {
               marginLeft: globalMargins.tiny,
             }}
           />
-          <Text type="Body" style={{color: globalColors.black_20, marginLeft: globalMargins.tiny}}>
+          <Text type="Body" style={{color: globalColors.black_40, marginLeft: globalMargins.tiny}}>
             Jump to chat
           </Text>
         </ClickableBox>

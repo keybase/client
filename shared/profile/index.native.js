@@ -523,7 +523,7 @@ const styleSearchContainer = {
   backgroundColor: globalColors.white_20,
   borderRadius: 100,
   justifyContent: 'center',
-  minHeight: 24,
+  minHeight: 32,
   minWidth: 233,
 }
 
