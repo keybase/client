@@ -22,7 +22,7 @@ const (
 // Context is an implementation for libkbfs.Context
 type Context struct {
 	g                 *libkb.GlobalContext
-	KBFSSocketInfo    SocketInfo
+	KBFSSocketInfo    libkb.SocketInfo
 	kbfsSocketMtx     sync.RWMutex
 	kbfsSocketWrapper *libkb.SocketWrapper
 }
@@ -40,7 +40,7 @@ func NewContext() *Context {
 		libkb.G.ConfigureMerkleClient()
 	})
 	c := &Context{g: libkb.G}
-	c.InitSocketInfo()
+	c.InitKBFSSocketInfo()
 	return c
 }
 
@@ -93,12 +93,13 @@ func (c Context) getKBFSSocketFile() string {
 }
 
 func (c Context) newTransportFromSocket(s net.Conn) rpc.Transporter {
-	return rpc.NewTransport(s, NewRPCLogFactory(), libkb.WrapError)
+	return rpc.NewTransport(s, c.NewRPCLogFactory(), libkb.WrapError)
 }
 
 func (c *Context) GetKBFSSocket(clearError bool) (
 	net.Conn, rpc.Transporter, bool, error) {
 
+	var err error
 	c.g.Trace("GetSocket", func() error { return err })()
 
 	// Protect all global socket wrapper manipulation with a
@@ -109,10 +110,10 @@ func (c *Context) GetKBFSSocket(clearError bool) (
 	needWrapper := false
 	if c.kbfsSocketWrapper == nil {
 		needWrapper = true
-		c.Log.Debug("| empty socket wrapper; need a new one")
+		c.g.Log.Debug("| empty socket wrapper; need a new one")
 	} else if c.kbfsSocketWrapper.xp != nil && !c.kbfsSocketWrapper.xp.IsConnected() {
 		// need reconnect
-		c.Log.Debug("| rpc transport isn't connected, reconnecting...")
+		c.g.Log.Debug("| rpc transport isn't connected, reconnecting...")
 		needWrapper = true
 	}
 
@@ -144,14 +145,14 @@ func (c *Context) GetKBFSSocket(clearError bool) (
 func (c *Context) BindToSocket() (net.Listener, error) {
 	c.kbfsSocketMtx.RLock()
 	defer c.kbfsSocketMtx.RUnlock()
-	return c.SocketInfo.BindToSocket()
+	return c.KBFSSocketInfo.BindToSocket()
 }
 
-func (c *Context) InitSocketInfo() {
+func (c *Context) InitKBFSSocketInfo() {
 	c.kbfsSocketMtx.Lock()
 	defer c.kbfsSocketMtx.Unlock()
 	log := c.g.Log
 	bindFile := c.getKBFSSocketFile()
 	dialFiles := []string{bindFile}
-	c.SocketInfo = NewSocketWithFiles(log, bindFile, dialFiles)
+	c.KBFSSocketInfo = NewSocketWithFiles(log, bindFile, dialFiles)
 }
