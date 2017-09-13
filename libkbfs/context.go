@@ -19,4 +19,6 @@ type Context interface {
 	ConfigureSocketInfo() (err error)
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	NewRPCLogFactory() *libkb.RPCLogFactory
+	GetKBFSSocket(clearError bool)
+	BindToKBFSSocket() (net.Listener, error)
 }
