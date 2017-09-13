@@ -308,6 +308,11 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 		return 0, InvalidBlockRefError{ptr.Ref()}
 	}
 
+	// Try to get the encoded size from the cache before escalating to
+	// the block retriever (even though it's supposed to do a similar
+	// thing with checking caches before checking the data version).
+	// TODO: Figure out how to remove this without breaking journal
+	// tests in kbfs/test.
 	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
 		return block.GetEncodedSize(), nil
 	}
