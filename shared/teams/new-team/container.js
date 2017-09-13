@@ -11,10 +11,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onCreateNewTeam: name => {
     dispatch(createNewTeam(name))
 
+    dispatch(navigateUp())
     if (isMobile) {
-      dispatch(navigateTo([], [chatTab]))
-    } else {
-      dispatch(navigateUp())
+      dispatch(navigateTo([chatTab]))
     }
   },
   onBack: () => dispatch(navigateUp()),
