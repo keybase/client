@@ -16,30 +16,45 @@ import (
 )
 
 const (
-	KBFSSocketFile = "kbfsd.sock"
+	kbfsSocketFile = "kbfsd.sock"
 )
 
-// Context is an implementation for libkbfs.Context
-type Context struct {
-	g                 *libkb.GlobalContext
-	kbfsSocket        libkb.Socket
+// Context defines the environment for this package
+type Context interface {
+	GetRunMode() libkb.RunMode
+	GetLogDir() string
+	GetDataDir() string
+	ConfigureSocketInfo() (err error)
+	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
+	NewRPCLogFactory() *libkb.RPCLogFactory
+	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
+	BindToKBFSSocket() (net.Listener, error)
+}
+
+// KBFSContext is an implementation for libkbfs.Context
+type KBFSContext struct {
+	g *libkb.GlobalContext
+	// protects the socket primitives below
 	kbfsSocketMtx     sync.RWMutex
+	kbfsSocket        libkb.Socket
 	kbfsSocketWrapper *libkb.SocketWrapper
 }
 
+var _ Context = (*KBFSContext)(nil)
+
 var libkbOnce sync.Once
 
-func (c *Context) initKBFSSocket() {
+func (c *KBFSContext) initKBFSSocket() {
 	c.kbfsSocketMtx.Lock()
 	defer c.kbfsSocketMtx.Unlock()
 	log := c.g.Log
-	bindFile := c.getKBFSSocketFile()
+	bindFile := c.getkbfsSocketFile()
 	dialFiles := []string{bindFile}
 	c.kbfsSocket = libkb.NewSocketWithFiles(log, bindFile, dialFiles)
 }
 
 // NewContext constructs a context
-func NewContext() *Context {
+func NewContext() *KBFSContext {
 	// TODO: Remove direct use of libkb.G
 	libkbOnce.Do(func() {
 		libkb.G.Init()
@@ -48,65 +63,66 @@ func NewContext() *Context {
 		libkb.G.ConfigureCaches()
 		libkb.G.ConfigureMerkleClient()
 	})
-	c := &Context{g: libkb.G}
+	c := &KBFSContext{g: libkb.G}
 	c.initKBFSSocket()
 	return c
 }
 
 // GetLogDir returns log dir
-func (c Context) GetLogDir() string {
+func (c *KBFSContext) GetLogDir() string {
 	return c.g.Env.GetLogDir()
 }
 
 // GetDataDir returns log dir
-func (c Context) GetDataDir() string {
+func (c *KBFSContext) GetDataDir() string {
 	return c.g.Env.GetDataDir()
 }
 
 // GetRunMode returns run mode
-func (c Context) GetRunMode() libkb.RunMode {
+func (c *KBFSContext) GetRunMode() libkb.RunMode {
 	return c.g.GetRunMode()
 }
 
 // GetSocket returns a socket
-func (c Context) GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
+func (c *KBFSContext) GetSocket(clearError bool) (
+	net.Conn, rpc.Transporter, bool, error) {
 	return c.g.GetSocket(clearError)
 }
 
 // ConfigureSocketInfo configures a socket
-func (c Context) ConfigureSocketInfo() error {
+func (c *KBFSContext) ConfigureSocketInfo() error {
 	return c.g.ConfigureSocketInfo()
 }
 
 // NewRPCLogFactory constructs an RPC logger
-func (c Context) NewRPCLogFactory() *libkb.RPCLogFactory {
+func (c *KBFSContext) NewRPCLogFactory() *libkb.RPCLogFactory {
 	return &libkb.RPCLogFactory{Contextified: libkb.NewContextified(c.g)}
 }
 
-func (c Context) getSandboxSocketFile() string {
+func (c *KBFSContext) getSandboxSocketFile() string {
 	sandboxDir := c.g.Env.HomeFinder.SandboxCacheDir()
 	if sandboxDir == "" {
 		return ""
 	}
-	return filepath.Join(sandboxDir, KBFSSocketFile)
+	return filepath.Join(sandboxDir, kbfsSocketFile)
 }
 
-func (c Context) getKBFSSocketFile() string {
+func (c *KBFSContext) getkbfsSocketFile() string {
 	e := c.g.Env
 	return e.GetString(
 		func() string { return c.getSandboxSocketFile() },
 		// TODO: maybe add command-line option here
 		func() string { return os.Getenv("KBFS_SOCKET_FILE") },
-		func() string { return filepath.Join(e.GetRuntimeDir(), KBFSSocketFile) },
+		func() string { return filepath.Join(e.GetRuntimeDir(), kbfsSocketFile) },
 	)
 }
 
-func (c Context) newTransportFromSocket(s net.Conn) rpc.Transporter {
+func (c *KBFSContext) newTransportFromSocket(s net.Conn) rpc.Transporter {
 	return rpc.NewTransport(s, c.NewRPCLogFactory(), libkb.WrapError)
 }
 
 // GetKBFSSocket dials the socket configured in `c.kbfsSocket`.
-func (c *Context) GetKBFSSocket(clearError bool) (
+func (c *KBFSContext) GetKBFSSocket(clearError bool) (
 	net.Conn, rpc.Transporter, bool, error) {
 
 	var err error
@@ -153,7 +169,7 @@ func (c *Context) GetKBFSSocket(clearError bool) (
 }
 
 // BindToKBFSSocket binds to the socket configured in `c.kbfsSocket`.
-func (c *Context) BindToKBFSSocket() (net.Listener, error) {
+func (c *KBFSContext) BindToKBFSSocket() (net.Listener, error) {
 	c.kbfsSocketMtx.RLock()
 	defer c.kbfsSocketMtx.RUnlock()
 	return c.kbfsSocket.BindToSocket()

@@ -4,21 +4,7 @@
 
 package libkbfs
 
-import (
-	"net"
-
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-)
+import "github.com/keybase/kbfs/env"
 
 // Context defines the environment for this package
-type Context interface {
-	GetRunMode() libkb.RunMode
-	GetLogDir() string
-	GetDataDir() string
-	ConfigureSocketInfo() (err error)
-	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
-	NewRPCLogFactory() *libkb.RPCLogFactory
-	GetKBFSSocket(clearError bool)
-	BindToKBFSSocket() (net.Listener, error)
-}
+type Context env.Context
