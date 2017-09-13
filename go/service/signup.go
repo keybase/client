@@ -74,16 +74,16 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 	return res, err
 }
 
-func (h *SignupHandler) InviteRequest(_ context.Context, arg keybase1.InviteRequestArg) (err error) {
-	return libkb.PostInviteRequest(libkb.InviteRequestArg{
+func (h *SignupHandler) InviteRequest(ctx context.Context, arg keybase1.InviteRequestArg) (err error) {
+	return libkb.PostInviteRequest(ctx, h.G(), libkb.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,
 	})
 }
 
-func (h *SignupHandler) CheckInvitationCode(_ context.Context, arg keybase1.CheckInvitationCodeArg) (err error) {
-	return libkb.CheckInvitationCode(arg.InvitationCode)
+func (h *SignupHandler) CheckInvitationCode(ctx context.Context, arg keybase1.CheckInvitationCodeArg) (err error) {
+	return libkb.CheckInvitationCode(ctx, h.G(), arg.InvitationCode)
 }
 
 func (h *SignupHandler) GetInvitationCode(c context.Context, sessionID int) (code string, err error) {
