@@ -12,12 +12,12 @@ const makeManageChannels = () => ({
   manageChannels: {
     children: {},
     component: ManageChannels,
-    tags: {hideStatusBar: true, layerOnTop: !isMobile, underStatusBar: true},
+    tags: {hideStatusBar: true, layerOnTop: !isMobile},
   },
   createChannel: {
     children: {},
     component: CreateChannel,
-    tags: {hideStatusBar: true, layerOnTop: !isMobile, underStatusBar: true},
+    tags: {hideStatusBar: true, layerOnTop: !isMobile},
   },
 })
 
