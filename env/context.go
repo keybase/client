@@ -5,6 +5,7 @@
 package env
 
 import (
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
@@ -20,7 +21,10 @@ const (
 
 // Context is an implementation for libkbfs.Context
 type Context struct {
-	g *libkb.GlobalContext
+	g                 *libkb.GlobalContext
+	KBFSSocketInfo    SocketInfo
+	kbfsSocketMtx     sync.RWMutex
+	kbfsSocketWrapper *libkb.SocketWrapper
 }
 
 var libkbOnce sync.Once
@@ -35,7 +39,9 @@ func NewContext() *Context {
 		libkb.G.ConfigureCaches()
 		libkb.G.ConfigureMerkleClient()
 	})
-	return &Context{g: libkb.G}
+	c := &Context{g: libkb.G}
+	c.InitSocketInfo()
+	return c
 }
 
 // GetLogDir returns log dir
@@ -80,12 +86,72 @@ func (c Context) getKBFSSocketFile() string {
 	e := c.g.Env
 	return e.GetString(
 		func() string { return c.getSandboxSocketFile() },
-		func() string { return "TODO: KBFS cmd line option" },
+		// TODO: maybe add command-line option here
 		func() string { return os.Getenv("KBFS_SOCKET_FILE") },
 		func() string { return filepath.Join(e.GetRuntimeDir(), KBFSSocketFile) },
 	)
 }
 
-func (c Context) GetKBFSSocket() (net.Conn, rpc.Transporter, bool, error) {
-	return nil, nil, false, nil
+func (c Context) newTransportFromSocket(s net.Conn) rpc.Transporter {
+	return rpc.NewTransport(s, NewRPCLogFactory(), libkb.WrapError)
+}
+
+func (c *Context) GetKBFSSocket(clearError bool) (
+	net.Conn, rpc.Transporter, bool, error) {
+
+	c.g.Trace("GetSocket", func() error { return err })()
+
+	// Protect all global socket wrapper manipulation with a
+	// lock to prevent race conditions.
+	c.kbfsSocketMtx.Lock()
+	defer c.kbfsSocketMtx.Unlock()
+
+	needWrapper := false
+	if c.kbfsSocketWrapper == nil {
+		needWrapper = true
+		c.Log.Debug("| empty socket wrapper; need a new one")
+	} else if c.kbfsSocketWrapper.xp != nil && !c.kbfsSocketWrapper.xp.IsConnected() {
+		// need reconnect
+		c.Log.Debug("| rpc transport isn't connected, reconnecting...")
+		needWrapper = true
+	}
+
+	isNew := false
+	if needWrapper {
+		sw := SocketWrapper{}
+		if c.KBFSSocketInfo == nil {
+			sw.err = fmt.Errorf("Cannot get socket")
+		} else {
+			sw.conn, sw.err = c.KBFSSocketInfo.DialSocket()
+			c.g.Log.Debug("| DialSocket -> %s", ErrToOk(sw.err))
+			isNew = true
+		}
+		if sw.err == nil {
+			sw.xp = NewTransportFromSocket(g, sw.conn)
+		}
+		c.kbfsSocketWrapper = &sw
+	}
+
+	// Return the current error no matter what
+	err := c.kbfsSocketWrapper.err
+	if err != nil && clearError {
+		c.kbfsSocketWrapper = nil
+	}
+
+	return sw.conn, sw.xp, isNew, err
+}
+
+func (c *Context) BindToSocket() (net.Listener, error) {
+	c.kbfsSocketMtx.RLock()
+	defer c.kbfsSocketMtx.RUnlock()
+	return c.SocketInfo.BindToSocket()
+}
+
+func (c *Context) InitSocketInfo() {
+	c.kbfsSocketMtx.Lock()
+	defer c.kbfsSocketMtx.Unlock()
+	log := c.g.Log
+	bindFile := c.getKBFSSocketFile()
+	dialFiles := []string{bindFile}
+	c.SocketInfo = NewSocketWithFiles(log, bindFile, dialFiles)
 }
