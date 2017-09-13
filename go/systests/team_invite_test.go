@@ -203,7 +203,7 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 }
 
-func TestImpTeamInvite(t *testing.T) {
+func TestImpTeamWithRooter(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -238,7 +238,7 @@ func TestImpTeamInvite(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestImpTeamInviteWithConflicts(t *testing.T) {
+func TestImpTeamWithRooterConflict(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -279,7 +279,7 @@ func TestImpTeamInviteWithConflicts(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestImpTeamInviteWithConflicts2(t *testing.T) {
+func TestImpTeamWithMultipleRooters(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
