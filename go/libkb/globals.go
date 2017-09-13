@@ -127,6 +127,13 @@ type GlobalContext struct {
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
+
+	// Initialization variables for idempotency
+	isInitDone               bool
+	isConfigConfigured       bool
+	isLoggingConfigured      bool
+	areCachesConfigured      bool
+	isMerkleClientConfigured bool
 }
 
 // There are many interfaces that slice and dice the GlobalContext to expose a
@@ -197,6 +204,10 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) Init() *GlobalContext {
+	if g.isInitDone {
+		return g
+	}
+	g.isInitDone = true
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.createLoginState()
@@ -312,6 +323,10 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
+	if g.isLoggingConfigured {
+		return nil
+	}
+	g.isLoggingConfigured = true
 	style := g.Env.GetLogFormat()
 	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
@@ -330,8 +345,16 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 	g.ShutdownHooks = append(g.ShutdownHooks, sh)
 }
 
-func (g *GlobalContext) ConfigureConfig() error {
-	err := RemoteSettingsRepairman(g)
+func (g *GlobalContext) ConfigureConfig() (err error) {
+	if g.isConfigConfigured {
+		return nil
+	}
+	defer func() {
+		if err == nil {
+			g.isConfigConfigured = true
+		}
+	}()
+	err = RemoteSettingsRepairman(g)
 	if err != nil {
 		return err
 	}
@@ -416,9 +439,17 @@ func (g *GlobalContext) ConfigureMemCaches() {
 	g.configureMemCachesLocked()
 }
 
-func (g *GlobalContext) ConfigureCaches() error {
+func (g *GlobalContext) ConfigureCaches() (err error) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
+	if g.areCachesConfigured {
+		return nil
+	}
+	defer func() {
+		if err == nil {
+			g.areCachesConfigured = true
+		}
+	}()
 	g.configureMemCachesLocked()
 	return g.configureDiskCachesLocked()
 }
@@ -439,6 +470,10 @@ func (g *GlobalContext) configureDiskCachesLocked() error {
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {
+	if g.isMerkleClientConfigured {
+		return nil
+	}
+	g.isMerkleClientConfigured = true
 	g.MerkleClient = NewMerkleClient(g)
 	return nil
 }
