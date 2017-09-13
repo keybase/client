@@ -240,13 +240,16 @@ func (k *SKBKeyringFile) Save() error {
 
 func (k *SKBKeyringFile) saveLocked() error {
 	if !k.dirty {
+		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: not dirty, so skipping save", k.filename)
 		return nil
 	}
+	k.G().Log.Debug("SKBKeyringFile: saveLocked %s: dirty, safe saving", k.filename)
 	if err := SafeWriteToFile(k.G().Log, k, 0); err != nil {
+		k.G().Log.Debug("SKBKeyringFile: saveLocked %s: SafeWriteToFile error: %s", k.filename, err)
 		return err
 	}
 	k.dirty = false
-	k.G().Log.Debug("Updated keyring %s", k.filename)
+	k.G().Log.Debug("SKBKeyringFile: saveLocked success for %s", k.filename)
 	return nil
 }
 
@@ -305,8 +308,8 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 // WriteTo is similar to GetFilename described just above in terms of
 // locking discipline.
 func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
-	k.G().Log.Debug("+ WriteTo")
-	defer k.G().Log.Debug("- WriteTo")
+	k.G().Log.Debug("+ SKBKeyringFile WriteTo")
+	defer k.G().Log.Debug("- SKBKeyringFile WriteTo")
 	packets := make(KeybasePackets, len(k.Blocks))
 	var err error
 	for i, b := range k.Blocks {
@@ -315,11 +318,20 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 		}
 	}
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
+	defer b64.Close()
+
 	if err = packets.EncodeTo(b64); err != nil {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
-	b64.Close()
+
+	// explicitly check for error on Close:
+	if err := b64.Close(); err != nil {
+		k.G().Log.Warning("SKBKeyringFile: WriteTo b64.Close() error: %s", err)
+		return 0, err
+	}
+	k.G().Log.Debug("SKBKeyringFile: b64 stream closed successfully")
+
 	return 0, nil
 }
 

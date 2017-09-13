@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -659,15 +660,23 @@ func NewProfileNotPublicError(s string) ProfileNotPublicError {
 //=============================================================================
 
 type BadUsernameError struct {
-	N string
+	N   string
+	msg string
 }
 
 func (e BadUsernameError) Error() string {
-	return "Bad username: '" + e.N + "'"
+	if len(e.msg) == 0 {
+		return "Bad username: '" + e.N + "'"
+	}
+	return e.msg
 }
 
 func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
+}
+
+func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
+	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
 }
 
 //=============================================================================
@@ -1349,6 +1358,19 @@ func (e IdentifyFailedError) Error() string {
 
 //=============================================================================
 
+type IdentifiesFailedError struct {
+}
+
+func (e IdentifiesFailedError) Error() string {
+	return fmt.Sprintf("one or more identifies failed")
+}
+
+func NewIdentifiesFailedError() IdentifiesFailedError {
+	return IdentifiesFailedError{}
+}
+
+//=============================================================================
+
 type IdentifySummaryError struct {
 	username NormalizedUsername
 	problems []string
@@ -1378,13 +1400,11 @@ func (e IdentifySummaryError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 
 func IsIdentifyProofError(err error) bool {
 	switch err.(type) {
-	case ProofError:
-	case IdentifySummaryError:
+	case ProofError, IdentifySummaryError:
 		return true
 	default:
 		return false
 	}
-	return false
 }
 
 //=============================================================================
@@ -2039,4 +2059,48 @@ type LoginStateTimeoutError struct {
 
 func (e LoginStateTimeoutError) Error() string {
 	return fmt.Sprintf("LoginState request timeout - attempted: %s, active request: %s, duration: %s", e.ActiveRequest, e.AttemptedRequest, e.Duration)
+}
+
+type KBFSNotRunningError struct{}
+
+func (e KBFSNotRunningError) Error() string {
+	const err string = "Keybase services aren't running - KBFS client not found."
+	switch runtime.GOOS {
+	case "linux":
+		return fmt.Sprintf("%s On Linux you need to start them after an update with `run_keybase` command.", err)
+	default:
+		return err
+	}
+}
+
+type RevokeCurrentDeviceError struct{}
+
+func (e RevokeCurrentDeviceError) Error() string {
+	return "cannot revoke the current device without confirmation"
+}
+
+type RevokeLastDeviceError struct{}
+
+func (e RevokeLastDeviceError) Error() string {
+	return "cannot revoke the last device in your account without confirmation"
+}
+
+//=============================================================================
+
+type ImplicitTeamDisplayNameError struct {
+	msg string
+}
+
+func (e ImplicitTeamDisplayNameError) Error() string {
+	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
+}
+
+func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
+}
+
+type TeamVisibilityError struct{}
+
+func (e TeamVisibilityError) Error() string {
+	return "loaded team doesn't match specified visibility"
 }

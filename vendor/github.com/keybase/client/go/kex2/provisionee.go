@@ -4,6 +4,7 @@
 package kex2
 
 import (
+	"io"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -13,8 +14,9 @@ import (
 
 type provisionee struct {
 	baseDevice
-	arg  ProvisioneeArg
-	done chan error
+	arg                ProvisioneeArg
+	done               chan error
+	startedCounterSign chan struct{}
 
 	server       *rpc.Server
 	serverDoneCh <-chan struct{}
@@ -35,7 +37,6 @@ type Provisionee interface {
 type ProvisioneeArg struct {
 	KexBaseArg
 	Provisionee Provisionee
-	V1Only      bool
 }
 
 func newProvisionee(arg ProvisioneeArg) *provisionee {
@@ -43,8 +44,9 @@ func newProvisionee(arg ProvisioneeArg) *provisionee {
 		baseDevice: baseDevice{
 			start: make(chan struct{}),
 		},
-		arg:  arg,
-		done: make(chan error),
+		arg:                arg,
+		done:               make(chan error),
+		startedCounterSign: make(chan struct{}),
 	}
 	return ret
 }
@@ -83,6 +85,7 @@ func (p *provisionee) Hello2(_ context.Context, arg keybase1.Hello2Arg) (res key
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleDidCounterSign()
 func (p *provisionee) DidCounterSign(_ context.Context, sig []byte) (err error) {
+	p.startedCounterSign <- struct{}{}
 	err = p.arg.Provisionee.HandleDidCounterSign(sig)
 	p.done <- err
 	return err
@@ -92,6 +95,7 @@ func (p *provisionee) DidCounterSign(_ context.Context, sig []byte) (err error) 
 // It in turn delegates the work to the passed in Provisionee interface,
 // calling HandleDidCounterSign()
 func (p *provisionee) DidCounterSign2(_ context.Context, arg keybase1.DidCounterSign2Arg) (err error) {
+	p.startedCounterSign <- struct{}{}
 	err = p.arg.Provisionee.HandleDidCounterSign2(arg)
 	p.done <- err
 	return err
@@ -111,34 +115,46 @@ func (p *provisionee) run() (err error) {
 		return err
 	}
 
+	// If we hit a done or a server EOF before we started doing the
+	// countersign operation, then we have to bail out.
 	select {
 	case err := <-p.done:
 		return err
 	case <-p.serverDoneCh:
 		return p.server.Err()
+	case <-p.startedCounterSign:
 	}
+
+	// After we've started the counter sign operation, we don't care if the
+	// provisioner explodes. It makes sense to try to finish, however we can.
+	// Thus, we wait for EOF from the server in a Go routine.
+	go func() {
+		<-p.serverDoneCh
+		tmp := p.server.Err()
+		if tmp != nil && tmp != io.EOF {
+			p.debug("provisionee#run: RPC server died with an error: %s", tmp.Error())
+		}
+	}()
+
+	// Since we've already started the countersign operation, just wait around all
+	// day until it's done.
+	return <-p.done
 }
 
 func (p *provisionee) debug(fmtString string, args ...interface{}) {
-	if p.arg.ProvisionCtx != nil {
-		if log := p.arg.ProvisionCtx.GetLog(); log != nil {
-			log.Debug(fmtString, args...)
-		}
+	if p.arg.LogCtx != nil {
+		p.arg.LogCtx.Debug(fmtString, args...)
 	}
 }
 
 func (p *provisionee) startServer(s Secret) (err error) {
-	if p.conn, err = NewConn(p.arg.Ctx, p.arg.Mr, s, p.deviceID, p.arg.Timeout); err != nil {
+	if p.conn, err = NewConn(p.arg.Ctx, p.arg.LogCtx, p.arg.Mr, s, p.deviceID, p.arg.Timeout); err != nil {
 		return err
 	}
 	prots := []rpc.Protocol{
 		keybase1.Kex2ProvisioneeProtocol(p),
 	}
-	if !p.arg.V1Only {
-		prots = append(prots, keybase1.Kex2Provisionee2Protocol(p))
-	} else {
-		p.debug("| provisionee#startServer: skipping protocol V2 support")
-	}
+	prots = append(prots, keybase1.Kex2Provisionee2Protocol(p))
 	p.xp = rpc.NewTransport(p.conn, p.arg.Provisionee.GetLogFactory(), nil)
 	srv := rpc.NewServer(p.xp, nil)
 	for _, prot := range prots {

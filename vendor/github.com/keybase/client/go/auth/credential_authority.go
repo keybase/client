@@ -416,8 +416,6 @@ func (u *user) check(ca checkArg) {
 			return
 		}
 	}
-
-	return
 }
 
 // getUserFromServer runs the UserKeyAPIer GetUser() API call while paying

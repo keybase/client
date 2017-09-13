@@ -21,6 +21,7 @@ const (
 	ChatActivityType_FAILED_MESSAGE                ChatActivityType = 5
 	ChatActivityType_MEMBERS_UPDATE                ChatActivityType = 6
 	ChatActivityType_SET_APP_NOTIFICATION_SETTINGS ChatActivityType = 7
+	ChatActivityType_TEAMTYPE                      ChatActivityType = 8
 )
 
 func (o ChatActivityType) DeepCopy() ChatActivityType { return o }
@@ -34,6 +35,7 @@ var ChatActivityTypeMap = map[string]ChatActivityType{
 	"FAILED_MESSAGE":                5,
 	"MEMBERS_UPDATE":                6,
 	"SET_APP_NOTIFICATION_SETTINGS": 7,
+	"TEAMTYPE":                      8,
 }
 
 var ChatActivityTypeRevMap = map[ChatActivityType]string{
@@ -45,6 +47,7 @@ var ChatActivityTypeRevMap = map[ChatActivityType]string{
 	5: "FAILED_MESSAGE",
 	6: "MEMBERS_UPDATE",
 	7: "SET_APP_NOTIFICATION_SETTINGS",
+	8: "TEAMTYPE",
 }
 
 func (e ChatActivityType) String() string {
@@ -55,11 +58,11 @@ func (e ChatActivityType) String() string {
 }
 
 type IncomingMessage struct {
-	Message                    MessageUnboxed     `codec:"message" json:"message"`
-	ConvID                     ConversationID     `codec:"convID" json:"convID"`
-	DisplayDesktopNotification bool               `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
-	Conv                       *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
-	Pagination                 *Pagination        `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Message                    UIMessage      `codec:"message" json:"message"`
+	ConvID                     ConversationID `codec:"convID" json:"convID"`
+	DisplayDesktopNotification bool           `codec:"displayDesktopNotification" json:"displayDesktopNotification"`
+	Conv                       *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+	Pagination                 *UIPagination  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o IncomingMessage) DeepCopy() IncomingMessage {
@@ -67,14 +70,14 @@ func (o IncomingMessage) DeepCopy() IncomingMessage {
 		Message: o.Message.DeepCopy(),
 		ConvID:  o.ConvID.DeepCopy(),
 		DisplayDesktopNotification: o.DisplayDesktopNotification,
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Conv),
-		Pagination: (func(x *Pagination) *Pagination {
+		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
 			}
@@ -85,16 +88,16 @@ func (o IncomingMessage) DeepCopy() IncomingMessage {
 }
 
 type ReadMessageInfo struct {
-	ConvID ConversationID     `codec:"convID" json:"convID"`
-	MsgID  MessageID          `codec:"msgID" json:"msgID"`
-	Conv   *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o ReadMessageInfo) DeepCopy() ReadMessageInfo {
 	return ReadMessageInfo{
 		ConvID: o.ConvID.DeepCopy(),
 		MsgID:  o.MsgID.DeepCopy(),
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
@@ -105,7 +108,7 @@ func (o ReadMessageInfo) DeepCopy() ReadMessageInfo {
 }
 
 type NewConversationInfo struct {
-	Conv ConversationLocal `codec:"conv" json:"conv"`
+	Conv InboxUIItem `codec:"conv" json:"conv"`
 }
 
 func (o NewConversationInfo) DeepCopy() NewConversationInfo {
@@ -117,14 +120,14 @@ func (o NewConversationInfo) DeepCopy() NewConversationInfo {
 type SetStatusInfo struct {
 	ConvID ConversationID     `codec:"convID" json:"convID"`
 	Status ConversationStatus `codec:"status" json:"status"`
-	Conv   *ConversationLocal `codec:"conv,omitempty" json:"conv,omitempty"`
+	Conv   *InboxUIItem       `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o SetStatusInfo) DeepCopy() SetStatusInfo {
 	return SetStatusInfo{
 		ConvID: o.ConvID.DeepCopy(),
 		Status: o.Status.DeepCopy(),
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
@@ -177,6 +180,26 @@ func (o MembersUpdateInfo) DeepCopy() MembersUpdateInfo {
 	}
 }
 
+type TeamTypeInfo struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	TeamType TeamType       `codec:"teamType" json:"teamType"`
+	Conv     *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+}
+
+func (o TeamTypeInfo) DeepCopy() TeamTypeInfo {
+	return TeamTypeInfo{
+		ConvID:   o.ConvID.DeepCopy(),
+		TeamType: o.TeamType.DeepCopy(),
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Conv),
+	}
+}
+
 type ChatActivity struct {
 	ActivityType__               ChatActivityType                `codec:"activityType" json:"activityType"`
 	IncomingMessage__            *IncomingMessage                `codec:"incomingMessage,omitempty" json:"incomingMessage,omitempty"`
@@ -186,6 +209,7 @@ type ChatActivity struct {
 	FailedMessage__              *FailedMessageInfo              `codec:"failedMessage,omitempty" json:"failedMessage,omitempty"`
 	MembersUpdate__              *MembersUpdateInfo              `codec:"membersUpdate,omitempty" json:"membersUpdate,omitempty"`
 	SetAppNotificationSettings__ *SetAppNotificationSettingsInfo `codec:"setAppNotificationSettings,omitempty" json:"setAppNotificationSettings,omitempty"`
+	Teamtype__                   *TeamTypeInfo                   `codec:"teamtype,omitempty" json:"teamtype,omitempty"`
 }
 
 func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
@@ -223,6 +247,11 @@ func (o *ChatActivity) ActivityType() (ret ChatActivityType, err error) {
 	case ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
 		if o.SetAppNotificationSettings__ == nil {
 			err = errors.New("unexpected nil value for SetAppNotificationSettings__")
+			return ret, err
+		}
+	case ChatActivityType_TEAMTYPE:
+		if o.Teamtype__ == nil {
+			err = errors.New("unexpected nil value for Teamtype__")
 			return ret, err
 		}
 	}
@@ -299,6 +328,16 @@ func (o ChatActivity) SetAppNotificationSettings() (res SetAppNotificationSettin
 	return *o.SetAppNotificationSettings__
 }
 
+func (o ChatActivity) Teamtype() (res TeamTypeInfo) {
+	if o.ActivityType__ != ChatActivityType_TEAMTYPE {
+		panic("wrong case accessed")
+	}
+	if o.Teamtype__ == nil {
+		return
+	}
+	return *o.Teamtype__
+}
+
 func NewChatActivityWithIncomingMessage(v IncomingMessage) ChatActivity {
 	return ChatActivity{
 		ActivityType__:    ChatActivityType_INCOMING_MESSAGE,
@@ -345,6 +384,13 @@ func NewChatActivityWithSetAppNotificationSettings(v SetAppNotificationSettingsI
 	return ChatActivity{
 		ActivityType__:               ChatActivityType_SET_APP_NOTIFICATION_SETTINGS,
 		SetAppNotificationSettings__: &v,
+	}
+}
+
+func NewChatActivityWithTeamtype(v TeamTypeInfo) ChatActivity {
+	return ChatActivity{
+		ActivityType__: ChatActivityType_TEAMTYPE,
+		Teamtype__:     &v,
 	}
 }
 
@@ -400,6 +446,13 @@ func (o ChatActivity) DeepCopy() ChatActivity {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SetAppNotificationSettings__),
+		Teamtype__: (func(x *TeamTypeInfo) *TeamTypeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Teamtype__),
 	}
 }
 
@@ -504,7 +557,7 @@ type ChatTLFFinalizeArg struct {
 	Uid          keybase1.UID             `codec:"uid" json:"uid"`
 	ConvID       ConversationID           `codec:"convID" json:"convID"`
 	FinalizeInfo ConversationFinalizeInfo `codec:"finalizeInfo" json:"finalizeInfo"`
-	Conv         *ConversationLocal       `codec:"conv,omitempty" json:"conv,omitempty"`
+	Conv         *InboxUIItem             `codec:"conv,omitempty" json:"conv,omitempty"`
 }
 
 func (o ChatTLFFinalizeArg) DeepCopy() ChatTLFFinalizeArg {
@@ -512,7 +565,7 @@ func (o ChatTLFFinalizeArg) DeepCopy() ChatTLFFinalizeArg {
 		Uid:          o.Uid.DeepCopy(),
 		ConvID:       o.ConvID.DeepCopy(),
 		FinalizeInfo: o.FinalizeInfo.DeepCopy(),
-		Conv: (func(x *ConversationLocal) *ConversationLocal {
+		Conv: (func(x *InboxUIItem) *InboxUIItem {
 			if x == nil {
 				return nil
 			}
@@ -583,8 +636,8 @@ func (o ChatTypingUpdateArg) DeepCopy() ChatTypingUpdateArg {
 }
 
 type ChatJoinedConversationArg struct {
-	Uid  keybase1.UID      `codec:"uid" json:"uid"`
-	Conv ConversationLocal `codec:"conv" json:"conv"`
+	Uid  keybase1.UID `codec:"uid" json:"uid"`
+	Conv InboxUIItem  `codec:"conv" json:"conv"`
 }
 
 func (o ChatJoinedConversationArg) DeepCopy() ChatJoinedConversationArg {

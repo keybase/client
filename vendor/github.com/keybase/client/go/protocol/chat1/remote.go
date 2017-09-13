@@ -195,13 +195,15 @@ func (o PostRemoteRes) DeepCopy() PostRemoteRes {
 }
 
 type NewConversationRemoteRes struct {
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	ConvID             ConversationID `codec:"convID" json:"convID"`
+	CreatedComplexTeam bool           `codec:"createdComplexTeam" json:"createdComplexTeam"`
+	RateLimit          *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o NewConversationRemoteRes) DeepCopy() NewConversationRemoteRes {
 	return NewConversationRemoteRes{
-		ConvID: o.ConvID.DeepCopy(),
+		ConvID:             o.ConvID.DeepCopy(),
+		CreatedComplexTeam: o.CreatedComplexTeam,
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
@@ -1041,20 +1043,18 @@ func (o LeaveConversationArg) DeepCopy() LeaveConversationArg {
 }
 
 type GetTLFConversationsArg struct {
-	TlfID                TLFID                   `codec:"tlfID" json:"tlfID"`
-	TopicType            TopicType               `codec:"topicType" json:"topicType"`
-	MembersType          ConversationMembersType `codec:"membersType" json:"membersType"`
-	SummarizeMaxMsgs     bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
-	IncludeAuxiliaryInfo bool                    `codec:"includeAuxiliaryInfo" json:"includeAuxiliaryInfo"`
+	TlfID            TLFID                   `codec:"tlfID" json:"tlfID"`
+	TopicType        TopicType               `codec:"topicType" json:"topicType"`
+	MembersType      ConversationMembersType `codec:"membersType" json:"membersType"`
+	SummarizeMaxMsgs bool                    `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 func (o GetTLFConversationsArg) DeepCopy() GetTLFConversationsArg {
 	return GetTLFConversationsArg{
-		TlfID:                o.TlfID.DeepCopy(),
-		TopicType:            o.TopicType.DeepCopy(),
-		MembersType:          o.MembersType.DeepCopy(),
-		SummarizeMaxMsgs:     o.SummarizeMaxMsgs,
-		IncludeAuxiliaryInfo: o.IncludeAuxiliaryInfo,
+		TlfID:            o.TlfID.DeepCopy(),
+		TopicType:        o.TopicType.DeepCopy(),
+		MembersType:      o.MembersType.DeepCopy(),
+		SummarizeMaxMsgs: o.SummarizeMaxMsgs,
 	}
 }
 
@@ -1068,6 +1068,23 @@ func (o SetAppNotificationSettingsArg) DeepCopy() SetAppNotificationSettingsArg 
 		ConvID:   o.ConvID.DeepCopy(),
 		Settings: o.Settings.DeepCopy(),
 	}
+}
+
+type SetGlobalAppNotificationSettingsArg struct {
+	Settings GlobalAppNotificationSettings `codec:"settings" json:"settings"`
+}
+
+func (o SetGlobalAppNotificationSettingsArg) DeepCopy() SetGlobalAppNotificationSettingsArg {
+	return SetGlobalAppNotificationSettingsArg{
+		Settings: o.Settings.DeepCopy(),
+	}
+}
+
+type GetGlobalAppNotificationSettingsArg struct {
+}
+
+func (o GetGlobalAppNotificationSettingsArg) DeepCopy() GetGlobalAppNotificationSettingsArg {
+	return GetGlobalAppNotificationSettingsArg{}
 }
 
 type RemoteNotificationSuccessfulArg struct {
@@ -1115,6 +1132,8 @@ type RemoteInterface interface {
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
 	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
+	SetGlobalAppNotificationSettings(context.Context, GlobalAppNotificationSettings) error
+	GetGlobalAppNotificationSettings(context.Context) (GlobalAppNotificationSettings, error)
 	RemoteNotificationSuccessful(context.Context, RemoteNotificationSuccessfulArg) error
 }
 
@@ -1522,6 +1541,33 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setGlobalAppNotificationSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]SetGlobalAppNotificationSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetGlobalAppNotificationSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetGlobalAppNotificationSettingsArg)(nil), args)
+						return
+					}
+					err = i.SetGlobalAppNotificationSettings(ctx, (*typedArgs)[0].Settings)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getGlobalAppNotificationSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]GetGlobalAppNotificationSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetGlobalAppNotificationSettings(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"remoteNotificationSuccessful": {
 				MakeArg: func() interface{} {
 					ret := make([]RemoteNotificationSuccessfulArg, 1)
@@ -1676,6 +1722,17 @@ func (c RemoteClient) GetTLFConversations(ctx context.Context, __arg GetTLFConve
 
 func (c RemoteClient) SetAppNotificationSettings(ctx context.Context, __arg SetAppNotificationSettingsArg) (res SetAppNotificationSettingsRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.setAppNotificationSettings", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) SetGlobalAppNotificationSettings(ctx context.Context, settings GlobalAppNotificationSettings) (err error) {
+	__arg := SetGlobalAppNotificationSettingsArg{Settings: settings}
+	err = c.Cli.Call(ctx, "chat.1.remote.setGlobalAppNotificationSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) GetGlobalAppNotificationSettings(ctx context.Context) (res GlobalAppNotificationSettings, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.getGlobalAppNotificationSettings", []interface{}{GetGlobalAppNotificationSettingsArg{}}, &res)
 	return
 }
 
