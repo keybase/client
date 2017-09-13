@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -17,7 +18,7 @@ type Socket interface {
 }
 
 type SocketInfo struct {
-	Contextified
+	log       logger.Logger
 	bindFile  string
 	dialFiles []string
 }
