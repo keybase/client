@@ -296,6 +296,14 @@ func (u *smuUser) signup() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
 }
 
 func (u *smuUser) signupNoPUK() {
@@ -330,6 +338,14 @@ func (u *smuUser) signupNoPUK() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
 }
 
 type smuTeam struct {
