@@ -181,13 +181,13 @@ const teamStyle = {
 
 const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
+  ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
   alignItems: 'center',
   borderTopLeftRadius: 2,
   borderBottomLeftRadius: 2,
   marginLeft: globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  width: '100%',
 }
 
 const mutedStyle = {
