@@ -129,11 +129,12 @@ type GlobalContext struct {
 	NetContext context.Context
 
 	// Initialization variables for idempotency
-	isInitDone               bool
-	isConfigConfigured       bool
-	isLoggingConfigured      bool
-	areCachesConfigured      bool
-	isMerkleClientConfigured bool
+	configMtx                 sync.Mutex
+	isConfigConfigured        bool
+	areCachesConfigured       bool
+	initOnce                  sync.Once
+	configureLoggingOnce      sync.Once
+	configureMerkleClientOnce sync.Once
 }
 
 // There are many interfaces that slice and dice the GlobalContext to expose a
@@ -204,21 +205,19 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) Init() *GlobalContext {
-	if g.isInitDone {
-		return g
-	}
-	g.isInitDone = true
-	g.Env = NewEnv(nil, nil)
-	g.Service = false
-	g.createLoginState()
-	g.Resolver = NewResolver(g)
-	g.RateLimits = NewRateLimits(g)
-	g.upakLoader = NewUncachedUPAKLoader(g)
-	g.teamLoader = newNullTeamLoader(g)
-	g.fullSelfer = NewUncachedFullSelf(g)
-	g.ConnectivityMonitor = NullConnectivityMonitor{}
-	g.localSigchainGuard = NewLocalSigchainGuard(g)
-	g.AppState = NewAppState(g)
+	g.initOnce.Do(func() {
+		g.Env = NewEnv(nil, nil)
+		g.Service = false
+		g.createLoginState()
+		g.Resolver = NewResolver(g)
+		g.RateLimits = NewRateLimits(g)
+		g.upakLoader = NewUncachedUPAKLoader(g)
+		g.teamLoader = newNullTeamLoader(g)
+		g.fullSelfer = NewUncachedFullSelf(g)
+		g.ConnectivityMonitor = NullConnectivityMonitor{}
+		g.localSigchainGuard = NewLocalSigchainGuard(g)
+		g.AppState = NewAppState(g)
+	})
 	return g
 }
 
@@ -323,21 +322,19 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
-	if g.isLoggingConfigured {
-		return nil
-	}
-	g.isLoggingConfigured = true
-	style := g.Env.GetLogFormat()
-	debug := g.Env.GetDebug()
-	logFile := g.Env.GetLogFile()
-	if logFile == "" {
-		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
-	} else {
-		g.Log.Configure(style, debug, logFile)
-		g.Log.RotateLogFile()
-	}
-	g.Output = os.Stdout
-	g.VDL.Configure(g.Env.GetVDebugSetting())
+	g.configureLoggingOnce.Do(func() {
+		style := g.Env.GetLogFormat()
+		debug := g.Env.GetDebug()
+		logFile := g.Env.GetLogFile()
+		if logFile == "" {
+			g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
+		} else {
+			g.Log.Configure(style, debug, logFile)
+			g.Log.RotateLogFile()
+		}
+		g.Output = os.Stdout
+		g.VDL.Configure(g.Env.GetVDebugSetting())
+	})
 	return nil
 }
 
@@ -346,6 +343,8 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() (err error) {
+	g.configMtx.Lock()
+	defer g.configMtx.Unlock()
 	if g.isConfigConfigured {
 		return nil
 	}
@@ -470,11 +469,9 @@ func (g *GlobalContext) configureDiskCachesLocked() error {
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {
-	if g.isMerkleClientConfigured {
-		return nil
-	}
-	g.isMerkleClientConfigured = true
-	g.MerkleClient = NewMerkleClient(g)
+	g.configureMerkleClientOnce.Do(func() {
+		g.MerkleClient = NewMerkleClient(g)
+	})
 	return nil
 }
 
