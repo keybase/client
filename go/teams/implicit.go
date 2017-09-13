@@ -33,7 +33,8 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-// does resolve
+// Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
+// Resolves social assertions.
 func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
 	teamID keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
 
@@ -41,7 +42,8 @@ func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName
 	return teamID, impTeamName, err
 }
 
-// does resolve
+// Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
+// Resolves social assertions.
 func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
 	teamID keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
 	impName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
@@ -51,7 +53,9 @@ func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	return lookupImplicitTeamAndConflicts(ctx, g, displayName, impName)
 }
 
-// does not resolve
+// Lookup an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
+// Does not resolve social assertions.
+// preResolveDisplayName is used for logging and errors
 func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	preResolveDisplayName string, impTeamNameInput keybase1.ImplicitTeamDisplayName) (
 	teamID keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
@@ -138,7 +142,8 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	return teamID, impTeamName, conflicts, nil
 }
 
-// does resolve
+// Lookup or create an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
+// Resolves social assertions.
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
 	lookupName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
 	if err != nil {
