@@ -87,7 +87,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
   componentWillReceiveProps(nextProps: Props) {
     if (this.props.smallTeamsHiddenRowCount === 0 && nextProps.smallTeamsHiddenRowCount > 0) {
-      this._list && this._list.scrollToOffset({animated: true, offset: 0})
+      this._list && this._list.scrollToOffset({animated: false, offset: 0})
     }
   }
 
