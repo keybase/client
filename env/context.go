@@ -42,8 +42,6 @@ type KBFSContext struct {
 
 var _ Context = (*KBFSContext)(nil)
 
-var libkbOnce sync.Once
-
 func (c *KBFSContext) initKBFSSocket() {
 	c.kbfsSocketMtx.Lock()
 	defer c.kbfsSocketMtx.Unlock()
@@ -53,19 +51,21 @@ func (c *KBFSContext) initKBFSSocket() {
 	c.kbfsSocket = libkb.NewSocketWithFiles(log, bindFile, dialFiles)
 }
 
-// NewContext constructs a context
-func NewContext() *KBFSContext {
-	// TODO: Remove direct use of libkb.G
-	libkbOnce.Do(func() {
-		libkb.G.Init()
-		libkb.G.ConfigureConfig()
-		libkb.G.ConfigureLogging()
-		libkb.G.ConfigureCaches()
-		libkb.G.ConfigureMerkleClient()
-	})
-	c := &KBFSContext{g: libkb.G}
+// NewContextFromGlobalContext constructs a context
+func NewContextFromGlobalContext(g *GlobalContext) *KBFSContext {
+	g.Init()
+	g.ConfigureConfig()
+	g.ConfigureLogging()
+	g.ConfigureCaches()
+	g.ConfigureMerkleClient()
+	c := &KBFSContext{g: g}
 	c.initKBFSSocket()
 	return c
+}
+
+// NewContext constructs a context
+func NewContext() *KBFSContext {
+	return NewContextFromGlobalContext(libkb.G)
 }
 
 // GetLogDir returns log dir
