@@ -1555,6 +1555,7 @@ export type NewConversationPayload = {
 
 export type NewConversationRemoteRes = {
   convID: ConversationID,
+  createdComplexTeam: boolean,
   rateLimit?: ?RateLimit,
 }
 
