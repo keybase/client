@@ -901,7 +901,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
-    yield put(navigateTo([], [chatTab]))
+    yield put(navigateTo([chatTab]))
   }
 
   // Do this here because it's possible loadMoreMessages bails early
