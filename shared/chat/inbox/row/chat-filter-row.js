@@ -56,7 +56,6 @@ class _ChatFilterRow extends Component<Props, State> {
           style={{
             color: globalColors.black_20,
             fontSize: 12,
-            marginLeft: globalMargins.tiny,
             marginRight: globalMargins.tiny,
           }}
         />,
@@ -71,11 +70,15 @@ class _ChatFilterRow extends Component<Props, State> {
           onFocus={this._startEditing}
           onBlur={this._stopEditing}
           onKeyDown={this._onKeyDown}
+          style={{marginRight: globalMargins.tiny}}
         />,
       ]
     } else {
       children = (
-        <ClickableBox style={styleFilterContainer} onClick={this._startEditing}>
+        <ClickableBox
+          style={isMobile ? styleFilterContainerMobile : styleFilterContainer}
+          onClick={this._startEditing}
+        >
           <Icon
             type="iconfont-search"
             style={{
@@ -91,24 +94,11 @@ class _ChatFilterRow extends Component<Props, State> {
       )
     }
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: 48,
-          position: 'relative',
-        }}
-      >
+      <Box style={styleContainer}>
         {children}
         <Icon
           type="iconfont-compose"
-          style={{
-            color: globalColors.blue,
-            fontSize: isMobile ? 20 : 16,
-            marginLeft: globalMargins.medium,
-            marginRight: globalMargins.small,
-          }}
+          style={isMobile ? styleIconComposeMobile : styleIconCompose}
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading &&
@@ -120,16 +110,42 @@ class _ChatFilterRow extends Component<Props, State> {
   }
 }
 
+const styleContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  minHeight: 48,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+  position: 'relative',
+}
+
 const styleFilterContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: globalColors.black_05,
   borderRadius: 19,
   flexGrow: 1,
-  height: globalMargins.medium,
+  height: 24,
   justifyContent: 'center',
-  marginLeft: globalMargins.medium,
-  maxWidth: 160,
+  marginRight: globalMargins.small,
+}
+
+const styleFilterContainerMobile = {
+  ...styleFilterContainer,
+  height: 32,
+  marginRight: globalMargins.small,
+}
+
+const styleIconCompose = {
+  color: globalColors.blue,
+  fontSize: 16,
+}
+
+const styleIconComposeMobile = {
+  ...styleIconCompose,
+  fontSize: 20,
+  padding: globalMargins.xtiny,
 }
 
 const ChatFilterRow = branch(() => !isMobile, KeyHandler)(_ChatFilterRow)

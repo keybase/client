@@ -16,7 +16,15 @@ class BigTeamHeaderRow extends PureComponent<TeamProps> {
       <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
-        <Icon className="icon" type="iconfont-ellipsis" onClick={this.props.onShowMenu} />
+        <Icon
+          className="icon"
+          type="iconfont-ellipsis"
+          onClick={this.props.onShowMenu}
+          style={{
+            fontSize: isMobile ? 20 : 16,
+            padding: isMobile ? 2 : 0,
+          }}
+        />
       </HeaderBox>
     )
   }

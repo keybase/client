@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Box, ClickableBox, Avatar, Text, Usernames, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
+import {isMobile} from '../../../constants/platform'
 
 type Props = {
   onAddParticipant: ?() => void,
@@ -21,7 +22,7 @@ const Participants = ({participants, onShowProfile, onAddParticipant}: Props) =>
       const {username, following, fullname, broken, isYou} = info
       return (
         <ClickableBox key={username} onClick={() => onShowProfile(username)}>
-          <Box style={rowStyle}>
+          <Box style={isMobile ? rowStyleMobile : rowStyle}>
             <Box
               style={{
                 ...globalStyles.flexBoxRow,
@@ -59,9 +60,14 @@ const Participants = ({participants, onShowProfile, onAddParticipant}: Props) =>
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
-  minHeight: globalMargins.large,
+  minHeight: 40,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
+}
+
+const rowStyleMobile = {
+  ...rowStyle,
+  minHeight: 56,
 }
 
 export default Participants

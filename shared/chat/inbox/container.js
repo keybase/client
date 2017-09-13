@@ -21,13 +21,13 @@ const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
 const getUnreadCounts = (state: TypedState) => state.chat.get('conversationUnreadCounts')
 
 const passesStringFilter = (filter: string, toCheck: string): boolean => {
+  // No need to worry about Unicode issues with toLowerCase(), since
+  // names can only be ASCII.
   return toCheck.toLowerCase().indexOf(filter.toLowerCase()) >= 0
 }
 
 const passesParticipantFilter = (participants: I.List<string>, filter: string, you: ?string): boolean => {
   const names = participants.filter(p => p !== you).toArray()
-  // No need to worry about Unicode issues with toLowerCase(), since
-  // names can only be ASCII.
   return names.some(n => passesStringFilter(filter, n))
 }
 
@@ -44,9 +44,12 @@ const getSimpleRows = createSelector(
           const id = i.conversationIDKey
           const isEmpty = i.isEmpty && !alwaysShow.has(id)
           const isSuperseded = !!supersededByState.get(id)
-          const isFilteredOut = !!(filter && !passesParticipantFilter(i.get('participants'), filter, you))
+          const passesFilter =
+            !filter ||
+            (i.teamname && passesStringFilter(filter, i.teamname)) ||
+            passesParticipantFilter(i.get('participants'), filter, you)
 
-          return !isEmpty && !isSuperseded && !isFilteredOut
+          return !isEmpty && !isSuperseded && passesFilter
         })
         // this is done for perf reasons and that sorting immutable lists is slow
         .map(i => ({
