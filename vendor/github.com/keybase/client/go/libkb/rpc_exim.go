@@ -280,10 +280,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return IdentifyDidNotCompleteError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
-	case SCNoUIDelegation:
-		return UIDelegationUnavailableError{}
 	case SCNoUI:
 		return NoUIError{Which: s.Desc}
+	case SCNoUIDelegation:
+		return UIDelegationUnavailableError{}
 	case SCProfileNotPublic:
 		return ProfileNotPublicError{msg: s.Desc}
 	case SCIdentifyFailed:
@@ -292,6 +292,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			assertion = s.Fields[0].Value
 		}
 		return IdentifyFailedError{Assertion: assertion, Reason: s.Desc}
+	case SCIdentifiesFailed:
+		return IdentifiesFailedError{}
 	case SCIdentifySummaryError:
 		ret := IdentifySummaryError{}
 		for _, pair := range s.Fields {
@@ -580,6 +582,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return e
+	case SCRevokeCurrentDevice:
+		return RevokeCurrentDeviceError{}
+	case SCRevokeLastDevice:
+		return RevokeLastDeviceError{}
 
 	default:
 		ase := AppStatusError{
@@ -1569,6 +1575,14 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e IdentifiesFailedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCIdentifiesFailed,
+		Name: "SC_IDENTIFIES_FAILED",
+		Desc: e.Error(),
+	}
+}
+
 func (e IdentifySummaryError) ToStatus() keybase1.Status {
 	kvpairs := []keybase1.StringKVPair{
 		keybase1.StringKVPair{Key: "username", Value: e.username.String()},
@@ -2000,5 +2014,21 @@ func (e LoginStateTimeoutError) ToStatus() keybase1.Status {
 			{Key: "AttemptedRequest", Value: e.AttemptedRequest},
 			{Key: "Duration", Value: e.Duration.String()},
 		},
+	}
+}
+
+func (e RevokeCurrentDeviceError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCRevokeCurrentDevice,
+		Name: "SC_DEVICE_REVOKE_CURRENT",
+		Desc: e.Error(),
+	}
+}
+
+func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCRevokeLastDevice,
+		Name: "SC_DEVICE_REVOKE_LAST",
+		Desc: e.Error(),
 	}
 }

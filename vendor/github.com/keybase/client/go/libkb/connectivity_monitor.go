@@ -11,4 +11,8 @@ func (s NullConnectivityMonitor) IsConnected(ctx context.Context) ConnectivityMo
 	return ConnectivityMonitorYes
 }
 
+func (s NullConnectivityMonitor) CheckReachability(ctx context.Context) error {
+	return nil
+}
+
 var _ ConnectivityMonitor = NullConnectivityMonitor{}

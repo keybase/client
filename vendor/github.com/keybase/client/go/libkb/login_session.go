@@ -147,6 +147,9 @@ func (s *LoginSession) Dump() {
 }
 
 func (s *LoginSession) Load() error {
+	if s == nil {
+		return fmt.Errorf("LoginSession is nil")
+	}
 	if s.loaded && !s.cleared {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)
 	}

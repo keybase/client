@@ -49,12 +49,13 @@ type NotifyListener interface {
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
-	ChatJoinedConversation(uid keybase1.UID, conv chat1.ConversationLocal)
+	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
 	TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
+	TeamDeleted(teamID keybase1.TeamID)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -534,7 +535,7 @@ func (n *NotifyRouter) HandleChatIdentifyUpdate(ctx context.Context, update keyb
 	n.G().Log.CDebugf(ctx, "- Sent ChatIdentifyUpdate notification")
 }
 
-func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.ConversationLocal) {
+func (n *NotifyRouter) HandleChatTLFFinalize(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem) {
 	if n == nil {
 		return
 	}
@@ -673,7 +674,7 @@ func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []cha
 }
 
 func (n *NotifyRouter) HandleChatJoinedConversation(ctx context.Context, uid keybase1.UID,
-	conv chat1.ConversationLocal) {
+	conv chat1.InboxUIItem) {
 	if n == nil {
 		return
 	}
@@ -920,4 +921,30 @@ func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.Te
 		n.listener.TeamChanged(teamID, teamName, latestSeqno, changes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
+}
+
+func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.TeamID) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending TeamDeleted notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
+				}).TeamDeleted(context.Background(), teamID)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.TeamDeleted(teamID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent TeamDeleted notification")
 }

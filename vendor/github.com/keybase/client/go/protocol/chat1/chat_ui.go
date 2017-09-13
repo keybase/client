@@ -4,9 +4,453 @@
 package chat1
 
 import (
+	"errors"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
+
+type UIPagination struct {
+	Next     string `codec:"next" json:"next"`
+	Previous string `codec:"previous" json:"previous"`
+	Num      int    `codec:"num" json:"num"`
+	Last     bool   `codec:"last" json:"last"`
+}
+
+func (o UIPagination) DeepCopy() UIPagination {
+	return UIPagination{
+		Next:     o.Next,
+		Previous: o.Previous,
+		Num:      o.Num,
+		Last:     o.Last,
+	}
+}
+
+type UnverifiedInboxUIItem struct {
+	ConvID        string                        `codec:"convID" json:"convID"`
+	Name          string                        `codec:"name" json:"name"`
+	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
+	Status        ConversationStatus            `codec:"status" json:"status"`
+	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
+	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
+	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	Time          gregor1.Time                  `codec:"time" json:"time"`
+}
+
+func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
+	return UnverifiedInboxUIItem{
+		ConvID:      o.ConvID,
+		Name:        o.Name,
+		Visibility:  o.Visibility.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
+		TeamType:    o.TeamType.DeepCopy(),
+		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Notifications),
+		Time: o.Time.DeepCopy(),
+	}
+}
+
+type UnverifiedInboxUIItems struct {
+	Items      []UnverifiedInboxUIItem `codec:"items" json:"items"`
+	Pagination *UIPagination           `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline    bool                    `codec:"offline" json:"offline"`
+}
+
+func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
+	return UnverifiedInboxUIItems{
+		Items: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+			var ret []UnverifiedInboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Items),
+		Pagination: (func(x *UIPagination) *UIPagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+		Offline: o.Offline,
+	}
+}
+
+type InboxUIItem struct {
+	ConvID        string                        `codec:"convID" json:"convID"`
+	IsEmpty       bool                          `codec:"isEmpty" json:"isEmpty"`
+	Name          string                        `codec:"name" json:"name"`
+	Snippet       string                        `codec:"snippet" json:"snippet"`
+	Channel       string                        `codec:"channel" json:"channel"`
+	Headline      string                        `codec:"headline" json:"headline"`
+	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
+	Participants  []string                      `codec:"participants" json:"participants"`
+	Status        ConversationStatus            `codec:"status" json:"status"`
+	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
+	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
+	Time          gregor1.Time                  `codec:"time" json:"time"`
+	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	CreatorInfo   *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	FinalizeInfo  *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes    []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
+	SupersededBy  []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
+}
+
+func (o InboxUIItem) DeepCopy() InboxUIItem {
+	return InboxUIItem{
+		ConvID:     o.ConvID,
+		IsEmpty:    o.IsEmpty,
+		Name:       o.Name,
+		Snippet:    o.Snippet,
+		Channel:    o.Channel,
+		Headline:   o.Headline,
+		Visibility: o.Visibility.DeepCopy(),
+		Participants: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Participants),
+		Status:      o.Status.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
+		TeamType:    o.TeamType.DeepCopy(),
+		Time:        o.Time.DeepCopy(),
+		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Notifications),
+		CreatorInfo: (func(x *ConversationCreatorInfoLocal) *ConversationCreatorInfoLocal {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.CreatorInfo),
+		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.FinalizeInfo),
+		Supersedes: (func(x []ConversationMetadata) []ConversationMetadata {
+			var ret []ConversationMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Supersedes),
+		SupersededBy: (func(x []ConversationMetadata) []ConversationMetadata {
+			var ret []ConversationMetadata
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.SupersededBy),
+	}
+}
+
+type InboxUIItems struct {
+	Items      []InboxUIItem `codec:"items" json:"items"`
+	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline    bool          `codec:"offline" json:"offline"`
+}
+
+func (o InboxUIItems) DeepCopy() InboxUIItems {
+	return InboxUIItems{
+		Items: (func(x []InboxUIItem) []InboxUIItem {
+			var ret []InboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Items),
+		Pagination: (func(x *UIPagination) *UIPagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+		Offline: o.Offline,
+	}
+}
+
+type UIMessageValid struct {
+	MessageID             MessageID      `codec:"messageID" json:"messageID"`
+	Ctime                 gregor1.Time   `codec:"ctime" json:"ctime"`
+	OutboxID              *string        `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	MessageBody           MessageBody    `codec:"messageBody" json:"messageBody"`
+	SenderUsername        string         `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName      string         `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType      string         `codec:"senderDeviceType" json:"senderDeviceType"`
+	Superseded            bool           `codec:"superseded" json:"superseded"`
+	SenderDeviceRevokedAt *gregor1.Time  `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	AtMentions            []string       `codec:"atMentions" json:"atMentions"`
+	ChannelMention        ChannelMention `codec:"channelMention" json:"channelMention"`
+}
+
+func (o UIMessageValid) DeepCopy() UIMessageValid {
+	return UIMessageValid{
+		MessageID: o.MessageID.DeepCopy(),
+		Ctime:     o.Ctime.DeepCopy(),
+		OutboxID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.OutboxID),
+		MessageBody:      o.MessageBody.DeepCopy(),
+		SenderUsername:   o.SenderUsername,
+		SenderDeviceName: o.SenderDeviceName,
+		SenderDeviceType: o.SenderDeviceType,
+		Superseded:       o.Superseded,
+		SenderDeviceRevokedAt: (func(x *gregor1.Time) *gregor1.Time {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SenderDeviceRevokedAt),
+		AtMentions: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentions),
+		ChannelMention: o.ChannelMention.DeepCopy(),
+	}
+}
+
+type UIMessageOutbox struct {
+	State       OutboxState  `codec:"state" json:"state"`
+	OutboxID    string       `codec:"outboxID" json:"outboxID"`
+	MessageType MessageType  `codec:"messageType" json:"messageType"`
+	Body        string       `codec:"body" json:"body"`
+	Ctime       gregor1.Time `codec:"ctime" json:"ctime"`
+}
+
+func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
+	return UIMessageOutbox{
+		State:       o.State.DeepCopy(),
+		OutboxID:    o.OutboxID,
+		MessageType: o.MessageType.DeepCopy(),
+		Body:        o.Body,
+		Ctime:       o.Ctime.DeepCopy(),
+	}
+}
+
+type MessageUnboxedState int
+
+const (
+	MessageUnboxedState_VALID       MessageUnboxedState = 1
+	MessageUnboxedState_ERROR       MessageUnboxedState = 2
+	MessageUnboxedState_OUTBOX      MessageUnboxedState = 3
+	MessageUnboxedState_PLACEHOLDER MessageUnboxedState = 4
+)
+
+func (o MessageUnboxedState) DeepCopy() MessageUnboxedState { return o }
+
+var MessageUnboxedStateMap = map[string]MessageUnboxedState{
+	"VALID":       1,
+	"ERROR":       2,
+	"OUTBOX":      3,
+	"PLACEHOLDER": 4,
+}
+
+var MessageUnboxedStateRevMap = map[MessageUnboxedState]string{
+	1: "VALID",
+	2: "ERROR",
+	3: "OUTBOX",
+	4: "PLACEHOLDER",
+}
+
+func (e MessageUnboxedState) String() string {
+	if v, ok := MessageUnboxedStateRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UIMessage struct {
+	State__       MessageUnboxedState        `codec:"state" json:"state"`
+	Valid__       *UIMessageValid            `codec:"valid,omitempty" json:"valid,omitempty"`
+	Error__       *MessageUnboxedError       `codec:"error,omitempty" json:"error,omitempty"`
+	Outbox__      *UIMessageOutbox           `codec:"outbox,omitempty" json:"outbox,omitempty"`
+	Placeholder__ *MessageUnboxedPlaceholder `codec:"placeholder,omitempty" json:"placeholder,omitempty"`
+}
+
+func (o *UIMessage) State() (ret MessageUnboxedState, err error) {
+	switch o.State__ {
+	case MessageUnboxedState_VALID:
+		if o.Valid__ == nil {
+			err = errors.New("unexpected nil value for Valid__")
+			return ret, err
+		}
+	case MessageUnboxedState_ERROR:
+		if o.Error__ == nil {
+			err = errors.New("unexpected nil value for Error__")
+			return ret, err
+		}
+	case MessageUnboxedState_OUTBOX:
+		if o.Outbox__ == nil {
+			err = errors.New("unexpected nil value for Outbox__")
+			return ret, err
+		}
+	case MessageUnboxedState_PLACEHOLDER:
+		if o.Placeholder__ == nil {
+			err = errors.New("unexpected nil value for Placeholder__")
+			return ret, err
+		}
+	}
+	return o.State__, nil
+}
+
+func (o UIMessage) Valid() (res UIMessageValid) {
+	if o.State__ != MessageUnboxedState_VALID {
+		panic("wrong case accessed")
+	}
+	if o.Valid__ == nil {
+		return
+	}
+	return *o.Valid__
+}
+
+func (o UIMessage) Error() (res MessageUnboxedError) {
+	if o.State__ != MessageUnboxedState_ERROR {
+		panic("wrong case accessed")
+	}
+	if o.Error__ == nil {
+		return
+	}
+	return *o.Error__
+}
+
+func (o UIMessage) Outbox() (res UIMessageOutbox) {
+	if o.State__ != MessageUnboxedState_OUTBOX {
+		panic("wrong case accessed")
+	}
+	if o.Outbox__ == nil {
+		return
+	}
+	return *o.Outbox__
+}
+
+func (o UIMessage) Placeholder() (res MessageUnboxedPlaceholder) {
+	if o.State__ != MessageUnboxedState_PLACEHOLDER {
+		panic("wrong case accessed")
+	}
+	if o.Placeholder__ == nil {
+		return
+	}
+	return *o.Placeholder__
+}
+
+func NewUIMessageWithValid(v UIMessageValid) UIMessage {
+	return UIMessage{
+		State__: MessageUnboxedState_VALID,
+		Valid__: &v,
+	}
+}
+
+func NewUIMessageWithError(v MessageUnboxedError) UIMessage {
+	return UIMessage{
+		State__: MessageUnboxedState_ERROR,
+		Error__: &v,
+	}
+}
+
+func NewUIMessageWithOutbox(v UIMessageOutbox) UIMessage {
+	return UIMessage{
+		State__:  MessageUnboxedState_OUTBOX,
+		Outbox__: &v,
+	}
+}
+
+func NewUIMessageWithPlaceholder(v MessageUnboxedPlaceholder) UIMessage {
+	return UIMessage{
+		State__:       MessageUnboxedState_PLACEHOLDER,
+		Placeholder__: &v,
+	}
+}
+
+func (o UIMessage) DeepCopy() UIMessage {
+	return UIMessage{
+		State__: o.State__.DeepCopy(),
+		Valid__: (func(x *UIMessageValid) *UIMessageValid {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Valid__),
+		Error__: (func(x *MessageUnboxedError) *MessageUnboxedError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Error__),
+		Outbox__: (func(x *UIMessageOutbox) *UIMessageOutbox {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Outbox__),
+		Placeholder__: (func(x *MessageUnboxedPlaceholder) *MessageUnboxedPlaceholder {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Placeholder__),
+	}
+}
+
+type UIMessages struct {
+	Messages   []UIMessage   `codec:"messages" json:"messages"`
+	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+func (o UIMessages) DeepCopy() UIMessages {
+	return UIMessages{
+		Messages: (func(x []UIMessage) []UIMessage {
+			var ret []UIMessage
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Messages),
+		Pagination: (func(x *UIPagination) *UIPagination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Pagination),
+	}
+}
 
 type ChatAttachmentUploadOutboxIDArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
@@ -115,20 +559,20 @@ func (o ChatAttachmentDownloadDoneArg) DeepCopy() ChatAttachmentDownloadDoneArg 
 }
 
 type ChatInboxUnverifiedArg struct {
-	SessionID int              `codec:"sessionID" json:"sessionID"`
-	Inbox     GetInboxLocalRes `codec:"inbox" json:"inbox"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Inbox     string `codec:"inbox" json:"inbox"`
 }
 
 func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 	return ChatInboxUnverifiedArg{
 		SessionID: o.SessionID,
-		Inbox:     o.Inbox.DeepCopy(),
+		Inbox:     o.Inbox,
 	}
 }
 
 type ChatInboxConversationArg struct {
-	SessionID int               `codec:"sessionID" json:"sessionID"`
-	Conv      ConversationLocal `codec:"conv" json:"conv"`
+	SessionID int         `codec:"sessionID" json:"sessionID"`
+	Conv      InboxUIItem `codec:"conv" json:"conv"`
 }
 
 func (o ChatInboxConversationArg) DeepCopy() ChatInboxConversationArg {
@@ -153,32 +597,32 @@ func (o ChatInboxFailedArg) DeepCopy() ChatInboxFailedArg {
 }
 
 type ChatThreadCachedArg struct {
-	SessionID int         `codec:"sessionID" json:"sessionID"`
-	Thread    *ThreadView `codec:"thread,omitempty" json:"thread,omitempty"`
+	SessionID int     `codec:"sessionID" json:"sessionID"`
+	Thread    *string `codec:"thread,omitempty" json:"thread,omitempty"`
 }
 
 func (o ChatThreadCachedArg) DeepCopy() ChatThreadCachedArg {
 	return ChatThreadCachedArg{
 		SessionID: o.SessionID,
-		Thread: (func(x *ThreadView) *ThreadView {
+		Thread: (func(x *string) *string {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x).DeepCopy()
+			tmp := (*x)
 			return &tmp
 		})(o.Thread),
 	}
 }
 
 type ChatThreadFullArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	Thread    ThreadView `codec:"thread" json:"thread"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Thread    string `codec:"thread" json:"thread"`
 }
 
 func (o ChatThreadFullArg) DeepCopy() ChatThreadFullArg {
 	return ChatThreadFullArg{
 		SessionID: o.SessionID,
-		Thread:    o.Thread.DeepCopy(),
+		Thread:    o.Thread,
 	}
 }
 

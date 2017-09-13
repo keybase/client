@@ -987,6 +987,15 @@ func (e *Env) GetInboxSourceType() string {
 	)
 }
 
+// GetChatMemberType returns the default member type for new conversations.
+// Currently defaults to `kbfs`, but `impteam` will be default in future.
+func (e *Env) GetChatMemberType() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_CHAT_MEMBER_TYPE") },
+		func() string { return "kbfs" },
+	)
+}
+
 func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
@@ -1091,6 +1100,7 @@ type AppConfig struct {
 	Debug                       bool
 	LocalRPCDebug               string
 	ServerURI                   string
+	VDebugSetting               string
 	SecurityAccessGroupOverride bool
 }
 
@@ -1126,6 +1136,10 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 
 func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
+}
+
+func (c AppConfig) GetVDebugSetting() string {
+	return c.VDebugSetting
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

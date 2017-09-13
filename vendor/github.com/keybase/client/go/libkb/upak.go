@@ -74,14 +74,14 @@ func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsern
 	g.VDL.Log(VLog1, "| Full user: %+v\n", *u)
 	rtl := u.GetRemoteTrack(username.String())
 	if rtl == nil {
-		g.Log.Debug("| no remote track found")
+		g.VDL.Log(VLog0, "| no remote track found")
 		return nil, nil
 	}
 	if !rtl.Uid.Equal(uid) {
 		return nil, UIDMismatchError{Msg: fmt.Sprintf("UIDs didn't match for (%s,%q); got %s", uid, username.String(), rtl.Uid)}
 	}
 	var lid LinkID
-	g.Log.Debug("| remote track found with linkID=%s", rtl.LinkID)
+	g.VDL.Log(VLog0, "| remote track found with linkID=%s", rtl.LinkID)
 	lid, err = ImportLinkID(rtl.LinkID)
 	if err != nil {
 		g.Log.Debug("| Failed to import link ID")
@@ -101,7 +101,7 @@ func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsern
 		return nil, InconsistentCacheStateError{}
 	}
 	ret, err = ParseTrackChainLink(GenericChainLink{link})
-	g.Log.Debug("| ParseTrackChainLink -> found=%v", (ret != nil))
+	g.VDL.Log(VLog0, "| ParseTrackChainLink -> found=%v", (ret != nil))
 	return ret, err
 }
 

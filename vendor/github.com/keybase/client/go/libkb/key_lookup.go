@@ -78,5 +78,8 @@ func keyLookup(g *GlobalContext, arg keyLookupArg) (username string, uid keybase
 	}
 
 	uid, err = keybase1.UIDFromString(data.UID)
+	if err != nil {
+		return username, uid, err
+	}
 	return data.Username, uid, nil
 }

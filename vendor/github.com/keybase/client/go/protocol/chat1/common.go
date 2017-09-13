@@ -202,6 +202,35 @@ var TopicTypeRevMap = map[TopicType]string{
 	2: "DEV",
 }
 
+type TeamType int
+
+const (
+	TeamType_NONE    TeamType = 0
+	TeamType_SIMPLE  TeamType = 1
+	TeamType_COMPLEX TeamType = 2
+)
+
+func (o TeamType) DeepCopy() TeamType { return o }
+
+var TeamTypeMap = map[string]TeamType{
+	"NONE":    0,
+	"SIMPLE":  1,
+	"COMPLEX": 2,
+}
+
+var TeamTypeRevMap = map[TeamType]string{
+	0: "NONE",
+	1: "SIMPLE",
+	2: "COMPLEX",
+}
+
+func (e TeamType) String() string {
+	if v, ok := TeamTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type NotificationKind int
 
 const (
@@ -219,6 +248,53 @@ var NotificationKindMap = map[string]NotificationKind{
 var NotificationKindRevMap = map[NotificationKind]string{
 	0: "GENERIC",
 	1: "ATMENTION",
+}
+
+type GlobalAppNotificationSetting int
+
+const (
+	GlobalAppNotificationSetting_NEWMESSAGES      GlobalAppNotificationSetting = 0
+	GlobalAppNotificationSetting_PLAINTEXTMOBILE  GlobalAppNotificationSetting = 1
+	GlobalAppNotificationSetting_PLAINTEXTDESKTOP GlobalAppNotificationSetting = 2
+)
+
+func (o GlobalAppNotificationSetting) DeepCopy() GlobalAppNotificationSetting { return o }
+
+var GlobalAppNotificationSettingMap = map[string]GlobalAppNotificationSetting{
+	"NEWMESSAGES":      0,
+	"PLAINTEXTMOBILE":  1,
+	"PLAINTEXTDESKTOP": 2,
+}
+
+var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string{
+	0: "NEWMESSAGES",
+	1: "PLAINTEXTMOBILE",
+	2: "PLAINTEXTDESKTOP",
+}
+
+func (e GlobalAppNotificationSetting) String() string {
+	if v, ok := GlobalAppNotificationSettingRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GlobalAppNotificationSettings struct {
+	Settings map[GlobalAppNotificationSetting]bool `codec:"settings" json:"settings"`
+}
+
+func (o GlobalAppNotificationSettings) DeepCopy() GlobalAppNotificationSettings {
+	return GlobalAppNotificationSettings{
+		Settings: (func(x map[GlobalAppNotificationSetting]bool) map[GlobalAppNotificationSetting]bool {
+			ret := make(map[GlobalAppNotificationSetting]bool)
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Settings),
+	}
 }
 
 type ConversationStatus int
@@ -374,49 +450,21 @@ func (o RateLimit) DeepCopy() RateLimit {
 	}
 }
 
-type TLFVisibility int
-
-const (
-	TLFVisibility_ANY     TLFVisibility = 0
-	TLFVisibility_PUBLIC  TLFVisibility = 1
-	TLFVisibility_PRIVATE TLFVisibility = 2
-)
-
-func (o TLFVisibility) DeepCopy() TLFVisibility { return o }
-
-var TLFVisibilityMap = map[string]TLFVisibility{
-	"ANY":     0,
-	"PUBLIC":  1,
-	"PRIVATE": 2,
-}
-
-var TLFVisibilityRevMap = map[TLFVisibility]string{
-	0: "ANY",
-	1: "PUBLIC",
-	2: "PRIVATE",
-}
-
-func (e TLFVisibility) String() string {
-	if v, ok := TLFVisibilityRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
 type GetInboxQuery struct {
-	ConvID            *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
-	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfID             *TLFID               `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
-	TlfVisibility     *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before            *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
-	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	Status            []ConversationStatus `codec:"status" json:"status"`
-	ConvIDs           []ConversationID     `codec:"convIDs" json:"convIDs"`
-	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
-	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
-	SummarizeMaxMsgs  bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ConvID            *ConversationID            `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType         *TopicType                 `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfID             *TLFID                     `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
+	TlfVisibility     *keybase1.TLFVisibility    `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time              `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time              `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool                      `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	Status            []ConversationStatus       `codec:"status" json:"status"`
+	MemberStatus      []ConversationMemberStatus `codec:"memberStatus" json:"memberStatus"`
+	ConvIDs           []ConversationID           `codec:"convIDs" json:"convIDs"`
+	UnreadOnly        bool                       `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
+	SummarizeMaxMsgs  bool                       `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 func (o GetInboxQuery) DeepCopy() GetInboxQuery {
@@ -442,7 +490,7 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TlfID),
-		TlfVisibility: (func(x *TLFVisibility) *TLFVisibility {
+		TlfVisibility: (func(x *keybase1.TLFVisibility) *keybase1.TLFVisibility {
 			if x == nil {
 				return nil
 			}
@@ -478,6 +526,14 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			}
 			return ret
 		})(o.Status),
+		MemberStatus: (func(x []ConversationMemberStatus) []ConversationMemberStatus {
+			var ret []ConversationMemberStatus
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.MemberStatus),
 		ConvIDs: (func(x []ConversationID) []ConversationID {
 			var ret []ConversationID
 			for _, v := range x {
@@ -536,9 +592,10 @@ func (o ConversationResolveInfo) DeepCopy() ConversationResolveInfo {
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
-	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
+	Visibility     keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
 	Status         ConversationStatus        `codec:"status" json:"status"`
 	MembersType    ConversationMembersType   `codec:"membersType" json:"membersType"`
+	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -553,6 +610,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		Visibility:     o.Visibility.DeepCopy(),
 		Status:         o.Status.DeepCopy(),
 		MembersType:    o.MembersType.DeepCopy(),
+		TeamType:       o.TeamType.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
@@ -639,41 +697,27 @@ func (o ConversationReaderInfo) DeepCopy() ConversationReaderInfo {
 	}
 }
 
-type ConversationAuxiliaryInfo struct {
-	ConversationCtime   gregor1.Time  `codec:"conversationCtime" json:"conversationCtime"`
-	ConversationCreator gregor1.UID   `codec:"conversationCreator" json:"conversationCreator"`
-	HeadlineMtime       *gregor1.Time `codec:"headlineMtime,omitempty" json:"headlineMtime,omitempty"`
-	HeadlineModifier    *gregor1.UID  `codec:"headlineModifier,omitempty" json:"headlineModifier,omitempty"`
-	HeadlineMessageID   *MessageID    `codec:"headlineMessageID,omitempty" json:"headlineMessageID,omitempty"`
-	ReaderCount         int           `codec:"readerCount" json:"readerCount"`
+type ConversationCreatorInfo struct {
+	Ctime gregor1.Time `codec:"ctime" json:"ctime"`
+	Uid   gregor1.UID  `codec:"uid" json:"uid"`
 }
 
-func (o ConversationAuxiliaryInfo) DeepCopy() ConversationAuxiliaryInfo {
-	return ConversationAuxiliaryInfo{
-		ConversationCtime:   o.ConversationCtime.DeepCopy(),
-		ConversationCreator: o.ConversationCreator.DeepCopy(),
-		HeadlineMtime: (func(x *gregor1.Time) *gregor1.Time {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.HeadlineMtime),
-		HeadlineModifier: (func(x *gregor1.UID) *gregor1.UID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.HeadlineModifier),
-		HeadlineMessageID: (func(x *MessageID) *MessageID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.HeadlineMessageID),
-		ReaderCount: o.ReaderCount,
+func (o ConversationCreatorInfo) DeepCopy() ConversationCreatorInfo {
+	return ConversationCreatorInfo{
+		Ctime: o.Ctime.DeepCopy(),
+		Uid:   o.Uid.DeepCopy(),
+	}
+}
+
+type ConversationCreatorInfoLocal struct {
+	Ctime    gregor1.Time `codec:"ctime" json:"ctime"`
+	Username string       `codec:"username" json:"username"`
+}
+
+func (o ConversationCreatorInfoLocal) DeepCopy() ConversationCreatorInfoLocal {
+	return ConversationCreatorInfoLocal{
+		Ctime:    o.Ctime.DeepCopy(),
+		Username: o.Username,
 	}
 }
 
@@ -683,7 +727,7 @@ type Conversation struct {
 	Notifications   *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	MaxMsgs         []MessageBoxed                `codec:"maxMsgs" json:"maxMsgs"`
 	MaxMsgSummaries []MessageSummary              `codec:"maxMsgSummaries" json:"maxMsgSummaries"`
-	AuxiliaryInfo   *ConversationAuxiliaryInfo    `codec:"auxiliaryInfo,omitempty" json:"auxiliaryInfo,omitempty"`
+	CreatorInfo     *ConversationCreatorInfo      `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 }
 
 func (o Conversation) DeepCopy() Conversation {
@@ -719,13 +763,13 @@ func (o Conversation) DeepCopy() Conversation {
 			}
 			return ret
 		})(o.MaxMsgSummaries),
-		AuxiliaryInfo: (func(x *ConversationAuxiliaryInfo) *ConversationAuxiliaryInfo {
+		CreatorInfo: (func(x *ConversationCreatorInfo) *ConversationCreatorInfo {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.AuxiliaryInfo),
+		})(o.CreatorInfo),
 	}
 }
 
