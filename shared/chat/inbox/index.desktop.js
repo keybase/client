@@ -66,7 +66,7 @@ class Inbox extends PureComponent<Props, State> {
     showFloating: false,
   }
 
-  _list: ReactList
+  _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {
     if (
@@ -167,12 +167,12 @@ class Inbox extends PureComponent<Props, State> {
     }
   }, 200)
 
-  _setRef = (list: ReactList) => {
+  _setRef = (list: ?ReactList) => {
     this._list = list
   }
 
   _prepareNewChat = () => {
-    this._list.scrollTo(0)
+    this._list && this._list.scrollTo(0)
     this.props.onNewChat()
   }
 
