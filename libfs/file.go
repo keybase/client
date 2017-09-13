@@ -10,7 +10,7 @@ import (
 
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
-	billy "github.com/src-d/go-billy"
+	billy "gopkg.in/src-d/go-billy.v3"
 )
 
 // File is a wrapper around a libkbfs.Node that implements the

@@ -14,8 +14,8 @@ import (
 
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
-	billy "github.com/src-d/go-billy"
 	"github.com/stretchr/testify/require"
+	billy "gopkg.in/src-d/go-billy.v3"
 )
 
 func makeFS(t *testing.T, subdir string) (
