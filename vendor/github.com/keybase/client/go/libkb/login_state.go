@@ -602,7 +602,7 @@ func (s *LoginState) pubkeyLoginWithKey(lctx LoginContext, me *User, key Generic
 		sig: sig,
 		key: key,
 	}
-	pres, err := PostAuthProof(arg)
+	pres, err := PostAuthProof(context.TODO(), s.G(), arg)
 	if err != nil {
 		return err
 	}
