@@ -154,7 +154,12 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	c.tabw = new(tabwriter.Writer)
 	c.tabw.Init(dui.OutputWriter(), 0, 8, 4, ' ', 0)
 
-	fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
+	// Only print the username and full name columns when we're showing other users.
+	if c.showAll {
+		fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
+	} else {
+		fmt.Fprintf(c.tabw, "Team\tRole\n")
+	}
 	for _, t := range list.Teams {
 		var role string
 		if t.Implicit != nil {
@@ -166,7 +171,11 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 			}
 			role += strings.ToLower(t.Role.String())
 		}
-		fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, role, t.Username, t.FullName)
+		if c.showAll {
+			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, role, t.Username, t.FullName)
+		} else {
+			fmt.Fprintf(c.tabw, "%s\t%s\n", t.FqName, role)
+		}
 	}
 	if c.showAll {
 		c.outputInvites(list.AnnotatedActiveInvites)
