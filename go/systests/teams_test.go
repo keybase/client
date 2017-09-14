@@ -512,7 +512,7 @@ func TestGetTeamRootID(t *testing.T) {
 	getAndCompare(parentID)
 }
 
-func TestTeamUpgradeCoverage(t *testing.T) {
+func TestTeamImplicitBoxCoverage(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -530,6 +530,8 @@ func TestTeamUpgradeCoverage(t *testing.T) {
 
 	t.Logf("Created teams: %q, %q", teamName, subteamID)
 
+	// Add Bob to main team, and then upgrade him to owner role.
+	// Upgrading should post box for subteam as well.
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
 
 	loadTeam := func(g *libkb.GlobalContext, id keybase1.TeamID) (*teams.Team, error) {
@@ -547,5 +549,16 @@ func TestTeamUpgradeCoverage(t *testing.T) {
 	ann.changeTeamMember(team, bob.username, keybase1.TeamRole_OWNER)
 
 	_, err = loadTeam(bob.tc.G, *subteamID)
+	require.NoError(t, err)
+
+	// Create user Pam and add to the main team as Owner. Adding
+	// should also add a box for the sub team.
+	pam := tt.addUser("pam")
+	ann.addTeamMember(team, pam.username, keybase1.TeamRole_OWNER)
+
+	_, err = loadTeam(pam.tc.G, teamName.ToTeamID())
+	require.NoError(t, err)
+
+	_, err = loadTeam(pam.tc.G, *subteamID)
 	require.NoError(t, err)
 }

@@ -983,7 +983,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
-		return nil, nil, nil, nil
+		return nil, implicitAdminBoxes, nil, nil
 	}
 
 	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
