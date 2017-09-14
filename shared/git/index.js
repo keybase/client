@@ -14,6 +14,7 @@ type Props = {
   onNewTeamRepo: () => void,
   personals: Array<RowProps>,
   teams: Array<RowProps>,
+  setTimeout: (() => void, number) => number,
 }
 
 type State = {
@@ -125,4 +126,5 @@ const _gitStyle = {
   width: '100%',
 }
 
+// $FlowIssue we need to fix up timer hoc props
 export default HOCTimers(Git)

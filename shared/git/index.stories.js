@@ -44,6 +44,7 @@ const load = () => {
           onDelete={action('onDelete')}
           onNewPersonalRepo={action('onNewPersonalRepo')}
           onNewTeamRepo={action('onNewTeamRepo')}
+          setTimeout={action('setTimeout')}
         />
       </Box>
     ))

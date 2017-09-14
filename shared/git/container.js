@@ -1,6 +1,7 @@
 // @flow
 import Git from '.'
 import * as I from 'immutable'
+import * as Constants from '../constants/git'
 import * as Creators from '../actions/git/creators'
 import {compose, lifecycle, mapProps, withState, withHandlers} from 'recompose'
 import {connect} from 'react-redux'
@@ -13,7 +14,8 @@ import type {TypedState} from '../constants/reducer'
 const getIdToGit = (state: TypedState) => state.entities.getIn(['git', 'idToInfo'])
 const getFollowing = (state: TypedState) => state.config.following
 
-const mergeFollowIntoGit = (git: GitInfoRecord, following: {[key: string]: true}) => ({
+const mergeFollowIntoGit = (git: Constants.GitInfoRecord, following: {[key: string]: true}) => ({
+  // $FlowIssue
   ...git.toJS(),
   lastEditUserFollowing: !!following[git.lastEditUser],
 })
@@ -37,9 +39,9 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: any) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
   onCopy: (url: string) => copyToClipboard(url),
-  onDelete: (url: string) => {},
-  onNewPersonalRepo: () => {},
-  onNewTeamRepo: () => {},
+  onDelete: (url: string) => console.warn('TODO'),
+  onNewPersonalRepo: () => console.warn('TODO'),
+  onNewTeamRepo: () => console.warn('TODO'),
 })
 
 export default compose(
