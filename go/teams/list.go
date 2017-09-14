@@ -43,6 +43,9 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 }
 
 func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList")
+	defer tracer.Finish()
+
 	var uid keybase1.UID
 	if arg.UserAssertion != "" {
 		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
@@ -54,11 +57,13 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 	meUID := g.ActiveDevice.UID()
 
+	tracer.Stage("server")
 	teams, err := getTeamsListFromServer(ctx, g, uid, arg.All)
 	if err != nil {
 		return nil, err
 	}
 
+	tracer.Stage("loop1")
 	teamNames := make(map[string]bool)
 	upakLoader := g.GetUPAKLoader()
 	var annotatedTeams []keybase1.AnnotatedMemberInfo
@@ -95,6 +100,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		})
 	}
 
+	tracer.Stage("loop2")
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite)
 	for teamName := range teamNames {
 		_, ok := administeredTeams[teamName]
