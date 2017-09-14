@@ -13,8 +13,7 @@ import (
 )
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
-	tc = libkb.SetupTest(tb, name, depth+1)
-	tc.G.SetServices(externals.GetServices())
+	tc = externals.SetupTest(tb, name, depth+1)
 	NewTeamLoaderAndInstall(tc.G)
 	return tc
 }
