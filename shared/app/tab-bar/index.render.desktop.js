@@ -16,6 +16,7 @@ const _icons = {
   [Tabs.profileTab]: 'iconfont-nav-people',
   [Tabs.settingsTab]: 'iconfont-nav-settings',
   [Tabs.teamsTab]: 'iconfont-nav-teams',
+  [Tabs.gitTab]: 'iconfont-nav-git',
 }
 
 const _labels = {
@@ -26,6 +27,7 @@ const _labels = {
   [Tabs.profileTab]: 'People',
   [Tabs.settingsTab]: 'Settings',
   [Tabs.teamsTab]: 'Teams',
+  [Tabs.gitTab]: 'Git',
 }
 
 const _tabs = [
@@ -34,6 +36,7 @@ const _tabs = [
   Tabs.folderTab,
   ...(flags.teamChatEnabled ? [Tabs.teamsTab] : []),
   Tabs.devicesTab,
+  Tabs.gitTab,
   Tabs.settingsTab,
 ].filter(Boolean)
 

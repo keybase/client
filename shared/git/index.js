@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import Row from './row'
-import {Box, Text, Icon, ClickableBox, PopupMenu} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {Box, Text, Icon, ClickableBox, PopupMenu, HOCTimers} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins, transition} from '../styles'
 import {isMobile} from '../constants/platform'
 
 import type {Props as RowProps} from './row'
@@ -17,11 +17,31 @@ type Props = {
 }
 
 type State = {
+  showingCopy: boolean,
   showingMenu: boolean,
 }
 
+const Copied = ({showing}) => (
+  <Box
+    style={{
+      ...transition('opacity'),
+      backgroundColor: globalColors.black_60,
+      borderRadius: 10,
+      left: '50%',
+      opacity: showing ? 1 : 0,
+      padding: 5,
+      position: 'absolute',
+      top: '50%',
+      transform: 'translate(-50%, -50%)',
+    }}
+  >
+    <Text type="Body" backgroundMode="Terminal">Copied!</Text>
+  </Box>
+)
+
 class Git extends React.Component<Props, State> {
   state = {
+    showingCopy: false,
     showingMenu: false,
   }
 
@@ -31,14 +51,20 @@ class Git extends React.Component<Props, State> {
     }))
   }
 
+  _onCopy = (url: string) => {
+    this.props.onCopy(url)
+    this.setState({showingCopy: true})
+    this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
+  }
+
   _menuItems = [
     {
-      title: 'New personal repository',
       onClick: () => this.props.onNewPersonalRepo(),
+      title: 'New personal repository',
     },
     {
-      title: 'New team repository',
       onClick: () => this.props.onNewTeamRepo(),
+      title: 'New team repository',
     },
   ]
 
@@ -53,16 +79,17 @@ class Git extends React.Component<Props, State> {
           <Text type="BodySmallSemibold">Personal repositories</Text>
         </Box>
         {this.props.personals.map(p => (
-          <Row {...p} key={p.url} onCopy={this.props.onCopy} onDelete={this.props.onDelete} />
+          <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
         ))}
         <Box style={_sectionHeaderStyle}>
           <Text type="BodySmallSemibold">Team repositories</Text>
         </Box>
         {this.props.teams.map(p => (
-          <Row {...p} key={p.url} onCopy={this.props.onCopy} onDelete={this.props.onDelete} />
+          <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
         ))}
         {this.state.showingMenu &&
           <PopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}
+        <Copied showing={this.state.showingCopy} />
       </Box>
     )
   }
@@ -98,4 +125,4 @@ const _gitStyle = {
   width: '100%',
 }
 
-export default Git
+export default HOCTimers(Git)

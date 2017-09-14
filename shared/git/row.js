@@ -91,7 +91,15 @@ class Row extends React.Component<_Props, State> {
         </ClickableBox>
         {this.state.expanded &&
           <Box style={_rowBottomStyle}>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: 5, marginTop: 2}}>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                marginBottom: 5,
+                marginTop: 2,
+              }}
+            >
               <Text type="BodySmall">
                 Last push
                 {' '}
