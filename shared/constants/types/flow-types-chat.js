@@ -62,6 +62,12 @@ export const ChatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const CommonConversationExistence = {
+  active: 0,
+  archived: 1,
+  deleted: 2,
+}
+
 export const CommonConversationMemberStatus = {
   active: 0,
   removed: 1,
@@ -521,6 +527,14 @@ export function localUpdateTypingRpcPromise (request: (requestCommon & requestEr
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.updateTyping', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function remoteDeleteConversationRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: remoteDeleteConversationResult) => void} & {param: remoteDeleteConversationRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.deleteConversation', request)
+}
+
+export function remoteDeleteConversationRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: remoteDeleteConversationResult) => void} & {param: remoteDeleteConversationRpcParam})): Promise<remoteDeleteConversationResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.deleteConversation', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function remoteGetGlobalAppNotificationSettingsRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: remoteGetGlobalAppNotificationSettingsResult) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.getGlobalAppNotificationSettings', request)
 }
@@ -908,6 +922,11 @@ export type ConversationErrorType =
   | 5 // TRANSIENT_5
   | 6 // NONE_6
 
+export type ConversationExistence =
+    0 // ACTIVE_0
+  | 1 // ARCHIVED_1
+  | 2 // DELETED_2
+
 export type ConversationFinalizeInfo = {
   resetUser: string,
   resetDate: string,
@@ -941,6 +960,7 @@ export type ConversationInfoLocal = {
   status: ConversationStatus,
   membersType: ConversationMembersType,
   teamType: TeamType,
+  existence: ConversationExistence,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -982,6 +1002,7 @@ export type ConversationMetadata = {
   status: ConversationStatus,
   membersType: ConversationMembersType,
   teamType: TeamType,
+  existence: ConversationExistence,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1017,6 +1038,10 @@ export type ConversationStatus =
   | 3 // BLOCKED_3
   | 4 // MUTED_4
   | 5 // REPORTED_5
+
+export type DeleteConversationRemoteRes = {
+  rateLimit?: ?RateLimit,
+}
 
 export type DownloadAttachmentLocalRes = {
   offline: boolean,
@@ -1113,6 +1138,7 @@ export type GetInboxQuery = {
   oneChatTypePerTLF?: ?boolean,
   status?: ?Array<ConversationStatus>,
   memberStatus?: ?Array<ConversationMemberStatus>,
+  existences?: ?Array<ConversationExistence>,
   convIDs?: ?Array<ConversationID>,
   unreadOnly: boolean,
   readOnly: boolean,
@@ -2251,6 +2277,10 @@ export type localUpdateTypingRpcParam = Exact<{
   typing: boolean
 }>
 
+export type remoteDeleteConversationRpcParam = Exact<{
+  convID: ConversationID
+}>
+
 export type remoteGetInboxRemoteRpcParam = Exact<{
   vers: InboxVers,
   query?: ?GetInboxQuery,
@@ -2430,6 +2460,7 @@ type localPostTextNonblockResult = PostLocalNonblockRes
 type localSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
 type localUnboxMobilePushNotificationResult = string
+type remoteDeleteConversationResult = DeleteConversationRemoteRes
 type remoteGetGlobalAppNotificationSettingsResult = GlobalAppNotificationSettings
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 type remoteGetInboxVersionResult = InboxVers

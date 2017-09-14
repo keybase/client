@@ -105,6 +105,35 @@ func (o TopicNameState) DeepCopy() TopicNameState {
 	})(o)
 }
 
+type ConversationExistence int
+
+const (
+	ConversationExistence_ACTIVE   ConversationExistence = 0
+	ConversationExistence_ARCHIVED ConversationExistence = 1
+	ConversationExistence_DELETED  ConversationExistence = 2
+)
+
+func (o ConversationExistence) DeepCopy() ConversationExistence { return o }
+
+var ConversationExistenceMap = map[string]ConversationExistence{
+	"ACTIVE":   0,
+	"ARCHIVED": 1,
+	"DELETED":  2,
+}
+
+var ConversationExistenceRevMap = map[ConversationExistence]string{
+	0: "ACTIVE",
+	1: "ARCHIVED",
+	2: "DELETED",
+}
+
+func (e ConversationExistence) String() string {
+	if v, ok := ConversationExistenceRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ConversationMembersType int
 
 const (
@@ -460,6 +489,7 @@ type GetInboxQuery struct {
 	OneChatTypePerTLF *bool                      `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
 	Status            []ConversationStatus       `codec:"status" json:"status"`
 	MemberStatus      []ConversationMemberStatus `codec:"memberStatus" json:"memberStatus"`
+	Existences        []ConversationExistence    `codec:"existences" json:"existences"`
 	ConvIDs           []ConversationID           `codec:"convIDs" json:"convIDs"`
 	UnreadOnly        bool                       `codec:"unreadOnly" json:"unreadOnly"`
 	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
@@ -534,6 +564,14 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			}
 			return ret
 		})(o.MemberStatus),
+		Existences: (func(x []ConversationExistence) []ConversationExistence {
+			var ret []ConversationExistence
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Existences),
 		ConvIDs: (func(x []ConversationID) []ConversationID {
 			var ret []ConversationID
 			for _, v := range x {
@@ -596,6 +634,7 @@ type ConversationMetadata struct {
 	Status         ConversationStatus        `codec:"status" json:"status"`
 	MembersType    ConversationMembersType   `codec:"membersType" json:"membersType"`
 	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
+	Existence      ConversationExistence     `codec:"existence" json:"existence"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -611,6 +650,7 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		Status:         o.Status.DeepCopy(),
 		MembersType:    o.MembersType.DeepCopy(),
 		TeamType:       o.TeamType.DeepCopy(),
+		Existence:      o.Existence.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

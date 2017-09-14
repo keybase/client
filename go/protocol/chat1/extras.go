@@ -680,3 +680,10 @@ func AllConversationMemberStatuses() (res []ConversationMemberStatus) {
 	}
 	return res
 }
+
+func AllConversationExistences() (res []ConversationExistence) {
+	for existence := range ConversationExistenceRevMap {
+		res = append(res, existence)
+	}
+	return res
+}

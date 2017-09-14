@@ -226,6 +226,10 @@ protocol remote {
   }
   JoinLeaveConversationRemoteRes joinConversation(ConversationID convID);
   JoinLeaveConversationRemoteRes leaveConversation(ConversationID convID);
+  record DeleteConversationRemoteRes {
+    union { null, RateLimit } rateLimit;
+  }
+  DeleteConversationRemoteRes deleteConversation(ConversationID convID);
 
   record GetTLFConversationsRes {
     array<Conversation> conversations;

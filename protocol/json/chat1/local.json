@@ -1031,6 +1031,10 @@
           "name": "teamType"
         },
         {
+          "type": "ConversationExistence",
+          "name": "existence"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"
