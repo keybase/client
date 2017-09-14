@@ -2736,6 +2736,7 @@ export type AnnotatedMemberInfo = {
   username: string,
   fullName: string,
   fqName: string,
+  isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
 }
@@ -3581,6 +3582,7 @@ export type MemberInfo = {
   userID: UID,
   teamID: TeamID,
   fqName: string,
+  isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
 }
@@ -6075,7 +6077,8 @@ export type teamsTeamLeaveRpcParam = Exact<{
 
 export type teamsTeamListRpcParam = Exact<{
   userAssertion: string,
-  all: boolean
+  all: boolean,
+  includeImplicitTeams: boolean
 }>
 
 export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{

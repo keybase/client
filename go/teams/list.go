@@ -61,9 +61,14 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 	teamNames := make(map[string]bool)
 	upakLoader := g.GetUPAKLoader()
-	annotatedTeams := make([]keybase1.AnnotatedMemberInfo, len(teams))
+	var annotatedTeams []keybase1.AnnotatedMemberInfo
 	administeredTeams := make(map[string]bool)
-	for idx, memberInfo := range teams {
+	for _, memberInfo := range teams {
+		// Skip implicit teams unless --include-implicit-teams was passed from above.
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			continue
+		}
+
 		teamNames[memberInfo.FqName] = true
 		if memberInfo.UserID == meUID && (memberInfo.Role.IsAdminOrAbove() || (memberInfo.Implicit != nil && memberInfo.Implicit.Role.IsAdminOrAbove())) {
 			administeredTeams[memberInfo.FqName] = true
@@ -78,15 +83,16 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		if err != nil {
 			return nil, err
 		}
-		annotatedTeams[idx] = keybase1.AnnotatedMemberInfo{
-			TeamID:   memberInfo.TeamID,
-			FqName:   memberInfo.FqName,
-			UserID:   memberInfo.UserID,
-			Role:     memberInfo.Role,
-			Implicit: memberInfo.Implicit,
-			Username: username.String(),
-			FullName: fullName,
-		}
+		annotatedTeams = append(annotatedTeams, keybase1.AnnotatedMemberInfo{
+			TeamID:         memberInfo.TeamID,
+			FqName:         memberInfo.FqName,
+			UserID:         memberInfo.UserID,
+			Role:           memberInfo.Role,
+			IsImplicitTeam: memberInfo.IsImplicitTeam,
+			Implicit:       memberInfo.Implicit,
+			Username:       username.String(),
+			FullName:       fullName,
+		})
 	}
 
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite)

@@ -19,14 +19,15 @@ import (
 
 type CmdTeamListMemberships struct {
 	libkb.Contextified
-	team            string
-	json            bool
-	forcePoll       bool
-	userAssertion   string
-	includeSubteams bool
-	showAll         bool
-	verbose         bool
-	tabw            *tabwriter.Writer
+	team                 string
+	json                 bool
+	forcePoll            bool
+	userAssertion        string
+	includeSubteams      bool
+	includeImplicitTeams bool
+	showAll              bool
+	verbose              bool
+	tabw                 *tabwriter.Writer
 }
 
 func (c *CmdTeamListMemberships) SetTeam(s string) {
@@ -46,6 +47,38 @@ func NewCmdTeamListMembershipsRunner(g *libkb.GlobalContext) *CmdTeamListMembers
 }
 
 func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := []cli.Flag{
+		cli.BoolFlag{
+			Name:  "j, json",
+			Usage: "Output memberships as JSON",
+		},
+		cli.BoolFlag{
+			Name:  "force-poll",
+			Usage: "Force a poll of the server for all identities",
+		},
+		cli.StringFlag{
+			Name:  "u, user",
+			Usage: "List memberships for a user assertion",
+		},
+		cli.BoolFlag{
+			Name:  "include-subteams",
+			Usage: "Include any subteam memberships as well",
+		},
+		cli.BoolFlag{
+			Name:  "all",
+			Usage: "Show all members of all teams you belong to",
+		},
+		cli.BoolFlag{
+			Name:  "v, verbose",
+			Usage: "Include more verbose output",
+		},
+	}
+	if develUsage {
+		flags = append(flags, cli.BoolFlag{
+			Name:  "include-implicit-teams",
+			Usage: "[devel only] Include automatic teams that are not normally visible",
+		})
+	}
 	return cli.Command{
 		Name:         "list-memberships",
 		ArgumentHelp: "[team name] [--user=username]",
@@ -55,32 +88,7 @@ func newCmdTeamListMemberships(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 			cmd := NewCmdTeamListMembershipsRunner(g)
 			cl.ChooseCommand(cmd, "list-memberships", c)
 		},
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "j, json",
-				Usage: "Output memberships as JSON",
-			},
-			cli.BoolFlag{
-				Name:  "force-poll",
-				Usage: "Force a poll of the server for all identities",
-			},
-			cli.StringFlag{
-				Name:  "u, user",
-				Usage: "List memberships for a user assertion",
-			},
-			cli.BoolFlag{
-				Name:  "include-subteams",
-				Usage: "Include any subteam memberships as well",
-			},
-			cli.BoolFlag{
-				Name:  "all",
-				Usage: "Show all members of all teams you belong to",
-			},
-			cli.BoolFlag{
-				Name:  "v, verbose",
-				Usage: "Include more verbose output",
-			},
-		},
+		Flags: flags,
 	}
 }
 
@@ -93,6 +101,7 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 	}
 	c.userAssertion = ctx.String("user")
 	c.includeSubteams = ctx.Bool("include-subteams")
+	c.includeImplicitTeams = ctx.Bool("include-implicit-teams")
 	c.showAll = ctx.Bool("all")
 
 	if c.showAll {
@@ -134,7 +143,11 @@ func (c *CmdTeamListMemberships) runGet(cli keybase1.TeamsClient) error {
 }
 
 func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
-	arg := keybase1.TeamListArg{UserAssertion: c.userAssertion, All: c.showAll}
+	arg := keybase1.TeamListArg{
+		UserAssertion:        c.userAssertion,
+		All:                  c.showAll,
+		IncludeImplicitTeams: c.includeImplicitTeams,
+	}
 	list, err := cli.TeamList(context.Background(), arg)
 	if err != nil {
 		return err
