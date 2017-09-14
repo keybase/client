@@ -219,6 +219,16 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	}
 }
 
+func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.TeamRole) {
+	change := client.NewCmdTeamEditMemberRunner(u.tc.G)
+	change.Team = team
+	change.Username = username
+	change.Role = keybase1.TeamRole_OWNER
+	if err := change.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
 func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.TeamRole) {
 	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
 	add.Team = team
@@ -500,4 +510,42 @@ func TestGetTeamRootID(t *testing.T) {
 	getAndCompare(*subteamID)
 	getAndCompare(*subteamID2)
 	getAndCompare(parentID)
+}
+
+func TestTeamUpgradeCoverage(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+	bob := tt.addUser("bob")
+
+	t.Logf("Signed up ann: %q, and bob: %q", ann.username, bob.username)
+
+	team := ann.createTeam()
+	teamName, err := keybase1.TeamNameFromString(team)
+	require.NoError(t, err)
+	subteamID, err := teams.CreateSubteam(context.TODO(), ann.tc.G, "mysubteam", teamName)
+	require.NotNil(t, subteamID)
+	require.NoError(t, err)
+
+	t.Logf("Created teams: %q, %q", teamName, subteamID)
+
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+
+	loadTeam := func(g *libkb.GlobalContext, id keybase1.TeamID) (*teams.Team, error) {
+		return teams.Load(context.TODO(), g, keybase1.LoadTeamArg{
+			ID:          id,
+			ForceRepoll: true,
+		})
+	}
+	_, err = loadTeam(bob.tc.G, teamName.ToTeamID())
+	require.NoError(t, err)
+
+	_, err = loadTeam(bob.tc.G, *subteamID)
+	require.Error(t, err)
+
+	ann.changeTeamMember(team, bob.username, keybase1.TeamRole_OWNER)
+
+	_, err = loadTeam(bob.tc.G, *subteamID)
+	require.NoError(t, err)
 }
