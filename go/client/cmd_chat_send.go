@@ -70,9 +70,11 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *CmdChatSend) Run() (err error) {
-	err = annotateResolvingRequest(c.G(), &c.resolvingRequest)
-	if err != nil {
-		return err
+	if c.resolvingRequest.TlfName != "" {
+		err = annotateResolvingRequest(c.G(), &c.resolvingRequest)
+		if err != nil {
+			return err
+		}
 	}
 	// TLFVisibility_ANY doesn't make any sense for send, so switch that to PRIVATE:
 	if c.resolvingRequest.Visibility == keybase1.TLFVisibility_ANY {
