@@ -7,6 +7,7 @@ import (
 	"time"
 
 	client "github.com/keybase/client/go/client"
+	engine "github.com/keybase/client/go/engine"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -346,6 +347,17 @@ func (u *smuUser) signupNoPUK() {
 	for _, clone := range dw.clones {
 		clone.G.ConfigureConfig()
 	}
+}
+
+func (u *smuUser) perUserKeyUpgrade() error {
+	g := u.getPrimaryGlobalContext()
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	ctx := &engine.Context{
+		LogUI: g.UI.GetLogUI(),
+	}
+	err := engine.RunEngine(eng, ctx)
+	return err
 }
 
 type smuTeam struct {
