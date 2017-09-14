@@ -93,7 +93,10 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	for teamName := range teamNames {
 		_, ok := administeredTeams[teamName]
 		if ok {
-			t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
+			t, err := Load(ctx, g, keybase1.LoadTeamArg{
+				Name:      teamName,
+				NeedAdmin: true,
+			})
 			if err != nil {
 				g.Log.Warning("Error while getting team (%s): %v", teamName, err)
 				continue
