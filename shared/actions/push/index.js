@@ -60,7 +60,7 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
             pushIDs: payload.p,
           },
         })
-        yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b)
+        yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
       } catch (err) {
         console.info('failed to unbox silent notification', err)
       }

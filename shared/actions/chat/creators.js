@@ -365,7 +365,7 @@ function toggleChannelWideNotifications(
 }
 
 function updateConversationUnreadCounts(
-  conversationUnreadCounts: Map<Constants.ConversationIDKey, number>
+  conversationUnreadCounts: Map<Constants.ConversationIDKey, Constants.UnreadCounts>
 ): Constants.UpdateConversationUnreadCounts {
   return {
     payload: {conversationUnreadCounts},
@@ -699,18 +699,29 @@ function updateSnippet(
   return {payload: {conversationIDKey, snippet}, type: 'chat:updateSnippet'}
 }
 
+function unboxConversations(
+  conversationIDKeys: Array<Constants.ConversationIDKey>,
+  force?: boolean = false
+): Constants.UnboxConversations {
+  return {payload: {conversationIDKeys, force}, type: 'chat:unboxConversations'}
+}
+
+function unboxMore(): Constants.UnboxMore {
+  return {type: 'chat:unboxMore', payload: undefined}
+}
+
 export {
   addPending,
   appendMessages,
   attachmentLoaded,
-  attachmentSaved,
-  attachmentSaveStart,
   attachmentSaveFailed,
+  attachmentSaveStart,
+  attachmentSaved,
   badgeAppForChat,
   blockConversation,
   clearMessages,
-  clearSearchResults,
   clearRekey,
+  clearSearchResults,
   deleteMessage,
   downloadProgress,
   editMessage,
@@ -762,6 +773,8 @@ export {
   startConversation,
   threadLoadedOffline,
   toggleChannelWideNotifications,
+  unboxConversations,
+  unboxMore,
   unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
@@ -775,6 +788,7 @@ export {
   updateLatestMessage,
   updateMetadata,
   updatePaginationNext,
+  updateSnippet,
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,
@@ -783,5 +797,4 @@ export {
   updatedMetadata,
   updatedNotifications,
   uploadProgress,
-  updateSnippet,
 }

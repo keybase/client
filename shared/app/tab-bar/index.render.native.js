@@ -18,8 +18,8 @@ const _icons = {
 
 const _tabs = [
   Tabs.profileTab,
-  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
   Tabs.chatTab,
+  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
   Tabs.settingsTab,
 ].filter(Boolean)
 
@@ -34,6 +34,7 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
         source={{icon: _icons[tab], type: 'icon'}}
+        underlined={selectedTab === tab}
         styleIcon={selectedTab === tab ? _selectedIconStyle : _iconStyle}
       />
     ))}
@@ -47,9 +48,6 @@ const _iconStyle = {
 const _selectedIconStyle = {
   ..._iconStyle,
   color: globalColors.white,
-  borderBottomWidth: 1,
-  borderStyle: 'solid',
-  borderColor: globalColors.white,
 }
 
 const tabBarHeight = 48

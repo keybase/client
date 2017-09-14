@@ -6,6 +6,7 @@ export type Props<Item> = {
   style?: any,
   fixedHeight?: ?number,
   renderItem: (index: number, item: Item) => React.Node,
+  keyProperty?: string, // if passed uses item[keyProperty] for the item keys
 }
 
 export default class List<Item> extends React.Component<Props<Item>, void> {}

@@ -22,8 +22,20 @@ function getTeams(): Constants.GetTeams {
   return {payload: {}, type: 'teams:getTeams'}
 }
 
+function getDetails(teamname: string): Constants.GetDetails {
+  return {payload: {teamname}, type: 'teams:getDetails'}
+}
+
 function toggleChannelMembership(teamname: string, channelname: string): Constants.ToggleChannelMembership {
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
+}
+
+function leaveTeam(teamname: string): Constants.LeaveTeam {
+  return {payload: {teamname}, type: 'teams:leaveTeam'}
+}
+
+function setupTeamHandlers(): Constants.SetupTeamHandlers {
+  return {payload: undefined, type: 'teams:setupTeamHandlers'}
 }
 
 export {
@@ -31,6 +43,9 @@ export {
   createNewTeam,
   createNewTeamFromConversation,
   getChannels,
+  getDetails,
   getTeams,
+  leaveTeam,
+  setupTeamHandlers,
   toggleChannelMembership,
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -17,7 +18,7 @@ type Socket interface {
 }
 
 type SocketInfo struct {
-	Contextified
+	log       logger.Logger
 	bindFile  string
 	dialFiles []string
 }
@@ -31,9 +32,9 @@ func (s SocketInfo) GetDialFiles() []string {
 }
 
 type SocketWrapper struct {
-	conn net.Conn
-	xp   rpc.Transporter
-	err  error
+	Conn        net.Conn
+	Transporter rpc.Transporter
+	Err         error
 }
 
 func (g *GlobalContext) MakeLoopbackServer() (l net.Listener, err error) {
@@ -71,7 +72,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (conn net.Conn, xp rpc.Transp
 	if g.SocketWrapper == nil {
 		needWrapper = true
 		g.Log.Debug("| empty socket wrapper; need a new one")
-	} else if g.SocketWrapper.xp != nil && !g.SocketWrapper.xp.IsConnected() {
+	} else if g.SocketWrapper.Transporter != nil && !g.SocketWrapper.Transporter.IsConnected() {
 		// need reconnect
 		g.Log.Debug("| rpc transport isn't connected, reconnecting...")
 		needWrapper = true
@@ -80,25 +81,25 @@ func (g *GlobalContext) GetSocket(clearError bool) (conn net.Conn, xp rpc.Transp
 	if needWrapper {
 		sw := SocketWrapper{}
 		if g.LoopbackListener != nil {
-			sw.conn, sw.err = g.LoopbackListener.Dial()
+			sw.Conn, sw.Err = g.LoopbackListener.Dial()
 		} else if g.SocketInfo == nil {
-			sw.err = fmt.Errorf("Cannot get socket in standalone mode")
+			sw.Err = fmt.Errorf("Cannot get socket in standalone mode")
 		} else {
-			sw.conn, sw.err = g.SocketInfo.DialSocket()
-			g.Log.Debug("| DialSocket -> %s", ErrToOk(sw.err))
+			sw.Conn, sw.Err = g.SocketInfo.DialSocket()
+			g.Log.Debug("| DialSocket -> %s", ErrToOk(sw.Err))
 			isNew = true
 		}
-		if sw.err == nil {
-			sw.xp = NewTransportFromSocket(g, sw.conn)
+		if sw.Err == nil {
+			sw.Transporter = NewTransportFromSocket(g, sw.Conn)
 		}
 		g.SocketWrapper = &sw
 	}
 
 	sw := g.SocketWrapper
-	if sw.err != nil && clearError {
+	if sw.Err != nil && clearError {
 		g.SocketWrapper = nil
 	}
-	err = sw.err
+	err = sw.Err
 
-	return sw.conn, sw.xp, isNew, err
+	return sw.Conn, sw.Transporter, isNew, err
 }

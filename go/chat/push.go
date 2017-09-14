@@ -586,6 +586,29 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			if g.badger != nil && nm.UnreadUpdate != nil {
 				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
 			}
+
+		case types.ActionTeamType:
+			var nm chat1.TeamTypePayload
+			err = dec.Decode(&nm)
+			if err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+				return
+			}
+			g.Debug(ctx, "chat activity: team type: convID: %s ", nm.ConvID)
+
+			uid := m.UID().Bytes()
+			if conv, err = g.G().InboxSource.TeamTypeChanged(ctx, uid, nm.InboxVers, nm.ConvID, nm.TeamType); err != nil {
+				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+			}
+			activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
+				ConvID:   nm.ConvID,
+				TeamType: nm.TeamType,
+				Conv:     g.presentUIItem(conv),
+			})
+
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			}
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
 		}

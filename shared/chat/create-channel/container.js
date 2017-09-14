@@ -4,6 +4,7 @@ import {compose, withHandlers, withState} from 'recompose'
 import {connect} from 'react-redux'
 import {createChannel} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
+import {chatTab} from '../../constants/tabs'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -16,8 +17,11 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
   onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
   onClose: () => dispatch(navigateUp()),
-  onCreateChannel: ({channelname, description, teamname}) =>
-    dispatch(createChannel(teamname, channelname, description)),
+  onCreateChannel: ({channelname, description, teamname}) => {
+    dispatch(createChannel(teamname, channelname, description))
+    dispatch(navigateUp())
+    dispatch(navigateTo([chatTab]))
+  },
 })
 
 export default compose(

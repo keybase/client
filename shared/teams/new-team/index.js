@@ -14,7 +14,7 @@ const Contents = ({name, onNameChange, onSubmit}: Props) => (
         type="BodySemibold"
         backgroundMode="Announcements"
       >
-        Team names are unique for security reasons.
+        For security reasons, team names are unique and can't be changed, so choose carefully.
       </Text>
     </Box>
 
@@ -26,7 +26,13 @@ const Contents = ({name, onNameChange, onSubmit}: Props) => (
         justifyContent: 'center',
       }}
     >
-      <Input autoFocus={true} hintText="Name your team" value={name} onChangeText={onNameChange} />
+      <Input
+        autoFocus={true}
+        hintText="Name your team"
+        value={name}
+        onChangeText={onNameChange}
+        onEnterKeyDown={onSubmit}
+      />
       <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
         <Button
           type="Primary"
@@ -48,8 +54,12 @@ const PopupWrapped = (props: Props) => (
 const styleContainer = {
   ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.blue,
-  cursor: 'default',
-  paddingTop: 6,
+  ...(isMobile ? {} : {cursor: 'default'}),
+  minHeight: 40,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  borderTopLeftRadius: 4,
+  borderTopRightRadius: 4,
 }
 
 const stylePadding = isMobile

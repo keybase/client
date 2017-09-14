@@ -7,27 +7,34 @@ import {getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle} from 'recompose'
 import {openInKBFS} from '../actions/kbfs'
+import {injectItem} from '../actions/gregor'
 
 import type {TypedState} from '../constants/reducer'
 import type {Teamname} from '../constants/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
+  sawChatBanner: boolean,
+  loaded: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
-  let teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const loaded = state.entities.getIn(['teams', 'loaded'], false)
   return {
     _teamnames: teamnames,
+    sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
+    loaded,
   }
 }
 
 type DispatchProps = {
   onCreateTeam: () => void,
+  onHideBanner: () => void,
   onJoinTeam: () => void,
-  onReadMore: () => void,
-  onOpenFolder: (teamname: Teamname) => void,
   onManageChat: (teamname: Teamname) => void,
+  onOpenFolder: (teamname: Teamname) => void,
+  onReadMore: () => void,
   onViewTeam: (teamname: Teamname) => void,
 }
 
@@ -43,6 +50,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
       ])
     )
   },
+  onHideBanner: () => dispatch(injectItem('sawChatBanner', 'true')),
   onJoinTeam: () => {
     // TODO: Hook this up once we have a join team dialog.
     console.log('onJoinTeam not implemented yet')
@@ -53,7 +61,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },
-  onViewTeam: () => dispatch(navigateAppend(['team'])),
+  onViewTeam: (teamname: Teamname) => dispatch(navigateAppend([{props: {teamname}, selected: 'team'}])),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
@@ -61,7 +69,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   // TODO: Sort case-insensitively?
   teamnames.sort()
   return {
+    sawChatBanner: stateProps.sawChatBanner,
     teamnames,
+    loaded: stateProps.loaded,
     ...dispatchProps,
   }
 }

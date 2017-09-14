@@ -171,6 +171,10 @@
           "name": "convID"
         },
         {
+          "type": "boolean",
+          "name": "createdComplexTeam"
+        },
+        {
           "type": [
             null,
             "RateLimit"

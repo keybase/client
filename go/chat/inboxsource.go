@@ -669,6 +669,22 @@ func (s *HybridInboxSource) SetAppNotificationSettings(ctx context.Context, uid 
 	return conv, nil
 }
 
+func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.TeamTypeChanged(ctx, vers, convID, teamType); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "TeamTypeChanged: unable to load conversation: convID: %s err: %s",
+			convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
 func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
@@ -901,6 +917,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Triple:      conversationRemote.Metadata.IdTriple,
 		Status:      conversationRemote.Metadata.Status,
 		MembersType: conversationRemote.Metadata.MembersType,
+		TeamType:    conversationRemote.Metadata.TeamType,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {

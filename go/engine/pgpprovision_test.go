@@ -39,4 +39,6 @@ func TestPGPProvision(t *testing.T) {
 	if err := AssertProvisioned(tc2); err != nil {
 		t.Fatal(err)
 	}
+
+	checkPerUserKeyCount(&tc, 1)
 }

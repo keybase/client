@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/stretchr/testify/require"
 )
 
 func TestServerVersionSync(t *testing.T) {
-	ltc := externals.SetupTest(t, "version", 2)
+	ltc := setupCommonTest(t, "version")
 	tc := kbtest.ChatTestContext{
 		TestContext: ltc,
 		ChatG:       &globals.ChatContext{},

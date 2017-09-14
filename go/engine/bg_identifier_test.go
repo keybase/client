@@ -14,7 +14,7 @@ const (
 )
 
 func TestBackgroundIdentifier(t *testing.T) {
-
+	t.Skip()
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
@@ -69,8 +69,8 @@ func TestBackgroundIdentifier(t *testing.T) {
 		var ret IdentifyJob
 		select {
 		case ret = <-snoopCh:
-		case <-time.After(10 * time.Second):
-			t.Errorf("Failing after 10s of inactivity")
+		case <-time.After(30 * time.Second):
+			t.Errorf("Failing after 30s of inactivity")
 			t.Logf("Now is: %s", fakeClock.Now())
 			t.Logf("Queue has:")
 			for _, e := range bgi.queue {

@@ -9,7 +9,7 @@ export type StateProps = {|
   conversationIDKey: string,
   desktop: NotifyType,
   mobile: NotifyType,
-|}
+|} | {||}
 
 export type DispatchProps = {|
   onSetNotification: (

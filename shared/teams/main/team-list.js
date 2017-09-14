@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Avatar, Box, Divider, Text} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -19,7 +19,7 @@ type RowProps = {
   onManageChat: () => void,
   onViewTeam: () => void,
 }
-// onClick={onViewTeam}
+
 const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
   <Box style={rowStyle}>
     <Box
@@ -31,28 +31,16 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
       }}
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
-        <Avatar size={32} teamname={name} isTeam={true} />
-        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+        <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
+        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.small}}>
           {name}
         </Text>
       </ClickableBox>
-      <Icon
-        type="iconfont-folder-private"
-        onClick={e => {
-          e.stopPropagation()
-          onOpenFolder()
-        }}
-      />
-      <Icon
-        type="iconfont-chat"
-        style={{marginLeft: globalMargins.small}}
-        onClick={e => {
-          e.stopPropagation()
-          onManageChat()
-        }}
-      />
+      {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
+      {!isMobile &&
+        <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />}
     </Box>
-    {!isMobile && <Divider style={{marginLeft: 44}} />}
+    {!isMobile && <Divider style={{marginLeft: 48}} />}
   </Box>
 )
 
@@ -64,6 +52,7 @@ const TeamList = (props: Props) => (
       width: '100%',
     }}
   >
+    {!props.loaded && <ProgressIndicator style={{alignSelf: 'center', width: 20}} />}
     {props.teamnames.map((name, index, arr) => (
       <Row
         key={name}
@@ -79,7 +68,7 @@ const TeamList = (props: Props) => (
 const rowStyle = {
   ...globalStyles.flexBoxColumn,
   flexShrink: 0,
-  minHeight: 48,
+  minHeight: isMobile ? 64 : 48,
 }
 
 export default TeamList

@@ -150,6 +150,8 @@ func TestPartImplicitTeamTLFNameEvenMore(t *testing.T) {
 // quick sanity test -- mostly redundant with TLFName test above
 func TestParseImplicitTeamDisplayName(t *testing.T) {
 	goodName := "twitter:alice,bob@facebook,carol@keybase,dave"
+	_, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(), "", false)
+	require.Error(t, err)
 	namePrivate, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(), goodName, false)
 	require.NoError(t, err)
 	namePublic, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(), goodName, true)

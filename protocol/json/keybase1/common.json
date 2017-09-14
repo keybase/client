@@ -114,6 +114,12 @@
       "typedef": "string"
     },
     {
+      "type": "record",
+      "name": "GitRepoName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
       "type": "enum",
       "name": "TeamType",
       "symbols": [

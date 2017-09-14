@@ -3,21 +3,15 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
+import * as RpcTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
+import engine from '../../engine'
 import {selectedInboxSelector} from '../chat/shared'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
-import {
-  CommonTLFVisibility,
-  teamsTeamAddMemberRpcPromise,
-  teamsTeamCreateRpcPromise,
-  teamsTeamListRpcPromise,
-  TeamsTeamRole,
-  TlfKeysTLFIdentifyBehavior,
-} from '../../constants/types/flow-types'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -25,8 +19,15 @@ import type {TypedState} from '../../constants/reducer'
 
 const _createNewTeam = function(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
-  return call(teamsTeamCreateRpcPromise, {
-    param: {name: {parts: [name]}, sendChatNotification: true},
+  return call(RpcTypes.teamsTeamCreateRpcPromise, {
+    param: {name, sendChatNotification: true},
+  })
+}
+
+const _leaveTeam = function(action: Constants.LeaveTeam) {
+  const {payload: {teamname}} = action
+  return call(RpcTypes.teamsTeamLeaveRpcPromise, {
+    param: {name: teamname},
   })
 }
 
@@ -51,16 +52,16 @@ const _createNewTeamFromConversation = function*(
   }
 
   if (participants) {
-    yield call(teamsTeamCreateRpcPromise, {
-      param: {name: {parts: [name]}, sendChatNotification: true},
+    const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
+      param: {name, sendChatNotification: true},
     })
     for (const username of participants) {
-      if (username !== me) {
-        yield call(teamsTeamAddMemberRpcPromise, {
+      if (!createRes.creatorAdded || username !== me) {
+        yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
           param: {
             email: '',
             name,
-            role: TeamsTeamRole.writer,
+            role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
             sendChatNotification: true,
             username,
           },
@@ -68,6 +69,31 @@ const _createNewTeamFromConversation = function*(
       }
     }
   }
+}
+
+const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, any> {
+  const teamname = action.payload.teamname
+  const results: RpcTypes.TeamDetails = yield call(RpcTypes.teamsTeamGetRpcPromise, {
+    param: {
+      name: teamname,
+    },
+  })
+
+  const infos = []
+  const types = ['admins', 'owners', 'readers', 'writers']
+  types.forEach(type => {
+    const details = results.members[type] || []
+    details.forEach(({username}) => {
+      infos.push(
+        Constants.MemberInfo({
+          type,
+          username,
+        })
+      )
+    })
+  })
+
+  yield put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]])))
 }
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
@@ -105,7 +131,7 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
 
 const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any> {
   const username = yield select(usernameSelector)
-  const results: AnnotatedTeamList = yield call(teamsTeamListRpcPromise, {
+  const results: AnnotatedTeamList = yield call(RpcTypes.teamsTeamListRpcPromise, {
     param: {
       userAssertion: username,
     },
@@ -113,7 +139,10 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
 
   const teams = results.teams || []
   const teamnames = teams.map(team => team.fqName)
-  yield all([put(replaceEntity(['teams', 'teamnames'], I.Set(teamnames)))])
+  yield all([
+    put(replaceEntity(['teams', 'teamnames'], I.Set(teamnames))),
+    put(replaceEntity(['teams'], I.Map([['loaded', true]]))),
+  ])
 }
 
 const _toggleChannelMembership = function*(
@@ -141,7 +170,7 @@ const _toggleChannelMembership = function*(
         tlfName: teamname,
         topicName: channelname,
         topicType: ChatTypes.CommonTopicType.chat,
-        visibility: CommonTLFVisibility.private,
+        visibility: RpcTypes.CommonTLFVisibility.private,
       },
     })
   }
@@ -154,10 +183,10 @@ function* _createChannel(action: Constants.CreateChannel) {
   const {payload: {channelname, description, teamname}} = action
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
     param: {
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
       membersType: ChatTypes.CommonConversationMembersType.team,
       tlfName: teamname,
-      tlfVisibility: CommonTLFVisibility.private,
+      tlfVisibility: RpcTypes.CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
       topicName: channelname,
     },
@@ -181,19 +210,33 @@ function* _createChannel(action: Constants.CreateChannel) {
         tlfPublic: false,
         headline: description,
         clientPrev: null,
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        identifyBehavior: RpcTypes.TlfKeysTLFIdentifyBehavior.chatGui,
       },
     })
   }
 }
 
+function* _setupTeamHandlers(): SagaGenerator<any, any> {
+  yield put((dispatch: Dispatch) => {
+    engine().setIncomingHandler('keybase.1.NotifyTeam.teamChanged', () => {
+      dispatch(Creators.getTeams())
+    })
+    engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
+      dispatch(Creators.getTeams())
+    })
+  })
+}
+
 const teamsSaga = function*(): SagaGenerator<any, any> {
+  yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
+  yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
 }
 
 export default teamsSaga

@@ -65,18 +65,22 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
 
 function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
-
-  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
-  if (inSearch) {
-    yield put(Creators.exitSearch())
-  }
+  let newConvoTlfName
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    conversationIDKey = yield call(Shared.startNewConversation, conversationIDKey)
+    ;[conversationIDKey, newConvoTlfName] = yield call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
+  }
+
+  // Note: This should happen *after* startNewConversation, because
+  // startNewConversation() uses the presence of a pendingConversation
+  // that is deleted by exitSearch().
+  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
+  if (inSearch) {
+    yield put(Creators.exitSearch())
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
@@ -121,7 +125,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   yield call(ChatTypes.localPostTextNonblockRpcPromise, {
     param: {
       conversationID: Constants.keyToConversationID(conversationIDKey),
-      tlfName: inboxConvo.name,
+      tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
       tlfPublic: false,
       outboxID,
       body: action.payload.text.stringValue(),

@@ -1,0 +1,14 @@
+@namespace("keybase.1")
+
+// A protocol that KBFS listens on, for services Git requests that electron or the CLI
+// initiate.
+protocol KBFSGit {
+  import idl "common.avdl";
+  import idl "favorite.avdl";
+
+  /**
+   * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.
+   * It returns the ID of the repo created.
+   */
+  RepoID createRepo(Folder folder, GitRepoName name);
+}

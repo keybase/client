@@ -15,7 +15,7 @@ import {globalStyles} from '../styles'
 import {RouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import * as EntityConstants from '../constants/entities'
-
+import * as ChatTypes from '../constants/types/flow-types-chat'
 import type {ConversationIDKey} from '../constants/chat'
 
 const now = new Date(2016, 4, 20, 4, 20)
@@ -122,6 +122,7 @@ const inbox = [
     participants: List(participants),
     conversationIDKey: 'convo1',
     status: 'unfiled',
+    teamType: ChatTypes.CommonTeamType.none,
     time: now,
     snippet: 'fiveTEMPTEMP',
     unreadCount: 3,
@@ -131,6 +132,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo2',
     status: 'unfiled',
+    teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
     snippet: '3 hours ago',
     unreadCount: 0,
@@ -140,6 +142,7 @@ const inbox = [
     participants: List(participants.slice(0, 3)),
     conversationIDKey: 'convo3',
     status: 'muted',
+    teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 3,
     snippet: '3 days ago',
     unreadCount: 0,
@@ -149,6 +152,7 @@ const inbox = [
     participants: List(participants.slice(0, 4)),
     conversationIDKey: 'convo5',
     status: 'unfiled',
+    teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 30,
     snippet: 'long ago',
     unreadCount: 0,
@@ -158,6 +162,7 @@ const inbox = [
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo6',
     status: 'unfiled',
+    teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
     snippet: '3 hours ago',
     unreadCount: 1,
@@ -167,6 +172,7 @@ const inbox = [
     participants: List(participants.slice(0, 1)),
     conversationIDKey: 'convo7',
     status: 'muted',
+    teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 5,
     snippet: '3 hours ago',
     unreadCount: 1,

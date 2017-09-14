@@ -190,7 +190,7 @@ const containerStyle = {
 const dropOverlayStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  backgroundColor: globalColors.blue5_60,
+  backgroundColor: globalColors.blue_60,
   bottom: 0,
   flex: 1,
   justifyContent: 'center',

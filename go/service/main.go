@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/teams"
@@ -123,6 +124,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
+		keybase1.GitProtocol(NewGitHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -841,7 +843,7 @@ func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {
 	if d.gregor == nil {
 		return nil, errors.New("can't gregor inject without a gregor")
 	}
-	return d.gregor.InjectItem(cat, body)
+	return d.gregor.InjectItem(context.TODO(), cat, body, gregor1.TimeOrOffset{})
 }
 
 func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {

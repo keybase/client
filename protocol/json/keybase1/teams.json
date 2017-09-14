@@ -19,7 +19,8 @@
       "symbols": [
         "KBFS_1",
         "CHAT_2",
-        "SALTPACK_3"
+        "SALTPACK_3",
+        "GIT_METADATA_4"
       ]
     },
     {
@@ -250,6 +251,26 @@
     },
     {
       "type": "record",
+      "name": "UserVersion",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersionPercentForm",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TeamChangeReq",
       "fields": [
         {
@@ -290,24 +311,10 @@
         {
           "type": {
             "type": "map",
-            "values": "UID",
+            "values": "UserVersionPercentForm",
             "keys": "TeamInviteID"
           },
           "name": "completedInvites"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UserVersion",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "uid"
-        },
-        {
-          "type": "Seqno",
-          "name": "eldestSeqno"
         }
       ]
     },
@@ -867,6 +874,11 @@
           "jsonkey": "fq_name"
         },
         {
+          "type": "boolean",
+          "name": "isImplicitTeam",
+          "jsonkey": "is_implicit_team"
+        },
+        {
           "type": "TeamRole",
           "name": "role"
         },
@@ -919,6 +931,11 @@
           "type": "string",
           "name": "fqName",
           "jsonkey": "fq_name"
+        },
+        {
+          "type": "boolean",
+          "name": "isImplicitTeam",
+          "jsonkey": "is_implicit_team"
         },
         {
           "type": "TeamRole",
@@ -1027,6 +1044,10 @@
         {
           "type": "boolean",
           "name": "chatSent"
+        },
+        {
+          "type": "boolean",
+          "name": "creatorAdded"
         }
       ]
     },
@@ -1100,24 +1121,7 @@
         },
         {
           "name": "name",
-          "type": "TeamName"
-        },
-        {
-          "name": "sendChatNotification",
-          "type": "boolean"
-        }
-      ],
-      "response": "TeamCreateResult"
-    },
-    "teamCreateSubteam": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "name",
-          "type": "TeamName"
+          "type": "string"
         },
         {
           "name": "sendChatNotification",
@@ -1155,6 +1159,10 @@
         },
         {
           "name": "all",
+          "type": "boolean"
+        },
+        {
+          "name": "includeImplicitTeams",
           "type": "boolean"
         }
       ],
@@ -1299,6 +1307,19 @@
         },
         {
           "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamAcceptInviteOrRequestAccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "tokenOrName",
           "type": "string"
         }
       ],

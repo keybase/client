@@ -68,6 +68,14 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 }
 
 func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
+	return createAndSignupFakeUser(prefix, g, true)
+}
+
+func CreateAndSignupFakeUserPaper(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
+	return createAndSignupFakeUser(prefix, g, false)
+}
+
+func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bool) (*FakeUser, error) {
 	fu, err := NewFakeUser(prefix)
 	if err != nil {
 		return nil, err
@@ -80,6 +88,7 @@ func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, 
 		DeviceName: "my device",
 		SkipGPG:    true,
 		SkipMail:   true,
+		SkipPaper:  skipPaper,
 	}
 	ctx := &engine.Context{
 		LogUI:    g.UI.GetLogUI(),

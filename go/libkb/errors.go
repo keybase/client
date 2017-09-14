@@ -1362,7 +1362,11 @@ type IdentifiesFailedError struct {
 }
 
 func (e IdentifiesFailedError) Error() string {
-	return "one or more identifies failed"
+	return fmt.Sprintf("one or more identifies failed")
+}
+
+func NewIdentifiesFailedError() IdentifiesFailedError {
+	return IdentifiesFailedError{}
 }
 
 //=============================================================================
@@ -2093,4 +2097,10 @@ func (e ImplicitTeamDisplayNameError) Error() string {
 
 func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
 	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
+}
+
+type TeamVisibilityError struct{}
+
+func (e TeamVisibilityError) Error() string {
+	return "loaded team doesn't match specified visibility"
 }

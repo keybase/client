@@ -65,7 +65,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 			// Add this person as an invite if they do not have a puk
 			ownerInvites = append(ownerInvites, SCTeamInvite{
 				Type: "keybase",
-				Name: uv.PercentForm(),
+				Name: uv.TeamInviteName(),
 				ID:   NewInviteID(),
 			})
 		} else {
@@ -80,7 +80,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 			// Add this person as an invite if they do not have a puk
 			readerInvites = append(readerInvites, SCTeamInvite{
 				Type: "keybase",
-				Name: uv.PercentForm(),
+				Name: uv.TeamInviteName(),
 				ID:   NewInviteID(),
 			})
 		} else {
@@ -105,15 +105,15 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	// Add invites for assertions
 	for _, assertion := range impTeam.Writers.UnresolvedUsers {
 		ownerInvites = append(ownerInvites, SCTeamInvite{
-			Type: string(assertion.Service),
-			Name: assertion.User,
+			Type: assertion.TeamInviteType(),
+			Name: assertion.TeamInviteName(),
 			ID:   NewInviteID(),
 		})
 	}
 	for _, assertion := range impTeam.Readers.UnresolvedUsers {
 		readerInvites = append(readerInvites, SCTeamInvite{
-			Type: string(assertion.Service),
-			Name: assertion.User,
+			Type: assertion.TeamInviteType(),
+			Name: assertion.TeamInviteName(),
 			ID:   NewInviteID(),
 		})
 	}

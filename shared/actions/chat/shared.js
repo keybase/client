@@ -4,8 +4,12 @@ import * as Constants from '../../constants/chat'
 import {Map} from 'immutable'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
-import {unboxConversations} from './inbox'
-import {pendingToRealConversation, replaceConversation, selectConversation} from './creators'
+import {
+  pendingToRealConversation,
+  replaceConversation,
+  selectConversation,
+  unboxConversations,
+} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
@@ -67,7 +71,7 @@ function tmpFileName(
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
 function* startNewConversation(
   oldConversationIDKey: Constants.ConversationIDKey
-): Generator<any, ?Constants.ConversationIDKey, any> {
+): Generator<any, [?Constants.ConversationIDKey, ?string], any> {
   // Find the participants
   const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldConversationIDKey)
   let tlfName
@@ -82,7 +86,7 @@ function* startNewConversation(
 
   if (!tlfName) {
     console.warn("Shouldn't happen in practice")
-    return null
+    return [null, null]
   }
 
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
@@ -97,7 +101,7 @@ function* startNewConversation(
   const newConversationIDKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
   if (!newConversationIDKey) {
     console.warn('No convoid from newConvoRPC')
-    return null
+    return [null, null]
   }
 
   // Replace any existing convo
@@ -113,8 +117,8 @@ function* startNewConversation(
     yield put(selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield call(unboxConversations, [newConversationIDKey])
-  return newConversationIDKey
+  yield put(unboxConversations([newConversationIDKey]))
+  return [newConversationIDKey, tlfName]
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict

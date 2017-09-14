@@ -8,13 +8,14 @@ import * as Constants from '../../../constants/chat'
 import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
-import {compose, renderComponent, branch} from 'recompose'
+import {compose, renderComponent, branch, renderNothing} from 'recompose'
 import {navigateAppend} from '../../../actions/route-tree'
+import {isMobile} from '../../../constants/platform'
 
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
 
-function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected) {
+function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount: Constants.UnreadCounts, isError, isSelected) {
   // Derived props
 
   // If it's finalized we don't show the rekey as they can't solve it themselves
@@ -22,12 +23,14 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     !finalizeInfo && rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
   const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
 
-  const hasUnread = !participantNeedToRekey && !youNeedToRekey && !!unreadCount
+  const hasUnread = !participantNeedToRekey && !youNeedToRekey && (unreadCount && unreadCount.total > 0)
+  const hasBadge = hasUnread && unreadCount.badged > 0
   const subColor = isError
     ? globalColors.red
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
   const showBold = !isSelected && hasUnread
-  const backgroundColor = isSelected ? globalColors.blue : globalColors.white
+  const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
+  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
   const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
 
   return {
@@ -38,6 +41,7 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelec
     subColor,
     usernameColor,
     youNeedToRekey,
+    hasBadge,
   }
 }
 
@@ -54,7 +58,7 @@ const makeGetUnreadCounts = conversationIDKey => state =>
   state.chat.get('conversationUnreadCounts').get(conversationIDKey)
 const makeGetParticipants = conversationIDKey => state =>
   Constants.participantFilter(
-    state.chat.get('pendingConversations').get(conversationIDKey),
+    state.chat.get('pendingConversations').get(conversationIDKey) || I.List(),
     state.config.username || ''
   )
 const getNowOverride = state => state.chat.get('nowOverride')
@@ -63,6 +67,7 @@ const makeGetFinalizedInfo = conversationIDKey => state =>
 
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
+  const blankUnreadCounts: Constants.UnreadCounts = {total: 0, badged: 0}
   if (isPending) {
     return createImmutableEqualSelector(
       [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey), getNowOverride],
@@ -74,8 +79,8 @@ const makeSelector = conversationIDKey => {
         participants,
         rekeyInfo: null,
         timestamp: formatTimeForConversationList(Date.now(), nowOverride),
-        unreadCount: 0,
-        ..._rowDerivedProps(null, null, 0, false, isSelected),
+        unreadCount: blankUnreadCounts,
+        ..._rowDerivedProps(null, null, blankUnreadCounts, false, isSelected),
       })
     )
   } else {
@@ -108,7 +113,7 @@ const makeSelector = conversationIDKey => {
           snippet,
           teamname,
           timestamp,
-          unreadCount: unreadCount || 0,
+          unreadCount: unreadCount || blankUnreadCounts,
           ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected),
         }
       }
@@ -116,8 +121,10 @@ const makeSelector = conversationIDKey => {
   }
 }
 
+const isSmallOrBig = type => ['small', 'big'].includes(type)
+
 const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname, type}) => {
-  if (['small', 'big'].includes(type)) {
+  if (isSmallOrBig(type)) {
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
   } else {
@@ -145,6 +152,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const ConnectedRow = compose(
   // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(
+    ({participants, type}) => isSmallOrBig(type) && (!participants || participants.isEmpty() === 0),
+    renderNothing
+  ),
   branch(props => props.filtered && props.type === 'small', renderComponent(SmallTeamFilteredRow)),
   branch(props => props.filtered && props.type === 'big', renderComponent(BigTeamChannelFilteredRow)),
   branch(props => props.type === 'bigHeader', renderComponent(BigTeamHeaderRow)),

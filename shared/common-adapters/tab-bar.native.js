@@ -32,6 +32,21 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
   }
 }
 
+const UnderlineHighlight = () => (
+  <Box
+    style={{
+      position: 'absolute',
+      bottom: 0,
+      left: 24,
+      right: 24,
+      height: 2,
+      borderTopLeftRadius: 3,
+      borderTopRightRadius: 3,
+      backgroundColor: globalColors.white,
+    }}
+  />
+)
+
 const TabBarButton = (props: TabBarButtonProps) => {
   const badgeNumber = props.badgeNumber || 0
 
@@ -64,7 +79,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
       <Icon
         type={props.source.icon}
         style={{
-          width: props.isNav ? 40 : 32,
+          width: props.isNav ? undefined : 32,
           ...props.styleIcon,
         }}
       />
@@ -73,6 +88,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
           {props.label}
         </Text>}
       {badgeComponent}
+      {props.underlined && <UnderlineHighlight />}
     </Box>
   )
   if (props.onClick) {

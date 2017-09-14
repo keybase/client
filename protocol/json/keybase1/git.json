@@ -13,16 +13,72 @@
   "types": [
     {
       "type": "record",
+      "name": "EncryptedGitMetadata",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "RepoID",
       "fields": [],
       "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "GitLocalMetadataVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitLocalMetadataV1",
+      "fields": [
+        {
+          "type": "GitRepoName",
+          "name": "repoName"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "GitLocalMetadataVersioned",
+      "switch": {
+        "type": "GitLocalMetadataVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "GitLocalMetadataV1"
+        }
+      ]
     },
     {
       "type": "record",
       "name": "GitLocalMetadata",
       "fields": [
         {
-          "type": "string",
+          "type": "GitRepoName",
           "name": "repoName"
         }
       ]
@@ -108,6 +164,28 @@
         "type": "array",
         "items": "GitRepoResult"
       }
+    },
+    "createPersonalRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": "RepoID"
+    },
+    "createTeamRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        }
+      ],
+      "response": "RepoID"
     }
   },
   "namespace": "keybase.1"

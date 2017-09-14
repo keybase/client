@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // Though I've never seen this come up in production, it definitely comes up
@@ -34,16 +36,22 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 		return nil, err
 	}
 
-	// Path can't be longer than 108 characters.
-	// In this case Chdir to the file directory first.
+	// Path can't be longer than N characters.
+	// In this case Chdir to the file directory first and use a local path.
+	// On many linuxes, N=108, on some N=106, and on macOS N=104.
+	// N=104 is the lowest I know of.
+	// It's the length of the path buffer in sockaddr_un.
+	// And there may be a null-terminator in there, not sure, so make it 103 for good luck.
 	// https://github.com/golang/go/issues/6895#issuecomment-98006662
-	if len(bindFile) >= 108 {
-
+	// https://gist.github.com/mlsteele/16dc5b6eb3d112b914183928c9af71b8#file-un-h-L79
+	// We could always Chdir, but then this function would be non-threadsafe more of the time.
+	// Pick your poison.
+	if len(bindFile) >= 103 {
 		prevWd, err := os.Getwd()
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.G().Log.Warning("Changing current working directory because path for binding is too long")
+		s.log.Warning("Changing current working directory because path for binding is too long")
 		if err := os.Chdir(filepath.Dir(bindFile)); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
@@ -51,7 +59,7 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 		bindFile = filepath.Base(bindFile)
 	}
 
-	s.G().Log.Info("Binding to unix:%s", bindFile)
+	s.log.Info("Binding to unix:%s", bindFile)
 	return net.Listen("unix", bindFile)
 }
 
@@ -85,7 +93,7 @@ func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.G().Log.Warning("Changing current working directory because path for dialing is too long")
+		s.log.Warning("Changing current working directory because path for dialing is too long")
 		if err := os.Chdir(filepath.Dir(dialFile)); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
@@ -93,7 +101,7 @@ func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
 		dialFile = filepath.Base(dialFile)
 	}
 
-	s.G().Log.Debug("Dialing unix:%s", dialFile)
+	s.log.Debug("Dialing unix:%s", dialFile)
 	return net.Dial("unix", dialFile)
 }
 
@@ -108,12 +116,25 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	if err != nil {
 		return
 	}
+	log := g.Log
+	if log == nil {
+		log = logger.NewNull()
+	}
 	ret = SocketInfo{
-		Contextified: NewContextified(g),
-		dialFiles:    dialFiles,
-		bindFile:     bindFile,
+		log:       log,
+		dialFiles: dialFiles,
+		bindFile:  bindFile,
 	}
 	return
+}
+
+func NewSocketWithFiles(
+	log logger.Logger, bindFile string, dialFiles []string) Socket {
+	return SocketInfo{
+		log:       log,
+		bindFile:  bindFile,
+		dialFiles: dialFiles,
+	}
 }
 
 // net.errClosing isn't exported, so do this.. UGLY!

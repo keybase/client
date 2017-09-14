@@ -116,6 +116,7 @@ func (n *nlistener) ChatLeftConversation(uid keybase1.UID, convID chat1.Conversa
 func (n *nlistener) ChatInboxStale(uid keybase1.UID)                                    {}
 func (n *nlistener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
+func (n *nlistener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadStale <- cids:

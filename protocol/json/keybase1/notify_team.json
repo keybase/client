@@ -48,6 +48,16 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "teamDeleted": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

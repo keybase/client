@@ -1030,6 +1030,11 @@ const iconMeta_ = {
     extension: 'png',
     require: require('../images/icons/icon-shh-active-24.png'),
   },
+  'icon-team-leave-28': {
+    isFont: false,
+    extension: 'png',
+    require: require('../images/icons/icon-team-leave-28.png'),
+  },
   'icon-team-placeholder-avatar-112': {
     isFont: false,
     extension: 'png',
@@ -1172,7 +1177,7 @@ const iconMeta_ = {
   },
   'iconfont-chat': {
     isFont: true,
-    gridSize: 16,
+    gridSize: 24,
     charCode: 0xe938,
   },
   'iconfont-check': {
@@ -1425,101 +1430,71 @@ const iconMeta_ = {
     gridSize: 24,
     charCode: 0xe937,
   },
-  'iconfont-device': {
+  'iconfont-hamburger': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe939,
   },
-  'iconfont-folder': {
+  'iconfont-nav-chat': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe93a,
   },
-  'iconfont-hamburger': {
+  'iconfont-nav-devices': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe93b,
   },
-  'iconfont-nav-chat': {
+  'iconfont-nav-folders': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe93c,
   },
-  'iconfont-nav-devices': {
+  'iconfont-nav-git': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe93d,
   },
-  'iconfont-nav-folders': {
+  'iconfont-nav-more': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe93e,
   },
-  'iconfont-nav-git': {
+  'iconfont-nav-people': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe93f,
   },
-  'iconfont-nav-more': {
+  'iconfont-nav-settings': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe940,
   },
-  'iconfont-nav-people': {
+  'iconfont-nav-teams': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe941,
   },
-  'iconfont-nav-search': {
+  'iconfont-proof-broken': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe942,
   },
-  'iconfont-nav-settings': {
+  'iconfont-proof-good': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe943,
   },
-  'iconfont-nav-teams': {
+  'iconfont-proof-pending': {
     isFont: true,
     gridSize: 24,
     charCode: 0xe944,
   },
-  'iconfont-people': {
-    isFont: true,
-    gridSize: 24,
-    charCode: 0xe945,
-  },
-  'iconfont-people-search': {
-    isFont: true,
-    gridSize: 24,
-    charCode: 0xe946,
-  },
-  'iconfont-proof-broken': {
-    isFont: true,
-    gridSize: 24,
-    charCode: 0xe947,
-  },
-  'iconfont-proof-good': {
-    isFont: true,
-    gridSize: 24,
-    charCode: 0xe948,
-  },
-  'iconfont-proof-pending': {
-    isFont: true,
-    gridSize: 24,
-    charCode: 0xe949,
-  },
   'iconfont-proof-placeholder': {
     isFont: true,
     gridSize: 24,
-    charCode: 0xe94a,
-  },
-  'iconfont-settings': {
-    isFont: true,
-    gridSize: 24,
-    charCode: 0xe94b,
-  } /* eslint-enable */,
+    charCode: 0xe945,
+  },/* eslint-enable */
 }
 
 export type IconType = $Keys<typeof iconMeta_>

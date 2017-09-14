@@ -55,6 +55,9 @@ protocol Common {
   @typedef("string")
   record UserOrTeamID {}
 
+  @typedef("string")
+  record GitRepoName {}
+
   enum TeamType {
     NONE_0,
     LEGACY_1,

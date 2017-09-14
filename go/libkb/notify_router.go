@@ -55,6 +55,7 @@ type NotifyListener interface {
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
 	TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
+	TeamDeleted(teamID keybase1.TeamID)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -920,4 +921,30 @@ func (n *NotifyRouter) HandleTeamChanged(ctx context.Context, teamID keybase1.Te
 		n.listener.TeamChanged(teamID, teamName, latestSeqno, changes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamChanged notification")
+}
+
+func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.TeamID) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending TeamDeleted notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Team {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyTeamClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}, nil),
+				}).TeamDeleted(context.Background(), teamID)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.TeamDeleted(teamID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent TeamDeleted notification")
 }

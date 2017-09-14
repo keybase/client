@@ -601,6 +601,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.IsEmpty = rawConv.IsEmpty
 	res.Notifications = rawConv.Notifications
 	res.CreatorInfo = rawConv.CreatorInfo
+	res.TeamType = rawConv.Info.TeamType
 	return res
 }
 

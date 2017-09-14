@@ -372,6 +372,48 @@ else echo \\"bar\\";",
 }
 `;
 
+exports[`Markdown parser parses mentions correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "marco",
+          ],
+          "service": "keybase",
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses mentions correctly, regardless of case 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "marco",
+          ],
+          "service": "keybase",
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser parses more code blocks correctly 1`] = `
 Object {
   "children": Array [

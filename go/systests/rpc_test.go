@@ -6,15 +6,19 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
@@ -41,14 +45,23 @@ func TestRPCs(t *testing.T) {
 	<-startCh
 
 	// Add test RPC methods here.
+	stage := func(label string) {
+		t.Logf("> Stage: %v", label)
+	}
+	stage("testIdentifyResolve3")
 	testIdentifyResolve3(t, tc2.G)
+	stage("testCheckInvitationCode")
 	testCheckInvitationCode(t, tc2.G)
+	stage("testLoadAllPublicKeysUnverified")
 	testLoadAllPublicKeysUnverified(t, tc2.G)
+	stage("testLoadUserWithNoKeys")
 	testLoadUserWithNoKeys(t, tc2.G)
+	stage("testCheckDevicesForUser")
 	testCheckDevicesForUser(t, tc2.G)
+	stage("testIdentify2")
 	testIdentify2(t, tc2.G)
+	stage("testMerkle")
 	testMerkle(t, tc2.G)
-	testIdentifyLite(t)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -238,8 +251,7 @@ func testMerkle(t *testing.T, g *libkb.GlobalContext) {
 	}
 }
 
-func testIdentifyLite(t *testing.T) {
-
+func TestIdentifyLite(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -341,4 +353,535 @@ func testIdentifyLite(t *testing.T) {
 			t.Fatalf("assertion %s, error: %s (%T), expected libkb.NotFoundError", assertion, err, err)
 		}
 	}
+}
+
+// test ResolveIdentifyImplicitTeam with a social assertion
+func TestResolveIdentifyImplicitTeamWithSocial(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("abc")
+	g := tt.users[0].tc.G
+
+	tt.addUser("wong")
+	wong := tt.users[1]
+	wong.proveRooter()
+
+	getTeamName := func(teamID keybase1.TeamID) keybase1.TeamName {
+		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		require.NoError(t, err)
+		return team.Name()
+	}
+
+	iTeamNameCreate := strings.Join([]string{"bob@github", tt.users[0].username, wong.username}, ",")
+	// lookup with an assertion
+	iTeamNameLookup := strings.Join([]string{"bob@github", tt.users[0].username, wong.username + "@rooter"}, ",")
+	// the returned name should be sorted with the logged-in user first
+	iTeamNameSorted := strings.Join([]string{tt.users[0].username, "bob@github", wong.username}, ",")
+
+	t.Logf("make an implicit team")
+	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+	iTeamImpName := getTeamName(iTeamID)
+	require.True(t, iTeamImpName.IsImplicit())
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+
+	res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       iTeamNameLookup,
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     false,
+		Create:           true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.NoError(t, err)
+	require.Equal(t, res.DisplayName, iTeamNameSorted)
+	require.Equal(t, res.TeamID, iTeamID)
+	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
+	require.Nil(t, res.TrackBreaks, "track breaks")
+}
+
+// test ResolveIdentifyImplicitTeam with readers (also with DoIdentifies)
+func TestResolveIdentifyImplicitTeamWithReaders(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("abc")
+	g := tt.users[0].tc.G
+
+	tt.addUser("wong")
+	wong := tt.users[1]
+	wong.proveRooter()
+
+	iTeamNameCreate := tt.users[0].username + "#" + strings.Join([]string{"bob@github", wong.username}, ",")
+	// lookup with an assertion
+	iTeamNameLookup := tt.users[0].username + "#" + strings.Join([]string{"bob@github", wong.username + "@rooter"}, ",")
+
+	t.Logf("make an implicit team")
+	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+	attachIdentifyUI(t, g, newSimpleIdentifyUI())
+
+	res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       iTeamNameLookup,
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
+	require.Equal(t, res.DisplayName, iTeamNameCreate)
+	require.Equal(t, res.TeamID, iTeamID)
+	require.Equal(t, []keybase1.UserVersion{tt.users[0].userVersion()}, res.Writers)
+	require.Nil(t, res.TrackBreaks, "track breaks")
+
+	t.Logf("Try getting the public team and fail (has nothing to do with readers)")
+	res, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       iTeamNameCreate,
+		Suffix:           "",
+		IsPublic:         true,
+		DoIdentifies:     false,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.Error(t, err)
+	require.Regexp(t, `^Team.*does not exist$`, err.Error())
+}
+
+// test ResolveIdentifyImplicitTeam with duplicates
+func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("abc")
+	g := alice.tc.G
+
+	bob := tt.addUser("bob")
+
+	iTeamNameCreate := strings.Join([]string{alice.username, bob.username}, ",")
+	// simple duplicate
+	iTeamNameLookup1 := strings.Join([]string{alice.username, bob.username, bob.username}, ",")
+	// duplicate after resolution
+	iTeamNameLookup2 := strings.Join([]string{alice.username, bob.username, bob.username + "@rooter"}, ",")
+	// duplicate across reader boundary
+	iTeamNameLookup3 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",") + "#" + bob.username
+
+	t.Logf("make an implicit team")
+	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+
+	bob.proveRooter()
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+
+	for _, lookup := range []string{iTeamNameLookup1, iTeamNameLookup2, iTeamNameLookup3} {
+		t.Logf("checking: %v", lookup)
+		res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+			Assertions:       lookup,
+			Suffix:           "",
+			IsPublic:         false,
+			DoIdentifies:     false,
+			Create:           false,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+		})
+		require.NoError(t, err, "%v %v", err, spew.Sdump(res))
+		require.Equal(t, res.TeamID, iTeamID)
+		require.Equal(t, res.DisplayName, iTeamNameCreate)
+		require.True(t, compareUserVersionSets([]keybase1.UserVersion{alice.userVersion(), bob.userVersion()}, res.Writers))
+		require.Nil(t, res.TrackBreaks, "track breaks")
+	}
+}
+
+func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("abc")
+	g := tt.users[0].tc.G
+
+	tt.addUser("wong")
+	wong := tt.users[1]
+
+	iTeamNameCreate1 := strings.Join([]string{tt.users[0].username, wong.username}, ",")
+	iTeamNameCreate2 := strings.Join([]string{tt.users[0].username, wong.username + "@rooter"}, ",")
+
+	t.Logf("make the teams")
+	iTeamID1, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	require.NoError(t, err)
+	iTeamID2, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
+	require.NoError(t, err)
+	require.NotEqual(t, iTeamID1, iTeamID2)
+	t.Logf("t1: %v", iTeamID1)
+	t.Logf("t2: %v", iTeamID2)
+
+	t.Logf("prove to create the conflict")
+	wong.proveRooter()
+
+	getTeamName := func(teamID keybase1.TeamID) keybase1.TeamName {
+		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		require.NoError(t, err)
+		return team.Name()
+	}
+
+	getTeamSeqno := func(teamID keybase1.TeamID) keybase1.Seqno {
+		team, err := teams.Load(context.Background(), g, keybase1.LoadTeamArg{
+			ID: teamID,
+		})
+		require.NoError(t, err)
+		return team.CurrentSeqno()
+	}
+
+	tt.users[0].waitForTeamChangedGregor(getTeamName(iTeamID2).String(), getTeamSeqno(iTeamID2)+1)
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+	iui := newSimpleIdentifyUI()
+	attachIdentifyUI(t, g, iui)
+
+	t.Logf("get the conflict winner team")
+	res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       iTeamNameCreate1,
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
+	require.Equal(t, res.DisplayName, iTeamNameCreate1)
+	require.Equal(t, res.TeamID, iTeamID1)
+	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
+	require.Nil(t, res.TrackBreaks, "track breaks")
+
+	t.Logf("get the conflict winner using the assertion name")
+	res, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       iTeamNameCreate2,
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
+	require.Equal(t, res.DisplayName, iTeamNameCreate1)
+	require.Equal(t, res.TeamID, iTeamID1)
+	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
+	require.Nil(t, res.TrackBreaks, "track breaks")
+
+	t.Logf("find out the conflict suffix")
+	iTeamIDxx, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, iTeamIDxx, iTeamID1)
+	require.Len(t, conflicts, 1)
+
+	t.Logf("get the conflict loser")
+	res, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       iTeamNameCreate1,
+		Suffix:           libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
+	require.Equal(t, res.DisplayName, iTeamNameCreate1+" "+libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]))
+	require.Equal(t, res.TeamID, iTeamID2)
+	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
+	require.Nil(t, res.TrackBreaks, "track breaks")
+}
+
+func TestResolveIdentifyImplicitTeamWithIdentifyFailures(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("abc")
+	g := tt.users[0].tc.G
+
+	tt.addUser("wong")
+	wong := tt.users[1]
+
+	iTeamNameCreate := strings.Join([]string{tt.users[0].username, wong.username}, ",")
+
+	t.Logf("make an implicit team")
+	iTeamID, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+	iui := newSimpleIdentifyUI()
+	attachIdentifyUI(t, g, iui)
+
+	t.Logf("try but fail on assertion")
+	res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		// lookup with a compound assertion, the first part will resolve, the second part will fail
+		Assertions:       strings.Join([]string{tt.users[0].username, wong.username + "&&" + wong.username + "@rooter"}, ","),
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.Error(t, err)
+	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.Equal(t, res.DisplayName, iTeamNameCreate)
+	require.Equal(t, res.TeamID, iTeamID)
+	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
+	require.Nil(t, res.TrackBreaks, "expect no track breaks")
+
+	t.Logf("prove rooter and track")
+	g.ProofCache.DisableDisk()
+	wong.proveRooter()
+	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
+	tt.users[0].track(wong.username)
+	iui.confirmRes = keybase1.ConfirmResult{}
+
+	t.Logf("make rooter unreachable")
+	g.XAPI = &flakeyRooterAPI{orig: g.XAPI, hardFail: true, G: g}
+	g.ProofCache.Reset()
+
+	t.Logf("try but fail on tracking (1)")
+	res, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		// lookup by username, but the dead rooter proof fails our tracking
+		Assertions:       strings.Join([]string{tt.users[0].username, wong.username}, ","),
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.Error(t, err)
+	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.Equal(t, res.DisplayName, iTeamNameCreate)
+	require.Equal(t, res.TeamID, iTeamID)
+	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
+	require.Nil(t, res.TrackBreaks) // counter-intuitively, there are no track breaks when the error is fatal in this mode.
+
+	t.Logf("try but fail on tracking (2)")
+	res, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		// lookup by username, but the dead rooter proof fails our tracking
+		Assertions:       strings.Join([]string{tt.users[0].username, wong.username}, ","),
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI, // Pass a weird IdentifyBehavior to get TrackBreaks to come out.
+	})
+	require.Error(t, err)
+	require.IsType(t, libkb.IdentifiesFailedError{}, err, "%v", err)
+	require.Equal(t, res.DisplayName, iTeamNameCreate)
+	require.Equal(t, res.TeamID, iTeamID)
+	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
+	// In this mode, in addition to the error TrackBreaks is filled.
+	require.NotNil(t, res.TrackBreaks)
+	require.NotNil(t, res.TrackBreaks[wong.userVersion()])
+	require.Len(t, res.TrackBreaks[wong.userVersion()].Proofs, 1)
+	require.Equal(t, keybase1.ProofType_ROOTER, res.TrackBreaks[wong.userVersion()].Proofs[0].RemoteProof.ProofType)
+}
+
+func TestResolveIdentifyImplicitTeamWithIdentifyBadInput(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("abc")
+	g := tt.users[0].tc.G
+
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err, "failed to get new identifyclient")
+	attachIdentifyUI(t, g, newSimpleIdentifyUI())
+
+	_, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       "", // blank assertions
+		Suffix:           "",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.Error(t, err)
+	t.Logf("err: %v", err)
+
+	_, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       tt.users[0].username,
+		Suffix:           "bad suffix",
+		IsPublic:         false,
+		DoIdentifies:     true,
+		Create:           true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.Error(t, err)
+	t.Logf("err: %v", err)
+
+	_, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
+		Assertions:       "malformed #)*$&#) assertion",
+		Suffix:           "",
+		IsPublic:         true,
+		DoIdentifies:     true,
+		Create:           false,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	require.Error(t, err)
+	t.Logf("err: %v", err)
+}
+
+// golang
+func compareUserVersionSets(xs1 []keybase1.UserVersion, xs2 []keybase1.UserVersion) bool {
+	if len(xs1) != len(xs2) {
+		return false
+	}
+	var ys1 []keybase1.UserVersion
+	for _, x := range xs1 {
+		ys1 = append(ys1, x)
+	}
+	var ys2 []keybase1.UserVersion
+	for _, x := range xs2 {
+		ys2 = append(ys2, x)
+	}
+	cmp := func(a, b keybase1.UserVersion) bool {
+		if a.Uid.Equal(b.Uid) {
+			return a.EldestSeqno < b.EldestSeqno
+		}
+		return a.Uid < b.Uid
+	}
+	sort.Slice(ys1, func(i, j int) bool { return cmp(ys1[i], ys1[j]) })
+	sort.Slice(ys2, func(i, j int) bool { return cmp(ys2[i], ys2[j]) })
+	for i, y1 := range ys1 {
+		if !y1.Eq(ys2[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+func attachIdentifyUI(t *testing.T, g *libkb.GlobalContext, iui keybase1.IdentifyUiInterface) {
+	cli, xp, err := client.GetRPCClientWithContext(g)
+	require.NoError(t, err)
+	srv := rpc.NewServer(xp, nil)
+	err = srv.Register(keybase1.IdentifyUiProtocol(iui))
+	require.NoError(t, err)
+	ncli := keybase1.DelegateUiCtlClient{Cli: cli}
+	err = ncli.RegisterIdentifyUI(context.TODO())
+	require.NoError(t, err)
+}
+
+func simpleIdentifyUIError(s string) error {
+	return fmt.Errorf("simpleIdentifyUI does not support %v", s)
+}
+
+type simpleIdentifyUI struct {
+	delegated  bool
+	confirmRes keybase1.ConfirmResult
+}
+
+func newSimpleIdentifyUI() *simpleIdentifyUI {
+	return &simpleIdentifyUI{}
+}
+
+var _ keybase1.IdentifyUiInterface = (*simpleIdentifyUI)(nil)
+
+func (p *simpleIdentifyUI) DelegateIdentifyUI(context.Context) (int, error) {
+	p.delegated = true
+	return 1, nil
+}
+func (p *simpleIdentifyUI) Start(context.Context, keybase1.StartArg) error {
+	return nil
+}
+func (p *simpleIdentifyUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error {
+	return simpleIdentifyUIError("DisplayKey")
+}
+func (p *simpleIdentifyUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
+	return nil
+}
+func (p *simpleIdentifyUI) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchNetworkChecksArg) error {
+	return nil
+}
+func (p *simpleIdentifyUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrackStatementArg) error {
+	return simpleIdentifyUIError("DisplayTrackStatement")
+}
+func (p *simpleIdentifyUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
+	return nil
+}
+func (p *simpleIdentifyUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
+	return simpleIdentifyUIError("FinishWebProofCheck")
+}
+func (p *simpleIdentifyUI) FinishSocialProofCheck(_ context.Context, arg keybase1.FinishSocialProofCheckArg) error {
+	return nil
+}
+func (p *simpleIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
+	return simpleIdentifyUIError("DisplayCryptocurrency")
+}
+func (p *simpleIdentifyUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
+	return nil
+}
+func (p *simpleIdentifyUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1.ConfirmResult, err error) {
+	return p.confirmRes, nil
+}
+func (p *simpleIdentifyUI) Cancel(context.Context, int) error {
+	return nil
+}
+func (p *simpleIdentifyUI) Finish(context.Context, int) error {
+	return nil
+}
+func (p *simpleIdentifyUI) Dismiss(context.Context, keybase1.DismissArg) error {
+	return simpleIdentifyUIError("Dismiss")
+}
+func (p *simpleIdentifyUI) DisplayTLFCreateWithInvite(context.Context, keybase1.DisplayTLFCreateWithInviteArg) error {
+	return simpleIdentifyUIError("DisplayTLFCreateWithInvite")
+}
+
+// copied from engine tests
+type flakeyRooterAPI struct {
+	orig     libkb.ExternalAPI
+	flakeOut bool
+	hardFail bool
+	G        *libkb.GlobalContext
+}
+
+func newFlakeyRooterAPI(x libkb.ExternalAPI) *flakeyRooterAPI {
+	return &flakeyRooterAPI{
+		orig: x,
+	}
+}
+
+func (e *flakeyRooterAPI) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
+	e.G.Log.Debug("| flakeyRooterAPI.GetText, hard = %v, flake = %v", e.hardFail, e.flakeOut)
+	return e.orig.GetText(arg)
+}
+
+func (e *flakeyRooterAPI) Get(arg libkb.APIArg) (res *libkb.ExternalAPIRes, err error) {
+	e.G.Log.Debug("| flakeyRooterAPI.Get, hard = %v, flake = %v", e.hardFail, e.flakeOut)
+	// Show an error if we're in flakey mode
+	if strings.Contains(arg.Endpoint, "rooter") {
+		if e.hardFail {
+			return &libkb.ExternalAPIRes{HTTPStatus: 404}, &libkb.APIError{Msg: "NotFound", Code: 404}
+		}
+		if e.flakeOut {
+			return &libkb.ExternalAPIRes{HTTPStatus: 429}, &libkb.APIError{Msg: "Ratelimited", Code: 429}
+		}
+	}
+
+	return e.orig.Get(arg)
+}
+
+func (e *flakeyRooterAPI) GetHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes, err error) {
+	e.G.Log.Debug("| flakeyRooterAPI.GetHTML, hard = %v, flake = %v", e.hardFail, e.flakeOut)
+	return e.orig.GetHTML(arg)
+}
+
+func (e *flakeyRooterAPI) Post(arg libkb.APIArg) (res *libkb.ExternalAPIRes, err error) {
+	return e.orig.Post(arg)
+}
+
+func (e *flakeyRooterAPI) PostHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes, err error) {
+	return e.orig.PostHTML(arg)
 }

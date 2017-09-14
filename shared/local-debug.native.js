@@ -49,9 +49,9 @@ if (__DEV__ && true) {
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = true
-  config.forwardLogs = true
-  config.immediateStateLogging = true
+  config.enableStoreLogging = false
+  config.forwardLogs = false
+  config.immediateStateLogging = false
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true

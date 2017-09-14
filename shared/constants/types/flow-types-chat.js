@@ -114,6 +114,12 @@ export const CommonNotificationKind = {
   atmention: 1,
 }
 
+export const CommonTeamType = {
+  none: 0,
+  simple: 1,
+  complex: 2,
+}
+
 export const CommonTopicType = {
   none: 0,
   chat: 1,
@@ -196,6 +202,7 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
   membersUpdate: 6,
   setAppNotificationSettings: 7,
+  teamtype: 8,
 }
 
 export const NotifyChatStaleUpdateType = {
@@ -839,6 +846,7 @@ export type ChatActivity =
   | { activityType: 5, failedMessage: ?FailedMessageInfo }
   | { activityType: 6, membersUpdate: ?MembersUpdateInfo }
   | { activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo }
+  | { activityType: 8, teamtype: ?TeamTypeInfo }
 
 export type ChatActivityType =
     0 // RESERVED_0
@@ -849,6 +857,7 @@ export type ChatActivityType =
   | 5 // FAILED_MESSAGE_5
   | 6 // MEMBERS_UPDATE_6
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
+  | 8 // TEAMTYPE_8
 
 export type ConvTypingUpdate = {
   convID: ConversationID,
@@ -931,6 +940,7 @@ export type ConversationInfoLocal = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -971,6 +981,7 @@ export type ConversationMetadata = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1259,6 +1270,7 @@ export type InboxUIItem = {
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
   time: gregor1.Time,
   notifications?: ?ConversationNotificationInfo,
   creatorInfo?: ?ConversationCreatorInfoLocal,
@@ -1543,6 +1555,7 @@ export type NewConversationPayload = {
 
 export type NewConversationRemoteRes = {
   convID: ConversationID,
+  createdComplexTeam: boolean,
   rateLimit?: ?RateLimit,
 }
 
@@ -1828,6 +1841,25 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
+export type TeamType =
+    0 // NONE_0
+  | 1 // SIMPLE_1
+  | 2 // COMPLEX_2
+
+export type TeamTypeInfo = {
+  convID: ConversationID,
+  teamType: TeamType,
+  conv?: ?InboxUIItem,
+}
+
+export type TeamTypePayload = {
+  Action: string,
+  convID: ConversationID,
+  teamType: TeamType,
+  inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
+}
+
 export type ThreadID = bytes
 
 export type ThreadView = {
@@ -1921,6 +1953,7 @@ export type UnverifiedInboxUIItem = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
 }
