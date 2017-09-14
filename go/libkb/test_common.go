@@ -23,7 +23,6 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 // TestConfig tracks libkb config during a test
@@ -268,15 +267,6 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 
 	if G.SecretStoreAll == nil {
 		G.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(G, G)}
-	}
-
-	// use an insecure triplesec in tests
-	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (Triplesec, error) {
-		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
-		isProduction := func() bool {
-			return tc.G.Env.GetRunMode() == ProductionRunMode
-		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
 
 	return
