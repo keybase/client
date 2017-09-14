@@ -101,6 +101,7 @@ export default class TrackerRender extends PureComponent<RenderProps> {
               state={this.props.trackerState}
               currentlyFollowing={this.props.currentlyFollowing}
               username={this.props.username}
+              myUsername={this.props.myUsername}
               lastAction={this.props.lastAction}
               onChat={this.props.onChat}
               onClose={this.props.onClose}

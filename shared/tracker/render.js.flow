@@ -13,6 +13,7 @@ export type RenderPropsUnshaped = {
   isPrivate?: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   loggedIn: boolean,
+  myUsername?: string,
   name?: string,
   nonUser?: ?boolean,
   onChat: () => void,
