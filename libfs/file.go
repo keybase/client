@@ -56,8 +56,6 @@ func (f *File) Write(p []byte) (n int, err error) {
 
 // Read implements the billy.File interface for File.
 func (f *File) Read(p []byte) (n int, err error) {
-	f.fs.log.CDebugf(f.fs.ctx, "Read %d bytes at current offset", len(p))
-
 	origOffset := atomic.LoadInt64(&f.offset)
 	readBytes, err := f.fs.config.KBFSOps().Read(
 		f.fs.ctx, f.node, p, origOffset)
@@ -75,8 +73,6 @@ func (f *File) Read(p []byte) (n int, err error) {
 
 // ReadAt implements the billy.File interface for File.
 func (f *File) ReadAt(p []byte, off int64) (n int, err error) {
-	f.fs.log.CDebugf(f.fs.ctx, "Read %d bytes at offset %d", len(p), off)
-
 	// ReadAt doesn't affect the underlying offset.
 	readBytes, err := f.fs.config.KBFSOps().Read(f.fs.ctx, f.node, p, off)
 	if err != nil {
@@ -92,11 +88,6 @@ func (f *File) ReadAt(p []byte, off int64) (n int, err error) {
 
 // Seek implements the billy.File interface for File.
 func (f *File) Seek(offset int64, whence int) (n int64, err error) {
-	f.fs.log.CDebugf(f.fs.ctx, "Seek %d bytes (whence=%d)", offset, whence)
-	defer func() {
-		f.fs.deferLog.CDebugf(f.fs.ctx, "Seek done: %+v", err)
-	}()
-
 	newOffset := offset
 	switch whence {
 	case io.SeekStart:
