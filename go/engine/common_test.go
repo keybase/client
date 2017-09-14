@@ -18,6 +18,7 @@ import (
 
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 	tc := externals.SetupTest(tb, name, 2)
+
 	return tc
 }
 
