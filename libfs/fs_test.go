@@ -95,6 +95,20 @@ func TestCreateFileInSubdir(t *testing.T) {
 	testCreateFile(t, ctx, fs, "a/b/foo", bNode)
 }
 
+func TestCreateFileInMissingSubdir(t *testing.T) {
+	ctx, _, fs := makeFS(t, "")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
+
+	f, err := fs.Create("a/b/foo")
+	require.NoError(t, err)
+	require.Equal(t, "a/b/foo", f.Name())
+
+	_, err = fs.Lstat("a")
+	require.NoError(t, err)
+	_, err = fs.Lstat("a/b")
+	require.NoError(t, err)
+}
+
 func TestAppendFile(t *testing.T) {
 	ctx, h, fs := makeFS(t, "")
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, fs.config)
@@ -297,11 +311,10 @@ func TestRemove(t *testing.T) {
 	err = fs.Remove("a")
 	require.NotNil(t, err)
 
-	// Remove an empty dir and verify we can't create a file there
-	// anymore.
+	// Remove an empty dir and verify it's gone.
 	err = fs.Remove("a/b")
 	require.NoError(t, err)
-	_, err = fs.Create("a/b/foo")
+	_, err = fs.Lstat("a/b")
 	require.NotNil(t, err)
 
 	err = fs.SyncAll()

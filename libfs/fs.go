@@ -267,6 +267,28 @@ func translateErr(err error) error {
 	}
 }
 
+func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
+	defer func() {
+		err = translateErr(err)
+	}()
+
+	n, _, leftover, err := fs.lookupParentWithDepth(filename, true, 0)
+	if err != nil {
+		return err
+	}
+
+	parts := strings.Split(leftover, "/")
+	// Make all necessary dirs.
+	for _, p := range parts {
+		n, _, err = fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // OpenFile implements the billy.Filesystem interface for FS.
 func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 	f billy.File, err error) {
@@ -276,6 +298,11 @@ func (fs *FS) OpenFile(filename string, flag int, perm os.FileMode) (
 		fs.deferLog.CDebugf(fs.ctx, "OpenFile done: %+v", err)
 		err = translateErr(err)
 	}()
+
+	err = fs.mkdirAll(path.Dir(filename), 0755)
+	if err != nil && !os.IsExist(err) {
+		return nil, err
+	}
 
 	n, ei, err := fs.lookupOrCreateEntry(filename, flag, perm)
 	if err != nil {
@@ -442,24 +469,9 @@ func (fs *FS) MkdirAll(filename string, perm os.FileMode) (err error) {
 	fs.log.CDebugf(fs.ctx, "MkdirAll %s", filename)
 	defer func() {
 		fs.deferLog.CDebugf(fs.ctx, "MkdirAll done: %+v", err)
-		err = translateErr(err)
 	}()
 
-	n, _, leftover, err := fs.lookupParentWithDepth(filename, true, 0)
-	if err != nil {
-		return err
-	}
-
-	parts := strings.Split(leftover, "/")
-	// Make all necessary dirs.
-	for _, p := range parts {
-		n, _, err = fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return fs.mkdirAll(filename, perm)
 }
 
 // Lstat implements the billy.Filesystem interface for FS.
