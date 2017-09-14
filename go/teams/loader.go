@@ -166,6 +166,8 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 type load2ArgT struct {
 	teamID keybase1.TeamID
 
+	reason string // optional tag for debugging why this load is happening
+
 	needAdmin         bool
 	needKeyGeneration keybase1.PerTeamKeyGeneration
 	// wantMembers here is different from wantMembers on LoadTeamArg:
@@ -190,8 +192,12 @@ type load2ArgT struct {
 // Load2 does the rest of the work loading a team.
 // It is `playchain` described in the pseudocode in teamplayer.txt
 func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *keybase1.TeamData, err error) {
-	ctx = libkb.WithLogTag(ctx, "LT")
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#load2(%v)", arg.teamID), func() error { return err })()
+	ctx = libkb.WithLogTag(ctx, "LT") // Load Team
+	traceLabel := fmt.Sprintf("TeamLoader#load2(%v)", arg.teamID)
+	if len(arg.reason) > 0 {
+		traceLabel = traceLabel + " '" + arg.reason + "'"
+	}
+	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
 }
@@ -525,7 +531,7 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 		l.G().Log.CDebugf(ctx, "TeamLoader error getting my role: %v", err)
 		return false
 	}
-	if !(role == keybase1.TeamRole_OWNER || role == keybase1.TeamRole_ADMIN) {
+	if !role.IsAdminOrAbove() {
 		if !state.IsSubteam() {
 			return false
 		}
@@ -731,6 +737,7 @@ func (l *TeamLoader) implicitAdminsAncestor(ctx context.Context, teamID keybase1
 		// Use load2 so that we can use subteam-reader and get secretless teams.
 		ancestor, err := l.load2(ctx, load2ArgT{
 			teamID:        *ancestorID,
+			reason:        "implicitAdminsAncestor",
 			me:            me,
 			forceRepoll:   true, // Get the latest info.
 			readSubteamID: &teamID,
@@ -792,6 +799,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 	for loopID != nil {
 		team, err := l.load2(ctx, load2ArgT{
 			teamID:        *loopID,
+			reason:        "NotifyTeamRename-force",
 			forceRepoll:   true,
 			readSubteamID: &id,
 			me:            me,
@@ -814,6 +822,7 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 	for _, loopID := range ancestorIDs {
 		_, err := l.load2(ctx, load2ArgT{
 			teamID:        loopID,
+			reason:        "NotifyTeamRename-quick",
 			readSubteamID: &id,
 			me:            me,
 		})

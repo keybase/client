@@ -234,6 +234,7 @@ func (l *TeamLoader) walkUpToAdmin(
 		}
 		arg := load2ArgT{
 			teamID:        *parent,
+			reason:        "walkUpToAdmin",
 			me:            me,
 			staleOK:       true,
 			readSubteamID: &readSubteamID,
@@ -454,6 +455,8 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 
 	parent, err := l.load2(ctx, load2ArgT{
 		teamID: *parentID,
+
+		reason: "checkParentChildOperations-parent",
 
 		needAdmin:         false,
 		needKeyGeneration: 0,
@@ -787,6 +790,7 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 	// so this name recalculation is recursive.
 	parent, err := l.load2(ctx, load2ArgT{
 		teamID:        *chain.GetParentID(),
+		reason:        "calculateName",
 		staleOK:       staleOK,
 		readSubteamID: &readSubteamID,
 		me:            me,
