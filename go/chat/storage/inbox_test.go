@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -18,7 +17,8 @@ import (
 )
 
 func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
-	ltc := externals.SetupTest(t, name, 2)
+	ltc := setupCommonTest(t, name)
+
 	tc := kbtest.ChatTestContext{
 		TestContext: ltc,
 		ChatG:       &globals.ChatContext{},
