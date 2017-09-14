@@ -7,6 +7,7 @@ package libgit
 import (
 	"context"
 	"io/ioutil"
+	"os"
 
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
@@ -37,7 +38,12 @@ func Params(kbCtx libkbfs.Context, storageRoot string) (
 
 	params = libkbfs.DefaultInitParams(kbCtx)
 	params.LogToFile = true
-	params.Debug = true
+	// Set the debug default to true only if the env variable isn't
+	// explicitly set to a false option.
+	envDebug := os.Getenv("KBFSGIT_DEBUG")
+	if envDebug != "0" && envDebug != "false" && envDebug != "no" {
+		params.Debug = true
+	}
 	params.EnableDiskCache = false
 	params.StorageRoot = tempDir
 	params.Mode = libkbfs.InitSingleOpString

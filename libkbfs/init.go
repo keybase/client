@@ -402,7 +402,6 @@ func InitLogWithPrefix(
 	params InitParams, ctx Context, prefix string,
 	defaultLogPath string) (logger.Logger, error) {
 	var err error
-	log := logger.NewWithCallDepth(prefix, 1)
 
 	// Set log file to default if log-to-file was specified
 	if params.LogToFile {
@@ -416,6 +415,7 @@ func InitLogWithPrefix(
 	if params.LogFileConfig.Path != "" {
 		err = logger.SetLogFileConfig(&params.LogFileConfig)
 	}
+	log := logger.NewWithCallDepth(prefix, 1)
 
 	log.Configure("", params.Debug, "")
 	log.Info("KBFS version %s", VersionString())
