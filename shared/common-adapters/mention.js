@@ -25,7 +25,12 @@ const mentionStyles = {
 }
 
 export default ({key, username, theme, style, onClick}: Props) => (
-  <Text type="Body" onClick={onClick || undefined} key={key} style={{...style, ...mentionStyles[theme]}}>
+  <Text
+    type="BodySemibold"
+    onClick={onClick || undefined}
+    key={key}
+    style={{...style, ...mentionStyles[theme]}}
+  >
     @{username}
   </Text>
 )

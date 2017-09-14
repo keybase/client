@@ -348,7 +348,7 @@ func TestMemberAddNoPUK(t *testing.T) {
 		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
 	}
 
-	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819%1", "keybase", keybase1.TeamRole_READER)
 
 	// second AddMember should return err
 	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
@@ -356,7 +356,7 @@ func TestMemberAddNoPUK(t *testing.T) {
 	}
 
 	// existing invite should be untouched
-	assertInvite(tc, name, "295a7eea607af32040647123732bc819", "keybase", keybase1.TeamRole_READER)
+	assertInvite(tc, name, "295a7eea607af32040647123732bc819%1", "keybase", keybase1.TeamRole_READER)
 }
 
 // add user without keys to a team, should create invite link
@@ -581,7 +581,12 @@ func assertRole(tc libkb.TestContext, name, username string, expected keybase1.T
 }
 
 func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
-	invite, err := MemberInvite(context.TODO(), tc.G, name, username, typ)
+	iname := keybase1.TeamInviteName(username)
+	itype, err := keybase1.TeamInviteTypeFromString(typ, true)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	invite, err := memberInvite(context.TODO(), tc.G, name, iname, itype)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

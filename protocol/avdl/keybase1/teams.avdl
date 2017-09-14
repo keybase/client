@@ -90,18 +90,22 @@ protocol teams {
     map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
   }
 
+  record UserVersion {
+    UID uid;
+    Seqno eldestSeqno;
+  }
+
+  @typedef("string")
+  record UserVersionPercentForm {}
+
+
   record TeamChangeReq {
     array<UserVersion> owners;
     array<UserVersion> admins;
     array<UserVersion> writers;
     array<UserVersion> readers;
     array<UserVersion> none;
-    map<TeamInviteID,UID> completedInvites;
-  }
-
-  record UserVersion {
-    UID uid;
-    Seqno eldestSeqno;
+    map<TeamInviteID,UserVersionPercentForm> completedInvites;
   }
 
   record TeamPlusApplicationKeys {
@@ -400,10 +404,10 @@ protocol teams {
 
   record TeamCreateResult {
     boolean chatSent;
+    boolean creatorAdded;
   }
 
-  TeamCreateResult teamCreate(int sessionID, TeamName name, boolean sendChatNotification);
-  TeamCreateResult teamCreateSubteam(int sessionID, TeamName name, boolean sendChatNotification);
+  TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);

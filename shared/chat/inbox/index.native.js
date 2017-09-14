@@ -42,8 +42,9 @@ class Inbox extends React.PureComponent<Props, State> {
     if (row.type === 'divider') {
       return (
         <Divider
-          isExpanded={this.props.smallTeamsExpanded}
-          isBadged={row.isBadged}
+          badgeCount={this.props.smallTeamsHiddenBadgeCount}
+          key="divider"
+          hiddenCount={this.props.smallTeamsHiddenRowCount}
           toggle={this.props.toggleSmallTeamsExpanded}
         />
       )
@@ -85,17 +86,8 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    if (this.props.rows !== nextProps.rows) {
-      if (nextProps.rows.count()) {
-        const row = nextProps.rows.get(0)
-        if (row.type === 'small' && row.conversationIDKey) {
-          this.props.onUntrustedInboxVisible(row.conversationIDKey, 20)
-        }
-      }
-    }
-
-    if (this.props.smallTeamsExpanded !== nextProps.smallTeamsExpanded && !nextProps.smallTeamsExpanded) {
-      this._list && this._list.scrollToOffset({animated: true, offset: 0})
+    if (this.props.smallTeamsHiddenRowCount === 0 && nextProps.smallTeamsHiddenRowCount > 0) {
+      this._list && this._list.scrollToOffset({animated: false, offset: 0})
     }
   }
 

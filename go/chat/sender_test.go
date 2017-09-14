@@ -54,6 +54,7 @@ func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)               
 func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
 func (n *chatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
+func (n *chatListener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }

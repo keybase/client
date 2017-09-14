@@ -54,6 +54,7 @@ func (c cacheStats) eq(h, t, m, n, b int) bool {
 type Identify2WithUIDTester struct {
 	libkb.Contextified
 	libkb.BaseServiceType
+	sync.Mutex
 	finishCh        chan struct{}
 	startCh         chan struct{}
 	checkStatusHook func(libkb.SigHint, libkb.ProofCheckerMode) libkb.ProofError
@@ -144,6 +145,8 @@ func (i *Identify2WithUIDTester) SetStrict(b bool) error {
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayUserCard(card keybase1.UserCard) error {
+	i.Lock()
+	defer i.Unlock()
 	i.card = card
 	return nil
 }
@@ -171,6 +174,8 @@ func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason, bool) er
 }
 
 func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, gcdf libkb.GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2Res, error) {
+	i.Lock()
+	defer i.Unlock()
 	res := i.cache[uid]
 	stats := &i.slowStats
 
@@ -206,6 +211,8 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 }
 
 func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2Res) error {
+	i.Lock()
+	defer i.Unlock()
 	tmp := *up
 	copy := &tmp
 	copy.Upk.Uvv.CachedAt = keybase1.ToTime(i.now)
@@ -213,13 +220,19 @@ func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2Res) error {
 	return nil
 }
 func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {
+	i.Lock()
+	defer i.Unlock()
 	i.userLoads[uid]++
 }
 func (i *Identify2WithUIDTester) UseDiskCache() bool {
+	i.Lock()
+	defer i.Unlock()
 	return !i.noDiskCache
 }
 
 func (i *Identify2WithUIDTester) Delete(uid keybase1.UID) error {
+	i.Lock()
+	defer i.Unlock()
 	delete(i.cache, uid)
 	return nil
 }
@@ -727,6 +740,8 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 }
 
 func (i *Identify2WithUIDTester) incNow(d time.Duration) {
+	i.Lock()
+	defer i.Unlock()
 	i.now = i.now.Add(d)
 }
 

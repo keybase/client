@@ -4,7 +4,7 @@ import * as React from 'react'
 import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index.render'
 
@@ -30,8 +30,8 @@ const _labels = {
 
 const _tabs = [
   ...(flags.tabPeopleEnabled ? [Tabs.profileTab] : []),
-  Tabs.folderTab,
   Tabs.chatTab,
+  Tabs.folderTab,
   ...(flags.teamChatEnabled ? [Tabs.teamsTab] : []),
   Tabs.devicesTab,
   Tabs.settingsTab,
@@ -69,8 +69,8 @@ const stylesTabBar = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue2,
   justifyContent: 'flex-start',
-  paddingBottom: 15,
-  paddingTop: 15,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.small,
   width: 80,
 }
 

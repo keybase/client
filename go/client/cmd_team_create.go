@@ -42,21 +42,8 @@ func (v *CmdTeamCreate) Run() (err error) {
 		return err
 	}
 
-	if v.TeamName.IsRootTeam() {
-		_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
-			Name:                 v.TeamName,
-			SessionID:            v.SessionID,
-			SendChatNotification: true,
-		})
-		if err != nil {
-			return err
-		}
-		dui.Printf("Success!\n")
-		return nil
-	}
-
-	_, err = cli.TeamCreateSubteam(context.TODO(), keybase1.TeamCreateSubteamArg{
-		Name:                 v.TeamName,
+	createRes, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+		Name:                 v.TeamName.String(),
 		SessionID:            v.SessionID,
 		SendChatNotification: true,
 	})
@@ -64,8 +51,10 @@ func (v *CmdTeamCreate) Run() (err error) {
 		return err
 	}
 	dui.Printf("Success!\n")
-	dui.Printf("NOTE: you can adminster %s, but you won't see its files or chats\n", v.TeamName)
-	dui.Printf("unless you add yourself explicitly with `keybase team add-member`.\n")
+	if !createRes.CreatorAdded {
+		dui.Printf("\nNOTE: you can administer %s, but you won't see its files or chats\n", v.TeamName)
+		dui.Printf("unless you add yourself explicitly with `keybase team add-member`.\n\n")
+	}
 
 	return nil
 }

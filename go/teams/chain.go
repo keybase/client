@@ -3,8 +3,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -20,29 +18,6 @@ func NewUserVersion(uid keybase1.UID, eldestSeqno keybase1.Seqno) keybase1.UserV
 		Uid:         uid,
 		EldestSeqno: eldestSeqno,
 	}
-}
-
-func ParseUserVersion(s string) (res keybase1.UserVersion, err error) {
-	parts := strings.Split(s, "%")
-	if len(parts) == 1 {
-		// default to seqno 1
-		parts = append(parts, "1")
-	}
-	if len(parts) != 2 {
-		return res, fmt.Errorf("invalid user version: %s", s)
-	}
-	uid, err := libkb.UIDFromHex(parts[0])
-	if err != nil {
-		return res, err
-	}
-	eldestSeqno, err := strconv.ParseInt(parts[1], 10, 64)
-	if err != nil {
-		return res, fmt.Errorf("invalid eldest seqno: %s", err)
-	}
-	return keybase1.UserVersion{
-		Uid:         uid,
-		EldestSeqno: keybase1.Seqno(eldestSeqno),
-	}, nil
 }
 
 const TeamSigChainPlayerSupportedLinkVersion = 2
@@ -243,6 +218,18 @@ func (t TeamSigChainState) GetUsersWithRole(role keybase1.TeamRole) (res []keyba
 	}
 	for uv := range t.inner.UserLog {
 		if t.getUserRole(uv) == role {
+			res = append(res, uv)
+		}
+	}
+	return res, nil
+}
+
+func (t TeamSigChainState) GetUsersWithRoleOrAbove(role keybase1.TeamRole) (res []keybase1.UserVersion, err error) {
+	if role == keybase1.TeamRole_NONE {
+		return nil, errors.New("cannot get users with NONE role")
+	}
+	for uv := range t.inner.UserLog {
+		if t.getUserRole(uv).IsOrAbove(role) {
 			res = append(res, uv)
 		}
 	}
@@ -473,7 +460,7 @@ func (t *TeamSigChainState) NumActiveInvites() int {
 	return len(t.inner.ActiveInvites)
 }
 
-func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
+func (t *TeamSigChainState) HasActiveInvite(name keybase1.TeamInviteName, typ keybase1.TeamInviteType) (bool, error) {
 	i, err := t.FindActiveInvite(name, typ)
 	if err != nil {
 		if _, ok := err.(libkb.NotFoundError); ok {
@@ -487,14 +474,10 @@ func (t *TeamSigChainState) HasActiveInvite(name, typ string) (bool, error) {
 	return false, nil
 }
 
-func (t *TeamSigChainState) FindActiveInvite(name, typ string) (*keybase1.TeamInvite, error) {
-	for _, invite := range t.inner.ActiveInvites {
-		styp, err := invite.Type.String()
-		if err != nil {
-			return nil, err
-		}
-		if invite.Name == keybase1.TeamInviteName(name) && styp == typ {
-			return &invite, nil
+func (t *TeamSigChainState) FindActiveInvite(name keybase1.TeamInviteName, typ keybase1.TeamInviteType) (*keybase1.TeamInvite, error) {
+	for _, active := range t.inner.ActiveInvites {
+		if active.Name == name && active.Type.Eq(typ) {
+			return &active, nil
 		}
 	}
 	return nil, libkb.NotFoundError{}
@@ -1746,7 +1729,7 @@ func (t *TeamSigChainPlayer) updateInvites(stateToUpdate *TeamSigChainState, add
 	}
 }
 
-func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UID) {
+func (t *TeamSigChainPlayer) completeInvites(stateToUpdate *TeamSigChainState, completed map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm) {
 	for id := range completed {
 		stateToUpdate.informCompletedInvite(id)
 	}

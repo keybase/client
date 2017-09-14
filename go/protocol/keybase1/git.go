@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -33,6 +34,85 @@ type RepoID string
 
 func (o RepoID) DeepCopy() RepoID {
 	return o
+}
+
+type GitLocalMetadataVersion int
+
+const (
+	GitLocalMetadataVersion_V1 GitLocalMetadataVersion = 1
+)
+
+func (o GitLocalMetadataVersion) DeepCopy() GitLocalMetadataVersion { return o }
+
+var GitLocalMetadataVersionMap = map[string]GitLocalMetadataVersion{
+	"V1": 1,
+}
+
+var GitLocalMetadataVersionRevMap = map[GitLocalMetadataVersion]string{
+	1: "V1",
+}
+
+func (e GitLocalMetadataVersion) String() string {
+	if v, ok := GitLocalMetadataVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type GitLocalMetadataV1 struct {
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+func (o GitLocalMetadataV1) DeepCopy() GitLocalMetadataV1 {
+	return GitLocalMetadataV1{
+		RepoName: o.RepoName.DeepCopy(),
+	}
+}
+
+type GitLocalMetadataVersioned struct {
+	Version__ GitLocalMetadataVersion `codec:"version" json:"version"`
+	V1__      *GitLocalMetadataV1     `codec:"v1,omitempty" json:"v1,omitempty"`
+}
+
+func (o *GitLocalMetadataVersioned) Version() (ret GitLocalMetadataVersion, err error) {
+	switch o.Version__ {
+	case GitLocalMetadataVersion_V1:
+		if o.V1__ == nil {
+			err = errors.New("unexpected nil value for V1__")
+			return ret, err
+		}
+	}
+	return o.Version__, nil
+}
+
+func (o GitLocalMetadataVersioned) V1() (res GitLocalMetadataV1) {
+	if o.Version__ != GitLocalMetadataVersion_V1 {
+		panic("wrong case accessed")
+	}
+	if o.V1__ == nil {
+		return
+	}
+	return *o.V1__
+}
+
+func NewGitLocalMetadataVersionedWithV1(v GitLocalMetadataV1) GitLocalMetadataVersioned {
+	return GitLocalMetadataVersioned{
+		Version__: GitLocalMetadataVersion_V1,
+		V1__:      &v,
+	}
+}
+
+func (o GitLocalMetadataVersioned) DeepCopy() GitLocalMetadataVersioned {
+	return GitLocalMetadataVersioned{
+		Version__: o.Version__.DeepCopy(),
+		V1__: (func(x *GitLocalMetadataV1) *GitLocalMetadataV1 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.V1__),
+	}
 }
 
 type GitLocalMetadata struct {
@@ -108,10 +188,34 @@ func (o GetAllGitMetadataArg) DeepCopy() GetAllGitMetadataArg {
 	return GetAllGitMetadataArg{}
 }
 
+type CreatePersonalRepoArg struct {
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+func (o CreatePersonalRepoArg) DeepCopy() CreatePersonalRepoArg {
+	return CreatePersonalRepoArg{
+		RepoName: o.RepoName.DeepCopy(),
+	}
+}
+
+type CreateTeamRepoArg struct {
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+	TeamName TeamName    `codec:"teamName" json:"teamName"`
+}
+
+func (o CreateTeamRepoArg) DeepCopy() CreateTeamRepoArg {
+	return CreateTeamRepoArg{
+		RepoName: o.RepoName.DeepCopy(),
+		TeamName: o.TeamName.DeepCopy(),
+	}
+}
+
 type GitInterface interface {
 	PutGitMetadata(context.Context, PutGitMetadataArg) error
 	GetGitMetadata(context.Context, Folder) ([]GitRepoResult, error)
 	GetAllGitMetadata(context.Context) ([]GitRepoResult, error)
+	CreatePersonalRepo(context.Context, GitRepoName) (RepoID, error)
+	CreateTeamRepo(context.Context, CreateTeamRepoArg) (RepoID, error)
 }
 
 func GitProtocol(i GitInterface) rpc.Protocol {
@@ -161,6 +265,38 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"createPersonalRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]CreatePersonalRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CreatePersonalRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CreatePersonalRepoArg)(nil), args)
+						return
+					}
+					ret, err = i.CreatePersonalRepo(ctx, (*typedArgs)[0].RepoName)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"createTeamRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]CreateTeamRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CreateTeamRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CreateTeamRepoArg)(nil), args)
+						return
+					}
+					ret, err = i.CreateTeamRepo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -182,5 +318,16 @@ func (c GitClient) GetGitMetadata(ctx context.Context, folder Folder) (res []Git
 
 func (c GitClient) GetAllGitMetadata(ctx context.Context) (res []GitRepoResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.git.getAllGitMetadata", []interface{}{GetAllGitMetadataArg{}}, &res)
+	return
+}
+
+func (c GitClient) CreatePersonalRepo(ctx context.Context, repoName GitRepoName) (res RepoID, err error) {
+	__arg := CreatePersonalRepoArg{RepoName: repoName}
+	err = c.Cli.Call(ctx, "keybase.1.git.createPersonalRepo", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GitClient) CreateTeamRepo(ctx context.Context, __arg CreateTeamRepoArg) (res RepoID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.createTeamRepo", []interface{}{__arg}, &res)
 	return
 }

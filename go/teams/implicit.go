@@ -11,9 +11,14 @@ import (
 )
 
 type implicitTeamConflict struct {
+	// Note this TeamID is not validated by LookupImplicitTeam. Be aware of server trust.
 	TeamID       keybase1.TeamID `json:"team_id"`
 	Generation   int             `json:"generation"`
 	ConflictDate string          `json:"conflict_date"`
+}
+
+func (i *implicitTeamConflict) parse() (*keybase1.ImplicitTeamConflictInfo, error) {
+	return libkb.ParseImplicitTeamDisplayNameSuffix(fmt.Sprintf("(conflicted %s #%d)", i.ConflictDate, i.Generation))
 }
 
 type implicitTeam struct {
@@ -28,67 +33,115 @@ func (i *implicitTeam) GetAppStatus() *libkb.AppStatus {
 	return &i.Status
 }
 
-func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+func LookupImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
+	teamID keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+
+	teamID, impTeamName, _, err = LookupImplicitTeamAndConflicts(ctx, g, displayName, public)
+	return teamID, impTeamName, err
+}
+
+func LookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (
+	teamID keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, conflicts []keybase1.ImplicitTeamConflictInfo, err error) {
+
 	impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public /*isPublic*/)
 	if err != nil {
-		return res, impTeamName, err
+		return teamID, impTeamName, conflicts, err
 	}
-	impTeamMembers := make(map[string]bool)
-	for _, u := range impTeamName.Writers.KeybaseUsers {
-		impTeamMembers[u] = true
+
+	// Use a copy without the conflict info to hit the api endpoint
+	var impTeamNameWithoutConflict keybase1.ImplicitTeamDisplayName
+	impTeamNameWithoutConflict = impTeamName
+	impTeamNameWithoutConflict.ConflictInfo = nil
+	lookupNameWithoutConflict, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
+	if err != nil {
+		return teamID, impTeamName, conflicts, err
 	}
 
 	arg := libkb.NewRetryAPIArg("team/implicit")
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
-		"display_name": libkb.S{Val: displayName},
+		"display_name": libkb.S{Val: lookupNameWithoutConflict},
 		"public":       libkb.B{Val: public},
 	}
 	var imp implicitTeam
 	if err = g.API.GetDecode(arg, &imp); err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok &&
 			keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError {
-			return res, impTeamName, NewTeamDoesNotExistError(displayName)
+			return teamID, impTeamName, conflicts, NewTeamDoesNotExistError(displayName)
 		}
-		return res, impTeamName, err
+		return teamID, impTeamName, conflicts, err
+	}
+	if len(imp.Conflicts) > 0 {
+		g.Log.CDebugf(ctx, "LookupImplicitTeam found %v conflicts", len(imp.Conflicts))
+	}
+	// We will use this team. Changed later if we selected a conflict.
+	var foundSelectedConflict bool
+	teamID = imp.TeamID
+	for _, conflict := range imp.Conflicts {
+		conflictInfo, err := conflict.parse()
+		if err != nil {
+			// warn, don't fail
+			g.Log.CWarningf(ctx, "LookupImplicitTeam got conflict suffix: %v", err)
+		} else {
+			conflicts = append(conflicts, *conflictInfo)
+		}
+		if impTeamName.ConflictInfo != nil {
+			match := libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo) == libkb.FormatImplicitTeamDisplayNameSuffix(*conflictInfo)
+			if match {
+				teamID = conflict.TeamID
+				foundSelectedConflict = true
+			}
+		}
+	}
+	if impTeamName.ConflictInfo != nil && !foundSelectedConflict {
+		// We got the team but didn't find the specific conflict requested.
+		return teamID, impTeamName, conflicts, NewTeamDoesNotExistError("could not find team with suffix: %v", displayName)
 	}
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          imp.TeamID,
 		ForceRepoll: true,
 	})
 	if err != nil {
-		return res, impTeamName, err
+		return teamID, impTeamName, conflicts, err
 	}
 
+	// Check the display names. This is how we make sure the server returned a team with the right members.
 	teamDisplayName, err := team.ImplicitTeamDisplayNameString(ctx)
 	if err != nil {
-		return res, impTeamName, err
+		return teamID, impTeamName, conflicts, err
 	}
-	formatImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamName)
+	referenceImpName, err := FormatImplicitTeamDisplayName(ctx, g, impTeamNameWithoutConflict)
 	if err != nil {
-		return res, impTeamName, err
+		return teamID, impTeamName, conflicts, err
 	}
-	if teamDisplayName != formatImpName {
-		return res, impTeamName, fmt.Errorf("implicit team name mismatch: %s != %s", teamDisplayName,
-			formatImpName)
+	if teamDisplayName != referenceImpName {
+		return teamID, impTeamName, conflicts, fmt.Errorf("implicit team name mismatch: %s != %s",
+			teamDisplayName, referenceImpName)
 	}
 	if team.IsPublic() != public {
-		return res, impTeamName, fmt.Errorf("implicit team public-ness mismatch: %v != %v", team.IsPublic(), public)
+		return teamID, impTeamName, conflicts, fmt.Errorf("implicit team public-ness mismatch: %v != %v", team.IsPublic(), public)
 	}
 
-	return imp.TeamID, impTeamName, nil
+	return teamID, impTeamName, conflicts, nil
 }
 
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	lookupName, err := libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public)
+	if err != nil {
+		return res, impTeamName, err
+	}
+
 	res, impTeamName, err = LookupImplicitTeam(ctx, g, displayName, public)
 	if err != nil {
 		if _, ok := err.(TeamDoesNotExistError); ok {
-			// If the team does not exist, then let's create it
-			impTeamName, err = libkb.ParseImplicitTeamDisplayName(g.MakeAssertionContext(), displayName, public /*isPublic*/)
-			if err != nil {
+			if lookupName.ConflictInfo != nil {
+				// Don't create it if a conflict is specified.
+				// Unlikely a caller would know the conflict info if it didn't exist.
 				return res, impTeamName, err
 			}
+			// If the team does not exist, then let's create it
+			impTeamName = lookupName
 			res, err = CreateImplicitTeam(ctx, g, impTeamName)
 			return res, impTeamName, err
 		}
@@ -98,6 +151,15 @@ func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, dis
 }
 
 func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName) (string, error) {
+	return formatImplicitTeamDisplayNameCommon(ctx, g, impTeamName, nil)
+}
+
+// Format an implicit display name, but order the specified username first in each of the writer and reader lists if it appears.
+func FormatImplicitTeamDisplayNameWithUserFront(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName, frontName libkb.NormalizedUsername) (string, error) {
+	return formatImplicitTeamDisplayNameCommon(ctx, g, impTeamName, &frontName)
+}
+
+func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalContext, impTeamName keybase1.ImplicitTeamDisplayName, optionalFrontName *libkb.NormalizedUsername) (string, error) {
 	var writerNames []string
 	for _, u := range impTeamName.Writers.KeybaseUsers {
 		writerNames = append(writerNames, u)
@@ -105,7 +167,11 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	for _, u := range impTeamName.Writers.UnresolvedUsers {
 		writerNames = append(writerNames, u.String())
 	}
-	sort.Strings(writerNames)
+	if optionalFrontName == nil {
+		sort.Strings(writerNames)
+	} else {
+		sortStringsFront(writerNames, optionalFrontName.String())
+	}
 
 	var readerNames []string
 	for _, u := range impTeamName.Readers.KeybaseUsers {
@@ -114,13 +180,15 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	for _, u := range impTeamName.Readers.UnresolvedUsers {
 		readerNames = append(readerNames, u.String())
 	}
-	sort.Strings(readerNames)
+	if optionalFrontName == nil {
+		sort.Strings(readerNames)
+	} else {
+		sortStringsFront(readerNames, optionalFrontName.String())
+	}
 
 	var suffix string
 	if impTeamName.ConflictInfo != nil {
-		suffix = fmt.Sprintf("(conflicted %v #%v)",
-			impTeamName.ConflictInfo.Time.Time().UTC().Format("2006-01-02"),
-			impTeamName.ConflictInfo.Generation)
+		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 
 	if len(writerNames) == 0 {
@@ -128,4 +196,19 @@ func FormatImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext, 
 	}
 
 	return kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
+}
+
+// Sort a list of strings but order `front` in front IF it appears.
+func sortStringsFront(ss []string, front string) {
+	sort.Slice(ss, func(i, j int) bool {
+		a := ss[i]
+		b := ss[j]
+		if a == front {
+			return true
+		}
+		if b == front {
+			return false
+		}
+		return a < b
+	})
 }

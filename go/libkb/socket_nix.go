@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // Though I've never seen this come up in production, it definitely comes up
@@ -43,7 +45,7 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.G().Log.Warning("Changing current working directory because path for binding is too long")
+		s.log.Warning("Changing current working directory because path for binding is too long")
 		if err := os.Chdir(filepath.Dir(bindFile)); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
@@ -51,7 +53,7 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 		bindFile = filepath.Base(bindFile)
 	}
 
-	s.G().Log.Info("Binding to unix:%s", bindFile)
+	s.log.Info("Binding to unix:%s", bindFile)
 	return net.Listen("unix", bindFile)
 }
 
@@ -85,7 +87,7 @@ func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.G().Log.Warning("Changing current working directory because path for dialing is too long")
+		s.log.Warning("Changing current working directory because path for dialing is too long")
 		if err := os.Chdir(filepath.Dir(dialFile)); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
@@ -93,7 +95,7 @@ func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
 		dialFile = filepath.Base(dialFile)
 	}
 
-	s.G().Log.Debug("Dialing unix:%s", dialFile)
+	s.log.Debug("Dialing unix:%s", dialFile)
 	return net.Dial("unix", dialFile)
 }
 
@@ -108,12 +110,25 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	if err != nil {
 		return
 	}
+	log := g.Log
+	if log == nil {
+		log = logger.NewNull()
+	}
 	ret = SocketInfo{
-		Contextified: NewContextified(g),
-		dialFiles:    dialFiles,
-		bindFile:     bindFile,
+		log:       log,
+		dialFiles: dialFiles,
+		bindFile:  bindFile,
 	}
 	return
+}
+
+func NewSocketWithFiles(
+	log logger.Logger, bindFile string, dialFiles []string) Socket {
+	return SocketInfo{
+		log:       log,
+		bindFile:  bindFile,
+		dialFiles: dialFiles,
+	}
 }
 
 // net.errClosing isn't exported, so do this.. UGLY!

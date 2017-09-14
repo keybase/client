@@ -30,6 +30,7 @@ func NewCmdFavorite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 //
 //     /keybase/public/patrick,chris
 //     /keybase/private/patrick,maxtaco@twitter
+//     /keybase/team/bostonredsox
 //     public/patrick,jack
 //     /public/patrick,chris,sam
 //
@@ -45,10 +46,15 @@ func ParseTLF(path string) (keybase1.Folder, error) {
 	switch acc {
 	case "public":
 		f.Private = false
+		f.FolderType = keybase1.FolderType_PUBLIC
 	case "private":
 		f.Private = true
+		f.FolderType = keybase1.FolderType_PRIVATE
+	case "team":
+		f.Private = true
+		f.FolderType = keybase1.FolderType_TEAM
 	default:
-		return f, fmt.Errorf("folder path needs to contain public or private subdirectory")
+		return f, fmt.Errorf("folder path needs to contain a public, private, or team subdirectory")
 	}
 
 	f.Name = name

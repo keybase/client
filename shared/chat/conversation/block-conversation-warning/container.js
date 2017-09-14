@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       }: BlockConversation)
     ),
   onBack: () => dispatch(navigateUp()),
-  navToRootChat: () => dispatch(navigateTo([], [chatTab])),
+  navToRootChat: () => dispatch(navigateTo([chatTab])),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

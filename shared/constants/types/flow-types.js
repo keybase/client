@@ -278,6 +278,10 @@ export const FavoriteFolderType = {
   team: 3,
 }
 
+export const GitGitLocalMetadataVersion = {
+  v1: 1,
+}
+
 export const GregorUIPushReason = {
   none: 0,
   reconnected: 1,
@@ -1407,6 +1411,22 @@ export function fsListRpcPromise (request: (requestCommon & {callback?: ?(err: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.fs.List', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function gitCreatePersonalRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitCreatePersonalRepoResult) => void} & {param: gitCreatePersonalRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createPersonalRepo', request)
+}
+
+export function gitCreatePersonalRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreatePersonalRepoResult) => void} & {param: gitCreatePersonalRepoRpcParam})): Promise<gitCreatePersonalRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createPersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitCreateTeamRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createTeamRepo', request)
+}
+
+export function gitCreateTeamRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam})): Promise<gitCreateTeamRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function gitGetAllGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
 }
@@ -2351,14 +2371,6 @@ export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamCreateSubteamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSubteamResult) => void} & {param: teamsTeamCreateSubteamRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSubteam', request)
-}
-
-export function teamsTeamCreateSubteamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateSubteamResult) => void} & {param: teamsTeamCreateSubteamRpcParam})): Promise<teamsTeamCreateSubteamResult> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateSubteam', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
 export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 }
@@ -3271,6 +3283,16 @@ export type GitLocalMetadata = {
   repoName: GitRepoName,
 }
 
+export type GitLocalMetadataV1 = {
+  repoName: GitRepoName,
+}
+
+export type GitLocalMetadataVersion =
+    1 // V1_1
+
+export type GitLocalMetadataVersioned =
+    { version: 1, v1: ?GitLocalMetadataV1 }
+
 export type GitRepoName = string
 
 export type GitRepoResult = {
@@ -3686,6 +3708,10 @@ export type NotifyTeamTeamChangedRpcParam = Exact<{
   teamName: string,
   latestSeqno: Seqno,
   changes: TeamChangeSet
+}>
+
+export type NotifyTeamTeamDeletedRpcParam = Exact<{
+  teamID: TeamID
 }>
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
@@ -4638,7 +4664,7 @@ export type TeamChangeReq = {
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
-  completedInvites: {[key: string]: UID},
+  completedInvites: {[key: string]: UserVersionPercentForm},
 }
 
 export type TeamChangeRow = {
@@ -4657,6 +4683,7 @@ export type TeamChangeSet = {
 
 export type TeamCreateResult = {
   chatSent: boolean,
+  creatorAdded: boolean,
 }
 
 export type TeamData = {
@@ -5027,6 +5054,8 @@ export type UserVersion = {
   eldestSeqno: Seqno,
 }
 
+export type UserVersionPercentForm = string
+
 export type UserVersionVector = {
   id: long,
   sigHints: int,
@@ -5272,6 +5301,15 @@ export type favoriteFavoriteIgnoreRpcParam = Exact<{
 
 export type fsListRpcParam = Exact<{
   path: string
+}>
+
+export type gitCreatePersonalRepoRpcParam = Exact<{
+  repoName: GitRepoName
+}>
+
+export type gitCreateTeamRepoRpcParam = Exact<{
+  repoName: GitRepoName,
+  teamName: TeamName
 }>
 
 export type gitGetGitMetadataRpcParam = Exact<{
@@ -6006,12 +6044,7 @@ export type teamsTeamChangeMembershipRpcParam = Exact<{
 }>
 
 export type teamsTeamCreateRpcParam = Exact<{
-  name: TeamName,
-  sendChatNotification: boolean
-}>
-
-export type teamsTeamCreateSubteamRpcParam = Exact<{
-  name: TeamName,
+  name: string,
   sendChatNotification: boolean
 }>
 
@@ -6243,6 +6276,8 @@ type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 type deviceDeviceListResult = ?Array<Device>
 type favoriteGetFavoritesResult = FavoritesResult
 type fsListResult = ListResult
+type gitCreatePersonalRepoResult = RepoID
+type gitCreateTeamRepoResult = RepoID
 type gitGetAllGitMetadataResult = ?Array<GitRepoResult>
 type gitGetGitMetadataResult = ?Array<GitRepoResult>
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
@@ -6326,7 +6361,6 @@ type teamsLookupImplicitTeamResult = TeamID
 type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
-type teamsTeamCreateSubteamResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
@@ -6689,6 +6723,12 @@ export type incomingCallMapType = Exact<{
       teamName: string,
       latestSeqno: Seqno,
       changes: TeamChangeSet
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyTeam.teamDeleted'?: (
+    params: Exact<{
+      teamID: TeamID
     }>,
     response: CommonResponseHandler
   ) => void,

@@ -241,6 +241,33 @@ func TestSyncerLeaveConversation(t *testing.T) {
 	}
 }
 
+func TestSyncerTeamType(t *testing.T) {
+	ctx, world, ri2, _, sender, list := setupTest(t, 1)
+	defer world.Cleanup()
+
+	ri := ri2.(*kbtest.ChatRemoteMock)
+	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
+	tc := world.Tcs[u.Username]
+	syncer := NewSyncer(tc.Context())
+	syncer.isConnected = true
+
+	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		conv.Metadata.TeamType = chat1.TeamType_COMPLEX
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  100,
+			Convs: []chat1.Conversation{conv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case <-list.inboxStale:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox stale")
+	}
+}
+
 func TestSyncerAppState(t *testing.T) {
 	ctx, world, ri2, _, sender, list := setupTest(t, 1)
 	defer world.Cleanup()

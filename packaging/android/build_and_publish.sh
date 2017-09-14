@@ -10,6 +10,7 @@ android_dir="$gopath/src/github.com/keybase/client/shared/react-native/android"
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 client_commit=${CLIENT_COMMIT:-}
+check_ci=${CHECK_CI:-1}
 
 "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 
@@ -45,7 +46,7 @@ fi
 
 if [ ! "$cache_go_lib" = "1" ]; then
   echo "Building Go library"
-  CHECK_CI=1 yarn run rn-gobuild-android
+  CHECK_CI="$check_ci" yarn run rn-gobuild-android
 fi
 
 # We can't currently automate this :(, we used to be able to `echo y | android update ...` but that no longer works

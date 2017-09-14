@@ -8,6 +8,7 @@ import (
 // Teamer handles teams for use with the Git index
 type Teamer interface {
 	// LookupOrCreate either lookups or creates a team that corresponds to the given Folder
+	// Does not create new named teams.
 	LookupOrCreate(ctx context.Context, folder keybase1.Folder) (teamID keybase1.TeamIDWithVisibility, err error)
 }
 

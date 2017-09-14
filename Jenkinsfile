@@ -174,7 +174,7 @@ helpers.rootLinuxNode(env, {
                                     }},
                                 )
                             },
-                            test_kbfs: {
+                           /* test_kbfs: {
                                 if (hasGoChanges) {
                                     build([
                                         job: "/kbfs/master",
@@ -190,7 +190,7 @@ helpers.rootLinuxNode(env, {
                                         ]
                                     ])
                                 }
-                            },
+                            },*/
                         )
                     },
                     test_windows: {

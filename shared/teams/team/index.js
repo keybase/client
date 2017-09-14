@@ -131,7 +131,13 @@ class Team extends React.PureComponent<Props> {
           onSelect={() => {}}
           style={{alignSelf: 'flex-start', height: globalMargins.large}}
         />
-        <List items={members} fixedHeight={48} renderItem={this._renderItem} style={{alignSelf: 'stretch'}} />
+        <List
+          keyProperty="username"
+          items={members}
+          fixedHeight={48}
+          renderItem={this._renderItem}
+          style={{alignSelf: 'stretch'}}
+        />
         {this.props.showMenu &&
           <PopupMenu
             items={[

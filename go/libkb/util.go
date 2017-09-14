@@ -20,6 +20,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 	"unicode"
@@ -176,35 +177,66 @@ type SafeWriteLogger interface {
 }
 
 // SafeWriteToFile to safely write to a file. Use mode=0 for default permissions.
-func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
+func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err error) {
 	fn := t.GetFilename()
-	g.Debug(fmt.Sprintf("+ Writing to %s", fn))
+	g.Debug("+ SafeWriteToFile(%q)", fn)
+	defer g.Debug("- SafeWriteToFile(%q) -> %s", fn, ErrToOk(err))
+
 	tmpfn, tmp, err := OpenTempFile(fn, "", mode)
-	g.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err
 	}
+	g.Debug("| Temporary file generated: %s", tmpfn)
+	defer tmp.Close()
+	defer os.Remove(tmpfn)
 
-	_, err = t.WriteTo(tmp)
-	if err == nil {
-		err = tmp.Close()
-		if err == nil {
-			err = os.Rename(tmpfn, fn)
-			if err != nil {
-				g.Errorf(fmt.Sprintf("Error renaming file %s: %s", tmpfn, err))
-				os.Remove(tmpfn)
-			}
-		} else {
-			g.Errorf(fmt.Sprintf("Error closing temporary file %s: %s", tmpfn, err))
-			os.Remove(tmpfn)
-		}
-	} else {
-		g.Errorf(fmt.Sprintf("Error writing temporary file %s: %s", tmpfn, err))
-		tmp.Close()
-		os.Remove(tmpfn)
+	g.Debug("| WriteTo %s", tmpfn)
+	n, err := t.WriteTo(tmp)
+	if err != nil {
+		g.Errorf("| Error writing temporary file %s: %s", tmpfn, err)
+		return err
 	}
-	g.Debug(fmt.Sprintf("- Wrote to %s -> %s", fn, ErrToOk(err)))
-	return err
+	if n != 0 {
+		// unfortunately, some implementations always return 0 for the number
+		// of bytes written, so not much info there, but will log it when
+		// it isn't 0.
+		g.Debug("| bytes written to temporary file %s: %d", tmpfn, n)
+	}
+
+	if err := tmp.Sync(); err != nil {
+		g.Errorf("| Error syncing temporary file %s: %s", tmpfn, err)
+		return err
+	}
+
+	if err := tmp.Close(); err != nil {
+		g.Errorf("| Error closing temporary file %s: %s", tmpfn, err)
+		return err
+	}
+
+	g.Debug("| Renaming temporary file %s -> permanent file %s", tmpfn, fn)
+	if err := os.Rename(tmpfn, fn); err != nil {
+		g.Errorf("| Error renaming temporary file %s -> permanent file %s: %s", tmpfn, fn, err)
+		return err
+	}
+
+	if runtime.GOOS == "android" {
+		g.Debug("| Android extra checks in safeWriteToFile")
+		info, err := os.Stat(fn)
+		if err != nil {
+			g.Errorf("| Error os.Stat(%s): %s", fn, err)
+			return err
+		}
+		g.Debug("| File info: name = %s", info.Name())
+		g.Debug("| File info: size = %d", info.Size())
+		g.Debug("| File info: mode = %s", info.Mode())
+		g.Debug("| File info: mod time = %s", info.ModTime())
+
+		g.Debug("| Android extra checks done")
+	}
+
+	g.Debug("| Done writing to file %s", fn)
+
+	return nil
 }
 
 // Pluralize returns pluralized string with value.

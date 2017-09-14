@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -58,12 +59,14 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 				f.G().Log.Debug(msg)
 			}
 			return nil
-		} else if os.IsPermission(err) {
+		}
+
+		if os.IsPermission(err) {
 			f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
 			return nil
-		} else {
-			return err
 		}
+
+		return err
 	}
 	f.exists = true
 	defer file.Close()
@@ -210,42 +213,80 @@ func (f *JSONFile) save() (err error) {
 	defer writer.Close()
 
 	encoded, err := json.MarshalIndent(dat, "", "    ")
-	if err == nil {
-		_, err = writer.Write(encoded)
+	if err != nil {
+		f.G().Log.Errorf("Error marshaling data to %s file %s: %s", f.which, filename, err)
+		return err
 	}
 
+	n, err := writer.Write(encoded)
 	if err != nil {
-		f.G().Log.Errorf("Error encoding data to %s file %s: %s",
-			f.which, filename, err)
+		f.G().Log.Errorf("Error writing encoded data to %s file %s: %s", f.which, filename, err)
+		return err
+	}
+	if n != len(encoded) {
+		f.G().Log.Errorf("Error writing encoded data to %s file %s: wrote %d bytes, expected %d", f.which, filename, n, len(encoded))
+		return io.ErrShortWrite
+	}
+
+	err = writer.Sync()
+	if err != nil {
+		f.G().Log.Errorf("Error syncing %s file %s: %s", f.which, filename, err)
 		return err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		f.G().Log.Errorf("Error flushing %s file %s: %s", f.which, filename, err)
+		f.G().Log.Errorf("Error closing %s file %s: %s", f.which, filename, err)
 		return err
 	}
+
 	f.G().Log.Debug("- saved %s file %s", f.which, filename)
-	return
+
+	if runtime.GOOS == "android" {
+		f.G().Log.Debug("| Android extra checks in JSONFile.save")
+		info, err := os.Stat(filename)
+		if err != nil {
+			f.G().Log.Errorf("| Error os.Stat(%s): %s", filename, err)
+			return err
+		}
+		f.G().Log.Debug("| File info: name = %s", info.Name())
+		f.G().Log.Debug("| File info: size = %d", info.Size())
+		f.G().Log.Debug("| File info: mode = %s", info.Mode())
+		f.G().Log.Debug("| File info: mod time = %s", info.ModTime())
+
+		if info.Size() != int64(len(encoded)) {
+			f.G().Log.Errorf("| File info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
+			return fmt.Errorf("file info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
+		}
+
+		f.G().Log.Debug("| Android extra checks done")
+	}
+
+	return nil
 }
 
 func (f *jsonFileTransaction) Abort() error {
-	f.f.G().Log.Debug("+ Aborting config rewrite %s", f.tmpname)
+	f.f.G().Log.Debug("+ Aborting %s rewrite %s", f.f.which, f.tmpname)
 	err := os.Remove(f.tmpname)
 	f.f.setTx(nil)
-	f.f.G().Log.Debug("- Abort -> %v\n", err)
+	f.f.G().Log.Debug("- Abort -> %s\n", ErrToOk(err))
 	return err
 }
 
 func (f *jsonFileTransaction) Commit() (err error) {
-	f.f.G().Log.Debug("+ Commit config rewrite %s", f.tmpname)
-	defer func() { f.f.G().Log.Debug("- Commit config rewrite %s", ErrToOk(err)) }()
+	f.f.G().Log.Debug("+ Commit %s rewrite %s", f.f.which, f.tmpname)
+	defer func() { f.f.G().Log.Debug("- Commit %s rewrite %s", f.f.which, ErrToOk(err)) }()
+
 	f.f.G().Log.Debug("| Commit: making parent directories for %q", f.f.filename)
 	if err = MakeParentDirs(f.f.filename); err != nil {
 		return err
 	}
 	f.f.G().Log.Debug("| Commit : renaming %q => %q", f.tmpname, f.f.filename)
 	err = renameFile(f.f.G(), f.tmpname, f.f.filename)
+	if err != nil {
+		f.f.G().Log.Debug("| Commit: rename %q => %q error: %s", f.tmpname, f.f.filename, err)
+	}
 	f.f.setTx(nil)
+
 	return err
 }

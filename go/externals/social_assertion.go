@@ -24,3 +24,11 @@ func AssertionParseAndOnly(s string) (libkb.AssertionExpression, error) {
 func AssertionParse(s string) (libkb.AssertionExpression, error) {
 	return libkb.AssertionParse(MakeAssertionContext(), s)
 }
+
+func ParseAssertionsWithReaders(s string) (writers, readers []libkb.AssertionExpression, err error) {
+	return libkb.ParseAssertionsWithReaders(MakeAssertionContext(), s)
+}
+
+func ParseAssertionList(s string) ([]libkb.AssertionExpression, error) {
+	return libkb.ParseAssertionList(MakeAssertionContext(), s)
+}

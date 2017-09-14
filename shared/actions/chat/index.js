@@ -105,14 +105,19 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           return
         }
 
+        const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         if (incomingMessage.conv) {
           yield call(Inbox.processConversation, incomingMessage.conv)
+        } else {
+          // Sometimes (just for deletes?) we get an incomingMessage without
+          // a conv object -- in that case, ask the service to give us an
+          // updated one so that the snippet etc gets updated.
+          yield put(Creators.unboxConversations([conversationIDKey], true))
         }
 
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(Shared.devicenameSelector)
-        const conversationIDKey = Constants.conversationIDToKey(incomingMessage.convID)
         const message = _unboxedToMessage(messageUnboxed, yourName, yourDeviceName, conversationIDKey)
         if (message.type === 'Unhandled') {
           return
@@ -210,6 +215,10 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           }
         }
       }
+      break
+    case ChatTypes.NotifyChatChatActivityType.teamtype:
+      // Just reload everything if we get one of these
+      yield put(Creators.inboxStale())
       break
     default:
       console.warn(
@@ -892,7 +901,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
-    yield put(navigateTo([], [chatTab]))
+    yield put(navigateTo([chatTab]))
   }
 
   // Do this here because it's possible loadMoreMessages bails early
@@ -985,16 +994,15 @@ function* _changedActive(action: ChangedActive): SagaGenerator<any, any> {
 
 function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  let conversationsWithKeys = {}
-  conversations.map(conv => {
-    conversationsWithKeys[Constants.conversationIDToKey(conv.get('convID'))] = conv.get('unreadMessages')
-  })
   const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const count = conv.get('unreadMessages')
-    if (!count) {
+    const unreadCounts: Constants.UnreadCounts = {
+      total: conv.get('unreadMessages'),
+      badged: conv.get('badgeCounts')[`${isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop}`],
+    }
+    if (!unreadCounts.total) {
       return map
     } else {
-      return map.set(Constants.conversationIDToKey(conv.get('convID')), count)
+      return map.set(Constants.conversationIDToKey(conv.get('convID')), unreadCounts)
     }
   }, Map())
   yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
@@ -1147,7 +1155,7 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {updates} = action.payload
   const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-  yield call(Inbox.unboxConversations, convIDs)
+  yield put(Creators.unboxConversations(convIDs, true))
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -1392,6 +1400,8 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
   yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
   yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
+  yield Saga.safeTakeSerially('chat:unboxConversations', Inbox.unboxConversations)
+  yield Saga.safeTakeLatest('chat:unboxMore', Inbox.unboxMore)
 }
 
 export default chatSaga

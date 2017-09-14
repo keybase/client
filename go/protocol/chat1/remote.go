@@ -195,13 +195,15 @@ func (o PostRemoteRes) DeepCopy() PostRemoteRes {
 }
 
 type NewConversationRemoteRes struct {
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	RateLimit *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	ConvID             ConversationID `codec:"convID" json:"convID"`
+	CreatedComplexTeam bool           `codec:"createdComplexTeam" json:"createdComplexTeam"`
+	RateLimit          *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o NewConversationRemoteRes) DeepCopy() NewConversationRemoteRes {
 	return NewConversationRemoteRes{
-		ConvID: o.ConvID.DeepCopy(),
+		ConvID:             o.ConvID.DeepCopy(),
+		CreatedComplexTeam: o.CreatedComplexTeam,
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil

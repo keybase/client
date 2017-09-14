@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
-import {compose, renderComponent, branch} from 'recompose'
+import {compose, renderComponent, renderNothing, branch} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
@@ -37,6 +37,9 @@ const getParticipants = createSelector(
 
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  if (!selectedConversationIDKey) {
+    return {}
+  }
   const inbox = Constants.getSelectedInbox(state)
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
@@ -53,7 +56,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  _navToRootChat: () => dispatch(navigateTo([], [chatTab])),
+  _navToRootChat: () => dispatch(navigateTo([chatTab])),
   _onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
   _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
     dispatch(Creators.leaveConversation(conversationIDKey))
@@ -92,8 +95,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onAddParticipant: () => dispatchProps._onAddParticipant(stateProps.participants.map(p => p.username)),
   onLeaveConversation: () => {
     if (stateProps.selectedConversationIDKey) {
-      dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
       dispatchProps._navToRootChat()
+      dispatchProps._onLeaveConversation(stateProps.selectedConversationIDKey)
     }
   },
   onMuteConversation: stateProps.selectedConversationIDKey &&
@@ -115,6 +118,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
 
 const ConnectedInfoPanel = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => !props.selectedConversationIDKey, renderNothing),
   branch(props => props.channelname, renderComponent(BigTeamInfoPanel))
 )(SmallTeamInfoPanel)
 

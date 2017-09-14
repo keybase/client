@@ -124,6 +124,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
+		keybase1.GitProtocol(NewGitHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {

@@ -1,12 +1,12 @@
 // @flow
 import * as SearchConstants from './search'
+import * as ChatTypes from './types/flow-types-chat'
 import {createShallowEqualSelector} from './selectors'
 import HiddenString from '../util/hidden-string'
 import {Buffer} from 'buffer'
 import {Set, List, Map, OrderedSet, Record} from 'immutable'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
-import * as ChatTypes from './types/flow-types-chat'
 import {getPath, getPathState} from '../route-tree'
 import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
@@ -15,20 +15,6 @@ import {parseUserId, serviceIdToIcon} from '../util/platforms'
 import type {UserListItem} from '../common-adapters/usernames'
 import type {Path} from '../route-tree'
 import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import type {
-  Asset,
-  AssetMetadata,
-  ChatActivity,
-  ConversationInfoLocal,
-  ConversationMembersType,
-  ConversationFinalizeInfo,
-  MessageBody,
-  MessageID as RPCMessageID,
-  OutboxID as RPCOutboxID,
-  ConversationID as RPCConversationID,
-  TyperInfo,
-  ConversationStaleUpdate,
-} from './types/flow-types-chat'
 import {CommonTLFVisibility} from './types/flow-types'
 import type {DeviceType, KBRecord, KBOrderedSet} from './types/more'
 import type {TypedState} from './reducer'
@@ -61,10 +47,10 @@ export const messageStates: Array<MessageState> = ['pending', 'failed', 'sent']
 export type AttachmentMessageState = MessageState | 'placeholder' | 'uploading'
 export type AttachmentType = 'Image' | 'Video' | 'Other'
 
-export type ConversationID = RPCConversationID
+export type ConversationID = ChatTypes.ConversationID
 export type ConversationIDKey = string
 
-export type OutboxID = RPCOutboxID
+export type OutboxID = ChatTypes.OutboxID
 export type OutboxIDKey = string
 
 export type MessageID = string
@@ -263,11 +249,13 @@ export type ConversationState = KBRecord<{
 export type ConversationBadgeState = KBRecord<{
   convID: ConversationID,
   unreadMessages: number,
+  badgeCounts: {[key: string]: number},
 }>
 
 export const ConversationBadgeStateRecord = Record({
   convID: undefined,
   unreadMessages: 0,
+  badgeCounts: {},
 })
 
 export type ConversationStateEnum = $Keys<typeof ChatTypes.CommonConversationStatus>
@@ -297,31 +285,33 @@ export const InboxStateRecord = Record({
   time: 0,
   name: '',
   visibility: CommonTLFVisibility.private,
+  teamType: ChatTypes.CommonTeamType.none,
 })
 
 export type InboxState = KBRecord<{
   conversationIDKey: ConversationIDKey,
-  info: ConversationInfoLocal,
+  info: ChatTypes.ConversationInfoLocal,
   isEmpty: boolean,
   teamname: ?string,
   channelname: ?string,
   name: ?string,
-  membersType: ConversationMembersType,
+  membersType: ChatTypes.ConversationMembersType,
   notifications: NotificationsState,
   participants: List<string>,
   state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
   time: number,
+  teamType: ChatTypes.TeamType,
 }>
 
 export type SupersedeInfo = {
   conversationIDKey: ConversationID,
-  finalizeInfo: ConversationFinalizeInfo,
+  finalizeInfo: ChatTypes.ConversationFinalizeInfo,
 }
 
-export type FinalizeInfo = ConversationFinalizeInfo
+export type FinalizeInfo = ChatTypes.ConversationFinalizeInfo
 
-export type FinalizedState = Map<ConversationIDKey, ConversationFinalizeInfo>
+export type FinalizedState = Map<ConversationIDKey, ChatTypes.ConversationFinalizeInfo>
 
 export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
 export type SupersededByState = Map<ConversationIDKey, SupersedeInfo>
@@ -391,6 +381,11 @@ export const StateRecord: KBRecord<T> = Record({
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
+export type UnreadCounts = {
+  total: number,
+  badged: number,
+}
+
 export type State = KBRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
@@ -403,7 +398,7 @@ export type State = KBRecord<{
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
   metaData: MetaDataMap,
-  conversationUnreadCounts: Map<ConversationIDKey, number>,
+  conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
@@ -428,6 +423,12 @@ export const maxMessagesToLoadAtATime = 50
 
 export const nothingSelected = 'chat:noneSelected'
 export const blankChat = 'chat:blankChat'
+
+export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
+export type UnboxConversations = NoErrorTypedAction<
+  'chat:unboxConversations',
+  {conversationIDKeys: Array<ConversationIDKey>, force: boolean}
+>
 
 export type AddPendingConversation = NoErrorTypedAction<
   'chat:addPendingConversation',
@@ -464,8 +465,8 @@ export type GetInboxAndUnbox = NoErrorTypedAction<
   {conversationIDKeys: Array<ConversationIDKey>}
 >
 export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
-export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatActivity}>
-export type IncomingTyping = NoErrorTypedAction<'chat:incomingTyping', {activity: TyperInfo}>
+export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatTypes.ChatActivity}>
+export type IncomingTyping = NoErrorTypedAction<'chat:incomingTyping', {activity: ChatTypes.TyperInfo}>
 export type LeaveConversation = NoErrorTypedAction<
   'chat:leaveConversation',
   {conversationIDKey: ConversationIDKey}
@@ -482,7 +483,7 @@ export type LoadingMessages = NoErrorTypedAction<
 >
 export type MarkThreadsStale = NoErrorTypedAction<
   'chat:markThreadsStale',
-  {updates: Array<ConversationStaleUpdate>}
+  {updates: Array<ChatTypes.ConversationStaleUpdate>}
 >
 export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',
@@ -589,7 +590,7 @@ export type UntrustedInboxVisible = NoErrorTypedAction<
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
 export type UpdateConversationUnreadCounts = NoErrorTypedAction<
   'chat:updateConversationUnreadCounts',
-  {conversationUnreadCounts: Map<ConversationIDKey, number>}
+  {conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>}
 >
 export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',
@@ -825,11 +826,11 @@ function keyToOutboxID(key: OutboxIDKey): OutboxID {
 
 const _messageIDPrefix = 'MSGID-'
 const _messageIDPrefixReg = new RegExp('^' + _messageIDPrefix)
-function rpcMessageIDToMessageID(rpcMessageID: RPCMessageID): MessageID {
+function rpcMessageIDToMessageID(rpcMessageID: ChatTypes.MessageID): MessageID {
   return `${_messageIDPrefix}${rpcMessageID.toString(16)}`
 }
 
-function messageIDToRpcMessageID(msgID: MessageID): RPCMessageID {
+function messageIDToRpcMessageID(msgID: MessageID): ChatTypes.MessageID {
   return parseInt(msgID.substring(_messageIDPrefix.length), 16)
 }
 
@@ -846,7 +847,7 @@ function messageIDToSelfInventedID(msgID: MessageID) {
 type ParsedMessageID =
   | {
       type: 'rpcMessageID',
-      msgID: RPCMessageID,
+      msgID: ChatTypes.MessageID,
     }
   | {
       type: 'outboxID',
@@ -890,7 +891,7 @@ function makeSnippet(messageBody: ?string): ?string {
   return textSnippet(messageBody || '', 100)
 }
 
-function makeTeamTitle(messageBody: ?MessageBody): ?string {
+function makeTeamTitle(messageBody: ?ChatTypes.MessageBody): ?string {
   if (!messageBody) {
     return null
   }
@@ -958,7 +959,7 @@ function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
   }
 }
 
-function parseMetadataPreviewSize(metadata: AssetMetadata): ?AttachmentSize {
+function parseMetadataPreviewSize(metadata: ChatTypes.AssetMetadata): ?AttachmentSize {
   if (metadata.assetType === ChatTypes.LocalAssetMetadataType.image && metadata.image) {
     return clampAttachmentPreviewSize(metadata.image)
   } else if (metadata.assetType === ChatTypes.LocalAssetMetadataType.video && metadata.video) {
@@ -966,7 +967,7 @@ function parseMetadataPreviewSize(metadata: AssetMetadata): ?AttachmentSize {
   }
 }
 
-function getAssetDuration(assetMetadata: ?AssetMetadata): ?number {
+function getAssetDuration(assetMetadata: ?ChatTypes.AssetMetadata): ?number {
   const assetIsVideo = assetMetadata && assetMetadata.assetType === ChatTypes.LocalAssetMetadataType.video
   if (assetIsVideo) {
     const assetVideoMetadata =
@@ -978,7 +979,7 @@ function getAssetDuration(assetMetadata: ?AssetMetadata): ?number {
   return null
 }
 
-function getAttachmentInfo(preview: ?(Asset | ChatTypes.MakePreviewRes), object: ?Asset) {
+function getAttachmentInfo(preview: ?(ChatTypes.Asset | ChatTypes.MakePreviewRes), object: ?ChatTypes.Asset) {
   const filename = object && object.filename
   const title = object && object.title
 

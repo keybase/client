@@ -12,7 +12,7 @@ import type {Props as BannerProps} from './banner'
 import type {Props as BetaNoteProps} from './beta-note'
 import type {Props as TeamListProps} from './team-list'
 
-type Props = HeaderProps & BetaNoteProps & TeamListProps & BannerProps
+type Props = HeaderProps & BetaNoteProps & TeamListProps & BannerProps & {sawChatBanner: boolean}
 
 const Teams = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
@@ -25,7 +25,7 @@ const Teams = (props: Props) => (
           alignItems: 'center',
         }}
       >
-        <Banner onReadMore={props.onReadMore} onHideBanner={props.onHideBanner} />
+        {!props.sawChatBanner && <Banner onReadMore={props.onReadMore} onHideBanner={props.onHideBanner} />}
         <TeamList {...props} />
         <BetaNote {...props} />
       </ScrollView>

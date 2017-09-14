@@ -1,9 +1,10 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
+import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
-import {createSelectorCreator, defaultMemoize} from 'reselect'
+import {createSelector} from 'reselect'
 import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
@@ -11,105 +12,109 @@ import flatten from 'lodash/flatten'
 
 import type {TypedState} from '../../constants/reducer'
 
-const smallteamsCollapsedMaxShown = 5
+const smallTeamsCollapsedMaxShown = 5
 const getInbox = (state: TypedState) => state.chat.get('inbox')
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
-
-const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
+const getUnreadCounts = (state: TypedState) => state.chat.get('conversationUnreadCounts')
 
 const passesStringFilter = (filter: string, toCheck: string): boolean => {
+  // No need to worry about Unicode issues with toLowerCase(), since
+  // names can only be ASCII.
   return toCheck.toLowerCase().indexOf(filter.toLowerCase()) >= 0
 }
 
 const passesParticipantFilter = (participants: I.List<string>, filter: string, you: ?string): boolean => {
-  if (!filter) {
-    return true
-  }
   const names = participants.filter(p => p !== you).toArray()
-  // No need to worry about Unicode issues with toLowerCase(), since
-  // names can only be ASCII.
   return names.some(n => passesStringFilter(filter, n))
 }
 
-const filteredInbox = createImmutableEqualSelector(
-  [getInbox, getSupersededByState, getAlwaysShow, getFilter, Constants.getYou],
-  (inbox, supersededByState, alwaysShow, filter, you) => {
-    const smallIds = []
-    const bigTeamToChannels = {}
-
-    // Partition small and big. Some big will turn into small later if they only have one channel
-    // Filter out any small teams that don't match
-    inbox.forEach(i => {
-      const id = i.conversationIDKey
-      if ((!i.isEmpty || alwaysShow.has(id)) && !supersededByState.get(id)) {
-        // Keep time cause we sort later
-        const value = {id, time: i.time}
-        if (!i.teamname && passesParticipantFilter(i.get('participants'), filter, you)) {
-          smallIds.push(value)
-        } else {
-          if (!bigTeamToChannels[i.teamname]) {
-            bigTeamToChannels[i.teamname] = {}
+const getSimpleRows = createSelector(
+  [getInbox, getAlwaysShow, getFilter, getSupersededByState, Constants.getYou],
+  (inbox, alwaysShow, filter, supersededByState, you) => {
+    return (
+      inbox
+        .filter(i => {
+          if (i.teamType === ChatTypes.CommonTeamType.complex) {
+            return false
           }
-          // Do we have the real name yet?
-          const channel = i.channelname === '-' ? id : i.channelname
-          bigTeamToChannels[i.teamname][channel] = value
-        }
-      }
-    })
 
-    // convert any small teams into smallids
-    Object.keys(bigTeamToChannels).forEach(team => {
-      // only one channel
-      const channels = Object.keys(bigTeamToChannels[team])
-      if (channels.length === 1) {
-        if (passesParticipantFilter(I.List.of(team), filter, you)) {
-          smallIds.push(bigTeamToChannels[team][channels[0]])
-        }
-        delete bigTeamToChannels[team]
-      }
-    })
+          const id = i.conversationIDKey
+          const isEmpty = i.isEmpty && !alwaysShow.has(id)
+          const isSuperseded = !!supersededByState.get(id)
+          const passesFilter =
+            !filter ||
+            (i.teamname && passesStringFilter(filter, i.teamname)) ||
+            passesParticipantFilter(i.get('participants'), filter, you)
 
-    // Filter out big teams
-    if (filter) {
-      Object.keys(bigTeamToChannels).forEach(team => {
-        // teamname doesn't pass
-        if (!passesStringFilter(filter, team)) {
-          const channels = Object.keys(bigTeamToChannels[team])
-          channels.forEach(c => {
-            if (!passesStringFilter(filter, c)) {
-              delete bigTeamToChannels[team][c]
-            }
-          })
-
-          const filteredChannels = Object.keys(bigTeamToChannels[team])
-          if (!filteredChannels.length) {
-            delete bigTeamToChannels[team]
+          return !isEmpty && !isSuperseded && passesFilter
+        })
+        // this is done for perf reasons and that sorting immutable lists is slow
+        .map(i => ({
+          conversationIDKey: i.conversationIDKey,
+          time: i.time,
+        }))
+        .sort((a, b) => {
+          if (a.time === b.time) {
+            return a.conversationIDKey.localeCompare(b.conversationIDKey)
           }
-        }
-      })
-    }
 
-    const sortedSmallIds = smallIds
-      .sort((a, b) => {
-        if (a.time === b.time) {
-          return a.id.localeCompare(b.id)
-        }
-
-        return b.time - a.time
-      })
-      .map(v => v.id)
-
-    return [sortedSmallIds, bigTeamToChannels]
+          return b.time - a.time
+        })
+        .map(i => i.conversationIDKey)
+    )
   }
 )
-const getRows = createImmutableEqualSelector(
-  [filteredInbox, getPending, getFilter],
-  (inbox, pending, filter) => {
-    const [smallIds, bigTeamToChannels] = inbox
 
+const getBigRows = createSelector([getInbox, getFilter], (inbox, filter) => {
+  const bigTeamToChannels = inbox
+    .filter(i => i.teamType === ChatTypes.CommonTeamType.complex)
+    .reduce((map, i) => {
+      if (!map[i.teamname]) {
+        map[i.teamname] = {}
+      }
+      const id = i.conversationIDKey
+      // Do we have the real name yet?
+      const channel = i.channelname === '-' ? id : i.channelname
+      map[i.teamname][channel] = id
+      return map
+    }, {})
+
+  // Filter out big teams
+  if (filter) {
+    Object.keys(bigTeamToChannels).forEach(team => {
+      // teamname doesn't pass
+      if (filter && !passesStringFilter(filter, team)) {
+        const channels = Object.keys(bigTeamToChannels[team])
+        channels.forEach(c => {
+          if (filter && !passesStringFilter(filter, c)) {
+            delete bigTeamToChannels[team][c]
+          }
+        })
+
+        const filteredChannels = Object.keys(bigTeamToChannels[team])
+        if (!filteredChannels.length) {
+          delete bigTeamToChannels[team]
+        }
+      }
+    })
+  }
+
+  return bigTeamToChannels
+})
+
+const getRows = createSelector(
+  [
+    getSimpleRows,
+    getBigRows,
+    getPending,
+    getFilter,
+    getUnreadCounts,
+    (_, smallTeamsExpanded) => smallTeamsExpanded,
+  ],
+  (smallIds, bigTeamToChannels, pending, filter, badgeCountMap, smallTeamsExpanded) => {
     const pids = I.List(pending.keySeq().map(k => ({conversationIDKey: k, type: 'small'})))
     const sids = I.List(smallIds.map(s => ({conversationIDKey: s, type: 'small'})))
 
@@ -129,7 +134,7 @@ const getRows = createImmutableEqualSelector(
           ].concat(
             Object.keys(channels).sort().map(channel => ({
               channelname: channel,
-              conversationIDKey: channels[channel].id,
+              conversationIDKey: channels[channel],
               teamname: team,
               type: 'big',
             }))
@@ -138,40 +143,65 @@ const getRows = createImmutableEqualSelector(
       )
     )
 
-    const allSmallTeams = pids.concat(sids)
-    return [allSmallTeams, bigTeams]
+    let smallTeams = pids.concat(sids)
+    let showSmallTeamsExpandDivider = false
+    const smallTeamsRowsToHideCount = Math.max(0, smallTeams.count() - smallTeamsCollapsedMaxShown)
+    let smallTeamsHiddenBadgeCount = 0
+    let smallTeamsHiddenRowCount = 0
+    if (!filter && bigTeams.count() && smallTeamsRowsToHideCount) {
+      showSmallTeamsExpandDivider = true
+      if (!smallTeamsExpanded) {
+        const smallTeamsHidden = smallTeams.slice(smallTeamsCollapsedMaxShown)
+        smallTeams = smallTeams.slice(0, smallTeamsCollapsedMaxShown)
+        smallTeamsHiddenBadgeCount = smallTeamsHidden.reduce((total, team) => {
+          if (team.type === 'small') {
+            const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
+            return total + (unreadCount ? unreadCount.badged : 0)
+          }
+          return total
+        }, 0)
+        smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
+      }
+    }
+
+    const bigTeamsBadgeCount = bigTeams.reduce((total, team) => {
+      if (team.type === 'big') {
+        const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
+        return total + (unreadCount ? unreadCount.badged : 0)
+      }
+      return total
+    }, 0)
+
+    const divider = {type: 'divider'}
+    const bigTeamsLabel = {isFiltered: !!filter, type: 'bigTeamsLabel'}
+    const showBuildATeam = bigTeams.count() === 0
+
+    const rows = smallTeams
+      .concat(I.List(showSmallTeamsExpandDivider ? [divider] : []))
+      .concat(I.List(bigTeams.count() ? [bigTeamsLabel] : []))
+      .concat(bigTeams)
+
+    return {
+      bigTeamsBadgeCount,
+      rows,
+      showBuildATeam,
+      showSmallTeamsExpandDivider,
+      smallTeamsHiddenBadgeCount,
+      smallTeamsHiddenRowCount,
+    }
   }
 )
 
 const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
-  const [allSmallTeams, bigTeams] = getRows(state, smallTeamsExpanded)
+  const {
+    bigTeamsBadgeCount,
+    rows,
+    showBuildATeam,
+    showSmallTeamsExpandDivider,
+    smallTeamsHiddenBadgeCount,
+    smallTeamsHiddenRowCount,
+  } = getRows(state, smallTeamsExpanded)
   const filter = getFilter(state)
-
-  let smallTeams = allSmallTeams
-  let showSmallTeamsExpandDivider = false
-
-  if (!filter && bigTeams.count() && allSmallTeams.count() > smallteamsCollapsedMaxShown) {
-    showSmallTeamsExpandDivider = true
-    if (!smallTeamsExpanded) {
-      smallTeams = allSmallTeams.slice(0, smallteamsCollapsedMaxShown)
-    }
-  }
-
-  const badgeCountMap = state.chat.get('conversationUnreadCounts')
-  const bigTeamsBadgeCount = bigTeams.reduce((total, team) => {
-    if (team.type === 'big') {
-      return total + badgeCountMap.get(team.conversationIDKey, 0)
-    }
-    return total
-  }, 0)
-  const divider = {isBadged: bigTeamsBadgeCount > 0, type: 'divider'}
-  const bigTeamsLabel = {isFiltered: !!filter, type: 'bigTeamsLabel'}
-  const showBuildATeam = bigTeams.count() === 0
-
-  const rows = smallTeams
-    .concat(I.List(showSmallTeamsExpandDivider ? [divider] : []))
-    .concat(I.List(bigTeams.count() ? [bigTeamsLabel] : []))
-    .concat(bigTeams)
 
   return {
     bigTeamsBadgeCount,
@@ -182,6 +212,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     showSmallTeamsExpandDivider,
+    smallTeamsHiddenBadgeCount,
+    smallTeamsHiddenRowCount,
   }
 }
 
@@ -193,13 +225,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  ...stateProps,
-  ...dispatchProps,
-  smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
-})
-
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
@@ -209,7 +234,7 @@ export default compose(
   withHandlers({
     toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
   }),
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {
