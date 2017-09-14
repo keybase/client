@@ -242,10 +242,11 @@ func (l *TeamLoader) walkUpToAdmin(
 		if target.Eq(*parent) {
 			arg.needSeqnos = []keybase1.Seqno{admin.Seqno}
 		}
-		team, err = l.load2(ctx, arg)
+		load2Res, err := l.load2(ctx, arg)
 		if err != nil {
 			return nil, err
 		}
+		team = &load2Res.team
 	}
 	if team == nil {
 		return nil, fmt.Errorf("teamloader fault: nil team after admin walk")
@@ -476,7 +477,7 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 	}
 
 	for _, pco := range parentChildOperations {
-		parentChain := TeamSigChainState{inner: parent.Chain}
+		parentChain := TeamSigChainState{inner: parent.team.Chain}
 		err = l.checkOneParentChildOperation(ctx, pco, loadingTeamID, &parentChain)
 		if err != nil {
 			return err
@@ -802,7 +803,7 @@ func (l *TeamLoader) calculateName(ctx context.Context,
 	// Swap out the parent name as the base of this name.
 	// Check that the root ancestor name and depth still match the subteam chain.
 
-	newName, err = parent.Name.Append(string(chain.LatestLastNamePart()))
+	newName, err = parent.team.Name.Append(string(chain.LatestLastNamePart()))
 	if err != nil {
 		return newName, fmt.Errorf("invalid new subteam name: %v", err)
 	}
