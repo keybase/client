@@ -78,6 +78,7 @@ func TestCreateFileInRoot(t *testing.T) {
 	require.NoError(t, err)
 
 	testCreateFile(t, ctx, fs, "foo", rootNode)
+	testCreateFile(t, ctx, fs, "/bar", rootNode)
 }
 
 func TestCreateFileInSubdir(t *testing.T) {

@@ -230,6 +230,7 @@ func (fs *FS) lookupOrCreateEntry(
 	if filename == "" || filename == "/" {
 		return fs.root, fs.rootInfo, nil
 	}
+	filename = strings.TrimPrefix(filename, "/")
 
 	for i := 0; i < maxSymlinkLevels; i++ {
 		var parentDir, fName string
@@ -271,6 +272,10 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 	defer func() {
 		err = translateErr(err)
 	}()
+
+	if filename == "/" || filename == "" {
+		return nil
+	}
 
 	n, _, leftover, err := fs.lookupParentWithDepth(filename, true, 0)
 	if err != nil {
