@@ -105,6 +105,8 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	for teamName := range teamNames {
 		_, ok := administeredTeams[teamName]
 		if ok {
+			// TODO this is slow for subteams that you are not a direct admin of
+			// because NeedAdmin causes forceRepoll in and out.
 			t, err := Load(ctx, g, keybase1.LoadTeamArg{
 				Name:      teamName,
 				NeedAdmin: true,
