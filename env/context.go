@@ -48,7 +48,7 @@ func (c *KBFSContext) initKBFSSocket() {
 	c.kbfsSocketMtx.Lock()
 	defer c.kbfsSocketMtx.Unlock()
 	log := c.g.Log
-	bindFile := c.getkbfsSocketFile()
+	bindFile := c.getKBFSSocketFile()
 	dialFiles := []string{bindFile}
 	c.kbfsSocket = libkb.NewSocketWithFiles(log, bindFile, dialFiles)
 }
@@ -58,7 +58,7 @@ var libkbGOnce sync.Once
 
 func getLibkbG() *libkb.GlobalContext {
 	libkbGOnce.Do(func() {
-		g := libkb.NewGlobalContext()
+		g := libkb.NewGlobalContextInit()
 		g.ConfigureConfig()
 		g.ConfigureLogging()
 		g.ConfigureCaches()
@@ -119,7 +119,7 @@ func (c *KBFSContext) getSandboxSocketFile() string {
 	return filepath.Join(sandboxDir, kbfsSocketFile)
 }
 
-func (c *KBFSContext) getkbfsSocketFile() string {
+func (c *KBFSContext) getKBFSSocketFile() string {
 	e := c.g.Env
 	return e.GetString(
 		func() string { return c.getSandboxSocketFile() },
@@ -134,9 +134,9 @@ func (c *KBFSContext) newTransportFromSocket(s net.Conn) rpc.Transporter {
 }
 
 // GetKBFSSocket dials the socket configured in `c.kbfsSocket`.
+// Adapted from github.com/keybase/client/go/libkb.GlobalContext.GetSocket.
 func (c *KBFSContext) GetKBFSSocket(clearError bool) (
 	net.Conn, rpc.Transporter, bool, error) {
-
 	var err error
 	c.g.Trace("GetSocket", func() error { return err })()
 
@@ -148,10 +148,10 @@ func (c *KBFSContext) GetKBFSSocket(clearError bool) (
 	needWrapper := false
 	if c.kbfsSocketWrapper == nil {
 		needWrapper = true
-		c.g.Log.Debug("| empty socket wrapper; need a new one")
+		c.g.Log.Debug("empty socket wrapper; need a new one")
 	} else if c.kbfsSocketWrapper.Transporter != nil && !c.kbfsSocketWrapper.Transporter.IsConnected() {
 		// need reconnect
-		c.g.Log.Debug("| rpc transport isn't connected, reconnecting...")
+		c.g.Log.Debug("rpc transport isn't connected, reconnecting...")
 		needWrapper = true
 	}
 
@@ -162,7 +162,7 @@ func (c *KBFSContext) GetKBFSSocket(clearError bool) (
 			sw.Err = fmt.Errorf("Cannot get socket")
 		} else {
 			sw.Conn, sw.Err = c.kbfsSocket.DialSocket()
-			c.g.Log.Debug("| DialSocket -> %s", libkb.ErrToOk(sw.Err))
+			c.g.Log.Debug("DialSocket -> %s", libkb.ErrToOk(sw.Err))
 			isNew = true
 		}
 		if sw.Err == nil {
@@ -177,7 +177,7 @@ func (c *KBFSContext) GetKBFSSocket(clearError bool) (
 		c.kbfsSocketWrapper = nil
 	}
 
-	return sw.Conn, sw.Transporter, isNew, err
+	return sw.Conn, sw.Transporter, isNew, sw.Err
 }
 
 // BindToKBFSSocket binds to the socket configured in `c.kbfsSocket`.
