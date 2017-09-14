@@ -2981,6 +2981,25 @@ func (o JoinLeaveConversationLocalRes) DeepCopy() JoinLeaveConversationLocalRes 
 	}
 }
 
+type DeleteConversationLocalRes struct {
+	Offline    bool        `codec:"offline" json:"offline"`
+	RateLimits []RateLimit `codec:"rateLimits" json:"rateLimits"`
+}
+
+func (o DeleteConversationLocalRes) DeepCopy() DeleteConversationLocalRes {
+	return DeleteConversationLocalRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			var ret []RateLimit
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.RateLimits),
+	}
+}
+
 type GetTLFConversationsLocalRes struct {
 	Convs      []InboxUIItem `codec:"convs" json:"convs"`
 	Offline    bool          `codec:"offline" json:"offline"`
@@ -3688,6 +3707,16 @@ func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
 	}
 }
 
+type DeleteConversationLocalArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o DeleteConversationLocalArg) DeepCopy() DeleteConversationLocalArg {
+	return DeleteConversationLocalArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
 type GetTLFConversationsLocalArg struct {
 	TlfName     string                  `codec:"tlfName" json:"tlfName"`
 	TopicType   TopicType               `codec:"topicType" json:"topicType"`
@@ -3803,6 +3832,7 @@ type LocalInterface interface {
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
+	DeleteConversationLocal(context.Context, ConversationID) (DeleteConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 	SetGlobalAppNotificationSettingsLocal(context.Context, map[string]bool) error
@@ -4305,6 +4335,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"deleteConversationLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteConversationLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.DeleteConversationLocal(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getTLFConversationsLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]GetTLFConversationsLocalArg, 1)
@@ -4546,6 +4592,12 @@ func (c LocalClient) JoinConversationByIDLocal(ctx context.Context, convID Conve
 func (c LocalClient) LeaveConversationLocal(ctx context.Context, convID ConversationID) (res JoinLeaveConversationLocalRes, err error) {
 	__arg := LeaveConversationLocalArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.local.leaveConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) DeleteConversationLocal(ctx context.Context, convID ConversationID) (res DeleteConversationLocalRes, err error) {
+	__arg := DeleteConversationLocalArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.local.deleteConversationLocal", []interface{}{__arg}, &res)
 	return
 }
 

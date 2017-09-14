@@ -1880,6 +1880,23 @@
     },
     {
       "type": "record",
+      "name": "DeleteConversationLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTLFConversationsLocalRes",
       "fields": [
         {
@@ -2685,6 +2702,15 @@
         }
       ],
       "response": "JoinLeaveConversationLocalRes"
+    },
+    "deleteConversationLocal": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "DeleteConversationLocalRes"
     },
     "getTLFConversationsLocal": {
       "request": [

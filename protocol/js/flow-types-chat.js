@@ -247,6 +247,14 @@ export function localCancelPostRpcPromise (request: (requestCommon & requestErro
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.CancelPost', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function localDeleteConversationLocalRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localDeleteConversationLocalResult) => void} & {param: localDeleteConversationLocalRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.deleteConversationLocal', request)
+}
+
+export function localDeleteConversationLocalRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localDeleteConversationLocalResult) => void} & {param: localDeleteConversationLocalRpcParam})): Promise<localDeleteConversationLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.deleteConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function localDownloadAttachmentLocalRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.DownloadAttachmentLocal', request)
 }
@@ -1038,6 +1046,11 @@ export type ConversationStatus =
   | 3 // BLOCKED_3
   | 4 // MUTED_4
   | 5 // REPORTED_5
+
+export type DeleteConversationLocalRes = {
+  offline: boolean,
+  rateLimits?: ?Array<RateLimit>,
+}
 
 export type DeleteConversationRemoteRes = {
   rateLimit?: ?RateLimit,
@@ -2045,6 +2058,10 @@ export type localCancelPostRpcParam = Exact<{
   outboxID: OutboxID
 }>
 
+export type localDeleteConversationLocalRpcParam = Exact<{
+  convID: ConversationID
+}>
+
 export type localDownloadAttachmentLocalRpcParam = Exact<{
   conversationID: ConversationID,
   messageID: MessageID,
@@ -2428,6 +2445,7 @@ export type remoteUpdateTypingRemoteRpcParam = Exact<{
   convID: ConversationID,
   typing: boolean
 }>
+type localDeleteConversationLocalResult = DeleteConversationLocalRes
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 type localFindConversationsLocalResult = FindConversationsLocalRes
