@@ -451,6 +451,13 @@ func TestMemberListInviteUsername(t *testing.T) {
 		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
 	}
 
+	// List can return stale results for invites, so do a force load of the team to refresh the cache.
+	// In the real world, hopefully gregor would cause this.
+	Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+	})
+
 	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
 	if err != nil {
 		t.Fatal(err)
