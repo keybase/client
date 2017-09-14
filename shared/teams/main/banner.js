@@ -60,8 +60,6 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
     <Box
       style={{
         ...closeIconStyle,
-        position: 'absolute',
-        backgroundColor: 'red',
       }}
     >
       <Icon type="iconfont-close" onClick={onHideBanner} />
@@ -71,12 +69,14 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
 
 let closeIconStyle = isMobile
   ? {
+      position: 'absolute',
       right: globalMargins.small,
       top: globalMargins.small,
       height: 14,
       width: 14,
     }
   : {
+      position: 'absolute',
       right: globalMargins.tiny,
       top: globalMargins.tiny,
     }
