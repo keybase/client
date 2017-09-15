@@ -67,6 +67,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
         dispatch(navigateTo([], [profileTab]))
       }
       if (me && !isLastProfileMe) {
+        // Add current user to top of profile stack
         dispatch(showUserProfile(me))
       }
       dispatch(switchTo([profileTab]))
@@ -81,9 +82,14 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  // Get route stack for profile tab
   const profilePathProps = getPathProps(stateProps._routeState, [profileTab])
+  // Isolate leaf node
   const profileNode =
     (profilePathProps && profilePathProps.size > 0 && profilePathProps.get(profilePathProps.size - 1)) || null
+  // Check if either
+  // 1. The root of the profile tab is the leaf node or
+  // 2. The leaf profile page is the current user
   const isLastProfileMe =
     profileNode &&
     (profileNode.node === profileTab ||
