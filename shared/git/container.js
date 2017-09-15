@@ -61,7 +61,8 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
   onCopy: (url: string) => copyToClipboard(url),
-  onDelete: (url: string) => console.warn('TODO'),
+  onDelete: (teamname: ?string, name: string) =>
+    dispatch(navigateAppend([{props: {name, teamname}, selected: 'deleteRepo'}])),
   onNewPersonalRepo: () => dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}])),
   onNewTeamRepo: () => dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}])),
 })

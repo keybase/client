@@ -1,7 +1,16 @@
 // @flow
 import * as React from 'react'
 import Row from './row'
-import {Box, Text, Icon, ClickableBox, PopupMenu, HOCTimers, ProgressIndicator} from '../common-adapters'
+import {
+  Box,
+  Text,
+  Icon,
+  ClickableBox,
+  PopupMenu,
+  HOCTimers,
+  ProgressIndicator,
+  ScrollView,
+} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../styles'
 import {isMobile} from '../constants/platform'
 
@@ -78,18 +87,20 @@ class Git extends React.Component<Props, State> {
         </ClickableBox>
         {this.props.loading &&
           <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.small}} />}
-        <Box style={_sectionHeaderStyle}>
-          <Text type="BodySmallSemibold">Personal repositories</Text>
-        </Box>
-        {this.props.personals.map(p => (
-          <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
-        ))}
-        <Box style={_sectionHeaderStyle}>
-          <Text type="BodySmallSemibold">Team repositories</Text>
-        </Box>
-        {this.props.teams.map(p => (
-          <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
-        ))}
+        <ScrollView>
+          <Box style={_sectionHeaderStyle}>
+            <Text type="BodySmallSemibold">Personal repositories</Text>
+          </Box>
+          {this.props.personals.map(p => (
+            <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
+          ))}
+          <Box style={_sectionHeaderStyle}>
+            <Text type="BodySmallSemibold">Team repositories</Text>
+          </Box>
+          {this.props.teams.map(p => (
+            <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
+          ))}
+        </ScrollView>
         {this.state.showingMenu &&
           <PopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}
         <Copied showing={this.state.showingCopy} />

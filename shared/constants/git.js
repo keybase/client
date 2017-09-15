@@ -10,6 +10,10 @@ export type CreateTeamRepo = NoErrorTypedAction<
 >
 export type CreatePersonalRepo = NoErrorTypedAction<'git:createPersonalRepo', {name: string}>
 export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}>
+export type DeleteRepo = NoErrorTypedAction<
+  'git:deleteRepo',
+  {name: string, teamname: string, notifyTeam: boolean}
+>
 
 export type GitInfoRecord = KBRecord<{
   devicename: string,

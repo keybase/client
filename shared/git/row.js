@@ -16,7 +16,7 @@ export type Props = {
 
 type _Props = Props & {
   onCopy: (url: string) => void,
-  onDelete: (url: string) => void,
+  onDelete: (teamname: ?string, name: string) => void,
 }
 
 type State = {
@@ -45,7 +45,7 @@ class Row extends React.Component<_Props, State> {
   }
 
   _onDelete = () => {
-    this.props.onDelete(this.props.url)
+    this.props.onDelete(this.props.teamname, this.props.name)
   }
 
   render() {
@@ -234,6 +234,7 @@ const _rowStyle = {
   borderColor: globalColors.transparent,
   borderStyle: 'solid',
   borderTopWidth: 1,
+  flexShrink: 0,
   minHeight: globalMargins.large,
   padding: globalMargins.tiny,
   paddingLeft: 0,
