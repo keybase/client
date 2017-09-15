@@ -55,6 +55,22 @@ func (c *CmdChatCreateChannel) Run() error {
 	}
 
 	_, err = resolver.create(context.Background(), req)
+
+	dui := c.G().UI.GetDumbOutputUI()
+	if err == nil {
+		dui.Printf("Success!\n")
+		return nil
+	}
+
+	switch err.(type) {
+	case libkb.KeyMaskNotFoundError:
+		// implied admin tried to create a channel
+		dui.Printf("Failed to create the channel %q\n\n", c.channelName)
+		dui.Printf("To edit %s's channels, you must join the team.\n", c.teamName)
+		dui.Printf("Try `keybase team add-member %s --user=%s --role=admin`\n\n", c.teamName, c.G().Env.GetUsername())
+		return nil
+	}
+
 	return err
 }
 
