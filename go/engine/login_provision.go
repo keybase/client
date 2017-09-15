@@ -116,6 +116,13 @@ func (e *loginProvision) Run(ctx *Context) error {
 	if err := e.route(ctx); err != nil {
 		// cleanup state because there was an error:
 		e.cleanup()
+
+		switch err.(type) {
+		case libkb.APINetError:
+			e.G().Log.Debug("provision failed with an APINetError: %s, returning ProvisionFailedOfflineError", err)
+			return libkb.ProvisionFailedOfflineError{}
+		}
+
 		return err
 	}
 

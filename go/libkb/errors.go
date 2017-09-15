@@ -2117,3 +2117,9 @@ func (e KeyMaskNotFoundError) Error() string {
 	}
 	return msg
 }
+
+type ProvisionFailedOfflineError struct{}
+
+func (e ProvisionFailedOfflineError) Error() string {
+	return "Device provisioning failed because the device is offline"
+}

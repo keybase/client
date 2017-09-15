@@ -597,6 +597,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return e
+	case SCDeviceProvisionOffline:
+		return ProvisionFailedOfflineError{}
 
 	default:
 		ase := AppStatusError{
@@ -2053,5 +2055,13 @@ func (e KeyMaskNotFoundError) ToStatus() keybase1.Status {
 			{Key: "App", Value: strconv.Itoa(int(e.App))},
 			{Key: "Gen", Value: strconv.Itoa(int(e.Gen))},
 		},
+	}
+}
+
+func (e ProvisionFailedOfflineError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDeviceProvisionOffline,
+		Name: "SC_DEVICE_PROVISION_OFFLINE",
+		Desc: e.Error(),
 	}
 }
