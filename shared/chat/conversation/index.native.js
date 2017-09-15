@@ -9,6 +9,7 @@ import Banner from './banner/container'
 import {withPropsOnChange, compose, branch} from 'recompose'
 import {Box, LoadingLine, ProgressIndicator, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import CreateTeamHeader from './create-team-header/container'
 
 import type {Props} from './index'
 
@@ -63,6 +64,7 @@ const Conversation = (props: Props) => (
               }}
             >
               <Box style={globalStyles.flexGrow}>
+                {props.showTeamOffer && <CreateTeamHeader />}
                 <List
                   focusInputCounter={props.focusInputCounter}
                   listScrollDownCounter={props.listScrollDownCounter}
