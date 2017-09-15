@@ -1,6 +1,7 @@
 // @flow
 import Git from '.'
 import * as Creators from '../actions/git/creators'
+import * as Constants from '../constants/git'
 import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
@@ -9,10 +10,9 @@ import sortBy from 'lodash/sortBy'
 
 import type {TypedState} from '../constants/reducer'
 
-const getIdToGit = (state: TypedState) => state.entities.getIn(['git', 'idToInfo'])
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
-const getRepos = createSelector([getIdToGit], git => {
+const getRepos = createSelector([Constants.getIdToGit], git => {
   const [personals, teams] = partition(git.valueSeq().toArray(), g => !g.teamname)
 
   return {

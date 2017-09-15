@@ -1,19 +1,23 @@
 // @flow
 import * as Constants from '../../constants/git'
-// import * as RPCTypes from '../../constants/types/flow-types'
 
 const loadGit = (): Constants.LoadGit => ({
   payload: undefined,
   type: 'git:loadGit',
 })
 
-const deleteRepo = (teamname: string, name: string, notifyTeam: boolean): Constants.DeleteRepo => ({
+const deleteTeamRepo = (teamname: string, name: string, notifyTeam: boolean): Constants.DeleteTeamRepo => ({
   payload: {
     name,
     notifyTeam,
     teamname,
   },
-  type: 'git:deleteRepo',
+  type: 'git:deleteTeamRepo',
+})
+
+const deletePersonalRepo = (name: string): Constants.DeletePersonalRepo => ({
+  payload: {name},
+  type: 'git:deletePersonalRepo',
 })
 
 const createTeamRepo = (teamname: string, name: string, notifyTeam: boolean): Constants.CreateTeamRepo => ({
@@ -35,4 +39,4 @@ const setLoading = (loading: boolean): Constants.SetLoading => ({
   type: 'git:setLoading',
 })
 
-export {loadGit, createTeamRepo, createPersonalRepo, setLoading, deleteRepo}
+export {loadGit, createTeamRepo, createPersonalRepo, setLoading, deleteTeamRepo, deletePersonalRepo}

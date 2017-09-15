@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import type {NoErrorTypedAction} from './types/flux'
 import type {KBRecord} from './types/more'
+import type {TypedState} from './reducer'
 
 export type LoadGit = NoErrorTypedAction<'git:loadGit', void>
 export type CreateTeamRepo = NoErrorTypedAction<
@@ -9,11 +10,12 @@ export type CreateTeamRepo = NoErrorTypedAction<
   {name: string, teamname: string, notifyTeam: boolean}
 >
 export type CreatePersonalRepo = NoErrorTypedAction<'git:createPersonalRepo', {name: string}>
-export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}>
-export type DeleteRepo = NoErrorTypedAction<
-  'git:deleteRepo',
+export type DeleteTeamRepo = NoErrorTypedAction<
+  'git:deleteTeamRepo',
   {name: string, teamname: string, notifyTeam: boolean}
 >
+export type DeletePersonalRepo = NoErrorTypedAction<'git:deletePersonalRepo', {name: string}>
+export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}>
 
 export type GitInfoRecord = KBRecord<{
   devicename: string,
@@ -37,10 +39,14 @@ export const GitInfo = I.Record({
 
 export const Git = I.Record({
   idToInfo: I.Map(),
-  loading: true,
+  loading: false,
 })
 
 export type GitRecord = KBRecord<{
   idToInfo: I.Map<string, GitInfo>,
   loading: boolean,
 }>
+
+const getIdToGit = (state: TypedState) => state.entities.getIn(['git', 'idToInfo'])
+
+export {getIdToGit}

@@ -5,15 +5,18 @@ import * as Entities from '../entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
-import * as Selectors from '../../constants/selectors'
 import {call, put, select} from 'redux-saga/effects'
 import moment from 'moment'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
 function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
+  const alreadyLoading = yield select(s => s.entities.getIn(['git', 'loading'], false))
+  if (alreadyLoading) {
+    console.log('Skipping git load as we have one in progress')
+    return
+  }
   yield put(Creators.setLoading(true))
-  const you = yield select(Selectors.usernameSelector)
 
   const results: ?Array<RPCTypes.GitRepoResult> = yield call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
     param: {},
@@ -61,17 +64,25 @@ function* _createTeamRepo(action: Constants.CreateTeamRepo): SagaGenerator<any, 
   yield put(Creators.loadGit())
 }
 
-function* _deleteRepo(action: Constants.DeleteRepo): SagaGenerator<any, any> {
-  // yield call(RPCTypes.gitDeleteRepoRpcPromise, {
-  // param: {
-  // repoName: action.payload.name,
-  // teamName: {
-  // parts: action.payload.teamname.split('.'),
-  // },
-  // // TODO notify flag
-  // },
-  // })
-  console.warn('not implemented yet')
+function* _deletePersonalRepo(action: Constants.DeletePersonalRepo): SagaGenerator<any, any> {
+  yield call(RPCTypes.gitDeletePersonalRepoRpcPromise, {
+    param: {
+      repoName: action.payload.name,
+    },
+  })
+  yield put(Creators.loadGit())
+}
+
+function* _deleteTeamRepo(action: Constants.DeleteTeamRepo): SagaGenerator<any, any> {
+  yield call(RPCTypes.gitDeleteTeamRepoRpcPromise, {
+    param: {
+      repoName: action.payload.name,
+      teamName: {
+        parts: action.payload.teamname.split('.'),
+      },
+      notifyTeam: action.payload.notifyTeam,
+    },
+  })
   yield put(Creators.loadGit())
 }
 
@@ -83,7 +94,8 @@ function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('git:loadGit', _loadGit)
   yield Saga.safeTakeEvery('git:createPersonalRepo', _createPersonalRepo)
   yield Saga.safeTakeEvery('git:createTeamRepo', _createTeamRepo)
-  yield Saga.safeTakeEvery('git:deleteRepo', _deleteRepo)
+  yield Saga.safeTakeEvery('git:deletePersonalRepo', _deletePersonalRepo)
+  yield Saga.safeTakeEvery('git:deleteTeamRepo', _deleteTeamRepo)
   yield Saga.safeTakeLatest('git:setLoading', _setLoading)
 }
 

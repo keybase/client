@@ -33,6 +33,12 @@ class DeleteRepo extends React.Component<Props, State> {
     return false
   }
 
+  _onSubmit = () => {
+    if (this._matchesName()) {
+      this.props.onDelete(this.state.notifyTeam)
+    }
+  }
+
   render() {
     return (
       <Box style={_containerStyle}>
@@ -59,8 +65,10 @@ class DeleteRepo extends React.Component<Props, State> {
         </Text>
         <Text type="BodySemibold">Please type in the name of the repository to confirm:</Text>
         <Input
+          autoFocus={true}
           value={this.state.name}
           onChangeText={name => this.setState({name})}
+          onEnterKeyDown={this._onSubmit}
           hintText="Name of the repository"
         />
         {!!this.props.teamname &&
@@ -80,7 +88,7 @@ class DeleteRepo extends React.Component<Props, State> {
           />
           <Button
             type="Danger"
-            onClick={() => this.props.onDelete(this.state.notifyTeam)}
+            onClick={this._onSubmit}
             label="Delete this repository"
             disabled={!this._matchesName()}
           />
