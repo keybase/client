@@ -647,6 +647,14 @@ export function KBFSGitCreateRepoRpcPromise (request: (requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function KBFSGitDeleteRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: KBFSGitDeleteRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.deleteRepo', request)
+}
+
+export function KBFSGitDeleteRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: KBFSGitDeleteRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function Kex2Provisionee2DidCounterSign2RpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
 }
@@ -3478,6 +3486,11 @@ export type InterestingPerson = {
 }
 
 export type KBFSGitCreateRepoRpcParam = Exact<{
+  folder: Folder,
+  name: GitRepoName
+}>
+
+export type KBFSGitDeleteRepoRpcParam = Exact<{
   folder: Folder,
   name: GitRepoName
 }>
