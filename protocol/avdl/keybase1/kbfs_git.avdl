@@ -11,4 +11,9 @@ protocol KBFSGit {
    * It returns the ID of the repo created.
    */
   RepoID createRepo(Folder folder, GitRepoName name);
+
+  /**
+   * deleteRepo deletes repo on KBFS under the given name in the given TLF.
+   */
+  void deleteRepo(Folder folder, GitRepoName name);
 }
