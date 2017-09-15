@@ -21,12 +21,14 @@ export function formatTimeForMessages(time: number, nowOverride?: number): strin
   const m = moment(time)
   const now = nowOverride ? moment(nowOverride) : moment()
 
-  if (now.diff(m, 'months') > 6) {
+  if (!now.isSame(m, 'year')) {
     return m.format('MMM DD YYYY h:mm A') // Jan 5 2016 4:34 PM
   } else if (now.diff(m, 'days') > 6) {
     return m.format('MMM DD h:mm A') // Jan 5 4:34 PM
-  } else if (now.diff(m, 'hours') > 22) {
+  } else if (now.diff(m, 'hours') > 48) {
     return m.format('ddd h:mm A') // Wed 4:34 PM
+  } else if (!now.isSame(m, 'day')) {
+    return 'Yesterday ' + m.format('h:mm A') // Yesterday 4:34 PM
   } else {
     return m.format('h:mm A') // 4:34 PM
   }
