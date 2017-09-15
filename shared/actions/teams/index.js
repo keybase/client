@@ -80,7 +80,10 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     })
   })
 
-  yield put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]])))
+  yield all([
+    yield put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
+    yield put(replaceEntity(['teams', 'teamNameToLoaded'], I.Map([[teamname, true]]))),
+  ])
 }
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
