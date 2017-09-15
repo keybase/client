@@ -62,8 +62,8 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
   onCopy: (url: string) => copyToClipboard(url),
   onDelete: (url: string) => console.warn('TODO'),
-  onNewPersonalRepo: () => dispatch(navigateAppend([{isTeam: false, selected: 'newRepo'}])),
-  onNewTeamRepo: () => dispatch(navigateAppend([{isTeam: true, selected: 'newRepo'}])),
+  onNewPersonalRepo: () => dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}])),
+  onNewTeamRepo: () => dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}])),
 })
 
 export default compose(

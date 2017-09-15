@@ -48,11 +48,15 @@ function* _createPersonalRepo(action: Constants.CreatePersonalRepo): SagaGenerat
 }
 
 function* _createTeamRepo(action: Constants.CreateTeamRepo): SagaGenerator<any, any> {
-  // yield call(RPCTypes.gitCreatePersonalRepoRpcPromise, {
-  // param: {
-  // repoName: action.payload.name,
-  // },
-  // })
+  yield call(RPCTypes.gitCreateTeamRepoRpcPromise, {
+    param: {
+      repoName: action.payload.name,
+      teamName: {
+        parts: action.payload.teamname.split('.'),
+      },
+      // TODO notify flag
+    },
+  })
   yield put(Creators.loadGit())
 }
 
