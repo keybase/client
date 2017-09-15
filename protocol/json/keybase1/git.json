@@ -195,9 +195,39 @@
         {
           "name": "teamName",
           "type": "TeamName"
+        },
+        {
+          "name": "notifyTeam",
+          "type": "boolean"
         }
       ],
       "response": "RepoID"
+    },
+    "deletePersonalRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": null
+    },
+    "deleteTeamRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        },
+        {
+          "name": "notifyTeam",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

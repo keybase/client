@@ -1428,6 +1428,22 @@ export function gitCreateTeamRepoRpcPromise (request: (requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function gitDeletePersonalRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeletePersonalRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deletePersonalRepo', request)
+}
+
+export function gitDeletePersonalRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitDeletePersonalRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitDeleteTeamRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeleteTeamRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteTeamRepo', request)
+}
+
+export function gitDeleteTeamRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitDeleteTeamRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function gitGetAllGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
 }
@@ -5316,7 +5332,18 @@ export type gitCreatePersonalRepoRpcParam = Exact<{
 
 export type gitCreateTeamRepoRpcParam = Exact<{
   repoName: GitRepoName,
-  teamName: TeamName
+  teamName: TeamName,
+  notifyTeam: boolean
+}>
+
+export type gitDeletePersonalRepoRpcParam = Exact<{
+  repoName: GitRepoName
+}>
+
+export type gitDeleteTeamRepoRpcParam = Exact<{
+  repoName: GitRepoName,
+  teamName: TeamName,
+  notifyTeam: boolean
 }>
 
 export type gitGetGitMetadataRpcParam = Exact<{

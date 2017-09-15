@@ -205,14 +205,40 @@ func (o CreatePersonalRepoArg) DeepCopy() CreatePersonalRepoArg {
 }
 
 type CreateTeamRepoArg struct {
-	RepoName GitRepoName `codec:"repoName" json:"repoName"`
-	TeamName TeamName    `codec:"teamName" json:"teamName"`
+	RepoName   GitRepoName `codec:"repoName" json:"repoName"`
+	TeamName   TeamName    `codec:"teamName" json:"teamName"`
+	NotifyTeam bool        `codec:"notifyTeam" json:"notifyTeam"`
 }
 
 func (o CreateTeamRepoArg) DeepCopy() CreateTeamRepoArg {
 	return CreateTeamRepoArg{
+		RepoName:   o.RepoName.DeepCopy(),
+		TeamName:   o.TeamName.DeepCopy(),
+		NotifyTeam: o.NotifyTeam,
+	}
+}
+
+type DeletePersonalRepoArg struct {
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+func (o DeletePersonalRepoArg) DeepCopy() DeletePersonalRepoArg {
+	return DeletePersonalRepoArg{
 		RepoName: o.RepoName.DeepCopy(),
-		TeamName: o.TeamName.DeepCopy(),
+	}
+}
+
+type DeleteTeamRepoArg struct {
+	RepoName   GitRepoName `codec:"repoName" json:"repoName"`
+	TeamName   TeamName    `codec:"teamName" json:"teamName"`
+	NotifyTeam bool        `codec:"notifyTeam" json:"notifyTeam"`
+}
+
+func (o DeleteTeamRepoArg) DeepCopy() DeleteTeamRepoArg {
+	return DeleteTeamRepoArg{
+		RepoName:   o.RepoName.DeepCopy(),
+		TeamName:   o.TeamName.DeepCopy(),
+		NotifyTeam: o.NotifyTeam,
 	}
 }
 
@@ -222,6 +248,8 @@ type GitInterface interface {
 	GetAllGitMetadata(context.Context) ([]GitRepoResult, error)
 	CreatePersonalRepo(context.Context, GitRepoName) (RepoID, error)
 	CreateTeamRepo(context.Context, CreateTeamRepoArg) (RepoID, error)
+	DeletePersonalRepo(context.Context, GitRepoName) error
+	DeleteTeamRepo(context.Context, DeleteTeamRepoArg) error
 }
 
 func GitProtocol(i GitInterface) rpc.Protocol {
@@ -303,6 +331,38 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"deletePersonalRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]DeletePersonalRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeletePersonalRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeletePersonalRepoArg)(nil), args)
+						return
+					}
+					err = i.DeletePersonalRepo(ctx, (*typedArgs)[0].RepoName)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"deleteTeamRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteTeamRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteTeamRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteTeamRepoArg)(nil), args)
+						return
+					}
+					err = i.DeleteTeamRepo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -335,5 +395,16 @@ func (c GitClient) CreatePersonalRepo(ctx context.Context, repoName GitRepoName)
 
 func (c GitClient) CreateTeamRepo(ctx context.Context, __arg CreateTeamRepoArg) (res RepoID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.git.createTeamRepo", []interface{}{__arg}, &res)
+	return
+}
+
+func (c GitClient) DeletePersonalRepo(ctx context.Context, repoName GitRepoName) (err error) {
+	__arg := DeletePersonalRepoArg{RepoName: repoName}
+	err = c.Cli.Call(ctx, "keybase.1.git.deletePersonalRepo", []interface{}{__arg}, nil)
+	return
+}
+
+func (c GitClient) DeleteTeamRepo(ctx context.Context, __arg DeleteTeamRepoArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.deleteTeamRepo", []interface{}{__arg}, nil)
 	return
 }

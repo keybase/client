@@ -65,10 +65,16 @@ protocol git {
 
   // fetch git repos for all teams that the user has access to
   array<GitRepoResult> getAllGitMetadata();
- 
-  // create a personal, private repo 
+
+  // create a personal, private repo
   RepoID createPersonalRepo(GitRepoName repoName);
-  
-  // create a team repo 
-  RepoID createTeamRepo(GitRepoName repoName, TeamName teamName);
+
+  // create a team repo
+  RepoID createTeamRepo(GitRepoName repoName, TeamName teamName, boolean notifyTeam);
+
+  // delete a personal, private repo
+  void deletePersonalRepo(GitRepoName repoName);
+
+  // delete a team repo
+  void deleteTeamRepo(GitRepoName repoName, TeamName teamName, boolean notifyTeam);
 }
