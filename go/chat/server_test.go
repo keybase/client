@@ -61,10 +61,10 @@ func (g *gregorTestConnection) Connect(ctx context.Context) error {
 	}
 	opts := rpc.ConnectionOpts{
 		TagsFunc:      logger.LogTagsFromContextRPC,
-		WrapErrorFunc: libkb.WrapError,
+		WrapErrorFunc: libkb.MakeWrapError(g.G().ExternalG()),
 	}
-	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()), libkb.WrapError)
-	conn := rpc.NewConnectionWithTransport(g, trans, libkb.ErrorUnwrapper{}, g.G().Log, opts)
+	trans := rpc.NewConnectionTransport(uri, libkb.NewRPCLogFactory(g.G().ExternalG()), libkb.MakeWrapError(g.G().ExternalG()))
+	conn := rpc.NewConnectionWithTransport(g, trans, libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g.G().Log, opts)
 	g.cli = conn.GetClient()
 	return nil
 }

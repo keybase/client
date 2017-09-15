@@ -17,6 +17,8 @@ import (
 
 const testInviteCode = "202020202020202020202020"
 
+const DefaultDeviceName = "my device"
+
 type FakeUser struct {
 	Username    string
 	Email       string
@@ -85,7 +87,7 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 		Email:      fu.Email,
 		InviteCode: testInviteCode,
 		Passphrase: fu.Passphrase,
-		DeviceName: "my device",
+		DeviceName: DefaultDeviceName,
 		SkipGPG:    true,
 		SkipMail:   true,
 		SkipPaper:  skipPaper,

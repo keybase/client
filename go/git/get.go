@@ -3,7 +3,6 @@ package git
 import (
 	"context"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"time"
 
@@ -36,6 +35,15 @@ var _ libkb.APIResponseWrapper = (*ServerResponse)(nil)
 // For GetDecode.
 func (r *ServerResponse) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
+}
+
+func formatRepoURL(folder keybase1.Folder, repoName string) string {
+	return "keybase://" + folder.ToString() + "/" + repoName
+}
+
+// The GUI needs a way to refer to repos
+func formatUniqueRepoID(teamID keybase1.TeamID, repoID keybase1.RepoID) string {
+	return string(teamID) + "_" + string(repoID)
 }
 
 // Implicit teams need to be converted back into the folder that matches their
@@ -87,9 +95,6 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 
 	// The team_id parameter is optional. Add it in if the caller supplied it.
 	if folder != nil {
-		if folder.FolderType != keybase1.FolderType_TEAM {
-			return nil, errors.New("git repo folders must be team folders")
-		}
 		teamIDVis, err := teamer.LookupOrCreate(ctx, *folder)
 		if err != nil {
 			return nil, err
@@ -178,15 +183,31 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			return nil, fmt.Errorf("unrecognized variant of GitLocalMetadataVersioned: %#v", version)
 		}
 
+		// Load UPAKs to get the device name.
+		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{Name: responseRepo.LastModifyingUsername})
+		var deviceName string
+		for _, deviceKey := range upak.Current.DeviceKeys {
+			if deviceKey.DeviceID.Eq(responseRepo.LastModifyingDeviceID) {
+				deviceName = deviceKey.DeviceDescription
+				break
+			}
+		}
+		if deviceName == "" {
+			return nil, fmt.Errorf("can't find device name for %s's device ID %s", upak.Current.Username, responseRepo.LastModifyingDeviceID)
+		}
+
 		resultList = append(resultList, keybase1.GitRepoResult{
-			Folder:        repoFolder,
-			RepoID:        responseRepo.RepoID,
-			LocalMetadata: localMetadata,
+			Folder:         repoFolder,
+			RepoID:         responseRepo.RepoID,
+			RepoUrl:        formatRepoURL(repoFolder, string(localMetadata.RepoName)),
+			GlobalUniqueID: formatUniqueRepoID(responseRepo.TeamID, responseRepo.RepoID),
+			LocalMetadata:  localMetadata,
 			ServerMetadata: keybase1.GitServerMetadata{
 				Ctime: keybase1.ToTime(responseRepo.CTime),
 				Mtime: keybase1.ToTime(responseRepo.MTime),
-				LastModifyingUsername: responseRepo.LastModifyingUsername,
-				LastModifyingDeviceID: responseRepo.LastModifyingDeviceID,
+				LastModifyingUsername:   responseRepo.LastModifyingUsername,
+				LastModifyingDeviceID:   responseRepo.LastModifyingDeviceID,
+				LastModifyingDeviceName: deviceName,
 			},
 		})
 	}

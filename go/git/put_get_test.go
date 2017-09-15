@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -52,6 +53,8 @@ func TestPutAndGet(t *testing.T) {
 	teamName1 := u.Username + "t1"
 	err = teams.CreateRootTeam(context.TODO(), tc.G, teamName1)
 	require.NoError(t, err)
+	team1, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{Name: teamName1})
+	require.NoError(t, err)
 
 	teamName2 := u.Username + "t2"
 	err = teams.CreateRootTeam(context.TODO(), tc.G, teamName2)
@@ -86,6 +89,9 @@ func TestPutAndGet(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(oneRepo), "expected to get only one repo back, found: %d", len(oneRepo))
 	require.Equal(t, "repoNameFirst", string(oneRepo[0].LocalMetadata.RepoName))
+	require.Equal(t, kbtest.DefaultDeviceName, oneRepo[0].ServerMetadata.LastModifyingDeviceName)
+	require.Equal(t, string(team1.Chain.Id+"_abc123"), oneRepo[0].GlobalUniqueID)
+	require.Equal(t, "keybase://team/"+teamName1+"/repoNameFirst", oneRepo[0].RepoUrl)
 }
 
 func TestPutAndGetImplicitTeam(t *testing.T) {
@@ -98,12 +104,15 @@ func TestPutAndGetImplicitTeam(t *testing.T) {
 	require.NoError(t, err)
 
 	repoName := "implicit repo foo bar"
+	normalizedTLFName, err := kbfs.NormalizeNamesInTLF([]string{u1.Username, u2.Username}, nil, "")
+	require.NoError(t, err)
+	testFolder := keybase1.Folder{
+		Name:       normalizedTLFName,
+		Private:    true,
+		FolderType: keybase1.FolderType_PRIVATE,
+	}
 	err = PutMetadata(context.TODO(), tc.G, keybase1.PutGitMetadataArg{
-		Folder: keybase1.Folder{
-			Name:       u1.Username + "," + u2.Username,
-			Private:    true,
-			FolderType: keybase1.FolderType_PRIVATE,
-		},
+		Folder: testFolder,
 		RepoID: keybase1.RepoID("abc123"),
 		Metadata: keybase1.GitLocalMetadata{
 			RepoName: keybase1.GitRepoName(repoName),
@@ -111,11 +120,22 @@ func TestPutAndGetImplicitTeam(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	assertStuffAboutRepo := func(t *testing.T, repo keybase1.GitRepoResult) {
+		require.Equal(t, repoName, string(repo.LocalMetadata.RepoName))
+		require.Equal(t, keybase1.FolderType_PRIVATE, repo.Folder.FolderType)
+		require.Equal(t, true, repo.Folder.Private)
+		require.Equal(t, kbtest.DefaultDeviceName, repo.ServerMetadata.LastModifyingDeviceName)
+		require.Equal(t, "keybase://private/"+normalizedTLFName+"/"+repoName, repo.RepoUrl)
+	}
+
+	// Test fetching the implicit team repo with both Get and GetAll
+	oneRepo, err := GetMetadata(context.Background(), tc.G, testFolder)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(oneRepo))
+	assertStuffAboutRepo(t, oneRepo[0])
+
 	allRepos, err := GetAllMetadata(context.Background(), tc.G)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(allRepos))
-	repo := allRepos[0]
-	require.Equal(t, repoName, string(repo.LocalMetadata.RepoName))
-	require.Equal(t, keybase1.FolderType_PRIVATE, repo.Folder.FolderType)
-	require.Equal(t, true, repo.Folder.Private)
+	assertStuffAboutRepo(t, allRepos[0])
 }

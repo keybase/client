@@ -26,7 +26,7 @@ type UserHandler struct {
 // NewUserHandler creates a UserHandler for the xp transport.
 func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext, chatG *globals.ChatContext) *UserHandler {
 	return &UserHandler{
-		BaseHandler:      NewBaseHandler(xp),
+		BaseHandler:      NewBaseHandler(g, xp),
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: globals.NewChatContextified(chatG),
 	}

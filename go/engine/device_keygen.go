@@ -332,7 +332,7 @@ func (e *DeviceKeygen) pushLKS(ctx *Context) {
 	if ctx.LoginContext != nil {
 		sr = ctx.LoginContext.LocalSession()
 	}
-	e.pushErr = libkb.PostDeviceLKS(e.G(), sr, e.args.DeviceID, e.args.DeviceType, serverHalf, e.args.Lks.Generation(), chr, chrk)
+	e.pushErr = libkb.PostDeviceLKS(ctx.NetContext, e.G(), sr, e.args.DeviceID, e.args.DeviceType, serverHalf, e.args.Lks.Generation(), chr, chrk)
 	if e.pushErr != nil {
 		return
 	}
