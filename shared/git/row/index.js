@@ -16,6 +16,7 @@ import {
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 
 export type Props = {
+  canDelete: boolean,
   devicename: string,
   expanded: boolean,
   lastEditTime: string,
@@ -156,8 +157,9 @@ class Row extends React.Component<Props, State> {
                   />
                 </Box>
               </Box>
-              <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />
-              <Box style={{position: 'relative', alignSelf: 'flex-start'}}>
+              {this.props.canDelete &&
+                <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />}
+              <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
                 <Copied showing={this.state.showingCopy} />
               </Box>
             </Box>

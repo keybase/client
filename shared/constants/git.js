@@ -19,6 +19,7 @@ export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}
 export type SetError = NoErrorTypedAction<'git:setError', {gitError: ?Error}>
 
 export type GitInfoRecord = KBRecord<{
+  canDelete: boolean,
   devicename: string,
   id: string,
   lastEditTime: string,
@@ -29,6 +30,7 @@ export type GitInfoRecord = KBRecord<{
 }>
 
 export const GitInfo = I.Record({
+  canDelete: false,
   devicename: '',
   id: '',
   lastEditTime: '',
