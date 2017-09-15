@@ -4,6 +4,12 @@ import type {NoErrorTypedAction} from './types/flux'
 import type {KBRecord} from './types/more'
 
 export type LoadGit = NoErrorTypedAction<'git:loadGit', void>
+export type CreateTeamRepo = NoErrorTypedAction<
+  'git:createTeamRepo',
+  {name: string, teamname: string, notifyTeam: boolean}
+>
+export type CreatePersonalRepo = NoErrorTypedAction<'git:createPersonalRepo', {name: string}>
+export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}>
 
 export type GitInfoRecord = KBRecord<{
   devicename: string,
@@ -27,8 +33,10 @@ export const GitInfo = I.Record({
 
 export const Git = I.Record({
   idToInfo: I.Map(),
+  loading: true,
 })
 
 export type GitRecord = KBRecord<{
   idToInfo: I.Map<string, GitInfo>,
+  loading: boolean,
 }>

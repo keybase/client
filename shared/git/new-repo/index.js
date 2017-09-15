@@ -6,7 +6,7 @@ import {globalStyles, globalMargins} from '../../styles'
 type Props = {
   isTeam: boolean,
   teams?: Array<string>,
-  onCreate: (name: string, notifyTeam: boolean) => void,
+  onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => void,
   onClose: () => void,
   onNewTeam: () => void,
 }
@@ -76,6 +76,10 @@ class NewRepo extends React.Component<Props, State> {
     }
   }
 
+  _onSubmit = () => {
+    this.props.onCreate(this.state.name, this.state.selectedTeam, this.props.isTeam && this.state.notifyTeam)
+  }
+
   render() {
     return (
       <Box style={_containerStyle}>
@@ -100,8 +104,10 @@ class NewRepo extends React.Component<Props, State> {
           />}
         <Input
           value={this.state.name}
+          autoFocus={true}
           onChangeText={name => this.setState({name})}
           hintText="Name your respository"
+          onEnterKeyDown={this._onSubmit}
         />
         {this.props.isTeam &&
           <Checkbox
@@ -118,12 +124,7 @@ class NewRepo extends React.Component<Props, State> {
             label="Cancel"
             style={{marginRight: globalMargins.tiny}}
           />
-          <Button
-            type="Primary"
-            onClick={() => this.props.onCreate(this.state.name, this.props.isTeam && this.state.notifyTeam)}
-            label="Create"
-            disabled={!this.state.name}
-          />
+          <Button type="Primary" onClick={this._onSubmit} label="Create" disabled={!this.state.name} />
         </Box>
       </Box>
     )

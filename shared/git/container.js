@@ -1,9 +1,8 @@
 // @flow
 import Git from '.'
-import * as I from 'immutable'
 import * as Constants from '../constants/git'
 import * as Creators from '../actions/git/creators'
-import {compose, lifecycle, mapProps, withState, withHandlers} from 'recompose'
+import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import {copyToClipboard} from '../util/clipboard'
@@ -20,9 +19,29 @@ const mergeFollowIntoGit = (git: Constants.GitInfoRecord, following: {[key: stri
   lastEditUserFollowing: !!following[git.lastEditUser],
 })
 
+// sort by teamname then name
+const sortRepos = (a: Constants.GitInfoRecord, b: Constants.GitInfoRecord) => {
+  if (a.teamname) {
+    if (b.teamname) {
+      if (a.teamname === b.teamname) {
+        return a.name.localeCompare(b.name)
+      } else {
+        return a.teamname.localeCompare(b.teamname)
+      }
+    }
+    return -1
+  }
+
+  if (b.teamname) {
+    return 1
+  }
+
+  return a.name.localeCompare(b.name)
+}
+
 const getRepos = createSelector([getIdToGit, getFollowing], (git, following) => {
   const [personals, teams] = partition(
-    git.valueSeq().map(g => mergeFollowIntoGit(g, following)).toArray(),
+    git.valueSeq().map(g => mergeFollowIntoGit(g, following)).toArray().sort(sortRepos),
     g => !g.teamname
   )
 
@@ -33,15 +52,18 @@ const getRepos = createSelector([getIdToGit, getFollowing], (git, following) => 
 })
 
 const mapStateToProps = (state: TypedState) => {
-  return getRepos(state)
+  return {
+    ...getRepos(state),
+    loading: state.entities.getIn(['git', 'loading']),
+  }
 }
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
   onCopy: (url: string) => copyToClipboard(url),
   onDelete: (url: string) => console.warn('TODO'),
-  onNewPersonalRepo: () => dispatch(navigateAppend([{selected: 'newRepo', personal: true}])),
-  onNewTeamRepo: () => console.warn('TODO'),
+  onNewPersonalRepo: () => dispatch(navigateAppend([{isTeam: false, selected: 'newRepo'}])),
+  onNewTeamRepo: () => dispatch(navigateAppend([{isTeam: true, selected: 'newRepo'}])),
 })
 
 export default compose(

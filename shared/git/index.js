@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import Row from './row'
-import {Box, Text, Icon, ClickableBox, PopupMenu, HOCTimers} from '../common-adapters'
+import {Box, Text, Icon, ClickableBox, PopupMenu, HOCTimers, ProgressIndicator} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, transition} from '../styles'
 import {isMobile} from '../constants/platform'
 
@@ -76,6 +76,8 @@ class Git extends React.Component<Props, State> {
           <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: globalMargins.tiny}} />
           <Text type="BodyBigLink">New encrypted git repository...</Text>
         </ClickableBox>
+        {this.props.loading &&
+          <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.small}} />}
         <Box style={_sectionHeaderStyle}>
           <Text type="BodySmallSemibold">Personal repositories</Text>
         </Box>
