@@ -258,6 +258,7 @@ export const ConstantsStatusCode = {
   scteambadadminseqnotype: 2684,
   scteamimplicitbadadd: 2685,
   scteamimplicitbadremove: 2686,
+  scteamkeymasknotfound: 2697,
 }
 
 export const CtlDbType = {
@@ -4582,6 +4583,7 @@ export type StatusCode =
   | 2684 // SCTeamBadAdminSeqnoType_2684
   | 2685 // SCTeamImplicitBadAdd_2685
   | 2686 // SCTeamImplicitBadRemove_2686
+  | 2697 // SCTeamKeyMaskNotFound_2697
 
 export type Stream = {
   fd: int,

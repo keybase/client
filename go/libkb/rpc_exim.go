@@ -586,6 +586,17 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return RevokeCurrentDeviceError{}
 	case SCRevokeLastDevice:
 		return RevokeLastDeviceError{}
+	case SCTeamKeyMaskNotFound:
+		e := KeyMaskNotFoundError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "App":
+				e.App = keybase1.TeamApplication(field.IntValue())
+			case "Gen":
+				e.Gen = keybase1.PerTeamKeyGeneration(field.IntValue())
+			}
+		}
+		return e
 
 	default:
 		ase := AppStatusError{
@@ -2030,5 +2041,17 @@ func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
 		Code: SCRevokeLastDevice,
 		Name: "SC_DEVICE_REVOKE_LAST",
 		Desc: e.Error(),
+	}
+}
+
+func (e KeyMaskNotFoundError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCTeamKeyMaskNotFound,
+		Name: "TEAM_KEY_MASK_NOT_FOUND",
+		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "App", Value: strconv.Itoa(int(e.App))},
+			{Key: "Gen", Value: strconv.Itoa(int(e.Gen))},
+		},
 	}
 }
