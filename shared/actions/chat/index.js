@@ -352,7 +352,7 @@ function* _updateThread({
 }
 
 function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
-  return function*({thread}) {
+  return function* subSagaUpdateThreadHelper({thread}) {
     if (thread) {
       const decThread: ChatTypes.UIMessages = JSON.parse(thread)
       yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey))

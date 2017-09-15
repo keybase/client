@@ -67,12 +67,13 @@ function* _listenSaga(): SagaGenerator<any, any> {
     })
   })
 
-  yield put((dispatch, getState) => {
+  const setHandlers = (dispatch, getState) => {
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
     Object.keys(listeners).forEach(key => {
       engine().setIncomingHandler(key, listeners[key])
     })
-  })
+  }
+  yield put(setHandlers)
 
   yield put(registerIdentifyUi())
   yield put(setupUserChangedHandler())
