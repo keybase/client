@@ -857,3 +857,7 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg
 	}
 	return nil
 }
+
+func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+	return true, nil
+}

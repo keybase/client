@@ -2033,6 +2033,10 @@ export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
   placeholderMsgID: MessageID
 }>
 
+export type chatUiChatConfirmChannelDeleteRpcParam = Exact<{
+  channel: string
+}>
+
 export type chatUiChatInboxConversationRpcParam = Exact<{
   conv: InboxUIItem
 }>
@@ -2059,7 +2063,8 @@ export type localCancelPostRpcParam = Exact<{
 }>
 
 export type localDeleteConversationLocalRpcParam = Exact<{
-  convID: ConversationID
+  convID: ConversationID,
+  channelName: string
 }>
 
 export type localDownloadAttachmentLocalRpcParam = Exact<{
@@ -2445,6 +2450,7 @@ export type remoteUpdateTypingRemoteRpcParam = Exact<{
   convID: ConversationID,
   typing: boolean
 }>
+type chatUiChatConfirmChannelDeleteResult = boolean
 type localDeleteConversationLocalResult = DeleteConversationLocalRes
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
@@ -2599,6 +2605,16 @@ export type incomingCallMapType = Exact<{
       thread: string
     }>,
     response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatConfirmChannelDelete'?: (
+    params: Exact<{
+      sessionID: int,
+      channel: string
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: chatUiChatConfirmChannelDeleteResult) => void,
+    }
   ) => void,
   'keybase.1.NotifyChat.NewChatActivity'?: (
     params: Exact<{

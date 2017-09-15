@@ -3708,12 +3708,16 @@ func (o LeaveConversationLocalArg) DeepCopy() LeaveConversationLocalArg {
 }
 
 type DeleteConversationLocalArg struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
+	SessionID   int            `codec:"sessionID" json:"sessionID"`
+	ConvID      ConversationID `codec:"convID" json:"convID"`
+	ChannelName string         `codec:"channelName" json:"channelName"`
 }
 
 func (o DeleteConversationLocalArg) DeepCopy() DeleteConversationLocalArg {
 	return DeleteConversationLocalArg{
-		ConvID: o.ConvID.DeepCopy(),
+		SessionID:   o.SessionID,
+		ConvID:      o.ConvID.DeepCopy(),
+		ChannelName: o.ChannelName,
 	}
 }
 
@@ -3832,7 +3836,7 @@ type LocalInterface interface {
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	LeaveConversationLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
-	DeleteConversationLocal(context.Context, ConversationID) (DeleteConversationLocalRes, error)
+	DeleteConversationLocal(context.Context, DeleteConversationLocalArg) (DeleteConversationLocalRes, error)
 	GetTLFConversationsLocal(context.Context, GetTLFConversationsLocalArg) (GetTLFConversationsLocalRes, error)
 	SetAppNotificationSettingsLocal(context.Context, SetAppNotificationSettingsLocalArg) (SetAppNotificationSettingsLocalRes, error)
 	SetGlobalAppNotificationSettingsLocal(context.Context, map[string]bool) error
@@ -4346,7 +4350,7 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DeleteConversationLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.DeleteConversationLocal(ctx, (*typedArgs)[0].ConvID)
+					ret, err = i.DeleteConversationLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -4595,8 +4599,7 @@ func (c LocalClient) LeaveConversationLocal(ctx context.Context, convID Conversa
 	return
 }
 
-func (c LocalClient) DeleteConversationLocal(ctx context.Context, convID ConversationID) (res DeleteConversationLocalRes, err error) {
-	__arg := DeleteConversationLocalArg{ConvID: convID}
+func (c LocalClient) DeleteConversationLocal(ctx context.Context, __arg DeleteConversationLocalArg) (res DeleteConversationLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.deleteConversationLocal", []interface{}{__arg}, &res)
 	return
 }

@@ -2918,13 +2918,21 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		listener1 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().SetService()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+		ctc.as(t, users[1]).h.mockChatUI = ui
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
 		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
 
-		_, err := ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx, conv.Id)
+		_, err := ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
+			chat1.DeleteConversationLocalArg{
+				ConvID: conv.Id,
+			})
 		require.Error(t, err)
 		require.IsType(t, libkb.ChatClientError{}, err)
 
@@ -2953,11 +2961,17 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeMembersUpdate(t, listener0)
 		consumeJoinConv(t, listener1)
 
-		_, err = ctc.as(t, users[1]).chatLocalHandler().DeleteConversationLocal(ctx1, channel.Conv.GetConvID())
+		_, err = ctc.as(t, users[1]).chatLocalHandler().DeleteConversationLocal(ctx1,
+			chat1.DeleteConversationLocalArg{
+				ConvID: channel.Conv.GetConvID(),
+			})
 		require.Error(t, err)
 		require.IsType(t, libkb.ChatClientError{}, err)
 
-		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx, channel.Conv.GetConvID())
+		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
+			chat1.DeleteConversationLocalArg{
+				ConvID: channel.Conv.GetConvID(),
+			})
 		require.NoError(t, err)
 		consumeLeaveConv(t, listener0)
 		consumeLeaveConv(t, listener1)

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type CmdChatDeleteChannel struct {
@@ -37,6 +38,17 @@ func newCmdChatDeleteChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 }
 
 func (c *CmdChatDeleteChannel) Run() error {
+	ui := &ChatUI{
+		Contextified: libkb.NewContextified(c.G()),
+		terminal:     c.G().UI.GetTerminalUI(),
+	}
+	protocols := []rpc.Protocol{
+		chat1.ChatUiProtocol(ui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
 	chatClient, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -54,7 +66,10 @@ func (c *CmdChatDeleteChannel) Run() error {
 		return err
 	}
 
-	_, err = chatClient.DeleteConversationLocal(ctx, conv.GetConvID())
+	_, err = chatClient.DeleteConversationLocal(ctx, chat1.DeleteConversationLocalArg{
+		ConvID:      conv.GetConvID(),
+		ChannelName: c.resolvingRequest.TopicName,
+	})
 	if err != nil {
 		return err
 	}

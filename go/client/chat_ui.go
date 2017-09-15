@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -121,4 +122,16 @@ func (c *ChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCache
 
 func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	return nil
+}
+
+func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+	term := c.G().UI.GetTerminalUI()
+	term.Printf("WARNING: This will destroy this chat channel and remove it from all members' inbox\n\n")
+	confirm := fmt.Sprintf("nuke %s", arg.Channel)
+	response, err := term.Prompt(PromptDescriptorDeleteRootTeam,
+		fmt.Sprintf("** if you are sure, please type: %q > ", confirm))
+	if err != nil {
+		return false, err
+	}
+	return strings.TrimSpace(response) == confirm, nil
 }

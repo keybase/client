@@ -2127,11 +2127,11 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	return res, nil
 }
 
-func (h *Server) DeleteConversationLocal(ctx context.Context, convID chat1.ConversationID) (res chat1.DeleteConversationLocalRes, err error) {
+func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("DeleteConversation(%s)", convID))()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("DeleteConversation(%s)", arg.ConvID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() {
 		if res.Offline {
@@ -2143,7 +2143,19 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, convID chat1.Conve
 		return res, err
 	}
 
-	delRes, err := h.remoteClient().DeleteConversation(ctx, convID)
+	ui := h.getChatUI(arg.SessionID)
+	confirmed, err := ui.ChatConfirmChannelDelete(ctx, chat1.ChatConfirmChannelDeleteArg{
+		SessionID: arg.SessionID,
+		Channel:   arg.ChannelName,
+	})
+	if err != nil {
+		return res, nil
+	}
+	if !confirmed {
+		return res, errors.New("channel delete unconfirmed")
+	}
+
+	delRes, err := h.remoteClient().DeleteConversation(ctx, arg.ConvID)
 	if err != nil {
 		return res, err
 	}

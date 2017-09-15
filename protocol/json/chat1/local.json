@@ -2706,8 +2706,16 @@
     "deleteConversationLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "convID",
           "type": "ConversationID"
+        },
+        {
+          "name": "channelName",
+          "type": "string"
         }
       ],
       "response": "DeleteConversationLocalRes"
