@@ -315,6 +315,37 @@ func percent(n int64, d int64) float64 {
 	return float64(100) * (float64(n) / float64(d))
 }
 
+func humanizeBytes(n int64, d int64) string {
+	const kb = 1024
+	const kbf = float64(kb)
+	const mb = kb * 1024
+	const mbf = float64(mb)
+	const gb = mb * 1024
+	const gbf = float64(gb)
+	// Special case the counting of bytes, when there's no denominator.
+	if d == 1 {
+		if n < kb {
+			return fmt.Sprintf("%d bytes", n)
+		} else if n < mb {
+			return fmt.Sprintf("%.2f KB", float64(n)/kbf)
+		} else if n < gb {
+			return fmt.Sprintf("%.2f MB", float64(n)/mbf)
+		} else {
+			return fmt.Sprintf("%.2f MB", float64(n)/gbf)
+		}
+	}
+
+	if d < kb {
+		return fmt.Sprintf("%d/%d bytes", n, d)
+	} else if d < mb {
+		return fmt.Sprintf("%.2f/%.2f KB", float64(n)/kbf, float64(d)/kbf)
+	} else if d < gb {
+		return fmt.Sprintf("%.2f/%.2f MB", float64(n)/mbf, float64(d)/mbf)
+	} else {
+		return fmt.Sprintf("%.2f/%.2f MB", float64(n)/gbf, float64(d)/gbf)
+	}
+}
+
 func (r *runner) printJournalStatus(
 	ctx context.Context, jServer *libkbfs.JournalServer, tlf tlf.ID,
 	doneCh <-chan struct{}) {
@@ -341,8 +372,9 @@ func (r *runner) printJournalStatus(
 
 	// TODO: should we "humanize" the units of these bytes if they are
 	// more than a KB, MB, etc?
-	bytesFmt := "(%.2f%%) %d/%d bytes... "
-	str := fmt.Sprintf(bytesFmt, float64(0), 0, firstStatus.UnflushedBytes)
+	bytesFmt := "(%.2f%%) %s... "
+	str := fmt.Sprintf(
+		bytesFmt, float64(0), humanizeBytes(0, firstStatus.UnflushedBytes))
 	lastByteCount := len(str)
 	if r.progress {
 		r.errput.Write([]byte(str))
@@ -366,7 +398,7 @@ func (r *runner) printJournalStatus(
 			flushed := firstStatus.UnflushedBytes - status.UnflushedBytes
 			str := fmt.Sprintf(
 				bytesFmt, percent(flushed, firstStatus.UnflushedBytes),
-				flushed, firstStatus.UnflushedBytes)
+				humanizeBytes(flushed, firstStatus.UnflushedBytes))
 			lastByteCount = len(str)
 			r.errput.Write([]byte(eraseStr + str))
 		}
@@ -507,6 +539,29 @@ var gogitStagesToStatus = map[plumbing.StatusStage]string{
 	plumbing.StatusIndexOffset: "Indexing offsets: ",
 }
 
+func humanizeObjects(n int, d int) string {
+	const k = 1000
+	const m = k * 1000
+	// Special case the counting of objects, when there's no denominator.
+	if d == 1 {
+		if n < k {
+			return fmt.Sprintf("%d", n)
+		} else if n < m {
+			return fmt.Sprintf("%.2fK", float64(n)/k)
+		} else {
+			return fmt.Sprintf("%.2fM", float64(n)/m)
+		}
+	}
+
+	if d < k {
+		return fmt.Sprintf("%d/%d", n, d)
+	} else if d < m {
+		return fmt.Sprintf("%.2f/%.2fK", float64(n)/k, float64(d)/k)
+	} else {
+		return fmt.Sprintf("%.2f/%.2fM", float64(n)/m, float64(d)/m)
+	}
+}
+
 func (r *runner) processGogitStatus(
 	ctx context.Context, statusChan <-chan plumbing.StatusUpdate) {
 	currStage := plumbing.StatusUnknown
@@ -547,13 +602,14 @@ func (r *runner) processGogitStatus(
 			r.log.CDebugf(ctx, "Status processing done")
 			return
 		case plumbing.StatusCount:
-			newStr = fmt.Sprintf("%d objects... ", update.ObjectsTotal)
+			newStr = fmt.Sprintf(
+				"%s objects... ", humanizeObjects(update.ObjectsTotal, 1))
 		case plumbing.StatusSort:
 		default:
 			newStr = fmt.Sprintf(
-				"(%.2f%%) %d/%d objects... ",
+				"(%.2f%%) %s objects... ",
 				percent(int64(update.ObjectsDone), int64(update.ObjectsTotal)),
-				update.ObjectsDone, update.ObjectsTotal)
+				humanizeObjects(update.ObjectsDone, update.ObjectsTotal))
 		}
 
 		lastByteCount = len(newStr)
@@ -597,7 +653,8 @@ func (r *runner) recursiveByteCount(
 			if r.progress {
 				// This function only runs if r.verbosity >= 1.
 				eraseStr := strings.Repeat("\b", toErase)
-				newStr := fmt.Sprintf("%d bytes... ", totalSoFar+bytes)
+				newStr := fmt.Sprintf(
+					"%s... ", humanizeBytes(totalSoFar+bytes, 1))
 				toErase = len(newStr)
 				r.errput.Write([]byte(eraseStr + newStr))
 			}
@@ -626,9 +683,9 @@ func (sw *statusWriter) Write(p []byte) (n int, err error) {
 
 	sw.soFar += int64(len(p))
 	eraseStr := strings.Repeat("\b", sw.nextToErase)
-	newStr := fmt.Sprintf("(%.2f%%) %d/%d bytes... ",
+	newStr := fmt.Sprintf("(%.2f%%) %s... ",
 		percent(sw.soFar, sw.totalBytes),
-		sw.soFar, sw.totalBytes)
+		humanizeBytes(sw.soFar, sw.totalBytes))
 	sw.r.errput.Write([]byte(eraseStr + newStr))
 	sw.nextToErase = len(newStr)
 	return n, nil
