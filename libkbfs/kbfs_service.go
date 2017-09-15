@@ -10,12 +10,15 @@ import (
 )
 
 type kbfsService struct {
-	log logger.Logger
+	log    logger.Logger
+	kbCtx  Context
+	stopCh chan struct{}
 }
 
 func NewKBFSService(kbCtx Context, log logger.Logger) *kbfsService {
 	return &kbfsService{
-		log: log,
+		log:   log,
+		kbCtx: kbCtx,
 	}
 }
 
@@ -24,7 +27,7 @@ func (k *kbfsService) RegisterProtocols(
 	// TODO: fill in with actual protocol.
 	protocols := []rpc.Protocol{}
 	for _, proto := range protocols {
-		if err = srv.Register(proto); err != nil {
+		if err := srv.Register(proto); err != nil {
 			return err
 		}
 	}
@@ -32,11 +35,11 @@ func (k *kbfsService) RegisterProtocols(
 }
 
 func (k *kbfsService) Handle(c net.Conn) {
-	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.WrapError)
+	xp := rpc.NewTransport(c, k.kbCtx.NewRPCLogFactory(), libkb.WrapError)
 
 	server := rpc.NewServer(xp, libkb.WrapError)
 
-	err := d.RegisterProtocols(server, xp)
+	err := k.RegisterProtocols(server, xp)
 
 	if err != nil {
 		k.log.Warning("RegisterProtocols error: %s", err)
@@ -52,4 +55,20 @@ func (k *kbfsService) Handle(c net.Conn) {
 	}
 
 	k.log.Debug("Handle() complete")
+}
+
+func (k *kbfsService) ListenLoop(l net.Listener) error {
+	for {
+		c, err := l.Accept()
+		if err != nil {
+
+			if libkb.IsSocketClosedError(err) {
+				err = nil
+			}
+
+			k.log.Debug("Leaving ListenLoop() w/ error %v", err)
+			return err
+		}
+		go k.Handle(c)
+	}
 }
