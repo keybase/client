@@ -14,9 +14,9 @@ import (
 
 type CmdTeamEditMember struct {
 	libkb.Contextified
-	team     string
-	username string
-	role     keybase1.TeamRole
+	Team     string
+	Username string
+	Role     keybase1.TeamRole
 }
 
 func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -41,14 +41,18 @@ func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 }
 
+func NewCmdTeamEditMemberRunner(g *libkb.GlobalContext) *CmdTeamEditMember {
+	return &CmdTeamEditMember{Contextified: libkb.NewContextified(g)}
+}
+
 func (c *CmdTeamEditMember) ParseArgv(ctx *cli.Context) error {
 	var err error
-	c.team, err = ParseOneTeamName(ctx)
+	c.Team, err = ParseOneTeamName(ctx)
 	if err != nil {
 		return err
 	}
 
-	c.username, c.role, err = ParseUserAndRole(ctx)
+	c.Username, c.Role, err = ParseUserAndRole(ctx)
 	if err != nil {
 		return err
 	}
@@ -63,9 +67,9 @@ func (c *CmdTeamEditMember) Run() error {
 	}
 
 	arg := keybase1.TeamEditMemberArg{
-		Name:     c.team,
-		Username: c.username,
-		Role:     c.role,
+		Name:     c.Team,
+		Username: c.Username,
+		Role:     c.Role,
 	}
 
 	if err = cli.TeamEditMember(context.Background(), arg); err != nil {
@@ -73,7 +77,7 @@ func (c *CmdTeamEditMember) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Success! %s's role in %s is now %s.\n", c.username, c.team, c.role)
+	dui.Printf("Success! %s's role in %s is now %s.\n", c.Username, c.Team, c.Role)
 
 	return nil
 }

@@ -258,6 +258,7 @@ export const ConstantsStatusCode = {
   scteambadadminseqnotype: 2684,
   scteamimplicitbadadd: 2685,
   scteamimplicitbadremove: 2686,
+  scteamkeymasknotfound: 2697,
 }
 
 export const CtlDbType = {
@@ -1425,6 +1426,22 @@ export function gitCreateTeamRepoRpcChannelMap (configKeys: Array<string>, reque
 
 export function gitCreateTeamRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam})): Promise<gitCreateTeamRepoResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitDeletePersonalRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeletePersonalRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deletePersonalRepo', request)
+}
+
+export function gitDeletePersonalRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitDeletePersonalRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitDeleteTeamRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeleteTeamRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteTeamRepo', request)
+}
+
+export function gitDeleteTeamRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitDeleteTeamRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function gitGetAllGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void}): EngineChannel {
@@ -2736,6 +2753,7 @@ export type AnnotatedMemberInfo = {
   username: string,
   fullName: string,
   fqName: string,
+  isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
 }
@@ -3300,6 +3318,8 @@ export type GitRepoResult = {
   repoID: RepoID,
   localMetadata: GitLocalMetadata,
   serverMetadata: GitServerMetadata,
+  repoUrl: string,
+  globalUniqueID: string,
 }
 
 export type GitServerMetadata = {
@@ -3307,6 +3327,7 @@ export type GitServerMetadata = {
   mtime: Time,
   lastModifyingUsername: string,
   lastModifyingDeviceID: DeviceID,
+  lastModifyingDeviceName: string,
 }
 
 export type HasServerKeysRes = {
@@ -3581,6 +3602,7 @@ export type MemberInfo = {
   userID: UID,
   teamID: TeamID,
   fqName: string,
+  isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
 }
@@ -4580,6 +4602,7 @@ export type StatusCode =
   | 2684 // SCTeamBadAdminSeqnoType_2684
   | 2685 // SCTeamImplicitBadAdd_2685
   | 2686 // SCTeamImplicitBadRemove_2686
+  | 2697 // SCTeamKeyMaskNotFound_2697
 
 export type Stream = {
   fd: int,
@@ -5309,7 +5332,18 @@ export type gitCreatePersonalRepoRpcParam = Exact<{
 
 export type gitCreateTeamRepoRpcParam = Exact<{
   repoName: GitRepoName,
-  teamName: TeamName
+  teamName: TeamName,
+  notifyTeam: boolean
+}>
+
+export type gitDeletePersonalRepoRpcParam = Exact<{
+  repoName: GitRepoName
+}>
+
+export type gitDeleteTeamRepoRpcParam = Exact<{
+  repoName: GitRepoName,
+  teamName: TeamName,
+  notifyTeam: boolean
 }>
 
 export type gitGetGitMetadataRpcParam = Exact<{
@@ -6075,7 +6109,8 @@ export type teamsTeamLeaveRpcParam = Exact<{
 
 export type teamsTeamListRpcParam = Exact<{
   userAssertion: string,
-  all: boolean
+  all: boolean,
+  includeImplicitTeams: boolean
 }>
 
 export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{

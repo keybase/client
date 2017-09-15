@@ -71,6 +71,16 @@ func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeam
 	return client.CreateRepo(ctx, carg)
 }
 
+func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) error {
+	// not yet implemented
+	return nil
+}
+
+func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) error {
+	// not yet implemented
+	return nil
+}
+
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
 	if !h.G().ActiveDevice.Valid() {
 		return nil, libkb.LoginRequiredError{}

@@ -219,6 +219,16 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	}
 }
 
+func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.TeamRole) {
+	change := client.NewCmdTeamEditMemberRunner(u.tc.G)
+	change.Team = team
+	change.Username = username
+	change.Role = keybase1.TeamRole_OWNER
+	if err := change.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
 func (u *userPlusDevice) addTeamMemberEmail(team, email string, role keybase1.TeamRole) {
 	add := client.NewCmdTeamAddMemberRunner(u.tc.G)
 	add.Team = team

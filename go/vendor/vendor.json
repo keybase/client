@@ -277,9 +277,10 @@
 			"revisionTime": "2017-05-05T14:59:40Z"
 		},
 		{
+			"checksumSHA1": "Cj5doCIfMpCg3/FsPdZ7Q11Ca9w=",
 			"path": "github.com/keybase/go-kext",
-			"revision": "812245fc176f35fbb18f9344ad0a9f363bd95435",
-			"revisionTime": "2016-03-04T13:56:34-08:00"
+			"revision": "80e53362ccab6559949d19494e306a911bae5fe4",
+			"revisionTime": "2017-09-14T21:36:11Z"
 		},
 		{
 			"path": "github.com/keybase/go-keychain",

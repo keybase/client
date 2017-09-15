@@ -2104,3 +2104,16 @@ type TeamVisibilityError struct{}
 func (e TeamVisibilityError) Error() string {
 	return "loaded team doesn't match specified visibility"
 }
+
+type KeyMaskNotFoundError struct {
+	App keybase1.TeamApplication
+	Gen keybase1.PerTeamKeyGeneration
+}
+
+func (e KeyMaskNotFoundError) Error() string {
+	msg := fmt.Sprintf("You don't have access to %s for this team", e.App)
+	if e.Gen != keybase1.PerTeamKeyGeneration(0) {
+		msg += fmt.Sprintf(" (at generation %d)", int(e.Gen))
+	}
+	return msg
+}
