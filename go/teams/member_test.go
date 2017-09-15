@@ -640,3 +640,30 @@ func TestImplicitAdminsKeyedForSubteam(t *testing.T) {
 	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
 	require.NoError(t, err, "now U2 is a member of the subteam and should be able to read it")
 }
+
+func TestImplicitAdminsKeyedForSubteamAfterUpgrade(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	parentName, _ := createTeam2(*tcs[0])
+	t.Logf("U0 created a root team %q", parentName)
+
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "sub", parentName)
+	require.NoError(t, err)
+	t.Logf("U0 created a subteam %q", subteamID)
+
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	// U1 can't read the subteam (yet).
+	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.Error(t, err)
+
+	// Set U1 to be an admin of root team.
+	err = SetRoleAdmin(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username)
+	require.NoError(t, err)
+
+	// U1 should be able to read subteam now.
+	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.NoError(t, err)
+}
