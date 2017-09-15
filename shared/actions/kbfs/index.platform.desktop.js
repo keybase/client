@@ -16,6 +16,8 @@ import {isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import {fuseStatus} from './index'
 import {execFile} from 'child_process'
+import {folderTab} from '../../constants/tabs'
+import {navigateTo, switchTo} from '../route-tree'
 
 import type {
   FSInstallFuseFinished,
@@ -315,17 +317,28 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
 
 function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
-
-  console.log('openInKBFS:', openPath)
-  if (isWindows) {
-    yield* openInWindows(openPath)
+  const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+  if (enabled) {
+    console.log('openInKBFS:', openPath)
+    if (isWindows) {
+      yield* openInWindows(openPath)
+    } else {
+      yield call(openInDefault, openPath)
+    }
   } else {
-    yield call(openInDefault, openPath)
+    yield put(navigateTo([], [folderTab]))
+    yield put(switchTo([folderTab]))
   }
 }
 
 function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
-  yield call(_open, path)
+  const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+  if (enabled) {
+    yield call(_open, path)
+  } else {
+    yield put(navigateTo([], [folderTab]))
+    yield put(switchTo([folderTab]))
+  }
 }
 
 export {
