@@ -77,7 +77,13 @@ const load = () => {
     ))
     .add('DeleteRepo', () => (
       <Box style={{height: '100%', width: '100%'}}>
-        <DeleteRepo name="docs" onClose={action('onClose')} onDelete={action('onDelete')} />
+        <DeleteRepo
+          name="docs"
+          onClose={action('onClose')}
+          onDelete={action('onDelete')}
+          loading={false}
+          error={null}
+        />
       </Box>
     ))
     .add('DeleteTeamRepo', () => (
@@ -87,6 +93,8 @@ const load = () => {
           name="media"
           onClose={action('onClose')}
           onDelete={action('onDelete')}
+          loading={false}
+          error={null}
         />
       </Box>
     ))

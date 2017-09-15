@@ -1,5 +1,6 @@
 // @flow
 import * as Creators from '../../actions/git/creators'
+import * as Constants from '../../constants/git'
 import * as I from 'immutable'
 import NewRepo from '.'
 import {compose, lifecycle, mapProps} from 'recompose'
@@ -12,9 +13,9 @@ import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   _teams: state.entities.getIn(['teams', 'teamnames'], I.Set()),
-  error: state.entities.getIn(['git', 'error']),
+  error: Constants.getError(state),
   isTeam: routeProps.isTeam,
-  loading: state.entities.getIn(['git', 'loading']),
+  loading: Constants.getLoading(state),
 })
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps}) => ({

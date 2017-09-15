@@ -45,15 +45,12 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
   yield put(Creators.setLoading(false))
 }
 
-function* _createPersonalRepo(action: Constants.CreatePersonalRepo): SagaGenerator<any, any> {
+// reset errors and set loading, make a call and either go back to the root or show an error
+function* _createDeleteHelper(theCall: *) {
   yield put(Creators.setError(null))
   yield put(Creators.setLoading(true))
   try {
-    yield call(RPCTypes.gitCreatePersonalRepoRpcPromise, {
-      param: {
-        repoName: action.payload.name,
-      },
-    })
+    yield theCall
     yield put(Creators.loadGit())
     yield put(navigateTo([gitTab], []))
   } catch (err) {
@@ -63,40 +60,56 @@ function* _createPersonalRepo(action: Constants.CreatePersonalRepo): SagaGenerat
   }
 }
 
-function* _createTeamRepo(action: Constants.CreateTeamRepo): SagaGenerator<any, any> {
-  yield put(Creators.setError(null))
-  yield call(RPCTypes.gitCreateTeamRepoRpcPromise, {
-    param: {
-      notifyTeam: action.payload.notifyTeam,
-      repoName: action.payload.name,
-      teamName: {
-        parts: action.payload.teamname.split('.'),
+function* _createPersonalRepo(action: Constants.CreatePersonalRepo): SagaGenerator<any, any> {
+  yield call(
+    _createDeleteHelper,
+    call(RPCTypes.gitCreatePersonalRepoRpcPromise, {
+      param: {
+        repoName: action.payload.name,
       },
-    },
-  })
-  yield put(Creators.loadGit())
+    })
+  )
+}
+
+function* _createTeamRepo(action: Constants.CreateTeamRepo): SagaGenerator<any, any> {
+  yield call(
+    _createDeleteHelper,
+    call(RPCTypes.gitCreateTeamRepoRpcPromise, {
+      param: {
+        notifyTeam: action.payload.notifyTeam,
+        repoName: action.payload.name,
+        teamName: {
+          parts: action.payload.teamname.split('.'),
+        },
+      },
+    })
+  )
 }
 
 function* _deletePersonalRepo(action: Constants.DeletePersonalRepo): SagaGenerator<any, any> {
-  yield call(RPCTypes.gitDeletePersonalRepoRpcPromise, {
-    param: {
-      repoName: action.payload.name,
-    },
-  })
-  yield put(Creators.loadGit())
+  yield call(
+    _createDeleteHelper,
+    call(RPCTypes.gitDeletePersonalRepoRpcPromise, {
+      param: {
+        repoName: action.payload.name,
+      },
+    })
+  )
 }
 
 function* _deleteTeamRepo(action: Constants.DeleteTeamRepo): SagaGenerator<any, any> {
-  yield call(RPCTypes.gitDeleteTeamRepoRpcPromise, {
-    param: {
-      repoName: action.payload.name,
-      teamName: {
-        parts: action.payload.teamname.split('.'),
+  yield call(
+    _createDeleteHelper,
+    call(RPCTypes.gitDeleteTeamRepoRpcPromise, {
+      param: {
+        notifyTeam: action.payload.notifyTeam,
+        repoName: action.payload.name,
+        teamName: {
+          parts: action.payload.teamname.split('.'),
+        },
       },
-      notifyTeam: action.payload.notifyTeam,
-    },
-  })
-  yield put(Creators.loadGit())
+    })
+  )
 }
 
 function* _setLoading(action: Constants.SetLoading): SagaGenerator<any, any> {

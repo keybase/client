@@ -1,9 +1,11 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Text, Icon, Input, Button, Checkbox} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 type Props = {
+  loading: boolean,
+  error: ?Error,
   teamname?: string,
   name: string,
   onDelete: (notifyTeam: boolean) => void,
@@ -42,6 +44,17 @@ class DeleteRepo extends React.Component<Props, State> {
   render() {
     return (
       <Box style={_containerStyle}>
+        {!!this.props.error &&
+          <Box
+            style={{
+              alignSelf: 'stretch',
+              backgroundColor: globalColors.red,
+              marginBottom: globalMargins.small,
+              padding: globalMargins.tiny,
+            }}
+          >
+            <Text type="Body" backgroundMode="Terminal">{this.props.error.message}</Text>
+          </Box>}
         <Text type="Header" style={{marginBottom: 27}}>
           Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}repository?
         </Text>
@@ -91,6 +104,7 @@ class DeleteRepo extends React.Component<Props, State> {
             onClick={this._onSubmit}
             label="Delete this repository"
             disabled={!this._matchesName()}
+            waiting={this.props.loading}
           />
         </Box>
       </Box>

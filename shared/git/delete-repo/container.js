@@ -10,6 +10,8 @@ import type {TypedState} from '../../constants/reducer'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const git = Constants.getIdToGit(state).get(routeProps.id)
   return {
+    error: Constants.getError(state),
+    loading: Constants.getLoading(state),
     name: git.name,
     teamname: git.teamname,
   }
@@ -21,7 +23,6 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
       ? Creators.deleteTeamRepo(teamname, name, notifyTeam)
       : Creators.deletePersonalRepo(name)
     dispatch(deleteAction)
-    dispatch(navigateUp())
   },
   onClose: () => dispatch(navigateUp()),
 })

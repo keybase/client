@@ -51,5 +51,7 @@ export type GitRecord = KBRecord<{
 }>
 
 const getIdToGit = (state: TypedState) => state.entities.getIn(['git', 'idToInfo'])
+const getError = (state: TypedState) => state.entities.getIn(['git', 'error'])
+const getLoading = (state: TypedState) => state.entities.getIn(['git', 'loading'])
 
-export {getIdToGit}
+export {getIdToGit, getError, getLoading}
