@@ -2980,5 +2980,10 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
 
+		iboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(iboxRes.Conversations))
+		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
 	})
 }

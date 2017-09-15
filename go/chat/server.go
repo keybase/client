@@ -2149,7 +2149,7 @@ func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteCo
 		Channel:   arg.ChannelName,
 	})
 	if err != nil {
-		return res, nil
+		return res, err
 	}
 	if !confirmed {
 		return res, errors.New("channel delete unconfirmed")
