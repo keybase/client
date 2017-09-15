@@ -31,6 +31,7 @@ type SCTeamSection struct {
 	CompletedInvites map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm `json:"completed_invites,omitempty"`
 	Implicit         bool                                                      `json:"is_implicit,omitempty"`
 	Public           bool                                                      `json:"is_public,omitempty"`
+	Entropy          SCTeamEntropy                                             `json:"entropy,omitempty"`
 }
 
 type SCTeamMembers struct {

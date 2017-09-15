@@ -85,13 +85,16 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 		return nil, err
 	}
 
-	teamSection := SCTeamSection{
+	teamSection, err := (SCTeamSection{
 		ID: (SCTeamID)(parentTeam.GetID()),
 		Subteam: &SCSubteam{
 			ID:   (SCTeamID)(subteamID),
 			Name: (SCTeamName)(subteamName.String()),
 		},
 		Admin: admin,
+	}).addEntropy()
+	if err != nil {
+		return nil, err
 	}
 	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
 	if err != nil {
