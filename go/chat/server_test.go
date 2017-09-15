@@ -2065,12 +2065,6 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no threads stale message received")
 		}
-		select {
-		case cids := <-listener.threadsStale:
-			require.Zero(t, len(cids))
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread stale msg")
-		}
 
 		rquery, _, err := g.InboxSource.GetInboxQueryLocalToRemote(context.TODO(), query)
 		require.NoError(t, err)

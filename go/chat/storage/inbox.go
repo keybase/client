@@ -305,6 +305,11 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 	for _, conv := range convs {
 		ok := true
 
+		// Existence check
+		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
+			ok = false
+		}
+
 		// Member status check
 		switch conv.ReaderInfo.Status {
 		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW:

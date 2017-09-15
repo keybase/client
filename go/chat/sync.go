@@ -92,7 +92,6 @@ func (s *Syncer) sendNotificationsOnce() {
 		for uid := range s.fullReload {
 			s.Debug(context.Background(), "flushing full reload: uid: %s", uid)
 			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), keybase1.UID(uid))
-			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), nil)
 		}
 		s.fullReload = make(map[string]bool)
 
