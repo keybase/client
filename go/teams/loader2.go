@@ -529,10 +529,13 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	// Earliest generation received. If there were gaps, the earliest in the consecutive run from the box.
+	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
 	// Latest generation from the sigchain
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
+
+	l.G().Log.CDebugf(ctx, "TeamLoader#addSecrets: received:%v->%v nseeds:%v nprevs:%v",
+		earliestReceivedGen, latestReceivedGen, len(seeds), len(prevs))
 
 	if latestReceivedGen != latestChainGen {
 		return nil, fmt.Errorf("wrong latest key generation: %v != %v",
@@ -568,7 +571,8 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.
 	if earliestReceivedGen != keybase1.PerTeamKeyGeneration(1) {
-		if _, ok := ret.PerTeamKeySeeds[earliestReceivedGen]; !ok {
+		// Use `state` instead of `ret` to get the state before loading this round of secrets.
+		if _, ok := state.PerTeamKeySeeds[earliestReceivedGen]; !ok {
 			return nil, fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v",
 				latestReceivedGen, earliestReceivedGen)
 		}
@@ -695,7 +699,7 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 
 	secret1, err := box.Open(userKey)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, fmt.Errorf("opening key box: %v", err)
 	}
 
 	// Secrets starts as descending
@@ -719,7 +723,7 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 		}
 		secret, err := decryptPrevSingle(ctx, prev, secrets[len(secrets)-1])
 		if err != nil {
-			return box.Generation, nil, fmt.Errorf("gen %v: %v", openGeneration, err)
+			return box.Generation, nil, fmt.Errorf("opening prev gen %v: %v", openGeneration, err)
 		}
 		secrets = append(secrets, *secret)
 		openGeneration--

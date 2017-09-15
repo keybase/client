@@ -20,9 +20,13 @@ type TestCase struct {
 	FileName string
 	Log      []string `json:"log"`
 	Teams    map[string] /*team label*/ struct {
-		ID         keybase1.TeamID   `json:"id"`
-		Links      []json.RawMessage `json:"links"`
-		TeamKeyBox *TeamBox          `json:"team_key_box"`
+		ID           keybase1.TeamID   `json:"id"`
+		Links        []json.RawMessage `json:"links"`
+		TeamKeyBoxes []struct {
+			Seqno   keybase1.Seqno        `json:"seqno"` // the team seqno at which the box was added
+			TeamBox TeamBox               `json:"box"`
+			Prev    *prevKeySealedEncoded `json:"prev"`
+		} `json:"team_key_boxes"`
 	} `json:"teams"`
 	Users map[string] /*user label*/ struct {
 		UID               keybase1.UID                       `json:"uid"`
@@ -47,16 +51,25 @@ type TestCase struct {
 }
 
 type TestCaseLoad struct {
-	NeedAdmin bool             `json:"need_admin"`
-	Stub      []keybase1.Seqno `json:"stub"` // Stub out these links.
-	Omit      []keybase1.Seqno `json:"omit"` // Do not return these links.
-	Upto      keybase1.Seqno   `json:"upto"` // Load up to this seqno inclusive.
+	// Client behavior
+	NeedAdmin         bool `json:"need_admin"`
+	NeedKeyGeneration int  `json:"need_keygen"`
+
+	// Server behavior
+	Stub          []keybase1.Seqno              `json:"stub"`           // Stub out these links.
+	Omit          []keybase1.Seqno              `json:"omit"`           // Do not return these links.
+	Upto          keybase1.Seqno                `json:"upto"`           // Load up to this seqno inclusive.
+	SubteamReader bool                          `json:"subteam_reader"` // Whether to say the response is for the purpose of loading a subteam
+	OmitPrevs     keybase1.PerTeamKeyGeneration `json:"omit_prevs"`     // Do not return prevs that contain the secret for <= this number
+	ForceLastBox  bool                          `json:"force_last_box"` // Send the last known box no matter what
+	OmitBox       bool                          `json:"omit_box"`       // Send no box
 
 	// Expected result
 	Error       bool   `json:"error"`
 	ErrorSubstr string `json:"error_substr"`
 	ErrorType   string `json:"error_type"`
 	NStubbed    *int   `json:"n_stubbed"`
+	ThenGetKey  int    `json:"then_get_key"`
 }
 
 func TestUnits(t *testing.T) {
@@ -73,7 +86,7 @@ func TestUnits(t *testing.T) {
 	var runLog []string
 	for _, f := range files {
 		if !f.IsDir() && strings.HasSuffix(f.Name(), ".json") {
-			if len(selectUnit) > 0 && f.Name() != selectUnit {
+			if len(selectUnit) > 0 && f.Name() != selectUnit && f.Name() != selectUnit+".json" {
 				continue
 			}
 			runUnitFile(t, filepath.Join(jsonDir, f.Name()))
@@ -85,7 +98,9 @@ func TestUnits(t *testing.T) {
 	for _, name := range runLog {
 		t.Logf("  ✓ %v", name)
 	}
-	require.Len(t, selectUnit, 0, "test passed but only ran one selected unit")
+	if len(selectUnit) > 0 {
+		t.Fatalf("test passed but only ran selected unit: %v", runLog)
+	}
 }
 
 func runUnitFile(t *testing.T, jsonPath string) {
@@ -95,13 +110,14 @@ func runUnitFile(t *testing.T, jsonPath string) {
 	require.NoError(t, err)
 	var unit TestCase
 	err = json.Unmarshal(data, &unit)
-	require.NoError(t, err)
+	require.NoError(t, err, "reading unit file json")
 	unit.FileName = fileName
 	runUnit(t, unit)
 }
 
 func runUnit(t *testing.T, unit TestCase) {
 	t.Logf("starting unit: %v", unit.FileName)
+	defer t.Logf("exit unit: %v", unit.FileName)
 
 	// Print the link payloads
 	for teamLabel, team := range unit.Teams {
@@ -113,10 +129,13 @@ func runUnit(t *testing.T, unit TestCase) {
 			require.NoError(t, err)
 			var inner interface{}
 			err = json.Unmarshal([]byte(outer.PayloadJSON), &inner)
-			require.NoError(t, err)
-			bs, err := json.MarshalIndent(inner, "", "  ")
-			require.NoError(t, err)
-			t.Logf("team link '%v' #'%v': %v", teamLabel, i+1, string(bs))
+			if err != nil {
+				t.Logf("team link '%v' #'%v': corrupted: %v", err)
+			} else {
+				bs, err := json.MarshalIndent(inner, "", "  ")
+				require.NoError(t, err)
+				t.Logf("team link '%v' #'%v': %v", teamLabel, i+1, string(bs))
+			}
 		}
 	}
 
@@ -139,11 +158,17 @@ func runUnit(t *testing.T, unit TestCase) {
 			mock.state = MockLoaderContextState{
 				loadSpec: loadSpec,
 			}
-			team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+			loadArg := keybase1.LoadTeamArg{
 				NeedAdmin:   loadSpec.NeedAdmin,
 				ForceRepoll: iLoad > 0,
 				Name:        mock.defaultTeamName.String(),
-			})
+			}
+			if loadSpec.NeedKeyGeneration > 0 {
+				loadArg.Refreshers = keybase1.TeamRefreshers{
+					NeedKeyGeneration: keybase1.PerTeamKeyGeneration(loadSpec.NeedKeyGeneration),
+				}
+			}
+			team, err := Load(context.TODO(), tc.G, loadArg)
 			if err != nil {
 				t.Logf("got error: [%T] %v", err, err)
 			}
@@ -155,6 +180,11 @@ func runUnit(t *testing.T, unit TestCase) {
 					}
 					if loadSpec.NStubbed != nil {
 						require.Len(t, team.chain().inner.StubbedLinks, *loadSpec.NStubbed, "number of stubbed links in load result")
+					}
+					if loadSpec.ThenGetKey != 0 {
+						gen := keybase1.PerTeamKeyGeneration(loadSpec.ThenGetKey)
+						_, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_KBFS, gen)
+						require.NoError(t, err, "getting application key at gen: %v", gen)
 					}
 				}
 			} else {
