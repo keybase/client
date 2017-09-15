@@ -1,45 +1,23 @@
 // @flow
 import Git from '.'
-import * as Constants from '../constants/git'
 import * as Creators from '../actions/git/creators'
 import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
 import partition from 'lodash/partition'
+import sortBy from 'lodash/sortBy'
 
 import type {TypedState} from '../constants/reducer'
 
 const getIdToGit = (state: TypedState) => state.entities.getIn(['git', 'idToInfo'])
-
-// sort by teamname then name
-const sortRepos = (a: Constants.GitInfoRecord, b: Constants.GitInfoRecord) => {
-  if (a.teamname) {
-    if (b.teamname) {
-      if (a.teamname === b.teamname) {
-        return a.name.localeCompare(b.name)
-      } else {
-        return a.teamname.localeCompare(b.teamname)
-      }
-    }
-    return -1
-  }
-
-  if (b.teamname) {
-    return 1
-  }
-
-  return a.name.localeCompare(b.name)
-}
+const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
 const getRepos = createSelector([getIdToGit], git => {
-  const [personals, teams] = partition(
-    git.valueSeq().toArray().sort(sortRepos).map(g => g.repoID), // TODO uniqueid
-    g => !g.teamname
-  )
+  const [personals, teams] = partition(git.valueSeq().toArray(), g => !g.teamname)
 
   return {
-    personals,
-    teams,
+    personals: sortRepos(personals).map(g => g.id),
+    teams: sortRepos(teams).map(g => g.id),
   }
 })
 

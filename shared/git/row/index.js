@@ -1,7 +1,19 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, ClickableBox, Input, Button, Avatar, Meta, Usernames} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {
+  Box,
+  Text,
+  Icon,
+  ClickableBox,
+  Input,
+  Button,
+  Avatar,
+  Meta,
+  Usernames,
+  HOCTimers,
+} from '../../common-adapters'
+
+import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
 
 export type Props = {
   devicename: string,
@@ -13,12 +25,21 @@ export type Props = {
   teamname: ?string,
   url: string,
   isNew: boolean,
-  onCopy: (url: string) => void,
-  onDelete: (teamname: ?string, name: string) => void,
+  onCopy: () => void,
+  onShowDelete: () => void,
   onToggleExpand: () => void,
+  setTimeout: (() => void, number) => number,
 }
 
-class Row extends React.Component<Props> {
+type State = {
+  showingCopy: boolean,
+}
+
+class Row extends React.Component<Props, State> {
+  state = {
+    showingCopy: false,
+  }
+
   _input: any
 
   _inputOnClick = () => {
@@ -28,11 +49,9 @@ class Row extends React.Component<Props> {
   _setRef = r => (this._input = r)
 
   _onCopy = () => {
-    this.props.onCopy(this.props.url)
-  }
-
-  _onDelete = () => {
-    this.props.onDelete(this.props.teamname, this.props.name)
+    this.props.onCopy()
+    this.setState({showingCopy: true})
+    this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
   }
 
   render() {
@@ -116,7 +135,7 @@ class Row extends React.Component<Props> {
               </Text>
               <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
             </Box>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', position: 'relative'}}>
               <Text type="Body">Clone:</Text>
               <Box style={_bubbleStyle}>
                 <Input
@@ -137,13 +156,33 @@ class Row extends React.Component<Props> {
                   />
                 </Box>
               </Box>
-              <Button type="Danger" small={true} label="Delete repo" onClick={this._onDelete} />
+              <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />
+              <Box style={{position: 'relative', alignSelf: 'flex-start'}}>
+                <Copied showing={this.state.showingCopy} />
+              </Box>
             </Box>
           </Box>}
       </Box>
     )
   }
 }
+
+const Copied = ({showing}) => (
+  <Box
+    style={{
+      ...transition('opacity'),
+      backgroundColor: globalColors.black_60,
+      borderRadius: 10,
+      left: -160,
+      opacity: showing ? 1 : 0,
+      padding: 5,
+      position: 'absolute',
+      top: -28,
+    }}
+  >
+    <Text type="Body" backgroundMode="Terminal">Copied!</Text>
+  </Box>
+)
 
 const _copyStyle = {
   ...globalStyles.fillAbsolute,
@@ -232,4 +271,5 @@ const _rowClickStyle = {
   ...globalStyles.flexBoxColumn,
 }
 
-export default Row
+// $FlowIssue we need to fix up timer hoc props
+export default HOCTimers(Row)

@@ -5,8 +5,8 @@ import {copyToClipboard} from '../../util/clipboard'
 
 import type {TypedState} from '../../constants/reducer'
 
-const mapStateToProps = (state: TypedState, {repoID, expanded}) => {
-  const git = state.entities.getIn(['git', 'idToInfo', repoID])
+const mapStateToProps = (state: TypedState, {id, expanded}) => {
+  const git = state.entities.getIn(['git', 'idToInfo', id]).toObject()
   return {
     ...git,
     expanded,
@@ -14,19 +14,11 @@ const mapStateToProps = (state: TypedState, {repoID, expanded}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {onToggleExpand, onShowDelete}) => ({
-  _onCopy: (url: string) => copyToClipboard(url),
-  _onDelete: onShowDelete,
-  _onToggleExpand: onToggleExpand,
-})
-
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
-  ...dispatchProps,
-  ...ownProps,
-  onCopy: () => dispatchProps._onCopy(stateProps.url),
-  onDelete: () => dispatchProps._onDelete(stateProps.repoID),
-  onToggleExpand: () => dispatchProps._onToggleExpand(stateProps.repoID),
+  onCopy: () => copyToClipboard(stateProps.url),
+  onShowDelete: () => ownProps.onShowDelete(stateProps.id),
+  onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Row)
+export default connect(mapStateToProps, null, mergeProps)(Row)

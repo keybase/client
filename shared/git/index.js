@@ -2,17 +2,8 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import Row from './row/container'
-import {
-  Box,
-  Text,
-  Icon,
-  ClickableBox,
-  PopupMenu,
-  HOCTimers,
-  ProgressIndicator,
-  ScrollView,
-} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins, transition} from '../styles'
+import {Box, Text, Icon, ClickableBox, PopupMenu, ProgressIndicator, ScrollView} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
 
 type Props = {
@@ -22,36 +13,15 @@ type Props = {
   onNewTeamRepo: () => void,
   onToggleExpand: (id: string) => void,
   personals: Array<string>,
-  setTimeout: (() => void, number) => number,
   teams: Array<string>,
 }
 
 type State = {
-  showingCopy: boolean,
   showingMenu: boolean,
 }
 
-const Copied = ({showing}) => (
-  <Box
-    style={{
-      ...transition('opacity'),
-      backgroundColor: globalColors.black_60,
-      borderRadius: 10,
-      left: '50%',
-      opacity: showing ? 1 : 0,
-      padding: 5,
-      position: 'absolute',
-      top: '50%',
-      transform: 'translate(-50%, -50%)',
-    }}
-  >
-    <Text type="Body" backgroundMode="Terminal">Copied!</Text>
-  </Box>
-)
-
 class Git extends React.Component<Props, State> {
   state = {
-    showingCopy: false,
     showingMenu: false,
   }
 
@@ -60,13 +30,6 @@ class Git extends React.Component<Props, State> {
       showingMenu: !prevState.showingMenu,
     }))
   }
-
-  // TODO
-  // _onCopy = (url: string) => {
-  // this.props.onCopy(url)
-  // this.setState({showingCopy: true})
-  // this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
-  // }
 
   _menuItems = [
     {
@@ -81,10 +44,10 @@ class Git extends React.Component<Props, State> {
 
   _rowPropsToProps = (id: string) => ({
     expanded: this.props.expandedSet.has(id),
+    id,
     key: id,
     onShowDelete: this.props.onShowDelete,
     onToggleExpand: this.props.onToggleExpand,
-    repoID: id,
   })
 
   render() {
@@ -94,21 +57,26 @@ class Git extends React.Component<Props, State> {
           <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: globalMargins.tiny}} />
           <Text type="BodyBigLink">New encrypted git repository...</Text>
         </ClickableBox>
-        {this.props.loading &&
-          <ProgressIndicator style={{alignSelf: 'center', width: globalMargins.small}} />}
         <ScrollView>
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Personal repositories</Text>
+            {this.props.loading &&
+              <ProgressIndicator
+                style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
+              />}
           </Box>
           {this.props.personals.map(p => <Row {...this._rowPropsToProps(p)} />)}
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Team repositories</Text>
+            {this.props.loading &&
+              <ProgressIndicator
+                style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
+              />}
           </Box>
           {this.props.teams.map(p => <Row {...this._rowPropsToProps(p)} />)}
         </ScrollView>
         {this.state.showingMenu &&
           <PopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}
-        <Copied showing={this.state.showingCopy} />
       </Box>
     )
   }
@@ -144,5 +112,4 @@ const _gitStyle = {
   width: '100%',
 }
 
-// $FlowIssue we need to fix up timer hoc props
-export default HOCTimers(Git)
+export default Git
