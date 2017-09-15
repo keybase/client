@@ -36,11 +36,11 @@ const mapStateToProps = (state: TypedState) => {
   return getRepos(state)
 }
 
-const mapDispatchToProps = (dispatch: any) => ({
+const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
   onCopy: (url: string) => copyToClipboard(url),
   onDelete: (url: string) => console.warn('TODO'),
-  onNewPersonalRepo: () => console.warn('TODO'),
+  onNewPersonalRepo: () => dispatch(navigateAppend([{selected: 'newRepo', personal: true}])),
   onNewTeamRepo: () => console.warn('TODO'),
 })
 
