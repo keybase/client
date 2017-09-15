@@ -389,3 +389,37 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 	team2, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
 	require.Error(t, err)
 }
+
+func TestClearInvitesOnAdd(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := makeUserStandalone(t, "ann")
+	tt.users = append(tt.users, ann)
+
+	bob := tt.addUser("bob")
+
+	team := ann.createTeam()
+
+	t.Logf("Ann created team %q", team)
+
+	ann.addTeamMember(team, bob.username+"@rooter", keybase1.TeamRole_WRITER)
+
+	bob.proveRooter()
+
+	// Because bob@rooter is now proven by bob, this will add bob as a
+	// member instead of making an invitation.
+	ann.addTeamMember(team, bob.username+"@rooter", keybase1.TeamRole_WRITER)
+
+	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), ann.tc.G, team, true)
+	require.NoError(t, err)
+
+	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	require.Equal(t, len(writers), 1)
+	require.True(t, writers[0].Uid.Equal(bob.uid))
+
+	hasInv, err := t0.HasActiveInvite(keybase1.TeamInviteName(bob.username), "rooter")
+	require.NoError(t, err)
+	require.False(t, hasInv)
+}
