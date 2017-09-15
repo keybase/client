@@ -39,4 +39,9 @@ const setLoading = (loading: boolean): Constants.SetLoading => ({
   type: 'git:setLoading',
 })
 
-export {loadGit, createTeamRepo, createPersonalRepo, setLoading, deleteTeamRepo, deletePersonalRepo}
+const setError = (gitError: ?Error): Constants.SetError => ({
+  payload: {gitError},
+  type: 'git:setError',
+})
+
+export {loadGit, createTeamRepo, createPersonalRepo, setLoading, deleteTeamRepo, deletePersonalRepo, setError}

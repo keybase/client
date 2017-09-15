@@ -12,7 +12,9 @@ import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   _teams: state.entities.getIn(['teams', 'teamnames'], I.Set()),
+  error: state.entities.getIn(['git', 'error']),
   isTeam: routeProps.isTeam,
+  loading: state.entities.getIn(['git', 'loading']),
 })
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps}) => ({
@@ -23,7 +25,6 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
       ? Creators.createTeamRepo(teamname, name, notifyTeam)
       : Creators.createPersonalRepo(name)
     dispatch(createAction)
-    dispatch(navigateUp())
   },
   onNewTeam: () => dispatch(navigateTo([teamsTab], ['showNewTeamDialog'])),
 })

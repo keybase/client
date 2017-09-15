@@ -57,6 +57,8 @@ const load = () => {
           onCreate={action('onCreate')}
           onClose={action('onClose')}
           onNewTeam={action('onNewTeam')}
+          loading={false}
+          error={null}
         />
       </Box>
     ))
@@ -68,6 +70,8 @@ const load = () => {
           onCreate={action('onCreate')}
           onNewTeam={action('onNewTeam')}
           teams={['fortgreenmoms', 'siggis', 'siggis.board']}
+          loading={false}
+          error={null}
         />
       </Box>
     ))

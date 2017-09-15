@@ -31,9 +31,18 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, routeState}) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
-  onNewPersonalRepo: () => dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}])),
-  onNewTeamRepo: () => dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}])),
-  onShowDelete: (id: string) => dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}])),
+  onNewPersonalRepo: () => {
+    dispatch(Creators.setError(null))
+    dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}]))
+  },
+  onNewTeamRepo: () => {
+    dispatch(Creators.setError(null))
+    dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}]))
+  },
+  onShowDelete: (id: string) => {
+    dispatch(Creators.setError(null))
+    dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}]))
+  },
   onToggleExpand: (id: string) => {
     const old = routeState.expandedSet
     // TODO use unique id
