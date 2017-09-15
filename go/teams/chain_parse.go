@@ -12,6 +12,10 @@ type SCTeamName string
 type SCTeamID string
 type SCTeamInviteID string
 
+// SCTeamEntropy is used to render stubbed out links unguessable.
+// Basically, we shove a random 18-byte string into sensitive links.
+type SCTeamEntropy string
+
 func (s SCTeamID) ToTeamID() (keybase1.TeamID, error) { return keybase1.TeamIDFromString(string(s)) }
 
 // A (username, seqno) pair.

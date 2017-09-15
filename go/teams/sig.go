@@ -8,6 +8,7 @@ package teams
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -85,16 +86,19 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 		return nil, err
 	}
 
-	teamSection, err := (SCTeamSection{
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return nil, err
+	}
+
+	teamSection := SCTeamSection{
 		ID: (SCTeamID)(parentTeam.GetID()),
 		Subteam: &SCSubteam{
 			ID:   (SCTeamID)(subteamID),
 			Name: (SCTeamName)(subteamName.String()),
 		},
-		Admin: admin,
-	}).addEntropy()
-	if err != nil {
-		return nil, err
+		Admin:   admin,
+		Entropy: entropy,
 	}
 	teamSectionJSON, err := jsonw.WrapperFromObject(teamSection)
 	if err != nil {
@@ -237,4 +241,12 @@ func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libk
 	body.SetKey("team", teamSectionJSON)
 
 	return ret, nil
+}
+
+func makeSCTeamEntropy() (SCTeamEntropy, error) {
+	rb, err := libkb.RandBytes(18)
+	if err != nil {
+		return SCTeamEntropy(""), err
+	}
+	return SCTeamEntropy(base64.StdEncoding.EncodeToString(rb)), nil
 }
