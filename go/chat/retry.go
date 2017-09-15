@@ -35,17 +35,19 @@ type ConversationRetry struct {
 	utils.DebugLabeler
 
 	convID chat1.ConversationID
+	tlfID  *chat1.TLFID
 	kind   FetchType
 }
 
 var _ types.RetryDescription = (*ConversationRetry)(nil)
 
-func NewConversationRetry(g *globals.Context, convID chat1.ConversationID, kind FetchType) *ConversationRetry {
+func NewConversationRetry(g *globals.Context, convID chat1.ConversationID, tlfID *chat1.TLFID, kind FetchType) *ConversationRetry {
 	dstr := fmt.Sprintf("ConversationRetry(%s,%v)", convID, kind)
 	return &ConversationRetry{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), dstr, false),
 		convID:       convID,
+		tlfID:        tlfID,
 		kind:         kind,
 	}
 }
