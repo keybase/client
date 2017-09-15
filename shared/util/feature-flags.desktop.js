@@ -20,8 +20,7 @@ const ff: FeatureFlags = {
   teamChatEnabled: true,
 }
 
-const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
-}
+const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {}
 
 // load overrides
 Object.keys(ff).forEach(k => {
