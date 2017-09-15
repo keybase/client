@@ -102,6 +102,10 @@
         {
           "type": "DeviceID",
           "name": "lastModifyingDeviceID"
+        },
+        {
+          "type": "string",
+          "name": "lastModifyingDeviceName"
         }
       ]
     },
@@ -124,6 +128,14 @@
         {
           "type": "GitServerMetadata",
           "name": "serverMetadata"
+        },
+        {
+          "type": "string",
+          "name": "repoUrl"
+        },
+        {
+          "type": "string",
+          "name": "globalUniqueID"
         }
       ]
     }

@@ -45,6 +45,7 @@ protocol git {
     Time mtime;
     string lastModifyingUsername;
     DeviceID lastModifyingDeviceID;
+    string lastModifyingDeviceName;
   }
 
   void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata);
@@ -54,6 +55,8 @@ protocol git {
     RepoID repoID;
     GitLocalMetadata localMetadata;
     GitServerMetadata serverMetadata;
+    string repoUrl;
+    string globalUniqueID;  // for the GUI's convenient bookkeeping
   }
 
   // fetch git repos for a single team / implicit team

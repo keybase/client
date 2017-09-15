@@ -126,18 +126,20 @@ func (o GitLocalMetadata) DeepCopy() GitLocalMetadata {
 }
 
 type GitServerMetadata struct {
-	Ctime                 Time     `codec:"ctime" json:"ctime"`
-	Mtime                 Time     `codec:"mtime" json:"mtime"`
-	LastModifyingUsername string   `codec:"lastModifyingUsername" json:"lastModifyingUsername"`
-	LastModifyingDeviceID DeviceID `codec:"lastModifyingDeviceID" json:"lastModifyingDeviceID"`
+	Ctime                   Time     `codec:"ctime" json:"ctime"`
+	Mtime                   Time     `codec:"mtime" json:"mtime"`
+	LastModifyingUsername   string   `codec:"lastModifyingUsername" json:"lastModifyingUsername"`
+	LastModifyingDeviceID   DeviceID `codec:"lastModifyingDeviceID" json:"lastModifyingDeviceID"`
+	LastModifyingDeviceName string   `codec:"lastModifyingDeviceName" json:"lastModifyingDeviceName"`
 }
 
 func (o GitServerMetadata) DeepCopy() GitServerMetadata {
 	return GitServerMetadata{
 		Ctime: o.Ctime.DeepCopy(),
 		Mtime: o.Mtime.DeepCopy(),
-		LastModifyingUsername: o.LastModifyingUsername,
-		LastModifyingDeviceID: o.LastModifyingDeviceID.DeepCopy(),
+		LastModifyingUsername:   o.LastModifyingUsername,
+		LastModifyingDeviceID:   o.LastModifyingDeviceID.DeepCopy(),
+		LastModifyingDeviceName: o.LastModifyingDeviceName,
 	}
 }
 
@@ -146,6 +148,8 @@ type GitRepoResult struct {
 	RepoID         RepoID            `codec:"repoID" json:"repoID"`
 	LocalMetadata  GitLocalMetadata  `codec:"localMetadata" json:"localMetadata"`
 	ServerMetadata GitServerMetadata `codec:"serverMetadata" json:"serverMetadata"`
+	RepoUrl        string            `codec:"repoUrl" json:"repoUrl"`
+	GlobalUniqueID string            `codec:"globalUniqueID" json:"globalUniqueID"`
 }
 
 func (o GitRepoResult) DeepCopy() GitRepoResult {
@@ -154,6 +158,8 @@ func (o GitRepoResult) DeepCopy() GitRepoResult {
 		RepoID:         o.RepoID.DeepCopy(),
 		LocalMetadata:  o.LocalMetadata.DeepCopy(),
 		ServerMetadata: o.ServerMetadata.DeepCopy(),
+		RepoUrl:        o.RepoUrl,
+		GlobalUniqueID: o.GlobalUniqueID,
 	}
 }
 

@@ -3302,6 +3302,8 @@ export type GitRepoResult = {
   repoID: RepoID,
   localMetadata: GitLocalMetadata,
   serverMetadata: GitServerMetadata,
+  repoUrl: string,
+  globalUniqueID: string,
 }
 
 export type GitServerMetadata = {
@@ -3309,6 +3311,7 @@ export type GitServerMetadata = {
   mtime: Time,
   lastModifyingUsername: string,
   lastModifyingDeviceID: DeviceID,
+  lastModifyingDeviceName: string,
 }
 
 export type HasServerKeysRes = {
