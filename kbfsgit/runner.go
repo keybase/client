@@ -311,6 +311,10 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	return repo, fs, nil
 }
 
+func percent(n int64, d int64) float64 {
+	return float64(100) * (float64(n) / float64(d))
+}
+
 func (r *runner) printJournalStatus(
 	ctx context.Context, jServer *libkbfs.JournalServer, tlf tlf.ID,
 	doneCh <-chan struct{}) {
@@ -337,8 +341,8 @@ func (r *runner) printJournalStatus(
 
 	// TODO: should we "humanize" the units of these bytes if they are
 	// more than a KB, MB, etc?
-	bytesFmt := "%d/%d bytes... "
-	str := fmt.Sprintf(bytesFmt, 0, firstStatus.UnflushedBytes)
+	bytesFmt := "(%.2f%%) %d/%d bytes... "
+	str := fmt.Sprintf(bytesFmt, float64(0), 0, firstStatus.UnflushedBytes)
 	lastByteCount := len(str)
 	if r.progress {
 		r.errput.Write([]byte(str))
@@ -359,9 +363,10 @@ func (r *runner) printJournalStatus(
 
 		if r.verbosity >= 1 && r.progress {
 			eraseStr := strings.Repeat("\b", lastByteCount)
+			flushed := firstStatus.UnflushedBytes - status.UnflushedBytes
 			str := fmt.Sprintf(
-				bytesFmt, firstStatus.UnflushedBytes-status.UnflushedBytes,
-				firstStatus.UnflushedBytes)
+				bytesFmt, percent(flushed, firstStatus.UnflushedBytes),
+				flushed, firstStatus.UnflushedBytes)
 			lastByteCount = len(str)
 			r.errput.Write([]byte(eraseStr + str))
 		}
@@ -487,16 +492,16 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 }
 
 var gogitStagesToStatus = map[plumbing.StatusStage]string{
-	plumbing.StatusCount:     "Counting: ",
-	plumbing.StatusRead:      "Reading: ",
+	plumbing.StatusCount:     "Counting and decrypting: ",
+	plumbing.StatusRead:      "Reading and decrypting metadata: ",
 	plumbing.StatusFixChains: "Fixing: ",
 	plumbing.StatusSort:      "Sorting... ",
 	plumbing.StatusDelta:     "Calculating deltas: ",
 	// For us, a "send" actually means fetch.
-	plumbing.StatusSend: "Fetching: ",
+	plumbing.StatusSend: "Fetching and decrypting objects: ",
 	// For us, a "fetch" actually means writing objects to
 	// the local journal.
-	plumbing.StatusFetch:       "Preparing: ",
+	plumbing.StatusFetch:       "Preparing and encrypting: ",
 	plumbing.StatusIndexHash:   "Indexing hashes: ",
 	plumbing.StatusIndexCRC:    "Indexing CRCs: ",
 	plumbing.StatusIndexOffset: "Indexing offsets: ",
@@ -546,7 +551,9 @@ func (r *runner) processGogitStatus(
 		case plumbing.StatusSort:
 		default:
 			newStr = fmt.Sprintf(
-				"%d/%d objects... ", update.ObjectsDone, update.ObjectsTotal)
+				"(%.2f%%) %d/%d objects... ",
+				percent(int64(update.ObjectsDone), int64(update.ObjectsTotal)),
+				update.ObjectsDone, update.ObjectsTotal)
 		}
 
 		lastByteCount = len(newStr)
@@ -619,7 +626,9 @@ func (sw *statusWriter) Write(p []byte) (n int, err error) {
 
 	sw.soFar += int64(len(p))
 	eraseStr := strings.Repeat("\b", sw.nextToErase)
-	newStr := fmt.Sprintf("%d/%d bytes... ", sw.soFar, sw.totalBytes)
+	newStr := fmt.Sprintf("(%.2f%%) %d/%d bytes... ",
+		percent(sw.soFar, sw.totalBytes),
+		sw.soFar, sw.totalBytes)
 	sw.r.errput.Write([]byte(eraseStr + newStr))
 	sw.nextToErase = len(newStr)
 	return n, nil
@@ -734,7 +743,7 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 		r.errput.Write([]byte("done." + elapsedStr + "\n"))
 
 		sw = &statusWriter{r, nil, 0, b, 0}
-		r.errput.Write([]byte("Cloning: "))
+		r.errput.Write([]byte("Cryptographic cloning: "))
 	}
 
 	// Copy the entire objects subdirectory straight into the git
