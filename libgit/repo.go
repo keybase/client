@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	kbfsRepoDir       = ".kbfs_git"
-	kbfsConfigName    = "kbfs_config"
-	gitSuffixToIgnore = ".git"
+	kbfsRepoDir         = ".kbfs_git"
+	kbfsConfigName      = "kbfs_config"
+	gitSuffixToIgnore   = ".git"
+	kbfsDeletedReposDir = ".kbfs_deleted_repos"
 )
 
 // This character set is what Github supports in repo names.  It's
@@ -148,6 +149,26 @@ func createNewRepoAndID(
 	return repoID, nil
 }
 
+func normalizeRepoName(repoName string) string {
+	return strings.TrimSuffix(strings.ToLower(repoName), gitSuffixToIgnore)
+}
+
+func lookupOrCreateDir(ctx context.Context, config libkbfs.Config,
+	n libkbfs.Node, name string) (libkbfs.Node, error) {
+	newNode, _, err := config.KBFSOps().Lookup(ctx, n, name)
+	switch errors.Cause(err).(type) {
+	case libkbfs.NoSuchNameError:
+		newNode, _, err = config.KBFSOps().CreateDir(ctx, n, name)
+		if err != nil {
+			return nil, err
+		}
+	case nil:
+	default:
+		return nil, err
+	}
+	return newNode, nil
+}
+
 func getOrCreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, uniqID string, createOnly bool) (*libfs.FS, ID, error) {
@@ -156,30 +177,13 @@ func getOrCreateRepoAndID(
 	if err != nil {
 		return nil, NullID, err
 	}
-	normalizedRepoName := strings.TrimSuffix(
-		strings.ToLower(repoName), gitSuffixToIgnore)
+	normalizedRepoName := normalizeRepoName(repoName)
 
-	lookupOrCreateDir := func(n libkbfs.Node, name string) (
-		libkbfs.Node, error) {
-		newNode, _, err := config.KBFSOps().Lookup(ctx, n, name)
-		switch errors.Cause(err).(type) {
-		case libkbfs.NoSuchNameError:
-			newNode, _, err = config.KBFSOps().CreateDir(ctx, n, name)
-			if err != nil {
-				return nil, err
-			}
-		case nil:
-		default:
-			return nil, err
-		}
-		return newNode, nil
-	}
-
-	repoDir, err := lookupOrCreateDir(rootNode, kbfsRepoDir)
+	repoDir, err := lookupOrCreateDir(ctx, config, rootNode, kbfsRepoDir)
 	if err != nil {
 		return nil, NullID, err
 	}
-	_, err = lookupOrCreateDir(repoDir, normalizedRepoName)
+	_, err = lookupOrCreateDir(ctx, config, repoDir, normalizedRepoName)
 	if err != nil {
 		return nil, NullID, err
 	}
@@ -261,4 +265,53 @@ func CreateRepoAndID(
 		return NullID, err
 	}
 	return id, err
+}
+
+// DeleteRepo "deletes" the given repo in the given TLF.  RIght now it
+// simply moves the repo out of the way to a special directory, to
+// allow any concurrent writers to finish their pushes without
+// triggering conflict resolution.  The caller is responsible for
+// syncing the FS and flushing the journal, if desired.  It expects
+// the `config` object to be unique during the lifetime of this call.
+func DeleteRepo(
+	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
+	repoName string) error {
+	// Create a unique ID using the verifying key and the `config`
+	// object, which should be unique to each call in practice.
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return err
+	}
+	uniqID := fmt.Sprintf("%s-%p", session.VerifyingKey.String(), config)
+
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(
+		ctx, tlfHandle, libkbfs.MasterBranch)
+	if err != nil {
+		return err
+	}
+	normalizedRepoName := normalizeRepoName(repoName)
+
+	repoNode, _, err := kbfsOps.Lookup(ctx, rootNode, kbfsRepoDir)
+	if err != nil {
+		return err
+	}
+
+	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedRepoName)
+	if err != nil {
+		return err
+	}
+
+	deletedReposNode, err := lookupOrCreateDir(
+		ctx, config, repoNode, kbfsDeletedReposDir)
+	if err != nil {
+		return err
+	}
+
+	// For now, just rename the repo out of the way, using the uniq
+	// ID.  TODO(KBFS-2442): periodically delete old-enough repos from
+	// `kbfsDeletedReposDir`.
+	return kbfsOps.Rename(
+		ctx, repoNode, normalizedRepoName, deletedReposNode,
+		normalizedRepoName+uniqID)
 }

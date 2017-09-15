@@ -20,10 +20,24 @@ func (o CreateRepoArg) DeepCopy() CreateRepoArg {
 	}
 }
 
+type DeleteRepoArg struct {
+	Folder Folder      `codec:"folder" json:"folder"`
+	Name   GitRepoName `codec:"name" json:"name"`
+}
+
+func (o DeleteRepoArg) DeepCopy() DeleteRepoArg {
+	return DeleteRepoArg{
+		Folder: o.Folder.DeepCopy(),
+		Name:   o.Name.DeepCopy(),
+	}
+}
+
 type KBFSGitInterface interface {
 	// * createRepo creates a bare empty repo on KBFS under the given name in the given TLF.
 	// * It returns the ID of the repo created.
 	CreateRepo(context.Context, CreateRepoArg) (RepoID, error)
+	// * deleteRepo deletes repo on KBFS under the given name in the given TLF.
+	DeleteRepo(context.Context, DeleteRepoArg) error
 }
 
 func KBFSGitProtocol(i KBFSGitInterface) rpc.Protocol {
@@ -46,6 +60,22 @@ func KBFSGitProtocol(i KBFSGitInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"deleteRepo": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteRepoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteRepoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteRepoArg)(nil), args)
+						return
+					}
+					err = i.DeleteRepo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -58,5 +88,11 @@ type KBFSGitClient struct {
 // * It returns the ID of the repo created.
 func (c KBFSGitClient) CreateRepo(ctx context.Context, __arg CreateRepoArg) (res RepoID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.createRepo", []interface{}{__arg}, &res)
+	return
+}
+
+// * deleteRepo deletes repo on KBFS under the given name in the given TLF.
+func (c KBFSGitClient) DeleteRepo(ctx context.Context, __arg DeleteRepoArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.KBFSGit.deleteRepo", []interface{}{__arg}, nil)
 	return
 }
