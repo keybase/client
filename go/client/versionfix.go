@@ -73,8 +73,8 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 		return nil
 	}
 	xp := libkb.NewTransportFromSocket(g, socket)
-	srv := rpc.NewServer(xp, libkb.WrapError)
-	gcli := rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil)
+	srv := rpc.NewServer(xp, libkb.MakeWrapError(g))
+	gcli := rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)
 	cli = keybase1.ConfigClient{Cli: gcli}
 	srv.Register(NewLogUIProtocol())
 

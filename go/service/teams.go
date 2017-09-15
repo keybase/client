@@ -28,7 +28,7 @@ var _ keybase1.TeamsInterface = (*TeamsHandler)(nil)
 
 func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Context, gregor *gregorHandler) *TeamsHandler {
 	return &TeamsHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g.ExternalG(), xp),
 		Contextified: globals.NewContextified(g),
 		gregor:       gregor,
 		connID:       id,

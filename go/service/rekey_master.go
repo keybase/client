@@ -501,7 +501,7 @@ type RekeyHandler2 struct {
 func NewRekeyHandler2(xp rpc.Transporter, g *libkb.GlobalContext, rm *rekeyMaster) *RekeyHandler2 {
 	return &RekeyHandler2{
 		Contextified: libkb.NewContextified(g),
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		rm:           rm,
 	}
 }

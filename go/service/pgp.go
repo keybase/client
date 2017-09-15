@@ -52,7 +52,7 @@ type PGPHandler struct {
 
 func NewPGPHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext) *PGPHandler {
 	return &PGPHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 		connID:       id,
 	}

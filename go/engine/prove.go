@@ -102,7 +102,7 @@ func (p *Prove) promptRemoteName(ctx *Context) error {
 	for {
 		un, err := ctx.ProveUI.PromptUsername(context.TODO(), keybase1.PromptUsernameArg{
 			Prompt:    p.st.GetPrompt(),
-			PrevError: libkb.ExportErrorAsStatus(normalizationError),
+			PrevError: libkb.ExportErrorAsStatus(p.G(), normalizationError),
 		})
 		if err != nil {
 			// Errors here are conditions like EOF. Return them rather than retrying.

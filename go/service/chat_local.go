@@ -20,7 +20,7 @@ type chatLocalHandler struct {
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *globals.Context, store *chat.AttachmentStore, gh *gregorHandler) *chatLocalHandler {
 	h := &chatLocalHandler{
-		BaseHandler: NewBaseHandler(xp),
+		BaseHandler: NewBaseHandler(g.ExternalG(), xp),
 	}
 	h.Server = chat.NewServer(g, store, gh, h)
 	return h

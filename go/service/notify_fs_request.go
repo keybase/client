@@ -21,13 +21,13 @@ func (h *notifyFSRequestHandler) client() (*keybase1.NotifyFSRequestClient, erro
 		return nil, libkb.KBFSNotRunningError{}
 	}
 	return &keybase1.NotifyFSRequestClient{
-		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(h.G()), nil),
 	}, nil
 }
 
 func newNotifyFSRequestHandler(xp rpc.Transporter, g *libkb.GlobalContext) *notifyFSRequestHandler {
 	return &notifyFSRequestHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

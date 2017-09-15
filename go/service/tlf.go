@@ -25,7 +25,7 @@ type tlfHandler struct {
 
 func newTlfHandler(xp rpc.Transporter, g *globals.Context) *tlfHandler {
 	return &tlfHandler{
-		BaseHandler:   NewBaseHandler(xp),
+		BaseHandler:   NewBaseHandler(g.ExternalG(), xp),
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "TlfHandler", false),
 		tlfInfoSource: chat.NewKBFSNameInfoSource(g),

@@ -18,7 +18,7 @@ type ScanProofsHandler struct {
 
 func NewScanProofsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ScanProofsHandler {
 	return &ScanProofsHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
