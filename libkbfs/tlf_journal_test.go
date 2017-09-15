@@ -58,12 +58,14 @@ func (d testBWDelegate) OnShutdown(ctx context.Context) {
 }
 
 func (d testBWDelegate) requireNextState(
-	ctx context.Context, expectedState bwState) {
+	ctx context.Context, expectedState ...bwState) bwState {
 	select {
 	case bws := <-d.stateCh:
-		require.Equal(d.t, expectedState, bws)
+		require.Contains(d.t, expectedState, bws)
+		return bws
 	case <-ctx.Done():
 		assert.Fail(d.t, ctx.Err().Error())
+		return bwIdle
 	}
 }
 
@@ -1812,10 +1814,16 @@ func testTLFJournalSingleOp(t *testing.T, ver MetadataVer) {
 		errCh <- tlfJournal.finishSingleOp(ctx)
 	}()
 
-	// Background loop awakens after the finish is signaled.
-	// Should now be on a conflict branch.
+	// Background loop awakens after the finish is signaled.  Should
+	// now be on a conflict branch.  The pause signal sent by the
+	// branch-converter races with the background work finishing
+	// (KBFS-2440), and so the second state could be either idle or
+	// paused, depending on what gets processed first.
 	delegate.requireNextState(ctx, bwBusy)
-	delegate.requireNextState(ctx, bwPaused)
+	nextState := delegate.requireNextState(ctx, bwPaused, bwIdle)
+	if nextState == bwIdle {
+		delegate.requireNextState(ctx, bwPaused)
+	}
 
 	require.Equal(
 		t, PendingLocalSquashBranchID, tlfJournal.mdJournal.getBranchID())
