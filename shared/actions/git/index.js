@@ -21,15 +21,16 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
 
   const idToInfo = (results || []).reduce((map, r) => {
     const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
+    // TODO use new unique id
     map[r.repoID] = Constants.GitInfo({
-      devicename: `DeviceID:${r.serverMetadata.lastModifyingDeviceID}`, // TDOO
+      devicename: `DeviceID:${r.serverMetadata.lastModifyingDeviceID}`, // TODO need from core
       id: r.repoID,
       isNew: false, // TODO
       lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
       lastEditUser: r.serverMetadata.lastModifyingUsername,
       name: r.localMetadata.repoName,
       teamname,
-      url: `keybase://${teamname ? `team/${teamname}` : `private/${you}`}/${r.localMetadata.repoName}.git`, // TODO
+      url: `keybase://${teamname ? `team/${teamname}` : `private/${you}`}/${r.localMetadata.repoName}.git`, // TODO need from core
     })
     return map
   }, {})

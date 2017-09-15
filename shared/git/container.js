@@ -5,19 +5,11 @@ import * as Creators from '../actions/git/creators'
 import {compose, lifecycle} from 'recompose'
 import {connect} from 'react-redux'
 import {createSelector} from 'reselect'
-import {copyToClipboard} from '../util/clipboard'
 import partition from 'lodash/partition'
 
 import type {TypedState} from '../constants/reducer'
 
 const getIdToGit = (state: TypedState) => state.entities.getIn(['git', 'idToInfo'])
-const getFollowing = (state: TypedState) => state.config.following
-
-const mergeFollowIntoGit = (git: Constants.GitInfoRecord, following: {[key: string]: true}) => ({
-  // $FlowIssue
-  ...git.toJS(),
-  lastEditUserFollowing: !!following[git.lastEditUser],
-})
 
 // sort by teamname then name
 const sortRepos = (a: Constants.GitInfoRecord, b: Constants.GitInfoRecord) => {
@@ -39,9 +31,9 @@ const sortRepos = (a: Constants.GitInfoRecord, b: Constants.GitInfoRecord) => {
   return a.name.localeCompare(b.name)
 }
 
-const getRepos = createSelector([getIdToGit, getFollowing], (git, following) => {
+const getRepos = createSelector([getIdToGit], git => {
   const [personals, teams] = partition(
-    git.valueSeq().map(g => mergeFollowIntoGit(g, following)).toArray().sort(sortRepos),
+    git.valueSeq().toArray().sort(sortRepos).map(g => g.repoID), // TODO uniqueid
     g => !g.teamname
   )
 
@@ -51,20 +43,24 @@ const getRepos = createSelector([getIdToGit, getFollowing], (git, following) => 
   }
 })
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = (state: TypedState, {routeState}) => {
   return {
     ...getRepos(state),
+    expandedSet: routeState.expandedSet,
     loading: state.entities.getIn(['git', 'loading']),
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, routeState}) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
-  onCopy: (url: string) => copyToClipboard(url),
-  onDelete: (teamname: ?string, name: string) =>
-    dispatch(navigateAppend([{props: {name, teamname}, selected: 'deleteRepo'}])),
   onNewPersonalRepo: () => dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}])),
   onNewTeamRepo: () => dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}])),
+  onShowDelete: (id: string) => dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}])),
+  onToggleExpand: (id: string) => {
+    const old = routeState.expandedSet
+    // TODO use unique id
+    setRouteState({expandedSet: old.has(id) ? old.delete(id) : old.add(id)})
+  },
 })
 
 export default compose(

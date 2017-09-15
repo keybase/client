@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import Row from './row'
+import * as I from 'immutable'
+import Row from './row/container'
 import {
   Box,
   Text,
@@ -14,16 +15,15 @@ import {
 import {globalStyles, globalColors, globalMargins, transition} from '../styles'
 import {isMobile} from '../constants/platform'
 
-import type {Props as RowProps} from './row'
-
 type Props = {
-  onCopy: (url: string) => void,
-  onDelete: (url: string) => void,
+  expandedSet: I.Set<string>,
+  onShowDelete: (teamname: ?string, name: string) => void,
   onNewPersonalRepo: () => void,
   onNewTeamRepo: () => void,
-  personals: Array<RowProps>,
-  teams: Array<RowProps>,
+  onToggleExpand: (id: string) => void,
+  personals: Array<string>,
   setTimeout: (() => void, number) => number,
+  teams: Array<string>,
 }
 
 type State = {
@@ -61,11 +61,12 @@ class Git extends React.Component<Props, State> {
     }))
   }
 
-  _onCopy = (url: string) => {
-    this.props.onCopy(url)
-    this.setState({showingCopy: true})
-    this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
-  }
+  // TODO
+  // _onCopy = (url: string) => {
+  // this.props.onCopy(url)
+  // this.setState({showingCopy: true})
+  // this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
+  // }
 
   _menuItems = [
     {
@@ -77,6 +78,14 @@ class Git extends React.Component<Props, State> {
       title: 'New team repository',
     },
   ]
+
+  _rowPropsToProps = (id: string) => ({
+    expanded: this.props.expandedSet.has(id),
+    key: id,
+    onShowDelete: this.props.onShowDelete,
+    onToggleExpand: this.props.onToggleExpand,
+    repoID: id,
+  })
 
   render() {
     return (
@@ -91,15 +100,11 @@ class Git extends React.Component<Props, State> {
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Personal repositories</Text>
           </Box>
-          {this.props.personals.map(p => (
-            <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
-          ))}
+          {this.props.personals.map(p => <Row {...this._rowPropsToProps(p)} />)}
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Team repositories</Text>
           </Box>
-          {this.props.teams.map(p => (
-            <Row {...p} key={p.url} onCopy={this._onCopy} onDelete={this.props.onDelete} />
-          ))}
+          {this.props.teams.map(p => <Row {...this._rowPropsToProps(p)} />)}
         </ScrollView>
         {this.state.showingMenu &&
           <PopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}

@@ -7,6 +7,15 @@ const loadGit = (): Constants.LoadGit => ({
   type: 'git:loadGit',
 })
 
+const deleteRepo = (teamname: string, name: string, notifyTeam: boolean): Constants.DeleteRepo => ({
+  payload: {
+    name,
+    notifyTeam,
+    teamname,
+  },
+  type: 'git:deleteRepo',
+})
+
 const createTeamRepo = (teamname: string, name: string, notifyTeam: boolean): Constants.CreateTeamRepo => ({
   payload: {
     name,
@@ -26,4 +35,4 @@ const setLoading = (loading: boolean): Constants.SetLoading => ({
   type: 'git:setLoading',
 })
 
-export {loadGit, createTeamRepo, createPersonalRepo, setLoading}
+export {loadGit, createTeamRepo, createPersonalRepo, setLoading, deleteRepo}

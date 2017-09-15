@@ -28,6 +28,7 @@ const load = () => {
   storiesOf('Git', module)
     .add('Root', () => (
       <Box style={{width: '100%'}}>
+        {/*
         <Git
           personals={[
             {...common, ...helper(null, 'personal_docs')},
@@ -46,6 +47,7 @@ const load = () => {
           onNewTeamRepo={action('onNewTeamRepo')}
           setTimeout={action('setTimeout')}
         />
+        */}
       </Box>
     ))
     .add('NewPersonalRepo', () => (
