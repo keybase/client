@@ -12,7 +12,7 @@ import (
 func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "team",
-		Usage:        "Manage teams.",
+		Usage:        "Manage teams",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			newCmdTeamCreate(cl, g),
