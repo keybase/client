@@ -80,6 +80,19 @@ var CheckKex2SecretPhrase = Checker{
 	Hint: "It looks like there was a typo in the secret phrase. Please try again.",
 }
 
+func MakeCheckKex2SecretPhrase(g *GlobalContext) Checker {
+	return Checker{
+		F: func(s string) bool {
+			if err := validPhrase(s, Kex2PhraseEntropy); err != nil {
+				g.Log.Debug("invalid kex2 phrase: %s", err)
+				return false
+			}
+			return true
+		},
+		Hint: CheckKex2SecretPhrase.Hint,
+	}
+}
+
 func IsYes(s string) bool {
 	s = strings.ToLower(strings.TrimSpace(s))
 	return s == "y" || s == "yes"
