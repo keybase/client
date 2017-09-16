@@ -267,7 +267,7 @@ func CreateRepoAndID(
 	return id, err
 }
 
-// DeleteRepo "deletes" the given repo in the given TLF.  RIght now it
+// DeleteRepo "deletes" the given repo in the given TLF.  Right now it
 // simply moves the repo out of the way to a special directory, to
 // allow any concurrent writers to finish their pushes without
 // triggering conflict resolution.  The caller is responsible for
