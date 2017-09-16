@@ -56,6 +56,10 @@ func (c *ConversationRetry) String() string {
 	return fmt.Sprintf("%s:%v", c.convID, c.kind)
 }
 
+func (c *ConversationRetry) RekeyFixable(ctx context.Context, tlfID chat1.TLFID) bool {
+	return c.tlfID != nil && c.tlfID.Eq(tlfID)
+}
+
 func (c *ConversationRetry) SendStale(ctx context.Context, uid gregor1.UID) {
 	supdates := []chat1.ConversationStaleUpdate{chat1.ConversationStaleUpdate{
 		ConvID:     c.convID,
@@ -149,6 +153,10 @@ func (f FullInboxRetry) String() string {
 	return qstr + pstr
 }
 
+func (f FullInboxRetry) RekeyFixable(ctx context.Context, tlfID chat1.TLFID) bool {
+	return false
+}
+
 func (f FullInboxRetry) SendStale(ctx context.Context, uid gregor1.UID) {
 	f.G().Syncer.SendChatStaleNotifications(ctx, uid, nil, true)
 }
@@ -167,12 +175,14 @@ func (f FullInboxRetry) Fix(ctx context.Context, uid gregor1.UID) error {
 }
 
 type retrierControl struct {
+	desc       types.RetryDescription
 	forceCh    chan struct{}
 	shutdownCh chan struct{}
 }
 
-func newRetrierControl() *retrierControl {
+func newRetrierControl(desc types.RetryDescription) *retrierControl {
 	return &retrierControl{
+		desc:       desc,
 		forceCh:    make(chan struct{}, 1),
 		shutdownCh: make(chan struct{}, 1),
 	}
@@ -294,7 +304,7 @@ func (f *FetchRetrier) Failure(ctx context.Context, uid gregor1.UID, desc types.
 	key := f.key(uid, desc)
 	if _, ok := f.retriers[key]; !ok {
 		f.Debug(ctx, "Failure: spawning new retrier: desc: %s", desc)
-		control := newRetrierControl()
+		control := newRetrierControl(desc)
 		f.retriers[key] = control
 		f.spawnRetrier(ctx, uid, desc, control)
 	}
@@ -351,6 +361,27 @@ func (f *FetchRetrier) Force(ctx context.Context) {
 	defer f.Trace(ctx, func() error { return nil }, "Force")()
 	for _, control := range f.retriers {
 		control.Force()
+	}
+}
+
+func (f *FetchRetrier) Rekey(ctx context.Context, name string, membersType chat1.ConversationMembersType,
+	public bool) {
+	nameInfo, err := CtxKeyFinder(ctx, f.G()).Find(ctx, name, membersType, public)
+	if err != nil {
+		f.Debug(ctx, "Rekey: failed to load name info for: %s msg %s", name, err)
+		return
+	}
+	var forces []*retrierControl
+	f.Lock()
+	for _, control := range f.retriers {
+		if control.desc.RekeyFixable(ctx, nameInfo.ID) {
+			forces = append(forces, control)
+		}
+	}
+	f.Unlock()
+	for _, force := range forces {
+		f.Debug(ctx, "Rekey: forcing: %s", force.desc)
+		force.Force()
 	}
 }
 
