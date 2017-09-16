@@ -64,7 +64,6 @@ const Conversation = (props: Props) => (
               }}
             >
               <Box style={globalStyles.flexGrow}>
-                {props.showTeamOffer && <CreateTeamHeader />}
                 <List
                   focusInputCounter={props.focusInputCounter}
                   listScrollDownCounter={props.listScrollDownCounter}
@@ -73,6 +72,7 @@ const Conversation = (props: Props) => (
                   onFocusInput={props.onFocusInput}
                   editLastMessageCounter={props.editLastMessageCounter}
                 />
+                {props.showTeamOffer && <CreateTeamHeader />}
               </Box>
               <Banner />
               {props.showLoader && <LoadingLine />}
