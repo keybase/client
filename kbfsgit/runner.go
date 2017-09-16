@@ -330,9 +330,8 @@ func humanizeBytes(n int64, d int64) string {
 			return fmt.Sprintf("%.2f KB", float64(n)/kbf)
 		} else if n < gb {
 			return fmt.Sprintf("%.2f MB", float64(n)/mbf)
-		} else {
-			return fmt.Sprintf("%.2f MB", float64(n)/gbf)
 		}
+		return fmt.Sprintf("%.2f GB", float64(n)/gbf)
 	}
 
 	if d < kb {
@@ -341,9 +340,8 @@ func humanizeBytes(n int64, d int64) string {
 		return fmt.Sprintf("%.2f/%.2f KB", float64(n)/kbf, float64(d)/kbf)
 	} else if d < gb {
 		return fmt.Sprintf("%.2f/%.2f MB", float64(n)/mbf, float64(d)/mbf)
-	} else {
-		return fmt.Sprintf("%.2f/%.2f MB", float64(n)/gbf, float64(d)/gbf)
 	}
+	return fmt.Sprintf("%.2f/%.2f GB", float64(n)/gbf, float64(d)/gbf)
 }
 
 func (r *runner) printJournalStatus(
@@ -370,8 +368,6 @@ func (r *runner) printJournalStatus(
 	r.log.CDebugf(ctx, "Waiting for %d journal bytes to flush",
 		firstStatus.UnflushedBytes)
 
-	// TODO: should we "humanize" the units of these bytes if they are
-	// more than a KB, MB, etc?
 	bytesFmt := "(%.2f%%) %s... "
 	str := fmt.Sprintf(
 		bytesFmt, float64(0), humanizeBytes(0, firstStatus.UnflushedBytes))
@@ -548,18 +544,16 @@ func humanizeObjects(n int, d int) string {
 			return fmt.Sprintf("%d", n)
 		} else if n < m {
 			return fmt.Sprintf("%.2fK", float64(n)/k)
-		} else {
-			return fmt.Sprintf("%.2fM", float64(n)/m)
 		}
+		return fmt.Sprintf("%.2fM", float64(n)/m)
 	}
 
 	if d < k {
 		return fmt.Sprintf("%d/%d", n, d)
 	} else if d < m {
 		return fmt.Sprintf("%.2f/%.2fK", float64(n)/k, float64(d)/k)
-	} else {
-		return fmt.Sprintf("%.2f/%.2fM", float64(n)/m, float64(d)/m)
 	}
+	return fmt.Sprintf("%.2f/%.2fM", float64(n)/m, float64(d)/m)
 }
 
 func (r *runner) processGogitStatus(
