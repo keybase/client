@@ -403,7 +403,10 @@ func TestClearInvitesOnAdd(t *testing.T) {
 
 	t.Logf("Ann created team %q", team)
 
+	bobBadRooter := "other" + bob.username
+
 	ann.addTeamMember(team, bob.username+"@rooter", keybase1.TeamRole_WRITER)
+	ann.addTeamMember(team, bobBadRooter+"@rooter", keybase1.TeamRole_WRITER)
 
 	bob.proveRooter()
 
@@ -422,4 +425,8 @@ func TestClearInvitesOnAdd(t *testing.T) {
 	hasInv, err := t0.HasActiveInvite(keybase1.TeamInviteName(bob.username), "rooter")
 	require.NoError(t, err)
 	require.False(t, hasInv)
+
+	hasInv, err = t0.HasActiveInvite(keybase1.TeamInviteName(bobBadRooter), "rooter")
+	require.NoError(t, err)
+	require.True(t, hasInv)
 }

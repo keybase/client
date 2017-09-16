@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -120,6 +121,43 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
+func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, user keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
+	for i, invite := range team.chain().inner.ActiveInvites {
+		g.Log.CDebugf(ctx, "tryToCompleteInvites invite %q %+v", i, invite)
+		category, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+		ityp, err := invite.Type.String()
+		if err != nil {
+			return err
+		}
+		g.Log.CDebugf(ctx, "tryToCompleteInvites invite category %+v type %s", i, category, ityp)
+		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, user.Uid)
+		g.Log.CDebugf(ctx, "Assertion is: %s", assertion)
+
+		arg := keybase1.Identify2Arg{
+			UserAssertion:    assertion,
+			UseDelegateUI:    false,
+			Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
+			CanSuppressUI:    true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		}
+		eng := engine.NewResolveThenIdentify2(g, &arg)
+		ectx := &engine.Context{
+			NetContext: ctx,
+		}
+		if err := engine.RunEngine(eng, ectx); err == nil {
+			if req.CompletedInvites == nil {
+				req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+			}
+			req.CompletedInvites[invite.Id] = user.PercentForm()
+		}
+	}
+
+	return nil
+}
+
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
@@ -156,7 +194,9 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		}
 		req.None = []keybase1.UserVersion{existingUV}
 	}
-
+	if err := tryToCompleteInvites(ctx, g, t, uv, &req); err != nil {
+		return keybase1.TeamAddMemberResult{}, err
+	}
 	if err := t.ChangeMembership(ctx, req); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
