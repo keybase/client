@@ -106,6 +106,12 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 }
 
 func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamID keybase1.TeamID, newSubteamName keybase1.TeamName, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return nil, err
+	}
+
 	teamSection := SCTeamSection{
 		Admin: admin,
 		ID:    (SCTeamID)(parentTeam.GetID()),
@@ -113,6 +119,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.Us
 			ID:   (SCTeamID)(subteamID),
 			Name: (SCTeamName)(newSubteamName.String()),
 		},
+		Entropy: entropy,
 	}
 
 	sigBody, err := RenameSubteamSig(me, signingKey, parentTeam, teamSection)
