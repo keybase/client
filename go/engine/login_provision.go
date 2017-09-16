@@ -221,9 +221,10 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 				break
 			} else if len(receivedSecret.Phrase) > 0 {
 				e.G().Log.Debug("received secret phrase, checking validity")
-				if !libkb.CheckKex2SecretPhrase.F(receivedSecret.Phrase) {
+				checker := libkb.MakeCheckKex2SecretPhrase(e.G())
+				if !checker.F(receivedSecret.Phrase) {
 					e.G().Log.Debug("secret phrase failed validity check (attempt %d)", i)
-					arg.PreviousErr = libkb.CheckKex2SecretPhrase.Hint
+					arg.PreviousErr = checker.Hint
 					continue
 				}
 				e.G().Log.Debug("received secret phrase, adding to provisionee")
