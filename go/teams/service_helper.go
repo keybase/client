@@ -124,15 +124,31 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, user keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
 	for i, invite := range team.chain().inner.ActiveInvites {
 		g.Log.CDebugf(ctx, "tryToCompleteInvites invite %q %+v", i, invite)
-		category, err := invite.Type.C()
-		if err != nil {
-			return err
-		}
 		ityp, err := invite.Type.String()
 		if err != nil {
 			return err
 		}
-		g.Log.CDebugf(ctx, "tryToCompleteInvites invite category %+v type %s", i, category, ityp)
+		category, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+
+		if category != keybase1.TeamInviteCategory_SBS {
+			// TODO: Supporting only SBS for now, also add support for KEYBASE.
+			continue
+		}
+
+		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, fmt.Sprintf("%s@%s", string(invite.Name), ityp))
+		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
+		if resolveResult.GetError() != nil {
+			continue
+		}
+
+		if resolveResult.GetUID() != user.Uid {
+			// Not user we are looking for
+			continue
+		}
+
 		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, user.Uid)
 		g.Log.CDebugf(ctx, "Assertion is: %s", assertion)
 
