@@ -55,6 +55,10 @@ func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	}
 }
 
+func makeLogGetter(t *testing.T) func() logger.Logger {
+	return func() logger.Logger { return logger.NewTestLogger(t) }
+}
+
 func (c *TestConfig) CleanTest() {
 	if c.configFileName != "" {
 		os.Remove(c.configFileName)
