@@ -244,7 +244,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	// Add a LU= tax to this context, for all subsequent debugging
 	ctx := arg.WithLogTag()
 
-	defer g.CVTrace(ctx, VLog0, culDebug(arg.UID), func() error { return err })()
+	defer g.CVTrace(ctx, VLog0, culDebug(arg.UID)+" "+u.G().GetMyUID().String(), func() error { return err })()
 
 	if arg.UID.IsNil() {
 		if len(arg.Name) == 0 {
@@ -482,6 +482,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 // KID, as well as the Key data associated with that KID. It picks the latest such
 // incarnation if there are multiple.
 func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+	defer u.G().CVTrace(ctx, VLog0, fmt.Sprintf("uid:%s,kid:%s", uid, kid), func() error { return err })()
 	if uid.IsNil() {
 		return nil, nil, nil, NoUIDError{}
 	}
@@ -508,6 +509,7 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		linkMap = upak.SeqnoLinkIDs
 		ret, key = upak.FindKID(kid)
 		if key != nil {
+			u.G().VDL.CLogf(ctx, VLog0, "- found kid in UPAK: %v", *ret)
 			break
 		}
 		ret = nil

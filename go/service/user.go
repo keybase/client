@@ -229,6 +229,21 @@ func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
 	return nil
 }
 
+func (h *UserHandler) DeleteUser(ctx context.Context, sessionID int) error {
+	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
+		return errors.New("can only delete user via service RPC in dev mode")
+	}
+	err := h.G().LoginState().DeleteAccount(h.G().Env.GetUsername().String())
+	if err != nil {
+		return err
+	}
+	err = h.G().Logout()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEditArg) error {
 	eng := engine.NewProfileEdit(h.G(), arg)
 	ctx := &engine.Context{NetContext: nctx}

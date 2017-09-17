@@ -2597,6 +2597,14 @@ export function trackUntrackRpcPromise (request: (requestCommon & requestErrorCa
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.untrack', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function userDeleteUserRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
+}
+
+export function userDeleteUserRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.deleteUser', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function userInterestingPeopleRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void} & {param: userInterestingPeopleRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 }
