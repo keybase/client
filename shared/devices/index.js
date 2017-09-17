@@ -103,7 +103,7 @@ class Devices extends PureComponent<Props> {
   render() {
     if (this.props.waitingForServer) {
       return (
-        <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
+        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'center'}}>
           <ProgressIndicator />
         </Box>
       )
