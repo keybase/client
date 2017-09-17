@@ -62,6 +62,8 @@ func TestRPCs(t *testing.T) {
 	testIdentify2(t, tc2.G)
 	stage("testMerkle")
 	testMerkle(t, tc2.G)
+	stage("testConfig")
+	testConfig(t, tc2.G)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -248,6 +250,21 @@ func testMerkle(t *testing.T, g *libkb.GlobalContext) {
 	}
 	if root.Root.Seqno <= keybase1.Seqno(0) {
 		t.Fatalf("Failed basic sanity check")
+	}
+}
+
+func testConfig(t *testing.T, g *libkb.GlobalContext) {
+
+	cli, err := client.GetConfigClient(g)
+	if err != nil {
+		t.Fatalf("failed to get new config client: %v", err)
+	}
+	config, err := cli.GetConfig(context.TODO(), 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.ServerURI == "" {
+		t.Fatal("No service URI")
 	}
 }
 
