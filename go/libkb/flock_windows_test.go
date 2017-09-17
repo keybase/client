@@ -35,7 +35,8 @@ func run(arg ...string) (int, error) {
 
 func TestLockPIDFile_windows(t *testing.T) {
 
-	lpFile := NewLockPIDFile("TestLockPIDWin")
+	g := MakeThinGlobalContextForTesting(t)
+	lpFile := NewLockPIDFile(g, "TestLockPIDWin")
 	err := lpFile.Lock()
 
 	if !exists("TestLockPIDWin") {
