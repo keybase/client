@@ -1253,7 +1253,7 @@ func (p PerUserKeysList) Len() int           { return len(p) }
 func (p PerUserKeysList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
 
-func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily) keybase1.UserPlusKeysV2 {
+func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily, status keybase1.StatusCode) keybase1.UserPlusKeysV2 {
 
 	var perUserKeysList PerUserKeysList
 	if cki != nil {
@@ -1282,6 +1282,7 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 		PerUserKeys: perUserKeysList,
 		DeviceKeys:  deviceKeys,
 		PGPKeys:     pgpSummaries,
+		Status:      status,
 		// Uvv and RemoteTracks are set later, and only for the current incarnation
 	}
 }
@@ -1293,6 +1294,7 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 
 	uid := u.GetUID()
 	name := u.GetName()
+	status := u.GetStatus()
 
 	// First assemble all the past versions of this user.
 	pastIncarnations := []keybase1.UserPlusKeysV2{}
@@ -1302,12 +1304,12 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 				return nil, fmt.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
 			}
 			cki := subchain[len(subchain)-1].cki
-			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
+			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf, status))
 		}
 	}
 
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
-	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf)
+	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
 	if u.IDTable() != nil {
 		for _, track := range u.IDTable().GetTrackList() {

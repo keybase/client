@@ -596,6 +596,7 @@ type UserPlusKeys struct {
 	Uid               UID               `codec:"uid" json:"uid"`
 	Username          string            `codec:"username" json:"username"`
 	EldestSeqno       Seqno             `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status            StatusCode        `codec:"status" json:"status"`
 	DeviceKeys        []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
 	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
 	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
@@ -609,6 +610,7 @@ func (o UserPlusKeys) DeepCopy() UserPlusKeys {
 		Uid:         o.Uid.DeepCopy(),
 		Username:    o.Username,
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
 		DeviceKeys: (func(x []PublicKey) []PublicKey {
 			var ret []PublicKey
 			for _, v := range x {

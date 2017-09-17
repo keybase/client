@@ -207,6 +207,9 @@ protocol Common {
       string username;
       Seqno eldestSeqno;
 
+      // =0 for an active user, and =216 for a deleted user
+      StatusCode status;
+
       // deviceKeys is a list of active device keys.  It does
       // not include PGP keys.
       array<PublicKey> deviceKeys;
