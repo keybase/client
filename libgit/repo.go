@@ -282,7 +282,6 @@ func DeleteRepo(
 	if err != nil {
 		return err
 	}
-	uniqID := fmt.Sprintf("%s-%p", session.VerifyingKey.String(), config)
 
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err := kbfsOps.GetOrCreateRootNode(
@@ -308,10 +307,13 @@ func DeleteRepo(
 		return err
 	}
 
-	// For now, just rename the repo out of the way, using the uniq
-	// ID.  TODO(KBFS-2442): periodically delete old-enough repos from
-	// `kbfsDeletedReposDir`.
+	// For now, just rename the repo out of the way, using the device
+	// ID and the current time in nanoseconds to make uniqueness
+	// probable.  TODO(KBFS-2442): periodically delete old-enough
+	// repos from `kbfsDeletedReposDir`.
+	dirSuffix := fmt.Sprintf(
+		"%s-%d", session.VerifyingKey.String(), config.Clock().Now().UnixNano())
 	return kbfsOps.Rename(
 		ctx, repoNode, normalizedRepoName, deletedReposNode,
-		normalizedRepoName+uniqID)
+		normalizedRepoName+dirSuffix)
 }
