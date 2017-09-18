@@ -8,12 +8,14 @@ import {
   devMenuTab,
   feedbackTab,
   aboutTab,
+  foldersTab,
   devicesTab,
   notificationsTab,
   screenprotectorTab,
   passphraseTab,
 } from '../../constants/settings'
 import {compose, defaultProps} from 'recompose'
+import flags from '../../util/feature-flags'
 
 import type {Props} from './index'
 
@@ -40,6 +42,12 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
   return (
     <NativeScrollView style={{width: '100%', height: '100%'}}>
       <Box style={styleNavBox}>
+        {flags.teamChatEnabled &&
+          <SettingsItem
+            text="Folders"
+            badgeNumber={badgeNumbers[foldersTab]}
+            onClick={() => onTabChange(foldersTab)}
+          />}
         <SettingsItem
           text="Devices"
           badgeNumber={badgeNumbers[devicesTab]}

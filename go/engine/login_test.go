@@ -1256,6 +1256,8 @@ func TestProvisionGPGSign(t *testing.T) {
 		// after provisioning, the secret should be stored
 		assertSecretStored(tc2, u1.Username)
 
+		checkPerUserKeyCount(&tc2, 1)
+
 		// since they *did not* import a pgp key, they should *not* be able to pgp sign something:
 		if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
 			t.Error("pgp sign worked after gpg provision w/o import")

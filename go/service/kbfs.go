@@ -25,7 +25,7 @@ type KBFSHandler struct {
 
 func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.ChatContext) *KBFSHandler {
 	return &KBFSHandler{
-		BaseHandler:      NewBaseHandler(xp),
+		BaseHandler:      NewBaseHandler(g, xp),
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: globals.NewChatContextified(cg),
 	}
@@ -121,9 +121,9 @@ func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 }
 
 func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool) ([]chat1.ConversationID, error) {
-	vis := chat1.TLFVisibility_PRIVATE
+	vis := keybase1.TLFVisibility_PRIVATE
 	if public {
-		vis = chat1.TLFVisibility_PUBLIC
+		vis = keybase1.TLFVisibility_PUBLIC
 	}
 
 	toptype := chat1.TopicType_CHAT

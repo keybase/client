@@ -126,6 +126,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
 			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
@@ -143,6 +144,17 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	req, err := reqFromRole(uv, role)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
+	}
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err == nil {
+		// Case where same UV (uid+seqno) already exists is covered by
+		// `t.IsMember` check above. This only checks if there is a reset
+		// member in the team to automatically remove them (so AddMember
+		// can function as a Re-Add).
+		if existingUV.EldestSeqno > uv.EldestSeqno {
+			return keybase1.TeamAddMemberResult{}, fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
+		}
+		req.None = []keybase1.UserVersion{existingUV}
 	}
 
 	if err := t.ChangeMembership(ctx, req); err != nil {
@@ -209,7 +221,9 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if err != nil {
 		return err
 	}
-	if !t.IsMember(ctx, uv) {
+
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err != nil {
 		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
 	}
 
@@ -221,7 +235,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
 		return Leave(ctx, g, teamname, false)
 	}
-	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{uv}}
+	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 	return t.ChangeMembership(ctx, req)
 }
 
@@ -392,18 +406,28 @@ func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Iden
 	return res, errors.New("could not identify team by ID or name")
 }
 
-func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username, typ string) (*keybase1.TeamInvite, error) {
+func memberInvite(ctx context.Context, g *libkb.GlobalContext, teamname string, iname keybase1.TeamInviteName, itype keybase1.TeamInviteType) (*keybase1.TeamInvite, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return nil, err
 	}
-	return t.chain().FindActiveInvite(username, typ)
+	return t.chain().FindActiveInvite(iname, itype)
 }
 
 func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
 	arg := apiArg(ctx, "team/request_access")
 	arg.Args.Add("team", libkb.S{Val: teamname})
 	_, err := g.API.Post(arg)
+	return err
+}
+
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
+	// First try to accept as an invite
+	err := AcceptInvite(ctx, g, tokenOrName)
+	if err != nil {
+		// Failing that, request access as a team name
+		err = RequestAccess(ctx, g, tokenOrName)
+	}
 	return err
 }
 
@@ -477,4 +501,42 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 	}
 
 	return team.Name.RootAncestorName().ToTeamID(), nil
+}
+
+func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
+	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+	if err != nil {
+		return err
+	}
+	uv, err := loadUserVersionByUsername(ctx, g, username)
+	if err != nil {
+		return err
+	}
+
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err != nil {
+		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q has never been a member of this team.", username)}
+	}
+
+	if existingUV.EldestSeqno == uv.EldestSeqno {
+		return libkb.ExistsError{Msg: fmt.Sprintf("user %q has not reset, no need to re-add", username)}
+	} else if existingUV.EldestSeqno > uv.EldestSeqno {
+		return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", username, teamID, existingUV.EldestSeqno, uv.EldestSeqno)
+	}
+
+	existingRole, err := t.MemberRole(ctx, existingUV)
+	if err != nil {
+		return err
+	}
+
+	req, err := reqFromRole(uv, existingRole)
+	if err != nil {
+		return err
+	}
+
+	req.None = []keybase1.UserVersion{existingUV}
+	if err := t.ChangeMembership(ctx, req); err != nil {
+		return err
+	}
+	return nil
 }

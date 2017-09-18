@@ -868,6 +868,24 @@
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentionUsernames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
         }
       ]
     },
@@ -997,7 +1015,7 @@
           "name": "topicName"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {
@@ -1007,6 +1025,14 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "ConversationExistence",
+          "name": "existence"
         },
         {
           "type": {
@@ -1369,7 +1395,7 @@
         {
           "type": [
             null,
-            "TLFVisibility"
+            "keybase1.TLFVisibility"
           ],
           "name": "tlfVisibility"
         },
@@ -1562,7 +1588,7 @@
           "name": "before"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {
@@ -1854,6 +1880,23 @@
     },
     {
       "type": "record",
+      "name": "DeleteConversationLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTLFConversationsLocalRes",
       "fields": [
         {
@@ -1890,6 +1933,24 @@
             "items": "RateLimit"
           },
           "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AppNotificationSettingLocal",
+      "fields": [
+        {
+          "type": "keybase1.DeviceType",
+          "name": "deviceType"
+        },
+        {
+          "type": "NotificationKind",
+          "name": "kind"
+        },
+        {
+          "type": "boolean",
+          "name": "enabled"
         }
       ]
     }
@@ -2198,6 +2259,67 @@
       ],
       "response": "PostLocalNonblockRes"
     },
+    "postHeadlineNonblock": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "headline",
+          "type": "string"
+        },
+        {
+          "name": "outboxID",
+          "type": [
+            null,
+            "OutboxID"
+          ]
+        },
+        {
+          "name": "clientPrev",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalNonblockRes"
+    },
+    "postHeadline": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "tlfPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "headline",
+          "type": "string"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "PostLocalRes"
+    },
     "SetConversationStatusLocal": {
       "request": [
         {
@@ -2228,7 +2350,7 @@
         },
         {
           "name": "tlfVisibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "topicName",
@@ -2307,7 +2429,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "attachment",
@@ -2351,7 +2473,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "attachment",
@@ -2505,7 +2627,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "topicType",
@@ -2554,7 +2676,7 @@
         },
         {
           "name": "visibility",
-          "type": "TLFVisibility"
+          "type": "keybase1.TLFVisibility"
         },
         {
           "name": "topicName",
@@ -2581,6 +2703,23 @@
       ],
       "response": "JoinLeaveConversationLocalRes"
     },
+    "deleteConversationLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "channelName",
+          "type": "string"
+        }
+      ],
+      "response": "DeleteConversationLocalRes"
+    },
     "getTLFConversationsLocal": {
       "request": [
         {
@@ -2605,8 +2744,15 @@
           "type": "ConversationID"
         },
         {
+          "name": "channelWide",
+          "type": "boolean"
+        },
+        {
           "name": "settings",
-          "type": "ConversationNotificationInfo"
+          "type": {
+            "type": "array",
+            "items": "AppNotificationSettingLocal"
+          }
         }
       ],
       "response": "SetAppNotificationSettingsLocalRes"

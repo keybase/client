@@ -4,18 +4,18 @@ import * as React from 'react'
 import flags from '../../util/feature-flags'
 import {Box} from '../../common-adapters'
 import {TabBarButton} from '../../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../../styles'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 
 import type {Props} from './index.render'
 
 const _icons = {
-  [Tabs.chatTab]: {selected: 'icon-nav-chat-selected-32', unselected: 'icon-nav-chat-32'},
-  [Tabs.devicesTab]: {selected: 'icon-nav-devices-selected-32', unselected: 'icon-nav-devices-32'},
-  [Tabs.folderTab]: {selected: 'icon-nav-folders-selected-32', unselected: 'icon-nav-folders-32'},
-  [Tabs.peopleTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
-  [Tabs.profileTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
-  [Tabs.searchTab]: {selected: 'icon-nav-people-selected-32', unselected: 'icon-nav-people-32'},
-  [Tabs.settingsTab]: {selected: 'icon-nav-settings-selected-32', unselected: 'icon-nav-settings-32'},
+  [Tabs.chatTab]: 'iconfont-nav-chat',
+  [Tabs.devicesTab]: 'iconfont-nav-devices',
+  [Tabs.folderTab]: 'iconfont-nav-folders',
+  [Tabs.peopleTab]: 'iconfont-nav-people',
+  [Tabs.profileTab]: 'iconfont-nav-people',
+  [Tabs.settingsTab]: 'iconfont-nav-settings',
+  [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
 const _labels = {
@@ -24,14 +24,15 @@ const _labels = {
   [Tabs.folderTab]: 'Folders',
   [Tabs.peopleTab]: 'People',
   [Tabs.profileTab]: 'People',
-  [Tabs.searchTab]: 'Search',
   [Tabs.settingsTab]: 'Settings',
+  [Tabs.teamsTab]: 'Teams',
 }
 
 const _tabs = [
   ...(flags.tabPeopleEnabled ? [Tabs.profileTab] : []),
-  Tabs.folderTab,
   Tabs.chatTab,
+  Tabs.folderTab,
+  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : []),
   Tabs.devicesTab,
   Tabs.settingsTab,
 ].filter(Boolean)
@@ -47,8 +48,8 @@ const TabBarRender = ({onTabClick, selectedTab, username, badgeNumbers}: Props) 
         label={_labels[tab]}
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
-        source={{icon: _icons[tab][selectedTab === tab ? 'selected' : 'unselected'], type: 'nav'}}
-        style={stylesTabButton}
+        source={{icon: _icons[tab], type: 'nav'}}
+        style={selectedTab ? stylesSelectedTabButton : stylesTabButton}
       />
     ))}
     <Box style={{flex: 1}} />
@@ -68,13 +69,19 @@ const stylesTabBar = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.darkBlue2,
   justifyContent: 'flex-start',
-  paddingTop: 15,
-  paddingBottom: 15,
+  paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.small,
   width: 80,
 }
 
 const stylesTabButton = {
   height: 56,
+  color: globalColors.blue3_40,
+}
+
+const stylesSelectedTabButton = {
+  ...stylesTabButton,
+  color: globalColors.white,
 }
 
 export default TabBarRender

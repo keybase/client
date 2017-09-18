@@ -74,14 +74,14 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	upak, me, err := e.G().GetUPAKLoader().Load(*loadArg)
+	upak, me, err := e.G().GetUPAKLoader().LoadV2(*loadArg)
 	if err != nil {
 		return err
 	}
-	// `me` could be nil. Use the upak for quick checks and then fill `me`.
+	// `me` could be nil. Use the upak for quick checks and then pass maybe-nil `me` to the next engine.
 
 	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade check for key")
-	if len(upak.Base.PerUserKeys) > 0 {
+	if len(upak.Current.PerUserKeys) > 0 {
 		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade already has per-user-key")
 		e.DidNewKey = false
 		return nil

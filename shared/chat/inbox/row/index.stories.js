@@ -32,6 +32,7 @@ const mocks = [
     ...simpleCommon,
     conversationIDKey: '3',
     hasUnread: false,
+    hasBadge: false,
     showBold: false,
     snippet: 'elisa: Hopefully not',
     teamname: 'fortgreenmoms',
@@ -41,6 +42,7 @@ const mocks = [
     ...simpleCommon,
     conversationIDKey: '1',
     hasUnread: true,
+    hasBadge: true,
     showBold: true,
     snippet: 'in the top-drawer i believe',
     subColor: globalColors.black_75,
@@ -50,6 +52,7 @@ const mocks = [
     ...simpleCommon,
     conversationIDKey: '2',
     hasUnread: false,
+    hasBadge: false,
     participants: I.List(['jzila']),
     showBold: false,
     snippet: 'I don\t know that I would want.',
@@ -70,7 +73,7 @@ const load = () => {
     ))
     .add('Team', () => (
       <Box style={{borderColor: 'black', borderStyle: 'solid', borderWidth: 1, width: 240}}>
-        <BigTeamHeaderRow teamname="Keybase" />
+        <BigTeamHeaderRow teamname="Keybase" onShowMenu={action('onShowHeader')} />
         <BigTeamChannelRow teamname="Keybase" channelname="#general" {...commonChannel} />
         <BigTeamChannelRow teamname="Keybase" channelname="#random" showBold={true} {...commonChannel} />
         <BigTeamChannelRow
@@ -81,7 +84,7 @@ const load = () => {
           {...commonChannel}
         />
         <BigTeamChannelRow teamname="Keybase" channelname="#video-games" isMuted={true} {...commonChannel} />
-        <BigTeamHeaderRow teamname="techtonica" />
+        <BigTeamHeaderRow teamname="techtonica" onShowMenu={action('onShowHeader')} />
         <BigTeamChannelRow
           teamname="techtonica"
           channelname="#general"

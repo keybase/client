@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"encoding/hex"
 	"testing"
 
@@ -30,8 +31,9 @@ func termEq(a, b proofTerm) bool {
 	return a.leafID == b.leafID && a.sigMeta.SigChainLocation.Seqno == b.sigMeta.SigChainLocation.Seqno
 }
 
-func TestAddNeededHappensBeforeProof(t *testing.T) {
-	ps := newProofSet()
+func TestProofSetAdd(t *testing.T) {
+	tc := SetupTest(t, "ps", 1)
+	ps := newProofSet(tc.G)
 
 	a := createProofTerm(1, keybase1.Seqno(10))
 	b := createProofTerm(2, keybase1.Seqno(100))
@@ -64,22 +66,62 @@ func TestAddNeededHappensBeforeProof(t *testing.T) {
 	q := createProofTerm(2, keybase1.Seqno(403))
 	r := createProofTerm(1, keybase1.Seqno(49))
 
-	ps = ps.AddNeededHappensBeforeProof(a, b, "")
-	ps = ps.AddNeededHappensBeforeProof(c, d, "")
-	ps = ps.AddNeededHappensBeforeProof(e, f, "")
-	ps = ps.AddNeededHappensBeforeProof(g, h, "")
-	ps = ps.AddNeededHappensBeforeProof(i, j, "")
-	ps = ps.AddNeededHappensBeforeProof(k, l, "")
-	ps = ps.AddNeededHappensBeforeProof(m, n, "")
-	ps = ps.AddNeededHappensBeforeProof(o, p, "")
-	ps = ps.AddNeededHappensBeforeProof(q, r, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), c, d, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), e, f, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), g, h, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), i, j, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), k, l, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), m, n, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), o, p, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), q, r, "")
 
 	ret := ps.AllProofs()
 
-	require.Equal(t, len(ret), 5)
+	require.Len(t, ret, 5)
 	require.True(t, proofEq(ret[0], proof{a, h, ""}))
 	require.True(t, proofEq(ret[1], proof{i, d, ""}))
 	require.True(t, proofEq(ret[2], proof{k, l, ""}))
 	require.True(t, proofEq(ret[3], proof{q, r, ""}))
 	require.True(t, proofEq(ret[4], proof{o, p, ""}))
+}
+
+func TestProofSetImply(t *testing.T) {
+	tc := SetupTest(t, "ps", 1)
+	ps := newProofSet(tc.G)
+
+	a := createProofTerm(1, keybase1.Seqno(1)) // user provisions device
+	b := createProofTerm(2, keybase1.Seqno(1)) // signed link
+	c := createProofTerm(2, keybase1.Seqno(2)) // signed link
+	d := createProofTerm(2, keybase1.Seqno(3)) // signed link
+
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, c, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, d, "")
+
+	ret := ps.AllProofs()
+	for _, p := range ret {
+		t.Logf("%v\n", p.shortForm())
+	}
+	require.Len(t, ret, 1)
+	require.True(t, proofEq(ret[0], proof{a, b, ""}))
+}
+
+// proof orderings on the same chain should get dropped because they are self evident
+func TestProofSetSameChain(t *testing.T) {
+	tc := SetupTest(t, "ps", 1)
+	ps := newProofSet(tc.G)
+
+	a := createProofTerm(1, keybase1.Seqno(10))
+	b := createProofTerm(1, keybase1.Seqno(11))
+	c := createProofTerm(1, keybase1.Seqno(12))
+
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
+	ps = ps.AddNeededHappensBeforeProof(context.TODO(), b, c, "")
+
+	ret := ps.AllProofs()
+	for _, p := range ret {
+		t.Logf("%v\n", p.shortForm())
+	}
+	require.Len(t, ret, 0)
 }

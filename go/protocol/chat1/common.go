@@ -105,6 +105,35 @@ func (o TopicNameState) DeepCopy() TopicNameState {
 	})(o)
 }
 
+type ConversationExistence int
+
+const (
+	ConversationExistence_ACTIVE   ConversationExistence = 0
+	ConversationExistence_ARCHIVED ConversationExistence = 1
+	ConversationExistence_DELETED  ConversationExistence = 2
+)
+
+func (o ConversationExistence) DeepCopy() ConversationExistence { return o }
+
+var ConversationExistenceMap = map[string]ConversationExistence{
+	"ACTIVE":   0,
+	"ARCHIVED": 1,
+	"DELETED":  2,
+}
+
+var ConversationExistenceRevMap = map[ConversationExistence]string{
+	0: "ACTIVE",
+	1: "ARCHIVED",
+	2: "DELETED",
+}
+
+func (e ConversationExistence) String() string {
+	if v, ok := ConversationExistenceRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type ConversationMembersType int
 
 const (
@@ -200,6 +229,35 @@ var TopicTypeRevMap = map[TopicType]string{
 	0: "NONE",
 	1: "CHAT",
 	2: "DEV",
+}
+
+type TeamType int
+
+const (
+	TeamType_NONE    TeamType = 0
+	TeamType_SIMPLE  TeamType = 1
+	TeamType_COMPLEX TeamType = 2
+)
+
+func (o TeamType) DeepCopy() TeamType { return o }
+
+var TeamTypeMap = map[string]TeamType{
+	"NONE":    0,
+	"SIMPLE":  1,
+	"COMPLEX": 2,
+}
+
+var TeamTypeRevMap = map[TeamType]string{
+	0: "NONE",
+	1: "SIMPLE",
+	2: "COMPLEX",
+}
+
+func (e TeamType) String() string {
+	if v, ok := TeamTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
 }
 
 type NotificationKind int
@@ -421,49 +479,22 @@ func (o RateLimit) DeepCopy() RateLimit {
 	}
 }
 
-type TLFVisibility int
-
-const (
-	TLFVisibility_ANY     TLFVisibility = 0
-	TLFVisibility_PUBLIC  TLFVisibility = 1
-	TLFVisibility_PRIVATE TLFVisibility = 2
-)
-
-func (o TLFVisibility) DeepCopy() TLFVisibility { return o }
-
-var TLFVisibilityMap = map[string]TLFVisibility{
-	"ANY":     0,
-	"PUBLIC":  1,
-	"PRIVATE": 2,
-}
-
-var TLFVisibilityRevMap = map[TLFVisibility]string{
-	0: "ANY",
-	1: "PUBLIC",
-	2: "PRIVATE",
-}
-
-func (e TLFVisibility) String() string {
-	if v, ok := TLFVisibilityRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
 type GetInboxQuery struct {
-	ConvID            *ConversationID      `codec:"convID,omitempty" json:"convID,omitempty"`
-	TopicType         *TopicType           `codec:"topicType,omitempty" json:"topicType,omitempty"`
-	TlfID             *TLFID               `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
-	TlfVisibility     *TLFVisibility       `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
-	Before            *gregor1.Time        `codec:"before,omitempty" json:"before,omitempty"`
-	After             *gregor1.Time        `codec:"after,omitempty" json:"after,omitempty"`
-	OneChatTypePerTLF *bool                `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
-	Status            []ConversationStatus `codec:"status" json:"status"`
-	ConvIDs           []ConversationID     `codec:"convIDs" json:"convIDs"`
-	UnreadOnly        bool                 `codec:"unreadOnly" json:"unreadOnly"`
-	ReadOnly          bool                 `codec:"readOnly" json:"readOnly"`
-	ComputeActiveList bool                 `codec:"computeActiveList" json:"computeActiveList"`
-	SummarizeMaxMsgs  bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
+	ConvID            *ConversationID            `codec:"convID,omitempty" json:"convID,omitempty"`
+	TopicType         *TopicType                 `codec:"topicType,omitempty" json:"topicType,omitempty"`
+	TlfID             *TLFID                     `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
+	TlfVisibility     *keybase1.TLFVisibility    `codec:"tlfVisibility,omitempty" json:"tlfVisibility,omitempty"`
+	Before            *gregor1.Time              `codec:"before,omitempty" json:"before,omitempty"`
+	After             *gregor1.Time              `codec:"after,omitempty" json:"after,omitempty"`
+	OneChatTypePerTLF *bool                      `codec:"oneChatTypePerTLF,omitempty" json:"oneChatTypePerTLF,omitempty"`
+	Status            []ConversationStatus       `codec:"status" json:"status"`
+	MemberStatus      []ConversationMemberStatus `codec:"memberStatus" json:"memberStatus"`
+	Existences        []ConversationExistence    `codec:"existences" json:"existences"`
+	ConvIDs           []ConversationID           `codec:"convIDs" json:"convIDs"`
+	UnreadOnly        bool                       `codec:"unreadOnly" json:"unreadOnly"`
+	ReadOnly          bool                       `codec:"readOnly" json:"readOnly"`
+	ComputeActiveList bool                       `codec:"computeActiveList" json:"computeActiveList"`
+	SummarizeMaxMsgs  bool                       `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 func (o GetInboxQuery) DeepCopy() GetInboxQuery {
@@ -489,7 +520,7 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.TlfID),
-		TlfVisibility: (func(x *TLFVisibility) *TLFVisibility {
+		TlfVisibility: (func(x *keybase1.TLFVisibility) *keybase1.TLFVisibility {
 			if x == nil {
 				return nil
 			}
@@ -525,6 +556,22 @@ func (o GetInboxQuery) DeepCopy() GetInboxQuery {
 			}
 			return ret
 		})(o.Status),
+		MemberStatus: (func(x []ConversationMemberStatus) []ConversationMemberStatus {
+			var ret []ConversationMemberStatus
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.MemberStatus),
+		Existences: (func(x []ConversationExistence) []ConversationExistence {
+			var ret []ConversationExistence
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Existences),
 		ConvIDs: (func(x []ConversationID) []ConversationID {
 			var ret []ConversationID
 			for _, v := range x {
@@ -583,9 +630,11 @@ func (o ConversationResolveInfo) DeepCopy() ConversationResolveInfo {
 type ConversationMetadata struct {
 	IdTriple       ConversationIDTriple      `codec:"idTriple" json:"idTriple"`
 	ConversationID ConversationID            `codec:"conversationID" json:"conversationID"`
-	Visibility     TLFVisibility             `codec:"visibility" json:"visibility"`
+	Visibility     keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
 	Status         ConversationStatus        `codec:"status" json:"status"`
 	MembersType    ConversationMembersType   `codec:"membersType" json:"membersType"`
+	TeamType       TeamType                  `codec:"teamType" json:"teamType"`
+	Existence      ConversationExistence     `codec:"existence" json:"existence"`
 	FinalizeInfo   *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes     []ConversationMetadata    `codec:"supersedes" json:"supersedes"`
 	SupersededBy   []ConversationMetadata    `codec:"supersededBy" json:"supersededBy"`
@@ -600,6 +649,8 @@ func (o ConversationMetadata) DeepCopy() ConversationMetadata {
 		Visibility:     o.Visibility.DeepCopy(),
 		Status:         o.Status.DeepCopy(),
 		MembersType:    o.MembersType.DeepCopy(),
+		TeamType:       o.TeamType.DeepCopy(),
+		Existence:      o.Existence.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

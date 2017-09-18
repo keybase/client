@@ -2,7 +2,7 @@
 /*
  * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
  */
-
+import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
 import * as React from 'react'
 import ReactDOM from 'react-dom'

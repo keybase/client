@@ -14,49 +14,45 @@ import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
 
+import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
 
-const onShareAttachment = function*({
-  payload: {messageKey},
-}: Constants.ShareAttachment): SagaGenerator<any, any> {
-  const path = yield call(_saveAttachment, messageKey)
+function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
+  const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
   if (path) {
     yield call(showShareActionSheet, {url: path})
   }
 }
 
-const onSaveAttachmentNative = function*({
+function* onSaveAttachmentNative({
   payload: {messageKey},
 }: Constants.SaveAttachmentNative): SagaGenerator<any, any> {
-  const path = yield call(_saveAttachment, messageKey)
+  const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
   if (path) {
     yield call(saveAttachmentDialog, path)
   }
 }
 
-const onLoadAttachmentPreview = function*({
+function* onLoadAttachmentPreview({
   payload: {messageKey},
 }: Constants.LoadAttachmentPreview): SagaGenerator<any, any> {
   yield put(Creators.loadAttachment(messageKey, true))
 }
 
-const onSaveAttachment = function*({
-  payload: {messageKey},
-}: Constants.SaveAttachment): SagaGenerator<any, any> {
-  yield call(_saveAttachment, messageKey)
-}
-
-const _saveAttachment = function*(messageKey: Constants.MessageKey) {
-  const localMessageState = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
-  if (localMessageState.savedPath) {
-    console.log('_saveAttachment: message already saved. bailing.', messageKey, localMessageState.savedPath)
-    return localMessageState.savedPath
+function* onSaveAttachment({payload: {messageKey}}: Constants.SaveAttachment): SagaGenerator<any, any> {
+  const {savedPath, downloadedPath} = yield select((s: TypedState) => ({
+    savedPath: Constants.getAttachmentSavedPath(s, messageKey),
+    downloadedPath: Constants.getAttachmentDownloadedPath(s, messageKey),
+  }))
+  if (savedPath) {
+    console.log('_saveAttachment: message already saved. bailing.', messageKey, savedPath)
+    return savedPath
   }
 
   yield put(Creators.attachmentSaveStart(messageKey))
 
   const startTime = Date.now()
-  if (!localMessageState.downloadedPath) {
+  if (!downloadedPath) {
     yield put(Creators.loadAttachment(messageKey, false))
     console.log('_saveAttachment: waiting for attachment to load', messageKey)
     yield take(
@@ -84,8 +80,8 @@ const _saveAttachment = function*(messageKey: Constants.MessageKey) {
     }
   }
 
-  const {downloadedPath} = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
-  if (!downloadedPath) {
+  const nextDownloadedPath = yield select(Constants.getAttachmentDownloadedPath, messageKey)
+  if (!nextDownloadedPath) {
     console.warn('_saveAttachment: message failed to download!')
     return
   }
@@ -94,7 +90,7 @@ const _saveAttachment = function*(messageKey: Constants.MessageKey) {
   const destPath = yield call(downloadFilePath, filename)
 
   try {
-    yield copy(downloadedPath, destPath)
+    yield copy(nextDownloadedPath, destPath)
   } catch (err) {
     console.warn('_saveAttachment: copy failed:', err)
     yield put(Creators.attachmentSaveFailed(messageKey))
@@ -118,33 +114,36 @@ const loadAttachmentSagaMap = (messageKey, loadPreview) => ({
   'chat.1.chatUi.chatAttachmentDownloadDone': EngineRpc.passthroughResponseSaga,
 })
 
-const onLoadAttachment = function*({
+function* onLoadAttachment({
   payload: {messageKey, loadPreview},
 }: Constants.LoadAttachment): SagaGenerator<any, any> {
   // Check if we should download the attachment. Only one instance of this saga
   // should executes at any time, so that these checks don't interleave with
   // updating initial progress on the download.
-  const localMessageState = yield select(Constants.getLocalMessageStateFromMessageKey, messageKey)
+  const {previewPath, previewProgress, downloadedPath, downloadProgress} = yield select(
+    Constants.getLocalMessageStateFromMessageKey,
+    messageKey
+  )
 
   if (loadPreview) {
-    if (localMessageState.previewPath || localMessageState.previewProgress !== null) {
+    if (previewPath || previewProgress !== null) {
       // Already downloaded / downloading preview
       console.log(
         'onLoadAttachment: preview already downloaded/downloading. bailing.',
         messageKey,
-        localMessageState.previewPath,
-        localMessageState.previewProgress
+        previewPath,
+        previewProgress
       )
       return
     }
   } else {
-    if (localMessageState.downloadedPath || localMessageState.downloadProgress !== null) {
+    if (downloadedPath || downloadProgress !== null) {
       // Already downloaded / downloading attachment
       console.log(
         'onLoadAttachment: attachment already downloaded/downloading. bailing.',
         messageKey,
-        localMessageState.downloadedPath,
-        localMessageState.downloadProgress
+        downloadedPath,
+        downloadProgress
       )
       return
     }
@@ -175,7 +174,7 @@ const onLoadAttachment = function*({
   yield spawn(function*() {
     const param = {
       conversationID: Constants.keyToConversationID(conversationIDKey),
-      messageID,
+      messageID: Constants.parseMessageID(messageID).msgID,
       filename: destPath,
       preview: loadPreview,
       identifyBehavior: RPCTypes.TlfKeysTLFIdentifyBehavior.chatGui,
@@ -203,7 +202,7 @@ const onLoadAttachment = function*({
   })
 }
 
-const _appendAttachmentPlaceholder = function*(
+function* _appendAttachmentPlaceholder(
   conversationIDKey: Constants.ConversationIDKey,
   outboxIDKey: Constants.OutboxIDKey,
   preview: ChatTypes.MakePreviewRes,
@@ -304,15 +303,14 @@ const postAttachmentSagaMap = (
   'chat.1.chatUi.chatAttachmentPreviewUploadDone': EngineRpc.passthroughResponseSaga,
 })
 
-const onSelectAttachment = function*({
-  payload: {input},
-}: Constants.SelectAttachment): Generator<any, any, any> {
+function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Generator<any, any, any> {
   const {title, filename} = input
   let {conversationIDKey} = input
+  let newConvoTlfName
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    conversationIDKey = yield call(Shared.startNewConversation, conversationIDKey)
+    ;[conversationIDKey, newConvoTlfName] = yield call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
@@ -328,7 +326,7 @@ const onSelectAttachment = function*({
   const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
-    tlfName: inboxConvo.name,
+    tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
     visibility: inboxConvo.visibility,
     attachment: {filename},
     preview,
@@ -393,14 +391,14 @@ const onSelectAttachment = function*({
   }
 }
 
-const onRetryAttachment = function*({
+function* onRetryAttachment({
   payload: {input, oldOutboxID},
 }: Constants.RetryAttachment): Generator<any, any, any> {
   yield put(Creators.removeOutboxMessage(input.conversationIDKey, oldOutboxID))
   yield call(onSelectAttachment, {payload: {input}})
 }
 
-const onOpenAttachmentPopup = function*(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
+function* onOpenAttachmentPopup(action: Constants.OpenAttachmentPopup): SagaGenerator<any, any> {
   const {message, currentPath} = action.payload
   const messageID = message.messageID
   if (!messageID) {

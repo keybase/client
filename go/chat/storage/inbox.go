@@ -14,10 +14,11 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 12
+const inboxVersion = 14
 
 type queryHash []byte
 
@@ -304,6 +305,11 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 	for _, conv := range convs {
 		ok := true
 
+		// Existence check
+		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
+			ok = false
+		}
+
 		// Member status check
 		switch conv.ReaderInfo.Status {
 		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW:
@@ -337,7 +343,7 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
 			ok = false
 		}
-		if query.TlfVisibility != nil && *query.TlfVisibility != chat1.TLFVisibility_ANY &&
+		if query.TlfVisibility != nil && *query.TlfVisibility != keybase1.TLFVisibility_ANY &&
 			*query.TlfVisibility != conv.Metadata.Visibility {
 			ok = false
 		}
@@ -700,6 +706,7 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Check for a delete, if so just auto return a version mismatch to resync. The reason
 	// is it is tricky to update max messages in this case.
 	if msg.GetMessageType() == chat1.MessageType_DELETE {
+		i.Debug(ctx, "NewMessage: returning fake version mismatch error because of delete")
 		return NewVersionMismatchError(ibox.InboxVersion, vers)
 	}
 
@@ -880,6 +887,45 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 			conv.Notifications.Settings[apptype][kind] = enabled
 		}
 	}
+	conv.Notifications.ChannelWide = settings.ChannelWide
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	if err := i.writeDiskInbox(ctx, ibox); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
+	convID chat1.ConversationID, teamType chat1.TeamType) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "TeamTypeChanged: vers: %d convID: %s typ: %v", vers, convID, teamType)
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Find conversation
+	_, conv := i.getConv(convID, ibox.Conversations)
+	if conv == nil {
+		i.Debug(ctx, "TeamTypeChanged: no conversation found: convID: %s, clearing", convID)
+		return i.Clear(ctx)
+	}
+	conv.Metadata.TeamType = teamType
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -962,7 +1008,11 @@ func (i *Inbox) ServerVersion(ctx context.Context) (vers int, err Error) {
 	return vers, nil
 }
 
-func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (err Error) {
+type InboxSyncRes struct {
+	TeamTypeChanged bool
+}
+
+func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "Sync")()
@@ -971,7 +1021,7 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		// Return MissError, since it should be unexpected if are calling this
-		return err
+		return res, err
 	}
 
 	// Sync inbox with new conversations
@@ -983,6 +1033,11 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	}
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
+			if ibox.Conversations[index].Metadata.TeamType != newConv.Metadata.TeamType {
+				// Changing the team type might be hard for clients of the inbox system to process,
+				// so call it out so they can know a hard update happened here.
+				res.TeamTypeChanged = true
+			}
 			ibox.Conversations[index] = newConv
 			delete(convMap, conv.GetConvID().String())
 		}
@@ -995,10 +1050,10 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 
 	i.Debug(ctx, "Sync: old vers: %v new vers: %v convs: %d", oldVers, ibox.InboxVersion, len(convs))
 	if err = i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
+		return res, err
 	}
 
-	return nil
+	return res, nil
 }
 
 func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,

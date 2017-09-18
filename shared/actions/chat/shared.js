@@ -2,10 +2,14 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import {Map} from 'immutable'
-import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
+import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
-import {unboxConversations} from './inbox'
-import {pendingToRealConversation, replaceConversation, selectConversation} from './creators'
+import {
+  pendingToRealConversation,
+  replaceConversation,
+  selectConversation,
+  unboxConversations,
+} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
@@ -32,34 +36,12 @@ function conversationStateSelector(state: TypedState, conversationIDKey: Constan
   return state.chat.get('conversationStates', Map()).get(conversationIDKey)
 }
 
-function messageSelector(
-  state: TypedState,
-  conversationIDKey: Constants.ConversationIDKey,
-  messageID: Constants.MessageID
-) {
-  return conversationStateSelector(state, conversationIDKey)
-    .get('messages')
-    .find(m => m.messageID === messageID)
-}
-
 function messageOutboxIDSelector(
   state: TypedState,
   conversationIDKey: Constants.ConversationIDKey,
   outboxID: Constants.OutboxIDKey
-) {
-  return conversationStateSelector(state, conversationIDKey)
-    .get('messages')
-    .find(m => m.outboxID === outboxID)
-}
-
-function pendingMessageOutboxIDSelector(
-  state: TypedState,
-  conversationIDKey: Constants.ConversationIDKey,
-  outboxID: Constants.OutboxIDKey
-) {
-  return conversationStateSelector(state, conversationIDKey)
-    .get('messages')
-    .find(m => m.outboxID === outboxID && m.state === 'pending')
+): Constants.Message {
+  return Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
 }
 
 function devicenameSelector(state: TypedState) {
@@ -87,9 +69,9 @@ function tmpFileName(
 }
 
 // Actually start a new conversation. conversationIDKey can be a pending one or a replacement
-const startNewConversation = function*(
+function* startNewConversation(
   oldConversationIDKey: Constants.ConversationIDKey
-): Generator<any, ?Constants.ConversationIDKey, any> {
+): Generator<any, [?Constants.ConversationIDKey, ?string], any> {
   // Find the participants
   const pendingTlfName = Constants.pendingConversationIDKeyToTlfName(oldConversationIDKey)
   let tlfName
@@ -104,14 +86,14 @@ const startNewConversation = function*(
 
   if (!tlfName) {
     console.warn("Shouldn't happen in practice")
-    return null
+    return [null, null]
   }
 
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
     param: {
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       tlfName,
-      tlfVisibility: ChatTypes.CommonTLFVisibility.private,
+      tlfVisibility: CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
     },
   })
@@ -119,7 +101,7 @@ const startNewConversation = function*(
   const newConversationIDKey = result ? Constants.conversationIDToKey(result.conv.info.id) : null
   if (!newConversationIDKey) {
     console.warn('No convoid from newConvoRPC')
-    return null
+    return [null, null]
   }
 
   // Replace any existing convo
@@ -135,12 +117,12 @@ const startNewConversation = function*(
     yield put(selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield call(unboxConversations, [newConversationIDKey])
-  return newConversationIDKey
+  yield put(unboxConversations([newConversationIDKey]))
+  return [newConversationIDKey, tlfName]
 }
 
 // If we're showing a banner we send chatGui, if we're not we send chatGuiStrict
-const getPostingIdentifyBehavior = function*(
+function* getPostingIdentifyBehavior(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, any, any> {
   const metaData = (yield select(metaDataSelector): any)
@@ -169,9 +151,7 @@ export {
   getPostingIdentifyBehavior,
   inboxUntrustedStateSelector,
   messageOutboxIDSelector,
-  messageSelector,
   metaDataSelector,
-  pendingMessageOutboxIDSelector,
   routeSelector,
   selectedInboxSelector,
   startNewConversation,

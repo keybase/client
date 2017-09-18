@@ -10,6 +10,7 @@ import {
   call,
   put,
   race,
+  select,
   fork,
   takeEvery,
   takeLatest,
@@ -19,14 +20,18 @@ import {globalError} from '../constants/config'
 import {convertToError} from '../util/errors'
 
 import type {Action} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 import type {ChannelConfig, ChannelMap, SagaGenerator, Channel} from '../constants/types/saga'
 
 type SagaMap = {[key: string]: any}
 type Effect = any
 
 function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
-  return mapValues(channelConfig, v => {
-    return channel(v())
+  return mapValues(channelConfig, (v, k) => {
+    const ret = channel(v())
+    // to help debug what's going on in dev/user-timings
+    ret.userTimingName = k
+    return ret
   })
 }
 
@@ -80,7 +85,7 @@ function singleFixedChannelConfig<T>(ks: Array<string>): ChannelConfig<T> {
 }
 
 function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
-  const wrappedWorker = function*(...args) {
+  const safeTakeEveryWorker = function* safeTakeEveryWorker(...args) {
     try {
       yield call(worker, ...args)
     } catch (error) {
@@ -98,7 +103,29 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
     }
   }
 
-  return takeEvery(pattern, wrappedWorker, ...args)
+  return takeEvery(pattern, safeTakeEveryWorker, ...args)
+}
+
+// Like safeTakeEvery but the worker is pure (not a generator) optionally pass in a third argument
+// Which is a selector function that will select some state and pass it to pureWorker
+// whatever purework returns will be yielded on.
+// i.e. it can return put(someAction). That effectively transforms the input action into another action
+// It can also return all([put(action1), put(action2)]) to dispatch multiple actions
+function safeTakeEveryPure<S, A>(
+  pattern: string | Array<any> | Function,
+  pureWorker: ((action: any) => any) | ((action: any, selectedState: S) => any),
+  selectorFn?: (state: TypedState, action: A) => S
+) {
+  return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
+    if (selectorFn) {
+      const selectedState = yield select(selectorFn, action)
+      // $FlowIssue
+      yield pureWorker(action, selectedState)
+    } else {
+      // $FlowIssue
+      yield pureWorker(action)
+    }
+  })
 }
 
 function safeTakeLatestWithCatch(
@@ -107,7 +134,7 @@ function safeTakeLatestWithCatch(
   worker: Function | SagaGenerator<any, any>,
   ...args: Array<any>
 ) {
-  const wrappedWorker = function*(...args) {
+  const safeTakeLatestWithCatchWorker = function* safeTakeLatestWithCatchWorker(...args) {
     try {
       yield call(worker, ...args)
     } catch (error) {
@@ -124,7 +151,7 @@ function safeTakeLatestWithCatch(
     }
   }
 
-  return takeLatest(pattern, wrappedWorker, ...args)
+  return takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
 }
 
 function safeTakeLatest(
@@ -147,7 +174,7 @@ function cancelWhen(predicate: (originalAction: Action, checkAction: Action) => 
 }
 
 function safeTakeSerially(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
-  const wrappedWorker = function*(...args) {
+  const safeTakeSeriallyWorker = function* safeTakeSeriallyWorker(...args) {
     try {
       yield call(worker, ...args)
     } catch (error) {
@@ -165,11 +192,11 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     }
   }
 
-  return fork(function*() {
+  return fork(function* safeTakeSeriallyForkWorker() {
     const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {
       const action = yield take(chan)
-      yield call(wrappedWorker, action, ...args)
+      yield call(safeTakeSeriallyWorker, action, ...args)
     }
   })
 }
@@ -182,6 +209,7 @@ export {
   mapSagasToChanMap,
   putOnChannelMap,
   safeTakeEvery,
+  safeTakeEveryPure,
   safeTakeLatest,
   safeTakeLatestWithCatch,
   safeTakeSerially,

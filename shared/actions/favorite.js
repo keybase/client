@@ -167,6 +167,9 @@ function _getFavoritesRPCToFolders(
     return []
   }
 
+  // kill team folders for now
+  json.favorites = json.favorites.filter(f => f.folderType !== FavoriteFolderType.team)
+
   const myKID = findKey(json.users, name => name === username)
 
   // inject our meta tag
@@ -204,7 +207,7 @@ function _getFavoritesRPCToFolders(
   return folders
 }
 
-const _addSaga = function*(action: FavoriteAdd): SagaGenerator<any, any> {
+function* _addSaga(action: FavoriteAdd): SagaGenerator<any, any> {
   const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
     const action: FavoriteAdded = {
@@ -225,7 +228,7 @@ const _addSaga = function*(action: FavoriteAdd): SagaGenerator<any, any> {
   }
 }
 
-const _ignoreSaga = function*(action: FavoriteAdd): SagaGenerator<any, any> {
+function* _ignoreSaga(action: FavoriteAdd): SagaGenerator<any, any> {
   const folder = folderRPCFromPath(action.payload.path)
   if (!folder) {
     const action: FavoriteIgnored = {
@@ -246,7 +249,7 @@ const _ignoreSaga = function*(action: FavoriteAdd): SagaGenerator<any, any> {
   }
 }
 
-const _listSaga = function*(): SagaGenerator<any, any> {
+function* _listSaga(): SagaGenerator<any, any> {
   const bail = yield select(({dev: {reloading = false} = {}}) => reloading)
   if (bail) {
     return
@@ -303,7 +306,7 @@ function _notify(state) {
 
 // Don't send duplicates else we get high cpu usage
 let _kbfsUploadingState = false
-const _setupKBFSChangedHandler = function*(): SagaGenerator<any, any> {
+function* _setupKBFSChangedHandler(): SagaGenerator<any, any> {
   yield put((dispatch: Dispatch) => {
     const debouncedKBFSStopped = debounce(() => {
       if (_kbfsUploadingState === true) {
@@ -333,7 +336,7 @@ const _setupKBFSChangedHandler = function*(): SagaGenerator<any, any> {
   yield call(NotifyFSRequestFSSyncStatusRequestRpcPromise, {param: {req: {requestID: 0}}})
 }
 
-const favoriteSaga = function*(): SagaGenerator<any, any> {
+function* favoriteSaga(): SagaGenerator<any, any> {
   yield safeTakeLatest(Constants.favoriteList, _listSaga)
   yield safeTakeEvery(Constants.favoriteAdd, _addSaga)
   yield safeTakeEvery(Constants.favoriteIgnore, _ignoreSaga)

@@ -5,6 +5,12 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
+const ShhIcon = () => (
+  <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>
+    <Icon type="iconfont-shh" style={shhIconStyle} />
+  </Box>
+)
+
 const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, teamName}: Props) => (
   <Box style={containerStyle}>
     <Box
@@ -13,12 +19,14 @@ const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, te
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: 48,
+        marginLeft: 24,
       }}
     >
-      <Text type="BodyBig" style={{color: globalColors.black_40}}>{teamName}</Text>
-      <Text type="Header" style={{color: globalColors.black_75}}>&nbsp;#{channelName}</Text>
-      {muted && <Icon type="iconfont-shh" style={styleLeft} />}
+      <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>{teamName}</Text>
+      <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
+        #{channelName}
+      </Text>
+      {muted && <ShhIcon />}
     </Box>
     <Icon
       type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
@@ -47,7 +55,7 @@ const UsernameHeader = ({
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile}
       />
-      {muted && <Icon type="iconfont-shh" style={styleLeft} />}
+      {muted && <ShhIcon />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
     <Icon
@@ -74,6 +82,12 @@ const styleCenter = {
 
 const styleLeft = {
   marginLeft: globalMargins.tiny,
+}
+
+const shhIconStyle = {
+  color: globalColors.black_20,
+  fontSize: 20,
+  marginLeft: globalMargins.xtiny,
 }
 
 export {ChannelHeader, UsernameHeader}

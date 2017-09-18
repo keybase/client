@@ -103,7 +103,7 @@ function validUsername(name: ?string) {
     return false
   }
 
-  return !!name.match(/^([a-z0-9_-]{1,1000})$/i)
+  return !!name.match(/^([.a-z0-9_-]{1,1000})$/i)
 }
 
 function getUserImageMap(username: string): ?URLMap {

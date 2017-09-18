@@ -1,0 +1,31 @@
+{
+  "protocol": "KBFSGit",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "favorite.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "createRepo": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "name",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": "RepoID",
+      "doc": "* createRepo creates a bare empty repo on KBFS under the given name in the given TLF.\n   * It returns the ID of the repo created."
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -174,7 +174,7 @@ helpers.rootLinuxNode(env, {
                                     }},
                                 )
                             },
-                            test_kbfs: {
+                           /* test_kbfs: {
                                 if (hasGoChanges) {
                                     build([
                                         job: "/kbfs/master",
@@ -190,7 +190,7 @@ helpers.rootLinuxNode(env, {
                                         ]
                                     ])
                                 }
-                            },
+                            },*/
                         )
                     },
                     test_windows: {
@@ -375,9 +375,9 @@ def testGo(prefix) {
         def parallelTests = []
         def tests = [:]
         def specialTests = [:]
-        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage']
+        def specialTestFilter = ['chat', 'chat_storage']
         for (def i=0; i<dirs.size(); i++) {
-            if (tests.size() == 4) {
+            if (tests.size() == 2) {
                 parallelTests << tests
                 tests = [:]
             }

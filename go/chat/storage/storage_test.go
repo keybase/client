@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -17,7 +16,7 @@ import (
 )
 
 func setupStorageTest(t testing.TB, name string) (kbtest.ChatTestContext, *Storage, gregor1.UID) {
-	ltc := externals.SetupTest(t, name, 2)
+	ltc := setupCommonTest(t, name)
 	u, err := kbtest.CreateAndSignupFakeUser("cs", ltc.G)
 	tc := kbtest.ChatTestContext{
 		TestContext: ltc,

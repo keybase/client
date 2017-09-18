@@ -56,6 +56,8 @@ func (k *KeyFinderImpl) createNameInfoSource(ctx context.Context,
 		return NewKBFSNameInfoSource(k.G())
 	case chat1.ConversationMembersType_TEAM:
 		return NewTeamsNameInfoSource(k.G())
+	case chat1.ConversationMembersType_IMPTEAM:
+		return NewImplicitTeamsNameInfoSource(k.G())
 	}
 	k.Debug(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(k.G())
@@ -74,9 +76,9 @@ func (k *KeyFinderImpl) Find(ctx context.Context, name string,
 		return existing, nil
 	}
 
-	vis := chat1.TLFVisibility_PRIVATE
+	vis := keybase1.TLFVisibility_PRIVATE
 	if public {
-		vis = chat1.TLFVisibility_PUBLIC
+		vis = keybase1.TLFVisibility_PUBLIC
 	}
 	nameSource := k.createNameInfoSource(ctx, membersType)
 	nameInfo, err := nameSource.Lookup(ctx, name, vis)
@@ -112,9 +114,9 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 		if err != nil {
 			return res, err
 		}
-		vis := chat1.TLFVisibility_PRIVATE
+		vis := keybase1.TLFVisibility_PRIVATE
 		if public {
-			vis = chat1.TLFVisibility_PUBLIC
+			vis = keybase1.TLFVisibility_PUBLIC
 		}
 		return teamToNameInfo(ctx, team, vis)
 	default:
@@ -144,9 +146,9 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 		if err != nil {
 			return res, err
 		}
-		vis := chat1.TLFVisibility_PRIVATE
+		vis := keybase1.TLFVisibility_PRIVATE
 		if public {
-			vis = chat1.TLFVisibility_PUBLIC
+			vis = keybase1.TLFVisibility_PUBLIC
 		}
 		return teamToNameInfo(ctx, team, vis)
 	default:

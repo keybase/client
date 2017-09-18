@@ -1,21 +1,31 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {Avatar, Box, Text, Icon, ClickableBox} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../../styles'
+import {globalStyles, globalColors, globalMargins, glamorous} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {TeamAvatar} from './avatars'
 
 type TeamProps = {
   teamname: string,
+  onShowMenu: () => void,
 }
 
 class BigTeamHeaderRow extends PureComponent<TeamProps> {
   render() {
     return (
-      <Box style={teamRowContainerStyle}>
+      <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
-      </Box>
+        <Icon
+          className="icon"
+          type="iconfont-ellipsis"
+          onClick={this.props.onShowMenu}
+          style={{
+            fontSize: isMobile ? 20 : 16,
+            padding: isMobile ? 2 : 0,
+          }}
+        />
+      </HeaderBox>
     )
   }
 }
@@ -43,6 +53,7 @@ type ChannelProps = {
   isMuted?: boolean,
   showBold?: boolean,
   hasUnread?: boolean,
+  hasBadge?: boolean,
   onSelectConversation: () => void,
 }
 
@@ -65,10 +76,10 @@ class BigTeamChannelRow extends PureComponent<ChannelProps> {
                 color: this.props.isSelected ? globalColors.white : globalColors.black_75,
               }}
             >
-              {this.props.channelname}
+              #{this.props.channelname}
             </Text>
             {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
-            {this.props.hasUnread && <UnreadIcon />}
+            {this.props.hasBadge && <UnreadIcon />}
           </Box>
         </Box>
       </ClickableBox>
@@ -160,6 +171,20 @@ const teamRowContainerStyle = {
   paddingRight: globalMargins.tiny,
 }
 
+const HeaderBox = glamorous(Box)({
+  ...teamRowContainerStyle,
+  ...(isMobile
+    ? {}
+    : {
+        '& .icon': {
+          display: 'none !important',
+        },
+        ':hover .icon': {
+          display: 'inherit !important',
+        },
+      }),
+})
+
 const channelRowContainerStyle = {
   ...teamRowContainerStyle,
   alignItems: 'stretch',
@@ -168,18 +193,20 @@ const channelRowContainerStyle = {
 
 const teamStyle = {
   color: globalColors.darkBlue,
+  flex: 1,
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
 }
 
 const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
+  ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
   alignItems: 'center',
-  borderRadius: 2,
-  marginLeft: 32,
+  borderTopLeftRadius: 2,
+  borderBottomLeftRadius: 2,
+  marginLeft: globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  width: '100%',
 }
 
 const mutedStyle = {
@@ -197,7 +224,7 @@ const unreadStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 6,
   flexShrink: 0,
-  height: 6,
-  width: 6,
+  height: 8,
+  width: 8,
 }
 export {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow}

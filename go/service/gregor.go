@@ -74,7 +74,7 @@ func newGregorFirehoseHandler(g *libkb.GlobalContext, connID libkb.ConnectionID,
 	return &gregorFirehoseHandler{
 		Contextified: libkb.NewContextified(g),
 		connID:       connID,
-		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil)},
+		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil)},
 	}
 }
 
@@ -1379,10 +1379,10 @@ func (g *gregorHandler) connectTLS() error {
 	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{
 		TagsFunc:         logger.LogTagsFromContextRPC,
-		WrapErrorFunc:    libkb.WrapError,
+		WrapErrorFunc:    libkb.MakeWrapError(g.G().ExternalG()),
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{}, g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g, libkb.NewRPCLogFactory(g.G().ExternalG()), g.G().Log, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -1415,10 +1415,10 @@ func (g *gregorHandler) connectNoTLS() error {
 	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{
 		TagsFunc:         logger.LogTagsFromContextRPC,
-		WrapErrorFunc:    libkb.WrapError,
+		WrapErrorFunc:    libkb.MakeWrapError(g.G().ExternalG()),
 		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
 	}
-	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.ErrorUnwrapper{}, g.G().Log, opts)
+	g.conn = rpc.NewConnectionWithTransport(g, t, libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()), g.G().Log, opts)
 
 	g.cli = WrapGenericClientWithTimeout(g.conn.GetClient(), GregorRequestTimeout,
 		chat.ErrChatServerTimeout)
@@ -1487,9 +1487,9 @@ func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
 	return err
 }
 
-func (g *gregorHandler) InjectItem(cat string, body []byte) (gregor.MsgID, error) {
+func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	var err error
-	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectItem(%s)", cat),
+	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.InjectItem(%s)", cat),
 		func() error { return err },
 	)()
 
@@ -1500,11 +1500,11 @@ func (g *gregorHandler) InjectItem(cat string, body []byte) (gregor.MsgID, error
 	creation.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
 		Category_: gregor1.Category(cat),
 		Body_:     gregor1.Body(body),
+		Dtime_:    dtime,
 	}
 
 	incomingClient := gregor1.IncomingClient{Cli: g.cli}
-	// TODO: Should the interface take a context from the caller?
-	err = incomingClient.ConsumeMessage(context.TODO(), *creation)
+	err = incomingClient.ConsumeMessage(ctx, *creation)
 	return creation.Ibm_.StateUpdate_.Md_.MsgID_, err
 }
 
@@ -1581,6 +1581,10 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 
 func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err error) {
 	return g.gh.getState(ctx)
+}
+
+func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (gregor1.MsgID, error) {
+	return g.gh.InjectItem(ctx, arg.Cat, []byte(arg.Body), arg.Dtime)
 }
 
 func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration, timeoutErr error) rpc.GenericClient {

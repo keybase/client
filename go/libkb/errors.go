@@ -1358,6 +1358,19 @@ func (e IdentifyFailedError) Error() string {
 
 //=============================================================================
 
+type IdentifiesFailedError struct {
+}
+
+func (e IdentifiesFailedError) Error() string {
+	return fmt.Sprintf("one or more identifies failed")
+}
+
+func NewIdentifiesFailedError() IdentifiesFailedError {
+	return IdentifiesFailedError{}
+}
+
+//=============================================================================
+
 type IdentifySummaryError struct {
 	username NormalizedUsername
 	problems []string
@@ -2082,6 +2095,31 @@ func (e ImplicitTeamDisplayNameError) Error() string {
 	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
 }
 
-func NewImplicitTeamDisplayNameError(s string) ImplicitTeamDisplayNameError {
-	return ImplicitTeamDisplayNameError{s}
+func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
+}
+
+type TeamVisibilityError struct{}
+
+func (e TeamVisibilityError) Error() string {
+	return "loaded team doesn't match specified visibility"
+}
+
+type KeyMaskNotFoundError struct {
+	App keybase1.TeamApplication
+	Gen keybase1.PerTeamKeyGeneration
+}
+
+func (e KeyMaskNotFoundError) Error() string {
+	msg := fmt.Sprintf("You don't have access to %s for this team", e.App)
+	if e.Gen != keybase1.PerTeamKeyGeneration(0) {
+		msg += fmt.Sprintf(" (at generation %d)", int(e.Gen))
+	}
+	return msg
+}
+
+type ProvisionFailedOfflineError struct{}
+
+func (e ProvisionFailedOfflineError) Error() string {
+	return "Device provisioning failed because the device is offline"
 }

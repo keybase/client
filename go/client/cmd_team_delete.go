@@ -62,7 +62,7 @@ func (c *CmdTeamDelete) Run() error {
 	}
 
 	dui := c.G().UI.GetTerminalUI()
-	dui.Printf("Success! Team %s deleted.", c.Team)
+	dui.Printf("Success! Team %s deleted.\n", c.Team)
 
 	return nil
 }

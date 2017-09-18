@@ -86,3 +86,7 @@ func (r *RemoteChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThrea
 func (r *RemoteChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
 	return r.cli.ChatThreadFull(ctx, arg)
 }
+
+func (r *RemoteChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+	return r.cli.ChatConfirmChannelDelete(ctx, arg)
+}

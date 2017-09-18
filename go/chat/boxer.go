@@ -27,6 +27,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/ed25519"
 )
@@ -91,8 +92,17 @@ func (b *Boxer) detectKBFSPermanentServerError(err error) bool {
 	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
 		return true
 	}
+
+	// Check for team not exist error that is in raw form
+	if aerr, ok := err.(libkb.AppStatusError); ok &&
+		keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamNotFound {
+		return true
+	}
+
 	switch err.(type) {
 	case libkb.DeletedError:
+		return true
+	case teams.TeamDoesNotExistError:
 		return true
 	}
 	return false
@@ -484,6 +494,9 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		}
 	}
 
+	// Get at mention usernames
+	atMentions, atMentionUsernames, chanMention := b.getAtMentionInfo(ctx, body)
+
 	ierr = b.compareHeadersV1(ctx, boxed.ClientHeader, clientHeader)
 	if ierr != nil {
 		return nil, ierr
@@ -502,6 +515,9 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed, encryptio
 		HeaderSignature:       headerSignature,
 		VerificationKey:       nil,
 		SenderDeviceRevokedAt: validity.senderDeviceRevokedAt,
+		AtMentions:            atMentions,
+		AtMentionUsernames:    atMentionUsernames,
+		ChannelMention:        chanMention,
 	}, nil
 }
 
@@ -611,6 +627,9 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, baseEncry
 	senderUsername, senderDeviceName, senderDeviceType := b.getSenderInfoLocal(
 		ctx, clientHeader.Sender, clientHeader.SenderDevice)
 
+	// Get at mention usernames
+	atMentions, atMentionUsernames, chanMention := b.getAtMentionInfo(ctx, body)
+
 	// create an unboxed message
 	return &chat1.MessageUnboxedValid{
 		ClientHeader:          clientHeader,
@@ -624,6 +643,9 @@ func (b *Boxer) unboxV2(ctx context.Context, boxed chat1.MessageBoxed, baseEncry
 		HeaderSignature:       nil,
 		VerificationKey:       &boxed.VerifyKey,
 		SenderDeviceRevokedAt: senderDeviceRevokedAt,
+		AtMentions:            atMentions,
+		AtMentionUsernames:    atMentionUsernames,
+		ChannelMention:        chanMention,
 	}, nil
 }
 
@@ -858,6 +880,38 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 		}
 	}
 	return username, deviceName, deviceType
+}
+
+func (b *Boxer) getAtMentionInfo(ctx context.Context, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention) {
+	chanMention = chat1.ChannelMention_NONE
+	typ, err := body.MessageType()
+	if err != nil {
+		return nil, nil, chanMention
+	}
+
+	switch typ {
+	case chat1.MessageType_TEXT:
+		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Text().Body, b.G().GetUPAKLoader(),
+			&b.DebugLabeler)
+	case chat1.MessageType_EDIT:
+		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Edit().Body, b.G().GetUPAKLoader(),
+			&b.DebugLabeler)
+	default:
+		return nil, nil, chanMention
+	}
+
+	usernames := make(map[string]bool)
+	for _, uid := range atMentions {
+		name, err := b.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(uid.String()))
+		if err != nil {
+			continue
+		}
+		usernames[name.String()] = true
+	}
+	for u := range usernames {
+		atMentionUsernames = append(atMentionUsernames, u)
+	}
+	return atMentions, atMentionUsernames, chanMention
 }
 
 func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, conv unboxConversationInfo) (unboxed []chat1.MessageUnboxed, err error) {

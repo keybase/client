@@ -10,13 +10,15 @@ import type {Props} from './header-hoc'
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => {
-    const {onBack, onCancel, headerStyle, title, theme = 'light'} = props
+    const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light'} = props
     return (
       <Box style={_containerStyle}>
         <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
-          <Box style={_titleStyle}>
-            <Text type="Header">{title}</Text>
-          </Box>
+          {customComponent}
+          {!!title &&
+            <Box style={_titleStyle}>
+              <Text type="Header">{title}</Text>
+            </Box>}
           {onCancel && <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>Cancel</Text>}
           {onBack &&
             <BackButton
@@ -48,6 +50,7 @@ const _backButtonIconStyleThemed = {
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
+  position: 'relative',
   height: '100%',
   width: '100%',
 }

@@ -115,6 +115,68 @@
     },
     {
       "type": "record",
+      "name": "GitRepoName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "TeamType",
+      "symbols": [
+        "NONE_0",
+        "LEGACY_1",
+        "MODERN_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "CompatibilityTeamID",
+      "switch": {
+        "type": "TeamType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LEGACY",
+            "def": false
+          },
+          "body": "TLFID"
+        },
+        {
+          "label": {
+            "name": "MODERN",
+            "def": false
+          },
+          "body": "TeamID"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TLFVisibility",
+      "symbols": [
+        "ANY_0",
+        "PUBLIC_1",
+        "PRIVATE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamIDWithVisibility",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Seqno",
       "fields": [],
       "typedef": "int64",

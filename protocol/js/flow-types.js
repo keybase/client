@@ -65,6 +65,7 @@ export const AppStateAppState = {
 export const BackendCommonBlockType = {
   data: 0,
   md: 1,
+  git: 2,
 }
 
 export const CommonClientType = {
@@ -104,6 +105,18 @@ export const CommonSeqType = {
   semiprivate: 3,
 }
 
+export const CommonTLFVisibility = {
+  any: 0,
+  public: 1,
+  private: 2,
+}
+
+export const CommonTeamType = {
+  none: 0,
+  legacy: 1,
+  modern: 2,
+}
+
 export const CommonUserOrTeamResult = {
   user: 1,
   team: 2,
@@ -141,6 +154,7 @@ export const ConstantsStatusCode = {
   scinvalidaddress: 281,
   scnosession: 283,
   scaccountreset: 290,
+  scidentifiesfailed: 295,
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
@@ -175,6 +189,7 @@ export const ConstantsStatusCode = {
   scdeviceprovisionviadevice: 1415,
   screvokecurrentdevice: 1416,
   screvokelastdevice: 1417,
+  scdeviceprovisionoffline: 1418,
   scstreamexists: 1501,
   scstreamnotfound: 1502,
   scstreamwrongkind: 1503,
@@ -223,6 +238,28 @@ export const ConstantsStatusCode = {
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
+  scteamnotreleased: 2666,
+  scteampermanentlyleft: 2667,
+  scteamneedrootid: 2668,
+  scteamhaslivechildren: 2669,
+  scteamdeleteerror: 2670,
+  scteambadrootteam: 2671,
+  scteamnameconflictswithuser: 2672,
+  scteamdeletenouppointer: 2673,
+  scteamneedowner: 2674,
+  scteamnoownerallowed: 2675,
+  scteamimplicitnononsbs: 2676,
+  scteamimplicitbadhash: 2677,
+  scteamimplicitbadname: 2678,
+  scteamimplicitclash: 2679,
+  scteamimplicitduplicate: 2680,
+  scteamimplicitbadop: 2681,
+  scteamimplicitbadrole: 2682,
+  scteamimplicitnotfound: 2683,
+  scteambadadminseqnotype: 2684,
+  scteamimplicitbadadd: 2685,
+  scteamimplicitbadremove: 2686,
+  scteamkeymasknotfound: 2697,
 }
 
 export const CtlDbType = {
@@ -241,6 +278,10 @@ export const FavoriteFolderType = {
   private: 1,
   public: 2,
   team: 3,
+}
+
+export const GitGitLocalMetadataVersion = {
+  v1: 1,
 }
 
 export const GregorUIPushReason = {
@@ -535,6 +576,7 @@ export const TeamsTeamApplication = {
   kbfs: 1,
   chat: 2,
   saltpack: 3,
+  gitMetadata: 4,
 }
 
 export const TeamsTeamInviteCategory = {
@@ -593,6 +635,14 @@ export function BTCRegisterBTCRpcChannelMap (configKeys: Array<string>, request:
 
 export function BTCRegisterBTCRpcPromise (request: (requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.BTC.registerBTC', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function KBFSGitCreateRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: KBFSGitCreateRepoResult) => void} & {param: KBFSGitCreateRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.createRepo', request)
+}
+
+export function KBFSGitCreateRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: KBFSGitCreateRepoResult) => void} & {param: KBFSGitCreateRepoRpcParam})): Promise<KBFSGitCreateRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function Kex2Provisionee2DidCounterSign2RpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): EngineChannel {
@@ -1363,12 +1413,76 @@ export function fsListRpcPromise (request: (requestCommon & {callback?: ?(err: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.fs.List', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function gitCreatePersonalRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitCreatePersonalRepoResult) => void} & {param: gitCreatePersonalRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createPersonalRepo', request)
+}
+
+export function gitCreatePersonalRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreatePersonalRepoResult) => void} & {param: gitCreatePersonalRepoRpcParam})): Promise<gitCreatePersonalRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createPersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitCreateTeamRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.createTeamRepo', request)
+}
+
+export function gitCreateTeamRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam})): Promise<gitCreateTeamRepoResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitDeletePersonalRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeletePersonalRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deletePersonalRepo', request)
+}
+
+export function gitDeletePersonalRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitDeletePersonalRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deletePersonalRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitDeleteTeamRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeleteTeamRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteTeamRepo', request)
+}
+
+export function gitDeleteTeamRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitDeleteTeamRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deleteTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitGetAllGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getAllGitMetadata', request)
+}
+
+export function gitGetAllGitMetadataRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: gitGetAllGitMetadataResult) => void})): Promise<gitGetAllGitMetadataResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.getAllGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitGetGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gitGetGitMetadataResult) => void} & {param: gitGetGitMetadataRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.getGitMetadata', request)
+}
+
+export function gitGetGitMetadataRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitGetGitMetadataResult) => void} & {param: gitGetGitMetadataRpcParam})): Promise<gitGetGitMetadataResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.getGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitPutGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitPutGitMetadataRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.putGitMetadata', request)
+}
+
+export function gitPutGitMetadataRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitPutGitMetadataRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.putGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function gregorGetStateRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.getState', request)
 }
 
 export function gregorGetStateRpcPromise (request: ?(requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void})): Promise<gregorGetStateResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.getState', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gregorInjectItemRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorInjectItemResult) => void} & {param: gregorInjectItemRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.injectItem', request)
+}
+
+export function gregorInjectItemRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gregorInjectItemResult) => void} & {param: gregorInjectItemRpcParam})): Promise<gregorInjectItemResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.injectItem', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function identifyIdentify2RpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}): EngineChannel {
@@ -1393,6 +1507,14 @@ export function identifyResolve3RpcChannelMap (configKeys: Array<string>, reques
 
 export function identifyResolve3RpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolve3Result) => void} & {param: identifyResolve3RpcParam})): Promise<identifyResolve3Result> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.Resolve3', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function identifyResolveIdentifyImplicitTeamRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: identifyResolveIdentifyImplicitTeamResult) => void} & {param: identifyResolveIdentifyImplicitTeamRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.identify.resolveIdentifyImplicitTeam', request)
+}
+
+export function identifyResolveIdentifyImplicitTeamRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: identifyResolveIdentifyImplicitTeamResult) => void} & {param: identifyResolveIdentifyImplicitTeamRpcParam})): Promise<identifyResolveIdentifyImplicitTeamResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.identify.resolveIdentifyImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function installFuseStatusRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: installFuseStatusResult) => void} & {param: installFuseStatusRpcParam}): EngineChannel {
@@ -2227,6 +2349,14 @@ export function teamsLookupOrCreateImplicitTeamRpcPromise (request: (requestComm
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.lookupOrCreateImplicitTeam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamAcceptInviteOrRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInviteOrRequestAccess', request)
+}
+
+export function teamsTeamAcceptInviteOrRequestAccessRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteOrRequestAccessRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAcceptInviteOrRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamAcceptInviteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAcceptInviteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAcceptInvite', request)
 }
@@ -2251,20 +2381,12 @@ export function teamsTeamChangeMembershipRpcPromise (request: (requestCommon & r
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamChangeMembership', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamCreateRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam}): EngineChannel {
+export function teamsTeamCreateRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateResult) => void} & {param: teamsTeamCreateRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreate', request)
 }
 
-export function teamsTeamCreateRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamCreateRpcParam})): Promise<void> {
+export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateResult) => void} & {param: teamsTeamCreateRpcParam})): Promise<teamsTeamCreateResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
-}
-
-export function teamsTeamCreateSubteamRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamCreateSubteamRpcParam}): EngineChannel {
-  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateSubteam', request)
-}
-
-export function teamsTeamCreateSubteamRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamCreateSubteamRpcParam})): Promise<void> {
-  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateSubteam', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}): EngineChannel {
@@ -2321,6 +2443,14 @@ export function teamsTeamListRpcChannelMap (configKeys: Array<string>, request: 
 
 export function teamsTeamListRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamListResult) => void} & {param: teamsTeamListRpcParam})): Promise<teamsTeamListResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamList', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamReAddMemberAfterResetRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamReAddMemberAfterResetRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
+}
+
+export function teamsTeamReAddMemberAfterResetRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamReAddMemberAfterResetRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamReAddMemberAfterReset', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamRemoveMemberRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamRemoveMemberRpcParam}): EngineChannel {
@@ -2624,6 +2754,7 @@ export type AnnotatedMemberInfo = {
   username: string,
   fullName: string,
   fqName: string,
+  isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
 }
@@ -2703,6 +2834,7 @@ export type BlockReferenceCount = {
 export type BlockType =
     0 // DATA_0
   | 1 // MD_1
+  | 2 // GIT_2
 
 export type BootstrapStatus = {
   registered: boolean,
@@ -2779,6 +2911,10 @@ export type ClientType =
   | 2 // GUI_MAIN_2
   | 3 // KBFS_3
   | 4 // GUI_HELPER_4
+
+export type CompatibilityTeamID =
+    { typ: 1, legacy: ?TLFID }
+  | { typ: 2, modern: ?TeamID }
 
 export type ComponentResult = {
   name: string,
@@ -2930,6 +3066,13 @@ export type Email = {
 }
 
 export type EncryptedBytes32 = any
+
+export type EncryptedGitMetadata = {
+  v: int,
+  e: bytes,
+  n: BoxNonce,
+  gen: PerTeamKeyGeneration,
+}
 
 export type ErrorNum = int
 
@@ -3155,6 +3298,39 @@ export type GetTLFCryptKeysRes = {
   CryptKeys?: ?Array<CryptKey>,
 }
 
+export type GitLocalMetadata = {
+  repoName: GitRepoName,
+}
+
+export type GitLocalMetadataV1 = {
+  repoName: GitRepoName,
+}
+
+export type GitLocalMetadataVersion =
+    1 // V1_1
+
+export type GitLocalMetadataVersioned =
+    { version: 1, v1: ?GitLocalMetadataV1 }
+
+export type GitRepoName = string
+
+export type GitRepoResult = {
+  folder: Folder,
+  repoID: RepoID,
+  localMetadata: GitLocalMetadata,
+  serverMetadata: GitServerMetadata,
+  repoUrl: string,
+  globalUniqueID: string,
+}
+
+export type GitServerMetadata = {
+  ctime: Time,
+  mtime: Time,
+  lastModifyingUsername: string,
+  lastModifyingDeviceID: DeviceID,
+  lastModifyingDeviceName: string,
+}
+
 export type HasServerKeysRes = {
   hasServerKeys: boolean,
 }
@@ -3291,6 +3467,11 @@ export type InterestingPerson = {
   username: string,
 }
 
+export type KBFSGitCreateRepoRpcParam = Exact<{
+  folder: Folder,
+  name: GitRepoName
+}>
+
 export type KID = string
 
 export type Kex2Provisionee2DidCounterSign2RpcParam = Exact<{
@@ -3422,6 +3603,7 @@ export type MemberInfo = {
   userID: UID,
   teamID: TeamID,
   fqName: string,
+  isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
 }
@@ -3549,6 +3731,10 @@ export type NotifyTeamTeamChangedRpcParam = Exact<{
   teamName: string,
   latestSeqno: Seqno,
   changes: TeamChangeSet
+}>
+
+export type NotifyTeamTeamDeletedRpcParam = Exact<{
+  teamID: TeamID
 }>
 
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
@@ -3950,6 +4136,15 @@ export type RemoveArgs = {
   path: Path,
 }
 
+export type RepoID = string
+
+export type ResolveIdentifyImplicitTeamRes = {
+  displayName: string,
+  teamID: TeamID,
+  writers?: ?Array<UserVersion>,
+  trackBreaks: {[key: string]: IdentifyTrackBreaks},
+}
+
 export type RevokeWarning = {
   endangeredTLFs?: ?Array<TLF>,
 }
@@ -4304,6 +4499,7 @@ export type StatusCode =
   | 281 // SCInvalidAddress_281
   | 283 // SCNoSession_283
   | 290 // SCAccountReset_290
+  | 295 // SCIdentifiesFailed_295
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
@@ -4338,6 +4534,7 @@ export type StatusCode =
   | 1415 // SCDeviceProvisionViaDevice_1415
   | 1416 // SCRevokeCurrentDevice_1416
   | 1417 // SCRevokeLastDevice_1417
+  | 1418 // SCDeviceProvisionOffline_1418
   | 1501 // SCStreamExists_1501
   | 1502 // SCStreamNotFound_1502
   | 1503 // SCStreamWrongKind_1503
@@ -4386,6 +4583,28 @@ export type StatusCode =
   | 2663 // SCTeamTarDuplicate_2663
   | 2664 // SCTeamTarNotFound_2664
   | 2665 // SCTeamMemberExists_2665
+  | 2666 // SCTeamNotReleased_2666
+  | 2667 // SCTeamPermanentlyLeft_2667
+  | 2668 // SCTeamNeedRootId_2668
+  | 2669 // SCTeamHasLiveChildren_2669
+  | 2670 // SCTeamDeleteError_2670
+  | 2671 // SCTeamBadRootTeam_2671
+  | 2672 // SCTeamNameConflictsWithUser_2672
+  | 2673 // SCTeamDeleteNoUpPointer_2673
+  | 2674 // SCTeamNeedOwner_2674
+  | 2675 // SCTeamNoOwnerAllowed_2675
+  | 2676 // SCTeamImplicitNoNonSbs_2676
+  | 2677 // SCTeamImplicitBadHash_2677
+  | 2678 // SCTeamImplicitBadName_2678
+  | 2679 // SCTeamImplicitClash_2679
+  | 2680 // SCTeamImplicitDuplicate_2680
+  | 2681 // SCTeamImplicitBadOp_2681
+  | 2682 // SCTeamImplicitBadRole_2682
+  | 2683 // SCTeamImplicitNotFound_2683
+  | 2684 // SCTeamBadAdminSeqnoType_2684
+  | 2685 // SCTeamImplicitBadAdd_2685
+  | 2686 // SCTeamImplicitBadRemove_2686
+  | 2697 // SCTeamKeyMaskNotFound_2697
 
 export type Stream = {
   fd: int,
@@ -4434,6 +4653,11 @@ export type TLFQuery = {
   identifyBehavior: TLFIdentifyBehavior,
 }
 
+export type TLFVisibility =
+    0 // ANY_0
+  | 1 // PUBLIC_1
+  | 2 // PRIVATE_2
+
 export type TeamAddMemberResult = {
   invited: boolean,
   user?: ?User,
@@ -4445,6 +4669,7 @@ export type TeamApplication =
     1 // KBFS_1
   | 2 // CHAT_2
   | 3 // SALTPACK_3
+  | 4 // GIT_METADATA_4
 
 export type TeamApplicationKey = {
   application: TeamApplication,
@@ -4464,7 +4689,7 @@ export type TeamChangeReq = {
   writers?: ?Array<UserVersion>,
   readers?: ?Array<UserVersion>,
   none?: ?Array<UserVersion>,
-  completedInvites: {[key: string]: UID},
+  completedInvites: {[key: string]: UserVersionPercentForm},
 }
 
 export type TeamChangeRow = {
@@ -4479,6 +4704,11 @@ export type TeamChangeSet = {
   membershipChanged: boolean,
   keyRotated: boolean,
   renamed: boolean,
+}
+
+export type TeamCreateResult = {
+  chatSent: boolean,
+  creatorAdded: boolean,
 }
 
 export type TeamData = {
@@ -4497,6 +4727,11 @@ export type TeamDetails = {
 }
 
 export type TeamID = string
+
+export type TeamIDWithVisibility = {
+  teamID: TeamID,
+  visibility: TLFVisibility,
+}
 
 export type TeamInvite = {
   role: TeamRole,
@@ -4634,6 +4869,11 @@ export type TeamTreeEntry = {
 export type TeamTreeResult = {
   entries?: ?Array<TeamTreeEntry>,
 }
+
+export type TeamType =
+    0 // NONE_0
+  | 1 // LEGACY_1
+  | 2 // MODERN_2
 
 export type Test = {
   reply: string,
@@ -4838,6 +5078,8 @@ export type UserVersion = {
   uid: UID,
   eldestSeqno: Seqno,
 }
+
+export type UserVersionPercentForm = string
 
 export type UserVersionVector = {
   id: long,
@@ -5086,6 +5328,36 @@ export type fsListRpcParam = Exact<{
   path: string
 }>
 
+export type gitCreatePersonalRepoRpcParam = Exact<{
+  repoName: GitRepoName
+}>
+
+export type gitCreateTeamRepoRpcParam = Exact<{
+  repoName: GitRepoName,
+  teamName: TeamName,
+  notifyTeam: boolean
+}>
+
+export type gitDeletePersonalRepoRpcParam = Exact<{
+  repoName: GitRepoName
+}>
+
+export type gitDeleteTeamRepoRpcParam = Exact<{
+  repoName: GitRepoName,
+  teamName: TeamName,
+  notifyTeam: boolean
+}>
+
+export type gitGetGitMetadataRpcParam = Exact<{
+  folder: Folder
+}>
+
+export type gitPutGitMetadataRpcParam = Exact<{
+  folder: Folder,
+  repoID: RepoID,
+  metadata: GitLocalMetadata
+}>
+
 export type gpgUiSelectKeyAndPushOptionRpcParam = Exact<{
   keys?: ?Array<GPGKey>
 }>
@@ -5097,6 +5369,12 @@ export type gpgUiSelectKeyRpcParam = Exact<{
 export type gpgUiSignRpcParam = Exact<{
   msg: bytes,
   fingerprint: bytes
+}>
+
+export type gregorInjectItemRpcParam = Exact<{
+  cat: string,
+  body: string,
+  dtime: gregor1.TimeOrOffset
 }>
 
 export type gregorUIPushOutOfBandMessagesRpcParam = Exact<{
@@ -5142,6 +5420,16 @@ export type identifyIdentifyLiteRpcParam = Exact<{
 
 export type identifyResolve3RpcParam = Exact<{
   assertion: string
+}>
+
+export type identifyResolveIdentifyImplicitTeamRpcParam = Exact<{
+  assertions: string,
+  suffix: string,
+  isPublic: boolean,
+  doIdentifies: boolean,
+  create: boolean,
+  reason: IdentifyReason,
+  identifyBehavior: TLFIdentifyBehavior
 }>
 
 export type identifyUiConfirmRpcParam = Exact<{
@@ -5770,6 +6058,10 @@ export type teamsLookupOrCreateImplicitTeamRpcParam = Exact<{
   public: boolean
 }>
 
+export type teamsTeamAcceptInviteOrRequestAccessRpcParam = Exact<{
+  tokenOrName: string
+}>
+
 export type teamsTeamAcceptInviteRpcParam = Exact<{
   token: string
 }>
@@ -5788,11 +6080,8 @@ export type teamsTeamChangeMembershipRpcParam = Exact<{
 }>
 
 export type teamsTeamCreateRpcParam = Exact<{
-  name: TeamName
-}>
-
-export type teamsTeamCreateSubteamRpcParam = Exact<{
-  name: TeamName
+  name: string,
+  sendChatNotification: boolean
 }>
 
 export type teamsTeamDeleteRpcParam = Exact<{
@@ -5822,7 +6111,13 @@ export type teamsTeamLeaveRpcParam = Exact<{
 
 export type teamsTeamListRpcParam = Exact<{
   userAssertion: string,
-  all: boolean
+  all: boolean,
+  includeImplicitTeams: boolean
+}>
+
+export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
+  id: TeamID,
+  username: string
 }>
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
@@ -5970,6 +6265,7 @@ export type userProfileEditRpcParam = Exact<{
 export type userSearchRpcParam = Exact<{
   query: string
 }>
+type KBFSGitCreateRepoResult = RepoID
 type Kex2Provisionee2Hello2Result = Hello2Res
 type Kex2ProvisioneeHelloResult = HelloRes
 type SecretKeysGetSecretKeysResult = SecretKeys
@@ -6017,6 +6313,10 @@ type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 type deviceDeviceListResult = ?Array<Device>
 type favoriteGetFavoritesResult = FavoritesResult
 type fsListResult = ListResult
+type gitCreatePersonalRepoResult = RepoID
+type gitCreateTeamRepoResult = RepoID
+type gitGetAllGitMetadataResult = ?Array<GitRepoResult>
+type gitGetGitMetadataResult = ?Array<GitRepoResult>
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
 type gpgUiGetTTYResult = string
 type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
@@ -6024,9 +6324,11 @@ type gpgUiSelectKeyResult = string
 type gpgUiSignResult = string
 type gpgUiWantToAddGPGKeyResult = boolean
 type gregorGetStateResult = gregor1.State
+type gregorInjectItemResult = gregor1.MsgID
 type identifyIdentify2Result = Identify2Res
 type identifyIdentifyLiteResult = IdentifyLiteRes
 type identifyResolve3Result = UserOrTeamLite
+type identifyResolveIdentifyImplicitTeamResult = ResolveIdentifyImplicitTeamRes
 type identifyUiConfirmResult = ConfirmResult
 type identifyUiDelegateIdentifyUIResult = int
 type installFuseStatusResult = FuseStatus
@@ -6095,6 +6397,7 @@ type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsLookupImplicitTeamResult = TeamID
 type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
+type teamsTeamCreateResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
@@ -6457,6 +6760,12 @@ export type incomingCallMapType = Exact<{
       teamName: string,
       latestSeqno: Seqno,
       changes: TeamChangeSet
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyTeam.teamDeleted'?: (
+    params: Exact<{
+      teamID: TeamID
     }>,
     response: CommonResponseHandler
   ) => void,

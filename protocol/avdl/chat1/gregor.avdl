@@ -46,6 +46,15 @@ protocol gregor {
         union { null, UnreadUpdate } unreadUpdate;
     }
 
+    record TeamTypePayload {
+        @lint("ignore")
+        string Action;
+        ConversationID convID;
+        TeamType teamType;
+        InboxVers inboxVers;
+        union { null, UnreadUpdate } unreadUpdate;
+    }
+
     record SetAppNotificationSettingsPayload {
         @lint("ignore")
         string Action;
@@ -53,7 +62,7 @@ protocol gregor {
         InboxVers inboxVers;
         ConversationNotificationInfo settings;
     }
-    
+
     record UnreadUpdate {
         ConversationID convID;
         // The count of unread messages to display
@@ -77,7 +86,7 @@ protocol gregor {
         gregor1.UID uid;
         gregor1.DeviceID deviceID;
         ConversationID convID;
-        boolean typing; 
+        boolean typing;
     }
 
     record UpdateConversationMembership {

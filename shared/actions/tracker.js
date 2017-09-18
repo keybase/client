@@ -56,7 +56,7 @@ function _clearIdentifyCache(uid: string): Action {
 }
 
 function setupUserChangedHandler(): TrackerActionCreator {
-  return (dispatch, getState) => {
+  const setupUserChangedHandlerHelper = (dispatch, getState) => {
     engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
       dispatch(_clearIdentifyCache(uid))
       const username = _getUsername(uid, getState())
@@ -65,6 +65,7 @@ function setupUserChangedHandler(): TrackerActionCreator {
       }
     })
   }
+  return setupUserChangedHandlerHelper
 }
 
 function getProfile(
@@ -148,7 +149,7 @@ function triggerIdentify(
 }
 
 function registerIdentifyUi(): TrackerActionCreator {
-  return (dispatch, getState) => {
+  const registerIdentifyUiHelper = (dispatch, getState) => {
     engine().listenOnConnect('registerIdentifyUi', () => {
       RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise({})
         .then(response => {
@@ -215,6 +216,8 @@ function registerIdentifyUi(): TrackerActionCreator {
       payload: {started: true},
     })
   }
+
+  return registerIdentifyUiHelper
 }
 
 function onRefollow(username: string): TrackerActionCreator {

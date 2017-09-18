@@ -19,8 +19,8 @@ const StyledRadio = glamorous(glamorous.Div)(
   },
   ({disabled, selected}) => ({
     '&:hover': {border: (selected || !disabled) && `solid 1px ${globalColors.blue}`},
-    border: `solid 1px ${globalColors.black_10}`,
     backgroundColor: selected ? globalColors.blue : 'inherit',
+    border: `solid 1px ${globalColors.black_10}`,
     opacity: disabled ? 0.4 : 1,
   })
 )

@@ -345,14 +345,13 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		kind := chat1.NotificationKind_GENERIC
 		switch typ {
 		case chat1.MessageType_TEXT:
-			atMentions, chanMention := utils.ParseAtMentionedUIDs(ctx,
-				msg.Valid().MessageBody.Text().Body, g.G().GetUPAKLoader(), &g.DebugLabeler)
-			for _, at := range atMentions {
+			for _, at := range msg.Valid().AtMentions {
 				if at.Eq(uid) {
 					kind = chat1.NotificationKind_ATMENTION
 					break
 				}
 			}
+			chanMention := msg.Valid().ChannelMention
 			notifyFromChanMention := false
 			if chanMention == chat1.ChannelMention_HERE || chanMention == chat1.ChannelMention_ALL {
 				notifyFromChanMention = conv.Notifications.ChannelWide
@@ -582,6 +581,29 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
 				Conv: *g.presentUIItem(conv),
+			})
+
+			if g.badger != nil && nm.UnreadUpdate != nil {
+				g.badger.PushChatUpdate(*nm.UnreadUpdate, nm.InboxVers)
+			}
+
+		case types.ActionTeamType:
+			var nm chat1.TeamTypePayload
+			err = dec.Decode(&nm)
+			if err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+				return
+			}
+			g.Debug(ctx, "chat activity: team type: convID: %s ", nm.ConvID)
+
+			uid := m.UID().Bytes()
+			if conv, err = g.G().InboxSource.TeamTypeChanged(ctx, uid, nm.InboxVers, nm.ConvID, nm.TeamType); err != nil {
+				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+			}
+			activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
+				ConvID:   nm.ConvID,
+				TeamType: nm.TeamType,
+				Conv:     g.presentUIItem(conv),
 			})
 
 			if g.badger != nil && nm.UnreadUpdate != nil {

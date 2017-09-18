@@ -15,7 +15,7 @@ const SubscriptionCheckbox = (props: {
   subscribed: boolean,
 }) => (
   <Checkbox
-    style={{marginRight: globalMargins.medium, marginTop: globalMargins.tiny}}
+    style={{marginRight: 0, marginTop: globalMargins.tiny}}
     key={props.name}
     disabled={!props.allowEdit}
     onCheck={() => props.onToggle(props.groupName, props.name)}
@@ -58,7 +58,7 @@ const Group = (props: {
           onCheck={props.onToggleUnsubscribeAll}
           disabled={!props.allowEdit}
           checked={!!props.unsubscribedFromAll}
-          label={`Unsubscribe me from all ${props.unsub} notifications.`}
+          label={`Unsubscribe me from all ${props.unsub} notifications`}
         />
       </Box>}
   </Box>

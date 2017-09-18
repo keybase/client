@@ -12,13 +12,14 @@ type SimpleTopLineProps = {
   subColor: ?string,
   timestamp: ?string,
   usernameColor: ?string,
+  hasBadge: boolean,
 }
 
 const height = isMobile ? 19 : 17
 
 class SimpleTopLine extends PureComponent<SimpleTopLineProps> {
   render() {
-    const {hasUnread, participants, showBold, subColor, timestamp, usernameColor} = this.props
+    const {participants, showBold, subColor, timestamp, usernameColor, hasBadge} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
     return (
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', maxHeight: height, minHeight: height}}>
@@ -57,7 +58,7 @@ class SimpleTopLine extends PureComponent<SimpleTopLineProps> {
         >
           {timestamp}
         </Text>
-        {hasUnread ? <Box key="1" style={unreadDotStyle} /> : null}
+        {hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
       </Box>
     )
   }
@@ -110,10 +111,10 @@ class FilteredTopLine extends PureComponent<FilteredTopLineProps> {
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
-  borderRadius: 3,
-  height: 6,
+  borderRadius: 6,
+  height: 8,
   marginLeft: 4,
-  width: 6,
+  width: 8,
 }
 
 export {SimpleTopLine, FilteredTopLine}

@@ -355,6 +355,7 @@ type ChatUI interface {
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
 	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
+	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 }
 
 type PromptDefault int
@@ -577,6 +578,7 @@ const (
 
 type ConnectivityMonitor interface {
 	IsConnected(ctx context.Context) ConnectivityMonitorResult
+	CheckReachability(ctx context.Context) error
 }
 
 type TeamLoader interface {

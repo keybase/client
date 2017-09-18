@@ -259,7 +259,7 @@ class DumbSheetRender extends Component<Props, any> {
             }}
           />
           <Icon
-            type="iconfont-device"
+            type="iconfont-nav-devices"
             style={{color: globalColors.blue}}
             onClick={() => {
               this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})

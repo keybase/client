@@ -4,6 +4,7 @@
 package service
 
 import (
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -13,8 +14,8 @@ type DebuggingHandler struct {
 	*BaseHandler
 }
 
-func NewDebuggingHandler(xp rpc.Transporter) *DebuggingHandler {
-	return &DebuggingHandler{BaseHandler: NewBaseHandler(xp)}
+func NewDebuggingHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DebuggingHandler {
+	return &DebuggingHandler{BaseHandler: NewBaseHandler(g, xp)}
 }
 
 func (t DebuggingHandler) FirstStep(ctx context.Context, arg keybase1.FirstStepArg) (result keybase1.FirstStepResult, err error) {

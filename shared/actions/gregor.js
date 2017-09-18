@@ -1,6 +1,7 @@
 // @flow
 
 import * as Constants from '../constants/gregor'
+import * as I from 'immutable'
 import engine from '../engine'
 import {all, call, put, select} from 'redux-saga/effects'
 import {
@@ -8,6 +9,7 @@ import {
   reachabilityCheckReachabilityRpcPromise,
   reachabilityStartReachabilityRpcPromise,
   ReachabilityReachable,
+  gregorInjectItemRpcPromise,
 } from '../constants/types/flow-types'
 import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
@@ -16,6 +18,7 @@ import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {clearErrors} from '../util/pictures'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {nativeReachabilityEvents} from '../util/reachability'
+import {replaceEntity} from './entities'
 
 import type {
   CheckReachability,
@@ -25,6 +28,7 @@ import type {
   UpdateSeenMsgs,
   MsgMap,
   NonNullGregorItem,
+  InjectItem,
 } from '../constants/gregor'
 import type {Dispatch} from '../constants/types/flux'
 import type {PushReason, Reachability} from '../constants/types/flow-types'
@@ -54,6 +58,10 @@ function checkReachability(): CheckReachability {
 
 function updateSeenMsgs(seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
   return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
+}
+
+function injectItem(category: string, body: string, dtime?: ?Date): InjectItem {
+  return {type: Constants.injectItem, payload: {category, body, dtime}}
 }
 
 function isTlfItem(gItem: GregorItem): boolean {
@@ -148,7 +156,7 @@ function registerGregorListeners() {
   }
 }
 
-const handleTLFUpdate = function*(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleTLFUpdate(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
   const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
@@ -161,7 +169,15 @@ const handleTLFUpdate = function*(items: Array<NonNullGregorItem>): SagaGenerato
   }
 }
 
-const handlePushState = function*(pushAction: PushState): SagaGenerator<any, any> {
+function* handleChatBanner(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
+  const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
+  if (sawChatBanner) {
+    // TODO move this to teams eventually
+    yield put(replaceEntity(['teams'], I.Map([['sawChatBanner', true]])))
+  }
+}
+
+function* handlePushState(pushAction: PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -170,12 +186,13 @@ const handlePushState = function*(pushAction: PushState): SagaGenerator<any, any
     }
 
     yield call(handleTLFUpdate, nonNullItems)
+    yield call(handleChatBanner, nonNullItems)
   } else {
     console.log('Error in gregor pushState', pushAction.payload)
   }
 }
 
-const handleKbfsFavoritesOOBM = function*(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
+function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>) {
   const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
   const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
 
@@ -193,7 +210,7 @@ const handleKbfsFavoritesOOBM = function*(kbfsFavoriteMessages: Array<OutOfBandM
   )
 }
 
-const handlePushOOBM = function*(pushOOBM: pushOOBM) {
+function* handlePushOOBM(pushOOBM: pushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
@@ -202,14 +219,26 @@ const handlePushOOBM = function*(pushOOBM: pushOOBM) {
   }
 }
 
-const handleCheckReachability = function*(): SagaGenerator<any, any> {
+function* handleCheckReachability(): SagaGenerator<any, any> {
   const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
   yield put({type: Constants.updateReachability, payload: {reachability}})
 }
 
-const gregorSaga = function*(): SagaGenerator<any, any> {
+function* _injectItem(action: Constants.InjectItem): SagaGenerator<any, any> {
+  const {category, body, dtime} = action.payload
+  yield call(gregorInjectItemRpcPromise, {
+    param: {
+      body,
+      cat: category,
+      dtime,
+    },
+  })
+}
+
+function* gregorSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.pushState, handlePushState)
   yield safeTakeEvery(Constants.pushOOBM, handlePushOOBM)
+  yield safeTakeEvery(Constants.injectItem, _injectItem)
   yield safeTakeLatest(Constants.checkReachability, handleCheckReachability)
 }
 
@@ -220,6 +249,7 @@ export {
   registerGregorListeners,
   registerReachability,
   listenForNativeReachabilityEvents,
+  injectItem,
 }
 
 export default gregorSaga

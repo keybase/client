@@ -21,7 +21,7 @@ type reachabilityHandler struct {
 
 func newReachabilityHandler(xp rpc.Transporter, g *libkb.GlobalContext, reachability *reachability) *reachabilityHandler {
 	return &reachabilityHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 		reachability: reachability,
 	}
@@ -90,4 +90,9 @@ func (h *reachability) IsConnected(ctx context.Context) libkb.ConnectivityMonito
 	default:
 		return libkb.ConnectivityMonitorUnknown
 	}
+}
+
+func (h *reachability) CheckReachability(ctx context.Context) error {
+	h.check()
+	return nil
 }

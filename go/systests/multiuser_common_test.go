@@ -7,6 +7,7 @@ import (
 	"time"
 
 	client "github.com/keybase/client/go/client"
+	engine "github.com/keybase/client/go/engine"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -296,6 +297,14 @@ func (u *smuUser) signup() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
 }
 
 func (u *smuUser) signupNoPUK() {
@@ -330,6 +339,25 @@ func (u *smuUser) signupNoPUK() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
+}
+
+func (u *smuUser) perUserKeyUpgrade() error {
+	g := u.getPrimaryGlobalContext()
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	ctx := &engine.Context{
+		LogUI: g.UI.GetLogUI(),
+	}
+	err := engine.RunEngine(eng, ctx)
+	return err
 }
 
 type smuTeam struct {
@@ -355,7 +383,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 			u.ctx.t.Fatal(err)
 		}
 		if details.KeyGeneration == kg {
-			u.ctx.log.Debug("found key generation 2")
+			u.ctx.log.Debug("found key generation %d", kg)
 			return details
 		}
 		if i == 9 {
@@ -378,7 +406,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 		u.ctx.t.Fatal(err)
 	}
 	cli := u.getTeamsClient()
-	err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
+	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1.String()})
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
@@ -440,6 +468,17 @@ func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
 		Name:     team.name,
 		Username: w.username,
 		Role:     keybase1.TeamRole_OWNER,
+	})
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
+	cli := u.getTeamsClient()
+	err := cli.TeamReAddMemberAfterReset(context.TODO(), keybase1.TeamReAddMemberAfterResetArg{
+		Id:       team.ID,
+		Username: w.username,
 	})
 	if err != nil {
 		u.ctx.t.Fatal(err)

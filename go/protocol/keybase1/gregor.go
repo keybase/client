@@ -16,8 +16,23 @@ func (o GetStateArg) DeepCopy() GetStateArg {
 	return GetStateArg{}
 }
 
+type InjectItemArg struct {
+	Cat   string               `codec:"cat" json:"cat"`
+	Body  string               `codec:"body" json:"body"`
+	Dtime gregor1.TimeOrOffset `codec:"dtime" json:"dtime"`
+}
+
+func (o InjectItemArg) DeepCopy() InjectItemArg {
+	return InjectItemArg{
+		Cat:   o.Cat,
+		Body:  o.Body,
+		Dtime: o.Dtime.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 	GetState(context.Context) (gregor1.State, error)
+	InjectItem(context.Context, InjectItemArg) (gregor1.MsgID, error)
 }
 
 func GregorProtocol(i GregorInterface) rpc.Protocol {
@@ -35,6 +50,22 @@ func GregorProtocol(i GregorInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"injectItem": {
+				MakeArg: func() interface{} {
+					ret := make([]InjectItemArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]InjectItemArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]InjectItemArg)(nil), args)
+						return
+					}
+					ret, err = i.InjectItem(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -45,5 +76,10 @@ type GregorClient struct {
 
 func (c GregorClient) GetState(ctx context.Context) (res gregor1.State, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.gregor.getState", []interface{}{GetStateArg{}}, &res)
+	return
+}
+
+func (c GregorClient) InjectItem(ctx context.Context, __arg InjectItemArg) (res gregor1.MsgID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.gregor.injectItem", []interface{}{__arg}, &res)
 	return
 }

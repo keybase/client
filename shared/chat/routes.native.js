@@ -8,7 +8,9 @@ import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import InfoPanel from './conversation/info-panel/container'
-import NewTeamDialog from './conversation/new-team/container'
+import NewTeamDialog from './new-team-dialog-container.js'
+import ManageChannels from './manage-channels/container'
+import CreateChannel from './create-channel/container'
 
 const conversationRoute = new RouteDefNode({
   component: Conversation,
@@ -36,6 +38,11 @@ const conversationRoute = new RouteDefNode({
           tags: {hideStatusBar: true},
           children: {},
         },
+        showNewTeamDialog: {
+          component: NewTeamDialog,
+          tags: {layerOnTop: true},
+          children: {},
+        },
       },
     },
     enterPaperkey: {
@@ -53,9 +60,29 @@ const conversationRoute = new RouteDefNode({
   },
 })
 
+const manageChannelsRoute = new RouteDefNode({
+  component: ManageChannels,
+  children: {},
+  tags: {hideStatusBar: true},
+})
+
+const createChannelRoute = new RouteDefNode({
+  component: CreateChannel,
+  tags: {hideStatusBar: true},
+  children: {},
+})
+
 const routeTree = new RouteDefNode({
   component: ConvListOrSearch,
-  children: () => conversationRoute,
+  children: key => {
+    if (key === 'manageChannels') {
+      return manageChannelsRoute
+    } else if (key === 'createChannel') {
+      return createChannelRoute
+    }
+
+    return conversationRoute
+  },
   tags: {persistChildren: true},
 })
 

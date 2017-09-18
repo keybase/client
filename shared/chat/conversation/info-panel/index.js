@@ -15,9 +15,8 @@ import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {branch} from 'recompose'
 
+import Notifications from './notifications/container'
 import Participants from './participants'
-
-import type {SmallTeamInfoPanelProps, BigTeamInfoPanelProps} from '.'
 
 const border = `1px solid ${globalColors.black_05}`
 const scrollViewStyle = {
@@ -28,18 +27,30 @@ const scrollViewStyle = {
         backgroundColor: globalColors.white,
         borderLeft: border,
         borderRight: border,
+        marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
-const contentContainerStyle = {...globalStyles.flexBoxColumn, alignItems: 'stretch', paddingBottom: 20}
+const contentContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'stretch',
+  paddingBottom: globalMargins.medium,
+}
 
-type muteRowProps = {
+type MuteRowProps = {
   muted: boolean,
   onMute: (muted: boolean) => void,
   label: string,
 }
 
-const MuteRow = (props: muteRowProps) => (
-  <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+const MuteRow = (props: MuteRowProps) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      marginBottom: globalMargins.xtiny,
+      marginLeft: globalMargins.small,
+    }}
+  >
     <Checkbox
       checked={props.muted}
       disabled={props.onMute == null}
@@ -50,73 +61,123 @@ const MuteRow = (props: muteRowProps) => (
       type="iconfont-shh"
       style={{
         color: globalColors.black_20,
-        marginLeft: globalMargins.tiny,
+        marginLeft: globalMargins.xtiny,
         ...(isMobile ? {fontSize: 24} : {}),
       }}
     />
   </Box>
 )
 
+type infoPanelProps = {
+  muted: boolean,
+  onAddParticipant: () => void,
+  onMuteConversation: (muted: boolean) => void,
+  onShowProfile: (username: string) => void,
+  onToggleInfoPanel: () => void,
+  participants: Array<{
+    username: string,
+    following: boolean,
+    fullname: string,
+    broken: boolean,
+    isYou: boolean,
+  }>,
+}
+
+type SmallTeamInfoPanelProps = infoPanelProps & {
+  onShowBlockConversationDialog: () => void,
+  onShowNewTeamDialog: () => void,
+  showTeamButton: boolean,
+}
+
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
     <Participants
       participants={props.participants}
-      onAddParticipant={props.showTeamButton ? null : props.onAddParticipant}
+      onAddParticipant={null /* off until this works */}
       onShowProfile={props.onShowProfile}
     />
 
     <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
 
     {props.showTeamButton
-      ? <Button type="Primary" label="Turn into team" onClick={props.onShowNewTeamDialog} />
+      ? <Button type="Primary" small={true} label="Turn into team" onClick={props.onShowNewTeamDialog} />
       : null}
 
     {props.showTeamButton
-      ? <Text style={{alignSelf: 'center', marginTop: globalMargins.tiny}} type="BodySmall">
+      ? <Text
+          style={{
+            alignSelf: 'center',
+            marginLeft: globalMargins.small,
+            marginRight: globalMargins.small,
+            marginTop: globalMargins.tiny,
+            textAlign: 'center',
+          }}
+          type="BodySmall"
+        >
           You'll be able to add and delete members as you wish.
         </Text>
       : null}
 
-    {props.showTeamButton ? <Divider style={{marginBottom: 20, marginTop: 20}} /> : null}
+    {props.showTeamButton ? <Divider style={styleDivider} /> : null}
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute notifications" />
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute conversation" />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Notifications />
 
-    <Button type="Danger" label="Block this conversation" onClick={props.onShowBlockConversationDialog} />
+    <Divider style={styleDivider} />
+
+    <Button
+      type="Danger"
+      small={true}
+      label="Block this conversation"
+      onClick={props.onShowBlockConversationDialog}
+    />
   </ScrollView>
 )
 
+type BigTeamInfoPanelProps = infoPanelProps & {
+  channelname: string,
+  onLeaveConversation: () => void,
+  teamname: string,
+}
+
 const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodySemibold">
+    <Text style={{alignSelf: 'center', marginTop: 20}} type="BodyBig">
       #{props.channelname}
     </Text>
 
-    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
-      <Avatar teamname={props.teamname} size={16} />
-      <Text style={{marginLeft: globalMargins.xtiny}} type="BodySmall">
+    <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center', alignItems: 'center'}}>
+      <Avatar teamname={props.teamname} size={12} />
+      <Text style={{marginLeft: globalMargins.xtiny}} type="BodySmallSemibold">
         {props.teamname}
       </Text>
     </Box>
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Divider style={styleDivider} />
 
     <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Notifications />
 
-    <Button type="Danger" label="Leave channel" onClick={props.onLeaveConversation} />
+    <Divider style={styleDivider} />
 
-    <Divider style={{marginBottom: 20, marginTop: 20}} />
+    <Button type="Danger" small={true} label="Leave channel" onClick={props.onLeaveConversation} />
 
-    <Text style={{paddingLeft: globalMargins.small}} type="BodySmall">
+    <Divider style={styleDivider} />
+
+    <Text style={{paddingLeft: globalMargins.small}} type="BodySmallSemibold">
       Members
     </Text>
-
+    <Text
+      style={{alignSelf: 'center', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.tiny}}
+      type="BodySmall"
+    >
+      Use @mentions to invite people to join.
+    </Text>
     <Participants
       participants={props.participants}
-      onAddParticipant={props.onAddParticipant}
+      onAddParticipant={null /* until this works TODO */}
       onShowProfile={props.onShowProfile}
     />
   </ScrollView>
@@ -126,4 +187,9 @@ const wrap = branch(() => isMobile, HeaderHoc)
 const SmallTeamInfoPanel = wrap(_SmallTeamInfoPanel)
 const BigTeamInfoPanel = wrap(_BigTeamInfoPanel)
 
-export {SmallTeamInfoPanel, BigTeamInfoPanel}
+const styleDivider = {
+  marginBottom: globalMargins.small,
+  marginTop: globalMargins.small,
+}
+
+export {SmallTeamInfoPanel, BigTeamInfoPanel, MuteRow}

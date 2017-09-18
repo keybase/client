@@ -19,7 +19,7 @@ type InstallHandler struct {
 
 func NewInstallHandler(xp rpc.Transporter, g *libkb.GlobalContext) *InstallHandler {
 	return &InstallHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

@@ -6,6 +6,7 @@ package chat1
 import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -29,9 +30,10 @@ func (o UIPagination) DeepCopy() UIPagination {
 type UnverifiedInboxUIItem struct {
 	ConvID        string                        `codec:"convID" json:"convID"`
 	Name          string                        `codec:"name" json:"name"`
-	Visibility    TLFVisibility                 `codec:"visibility" json:"visibility"`
+	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
+	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
 	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time          gregor1.Time                  `codec:"time" json:"time"`
 }
@@ -43,6 +45,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 		Visibility:  o.Visibility.DeepCopy(),
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		TeamType:    o.TeamType.DeepCopy(),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -88,10 +91,11 @@ type InboxUIItem struct {
 	Snippet       string                        `codec:"snippet" json:"snippet"`
 	Channel       string                        `codec:"channel" json:"channel"`
 	Headline      string                        `codec:"headline" json:"headline"`
-	Visibility    TLFVisibility                 `codec:"visibility" json:"visibility"`
+	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants  []string                      `codec:"participants" json:"participants"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
+	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
 	Time          gregor1.Time                  `codec:"time" json:"time"`
 	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	CreatorInfo   *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
@@ -119,6 +123,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.Participants),
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		TeamType:    o.TeamType.DeepCopy(),
 		Time:        o.Time.DeepCopy(),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
@@ -188,15 +193,17 @@ func (o InboxUIItems) DeepCopy() InboxUIItems {
 }
 
 type UIMessageValid struct {
-	MessageID             MessageID     `codec:"messageID" json:"messageID"`
-	Ctime                 gregor1.Time  `codec:"ctime" json:"ctime"`
-	OutboxID              *string       `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	MessageBody           MessageBody   `codec:"messageBody" json:"messageBody"`
-	SenderUsername        string        `codec:"senderUsername" json:"senderUsername"`
-	SenderDeviceName      string        `codec:"senderDeviceName" json:"senderDeviceName"`
-	SenderDeviceType      string        `codec:"senderDeviceType" json:"senderDeviceType"`
-	Superseded            bool          `codec:"superseded" json:"superseded"`
-	SenderDeviceRevokedAt *gregor1.Time `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	MessageID             MessageID      `codec:"messageID" json:"messageID"`
+	Ctime                 gregor1.Time   `codec:"ctime" json:"ctime"`
+	OutboxID              *string        `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
+	MessageBody           MessageBody    `codec:"messageBody" json:"messageBody"`
+	SenderUsername        string         `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName      string         `codec:"senderDeviceName" json:"senderDeviceName"`
+	SenderDeviceType      string         `codec:"senderDeviceType" json:"senderDeviceType"`
+	Superseded            bool           `codec:"superseded" json:"superseded"`
+	SenderDeviceRevokedAt *gregor1.Time  `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
+	AtMentions            []string       `codec:"atMentions" json:"atMentions"`
+	ChannelMention        ChannelMention `codec:"channelMention" json:"channelMention"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -222,6 +229,15 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.SenderDeviceRevokedAt),
+		AtMentions: (func(x []string) []string {
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AtMentions),
+		ChannelMention: o.ChannelMention.DeepCopy(),
 	}
 }
 
@@ -610,6 +626,18 @@ func (o ChatThreadFullArg) DeepCopy() ChatThreadFullArg {
 	}
 }
 
+type ChatConfirmChannelDeleteArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Channel   string `codec:"channel" json:"channel"`
+}
+
+func (o ChatConfirmChannelDeleteArg) DeepCopy() ChatConfirmChannelDeleteArg {
+	return ChatConfirmChannelDeleteArg{
+		SessionID: o.SessionID,
+		Channel:   o.Channel,
+	}
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentUploadOutboxID(context.Context, ChatAttachmentUploadOutboxIDArg) error
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
@@ -625,6 +653,7 @@ type ChatUiInterface interface {
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
 	ChatThreadCached(context.Context, ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
+	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -855,6 +884,22 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"chatConfirmChannelDelete": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatConfirmChannelDeleteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatConfirmChannelDeleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatConfirmChannelDeleteArg)(nil), args)
+						return
+					}
+					ret, err = i.ChatConfirmChannelDelete(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -934,5 +979,10 @@ func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCach
 
 func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg})
+	return
+}
+
+func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatConfirmChannelDeleteArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []interface{}{__arg}, &res)
 	return
 }

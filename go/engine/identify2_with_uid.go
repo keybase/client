@@ -730,7 +730,7 @@ func (e *Identify2WithUID) runIdentifyUI(netContext context.Context, ctx *Contex
 		return err
 	}
 	e.G().Log.CDebugf(netContext, "| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
-	if err = iui.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export()); err != nil {
+	if err = iui.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(e.G()), e.them.Export()); err != nil {
 		return err
 	}
 
@@ -767,7 +767,7 @@ func (e *Identify2WithUID) runIdentifyUI(netContext context.Context, ctx *Contex
 	// use Confirm to display the IdentifyOutcome
 	outcome := e.state.Result()
 	outcome.TrackOptions = e.trackOptions
-	e.confirmResult, err = iui.Confirm(outcome.Export())
+	e.confirmResult, err = iui.Confirm(outcome.Export(e.G()))
 	if err != nil {
 		e.G().Log.CDebugf(netContext, "| Failure in iui.Confirm")
 		return err

@@ -9,6 +9,7 @@ import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
 
+import type {DeviceType} from '../../constants/types/more'
 import type {Path} from '../../route-tree'
 import type {SetRouteState} from '../../constants/route-tree'
 
@@ -18,14 +19,6 @@ const updateTempMessageTransformer = ({
   payload: {conversationIDKey, outboxID},
 }: Constants.UpdateTempMessage) => ({
   payload: {conversationIDKey, outboxID},
-  type,
-})
-
-const updateMessageTransformer = ({
-  type,
-  payload: {conversationIDKey, messageID},
-}: Constants.UpdateMessage) => ({
-  payload: {conversationIDKey, messageID},
   type,
 })
 
@@ -353,12 +346,26 @@ function clearMessages(conversationIDKey: Constants.ConversationIDKey): Constant
   return {payload: {conversationIDKey}, type: 'chat:clearMessages'}
 }
 
+function setNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  deviceType: DeviceType,
+  notifyType: Constants.NotifyType
+) {
+  return {payload: {conversationIDKey, deviceType, notifyType}, type: 'chat:setNotifications'}
+}
+
 function clearSearchResults(): Constants.ClearSearchResults {
   return {payload: {}, type: 'chat:clearSearchResults'}
 }
 
+function toggleChannelWideNotifications(
+  conversationIDKey: Constants.ConversationIDKey
+): Constants.ToggleChannelWideNotifications {
+  return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
+}
+
 function updateConversationUnreadCounts(
-  conversationUnreadCounts: Map<Constants.ConversationIDKey, number>
+  conversationUnreadCounts: Map<Constants.ConversationIDKey, Constants.UnreadCounts>
 ): Constants.UpdateConversationUnreadCounts {
   return {
     payload: {conversationUnreadCounts},
@@ -466,10 +473,6 @@ function loadAttachmentPreview(messageKey: Constants.MessageKey): Constants.Load
     payload: {messageKey},
     type: 'chat:loadAttachmentPreview',
   }
-}
-
-function createNewTeam(conversationIDKey: Constants.ConversationIDKey, name: string) {
-  return {payload: {conversationIDKey, name}, type: 'chat:createNewTeam'}
 }
 
 function saveAttachment(messageKey: Constants.MessageKey): Constants.SaveAttachment {
@@ -638,18 +641,6 @@ function threadLoadedOffline(conversationIDKey: Constants.ConversationIDKey): Co
   return {payload: {conversationIDKey}, type: 'chat:threadLoadedOffline'}
 }
 
-function updateMessage(
-  conversationIDKey: Constants.ConversationIDKey,
-  message: $Shape<Constants.AttachmentMessage> | $Shape<Constants.TextMessage>,
-  messageID: Constants.MessageID
-): Constants.UpdateMessage {
-  return {
-    logTransformer: updateMessageTransformer,
-    payload: {conversationIDKey, messageID, message},
-    type: 'chat:updateMessage',
-  }
-}
-
 function setSelectedRouteState(
   selectedConversation: Constants.ConversationIDKey,
   partialState: Object
@@ -691,19 +682,46 @@ function updateThread(
   }
 }
 
+function updatedNotifications(
+  conversationIDKey: Constants.ConversationIDKey,
+  notifications: Constants.NotificationsState
+): Constants.UpdatedNotifications {
+  return {
+    payload: {conversationIDKey, notifications},
+    type: 'chat:updatedNotifications',
+  }
+}
+
+function updateSnippet(
+  conversationIDKey: Constants.ConversationIDKey,
+  snippet: HiddenString
+): Constants.UpdateSnippet {
+  return {payload: {conversationIDKey, snippet}, type: 'chat:updateSnippet'}
+}
+
+function unboxConversations(
+  conversationIDKeys: Array<Constants.ConversationIDKey>,
+  force?: boolean = false
+): Constants.UnboxConversations {
+  return {payload: {conversationIDKeys, force}, type: 'chat:unboxConversations'}
+}
+
+function unboxMore(): Constants.UnboxMore {
+  return {type: 'chat:unboxMore', payload: undefined}
+}
+
 export {
   addPending,
   appendMessages,
   attachmentLoaded,
-  attachmentSaved,
-  attachmentSaveStart,
   attachmentSaveFailed,
+  attachmentSaveStart,
+  attachmentSaved,
   badgeAppForChat,
   blockConversation,
   clearMessages,
-  clearSearchResults,
   clearRekey,
-  createNewTeam,
+  clearSearchResults,
   deleteMessage,
   downloadProgress,
   editMessage,
@@ -744,6 +762,7 @@ export {
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
+  setNotifications,
   setPreviousConversation,
   setSelectedRouteState,
   setTypers,
@@ -753,6 +772,9 @@ export {
   stageUserForSearch,
   startConversation,
   threadLoadedOffline,
+  toggleChannelWideNotifications,
+  unboxConversations,
+  unboxMore,
   unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
@@ -764,14 +786,15 @@ export {
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
   updateLatestMessage,
-  updateMessage,
   updateMetadata,
   updatePaginationNext,
+  updateSnippet,
   updateSupersededByState,
   updateSupersedesState,
   updateTempMessage,
   updateThread,
   updateTyping,
   updatedMetadata,
+  updatedNotifications,
   uploadProgress,
 }

@@ -116,6 +116,8 @@ func (e *Login) Run(ctx *Context) error {
 		return err
 	}
 
+	e.perUserKeyUpgradeSoft(ctx)
+
 	e.G().Log.Debug("Login provisioning success, sending login notification")
 	e.sendNotification()
 	return nil
@@ -139,4 +141,15 @@ func (e *Login) notProvisionedErr(err error) bool {
 func (e *Login) sendNotification() {
 	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
 	e.G().CallLoginHooks()
+}
+
+// Get a per-user key.
+// Wait for attempt but only warn on error.
+func (e *Login) perUserKeyUpgradeSoft(ctx *Context) error {
+	eng := NewPerUserKeyUpgrade(e.G(), &PerUserKeyUpgradeArgs{})
+	err := RunEngine(eng, ctx)
+	if err != nil {
+		e.G().Log.CWarningf(ctx.GetNetContext(), "loginProvision PerUserKeyUpgrade failed: %v", err)
+	}
+	return err
 }

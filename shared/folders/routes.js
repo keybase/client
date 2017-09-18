@@ -1,6 +1,6 @@
 // @flow
 import {RouteDefNode} from '../route-tree'
-import {PrivateFolders, PublicFolders} from './'
+import {PrivateFolders, PublicFolders} from './container'
 import Files from './files'
 import PaperKey from './files/paperkey'
 

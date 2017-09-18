@@ -21,7 +21,7 @@ type LoginHandler struct {
 
 func NewLoginHandler(xp rpc.Transporter, g *libkb.GlobalContext) *LoginHandler {
 	return &LoginHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
