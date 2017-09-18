@@ -156,6 +156,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.Visibility = rawConv.Metadata.Visibility
 		conv.Notifications = rawConv.Notifications
 		conv.MembersType = rawConv.GetMembersType()
+		conv.TeamType = rawConv.Metadata.TeamType
 		res.Items = append(res.Items, conv)
 	}
 	res.Pagination = utils.PresentPagination(vres.Pagination)
@@ -2126,6 +2127,45 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	return res, nil
 }
 
+func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("DeleteConversation(%s)", arg.ConvID))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "DeleteConversationLocal: result obtained offline")
+		}
+	}()
+	_, err = h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	ui := h.getChatUI(arg.SessionID)
+	confirmed, err := ui.ChatConfirmChannelDelete(ctx, chat1.ChatConfirmChannelDeleteArg{
+		SessionID: arg.SessionID,
+		Channel:   arg.ChannelName,
+	})
+	if err != nil {
+		return res, err
+	}
+	if !confirmed {
+		return res, errors.New("channel delete unconfirmed")
+	}
+
+	delRes, err := h.remoteClient().DeleteConversation(ctx, arg.ConvID)
+	if err != nil {
+		return res, err
+	}
+	if delRes.RateLimit != nil {
+		res.RateLimits = []chat1.RateLimit{*delRes.RateLimit}
+	}
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
+	return res, nil
+}
+
 func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFConversationsLocalArg) (res chat1.GetTLFConversationsLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
@@ -2245,13 +2285,13 @@ func (h *Server) sendRemoteNotificationSuccessful(ctx context.Context, pushIDs [
 			h.Debug(ctx, "sendRemoteNotificationSuccessful: failed to parse CAs: %s", err.Error())
 			return
 		}
-		conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.ErrorUnwrapper{},
+		conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
 			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()), h.G().Log,
 			rpc.ConnectionOpts{})
 	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.WrapError)
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(h.G().ExternalG()))
 		conn = rpc.NewConnectionWithTransport(&remoteNotificationSuccessHandler{}, t,
-			libkb.ErrorUnwrapper{}, h.G().Log, rpc.ConnectionOpts{})
+			libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()), h.G().Log, rpc.ConnectionOpts{})
 	}
 	defer conn.Shutdown()
 

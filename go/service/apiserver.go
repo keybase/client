@@ -20,7 +20,7 @@ type APIServerHandler struct {
 
 func NewAPIServerHandler(xp rpc.Transporter, g *libkb.GlobalContext) *APIServerHandler {
 	return &APIServerHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

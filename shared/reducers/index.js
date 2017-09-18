@@ -23,8 +23,9 @@ import type {State} from '../constants/reducer'
 import unlockFolders from './unlock-folders'
 import {combineReducers} from 'redux'
 import {resetStore} from '../constants/common.js'
+import {reducerTimer} from '../dev/user-timings'
 
-const reducer = combineReducers({
+const reducers = {
   chat,
   config,
   dev,
@@ -45,7 +46,9 @@ const reducer = combineReducers({
   signup,
   tracker,
   unlockFolders,
-})
+}
+
+const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers)
 
 export default function(state: State, action: any): State {
   // Warn if any keys did not change after a resetStore action

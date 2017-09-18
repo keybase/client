@@ -12,6 +12,23 @@
     "getState": {
       "request": [],
       "response": "gregor1.State"
+    },
+    "injectItem": {
+      "request": [
+        {
+          "name": "cat",
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "dtime",
+          "type": "gregor1.TimeOrOffset"
+        }
+      ],
+      "response": "gregor1.MsgID"
     }
   },
   "namespace": "keybase.1"

@@ -32,6 +32,12 @@ type TestConfig struct {
 
 func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
 
+func MakeThinGlobalContextForTesting(t *testing.T) *GlobalContext {
+	g := NewGlobalContext().Init()
+	g.Log = logger.NewTestLogger(t)
+	return g
+}
+
 func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	G.Log = logger.NewTestLogger(t)
 	G.Init()
@@ -53,6 +59,10 @@ func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	if err = G.ConfigureConfig(); err != nil {
 		t.Fatalf("couldn't configure the config: %s", err)
 	}
+}
+
+func makeLogGetter(t *testing.T) func() logger.Logger {
+	return func() logger.Logger { return logger.NewTestLogger(t) }
 }
 
 func (c *TestConfig) CleanTest() {

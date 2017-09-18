@@ -38,8 +38,19 @@ func (o TeamChangedArg) DeepCopy() TeamChangedArg {
 	}
 }
 
+type TeamDeletedArg struct {
+	TeamID TeamID `codec:"teamID" json:"teamID"`
+}
+
+func (o TeamDeletedArg) DeepCopy() TeamDeletedArg {
+	return TeamDeletedArg{
+		TeamID: o.TeamID.DeepCopy(),
+	}
+}
+
 type NotifyTeamInterface interface {
 	TeamChanged(context.Context, TeamChangedArg) error
+	TeamDeleted(context.Context, TeamID) error
 }
 
 func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
@@ -62,6 +73,22 @@ func NotifyTeamProtocol(i NotifyTeamInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"teamDeleted": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamDeletedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamDeletedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamDeletedArg)(nil), args)
+						return
+					}
+					err = i.TeamDeleted(ctx, (*typedArgs)[0].TeamID)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -72,5 +99,11 @@ type NotifyTeamClient struct {
 
 func (c NotifyTeamClient) TeamChanged(ctx context.Context, __arg TeamChangedArg) (err error) {
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamChanged", []interface{}{__arg})
+	return
+}
+
+func (c NotifyTeamClient) TeamDeleted(ctx context.Context, teamID TeamID) (err error) {
+	__arg := TeamDeletedArg{TeamID: teamID}
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTeam.teamDeleted", []interface{}{__arg})
 	return
 }

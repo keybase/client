@@ -78,6 +78,15 @@
     },
     {
       "type": "enum",
+      "name": "ConversationExistence",
+      "symbols": [
+        "ACTIVE_0",
+        "ARCHIVED_1",
+        "DELETED_2"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "ConversationMembersType",
       "symbols": [
         "KBFS_0",
@@ -112,6 +121,15 @@
         "DEV_2"
       ],
       "go": "nostring"
+    },
+    {
+      "type": "enum",
+      "name": "TeamType",
+      "symbols": [
+        "NONE_0",
+        "SIMPLE_1",
+        "COMPLEX_2"
+      ]
     },
     {
       "type": "enum",
@@ -322,6 +340,13 @@
         {
           "type": {
             "type": "array",
+            "items": "ConversationExistence"
+          },
+          "name": "existences"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ConversationID"
           },
           "name": "convIDs"
@@ -418,6 +443,14 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "ConversationExistence",
+          "name": "existence"
         },
         {
           "type": [

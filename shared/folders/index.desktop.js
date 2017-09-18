@@ -1,15 +1,16 @@
 // @flow
-import List from './list'
-import React, {Component} from 'react'
-import type {Props} from './render'
-import {Box, TabBar} from '../common-adapters'
-import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors, globalMargins} from '../styles'
-import {connect} from 'react-redux'
-import {fuseStatus} from '../actions/kbfs'
 import Banner from './install/banner'
 import InstallSecurityPrefs from './install/security-prefs'
+import List from './list'
+import React, {Component} from 'react'
+import {Box, TabBar} from '../common-adapters'
+import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
+import {connect} from 'react-redux'
+import {fuseStatus} from '../actions/kbfs'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isLinux} from '../constants/platform'
+
+import type {Props} from '.'
 import type {TypedState} from '../constants/reducer'
 
 class FoldersRender extends Component<Props> {
@@ -52,6 +53,7 @@ class FoldersRender extends Component<Props> {
       onOpen: this.props.onOpen,
       onChat: this.props.onChat,
       onClick: this.props.onClick,
+      installed: this.props.installed,
     }
 
     return (
@@ -67,7 +69,9 @@ class FoldersRender extends Component<Props> {
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
-            backgroundColor: globalColors.white,
+            backgroundColor: !this.props.smallMode && !this.props.installed
+              ? globalColors.grey
+              : globalColors.white,
             minHeight: this.props.smallMode ? 32 : 48,
           }}
         >

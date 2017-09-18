@@ -22,7 +22,7 @@ type badgerHandler struct {
 
 func newBadgerHandler(xp rpc.Transporter, g *libkb.GlobalContext, badger *badges.Badger) *badgerHandler {
 	return &badgerHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 		badger:       badger,
 	}

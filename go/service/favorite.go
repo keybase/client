@@ -21,7 +21,7 @@ type FavoriteHandler struct {
 // protocol.
 func NewFavoriteHandler(xp rpc.Transporter, g *libkb.GlobalContext) *FavoriteHandler {
 	return &FavoriteHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

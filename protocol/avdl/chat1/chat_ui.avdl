@@ -18,6 +18,7 @@ protocol chatUi {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
   }
@@ -39,6 +40,7 @@ protocol chatUi {
     array<string> participants;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
     gregor1.Time time;
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
@@ -114,4 +116,6 @@ protocol chatUi {
 
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
+
+  boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

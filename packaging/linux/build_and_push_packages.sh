@@ -83,12 +83,14 @@ dot_deb_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/deb" | awk '{print $4}' | grep '
 for blob in $dot_deb_blobs ; do
   s3cmd modify --remove-header "Cache-Control" "$blob"
   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
+  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/deb/"
 done
 echo Unsetting .rpm Cache-Control headers...
 dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
 for blob in $dot_rpm_blobs ; do
   s3cmd modify --remove-header "Cache-Control" "$blob"
   s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+  s3cmd cp "$blob.sig" "s3://$BUCKET_NAME/linux_binaries/rpm/"
 done
 
 # Make yet another copy of the .deb and .rpm packages we just made, in a
@@ -98,8 +100,6 @@ done
 # do here in the build (x86_64 vs amd64).
 another_copy() {
   s3cmd put --follow-symlinks "$1" "$2"
-  code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
-  gpg --detach-sign --armor --use-agent --default-key "$code_signing_fingerprint" -o "$1.sig" "$1"
   s3cmd put --follow-symlinks "$1.sig" "$2.sig"
 }
 another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$BUCKET_NAME/keybase_amd64.deb"

@@ -15,6 +15,12 @@ protocol common {
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
 
+  enum ConversationExistence {
+    ACTIVE_0,
+    ARCHIVED_1,
+    DELETED_2
+  }
+
   enum ConversationMembersType {
     KBFS_0,
     TEAM_1,
@@ -41,6 +47,12 @@ protocol common {
     NONE_0,
     CHAT_1,
     DEV_2
+  }
+
+  enum TeamType {
+    NONE_0,
+    SIMPLE_1,
+    COMPLEX_2
   }
 
   @go("nostring")
@@ -135,6 +147,8 @@ protocol common {
     array<ConversationStatus> status;
     // If left empty, default is to return active and preview status
     array<ConversationMemberStatus> memberStatus;
+    // If left empty, default is active
+    array<ConversationExistence> existences;
 
     // Extended list of conversation IDs to fetch (don't need to set convID, if convID is set then
     // this it will be like appending it to this list)
@@ -170,6 +184,8 @@ protocol common {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
+    ConversationExistence existence;
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;

@@ -32,6 +32,44 @@ const showCrown = {
   writer: false,
 }
 
+const Help = isMobile
+  ? () => null
+  : ({name}: {name: Constants.Teamname}) => (
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
+        <Text type="Body" style={{textAlign: 'center'}}>
+          Team management in the app is coming soon! In the meantime you can do it from the terminal:
+        </Text>
+        <Box
+          style={{
+            backgroundColor: globalColors.midnightBlue,
+            borderRadius: 4,
+            marginTop: 20,
+            padding: 16,
+          }}
+        >
+          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
+            # Add a member
+          </Text>
+          <Text
+            type="Terminal"
+            backgroundMode="Terminal"
+            style={{display: 'block'}}
+          >{`keybase team add-member ${name} --user={user} --role=writer`}</Text>
+          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
+            # Remove a member
+          </Text>
+          <Text
+            type="Terminal"
+            backgroundMode="Terminal"
+          >{`keybase team remove-member ${name} --user={user}`}</Text>
+          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
+            # More commands
+          </Text>
+          <Text type="Terminal" backgroundMode="Terminal">keybase team --help</Text>
+        </Box>
+      </Box>
+    )
+
 class Team extends React.PureComponent<Props> {
   _renderItem = (index: number, item: RowProps) => {
     return (
@@ -86,13 +124,20 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
+        <Help name={name} />
         <Tabs
           tabs={tabs}
           selected={selectedTab}
           onSelect={() => {}}
           style={{alignSelf: 'flex-start', height: globalMargins.large}}
         />
-        <List items={members} fixedHeight={48} renderItem={this._renderItem} style={{alignSelf: 'stretch'}} />
+        <List
+          keyProperty="username"
+          items={members}
+          fixedHeight={48}
+          renderItem={this._renderItem}
+          style={{alignSelf: 'stretch'}}
+        />
         {this.props.showMenu &&
           <PopupMenu
             items={[

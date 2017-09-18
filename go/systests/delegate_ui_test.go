@@ -17,6 +17,7 @@ import (
 )
 
 type delegateUI struct {
+	T         *testing.T
 	ch        chan error
 	delegated bool
 	started   bool
@@ -40,6 +41,8 @@ func (d *delegateUI) checkDelegated() error {
 }
 
 func (d *delegateUI) setError(e error) error {
+	d.T.Logf("delegateUI error: %v", e)
+	fmt.Printf("delegateUI error: %v\n", e)
 	go func() { d.ch <- e }()
 	return e
 }
@@ -146,11 +149,8 @@ func (d *delegateUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1
 	return res, nil
 }
 func (d *delegateUI) Cancel(context.Context, int) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	d.canceled = true
 	close(d.ch)
+	d.canceled = true
 	return nil
 }
 func (d *delegateUI) Finish(context.Context, int) error {
@@ -178,8 +178,9 @@ func (d *delegateUI) checkSuccess() error {
 	return nil
 }
 
-func newDelegateUI() *delegateUI {
+func newDelegateUI(t *testing.T) *delegateUI {
 	return &delegateUI{
+		T:  t,
 		ch: make(chan error),
 	}
 }
@@ -207,7 +208,7 @@ func TestDelegateUI(t *testing.T) {
 
 	// Wait for the server to start up
 	<-startCh
-	dui := newDelegateUI()
+	dui := newDelegateUI(t)
 
 	launchDelegateUI := func(dui *delegateUI) error {
 		cli, xp, err := client.GetRPCClientWithContext(tc2.G)

@@ -7,6 +7,7 @@ import * as RpcTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
+import engine from '../../engine'
 import {selectedInboxSelector} from '../chat/shared'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
@@ -19,7 +20,7 @@ import type {TypedState} from '../../constants/reducer'
 const _createNewTeam = function(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
   return call(RpcTypes.teamsTeamCreateRpcPromise, {
-    param: {name: {parts: [name]}, sendChatNotification: true},
+    param: {name, sendChatNotification: true},
   })
 }
 
@@ -37,17 +38,17 @@ const _createNewTeamFromConversation = function*(
   const me = yield select(usernameSelector)
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
   if (inbox) {
-    yield call(RpcTypes.teamsTeamCreateRpcPromise, {
-      param: {name: {parts: [name]}, sendChatNotification: true},
+    const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
+      param: {name, sendChatNotification: true},
     })
     const participants = inbox.get('participants').toArray()
     for (const username of participants) {
-      if (username !== me) {
+      if (!createRes.creatorAdded || username !== me) {
         yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
           param: {
             email: '',
             name,
-            role: RpcTypes.TeamsTeamRole.writer,
+            role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
             sendChatNotification: true,
             username,
           },
@@ -125,7 +126,10 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
 
   const teams = results.teams || []
   const teamnames = teams.map(team => team.fqName)
-  yield all([put(replaceEntity(['teams', 'teamnames'], I.Set(teamnames)))])
+  yield all([
+    put(replaceEntity(['teams', 'teamnames'], I.Set(teamnames))),
+    put(replaceEntity(['teams'], I.Map([['loaded', true]]))),
+  ])
 }
 
 const _toggleChannelMembership = function*(
@@ -199,6 +203,17 @@ function* _createChannel(action: Constants.CreateChannel) {
   }
 }
 
+function* _setupTeamHandlers(): SagaGenerator<any, any> {
+  yield put((dispatch: Dispatch) => {
+    engine().setIncomingHandler('keybase.1.NotifyTeam.teamChanged', () => {
+      dispatch(Creators.getTeams())
+    })
+    engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
+      dispatch(Creators.getTeams())
+    })
+  })
+}
+
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
@@ -208,6 +223,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:getTeams', _getTeams)
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
+  yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
 }
 
 export default teamsSaga

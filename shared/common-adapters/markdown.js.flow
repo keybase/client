@@ -1,6 +1,8 @@
 // @flow
 import * as React  from 'react'
 
+import type {ChannelMention, Mentions} from '../constants/chat'
+
 type MarkdownComponentType =
   | 'inline-code'
   | 'code-block'
@@ -16,15 +18,21 @@ type MarkdownComponentType =
 export type MarkdownCreateComponent = (
   type: MarkdownComponentType,
   key: string,
-  children: React.Node,
+  children: Array<React.Node>,
   options: {href?: string}
 ) => ?React.Node
+
+export type MarkdownMeta = {
+  mentions: Mentions,
+  channelMention: ChannelMention,
+}
 
 export type Props = {
   children?: string,
   preview?: boolean, // if true render a simplified version
   style?: any,
   allowFontScaling?: boolean,
+  meta?: MarkdownMeta,
 }
 
 export default class Markdown extends React.Component<Props> {}

@@ -436,6 +436,14 @@ func ComputeLoginPackage(lctx LoginContext, username string) (ret PDPKALoginPack
 }
 
 func (s *LoginState) ResetAccount(un string) (err error) {
+	return s.resetOrDelete(un, "nuke")
+}
+
+func (s *LoginState) DeleteAccount(un string) (err error) {
+	return s.resetOrDelete(un, "delete")
+}
+
+func (s *LoginState) resetOrDelete(un string, which string) (err error) {
 	var aerr error
 	err = s.loginHandle(func(lctx LoginContext) error {
 		aerr = lctx.LoadLoginSession(un)
@@ -447,7 +455,7 @@ func (s *LoginState) ResetAccount(un string) (err error) {
 			return aerr
 		}
 		arg := APIArg{
-			Endpoint:    "nuke",
+			Endpoint:    which,
 			SessionType: APISessionTypeREQUIRED,
 			Args:        NewHTTPArgs(),
 			SessionR:    lctx.LocalSession(),
@@ -455,10 +463,10 @@ func (s *LoginState) ResetAccount(un string) (err error) {
 		pdpka.PopulateArgs(&arg.Args)
 		res, aerr := s.G().API.Post(arg)
 		if aerr == nil {
-			s.G().Log.Info("NUKE Result: %+v\n", res.AppStatus)
+			s.G().Log.Info("%s Result: %+v\n", which, res.AppStatus)
 		}
 		return aerr
-	}, nil, "ResetAccount")
+	}, nil, ("ResetAccount:" + which))
 	if aerr != nil {
 		return aerr
 	}
@@ -602,7 +610,7 @@ func (s *LoginState) pubkeyLoginWithKey(lctx LoginContext, me *User, key Generic
 		sig: sig,
 		key: key,
 	}
-	pres, err := PostAuthProof(arg)
+	pres, err := PostAuthProof(context.TODO(), s.G(), arg)
 	if err != nil {
 		return err
 	}

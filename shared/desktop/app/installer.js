@@ -125,26 +125,9 @@ function showError(errors: Array<string>, callback: (err: ?Error) => void) {
 }
 
 function promptForInstallCLIPrivileged(keybaseBin: string, callback: (err: ?Error) => void) {
-  dialog.showMessageBox(
-    {
-      buttons: ['Yes, Install', 'No'],
-      checkboxChecked: true,
-      checkboxLabel: "Don't ask again",
-      detail: 'Do you want to install Keybase for use in the Terminal?',
-      message: 'Install Command Line',
-    },
-    (resp, checkboxChecked) => {
-      if (checkboxChecked) {
-        installerState.state.promptedForCLI = true
-        installerState.save()
-      }
-      if (resp === 0) {
-        installCLIPrivileged(keybaseBin, callback)
-      } else {
-        callback(null)
-      }
-    }
-  )
+  installerState.state.promptedForCLI = true
+  installerState.save()
+  installCLIPrivileged(keybaseBin, callback)
 }
 
 function installCLIPrivileged(keybaseBin: string, callback: (err: ?Error) => void) {

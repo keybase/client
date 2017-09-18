@@ -20,6 +20,7 @@ import sagaMonitor from './saga-monitor'
 import {reduxSagaLogger} from '../local-debug'
 import appStateSaga from '../actions/app'
 import teamsSaga from '../actions/teams'
+import {sagaTimer} from '../dev/user-timings'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -50,7 +51,7 @@ function create(crashHandler: (err: any) => void) {
   }
   middleWare = createSagaMiddleware({
     onError: crashHandler,
-    sagaMonitor: reduxSagaLogger ? sagaMonitor : undefined,
+    sagaMonitor: sagaTimer || (reduxSagaLogger ? sagaMonitor : undefined),
   })
   return middleWare
 }

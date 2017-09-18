@@ -354,6 +354,8 @@ protocol local {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
+    ConversationExistence existence;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
@@ -661,6 +663,11 @@ protocol local {
   JoinLeaveConversationLocalRes joinConversationLocal(string tlfName, TopicType topicType, keybase1.TLFVisibility visibility, string topicName);
   JoinLeaveConversationLocalRes joinConversationByIDLocal(ConversationID convID);
   JoinLeaveConversationLocalRes leaveConversationLocal(ConversationID convID);
+  record DeleteConversationLocalRes {
+    boolean offline;
+    array<RateLimit> rateLimits;
+  }
+  DeleteConversationLocalRes deleteConversationLocal(int sessionID, ConversationID convID, string channelName);
 
   record GetTLFConversationsLocalRes {
     array<InboxUIItem> convs;

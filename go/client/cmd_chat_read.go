@@ -65,10 +65,13 @@ func (c *CmdChatRead) SetTeamChatForTest(n string) {
 func (c *CmdChatRead) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	err := annotateResolvingRequest(c.G(), &c.fetcher.resolvingRequest)
-	if err != nil {
-		return err
+	if c.fetcher.resolvingRequest.TlfName != "" {
+		err := annotateResolvingRequest(c.G(), &c.fetcher.resolvingRequest)
+		if err != nil {
+			return err
+		}
 	}
+
 	convLocal, messages, err := c.Fetch()
 	if err != nil {
 		return err

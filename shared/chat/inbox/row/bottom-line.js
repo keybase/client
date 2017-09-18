@@ -9,7 +9,7 @@ import {
   collapseStyles,
   lineHeight,
 } from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {isMobile, isAndroid} from '../../../constants/platform'
 
 type BottomLineProps = {
   backgroundColor: ?string,
@@ -81,7 +81,7 @@ class BottomLine extends PureComponent<BottomLineProps> {
       return null
     }
 
-    const height = isMobile ? 16 : 17
+    const height = isMobile ? (isAndroid ? 19 : 16) : 17
     return (
       <Box
         style={{
@@ -120,15 +120,24 @@ const noWrapStyle = {
   width: '100%',
 }
 
+const mobileBottomLineCommon = {
+  color: globalColors.black_40,
+  fontSize: 13,
+  lineHeight: lineHeight(17),
+  marginTop: 2,
+  paddingRight: 30,
+}
+
+const mobileBottomLine = isAndroid
+  ? {
+      ...mobileBottomLineCommon,
+      lineHeight: undefined,
+    }
+  : mobileBottomLineCommon
+
 const styles = styleSheetCreate({
   bottomLine: isMobile
-    ? {
-        color: globalColors.black_40,
-        fontSize: 13,
-        lineHeight: lineHeight(17),
-        marginTop: 2,
-        paddingRight: 30,
-      }
+    ? mobileBottomLine
     : {
         ...noWrapStyle,
         color: globalColors.black_40,

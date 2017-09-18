@@ -697,10 +697,10 @@ const tabBarCustomButtons = selectedIndex => {
     },
     children: [
       {avatar: <Avatar size={32} onClick={null} username="max" />},
-      {icon: 'iconfont-people', label: 'PEOPLE', badgeNumber: 3},
-      {icon: 'iconfont-folder', label: 'FOLDERS'},
-      {icon: 'iconfont-device', label: 'DEVICES', badgeNumber: 12},
-      {icon: 'iconfont-settings', label: 'SETTINGS'},
+      {icon: 'iconfont-nav-people', label: 'PEOPLE', badgeNumber: 3},
+      {icon: 'iconfont-nav-folders', label: 'FOLDERS'},
+      {icon: 'iconfont-nav-devices', label: 'DEVICES', badgeNumber: 12},
+      {icon: 'iconfont-nav-settings', label: 'SETTINGS'},
     ].map((buttonInfo: any, i) => {
       const button = buttonInfo.avatar
         ? <AvatarButton

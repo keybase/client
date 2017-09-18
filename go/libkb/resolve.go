@@ -284,6 +284,7 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 
 	ha := HTTPArgsFromKeyValuePair(key, S{val})
 	ha.Add("multi", I{1})
+	ha.Add("load_deleted", B{true})
 	fields := "basics"
 	if withBody {
 		fields += ",public_keys,pictures"

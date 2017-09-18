@@ -33,6 +33,7 @@ type User struct {
 	sigChainMem *SigChain
 	idTable     *IdentityTable
 	sigHints    *SigHints
+	status      keybase1.StatusCode
 
 	leaf MerkleUserLeaf
 
@@ -59,6 +60,10 @@ func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("user object for %s lacks a name", uid)
 	}
+	status, err := o.AtPath("basics.status").GetInt()
+	if err != nil {
+		return nil, fmt.Errorf("user object for %s lacks a status field", uid)
+	}
 
 	kf, err := ParseKeyFamily(g, o.AtKey("public_keys"))
 	if err != nil {
@@ -72,6 +77,7 @@ func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 		keyFamily:    kf,
 		id:           uid,
 		name:         name,
+		status:       keybase1.StatusCode(status),
 		dirty:        false,
 		Contextified: NewContextified(g),
 	}, nil
@@ -93,6 +99,7 @@ func NewUserFromLocalStorage(g *GlobalContext, o *jsonw.Wrapper) (*User, error) 
 func (u *User) GetNormalizedName() NormalizedUsername { return NewNormalizedUsername(u.name) }
 func (u *User) GetName() string                       { return u.name }
 func (u *User) GetUID() keybase1.UID                  { return u.id }
+func (u *User) GetStatus() keybase1.StatusCode        { return u.status }
 
 func (u *User) GetIDVersion() (int64, error) {
 	return u.basics.AtKey("id_version").GetInt64()

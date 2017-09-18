@@ -29,7 +29,7 @@ type levelDBOps interface {
 
 func levelDbPut(ops levelDBOps, id DbKey, aliases []DbKey, value []byte) error {
 	idb := id.ToBytes(levelDbTableKv)
-	if aliases == nil || len(aliases) == 0 {
+	if len(aliases) == 0 {
 		// if no aliases, just do a put
 		return ops.Put(idb, value, nil)
 	}

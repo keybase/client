@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Icon, Avatar, Box, Divider, Text} from '../../common-adapters'
+import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -32,7 +32,7 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
         <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
-        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.tiny}}>
+        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.small}}>
           {name}
         </Text>
       </ClickableBox>
@@ -40,7 +40,7 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
       {!isMobile &&
         <Icon type="iconfont-chat" style={{marginLeft: globalMargins.small}} onClick={onManageChat} />}
     </Box>
-    {!isMobile && <Divider style={{marginLeft: 44}} />}
+    {!isMobile && <Divider style={{marginLeft: 48}} />}
   </Box>
 )
 
@@ -52,6 +52,7 @@ const TeamList = (props: Props) => (
       width: '100%',
     }}
   >
+    {!props.loaded && <ProgressIndicator style={{alignSelf: 'center', width: 20}} />}
     {props.teamnames.map((name, index, arr) => (
       <Row
         key={name}

@@ -167,27 +167,34 @@ function peg$parse(input, options) {
       peg$c17 = peg$literalExpectation(":", false),
       peg$c18 = ">",
       peg$c19 = peg$literalExpectation(">", false),
-      peg$c20 = /^[()[\].,!?]/,
-      peg$c21 = peg$otherExpectation("stripped character class"),
-      peg$c22 = function() { return text() },
-      peg$c23 = function(char) { return char },
-      peg$c24 = function(children) { return {type: 'quote-block', children: flatten(children)} },
-      peg$c25 = function(children) { return {type: 'bold', children: flatten(children)} },
-      peg$c26 = function(children) { return {type: 'italic', children: flatten(children)} },
-      peg$c27 = function(children) { return {type: 'strike', children: flatten(children)} },
-      peg$c28 = function(children) { return {type: 'code-block', children: flatten(children)} },
-      peg$c29 = function(children) { return {type: 'inline-code', children: flatten(children)} },
-      peg$c30 = /^[a-zA-Z0-9+_\-]/,
-      peg$c31 = peg$otherExpectation("stripped character class"),
-      peg$c32 = "::skin-tone-",
-      peg$c33 = peg$literalExpectation("::skin-tone-", false),
-      peg$c34 = /^[1-6]/,
-      peg$c35 = peg$otherExpectation("stripped character class"),
-      peg$c36 = function(children, tone) { return {type: 'emoji', children: [text()]} },
-      peg$c37 = peg$otherExpectation("unicode emoji"),
-      peg$c38 = /^[\xA9\uFE0F\xAE\u203C\u2049\u2122\u2139\u2194\u2195\u2196\u2197\u2198\u2199\u21A9\u21AA\u231A\u231B\u2328\u23CF\u23E9\u23EA\u23EB\u23EC\u23ED\u23EE\u23EF\u23F0\u23F1\u23F2\u23F3\u23F8\u23F9\u23FA\u24C2\u25AA\u25AB\u25B6\u25C0\u25FB\u25FC\u25FD\u25FE\u2600\u2601\u2602\u2603\u2604\u260E\u2611\u2614\u2615\u2618\u261D\uD83C\uDFFB\uD83C\uDFFC\uD83C\uDFFD\uD83C\uDFFE\uD83C\uDFFF\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638\u2639\u263A\u2640\u2642\u2648\u2649\u264A\u264B\u264C\u264D\u264E\u264F\u2650\u2651\u2652\u2653\u2660\u2663\u2665\u2666\u2668\u267B\u267F\u2692\u2693\u2694\u2695\u2696\u2697\u2699\u269B\u269C\u26A0\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26C8\u26CE\u26CF\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0\u26F1\u26F2\u26F3\u26F4\u26F5\u26F7\u26F8\u26F9\u26FA\u26FD\u2702\u2705\u2708\u2709\u270A\u270B\u270C\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753\u2754\u2755\u2757\u2763\u2764\u2795\u2796\u2797\u27A1\u27B0\u27BF\u2934\u2935\u2B05\u2B06\u2B07\u2B1B\u2B1C\u2B50\u2B55\u3030\u303D\u3297\u3299\uD83C\uDC04\uD83C\uDCCF\uD83C\uDD70\uD83C\uDD71\uD83C\uDD7E\uD83C\uDD7F\uD83C\uDD8E\uD83C\uDD91\uD83C\uDD92\uD83C\uDD93\uD83C\uDD94\uD83C\uDD95\uD83C\uDD96\uD83C\uDD97\uD83C\uDD98\uD83C\uDD99\uD83C\uDD9A\uD83C\uDE01\uD83C\uDE02\uD83C\uDE1A\uD83C\uDE2F\uD83C\uDE32\uD83C\uDE33\uD83C\uDE34\uD83C\uDE35\uD83C\uDE36\uD83C\uDE37\uD83C\uDE38\uD83C\uDE39\uD83C\uDE3A\uD83C\uDE50\uD83C\uDE51\uD83C\uDF00\uD83C\uDF01\uD83C\uDF02\uD83C\uDF03\uD83C\uDF04\uD83C\uDF05\uD83C\uDF06\uD83C\uDF07\uD83C\uDF08\uD83C\uDF09\uD83C\uDF0A\uD83C\uDF0B\uD83C\uDF0C\uD83C\uDF0D\uD83C\uDF0E\uD83C\uDF0F\uD83C\uDF10\uD83C\uDF11\uD83C\uDF12\uD83C\uDF13\uD83C\uDF14\uD83C\uDF15\uD83C\uDF16\uD83C\uDF17\uD83C\uDF18\uD83C\uDF19\uD83C\uDF1A\uD83C\uDF1B\uD83C\uDF1C\uD83C\uDF1D\uD83C\uDF1E\uD83C\uDF1F\uD83C\uDF20\uD83C\uDF21\uD83C\uDF24\uD83C\uDF25\uD83C\uDF26\uD83C\uDF27\uD83C\uDF28\uD83C\uDF29\uD83C\uDF2A\uD83C\uDF2B\uD83C\uDF2C\uD83C\uDF2D\uD83C\uDF2E\uD83C\uDF2F\uD83C\uDF30\uD83C\uDF31\uD83C\uDF32\uD83C\uDF33\uD83C\uDF34\uD83C\uDF35\uD83C\uDF36\uD83C\uDF37\uD83C\uDF38\uD83C\uDF39\uD83C\uDF3A\uD83C\uDF3B\uD83C\uDF3C\uD83C\uDF3D\uD83C\uDF3E\uD83C\uDF3F\uD83C\uDF40\uD83C\uDF41\uD83C\uDF42\uD83C\uDF43\uD83C\uDF44\uD83C\uDF45\uD83C\uDF46\uD83C\uDF47\uD83C\uDF48\uD83C\uDF49\uD83C\uDF4A\uD83C\uDF4B\uD83C\uDF4C\uD83C\uDF4D\uD83C\uDF4E\uD83C\uDF4F\uD83C\uDF50\uD83C\uDF51\uD83C\uDF52\uD83C\uDF53\uD83C\uDF54\uD83C\uDF55\uD83C\uDF56\uD83C\uDF57\uD83C\uDF58\uD83C\uDF59\uD83C\uDF5A\uD83C\uDF5B\uD83C\uDF5C\uD83C\uDF5D\uD83C\uDF5E\uD83C\uDF5F\uD83C\uDF60\uD83C\uDF61\uD83C\uDF62\uD83C\uDF63\uD83C\uDF64\uD83C\uDF65\uD83C\uDF66\uD83C\uDF67\uD83C\uDF68\uD83C\uDF69\uD83C\uDF6A\uD83C\uDF6B\uD83C\uDF6C\uD83C\uDF6D\uD83C\uDF6E\uD83C\uDF6F\uD83C\uDF70\uD83C\uDF71\uD83C\uDF72\uD83C\uDF73\uD83C\uDF74\uD83C\uDF75\uD83C\uDF76\uD83C\uDF77\uD83C\uDF78\uD83C\uDF79\uD83C\uDF7A\uD83C\uDF7B\uD83C\uDF7C\uD83C\uDF7D\uD83C\uDF7E\uD83C\uDF7F\uD83C\uDF80\uD83C\uDF81\uD83C\uDF82\uD83C\uDF83\uD83C\uDF84\uD83C\uDF85\uD83C\uDF86\uD83C\uDF87\uD83C\uDF88\uD83C\uDF89\uD83C\uDF8A\uD83C\uDF8B\uD83C\uDF8C\uD83C\uDF8D\uD83C\uDF8E\uD83C\uDF8F\uD83C\uDF90\uD83C\uDF91\uD83C\uDF92\uD83C\uDF93\uD83C\uDF96\uD83C\uDF97\uD83C\uDF99\uD83C\uDF9A\uD83C\uDF9B\uD83C\uDF9E\uD83C\uDF9F\uD83C\uDFA0\uD83C\uDFA1\uD83C\uDFA2\uD83C\uDFA3\uD83C\uDFA4\uD83C\uDFA5\uD83C\uDFA6\uD83C\uDFA7\uD83C\uDFA8\uD83C\uDFA9\uD83C\uDFAA\uD83C\uDFAB\uD83C\uDFAC\uD83C\uDFAD\uD83C\uDFAE\uD83C\uDFAF\uD83C\uDFB0\uD83C\uDFB1\uD83C\uDFB2\uD83C\uDFB3\uD83C\uDFB4\uD83C\uDFB5\uD83C\uDFB6\uD83C\uDFB7\uD83C\uDFB8\uD83C\uDFB9\uD83C\uDFBA\uD83C\uDFBB\uD83C\uDFBC\uD83C\uDFBD\uD83C\uDFBE\uD83C\uDFBF\uD83C\uDFC0\uD83C\uDFC1\uD83C\uDFC2\uD83C\uDFC3\uD83C\uDFC4\uD83C\uDFC5\uD83C\uDFC6\uD83C\uDFC7\uD83C\uDFC8\uD83C\uDFC9\uD83C\uDFCA\uD83C\uDFCB\uD83C\uDFCC\uD83C\uDFCD\uD83C\uDFCE\uD83C\uDFCF\uD83C\uDFD0\uD83C\uDFD1\uD83C\uDFD2\uD83C\uDFD3\uD83C\uDFD4\uD83C\uDFD5\uD83C\uDFD6\uD83C\uDFD7\uD83C\uDFD8\uD83C\uDFD9\uD83C\uDFDA\uD83C\uDFDB\uD83C\uDFDC\uD83C\uDFDD\uD83C\uDFDE\uD83C\uDFDF\uD83C\uDFE0\uD83C\uDFE1\uD83C\uDFE2\uD83C\uDFE3\uD83C\uDFE4\uD83C\uDFE5\uD83C\uDFE6\uD83C\uDFE7\uD83C\uDFE8\uD83C\uDFE9\uD83C\uDFEA\uD83C\uDFEB\uD83C\uDFEC\uD83C\uDFED\uD83C\uDFEE\uD83C\uDFEF\uD83C\uDFF0\uD83C\uDFF3\uD83C\uDFF4\uD83C\uDFF5\uD83C\uDFF7\uD83C\uDFF8\uD83C\uDFF9\uD83C\uDFFA\uD83D\uDC00\uD83D\uDC01\uD83D\uDC02\uD83D\uDC03\uD83D\uDC04\uD83D\uDC05\uD83D\uDC06\uD83D\uDC07\uD83D\uDC08\uD83D\uDC09\uD83D\uDC0A\uD83D\uDC0B\uD83D\uDC0C\uD83D\uDC0D\uD83D\uDC0E\uD83D\uDC0F\uD83D\uDC10\uD83D\uDC11\uD83D\uDC12\uD83D\uDC13\uD83D\uDC14\uD83D\uDC15\uD83D\uDC16\uD83D\uDC17\uD83D\uDC18\uD83D\uDC19\uD83D\uDC1A\uD83D\uDC1B\uD83D\uDC1C\uD83D\uDC1D\uD83D\uDC1E\uD83D\uDC1F\uD83D\uDC20\uD83D\uDC21\uD83D\uDC22\uD83D\uDC23\uD83D\uDC24\uD83D\uDC25\uD83D\uDC26\uD83D\uDC27\uD83D\uDC28\uD83D\uDC29\uD83D\uDC2A\uD83D\uDC2B\uD83D\uDC2C\uD83D\uDC2D\uD83D\uDC2E\uD83D\uDC2F\uD83D\uDC30\uD83D\uDC31\uD83D\uDC32\uD83D\uDC33\uD83D\uDC34\uD83D\uDC35\uD83D\uDC36\uD83D\uDC37\uD83D\uDC38\uD83D\uDC39\uD83D\uDC3A\uD83D\uDC3B\uD83D\uDC3C\uD83D\uDC3D\uD83D\uDC3E\uD83D\uDC3F\uD83D\uDC40\uD83D\uDC41\uD83D\uDC42\uD83D\uDC43\uD83D\uDC44\uD83D\uDC45\uD83D\uDC46\uD83D\uDC47\uD83D\uDC48\uD83D\uDC49\uD83D\uDC4A\uD83D\uDC4B\uD83D\uDC4C\uD83D\uDC4D\uD83D\uDC4E\uD83D\uDC4F\uD83D\uDC50\uD83D\uDC51\uD83D\uDC52\uD83D\uDC53\uD83D\uDC54\uD83D\uDC55\uD83D\uDC56\uD83D\uDC57\uD83D\uDC58\uD83D\uDC59\uD83D\uDC5A\uD83D\uDC5B\uD83D\uDC5C\uD83D\uDC5D\uD83D\uDC5E\uD83D\uDC5F\uD83D\uDC60\uD83D\uDC61\uD83D\uDC62\uD83D\uDC63\uD83D\uDC64\uD83D\uDC65\uD83D\uDC66\uD83D\uDC67\uD83D\uDC68\uD83D\uDC69\uD83D\uDC6A\uD83D\uDC6B\uD83D\uDC6C\uD83D\uDC6D\uD83D\uDC6E\uD83D\uDC6F\uD83D\uDC70\uD83D\uDC71\uD83D\uDC72\uD83D\uDC73\uD83D\uDC74\uD83D\uDC75\uD83D\uDC76\uD83D\uDC77\uD83D\uDC78\uD83D\uDC79\uD83D\uDC7A\uD83D\uDC7B\uD83D\uDC7C\uD83D\uDC7D\uD83D\uDC7E\uD83D\uDC7F\uD83D\uDC80\uD83D\uDC81\uD83D\uDC82\uD83D\uDC83\uD83D\uDC84\uD83D\uDC85\uD83D\uDC86\uD83D\uDC87\uD83D\uDC88\uD83D\uDC89\uD83D\uDC8A\uD83D\uDC8B\uD83D\uDC8C\uD83D\uDC8D\uD83D\uDC8E\uD83D\uDC8F\uD83D\uDC90\uD83D\uDC91\uD83D\uDC92\uD83D\uDC93\uD83D\uDC94\uD83D\uDC95\uD83D\uDC96\uD83D\uDC97\uD83D\uDC98\uD83D\uDC99\uD83D\uDC9A\uD83D\uDC9B\uD83D\uDC9C\uD83D\uDC9D\uD83D\uDC9E\uD83D\uDC9F\uD83D\uDCA0\uD83D\uDCA1\uD83D\uDCA2\uD83D\uDCA3\uD83D\uDCA4\uD83D\uDCA5\uD83D\uDCA6\uD83D\uDCA7\uD83D\uDCA8\uD83D\uDCA9\uD83D\uDCAA\uD83D\uDCAB\uD83D\uDCAC\uD83D\uDCAD\uD83D\uDCAE\uD83D\uDCAF\uD83D\uDCB0\uD83D\uDCB1\uD83D\uDCB2\uD83D\uDCB3\uD83D\uDCB4\uD83D\uDCB5\uD83D\uDCB6\uD83D\uDCB7\uD83D\uDCB8\uD83D\uDCB9\uD83D\uDCBA\uD83D\uDCBB\uD83D\uDCBC\uD83D\uDCBD\uD83D\uDCBE\uD83D\uDCBF\uD83D\uDCC0\uD83D\uDCC1\uD83D\uDCC2\uD83D\uDCC3\uD83D\uDCC4\uD83D\uDCC5\uD83D\uDCC6\uD83D\uDCC7\uD83D\uDCC8\uD83D\uDCC9\uD83D\uDCCA\uD83D\uDCCB\uD83D\uDCCC\uD83D\uDCCD\uD83D\uDCCE\uD83D\uDCCF\uD83D\uDCD0\uD83D\uDCD1\uD83D\uDCD2\uD83D\uDCD3\uD83D\uDCD4\uD83D\uDCD5\uD83D\uDCD6\uD83D\uDCD7\uD83D\uDCD8\uD83D\uDCD9\uD83D\uDCDA\uD83D\uDCDB\uD83D\uDCDC\uD83D\uDCDD\uD83D\uDCDE\uD83D\uDCDF\uD83D\uDCE0\uD83D\uDCE1\uD83D\uDCE2\uD83D\uDCE3\uD83D\uDCE4\uD83D\uDCE5\uD83D\uDCE6\uD83D\uDCE7\uD83D\uDCE8\uD83D\uDCE9\uD83D\uDCEA\uD83D\uDCEB\uD83D\uDCEC\uD83D\uDCED\uD83D\uDCEE\uD83D\uDCEF\uD83D\uDCF0\uD83D\uDCF1\uD83D\uDCF2\uD83D\uDCF3\uD83D\uDCF4\uD83D\uDCF5\uD83D\uDCF6\uD83D\uDCF7\uD83D\uDCF8\uD83D\uDCF9\uD83D\uDCFA\uD83D\uDCFB\uD83D\uDCFC\uD83D\uDCFD\uD83D\uDCFF\uD83D\uDD00\uD83D\uDD01\uD83D\uDD02\uD83D\uDD03\uD83D\uDD04\uD83D\uDD05\uD83D\uDD06\uD83D\uDD07\uD83D\uDD08\uD83D\uDD09\uD83D\uDD0A\uD83D\uDD0B\uD83D\uDD0C\uD83D\uDD0D\uD83D\uDD0E\uD83D\uDD0F\uD83D\uDD10\uD83D\uDD11\uD83D\uDD12\uD83D\uDD13\uD83D\uDD14\uD83D\uDD15\uD83D\uDD16\uD83D\uDD17\uD83D\uDD18\uD83D\uDD19\uD83D\uDD1A\uD83D\uDD1B\uD83D\uDD1C\uD83D\uDD1D\uD83D\uDD1E\uD83D\uDD1F\uD83D\uDD20\uD83D\uDD21\uD83D\uDD22\uD83D\uDD23\uD83D\uDD24\uD83D\uDD25\uD83D\uDD26\uD83D\uDD27\uD83D\uDD28\uD83D\uDD29\uD83D\uDD2A\uD83D\uDD2B\uD83D\uDD2C\uD83D\uDD2D\uD83D\uDD2E\uD83D\uDD2F\uD83D\uDD30\uD83D\uDD31\uD83D\uDD32\uD83D\uDD33\uD83D\uDD34\uD83D\uDD35\uD83D\uDD36\uD83D\uDD37\uD83D\uDD38\uD83D\uDD39\uD83D\uDD3A\uD83D\uDD3B\uD83D\uDD3C\uD83D\uDD3D\uD83D\uDD49\uD83D\uDD4A\uD83D\uDD4B\uD83D\uDD4C\uD83D\uDD4D\uD83D\uDD4E\uD83D\uDD50\uD83D\uDD51\uD83D\uDD52\uD83D\uDD53\uD83D\uDD54\uD83D\uDD55\uD83D\uDD56\uD83D\uDD57\uD83D\uDD58\uD83D\uDD59\uD83D\uDD5A\uD83D\uDD5B\uD83D\uDD5C\uD83D\uDD5D\uD83D\uDD5E\uD83D\uDD5F\uD83D\uDD60\uD83D\uDD61\uD83D\uDD62\uD83D\uDD63\uD83D\uDD64\uD83D\uDD65\uD83D\uDD66\uD83D\uDD67\uD83D\uDD6F\uD83D\uDD70\uD83D\uDD73\uD83D\uDD74\uD83D\uDD75\uD83D\uDD76\uD83D\uDD77\uD83D\uDD78\uD83D\uDD79\uD83D\uDD7A\uD83D\uDD87\uD83D\uDD8A\uD83D\uDD8B\uD83D\uDD8C\uD83D\uDD8D\uD83D\uDD90\uD83D\uDD95\uD83D\uDD96\uD83D\uDDA4\uD83D\uDDA5\uD83D\uDDA8\uD83D\uDDB1\uD83D\uDDB2\uD83D\uDDBC\uD83D\uDDC2\uD83D\uDDC3\uD83D\uDDC4\uD83D\uDDD1\uD83D\uDDD2\uD83D\uDDD3\uD83D\uDDDC\uD83D\uDDDD\uD83D\uDDDE\uD83D\uDDE1\uD83D\uDDE3\uD83D\uDDE8\uD83D\uDDEF\uD83D\uDDF3\uD83D\uDDFA\uD83D\uDDFB\uD83D\uDDFC\uD83D\uDDFD\uD83D\uDDFE\uD83D\uDDFF\uD83D\uDE00\uD83D\uDE01\uD83D\uDE02\uD83D\uDE03\uD83D\uDE04\uD83D\uDE05\uD83D\uDE06\uD83D\uDE07\uD83D\uDE08\uD83D\uDE09\uD83D\uDE0A\uD83D\uDE0B\uD83D\uDE0C\uD83D\uDE0D\uD83D\uDE0E\uD83D\uDE0F\uD83D\uDE10\uD83D\uDE11\uD83D\uDE12\uD83D\uDE13\uD83D\uDE14\uD83D\uDE15\uD83D\uDE16\uD83D\uDE17\uD83D\uDE18\uD83D\uDE19\uD83D\uDE1A\uD83D\uDE1B\uD83D\uDE1C\uD83D\uDE1D\uD83D\uDE1E\uD83D\uDE1F\uD83D\uDE20\uD83D\uDE21\uD83D\uDE22\uD83D\uDE23\uD83D\uDE24\uD83D\uDE25\uD83D\uDE26\uD83D\uDE27\uD83D\uDE28\uD83D\uDE29\uD83D\uDE2A\uD83D\uDE2B\uD83D\uDE2C\uD83D\uDE2D\uD83D\uDE2E\uD83D\uDE2F\uD83D\uDE30\uD83D\uDE31\uD83D\uDE32\uD83D\uDE33\uD83D\uDE34\uD83D\uDE35\uD83D\uDE36\uD83D\uDE37\uD83D\uDE38\uD83D\uDE39\uD83D\uDE3A\uD83D\uDE3B\uD83D\uDE3C\uD83D\uDE3D\uD83D\uDE3E\uD83D\uDE3F\uD83D\uDE40\uD83D\uDE41\uD83D\uDE42\uD83D\uDE43\uD83D\uDE44\uD83D\uDE45\uD83D\uDE46\uD83D\uDE47\uD83D\uDE48\uD83D\uDE49\uD83D\uDE4A\uD83D\uDE4B\uD83D\uDE4C\uD83D\uDE4D\uD83D\uDE4E\uD83D\uDE4F\uD83D\uDE80\uD83D\uDE81\uD83D\uDE82\uD83D\uDE83\uD83D\uDE84\uD83D\uDE85\uD83D\uDE86\uD83D\uDE87\uD83D\uDE88\uD83D\uDE89\uD83D\uDE8A\uD83D\uDE8B\uD83D\uDE8C\uD83D\uDE8D\uD83D\uDE8E\uD83D\uDE8F\uD83D\uDE90\uD83D\uDE91\uD83D\uDE92\uD83D\uDE93\uD83D\uDE94\uD83D\uDE95\uD83D\uDE96\uD83D\uDE97\uD83D\uDE98\uD83D\uDE99\uD83D\uDE9A\uD83D\uDE9B\uD83D\uDE9C\uD83D\uDE9D\uD83D\uDE9E\uD83D\uDE9F\uD83D\uDEA0\uD83D\uDEA1\uD83D\uDEA2\uD83D\uDEA3\uD83D\uDEA4\uD83D\uDEA5\uD83D\uDEA6\uD83D\uDEA7\uD83D\uDEA8\uD83D\uDEA9\uD83D\uDEAA\uD83D\uDEAB\uD83D\uDEAC\uD83D\uDEAD\uD83D\uDEAE\uD83D\uDEAF\uD83D\uDEB0\uD83D\uDEB1\uD83D\uDEB2\uD83D\uDEB3\uD83D\uDEB4\uD83D\uDEB5\uD83D\uDEB6\uD83D\uDEB7\uD83D\uDEB8\uD83D\uDEB9\uD83D\uDEBA\uD83D\uDEBB\uD83D\uDEBC\uD83D\uDEBD\uD83D\uDEBE\uD83D\uDEBF\uD83D\uDEC0\uD83D\uDEC1\uD83D\uDEC2\uD83D\uDEC3\uD83D\uDEC4\uD83D\uDEC5\uD83D\uDECB\uD83D\uDECC\uD83D\uDECD\uD83D\uDECE\uD83D\uDECF\uD83D\uDED0\uD83D\uDED1\uD83D\uDED2\uD83D\uDEE0\uD83D\uDEE1\uD83D\uDEE2\uD83D\uDEE3\uD83D\uDEE4\uD83D\uDEE5\uD83D\uDEE9\uD83D\uDEEB\uD83D\uDEEC\uD83D\uDEF0\uD83D\uDEF3\uD83D\uDEF4\uD83D\uDEF5\uD83D\uDEF6\uD83E\uDD10\uD83E\uDD11\uD83E\uDD12\uD83E\uDD13\uD83E\uDD14\uD83E\uDD15\uD83E\uDD16\uD83E\uDD17\uD83E\uDD18\uD83E\uDD19\uD83E\uDD1A\uD83E\uDD1B\uD83E\uDD1C\uD83E\uDD1D\uD83E\uDD1E\uD83E\uDD20\uD83E\uDD21\uD83E\uDD22\uD83E\uDD23\uD83E\uDD24\uD83E\uDD25\uD83E\uDD26\uD83E\uDD27\uD83E\uDD30\uD83E\uDD33\uD83E\uDD34\uD83E\uDD35\uD83E\uDD36\uD83E\uDD37\uD83E\uDD38\uD83E\uDD39\uD83E\uDD3A\uD83E\uDD3C\uD83E\uDD3D\uD83E\uDD3E\uD83E\uDD40\uD83E\uDD41\uD83E\uDD42\uD83E\uDD43\uD83E\uDD44\uD83E\uDD45\uD83E\uDD47\uD83E\uDD48\uD83E\uDD49\uD83E\uDD4A\uD83E\uDD4B\uD83E\uDD50\uD83E\uDD51\uD83E\uDD52\uD83E\uDD53\uD83E\uDD54\uD83E\uDD55\uD83E\uDD56\uD83E\uDD57\uD83E\uDD58\uD83E\uDD59\uD83E\uDD5A\uD83E\uDD5B\uD83E\uDD5C\uD83E\uDD5D\uD83E\uDD5E\uD83E\uDD80\uD83E\uDD81\uD83E\uDD82\uD83E\uDD83\uD83E\uDD84\uD83E\uDD85\uD83E\uDD86\uD83E\uDD87\uD83E\uDD88\uD83E\uDD89\uD83E\uDD8A\uD83E\uDD8B\uD83E\uDD8C\uD83E\uDD8D\uD83E\uDD8E\uD83E\uDD8F\uD83E\uDD90\uD83E\uDD91\uD83E\uDDC0#\u20E3*0123456789\uD83C\uDDE6\uD83C\uDDE8\uD83C\uDDE9\uD83C\uDDEA\uD83C\uDDEB\uD83C\uDDEC\uD83C\uDDEE\uD83C\uDDF1\uD83C\uDDF2\uD83C\uDDF4\uD83C\uDDF6\uD83C\uDDF7\uD83C\uDDF8\uD83C\uDDF9\uD83C\uDDFA\uD83C\uDDFC\uD83C\uDDFD\uD83C\uDDFF\uD83C\uDDE7\uD83C\uDDED\uD83C\uDDEF\uD83C\uDDF3\uD83C\uDDFB\uD83C\uDDFE\uD83C\uDDF0\uD83C\uDDF5\u200D]/,
-      peg$c39 = peg$otherExpectation("stripped character class"),
-      peg$c40 = function(emoji) {
+      peg$c20 = "@",
+      peg$c21 = peg$literalExpectation("@", false),
+      peg$c22 = "keybase",
+      peg$c23 = peg$literalExpectation("keybase", false),
+      peg$c24 = "Keybase",
+      peg$c25 = peg$literalExpectation("Keybase", false),
+      peg$c26 = /^[()[\].,!?]/,
+      peg$c27 = peg$otherExpectation("stripped character class"),
+      peg$c28 = function() { return text() },
+      peg$c29 = function(char) { return char },
+      peg$c30 = function(children) { return {type: 'quote-block', children: flatten(children)} },
+      peg$c31 = function(children) { return {type: 'bold', children: flatten(children)} },
+      peg$c32 = function(children) { return {type: 'italic', children: flatten(children)} },
+      peg$c33 = function(children) { return {type: 'strike', children: flatten(children)} },
+      peg$c34 = function(children, service) { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} },
+      peg$c35 = function(children) { return {type: 'code-block', children: flatten(children)} },
+      peg$c36 = function(children) { return {type: 'inline-code', children: flatten(children)} },
+      peg$c37 = /^[a-zA-Z0-9+_\-]/,
+      peg$c38 = peg$otherExpectation("stripped character class"),
+      peg$c39 = "::skin-tone-",
+      peg$c40 = peg$literalExpectation("::skin-tone-", false),
+      peg$c41 = /^[1-6]/,
+      peg$c42 = peg$otherExpectation("stripped character class"),
+      peg$c43 = function(children, tone) { return {type: 'emoji', children: [text()]} },
+      peg$c44 = peg$otherExpectation("unicode emoji"),
+      peg$c45 = /^[\xA9\uFE0F\xAE\u203C\u2049\u2122\u2139\u2194\u2195\u2196\u2197\u2198\u2199\u21A9\u21AA\u231A\u231B\u2328\u23CF\u23E9\u23EA\u23EB\u23EC\u23ED\u23EE\u23EF\u23F0\u23F1\u23F2\u23F3\u23F8\u23F9\u23FA\u24C2\u25AA\u25AB\u25B6\u25C0\u25FB\u25FC\u25FD\u25FE\u2600\u2601\u2602\u2603\u2604\u260E\u2611\u2614\u2615\u2618\u261D\uD83C\uDFFB\uD83C\uDFFC\uD83C\uDFFD\uD83C\uDFFE\uD83C\uDFFF\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638\u2639\u263A\u2640\u2642\u2648\u2649\u264A\u264B\u264C\u264D\u264E\u264F\u2650\u2651\u2652\u2653\u2660\u2663\u2665\u2666\u2668\u267B\u267F\u2692\u2693\u2694\u2695\u2696\u2697\u2699\u269B\u269C\u26A0\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26C8\u26CE\u26CF\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0\u26F1\u26F2\u26F3\u26F4\u26F5\u26F7\u26F8\u26F9\u26FA\u26FD\u2702\u2705\u2708\u2709\u270A\u270B\u270C\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753\u2754\u2755\u2757\u2763\u2764\u2795\u2796\u2797\u27A1\u27B0\u27BF\u2934\u2935\u2B05\u2B06\u2B07\u2B1B\u2B1C\u2B50\u2B55\u3030\u303D\u3297\u3299\uD83C\uDC04\uD83C\uDCCF\uD83C\uDD70\uD83C\uDD71\uD83C\uDD7E\uD83C\uDD7F\uD83C\uDD8E\uD83C\uDD91\uD83C\uDD92\uD83C\uDD93\uD83C\uDD94\uD83C\uDD95\uD83C\uDD96\uD83C\uDD97\uD83C\uDD98\uD83C\uDD99\uD83C\uDD9A\uD83C\uDE01\uD83C\uDE02\uD83C\uDE1A\uD83C\uDE2F\uD83C\uDE32\uD83C\uDE33\uD83C\uDE34\uD83C\uDE35\uD83C\uDE36\uD83C\uDE37\uD83C\uDE38\uD83C\uDE39\uD83C\uDE3A\uD83C\uDE50\uD83C\uDE51\uD83C\uDF00\uD83C\uDF01\uD83C\uDF02\uD83C\uDF03\uD83C\uDF04\uD83C\uDF05\uD83C\uDF06\uD83C\uDF07\uD83C\uDF08\uD83C\uDF09\uD83C\uDF0A\uD83C\uDF0B\uD83C\uDF0C\uD83C\uDF0D\uD83C\uDF0E\uD83C\uDF0F\uD83C\uDF10\uD83C\uDF11\uD83C\uDF12\uD83C\uDF13\uD83C\uDF14\uD83C\uDF15\uD83C\uDF16\uD83C\uDF17\uD83C\uDF18\uD83C\uDF19\uD83C\uDF1A\uD83C\uDF1B\uD83C\uDF1C\uD83C\uDF1D\uD83C\uDF1E\uD83C\uDF1F\uD83C\uDF20\uD83C\uDF21\uD83C\uDF24\uD83C\uDF25\uD83C\uDF26\uD83C\uDF27\uD83C\uDF28\uD83C\uDF29\uD83C\uDF2A\uD83C\uDF2B\uD83C\uDF2C\uD83C\uDF2D\uD83C\uDF2E\uD83C\uDF2F\uD83C\uDF30\uD83C\uDF31\uD83C\uDF32\uD83C\uDF33\uD83C\uDF34\uD83C\uDF35\uD83C\uDF36\uD83C\uDF37\uD83C\uDF38\uD83C\uDF39\uD83C\uDF3A\uD83C\uDF3B\uD83C\uDF3C\uD83C\uDF3D\uD83C\uDF3E\uD83C\uDF3F\uD83C\uDF40\uD83C\uDF41\uD83C\uDF42\uD83C\uDF43\uD83C\uDF44\uD83C\uDF45\uD83C\uDF46\uD83C\uDF47\uD83C\uDF48\uD83C\uDF49\uD83C\uDF4A\uD83C\uDF4B\uD83C\uDF4C\uD83C\uDF4D\uD83C\uDF4E\uD83C\uDF4F\uD83C\uDF50\uD83C\uDF51\uD83C\uDF52\uD83C\uDF53\uD83C\uDF54\uD83C\uDF55\uD83C\uDF56\uD83C\uDF57\uD83C\uDF58\uD83C\uDF59\uD83C\uDF5A\uD83C\uDF5B\uD83C\uDF5C\uD83C\uDF5D\uD83C\uDF5E\uD83C\uDF5F\uD83C\uDF60\uD83C\uDF61\uD83C\uDF62\uD83C\uDF63\uD83C\uDF64\uD83C\uDF65\uD83C\uDF66\uD83C\uDF67\uD83C\uDF68\uD83C\uDF69\uD83C\uDF6A\uD83C\uDF6B\uD83C\uDF6C\uD83C\uDF6D\uD83C\uDF6E\uD83C\uDF6F\uD83C\uDF70\uD83C\uDF71\uD83C\uDF72\uD83C\uDF73\uD83C\uDF74\uD83C\uDF75\uD83C\uDF76\uD83C\uDF77\uD83C\uDF78\uD83C\uDF79\uD83C\uDF7A\uD83C\uDF7B\uD83C\uDF7C\uD83C\uDF7D\uD83C\uDF7E\uD83C\uDF7F\uD83C\uDF80\uD83C\uDF81\uD83C\uDF82\uD83C\uDF83\uD83C\uDF84\uD83C\uDF85\uD83C\uDF86\uD83C\uDF87\uD83C\uDF88\uD83C\uDF89\uD83C\uDF8A\uD83C\uDF8B\uD83C\uDF8C\uD83C\uDF8D\uD83C\uDF8E\uD83C\uDF8F\uD83C\uDF90\uD83C\uDF91\uD83C\uDF92\uD83C\uDF93\uD83C\uDF96\uD83C\uDF97\uD83C\uDF99\uD83C\uDF9A\uD83C\uDF9B\uD83C\uDF9E\uD83C\uDF9F\uD83C\uDFA0\uD83C\uDFA1\uD83C\uDFA2\uD83C\uDFA3\uD83C\uDFA4\uD83C\uDFA5\uD83C\uDFA6\uD83C\uDFA7\uD83C\uDFA8\uD83C\uDFA9\uD83C\uDFAA\uD83C\uDFAB\uD83C\uDFAC\uD83C\uDFAD\uD83C\uDFAE\uD83C\uDFAF\uD83C\uDFB0\uD83C\uDFB1\uD83C\uDFB2\uD83C\uDFB3\uD83C\uDFB4\uD83C\uDFB5\uD83C\uDFB6\uD83C\uDFB7\uD83C\uDFB8\uD83C\uDFB9\uD83C\uDFBA\uD83C\uDFBB\uD83C\uDFBC\uD83C\uDFBD\uD83C\uDFBE\uD83C\uDFBF\uD83C\uDFC0\uD83C\uDFC1\uD83C\uDFC2\uD83C\uDFC3\uD83C\uDFC4\uD83C\uDFC5\uD83C\uDFC6\uD83C\uDFC7\uD83C\uDFC8\uD83C\uDFC9\uD83C\uDFCA\uD83C\uDFCB\uD83C\uDFCC\uD83C\uDFCD\uD83C\uDFCE\uD83C\uDFCF\uD83C\uDFD0\uD83C\uDFD1\uD83C\uDFD2\uD83C\uDFD3\uD83C\uDFD4\uD83C\uDFD5\uD83C\uDFD6\uD83C\uDFD7\uD83C\uDFD8\uD83C\uDFD9\uD83C\uDFDA\uD83C\uDFDB\uD83C\uDFDC\uD83C\uDFDD\uD83C\uDFDE\uD83C\uDFDF\uD83C\uDFE0\uD83C\uDFE1\uD83C\uDFE2\uD83C\uDFE3\uD83C\uDFE4\uD83C\uDFE5\uD83C\uDFE6\uD83C\uDFE7\uD83C\uDFE8\uD83C\uDFE9\uD83C\uDFEA\uD83C\uDFEB\uD83C\uDFEC\uD83C\uDFED\uD83C\uDFEE\uD83C\uDFEF\uD83C\uDFF0\uD83C\uDFF3\uD83C\uDFF4\uD83C\uDFF5\uD83C\uDFF7\uD83C\uDFF8\uD83C\uDFF9\uD83C\uDFFA\uD83D\uDC00\uD83D\uDC01\uD83D\uDC02\uD83D\uDC03\uD83D\uDC04\uD83D\uDC05\uD83D\uDC06\uD83D\uDC07\uD83D\uDC08\uD83D\uDC09\uD83D\uDC0A\uD83D\uDC0B\uD83D\uDC0C\uD83D\uDC0D\uD83D\uDC0E\uD83D\uDC0F\uD83D\uDC10\uD83D\uDC11\uD83D\uDC12\uD83D\uDC13\uD83D\uDC14\uD83D\uDC15\uD83D\uDC16\uD83D\uDC17\uD83D\uDC18\uD83D\uDC19\uD83D\uDC1A\uD83D\uDC1B\uD83D\uDC1C\uD83D\uDC1D\uD83D\uDC1E\uD83D\uDC1F\uD83D\uDC20\uD83D\uDC21\uD83D\uDC22\uD83D\uDC23\uD83D\uDC24\uD83D\uDC25\uD83D\uDC26\uD83D\uDC27\uD83D\uDC28\uD83D\uDC29\uD83D\uDC2A\uD83D\uDC2B\uD83D\uDC2C\uD83D\uDC2D\uD83D\uDC2E\uD83D\uDC2F\uD83D\uDC30\uD83D\uDC31\uD83D\uDC32\uD83D\uDC33\uD83D\uDC34\uD83D\uDC35\uD83D\uDC36\uD83D\uDC37\uD83D\uDC38\uD83D\uDC39\uD83D\uDC3A\uD83D\uDC3B\uD83D\uDC3C\uD83D\uDC3D\uD83D\uDC3E\uD83D\uDC3F\uD83D\uDC40\uD83D\uDC41\uD83D\uDC42\uD83D\uDC43\uD83D\uDC44\uD83D\uDC45\uD83D\uDC46\uD83D\uDC47\uD83D\uDC48\uD83D\uDC49\uD83D\uDC4A\uD83D\uDC4B\uD83D\uDC4C\uD83D\uDC4D\uD83D\uDC4E\uD83D\uDC4F\uD83D\uDC50\uD83D\uDC51\uD83D\uDC52\uD83D\uDC53\uD83D\uDC54\uD83D\uDC55\uD83D\uDC56\uD83D\uDC57\uD83D\uDC58\uD83D\uDC59\uD83D\uDC5A\uD83D\uDC5B\uD83D\uDC5C\uD83D\uDC5D\uD83D\uDC5E\uD83D\uDC5F\uD83D\uDC60\uD83D\uDC61\uD83D\uDC62\uD83D\uDC63\uD83D\uDC64\uD83D\uDC65\uD83D\uDC66\uD83D\uDC67\uD83D\uDC68\uD83D\uDC69\uD83D\uDC6A\uD83D\uDC6B\uD83D\uDC6C\uD83D\uDC6D\uD83D\uDC6E\uD83D\uDC6F\uD83D\uDC70\uD83D\uDC71\uD83D\uDC72\uD83D\uDC73\uD83D\uDC74\uD83D\uDC75\uD83D\uDC76\uD83D\uDC77\uD83D\uDC78\uD83D\uDC79\uD83D\uDC7A\uD83D\uDC7B\uD83D\uDC7C\uD83D\uDC7D\uD83D\uDC7E\uD83D\uDC7F\uD83D\uDC80\uD83D\uDC81\uD83D\uDC82\uD83D\uDC83\uD83D\uDC84\uD83D\uDC85\uD83D\uDC86\uD83D\uDC87\uD83D\uDC88\uD83D\uDC89\uD83D\uDC8A\uD83D\uDC8B\uD83D\uDC8C\uD83D\uDC8D\uD83D\uDC8E\uD83D\uDC8F\uD83D\uDC90\uD83D\uDC91\uD83D\uDC92\uD83D\uDC93\uD83D\uDC94\uD83D\uDC95\uD83D\uDC96\uD83D\uDC97\uD83D\uDC98\uD83D\uDC99\uD83D\uDC9A\uD83D\uDC9B\uD83D\uDC9C\uD83D\uDC9D\uD83D\uDC9E\uD83D\uDC9F\uD83D\uDCA0\uD83D\uDCA1\uD83D\uDCA2\uD83D\uDCA3\uD83D\uDCA4\uD83D\uDCA5\uD83D\uDCA6\uD83D\uDCA7\uD83D\uDCA8\uD83D\uDCA9\uD83D\uDCAA\uD83D\uDCAB\uD83D\uDCAC\uD83D\uDCAD\uD83D\uDCAE\uD83D\uDCAF\uD83D\uDCB0\uD83D\uDCB1\uD83D\uDCB2\uD83D\uDCB3\uD83D\uDCB4\uD83D\uDCB5\uD83D\uDCB6\uD83D\uDCB7\uD83D\uDCB8\uD83D\uDCB9\uD83D\uDCBA\uD83D\uDCBB\uD83D\uDCBC\uD83D\uDCBD\uD83D\uDCBE\uD83D\uDCBF\uD83D\uDCC0\uD83D\uDCC1\uD83D\uDCC2\uD83D\uDCC3\uD83D\uDCC4\uD83D\uDCC5\uD83D\uDCC6\uD83D\uDCC7\uD83D\uDCC8\uD83D\uDCC9\uD83D\uDCCA\uD83D\uDCCB\uD83D\uDCCC\uD83D\uDCCD\uD83D\uDCCE\uD83D\uDCCF\uD83D\uDCD0\uD83D\uDCD1\uD83D\uDCD2\uD83D\uDCD3\uD83D\uDCD4\uD83D\uDCD5\uD83D\uDCD6\uD83D\uDCD7\uD83D\uDCD8\uD83D\uDCD9\uD83D\uDCDA\uD83D\uDCDB\uD83D\uDCDC\uD83D\uDCDD\uD83D\uDCDE\uD83D\uDCDF\uD83D\uDCE0\uD83D\uDCE1\uD83D\uDCE2\uD83D\uDCE3\uD83D\uDCE4\uD83D\uDCE5\uD83D\uDCE6\uD83D\uDCE7\uD83D\uDCE8\uD83D\uDCE9\uD83D\uDCEA\uD83D\uDCEB\uD83D\uDCEC\uD83D\uDCED\uD83D\uDCEE\uD83D\uDCEF\uD83D\uDCF0\uD83D\uDCF1\uD83D\uDCF2\uD83D\uDCF3\uD83D\uDCF4\uD83D\uDCF5\uD83D\uDCF6\uD83D\uDCF7\uD83D\uDCF8\uD83D\uDCF9\uD83D\uDCFA\uD83D\uDCFB\uD83D\uDCFC\uD83D\uDCFD\uD83D\uDCFF\uD83D\uDD00\uD83D\uDD01\uD83D\uDD02\uD83D\uDD03\uD83D\uDD04\uD83D\uDD05\uD83D\uDD06\uD83D\uDD07\uD83D\uDD08\uD83D\uDD09\uD83D\uDD0A\uD83D\uDD0B\uD83D\uDD0C\uD83D\uDD0D\uD83D\uDD0E\uD83D\uDD0F\uD83D\uDD10\uD83D\uDD11\uD83D\uDD12\uD83D\uDD13\uD83D\uDD14\uD83D\uDD15\uD83D\uDD16\uD83D\uDD17\uD83D\uDD18\uD83D\uDD19\uD83D\uDD1A\uD83D\uDD1B\uD83D\uDD1C\uD83D\uDD1D\uD83D\uDD1E\uD83D\uDD1F\uD83D\uDD20\uD83D\uDD21\uD83D\uDD22\uD83D\uDD23\uD83D\uDD24\uD83D\uDD25\uD83D\uDD26\uD83D\uDD27\uD83D\uDD28\uD83D\uDD29\uD83D\uDD2A\uD83D\uDD2B\uD83D\uDD2C\uD83D\uDD2D\uD83D\uDD2E\uD83D\uDD2F\uD83D\uDD30\uD83D\uDD31\uD83D\uDD32\uD83D\uDD33\uD83D\uDD34\uD83D\uDD35\uD83D\uDD36\uD83D\uDD37\uD83D\uDD38\uD83D\uDD39\uD83D\uDD3A\uD83D\uDD3B\uD83D\uDD3C\uD83D\uDD3D\uD83D\uDD49\uD83D\uDD4A\uD83D\uDD4B\uD83D\uDD4C\uD83D\uDD4D\uD83D\uDD4E\uD83D\uDD50\uD83D\uDD51\uD83D\uDD52\uD83D\uDD53\uD83D\uDD54\uD83D\uDD55\uD83D\uDD56\uD83D\uDD57\uD83D\uDD58\uD83D\uDD59\uD83D\uDD5A\uD83D\uDD5B\uD83D\uDD5C\uD83D\uDD5D\uD83D\uDD5E\uD83D\uDD5F\uD83D\uDD60\uD83D\uDD61\uD83D\uDD62\uD83D\uDD63\uD83D\uDD64\uD83D\uDD65\uD83D\uDD66\uD83D\uDD67\uD83D\uDD6F\uD83D\uDD70\uD83D\uDD73\uD83D\uDD74\uD83D\uDD75\uD83D\uDD76\uD83D\uDD77\uD83D\uDD78\uD83D\uDD79\uD83D\uDD7A\uD83D\uDD87\uD83D\uDD8A\uD83D\uDD8B\uD83D\uDD8C\uD83D\uDD8D\uD83D\uDD90\uD83D\uDD95\uD83D\uDD96\uD83D\uDDA4\uD83D\uDDA5\uD83D\uDDA8\uD83D\uDDB1\uD83D\uDDB2\uD83D\uDDBC\uD83D\uDDC2\uD83D\uDDC3\uD83D\uDDC4\uD83D\uDDD1\uD83D\uDDD2\uD83D\uDDD3\uD83D\uDDDC\uD83D\uDDDD\uD83D\uDDDE\uD83D\uDDE1\uD83D\uDDE3\uD83D\uDDE8\uD83D\uDDEF\uD83D\uDDF3\uD83D\uDDFA\uD83D\uDDFB\uD83D\uDDFC\uD83D\uDDFD\uD83D\uDDFE\uD83D\uDDFF\uD83D\uDE00\uD83D\uDE01\uD83D\uDE02\uD83D\uDE03\uD83D\uDE04\uD83D\uDE05\uD83D\uDE06\uD83D\uDE07\uD83D\uDE08\uD83D\uDE09\uD83D\uDE0A\uD83D\uDE0B\uD83D\uDE0C\uD83D\uDE0D\uD83D\uDE0E\uD83D\uDE0F\uD83D\uDE10\uD83D\uDE11\uD83D\uDE12\uD83D\uDE13\uD83D\uDE14\uD83D\uDE15\uD83D\uDE16\uD83D\uDE17\uD83D\uDE18\uD83D\uDE19\uD83D\uDE1A\uD83D\uDE1B\uD83D\uDE1C\uD83D\uDE1D\uD83D\uDE1E\uD83D\uDE1F\uD83D\uDE20\uD83D\uDE21\uD83D\uDE22\uD83D\uDE23\uD83D\uDE24\uD83D\uDE25\uD83D\uDE26\uD83D\uDE27\uD83D\uDE28\uD83D\uDE29\uD83D\uDE2A\uD83D\uDE2B\uD83D\uDE2C\uD83D\uDE2D\uD83D\uDE2E\uD83D\uDE2F\uD83D\uDE30\uD83D\uDE31\uD83D\uDE32\uD83D\uDE33\uD83D\uDE34\uD83D\uDE35\uD83D\uDE36\uD83D\uDE37\uD83D\uDE38\uD83D\uDE39\uD83D\uDE3A\uD83D\uDE3B\uD83D\uDE3C\uD83D\uDE3D\uD83D\uDE3E\uD83D\uDE3F\uD83D\uDE40\uD83D\uDE41\uD83D\uDE42\uD83D\uDE43\uD83D\uDE44\uD83D\uDE45\uD83D\uDE46\uD83D\uDE47\uD83D\uDE48\uD83D\uDE49\uD83D\uDE4A\uD83D\uDE4B\uD83D\uDE4C\uD83D\uDE4D\uD83D\uDE4E\uD83D\uDE4F\uD83D\uDE80\uD83D\uDE81\uD83D\uDE82\uD83D\uDE83\uD83D\uDE84\uD83D\uDE85\uD83D\uDE86\uD83D\uDE87\uD83D\uDE88\uD83D\uDE89\uD83D\uDE8A\uD83D\uDE8B\uD83D\uDE8C\uD83D\uDE8D\uD83D\uDE8E\uD83D\uDE8F\uD83D\uDE90\uD83D\uDE91\uD83D\uDE92\uD83D\uDE93\uD83D\uDE94\uD83D\uDE95\uD83D\uDE96\uD83D\uDE97\uD83D\uDE98\uD83D\uDE99\uD83D\uDE9A\uD83D\uDE9B\uD83D\uDE9C\uD83D\uDE9D\uD83D\uDE9E\uD83D\uDE9F\uD83D\uDEA0\uD83D\uDEA1\uD83D\uDEA2\uD83D\uDEA3\uD83D\uDEA4\uD83D\uDEA5\uD83D\uDEA6\uD83D\uDEA7\uD83D\uDEA8\uD83D\uDEA9\uD83D\uDEAA\uD83D\uDEAB\uD83D\uDEAC\uD83D\uDEAD\uD83D\uDEAE\uD83D\uDEAF\uD83D\uDEB0\uD83D\uDEB1\uD83D\uDEB2\uD83D\uDEB3\uD83D\uDEB4\uD83D\uDEB5\uD83D\uDEB6\uD83D\uDEB7\uD83D\uDEB8\uD83D\uDEB9\uD83D\uDEBA\uD83D\uDEBB\uD83D\uDEBC\uD83D\uDEBD\uD83D\uDEBE\uD83D\uDEBF\uD83D\uDEC0\uD83D\uDEC1\uD83D\uDEC2\uD83D\uDEC3\uD83D\uDEC4\uD83D\uDEC5\uD83D\uDECB\uD83D\uDECC\uD83D\uDECD\uD83D\uDECE\uD83D\uDECF\uD83D\uDED0\uD83D\uDED1\uD83D\uDED2\uD83D\uDEE0\uD83D\uDEE1\uD83D\uDEE2\uD83D\uDEE3\uD83D\uDEE4\uD83D\uDEE5\uD83D\uDEE9\uD83D\uDEEB\uD83D\uDEEC\uD83D\uDEF0\uD83D\uDEF3\uD83D\uDEF4\uD83D\uDEF5\uD83D\uDEF6\uD83E\uDD10\uD83E\uDD11\uD83E\uDD12\uD83E\uDD13\uD83E\uDD14\uD83E\uDD15\uD83E\uDD16\uD83E\uDD17\uD83E\uDD18\uD83E\uDD19\uD83E\uDD1A\uD83E\uDD1B\uD83E\uDD1C\uD83E\uDD1D\uD83E\uDD1E\uD83E\uDD20\uD83E\uDD21\uD83E\uDD22\uD83E\uDD23\uD83E\uDD24\uD83E\uDD25\uD83E\uDD26\uD83E\uDD27\uD83E\uDD30\uD83E\uDD33\uD83E\uDD34\uD83E\uDD35\uD83E\uDD36\uD83E\uDD37\uD83E\uDD38\uD83E\uDD39\uD83E\uDD3A\uD83E\uDD3C\uD83E\uDD3D\uD83E\uDD3E\uD83E\uDD40\uD83E\uDD41\uD83E\uDD42\uD83E\uDD43\uD83E\uDD44\uD83E\uDD45\uD83E\uDD47\uD83E\uDD48\uD83E\uDD49\uD83E\uDD4A\uD83E\uDD4B\uD83E\uDD50\uD83E\uDD51\uD83E\uDD52\uD83E\uDD53\uD83E\uDD54\uD83E\uDD55\uD83E\uDD56\uD83E\uDD57\uD83E\uDD58\uD83E\uDD59\uD83E\uDD5A\uD83E\uDD5B\uD83E\uDD5C\uD83E\uDD5D\uD83E\uDD5E\uD83E\uDD80\uD83E\uDD81\uD83E\uDD82\uD83E\uDD83\uD83E\uDD84\uD83E\uDD85\uD83E\uDD86\uD83E\uDD87\uD83E\uDD88\uD83E\uDD89\uD83E\uDD8A\uD83E\uDD8B\uD83E\uDD8C\uD83E\uDD8D\uD83E\uDD8E\uD83E\uDD8F\uD83E\uDD90\uD83E\uDD91\uD83E\uDDC0#\u20E3*0123456789\uD83C\uDDE6\uD83C\uDDE8\uD83C\uDDE9\uD83C\uDDEA\uD83C\uDDEB\uD83C\uDDEC\uD83C\uDDEE\uD83C\uDDF1\uD83C\uDDF2\uD83C\uDDF4\uD83C\uDDF6\uD83C\uDDF7\uD83C\uDDF8\uD83C\uDDF9\uD83C\uDDFA\uD83C\uDDFC\uD83C\uDDFD\uD83C\uDDFF\uD83C\uDDE7\uD83C\uDDED\uD83C\uDDEF\uD83C\uDDF3\uD83C\uDDFB\uD83C\uDDFE\uD83C\uDDF0\uD83C\uDDF5\u200D]/,
+      peg$c46 = peg$otherExpectation("stripped character class"),
+      peg$c47 = function(emoji) {
          const emojiText = emoji.join('')
          const results = []
          let match
@@ -200,11 +207,11 @@ function peg$parse(input, options) {
          results.push(emojiText.substring(idx, emojiText.length))
          return results.filter(Boolean)
        },
-      peg$c41 = "http",
-      peg$c42 = peg$literalExpectation("http", true),
-      peg$c43 = "s",
-      peg$c44 = peg$literalExpectation("s", true),
-      peg$c45 = function(proto, url) {
+      peg$c48 = "http",
+      peg$c49 = peg$literalExpectation("http", true),
+      peg$c50 = "s",
+      peg$c51 = peg$literalExpectation("s", true),
+      peg$c52 = function(proto, url) {
            const matches = url.join('').match(linkExp)
            if (!matches) {
              return false
@@ -213,7 +220,7 @@ function peg$parse(input, options) {
            url._match = match  // save the match via expando property (used below)
            return goodLink(match)
          },
-      peg$c46 = function(proto, url) {
+      peg$c53 = function(proto, url) {
          const match = url._match
          delete url._match
          const urlText = url.join('')
@@ -225,22 +232,22 @@ function peg$parse(input, options) {
            urlText.substring(match.length, urlText.length),
          ]
        },
-      peg$c47 = /^[\t\x0B\f \xA0\uFEFF]/,
-      peg$c48 = peg$otherExpectation("stripped character class"),
-      peg$c49 = peg$otherExpectation("end of line"),
-      peg$c50 = "\n",
-      peg$c51 = peg$literalExpectation("\n", false),
-      peg$c52 = "\r\n",
-      peg$c53 = peg$literalExpectation("\r\n", false),
-      peg$c54 = "\r",
-      peg$c55 = peg$literalExpectation("\r", false),
-      peg$c56 = "\u2028",
-      peg$c57 = peg$literalExpectation("\u2028", false),
-      peg$c58 = "\u2029",
-      peg$c59 = peg$literalExpectation("\u2029", false),
-      peg$c60 = function() { /* consume */ },
-      peg$c61 = /^[ \xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]/,
-      peg$c62 = peg$otherExpectation("stripped character class"),
+      peg$c54 = /^[\t\x0B\f \xA0\uFEFF]/,
+      peg$c55 = peg$otherExpectation("stripped character class"),
+      peg$c56 = peg$otherExpectation("end of line"),
+      peg$c57 = "\n",
+      peg$c58 = peg$literalExpectation("\n", false),
+      peg$c59 = "\r\n",
+      peg$c60 = peg$literalExpectation("\r\n", false),
+      peg$c61 = "\r",
+      peg$c62 = peg$literalExpectation("\r", false),
+      peg$c63 = "\u2028",
+      peg$c64 = peg$literalExpectation("\u2028", false),
+      peg$c65 = "\u2029",
+      peg$c66 = peg$literalExpectation("\u2029", false),
+      peg$c67 = function() { /* consume */ },
+      peg$c68 = /^[ \xA0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]/,
+      peg$c69 = peg$otherExpectation("stripped character class"),
 
       peg$currPos          = 0,
       peg$savedPos         = 0,
@@ -830,11 +837,14 @@ function peg$parse(input, options) {
       if (s0 === peg$FAILED) {
         s0 = peg$parseBold();
         if (s0 === peg$FAILED) {
-          s0 = peg$parseStrike();
+          s0 = peg$parseMention();
           if (s0 === peg$FAILED) {
-            s0 = peg$parseLink();
+            s0 = peg$parseStrike();
             if (s0 === peg$FAILED) {
-              s0 = peg$parseInlineCont();
+              s0 = peg$parseLink();
+              if (s0 === peg$FAILED) {
+                s0 = peg$parseInlineCont();
+              }
             }
           }
         }
@@ -1010,15 +1020,74 @@ function peg$parse(input, options) {
     return s0;
   }
 
-  function peg$parsePunctuationMarker() {
+  function peg$parseMentionMarker() {
     var s0;
 
-    if (peg$c20.test(input.charAt(peg$currPos))) {
-      s0 = input.charAt(peg$currPos);
+    if (input.charCodeAt(peg$currPos) === 64) {
+      s0 = peg$c20;
       peg$currPos++;
     } else {
       s0 = peg$FAILED;
       if (peg$silentFails === 0) { peg$fail(peg$c21); }
+    }
+
+    return s0;
+  }
+
+  function peg$parseValidMentionService() {
+    var s0;
+
+    if (input.substr(peg$currPos, 7) === peg$c22) {
+      s0 = peg$c22;
+      peg$currPos += 7;
+    } else {
+      s0 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$c23); }
+    }
+    if (s0 === peg$FAILED) {
+      if (input.substr(peg$currPos, 7) === peg$c24) {
+        s0 = peg$c24;
+        peg$currPos += 7;
+      } else {
+        s0 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c25); }
+      }
+    }
+
+    return s0;
+  }
+
+  function peg$parseClosingMentionMarker() {
+    var s0, s1, s2;
+
+    s0 = peg$currPos;
+    s1 = peg$parseMentionMarker();
+    if (s1 !== peg$FAILED) {
+      s2 = peg$parseValidMentionService();
+      if (s2 !== peg$FAILED) {
+        s1 = [s1, s2];
+        s0 = s1;
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s0;
+      s0 = peg$FAILED;
+    }
+
+    return s0;
+  }
+
+  function peg$parsePunctuationMarker() {
+    var s0;
+
+    if (peg$c26.test(input.charAt(peg$currPos))) {
+      s0 = input.charAt(peg$currPos);
+      peg$currPos++;
+    } else {
+      s0 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$c27); }
     }
 
     return s0;
@@ -1031,23 +1100,26 @@ function peg$parse(input, options) {
     if (s0 === peg$FAILED) {
       s0 = peg$parseStrikeMarker();
       if (s0 === peg$FAILED) {
-        s0 = peg$parseBoldMarker();
+        s0 = peg$parseMentionMarker();
         if (s0 === peg$FAILED) {
-          s0 = peg$parseItalicMarker();
+          s0 = peg$parseBoldMarker();
           if (s0 === peg$FAILED) {
-            s0 = peg$parseEmojiMarker();
+            s0 = peg$parseItalicMarker();
             if (s0 === peg$FAILED) {
-              s0 = peg$parseQuoteBlockMarker();
+              s0 = peg$parseEmojiMarker();
               if (s0 === peg$FAILED) {
-                s0 = peg$parseTicks1();
+                s0 = peg$parseQuoteBlockMarker();
                 if (s0 === peg$FAILED) {
-                  s0 = peg$currPos;
-                  s1 = peg$parsePunctuationMarker();
-                  if (s1 !== peg$FAILED) {
-                    peg$savedPos = s0;
-                    s1 = peg$c22();
+                  s0 = peg$parseTicks1();
+                  if (s0 === peg$FAILED) {
+                    s0 = peg$currPos;
+                    s1 = peg$parsePunctuationMarker();
+                    if (s1 !== peg$FAILED) {
+                      peg$savedPos = s0;
+                      s1 = peg$c28();
+                    }
+                    s0 = s1;
                   }
-                  s0 = s1;
                 }
               }
             }
@@ -1068,7 +1140,7 @@ function peg$parse(input, options) {
       s2 = peg$parseSpecialChar();
       if (s2 !== peg$FAILED) {
         peg$savedPos = s0;
-        s1 = peg$c23(s2);
+        s1 = peg$c29(s2);
         s0 = s1;
       } else {
         peg$currPos = s0;
@@ -1111,7 +1183,7 @@ function peg$parse(input, options) {
         s3 = peg$parseNonBlank();
         if (s3 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c22();
+          s1 = peg$c28();
           s0 = s1;
         } else {
           peg$currPos = s0;
@@ -1145,7 +1217,7 @@ function peg$parse(input, options) {
     }
     if (s1 !== peg$FAILED) {
       peg$savedPos = s0;
-      s1 = peg$c22();
+      s1 = peg$c28();
     }
     s0 = s1;
 
@@ -1188,7 +1260,7 @@ function peg$parse(input, options) {
           }
           if (s4 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c24(s3);
+            s1 = peg$c30(s3);
             s0 = s1;
           } else {
             peg$currPos = s0;
@@ -1419,7 +1491,7 @@ function peg$parse(input, options) {
             }
             if (s5 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$c25(s3);
+              s1 = peg$c31(s3);
               s0 = s1;
             } else {
               peg$currPos = s0;
@@ -1654,7 +1726,7 @@ function peg$parse(input, options) {
             }
             if (s5 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$c26(s3);
+              s1 = peg$c32(s3);
               s0 = s1;
             } else {
               peg$currPos = s0;
@@ -1889,7 +1961,230 @@ function peg$parse(input, options) {
             }
             if (s5 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$c27(s3);
+              s1 = peg$c33(s3);
+              s0 = s1;
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+    } else {
+      peg$currPos = s0;
+      s0 = peg$FAILED;
+    }
+
+    return s0;
+  }
+
+  function peg$parseMention() {
+    var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11;
+
+    s0 = peg$currPos;
+    s1 = peg$parseMentionMarker();
+    if (s1 !== peg$FAILED) {
+      s2 = peg$currPos;
+      peg$silentFails++;
+      s3 = peg$parseWhiteSpace();
+      peg$silentFails--;
+      if (s3 === peg$FAILED) {
+        s2 = void 0;
+      } else {
+        peg$currPos = s2;
+        s2 = peg$FAILED;
+      }
+      if (s2 !== peg$FAILED) {
+        s3 = peg$currPos;
+        s4 = peg$currPos;
+        peg$silentFails++;
+        s5 = peg$parseClosingMentionMarker();
+        peg$silentFails--;
+        if (s5 === peg$FAILED) {
+          s4 = void 0;
+        } else {
+          peg$currPos = s4;
+          s4 = peg$FAILED;
+        }
+        if (s4 !== peg$FAILED) {
+          s5 = [];
+          s6 = peg$parseInlineDelimiter();
+          while (s6 !== peg$FAILED) {
+            s5.push(s6);
+            s6 = peg$parseInlineDelimiter();
+          }
+          if (s5 !== peg$FAILED) {
+            s6 = peg$parseInlineStart();
+            if (s6 !== peg$FAILED) {
+              s7 = [];
+              s8 = peg$currPos;
+              s9 = [];
+              s10 = peg$parseInlineDelimiter();
+              if (s10 !== peg$FAILED) {
+                while (s10 !== peg$FAILED) {
+                  s9.push(s10);
+                  s10 = peg$parseInlineDelimiter();
+                }
+              } else {
+                s9 = peg$FAILED;
+              }
+              if (s9 !== peg$FAILED) {
+                s10 = peg$currPos;
+                peg$silentFails++;
+                s11 = peg$parseClosingMentionMarker();
+                peg$silentFails--;
+                if (s11 === peg$FAILED) {
+                  s10 = void 0;
+                } else {
+                  peg$currPos = s10;
+                  s10 = peg$FAILED;
+                }
+                if (s10 !== peg$FAILED) {
+                  s11 = peg$parseInlineStart();
+                  if (s11 !== peg$FAILED) {
+                    s9 = [s9, s10, s11];
+                    s8 = s9;
+                  } else {
+                    peg$currPos = s8;
+                    s8 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s8;
+                  s8 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s8;
+                s8 = peg$FAILED;
+              }
+              if (s8 === peg$FAILED) {
+                s8 = peg$currPos;
+                s9 = peg$currPos;
+                peg$silentFails++;
+                s10 = peg$parseClosingMentionMarker();
+                peg$silentFails--;
+                if (s10 === peg$FAILED) {
+                  s9 = void 0;
+                } else {
+                  peg$currPos = s9;
+                  s9 = peg$FAILED;
+                }
+                if (s9 !== peg$FAILED) {
+                  s10 = peg$parseInlineCont();
+                  if (s10 !== peg$FAILED) {
+                    s9 = [s9, s10];
+                    s8 = s9;
+                  } else {
+                    peg$currPos = s8;
+                    s8 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s8;
+                  s8 = peg$FAILED;
+                }
+              }
+              while (s8 !== peg$FAILED) {
+                s7.push(s8);
+                s8 = peg$currPos;
+                s9 = [];
+                s10 = peg$parseInlineDelimiter();
+                if (s10 !== peg$FAILED) {
+                  while (s10 !== peg$FAILED) {
+                    s9.push(s10);
+                    s10 = peg$parseInlineDelimiter();
+                  }
+                } else {
+                  s9 = peg$FAILED;
+                }
+                if (s9 !== peg$FAILED) {
+                  s10 = peg$currPos;
+                  peg$silentFails++;
+                  s11 = peg$parseClosingMentionMarker();
+                  peg$silentFails--;
+                  if (s11 === peg$FAILED) {
+                    s10 = void 0;
+                  } else {
+                    peg$currPos = s10;
+                    s10 = peg$FAILED;
+                  }
+                  if (s10 !== peg$FAILED) {
+                    s11 = peg$parseInlineStart();
+                    if (s11 !== peg$FAILED) {
+                      s9 = [s9, s10, s11];
+                      s8 = s9;
+                    } else {
+                      peg$currPos = s8;
+                      s8 = peg$FAILED;
+                    }
+                  } else {
+                    peg$currPos = s8;
+                    s8 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s8;
+                  s8 = peg$FAILED;
+                }
+                if (s8 === peg$FAILED) {
+                  s8 = peg$currPos;
+                  s9 = peg$currPos;
+                  peg$silentFails++;
+                  s10 = peg$parseClosingMentionMarker();
+                  peg$silentFails--;
+                  if (s10 === peg$FAILED) {
+                    s9 = void 0;
+                  } else {
+                    peg$currPos = s9;
+                    s9 = peg$FAILED;
+                  }
+                  if (s9 !== peg$FAILED) {
+                    s10 = peg$parseInlineCont();
+                    if (s10 !== peg$FAILED) {
+                      s9 = [s9, s10];
+                      s8 = s9;
+                    } else {
+                      peg$currPos = s8;
+                      s8 = peg$FAILED;
+                    }
+                  } else {
+                    peg$currPos = s8;
+                    s8 = peg$FAILED;
+                  }
+                }
+              }
+              if (s7 !== peg$FAILED) {
+                s4 = [s4, s5, s6, s7];
+                s3 = s4;
+              } else {
+                peg$currPos = s3;
+                s3 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s3;
+              s3 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s3;
+            s3 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s3;
+          s3 = peg$FAILED;
+        }
+        if (s3 !== peg$FAILED) {
+          s4 = peg$parseMentionMarker();
+          if (s4 !== peg$FAILED) {
+            s5 = peg$parseValidMentionService();
+            if (s5 !== peg$FAILED) {
+              peg$savedPos = s0;
+              s1 = peg$c34(s3, s5);
               s0 = s1;
             } else {
               peg$currPos = s0;
@@ -1998,7 +2293,7 @@ function peg$parse(input, options) {
           s4 = peg$parseTicks3();
           if (s4 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c28(s3);
+            s1 = peg$c35(s3);
             s0 = s1;
           } else {
             peg$currPos = s0;
@@ -2098,7 +2393,7 @@ function peg$parse(input, options) {
         s3 = peg$parseTicks1();
         if (s3 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c29(s2);
+          s1 = peg$c36(s2);
           s0 = s1;
         } else {
           peg$currPos = s0;
@@ -2131,16 +2426,16 @@ function peg$parse(input, options) {
       s1 = peg$FAILED;
     }
     if (s1 !== peg$FAILED) {
-      if (peg$c30.test(input.charAt(peg$currPos))) {
+      if (peg$c37.test(input.charAt(peg$currPos))) {
         s2 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c31); }
+        if (peg$silentFails === 0) { peg$fail(peg$c38); }
       }
       if (s2 !== peg$FAILED) {
         peg$savedPos = s0;
-        s1 = peg$c22();
+        s1 = peg$c28();
         s0 = s1;
       } else {
         peg$currPos = s0;
@@ -2158,24 +2453,24 @@ function peg$parse(input, options) {
     var s0, s1, s2;
 
     s0 = peg$currPos;
-    if (input.substr(peg$currPos, 12) === peg$c32) {
-      s1 = peg$c32;
+    if (input.substr(peg$currPos, 12) === peg$c39) {
+      s1 = peg$c39;
       peg$currPos += 12;
     } else {
       s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c33); }
+      if (peg$silentFails === 0) { peg$fail(peg$c40); }
     }
     if (s1 !== peg$FAILED) {
-      if (peg$c34.test(input.charAt(peg$currPos))) {
+      if (peg$c41.test(input.charAt(peg$currPos))) {
         s2 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s2 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c35); }
+        if (peg$silentFails === 0) { peg$fail(peg$c42); }
       }
       if (s2 !== peg$FAILED) {
         peg$savedPos = s0;
-        s1 = peg$c22();
+        s1 = peg$c28();
         s0 = s1;
       } else {
         peg$currPos = s0;
@@ -2214,7 +2509,7 @@ function peg$parse(input, options) {
           s4 = peg$parseEmojiMarker();
           if (s4 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c36(s2, s3);
+            s1 = peg$c43(s2, s3);
             s0 = s1;
           } else {
             peg$currPos = s0;
@@ -2240,17 +2535,17 @@ function peg$parse(input, options) {
     var s0, s1;
 
     peg$silentFails++;
-    if (peg$c38.test(input.charAt(peg$currPos))) {
+    if (peg$c45.test(input.charAt(peg$currPos))) {
       s0 = input.charAt(peg$currPos);
       peg$currPos++;
     } else {
       s0 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c39); }
+      if (peg$silentFails === 0) { peg$fail(peg$c46); }
     }
     peg$silentFails--;
     if (s0 === peg$FAILED) {
       s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c37); }
+      if (peg$silentFails === 0) { peg$fail(peg$c44); }
     }
 
     return s0;
@@ -2272,7 +2567,7 @@ function peg$parse(input, options) {
     }
     if (s1 !== peg$FAILED) {
       peg$savedPos = s0;
-      s1 = peg$c40(s1);
+      s1 = peg$c47(s1);
     }
     s0 = s1;
 
@@ -2341,7 +2636,7 @@ function peg$parse(input, options) {
       s2 = peg$parseNonBlank();
       if (s2 !== peg$FAILED) {
         peg$savedPos = s0;
-        s1 = peg$c23(s2);
+        s1 = peg$c29(s2);
         s0 = s1;
       } else {
         peg$currPos = s0;
@@ -2360,20 +2655,20 @@ function peg$parse(input, options) {
 
     s0 = peg$currPos;
     s1 = peg$currPos;
-    if (input.substr(peg$currPos, 4).toLowerCase() === peg$c41) {
+    if (input.substr(peg$currPos, 4).toLowerCase() === peg$c48) {
       s2 = input.substr(peg$currPos, 4);
       peg$currPos += 4;
     } else {
       s2 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c42); }
+      if (peg$silentFails === 0) { peg$fail(peg$c49); }
     }
     if (s2 !== peg$FAILED) {
-      if (input.substr(peg$currPos, 1).toLowerCase() === peg$c43) {
+      if (input.substr(peg$currPos, 1).toLowerCase() === peg$c50) {
         s3 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s3 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c44); }
+        if (peg$silentFails === 0) { peg$fail(peg$c51); }
       }
       if (s3 === peg$FAILED) {
         s3 = null;
@@ -2417,7 +2712,7 @@ function peg$parse(input, options) {
       }
       if (s2 !== peg$FAILED) {
         peg$savedPos = peg$currPos;
-        s3 = peg$c45(s1, s2);
+        s3 = peg$c52(s1, s2);
         if (s3) {
           s3 = void 0;
         } else {
@@ -2425,7 +2720,7 @@ function peg$parse(input, options) {
         }
         if (s3 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c46(s1, s2);
+          s1 = peg$c53(s1, s2);
           s0 = s1;
         } else {
           peg$currPos = s0;
@@ -2470,7 +2765,7 @@ function peg$parse(input, options) {
       }
       if (s2 !== peg$FAILED) {
         peg$savedPos = s0;
-        s1 = peg$c23(s2);
+        s1 = peg$c29(s2);
         s0 = s1;
       } else {
         peg$currPos = s0;
@@ -2487,12 +2782,12 @@ function peg$parse(input, options) {
   function peg$parseWhiteSpace() {
     var s0;
 
-    if (peg$c47.test(input.charAt(peg$currPos))) {
+    if (peg$c54.test(input.charAt(peg$currPos))) {
       s0 = input.charAt(peg$currPos);
       peg$currPos++;
     } else {
       s0 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c48); }
+      if (peg$silentFails === 0) { peg$fail(peg$c55); }
     }
     if (s0 === peg$FAILED) {
       s0 = peg$parseSpace();
@@ -2507,43 +2802,43 @@ function peg$parse(input, options) {
     peg$silentFails++;
     s0 = peg$currPos;
     if (input.charCodeAt(peg$currPos) === 10) {
-      s1 = peg$c50;
+      s1 = peg$c57;
       peg$currPos++;
     } else {
       s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c51); }
+      if (peg$silentFails === 0) { peg$fail(peg$c58); }
     }
     if (s1 === peg$FAILED) {
-      if (input.substr(peg$currPos, 2) === peg$c52) {
-        s1 = peg$c52;
+      if (input.substr(peg$currPos, 2) === peg$c59) {
+        s1 = peg$c59;
         peg$currPos += 2;
       } else {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c53); }
+        if (peg$silentFails === 0) { peg$fail(peg$c60); }
       }
       if (s1 === peg$FAILED) {
         if (input.charCodeAt(peg$currPos) === 13) {
-          s1 = peg$c54;
+          s1 = peg$c61;
           peg$currPos++;
         } else {
           s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c55); }
+          if (peg$silentFails === 0) { peg$fail(peg$c62); }
         }
         if (s1 === peg$FAILED) {
           if (input.charCodeAt(peg$currPos) === 8232) {
-            s1 = peg$c56;
+            s1 = peg$c63;
             peg$currPos++;
           } else {
             s1 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c57); }
+            if (peg$silentFails === 0) { peg$fail(peg$c64); }
           }
           if (s1 === peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 8233) {
-              s1 = peg$c58;
+              s1 = peg$c65;
               peg$currPos++;
             } else {
               s1 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c59); }
+              if (peg$silentFails === 0) { peg$fail(peg$c66); }
             }
           }
         }
@@ -2551,13 +2846,13 @@ function peg$parse(input, options) {
     }
     if (s1 !== peg$FAILED) {
       peg$savedPos = s0;
-      s1 = peg$c60();
+      s1 = peg$c67();
     }
     s0 = s1;
     peg$silentFails--;
     if (s0 === peg$FAILED) {
       s1 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c49); }
+      if (peg$silentFails === 0) { peg$fail(peg$c56); }
     }
 
     return s0;
@@ -2566,12 +2861,12 @@ function peg$parse(input, options) {
   function peg$parseSpace() {
     var s0;
 
-    if (peg$c61.test(input.charAt(peg$currPos))) {
+    if (peg$c68.test(input.charAt(peg$currPos))) {
       s0 = input.charAt(peg$currPos);
       peg$currPos++;
     } else {
       s0 = peg$FAILED;
-      if (peg$silentFails === 0) { peg$fail(peg$c62); }
+      if (peg$silentFails === 0) { peg$fail(peg$c69); }
     }
 
     return s0;
@@ -2644,8 +2939,8 @@ module.exports = {
     // quick check to avoid markdown parsing overhead
     // only chars, numbers, whitespace, some common punctuation and periods
     // that end sentences (not domains)
-    const plaintextExp = /^([A-Za-z0-9!?=+@#$%^&()[\],'"\s]|\.\B)*$/
-    module.exports.isPlainText = function(markdown) {
+    const plaintextExp = /^([A-Za-z0-9!?=+#$%^&()[\],'"\s]|\.\B)*$/
+    module.exports.isPlainText = function isPlainText(markdown) {
       return markdown && markdown.match(plaintextExp) ? markdown.trim() : null
     }
   

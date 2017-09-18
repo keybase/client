@@ -7,6 +7,7 @@ import {List} from 'immutable'
 import {SimpleTopLine, FilteredTopLine} from './top-line'
 import BottomLine from './bottom-line'
 import {Avatars, TeamAvatar} from './avatars'
+import {isMobile} from '../../../constants/platform'
 
 type SimpleProps = {
   backgroundColor: string,
@@ -23,6 +24,7 @@ type SimpleProps = {
   timestamp: string,
   usernameColor: string,
   youNeedToRekey: boolean,
+  hasBadge: boolean,
 }
 
 class SmallTeamRow extends PureComponent<SimpleProps> {
@@ -49,6 +51,7 @@ class SmallTeamRow extends PureComponent<SimpleProps> {
           >
             <SimpleTopLine
               hasUnread={props.hasUnread}
+              hasBadge={props.hasBadge}
               participants={props.teamname ? List.of(props.teamname) : props.participants}
               showBold={props.showBold}
               subColor={props.subColor}
@@ -126,12 +129,14 @@ const conversationRowStyle = {
   paddingRight: 8,
 }
 
+const rowHeight = isMobile ? 64 : 56
+
 const rowContainerStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   flexShrink: 0,
-  maxHeight: 56,
-  minHeight: 56,
+  maxHeight: rowHeight,
+  minHeight: rowHeight,
 }
 
 export {SmallTeamRow, SmallTeamFilteredRow}

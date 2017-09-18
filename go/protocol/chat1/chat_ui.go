@@ -33,6 +33,7 @@ type UnverifiedInboxUIItem struct {
 	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
+	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
 	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time          gregor1.Time                  `codec:"time" json:"time"`
 }
@@ -44,6 +45,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 		Visibility:  o.Visibility.DeepCopy(),
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		TeamType:    o.TeamType.DeepCopy(),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
 				return nil
@@ -93,6 +95,7 @@ type InboxUIItem struct {
 	Participants  []string                      `codec:"participants" json:"participants"`
 	Status        ConversationStatus            `codec:"status" json:"status"`
 	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
+	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
 	Time          gregor1.Time                  `codec:"time" json:"time"`
 	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	CreatorInfo   *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
@@ -120,6 +123,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 		})(o.Participants),
 		Status:      o.Status.DeepCopy(),
 		MembersType: o.MembersType.DeepCopy(),
+		TeamType:    o.TeamType.DeepCopy(),
 		Time:        o.Time.DeepCopy(),
 		Notifications: (func(x *ConversationNotificationInfo) *ConversationNotificationInfo {
 			if x == nil {
@@ -622,6 +626,18 @@ func (o ChatThreadFullArg) DeepCopy() ChatThreadFullArg {
 	}
 }
 
+type ChatConfirmChannelDeleteArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Channel   string `codec:"channel" json:"channel"`
+}
+
+func (o ChatConfirmChannelDeleteArg) DeepCopy() ChatConfirmChannelDeleteArg {
+	return ChatConfirmChannelDeleteArg{
+		SessionID: o.SessionID,
+		Channel:   o.Channel,
+	}
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentUploadOutboxID(context.Context, ChatAttachmentUploadOutboxIDArg) error
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
@@ -637,6 +653,7 @@ type ChatUiInterface interface {
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
 	ChatThreadCached(context.Context, ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
+	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -867,6 +884,22 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"chatConfirmChannelDelete": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatConfirmChannelDeleteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatConfirmChannelDeleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatConfirmChannelDeleteArg)(nil), args)
+						return
+					}
+					ret, err = i.ChatConfirmChannelDelete(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -946,5 +979,10 @@ func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCach
 
 func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg})
+	return
+}
+
+func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatConfirmChannelDeleteArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatConfirmChannelDelete", []interface{}{__arg}, &res)
 	return
 }

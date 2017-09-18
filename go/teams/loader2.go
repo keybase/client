@@ -1,8 +1,9 @@
 package teams
 
 import (
-	"context"
 	"fmt"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -128,13 +129,13 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-func addProofsForKeyInUserSigchain(teamID keybase1.TeamID, teamLinkMap map[keybase1.Seqno]keybase1.LinkID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap map[keybase1.Seqno]keybase1.LinkID, proofSet *proofSetT) *proofSetT {
+func addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap map[keybase1.Seqno]keybase1.LinkID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap map[keybase1.Seqno]keybase1.LinkID, proofSet *proofSetT) *proofSetT {
 	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning, userLinkMap)
 	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	c := key.Base.Revocation
-	proofSet = proofSet.AddNeededHappensBeforeProof(a, b, "user key provisioned before team link")
+	proofSet = proofSet.AddNeededHappensBeforeProof(ctx, a, b, "user key provisioned before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
+		proofSet = proofSet.AddNeededHappensBeforeProof(ctx, b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
 	}
 	return proofSet
 }
@@ -186,7 +187,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		teamLinkMap = state.Chain.LinkIDs
 	}
 
-	proofSet = addProofsForKeyInUserSigchain(teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
+	proofSet = addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
 
 	signer := signerX{signer: signerUV}
 
@@ -251,13 +252,13 @@ func (l *TeamLoader) walkUpToAdmin(
 	return &TeamSigChainState{inner: team.Chain}, nil
 }
 
-func addProofsForAdminPermission(t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) *proofSetT {
+func addProofsForAdminPermission(ctx context.Context, t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) *proofSetT {
 	a := bookends.left
 	b := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
 	c := bookends.right
-	proofSet = proofSet.AddNeededHappensBeforeProof(a, b, "became admin before team link")
+	proofSet = proofSet.AddNeededHappensBeforeProof(ctx, a, b, "became admin before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(b, *c, "team link before adminship demotion")
+		proofSet = proofSet.AddNeededHappensBeforeProof(ctx, b, *c, "team link before adminship demotion")
 	}
 	return proofSet
 }
@@ -294,7 +295,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 		signer.implicitAdmin = true
 	}
 
-	proofSet = addProofsForAdminPermission(state.Chain, link, adminBookends, proofSet)
+	proofSet = addProofsForAdminPermission(ctx, state.Chain, link, adminBookends, proofSet)
 	return proofSet, signer, nil
 }
 
@@ -498,7 +499,7 @@ func (l *TeamLoader) checkOneParentChildOperation(ctx context.Context,
 func (l *TeamLoader) checkProofs(ctx context.Context,
 	state *keybase1.TeamData, proofSet *proofSetT) error {
 
-	return proofSet.check(ctx, l.G(), l.world)
+	return proofSet.check(ctx, l.world)
 }
 
 // Add data to the state that is not included in the sigchain:
@@ -527,6 +528,7 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	ret := state.DeepCopy()
 
 	// Check that each key matches the chain.
+	var gotOldKeys bool
 	for i, seed := range seeds {
 		gen := int(latestReceivedGen) + i + 1 - len(seeds)
 		if gen < 1 {
@@ -534,7 +536,7 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 		}
 
 		if gen <= int(latestChainGen) {
-			l.G().Log.CDebugf(ctx, "TeamLoader got old key, re-checking as if new")
+			gotOldKeys = true
 		}
 
 		item, err := l.checkPerTeamKeyAgainstChain(ctx, state, keybase1.PerTeamKeyGeneration(gen), seed)
@@ -544,6 +546,10 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 
 		// Add it to the snapshot
 		ret.PerTeamKeySeeds[item.Generation] = *item
+	}
+
+	if gotOldKeys {
+		l.G().Log.CDebugf(ctx, "TeamLoader got old keys, re-checking as if new")
 	}
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.

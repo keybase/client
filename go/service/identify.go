@@ -5,10 +5,13 @@ package service
 
 import (
 	"fmt"
+	"sync"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -31,7 +34,7 @@ type IdentifyHandler struct {
 
 func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
 	return &IdentifyHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -147,8 +150,229 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 	return res.UserOrTeam(), nil
 }
 
+func (h *IdentifyHandler) resolveUser(ctx context.Context, assertion string) (u keybase1.User, err error) {
+
+	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, assertion)
+	err = res.GetError()
+	if err != nil {
+		return u, err
+	}
+	u = res.User()
+	if !u.Uid.Exists() {
+		return u, fmt.Errorf("no resolution for: %v", assertion)
+	}
+	return u, nil
+}
+
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
-	return res, fmt.Errorf("TODO: implement ResolveIdentifyImplicitTeam")
+	ctx = libkb.WithLogTag(ctx, "RII")
+	defer h.G().CTrace(ctx, "IdentifyHandler#ResolveIdentifyImplicitTeam", func() error { return err })()
+
+	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
+
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(arg.Assertions)
+	if err != nil {
+		return res, err
+	}
+	return h.resolveIdentifyImplicitTeamHelper(ctx, arg, writerAssertions, readerAssertions)
+}
+
+func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
+	writerAssertions, readerAssertions []libkb.AssertionExpression) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
+
+	lookupName := keybase1.ImplicitTeamDisplayName{
+		IsPublic: arg.IsPublic,
+	}
+	if len(arg.Suffix) > 0 {
+		lookupName.ConflictInfo, err = libkb.ParseImplicitTeamDisplayNameSuffix(arg.Suffix)
+		if err != nil {
+			return res, err
+		}
+	}
+
+	var resolvedAssertions []resolvedAssertion
+
+	err = h.resolveImplicitTeamSet(ctx, writerAssertions, &lookupName.Writers, &resolvedAssertions)
+	if err != nil {
+		return res, err
+	}
+	err = h.resolveImplicitTeamSet(ctx, readerAssertions, &lookupName.Readers, &resolvedAssertions)
+	if err != nil {
+		return res, err
+	}
+
+	lookupNameStr, err := teams.FormatImplicitTeamDisplayName(ctx, h.G(), lookupName)
+	if err != nil {
+		return res, err
+	}
+	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam looking up:'%v'", lookupNameStr)
+
+	var teamID keybase1.TeamID
+	var impName keybase1.ImplicitTeamDisplayName
+	// Lookup*ImplicitTeam is responsible for making sure the returned team has the members from lookupName.
+	// Duplicates are also handled by Lookup*. So we might end up doing extra identifies of duplicates out here.
+	// (Duplicates e.g. "me,chris,chris", "me,chris#chris", "me,chris@rooter#chris")
+	if arg.Create {
+		teamID, impName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
+	} else {
+		teamID, impName, err = teams.LookupImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
+	}
+	if err != nil {
+		return res, err
+	}
+
+	// can be nil
+	myUID := h.G().ActiveDevice.UID()
+
+	var displayNameKBFS string
+	if myUID.Exists() {
+		var name libkb.NormalizedUsername
+		name, err = h.G().GetUPAKLoader().LookupUsername(ctx, myUID)
+		if err != nil {
+			return res, err
+		}
+		// display name with the logged-in user first
+		displayNameKBFS, err = teams.FormatImplicitTeamDisplayNameWithUserFront(ctx, h.G(), impName, name)
+	} else {
+		displayNameKBFS, err = teams.FormatImplicitTeamDisplayName(ctx, h.G(), impName)
+	}
+	if err != nil {
+		return res, err
+	}
+
+	team, err := teams.Load(ctx, h.G(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return res, err
+	}
+
+	writers, err := team.UsersWithRoleOrAbove(keybase1.TeamRole_WRITER)
+	if err != nil {
+		return res, err
+	}
+
+	// Populate the result. It may get returned together with an identify error.
+	res = keybase1.ResolveIdentifyImplicitTeamRes{
+		DisplayName: displayNameKBFS,
+		TeamID:      teamID,
+		Writers:     writers,
+		TrackBreaks: nil,
+	}
+
+	if arg.DoIdentifies {
+		return h.resolveIdentifyImplicitTeamDoIdentifies(ctx, arg, res, resolvedAssertions)
+	}
+	return res, nil
+}
+
+func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
+	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []resolvedAssertion) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
+
+	// errgroup collects errors and returns the first non-nil.
+	// subctx is canceled when the group finishes.
+	group, subctx := errgroup.WithContext(ctx)
+
+	// lock guarding res.TrackBreaks
+	var trackBreaksLock sync.Mutex
+
+	// Identify everyone who resolved in parallel, checking that they match their resolved UID and original assertions.
+	for _, resolvedAssertion := range resolvedAssertions {
+		resolvedAssertion := resolvedAssertion // https://golang.org/doc/faq#closures_and_goroutines
+		group.Go(func() error {
+			h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String())
+
+			id2arg := keybase1.Identify2Arg{
+				SessionID:             arg.SessionID,
+				Uid:                   resolvedAssertion.UID,
+				UserAssertion:         resolvedAssertion.Assertion.String(),
+				Reason:                arg.Reason,
+				UseDelegateUI:         true,
+				AlwaysBlock:           false,
+				NoErrorOnTrackFailure: false,
+				ForceRemoteCheck:      false,
+				NeedProofSet:          false,
+				AllowEmptySelfID:      false,
+				NoSkipSelf:            false,
+				CanSuppressUI:         true,
+				IdentifyBehavior:      arg.IdentifyBehavior,
+				ForceDisplay:          false,
+			}
+
+			iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
+			logui := h.getLogUI(arg.SessionID)
+			engCtx := engine.Context{
+				LogUI:      logui,
+				IdentifyUI: iui,
+				SessionID:  arg.SessionID,
+				NetContext: subctx,
+			}
+
+			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
+			err := engine.RunEngine(eng, &engCtx)
+			idRes := eng.Result()
+			if err != nil {
+				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
+				if idRes != nil && idRes.TrackBreaks != nil {
+					trackBreaksLock.Lock()
+					defer trackBreaksLock.Unlock()
+					if res.TrackBreaks == nil {
+						res.TrackBreaks = make(map[keybase1.UserVersion]keybase1.IdentifyTrackBreaks)
+					}
+					res.TrackBreaks[idRes.Upk.ToUserVersion()] = *idRes.TrackBreaks
+				}
+				return err
+			}
+			return nil
+		})
+	}
+
+	err := group.Wait()
+	if err != nil {
+		// Return the masked error together with a populated response.
+		return res, libkb.NewIdentifiesFailedError()
+	}
+	return res, err
+}
+
+type resolvedAssertion struct {
+	Assertion libkb.AssertionExpression
+	UID       keybase1.UID
+}
+
+// Try to resolve implicit team members.
+// Modifies the arguments `resSet` and appends to `resolvedAssertions`.
+// For each assertion in `sourceAssertions`, try to resolve them.
+//   If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
+//   If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
+// `resSet` is expected to be empty when called.
+func (h *IdentifyHandler) resolveImplicitTeamSet(ctx context.Context,
+	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]resolvedAssertion) error {
+
+	for _, expr := range sourceAssertions {
+		u, err := h.resolveUser(ctx, expr.String())
+		if err != nil {
+			// Resolution failed. Could still be an SBS assertion.
+			sa, err := expr.ToSocialAssertion()
+			if err != nil {
+				// Could not convert to a social assertion.
+				// This could be because it is a compound assertion, which we do not support when SBS.
+				// Or it could be because it's a team assertion or something weird like that.
+				return err
+			}
+			resSet.UnresolvedUsers = append(resSet.UnresolvedUsers, sa)
+		} else {
+			// Resolution succeeded
+			resSet.KeybaseUsers = append(resSet.KeybaseUsers, u.Username)
+			// Append the resolvee and assertion to resolvedAssertions, in case we identify later.
+			*resolvedAssertions = append(*resolvedAssertions, resolvedAssertion{
+				UID:       u.Uid,
+				Assertion: expr,
+			})
+		}
+	}
+	return nil
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

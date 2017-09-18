@@ -147,6 +147,8 @@ func (g *GlobalContext) GetNetContext() context.Context                { return 
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 
+type LogGetter func() logger.Logger
+
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
@@ -197,7 +199,7 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
 func (g *GlobalContext) Init() *GlobalContext {
-	g.Env = NewEnv(nil, nil)
+	g.Env = NewEnv(nil, nil, g.GetLog)
 	g.Service = false
 	g.createLoginState()
 	g.Resolver = NewResolver(g)

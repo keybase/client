@@ -1,11 +1,12 @@
 // @flow
 import List from './list'
 import React, {Component} from 'react'
-import type {Props} from './render'
 import {Box, TabBar, HeaderHoc} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {compose, defaultProps} from 'recompose'
+
+import type {Props} from '.'
 
 class FoldersRender extends Component<Props> {
   _makeItem(isPublic: boolean, isSelected: boolean) {

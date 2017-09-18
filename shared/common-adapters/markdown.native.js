@@ -3,6 +3,7 @@ import React, {PureComponent} from 'react'
 import Text from './text'
 import Box from './box'
 import Emoji from './emoji'
+import Mention from './mention-container'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 import {NativeClipboard} from './native-wrappers.native'
@@ -141,6 +142,16 @@ function messageCreateComponent(style, allowFontScaling) {
             {children}
           </Text>
         )
+      case 'mention':
+        return (
+          <Mention
+            username={children[0]}
+            service={options.service || ''}
+            key={key}
+            style={neutralStyle}
+            allowFontScaling={allowFontScaling}
+          />
+        )
       case 'emoji':
         return (
           <EmojiIfExists
@@ -170,7 +181,7 @@ class Markdown extends PureComponent<Props> {
     const createComponent = this.props.preview
       ? previewCreateComponent(this.props.style)
       : messageCreateComponent(this.props.style, this.props.allowFontScaling)
-    const content = parseMarkdown(this.props.children, createComponent)
+    const content = parseMarkdown(this.props.children, createComponent, this.props.meta)
     if (typeof content === 'string') {
       if (this.props.preview) {
         return createComponent('', '', content, {})

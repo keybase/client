@@ -1,6 +1,7 @@
 // @flow
 /* eslint-disable no-native-reassign, no-global-assign, no-extend-native */
 import 'core-js/es6/reflect' // required for babel-plugin-transform-builtin-extend in RN iOS and Android
+import '../dev/user-timings'
 import {isStoryBook} from '../constants/platform.native'
 
 // __DEV__

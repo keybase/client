@@ -10,7 +10,7 @@ export const CHECKBOX_MARGIN = 8
 
 class Checkbox extends Component<Props> {
   render() {
-    let borderColor = globalColors.blue
+    let borderColor = this.props.checked ? globalColors.blue : globalColors.black_20
 
     if (this.props.disabled && !this.props.checked) {
       borderColor = globalColors.black_10
@@ -21,8 +21,10 @@ class Checkbox extends Component<Props> {
       width: CHECKBOX_SIZE,
       height: CHECKBOX_SIZE,
       marginRight: CHECKBOX_MARGIN,
+      marginTop: 2,
       position: 'relative',
       border: `solid 1px ${borderColor}`,
+      borderRadius: 2,
       backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
       opacity: this.props.disabled && this.props.checked ? 0.4 : 1,
     }
@@ -49,7 +51,7 @@ class Checkbox extends Component<Props> {
 
 const styleContainer = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center',
+  alignItems: 'flex-start',
 }
 
 const styleIcon = {
@@ -57,8 +59,9 @@ const styleIcon = {
   color: globalColors.white,
   hoverColor: globalColors.white,
   position: 'absolute',
-  left: 0,
-  fontSize: 11,
+  left: 1,
+  top: 1,
+  fontSize: 9,
 }
 
 export default Checkbox

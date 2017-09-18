@@ -36,6 +36,7 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
 
 const Rows = ({
   tlfs = [],
+  installed,
   isIgnored,
   isPublic,
   onOpen,
@@ -53,6 +54,7 @@ const Rows = ({
           isPublic={isPublic}
           hasReadOnlyUsers={tlf.users && some(tlf.users, 'readOnly')}
           ignored={isIgnored}
+          installed={installed}
           onChat={onChat}
           onClick={onClick}
           onRekey={onRekey}

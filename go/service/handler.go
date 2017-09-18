@@ -18,9 +18,9 @@ type BaseHandler struct {
 	logCli    *keybase1.LogUiClient
 }
 
-func NewBaseHandler(xp rpc.Transporter) *BaseHandler {
+func NewBaseHandler(g *libkb.GlobalContext, xp rpc.Transporter) *BaseHandler {
 	h := &BaseHandler{xp: xp}
-	h.cli = rpc.NewClient(h.xp, libkb.ErrorUnwrapper{}, nil)
+	h.cli = rpc.NewClient(h.xp, libkb.NewContextifiedErrorUnwrapper(g), nil)
 	h.loginCli = &keybase1.LoginUiClient{Cli: h.cli}
 	h.secretCli = &keybase1.SecretUiClient{Cli: h.cli}
 	h.logCli = &keybase1.LogUiClient{Cli: h.cli}

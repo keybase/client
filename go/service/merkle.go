@@ -18,7 +18,7 @@ type MerkleHandler struct {
 
 func newMerkleHandler(xp rpc.Transporter, g *libkb.GlobalContext) *MerkleHandler {
 	return &MerkleHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

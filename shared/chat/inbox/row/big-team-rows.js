@@ -16,7 +16,15 @@ class BigTeamHeaderRow extends PureComponent<TeamProps> {
       <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
-        <Icon className="icon" type="iconfont-ellipsis" onClick={this.props.onShowMenu} />
+        <Icon
+          className="icon"
+          type="iconfont-ellipsis"
+          onClick={this.props.onShowMenu}
+          style={{
+            fontSize: isMobile ? 20 : 16,
+            padding: isMobile ? 2 : 0,
+          }}
+        />
       </HeaderBox>
     )
   }
@@ -45,6 +53,7 @@ type ChannelProps = {
   isMuted?: boolean,
   showBold?: boolean,
   hasUnread?: boolean,
+  hasBadge?: boolean,
   onSelectConversation: () => void,
 }
 
@@ -70,7 +79,7 @@ class BigTeamChannelRow extends PureComponent<ChannelProps> {
               #{this.props.channelname}
             </Text>
             {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
-            {this.props.hasUnread && <UnreadIcon />}
+            {this.props.hasBadge && <UnreadIcon />}
           </Box>
         </Box>
       </ClickableBox>
@@ -88,12 +97,31 @@ class BigTeamChannelFilteredRow extends PureComponent<FilteredChannelProps> {
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
-        <Box style={filteredRowStyle}>
+        <Box
+          style={{
+            ...filteredRowStyle,
+            ...(this.props.isSelected ? {backgroundColor: globalColors.blue} : undefined),
+          }}
+        >
           <TeamAvatar teamname={this.props.teamname} />
-          <Text type="BodySemibold" style={teamnameStyle} title={this.props.teamname}>
+          <Text
+            type="BodySemibold"
+            style={{
+              ...teamnameStyle,
+              color: this.props.isSelected ? globalColors.white : globalColors.black_75,
+            }}
+            title={this.props.teamname}
+          >
             {this.props.teamname}
           </Text>
-          <Text type="Body" style={channelnameStyle} title={`#${this.props.channelname}`}>
+          <Text
+            type="Body"
+            style={{
+              ...channelnameStyle,
+              color: this.props.isSelected ? globalColors.white : globalColors.black_75,
+            }}
+            title={`#${this.props.channelname}`}
+          >
             &nbsp;#{this.props.channelname}
           </Text>
         </Box>
@@ -172,11 +200,13 @@ const teamStyle = {
 
 const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
+  ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
   alignItems: 'center',
-  borderRadius: 2,
-  paddingLeft: 32,
+  borderTopLeftRadius: 2,
+  borderBottomLeftRadius: 2,
+  marginLeft: globalMargins.medium,
+  paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  width: '100%',
 }
 
 const mutedStyle = {

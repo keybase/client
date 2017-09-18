@@ -160,9 +160,11 @@ type serviceCn struct {
 }
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
-	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true, nil)
+	keybaseService := libkbfs.NewKeybaseDaemonRPC(
+		config, ctx, log, true, nil, nil)
 	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
+		// TODO: add git protocol if mobile ever needs it.
 	})
 	return keybaseService, nil
 }

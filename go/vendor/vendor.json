@@ -259,10 +259,10 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "g4Yd6tX6RuRViC4A2XOU/RCPYec=",
+			"checksumSHA1": "pIiu2/Rg8Rz6lp3PaqBqwL3nviE=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "f1237b604d4114e15fab4f08fa5bed5f202f3eb7",
-			"revisionTime": "2017-08-09T21:37:52Z"
+			"revision": "3b7dbb848bdcf9c6c463b034d4195aab3c80e8d5",
+			"revisionTime": "2017-09-07T21:14:35Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
@@ -277,9 +277,10 @@
 			"revisionTime": "2017-05-05T14:59:40Z"
 		},
 		{
+			"checksumSHA1": "Cj5doCIfMpCg3/FsPdZ7Q11Ca9w=",
 			"path": "github.com/keybase/go-kext",
-			"revision": "812245fc176f35fbb18f9344ad0a9f363bd95435",
-			"revisionTime": "2016-03-04T13:56:34-08:00"
+			"revision": "80e53362ccab6559949d19494e306a911bae5fe4",
+			"revisionTime": "2017-09-14T21:36:11Z"
 		},
 		{
 			"path": "github.com/keybase/go-keychain",

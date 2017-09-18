@@ -62,6 +62,12 @@ export const ChatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const CommonConversationExistence = {
+  active: 0,
+  archived: 1,
+  deleted: 2,
+}
+
 export const CommonConversationMemberStatus = {
   active: 0,
   removed: 1,
@@ -112,6 +118,12 @@ export const CommonMessageType = {
 export const CommonNotificationKind = {
   generic: 0,
   atmention: 1,
+}
+
+export const CommonTeamType = {
+  none: 0,
+  simple: 1,
+  complex: 2,
 }
 
 export const CommonTopicType = {
@@ -196,6 +208,7 @@ export const NotifyChatChatActivityType = {
   failedMessage: 5,
   membersUpdate: 6,
   setAppNotificationSettings: 7,
+  teamtype: 8,
 }
 
 export const NotifyChatStaleUpdateType = {
@@ -232,6 +245,14 @@ export function localCancelPostRpcChannelMap (configKeys: Array<string>, request
 
 export function localCancelPostRpcPromise (request: (requestCommon & requestErrorCallback & {param: localCancelPostRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.CancelPost', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function localDeleteConversationLocalRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localDeleteConversationLocalResult) => void} & {param: localDeleteConversationLocalRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.deleteConversationLocal', request)
+}
+
+export function localDeleteConversationLocalRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: localDeleteConversationLocalResult) => void} & {param: localDeleteConversationLocalRpcParam})): Promise<localDeleteConversationLocalResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.deleteConversationLocal', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function localDownloadAttachmentLocalRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: localDownloadAttachmentLocalResult) => void} & {param: localDownloadAttachmentLocalRpcParam}): EngineChannel {
@@ -512,6 +533,14 @@ export function localUpdateTypingRpcChannelMap (configKeys: Array<string>, reque
 
 export function localUpdateTypingRpcPromise (request: (requestCommon & requestErrorCallback & {param: localUpdateTypingRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.local.updateTyping', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function remoteDeleteConversationRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: remoteDeleteConversationResult) => void} & {param: remoteDeleteConversationRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'chat.1.remote.deleteConversation', request)
+}
+
+export function remoteDeleteConversationRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: remoteDeleteConversationResult) => void} & {param: remoteDeleteConversationRpcParam})): Promise<remoteDeleteConversationResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('chat.1.remote.deleteConversation', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function remoteGetGlobalAppNotificationSettingsRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: remoteGetGlobalAppNotificationSettingsResult) => void}): EngineChannel {
@@ -839,6 +868,7 @@ export type ChatActivity =
   | { activityType: 5, failedMessage: ?FailedMessageInfo }
   | { activityType: 6, membersUpdate: ?MembersUpdateInfo }
   | { activityType: 7, setAppNotificationSettings: ?SetAppNotificationSettingsInfo }
+  | { activityType: 8, teamtype: ?TeamTypeInfo }
 
 export type ChatActivityType =
     0 // RESERVED_0
@@ -849,6 +879,7 @@ export type ChatActivityType =
   | 5 // FAILED_MESSAGE_5
   | 6 // MEMBERS_UPDATE_6
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
+  | 8 // TEAMTYPE_8
 
 export type ConvTypingUpdate = {
   convID: ConversationID,
@@ -899,6 +930,11 @@ export type ConversationErrorType =
   | 5 // TRANSIENT_5
   | 6 // NONE_6
 
+export type ConversationExistence =
+    0 // ACTIVE_0
+  | 1 // ARCHIVED_1
+  | 2 // DELETED_2
+
 export type ConversationFinalizeInfo = {
   resetUser: string,
   resetDate: string,
@@ -931,6 +967,8 @@ export type ConversationInfoLocal = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
+  existence: ConversationExistence,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -971,6 +1009,8 @@ export type ConversationMetadata = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
+  existence: ConversationExistence,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1006,6 +1046,15 @@ export type ConversationStatus =
   | 3 // BLOCKED_3
   | 4 // MUTED_4
   | 5 // REPORTED_5
+
+export type DeleteConversationLocalRes = {
+  offline: boolean,
+  rateLimits?: ?Array<RateLimit>,
+}
+
+export type DeleteConversationRemoteRes = {
+  rateLimit?: ?RateLimit,
+}
 
 export type DownloadAttachmentLocalRes = {
   offline: boolean,
@@ -1102,6 +1151,7 @@ export type GetInboxQuery = {
   oneChatTypePerTLF?: ?boolean,
   status?: ?Array<ConversationStatus>,
   memberStatus?: ?Array<ConversationMemberStatus>,
+  existences?: ?Array<ConversationExistence>,
   convIDs?: ?Array<ConversationID>,
   unreadOnly: boolean,
   readOnly: boolean,
@@ -1259,6 +1309,7 @@ export type InboxUIItem = {
   participants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
   time: gregor1.Time,
   notifications?: ?ConversationNotificationInfo,
   creatorInfo?: ?ConversationCreatorInfoLocal,
@@ -1543,6 +1594,7 @@ export type NewConversationPayload = {
 
 export type NewConversationRemoteRes = {
   convID: ConversationID,
+  createdComplexTeam: boolean,
   rateLimit?: ?RateLimit,
 }
 
@@ -1828,6 +1880,25 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
+export type TeamType =
+    0 // NONE_0
+  | 1 // SIMPLE_1
+  | 2 // COMPLEX_2
+
+export type TeamTypeInfo = {
+  convID: ConversationID,
+  teamType: TeamType,
+  conv?: ?InboxUIItem,
+}
+
+export type TeamTypePayload = {
+  Action: string,
+  convID: ConversationID,
+  teamType: TeamType,
+  inboxVers: InboxVers,
+  unreadUpdate?: ?UnreadUpdate,
+}
+
 export type ThreadID = bytes
 
 export type ThreadView = {
@@ -1921,6 +1992,7 @@ export type UnverifiedInboxUIItem = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  teamType: TeamType,
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
 }
@@ -1961,6 +2033,10 @@ export type chatUiChatAttachmentUploadStartRpcParam = Exact<{
   placeholderMsgID: MessageID
 }>
 
+export type chatUiChatConfirmChannelDeleteRpcParam = Exact<{
+  channel: string
+}>
+
 export type chatUiChatInboxConversationRpcParam = Exact<{
   conv: InboxUIItem
 }>
@@ -1984,6 +2060,11 @@ export type chatUiChatThreadFullRpcParam = Exact<{
 
 export type localCancelPostRpcParam = Exact<{
   outboxID: OutboxID
+}>
+
+export type localDeleteConversationLocalRpcParam = Exact<{
+  convID: ConversationID,
+  channelName: string
 }>
 
 export type localDownloadAttachmentLocalRpcParam = Exact<{
@@ -2218,6 +2299,10 @@ export type localUpdateTypingRpcParam = Exact<{
   typing: boolean
 }>
 
+export type remoteDeleteConversationRpcParam = Exact<{
+  convID: ConversationID
+}>
+
 export type remoteGetInboxRemoteRpcParam = Exact<{
   vers: InboxVers,
   query?: ?GetInboxQuery,
@@ -2365,6 +2450,8 @@ export type remoteUpdateTypingRemoteRpcParam = Exact<{
   convID: ConversationID,
   typing: boolean
 }>
+type chatUiChatConfirmChannelDeleteResult = boolean
+type localDeleteConversationLocalResult = DeleteConversationLocalRes
 type localDownloadAttachmentLocalResult = DownloadAttachmentLocalRes
 type localDownloadFileAttachmentLocalResult = DownloadAttachmentLocalRes
 type localFindConversationsLocalResult = FindConversationsLocalRes
@@ -2397,6 +2484,7 @@ type localPostTextNonblockResult = PostLocalNonblockRes
 type localSetAppNotificationSettingsLocalResult = SetAppNotificationSettingsLocalRes
 type localSetConversationStatusLocalResult = SetConversationStatusLocalRes
 type localUnboxMobilePushNotificationResult = string
+type remoteDeleteConversationResult = DeleteConversationRemoteRes
 type remoteGetGlobalAppNotificationSettingsResult = GlobalAppNotificationSettings
 type remoteGetInboxRemoteResult = GetInboxRemoteRes
 type remoteGetInboxVersionResult = InboxVers
@@ -2517,6 +2605,16 @@ export type incomingCallMapType = Exact<{
       thread: string
     }>,
     response: CommonResponseHandler
+  ) => void,
+  'keybase.1.chatUi.chatConfirmChannelDelete'?: (
+    params: Exact<{
+      sessionID: int,
+      channel: string
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: chatUiChatConfirmChannelDeleteResult) => void,
+    }
   ) => void,
   'keybase.1.NotifyChat.NewChatActivity'?: (
     params: Exact<{

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -17,7 +16,7 @@ import (
 )
 
 func setupOutboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Outbox, gregor1.UID, clockwork.FakeClock) {
-	ltc := externals.SetupTest(t, name, 2)
+	ltc := setupCommonTest(t, name)
 	tc := kbtest.ChatTestContext{
 		TestContext: ltc,
 		ChatG:       &globals.ChatContext{},

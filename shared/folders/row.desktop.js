@@ -82,6 +82,7 @@ const RowMeta = ({ignored, meta, styles}) => {
 
 type RowType = {
   hasReadOnlyUsers: boolean,
+  installed: boolean,
   smallMode: boolean,
   sortName: string,
   onOpen: (path: string) => void,
@@ -95,6 +96,7 @@ const Row = ({
   isPublic,
   hasReadOnlyUsers,
   ignored,
+  installed,
   meta,
   modified,
   smallMode,
@@ -131,7 +133,7 @@ const Row = ({
   const containerStyle = {
     ...styles.rowContainer,
     minHeight: smallMode ? 40 : 48,
-    backgroundColor: globalColors.white,
+    backgroundColor: !smallMode && !installed ? globalColors.grey : globalColors.white,
   }
 
   return (

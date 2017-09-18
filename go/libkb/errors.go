@@ -1362,7 +1362,11 @@ type IdentifiesFailedError struct {
 }
 
 func (e IdentifiesFailedError) Error() string {
-	return "one or more identifies failed"
+	return fmt.Sprintf("one or more identifies failed")
+}
+
+func NewIdentifiesFailedError() IdentifiesFailedError {
+	return IdentifiesFailedError{}
 }
 
 //=============================================================================
@@ -2100,3 +2104,37 @@ type TeamVisibilityError struct{}
 func (e TeamVisibilityError) Error() string {
 	return "loaded team doesn't match specified visibility"
 }
+
+type KeyMaskNotFoundError struct {
+	App keybase1.TeamApplication
+	Gen keybase1.PerTeamKeyGeneration
+}
+
+func (e KeyMaskNotFoundError) Error() string {
+	msg := fmt.Sprintf("You don't have access to %s for this team", e.App)
+	if e.Gen != keybase1.PerTeamKeyGeneration(0) {
+		msg += fmt.Sprintf(" (at generation %d)", int(e.Gen))
+	}
+	return msg
+}
+
+type ProvisionFailedOfflineError struct{}
+
+func (e ProvisionFailedOfflineError) Error() string {
+	return "Device provisioning failed because the device is offline"
+}
+
+//=============================================================================
+
+func UserErrorFromStatus(s keybase1.StatusCode) error {
+	switch s {
+	case keybase1.StatusCode_SCOk:
+		return nil
+	case keybase1.StatusCode_SCDeleted:
+		return DeletedError{}
+	default:
+		return &APIError{Code: int(s), Msg: "user status error"}
+	}
+}
+
+//=============================================================================

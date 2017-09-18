@@ -1027,6 +1027,14 @@
           "name": "membersType"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "ConversationExistence",
+          "name": "existence"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"
@@ -1872,6 +1880,23 @@
     },
     {
       "type": "record",
+      "name": "DeleteConversationLocalRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTLFConversationsLocalRes",
       "fields": [
         {
@@ -2677,6 +2702,23 @@
         }
       ],
       "response": "JoinLeaveConversationLocalRes"
+    },
+    "deleteConversationLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "channelName",
+          "type": "string"
+        }
+      ],
+      "response": "DeleteConversationLocalRes"
     },
     "getTLFConversationsLocal": {
       "request": [

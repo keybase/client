@@ -17,7 +17,7 @@ type SimpleFSHandler struct {
 
 func NewSimpleFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SimpleFSHandler {
 	return &SimpleFSHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -28,7 +28,7 @@ func (s *SimpleFSHandler) client() (*keybase1.SimpleFSClient, error) {
 		return nil, libkb.KBFSNotRunningError{}
 	}
 	return &keybase1.SimpleFSClient{
-		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, nil),
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(s.G()), nil),
 	}, nil
 }
 
