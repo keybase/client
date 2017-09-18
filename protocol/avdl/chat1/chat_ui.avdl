@@ -21,6 +21,7 @@ protocol chatUi {
     TeamType teamType;
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
+    ConversationVers version;
   }
 
   record UnverifiedInboxUIItems {
@@ -44,6 +45,7 @@ protocol chatUi {
     gregor1.Time time;
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
+    ConversationVers version;
 
     // Finalized convo stuff
     union { null, ConversationFinalizeInfo } finalizeInfo;

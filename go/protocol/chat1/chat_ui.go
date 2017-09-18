@@ -36,6 +36,7 @@ type UnverifiedInboxUIItem struct {
 	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
 	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time          gregor1.Time                  `codec:"time" json:"time"`
+	Version       ConversationVers              `codec:"version" json:"version"`
 }
 
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
@@ -53,7 +54,8 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time: o.Time.DeepCopy(),
+		Time:    o.Time.DeepCopy(),
+		Version: o.Version.DeepCopy(),
 	}
 }
 
@@ -99,6 +101,7 @@ type InboxUIItem struct {
 	Time          gregor1.Time                  `codec:"time" json:"time"`
 	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	CreatorInfo   *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
+	Version       ConversationVers              `codec:"version" json:"version"`
 	FinalizeInfo  *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes    []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy  []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -139,6 +142,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
+		Version: o.Version.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil
