@@ -14,6 +14,7 @@ machine:
     REACT_NATIVE_MAX_WORKERS: 1
     # Some node dependencies break without this
     CXX: g++-4.8
+    ANDROID_NDK_HOME: ${ANDROID_NDK}
 general:
   build_dir: shared
 dependencies:
