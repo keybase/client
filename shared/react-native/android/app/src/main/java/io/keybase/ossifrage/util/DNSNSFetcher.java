@@ -3,7 +3,7 @@ package io.keybase.ossifrage.util;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-public class DNSNSFetcher implements go.keybase.ExternalDNSNSFetcher {
+public class DNSNSFetcher implements keybase.ExternalDNSNSFetcher {
     public byte[] getServers() {
         try {
             Class<?> SystemProperties = Class.forName("android.os.SystemProperties");

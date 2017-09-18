@@ -25,6 +25,9 @@ kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
 GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
 
+# if we don't set this gomobile init get confused
+GOMOBILE="$GOPATH/pkg/gomobile"
+
 # Clear source
 echo "Clearing $GOPATH/src"
 rm -rf "$GOPATH/src/"/*
@@ -76,16 +79,6 @@ rm -rf "$go_client_dir/vendor"
 vendor_path="$GOPATH/src/github.com/keybase/vendor"
 gomobile_path="$vendor_path/golang.org/x/mobile/cmd/gomobile"
 
-echo "Build gomobile..."
-(cd "$gomobile_path" && go build -o "$GOPATH/bin/gomobile")
-# The gomobile binary only looks for packages in the GOPATH,
-rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
-
-if [ ! "$skip_gomobile_init" = "1" ]; then
-  echo "Doing gomobile init (to skip, set SKIP_GOMOBILE_INIT=1)"
-  "$GOPATH/bin/gomobile" init
-fi
-
 package="github.com/keybase/client/go/bind"
 
 ## TODO(mm) consolidate this with packaging/prerelease/
@@ -96,14 +89,36 @@ keybase_build=${KEYBASE_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 
+gomobileinit ()
+{
+  echo "Build gomobile..."
+  (cd "$gomobile_path" && go build -o "$GOPATH/bin/gomobile")
+  # The gomobile binary only looks for packages in the GOPATH,
+  rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
+  echo "Doing gomobile init"
+  "$GOPATH/bin/gomobile" init
+}
+
 if [ "$arg" = "ios" ]; then
   ios_dest="$dir/ios/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+  set +e
+  OUTPUT="$("$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+  set -e
+  if [[ $OUTPUT == *"gomobile init"* ]]; then
+    gomobileinit
+    "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+  fi
 elif [ "$arg" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+  set +e
+  OUTPUT="$("$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
+  set -e
+  if [[ $OUTPUT == *"gomobile init"* ]]; then
+    gomobileinit
+    "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+  fi
 else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
 fi
