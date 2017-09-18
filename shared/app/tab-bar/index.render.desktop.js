@@ -36,7 +36,7 @@ const _tabs = [
   Tabs.folderTab,
   ...(flags.teamChatEnabled ? [Tabs.teamsTab] : []),
   Tabs.devicesTab,
-  Tabs.gitTab,
+  ...(flags.tabGitEnabled ? [Tabs.gitTab] : []),
   Tabs.settingsTab,
 ].filter(Boolean)
 

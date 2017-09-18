@@ -18,9 +18,12 @@ const ff: FeatureFlags = {
   recentFilesEnabled: false,
   tabPeopleEnabled: true,
   teamChatEnabled: true,
+  tabGitEnabled: false,
 }
 
-const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {}
+const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  tabGitEnabled: true,
+}
 
 // load overrides
 Object.keys(ff).forEach(k => {
