@@ -614,7 +614,7 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 
 	// The answer was not found to be yes in the cache.
 	// Try again with the teams that were not polled as they might have unseen updates.
-	for ancestorID, _ := range checkAgain {
+	for ancestorID := range checkAgain {
 		ancestor, err := l.load2(ctx, load2ArgT{
 			teamID:        ancestorID,
 			reason:        "isImplicitAdminOf-again",
