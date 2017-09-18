@@ -16,7 +16,8 @@ protocol UPK {
     V1_1,
     V2_2,
     V3_3,
-    V4_4
+    V4_4,
+    V5_5
   }
 
   record MerkleRootV2 {
