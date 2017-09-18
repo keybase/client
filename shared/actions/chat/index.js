@@ -823,14 +823,11 @@ function* _openFolder(): SagaGenerator<any, any> {
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   const inboxSearch = yield select(inboxSearchSelector)
-  if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
+  if (inboxSearch && !inboxSearch.isEmpty()) {
     // Ignore 'New Chat' attempts when we're already building a chat
     return
   }
   yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
-  for (const username of action.payload.existingParticipants) {
-    yield put(Creators.stageUserForSearch(username))
-  }
   yield put(Creators.selectConversation(null, false))
   yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
 }
