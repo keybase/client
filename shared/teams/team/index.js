@@ -13,7 +13,7 @@ export type Props = {
   you: string,
   name: Constants.Teamname,
   members: Array<RowProps>,
-  loaded: boolean,
+  loading: boolean,
   setShowMenu: (s: boolean) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
@@ -109,7 +109,7 @@ class Team extends React.PureComponent<Props> {
   }
 
   render() {
-    const {name, members, setShowMenu, onLeaveTeam, loaded, onManageChat} = this.props
+    const {name, members, setShowMenu, onLeaveTeam, loading, onManageChat} = this.props
     const tabs = [
       <Text key="members" type="BodySmallSemibold" style={{color: globalColors.black_75, padding: 10}}>
         MEMBERS ({members.length})
@@ -126,21 +126,22 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-        {!loaded && <ProgressIndicator style={{alignSelf: 'left', width: 100}} />}
-        {loaded &&
+        {loading && <ProgressIndicator style={{alignSelf: 'flex-start', width: 100}} />}
+        {!loading &&
           <Tabs
             tabs={tabs}
             selected={selectedTab}
             onSelect={() => {}}
             style={{alignSelf: 'flex-start', height: globalMargins.large}}
           />}
-        <List
-          keyProperty="username"
-          items={members}
-          fixedHeight={48}
-          renderItem={this._renderItem}
-          style={{alignSelf: 'stretch'}}
-        />
+        {!loading &&
+          <List
+            keyProperty="username"
+            items={members}
+            fixedHeight={48}
+            renderItem={this._renderItem}
+            style={{alignSelf: 'stretch'}}
+          />}
         {this.props.showMenu &&
           <PopupMenu
             items={[

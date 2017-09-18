@@ -60,6 +60,7 @@ const _createNewTeamFromConversation = function*(
 
 const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, any> {
   const teamname = action.payload.teamname
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   const results: RpcTypes.TeamDetails = yield call(RpcTypes.teamsTeamGetRpcPromise, {
     param: {
       name: teamname,
@@ -82,7 +83,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
   yield all([
     put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
-    put(replaceEntity(['teams', 'teamNameToLoaded'], I.Map([[teamname, true]]))),
+    put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]]))),
   ])
 }
 

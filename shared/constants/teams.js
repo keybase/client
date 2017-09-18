@@ -67,7 +67,7 @@ export const Team = I.Record({
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
   teamNameToMembers: I.Map(),
-  teamNameToLoaded: I.Map(),
+  teamNameToLoading: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })

@@ -14,13 +14,14 @@ import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
+  loading: boolean,
   name: Constants.Teamname,
   you: ?string,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.teamname], I.Set()),
-  loaded: state.entities.getIn(['teams', 'teamNameToLoaded', routeProps.teamname], false),
+  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.teamname], true),
   name: routeProps.teamname,
   you: state.config.username,
 })
