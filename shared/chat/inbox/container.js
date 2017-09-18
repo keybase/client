@@ -234,12 +234,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
   loadInbox: () => dispatch(loadInbox()),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
+      dispatch(setInboxFilter(''))
       dispatch(newChat([]))
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(newChat([])),
+  onNewChat: () => {
+    dispatch(setInboxFilter(''))
+    dispatch(newChat([]))
+  },
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
     conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
