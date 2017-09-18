@@ -23,6 +23,7 @@ class BigTeamHeaderRow extends PureComponent<TeamProps> {
           style={{
             fontSize: isMobile ? 20 : 16,
             padding: isMobile ? 8 : 4,
+            paddingRight: isMobile ? 2 : 4,
           }}
         />
       </HeaderBox>
