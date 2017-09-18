@@ -36,7 +36,7 @@ go_kbfs_dir="$tmp_gopath/src/github.com/keybase/kbfs"
 
 if [ ! "$local_client" = "1" ]; then
   echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
-  (cd "$GOPATH/src/github.com/keybase" && git clone https://github.com/keybase/client)
+  (cd "$GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/client)
   client_dir=$go_client_dir
 else
   echo "Getting client (using local GOPATH)... To use git master, set LOCAL_CLIENT=0"
@@ -46,7 +46,7 @@ fi
 
 if [ ! "$local_kbfs" = "1" ]; then
   echo "Getting KBFS (via git clone)... To use local copy, set LOCAL_KBFS=1"
-  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone https://github.com/keybase/kbfs)
+  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/kbfs)
   kbfs_dir=$go_kbfs_dir
 else
   # For testing local KBFS changes
@@ -85,7 +85,6 @@ if [ ! "$skip_gomobile_init" = "1" ]; then
   echo "Doing gomobile init (to skip, set SKIP_GOMOBILE_INIT=1)"
   "$GOPATH/bin/gomobile" init
 fi
-
 
 package="github.com/keybase/client/go/bind"
 

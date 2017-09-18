@@ -30,6 +30,9 @@ static void glUniform1uiv(GLint location, GLsizei count, const GLuint *value) { 
 static void glUniform2uiv(GLint location, GLsizei count, const GLuint *value) { gles3missing(); }
 static void glUniform3uiv(GLint location, GLsizei count, const GLuint *value) { gles3missing(); }
 static void glUniform4uiv(GLint location, GLsizei count, const GLuint *value) { gles3missing(); }
+static void glBindVertexArray(GLuint array) { gles3missing(); }
+static void glGenVertexArrays(GLsizei n, GLuint *arrays) { gles3missing(); }
+static void glDeleteVertexArrays(GLsizei n, const GLuint *arrays) { gles3missing(); }
 #endif
 
 uintptr_t processFn(struct fnargs* args, char* parg) {
@@ -58,6 +61,9 @@ uintptr_t processFn(struct fnargs* args, char* parg) {
 		break;
 	case glfnBindTexture:
 		glBindTexture((GLenum)args->a0, (GLint)args->a1);
+		break;
+	case glfnBindVertexArray:
+		glBindVertexArray((GLenum)args->a0);
 		break;
 	case glfnBlendColor:
 		glBlendColor(*(GLfloat*)&args->a0, *(GLfloat*)&args->a1, *(GLfloat*)&args->a2, *(GLfloat*)&args->a3);
@@ -143,6 +149,9 @@ uintptr_t processFn(struct fnargs* args, char* parg) {
 	case glfnDeleteTexture:
 		glDeleteTextures(1, (const GLuint*)(&args->a0));
 		break;
+	case glfnDeleteVertexArray:
+		glDeleteVertexArrays(1, (const GLuint*)(&args->a0));
+		break;
 	case glfnDepthFunc:
 		glDepthFunc((GLenum)args->a0);
 		break;
@@ -199,6 +208,9 @@ uintptr_t processFn(struct fnargs* args, char* parg) {
 		break;
 	case glfnGenTexture:
 		glGenTextures(1, (GLuint*)&ret);
+		break;
+	case glfnGenVertexArray:
+		glGenVertexArrays(1, (GLuint*)&ret);
 		break;
 	case glfnGenerateMipmap:
 		glGenerateMipmap((GLenum)args->a0);

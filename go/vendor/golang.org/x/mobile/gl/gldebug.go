@@ -1123,8 +1123,6 @@ func (v Enum) String() string {
 		return "TEXTURE_WRAP_R"
 	case 0x911b:
 		return "TIMEOUT_EXPIRED"
-	case 0xffffffffffffffff:
-		return "TIMEOUT_IGNORED"
 	case 0x8e22:
 		return "TRANSFORM_FEEDBACK"
 	case 0x8e24:
@@ -1335,6 +1333,19 @@ func (ctx *context) BindTexture(target Enum, t Texture) {
 			fn: glfnBindTexture,
 			a0: target.c(),
 			a1: t.c(),
+		},
+		blocking: true})
+}
+
+func (ctx *context) BindVertexArray(t VertexArray) {
+	defer func() {
+		errstr := ctx.errDrain()
+		log.Printf("gl.BindVertexArray(%v) %v", t, errstr)
+	}()
+	ctx.enqueueDebug(call{
+		args: fnargs{
+			fn: glfnBindVertexArray,
+			a0: t.c(),
 		},
 		blocking: true})
 }
@@ -1729,6 +1740,19 @@ func (ctx *context) CreateTexture() (r0 Texture) {
 	}))}
 }
 
+func (ctx *context) CreateVertexArray() (r0 VertexArray) {
+	defer func() {
+		errstr := ctx.errDrain()
+		log.Printf("gl.CreateVertexArray() %v%v", r0, errstr)
+	}()
+	return VertexArray{Value: uint32(ctx.enqueue(call{
+		args: fnargs{
+			fn: glfnGenVertexArray,
+		},
+		blocking: true,
+	}))}
+}
+
 func (ctx *context) CullFace(mode Enum) {
 	defer func() {
 		errstr := ctx.errDrain()
@@ -1815,6 +1839,19 @@ func (ctx *context) DeleteTexture(v Texture) {
 	ctx.enqueueDebug(call{
 		args: fnargs{
 			fn: glfnDeleteTexture,
+			a0: v.c(),
+		},
+		blocking: true})
+}
+
+func (ctx *context) DeleteVertexArray(v VertexArray) {
+	defer func() {
+		errstr := ctx.errDrain()
+		log.Printf("gl.DeleteVertexArray(%v) %v", v, errstr)
+	}()
+	ctx.enqueueDebug(call{
+		args: fnargs{
+			fn: glfnDeleteVertexArray,
 			a0: v.c(),
 		},
 		blocking: true})

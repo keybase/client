@@ -11,7 +11,7 @@ buildscript {
     }
   }
   dependencies {
-    classpath "com.gradle.publish:plugin-publish-plugin:0.9.4"
+    classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
   }
 }
 
@@ -27,7 +27,7 @@ dependencies {
   testCompile 'junit:junit:4.11'
 }
 
-version = '0.2.6'
+version = '0.2.9'
 
 pluginBundle {
   website = 'https://golang.org/x/mobile'
