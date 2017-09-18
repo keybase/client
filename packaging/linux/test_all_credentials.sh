@@ -12,8 +12,9 @@ here="$(dirname "$BASH_SOURCE")"
 # ~/.ssh/known_hosts file.
 export GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
 
-echo 'Checking credentials for s3://prerelease.keybase.io (~/.s3cfg)...'
-s3cmd ls s3://prerelease.keybase.io > /dev/null
+bucket="${BUCKET_NAME:-prerelease.keybase.io}"
+echo "Checking credentials for s3://$bucket (~/.s3cfg)..."
+s3cmd ls "s3://$bucket" > /dev/null
 
 echo 'Checking GitHub credentials (~/.ssh)...'
 git ls-remote git@github.com:keybase/server-ops > /dev/null
