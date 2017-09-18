@@ -822,6 +822,7 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
+  yield put(Creators.setInboxFilter(''))
   const inboxSearch = yield select(inboxSearchSelector)
   if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
     // Ignore 'New Chat' attempts when we're already building a chat
