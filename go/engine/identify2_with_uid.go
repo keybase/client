@@ -814,7 +814,7 @@ func (e *Identify2WithUID) createIdentifyState(ctx *Context) (err error) {
 		return err
 	}
 
-	e.state = libkb.NewIdentifyStateWithGregorItem(e.responsibleGregorItem, them)
+	e.state = libkb.NewIdentifyStateWithGregorItem(e.G(), e.responsibleGregorItem, them)
 
 	if e.testArgs != nil && e.testArgs.tcl != nil {
 		e.G().Log.Debug("| using test track")
