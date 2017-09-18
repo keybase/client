@@ -146,14 +146,19 @@ func (s *sendHelper) SendText(ctx context.Context, text string) error {
 }
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
+	s.G().Log.Debug("XOXO SendBody")
 	ctx = Context(ctx, s.G(), s.ident, nil, NewIdentifyNotifier(s.G()))
 	if err := s.nameInfo(ctx); err != nil {
 		return err
 	}
 
+	s.G().Log.Debug("XOXO got name info")
+
 	if err := s.conversation(ctx); err != nil {
 		return err
 	}
+
+	s.G().Log.Debug("XOXO got conv")
 
 	return s.deliver(ctx, body, mtype)
 }

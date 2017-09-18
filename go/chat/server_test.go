@@ -197,11 +197,18 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
 
 	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
 	t.Logf("Team Stage Begin")
 	start = time.Now()
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
-	useRemoteMock = true
+
+	t.Logf("Implicit Team Stage Begin")
+	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	start = time.Now()
+	f(chat1.ConversationMembersType_IMPTEAM)
+	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 }
 
 type chatTestUserContext struct {
@@ -581,10 +588,13 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
+
+		t.Logf("InboxSource type: %T", tc.Context().InboxSource)
+
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
+			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
 		}
 		if !conversations[0].Info.Id.Eq(created.Id) {
 			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
@@ -718,7 +728,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 
 		var name string
 		switch mt {
-		case chat1.ConversationMembersType_KBFS:
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
 			name = ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username // not canonical
 		case chat1.ConversationMembersType_TEAM:
 			name = ctc.teamCache[teamKey(ctc.users())]
@@ -748,7 +758,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
+			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
 		}
 		if !conversations[0].Info.Id.Eq(created.Id) {
 			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)

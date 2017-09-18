@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -46,6 +47,9 @@ func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisib
 	}
 	res.CanonicalName = team.Name().String()
 
+	team.G().Log.Debug("XOXO team name %q, vis = %v (private? %v)", res.CanonicalName, vis, vis == keybase1.TLFVisibility_PRIVATE)
+	debug.PrintStack()
+
 	if vis == keybase1.TLFVisibility_PRIVATE {
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {
@@ -78,7 +82,7 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		return t.lookupInternalName(ctx, name, vis)
 	}
 
-	teamID, teamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, vis == keybase1.TLFVisibility_PUBLIC)
+	teamID, teamName, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name, vis == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return res, err
 	}
