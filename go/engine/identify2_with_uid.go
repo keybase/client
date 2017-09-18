@@ -67,6 +67,16 @@ func (i *identifyUser) GetName() string {
 	panic("null user")
 }
 
+func (i *identifyUser) GetStatus() keybase1.StatusCode {
+	if i.thin != nil {
+		return i.thin.GetStatus()
+	}
+	if i.full != nil {
+		return i.full.GetStatus()
+	}
+	panic("null user")
+}
+
 func (i *identifyUser) GetNormalizedName() libkb.NormalizedUsername {
 	return libkb.NewNormalizedUsername(i.GetName())
 }
@@ -889,6 +899,9 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	}
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
+	}
+	if err = libkb.UserErrorFromStatus(e.them.GetStatus()); err != nil {
+		return err
 	}
 	return nil
 }

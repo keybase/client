@@ -621,6 +621,7 @@ export const UPKUPK2MinorVersion = {
   v1: 1,
   v2: 2,
   v3: 3,
+  v4: 4,
 }
 
 export const UiPromptDefault = {
@@ -4964,6 +4965,7 @@ export type UPK2MinorVersion =
   | 1 // V1_1
   | 2 // V2_2
   | 3 // V3_3
+  | 4 // V4_4
 
 export type UnboxAnyRes = {
   kid: KID,
@@ -5020,6 +5022,7 @@ export type UserPlusKeys = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
+  status: StatusCode,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
@@ -5032,6 +5035,7 @@ export type UserPlusKeysV2 = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
+  status: StatusCode,
   perUserKeys?: ?Array<PerUserKey>,
   deviceKeys: {[key: string]: PublicKeyV2NaCl},
   pgpKeys: {[key: string]: PublicKeyV2PGPSummary},
