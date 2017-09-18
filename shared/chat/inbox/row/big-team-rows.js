@@ -169,7 +169,7 @@ const teamRowContainerStyle = {
   maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
   minHeight: isMobile ? globalMargins.large : globalMargins.medium,
   paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  paddingRight: isMobile ? globalMargins.tiny : globalMargins.xtiny,
 }
 
 const HeaderBox = glamorous(Box)({
