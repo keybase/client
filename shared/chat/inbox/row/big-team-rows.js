@@ -21,8 +21,8 @@ class BigTeamHeaderRow extends PureComponent<TeamProps> {
           type="iconfont-ellipsis"
           onClick={this.props.onShowMenu}
           style={{
-            fontSize: 24,
-            padding: isMobile ? 2 : 0,
+            fontSize: isMobile ? 20 : 16,
+            padding: 2,
           }}
         />
       </HeaderBox>
