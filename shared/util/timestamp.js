@@ -19,12 +19,11 @@ export function formatTimeForConversationList(time: number, nowOverride?: number
 
 export function formatTimeForMessages(time: number, nowOverride?: number): string {
   const m = moment(time)
-  const now = nowOverride ? moment(nowOverride) : moment()
-  const today = moment().startOf('day')
+  const now = nowOverride ? moment(nowOverride) : moment().startOf('day')
   const yesterday = moment().subtract(1, 'days').startOf('day')
   const weekAgo = moment().subtract(7, 'days').startOf('day')
 
-  if (m.isSame(today, 'd')) {
+  if (m.isSame(now, 'd')) {
     // Covers interval [startOfToday, endOfToday]
     return m.format('h:mm A') // 4:34 PM
   } else if (m.isSame(yesterday, 'd')) {
