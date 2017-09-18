@@ -184,8 +184,11 @@ class Inbox extends PureComponent<Props, State> {
           filter={this.props.filter}
           onNewChat={this._prepareNewChat}
           onSetFilter={this.props.onSetFilter}
-          hotkeys={['ctrl+n', 'command+n']}
-          onHotkey={this.props.onNewChat}
+          hotkeys={['ctrl+n', 'command+n', 'ctrl+k', 'command+k']}
+          onHotkey={this.props.onHotkey}
+          filterFocusCount={this.props.filterFocusCount}
+          onSelectUp={this.props.onSelectUp}
+          onSelectDown={this.props.onSelectDown}
         />
         {this.props.showNewConversation && <NewConversation />}
         <div style={_scrollableStyle} onScroll={this._onScroll}>
