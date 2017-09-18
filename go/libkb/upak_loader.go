@@ -244,7 +244,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	// Add a LU= tax to this context, for all subsequent debugging
 	ctx := arg.WithLogTag()
 
-	defer g.CVTrace(ctx, VLog0, culDebug(arg.UID)+" "+u.G().GetMyUID().String(), func() error { return err })()
+	defer g.CVTrace(ctx, VLog0, culDebug(arg.UID), func() error { return err })()
 
 	if arg.UID.IsNil() {
 		if len(arg.Name) == 0 {
