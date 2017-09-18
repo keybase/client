@@ -32,6 +32,12 @@ type TestConfig struct {
 
 func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
 
+func MakeThinGlobalContextForTesting(t *testing.T) *GlobalContext {
+	g := NewGlobalContext().Init()
+	g.Log = logger.NewTestLogger(t)
+	return g
+}
+
 func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	G.Log = logger.NewTestLogger(t)
 	G.Init()
