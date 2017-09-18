@@ -122,6 +122,8 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, user keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
+	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
+
 	for i, invite := range team.chain().inner.ActiveInvites {
 		g.Log.CDebugf(ctx, "tryToCompleteInvites invite %q %+v", i, invite)
 		ityp, err := invite.Type.String()
@@ -134,18 +136,13 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 		}
 
 		if category != keybase1.TeamInviteCategory_SBS {
-			// TODO: Supporting only SBS for now, also add support for KEYBASE.
 			continue
 		}
 
 		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, fmt.Sprintf("%s@%s", string(invite.Name), ityp))
 		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
-		if resolveResult.GetError() != nil {
-			continue
-		}
-
-		if resolveResult.GetUID() != user.Uid {
-			// Not user we are looking for
+		if resolveResult.GetError() != nil || resolveResult.GetUID() != user.Uid {
+			// Cannot resolve invitation or it does not match user
 			continue
 		}
 
@@ -164,13 +161,11 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 			NetContext: ctx,
 		}
 		if err := engine.RunEngine(eng, ectx); err == nil {
-			if req.CompletedInvites == nil {
-				req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
-			}
-			req.CompletedInvites[invite.Id] = user.PercentForm()
+			completedInvites[invite.Id] = user.PercentForm()
 		}
 	}
 
+	req.CompletedInvites = completedInvites
 	return nil
 }
 
@@ -211,7 +206,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		req.None = []keybase1.UserVersion{existingUV}
 	}
 	if err := tryToCompleteInvites(ctx, g, t, uv, &req); err != nil {
-		return keybase1.TeamAddMemberResult{}, err
+		g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
 	}
 	if err := t.ChangeMembership(ctx, req); err != nil {
 		return keybase1.TeamAddMemberResult{}, err

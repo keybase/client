@@ -390,7 +390,7 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestClearInvitesOnAdd(t *testing.T) {
+func TestClearSocialInvitesOnAdd(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -422,10 +422,12 @@ func TestClearInvitesOnAdd(t *testing.T) {
 	require.Equal(t, len(writers), 1)
 	require.True(t, writers[0].Uid.Equal(bob.uid))
 
+	// Adding should have cleared bob...@rooter
 	hasInv, err := t0.HasActiveInvite(keybase1.TeamInviteName(bob.username), "rooter")
 	require.NoError(t, err)
 	require.False(t, hasInv)
 
+	// But should not have cleared otherbob...@rooter
 	hasInv, err = t0.HasActiveInvite(keybase1.TeamInviteName(bobBadRooter), "rooter")
 	require.NoError(t, err)
 	require.True(t, hasInv)
