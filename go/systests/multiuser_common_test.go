@@ -97,6 +97,11 @@ func (d *smuDeviceWrapper) stop() error {
 	return <-d.stopCh
 }
 
+func (d *smuDeviceWrapper) clearUPAKCache() {
+	d.tctx.G.LocalDb.Nuke()
+	d.tctx.G.GetUPAKLoader().ClearMemory()
+}
+
 type smuTerminalUI struct{}
 
 func (t smuTerminalUI) ErrorWriter() io.Writer                                        { return nil }
@@ -487,6 +492,13 @@ func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
 
 func (u *smuUser) reset() {
 	err := u.primaryDevice().userClient().ResetUser(context.TODO(), 0)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) delete() {
+	err := u.primaryDevice().userClient().DeleteUser(context.TODO(), 0)
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}

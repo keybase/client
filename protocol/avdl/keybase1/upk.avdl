@@ -15,7 +15,8 @@ protocol UPK {
     V0_0,
     V1_1,
     V2_2,
-    V3_3
+    V3_3,
+    V4_4
   }
 
   record MerkleRootV2 {
@@ -77,6 +78,8 @@ protocol UPK {
       UID uid;
       string username;
       Seqno eldestSeqno;
+      // =0 for healty users, and 216 for deleted users
+      StatusCode status;
       // Sorted by generation ascending
       array<PerUserKey> perUserKeys;
       map<KID, PublicKeyV2NaCl> deviceKeys;
