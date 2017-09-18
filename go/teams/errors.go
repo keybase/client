@@ -127,7 +127,7 @@ func NewProofError(p proof, s string) ProofError {
 }
 
 func (p ProofError) Error() string {
-	return fmt.Sprintf("proof error for proof %+v: %s", p.p, p.msg)
+	return fmt.Sprintf("proof error for proof '%s': %s", p.p.reason, p.msg)
 }
 
 type PermissionError struct {

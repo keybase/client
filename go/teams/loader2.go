@@ -182,10 +182,15 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return nil, proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
-	var teamLinkMap map[keybase1.Seqno]keybase1.LinkID
+	teamLinkMap := make(map[keybase1.Seqno]keybase1.LinkID)
 	if state != nil {
-		teamLinkMap = state.Chain.LinkIDs
+		// copy over the stored links
+		for k, v := range state.Chain.LinkIDs {
+			teamLinkMap[k] = v
+		}
 	}
+	// add on the link that is being checked
+	teamLinkMap[link.Seqno()] = link.LinkID().Export()
 
 	proofSet = addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
 
