@@ -116,4 +116,6 @@ protocol chatUi {
 
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
+
+  boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

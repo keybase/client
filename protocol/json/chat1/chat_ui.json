@@ -561,6 +561,19 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "chatConfirmChannelDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "channel",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "chat.1"
