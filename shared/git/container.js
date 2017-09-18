@@ -29,8 +29,9 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, routeState}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, routeState, navigateUp}) => ({
   _loadGit: () => dispatch(Creators.loadGit()),
+  onBack: () => dispatch(navigateUp()),
   onNewPersonalRepo: () => {
     dispatch(Creators.setError(null))
     dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}]))

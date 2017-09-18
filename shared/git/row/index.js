@@ -14,6 +14,7 @@ import {
 } from '../../common-adapters'
 
 import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 export type Props = {
   canDelete: boolean,
@@ -71,7 +72,7 @@ class Row extends React.Component<Props, State> {
         <ClickableBox
           onClick={this.props.onToggleExpand}
           style={_rowClickStyle}
-          hoverColor={globalColors.transparent}
+          hoverColor={isMobile ? undefined : globalColors.transparent}
           underlayColor={globalColors.transparent}
         >
           <Box style={_rowTopStyle}>
@@ -113,7 +114,6 @@ class Row extends React.Component<Props, State> {
                 {this.props.lastEditTime}
                 {' '}
                 ago
-                {' '}
                 {!!this.props.teamname && !!this.props.lastEditUser && ' by'}
               </Text>
               {!!this.props.teamname &&
@@ -132,11 +132,20 @@ class Row extends React.Component<Props, State> {
                   style={{marginLeft: 2, marginRight: 2}}
                 />}
               <Text type="BodySmall">
-                , signed and encrypted using device&nbsp;
+                <Text type="BodySmall">
+                  {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
+                </Text>
+                <Text type="BodySmall" style={_deviceStyle}>{' '}{this.props.devicename}</Text>
               </Text>
-              <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
             </Box>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', position: 'relative'}}>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                position: 'relative',
+                flex: isMobile ? 1 : undefined,
+              }}
+            >
               <Text type="Body">Clone:</Text>
               <Box style={_bubbleStyle}>
                 <Input
@@ -146,23 +155,34 @@ class Row extends React.Component<Props, State> {
                   onClick={this._inputOnClick}
                   ref={this._setRef}
                   style={_inputStyle}
+                  editable={false}
                   inputStyle={_inputInputStyle}
                   hideUnderline={true}
                 />
                 <Box style={_copyStyle}>
                   <Icon
                     type="iconfont-clipboard"
-                    style={{color: globalColors.white, hoverColor: globalColors.blue5}}
+                    style={{color: globalColors.white, ...(isMobile ? {} : {hoverColor: globalColors.blue5})}}
                     onClick={this._onCopy}
                   />
                 </Box>
               </Box>
-              {this.props.canDelete &&
+              {!isMobile &&
+                this.props.canDelete &&
                 <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />}
               <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
                 <Copied showing={this.state.showingCopy} />
               </Box>
             </Box>
+            {isMobile &&
+              this.props.canDelete &&
+              <Button
+                type="Danger"
+                small={true}
+                label="Delete repo"
+                onClick={this.props.onShowDelete}
+                style={{marginTop: globalMargins.tiny, alignSelf: 'flex-end'}}
+              />}
           </Box>}
       </Box>
     )
@@ -202,6 +222,7 @@ const _inputInputStyle = {
 }
 
 const _inputStyle = {
+  paddingTop: isMobile ? 5 : undefined,
   width: '100%',
 }
 
@@ -212,10 +233,11 @@ const _bubbleStyle = {
   borderRadius: 100,
   borderStyle: 'solid',
   borderWidth: 1,
+  flex: isMobile ? 1 : undefined,
   marginLeft: 8,
   marginRight: 8,
   minHeight: 28,
-  minWidth: 367,
+  minWidth: isMobile ? undefined : 367,
   overflow: 'hidden',
   paddingLeft: globalMargins.small,
   position: 'relative',
@@ -233,7 +255,11 @@ const _rowBottomStyle = {
 }
 
 const _iconCaretStyle = {
-  display: 'inline-block',
+  ...(isMobile
+    ? {}
+    : {
+        display: 'inline-block',
+      }),
   fontSize: 12,
   marginBottom: 2,
 }

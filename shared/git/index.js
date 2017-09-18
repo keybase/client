@@ -2,9 +2,19 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import Row from './row/container'
-import {Box, Text, Icon, ClickableBox, PopupMenu, ProgressIndicator, ScrollView} from '../common-adapters'
+import {
+  Box,
+  Text,
+  Icon,
+  ClickableBox,
+  PopupMenu,
+  ProgressIndicator,
+  ScrollView,
+  HeaderHoc,
+} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isMobile} from '../constants/platform'
+import {branch} from 'recompose'
 
 type Props = {
   expandedSet: I.Set<string>,
@@ -112,4 +122,4 @@ const _gitStyle = {
   width: '100%',
 }
 
-export default Git
+export default branch(() => isMobile, HeaderHoc)(Git)

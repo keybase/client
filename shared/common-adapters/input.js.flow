@@ -4,6 +4,7 @@ import {Component} from 'react'
 export type Props = {
   autoFocus?: boolean,
   className?: string,
+  editable?: boolean,
   errorStyle?: ?Object,
   errorText?: ?string,
   floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
