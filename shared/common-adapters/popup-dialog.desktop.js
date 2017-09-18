@@ -39,7 +39,7 @@ export function PopupDialog({
 
 const coverStyle = {
   ...globalStyles.flexBoxColumn,
-  background: globalColors.midnightBlue_75,
+  background: globalColors.black_60,
   justifyContent: 'center',
   alignItems: 'center',
   position: 'absolute',

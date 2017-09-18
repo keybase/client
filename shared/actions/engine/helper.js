@@ -40,7 +40,7 @@ const isFinished = (a: any) => a.type === '@@engineRPCCall:finished'
 type RpcRunResult = Finished | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bailedEarly', void>
 
 function _sagaWaitingDecorator(rpcNameKey, saga) {
-  return function*(...args: any) {
+  return function* _sagaWaitingDecoratorHelper(...args: any) {
     yield put(Creators.waitingForRpc(rpcNameKey, false))
     yield call(saga, ...args)
     yield put(Creators.waitingForRpc(rpcNameKey, true))
@@ -49,7 +49,7 @@ function _sagaWaitingDecorator(rpcNameKey, saga) {
 
 // This decorator deals with responding to the rpc
 function _handleRPCDecorator(rpcNameKey, saga) {
-  return function*({params, response}) {
+  return function* _handleRPCDecoratorHelper({params, response}) {
     const returnVal = yield call(saga, params)
     const payload = (returnVal || {}).payload
     if (_isResult(returnVal)) {
@@ -67,7 +67,7 @@ function _handleRPCDecorator(rpcNameKey, saga) {
 
 // This decorator to put the result on a channel
 function _putReturnOnChan(chan, saga) {
-  return function*(...args: any) {
+  return function* _putReturnOnChanHelper(...args: any) {
     const returnVal = yield call(saga, ...args)
     yield put(chan, _subSagaFinished(returnVal))
   }

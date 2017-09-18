@@ -20,7 +20,7 @@ type SecretKeysHandler struct {
 
 func NewSecretKeysHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SecretKeysHandler {
 	return &SecretKeysHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

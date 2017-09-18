@@ -1,10 +1,13 @@
 package systests
 
 import (
+	"strings"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -198,4 +201,188 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 
 	// user 0 should get gregor notification that the team changed
 	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
+}
+
+// See if we can re-invite user after they reset and thus make their
+// first invitation obsolete.
+func TestTeamReInviteAfterReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+
+	// Ann creates a team.
+	team := ann.createTeam()
+	t.Logf("Created team %q", team)
+
+	ann.waitForTeamChangedAndRotated(team, keybase1.Seqno(1))
+
+	bob := ctx.installKeybaseForUserNoPUK("bob", 10)
+	bob.signupNoPUK()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	// Try to add bob to team, should add an invitation because bob is PUK-less.
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER) // Invitation 1
+
+	// Reset, invalidates invitation 1.
+	bob.reset()
+	bob.loginAfterResetNoPUK(10)
+
+	// Try to add again (bob still doesn't have a PUK).
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
+
+	t.Logf("Trying to get a PUK")
+
+	libkb.G = bob.getPrimaryGlobalContext()
+	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
+
+	err := bob.perUserKeyUpgrade()
+	require.NoError(t, err)
+
+	t.Logf("Bob got a PUK, now let's see if Ann's client adds him to team")
+
+	ann.kickTeamRekeyd()
+	ann.waitForTeamChangedGregor(team, keybase1.Seqno(4))
+
+	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team, ForceRepoll: true})
+	require.NoError(t, err)
+
+	// Bob should have became an admin, because the second invitations
+	// should have been used, not the first one.
+	require.Equal(t, len(details.Members.Admins), 1)
+	require.Equal(t, details.Members.Admins[0].Username, bob.username)
+}
+
+func TestImpTeamWithRooter(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	rooterUser := bob.username + "@rooter"
+	displayName := strings.Join([]string{alice.username, rooterUser}, ",")
+
+	team, err := alice.lookupImplicitTeam(true /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("Created implicit team %v\n", team)
+
+	// TODO: Test chats, but it might be hard since implicit team tlf
+	// name resolution for chat commands needs KBFS running.
+	bob.proveRooter()
+
+	alice.kickTeamRekeyd()
+
+	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
+
+	// Poll for new team name, without the "@rooter"
+	newDisplayName := strings.Join([]string{alice.username, bob.username}, ",")
+
+	team2, err := alice.lookupImplicitTeam(false /*create*/, newDisplayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team2, team)
+
+	// Lookup by old name should fail
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.Error(t, err)
+}
+
+func TestImpTeamWithRooterConflict(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	displayNameRooter := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",")
+
+	team, err := alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
+	require.NoError(t, err)
+
+	t.Logf("Created implicit team %q -> %s\n", displayNameRooter, team)
+
+	// Bob has not proven rooter yet, so this will create a new, separate team.
+	displayNameKeybase := strings.Join([]string{alice.username, bob.username}, ",")
+	team2, err := alice.lookupImplicitTeam(true /*create*/, displayNameKeybase, false /*isPublic*/)
+	require.NoError(t, err)
+	require.NotEqual(t, team, team2)
+
+	t.Logf("Created implicit team %q -> %s\n", displayNameKeybase, team2)
+
+	bob.proveRooter()
+
+	alice.kickTeamRekeyd()
+
+	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
+
+	// Display name with rooter name is no longer usable.
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter, false /*isPublic*/)
+	require.Error(t, err)
+
+	// "LookupOrCreate" rooter name should fail as well.
+	_, err = alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
+	require.Error(t, err)
+
+	// Clients should refer to this team using comma-separated usernames.
+	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameKeybase, false /*isPublic*/)
+	require.NoError(t, err)
+}
+
+func TestImpTeamWithMultipleRooters(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("ali")
+	bob := tt.addUser("bob")
+	charlie := tt.addUser("cha")
+
+	// Both teams include social assertions, so there is no definitive conflict winner.
+	displayNameRooter1 := strings.Join([]string{alice.username, bob.username, charlie.username + "@rooter"}, ",")
+	displayNameRooter2 := strings.Join([]string{alice.username, bob.username + "@rooter", charlie.username}, ",")
+
+	team1, err := alice.lookupImplicitTeam(true /*create*/, displayNameRooter1, false /*isPublic*/)
+	require.NoError(t, err)
+
+	team2, err := alice.lookupImplicitTeam(true /*create*/, displayNameRooter2, false /*isPublic*/)
+	require.NoError(t, err)
+
+	require.NotEqual(t, team1, team2)
+
+	// proveRooter has a problem where some code path relies on global
+	// libkb.G context, so we need to change it before for each user.
+	libkb.G = bob.tc.G
+	bob.proveRooter()
+	libkb.G = charlie.tc.G
+	charlie.proveRooter()
+
+	alice.kickTeamRekeyd()
+
+	toSeqno := keybase1.Seqno(2)
+	var winningTeam keybase1.TeamID
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-alice.notifications.rotateCh:
+			t.Logf("membership change received: %+v", arg)
+			if (arg.TeamID.Eq(team1) || arg.TeamID.Eq(team2)) && arg.Changes.MembershipChanged && !arg.Changes.KeyRotated && !arg.Changes.Renamed && arg.LatestSeqno == toSeqno {
+				t.Logf("change matched with %q", arg.TeamID)
+				winningTeam = arg.TeamID
+				return
+			}
+		case <-time.After(1 * time.Second):
+		}
+	}
+
+	displayName := strings.Join([]string{alice.username, bob.username, charlie.username}, ",")
+	teamFinal, err := alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, teamFinal, winningTeam)
+
+	team1, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter1, false /*isPublic*/)
+	require.Error(t, err)
+
+	team2, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
+	require.Error(t, err)
 }

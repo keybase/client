@@ -8,7 +8,7 @@ import AttachmentInputPopup from './conversation/attachment-input/container'
 import MessagePopup from './conversation/messages/popup.native'
 import BlockConversationWarning from './conversation/block-conversation-warning/container'
 import InfoPanel from './conversation/info-panel/container'
-import NewTeamDialog from '../teams/new-team/container'
+import NewTeamDialog from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
 import CreateChannel from './create-channel/container'
 
@@ -63,12 +63,12 @@ const conversationRoute = new RouteDefNode({
 const manageChannelsRoute = new RouteDefNode({
   component: ManageChannels,
   children: {},
-  tags: {hideStatusBar: true, underStatusBar: true},
+  tags: {hideStatusBar: true},
 })
 
 const createChannelRoute = new RouteDefNode({
   component: CreateChannel,
-  tags: {hideStatusBar: true, underStatusBar: true},
+  tags: {hideStatusBar: true},
   children: {},
 })
 

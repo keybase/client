@@ -16,7 +16,15 @@ class BigTeamHeaderRow extends PureComponent<TeamProps> {
       <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
-        <Icon className="icon" type="iconfont-ellipsis" onClick={this.props.onShowMenu} />
+        <Icon
+          className="icon"
+          type="iconfont-ellipsis"
+          onClick={this.props.onShowMenu}
+          style={{
+            fontSize: isMobile ? 20 : 16,
+            padding: isMobile ? 2 : 0,
+          }}
+        />
       </HeaderBox>
     )
   }
@@ -173,13 +181,13 @@ const teamStyle = {
 
 const channelBackgroundStyle = {
   ...globalStyles.flexBoxRow,
+  ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
   alignItems: 'center',
   borderTopLeftRadius: 2,
   borderBottomLeftRadius: 2,
   marginLeft: globalMargins.medium,
   paddingLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
-  width: '100%',
 }
 
 const mutedStyle = {

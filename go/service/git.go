@@ -22,7 +22,7 @@ var _ keybase1.GitInterface = (*GitHandler)(nil)
 
 func NewGitHandler(xp rpc.Transporter, g *libkb.GlobalContext) *GitHandler {
 	return &GitHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -71,6 +71,16 @@ func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeam
 	return client.CreateRepo(ctx, carg)
 }
 
+func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) error {
+	// not yet implemented
+	return nil
+}
+
+func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) error {
+	// not yet implemented
+	return nil
+}
+
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
 	if !h.G().ActiveDevice.Valid() {
 		return nil, libkb.LoginRequiredError{}
@@ -84,6 +94,6 @@ func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
 	}
 	return &keybase1.KBFSGitClient{
 		Cli: rpc.NewClient(
-			xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),
+			xp, libkb.NewContextifiedErrorUnwrapper(h.G()), libkb.LogTagsFromContext),
 	}, nil
 }

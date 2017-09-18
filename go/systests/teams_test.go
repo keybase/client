@@ -159,6 +159,10 @@ func (tt *teamTester) addUser(pre string) *userPlusDevice {
 		tt.t.Fatal(err)
 	}
 
+	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+
+	g.ConfigureConfig()
+
 	tt.users = append(tt.users, &u)
 	return &u
 }
@@ -175,6 +179,7 @@ type userPlusDevice struct {
 	device        *deviceWrapper
 	tc            *libkb.TestContext
 	deviceClient  keybase1.DeviceClient
+	teamsClient   keybase1.TeamsClient
 	notifications *teamNotifyHandler
 }
 
@@ -210,6 +215,16 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	add.Username = username
 	add.Role = role
 	if err := add.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
+func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.TeamRole) {
+	change := client.NewCmdTeamEditMemberRunner(u.tc.G)
+	change.Team = team
+	change.Username = username
+	change.Role = keybase1.TeamRole_OWNER
+	if err := change.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
 }
@@ -408,6 +423,19 @@ func (u *userPlusDevice) getTeamSeqno(teamID keybase1.TeamID) keybase1.Seqno {
 
 func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
+}
+
+func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
+	cli := u.teamsClient
+	var err error
+	var teamID keybase1.TeamID
+	if create {
+		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+	} else {
+		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+	}
+
+	return teamID, err
 }
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {

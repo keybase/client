@@ -13,14 +13,13 @@ import (
 
 type CmdTeamAcceptInvite struct {
 	libkb.Contextified
-	Team  string
 	Token string
 }
 
 func newCmdTeamAcceptInvite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "accept-invite",
-		ArgumentHelp: "<team name> --token=<invite token>",
+		ArgumentHelp: "--token=<invite token>",
 		Usage:        "Accept a team email invitation.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamAcceptInviteRunner(g)
@@ -40,15 +39,9 @@ func NewCmdTeamAcceptInviteRunner(g *libkb.GlobalContext) *CmdTeamAcceptInvite {
 }
 
 func (c *CmdTeamAcceptInvite) ParseArgv(ctx *cli.Context) error {
-	var err error
-	c.Team, err = ParseOneTeamName(ctx)
-	if err != nil {
-		return err
-	}
-
 	c.Token = ctx.String("token")
 	if len(c.Token) == 0 {
-		return errors.New("please specify an invite token via --token flag")
+		return errors.New("please specify an invite token with the --token flag")
 	}
 
 	return nil

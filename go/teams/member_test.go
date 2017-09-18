@@ -451,6 +451,13 @@ func TestMemberListInviteUsername(t *testing.T) {
 		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
 	}
 
+	// List can return stale results for invites, so do a force load of the team to refresh the cache.
+	// In the real world, hopefully gregor would cause this.
+	Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		Name:        name,
+		ForceRepoll: true,
+	})
+
 	annotatedTeamList, err := List(context.TODO(), tc.G, keybase1.TeamListArg{UserAssertion: "", All: true})
 	if err != nil {
 		t.Fatal(err)
@@ -632,4 +639,31 @@ func TestImplicitAdminsKeyedForSubteam(t *testing.T) {
 	t.Logf("now U2 can load the subteam")
 	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
 	require.NoError(t, err, "now U2 is a member of the subteam and should be able to read it")
+}
+
+func TestImplicitAdminsKeyedForSubteamAfterUpgrade(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	parentName, _ := createTeam2(*tcs[0])
+	t.Logf("U0 created a root team %q", parentName)
+
+	subteamID, err := CreateSubteam(context.TODO(), tcs[0].G, "sub", parentName)
+	require.NoError(t, err)
+	t.Logf("U0 created a subteam %q", subteamID)
+
+	_, err = AddMember(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	// U1 can't read the subteam (yet).
+	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.Error(t, err)
+
+	// Set U1 to be an admin of root team.
+	err = SetRoleAdmin(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username)
+	require.NoError(t, err)
+
+	// U1 should be able to read subteam now.
+	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
+	require.NoError(t, err)
 }

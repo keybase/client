@@ -26,7 +26,7 @@ var _ keybase1.TrackInterface = (*TrackHandler)(nil)
 // NewTrackHandler creates a TrackHandler for the xp transport.
 func NewTrackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *TrackHandler {
 	return &TrackHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

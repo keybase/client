@@ -559,7 +559,7 @@ func (ui *UI) GetSecretUI() libkb.SecretUI {
 }
 
 func (ui *UI) GetProveUI() libkb.ProveUI {
-	return ProveUI{parent: ui}
+	return ProveUI{Contextified: libkb.NewContextified(ui.G()), parent: ui}
 }
 
 func (ui *UI) GetLogUI() libkb.LogUI {
@@ -602,6 +602,7 @@ func (ui *UI) GetPgpUI() libkb.PgpUI {
 //============================================================
 
 type ProveUI struct {
+	libkb.Contextified
 	parent     *UI
 	outputHook func(string) error
 }
@@ -620,7 +621,7 @@ func (p ProveUI) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwrite
 }
 
 func (p ProveUI) PromptUsername(_ context.Context, arg keybase1.PromptUsernameArg) (string, error) {
-	err := libkb.ImportStatusAsError(arg.PrevError)
+	err := libkb.ImportStatusAsError(p.G(), arg.PrevError)
 	if err != nil {
 		G.Log.Error(err.Error())
 	}

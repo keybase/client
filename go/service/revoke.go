@@ -18,7 +18,7 @@ type RevokeHandler struct {
 
 func NewRevokeHandler(xp rpc.Transporter, g *libkb.GlobalContext) *RevokeHandler {
 	return &RevokeHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
