@@ -77,32 +77,36 @@ const Render = ({
   bannerDesc,
   icon,
   revokeName,
-}: Props) => (
-  <Box style={globalStyles.flexBoxColumn}>
-    <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>
-      <BackButton onClick={onBack} />
-    </Box>
-    {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
-    <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
-      <Box
-        style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', justifyContent: 'center', width: 240}}
-      >
-        <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1}} />
-      </Box>
-      <Box style={globalStyles.flexBoxColumn}>
-        <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
-        {!!timeline && <Timeline timeline={timeline} />}
-        {!revokedAt &&
-          <Button
-            type="Danger"
-            style={{marginTop: 15, alignSelf: 'flex-start'}}
-            label={`Revoke this ${revokeName || ''}`}
-            onClick={showRevokeDevicePage}
-          />}
-      </Box>
-    </Box>
-  </Box>
-)
+}: Props) => {
+  throw new Error('whut')
+  return null
+}
+// (
+// <Box style={globalStyles.flexBoxColumn}>
+// <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', paddingLeft: 16}}>
+// <BackButton onClick={onBack} />
+// </Box>
+// {!!bannerDesc && <Banner color={bannerColor} backgroundColor={bannerBackgroundColor} desc={bannerDesc} />}
+// <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
+// <Box
+// style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', justifyContent: 'center', width: 240}}
+// >
+// <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1}} />
+// </Box>
+// <Box style={globalStyles.flexBoxColumn}>
+// <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
+// {!!timeline && <Timeline timeline={timeline} />}
+// {!revokedAt &&
+// <Button
+// type="Danger"
+// style={{marginTop: 15, alignSelf: 'flex-start'}}
+// label={`Revoke this ${revokeName || ''}`}
+// onClick={showRevokeDevicePage}
+// />}
+// </Box>
+// </Box>
+// </Box>
+// )
 
 const stylesBanner = {
   ...globalStyles.flexBoxRow,
