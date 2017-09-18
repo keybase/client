@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 
@@ -506,6 +507,10 @@ func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() er
 	return CTraceTimed(ctx, g.Log, msg, f, g.Clock())
 }
 
+func (g *GlobalContext) CTimeTracer(ctx context.Context, label string) *TimeTracer {
+	return NewTimeTracer(ctx, g.Log, g.Clock(), label)
+}
+
 func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
 	return func() { g.Log.Debug("| %s -> %v", msg, f()) }
 }
@@ -674,4 +679,52 @@ func CITimeMultiplier(g Contextifier) time.Duration {
 		return time.Duration(3)
 	}
 	return time.Duration(1)
+}
+
+type TimeTracer struct {
+	sync.Mutex
+	ctx    context.Context
+	log    logger.Logger
+	clock  clockwork.Clock
+	label  string
+	stage  string
+	staged bool      // whether any stages were used
+	start  time.Time // when the tracer started
+	prev   time.Time // when the active stage started
+}
+
+func NewTimeTracer(ctx context.Context, log logger.Logger, clock clockwork.Clock, label string) *TimeTracer {
+	now := clock.Now()
+	return &TimeTracer{
+		ctx:    ctx,
+		log:    log,
+		clock:  clock,
+		label:  label,
+		stage:  "init",
+		staged: false,
+		start:  now,
+		prev:   now,
+	}
+}
+
+func (t *TimeTracer) finishStage() {
+	t.log.CDebugf(t.ctx, "| %s:%s [time=%s]", t.label, t.stage, t.clock.Since(t.prev))
+}
+
+func (t *TimeTracer) Stage(format string, args ...interface{}) {
+	t.Lock()
+	defer t.Unlock()
+	t.finishStage()
+	t.stage = fmt.Sprintf(format, args...)
+	t.prev = t.clock.Now()
+	t.staged = true
+}
+
+func (t *TimeTracer) Finish() {
+	t.Lock()
+	defer t.Unlock()
+	if t.staged {
+		t.finishStage()
+	}
+	t.log.CDebugf(t.ctx, "- %s [time=%s]", t.label, t.clock.Since(t.start))
 }
