@@ -5,7 +5,7 @@ import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
 import * as Constants from '../../../constants/chat'
-import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
+import {exitSearch, selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 import {compose, renderComponent, branch, renderNothing} from 'recompose'
@@ -135,6 +135,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channe
 const mapDispatchToProps = dispatch => ({
   _onSelectConversation: (key: ConversationIDKey) => {
     dispatch(setInboxFilter(''))
+    dispatch(exitSearch())
     dispatch(selectConversation(key, true))
   },
   _onShowMenu: (teamname: string) =>
@@ -144,7 +145,6 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
   ...stateProps,
-  ...dispatchProps,
   onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
   onShowMenu: () => dispatchProps._onShowMenu(stateProps.teamname),
 })

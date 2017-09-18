@@ -5,6 +5,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
 import {
+  exitSearch,
   loadInbox,
   newChat,
   untrustedInboxVisible,
@@ -240,8 +241,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
     }
   },
   onNewChat: () => dispatch(newChat()),
-  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
-    conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
+    dispatch(exitSearch())
+    if (conversationIDKey) {
+      dispatch(selectConversation(conversationIDKey, true))
+    }
+  },
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
