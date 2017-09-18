@@ -146,11 +146,14 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 			if err != nil {
 				return nil, err
 			}
-			normalized, err := upakLoader.LookupUsername(context.Background(), uv.Uid)
+			up, err := upakLoader.LoadUserPlusKeys(context.Background(), uv.Uid, "")
 			if err != nil {
 				return nil, err
 			}
-			name = keybase1.TeamInviteName(normalized.String())
+			if uv.EldestSeqno != up.EldestSeqno {
+				continue
+			}
+			name = keybase1.TeamInviteName(up.Username)
 		}
 		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
 			Role:            invite.Role,

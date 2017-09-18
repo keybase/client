@@ -564,13 +564,18 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 
 	subteamName := SCTeamName(t.Data.Name.String())
 
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return err
+	}
 	parentSection := SCTeamSection{
 		ID: SCTeamID(parentTeam.ID),
 		Subteam: &SCSubteam{
 			ID:   SCTeamID(t.ID),
 			Name: subteamName, // weird this is required
 		},
-		Admin: admin,
+		Admin:   admin,
+		Entropy: entropy,
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
@@ -713,10 +718,16 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return errors.New("You cannot invite an owner to a team.")
 	}
 
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return err
+	}
+
 	teamSection := SCTeamSection{
 		ID:      SCTeamID(t.ID),
 		Admin:   admin,
 		Invites: &invites,
+		Entropy: entropy,
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)

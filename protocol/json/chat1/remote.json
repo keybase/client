@@ -467,6 +467,19 @@
     },
     {
       "type": "record",
+      "name": "DeleteConversationRemoteRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetTLFConversationsRes",
       "fields": [
         {
@@ -879,6 +892,15 @@
         }
       ],
       "response": "JoinLeaveConversationRemoteRes"
+    },
+    "deleteConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "DeleteConversationRemoteRes"
     },
     "getTLFConversations": {
       "request": [

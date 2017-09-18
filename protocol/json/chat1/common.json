@@ -78,6 +78,15 @@
     },
     {
       "type": "enum",
+      "name": "ConversationExistence",
+      "symbols": [
+        "ACTIVE_0",
+        "ARCHIVED_1",
+        "DELETED_2"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "ConversationMembersType",
       "symbols": [
         "KBFS_0",
@@ -331,6 +340,13 @@
         {
           "type": {
             "type": "array",
+            "items": "ConversationExistence"
+          },
+          "name": "existences"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ConversationID"
           },
           "name": "convIDs"
@@ -431,6 +447,10 @@
         {
           "type": "TeamType",
           "name": "teamType"
+        },
+        {
+          "type": "ConversationExistence",
+          "name": "existence"
         },
         {
           "type": [

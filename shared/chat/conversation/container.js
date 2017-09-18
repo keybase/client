@@ -34,6 +34,7 @@ type StateProps = {|
   conversationErrorText: string,
   defaultChatText: string,
   showTeamOffer: boolean,
+  inboxFilter: ?string,
 |}
 
 type DispatchProps = {|
@@ -86,7 +87,14 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     }
   }
 
-  const {inSearch, searchPending, searchResults, searchShowingSuggestions, selectedUsersInSearch} = state.chat
+  const {
+    inSearch,
+    searchPending,
+    searchResults,
+    searchShowingSuggestions,
+    selectedUsersInSearch,
+    inboxFilter,
+  } = state.chat
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
   showTeamOffer =
@@ -96,6 +104,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     conversationErrorText,
     conversationIsError,
     finalizeInfo,
+    inboxFilter,
     rekeyInfo,
     selectedConversationIDKey,
     showLoader,

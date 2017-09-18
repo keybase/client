@@ -66,7 +66,7 @@ class Inbox extends PureComponent<Props, State> {
     showFloating: false,
   }
 
-  _list: any
+  _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {
     if (
@@ -167,8 +167,13 @@ class Inbox extends PureComponent<Props, State> {
     }
   }, 200)
 
-  _setRef = list => {
+  _setRef = (list: ?ReactList) => {
     this._list = list
+  }
+
+  _prepareNewChat = () => {
+    this._list && this._list.scrollTo(0)
+    this.props.onNewChat()
   }
 
   render() {
@@ -177,10 +182,13 @@ class Inbox extends PureComponent<Props, State> {
         <ChatFilterRow
           isLoading={this.props.isLoading}
           filter={this.props.filter}
-          onNewChat={this.props.onNewChat}
+          onNewChat={this._prepareNewChat}
           onSetFilter={this.props.onSetFilter}
-          hotkeys={['ctrl+n', 'command+n']}
-          onHotkey={this.props.onNewChat}
+          hotkeys={['ctrl+n', 'command+n', 'ctrl+k', 'command+k']}
+          onHotkey={this.props.onHotkey}
+          filterFocusCount={this.props.filterFocusCount}
+          onSelectUp={this.props.onSelectUp}
+          onSelectDown={this.props.onSelectDown}
         />
         {this.props.showNewConversation && <NewConversation />}
         <div style={_scrollableStyle} onScroll={this._onScroll}>

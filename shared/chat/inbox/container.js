@@ -4,8 +4,14 @@ import * as Constants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
+import {
+  loadInbox,
+  newChat,
+  untrustedInboxVisible,
+  setInboxFilter,
+  selectConversation,
+} from '../../actions/chat/creators'
 import {createSelector} from 'reselect'
-import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
@@ -27,7 +33,13 @@ const passesStringFilter = (filter: string, toCheck: string): boolean => {
 }
 
 const passesParticipantFilter = (participants: I.List<string>, filter: string, you: ?string): boolean => {
-  const names = participants.filter(p => p !== you).toArray()
+  if (!filter) {
+    return true
+  }
+
+  // don't filter you out if its just a convo with you!
+  const justYou = participants.count() === 1 && participants.first() === you
+  const names = justYou ? participants : participants.filter(p => p !== you)
   return names.some(n => passesStringFilter(filter, n))
 }
 
@@ -204,6 +216,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
   const filter = getFilter(state)
 
   return {
+    _selected: Constants.getSelectedConversation(state),
     bigTeamsBadgeCount,
     filter,
     isActiveRoute,
@@ -217,12 +230,43 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
   loadInbox: () => dispatch(loadInbox()),
+  onHotkey: cmd => {
+    if (cmd.endsWith('+n')) {
+      dispatch(newChat([]))
+    } else {
+      focusFilter()
+    }
+  },
   onNewChat: () => dispatch(newChat([])),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
+    conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+})
+
+const findNextConvo = (rows: I.List<any>, selected, direction) => {
+  const filteredRows = rows.filter(r => ['small', 'big'].includes(r.type))
+  const idx = filteredRows.findIndex(r => r.conversationIDKey === selected)
+  let nextIdx
+  if (idx === -1) {
+    nextIdx = 0
+  } else {
+    nextIdx = Math.min(filteredRows.count() - 1, Math.max(0, idx + direction))
+  }
+  const r = filteredRows.get(nextIdx)
+  return r && r.conversationIDKey
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
+  onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
+  smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
 })
 
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
@@ -230,11 +274,13 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
+  withState('filterFocusCount', 'setFilterFocusCount', 0),
   withState('smallTeamsExpanded', 'setSmallTeamsExpanded', false),
   withHandlers({
+    focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
     toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
   }),
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {

@@ -241,11 +241,11 @@ func (e *Env) GetMountDir() (string, error) {
 	}
 }
 
-func NewEnv(cmd CommandLine, config ConfigReader) *Env {
-	return newEnv(cmd, config, runtime.GOOS)
+func NewEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
+	return newEnv(cmd, config, runtime.GOOS, getLog)
 }
 
-func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
+func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGetter) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}
@@ -257,7 +257,8 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
 	e.HomeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
 		osname,
-		func() RunMode { return e.GetRunMode() })
+		func() RunMode { return e.GetRunMode() },
+		getLog)
 	return &e
 }
 

@@ -52,15 +52,18 @@ for debian_arch in amd64 i386 ; do
   # PGP fingerprint of our code signing key.
   reprepro --basedir "$repo_root/repo" includedeb stable "$debfile"
 
-  # Update the latest pointer. (We use * to handle the version, because there's
-  # package_binaries.sh has special handling of + chars, and we don't want to
-  # duplicate it here.)
-  (cd "$repo_root" &&
-    ln -sf "repo/pool/main/k/$name/${name}_"*"_${debian_arch}.deb" \
-    "$repo_root/$name-latest-$debian_arch.deb")
-done
+  # We use * to handle the version, because package_binaries.sh has special
+  # handling of + chars, and we don't want to duplicate it here.
+  package_path="$(cd "$repo_root" && ls "repo/pool/main/k/$name/${name}_"*"_${debian_arch}.deb")"
 
-# Because the reprepro hierarchy only contains one version of each architecture
-# at a time, copy the imported packages into our own "all" directory.
-mkdir -p "$repo_root/all"
-cp "$repo_root"/repo/pool/main/*/"$name"/*.deb "$repo_root/all"
+  # Add a standalone signature file, for user convenience. Other packaging
+  # steps will pick this up and copy it around.
+  code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
+  gpg --detach-sign --armor --use-agent --default-key "$code_signing_fingerprint" \
+      -o "$repo_root/$package_path.sig" "$repo_root/$package_path"
+
+  # Update the latest pointer.
+  ln -sf "$package_path" "$repo_root/$name-latest-$debian_arch.deb"
+  ln -sf "$package_path.sig" "$repo_root/$name-latest-$debian_arch.deb.sig"
+
+done
