@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Text, Tabs, List, Icon, PopupMenu} from '../../common-adapters'
+import {Avatar, Box, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -13,6 +13,7 @@ export type Props = {
   you: string,
   name: Constants.Teamname,
   members: Array<RowProps>,
+  loaded: boolean,
   setShowMenu: (s: boolean) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
@@ -108,7 +109,7 @@ class Team extends React.PureComponent<Props> {
   }
 
   render() {
-    const {name, members, setShowMenu, onLeaveTeam, onManageChat} = this.props
+    const {name, members, setShowMenu, onLeaveTeam, loaded, onManageChat} = this.props
     const tabs = [
       <Text key="members" type="BodySmallSemibold" style={{color: globalColors.black_75, padding: 10}}>
         MEMBERS ({members.length})
@@ -125,12 +126,14 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-        <Tabs
-          tabs={tabs}
-          selected={selectedTab}
-          onSelect={() => {}}
-          style={{alignSelf: 'flex-start', height: globalMargins.large}}
-        />
+        {!loaded && <ProgressIndicator style={{alignSelf: 'left', width: 100}} />}
+        {loaded &&
+          <Tabs
+            tabs={tabs}
+            selected={selectedTab}
+            onSelect={() => {}}
+            style={{alignSelf: 'flex-start', height: globalMargins.large}}
+          />}
         <List
           keyProperty="username"
           items={members}
