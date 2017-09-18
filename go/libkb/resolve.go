@@ -113,23 +113,29 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	if au, res.err = ParseAssertionURL(r.G().MakeAssertionContext(), input, false); res.err != nil {
 		return res
 	}
-	res = r.resolveURL(context.TODO(), au, input, withBody, false)
+	res = r.resolveURL(context.TODO(), au, input, withBody, false, true)
 	return res
 }
 
 func (r *Resolver) ResolveFullExpression(ctx context.Context, input string) (res ResolveResult) {
-	return r.resolveFullExpression(ctx, input, false, false)
+	return r.resolveFullExpression(ctx, input, false, false, true)
 }
 
 func (r *Resolver) ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult) {
-	return r.resolveFullExpression(ctx, input, false, true)
+	return r.resolveFullExpression(ctx, input, false, true, true)
+}
+
+// ResolveFullExpressionNeedUsernameNoDeleted is called via Resolve3 from KBFS.
+// It specifies not to load deleted users.
+func (r *Resolver) ResolveFullExpressionNeedUsernameNoDeleted(ctx context.Context, input string) (res ResolveResult) {
+	return r.resolveFullExpression(ctx, input, false, true, false)
 }
 
 func (r *Resolver) ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult) {
-	return r.resolveFullExpression(ctx, input, true, false)
+	return r.resolveFullExpression(ctx, input, true, false, true)
 }
 
-func (r *Resolver) resolveFullExpression(ctx context.Context, input string, withBody bool, needUsername bool) (res ResolveResult) {
+func (r *Resolver) resolveFullExpression(ctx context.Context, input string, withBody, needUsername, loadDeleted bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 
 	var expr AssertionExpression
@@ -142,7 +148,7 @@ func (r *Resolver) resolveFullExpression(ctx context.Context, input string, with
 		res.err = ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 		return res
 	}
-	return r.resolveURL(ctx, u, input, withBody, needUsername)
+	return r.resolveURL(ctx, u, input, withBody, needUsername, loadDeleted)
 }
 
 func (res *ResolveResult) addKeybaseNameIfKnown(au AssertionURL) {
@@ -192,7 +198,7 @@ func (r *Resolver) getFromTeamLoader(ctx context.Context, tid keybase1.TeamID) (
 	return &ResolveResult{teamID: tid, resolvedTeamName: tn, mutable: false}
 }
 
-func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
+func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string, withBody bool, needUsername, loadDeleted bool) (res ResolveResult) {
 	ck := au.CacheKey()
 
 	lock := r.locktab.AcquireOnName(ctx, r.G(), ck)
@@ -245,7 +251,7 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 	}
 
 	trace += "s"
-	res = r.resolveURLViaServerLookup(ctx, au, input, withBody)
+	res = r.resolveURLViaServerLookup(ctx, au, input, withBody, loadDeleted)
 
 	// Cache for a shorter period of time if it's not a Keybase identity
 	res.mutable = isMutable(au)
@@ -261,7 +267,7 @@ func (r *Resolver) resolveURL(ctx context.Context, au AssertionURL, input string
 	return res
 }
 
-func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody bool) (res ResolveResult) {
+func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionURL, input string, withBody, loadDeleted bool) (res ResolveResult) {
 	defer r.G().CVTrace(ctx, VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	if au.IsTeamID() || au.IsTeamName() {
@@ -284,17 +290,23 @@ func (r *Resolver) resolveURLViaServerLookup(ctx context.Context, au AssertionUR
 
 	ha := HTTPArgsFromKeyValuePair(key, S{val})
 	ha.Add("multi", I{1})
-	ha.Add("load_deleted", B{true})
+	ha.Add("load_deleted", B{loadDeleted})
 	fields := "basics"
 	if withBody {
 		fields += ",public_keys,pictures"
 	}
 	ha.Add("fields", S{fields})
+	statusCodes := []int{SCOk, SCNotFound}
+	if !loadDeleted {
+		// if loadDeleted flag isn't set, we want to handle the
+		// SCDeleted status code
+		statusCodes = append(statusCodes, SCDeleted)
+	}
 	ares, res.err = r.G().API.Get(APIArg{
 		Endpoint:        "user/lookup",
 		SessionType:     APISessionTypeNONE,
 		Args:            ha,
-		AppStatusCodes:  []int{SCOk, SCNotFound, SCDeleted},
+		AppStatusCodes:  statusCodes,
 		NetContext:      ctx,
 		RetryCount:      3,
 		InitialTimeout:  4 * time.Second,
