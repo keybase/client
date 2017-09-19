@@ -29,8 +29,7 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
 
     // No error if we get here.
     yield put(Creators.setTeamCreationError(''))
-    const tab = isMobile ? chatTab : teamsTab
-    yield put(navigateTo([tab]))
+    yield put(navigateTo([isMobile ? chatTab : teamsTab]))
   } catch (error) {
     yield put(Creators.setTeamCreationError(error.desc))
   }
