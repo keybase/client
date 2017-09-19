@@ -98,7 +98,7 @@ class Team extends React.PureComponent<Props> {
                 type="iconfont-crown"
                 style={{
                   color: globalColors.black_40,
-                  fontSize: 12,
+                  fontSize: isMobile ? 16 : 12,
                   marginRight: globalMargins.xtiny,
                 }}
               />}
