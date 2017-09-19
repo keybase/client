@@ -58,7 +58,7 @@ func TestFetchRetry(t *testing.T) {
 	require.NotNil(t, inbox.Convs[2].Error)
 	require.Nil(t, inbox.Convs[0].Error)
 	tc.ChatG.FetchRetrier.Failure(ctx, uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), nil, ThreadLoad))
 
 	// Advance clock and check for errors on all conversations
 	t.Logf("advancing clock and checking for stale")
@@ -80,7 +80,7 @@ func TestFetchRetry(t *testing.T) {
 
 	t.Logf("trying to use Force")
 	tc.ChatG.FetchRetrier.Failure(ctx, uid,
-		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), ThreadLoad))
+		NewConversationRetry(tc.Context(), inbox.Convs[2].GetConvID(), nil, ThreadLoad))
 	tc.ChatG.FetchRetrier.Force(ctx)
 	select {
 	case cids := <-list.threadsStale:
