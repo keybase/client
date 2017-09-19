@@ -66,15 +66,15 @@ func TestProofSetAdd(t *testing.T) {
 	q := createProofTerm(2, keybase1.Seqno(403))
 	r := createProofTerm(1, keybase1.Seqno(49))
 
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), c, d, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), e, f, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), g, h, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), i, j, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), k, l, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), m, n, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), o, p, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), q, r, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), c, d, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), e, f, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), g, h, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), i, j, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), k, l, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), m, n, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), o, p, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), q, r, "")
 
 	ret := ps.AllProofs()
 
@@ -95,9 +95,9 @@ func TestProofSetImply(t *testing.T) {
 	c := createProofTerm(2, keybase1.Seqno(2)) // signed link
 	d := createProofTerm(2, keybase1.Seqno(3)) // signed link
 
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, c, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, d, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), a, c, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), a, d, "")
 
 	ret := ps.AllProofs()
 	for _, p := range ret {
@@ -116,8 +116,8 @@ func TestProofSetSameChain(t *testing.T) {
 	b := createProofTerm(1, keybase1.Seqno(11))
 	c := createProofTerm(1, keybase1.Seqno(12))
 
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
-	ps = ps.AddNeededHappensBeforeProof(context.TODO(), b, c, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), a, b, "")
+	ps.AddNeededHappensBeforeProof(context.TODO(), b, c, "")
 
 	ret := ps.AllProofs()
 	for _, p := range ret {

@@ -99,7 +99,7 @@ func newProofSet(g *libkb.GlobalContext) *proofSetT {
 // to a merkle tree lookup, so it makes sense to be stingy. Return the modified
 // proof set with the new proofs needed, but the original arugment p will
 // be mutated.
-func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm, b proofTerm, reason string) *proofSetT {
+func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm, b proofTerm, reason string) {
 
 	var action string
 	defer func() {
@@ -114,14 +114,14 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 			// The proof is self-evident.
 			// Discard it.
 			action = "discard-easy"
-			return p
+			return
 		}
 		// The proof is self-evident FALSE.
 		// Add it and return immediately so the rest of this function doesn't have to trip over it.
 		// It should be failed later by the checker.
 		action = "added-easy-false"
 		p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-		return p
+		return
 	}
 
 	set := p.proofs[idx]
@@ -133,18 +133,18 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 			existing.b = existing.b.min(b)
 			set[i] = existing
 			action = "collapsed"
-			return p
+			return
 		}
 		if existing.a.equal(a) && existing.b.lessThanOrEqual(b) {
 			// If the new proof is the same on the left and weaker on the right.
 			// Discard the new proof, as it is implied by the existing one.
 			action = "discard-weak"
-			return p
+			return
 		}
 	}
 	action = "added"
 	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-	return p
+	return
 }
 
 func (p *proofSetT) AllProofs() []proof {
