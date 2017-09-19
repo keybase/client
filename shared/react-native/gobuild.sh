@@ -96,7 +96,11 @@ gomobileinit ()
   # The gomobile binary only looks for packages in the GOPATH,
   rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
   echo "Doing gomobile init"
-  "$GOPATH/bin/gomobile" init
+  if [ "$arg" = "ios" ]; then
+    "$GOPATH/bin/gomobile" init
+  elif [ "$arg" = "android" ]; then
+    "$GOPATH/bin/gomobile" init -ndk $ANDROID_HOME/ndk-bundle
+  fi
 }
 
 if [ "$arg" = "ios" ]; then
