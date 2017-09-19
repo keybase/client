@@ -105,7 +105,7 @@ if [ "$arg" = "ios" ]; then
   set +e
   OUTPUT="$("$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
   set -e
-  if [[ $OUTPUT == *"gomobile init"* ]]; then
+  if [[ $OUTPUT == *"gomobile"* ]]; then
     gomobileinit
     "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
   else
@@ -117,7 +117,7 @@ elif [ "$arg" = "android" ]; then
   set +e
   OUTPUT="$("$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
   set -e
-  if [[ $OUTPUT == *"gomobile init"* ]]; then
+  if [[ $OUTPUT == *"gomobile"* ]]; then
     gomobileinit
     "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
   else
