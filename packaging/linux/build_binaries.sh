@@ -94,6 +94,9 @@ build_one_architecture() {
     return
   fi
 
+  # Add the kbfs repo to our custom GOPATH.
+  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
+
   cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
   # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
@@ -103,9 +106,13 @@ build_one_architecture() {
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
-  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+
+  # Build the git-remote-keybase binary, also from the kbfs repo.
+  echo "Building git-remote-keybase for $GOARCH..."
+  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
+    "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/kbfs/kbfsgit/git-remote-keybase
 
   # Build the kbnm binary
   echo "Building kbnm for $GOARCH..."

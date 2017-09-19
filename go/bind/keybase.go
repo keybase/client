@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -141,14 +142,15 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 
 	go func() {
-		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+		kbfsCtx := env.NewContextFromGlobalContext(kbCtx)
+		kbfsParams := libkbfs.DefaultInitParams(kbfsCtx)
 		// Setting this flag will enable KBFS debug logging to always be
 		// true in a mobile setting. Kill this setting if too spammy.
 		// (Setting to false now 2017-08-21 PC)
 		kbfsParams.Debug = false
 		kbfsParams.Mode = libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
-			context.Background(), kbCtx, kbfsParams, serviceCn{}, func() {},
+			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
 			kbCtx.Log)
 	}()
 
