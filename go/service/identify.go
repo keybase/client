@@ -142,7 +142,7 @@ func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
 
-	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
+	res := h.G().Resolver.ResolveFullExpressionNeedUsernameNoDeleted(ctx, arg)
 	err = res.GetError()
 	if err != nil {
 		return u, err
