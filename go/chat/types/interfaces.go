@@ -92,6 +92,8 @@ type InboxSource interface {
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember) (MembershipUpdateRes, error)
+	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
+		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
@@ -123,6 +125,7 @@ type RetryDescription interface {
 	Fix(ctx context.Context, uid gregor1.UID) error
 	SendStale(ctx context.Context, uid gregor1.UID)
 	String() string
+	RekeyFixable(ctx context.Context, tlfID chat1.TLFID) bool
 }
 
 type FetchRetrier interface {
@@ -132,6 +135,8 @@ type FetchRetrier interface {
 	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
 	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
 	Force(ctx context.Context)
+	Rekey(ctx context.Context, name string, membersType chat1.ConversationMembersType,
+		public bool)
 }
 
 type ConvLoader interface {

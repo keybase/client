@@ -28,7 +28,7 @@ type PostProofArg struct {
 	SigningKey     GenericKey
 }
 
-func PostProof(arg PostProofArg) (*PostProofRes, error) {
+func PostProof(ctx context.Context, g *GlobalContext, arg PostProofArg) (*PostProofRes, error) {
 	hargs := HTTPArgs{
 		"sig_id_base":     S{arg.ID.ToString(false)},
 		"sig_id_short":    S{arg.ID.ToShortID()},
@@ -40,10 +40,11 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 
-	res, err := G.API.Post(APIArg{
+	res, err := g.API.Post(APIArg{
 		Endpoint:    "sig/post",
 		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
+		NetContext:  ctx,
 	})
 
 	if err != nil {
@@ -76,16 +77,17 @@ type PostAuthProofRes struct {
 	PPGen     int    `json:"passphrase_generation"`
 }
 
-func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
+func PostAuthProof(ctx context.Context, g *GlobalContext, arg PostAuthProofArg) (*PostAuthProofRes, error) {
 	hargs := HTTPArgs{
 		"uid":         UIDArg(arg.uid),
 		"sig":         S{arg.sig},
 		"signing_kid": S{arg.key.GetKID().String()},
 	}
-	res, err := G.API.Post(APIArg{
+	res, err := g.API.Post(APIArg{
 		Endpoint:    "sig/post_auth",
 		SessionType: APISessionTypeNONE,
 		Args:        hargs,
+		NetContext:  ctx,
 	})
 	if err != nil {
 		return nil, err
@@ -104,37 +106,40 @@ type InviteRequestArg struct {
 	Notes    string
 }
 
-func PostInviteRequest(arg InviteRequestArg) (err error) {
-	_, err = G.API.Post(APIArg{
+func PostInviteRequest(ctx context.Context, g *GlobalContext, arg InviteRequestArg) (err error) {
+	_, err = g.API.Post(APIArg{
 		Endpoint: "invitation_request",
 		Args: HTTPArgs{
 			"email":     S{arg.Email},
 			"full_name": S{arg.Fullname},
 			"notes":     S{arg.Notes},
 		},
+		NetContext: ctx,
 	})
 	return err
 }
 
-func DeletePrimary() (err error) {
-	_, err = G.API.Post(APIArg{
+func DeletePrimary(ctx context.Context, g *GlobalContext) (err error) {
+	_, err = g.API.Post(APIArg{
 		Endpoint:    "key/revoke",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"revoke_primary":  I{1},
 			"revocation_type": I{RevSimpleDelete},
 		},
+		NetContext: ctx,
 	})
 	return
 }
 
-func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := G.API.Post(APIArg{
+func CheckPosted(ctx context.Context, g *GlobalContext, proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := g.API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"proof_id": S{proofID},
 		},
+		NetContext: ctx,
 	})
 	if e2 != nil {
 		err = e2
@@ -152,13 +157,14 @@ func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, state
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := G.API.Post(APIArg{
+func CheckPostedViaSigID(ctx context.Context, g *GlobalContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := g.API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"sig_id": S{sigID.ToString(true)},
 		},
+		NetContext: ctx,
 	})
 	if e2 != nil {
 		err = e2
@@ -177,7 +183,7 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
+func PostDeviceLKS(ctx context.Context, g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
 	g.Log.Debug("| PostDeviceLKS: %s", deviceID)
@@ -200,21 +206,23 @@ func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceI
 			"kid":             S{Val: clientHalfRecoveryKID.String()},
 			"platform":        S{Val: GetPlatformString()},
 		},
-		SessionR: sr,
+		SessionR:   sr,
+		NetContext: ctx,
 	}
 	_, err := g.API.Post(arg)
 	return err
 }
 
-func CheckInvitationCode(code string) error {
+func CheckInvitationCode(ctx context.Context, g *GlobalContext, code string) error {
 	arg := APIArg{
 		Endpoint:    "invitation/check",
 		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"invitation_id": S{Val: code},
 		},
+		NetContext: ctx,
 	}
-	_, err := G.API.Get(arg)
+	_, err := g.API.Get(arg)
 	return err
 }
 

@@ -22,7 +22,7 @@ type DelegateUICtlHandler struct {
 func NewDelegateUICtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext, rekeyMaster *rekeyMaster) *DelegateUICtlHandler {
 	return &DelegateUICtlHandler{
 		Contextified: libkb.NewContextified(g),
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		id:           id,
 		rekeyMaster:  rekeyMaster,
 	}

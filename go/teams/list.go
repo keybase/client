@@ -43,6 +43,9 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 }
 
 func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList")
+	defer tracer.Finish()
+
 	var uid keybase1.UID
 	if arg.UserAssertion != "" {
 		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
@@ -54,17 +57,24 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 	meUID := g.ActiveDevice.UID()
 
+	tracer.Stage("server")
 	teams, err := getTeamsListFromServer(ctx, g, uid, arg.All)
 	if err != nil {
 		return nil, err
 	}
 
-	teamNames := make(map[string]bool)
+	tracer.Stage("loop1")
+	teamList := make(map[string]keybase1.TeamID)
 	upakLoader := g.GetUPAKLoader()
-	annotatedTeams := make([]keybase1.AnnotatedMemberInfo, len(teams))
+	var annotatedTeams []keybase1.AnnotatedMemberInfo
 	administeredTeams := make(map[string]bool)
-	for idx, memberInfo := range teams {
-		teamNames[memberInfo.FqName] = true
+	for _, memberInfo := range teams {
+		// Skip implicit teams unless --include-implicit-teams was passed from above.
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			continue
+		}
+
+		teamList[memberInfo.FqName] = memberInfo.TeamID
 		if memberInfo.UserID == meUID && (memberInfo.Role.IsAdminOrAbove() || (memberInfo.Implicit != nil && memberInfo.Implicit.Role.IsAdminOrAbove())) {
 			administeredTeams[memberInfo.FqName] = true
 		}
@@ -78,24 +88,34 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		if err != nil {
 			return nil, err
 		}
-		annotatedTeams[idx] = keybase1.AnnotatedMemberInfo{
-			TeamID:   memberInfo.TeamID,
-			FqName:   memberInfo.FqName,
-			UserID:   memberInfo.UserID,
-			Role:     memberInfo.Role,
-			Implicit: memberInfo.Implicit,
-			Username: username.String(),
-			FullName: fullName,
-		}
+		annotatedTeams = append(annotatedTeams, keybase1.AnnotatedMemberInfo{
+			TeamID:         memberInfo.TeamID,
+			FqName:         memberInfo.FqName,
+			UserID:         memberInfo.UserID,
+			Role:           memberInfo.Role,
+			IsImplicitTeam: memberInfo.IsImplicitTeam,
+			Implicit:       memberInfo.Implicit,
+			Username:       username.String(),
+			FullName:       fullName,
+		})
 	}
 
+	tracer.Stage("loop2")
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite)
-	for teamName := range teamNames {
+	for teamName, teamID := range teamList {
 		_, ok := administeredTeams[teamName]
 		if ok {
-			t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
+			t, err := Load(ctx, g, keybase1.LoadTeamArg{
+				ID:        teamID,
+				NeedAdmin: true,
+			})
 			if err != nil {
 				g.Log.Warning("Error while getting team (%s): %v", teamName, err)
+				continue
+			}
+			if t.Name().String() != teamName {
+				// This could trigger if we have cached an old name and have not gotten updates.
+				g.Log.Warning("Error while getting team (%s): %v", teamName, fmt.Errorf("team name mismatch"))
 				continue
 			}
 			teamAnnotatedInvites, err := AnnotateInvites(ctx, g, t.chain().inner.ActiveInvites, teamName)
@@ -137,11 +157,14 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 			if err != nil {
 				return nil, err
 			}
-			normalized, err := upakLoader.LookupUsername(context.Background(), uv.Uid)
+			up, err := upakLoader.LoadUserPlusKeys(context.Background(), uv.Uid, "")
 			if err != nil {
 				return nil, err
 			}
-			name = keybase1.TeamInviteName(normalized.String())
+			if uv.EldestSeqno != up.EldestSeqno {
+				continue
+			}
+			name = keybase1.TeamInviteName(up.Username)
 		}
 		annotatedInvites[id] = keybase1.AnnotatedTeamInvite{
 			Role:            invite.Role,

@@ -42,10 +42,15 @@ func (v *CmdTeamCreate) Run() (err error) {
 		return err
 	}
 
+	// only send a chat notification if creating a root team.
+	// (if creating a sub team, the creator is not a member of the team
+	// and thus can't send a chat message)
+	sendChatNotification := v.TeamName.IsRootTeam()
+
 	createRes, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
 		Name:                 v.TeamName.String(),
 		SessionID:            v.SessionID,
-		SendChatNotification: true,
+		SendChatNotification: sendChatNotification,
 	})
 	if err != nil {
 		return err

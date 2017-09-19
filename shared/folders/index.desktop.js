@@ -53,6 +53,7 @@ class FoldersRender extends Component<Props> {
       onOpen: this.props.onOpen,
       onChat: this.props.onChat,
       onClick: this.props.onClick,
+      installed: this.props.installed,
     }
 
     return (
@@ -68,7 +69,9 @@ class FoldersRender extends Component<Props> {
         <TabBar
           styleTabBar={{
             ...tabBarStyle,
-            backgroundColor: globalColors.white,
+            backgroundColor: !this.props.smallMode && !this.props.installed
+              ? globalColors.grey
+              : globalColors.white,
             minHeight: this.props.smallMode ? 32 : 48,
           }}
         >

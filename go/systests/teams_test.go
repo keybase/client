@@ -7,7 +7,9 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -137,6 +139,7 @@ func (tt *teamTester) addUser(pre string) *userPlusDevice {
 	tt.t.Logf("signed up %s", userInfo.username)
 
 	u.username = userInfo.username
+	u.passphrase = userInfo.passphrase
 	u.uid = libkb.UsernameToUID(u.username)
 	u.tc = tc
 
@@ -159,6 +162,10 @@ func (tt *teamTester) addUser(pre string) *userPlusDevice {
 		tt.t.Fatal(err)
 	}
 
+	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+
+	g.ConfigureConfig()
+
 	tt.users = append(tt.users, &u)
 	return &u
 }
@@ -172,9 +179,11 @@ func (tt *teamTester) cleanup() {
 type userPlusDevice struct {
 	uid           keybase1.UID
 	username      string
+	passphrase    string
 	device        *deviceWrapper
 	tc            *libkb.TestContext
 	deviceClient  keybase1.DeviceClient
+	teamsClient   keybase1.TeamsClient
 	notifications *teamNotifyHandler
 }
 
@@ -210,6 +219,16 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	add.Username = username
 	add.Role = role
 	if err := add.Run(); err != nil {
+		u.tc.T.Fatal(err)
+	}
+}
+
+func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.TeamRole) {
+	change := client.NewCmdTeamEditMemberRunner(u.tc.G)
+	change.Team = team
+	change.Username = username
+	change.Role = keybase1.TeamRole_OWNER
+	if err := change.Run(); err != nil {
 		u.tc.T.Fatal(err)
 	}
 }
@@ -410,6 +429,23 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 	kickTeamRekeyd(u.tc.G, u.tc.T)
 }
 
+func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
+	cli := u.teamsClient
+	var err error
+	var teamID keybase1.TeamID
+	if create {
+		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+	} else {
+		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+	}
+
+	return teamID, err
+}
+
+func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
+	return &libkb.TestSecretUI{Passphrase: u.passphrase}
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 	apiArg := libkb.APIArg{
 		Endpoint: "test/accelerate_team_rekeyd",
@@ -482,4 +518,71 @@ func TestGetTeamRootID(t *testing.T) {
 	getAndCompare(*subteamID)
 	getAndCompare(*subteamID2)
 	getAndCompare(parentID)
+}
+
+// test that we can still load a valid link a signed by a now-revoked device.
+func TestTeamSignedByRevokedDevice(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	// the signer
+	alice := tt.addUser("alice")
+
+	// the loader
+	bob := tt.addUser("bob")
+
+	teamName := alice.createTeam()
+	alice.addTeamMember(teamName, bob.username, keybase1.TeamRole_ADMIN)
+
+	t.Logf("alice revokes the device used to sign team links")
+	var revokedKID keybase1.KID
+	{
+		devices, _ := getActiveDevicesAndKeys(alice.tc, alice.username)
+		var target *libkb.Device
+		for _, device := range devices {
+			if device.Type != libkb.DeviceTypePaper {
+				target = device
+			}
+		}
+		require.NotNil(t, target)
+		revokedKID = target.Kid
+
+		revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
+			ID:        target.ID,
+			ForceSelf: true,
+			ForceLast: false,
+		}, alice.tc.G)
+		ectx := &engine.Context{
+			LogUI:    alice.tc.G.Log,
+			SecretUI: alice.newSecretUI(),
+		}
+		err := engine.RunEngine(revokeEngine, ectx)
+		require.NoError(t, err)
+	}
+
+	t.Logf("bob updates cache of alice's info")
+	{
+		arg := libkb.NewLoadUserArg(bob.tc.G)
+		arg.UID = alice.uid
+		arg.PublicKeyOptional = true
+		arg.ForcePoll = true
+		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
+		require.NoError(t, err)
+	}
+
+	t.Logf("bob should see alice's key is revoked")
+	{
+		_, pubKey, _, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
+		require.NoError(t, err)
+		t.Logf("%v", spew.Sdump(pubKey))
+		require.NotNil(t, pubKey.Base.Revocation, "key should be revoked: %v", revokedKID)
+	}
+
+	t.Logf("bob loads the team")
+	_, err := teams.Load(context.TODO(), bob.tc.G, keybase1.LoadTeamArg{
+		Name:            teamName,
+		ForceRepoll:     true,
+		ForceFullReload: true, // don't use the cache
+	})
+	require.NoError(t, err)
 }

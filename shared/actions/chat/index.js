@@ -216,6 +216,10 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         }
       }
       break
+    case ChatTypes.NotifyChatChatActivityType.teamtype:
+      // Just reload everything if we get one of these
+      yield put(Creators.inboxStale())
+      break
     default:
       console.warn(
         'Unsupported incoming message type for Chat of type:',
@@ -348,7 +352,7 @@ function* _updateThread({
 }
 
 function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
-  return function*({thread}) {
+  return function* subSagaUpdateThreadHelper({thread}) {
     if (thread) {
       const decThread: ChatTypes.UIMessages = JSON.parse(thread)
       yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey))
@@ -818,15 +822,13 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
+  yield put(Creators.setInboxFilter(''))
   const inboxSearch = yield select(inboxSearchSelector)
-  if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
+  if (inboxSearch && !inboxSearch.isEmpty()) {
     // Ignore 'New Chat' attempts when we're already building a chat
     return
   }
   yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
-  for (const username of action.payload.existingParticipants) {
-    yield put(Creators.stageUserForSearch(username))
-  }
   yield put(Creators.selectConversation(null, false))
   yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
 }
@@ -897,7 +899,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
   } else {
-    yield put(navigateTo([], [chatTab]))
+    yield put(navigateTo([chatTab]))
   }
 
   // Do this here because it's possible loadMoreMessages bails early

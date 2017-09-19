@@ -102,7 +102,7 @@ func (p *Prove) promptRemoteName(ctx *Context) error {
 	for {
 		un, err := ctx.ProveUI.PromptUsername(context.TODO(), keybase1.PromptUsernameArg{
 			Prompt:    p.st.GetPrompt(),
-			PrevError: libkb.ExportErrorAsStatus(normalizationError),
+			PrevError: libkb.ExportErrorAsStatus(p.G(), normalizationError),
 		})
 		if err != nil {
 			// Errors here are conditions like EOF. Return them rather than retrying.
@@ -190,7 +190,7 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 	return
 }
 
-func (p *Prove) postProofToServer() (err error) {
+func (p *Prove) postProofToServer(ctx *Context) (err error) {
 	arg := libkb.PostProofArg{
 		Sig:            p.sig,
 		ProofType:      p.st.GetProofType(),
@@ -200,7 +200,7 @@ func (p *Prove) postProofToServer() (err error) {
 		RemoteKey:      p.st.GetAPIArgKey(),
 		SigningKey:     p.signingKey,
 	}
-	p.postRes, err = libkb.PostProof(arg)
+	p.postRes, err = libkb.PostProof(ctx.GetNetContext(), p.G(), arg)
 	return
 }
 
@@ -258,20 +258,20 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		var retry bool
 		var status keybase1.ProofStatus
 		var warn *libkb.Markup
-		retry, err = ctx.ProveUI.OkToCheck(context.TODO(), keybase1.OkToCheckArg{
+		retry, err = ctx.ProveUI.OkToCheck(ctx.GetNetContext(), keybase1.OkToCheckArg{
 			Name:    p.st.DisplayName(p.remoteNameNormalized),
 			Attempt: i,
 		})
 		if !retry || err != nil {
 			break
 		}
-		found, status, _, err = libkb.CheckPosted(p.postRes.ID)
+		found, status, _, err = libkb.CheckPosted(ctx.GetNetContext(), p.G(), p.postRes.ID)
 		if found || err != nil {
 			break
 		}
 		warn, err = p.st.RecheckProofPosting(i, status, p.remoteNameNormalized)
 		if warn != nil {
-			uierr := ctx.ProveUI.DisplayRecheckWarning(context.TODO(), keybase1.DisplayRecheckWarningArg{
+			uierr := ctx.ProveUI.DisplayRecheckWarning(ctx.GetNetContext(), keybase1.DisplayRecheckWarningArg{
 				Text: warn.Export(),
 			})
 			if uierr != nil {
@@ -354,7 +354,7 @@ func (p *Prove) Run(ctx *Context) (err error) {
 		return
 	}
 	stage("PostProofToServer")
-	if err = p.postProofToServer(); err != nil {
+	if err = p.postProofToServer(ctx); err != nil {
 		return
 	}
 	p.G().LocalSigchainGuard().Clear(ctx.GetNetContext(), "Prove")

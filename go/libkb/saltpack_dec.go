@@ -205,7 +205,7 @@ func (r *TlfKeyResolver) getCryptKeys(ctx context.Context, name string) (keybase
 		return keybase1.GetTLFCryptKeysRes{}, KBFSNotRunningError{}
 	}
 	cli := &keybase1.TlfKeysClient{
-		Cli: rpc.NewClient(xp, ErrorUnwrapper{}, LogTagsFromContext),
+		Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(r.G()), LogTagsFromContext),
 	}
 	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
 		TlfName:          name,

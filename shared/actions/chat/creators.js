@@ -176,8 +176,8 @@ function startConversation(
   }
 }
 
-function newChat(existingParticipants: Array<string>): Constants.NewChat {
-  return {payload: {existingParticipants}, type: 'chat:newChat'}
+function newChat(): Constants.NewChat {
+  return {payload: {}, type: 'chat:newChat'}
 }
 
 function postMessage(

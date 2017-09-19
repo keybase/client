@@ -127,7 +127,7 @@ func NewProofError(p proof, s string) ProofError {
 }
 
 func (p ProofError) Error() string {
-	return fmt.Sprintf("proof error for proof %+v: %s", p.p, p.msg)
+	return fmt.Sprintf("proof error for proof '%s': %s", p.p.reason, p.msg)
 }
 
 type PermissionError struct {
@@ -229,23 +229,10 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n s
 	return e
 }
 
-type KeyMaskNotFoundError struct {
-	app keybase1.TeamApplication
-	gen keybase1.PerTeamKeyGeneration
+func NewKeyMaskNotFoundErrorForApplication(a keybase1.TeamApplication) libkb.KeyMaskNotFoundError {
+	return libkb.KeyMaskNotFoundError{App: a}
 }
 
-func (e KeyMaskNotFoundError) Error() string {
-	msg := fmt.Sprintf("You don't have access to %s for this team", e.app)
-	if e.gen != keybase1.PerTeamKeyGeneration(0) {
-		msg += fmt.Sprintf(" (at generation %d)", int(e.gen))
-	}
-	return msg
-}
-
-func NewKeyMaskNotFoundErrorForApplication(a keybase1.TeamApplication) KeyMaskNotFoundError {
-	return KeyMaskNotFoundError{app: a}
-}
-
-func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplication, g keybase1.PerTeamKeyGeneration) KeyMaskNotFoundError {
-	return KeyMaskNotFoundError{app: a, gen: g}
+func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplication, g keybase1.PerTeamKeyGeneration) libkb.KeyMaskNotFoundError {
+	return libkb.KeyMaskNotFoundError{App: a, Gen: g}
 }

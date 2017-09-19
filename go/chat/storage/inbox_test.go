@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -18,7 +17,8 @@ import (
 )
 
 func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
-	ltc := externals.SetupTest(t, name, 2)
+	ltc := setupCommonTest(t, name)
+
 	tc := kbtest.ChatTestContext{
 		TestContext: ltc,
 		ChatG:       &globals.ChatContext{},
@@ -669,7 +669,8 @@ func TestInboxSync(t *testing.T) {
 
 	vers, err := inbox.Version(context.TODO())
 	require.NoError(t, err)
-	require.NoError(t, inbox.Sync(context.TODO(), vers+1, syncConvs))
+	syncRes, err := inbox.Sync(context.TODO(), vers+1, syncConvs)
+	require.NoError(t, err)
 	newVers, newRes, _, err := inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, vers+1, newVers)
@@ -678,7 +679,19 @@ func TestInboxSync(t *testing.T) {
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[1].Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[7].Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_UNFILED, newRes[4].Metadata.Status)
+	require.False(t, syncRes.TeamTypeChanged)
 
+	syncConvs = nil
+	vers, err = inbox.Version(context.TODO())
+	require.NoError(t, err)
+	convs[8].Metadata.TeamType = chat1.TeamType_COMPLEX
+	syncConvs = append(syncConvs, convs[8])
+	syncRes, err = inbox.Sync(context.TODO(), vers+1, syncConvs)
+	newVers, newRes, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, vers+1, newVers)
+	require.Equal(t, chat1.TeamType_COMPLEX, newRes[9].Metadata.TeamType)
+	require.True(t, syncRes.TeamTypeChanged)
 }
 
 func TestInboxServerVersion(t *testing.T) {

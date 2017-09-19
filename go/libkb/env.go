@@ -168,7 +168,7 @@ type Env struct {
 	sync.RWMutex
 	cmd           CommandLine
 	config        ConfigReader
-	homeFinder    HomeFinder
+	HomeFinder    HomeFinder
 	writer        ConfigWriter
 	Test          *TestParameters
 	updaterConfig UpdaterConfigReader
@@ -241,11 +241,11 @@ func (e *Env) GetMountDir() (string, error) {
 	}
 }
 
-func NewEnv(cmd CommandLine, config ConfigReader) *Env {
-	return newEnv(cmd, config, runtime.GOOS)
+func NewEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
+	return newEnv(cmd, config, runtime.GOOS, getLog)
 }
 
-func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
+func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGetter) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}
@@ -254,10 +254,11 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
 	}
 	e := Env{cmd: cmd, config: config, Test: &TestParameters{}}
 
-	e.homeFinder = NewHomeFinder("keybase",
+	e.HomeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
 		osname,
-		func() RunMode { return e.GetRunMode() })
+		func() RunMode { return e.GetRunMode() },
+		getLog)
 	return &e
 }
 
@@ -269,21 +270,21 @@ func (e *Env) getHomeFromCmdOrConfig() string {
 	)
 }
 
-func (e *Env) GetHome() string            { return e.homeFinder.Home(false) }
-func (e *Env) GetConfigDir() string       { return e.homeFinder.ConfigDir() }
-func (e *Env) GetCacheDir() string        { return e.homeFinder.CacheDir() }
-func (e *Env) GetSandboxCacheDir() string { return e.homeFinder.SandboxCacheDir() }
-func (e *Env) GetDataDir() string         { return e.homeFinder.DataDir() }
-func (e *Env) GetLogDir() string          { return e.homeFinder.LogDir() }
+func (e *Env) GetHome() string            { return e.HomeFinder.Home(false) }
+func (e *Env) GetConfigDir() string       { return e.HomeFinder.ConfigDir() }
+func (e *Env) GetCacheDir() string        { return e.HomeFinder.CacheDir() }
+func (e *Env) GetSandboxCacheDir() string { return e.HomeFinder.SandboxCacheDir() }
+func (e *Env) GetDataDir() string         { return e.HomeFinder.DataDir() }
+func (e *Env) GetLogDir() string          { return e.HomeFinder.LogDir() }
 
 func (e *Env) GetRuntimeDir() string {
 	return e.GetString(
 		func() string { return e.Test.RuntimeDir },
-		func() string { return e.homeFinder.RuntimeDir() },
+		func() string { return e.HomeFinder.RuntimeDir() },
 	)
 }
 
-func (e *Env) GetServiceSpawnDir() (string, error) { return e.homeFinder.ServiceSpawnDir() }
+func (e *Env) GetServiceSpawnDir() (string, error) { return e.HomeFinder.ServiceSpawnDir() }
 
 func (e *Env) getEnvInt(s string) (int, bool) {
 	v := os.Getenv(s)
@@ -561,7 +562,7 @@ func (e *Env) defaultSocketFile() string {
 
 // sandboxSocketFile is socket file location for sandbox (macOS only)
 func (e *Env) sandboxSocketFile() string {
-	sandboxCacheDir := e.homeFinder.SandboxCacheDir()
+	sandboxCacheDir := e.HomeFinder.SandboxCacheDir()
 	if sandboxCacheDir == "" {
 		return ""
 	}

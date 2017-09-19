@@ -489,7 +489,7 @@ export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',
   {conversationIDKey: ConversationIDKey, muted: boolean}
 >
-export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
+export type NewChat = NoErrorTypedAction<'chat:newChat', {}>
 export type OpenAttachmentPopup = NoErrorTypedAction<
   'chat:openAttachmentPopup',
   {message: AttachmentMessage, currentPath: Path}

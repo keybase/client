@@ -92,13 +92,13 @@ func ExportRemoteProof(p RemoteProofChainLink) keybase1.RemoteProof {
 	}
 }
 
-func (is IdentifyState) ExportToUncheckedIdentity() *keybase1.Identity {
-	return is.res.ExportToUncheckedIdentity()
+func (is IdentifyState) ExportToUncheckedIdentity(g *GlobalContext) *keybase1.Identity {
+	return is.res.ExportToUncheckedIdentity(g)
 }
 
-func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
+func (ir IdentifyOutcome) ExportToUncheckedIdentity(g *GlobalContext) *keybase1.Identity {
 	tmp := keybase1.Identity{
-		Status: ExportErrorAsStatus(ir.Error),
+		Status: ExportErrorAsStatus(g, ir.Error),
 	}
 	if ir.TrackUsed != nil {
 		tmp.WhenLastTracked = keybase1.ToTime(ir.TrackUsed.GetCTime())
@@ -147,7 +147,7 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 	return NewProofError(ps, e.Desc)
 }
 
-func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
+func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
 	if e == nil {
 		return nil
 	}
@@ -172,8 +172,8 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 		return &tmp
 	}
 
-	if G.Env.GetRunMode() != ProductionRunMode {
-		G.Log.Warning("not exportable error: %v (%T)", e, e)
+	if g != nil && g.Env.GetRunMode() != ProductionRunMode {
+		g.Log.Warning("not exportable error: %v (%T)", e, e)
 	}
 
 	return &keybase1.Status{
@@ -185,33 +185,47 @@ func ExportErrorAsStatus(e error) (ret *keybase1.Status) {
 
 //=============================================================================
 
-func WrapError(e error) interface{} {
-	return ExportErrorAsStatus(e)
+func MakeWrapError(g *GlobalContext) func(e error) interface{} {
+	return func(e error) interface{} {
+		return ExportErrorAsStatus(g, e)
+	}
 }
 
-var _ rpc.WrapErrorFunc = WrapError
+func WrapError(e error) interface{} {
+	return ExportErrorAsStatus(nil, e)
+}
 
-type ErrorUnwrapper struct{}
+var _ rpc.WrapErrorFunc = MakeWrapError(nil)
 
-func (eu ErrorUnwrapper) MakeArg() interface{} {
+type ErrorUnwrapper struct {
+	Contextified
+}
+
+func NewContextifiedErrorUnwrapper(g *GlobalContext) ErrorUnwrapper {
+	return ErrorUnwrapper{NewContextified(g)}
+
+}
+
+func (c ErrorUnwrapper) MakeArg() interface{} {
 	return &keybase1.Status{}
 }
 
-func (eu ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
+func (c ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchError error) {
 	targ, ok := arg.(*keybase1.Status)
 	if !ok {
 		dispatchError = errors.New("Error converting status to keybase1.Status object")
 		return
 	}
-	appError = ImportStatusAsError(targ)
+	appError = ImportStatusAsError(c.G(), targ)
 	return
 }
 
+var _ rpc.ErrorUnwrapper = NewContextifiedErrorUnwrapper(nil)
 var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}
 
 //=============================================================================
 
-func ImportStatusAsError(s *keybase1.Status) error {
+func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	if s == nil {
 		return nil
 	}
@@ -400,8 +414,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			case "code":
 				var err error
 				code, err = strconv.Atoi(field.Value)
-				if err != nil {
-					G.Log.Warning("error parsing generic API error code: %s", err)
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing generic API error code: %s", err)
 				}
 			}
 		}
@@ -419,8 +433,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			switch field.Key {
 			case "ConvID":
 				bs, err := chat1.MakeConvID(field.Value)
-				if err != nil {
-					G.Log.Warning("error parsing ChatConvExistsError")
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing ChatConvExistsError")
 				}
 				convID = chat1.ConversationID(bs)
 			}
@@ -435,8 +449,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			case "TlfID":
 				var err error
 				tlfID, err = chat1.MakeTLFID(field.Value)
-				if err != nil {
-					G.Log.Warning("error parsing chat unknown TLF ID error")
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing chat unknown TLF ID error")
 				}
 			}
 		}
@@ -449,8 +463,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			switch field.Key {
 			case "UID":
 				val, err := hex.DecodeString(field.Value)
-				if err != nil {
-					G.Log.Warning("error parsing chat not in conv UID")
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing chat not in conv UID")
 				}
 				uid = gregor1.UID(val)
 			}
@@ -464,8 +478,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			switch field.Key {
 			case "UID":
 				val, err := hex.DecodeString(field.Value)
-				if err != nil {
-					G.Log.Warning("error parsing chat not in conv UID")
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing chat not in conv UID")
 				}
 				uid = gregor1.UID(val)
 			}
@@ -480,8 +494,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			case "TlfID":
 				var err error
 				tlfID, err = chat1.MakeTLFID(field.Value)
-				if err != nil {
-					G.Log.Warning("error parsing chat tlf finalized TLFID: %s", err.Error())
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing chat tlf finalized TLFID: %s", err.Error())
 				}
 			}
 		}
@@ -499,13 +513,13 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			case "RateLimit":
 				var err error
 				err = json.Unmarshal([]byte(field.Value), &rlimit)
-				if err != nil {
-					G.Log.Warning("error parsing chat rate limit: %s", err.Error())
+				if err != nil && g != nil {
+					g.Log.Warning("error parsing chat rate limit: %s", err.Error())
 				}
 			}
 		}
-		if rlimit.Name == "" {
-			G.Log.Warning("error rate limit information not found")
+		if rlimit.Name == "" && g != nil {
+			g.Log.Warning("error rate limit information not found")
 		}
 		return ChatRateLimitError{
 			RateLimit: rlimit,
@@ -586,6 +600,19 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return RevokeCurrentDeviceError{}
 	case SCRevokeLastDevice:
 		return RevokeLastDeviceError{}
+	case SCTeamKeyMaskNotFound:
+		e := KeyMaskNotFoundError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "App":
+				e.App = keybase1.TeamApplication(field.IntValue())
+			case "Gen":
+				e.Gen = keybase1.PerTeamKeyGeneration(field.IntValue())
+			}
+		}
+		return e
+	case SCDeviceProvisionOffline:
+		return ProvisionFailedOfflineError{}
 
 	default:
 		ase := AppStatusError{
@@ -677,7 +704,7 @@ func ExportTrackSummary(l *TrackLookup, username string) *keybase1.TrackSummary 
 
 //=============================================================================
 
-func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
+func (ir *IdentifyOutcome) Export(g *GlobalContext) *keybase1.IdentifyOutcome {
 	v := make([]string, len(ir.Warnings))
 	for i, w := range ir.Warnings {
 		v[i] = w.Warning()
@@ -688,7 +715,7 @@ func (ir *IdentifyOutcome) Export() *keybase1.IdentifyOutcome {
 	}
 	ret := &keybase1.IdentifyOutcome{
 		Username:          ir.Username.String(),
-		Status:            ExportErrorAsStatus(ir.Error),
+		Status:            ExportErrorAsStatus(g, ir.Error),
 		Warnings:          v,
 		TrackUsed:         ExportTrackSummary(ir.TrackUsed, ir.Username.String()),
 		TrackStatus:       ir.TrackStatus(),
@@ -1226,7 +1253,7 @@ func (p PerUserKeysList) Len() int           { return len(p) }
 func (p PerUserKeysList) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 func (p PerUserKeysList) Less(i, j int) bool { return p[i].Gen < p[j].Gen }
 
-func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily) keybase1.UserPlusKeysV2 {
+func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username string, eldestSeqno keybase1.Seqno, kf *KeyFamily, status keybase1.StatusCode) keybase1.UserPlusKeysV2 {
 
 	var perUserKeysList PerUserKeysList
 	if cki != nil {
@@ -1255,6 +1282,7 @@ func (cki *ComputedKeyInfos) exportUPKV2Incarnation(uid keybase1.UID, username s
 		PerUserKeys: perUserKeysList,
 		DeviceKeys:  deviceKeys,
 		PGPKeys:     pgpSummaries,
+		Status:      status,
 		// Uvv and RemoteTracks are set later, and only for the current incarnation
 	}
 }
@@ -1266,6 +1294,7 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 
 	uid := u.GetUID()
 	name := u.GetName()
+	status := u.GetStatus()
 
 	// First assemble all the past versions of this user.
 	pastIncarnations := []keybase1.UserPlusKeysV2{}
@@ -1275,12 +1304,12 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 				return nil, fmt.Errorf("Tried to export empty subchain for uid %s username %s", u.GetUID(), u.GetName())
 			}
 			cki := subchain[len(subchain)-1].cki
-			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf))
+			pastIncarnations = append(pastIncarnations, cki.exportUPKV2Incarnation(uid, name, subchain[0].GetSeqno(), kf, status))
 		}
 	}
 
 	// Then assemble the current version. This one gets a couple extra fields, Uvv and RemoteTracks.
-	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf)
+	current := u.GetComputedKeyInfos().exportUPKV2Incarnation(uid, name, u.GetCurrentEldestSeqno(), kf, status)
 	current.RemoteTracks = make(map[keybase1.UID]keybase1.RemoteTrack)
 	if u.IDTable() != nil {
 		for _, track := range u.IDTable().GetTrackList() {
@@ -2029,6 +2058,26 @@ func (e RevokeLastDeviceError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCRevokeLastDevice,
 		Name: "SC_DEVICE_REVOKE_LAST",
+		Desc: e.Error(),
+	}
+}
+
+func (e KeyMaskNotFoundError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCTeamKeyMaskNotFound,
+		Name: "TEAM_KEY_MASK_NOT_FOUND",
+		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "App", Value: strconv.Itoa(int(e.App))},
+			{Key: "Gen", Value: strconv.Itoa(int(e.Gen))},
+		},
+	}
+}
+
+func (e ProvisionFailedOfflineError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDeviceProvisionOffline,
+		Name: "SC_DEVICE_PROVISION_OFFLINE",
 		Desc: e.Error(),
 	}
 }

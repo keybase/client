@@ -1,11 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, Usernames, Icon} from '../../../common-adapters'
+import {Box, ClickableBox, Avatar, Text, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 type Props = {
-  onAddParticipant: ?() => void,
   onShowProfile: (user: string) => void,
   participants: Array<{
     username: string,
@@ -16,7 +15,7 @@ type Props = {
   }>,
 }
 
-const Participants = ({participants, onShowProfile, onAddParticipant}: Props) => (
+const Participants = ({participants, onShowProfile}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
     {participants.map((info, index, arr) => {
       const {username, following, fullname, broken, isYou} = info
@@ -46,14 +45,6 @@ const Participants = ({participants, onShowProfile, onAddParticipant}: Props) =>
         </ClickableBox>
       )
     })}
-    {onAddParticipant
-      ? <ClickableBox onClick={onAddParticipant}>
-          <Box style={{...rowStyle, ...globalStyles.flexBoxRow, alignItems: 'center'}}>
-            <Icon type="icon-user-add-32" style={{marginRight: 12}} />
-            <Text type="BodyPrimaryLink" onClick={onAddParticipant}>Add another participant</Text>
-          </Box>
-        </ClickableBox>
-      : null}
   </Box>
 )
 

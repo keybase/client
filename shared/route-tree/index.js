@@ -306,6 +306,38 @@ export function getPathState(routeState: RouteStateNode, parentPath?: Path): ?I.
   return curState ? curState.state : null
 }
 
+// Returns an array of props corresponding to all the nodes in the route tree
+// under the given parentPath
+export function getPathProps(
+  routeState: RouteStateNode,
+  parentPath: Path
+): I.List<{node: string, props: I.Map<string, any>}> {
+  const path = []
+  let curState = routeState
+
+  for (const next of parentPath) {
+    curState = curState && curState.getChild(next)
+    if (!curState) {
+      return I.List(path)
+    }
+    path.push({
+      node: next,
+      props: curState.props,
+    })
+  }
+
+  while (curState && curState.selected !== null) {
+    let thisNode = curState && curState.selected
+    curState = curState.getChild(curState.selected)
+    path.push({
+      node: thisNode,
+      props: (curState && curState.props) || I.Map(),
+    })
+  }
+
+  return I.List(path)
+}
+
 export function pathToString(path: Array<string> | I.IndexedIterable<string>): string {
   return '/' + path.join('/')
 }

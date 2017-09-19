@@ -92,7 +92,6 @@ func (s *Syncer) sendNotificationsOnce() {
 		for uid := range s.fullReload {
 			s.Debug(context.Background(), "flushing full reload: uid: %s", uid)
 			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), keybase1.UID(uid))
-			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), nil)
 		}
 		s.fullReload = make(map[string]bool)
 
@@ -225,10 +224,22 @@ func (s *Syncer) Sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	return s.sync(ctx, cli, uid, syncRes)
 }
 
-func (s *Syncer) shouldDoFullReloadFromIncremental(convs []chat1.Conversation) bool {
+func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes storage.InboxSyncRes,
+	convs []chat1.Conversation) bool {
+	if syncRes.TeamTypeChanged {
+		s.Debug(ctx, "shouldDoFullReloadFromIncremental: team type changed")
+		return true
+	}
 	for _, conv := range convs {
+		switch conv.Metadata.Existence {
+		case chat1.ConversationExistence_ACTIVE:
+		default:
+			s.Debug(ctx, "shouldDoFullReloadFromIncremental: deleted conversation: %s", conv.GetConvID())
+			return true
+		}
 		switch conv.ReaderInfo.Status {
 		case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_REMOVED:
+			s.Debug(ctx, "shouldDoFullReloadFromIncremental: join or leave conv")
 			return true
 		}
 	}
@@ -298,13 +309,14 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
 			vers, incr.Vers, len(incr.Convs))
 
-		if err = ibox.Sync(ctx, incr.Vers, incr.Convs); err != nil {
+		var iboxSyncRes storage.InboxSyncRes
+		if iboxSyncRes, err = ibox.Sync(ctx, incr.Vers, incr.Convs); err != nil {
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
 			s.SendChatStaleNotifications(ctx, uid, nil, true)
 		} else {
-			if s.shouldDoFullReloadFromIncremental(incr.Convs) {
+			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
 				// If we get word we shoudl full clear the inbox (like if the user left a conversation),
 				// then just reload everything
 				s.SendChatStaleNotifications(ctx, uid, nil, true)

@@ -26,7 +26,7 @@ type UserHandler struct {
 // NewUserHandler creates a UserHandler for the xp transport.
 func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext, chatG *globals.ChatContext) *UserHandler {
 	return &UserHandler{
-		BaseHandler:      NewBaseHandler(xp),
+		BaseHandler:      NewBaseHandler(g, xp),
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: globals.NewChatContextified(chatG),
 	}
@@ -135,6 +135,15 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 		}
 	}
 
+	if err == nil {
+		// ret.Status might indicate an error we should return
+		// (like libkb.DeletedError, for example)
+		err = libkb.UserErrorFromStatus(ret.Status)
+		if err != nil {
+			h.G().Log.CDebugf(netCtx, "using error from StatusCode: %v => %s", ret.Status, err)
+		}
+	}
+
 	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (UVV=%+v, KIDs=%v, err=%s)", arg, ret.Uvv, kids, libkb.ErrToOk(err))
 	return ret, err
 }
@@ -219,6 +228,21 @@ func (h *UserHandler) ResetUser(ctx context.Context, sessionID int) error {
 		return errors.New("can only reset user via service RPC in dev mode")
 	}
 	err := h.G().LoginState().ResetAccount(h.G().Env.GetUsername().String())
+	if err != nil {
+		return err
+	}
+	err = h.G().Logout()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *UserHandler) DeleteUser(ctx context.Context, sessionID int) error {
+	if h.G().Env.GetRunMode() != libkb.DevelRunMode {
+		return errors.New("can only delete user via service RPC in dev mode")
+	}
+	err := h.G().LoginState().DeleteAccount(h.G().Env.GetUsername().String())
 	if err != nil {
 		return err
 	}

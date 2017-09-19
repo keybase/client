@@ -638,6 +638,10 @@ func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *DeleteConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
 func (t TyperInfo) String() string {
 	return fmt.Sprintf("typer(u:%s d:%s)", t.Username, t.DeviceName)
 }
@@ -677,6 +681,13 @@ func (i InboxUIItem) GetConvID() ConversationID {
 func AllConversationMemberStatuses() (res []ConversationMemberStatus) {
 	for status := range ConversationMemberStatusRevMap {
 		res = append(res, status)
+	}
+	return res
+}
+
+func AllConversationExistences() (res []ConversationExistence) {
+	for existence := range ConversationExistenceRevMap {
+		res = append(res, existence)
 	}
 	return res
 }

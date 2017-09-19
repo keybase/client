@@ -45,7 +45,6 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       lastBadgeStateVersion = -1
       if (lastLoggedInNotifyUsername !== username) {
         lastLoggedInNotifyUsername = username
-        notify('Logged in to Keybase as: ' + username)
       }
 
       dispatch(bootstrap())
@@ -57,7 +56,6 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
 
       // Do we actually think we're logged in?
       if (getState().config.loggedIn) {
-        notify('Logged out of Keybase')
         dispatch(logoutDone())
       }
     },

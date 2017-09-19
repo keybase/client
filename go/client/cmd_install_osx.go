@@ -54,7 +54,6 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Installs Keybase components",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -184,7 +183,6 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Uninstalls Keybase components",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -312,7 +310,6 @@ func newCmdInstallAuto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Installs Keybase by choosing automatically which components to install",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)

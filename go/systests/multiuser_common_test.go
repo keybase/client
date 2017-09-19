@@ -7,6 +7,7 @@ import (
 	"time"
 
 	client "github.com/keybase/client/go/client"
+	engine "github.com/keybase/client/go/engine"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -94,6 +95,11 @@ func (d *smuDeviceWrapper) startService(numClones int) {
 
 func (d *smuDeviceWrapper) stop() error {
 	return <-d.stopCh
+}
+
+func (d *smuDeviceWrapper) clearUPAKCache() {
+	d.tctx.G.LocalDb.Nuke()
+	d.tctx.G.GetUPAKLoader().ClearMemory()
 }
 
 type smuTerminalUI struct{}
@@ -296,6 +302,14 @@ func (u *smuUser) signup() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
 }
 
 func (u *smuUser) signupNoPUK() {
@@ -330,6 +344,25 @@ func (u *smuUser) signupNoPUK() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
+}
+
+func (u *smuUser) perUserKeyUpgrade() error {
+	g := u.getPrimaryGlobalContext()
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	ctx := &engine.Context{
+		LogUI: g.UI.GetLogUI(),
+	}
+	err := engine.RunEngine(eng, ctx)
+	return err
 }
 
 type smuTeam struct {
@@ -459,6 +492,13 @@ func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
 
 func (u *smuUser) reset() {
 	err := u.primaryDevice().userClient().ResetUser(context.TODO(), 0)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
+func (u *smuUser) delete() {
+	err := u.primaryDevice().userClient().DeleteUser(context.TODO(), 0)
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}

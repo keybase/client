@@ -19,16 +19,25 @@ export function formatTimeForConversationList(time: number, nowOverride?: number
 
 export function formatTimeForMessages(time: number, nowOverride?: number): string {
   const m = moment(time)
-  const now = nowOverride ? moment(nowOverride) : moment()
+  const now = nowOverride ? moment(nowOverride) : moment().startOf('day')
+  const yesterday = moment().subtract(1, 'days').startOf('day')
+  const weekAgo = moment().subtract(7, 'days').startOf('day')
 
-  if (now.diff(m, 'months') > 6) {
-    return m.format('MMM DD YYYY h:mm A') // Jan 5 2016 4:34 PM
-  } else if (now.diff(m, 'days') > 6) {
-    return m.format('MMM DD h:mm A') // Jan 5 4:34 PM
-  } else if (now.diff(m, 'hours') > 22) {
-    return m.format('ddd h:mm A') // Wed 4:34 PM
-  } else {
+  if (m.isSame(now, 'd')) {
+    // Covers interval [startOfToday, endOfToday]
     return m.format('h:mm A') // 4:34 PM
+  } else if (m.isSame(yesterday, 'd')) {
+    // Covers interval [startOfYesterday, endOfYesterday]
+    return 'Yesterday ' + m.format('h:mm A') // Yesterday 4:34 PM
+  } else if (m.isAfter(weekAgo)) {
+    // Covers interval [startOfWeekAgo, startOfYesterday)
+    return m.format('ddd h:mm A') // Wed 4:34 PM
+  } else if (!m.isSame(now, 'year')) {
+    // Covers interval [foreverAgo, startOfThisYear)
+    return m.format('MMM DD YYYY h:mm A') // Jan 5 2016 4:34 PM
+  } else {
+    // Covers interval [startOfThisYear, startOfWeekAgo)
+    return m.format('MMM DD h:mm A') // Jan 5 4:34 PM
   }
 }
 

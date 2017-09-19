@@ -1086,6 +1086,10 @@ func (u UserPlusKeys) GetName() string {
 	return u.Username
 }
 
+func (u UserPlusKeys) GetStatus() StatusCode {
+	return u.Status
+}
+
 func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
 	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
 		return u.RemoteTracks[j].Username >= s
@@ -1105,6 +1109,10 @@ func (u UserPlusAllKeys) GetUID() UID {
 
 func (u UserPlusAllKeys) GetName() string {
 	return u.Base.GetName()
+}
+
+func (u UserPlusAllKeys) GetStatus() StatusCode {
+	return u.Base.GetStatus()
 }
 
 func (u UserPlusAllKeys) GetDeviceID(kid KID) (ret DeviceID, err error) {
@@ -1445,6 +1453,7 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			Uid:               uV2.Current.Uid,
 			Username:          uV2.Current.Username,
 			EldestSeqno:       uV2.Current.EldestSeqno,
+			Status:            uV2.Current.Status,
 			DeviceKeys:        deviceKeysV1,
 			RevokedDeviceKeys: revokedDeviceKeysV1,
 			DeletedDeviceKeys: deletedDeviceKeysV1,
@@ -1913,4 +1922,12 @@ func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
 		Uid:         uid,
 		EldestSeqno: Seqno(eldestSeqno),
 	}, nil
+}
+
+func (p StringKVPair) IntValue() int {
+	i, err := strconv.Atoi(p.Value)
+	if err != nil {
+		return 0
+	}
+	return i
 }

@@ -66,7 +66,7 @@ func (b *BlockingLocalizer) Name() string {
 }
 
 type NonblockInboxResult struct {
-	ConvID   chat1.ConversationID
+	Conv     chat1.Conversation
 	Err      *chat1.ConversationErrorLocal
 	ConvRes  *chat1.ConversationLocal
 	InboxRes *chat1.Inbox
@@ -669,6 +669,22 @@ func (s *HybridInboxSource) SetAppNotificationSettings(ctx context.Context, uid 
 	return conv, nil
 }
 
+func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.TeamTypeChanged(ctx, vers, convID, teamType); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "TeamTypeChanged: unable to load conversation: convID: %s err: %s",
+			convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
 func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (convs []chat1.ConversationLocal, err error) {
 	defer s.Trace(ctx, func() error { return err }, "TlfFinalize")()
@@ -796,13 +812,13 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 						s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
 							convLocal.Error.Message)
 						*localizeCb <- NonblockInboxResult{
-							Err:    convLocal.Error,
-							ConvID: conv.conv.Metadata.ConversationID,
+							Err:  convLocal.Error,
+							Conv: conv.conv,
 						}
 					} else {
 						*localizeCb <- NonblockInboxResult{
 							ConvRes: &convLocal,
-							ConvID:  convLocal.Info.Id,
+							Conv:    conv.conv,
 						}
 					}
 				}
