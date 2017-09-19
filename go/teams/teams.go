@@ -624,14 +624,17 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 }
 
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
-	if role == keybase1.TeamRole_OWNER {
-		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
-	}
 
 	// if a user version was previously loaded, then there is a keybase user for username, but
-	// without a PUK or without any keys.
+	// without a PUK or without any keys. Note that we are allowed to invites Owners in this
+	// manner. But if we're inviting for anything else, then no owner invites are allowed.
 	if uv.Uid.Exists() {
 		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
+	}
+
+	// If a social, or email, or other type of invite, assert it's now an owner.
+	if role == keybase1.TeamRole_OWNER {
+		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
 	}
 
 	return t.inviteSBSMember(ctx, username, role)
