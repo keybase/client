@@ -178,32 +178,32 @@ class BaseList extends React.Component<Props, State> {
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
       <ErrorBoundary>
-      <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
-        <style>{realCSS}</style>
-        <Virtualized.AutoSizer onResize={this._onResize}>
-          {({height, width}) => (
-            <Virtualized.List
-              messageKeys={this.props.messageKeys}
-              listRerender={this.state.listRerender}
-              selectedMessageKey={this.state.selectedMessageKey}
-              columnWidth={width}
-              deferredMeasurementCache={this._cellCache}
-              height={height}
-              onScroll={this._onScroll}
-              onRowsRendered={this._onRowsRendered}
-              ref={this._setListRef}
-              rowCount={rowCount}
-              rowHeight={this._cellCache.rowHeight}
-              rowRenderer={this._rowRenderer}
-              scrollToAlignment="end"
-              scrollToIndex={scrollToIndex}
-              style={listStyle}
-              width={width}
-            />
-          )}
-        </Virtualized.AutoSizer>
-      </div>
-      <ErrorBoundary>
+        <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
+          <style>{realCSS}</style>
+          <Virtualized.AutoSizer onResize={this._onResize}>
+            {({height, width}) => (
+              <Virtualized.List
+                messageKeys={this.props.messageKeys}
+                listRerender={this.state.listRerender}
+                selectedMessageKey={this.state.selectedMessageKey}
+                columnWidth={width}
+                deferredMeasurementCache={this._cellCache}
+                height={height}
+                onScroll={this._onScroll}
+                onRowsRendered={this._onRowsRendered}
+                ref={this._setListRef}
+                rowCount={rowCount}
+                rowHeight={this._cellCache.rowHeight}
+                rowRenderer={this._rowRenderer}
+                scrollToAlignment="end"
+                scrollToIndex={scrollToIndex}
+                style={listStyle}
+                width={width}
+              />
+            )}
+          </Virtualized.AutoSizer>
+        </div>
+      </ErrorBoundary>
     )
   }
 }
