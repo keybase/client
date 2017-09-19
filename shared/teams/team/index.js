@@ -53,7 +53,7 @@ const Help = isMobile
           <Text
             type="Terminal"
             backgroundMode="Terminal"
-            style={{display: 'block', cursor: 'text', userSelect: 'all'}}
+            style={{display: 'block', ...globalStyles.selectable}}
           >{`keybase team add-member ${name} --user={user} --role=writer`}</Text>
           <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
             # Remove a member
@@ -61,12 +61,12 @@ const Help = isMobile
           <Text
             type="Terminal"
             backgroundMode="Terminal"
-            style={{cursor: 'text', userSelect: 'all'}}
+            style={globalStyles.selectable}
           >{`keybase team remove-member ${name} --user={user}`}</Text>
           <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
             # More commands
           </Text>
-          <Text type="Terminal" backgroundMode="Terminal" style={{cursor: 'text', userSelect: 'all'}}>
+          <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
             keybase team --help
           </Text>
         </Box>
