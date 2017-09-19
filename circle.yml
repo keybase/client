@@ -38,7 +38,7 @@ dependencies:
     - if [ ! -d "/usr/local/android-sdk-linux/extras/android/m2repository/com/android/support/design/24.1.0" ]; then echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"; fi
     # Accept android licenses
     - mkdir /usr/local/android-sdk-linux/licenses
-    - if [[ ! -e "$ANDROID_HOME/ndk_bundle" ]]; then wget http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip && unzip android-ndk-r11c-linux-x86_64.zip && mv android-ndk-r11c $"ANDROID_HOME/ndk_bundle"; fi
+    - if [[ ! -e "$ANDROID_HOME/ndk_bundle" ]]; then wget http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip && unzip android-ndk-r11c-linux-x86_64.zip && mv -f android-ndk-r11c $"ANDROID_HOME/ndk_bundle"; fi
     - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
     # Install Yarn
   cache_directories:
