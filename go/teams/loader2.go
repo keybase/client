@@ -57,7 +57,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		}
 
 		var signer *signerX
-		signer, proofSet, err = l.verifyLink(ctx, teamID, state, me, link, readSubteamID, proofSet)
+		signer, err = l.verifyLink(ctx, teamID, state, me, link, readSubteamID, proofSet)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -129,15 +129,14 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-func addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap map[keybase1.Seqno]keybase1.LinkID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap map[keybase1.Seqno]keybase1.LinkID, proofSet *proofSetT) *proofSetT {
+func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap map[keybase1.Seqno]keybase1.LinkID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap map[keybase1.Seqno]keybase1.LinkID, proofSet *proofSetT) {
 	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning, userLinkMap)
 	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	c := key.Base.Revocation
-	proofSet = proofSet.AddNeededHappensBeforeProof(ctx, a, b, "user key provisioned before team link")
+	proofSet.AddNeededHappensBeforeProof(ctx, a, b, "user key provisioned before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(ctx, b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
+		proofSet.AddNeededHappensBeforeProof(ctx, b, newProofTerm(uid.AsUserOrTeam(), *c, userLinkMap), "team link before user key revocation")
 	}
-	return proofSet
 }
 
 // Verify aspects of a link:
@@ -153,33 +152,33 @@ func addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, 
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked,
-	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, *proofSetT, error) {
+	readSubteamID keybase1.TeamID, proofSet *proofSetT) (*signerX, error) {
 
 	if link.isStubbed() {
-		return nil, proofSet, nil
+		return nil, nil
 	}
 
 	err := link.AssertInnerOuterMatch()
 	if err != nil {
-		return nil, proofSet, err
+		return nil, err
 	}
 
 	if !teamID.Eq(link.innerTeamID) {
-		return nil, proofSet, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.innerTeamID)
+		return nil, fmt.Errorf("team ID mismatch: %s != %s", teamID, link.innerTeamID)
 	}
 
 	kid, err := l.verifySignatureAndExtractKID(ctx, *link.outerLink)
 	if err != nil {
-		return nil, proofSet, err
+		return nil, err
 	}
 
 	signerUV, key, linkMap, err := l.loadUserAndKeyFromLinkInner(ctx, *link.inner)
 	if err != nil {
-		return nil, proofSet, err
+		return nil, err
 	}
 
 	if !kid.Equal(key.Base.Kid) {
-		return nil, proofSet, libkb.NewWrongKidError(kid, key.Base.Kid)
+		return nil, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
 	teamLinkMap := make(map[keybase1.Seqno]keybase1.LinkID)
@@ -192,14 +191,14 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 	// add on the link that is being checked
 	teamLinkMap[link.Seqno()] = link.LinkID().Export()
 
-	proofSet = addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
+	l.addProofsForKeyInUserSigchain(ctx, teamID, teamLinkMap, link, signerUV.Uid, key, linkMap, proofSet)
 
 	signer := signerX{signer: signerUV}
 
 	// For a root team link, or a subteam_head, there is no reason to check adminship
 	// or writership (or readership) for the team.
 	if state == nil {
-		return &signer, proofSet, nil
+		return &signer, nil
 	}
 
 	var isReaderOrAbove bool
@@ -211,9 +210,9 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		// Check for admin permissions if they are not an on-chain reader/writer
 		// because they might be an implicit admin.
 		// Reassigns signer, might set implicitAdmin.
-		proofSet, signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, signerUV, proofSet)
+		signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, signerUV, proofSet)
 	}
-	return &signer, proofSet, err
+	return &signer, err
 }
 
 func (l *TeamLoader) verifyWriterOrReaderPermissions(ctx context.Context,
@@ -259,20 +258,19 @@ func (l *TeamLoader) walkUpToAdmin(
 	return &TeamSigChainState{inner: team.Chain}, nil
 }
 
-func addProofsForAdminPermission(ctx context.Context, t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) *proofSetT {
+func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, t keybase1.TeamSigChainState, link *chainLinkUnpacked, bookends proofTermBookends, proofSet *proofSetT) {
 	a := bookends.left
 	b := newProofTerm(t.Id.AsUserOrTeam(), link.SignatureMetadata(), t.LinkIDs)
 	c := bookends.right
-	proofSet = proofSet.AddNeededHappensBeforeProof(ctx, a, b, "became admin before team link")
+	proofSet.AddNeededHappensBeforeProof(ctx, a, b, "became admin before team link")
 	if c != nil {
-		proofSet = proofSet.AddNeededHappensBeforeProof(ctx, b, *c, "team link before adminship demotion")
+		proofSet.AddNeededHappensBeforeProof(ctx, b, *c, "team link before adminship demotion")
 	}
-	return proofSet
 }
 
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, link *chainLinkUnpacked, readSubteamID keybase1.TeamID,
-	uv keybase1.UserVersion, proofSet *proofSetT) (*proofSetT, signerX, error) {
+	uv keybase1.UserVersion, proofSet *proofSetT) (signerX, error) {
 
 	signer := signerX{signer: uv}
 	explicitAdmin := link.inner.TeamAdmin()
@@ -282,18 +280,18 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	// the current chain at or before the signature in question.
 	if explicitAdmin == nil {
 		err := teamChain.AssertWasAdminAt(uv, link.SigChainLocation())
-		return proofSet, signer, err
+		return signer, err
 	}
 
 	// The more complicated case is that there's an explicit admin permssion given, perhaps
 	// of a parent team.
 	adminTeam, err := l.walkUpToAdmin(ctx, state, me, readSubteamID, uv, *explicitAdmin)
 	if err != nil {
-		return proofSet, signer, err
+		return signer, err
 	}
 	adminBookends, err := adminTeam.assertBecameAdminAt(uv, explicitAdmin.SigChainLocation())
 	if err != nil {
-		return proofSet, signer, err
+		return signer, err
 	}
 
 	// This was an implicit admin action if the team from which admin-power was derived (adminTeam)
@@ -302,8 +300,8 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 		signer.implicitAdmin = true
 	}
 
-	proofSet = addProofsForAdminPermission(ctx, state.Chain, link, adminBookends, proofSet)
-	return proofSet, signer, nil
+	l.addProofsForAdminPermission(ctx, state.Chain, link, adminBookends, proofSet)
+	return signer, nil
 }
 
 // Whether the chain link is of a (child-half) type
@@ -508,6 +506,13 @@ func (l *TeamLoader) checkOneParentChildOperation(ctx context.Context,
 func (l *TeamLoader) checkProofs(ctx context.Context,
 	state *keybase1.TeamData, proofSet *proofSetT) error {
 
+	if state == nil {
+		return fmt.Errorf("teamloader fault: nil team for proof ordering check")
+	}
+	// Give the most up-to-date linkmap to the ordering checker.
+	// Without this it would fail in some cases when the team is on the left.
+	// Because the team linkmap in the proof objects is stale.
+	proofSet.SetTeamLinkMap(ctx, state.Chain.Id, state.Chain.LinkIDs)
 	return proofSet.check(ctx, l.world)
 }
 

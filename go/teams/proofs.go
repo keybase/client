@@ -80,13 +80,15 @@ func newProofIndex(a keybase1.UserOrTeamID, b keybase1.UserOrTeamID) proofIndex 
 
 type proofSetT struct {
 	libkb.Contextified
-	proofs map[proofIndex][]proof
+	proofs       map[proofIndex][]proof
+	teamLinkMaps map[keybase1.TeamID]map[keybase1.Seqno]keybase1.LinkID
 }
 
 func newProofSet(g *libkb.GlobalContext) *proofSetT {
 	return &proofSetT{
 		Contextified: libkb.NewContextified(g),
 		proofs:       make(map[proofIndex][]proof),
+		teamLinkMaps: make(map[keybase1.TeamID]map[keybase1.Seqno]keybase1.LinkID),
 	}
 }
 
@@ -99,7 +101,7 @@ func newProofSet(g *libkb.GlobalContext) *proofSetT {
 // to a merkle tree lookup, so it makes sense to be stingy. Return the modified
 // proof set with the new proofs needed, but the original arugment p will
 // be mutated.
-func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm, b proofTerm, reason string) *proofSetT {
+func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm, b proofTerm, reason string) {
 
 	var action string
 	defer func() {
@@ -114,14 +116,14 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 			// The proof is self-evident.
 			// Discard it.
 			action = "discard-easy"
-			return p
+			return
 		}
 		// The proof is self-evident FALSE.
 		// Add it and return immediately so the rest of this function doesn't have to trip over it.
 		// It should be failed later by the checker.
 		action = "added-easy-false"
 		p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-		return p
+		return
 	}
 
 	set := p.proofs[idx]
@@ -133,18 +135,23 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 			existing.b = existing.b.min(b)
 			set[i] = existing
 			action = "collapsed"
-			return p
+			return
 		}
 		if existing.a.equal(a) && existing.b.lessThanOrEqual(b) {
 			// If the new proof is the same on the left and weaker on the right.
 			// Discard the new proof, as it is implied by the existing one.
 			action = "discard-weak"
-			return p
+			return
 		}
 	}
 	action = "added"
 	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-	return p
+	return
+}
+
+// Set the latest link map for the team
+func (p *proofSetT) SetTeamLinkMap(ctx context.Context, teamID keybase1.TeamID, linkMap map[keybase1.Seqno]keybase1.LinkID) {
+	p.teamLinkMaps[teamID] = linkMap
 }
 
 func (p *proofSetT) AllProofs() []proof {
@@ -191,7 +198,7 @@ func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (
 
 // check a single proof. Call to the merkle API enddpoint, and then ensure that the
 // data that comes back fits the proof and previously checked sighcain links.
-func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext) (err error) {
+func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext, proofSet *proofSetT) (err error) {
 	defer func() {
 		g.Log.CDebugf(ctx, "TeamLoader proofSet check1(%v) -> %v", p.shortForm(), err)
 	}()
@@ -209,6 +216,14 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 		return NewProofError(p, fmt.Sprintf("seqno %d > %d", earlierSeqno, laterSeqno))
 	}
 	lm := p.a.linkMap
+	if p.a.leafID.IsTeamOrSubteam() {
+		// Pull in the latest link map, instead of the one from the proof object.
+		tid := p.a.leafID.AsTeamOrBust()
+		lm2, ok := proofSet.teamLinkMaps[tid]
+		if ok {
+			lm = lm2
+		}
+	}
 	if lm == nil {
 		return NewProofError(p, "nil link map")
 	}
@@ -254,7 +269,7 @@ func (p *proofSetT) check(ctx context.Context, world LoaderContext) (err error) 
 			if i%100 == 0 {
 				p.G().Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
 			}
-			err = proof.check(ctx, p.G(), world)
+			err = proof.check(ctx, p.G(), world, p)
 			if err != nil {
 				return err
 			}
