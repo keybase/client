@@ -189,10 +189,7 @@ func (f *Folder) invalidateNodeDataRange(node fs.Node, write libkbfs.WriteRange)
 	}
 	// Off=0 Len=0 is the same as calling InvalidateNodeDataAttr; we
 	// can just let that go through InvalidateNodeDataRange.
-	if err := f.fs.fuse.InvalidateNodeDataRange(node, off, size); err != nil {
-		return err
-	}
-	return nil
+	return f.fs.fuse.InvalidateNodeDataRange(node, off, size)
 }
 
 // LocalChange is called for changes originating within in this process.
@@ -854,10 +851,7 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 
 	// Something in Linux kernel *requires* directories to provide
 	// attributes here, where it was just an optimization for files.
-	if err := d.attr(ctx, &resp.Attr); err != nil {
-		return err
-	}
-	return nil
+	return d.attr(ctx, &resp.Attr)
 }
 
 // Fsync implements the fs.NodeFsyncer interface for Dir.

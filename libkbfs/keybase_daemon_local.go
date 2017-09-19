@@ -636,21 +636,13 @@ func (k *KeybaseDaemonLocal) FavoriteList(
 
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
-	if err := checkContext(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return checkContext(ctx)
 }
 
 // NotifySyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
 func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
 	_ *keybase1.FSPathSyncStatus) error {
-	if err := checkContext(ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return checkContext(ctx)
 }
 
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for

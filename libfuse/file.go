@@ -86,10 +86,7 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 
 	if reqID, ok := ctx.Value(CtxIDKey).(string); ok {
 		if ei := f.eiCache.getAndDestroyIfMatches(reqID); ei != nil {
-			if err = f.fillAttrWithMode(ctx, ei, a); err != nil {
-				return err
-			}
-			return nil
+			return f.fillAttrWithMode(ctx, ei, a)
 		}
 	}
 
@@ -316,10 +313,7 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 		return fuse.ENOSYS
 	}
 
-	if err := f.attr(ctx, &resp.Attr); err != nil {
-		return err
-	}
-	return nil
+	return f.attr(ctx, &resp.Attr)
 }
 
 var _ fs.NodeForgetter = (*File)(nil)

@@ -200,10 +200,7 @@ func (teh *TlfEditHistory) Shutdown() {
 
 // Wait returns nil once all outstanding processing is complete.
 func (teh *TlfEditHistory) Wait(ctx context.Context) error {
-	if err := teh.wg.Wait(ctx); err != nil {
-		return err
-	}
-	return nil
+	return teh.wg.Wait(ctx)
 }
 
 func (teh *TlfEditHistory) getEditsCopyLocked() TlfWriterEdits {

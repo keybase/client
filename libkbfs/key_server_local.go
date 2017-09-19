@@ -172,10 +172,7 @@ func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 
 	// TODO: verify that the kid is really valid for the given uid
 
-	if err := ks.db.Delete(serverHalfID.ID.Bytes(), nil); err != nil {
-		return err
-	}
-	return nil
+	return ks.db.Delete(serverHalfID.ID.Bytes(), nil)
 }
 
 // Copies a key server but swaps the config.
