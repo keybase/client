@@ -38,7 +38,9 @@ const Fallback = ({error, info}: *) => {
             padding: 10,
           }}
         >
-          <Text type="Terminal" backgroundMode="Terminal">keybase log send</Text>
+          <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
+            keybase log send
+          </Text>
         </Box>}
       <Text type="BodySmall" style={{marginTop: 20}}>some details...</Text>
       <ScrollView style={{maxHeight: 100, padding: 10}}>
