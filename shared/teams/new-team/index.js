@@ -24,6 +24,7 @@ const Contents = ({name, onNameChange, onSubmit}: Props) => (
         ...stylePadding,
         alignItems: 'center',
         justifyContent: 'center',
+        backgroundColor: globalColors.white,
       }}
     >
       <Input
