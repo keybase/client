@@ -108,6 +108,8 @@ if [ "$arg" = "ios" ]; then
   if [[ $OUTPUT == *"gomobile init"* ]]; then
     gomobileinit
     "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+  else
+    echo $OUTPUT
   fi
 elif [ "$arg" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
@@ -118,6 +120,8 @@ elif [ "$arg" = "android" ]; then
   if [[ $OUTPUT == *"gomobile init"* ]]; then
     gomobileinit
     "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+  else
+    echo $OUTPUT
   fi
 else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
