@@ -58,6 +58,8 @@ func teamToNameInfo(ctx context.Context, team *teams.Team, vis keybase1.TLFVisib
 		for _, key := range chatKeys {
 			res.CryptKeys = append(res.CryptKeys, key)
 		}
+	} else {
+		res.CryptKeys = []types.CryptKey{publicCryptKey}
 	}
 	return res, nil
 }
@@ -110,6 +112,8 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		for _, key := range chatKeys {
 			res.CryptKeys = append(res.CryptKeys, key)
 		}
+	} else {
+		res.CryptKeys = []types.CryptKey{publicCryptKey}
 	}
 
 	// identify the members in the conversation
@@ -171,6 +175,9 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 		for _, key := range chatKeys {
 			res.CryptKeys = append(res.CryptKeys, key)
 		}
+	} else {
+		res.CryptKeys = []types.CryptKey{publicCryptKey}
 	}
+
 	return res, nil
 }

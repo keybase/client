@@ -1750,6 +1750,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 		t.Logf("basic test")
 		created := mustCreatePublicConversationForTest(t, ctc, users[2], chat1.TopicType_CHAT,
 			mt, users[1])
+		t.Logf("created public conversation: %+v", created)
 		convRemote := ctc.world.GetConversationByID(created.Id)
 		require.NotNil(t, convRemote)
 		convRemote.Metadata.Visibility = keybase1.TLFVisibility_PUBLIC
