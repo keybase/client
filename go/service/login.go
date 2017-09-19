@@ -30,7 +30,8 @@ func (h *LoginHandler) GetConfiguredAccounts(_ context.Context, sessionID int) (
 	return h.G().GetConfiguredAccounts()
 }
 
-func (h *LoginHandler) Logout(_ context.Context, sessionID int) error {
+func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
+	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
 	return h.G().Logout()
 }
 
