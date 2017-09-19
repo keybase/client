@@ -119,7 +119,6 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-
         }
 
         storyBook.initWith(buildTypes.debug)
@@ -135,6 +134,7 @@ android {
 
         releaseUnsigned.initWith(buildTypes.release)
         releaseUnsigned {
+            applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
         }
     }
