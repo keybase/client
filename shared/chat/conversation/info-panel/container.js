@@ -57,7 +57,6 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _navToRootChat: () => dispatch(navigateTo([chatTab])),
-  _onAddParticipant: (participants: Array<string>) => dispatch(Creators.newChat(participants)),
   _onLeaveConversation: (conversationIDKey: Constants.ConversationIDKey) => {
     dispatch(Creators.leaveConversation(conversationIDKey))
   },
@@ -92,7 +91,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   ...stateProps,
   ...dispatchProps,
-  onAddParticipant: () => dispatchProps._onAddParticipant(stateProps.participants.map(p => p.username)),
   onLeaveConversation: () => {
     if (stateProps.selectedConversationIDKey) {
       dispatchProps._navToRootChat()
