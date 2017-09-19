@@ -58,6 +58,7 @@ dependencies:
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
     - yarn run rn-gobuild-android
+    - ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
 test:
   override:
     # TODO(mm) uncomment these device tests (see todo above)
