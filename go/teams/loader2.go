@@ -506,6 +506,13 @@ func (l *TeamLoader) checkOneParentChildOperation(ctx context.Context,
 func (l *TeamLoader) checkProofs(ctx context.Context,
 	state *keybase1.TeamData, proofSet *proofSetT) error {
 
+	if state == nil {
+		return fmt.Errorf("teamloader fault: nil team for proof ordering check")
+	}
+	// Give the most up-to-date linkmap to the ordering checker.
+	// Without this it would fail in some cases when the team is on the left.
+	// Because the team linkmap in the proof objects is stale.
+	proofSet.SetTeamLinkMap(ctx, state.Chain.Id, state.Chain.LinkIDs)
 	return proofSet.check(ctx, l.world)
 }
 
