@@ -676,6 +676,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	ri func() chat1.RemoteInterface) *newConversationHelper {
 
 	if membersType == chat1.ConversationMembersType_IMPTEAM && g.ExternalG().Env.GetChatMemberType() != "impteam" {
+		g.Log.Debug("### note: impteam mt requested, but feature flagged off, using kbfs")
 		membersType = chat1.ConversationMembersType_KBFS
 	}
 

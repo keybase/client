@@ -388,6 +388,9 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	default:
 		t.Fatalf("unhandled membersType: %v", membersType)
 	}
+
+	// XXX made it here, but next call uses KBFSNameInfoSource for some reason
+
 	tc := ctc.as(t, creator)
 	ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
 		chat1.NewConversationLocalArg{
@@ -588,8 +591,6 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-
-		t.Logf("InboxSource type: %T", tc.Context().InboxSource)
 
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
