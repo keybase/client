@@ -122,6 +122,34 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, user keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
+	if team.NumActiveInvites() == 0 {
+		return nil
+	}
+
+	getUserProofs := func() *libkb.ProofSet {
+		arg := keybase1.Identify2Arg{
+			UserAssertion:    fmt.Sprintf("uid:%s", user.Uid),
+			UseDelegateUI:    false,
+			Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
+			CanSuppressUI:    true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+			NeedProofSet:     true,
+		}
+		eng := engine.NewResolveThenIdentify2(g, &arg)
+		ectx := &engine.Context{
+			NetContext: ctx,
+		}
+		if err := engine.RunEngine(eng, ectx); err == nil {
+			return eng.GetProofSet()
+		}
+		return nil
+	}
+
+	proofs := getUserProofs()
+	if proofs == nil {
+		return fmt.Errorf("Cannot get proof set for user.")
+	}
+
 	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
 
 	for i, invite := range team.chain().inner.ActiveInvites {
@@ -138,6 +166,22 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 		if category != keybase1.TeamInviteCategory_SBS {
 			continue
 		}
+
+		proofsWithType := proofs.Get([]string{ityp})
+
+		var proof *libkb.Proof
+		for _, p := range proofsWithType {
+			if p.Value == string(invite.Name) {
+				proof = &p
+				break
+			}
+		}
+
+		if proof == nil {
+			continue
+		}
+
+		g.Log.CDebugf(ctx, "Found proof in user's ProofSet: key: %s value: %q; invite proof is %s@%s", proof.Key, proof.Value, string(invite.Name), ityp)
 
 		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, fmt.Sprintf("%s@%s", string(invite.Name), ityp))
 		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
