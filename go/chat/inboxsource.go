@@ -546,9 +546,11 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 			return res, rl, err
 		}
 
-		// Write out to local storage
-		if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
-			s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+		// Write out to local storage only if we are using local daata
+		if useLocalData {
+			if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
+				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+			}
 		}
 
 		res = chat1.Inbox{

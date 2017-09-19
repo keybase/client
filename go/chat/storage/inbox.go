@@ -18,7 +18,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 15
+const inboxVersion = 14
 
 type queryHash []byte
 
@@ -80,6 +80,9 @@ type Inbox struct {
 }
 
 func NewInbox(g *globals.Context, uid gregor1.UID) *Inbox {
+	if len(uid) == 0 {
+		panic("Inbox: empty userid")
+	}
 	return &Inbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
@@ -141,6 +144,8 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
+	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d", ibox.InboxVersion,
+		ibox.Version, ibox.ServerVersion)
 	if ierr := i.writeDiskBox(ctx, i.dbKey(), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
@@ -254,7 +259,8 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 
 	// Replace the inbox under these conditions
 	if ibox.InboxVersion != vers || err != nil {
-		i.Debug(ctx, "Merge: replacing inbox: ibox.vers: %v vers: %v", ibox.InboxVersion, vers)
+		i.Debug(ctx, "Merge: replacing inbox: ibox.vers: %v vers: %v convs: %d", ibox.InboxVersion, vers,
+			len(convs))
 		data = inboxDiskData{
 			Version:       inboxVersion,
 			InboxVersion:  vers,
@@ -525,7 +531,7 @@ func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []chat1.
 func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []chat1.Conversation, pagination *chat1.Pagination, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "Read")()
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Read(%s)", i.uid))()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
 	ibox, err := i.readDiskInbox(ctx)
