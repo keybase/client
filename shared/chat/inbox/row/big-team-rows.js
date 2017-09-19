@@ -22,7 +22,8 @@ class BigTeamHeaderRow extends PureComponent<TeamProps> {
           onClick={this.props.onShowMenu}
           style={{
             fontSize: isMobile ? 20 : 16,
-            padding: isMobile ? 2 : 0,
+            padding: isMobile ? 8 : 4,
+            paddingRight: isMobile ? 2 : 4,
           }}
         />
       </HeaderBox>
@@ -168,7 +169,7 @@ const teamRowContainerStyle = {
   maxHeight: isMobile ? globalMargins.large : globalMargins.medium,
   minHeight: isMobile ? globalMargins.large : globalMargins.medium,
   paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  paddingRight: isMobile ? globalMargins.tiny : globalMargins.xtiny,
 }
 
 const HeaderBox = glamorous(Box)({
