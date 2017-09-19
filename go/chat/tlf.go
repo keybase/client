@@ -103,7 +103,8 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
-	if identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+	runIdentify := (identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP)
+	if runIdentify {
 		t.Debug(ectx, "CryptKeys: running identify")
 		group.Go(func() error {
 			query := keybase1.TLFQuery{
@@ -114,13 +115,6 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 			ib, err = t.Identify(ectx, query, true)
 			return err
 		})
-		// use id breaks calculated by Identify
-		res.NameIDBreaks.Breaks.Breaks = ib
-
-		if idNotifier != nil {
-			idNotifier.Send(res.NameIDBreaks)
-		}
-		*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 	}
 
 	group.Go(func() error {
@@ -142,6 +136,15 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 
 	if err := group.Wait(); err != nil {
 		return keybase1.GetTLFCryptKeysRes{}, err
+	}
+
+	// use id breaks calculated by Identify
+	if runIdentify {
+		res.NameIDBreaks.Breaks.Breaks = ib
+		if idNotifier != nil {
+			idNotifier.Send(res.NameIDBreaks)
+		}
+		*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 	}
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
