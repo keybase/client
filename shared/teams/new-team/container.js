@@ -1,8 +1,8 @@
 // @flow
 import NewTeamDialog from './'
 import {connect} from 'react-redux'
-import {compose, withState, withHandlers} from 'recompose'
-import {createNewTeam} from '../../actions/teams/creators'
+import {compose, lifecycle, withState, withHandlers} from 'recompose'
+import {createNewTeam, setTeamCreationError} from '../../actions/teams/creators'
 import {upperFirst} from 'lodash'
 import type {TypedState} from '../../constants/reducer'
 
@@ -14,6 +14,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onCreateNewTeam: name => {
     dispatch(createNewTeam(name))
   },
+  _onSetTeamCreationError: error => {
+    dispatch(setTeamCreationError(error))
+  },
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -22,5 +25,10 @@ export default compose(
   withState('name', 'onNameChange', ''),
   withHandlers({
     onSubmit: ({name, _onCreateNewTeam}) => () => _onCreateNewTeam(name),
+  }),
+  lifecycle({
+    componentDidMount: function() {
+      this.props._onSetTeamCreationError('')
+    },
   })
 )(NewTeamDialog)

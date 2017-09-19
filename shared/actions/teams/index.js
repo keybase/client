@@ -22,13 +22,13 @@ import type {TypedState} from '../../constants/reducer'
 
 const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
+  yield put(Creators.setTeamCreationError(''))
   try {
     yield call(RpcTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
     })
 
     // No error if we get here.
-    yield put(Creators.setTeamCreationError(''))
     yield put(navigateTo([isMobile ? chatTab : teamsTab]))
   } catch (error) {
     yield put(Creators.setTeamCreationError(error.desc))
