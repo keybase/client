@@ -151,7 +151,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const newInbox = action.payload.inbox.map(newRow => {
         const id = newRow.get('conversationIDKey')
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
-        return existingRow ? (existingRow.teamType !== newRow.teamType ? newRow : existingRow) : newRow
+        return existingRow ? (existingRow.version < newRow.version ? newRow : existingRow) : newRow
       })
 
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
