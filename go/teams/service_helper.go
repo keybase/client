@@ -121,14 +121,14 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
-func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, user keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
+func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
 	if team.NumActiveInvites() == 0 {
 		return nil
 	}
 
 	getUserProofs := func() *libkb.ProofSet {
 		arg := keybase1.Identify2Arg{
-			UserAssertion:    fmt.Sprintf("uid:%s", user.Uid),
+			UserAssertion:    username,
 			UseDelegateUI:    false,
 			Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
 			CanSuppressUI:    true,
@@ -185,12 +185,12 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 
 		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, fmt.Sprintf("%s@%s", string(invite.Name), ityp))
 		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
-		if resolveResult.GetError() != nil || resolveResult.GetUID() != user.Uid {
+		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
 			// Cannot resolve invitation or it does not match user
 			continue
 		}
 
-		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, user.Uid)
+		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, uv.Uid)
 		g.Log.CDebugf(ctx, "Assertion is: %s", assertion)
 
 		arg := keybase1.Identify2Arg{
@@ -205,7 +205,7 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 			NetContext: ctx,
 		}
 		if err := engine.RunEngine(eng, ectx); err == nil {
-			completedInvites[invite.Id] = user.PercentForm()
+			completedInvites[invite.Id] = uv.PercentForm()
 		}
 	}
 
@@ -249,7 +249,7 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		}
 		req.None = []keybase1.UserVersion{existingUV}
 	}
-	if err := tryToCompleteInvites(ctx, g, t, uv, &req); err != nil {
+	if err := tryToCompleteInvites(ctx, g, t, username, uv, &req); err != nil {
 		g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
 	}
 	if err := t.ChangeMembership(ctx, req); err != nil {
