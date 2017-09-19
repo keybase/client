@@ -138,16 +138,19 @@ func (tt *teamTester) addUser(pre string) *userPlusDevice {
 	}
 	tt.t.Logf("signed up %s", userInfo.username)
 
+	u.tc = tc
+	u.userInfo = userInfo
 	u.username = userInfo.username
 	u.passphrase = userInfo.passphrase
 	u.uid = libkb.UsernameToUID(u.username)
-	u.tc = tc
 
 	cli, xp, err := client.GetRPCClientWithContext(g)
 	if err != nil {
 		tt.t.Fatal(err)
 	}
+
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
+	u.device.userClient = keybase1.UserClient{Cli: cli}
 
 	// register for notifications
 	u.notifications = newTeamNotifyHandler()
@@ -166,6 +169,14 @@ func (tt *teamTester) addUser(pre string) *userPlusDevice {
 
 	g.ConfigureConfig()
 
+	devices, backups := u.device.loadEncryptionKIDs()
+	require.Len(tt.t, devices, 1, "devices")
+	u.device.deviceKey.KID = devices[0]
+	require.True(tt.t, u.device.deviceKey.KID.Exists())
+	require.Len(tt.t, backups, 1, "backup keys")
+	u.backupKey = backups[0]
+	u.backupKey.secret = signupUI.info.displayedPaperKey
+
 	tt.users = append(tt.users, &u)
 	return &u
 }
@@ -180,6 +191,8 @@ type userPlusDevice struct {
 	uid           keybase1.UID
 	username      string
 	passphrase    string
+	userInfo      *signupInfo
+	backupKey     backupKey
 	device        *deviceWrapper
 	tc            *libkb.TestContext
 	deviceClient  keybase1.DeviceClient
@@ -446,6 +459,54 @@ func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
 	return &libkb.TestSecretUI{Passphrase: u.passphrase}
 }
 
+func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
+	tc := setupTest(u.tc.T, "sub")
+	t := tc.T
+	g := tc.G
+
+	device := &deviceWrapper{tctx: tc}
+	device.start(0)
+
+	// ui for provisioning
+	ui := &rekeyProvisionUI{username: u.username, backupKey: u.backupKey}
+	// var loginClient keybase1.LoginClient
+	{
+		_, xp, err := client.GetRPCClientWithContext(g)
+		require.NoError(t, err)
+		srv := rpc.NewServer(xp, nil)
+		protocols := []rpc.Protocol{
+			keybase1.LoginUiProtocol(ui),
+			keybase1.SecretUiProtocol(ui),
+			keybase1.ProvisionUiProtocol(ui),
+		}
+		for _, prot := range protocols {
+			err = srv.Register(prot)
+			require.NoError(t, err)
+		}
+		// loginClient = keybase1.LoginClient{Cli: cli}
+		// _ = loginClient
+	}
+
+	// g.SetUI(ui)
+
+	cmd := client.NewCmdLoginRunner(g)
+	err := cmd.Run()
+	require.NoError(t, err, "login")
+
+	// Clear the paper key.
+	err = g.LoginState().Account(func(a *libkb.Account) {
+		a.ClearPaperKeys()
+	}, "provisionNewDevice")
+	require.NoError(t, err, "clear paper key")
+
+	skey, err := g.ActiveDevice.SigningKey()
+	require.NoError(t, err)
+	device.deviceKey.KID = skey.GetKID()
+	require.True(t, device.deviceKey.KID.Exists())
+
+	return device
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 	apiArg := libkb.APIArg{
 		Endpoint: "test/accelerate_team_rekeyd",
@@ -520,7 +581,7 @@ func TestGetTeamRootID(t *testing.T) {
 	getAndCompare(parentID)
 }
 
-// test that we can still load a valid link a signed by a now-revoked device.
+// Test that we can still load a valid link a signed by a now-revoked device.
 func TestTeamSignedByRevokedDevice(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -546,6 +607,90 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 		}
 		require.NotNil(t, target)
 		revokedKID = target.Kid
+
+		revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
+			ID:        target.ID,
+			ForceSelf: true,
+			ForceLast: false,
+		}, alice.tc.G)
+		ectx := &engine.Context{
+			LogUI:    alice.tc.G.Log,
+			SecretUI: alice.newSecretUI(),
+		}
+		err := engine.RunEngine(revokeEngine, ectx)
+		require.NoError(t, err)
+	}
+
+	t.Logf("bob updates cache of alice's info")
+	{
+		arg := libkb.NewLoadUserArg(bob.tc.G)
+		arg.UID = alice.uid
+		arg.PublicKeyOptional = true
+		arg.ForcePoll = true
+		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
+		require.NoError(t, err)
+	}
+
+	t.Logf("bob should see alice's key is revoked")
+	{
+		_, pubKey, _, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
+		require.NoError(t, err)
+		t.Logf("%v", spew.Sdump(pubKey))
+		require.NotNil(t, pubKey.Base.Revocation, "key should be revoked: %v", revokedKID)
+	}
+
+	t.Logf("bob loads the team")
+	_, err := teams.Load(context.TODO(), bob.tc.G, keybase1.LoadTeamArg{
+		Name:            teamName,
+		ForceRepoll:     true,
+		ForceFullReload: true, // don't use the cache
+	})
+	require.NoError(t, err)
+}
+
+// Another test of loading a team with a valid link signed by a now-revoked device.
+// The previous test didn't catch a bug.
+// In this test at the time when the device is revoked the team sigchain points to
+// a link that was signed by a never-revoked device and is subsequent to the link
+// signed by the revoked device.
+func TestTeamSignedByRevokedDevice2(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	// the signer
+	alice := tt.addUser("alice")
+	aliced2 := alice.provisionNewDevice()
+
+	// the loader
+	bob := tt.addUser("bob")
+
+	teamName := alice.createTeam()
+
+	t.Logf("sign a link with the to-be-revoked device (aliced2)")
+	{
+		eng := client.NewCmdTeamAddMemberRunner(aliced2.tctx.G)
+		eng.Team = teamName
+		eng.Username = bob.username
+		eng.Role = keybase1.TeamRole_ADMIN
+		err := eng.Run()
+		require.NoError(t, err)
+	}
+
+	alice.changeTeamMember(teamName, bob.username, keybase1.TeamRole_ADMIN)
+
+	t.Logf("alice revokes a device used to sign team links (alice2)")
+	revokedKID := aliced2.KID()
+	require.True(t, revokedKID.Exists())
+	{
+		devices, _ := getActiveDevicesAndKeys(alice.tc, alice.username)
+		var target *libkb.Device
+		for _, device := range devices {
+			t.Logf("scan device: ID:%v KID:%v", device.ID, device.Kid)
+			if device.Kid.Equal(revokedKID) {
+				target = device
+			}
+		}
+		require.NotNil(t, target)
 
 		revokeEngine := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{
 			ID:        target.ID,
