@@ -12,16 +12,28 @@ import {selectedInboxSelector} from '../chat/shared'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
+import {isMobile} from '../../constants/platform'
+import {navigateTo} from '../route-tree'
+import {chatTab, teamsTab} from '../../constants/tabs'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
-const _createNewTeam = function(action: Constants.CreateNewTeam) {
+const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
-  return call(RpcTypes.teamsTeamCreateRpcPromise, {
-    param: {name, sendChatNotification: true},
-  })
+  try {
+    yield call(RpcTypes.teamsTeamCreateRpcPromise, {
+      param: {name, sendChatNotification: true},
+    })
+
+    // No error if we get here.
+    yield put(Creators.setTeamCreationError(''))
+    const tab = isMobile ? chatTab : teamsTab
+    yield put(navigateTo([tab]))
+  } catch (error) {
+    yield put(Creators.setTeamCreationError(error.desc))
+  }
 }
 
 const _leaveTeam = function(action: Constants.LeaveTeam) {

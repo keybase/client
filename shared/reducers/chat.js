@@ -381,6 +381,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
       return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
     }
+    case 'teams:setTeamCreationError': {
+      const {payload: {teamCreationError}} = action
+      return state.set('teamCreationError', teamCreationError)
+    }
   }
 
   return state
