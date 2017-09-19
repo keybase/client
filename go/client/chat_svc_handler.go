@@ -130,6 +130,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 
 	arg := chat1.GetThreadLocalArg{
 		ConversationID: conv.Info.Id,
+		Pagination:     opts.Pagination,
 		Query: &chat1.GetThreadQuery{
 			MarkAsRead: !opts.Peek,
 		},
