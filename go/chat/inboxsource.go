@@ -486,7 +486,6 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, rl, err
 	}
-	s.Debug(ctx, "Read: tlfInfo: %+v", tlfInfo)
 	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
 		return inbox, rl, err
