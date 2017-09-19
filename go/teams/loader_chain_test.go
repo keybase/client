@@ -158,7 +158,7 @@ func runUnit(t *testing.T, unit TestCase) {
 					}
 				}
 			} else {
-				require.Error(t, err, "unexpected team load success in %v", unit.FileName)
+				require.Errorf(t, err, "unexpected team load success in %v", unit.FileName)
 				errstr := err.Error()
 				if len(loadSpec.ErrorSubstr) > 0 {
 					require.Contains(t, errstr, loadSpec.ErrorSubstr)
