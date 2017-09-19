@@ -13,6 +13,7 @@ import type {IconType, Props} from './icon'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
 // so we can pass IDs around instead of full objects
+// $FlowIssue
 const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
   const meta = iconMeta[type]
   if (meta.gridSize) {
