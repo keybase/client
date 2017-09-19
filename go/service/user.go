@@ -135,6 +135,10 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 		}
 	}
 
+	if err == nil && ret.Status == keybase1.StatusCode_SCDeleted {
+		err = libkb.DeletedError{}
+	}
+
 	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (UVV=%+v, KIDs=%v, err=%s)", arg, ret.Uvv, kids, libkb.ErrToOk(err))
 	return ret, err
 }
