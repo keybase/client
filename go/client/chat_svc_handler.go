@@ -158,6 +158,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 
 	thread := Thread{
 		Offline:          threadView.Offline,
+		Pagination:       threadView.Thread.Pagination,
 		IdentifyFailures: threadView.IdentifyFailures,
 	}
 	for _, m := range threadView.Thread.Messages {
@@ -999,6 +1000,7 @@ type Message struct {
 // Thread is used for JSON output of a thread of messages.
 type Thread struct {
 	Messages         []Message                     `json:"messages"`
+	Pagination       *chat1.Pagination             `json:"pagination,omitempty"`
 	Offline          bool                          `json:"offline,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
