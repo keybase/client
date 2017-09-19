@@ -1234,9 +1234,6 @@ type KeyOps interface {
 
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
-	// PrefetchBlock directs the prefetcher to prefetch a block.
-	PrefetchBlock(block Block, blockPtr BlockPointer, kmd KeyMetadata,
-		priority int) (err error)
 	// TriggerAndMonitorPrefetch triggers and monitors a prefetch.
 	TriggerAndMonitorPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata,
 		lifetime BlockCacheLifetime)
