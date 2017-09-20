@@ -2,6 +2,7 @@
 import * as React from 'react'
 import Inbox from './inbox/container'
 import {globalStyles} from '../styles'
+import type {RouteState} from './inbox'
 
 const Render = ({
   isActiveRoute,
@@ -10,8 +11,8 @@ const Render = ({
   children,
 }: {
   isActiveRoute: boolean,
-  routeState: Object,
-  setRouteState: Object => void,
+  routeState: RouteState,
+  setRouteState: RouteState => void,
   children: any,
 }) => (
   <div style={style}>

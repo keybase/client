@@ -205,7 +205,7 @@ const getRows = createSelector(
 )
 
 const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
-  const smallTeamsExpanded = routeState ? routeState.smallTeamsExpanded : false
+  const {smallTeamsExpanded} = routeState
   const {
     bigTeamsBadgeCount,
     rows,
