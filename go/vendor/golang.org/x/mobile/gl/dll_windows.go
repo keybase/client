@@ -7,6 +7,7 @@ package gl
 import (
 	"archive/tar"
 	"compress/gzip"
+	"debug/pe"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,7 +21,7 @@ import (
 var debug = log.New(ioutil.Discard, "gl: ", log.LstdFlags)
 
 func downloadDLLs() (path string, err error) {
-	url := "https://dl.google.com/go/mobile/angle-dd5c5b-" + runtime.GOARCH + ".tgz"
+	url := "https://dl.google.com/go/mobile/angle-bd3f8780b-" + runtime.GOARCH + ".tgz"
 	debug.Printf("downloading %s", url)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -42,7 +43,7 @@ func downloadDLLs() (path string, err error) {
 		return "", fmt.Errorf("gl: error reading gzip from %v: %v", url, err)
 	}
 	tr := tar.NewReader(r)
-	var bytesGLESv2, bytesEGL []byte
+	var bytesGLESv2, bytesEGL, bytesD3DCompiler []byte
 	for {
 		header, err := tr.Next()
 		if err == io.EOF {
@@ -56,14 +57,16 @@ func downloadDLLs() (path string, err error) {
 			bytesGLESv2, err = ioutil.ReadAll(tr)
 		case "angle-" + runtime.GOARCH + "/libegl.dll":
 			bytesEGL, err = ioutil.ReadAll(tr)
+		case "angle-" + runtime.GOARCH + "/d3dcompiler_47.dll":
+			bytesD3DCompiler, err = ioutil.ReadAll(tr)
 		default: // skip
 		}
 		if err != nil {
 			return "", fmt.Errorf("gl: error reading %v from %v: %v", header.Name, url, err)
 		}
 	}
-	if len(bytesGLESv2) == 0 || len(bytesEGL) == 0 {
-		return "", fmt.Errorf("gl: did not find both DLLs in %v", url)
+	if len(bytesGLESv2) == 0 || len(bytesEGL) == 0 || len(bytesD3DCompiler) == 0 {
+		return "", fmt.Errorf("gl: did not find all DLLs in %v", url)
 	}
 
 	writeDLLs := func(path string) error {
@@ -71,6 +74,9 @@ func downloadDLLs() (path string, err error) {
 			return fmt.Errorf("gl: cannot install ANGLE: %v", err)
 		}
 		if err := ioutil.WriteFile(filepath.Join(path, "libegl.dll"), bytesEGL, 0755); err != nil {
+			return fmt.Errorf("gl: cannot install ANGLE: %v", err)
+		}
+		if err := ioutil.WriteFile(filepath.Join(path, "d3dcompiler_47.dll"), bytesD3DCompiler, 0755); err != nil {
 			return fmt.Errorf("gl: cannot install ANGLE: %v", err)
 		}
 		return nil
@@ -108,15 +114,83 @@ func appdataPath() string {
 	return filepath.Join(os.Getenv("LOCALAPPDATA"), "GoGL", runtime.GOARCH)
 }
 
+func containsDLLs(dir string) bool {
+	compatible := func(name string) bool {
+		file, err := pe.Open(filepath.Join(dir, name))
+		if err != nil {
+			return false
+		}
+		defer file.Close()
+
+		switch file.Machine {
+		case pe.IMAGE_FILE_MACHINE_AMD64:
+			return "amd64" == runtime.GOARCH
+		case pe.IMAGE_FILE_MACHINE_ARM:
+			return "arm" == runtime.GOARCH
+		case pe.IMAGE_FILE_MACHINE_I386:
+			return "386" == runtime.GOARCH
+		}
+		return false
+	}
+
+	return compatible("libglesv2.dll") && compatible("libegl.dll") && compatible("d3dcompiler_47.dll")
+}
+
+func chromePath() string {
+	// dlls are stored in:
+	//   <BASE>/<VERSION>/libglesv2.dll
+
+	var installdirs = []string{
+		// Chrome User
+		filepath.Join(os.Getenv("LOCALAPPDATA"), "Google", "Chrome", "Application"),
+		// Chrome System
+		filepath.Join(os.Getenv("ProgramFiles(x86)"), "Google", "Chrome", "Application"),
+		// Chromium
+		filepath.Join(os.Getenv("LOCALAPPDATA"), "Chromium", "Application"),
+		// Chrome Canary
+		filepath.Join(os.Getenv("LOCALAPPDATA"), "Google", "Chrome SxS", "Application"),
+	}
+
+	for _, installdir := range installdirs {
+		versiondirs, err := ioutil.ReadDir(installdir)
+		if err != nil {
+			continue
+		}
+
+		for _, versiondir := range versiondirs {
+			if !versiondir.IsDir() {
+				continue
+			}
+
+			versionpath := filepath.Join(installdir, versiondir.Name())
+			if containsDLLs(versionpath) {
+				return versionpath
+			}
+		}
+	}
+
+	return ""
+}
+
 func findDLLs() (err error) {
 	load := func(path string) (bool, error) {
 		if path != "" {
+			// don't try to start when one of the files is missing
+			if !containsDLLs(path) {
+				return false, nil
+			}
+
+			LibD3DCompiler.Name = filepath.Join(path, filepath.Base(LibD3DCompiler.Name))
 			LibGLESv2.Name = filepath.Join(path, filepath.Base(LibGLESv2.Name))
 			LibEGL.Name = filepath.Join(path, filepath.Base(LibEGL.Name))
 		}
+
 		if err := LibGLESv2.Load(); err == nil {
 			if err := LibEGL.Load(); err != nil {
 				return false, fmt.Errorf("gl: loaded libglesv2 but not libegl: %v", err)
+			}
+			if err := LibD3DCompiler.Load(); err != nil {
+				return false, fmt.Errorf("gl: loaded libglesv2, libegl but not d3dcompiler: %v", err)
 			}
 			if path == "" {
 				debug.Printf("DLLs found")
@@ -125,6 +199,7 @@ func findDLLs() (err error) {
 			}
 			return true, nil
 		}
+
 		return false, nil
 	}
 
@@ -138,7 +213,12 @@ func findDLLs() (err error) {
 		return err
 	}
 
-	// TODO: Look for a Chrome installation.
+	// Look for a Chrome installation
+	if dir := chromePath(); dir != "" {
+		if ok, err := load(dir); ok || err != nil {
+			return err
+		}
+	}
 
 	// Look in GOPATH/pkg.
 	if ok, err := load(filepath.Join(os.Getenv("GOPATH"), "pkg")); ok || err != nil {

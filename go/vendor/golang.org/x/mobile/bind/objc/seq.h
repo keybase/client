@@ -6,7 +6,8 @@
 #define __GO_SEQ_HDR__
 
 #include <Foundation/Foundation.h>
-#include "GoUniverse.h"
+#include "ref.h"
+#include "Universe.objc.h"
 
 #ifdef DEBUG
 #define LOG_DEBUG(...) NSLog(__VA_ARGS__);
@@ -23,40 +24,6 @@
                                 reason:[NSString stringWithFormat:__VA_ARGS__] \
                               userInfo:NULL];                                  \
   }
-
-// goErrorWrapper is a adapter between an NSError * and the bind Error interface
-@interface goSeqErrorWrapper : NSObject<GoUniverseerror> {
-}
-@property NSError *err;
-
-- (id)initWithError:(NSError *)err;
-@end
-
-// GoSeqRef is an object tagged with an integer for passing back and
-// forth across the language boundary. A GoSeqRef may represent either
-// an instance of a Go object, or an Objective-C object passed to Go.
-// The explicit allocation of a GoSeqRef is used to pin a Go object
-// when it is passed to Objective-C. The Go seq package maintains a
-// reference to the Go object in a map keyed by the refnum. When the
-// GoSeqRef is deallocated, the Go seq package will clear the
-// corresponding entry in the map.
-// TODO(hyangah): update the doc as golang.org/issue/10933 is fixed.
-@interface GoSeqRef : NSObject {
-}
-@property(readonly) int32_t refnum;
-@property(strong) id obj; // NULL when representing a Go object.
-
-// new GoSeqRef object to proxy a Go object. The refnum must be
-// provided from Go side.
-- (instancetype)initWithRefnum:(int32_t)refnum obj:(id)obj;
-
-- (int32_t)incNum;
-
-@end
-
-@protocol goSeqRefInterface
--(GoSeqRef*) _ref;
-@end
 
 // Platform specific types
 typedef struct nstring {
@@ -92,6 +59,5 @@ extern nstring go_seq_from_objc_string(NSString *s);
 
 extern NSData *go_seq_to_objc_bytearray(nbyteslice, int copy);
 extern NSString *go_seq_to_objc_string(nstring str);
-extern NSError *go_seq_to_nserror(id<GoUniverseerror> err, NSString *errDomain);
 
 #endif // __GO_SEQ_HDR__

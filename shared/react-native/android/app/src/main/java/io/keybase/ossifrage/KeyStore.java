@@ -25,8 +25,8 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import go.keybase.Keybase;
-import go.keybase.UnsafeExternalKeyStore;
+import keybase.Keybase;
+import keybase.UnsafeExternalKeyStore;
 import io.keybase.ossifrage.keystore.KeyStoreHelper;
 
 public class KeyStore implements UnsafeExternalKeyStore {

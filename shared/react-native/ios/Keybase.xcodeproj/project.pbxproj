@@ -34,7 +34,6 @@
 		DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539341D777E7100AFA61B /* Engine-Test.m */; };
 		DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539361D777E8400AFA61B /* LogSend-Test.m */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
-		DBBCC6161D9C4BA700312652 /* KeyListener.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6151D9C4BA700312652 /* KeyListener.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDC800B1DE7CC8E005387B3 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80031DE7CC8E005387B3 /* kb.ttf */; };
@@ -349,8 +348,6 @@
 		DB7539361D777E8400AFA61B /* LogSend-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "LogSend-Test.m"; sourceTree = "<group>"; };
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		DBBCC6141D9C4BA700312652 /* KeyListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyListener.h; sourceTree = "<group>"; };
-		DBBCC6151D9C4BA700312652 /* KeyListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeyListener.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
@@ -462,6 +459,7 @@
 				00E356EF1AD99517003FC87E /* KeybaseTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
+				DB090F7F1F719A2F007E4E1B /* Recovered References */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -515,6 +513,16 @@
 				DB0501051F10114D000B54AD /* libRCTLinking-tvOS.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		DB090F7F1F719A2F007E4E1B /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */,
+				A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */,
+				51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 		DB2BD17F1DE7D81C00BB7989 /* Products */ = {
@@ -663,8 +671,6 @@
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				DBBCC6111D9C4A8100312652 /* AppDelegate.h */,
 				DBBCC6121D9C4A8100312652 /* AppDelegate.m */,
-				DBBCC6141D9C4BA700312652 /* KeyListener.h */,
-				DBBCC6151D9C4BA700312652 /* KeyListener.m */,
 				DBDC80021DE7CC8E005387B3 /* fonts */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
@@ -1230,7 +1236,6 @@
 				DBBCC6181D9C5C6A00312652 /* main.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,
 				DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */,
-				DBBCC6161D9C4BA700312652 /* KeyListener.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

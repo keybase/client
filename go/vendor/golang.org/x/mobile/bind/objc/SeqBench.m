@@ -8,7 +8,7 @@
 #import <XCTest/XCTest.h>
 #import "benchmark/Benchmark.h"
 
-@interface AnI : NSObject <GoBenchmarkI> {
+@interface AnI : NSObject <BenchmarkI> {
 }
 @end
 
@@ -17,7 +17,7 @@
 }
 @end
 
-@interface Benchmarks : NSObject <GoBenchmarkBenchmarks> {
+@interface Benchmarks : NSObject <BenchmarkBenchmarks> {
 }
 @end
 
@@ -25,7 +25,7 @@
 - (void)manyargs:(int)p0 p1:(int)p1 p2:(int)p2 p3:(int)p3 p4:(int)p4 p5:(int)p5 p6:(int)p6 p7:(int)p7 p8:(int)p8 p9:(int)p9 {
 }
 
-- (id<GoBenchmarkI>)newI {
+- (id<BenchmarkI>)newI {
 	return [[AnI alloc] init];
 }
 
@@ -39,7 +39,7 @@
 	return 0;
 }
 
-- (void)ref:(id<GoBenchmarkI>)p0 {
+- (void)ref:(id<BenchmarkI>)p0 {
 }
 
 - (void)slice:(NSData*)p0 {
@@ -49,11 +49,11 @@
 }
 
 - (NSString*)stringRetLong {
-	return GoBenchmarkLongString;
+	return BenchmarkLongString;
 }
 
 - (NSString*)stringRetShort {
-	return GoBenchmarkShortString;
+	return BenchmarkShortString;
 }
 
 - (void (^)(void))lookupBenchmark:(NSString *)name {
@@ -62,63 +62,63 @@
 		};
 	} else if ([name isEqualToString:@"Noargs"]) {
 		return ^() {
-			GoBenchmarkNoargs();
+			BenchmarkNoargs();
 		};
 	} else if ([name isEqualToString:@"Onearg"]) {
 		return ^() {
-			GoBenchmarkOnearg(0);
+			BenchmarkOnearg(0);
 		};
 	} else if ([name isEqualToString:@"Manyargs"]) {
 		return ^() {
-			GoBenchmarkManyargs(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+			BenchmarkManyargs(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 		};
 	} else if ([name isEqualToString:@"Oneret"]) {
 		return ^() {
-			GoBenchmarkOneret();
+			BenchmarkOneret();
 		};
 	} else if ([name isEqualToString:@"Refforeign"]) {
-		id<GoBenchmarkI> objcRef = [[AnI alloc] init];
+		id<BenchmarkI> objcRef = [[AnI alloc] init];
 		return ^() {
-			GoBenchmarkRef(objcRef);
+			BenchmarkRef(objcRef);
 		};
 	} else if ([name isEqualToString:@"Refgo"]) {
-		id<GoBenchmarkI> goRef = GoBenchmarkNewI();
+		id<BenchmarkI> goRef = BenchmarkNewI();
 		return ^() {
-			GoBenchmarkRef(goRef);
+			BenchmarkRef(goRef);
 		};
 	} else if ([name isEqualToString:@"StringShort"]) {
 		return ^() {
-			GoBenchmarkString(GoBenchmarkShortString);
+			BenchmarkString(BenchmarkShortString);
 		};
 	} else if ([name isEqualToString:@"StringLong"]) {
 		return ^() {
-			GoBenchmarkString(GoBenchmarkLongString);
+			BenchmarkString(BenchmarkLongString);
 		};
 	} else if ([name isEqualToString:@"StringShortUnicode"]) {
 		return ^() {
-			GoBenchmarkString(GoBenchmarkShortStringUnicode);
+			BenchmarkString(BenchmarkShortStringUnicode);
 		};
 	} else if ([name isEqualToString:@"StringLongUnicode"]) {
 		return ^() {
-			GoBenchmarkString(GoBenchmarkLongStringUnicode);
+			BenchmarkString(BenchmarkLongStringUnicode);
 		};
 	} else if ([name isEqualToString:@"StringRetShort"]) {
 		return ^() {
-			GoBenchmarkStringRetShort();
+			BenchmarkStringRetShort();
 		};
 	} else if ([name isEqualToString:@"StringRetLong"]) {
 		return ^() {
-			GoBenchmarkStringRetLong();
+			BenchmarkStringRetLong();
 		};
 	} else if ([name isEqualToString:@"SliceShort"]) {
-		NSData *s = [GoBenchmark shortSlice];
+		NSData *s = [Benchmark shortSlice];
 		return ^() {
-			GoBenchmarkSlice(s);
+			BenchmarkSlice(s);
 		};
 	} else if ([name isEqualToString:@"SliceLong"]) {
-		NSData *s = [GoBenchmark longSlice];
+		NSData *s = [Benchmark longSlice];
 		return ^() {
-			GoBenchmarkSlice(s);
+			BenchmarkSlice(s);
 		};
 	} else {
 		return nil;
@@ -183,7 +183,7 @@
 
 	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
 		Benchmarks *b = [[Benchmarks alloc] init];
-		GoBenchmarkRunBenchmarks(b);
+		BenchmarkRunBenchmarks(b);
 		[expectation fulfill];
 	});
 

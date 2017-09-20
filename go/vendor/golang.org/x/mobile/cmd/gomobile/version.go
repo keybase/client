@@ -51,7 +51,7 @@ func runVersion(cmd *command) (err error) {
 
 	// Supported platforms
 	platforms := "android"
-	if goos == "darwin" {
+	if xcodeAvailable() {
 		platforms = "android,ios"
 	}
 

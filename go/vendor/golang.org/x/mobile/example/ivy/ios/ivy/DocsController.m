@@ -15,7 +15,7 @@
 {
     [super viewDidLoad];
     UIWebView *webView = (UIWebView *)[self.view viewWithTag:11];
-    NSString *helpHTML = GoMobileHelp();
+    NSString *helpHTML = MobileHelp();
     [webView loadHTMLString:helpHTML baseURL:NULL];
     if ([self respondsToSelector:@selector(
                                      setAutomaticallyAdjustsScrollViewInsets:)]) {

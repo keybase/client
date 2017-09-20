@@ -14,6 +14,9 @@ import "C"
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	_seq "golang.org/x/mobile/bind/seq"
 )
@@ -32,6 +35,8 @@ func init() {
 		}
 		C.go_seq_inc_ref(C.int32_t(refnum))
 	}
+	// Workaround for issue #17393.
+	signal.Notify(make(chan os.Signal), syscall.SIGPIPE)
 }
 
 // IncGoRef is called by foreign code to pin a Go object while its refnum is crossing

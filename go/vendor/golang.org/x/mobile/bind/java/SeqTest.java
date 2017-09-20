@@ -10,8 +10,8 @@ import android.test.MoreAsserts;
 import java.util.Arrays;
 import java.util.Random;
 
-import go.testpkg.*;
-import go.secondpkg.Secondpkg;
+import testpkg.*;
+import secondpkg.Secondpkg;
 
 public class SeqTest extends InstrumentationTestCase {
   public SeqTest() {
@@ -416,11 +416,19 @@ public class SeqTest extends InstrumentationTestCase {
   }
 
   public void testErrorField() {
-    final String want = "an error message";
     Node n = Testpkg.newNode("ErrTest");
+    Exception want = new Exception("an error message");
     n.setErr(want);
-    String got = n.getErr();
-    assertEquals("want back the error message we set", want, got);
+    Exception got = n.getErr();
+    assertTrue("want back the error we set", want == got);
+    String msg = Testpkg.errorMessage(want);
+    assertEquals("the error message must match", want.getMessage(), msg);
+  }
+
+  public void testErrorDup() {
+    Exception err = Testpkg.getGlobalErr();
+    assertTrue("the Go error instance must preserve its identity", Testpkg.isGlobalErr(err));
+    assertEquals("the Go error message must be preserved", "global err", err.getMessage());
   }
 
   //test if we have JNI local reference table overflow error
@@ -440,8 +448,11 @@ public class SeqTest extends InstrumentationTestCase {
         return null;
       }
     }));
-	assertEquals("Go nil interface is null", null, Testpkg.newNullInterface());
-	assertEquals("Go nil struct pointer is null", null, Testpkg.newNullStruct());
+    assertEquals("Go nil interface is null", null, Testpkg.newNullInterface());
+    assertEquals("Go nil struct pointer is null", null, Testpkg.newNullStruct());
+
+    Issue20330 nullArger = new Issue20330();
+    assertTrue(nullArger.callWithNull(null));
   }
 
   public void testPassByteArray() {
@@ -475,14 +486,14 @@ public class SeqTest extends InstrumentationTestCase {
   }
 
   public void testImportedPkg() {
-    Testpkg.callImportedI(new go.secondpkg.I() {
+    Testpkg.callImportedI(new secondpkg.I() {
       @Override public long f(long i) {
         return i;
       }
     });
     assertEquals("imported string should match", Secondpkg.HelloString, Secondpkg.hello());
-    go.secondpkg.I i = Testpkg.newImportedI();
-    go.secondpkg.S s = Testpkg.newImportedS();
+    secondpkg.I i = Testpkg.newImportedI();
+    secondpkg.S s = Testpkg.newImportedS();
     i = Testpkg.getImportedVarI();
     s = Testpkg.getImportedVarS();
     assertEquals("numbers should match", 8, i.f(8));
@@ -497,9 +508,9 @@ public class SeqTest extends InstrumentationTestCase {
     Testpkg.withImportedI(i);
     Testpkg.withImportedS(s);
 
-    go.secondpkg.IF f = new AnI();
+    secondpkg.IF f = new AnI();
     f = Testpkg.new_();
-    go.secondpkg.Ser ser = Testpkg.newSer();
+    secondpkg.Ser ser = Testpkg.newSer();
   }
 
   public void testRoundtripEquality() {
@@ -517,6 +528,32 @@ public class SeqTest extends InstrumentationTestCase {
       }
     };
     assertTrue("Go struct passed through Java should not be wrapped", Testpkg.callCDupper(cdup));
+  }
+
+  public void testConstructor() {
+    Interface i = new Concrete();
+    i.f();
+
+    S2 s = new S2(1, 2);
+    assertEquals("new S2().sum", 3.0, s.sum());
+    assertEquals("new S2().tryTwoStrings", "gostring", s.tryTwoStrings("go", "string"));
+
+	  new S3();
+
+	  S4 s4 = new S4(123);
+	  assertEquals("Constructor argument", 123, s4.getI());
+
+    s4 = new S4(123.456);
+    assertEquals("Overloaded constructor argument", 123, s4.getI());
+
+    s4 = new S4(false);
+    assertEquals("Exceptional constructor", 0, s4.getI());
+
+    try {
+      s4 = new S4(true);
+      fail("Constructor error wasn't caught");
+    } catch (Exception e) {
+    }
   }
 
   public void testEmptyError() {
@@ -542,5 +579,13 @@ public class SeqTest extends InstrumentationTestCase {
 
     InitCaller initer = Testpkg.newInitCaller();
     initer.init();
+  }
+
+  public void testSIGPIPE() {
+    Testpkg.testSIGPIPE();
+  }
+
+  public void testTags() {
+    assertEquals("Constant from a tagged file", 42, Testpkg.TaggedConst);
   }
 }

@@ -16,7 +16,9 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"os"
 	"runtime"
+	"syscall"
 	"time"
 
 	"golang.org/x/mobile/asset"
@@ -262,6 +264,16 @@ func NewNullStruct() *S {
 
 func CallWithNull(_null NullTest, nuller NullTest) bool {
 	return _null == nil && nuller.Null() == nil
+}
+
+type Issue20330 struct{}
+
+func NewIssue20330() *Issue20330 {
+	return new(Issue20330)
+}
+
+func (i *Issue20330) CallWithNull(_null *Issue20330) bool {
+	return _null == nil
 }
 
 type Issue14168 interface {
@@ -533,3 +545,64 @@ func NewInitCaller() *InitCaller {
 }
 
 func (ic *InitCaller) Init() {}
+
+type Issue17073 interface {
+	OnError(err error)
+}
+
+func ErrorMessage(err error) string {
+	return err.Error()
+}
+
+var GlobalErr error = errors.New("global err")
+
+func IsGlobalErr(err error) bool {
+	return GlobalErr == err
+}
+
+type S3 struct {
+}
+
+type S4 struct {
+	I int
+}
+
+func NewS4WithInt(i int) *S4 {
+	return &S4{i}
+}
+
+func NewS4WithFloat(f float64) *S4 {
+	return &S4{int(f)}
+}
+
+func NewS4WithBoolAndError(b bool) (*S4, error) {
+	if b {
+		return nil, errors.New("some error")
+	}
+	return new(S4), nil
+}
+
+// Lifted from TestEPIPE in package os.
+func TestSIGPIPE() {
+	r, w, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
+	if err := r.Close(); err != nil {
+		panic(err)
+	}
+
+	_, err = w.Write([]byte("hi"))
+	if err == nil {
+		panic("unexpected success of Write to broken pipe")
+	}
+	if pe, ok := err.(*os.PathError); ok {
+		err = pe.Err
+	}
+	if se, ok := err.(*os.SyscallError); ok {
+		err = se.Err
+	}
+	if err != syscall.EPIPE {
+		panic(fmt.Errorf("got %v, expected EPIPE", err))
+	}
+}
