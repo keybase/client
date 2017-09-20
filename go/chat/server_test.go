@@ -389,8 +389,6 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 		t.Fatalf("unhandled membersType: %v", membersType)
 	}
 
-	// XXX made it here, but next call uses KBFSNameInfoSource for some reason
-
 	tc := ctc.as(t, creator)
 	ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
 		chat1.NewConversationLocalArg{

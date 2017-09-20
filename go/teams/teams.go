@@ -230,9 +230,7 @@ func (t *Team) CurrentSeqno() keybase1.Seqno {
 }
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
-	t.G().Log.Debug("XOXO AllApplicationKeys")
 	latestGen := t.chain().GetLatestGeneration()
-	t.G().Log.Debug("XOXO AllApplicationKeys latestGen: %d", latestGen)
 	for gen := keybase1.PerTeamKeyGeneration(1); gen <= latestGen; gen++ {
 		appKey, err := t.ApplicationKeyAtGeneration(application, gen)
 		if err != nil {

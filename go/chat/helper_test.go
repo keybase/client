@@ -80,10 +80,6 @@ func TestSendTextByName(t *testing.T) {
 			name = u.Username
 		}
 
-		t.Logf("**********************************************")
-		t.Logf("conv name: %q (mt %v)", name, mt)
-		t.Logf("**********************************************")
-
 		getRi := func() chat1.RemoteInterface { return ri2 }
 		require.NoError(t, SendTextByName(ctx, tc.Context(), name, nil,
 			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", getRi))

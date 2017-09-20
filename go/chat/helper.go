@@ -146,19 +146,14 @@ func (s *sendHelper) SendText(ctx context.Context, text string) error {
 }
 
 func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
-	s.G().Log.Debug("XOXO SendBody")
 	ctx = Context(ctx, s.G(), s.ident, nil, NewIdentifyNotifier(s.G()))
 	if err := s.nameInfo(ctx); err != nil {
 		return err
 	}
 
-	s.G().Log.Debug("XOXO got name info")
-
 	if err := s.conversation(ctx); err != nil {
 		return err
 	}
-
-	s.G().Log.Debug("XOXO got conv")
 
 	return s.deliver(ctx, body, mtype)
 }
@@ -805,8 +800,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			return res, rl, fmt.Errorf("error preparing message: %s", err)
 		}
 
-		n.Debug(ctx, "XOXO boxed header: %+v", firstMessageBoxed.ClientHeader)
-
 		var ncrres chat1.NewConversationRemoteRes
 		ncrres, reserr = n.ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:       triple,
@@ -865,7 +858,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		}
 		res = ib.Convs[0]
 		n.Debug(ctx, "fetched conv: %v", res.GetConvID())
-		n.Debug(ctx, "XOXO fetched conv: %+v", res)
 
 		// Update inbox cache
 		updateConv := ib.ConvsUnverified[0]

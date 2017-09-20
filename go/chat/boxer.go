@@ -955,8 +955,6 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
 
-	b.G().Log.Debug("XOXO BoxMessage TlfPublic %v", msg.ClientHeader.TlfPublic)
-
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
