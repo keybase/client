@@ -164,6 +164,12 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
     <Text style={{paddingLeft: globalMargins.small}} type="BodySmallSemibold">
       Members
     </Text>
+    <Text
+      style={{alignSelf: 'center', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.tiny}}
+      type="BodySmall"
+    >
+      Use @mentions to invite team members to join.
+    </Text>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>
 )
