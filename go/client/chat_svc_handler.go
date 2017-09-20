@@ -159,9 +159,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	thread := Thread{
 		Offline:          threadView.Offline,
 		IdentifyFailures: threadView.IdentifyFailures,
-	}
-	if opts.Pagination != nil {
-		thread.Pagination = threadView.Thread.Pagination
+		Pagination:       threadView.Thread.Pagination,
 	}
 	for _, m := range threadView.Thread.Messages {
 		st, err := m.State()
