@@ -1,9 +1,11 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Checkbox} from '../common-adapters'
-import {globalStyles, globalMargins} from '../styles'
+import {Avatar, Box, Text, Icon, Input, Button, Checkbox} from '../../common-adapters'
+import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 type Props = {
+  loading: boolean,
+  error: ?Error,
   teamname?: string,
   name: string,
   onDelete: (notifyTeam: boolean) => void,
@@ -33,9 +35,26 @@ class DeleteRepo extends React.Component<Props, State> {
     return false
   }
 
+  _onSubmit = () => {
+    if (this._matchesName()) {
+      this.props.onDelete(this.state.notifyTeam)
+    }
+  }
+
   render() {
     return (
       <Box style={_containerStyle}>
+        {!!this.props.error &&
+          <Box
+            style={{
+              alignSelf: 'stretch',
+              backgroundColor: globalColors.red,
+              marginBottom: globalMargins.small,
+              padding: globalMargins.tiny,
+            }}
+          >
+            <Text type="Body" backgroundMode="Terminal">{this.props.error.message}</Text>
+          </Box>}
         <Text type="Header" style={{marginBottom: 27}}>
           Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}repository?
         </Text>
@@ -59,8 +78,10 @@ class DeleteRepo extends React.Component<Props, State> {
         </Text>
         <Text type="BodySemibold">Please type in the name of the repository to confirm:</Text>
         <Input
+          autoFocus={true}
           value={this.state.name}
           onChangeText={name => this.setState({name})}
+          onEnterKeyDown={this._onSubmit}
           hintText="Name of the repository"
         />
         {!!this.props.teamname &&
@@ -80,9 +101,10 @@ class DeleteRepo extends React.Component<Props, State> {
           />
           <Button
             type="Danger"
-            onClick={() => this.props.onDelete(this.state.notifyTeam)}
+            onClick={this._onSubmit}
             label="Delete this repository"
             disabled={!this._matchesName()}
+            waiting={this.props.loading}
           />
         </Box>
       </Box>

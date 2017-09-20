@@ -57,12 +57,25 @@ const Banner = ({onReadMore, onHideBanner}: Props) => (
         Read our announcement
       </Text>
     </Box>
-    <Icon
-      type="iconfont-close"
-      onClick={onHideBanner}
-      style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.tiny}}
-    />
+    <Box style={closeIconStyle}>
+      <Icon type="iconfont-close" onClick={onHideBanner} />
+    </Box>
   </Box>
 )
+
+let closeIconStyle = {
+  position: 'absolute',
+  ...(isMobile
+    ? {
+        right: globalMargins.small,
+        top: globalMargins.small,
+        height: 14,
+        width: 14,
+      }
+    : {
+        right: globalMargins.tiny,
+        top: globalMargins.tiny,
+      }),
+}
 
 export default Banner

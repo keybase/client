@@ -45,6 +45,7 @@ protocol git {
     Time mtime;
     string lastModifyingUsername;
     DeviceID lastModifyingDeviceID;
+    string lastModifyingDeviceName;
   }
 
   void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata);
@@ -54,6 +55,8 @@ protocol git {
     RepoID repoID;
     GitLocalMetadata localMetadata;
     GitServerMetadata serverMetadata;
+    string repoUrl;
+    string globalUniqueID;  // for the GUI's convenient bookkeeping
   }
 
   // fetch git repos for a single team / implicit team
@@ -62,10 +65,16 @@ protocol git {
 
   // fetch git repos for all teams that the user has access to
   array<GitRepoResult> getAllGitMetadata();
- 
-  // create a personal, private repo 
+
+  // create a personal, private repo
   RepoID createPersonalRepo(GitRepoName repoName);
-  
-  // create a team repo 
-  RepoID createTeamRepo(GitRepoName repoName, TeamName teamName);
+
+  // create a team repo
+  RepoID createTeamRepo(GitRepoName repoName, TeamName teamName, boolean notifyTeam);
+
+  // delete a personal, private repo
+  void deletePersonalRepo(GitRepoName repoName);
+
+  // delete a team repo
+  void deleteTeamRepo(GitRepoName repoName, TeamName teamName, boolean notifyTeam);
 }

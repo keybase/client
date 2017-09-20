@@ -28,6 +28,7 @@ const load = () => {
   storiesOf('Git', module)
     .add('Root', () => (
       <Box style={{width: '100%'}}>
+        {/*
         <Git
           personals={[
             {...common, ...helper(null, 'personal_docs')},
@@ -44,7 +45,9 @@ const load = () => {
           onDelete={action('onDelete')}
           onNewPersonalRepo={action('onNewPersonalRepo')}
           onNewTeamRepo={action('onNewTeamRepo')}
+          setTimeout={action('setTimeout')}
         />
+        */}
       </Box>
     ))
     .add('NewPersonalRepo', () => (
@@ -54,6 +57,8 @@ const load = () => {
           onCreate={action('onCreate')}
           onClose={action('onClose')}
           onNewTeam={action('onNewTeam')}
+          loading={false}
+          error={null}
         />
       </Box>
     ))
@@ -65,12 +70,20 @@ const load = () => {
           onCreate={action('onCreate')}
           onNewTeam={action('onNewTeam')}
           teams={['fortgreenmoms', 'siggis', 'siggis.board']}
+          loading={false}
+          error={null}
         />
       </Box>
     ))
     .add('DeleteRepo', () => (
       <Box style={{height: '100%', width: '100%'}}>
-        <DeleteRepo name="docs" onClose={action('onClose')} onDelete={action('onDelete')} />
+        <DeleteRepo
+          name="docs"
+          onClose={action('onClose')}
+          onDelete={action('onDelete')}
+          loading={false}
+          error={null}
+        />
       </Box>
     ))
     .add('DeleteTeamRepo', () => (
@@ -80,6 +93,8 @@ const load = () => {
           name="media"
           onClose={action('onClose')}
           onDelete={action('onDelete')}
+          loading={false}
+          error={null}
         />
       </Box>
     ))

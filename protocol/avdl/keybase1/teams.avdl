@@ -354,6 +354,8 @@ protocol teams {
     TeamID teamID;
     @jsonkey("fq_name")
     string fqName;
+    @jsonkey("is_implicit_team")
+    boolean isImplicitTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
   }
@@ -372,6 +374,8 @@ protocol teams {
     string fullName;
     @jsonkey("fq_name")
     string fqName;
+    @jsonkey("is_implicit_team")
+    boolean isImplicitTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
   }
@@ -409,7 +413,7 @@ protocol teams {
 
   TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
-  AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all);
+  AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all, boolean includeImplicitTeams);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
   void teamRemoveMember(int sessionID, string name, string username);

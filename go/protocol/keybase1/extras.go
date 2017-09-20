@@ -1914,3 +1914,11 @@ func ParseUserVersion(s UserVersionPercentForm) (res UserVersion, err error) {
 		EldestSeqno: Seqno(eldestSeqno),
 	}, nil
 }
+
+func (p StringKVPair) IntValue() int {
+	i, err := strconv.Atoi(p.Value)
+	if err != nil {
+		return 0
+	}
+	return i
+}

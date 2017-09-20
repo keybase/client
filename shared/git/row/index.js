@@ -1,10 +1,25 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, ClickableBox, Input, Button, Avatar, Meta, Usernames} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {
+  Box,
+  Text,
+  Icon,
+  ClickableBox,
+  Input,
+  Button,
+  Avatar,
+  Meta,
+  Usernames,
+  HOCTimers,
+} from '../../common-adapters'
+
+import {globalStyles, globalColors, globalMargins, transition} from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 export type Props = {
+  canDelete: boolean,
   devicename: string,
+  expanded: boolean,
   lastEditTime: string,
   lastEditUser: string,
   lastEditUserFollowing: boolean,
@@ -12,27 +27,22 @@ export type Props = {
   teamname: ?string,
   url: string,
   isNew: boolean,
-}
-
-type _Props = Props & {
-  onCopy: (url: string) => void,
-  onDelete: (url: string) => void,
+  onCopy: () => void,
+  onShowDelete: () => void,
+  onToggleExpand: () => void,
+  setTimeout: (() => void, number) => number,
 }
 
 type State = {
-  expanded: boolean,
+  showingCopy: boolean,
 }
 
-class Row extends React.Component<_Props, State> {
-  _input: any
-
+class Row extends React.Component<Props, State> {
   state = {
-    expanded: false,
+    showingCopy: false,
   }
 
-  _toggleExpand = () => {
-    this.setState(prevState => ({expanded: !prevState.expanded}))
-  }
+  _input: any
 
   _inputOnClick = () => {
     this._input && this._input.select()
@@ -41,11 +51,9 @@ class Row extends React.Component<_Props, State> {
   _setRef = r => (this._input = r)
 
   _onCopy = () => {
-    this.props.onCopy(this.props.url)
-  }
-
-  _onDelete = () => {
-    this.props.onDelete(this.props.url)
+    this.props.onCopy()
+    this.setState({showingCopy: true})
+    this.props.setTimeout(() => this.setState({showingCopy: false}), 1000)
   }
 
   render() {
@@ -53,7 +61,7 @@ class Row extends React.Component<_Props, State> {
       <Box
         style={{
           ..._rowStyle,
-          ...(this.state.expanded
+          ...(this.props.expanded
             ? {
                 backgroundColor: globalColors.blue5,
                 borderColor: globalColors.black_05,
@@ -62,14 +70,14 @@ class Row extends React.Component<_Props, State> {
         }}
       >
         <ClickableBox
-          onClick={this._toggleExpand}
+          onClick={this.props.onToggleExpand}
           style={_rowClickStyle}
-          hoverColor={globalColors.transparent}
+          hoverColor={isMobile ? undefined : globalColors.transparent}
           underlayColor={globalColors.transparent}
         >
           <Box style={_rowTopStyle}>
             <Icon
-              type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+              type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
               style={_iconCaretStyle}
             />
             <Icon
@@ -89,16 +97,23 @@ class Row extends React.Component<_Props, State> {
             {!!this.props.teamname && this.props.isNew && <Meta title="New" style={_metaStyle} />}
           </Box>
         </ClickableBox>
-        {this.state.expanded &&
+        {this.props.expanded &&
           <Box style={_rowBottomStyle}>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginBottom: 5, marginTop: 2}}>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                marginBottom: 5,
+                marginTop: 2,
+              }}
+            >
               <Text type="BodySmall">
                 Last push
                 {' '}
                 {this.props.lastEditTime}
                 {' '}
                 ago
-                {' '}
                 {!!this.props.teamname && !!this.props.lastEditUser && ' by'}
               </Text>
               {!!this.props.teamname &&
@@ -117,11 +132,20 @@ class Row extends React.Component<_Props, State> {
                   style={{marginLeft: 2, marginRight: 2}}
                 />}
               <Text type="BodySmall">
-                , signed and encrypted using device&nbsp;
+                <Text type="BodySmall">
+                  {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
+                </Text>
+                <Text type="BodySmall" style={_deviceStyle}>{' '}{this.props.devicename}</Text>
               </Text>
-              <Text type="BodySmall" style={_deviceStyle}>{this.props.devicename}</Text>
             </Box>
-            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                position: 'relative',
+                flex: isMobile ? 1 : undefined,
+              }}
+            >
               <Text type="Body">Clone:</Text>
               <Box style={_bubbleStyle}>
                 <Input
@@ -131,24 +155,56 @@ class Row extends React.Component<_Props, State> {
                   onClick={this._inputOnClick}
                   ref={this._setRef}
                   style={_inputStyle}
+                  editable={false}
                   inputStyle={_inputInputStyle}
                   hideUnderline={true}
                 />
                 <Box style={_copyStyle}>
                   <Icon
                     type="iconfont-clipboard"
-                    style={{color: globalColors.white, hoverColor: globalColors.blue5}}
+                    style={{color: globalColors.white, ...(isMobile ? {} : {hoverColor: globalColors.blue5})}}
                     onClick={this._onCopy}
                   />
                 </Box>
               </Box>
-              <Button type="Danger" small={true} label="Delete repo" onClick={this._onDelete} />
+              {!isMobile &&
+                this.props.canDelete &&
+                <Button type="Danger" small={true} label="Delete repo" onClick={this.props.onShowDelete} />}
+              <Box style={{alignSelf: 'flex-start', position: 'relative'}}>
+                <Copied showing={this.state.showingCopy} />
+              </Box>
             </Box>
+            {isMobile &&
+              this.props.canDelete &&
+              <Button
+                type="Danger"
+                small={true}
+                label="Delete repo"
+                onClick={this.props.onShowDelete}
+                style={{marginTop: globalMargins.tiny, alignSelf: 'flex-end'}}
+              />}
           </Box>}
       </Box>
     )
   }
 }
+
+const Copied = ({showing}) => (
+  <Box
+    style={{
+      ...transition('opacity'),
+      backgroundColor: globalColors.black_60,
+      borderRadius: 10,
+      left: -160,
+      opacity: showing ? 1 : 0,
+      padding: 5,
+      position: 'absolute',
+      top: -28,
+    }}
+  >
+    <Text type="Body" backgroundMode="Terminal">Copied!</Text>
+  </Box>
+)
 
 const _copyStyle = {
   ...globalStyles.fillAbsolute,
@@ -166,6 +222,7 @@ const _inputInputStyle = {
 }
 
 const _inputStyle = {
+  paddingTop: isMobile ? 5 : undefined,
   width: '100%',
 }
 
@@ -176,10 +233,11 @@ const _bubbleStyle = {
   borderRadius: 100,
   borderStyle: 'solid',
   borderWidth: 1,
+  flex: isMobile ? 1 : undefined,
   marginLeft: 8,
   marginRight: 8,
   minHeight: 28,
-  minWidth: 367,
+  minWidth: isMobile ? undefined : 367,
   overflow: 'hidden',
   paddingLeft: globalMargins.small,
   position: 'relative',
@@ -197,7 +255,11 @@ const _rowBottomStyle = {
 }
 
 const _iconCaretStyle = {
-  display: 'inline-block',
+  ...(isMobile
+    ? {}
+    : {
+        display: 'inline-block',
+      }),
   fontSize: 12,
   marginBottom: 2,
 }
@@ -226,6 +288,7 @@ const _rowStyle = {
   borderColor: globalColors.transparent,
   borderStyle: 'solid',
   borderTopWidth: 1,
+  flexShrink: 0,
   minHeight: globalMargins.large,
   padding: globalMargins.tiny,
   paddingLeft: 0,
@@ -236,4 +299,5 @@ const _rowClickStyle = {
   ...globalStyles.flexBoxColumn,
 }
 
-export default Row
+// $FlowIssue we need to fix up timer hoc props
+export default HOCTimers(Row)

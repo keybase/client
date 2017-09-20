@@ -1,14 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox} from '../common-adapters'
-import {globalStyles, globalMargins} from '../styles'
+import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox} from '../../common-adapters'
+import {globalStyles, globalMargins, globalColors} from '../../styles'
 
 type Props = {
+  error: ?Error,
   isTeam: boolean,
-  teams?: Array<string>,
-  onCreate: (name: string, notifyTeam: boolean) => void,
+  loading: boolean,
   onClose: () => void,
+  onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => void,
   onNewTeam: () => void,
+  teams?: Array<string>,
 }
 
 type State = {
@@ -76,9 +78,24 @@ class NewRepo extends React.Component<Props, State> {
     }
   }
 
+  _onSubmit = () => {
+    this.props.onCreate(this.state.name, this.state.selectedTeam, this.props.isTeam && this.state.notifyTeam)
+  }
+
   render() {
     return (
       <Box style={_containerStyle}>
+        {!!this.props.error &&
+          <Box
+            style={{
+              alignSelf: 'stretch',
+              backgroundColor: globalColors.red,
+              marginBottom: globalMargins.small,
+              padding: globalMargins.tiny,
+            }}
+          >
+            <Text type="Body" backgroundMode="Terminal">{this.props.error.message}</Text>
+          </Box>}
         <Text type="Header" style={{marginBottom: 27}}>
           New {this.props.isTeam ? 'team' : 'personal'} git repository
         </Text>
@@ -100,8 +117,10 @@ class NewRepo extends React.Component<Props, State> {
           />}
         <Input
           value={this.state.name}
+          autoFocus={true}
           onChangeText={name => this.setState({name})}
           hintText="Name your respository"
+          onEnterKeyDown={this._onSubmit}
         />
         {this.props.isTeam &&
           <Checkbox
@@ -120,9 +139,10 @@ class NewRepo extends React.Component<Props, State> {
           />
           <Button
             type="Primary"
-            onClick={() => this.props.onCreate(this.state.name, this.props.isTeam && this.state.notifyTeam)}
+            onClick={this._onSubmit}
             label="Create"
             disabled={!this.state.name}
+            waiting={this.props.loading}
           />
         </Box>
       </Box>

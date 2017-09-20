@@ -3,6 +3,7 @@ import {Component} from 'react'
 
 export type Props = {
   error: ?Error,
+  style?: any,
 }
 
 declare export default class Banner extends Component<Props> {}

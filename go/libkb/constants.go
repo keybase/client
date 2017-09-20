@@ -263,6 +263,7 @@ const (
 	SCLoginStateTimeout        = int(keybase1.StatusCode_SCLoginStateTimeout)
 	SCRevokeCurrentDevice      = int(keybase1.StatusCode_SCRevokeCurrentDevice)
 	SCRevokeLastDevice         = int(keybase1.StatusCode_SCRevokeLastDevice)
+	SCTeamKeyMaskNotFound      = int(keybase1.StatusCode_SCTeamKeyMaskNotFound)
 )
 
 const (

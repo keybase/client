@@ -2,6 +2,7 @@
 import {Map, Record, List, Set} from 'immutable'
 import * as SearchConstants from './search'
 import * as Teams from './teams'
+import * as Git from './git'
 import * as ChatConstants from './chat'
 import HiddenString from '../util/hidden-string'
 
@@ -44,10 +45,12 @@ export type State = KBRecord<{
   attachmentPreviewProgress: Map<ChatConstants.MessageKey, ?number>,
   attachmentDownloadProgress: Map<ChatConstants.MessageKey, ?number>,
   attachmentUploadProgress: Map<ChatConstants.MessageKey, ?number>,
+  git: Git.GitRecord,
 }>
 
 const StateRecord = Record({
   devices: Map(),
+  git: new Git.Git(),
   teams: new Teams.Team(),
   searchResults: Map(),
   searchQueryToResult: Map(),

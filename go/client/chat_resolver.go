@@ -213,8 +213,6 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		r.G.UI.GetTerminalUI().Printf(newConversation+": %s.\n", req.ctx.canonicalizedTlfName)
 	}
 
 	var tnp *string
@@ -229,9 +227,9 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		MembersType:   req.MembersType,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("creating conversation error: %v\n", err)
+		return nil, err
 	}
-	return &ncres.Conv, err
+	return &ncres.Conv, nil
 }
 
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (

@@ -17,11 +17,12 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   recentFilesEnabled: false,
   tabPeopleEnabled: true,
-  teamChatEnabled: false,
+  teamChatEnabled: true,
+  tabGitEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
-  teamChatEnabled: true,
+  tabGitEnabled: true,
 }
 
 // load overrides
