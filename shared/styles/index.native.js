@@ -118,6 +118,10 @@ const styleSheetCreate = (obj: Object) => StyleSheet.create(obj)
 const collapseStyles = (styles: Array<Object> | Object) => styles
 const lineHeight = (h: number) => h
 
+function transition(...properties: Array<string>): Object {
+  return {}
+}
+
 export {
   backgroundURL,
   collapseStyles,
@@ -129,4 +133,5 @@ export {
   lineHeight,
   statusBarHeight,
   styleSheetCreate,
+  transition,
 }

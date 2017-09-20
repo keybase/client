@@ -217,6 +217,7 @@ class Input extends Component<Props, State> {
     const commonProps = {
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
+      editable: this.props.hasOwnProperty('editable') ? this.props.editable : true,
       keyboardType: this.props.keyboardType,
       autoFocus: this.props.autoFocus,
       onBlur: this._onBlur,
