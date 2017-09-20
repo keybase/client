@@ -665,10 +665,10 @@
 			"revisionTime": "2016-12-08T01:05:43Z"
 		},
 		{
-			"checksumSHA1": "/7kE7RA30R1A9nZ3mXbbfA/UDQY=",
+			"checksumSHA1": "yZW/GZU87G6S/SaV92usFTFwSds=",
 			"path": "golang.org/x/mobile",
-			"revision": "e99a906c3a3ac5959fa4b8d08f90dd5f75d3b27c",
-			"revisionTime": "2016-09-07T14:02:52Z",
+			"revision": "e095d655c7b68388a6d3e926d508f5f3b42b3e71",
+			"revisionTime": "2017-09-04T14:57:44Z",
 			"tree": true
 		},
 		{

@@ -5,7 +5,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
-import go.keybase.Keybase;
+import keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
 
 public class LogSend extends ReactContextBaseJavaModule {

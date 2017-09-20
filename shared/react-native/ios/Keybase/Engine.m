@@ -48,7 +48,7 @@ static NSString *const eventName = @"objc-engine-event";
 }
 
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
-  GoKeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, error);
+  KeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, error);
 }
 
 - (void)setupQueues {
@@ -60,8 +60,7 @@ static NSString *const eventName = @"objc-engine-event";
   dispatch_async(self.readQueue, ^{
     while (true) {
       NSError *error = nil;
-      NSString *data = nil;
-      GoKeybaseReadB64(&data, &error);
+      NSString * data = KeybaseReadB64(&error);
 
       if (error) {
         NSLog(@"Error reading data: %@", error);
@@ -89,7 +88,7 @@ static NSString *const eventName = @"objc-engine-event";
 - (void)runWithData:(NSString *)data {
   dispatch_async(self.writeQueue, ^{
     NSError *error = nil;
-    GoKeybaseWriteB64(data, &error);
+    KeybaseWriteB64(data, &error);
     if (error) {
       NSLog(@"Error writing data: %@", error);
     }
@@ -98,7 +97,7 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (void)reset {
   NSError *error = nil;
-  GoKeybaseReset(&error);
+  KeybaseReset(&error);
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
@@ -156,7 +155,7 @@ RCT_EXPORT_METHOD(start) {
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
             @"usingSimulator": simulatorVal,
-            @"version": GoKeybaseVersion()};
+            @"version": KeybaseVersion()};
 }
 
 @end

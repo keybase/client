@@ -10,7 +10,6 @@
 #import "RCTPushNotificationManager.h"
 #import "RCTBundleURLProvider.h"
 #import "RCTRootView.h"
-#import "KeyListener.h"
 #import "Engine.h"
 #import "LogSend.h"
 #import "RCTLinkingManager.h"
@@ -115,8 +114,7 @@ const BOOL isDebug = NO;
   rootView.backgroundColor = [UIColor whiteColor];
 
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-  KeyListener *rootViewController = [KeyListener new];
-  rootViewController.bridge = rootView.bridge;
+  UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
 

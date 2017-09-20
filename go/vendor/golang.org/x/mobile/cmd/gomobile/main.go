@@ -25,7 +25,6 @@ import (
 var (
 	gomobileName = "gomobile"
 	goVersionOut = []byte(nil)
-	goVersion    = go1_5
 )
 
 func printUsage(w io.Writer) {
@@ -85,13 +84,6 @@ func main() {
 	os.Exit(2)
 }
 
-type goToolVersion int
-
-const (
-	go1_5 goToolVersion = iota
-	go1_6
-)
-
 func determineGoVersion() error {
 	gobin, err := exec.LookPath("go")
 	if err != nil {
@@ -102,12 +94,10 @@ func determineGoVersion() error {
 		return fmt.Errorf("'go version' failed: %v, %s", err, goVersionOut)
 	}
 	switch {
-	case bytes.HasPrefix(goVersionOut, []byte("go version go1.4")):
-		return errors.New("Go 1.5 or newer is required")
-	case bytes.HasPrefix(goVersionOut, []byte("go version go1.5")):
-		goVersion = go1_5
-	default:
-		goVersion = go1_6 // assume developers are working at tip
+	case bytes.HasPrefix(goVersionOut, []byte("go version go1.4")),
+		bytes.HasPrefix(goVersionOut, []byte("go version go1.5")),
+		bytes.HasPrefix(goVersionOut, []byte("go version go1.6")):
+		return errors.New("Go 1.7 or newer is required")
 	}
 	return nil
 }
@@ -201,7 +191,7 @@ To install:
 	$ go get golang.org/x/mobile/cmd/gomobile
 	$ gomobile init
 
-At least Go 1.5 is required.
+At least Go 1.7 is required.
 For detailed instructions, see https://golang.org/wiki/Mobile.
 
 Usage:

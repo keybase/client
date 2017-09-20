@@ -7,6 +7,7 @@ package bind
 import (
 	"bytes"
 	"fmt"
+	"go/ast"
 	"go/token"
 	"go/types"
 	"io"
@@ -53,6 +54,23 @@ func (list ErrorList) Error() string {
 	return buf.String()
 }
 
+// interfaceInfo comes from Init and collects the auxillary information
+// needed to generate bindings for an exported Go interface in a bound
+// package.
+type interfaceInfo struct {
+	obj     *types.TypeName
+	t       *types.Interface
+	summary ifaceSummary
+}
+
+// structInfo comes from Init and collects the auxillary information
+// needed to generate bindings for an exported Go struct in a bound
+// package.
+type structInfo struct {
+	obj *types.TypeName
+	t   *types.Struct
+}
+
 // Generator contains the common Go package information
 // needed for the specific Go, Java, ObjC generators.
 //
@@ -63,10 +81,11 @@ type Generator struct {
 	*Printer
 	Fset   *token.FileSet
 	AllPkg []*types.Package
+	Files  []*ast.File
 	Pkg    *types.Package
 	err    ErrorList
 
-	// fields set by Init.
+	// fields set by init.
 	pkgName   string
 	pkgPrefix string
 	funcs     []*types.Func
@@ -78,6 +97,17 @@ type Generator struct {
 	otherNames []*types.TypeName
 	// allIntf contains interfaces from all bound packages.
 	allIntf []interfaceInfo
+
+	docs pkgDocs
+}
+
+// A pkgDocs maps the name of each exported package-level declaration to its extracted documentation.
+type pkgDocs map[string]*pkgDoc
+
+type pkgDoc struct {
+	doc string
+	// Struct or interface fields and methods.
+	members map[string]string
 }
 
 // pkgPrefix returns a prefix that disambiguates symbol names for binding
@@ -101,6 +131,7 @@ func (g *Generator) Init() {
 	g.pkgPrefix = pkgPrefix(g.Pkg)
 
 	if g.Pkg != nil {
+		g.parseDocs()
 		scope := g.Pkg.Scope()
 		hasExported := false
 		for _, name := range scope.Names() {
@@ -158,7 +189,164 @@ func (g *Generator) Init() {
 	}
 }
 
-func (_ *Generator) toCFlag(v bool) int {
+// parseDocs extracts documentation from a package in a form useful for lookups.
+func (g *Generator) parseDocs() {
+	d := make(pkgDocs)
+	for _, f := range g.Files {
+		for _, decl := range f.Decls {
+			switch decl := decl.(type) {
+			case *ast.GenDecl:
+				for _, spec := range decl.Specs {
+					switch spec := spec.(type) {
+					case *ast.TypeSpec:
+						d.addType(spec, decl.Doc)
+					case *ast.ValueSpec:
+						d.addValue(spec, decl.Doc)
+					}
+				}
+			case *ast.FuncDecl:
+				d.addFunc(decl)
+			}
+		}
+	}
+	g.docs = d
+}
+
+func (d pkgDocs) addValue(t *ast.ValueSpec, outerDoc *ast.CommentGroup) {
+	for _, n := range t.Names {
+		if !ast.IsExported(n.Name) {
+			continue
+		}
+		doc := t.Doc
+		if doc == nil {
+			doc = outerDoc
+		}
+		if doc != nil {
+			d[n.Name] = &pkgDoc{doc: doc.Text()}
+		}
+	}
+}
+
+func (d pkgDocs) addFunc(f *ast.FuncDecl) {
+	doc := f.Doc
+	if doc == nil {
+		return
+	}
+	fn := f.Name.Name
+	if !ast.IsExported(fn) {
+		return
+	}
+	if r := f.Recv; r != nil {
+		// f is a method.
+		n := typeName(r.List[0].Type)
+		pd, exists := d[n]
+		if !exists {
+			pd = &pkgDoc{members: make(map[string]string)}
+			d[n] = pd
+		}
+		pd.members[fn] = doc.Text()
+	} else {
+		// f is a function.
+		d[fn] = &pkgDoc{doc: doc.Text()}
+	}
+}
+
+func (d pkgDocs) addType(t *ast.TypeSpec, outerDoc *ast.CommentGroup) {
+	if !ast.IsExported(t.Name.Name) {
+		return
+	}
+	doc := t.Doc
+	if doc == nil {
+		doc = outerDoc
+	}
+	pd := d[t.Name.Name]
+	pd = &pkgDoc{members: make(map[string]string)}
+	d[t.Name.Name] = pd
+	if doc != nil {
+		pd.doc = doc.Text()
+	}
+	var fields *ast.FieldList
+	switch t := t.Type.(type) {
+	case *ast.StructType:
+		fields = t.Fields
+	case *ast.InterfaceType:
+		fields = t.Methods
+	}
+	if fields != nil {
+		for _, field := range fields.List {
+			if field.Doc != nil {
+				if field.Names == nil {
+					// Anonymous field. Extract name from its type.
+					if n := typeName(field.Type); ast.IsExported(n) {
+						pd.members[n] = field.Doc.Text()
+					}
+				}
+				for _, n := range field.Names {
+					if ast.IsExported(n.Name) {
+						pd.members[n.Name] = field.Doc.Text()
+					}
+				}
+			}
+		}
+	}
+}
+
+// typeName returns the type name T for expressions on the
+// T, *T, **T (etc.) form.
+func typeName(t ast.Expr) string {
+	switch t := t.(type) {
+	case *ast.StarExpr:
+		return typeName(t.X)
+	case *ast.Ident:
+		return t.Name
+	case *ast.SelectorExpr:
+		return t.Sel.Name
+	default:
+		return ""
+	}
+}
+
+func (d *pkgDoc) Doc() string {
+	if d == nil {
+		return ""
+	}
+	return d.doc
+}
+
+func (d *pkgDoc) Member(n string) string {
+	if d == nil {
+		return ""
+	}
+	return d.members[n]
+}
+
+// constructorType returns the type T for a function of the forms:
+//
+// func NewT...(...) *T
+// func NewT...(...) (*T, error)
+func (g *Generator) constructorType(f *types.Func) *types.TypeName {
+	sig := f.Type().(*types.Signature)
+	res := sig.Results()
+	if res.Len() != 1 && !(res.Len() == 2 && isErrorType(res.At(1).Type())) {
+		return nil
+	}
+	rt := res.At(0).Type()
+	pt, ok := rt.(*types.Pointer)
+	if !ok {
+		return nil
+	}
+	nt, ok := pt.Elem().(*types.Named)
+	if !ok {
+		return nil
+	}
+	obj := nt.Obj()
+	if !strings.HasPrefix(f.Name(), "New"+obj.Name()) {
+		return nil
+	}
+	return obj
+}
+
+func toCFlag(v bool) int {
 	if v {
 		return 1
 	}
@@ -224,7 +412,7 @@ func (g *Generator) cgoType(t types.Type) string {
 	return "TODO"
 }
 
-func (g *Generator) genInterfaceMethodSignature(m *types.Func, iName string, header bool) {
+func (g *Generator) genInterfaceMethodSignature(m *types.Func, iName string, header bool, g_paramName func(*types.Tuple, int) string) {
 	sig := m.Type().(*types.Signature)
 	params := sig.Params()
 	res := sig.Results()
@@ -251,7 +439,7 @@ func (g *Generator) genInterfaceMethodSignature(m *types.Func, iName string, hea
 	g.Printf("cproxy%s_%s_%s(int32_t refnum", g.pkgPrefix, iName, m.Name())
 	for i := 0; i < params.Len(); i++ {
 		t := params.At(i).Type()
-		g.Printf(", %s %s", g.cgoType(t), paramName(params, i))
+		g.Printf(", %s %s", g.cgoType(t), g_paramName(params, i))
 	}
 	g.Printf(")")
 	if header {
@@ -291,7 +479,7 @@ func (g *Generator) isSigSupported(t types.Type) bool {
 
 // isSupported returns whether the generators can handle the type.
 func (g *Generator) isSupported(t types.Type) bool {
-	if isErrorType(t) {
+	if isErrorType(t) || isWrapperType(t) {
 		return true
 	}
 	switch t := t.(type) {
@@ -318,30 +506,14 @@ func (g *Generator) isSupported(t types.Type) bool {
 
 var paramRE = regexp.MustCompile(`^p[0-9]*$`)
 
-// paramName replaces incompatible name with a p0-pN name.
+// basicParamName replaces incompatible name with a p0-pN name.
 // Missing names, or existing names of the form p[0-9] are incompatible.
-// TODO(crawshaw): Replace invalid unicode names.
-func paramName(params *types.Tuple, pos int) string {
+func basicParamName(params *types.Tuple, pos int) string {
 	name := params.At(pos).Name()
 	if name == "" || name[0] == '_' || paramRE.MatchString(name) {
 		name = fmt.Sprintf("p%d", pos)
 	}
 	return name
-}
-
-func constExactString(o *types.Const) string {
-	// TODO(hyangah): this is a temporary fix for golang.org/issues/14615.
-	// Clean this up when we can require at least go 1.6 or above.
-
-	type exactStringer interface {
-		ExactString() string
-	}
-	v := o.Val()
-	if v, ok := v.(exactStringer); ok {
-		return v.ExactString()
-	}
-	// TODO: warning?
-	return v.String()
 }
 
 func lowerFirst(s string) string {

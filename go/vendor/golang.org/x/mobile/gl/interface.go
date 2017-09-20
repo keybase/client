@@ -56,6 +56,11 @@ type Context interface {
 	// http://www.khronos.org/opengles/sdk/docs/man3/html/glBindTexture.xhtml
 	BindTexture(target Enum, t Texture)
 
+	// BindVertexArray binds a vertex array.
+	//
+	// http://www.khronos.org/opengles/sdk/docs/man3/html/glBindVertexArray.xhtml
+	BindVertexArray(rb VertexArray)
+
 	// BlendColor sets the blend color.
 	//
 	// http://www.khronos.org/opengles/sdk/docs/man3/html/glBlendColor.xhtml
@@ -187,6 +192,11 @@ type Context interface {
 	// http://www.khronos.org/opengles/sdk/docs/man3/html/glGenTextures.xhtml
 	CreateTexture() Texture
 
+	// CreateTVertexArray creates a vertex array.
+	//
+	// http://www.khronos.org/opengles/sdk/docs/man3/html/glGenVertexArrays.xhtml
+	CreateVertexArray() VertexArray
+
 	// CullFace specifies which polygons are candidates for culling.
 	//
 	// Valid modes: FRONT, BACK, FRONT_AND_BACK.
@@ -223,6 +233,11 @@ type Context interface {
 	//
 	// http://www.khronos.org/opengles/sdk/docs/man3/html/glDeleteTextures.xhtml
 	DeleteTexture(v Texture)
+
+	// DeleteVertexArray deletes the given render buffer object.
+	//
+	// http://www.khronos.org/opengles/sdk/docs/man3/html/glDeleteVertexArrays.xhtml
+	DeleteVertexArray(v VertexArray)
 
 	// DepthFunc sets the function used for depth buffer comparisons.
 	//
