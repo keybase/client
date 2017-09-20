@@ -15,7 +15,7 @@ import {
 } from '../common-adapters/index.native'
 import {NavigationActions} from 'react-navigation'
 import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
-import {chatTab, loginTab, profileTab, folderTab, settingsTab} from '../constants/tabs'
+import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
 import {isIOS} from '../constants/platform'
@@ -146,7 +146,7 @@ function renderStackRoute(route, isActiveRoute, shouldRender) {
 }
 
 const tabIsCached = {
-  [profileTab]: true,
+  [peopleTab]: true,
   [folderTab]: true,
   [chatTab]: true,
   [settingsTab]: true,
@@ -371,13 +371,13 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 
     // If we're going to the profile tab, switch to the current user's
     // profile first before switching tabs, if necessary.
-    if (tab === profileTab) {
+    if (tab === peopleTab) {
       if (ownProps.routeSelected === tab) {
         // clicking on profile tab when already selected should back out to root profile page
-        dispatch(navigateTo([], [profileTab]))
+        dispatch(navigateTo([], [peopleTab]))
       }
       dispatch(showUserProfile(me))
-      dispatch(switchTo([profileTab]))
+      dispatch(switchTo([peopleTab]))
       return
     }
 
