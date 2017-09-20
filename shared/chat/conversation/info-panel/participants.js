@@ -17,7 +17,7 @@ type Props = {
 
 const Participants = ({participants, onShowProfile}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
-    {participants.map((info, index, arr) => {
+    {participants.map(info => {
       const {username, following, fullname, broken, isYou} = info
       return (
         <ClickableBox key={username} onClick={() => onShowProfile(username)}>

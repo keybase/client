@@ -311,9 +311,9 @@ class Profile extends Component<Props, State> {
               key={f}
               style={{
                 ...globalStyles.flexBoxColumn,
-                width: '50%',
                 alignItems: 'center',
-                marginBottom: -1,
+                marginBottom: -1 /* moves highlight 1px down to sit on divider */,
+                width: '50%',
               }}
               onClick={() => {
                 this.setState({currentFriendshipsTab: f}, () => {

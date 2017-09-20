@@ -421,6 +421,16 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		02164F2C1F71EA5300F84EFC /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				D4D90F8FFC2D4682850A6803 /* libRCTCamera.a */,
+				A77BBAD7A94F4A2580CA3B23 /* libRNImagePicker.a */,
+				51B12F21D54542FC8B7379EC /* libRNFetchBlob.a */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		27429AEA1E64A7A90058A4F9 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -462,6 +472,7 @@
 				00E356EF1AD99517003FC87E /* KeybaseTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
+				02164F2C1F71EA5300F84EFC /* Recovered References */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
