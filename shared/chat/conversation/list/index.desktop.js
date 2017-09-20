@@ -6,7 +6,7 @@ import EditPopup from '../edit-popup.desktop'
 import * as React from 'react'
 import ReactDOM from 'react-dom'
 import messageFactory from '../messages'
-import {Icon} from '../../../common-adapters'
+import {Icon, ErrorBoundary} from '../../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import clipboard from '../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
@@ -183,31 +183,33 @@ class BaseList extends React.Component<Props, State> {
 
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
-      <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
-        <style>{realCSS}</style>
-        <Virtualized.AutoSizer onResize={this._onResize}>
-          {({height, width}) => (
-            <Virtualized.List
-              messageKeys={this.props.messageKeys}
-              listRerender={this.state.listRerender}
-              selectedMessageKey={this.state.selectedMessageKey}
-              columnWidth={width}
-              deferredMeasurementCache={this._cellCache}
-              height={height}
-              onScroll={this._onScroll}
-              onRowsRendered={this._onRowsRendered}
-              ref={this._setListRef}
-              rowCount={rowCount}
-              rowHeight={this._cellCache.rowHeight}
-              rowRenderer={this._rowRenderer}
-              scrollToAlignment="end"
-              scrollToIndex={scrollToIndex}
-              style={listStyle}
-              width={width}
-            />
-          )}
-        </Virtualized.AutoSizer>
-      </div>
+      <ErrorBoundary>
+        <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
+          <style>{realCSS}</style>
+          <Virtualized.AutoSizer onResize={this._onResize}>
+            {({height, width}) => (
+              <Virtualized.List
+                messageKeys={this.props.messageKeys}
+                listRerender={this.state.listRerender}
+                selectedMessageKey={this.state.selectedMessageKey}
+                columnWidth={width}
+                deferredMeasurementCache={this._cellCache}
+                height={height}
+                onScroll={this._onScroll}
+                onRowsRendered={this._onRowsRendered}
+                ref={this._setListRef}
+                rowCount={rowCount}
+                rowHeight={this._cellCache.rowHeight}
+                rowRenderer={this._rowRenderer}
+                scrollToAlignment="end"
+                scrollToIndex={scrollToIndex}
+                style={listStyle}
+                width={width}
+              />
+            )}
+          </Virtualized.AutoSizer>
+        </div>
+      </ErrorBoundary>
     )
   }
 }

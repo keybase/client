@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, Box} from '../../common-adapters'
+import {Text, Icon, Box, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
 import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
@@ -179,41 +179,43 @@ class Inbox extends PureComponent<Props, State> {
 
   render() {
     return (
-      <div style={_containerStyle}>
-        <ChatFilterRow
-          isLoading={this.props.isLoading}
-          filter={this.props.filter}
-          onNewChat={this._prepareNewChat}
-          onSetFilter={this.props.onSetFilter}
-          hotkeys={isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k']}
-          onHotkey={this.props.onHotkey}
-          filterFocusCount={this.props.filterFocusCount}
-          onSelectUp={this.props.onSelectUp}
-          onSelectDown={this.props.onSelectDown}
-        />
-        {this.props.showNewConversation && <NewConversation />}
-        <div style={_scrollableStyle} onScroll={this._onScroll}>
-          <ReactList
-            ref={this._setRef}
-            useTranslate3d={true}
-            itemRenderer={this._itemRenderer}
-            length={this.props.rows.count()}
-            type="variable"
-            itemSizeGetter={this._itemSizeGetter}
+      <ErrorBoundary>
+        <div style={_containerStyle}>
+          <ChatFilterRow
+            isLoading={this.props.isLoading}
+            filter={this.props.filter}
+            onNewChat={this._prepareNewChat}
+            onSetFilter={this.props.onSetFilter}
+            hotkeys={isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k']}
+            onHotkey={this.props.onHotkey}
+            filterFocusCount={this.props.filterFocusCount}
+            onSelectUp={this.props.onSelectUp}
+            onSelectDown={this.props.onSelectDown}
           />
-        </div>
-        {this.state.showFloating &&
-          this.props.showSmallTeamsExpandDivider &&
-          <FloatingDivider
-            toggle={this.props.toggleSmallTeamsExpanded}
-            badgeCount={this.props.bigTeamsBadgeCount}
-          />}
-        {/*
+          {this.props.showNewConversation && <NewConversation />}
+          <div style={_scrollableStyle} onScroll={this._onScroll}>
+            <ReactList
+              ref={this._setRef}
+              useTranslate3d={true}
+              itemRenderer={this._itemRenderer}
+              length={this.props.rows.count()}
+              type="variable"
+              itemSizeGetter={this._itemSizeGetter}
+            />
+          </div>
+          {this.state.showFloating &&
+            this.props.showSmallTeamsExpandDivider &&
+            <FloatingDivider
+              toggle={this.props.toggleSmallTeamsExpanded}
+              badgeCount={this.props.bigTeamsBadgeCount}
+            />}
+          {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&
               <BuildATeam />
               */}
-      </div>
+        </div>
+      </ErrorBoundary>
     )
   }
 }
