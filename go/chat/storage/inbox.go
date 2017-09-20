@@ -127,8 +127,8 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 		return ibox, MissError{}
 	}
 
-	i.Debug(ctx, "readDiskInbox: version: %d disk version: %d server version: %d", ibox.InboxVersion,
-		ibox.Version, ibox.ServerVersion)
+	i.Debug(ctx, "readDiskInbox: version: %d disk version: %d server version: %d convs: %d",
+		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 
 	return ibox, nil
 }
@@ -144,8 +144,8 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
-	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d", ibox.InboxVersion,
-		ibox.Version, ibox.ServerVersion)
+	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d convs: %d",
+		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	if ierr := i.writeDiskBox(ctx, i.dbKey(), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
@@ -1085,7 +1085,13 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	}
 
 	// Process our own changes
-	convs := i.mergeConvs(ibox.Conversations, userJoined)
+	var ujs []chat1.Conversation
+	for _, uj := range userJoined {
+		i.Debug(ctx, "MembershipUpdate: joined conv: %s", uj.GetConvID())
+		uj.ReaderInfo.Status = chat1.ConversationMemberStatus_ACTIVE
+		ujs = append(ujs, uj)
+	}
+	convs := i.mergeConvs(ujs, ibox.Conversations)
 	removedMap := make(map[string]bool)
 	for _, r := range userRemoved {
 		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
