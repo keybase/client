@@ -144,6 +144,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
   ...stateProps,
+  ...dispatchProps,
   onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
   onShowMenu: () => dispatchProps._onShowMenu(stateProps.teamname),
 })
