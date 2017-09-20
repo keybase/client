@@ -247,7 +247,8 @@ func (brq *blockRetrievalQueue) putInCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) (err error) {
-	didUpdateCh := make(chan struct{})
+	prefetchStatus = brq.Prefetcher().TriggerPrefetch(
+		ptr, block, kmd, priority, lifetime, prefetchStatus)
 	dbc := brq.config.DiskBlockCache()
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited and respond on the
@@ -258,12 +259,12 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 			FinishedPrefetch)
 	}
 	if brq.config.IsSyncedTlf(kmd.TlfID()) && dbc != nil {
-		// For synced blocks we need to allow callers to wait for deep prefetch
-		// to complete, even if a prefetch has already been triggered for this
-		// block.
+		// For synced blocks, callers need to be able to register themselves
+		// with the prefetcher as parents of a given block, so that their
+		// prefetch state is updated when the prefetch completes.
 	} else if prefetchStatus == TriggeredPrefetch {
-		// Non-synced TLF prefetches that have already triggered can be short
-		// circuited. We respond on the cancel channel.
+		// If a prefetch has already been triggered for a block in a non-synced
+		// TLF, then there is no waiting to be done.
 		brq.Prefetcher().CancelPrefetch(ptr.ID)
 		return brq.putInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
 			TriggeredPrefetch)
@@ -286,7 +287,7 @@ func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
 		brq.Prefetcher().CancelPrefetch(ptr.ID)
 		return err
 	}
-	brq.Prefetcher().TriggerAndMonitorPrefetch(ptr, block, kmd, lifetime)
+	brq.Prefetcher().TriggerPrefetch(ptr, block, kmd, priority, lifetime)
 	return nil
 }
 
@@ -458,12 +459,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// Need to call with context.Background() because the retrieval's
 		// context will be canceled as soon as this method returns.
 		// TODO: verify that this is the case.
-		//
-		// This `CacheAndPrefetch` call will notify one of the above channels
-		// when the subtree is done prefetching. We fan out that notification
-		// to all the requestor channels below.
-		brq.CacheAndPrefetch(context.Background(), retrieval.blockPtr, block,
-			retrieval.kmd, retrieval.priority, retrieval.cacheLifetime,
+		prefetchStatus := brq.Prefetcher().TriggerPrefetch(retrieval.blockPtr,
+			block, retrieval.kmd, retrieval.priority, retrieval.cacheLifetime,
 			NoPrefetch)
 	} else {
 		brq.Prefetcher().CancelPrefetch(retrieval.blockPtr.ID)
