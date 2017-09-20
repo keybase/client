@@ -55,7 +55,6 @@ class Git extends React.Component<Props, State> {
   _rowPropsToProps = (id: string) => ({
     expanded: this.props.expandedSet.has(id),
     id,
-    key: id,
     onShowDelete: this.props.onShowDelete,
     onToggleExpand: this.props.onToggleExpand,
   })
@@ -75,7 +74,7 @@ class Git extends React.Component<Props, State> {
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
               />}
           </Box>
-          {this.props.personals.map(p => <Row {...this._rowPropsToProps(p)} />)}
+          {this.props.personals.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Team repositories</Text>
             {this.props.loading &&
@@ -83,7 +82,7 @@ class Git extends React.Component<Props, State> {
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
               />}
           </Box>
-          {this.props.teams.map(p => <Row {...this._rowPropsToProps(p)} />)}
+          {this.props.teams.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
         </ScrollView>
         {this.state.showingMenu &&
           <PopupMenu items={this._menuItems} onHidden={this._toggleMenu} style={_popupStyle} />}
