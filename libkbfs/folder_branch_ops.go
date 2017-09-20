@@ -5238,7 +5238,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 
 	// send rekey finish notification
 	handle := md.GetTlfHandle()
-	if currKeyGen >= FirstValidKeyGen {
+	if currKeyGen >= FirstValidKeyGen && rekeyDone {
 		fbo.config.Reporter().Notify(ctx,
 			rekeyNotification(ctx, fbo.config, handle, true))
 	}
