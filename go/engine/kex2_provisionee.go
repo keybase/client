@@ -565,7 +565,7 @@ func (e *Kex2Provisionee) pushLKSServerHalf() error {
 		return err
 	}
 
-	err = libkb.PostDeviceLKS(e.G(), e, e.device.ID, e.device.Type, e.lks.GetServerHalf(), e.lks.Generation(), chrText, chrKID)
+	err = libkb.PostDeviceLKS(context.TODO(), e.G(), e, e.device.ID, e.device.Type, e.lks.GetServerHalf(), e.lks.Generation(), chrText, chrKID)
 	if err != nil {
 		return err
 	}

@@ -2117,3 +2117,24 @@ func (e KeyMaskNotFoundError) Error() string {
 	}
 	return msg
 }
+
+type ProvisionFailedOfflineError struct{}
+
+func (e ProvisionFailedOfflineError) Error() string {
+	return "Device provisioning failed because the device is offline"
+}
+
+//=============================================================================
+
+func UserErrorFromStatus(s keybase1.StatusCode) error {
+	switch s {
+	case keybase1.StatusCode_SCOk:
+		return nil
+	case keybase1.StatusCode_SCDeleted:
+		return DeletedError{}
+	default:
+		return &APIError{Code: int(s), Msg: "user status error"}
+	}
+}
+
+//=============================================================================

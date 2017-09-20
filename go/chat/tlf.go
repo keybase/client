@@ -40,7 +40,7 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}
 	return &keybase1.TlfKeysClient{
 		Cli: rpc.NewClient(
-			xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),
+			xp, libkb.NewContextifiedErrorUnwrapper(t.G().ExternalG()), libkb.LogTagsFromContext),
 	}, nil
 }
 
@@ -82,6 +82,7 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string,
 }
 
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
+	idNotifier := CtxIdentifyNotifier(ctx)
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
@@ -102,17 +103,22 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
-	group.Go(func() error {
-		query := keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: identBehavior,
-		}
-		var err error
-		ib, err = t.Identify(ectx, query, true)
-		return err
-	})
+	runIdentify := (identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP)
+	if runIdentify {
+		t.Debug(ectx, "CryptKeys: running identify")
+		group.Go(func() error {
+			query := keybase1.TLFQuery{
+				TlfName:          tlfName,
+				IdentifyBehavior: identBehavior,
+			}
+			var err error
+			ib, err = t.Identify(ectx, query, true)
+			return err
+		})
+	}
 
 	group.Go(func() error {
+		t.Debug(ectx, "CryptKeys: running GetTLFCryptKeys on KFBS daemon")
 		tlfClient, err := t.tlfKeysClient()
 		if err != nil {
 			return err
@@ -133,12 +139,13 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	}
 
 	// use id breaks calculated by Identify
-	res.NameIDBreaks.Breaks.Breaks = ib
-
-	if in := CtxIdentifyNotifier(ctx); in != nil {
-		in.Send(res.NameIDBreaks)
+	if runIdentify {
+		res.NameIDBreaks.Breaks.Breaks = ib
+		if idNotifier != nil {
+			idNotifier.Send(res.NameIDBreaks)
+		}
+		*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 	}
-	*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
@@ -151,6 +158,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 }
 
 func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
+	idNotifier := CtxIdentifyNotifier(ctx)
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
@@ -162,16 +170,25 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
-	group.Go(func() error {
-		query := keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: identBehavior,
-		}
+	if identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+		group.Go(func() error {
+			query := keybase1.TLFQuery{
+				TlfName:          tlfName,
+				IdentifyBehavior: identBehavior,
+			}
 
-		var err error
-		ib, err = t.Identify(ectx, query, false)
-		return err
-	})
+			var err error
+			ib, err = t.Identify(ectx, query, false)
+			return err
+		})
+
+		// use id breaks calculated by Identify
+		res.Breaks.Breaks = ib
+		if idNotifier != nil {
+			idNotifier.Send(res)
+		}
+		*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
+	}
 
 	group.Go(func() error {
 		tlfClient, err := t.tlfKeysClient()
@@ -192,13 +209,6 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	if err := group.Wait(); err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
-
-	// use id breaks calculated by Identify
-	res.Breaks.Breaks = ib
-	if in := CtxIdentifyNotifier(ctx); in != nil {
-		in.Send(res)
-	}
-	*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)

@@ -692,6 +692,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(ctx context.Context, q H
 	}
 
 	q.Add("poll", I{w})
+	q.Add("load_deleted", B{true})
 
 	// Add the local db sigHints version
 	if sigHints != nil {

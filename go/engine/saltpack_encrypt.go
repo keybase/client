@@ -215,7 +215,7 @@ func (e *SaltpackEncrypt) getCryptKeys(ctx context.Context, name string) (keybas
 		return keybase1.GetTLFCryptKeysRes{}, libkb.KBFSNotRunningError{}
 	}
 	cli := &keybase1.TlfKeysClient{
-		Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(e.G()), libkb.LogTagsFromContext),
 	}
 	return cli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
 		TlfName:          name,

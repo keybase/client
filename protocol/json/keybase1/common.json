@@ -493,6 +493,10 @@
           "name": "eldestSeqno"
         },
         {
+          "type": "StatusCode",
+          "name": "status"
+        },
+        {
           "type": {
             "type": "array",
             "items": "PublicKey"

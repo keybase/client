@@ -490,7 +490,7 @@ const styleSearchContainer = {
 }
 
 const styleSearch = {
-  color: globalColors.white,
+  color: globalColors.white_75,
   fontSize: 12,
   padding: 3,
 }

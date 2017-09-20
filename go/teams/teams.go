@@ -564,13 +564,18 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 
 	subteamName := SCTeamName(t.Data.Name.String())
 
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return err
+	}
 	parentSection := SCTeamSection{
 		ID: SCTeamID(parentTeam.ID),
 		Subteam: &SCSubteam{
 			ID:   SCTeamID(t.ID),
 			Name: subteamName, // weird this is required
 		},
-		Admin: admin,
+		Admin:   admin,
+		Entropy: entropy,
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
@@ -619,14 +624,17 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 }
 
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
-	if role == keybase1.TeamRole_OWNER {
-		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
-	}
 
 	// if a user version was previously loaded, then there is a keybase user for username, but
-	// without a PUK or without any keys.
+	// without a PUK or without any keys. Note that we are allowed to invites Owners in this
+	// manner. But if we're inviting for anything else, then no owner invites are allowed.
 	if uv.Uid.Exists() {
 		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
+	}
+
+	// If a social, or email, or other type of invite, assert it's now an owner.
+	if role == keybase1.TeamRole_OWNER {
+		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
 	}
 
 	return t.inviteSBSMember(ctx, username, role)
@@ -713,10 +721,16 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return errors.New("You cannot invite an owner to a team.")
 	}
 
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return err
+	}
+
 	teamSection := SCTeamSection{
 		ID:      SCTeamID(t.ID),
 		Admin:   admin,
 		Invites: &invites,
+		Entropy: entropy,
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)

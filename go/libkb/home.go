@@ -20,6 +20,7 @@ type Base struct {
 	appName    string
 	getHome    ConfigGetter
 	getRunMode RunModeGetter
+	getLog     LogGetter
 }
 
 type HomeFinder interface {
@@ -188,27 +189,27 @@ func (w Win32) Home(emptyOk bool) string {
 	if len(ret) == 0 && !emptyOk {
 		ret, _ = LocalDataDir()
 		if len(ret) == 0 {
-			G.Log.Info("APPDATA environment variable not found")
+			w.getLog().Info("APPDATA environment variable not found")
 		}
 
 	}
 	if len(ret) == 0 && !emptyOk {
 		tmp := os.Getenv("TEMP")
 		if len(tmp) == 0 {
-			G.Log.Info("No 'TEMP' environment variable found")
+			w.getLog().Info("No 'TEMP' environment variable found")
 			tmp = os.Getenv("TMP")
 			if len(tmp) == 0 {
-				G.Log.Fatalf("No 'TMP' environment variable found")
+				w.getLog().Fatalf("No 'TMP' environment variable found")
 			}
 		}
 		v := w.Split(tmp)
 		if len(v) < 2 {
-			G.Log.Fatalf("Bad 'TEMP' variable found, no directory separators!")
+			w.getLog().Fatalf("Bad 'TEMP' variable found, no directory separators!")
 		}
 		last := strings.ToLower(v[len(v)-1])
 		rest := v[0 : len(v)-1]
 		if last != "temp" && last != "tmp" {
-			G.Log.Warning("TEMP directory didn't end in \\Temp: %s", last)
+			w.getLog().Warning("TEMP directory didn't end in \\Temp: %s", last)
 		}
 		if strings.ToLower(rest[len(rest)-1]) == "local" {
 			rest[len(rest)-1] = "Roaming"
@@ -233,12 +234,14 @@ func (w Win32) Home(emptyOk bool) string {
 	return ret
 }
 
-func NewHomeFinder(appName string, getHome ConfigGetter, osname string, getRunMode RunModeGetter) HomeFinder {
-	if osname == "windows" {
-		return Win32{Base{appName, getHome, getRunMode}}
-	} else if osname == "darwin" {
-		return Darwin{Base{appName, getHome, getRunMode}}
-	} else {
-		return XdgPosix{Base{appName, getHome, getRunMode}}
+func NewHomeFinder(appName string, getHome ConfigGetter, osname string, getRunMode RunModeGetter, getLog LogGetter) HomeFinder {
+	base := Base{appName, getHome, getRunMode, getLog}
+	switch osname {
+	case "windows":
+		return Win32{base}
+	case "darwin":
+		return Darwin{base}
+	default:
+		return XdgPosix{base}
 	}
 }

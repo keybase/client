@@ -179,7 +179,7 @@ const iconContainer = {
   alignItems: 'center',
   height: 32,
   minHeight: 32,
-  minWidth: 32,
+  minWidth: 28,
 }
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
@@ -195,11 +195,10 @@ const styleRow = {
 }
 const styleService = {
   ...globalStyles.clickable,
-  alignSelf: 'flex-start',
   color: globalColors.black_75,
   fontSize: 20,
   marginRight: globalMargins.xtiny,
-  marginTop: globalMargins.tiny - 1,
+  marginTop: 2,
   textAlign: 'center',
 }
 const styleStatusIconTouchable = {

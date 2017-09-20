@@ -213,6 +213,7 @@ const (
 	SCDevicePrevProvisioned    = int(keybase1.StatusCode_SCDevicePrevProvisioned)
 	SCDeviceProvisionViaDevice = int(keybase1.StatusCode_SCDeviceProvisionViaDevice)
 	SCDeviceNoProvision        = int(keybase1.StatusCode_SCDeviceNoProvision)
+	SCDeviceProvisionOffline   = int(keybase1.StatusCode_SCDeviceProvisionOffline)
 	SCStreamExists             = int(keybase1.StatusCode_SCStreamExists)
 	SCStreamNotFound           = int(keybase1.StatusCode_SCStreamNotFound)
 	SCStreamWrongKind          = int(keybase1.StatusCode_SCStreamWrongKind)

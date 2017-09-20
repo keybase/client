@@ -136,13 +136,32 @@ export function iconTypeToImgSet(type: IconType) {
 }
 
 export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
-  const sizes = Object.keys(imgMap)
+  let sizes: any = Object.keys(imgMap)
 
   if (!sizes.length) {
     return null
   }
 
-  const str = sizes.map(size => `url('${imgMap[size]}') ${parseInt(size, 10) / targetSize}x`).join(', ')
+  sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
+
+  // We used to just generate whatever the multiple was based on the imgMap but this would create multiples like
+  // 1.5x 5.7x 20x and the browser wouldn't ever choose a higher multiple so it'd often fall back to 1.5x and
+  // show non retina images. Instead lets generate our own 1/2/3x ones
+
+  const multsMap: any = {
+    '1': null,
+    '2': null,
+    '3': null,
+  }
+
+  Object.keys(multsMap).forEach(mult => {
+    const ideal = parseInt(mult, 10) * targetSize
+    // Find a larger than ideal size or just the largest possible
+    const size = sizes.find(size => size >= ideal)
+    multsMap[mult] = size || sizes[sizes.length - 1]
+  })
+
+  const str = Object.keys(multsMap).map(mult => `url(${imgMap[multsMap[mult]]}) ${mult}x`).join(', ')
   return `-webkit-image-set(${str})`
 }
 

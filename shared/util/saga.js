@@ -27,8 +27,11 @@ type SagaMap = {[key: string]: any}
 type Effect = any
 
 function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
-  return mapValues(channelConfig, v => {
-    return channel(v())
+  return mapValues(channelConfig, (v, k) => {
+    const ret = channel(v())
+    // to help debug what's going on in dev/user-timings
+    ret.userTimingName = k
+    return ret
   })
 }
 
@@ -82,7 +85,7 @@ function singleFixedChannelConfig<T>(ks: Array<string>): ChannelConfig<T> {
 }
 
 function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
-  const wrappedWorker = function*(...args) {
+  const safeTakeEveryWorker = function* safeTakeEveryWorker(...args) {
     try {
       yield call(worker, ...args)
     } catch (error) {
@@ -100,7 +103,7 @@ function safeTakeEvery(pattern: string | Array<any> | Function, worker: Function
     }
   }
 
-  return takeEvery(pattern, wrappedWorker, ...args)
+  return takeEvery(pattern, safeTakeEveryWorker, ...args)
 }
 
 // Like safeTakeEvery but the worker is pure (not a generator) optionally pass in a third argument
@@ -113,7 +116,7 @@ function safeTakeEveryPure<S, A>(
   pureWorker: ((action: any) => any) | ((action: any, selectedState: S) => any),
   selectorFn?: (state: TypedState, action: A) => S
 ) {
-  return safeTakeEvery(pattern, function*(action: A) {
+  return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     if (selectorFn) {
       const selectedState = yield select(selectorFn, action)
       // $FlowIssue
@@ -131,7 +134,7 @@ function safeTakeLatestWithCatch(
   worker: Function | SagaGenerator<any, any>,
   ...args: Array<any>
 ) {
-  const wrappedWorker = function*(...args) {
+  const safeTakeLatestWithCatchWorker = function* safeTakeLatestWithCatchWorker(...args) {
     try {
       yield call(worker, ...args)
     } catch (error) {
@@ -148,7 +151,7 @@ function safeTakeLatestWithCatch(
     }
   }
 
-  return takeLatest(pattern, wrappedWorker, ...args)
+  return takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
 }
 
 function safeTakeLatest(
@@ -171,7 +174,7 @@ function cancelWhen(predicate: (originalAction: Action, checkAction: Action) => 
 }
 
 function safeTakeSerially(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
-  const wrappedWorker = function*(...args) {
+  const safeTakeSeriallyWorker = function* safeTakeSeriallyWorker(...args) {
     try {
       yield call(worker, ...args)
     } catch (error) {
@@ -189,11 +192,11 @@ function safeTakeSerially(pattern: string | Array<any> | Function, worker: Funct
     }
   }
 
-  return fork(function*() {
+  return fork(function* safeTakeSeriallyForkWorker() {
     const chan = yield actionChannel(pattern, buffers.expanding(10))
     while (true) {
       const action = yield take(chan)
-      yield call(wrappedWorker, action, ...args)
+      yield call(safeTakeSeriallyWorker, action, ...args)
     }
   })
 }

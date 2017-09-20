@@ -33,7 +33,11 @@ func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
 }
 
 func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnboxed, err error) {
-	tctx := u.primaryDevice().popClone()
+	return readChatsWithErrorAndDevice(team, u, u.primaryDevice())
+}
+
+func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper) (messages []chat1.MessageUnboxed, err error) {
+	tctx := dev.popClone()
 
 	wait := 100 * time.Millisecond
 	var totalWait time.Duration
@@ -63,7 +67,11 @@ func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnbox
 }
 
 func readChats(team smuTeam, u *smuUser, nMessages int) {
-	messages, err := readChatsWithError(team, u)
+	readChatsWithDevice(team, u, u.primaryDevice(), nMessages)
+}
+
+func readChatsWithDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper, nMessages int) {
+	messages, err := readChatsWithErrorAndDevice(team, u, dev)
 	t := u.ctx.t
 	if err != nil {
 		u.ctx.t.Fatal(err)
@@ -99,6 +107,43 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	ann.ctx.log.Debug("team details checked out: %+v", details)
 }
 
+func TestTeamDelete(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	cam := ctx.installKeybaseForUser("cam", 10)
+	cam.signup()
+	divDebug(ctx, "Signed up cam (%s)", cam.username)
+
+	team := ann.createTeam([]*smuUser{bob, cam})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
+
+	readChats(team, ann, 1)
+	readChats(team, bob, 1)
+	divDebug(ctx, "Ann and bob can read")
+
+	ann.delete()
+	divDebug(ctx, "Ann deleted her account")
+
+	// It's important for cam to clear her cache right before the attempt to send,
+	// since she might have received gregors that ann deleted her account,
+	// and thefore might be trying to refresh and load the team.
+	cam.primaryDevice().clearUPAKCache()
+	sendChat(team, cam, "1")
+
+	divDebug(ctx, "Cam sent a chat")
+	readChats(team, bob, 2)
+}
+
 func TestTeamReset(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
@@ -117,7 +162,7 @@ func TestTeamReset(t *testing.T) {
 	divDebug(ctx, "team created (%s)", team.name)
 
 	sendChat(team, ann, "0")
-	divDebug(ctx, "Sent chat '2' (%s via %s)", team.name, ann.username)
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
 
 	readChats(team, ann, 1)
 	readChats(team, bob, 1)

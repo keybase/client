@@ -46,7 +46,7 @@ func (r *RemoteSaltpackUI) SaltpackVerifyBadSender(ctx context.Context, arg keyb
 
 func NewSaltpackHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SaltpackHandler {
 	return &SaltpackHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

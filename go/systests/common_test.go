@@ -4,15 +4,16 @@
 package systests
 
 import (
+	"path/filepath"
+	"testing"
+
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"path/filepath"
-	"testing"
 )
 
-func setupTest(t *testing.T, nm string) *libkb.TestContext {
+func setupTest(t testing.TB, nm string) *libkb.TestContext {
 	tc := externals.SetupTest(t, nm, 2)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "run"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
@@ -132,4 +133,23 @@ func (n nullProvisionUI) ProvisioneeSuccess(context.Context, keybase1.Provisione
 }
 func (n nullProvisionUI) ProvisionerSuccess(context.Context, keybase1.ProvisionerSuccessArg) error {
 	return nil
+}
+
+func getActiveDevicesAndKeys(tc *libkb.TestContext, username string) ([]*libkb.Device, []libkb.GenericKey) {
+	arg := libkb.NewLoadUserByNameArg(tc.G, username)
+	arg.PublicKeyOptional = true
+	user, err := libkb.LoadUser(arg)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
+	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
+
+	activeDevices := []*libkb.Device{}
+	for _, device := range user.GetComputedKeyFamily().GetAllDevices() {
+		if device.Status != nil && *device.Status == libkb.DeviceStatusActive {
+			activeDevices = append(activeDevices, device)
+		}
+	}
+	return activeDevices, append(sibkeys, subkeys...)
 }

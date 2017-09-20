@@ -52,7 +52,7 @@ type PGPHandler struct {
 
 func NewPGPHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext) *PGPHandler {
 	return &PGPHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 		connID:       id,
 	}
@@ -241,8 +241,8 @@ func (h *PGPHandler) PGPKeyGenDefault(ctx context.Context, arg keybase1.PGPKeyGe
 	return engine.RunEngine(eng, ectx)
 }
 
-func (h *PGPHandler) PGPDeletePrimary(_ context.Context, sessionID int) (err error) {
-	return libkb.DeletePrimary()
+func (h *PGPHandler) PGPDeletePrimary(ctx context.Context, sessionID int) (err error) {
+	return libkb.DeletePrimary(ctx, h.G())
 }
 
 func (h *PGPHandler) PGPSelect(nctx context.Context, sarg keybase1.PGPSelectArg) error {

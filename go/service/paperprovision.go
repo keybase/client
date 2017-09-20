@@ -18,7 +18,7 @@ type PaperProvisionHandler struct {
 
 func NewPaperProvisionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *PaperProvisionHandler {
 	return &PaperProvisionHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

@@ -19,7 +19,7 @@ type appStateHandler struct {
 
 func newAppStateHandler(xp rpc.Transporter, g *libkb.GlobalContext) *appStateHandler {
 	return &appStateHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

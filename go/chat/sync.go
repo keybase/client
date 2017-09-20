@@ -92,7 +92,6 @@ func (s *Syncer) sendNotificationsOnce() {
 		for uid := range s.fullReload {
 			s.Debug(context.Background(), "flushing full reload: uid: %s", uid)
 			s.G().NotifyRouter.HandleChatInboxStale(context.Background(), keybase1.UID(uid))
-			s.G().NotifyRouter.HandleChatThreadsStale(context.Background(), keybase1.UID(uid), nil)
 		}
 		s.fullReload = make(map[string]bool)
 
@@ -232,6 +231,12 @@ func (s *Syncer) shouldDoFullReloadFromIncremental(ctx context.Context, syncRes 
 		return true
 	}
 	for _, conv := range convs {
+		switch conv.Metadata.Existence {
+		case chat1.ConversationExistence_ACTIVE:
+		default:
+			s.Debug(ctx, "shouldDoFullReloadFromIncremental: deleted conversation: %s", conv.GetConvID())
+			return true
+		}
 		switch conv.ReaderInfo.Status {
 		case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_REMOVED:
 			s.Debug(ctx, "shouldDoFullReloadFromIncremental: join or leave conv")

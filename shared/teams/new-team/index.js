@@ -6,15 +6,16 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './'
 
-const Contents = ({name, onNameChange, onSubmit}: Props) => (
+const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
   <Box style={globalStyles.flexBoxColumn}>
-    <Box style={styleContainer}>
+    <Box style={{...styleContainer, backgroundColor: errorText ? globalColors.red : globalColors.blue}}>
       <Text
         style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
         type="BodySemibold"
-        backgroundMode="Announcements"
+        backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
       >
-        For security reasons, team names are unique and can't be changed, so choose carefully.
+        {errorText ||
+          "For security reasons, team names are unique and can't be changed, so choose carefully."}
       </Text>
     </Box>
 
@@ -53,7 +54,6 @@ const PopupWrapped = (props: Props) => (
 
 const styleContainer = {
   ...globalStyles.flexBoxCenter,
-  backgroundColor: globalColors.blue,
   ...(isMobile ? {} : {cursor: 'default'}),
   minHeight: 40,
   paddingLeft: globalMargins.medium,

@@ -68,6 +68,7 @@ export default class ActionRender extends PureComponent<ActionProps> {
     return (
       <div style={styleContainer}>
         {!this.props.currentlyFollowing &&
+          this.props.myUsername !== this.props.username &&
           <Button
             waiting={this.props.waiting}
             style={{...styleActionButton, marginRight: globalMargins.tiny}}
@@ -75,7 +76,7 @@ export default class ActionRender extends PureComponent<ActionProps> {
             label="Follow"
             onClick={() => this.props.onFollow()}
           />}
-        {this.props.currentlyFollowing &&
+        {(this.props.currentlyFollowing || this.props.myUsername === this.props.username) &&
           <Button
             style={{...styleActionButton, marginRight: globalMargins.tiny}}
             type="Secondary"

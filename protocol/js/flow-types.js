@@ -189,6 +189,7 @@ export const ConstantsStatusCode = {
   scdeviceprovisionviadevice: 1415,
   screvokecurrentdevice: 1416,
   screvokelastdevice: 1417,
+  scdeviceprovisionoffline: 1418,
   scstreamexists: 1501,
   scstreamnotfound: 1502,
   scstreamwrongkind: 1503,
@@ -620,6 +621,8 @@ export const UPKUPK2MinorVersion = {
   v1: 1,
   v2: 2,
   v3: 3,
+  v4: 4,
+  v5: 5,
 }
 
 export const UiPromptDefault = {
@@ -2596,6 +2599,14 @@ export function trackUntrackRpcPromise (request: (requestCommon & requestErrorCa
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.untrack', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function userDeleteUserRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
+}
+
+export function userDeleteUserRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.deleteUser', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function userInterestingPeopleRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void} & {param: userInterestingPeopleRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 }
@@ -4533,6 +4544,7 @@ export type StatusCode =
   | 1415 // SCDeviceProvisionViaDevice_1415
   | 1416 // SCRevokeCurrentDevice_1416
   | 1417 // SCRevokeLastDevice_1417
+  | 1418 // SCDeviceProvisionOffline_1418
   | 1501 // SCStreamExists_1501
   | 1502 // SCStreamNotFound_1502
   | 1503 // SCStreamWrongKind_1503
@@ -4954,6 +4966,8 @@ export type UPK2MinorVersion =
   | 1 // V1_1
   | 2 // V2_2
   | 3 // V3_3
+  | 4 // V4_4
+  | 5 // V5_5
 
 export type UnboxAnyRes = {
   kid: KID,
@@ -5010,6 +5024,7 @@ export type UserPlusKeys = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
+  status: StatusCode,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
@@ -5022,6 +5037,7 @@ export type UserPlusKeysV2 = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
+  status: StatusCode,
   perUserKeys?: ?Array<PerUserKey>,
   deviceKeys: {[key: string]: PublicKeyV2NaCl},
   pgpKeys: {[key: string]: PublicKeyV2PGPSummary},

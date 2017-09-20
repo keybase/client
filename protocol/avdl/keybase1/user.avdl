@@ -143,4 +143,7 @@ protocol user {
 
   // resetUser resets the user. Only works in Dev mode since it's so dangerous
   void resetUser(int sessionID);
+  // deleteUser deletes the user. Only works in Dev mode since it's so dangerous
+  void deleteUser(int sessionID);
+
 }

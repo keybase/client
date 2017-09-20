@@ -44,6 +44,10 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "r, role",
 				Usage: "team role (owner, admin, writer, reader) [required]",
 			},
+			cli.BoolFlag{
+				Name:  "s, skip-chat-message",
+				Usage: "skip chat welcome message",
+			},
 		},
 		Description: teamAddMemberDoc,
 	}
@@ -77,6 +81,8 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	c.SkipChatNotification = ctx.Bool("skip-chat-message")
 
 	return nil
 }
