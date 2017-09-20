@@ -239,51 +239,44 @@ function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, 
 }
 
 function* _setupChatHandlers(): SagaGenerator<any, any> {
-  yield put((dispatch: Dispatch) => {
-    engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
-      dispatch(Creators.incomingMessage(activity))
-    })
+  engine().setIncomingActionCreator('chat.1.NotifyChat.NewChatActivity', ({activity}) =>
+    Creators.incomingMessage(activity)
+  )
 
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) => {
-      dispatch(Creators.incomingTyping(typingUpdates))
-    })
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) =>
+    Creators.incomingTyping(typingUpdates)
+  )
 
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
-      const usernames = update.CanonicalName.split(',')
-      const broken = (update.breaks.breaks || []).map(b => b.user.username)
-      const userToBroken = usernames.reduce((map, name) => {
-        map[name] = !!broken.includes(name)
-        return map
-      }, {})
-      dispatch(Creators.updateBrokenTracker(userToBroken))
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) => {
-      dispatch(Creators.getInboxAndUnbox([Constants.conversationIDToKey(convID)]))
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
-      dispatch(Creators.inboxStale())
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFResolve', ({convID, resolveInfo: {newTLFName}}) => {
-      dispatch(Creators.inboxStale())
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
-      if (updates) {
-        dispatch(Creators.markThreadsStale(updates))
-      }
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatJoinedConversation', () => {
-      dispatch(Creators.inboxStale())
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatLeftConversation', () => {
-      dispatch(Creators.inboxStale())
-    })
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
+    const usernames = update.CanonicalName.split(',')
+    const broken = (update.breaks.breaks || []).map(b => b.user.username)
+    const userToBroken = usernames.reduce((map, name) => {
+      map[name] = !!broken.includes(name)
+      return map
+    }, {})
+    return Creators.updateBrokenTracker(userToBroken)
   })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) =>
+    Creators.getInboxAndUnbox([Constants.conversationIDToKey(convID)])
+  )
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxStale', () => Creators.inboxStale())
+
+  engine().setIncomingActionCreator(
+    'chat.1.NotifyChat.ChatTLFResolve',
+    ({convID, resolveInfo: {newTLFName}}) => Creators.inboxStale()
+  )
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
+    if (updates) {
+      return Creators.markThreadsStale(updates)
+    }
+    return null
+  })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () => Creators.inboxStale())
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () => Creators.inboxStale())
 }
 
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
