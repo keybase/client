@@ -1,5 +1,7 @@
 // @flow
 
+var logFd
+
 const fileDoesNotExist = __STORYBOOK__
   ? _ => true
   : err => {
@@ -52,17 +54,21 @@ const setupFileWritable = __STORYBOOK__
             fs.unlinkSync(logFileOld) // Remove old wrapped file
           }
           fs.renameSync(logFile, logFileOld)
-          return fs.createWriteStream(logFile)
+          logFd = fs.openSync(logFile, 'a+')
+          return fs.createWriteStream('', {fd: logFd})
         }
       } catch (e) {
         if (!fileDoesNotExist(e)) {
           console.error('Error checking log file size:', e)
         }
-        return fs.createWriteStream(logFile)
+        logFd = fs.openSync(logFile, 'a+')
+        return fs.createWriteStream('', {fd: logFd})
       }
 
       // Append to existing log
-      return fs.createWriteStream(logFile, {flags: 'a'})
+      logFd = fs.openSync(logFile, 'a')
+      console.log('Using logFd = ', logFd)
+      return fs.createWriteStream('', {fd: logFd})
     }
 
 type Log = (...args: Array<any>) => void
@@ -85,7 +91,6 @@ const setupTarget = __STORYBOOK__
       if (!forwardLogs) {
         return
       }
-
       const {ipcMain} = require('electron')
       const util = require('util')
       const {isWindows} = require('../constants/platform.desktop')
@@ -161,4 +166,10 @@ const setupSource = __STORYBOOK__
       })
     }
 
-export {setupSource, setupTarget, localLog, localWarn, localError}
+function flushLogFile() {
+  const fs = require('fs')
+  console.log('Flushing log fd ', logFd)
+  logFd && fs.fdatasyncSync(logFd)
+}
+
+export {setupSource, setupTarget, localLog, localWarn, localError, flushLogFile}
