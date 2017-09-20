@@ -2,6 +2,7 @@
 import React from 'react'
 import Text from './text'
 import {globalColors} from '../styles'
+import {isMobile} from '../constants/platform'
 
 export type Props = {
   key: string,
@@ -29,6 +30,7 @@ export default ({key, username, theme, style, onClick}: Props) => (
     type="BodySemibold"
     onClick={onClick || undefined}
     key={key}
+    className={isMobile ? undefined : 'hover-underline'}
     style={{...style, ...mentionStyles[theme]}}
   >
     @{username}
