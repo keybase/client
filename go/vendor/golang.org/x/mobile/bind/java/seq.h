@@ -34,16 +34,20 @@ typedef jlong nint;
 
 extern void go_seq_dec_ref(int32_t ref);
 extern void go_seq_inc_ref(int32_t ref);
+// go_seq_unwrap takes a reference number to a Java wrapper and returns
+// a reference number to its wrapped Go object.
+extern int32_t go_seq_unwrap(jint refnum);
 extern int32_t go_seq_to_refnum(JNIEnv *env, jobject o);
+extern int32_t go_seq_to_refnum_go(JNIEnv *env, jobject o);
 extern jobject go_seq_from_refnum(JNIEnv *env, int32_t refnum, jclass proxy_class, jmethodID proxy_cons);
 
 extern void go_seq_maybe_throw_exception(JNIEnv *env, jobject msg);
-// go_seq_wrap_exception wraps a pending exception in a Java object implementing the
-// golang/x/mobile/bind/errors.Error interface. If there is no pending exception, it returns NULL.
-extern jobject go_seq_wrap_exception(JNIEnv *env);
+// go_seq_get_exception returns any pending exception and clears the exception status.
+extern jobject go_seq_get_exception(JNIEnv *env);
 
 extern jbyteArray go_seq_to_java_bytearray(JNIEnv *env, nbyteslice s, int copy);
 extern nbyteslice go_seq_from_java_bytearray(JNIEnv *env, jbyteArray s, int copy);
+extern void go_seq_release_byte_array(JNIEnv *env, jbyteArray arr, jbyte* ptr);
 
 extern jstring go_seq_to_java_string(JNIEnv *env, nstring str);
 extern nstring go_seq_from_java_string(JNIEnv *env, jstring s);
@@ -53,5 +57,11 @@ extern nstring go_seq_from_java_string(JNIEnv *env, jstring s);
 extern JNIEnv *go_seq_push_local_frame(jint cap);
 // Pop the current local frame, releasing all JNI local references in it
 extern void go_seq_pop_local_frame(JNIEnv *env);
+
+// Return a global reference to the given class. Return NULL and clear exception if not found.
+extern jclass go_seq_find_class(const char *name);
+extern jmethodID go_seq_get_static_method_id(jclass clazz, const char *name, const char *sig);
+extern jmethodID go_seq_get_method_id(jclass clazz, const char *name, const char *sig);
+extern int go_seq_isinstanceof(jint refnum, jclass clazz);
 
 #endif // __GO_SEQ_HDR__

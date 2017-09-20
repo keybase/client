@@ -36,26 +36,35 @@ Consider a type for counting:
 
 	func (c *Counter) Inc() { c.Value++ }
 
-	func New() *Counter { return &Counter{ 5 } }
+	func NewCounter() *Counter { return &Counter{ 5 } }
 
 In Java, the generated bindings are,
 
 	public abstract class Mypkg {
-		private Mypkg() {}
-		public static final class Counter {
-			public void Inc();
-			public long GetValue();
-			public void SetValue(long value);
-		}
-		public static Counter New();
+		public static native Counter newCounter();
 	}
 
-The package-level function New can be called like so:
+and
 
-	Counter c = Mypkg.New()
+	public final class Counter {
+		public Counter() { ... }
 
-returns a Java Counter, which is a proxy for a Go *Counter. Calling the Inc
-and Get methods will call the Go implementations of these methods.
+		public final long getValue();
+		public final void setValue(long v);
+		public void inc();
+
+	}
+
+The package-level function newCounter can be called like so:
+
+	Counter c = Mypkg.newCounter()
+
+For convenience, functions on the form NewT(...) *T are converted to constructors for T:
+
+	Counter c = new Counter()
+
+Both forms returns a Java Counter, which is a proxy for a Go *Counter. Calling the inc, getValue and
+setValue methods will call the Go implementations of these methods.
 
 Similarly, the same Go package will generate the Objective-C interface
 
@@ -64,15 +73,15 @@ Similarly, the same Go package will generate the Objective-C interface
 	@interface GoMypkgCounter : NSObject {
 	}
 
-	@property(strong, readonly) GoSeqRef *ref;
-	- (void)Inc;
-	- (int64_t)Value;
+	@property(strong, readonly) id ref;
+	- (void)inc;
+	- (int64_t)value;
 	- (void)setValue:(int64_t)v;
 	@end
 
 	FOUNDATION_EXPORT GoMypkgCounter* GoMypkgNewCounter();
 
-The equivalent of calling New in Go is GoMypkgNewCounter in Objective-C.
+The equivalent of calling newCounter in Go is GoMypkgNewCounter in Objective-C.
 The returned GoMypkgCounter* holds a reference to an underlying Go
 *Counter.
 
@@ -93,29 +102,28 @@ For a Go interface:
 gobind generates a Java interface that can be used to implement a Printer:
 
 	public abstract class Myfmt {
-		private Myfmt() {}
-		public interface Printer {
-			public void Print(String s);
-
-			...
-		}
-
-		public static void PrintHello(Printer p) { ... }
+		public static void printHello(Printer p0);
 	}
 
-You can implement Myfmt.Printer, and pass it to Go using the PrintHello
+and
+
+	public interface Printer {
+		public void print(String s);
+	}
+
+You can implement Printer, and pass it to Go using the printHello
 package function:
 
-	public class SysPrint implements Myfmt.Printer {
-		public void Print(String s) {
+	public class SysPrint implements Printer {
+		public void print(String s) {
 			System.out.println(s);
 		}
 	}
 
 The Java implementation can be used like so:
 
-	Myfmt.Printer printer = new SysPrint();
-	Myfmt.PrintHello(printer);
+	Printer printer = new SysPrint();
+	Myfmt.printHello(printer);
 
 
 For Objective-C binding, gobind generates a protocol that declares
@@ -158,9 +166,8 @@ Supported types include:
 
 	- String and boolean types.
 
-	- Byte slice types. Note the current implementation does not
-	  support data mutation of slices passed in as function arguments.
-	  (https://golang.org/issues/12113)
+	- Byte slice types. Note that byte slices are passed by reference,
+	  and support mutation.
 
 	- Any function type all of whose parameters and results have
 	  supported types. Functions must return either no results,
@@ -182,6 +189,41 @@ Go types, but this is a work in progress.
 
 Exceptions and panics are not yet supported. If either pass a language
 boundary, the program will exit.
+
+
+Reverse bindings
+
+Gobind also supports accessing API from Java or Objective C from Go.
+Similar to how Cgo supports the magic "C" import, gobind recognizes
+import statements that start with "Java/" or "ObjC/". For example,
+to import java.lang.System and call the static method currentTimeMillis:
+
+	import "Java/java/lang/System"
+
+	t := System.CurrentTimeMillis()
+
+Similarly, to import NSDate and call the static method [NSDate date]:
+
+	import "ObjC/Foundation/NSDate
+
+	d := NSDate.Date()
+
+Gobind also supports specifying particular classes, interfaces or
+protocols a particular Go struct should extend or implement. For example,
+to create an Android Activity subclass MainActivity:
+
+	import "Java/android/app/Activity"
+
+	type MainActivity struct {
+		app.Activity
+	}
+
+Gobind also recognizes Java interfaces as well as Objective C classes and
+protocols the same way.
+
+For more details on binding the the native API, see the design proposals,
+https://golang.org/issues/16876 (Java) and https://golang.org/issues/17102
+(Objective C).
 
 Avoid reference cycles
 

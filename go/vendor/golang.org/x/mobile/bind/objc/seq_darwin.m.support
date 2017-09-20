@@ -49,22 +49,6 @@
 // Note that this file is copied into and compiled with the generated
 // bindings.
 
-@implementation goSeqErrorWrapper {
-}
-@synthesize err;
-
-- (id)initWithError:(NSError *)e {
-  if (!(self = [super init]))
-    return nil;
-  self.err = e;
-  return self;
-}
-
-- (NSString *)error {
-  return [self.err localizedDescription];
-}
-@end
-
 // A simple thread-safe mutable dictionary.
 @interface goSeqDictionary : NSObject {
 }
@@ -248,13 +232,6 @@ nstring go_seq_from_objc_string(NSString *s) {
   res.ptr = buf;
   res.len = used;
   return res;
-}
-
-NSError *go_seq_to_nserror(id<GoUniverseerror> err, NSString *errDomain) {
-	NSString *errStr = [err error];
-	NSMutableDictionary* details = [NSMutableDictionary dictionary];
-	[details setValue:errStr forKey:NSLocalizedDescriptionKey];
-	return [NSError errorWithDomain:errDomain code:1 userInfo:details];
 }
 
 @implementation GoSeqRef {

@@ -38,6 +38,7 @@ const (
 	glfnBindFramebuffer
 	glfnBindRenderbuffer
 	glfnBindTexture
+	glfnBindVertexArray
 	glfnBlendColor
 	glfnBlendEquation
 	glfnBlendEquationSeparate
@@ -65,6 +66,7 @@ const (
 	glfnDeleteRenderbuffer
 	glfnDeleteShader
 	glfnDeleteTexture
+	glfnDeleteVertexArray
 	glfnDepthFunc
 	glfnDepthRangef
 	glfnDepthMask
@@ -84,6 +86,7 @@ const (
 	glfnGenFramebuffer
 	glfnGenRenderbuffer
 	glfnGenTexture
+	glfnGenVertexArray
 	glfnGenerateMipmap
 	glfnGetActiveAttrib
 	glfnGetActiveUniform

@@ -78,8 +78,8 @@
             appendTape:[NSString stringWithFormat:@"<b>%@</b>", [self.input text]]];
         NSString *expr = [self.input.text stringByAppendingString:@"\n"];
         NSString *result;
-        NSError *err = [NSError alloc];
-        if (!GoMobileEval(expr, &result, &err)) {
+        NSError *err = MobileEval(expr, &result);
+        if (err != nil) {
             result = err.description;
         }
         result = [result
