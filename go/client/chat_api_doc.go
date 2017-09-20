@@ -10,6 +10,18 @@ List inbox:
 Read a conversation:
     {"method": "read", "params": {"options": {"channel": {"name": "you,them"}}}}
 
+Read a conversation (paginated):
+    {"method": "read", "params": {"options": {"channel": {"name": "you,them"}, {"pagination": {"num": 10}}}}}
+
+Then, in the reply, check the result.pagination object, which has a next,
+previous, and last field. If last is false and you want the second page,
+
+    {"method": "read", "params": {"options": {"channel": {"name": "you,them"}, {"pagination": {"next": "<result.pagination.next from reply>", "num": 10}}}}}
+
+If you're on the nth page and want to go back, set the previous field instead.
+
+    {"method": "read", "params": {"options": {"channel": {"name": "you,them"}, {"pagination": {"previous": "<result.pagination.previous from last reply>", "num": 10}}}}}
+
 Send a message:
     {"method": "send", "params": {"options": {"channel": {"name": "you,them"}, "message": {"body": "is it cold today?"}}}
 
