@@ -691,3 +691,7 @@ func AllConversationExistences() (res []ConversationExistence) {
 	}
 	return res
 }
+
+func (v InboxVers) ToConvVers() ConversationVers {
+	return ConversationVers(v)
+}

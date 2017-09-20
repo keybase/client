@@ -151,6 +151,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const newInbox = action.payload.inbox.map(newRow => {
         const id = newRow.get('conversationIDKey')
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
+        console.warn(
+          `existing tlf: ${existingRow.teamname} existing name: ${existingRow.channelname} existing.version: ${existingRow.version} new.version: ${newRow.version}`
+        )
         return existingRow ? (existingRow.version < newRow.version ? newRow : existingRow) : newRow
       })
 
