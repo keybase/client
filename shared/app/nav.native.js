@@ -369,7 +369,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
       return
     }
 
-    // If we're going to the profile tab, switch to the current user's
+    // If we're going to the people tab, switch to the current user's
     // profile first before switching tabs, if necessary.
     if (tab === peopleTab) {
       if (ownProps.routeSelected === tab) {

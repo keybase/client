@@ -4,7 +4,7 @@ import {Box, ErrorBoundary} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import TabBar from './tab-bar/container'
-import {chatTab, loginTab, peopleTab} from '../constants/tabs'
+import {chatTab, loginTab, peopleTab, profileTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
@@ -60,13 +60,21 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
       return
     }
 
-    // If we're going to the profile tab, switch to the current user's
-    // profile first before switching tabs, if necessary.
+    // If we're going to the people tab, switch to the current user's
+    // people first before switching tabs, if necessary.
     if (tab === peopleTab) {
       if (ownProps.routeSelected === tab) {
-        // clicking on profile tab when already selected should back out to root profile page
+        // clicking on people tab when already selected should back out to root people page
         dispatch(navigateTo([], [peopleTab]))
       }
+      dispatch(showUserProfile(me))
+      dispatch(switchTo([peopleTab]))
+      return
+    }
+
+    // profileTab = self avatar in bottom left corner
+    // On click switch to people tab and push current user onto people route stack
+    if (tab === profileTab) {
       dispatch(showUserProfile(me))
       dispatch(switchTo([peopleTab]))
       return
