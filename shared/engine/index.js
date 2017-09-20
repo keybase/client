@@ -1,21 +1,22 @@
 // @flow
 // Handles sending requests to the daemon
+import * as Saga from '../util/saga'
 import Session from './session'
-import type {CancelHandlerType} from './session'
-import type {createClientType} from './index.platform'
-import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
+import {call, race} from 'redux-saga/effects'
+import {convertToError} from '../util/errors'
+import {delay} from 'redux-saga'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {log} from '../native/log/logui'
-import {resetClient, createClient, rpcLog} from './index.platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-import {convertToError} from '../util/errors'
-import * as Saga from '../util/saga'
-import {delay} from 'redux-saga'
-import {call, race} from 'redux-saga/effects'
+import {resetClient, createClient, rpcLog} from './index.platform'
 
 import type {ChannelMap} from '../constants/types/saga'
+import type {Action} from '../constants/types/flux'
+import type {CancelHandlerType} from './session'
+import type {createClientType} from './index.platform'
+import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 
 class EngineChannel {
   _map: ChannelMap<*>
@@ -77,7 +78,7 @@ class Engine {
   _rpcClient: createClientType
   // All incoming call handlers
   _incomingHandler: {[key: MethodKey]: (param: Object, response: ?Object) => void} = {}
-  _incomingActionCreator: {[key: MethodKey]: (param: Object, response: ?Object) => Action} = {}
+  _incomingActionCreator: {[key: MethodKey]: (param: Object, response: ?Object) => ?Action} = {}
   // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
   _onDisconnectHandlers: ?{[key: string]: () => void} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
@@ -383,7 +384,7 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => Action) {
+  setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => ?Action) {
     if (this._incomingActionCreator[method]) {
       rpcLog('engineInternal', "duplicate incoming action creator!!! this isn't allowed", {method})
       return
@@ -470,6 +471,7 @@ class FakeEngine {
   listenOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
   setIncomingHandler(name: string, callback: Function) {}
+  setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => ?Action) {}
   createSession(
     incomingCallMap: ?incomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
