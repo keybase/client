@@ -24,7 +24,7 @@ dependencies:
     - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
     - sudo apt-get update -qq
     # - sudo apt-cache show yarn
-    - sudo apt-get install -y -qq yarn=0.24.5-1
+    - sudo apt-get install -y -qq yarn=1.0.2-1
     - sudo rm -rf $HOME/go* # Remove old go installation
     - sudo rm -rf /usr/local/go* # Remove old go installation
     - sudo rm -rf $HOME/client/shared/node_modules/electron # Remove old electron installation
