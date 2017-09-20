@@ -11,6 +11,7 @@ const windowStyle = {
   minHeight: 400,
   width: 800, // Default width
   height: 600, // Default height
+  titleBarStyle: 'hiddenInset',
 }
 
 const fontCommon = {

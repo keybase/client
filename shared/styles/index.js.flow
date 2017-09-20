@@ -25,6 +25,7 @@ declare export var windowStyle: {
   minHeight: number,
   width: number,
   height: number,
+  titleBarStyle: string,
 }
 
 declare export function glamorous(

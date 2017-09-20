@@ -18,6 +18,7 @@ export type State = {
   tab: ?string,
   dockHidden: boolean,
   openAtLoginSet: boolean,
+  titleBarStyle: ?string,
 }
 
 export type Config = {
@@ -58,6 +59,7 @@ export default class AppState {
       tab: null,
       dockHidden: false,
       openAtLoginSet: false,
+      titleBarStyle: '',
     }
 
     this.config = {
