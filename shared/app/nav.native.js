@@ -376,7 +376,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
         // clicking on profile tab when already selected should back out to root profile page
         dispatch(navigateTo([], [peopleTab]))
       }
-      dispatch(showUserProfile(me))
       dispatch(switchTo([peopleTab]))
       return
     }
