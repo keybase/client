@@ -6,4 +6,5 @@
 
 package main
 
-const defaultMountType = "force"
+//
+const defaultMountType = "default"
