@@ -8,7 +8,7 @@ import type {Props} from '.'
 const CreateChannel = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
     <Box style={_boxStyle}>
-      <Avatar isTeam={true} teamname={props.teamname} size={24} style={{minHeight: 24}} />
+      <Avatar isTeam={true} teamname={props.teamname} size={24} />
       <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
         {props.teamname}
       </Text>
@@ -68,8 +68,6 @@ const _boxStyle = {
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.medium,
-  position: 'relative',
-  width: '100%',
 }
 
 const _backIcon = {

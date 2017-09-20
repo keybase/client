@@ -115,7 +115,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
 
     {props.showTeamButton ? <Divider style={styleDivider} /> : null}
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute conversation" />
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire conversation" />
 
     <Notifications />
 
@@ -151,7 +151,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
 
     <Divider style={styleDivider} />
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
 
     <Notifications />
 
