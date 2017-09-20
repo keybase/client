@@ -276,8 +276,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     }
   },
   onNewChat: () => dispatch(newChat()),
-  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
-    conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
+    dispatch(selectConversation(conversationIDKey, true))
+  },
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
