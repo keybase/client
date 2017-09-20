@@ -867,7 +867,9 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   const {conversationIDKey, fromUser} = action.payload
 
   if (fromUser) {
-    yield put(Creators.exitSearch())
+    yield put(Creators.clearSearchResults())
+    yield put(Creators.setInboxSearch([]))
+    yield put(Creators.removeTempPendingConversations())
   }
 
   // Load the inbox item always
