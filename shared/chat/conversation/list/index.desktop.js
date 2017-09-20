@@ -11,7 +11,7 @@ import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import clipboard from '../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
 import {findDOMNode} from '../../../util/dom'
-import {globalColors, globalStyles} from '../../../styles'
+import {globalColors, globalStyles, glamorous} from '../../../styles'
 
 import type {Props} from '.'
 
@@ -23,6 +23,12 @@ type State = {
 
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
+
+const DivRow = glamorous.div({
+  ':last-child': {
+    paddingBottom: listBottomMargin,
+  },
+})
 
 class BaseList extends React.Component<Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
@@ -134,9 +140,9 @@ class BaseList extends React.Component<Props, State> {
             measure
           )
           return (
-            <div style={style}>
+            <DivRow style={style}>
               {message}
-            </div>
+            </DivRow>
           )
         }}
       </Virtualized.CellMeasurer>
@@ -422,7 +428,6 @@ const containerStyle = {
 const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
-  paddingBottom: listBottomMargin,
 }
 
 export default PopupEnabledList

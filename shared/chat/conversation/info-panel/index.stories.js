@@ -49,20 +49,12 @@ const load = () => {
     ))
     .add('Participants', () => (
       <Box style={{maxWidth: 320}}>
-        <Participants
-          onAddParticipant={null}
-          onShowProfile={action('onShowProfile')}
-          participants={participants}
-        />
+        <Participants onShowProfile={action('onShowProfile')} participants={participants} />
       </Box>
     ))
     .add('Participants (with add button)', () => (
       <Box style={{maxWidth: 320}}>
-        <Participants
-          onAddParticipant={action('onAddParticipant')}
-          onShowProfile={action('onShowProfile')}
-          participants={participants}
-        />
+        <Participants onShowProfile={action('onShowProfile')} participants={participants} />
       </Box>
     ))
 }

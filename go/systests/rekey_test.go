@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -59,6 +60,38 @@ func (d *deviceWrapper) popClone() *libkb.TestContext {
 	ret := d.clones[0]
 	d.clones = d.clones[1:]
 	return ret
+}
+
+func (d *deviceWrapper) loadEncryptionKIDs() (devices []keybase1.KID, backups []backupKey) {
+	keyMap := make(map[keybase1.KID]keybase1.PublicKey)
+
+	t := d.tctx.T
+	require.NotNil(t, d.userClient)
+	require.NotNil(t, d.userClient.Cli)
+	keys, err := d.userClient.LoadMyPublicKeys(context.TODO(), 0)
+	require.NoError(t, err)
+	for _, key := range keys {
+		keyMap[key.KID] = key
+	}
+
+	for _, key := range keys {
+		if key.IsSibkey {
+			continue
+		}
+		parent, found := keyMap[keybase1.KID(key.ParentID)]
+		if !found {
+			continue
+		}
+
+		switch parent.DeviceType {
+		case libkb.DeviceTypePaper:
+			backups = append(backups, backupKey{KID: key.KID, deviceID: parent.DeviceID})
+		case libkb.DeviceTypeDesktop:
+			devices = append(devices, key.KID)
+		default:
+		}
+	}
+	return devices, backups
 }
 
 func (rkt *rekeyTester) getFakeTLF() *fakeTLF {
@@ -149,33 +182,7 @@ func newTestRekeyUI() *testRekeyUI {
 }
 
 func (rkt *rekeyTester) loadEncryptionKIDs() (devices []keybase1.KID, backups []backupKey) {
-	keyMap := make(map[keybase1.KID]keybase1.PublicKey)
-	keys, err := rkt.primaryDevice().userClient.LoadMyPublicKeys(context.TODO(), 0)
-	if err != nil {
-		rkt.t.Fatalf("Failed to LoadMyPublicKeys: %s", err)
-	}
-	for _, key := range keys {
-		keyMap[key.KID] = key
-	}
-
-	for _, key := range keys {
-		if key.IsSibkey {
-			continue
-		}
-		parent, found := keyMap[keybase1.KID(key.ParentID)]
-		if !found {
-			continue
-		}
-
-		switch parent.DeviceType {
-		case libkb.DeviceTypePaper:
-			backups = append(backups, backupKey{KID: key.KID, deviceID: parent.DeviceID})
-		case libkb.DeviceTypeDesktop:
-			devices = append(devices, key.KID)
-		default:
-		}
-	}
-	return devices, backups
+	return rkt.primaryDevice().loadEncryptionKIDs()
 }
 
 func (rkt *rekeyTester) signupUser(dw *deviceWrapper) {

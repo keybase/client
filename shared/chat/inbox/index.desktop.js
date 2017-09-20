@@ -7,6 +7,7 @@ import Row from './row/container'
 import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
+import {isDarwin} from '../../constants/platform'
 
 import type {Props} from './'
 
@@ -185,7 +186,7 @@ class Inbox extends PureComponent<Props, State> {
             filter={this.props.filter}
             onNewChat={this._prepareNewChat}
             onSetFilter={this.props.onSetFilter}
-            hotkeys={['ctrl+n', 'command+n', 'ctrl+k', 'command+k']}
+            hotkeys={isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k']}
             onHotkey={this.props.onHotkey}
             filterFocusCount={this.props.filterFocusCount}
             onSelectUp={this.props.onSelectUp}

@@ -66,7 +66,7 @@ func (b *BlockingLocalizer) Name() string {
 }
 
 type NonblockInboxResult struct {
-	ConvID   chat1.ConversationID
+	Conv     chat1.Conversation
 	Err      *chat1.ConversationErrorLocal
 	ConvRes  *chat1.ConversationLocal
 	InboxRes *chat1.Inbox
@@ -812,13 +812,13 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 						s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
 							convLocal.Error.Message)
 						*localizeCb <- NonblockInboxResult{
-							Err:    convLocal.Error,
-							ConvID: conv.conv.Metadata.ConversationID,
+							Err:  convLocal.Error,
+							Conv: conv.conv,
 						}
 					} else {
 						*localizeCb <- NonblockInboxResult{
 							ConvRes: &convLocal,
-							ConvID:  convLocal.Info.Id,
+							Conv:    conv.conv,
 						}
 					}
 				}

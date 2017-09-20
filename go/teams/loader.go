@@ -321,7 +321,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 		}
 
 		var signer *signerX
-		signer, proofSet, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, readSubteamID, proofSet)
+		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, readSubteamID, proofSet)
 		if err != nil {
 			return nil, err
 		}
@@ -614,7 +614,7 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 
 	// The answer was not found to be yes in the cache.
 	// Try again with the teams that were not polled as they might have unseen updates.
-	for ancestorID, _ := range checkAgain {
+	for ancestorID := range checkAgain {
 		ancestor, err := l.load2(ctx, load2ArgT{
 			teamID:        ancestorID,
 			reason:        "isImplicitAdminOf-again",

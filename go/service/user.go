@@ -135,6 +135,15 @@ func (h *UserHandler) LoadUserPlusKeys(netCtx context.Context, arg keybase1.Load
 		}
 	}
 
+	if err == nil {
+		// ret.Status might indicate an error we should return
+		// (like libkb.DeletedError, for example)
+		err = libkb.UserErrorFromStatus(ret.Status)
+		if err != nil {
+			h.G().Log.CDebugf(netCtx, "using error from StatusCode: %v => %s", ret.Status, err)
+		}
+	}
+
 	h.G().Log.CDebugf(netCtx, "- UserHandler#LoadUserPlusKeys(%+v) -> (UVV=%+v, KIDs=%v, err=%s)", arg, ret.Uvv, kids, libkb.ErrToOk(err))
 	return ret, err
 }

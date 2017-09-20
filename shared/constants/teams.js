@@ -62,6 +62,11 @@ export const MemberInfo = I.Record({
   username: '',
 })
 
+export type SetTeamCreationError = NoErrorTypedAction<
+  'teams:setTeamCreationError',
+  {teamCreationError: string}
+>
+
 export const Team = I.Record({
   convIDToChannelInfo: I.Map(),
   sawChatBanner: false,

@@ -57,7 +57,7 @@ function setupAvatar() {
 function setupApp(store) {
   setupSource()
   disableDragDrop()
-  const eng = makeEngine()
+  const eng = makeEngine(store.dispatch)
   loadPerf()
   setupAvatar()
 

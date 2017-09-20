@@ -16,11 +16,18 @@ client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 serverops_dir="$client_dir/../server-ops"
 kbfs_dir="$client_dir/../kbfs"
 
+if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
+  default_bucket_name="jack-testing.keybase.io"
+  echo "This build+push is a DRY RUN."
+else
+  default_bucket_name="prerelease.keybase.io"
+fi
+
+export BUCKET_NAME="${BUCKET_NAME:-$default_bucket_name}"
+echo "Using BUCKET_NAME $BUCKET_NAME"
+
 # Test all the different credentials that need to be configured.
 "$here/test_all_credentials.sh"
-
-export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
-echo "Using BUCKET_NAME $BUCKET_NAME"
 
 # Clean the build dir.
 rm -rf "$build_dir"
@@ -115,9 +122,18 @@ echo "Writing version into JSON to $json_tmp"
 s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
 # Generate and push the index.html file. S3 pushes in this script can be
-# flakey, and on the Linux side of things all this does is update our
-# internal pages, so we suppress errors here.
+# flakey, and on the Linux side of things all this does is update our internal
+# pages, so we suppress errors here. Note that this script respects
+# the BUCKET_NAME env var.
 GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
   echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
+
+# ---------- Dry run quits here ----------
+# Things below this line don't use S3 buckets, and so we can't dry run them
+# against a test bucket.
+if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
+    echo "Ending dry run."
+    exit 0
+fi
 
 "$here/arch/update_aur_packages.sh" "$build_dir"

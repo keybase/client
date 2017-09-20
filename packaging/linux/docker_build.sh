@@ -94,5 +94,6 @@ docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$github_token_temp:/GITHUB_TOKEN:ro" \
   -e BUCKET_NAME \
   -e NOWAIT \
+  -e KEYBASE_DRY_RUN \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
