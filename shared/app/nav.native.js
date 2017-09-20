@@ -20,6 +20,8 @@ import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
 import {isIOS} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
+import {showUserProfile} from '../actions/profile'
+import {mergeProps} from './nav.shared.js'
 
 import type {Props} from './nav'
 import type {TypedState} from '../constants/reducer'
@@ -353,6 +355,7 @@ const sceneWrapStyleOver = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  _me: state.config.username,
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
   reachable: state.gregor.reachability.reachable,
@@ -360,9 +363,21 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
-  switchTab: (tab: Tab) => {
+  _switchTab: (tab: Tab, me: ?string) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       dispatch(navigateTo(ownProps.routePath.push(tab)))
+      return
+    }
+
+    // If we're going to the profile tab, switch to the current user's
+    // profile first before switching tabs, if necessary.
+    if (tab === profileTab) {
+      if (ownProps.routeSelected === tab) {
+        // clicking on profile tab when already selected should back out to root profile page
+        dispatch(navigateTo([], [profileTab]))
+      }
+      dispatch(showUserProfile(me))
+      dispatch(switchTo([profileTab]))
       return
     }
 
@@ -372,4 +387,4 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)
+export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(Nav)

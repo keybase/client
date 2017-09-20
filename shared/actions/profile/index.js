@@ -14,6 +14,7 @@ import {
 import {call, put, select, fork} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
+import {getPathProps} from '../../route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
 import {profileTab} from '../../constants/tabs'
 import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
@@ -73,13 +74,32 @@ function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any
   const {username: userId} = action.payload
   const searchResultMap = yield select(Selectors.searchResultMapSelector)
   const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
+  // get data on whose profile is currently being shown
+  const me = yield select(Selectors.usernameSelector)
+  const topProfile = yield select((state: TypedState) => {
+    const routeState = state.routeTree.routeState
+    const routeProps = getPathProps(routeState, [profileTab])
+    const profileNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
+    return (
+      (profileNode && profileNode.props && profileNode.props.get('username')) ||
+      (profileNode.node === profileTab && me)
+    )
+  })
 
+  // If the username is the top profile, just switch to the profile tab
+  if (username === topProfile) {
+    yield put(switchTo([profileTab]))
+    return
+  }
+
+  // Assume user exists
   if (!username.includes('@')) {
     yield put(switchTo([profileTab]))
     yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
     return
   }
 
+  // search for user first
   let props = {}
   const searchResult = yield select(Selectors.searchResultSelector, username)
   if (searchResult) {
