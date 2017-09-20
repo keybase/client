@@ -2824,6 +2824,7 @@ export type BadgeState = {
   newFollowers: int,
   inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
+  newGitRepoGlobalUniqueIDs?: ?Array<string>,
 }
 
 export type BinaryKID = bytes
