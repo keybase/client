@@ -240,8 +240,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
     }
   },
   onNewChat: () => dispatch(newChat()),
-  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
-    conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
+    dispatch(selectConversation(conversationIDKey, true))
+  },
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),

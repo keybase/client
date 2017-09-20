@@ -866,6 +866,10 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
+  if (fromUser) {
+    yield put(Creators.exitSearch())
+  }
+
   // Load the inbox item always
   if (conversationIDKey) {
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
