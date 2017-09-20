@@ -109,12 +109,7 @@ class Row extends React.Component<Props, State> {
               }}
             >
               <Text type="BodySmall">
-                Last push
-                {' '}
-                {this.props.lastEditTime}
-                {' '}
-                ago
-                {!!this.props.teamname && !!this.props.lastEditUser && ' by'}
+                {`Last push ${this.props.lastEditTime}${!!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''}`}
               </Text>
               {!!this.props.teamname &&
                 !!this.props.lastEditUser &&
