@@ -44,6 +44,8 @@ export type Props = {
   onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
   rows: List<RowItem>,
+  routeState: Object,
+  setRouteState: Object => void,
   showBuildATeam: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,

@@ -3,9 +3,19 @@ import * as React from 'react'
 import Inbox from './inbox/container'
 import {globalStyles} from '../styles'
 
-const Render = ({isActiveRoute, children}: {isActiveRoute: boolean, children: any}) => (
+const Render = ({
+  isActiveRoute,
+  routeState,
+  setRouteState,
+  children,
+}: {
+  isActiveRoute: boolean,
+  routeState: Object,
+  setRouteState: Object => void,
+  children: any,
+}) => (
   <div style={style}>
-    <Inbox isActiveRoute={isActiveRoute} />
+    <Inbox isActiveRoute={isActiveRoute} routeState={routeState} setRouteState={setRouteState} />
     {children}
   </div>
 )
