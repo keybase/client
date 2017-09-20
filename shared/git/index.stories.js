@@ -28,7 +28,7 @@ const load = () => {
   storiesOf('Git', module)
     .add('Root', () => (
       <Box style={{width: '100%'}}>
-        {/*
+        {/* // commneted out due to this being connected now and we need a good story for how inner connected components work in mock
         <Git
           personals={[
             {...common, ...helper(null, 'personal_docs')},
