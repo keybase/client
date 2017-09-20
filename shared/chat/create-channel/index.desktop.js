@@ -8,15 +8,16 @@ import type {Props} from '.'
 const CreateChannel = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
     <Box style={_boxStyle}>
-      <Avatar isTeam={true} teamname={props.teamname} size={16} />
+      <Avatar isTeam={true} teamname={props.teamname} size={24} style={{minHeight: 24}} />
       <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
         {props.teamname}
       </Text>
-      <Text type="Header" style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
+      <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
         New chat channel
       </Text>
-      <Box style={_backStyle}>
-        <Icon style={_backIcon} type="iconfont-back" onClick={props.onBack} />
+      <Box style={_backStyle} onClick={props.onBack}>
+        <Icon style={_backIcon} type="iconfont-back" />
+        <Text type="BodyPrimaryLink" onClick={props.onBack}>Back</Text>
       </Box>
       <Box style={_inputStyle}>
         <Input
@@ -53,21 +54,20 @@ const CreateChannel = (props: Props) => (
 
 const _inputStyle = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.large,
+  marginTop: globalMargins.medium,
 }
 
 const _buttonsStyle = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.large,
+  marginTop: globalMargins.xlarge,
 }
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  height: '100%',
-  paddingLeft: 32,
-  paddingRight: 32,
-  paddingTop: 32,
+  paddingLeft: globalMargins.large,
+  paddingRight: globalMargins.large,
+  paddingTop: globalMargins.medium,
   position: 'relative',
   width: '100%',
 }
@@ -86,13 +86,14 @@ const _backStyle = {
 }
 
 const _styleCover = {
-  alignItems: 'stretch',
-  backgroundColor: globalColors.black_75,
-  justifyContent: 'stretch',
+  alignItems: 'center',
+  backgroundColor: globalColors.black_60,
+  justifyContent: 'center',
 }
 
 const _styleContainer = {
-  height: '100%',
+  width: 620,
+  height: 520,
 }
 
 export default CreateChannel
