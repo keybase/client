@@ -203,12 +203,15 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 
-	t.Logf("Implicit Team Stage Begin")
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
-	start = time.Now()
-	f(chat1.ConversationMembersType_IMPTEAM)
-	t.Logf("Team Stage End: %v", time.Now().Sub(start))
+	t.Logf("Not testing implicit teams (yet)")
+	if false {
+		t.Logf("Implicit Team Stage Begin")
+		os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+		defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+		start = time.Now()
+		f(chat1.ConversationMembersType_IMPTEAM)
+		t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
+	}
 }
 
 type chatTestUserContext struct {
