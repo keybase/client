@@ -48,12 +48,12 @@ const passesParticipantFilter = (filter: string, participants: Array<string>, yo
 // 0 for no match
 function scoreFilter(filter: string, stringToFilterOn: string, participants: Array<string>, you: string) {
   const lcFilter = filter.toLowerCase()
-  if (participants.length) {
+  if (!stringToFilterOn && participants.length) {
+    if (lcFilter === you.toLowerCase()) {
+      return 1
+    }
     if (participants.some(p => p.toLowerCase() === lcFilter)) {
-      if (participants.length === 2) {
-        return 1
-      }
-      return 0.75
+      return 1 - (participants.length - 1) / 100 * 0.25
     }
 
     if (passesParticipantFilter(lcFilter, participants, you)) {
