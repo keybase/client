@@ -28,6 +28,8 @@ dependencies:
     - sudo rm -rf /usr/local/go* # Remove old go installation
     - mkdir -p ~/downloads
     - mkdir -p ~/go-path
+    - ls "$HOME/downloads"
+    - ls "$ANDROID_HOME"
     - if [[ ! -e "$HOME/downloads/go.183.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/downloads/go.183.tar.gz ; fi
     - cd $HOME && tar -xzvf downloads/go.183.tar.gz
     - sudo mv $HOME/go /usr/local
@@ -44,7 +46,7 @@ dependencies:
     - ~/downloads
     - ~/.cache/yarn
     - /usr/local/android-sdk-linux/tools
-    - /usr/local/android-sdk-linux/ndk_bundle
+    - /usr/local/android-sdk-linux/ndk-bundle
     - /usr/local/android-sdk-linux/build-tools/23.0.2
     - /usr/local/android-sdk-linux/extras/android/m2repository
   override:
