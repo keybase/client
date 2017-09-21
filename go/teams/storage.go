@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	context "golang.org/x/net/context"
@@ -168,10 +169,12 @@ func NewMemoryStorage(g *libkb.GlobalContext) *MemoryStorage {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	return &MemoryStorage{
+	s := &MemoryStorage{
 		Contextified: libkb.NewContextified(g),
 		lru:          nlru,
 	}
+	go s.periodicLog()
+	return s
 }
 
 func (s *MemoryStorage) Put(ctx context.Context, state *keybase1.TeamData) {
@@ -194,6 +197,13 @@ func (s *MemoryStorage) Get(ctx context.Context, teamID keybase1.TeamID) *keybas
 
 func (s *MemoryStorage) onLogout() {
 	s.lru.Purge()
+}
+
+func (s *MemoryStorage) periodicLog() {
+	for {
+		time.Sleep(time.Minute)
+		s.G().Log.Debug("^^^ teams MemoryStorage num items in memory cache: %d", s.lru.Len())
+	}
 }
 
 // --------------------------------------------------

@@ -45,12 +45,14 @@ func NewCachedUPAKLoader(g *GlobalContext, f time.Duration) *CachedUPAKLoader {
 	if err != nil {
 		panic(fmt.Sprintf("could not create lru cache (size = %d)", g.Env.GetUPAKCacheSize()))
 	}
-	return &CachedUPAKLoader{
+	loader := &CachedUPAKLoader{
 		Contextified: NewContextified(g),
 		Freshness:    f,
 		cache:        c,
 		noCache:      false,
 	}
+	go loader.periodicLog()
+	return loader
 }
 
 // NewUncachedUPAKLoader creates a UPAK loader that doesn't do any caching.
@@ -82,7 +84,7 @@ func (u *CachedUPAKLoader) ClearMemory() {
 	if u.noCache {
 		return
 	}
-	u.cache.Purge()
+	u.purgeMemCache()
 }
 
 const UPK2MinorVersionCurrent = keybase1.UPK2MinorVersion_V5
@@ -94,15 +96,7 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 		return nil, false
 	}
 
-	var upak *keybase1.UserPlusKeysV2AllIncarnations
-	val, ok := u.cache.Get(uid)
-	if ok {
-		upak, ok = val.(*keybase1.UserPlusKeysV2AllIncarnations)
-		if !ok {
-			u.G().Log.CWarningf(ctx, "invalid type in upak cache: %T", val)
-			upak = nil
-		}
-	}
+	upak := u.getMemCache(ctx, uid)
 
 	// Try loading from persistent storage if we missed memory cache.
 	if upak != nil {
@@ -128,7 +122,7 @@ func (u *CachedUPAKLoader) getCachedUPAK(ctx context.Context, uid keybase1.UID, 
 				info.InDiskCache = true
 			}
 			// Insert disk object into memory.
-			u.cache.Add(uid, upak)
+			u.putMemCache(ctx, uid, tmp)
 		}
 	}
 
@@ -199,19 +193,15 @@ func (u *CachedUPAKLoader) putUPAKToCache(ctx context.Context, obj *keybase1.Use
 	u.G().VDL.CLogf(ctx, VLog0, "| Caching UPAK for %s", uid)
 
 	stale := false
-	existingVal, ok := u.cache.Get(uid)
-	if ok {
-		existing, vok := existingVal.(*keybase1.UserPlusKeysV2AllIncarnations)
-		if !vok {
-			return fmt.Errorf("invalid type in upak lru cache: %T", existingVal)
-		}
+	existing := u.getMemCache(ctx, uid)
+	if existing != nil {
 		if obj.IsOlderThan(*existing) {
 			stale = true
 		} else {
-			u.cache.Add(uid, obj)
+			u.putMemCache(ctx, uid, *obj)
 		}
 	} else {
-		u.cache.Add(uid, obj)
+		u.putMemCache(ctx, uid, *obj)
 	}
 
 	if stale {
@@ -339,7 +329,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			// current sigchain), remove from cache, and then fall
 			// through. LoadUser shall return an error, which we will
 			// return to the caller.
-			u.cache.Remove(arg.UID)
+			u.removeMemCache(ctx, arg.UID)
 
 			err := u.G().LocalDb.Delete(culDBKeyV2(arg.UID))
 			if err != nil {
@@ -537,7 +527,7 @@ func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
 	lock := u.locktab.AcquireOnName(ctx, u.G(), uid.String())
 	defer lock.Release(ctx)
 
-	u.cache.Remove(uid)
+	u.removeMemCache(ctx, uid)
 
 	err := u.G().LocalDb.Delete(culDBKeyV2(uid))
 	if err != nil {
@@ -663,5 +653,39 @@ func (u *CachedUPAKLoader) deleteV1UPAK(uid keybase1.UID) {
 	err := u.G().LocalDb.Delete(culDBKeyV1(uid))
 	if err != nil {
 		u.G().Log.Warning("Failed to remove %s v1 object from disk cache: %s", uid, err)
+	}
+}
+
+func (u *CachedUPAKLoader) getMemCache(ctx context.Context, uid keybase1.UID) *keybase1.UserPlusKeysV2AllIncarnations {
+	val, ok := u.cache.Get(uid)
+	if !ok {
+		return nil
+	}
+
+	upak, ok := val.(keybase1.UserPlusKeysV2AllIncarnations)
+	if !ok {
+		u.G().Log.CWarningf(ctx, "invalid type in upak cache: %T", val)
+		return nil
+	}
+
+	return &upak
+}
+
+func (u *CachedUPAKLoader) putMemCache(ctx context.Context, uid keybase1.UID, upak keybase1.UserPlusKeysV2AllIncarnations) {
+	u.cache.Add(uid, upak)
+}
+
+func (u *CachedUPAKLoader) removeMemCache(ctx context.Context, uid keybase1.UID) {
+	u.cache.Remove(uid)
+}
+
+func (u *CachedUPAKLoader) purgeMemCache() {
+	u.cache.Purge()
+}
+
+func (u *CachedUPAKLoader) periodicLog() {
+	for {
+		time.Sleep(time.Minute)
+		u.G().Log.Debug("^^^ CachedUPAKLoader num items in memory cache: %d", u.cache.Len())
 	}
 }

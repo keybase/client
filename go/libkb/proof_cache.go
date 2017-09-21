@@ -103,7 +103,9 @@ type ProofCache struct {
 }
 
 func NewProofCache(g *GlobalContext, capac int) *ProofCache {
-	return &ProofCache{Contextified: NewContextified(g), capac: capac}
+	pc := &ProofCache{Contextified: NewContextified(g), capac: capac}
+	go pc.periodicLog()
+	return pc
 }
 
 func (pc *ProofCache) DisableDisk() {
@@ -264,4 +266,15 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError, pvlHash PvlKitHash)
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
+}
+
+func (pc *ProofCache) periodicLog() {
+	for {
+		time.Sleep(time.Minute)
+		pc.Lock()
+		if pc.lru != nil {
+			pc.G().Log.Debug("^^^ ProofCache num items in memory cache: %d", pc.lru.Len())
+		}
+		pc.Unlock()
+	}
 }
