@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -121,33 +122,33 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
+func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, error) {
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    username,
+		UseDelegateUI:    false,
+		Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
+		CanSuppressUI:    true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		NeedProofSet:     true,
+	}
+	eng := engine.NewResolveThenIdentify2(g, &arg)
+	ectx := &engine.Context{
+		NetContext: ctx,
+	}
+	if err := engine.RunEngine(eng, ectx); err != nil {
+		return nil, err
+	}
+	return eng.GetProofSet(), nil
+}
+
 func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
 	if team.NumActiveInvites() == 0 {
 		return nil
 	}
 
-	getUserProofs := func() *libkb.ProofSet {
-		arg := keybase1.Identify2Arg{
-			UserAssertion:    username,
-			UseDelegateUI:    false,
-			Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
-			CanSuppressUI:    true,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
-			NeedProofSet:     true,
-		}
-		eng := engine.NewResolveThenIdentify2(g, &arg)
-		ectx := &engine.Context{
-			NetContext: ctx,
-		}
-		if err := engine.RunEngine(eng, ectx); err == nil {
-			return eng.GetProofSet()
-		}
-		return nil
-	}
-
-	proofs := getUserProofs()
-	if proofs == nil {
-		return fmt.Errorf("Cannot get proof set for user.")
+	proofs, err := getUserProofs(ctx, g, username)
+	if err != nil {
+		return err
 	}
 
 	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
@@ -249,9 +250,11 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		}
 		req.None = []keybase1.UserVersion{existingUV}
 	}
-	if err := tryToCompleteInvites(ctx, g, t, username, uv, &req); err != nil {
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+	if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
 		g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
 	}
+	timeoutCancel()
 	if err := t.ChangeMembership(ctx, req); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
