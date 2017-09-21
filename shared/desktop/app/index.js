@@ -9,12 +9,23 @@ import semver from 'semver'
 import storeHelper from './store-helper'
 import urlHelper from './url-helper'
 import windowHelper from './window-helper'
-import {BrowserWindow, app, ipcMain, dialog} from 'electron'
+import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
-import {isWindows} from '../../constants/platform'
+import {isWindows, cacheRoot} from '../../constants/platform.desktop'
+
+crashReporter.start({
+  companyName: 'Keybase',
+  crashesDirectory: cacheRoot,
+  productName: 'Keybase',
+  submitURL: 'http://localhost/TEST',
+  uploadToServer: false,
+})
+
+const last = crashReporter.getLastCrashReport()
+console.log(`aaaamain ${JSON.stringify(last)}`)
 
 let mainWindow = null
 

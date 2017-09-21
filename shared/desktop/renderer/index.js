@@ -41,7 +41,7 @@ crashReporter.start({
   companyName: 'Keybase',
   crashesDirectory: cacheRoot,
   productName: 'Keybase',
-  submitURL: '',
+  submitURL: 'http://localhost/TEST',
   uploadToServer: false,
 })
 
