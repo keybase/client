@@ -281,10 +281,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	sort.Sort(ByDatabaseOrder(data.Conversations))
 
 	// Write out new inbox
-	if err := i.writeDiskInbox(ctx, data); err != nil {
-		return err
-	}
-	return nil
+	return i.writeDiskInbox(ctx, data)
 }
 
 func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMetadata, convs []chat1.Conversation) bool {
@@ -647,11 +644,7 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 
 	// Write out to disk
 	ibox.InboxVersion = vers
-	if err := i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 func (i *Inbox) getConv(convID chat1.ConversationID, convs []chat1.Conversation) (int, *chat1.Conversation) {
@@ -769,11 +762,7 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 
 	// Write out to disk
 	ibox.InboxVersion = vers
-	if err := i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -816,11 +805,7 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 
 	// Write out to disk
 	ibox.InboxVersion = vers
-	if err := i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -858,11 +843,7 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 
 	// Write out to disk
 	ibox.InboxVersion = vers
-	if err := i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.InboxVers,
@@ -902,11 +883,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 
 	// Write out to disk
 	ibox.InboxVersion = vers
-	if err := i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
@@ -941,11 +918,7 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
 
 	// Write out to disk
 	ibox.InboxVersion = vers
-	if err := i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs []chat1.ConversationID,
@@ -984,11 +957,7 @@ func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs [
 
 	// Write out to disk
 	ibox.InboxVersion = vers
-	if err := i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 func (i *Inbox) Version(ctx context.Context) (vers chat1.InboxVers, err Error) {
@@ -1139,10 +1108,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	}
 
 	ibox.InboxVersion = vers
-	if err = i.writeDiskInbox(ctx, ibox); err != nil {
-		return err
-	}
-	return nil
+	return i.writeDiskInbox(ctx, ibox)
 }
 
 type InboxVersionSource struct {
