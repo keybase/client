@@ -57,23 +57,34 @@ type MentionHudProps = {
   onSelectUser: (user: string) => void,
   selectUpCounter: number,
   selectDownCounter: number,
+  filter: string,
   style: Object,
 }
 
 // TODO figure typing out
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
-  connect((state: TypedState, {userIds, selectedIndex}) => ({
-    data: userIds.map((u, i) => ({
-      avatar: <Avatar username={u} size={16} />,
-      username: u,
-      fullName: u, // TODO
-      key: u,
-      selected: i === selectedIndex,
-    })),
+  connect((state: TypedState, {userIds, selectedIndex, filter}) => ({
+    data: userIds
+      .map((u, i) => ({
+        avatar: <Avatar username={u} size={16} />,
+        username: u,
+        fullName: u, // TODO
+        key: u,
+      }))
+      .filter(u => u.username.indexOf(filter) >= 0)
+      .map((u, i) => ({...u, selected: i === selectedIndex})),
   })),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
+      console.log('nextProps', nextProps.selectedIndex)
+      if (nextProps.data.length === 0) {
+        nextProps.setSelectedIndex(0)
+      }
+      if (nextProps.data.length && nextProps.data.length !== this.props.data.length) {
+        nextProps.setSelectedIndex(n => Math.min(n, nextProps.data.length - 1))
+      }
+
       if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
         nextProps.setSelectedIndex(n => Math.max(n - 1, 0))
       } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {

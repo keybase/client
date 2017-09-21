@@ -2,7 +2,7 @@
 import React from 'react'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withState} from 'recompose'
-import {Box, Avatar, Button} from '../../common-adapters'
+import {Box, Avatar, Button, Input} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import {globalStyles, globalMargins} from '../../styles'
 
@@ -12,12 +12,13 @@ const dummyStore = {
   dispatch: (...args) => {},
 }
 
-const UpDownHoc = compose(
+const UpDownFilterHoc = compose(
   withState('upCounter', 'setUpCounter', 0),
   withState('downCounter', 'setDownCounter', 0),
+  withState('filter', 'setFilter', ''),
   Component => props => (
     <Box style={globalStyles.flexBoxColumn}>
-      <Component upCounter={props.upCounter} downCounter={props.downCounter} />
+      <Component upCounter={props.upCounter} downCounter={props.downCounter} filter={props.filter} />
       <Box style={globalStyles.flexBoxRow}>
         <Button label="Up" type="Primary" onClick={() => props.setUpCounter(n => n + 1)} />
         <Button
@@ -27,6 +28,7 @@ const UpDownHoc = compose(
           style={{marginLeft: globalMargins.small}}
         />
       </Box>
+      <Input onChangeText={props.setFilter} hintText="Filter" />
     </Box>
   )
 )
@@ -65,7 +67,7 @@ const load = () => {
       </Box>
     ))
     .add('Mention Hud', () => {
-      const Hud = UpDownHoc(({upCounter, downCounter}) => (
+      const Hud = UpDownFilterHoc(({upCounter, downCounter, filter}) => (
         <Box style={{height: 100, width: 240, ...globalStyles.flexBoxColumn}}>
           <MentionHud
             userIds={['marcopolo', 'trex']}
@@ -73,6 +75,7 @@ const load = () => {
             onSelectUser={action('onSelectUser')}
             selectUpCounter={upCounter}
             selectDownCounter={downCounter}
+            filter={filter}
             style={{flex: 1}}
             store={dummyStore}
           />
