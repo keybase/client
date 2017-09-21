@@ -19,41 +19,45 @@ general:
   build_dir: shared
 dependencies:
   pre:
-    - nvm ls-remote
+    # - nvm ls-remote
     - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
     - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
     - sudo apt-get update -qq
     # - sudo apt-cache show yarn
     - sudo apt-get install -y -qq yarn=1.0.2-1
-    - sudo rm -rf $HOME/go* # Remove old go installation
     - sudo rm -rf /usr/local/go* # Remove old go installation
-    - sudo rm -rf $HOME/client/shared/node_modules/electron # Remove old electron installation
-    - wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/go.tar.gz
-    - mkdir $HOME/go-path
-    - (cd $HOME; tar -xzvf go.tar.gz)
+    - mkdir -p ~/downloads
+    - mkdir -p ~/go-path
+    - ls "$HOME/downloads"
+    - ls "$ANDROID_HOME"
+    - if [[ ! -e "$HOME/downloads/go.183.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/downloads/go.183.tar.gz ; fi
+    - cd $HOME && tar -xzvf downloads/go.183.tar.gz
     - sudo mv $HOME/go /usr/local
     - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
      # Android Support Repository, revision 35 / Local Maven repository for Support Libraries
     - if [ ! -d "/usr/local/android-sdk-linux/extras/android/m2repository/com/android/support/design/24.1.0" ]; then echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"; fi
     # Accept android licenses
-    - mkdir /usr/local/android-sdk-linux/licenses
-    - if [[ ! -e "$ANDROID_HOME/ndk_bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O android-ndk-r11c-linux-x86_64.zip && unzip -o android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
+    - mkdir -p /usr/local/android-sdk-linux/licenses
+    - if [[ ! -e "$ANDROID_HOME/ndk-bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O android-ndk-r11c-linux-x86_64.zip && unzip -o android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
     - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
     # Install Yarn
   cache_directories:
+    - ~/downloads
+    - ~/.cache/yarn
+    - /tmp/go-android/bin
+    - /tmp/go-android/pkg
     - /usr/local/android-sdk-linux/tools
+    - /usr/local/android-sdk-linux/ndk-bundle
     - /usr/local/android-sdk-linux/build-tools/23.0.2
     - /usr/local/android-sdk-linux/extras/android/m2repository
-    # - android-ndk-r11c
   override:
     # TODO(mm): use the emulator when we figure out a consistent way of getting this working
     # - emulator -avd circleci-android22 -no-audio -no-window:
     #    background: true
     #    parallel: true
-    # Maybe we dont need this with yarn - rm -rf $HOME/client/react-native/node_modules # Clear node_modules cache, it appears to be getting out of sync
-    - yarn cache clean
-    - yarn install --pure-lockfile --ignore-engines
+    - rm -rf ~/client/shared/node_modules
+    - yarn install --pure-lockfile --ignore-engines --prefer-offline
     - yarn global add react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
