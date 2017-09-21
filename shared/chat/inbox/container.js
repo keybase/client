@@ -32,15 +32,44 @@ const passesStringFilter = (filter: string, toCheck: string): boolean => {
   return toCheck.toLowerCase().indexOf(filter.toLowerCase()) >= 0
 }
 
-const passesParticipantFilter = (participants: I.List<string>, filter: string, you: ?string): boolean => {
+const passesParticipantFilter = (filter: string, participants: Array<string>, you: ?string): boolean => {
   if (!filter) {
     return true
   }
 
   // don't filter you out if its just a convo with you!
-  const justYou = participants.count() === 1 && participants.first() === you
+  const justYou = participants.length === 1 && participants[0] === you
   const names = justYou ? participants : participants.filter(p => p !== you)
   return names.some(n => passesStringFilter(filter, n))
+}
+
+// Simple score for a filter. returns 1 for exact match. 0.75 for full name match
+// in a group conversation. 0.5 for a partial match
+// 0 for no match
+function scoreFilter(filter: string, stringToFilterOn: string, participants: Array<string>, you: string) {
+  const lcFilter = filter.toLowerCase()
+  if (!stringToFilterOn && participants.length) {
+    if (lcFilter === you.toLowerCase()) {
+      return 1
+    }
+    if (participants.some(p => p.toLowerCase() === lcFilter)) {
+      return 1 - (participants.length - 1) / 100 * 0.25
+    }
+
+    if (passesParticipantFilter(lcFilter, participants, you)) {
+      return 0.5
+    }
+  }
+
+  if (lcFilter === stringToFilterOn.toLowerCase()) {
+    return 1
+  }
+
+  if (passesStringFilter(lcFilter, stringToFilterOn)) {
+    return 0.5
+  }
+
+  return 0
 }
 
 const getSimpleRows = createSelector(
@@ -57,9 +86,7 @@ const getSimpleRows = createSelector(
           const isEmpty = i.isEmpty && !alwaysShow.has(id)
           const isSuperseded = !!supersededByState.get(id)
           const passesFilter =
-            !filter ||
-            (i.teamname && passesStringFilter(filter, i.teamname)) ||
-            passesParticipantFilter(i.get('participants'), filter, you)
+            !filter || scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you) > 0
 
           return !isEmpty && !isSuperseded && passesFilter
         })
@@ -67,8 +94,15 @@ const getSimpleRows = createSelector(
         .map(i => ({
           conversationIDKey: i.conversationIDKey,
           time: i.time,
+          filterScore: scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you),
         }))
         .sort((a, b) => {
+          if (filter) {
+            if (b.filterScore !== a.filterScore) {
+              return b.filterScore - a.filterScore
+            }
+          }
+
           if (a.time === b.time) {
             return a.conversationIDKey.localeCompare(b.conversationIDKey)
           }
