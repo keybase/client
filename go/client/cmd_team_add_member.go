@@ -110,7 +110,7 @@ func (c *CmdTeamAddMember) Run() error {
 	if !res.Invited {
 		// TeamAddMember resulted in the user added to the team
 		if res.ChatSent {
-			dui.Printf("Success! A keybase chat message has been sent to %s.\n", res.User.Username)
+			dui.Printf("Success! A keybase chat message has been sent to %s. To skip this, use `-s` or `--skip-chat-message`\n", res.User.Username)
 		} else {
 			dui.Printf("Success! %s added to team.\n", res.User.Username)
 		}
