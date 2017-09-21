@@ -19,17 +19,15 @@ general:
   build_dir: shared
 dependencies:
   pre:
-    - nvm ls-remote
+    # - nvm ls-remote
     - sudo apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
     - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
     - sudo apt-get update -qq
     # - sudo apt-cache show yarn
     - sudo apt-get install -y -qq yarn=1.0.2-1
-    - sudo rm -rf $HOME/go* # Remove old go installation
     - sudo rm -rf /usr/local/go* # Remove old go installation
-    - wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/go.tar.gz
-    - mkdir $HOME/go-path
-    - (cd $HOME; tar -xzvf go.tar.gz)
+    - if [[ ! -e "$HOME/go.183.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/go.183.tar.gz
+      && mkdir $HOME/go-path && (cd $HOME; tar -xzvf go.tar.gz); fi
     - sudo mv $HOME/go /usr/local
     - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
