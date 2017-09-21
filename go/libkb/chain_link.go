@@ -886,15 +886,13 @@ func (c *ChainLink) VerifyLink() error {
 }
 
 func (c *ChainLink) verifyLinkV1() error {
-
 	if err := c.verifyHashV1(); err != nil {
 		return err
 	}
-	c.verifyPayloadV1()
+	return c.verifyPayloadV1()
 }
 
 func (c *ChainLink) verifyLinkV2() error {
-
 	if err := c.verifyHashV2(); err != nil {
 		return err
 	}
@@ -905,7 +903,7 @@ func (c *ChainLink) verifyLinkV2() error {
 		return nil
 	}
 
-	c.verifyPayloadV2()
+	return c.verifyPayloadV2()
 }
 
 func (c *ChainLink) HasRevocations() bool {
