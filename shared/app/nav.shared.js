@@ -1,5 +1,6 @@
 // @flow
-export const mergeProps = (stateProps, dispatchProps, ownProps) => {
+import type {Tab} from '../constants/tabs'
+export const mergeProps = (stateProps: any, dispatchProps: any, ownProps: any) => {
   return {
     ...stateProps,
     ...dispatchProps,

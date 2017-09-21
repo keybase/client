@@ -54,7 +54,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _switchTab: (tab: Tab, me: ?string) => {
+  _switchTab: (tab: Tab, me: string) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       // clicking the chat tab when already selected should do nothing.
       return

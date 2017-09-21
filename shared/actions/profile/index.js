@@ -82,7 +82,7 @@ function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any
     const profileNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
     return (
       (profileNode && profileNode.props && profileNode.props.get('username')) ||
-      (profileNode.node === peopleTab && me)
+      (profileNode && profileNode.node === peopleTab && me)
     )
   })
 
