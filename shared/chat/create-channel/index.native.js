@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box, Button, HeaderHoc, Input, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalMargins} from '../../styles'
 import {renameProp, compose, withProps} from 'recompose'
 
 import type {Props} from '.'
@@ -37,15 +37,13 @@ const Header = (props: Props) => (
       <Avatar isTeam={true} teamname={props.teamname} size={12} />
       <Text
         type="BodySmallSemibold"
-        style={{color: globalColors.darkBlue, fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}
+        style={{fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}
         lineClamp={1}
       >
         {props.teamname}
       </Text>
     </Box>
-    <Text type="BodySmallSemibold" style={{color: globalColors.black_75}}>
-      New channel
-    </Text>
+    <Text type="BodyBig">New channel</Text>
   </Box>
 )
 
