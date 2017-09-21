@@ -122,3 +122,35 @@ func TestCreateRepoAndID(t *testing.T) {
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
 	require.NoError(t, err)
 }
+
+func TestDeleteRepo(t *testing.T) {
+	ctx, config, tempdir := initConfig(t)
+	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+
+	_, err = CreateRepoAndID(ctx, config, h, "Repo1")
+	require.NoError(t, err)
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	jServer, err := libkbfs.GetJournalServer(config)
+	require.NoError(t, err)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	require.NoError(t, err)
+
+	err = DeleteRepo(ctx, config, h, "Repo1")
+	require.NoError(t, err)
+
+	gitNode, _, err := config.KBFSOps().Lookup(ctx, rootNode, kbfsRepoDir)
+	require.NoError(t, err)
+	children, err := config.KBFSOps().GetDirChildren(ctx, gitNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+	require.Contains(t, children, kbfsDeletedReposDir)
+
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	require.NoError(t, err)
+}
