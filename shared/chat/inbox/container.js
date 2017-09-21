@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
@@ -238,7 +239,9 @@ const getRows = createSelector(
   }
 )
 
+let _state
 const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
+  _state = state
   const {smallTeamsExpanded} = routeState
   const {
     bigTeamsBadgeCount,
@@ -297,25 +300,54 @@ const findNextConvo = (rows: I.List<any>, selected, direction) => {
   return r && r.conversationIDKey
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
-  ...stateProps,
-  ...dispatchProps,
-  onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
-  onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
-  smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...ownProps,
+    ...stateProps,
+    ...dispatchProps,
+    onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
+    onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
+    smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
+  }
+}
 
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
+// export default compose(
+// withState('filterFocusCount', 'setFilterFocusCount', 0),
+// withHandlers({
+// focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
+// }),
+// pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+// lifecycle({
+// componentDidMount: function() {
+// throttleHelper(() => {
+// this.props.loadInbox()
+// })
+// },
+// })
+// )(Inbox)
+
+const TEMPInbox = (props: any) => <div>{JSON.stringify(props)}{props.children}</div>
+
+const TEMPmapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
+  return {
+    versions: state.entities.getIn(['inboxVersion'], I.Map()),
+  }
+}
+
+const TEMPmergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...ownProps,
+    ...stateProps,
+    ...dispatchProps,
+  }
+}
+
 export default compose(
-  withState('filterFocusCount', 'setFilterFocusCount', 0),
-  withHandlers({
-    focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
-  }),
-  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  pausableConnect(TEMPmapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {
@@ -323,4 +355,4 @@ export default compose(
       })
     },
   })
-)(Inbox)
+)(TEMPInbox)

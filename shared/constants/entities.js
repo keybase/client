@@ -34,6 +34,8 @@ export type State = KBRecord<{
   messages: Map<ChatConstants.MessageKey, ChatConstants.Message>,
   conversationMessages: Map<ChatConstants.ConversationIDKey, KBOrderedSet<ChatConstants.MessageKey>>,
   deletedIDs: Map<ChatConstants.ConversationIDKey, Set<ChatConstants.MessageID>>,
+  inboxVersion: Map<ChatConstants.ConversationIDKey, number>,
+  inbox: Map<ChatConstants.ConversationIDKey, ChatConstants.InboxState>,
   messageUpdates: Map<
     ChatConstants.ConversationIDKey,
     Map<ChatConstants.MessageID, KBOrderedSet<ChatConstants.MessageKey>>
@@ -58,6 +60,8 @@ const StateRecord = Record({
   conversationMessages: Map(),
   deletedIDs: Map(),
   messageUpdates: Map(),
+  inboxVersion: Map(),
+  inbox: Map(),
   convIDToSnippet: Map(),
   attachmentSavedPath: Map(),
   attachmentDownloadedPath: Map(),

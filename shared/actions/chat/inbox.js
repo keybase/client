@@ -20,6 +20,7 @@ import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 import HiddenString from '../../util/hidden-string'
+import {replaceEntity} from '../entities'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -130,6 +131,15 @@ function* onInboxStale(): SagaGenerator<any, any> {
     const jsonInbox: string = incoming['chat.1.chatUi.chatInboxUnverified'].params.inbox
     const inbox: ChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield call(_updateFinalized, inbox)
+
+    const idToVersion = Map(
+      (inbox.items || []).reduce((map, c) => {
+        map[c.convID] = c.version
+        return map
+      })
+    )
+
+    yield put(replaceEntity(['inboxVersion'], idToVersion))
 
     const author = yield select(usernameSelector)
     const conversations: List<Constants.InboxState> = List(
