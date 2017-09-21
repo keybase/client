@@ -21,7 +21,7 @@ type ServerResponseRepo struct {
 	EncryptionVersion     int                           `json:"encryption_version"`
 	Nonce                 string                        `json:"nonce"`
 	KeyGeneration         keybase1.PerTeamKeyGeneration `json:"key_generation"`
-	LastModifyingUsername string                        `json:"last_writer_username"`
+	LastModifyingUID      keybase1.UID                  `json:"last_writer_uid"`
 	LastModifyingDeviceID keybase1.DeviceID             `json:"last_writer_device_id"`
 }
 
@@ -183,17 +183,20 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			return nil, fmt.Errorf("unrecognized variant of GitLocalMetadataVersioned: %#v", version)
 		}
 
-		// Load UPAKs to get the device name.
-		upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{Name: responseRepo.LastModifyingUsername})
+		// Load UPAKs to get the last writer username and device name.
+		lastWriterUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{UID: responseRepo.LastModifyingUID})
+		if err != nil {
+			return nil, err
+		}
 		var deviceName string
-		for _, deviceKey := range upak.Current.DeviceKeys {
+		for _, deviceKey := range lastWriterUPAK.Current.DeviceKeys {
 			if deviceKey.DeviceID.Eq(responseRepo.LastModifyingDeviceID) {
 				deviceName = deviceKey.DeviceDescription
 				break
 			}
 		}
 		if deviceName == "" {
-			return nil, fmt.Errorf("can't find device name for %s's device ID %s", upak.Current.Username, responseRepo.LastModifyingDeviceID)
+			return nil, fmt.Errorf("can't find device name for %s's device ID %s", lastWriterUPAK.Current.Username, responseRepo.LastModifyingDeviceID)
 		}
 
 		resultList = append(resultList, keybase1.GitRepoResult{
@@ -205,7 +208,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			ServerMetadata: keybase1.GitServerMetadata{
 				Ctime: keybase1.ToTime(responseRepo.CTime),
 				Mtime: keybase1.ToTime(responseRepo.MTime),
-				LastModifyingUsername:   responseRepo.LastModifyingUsername,
+				LastModifyingUsername:   lastWriterUPAK.Current.Username,
 				LastModifyingDeviceID:   responseRepo.LastModifyingDeviceID,
 				LastModifyingDeviceName: deviceName,
 			},
