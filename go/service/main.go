@@ -264,10 +264,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	if err = d.setupTeams(); err != nil {
 		return err
 	}
-	if err = d.setupPVL(); err != nil {
-		return err
-	}
-	return nil
+	return d.setupPVL()
 }
 
 func (d *Service) setupTeams() error {
@@ -663,11 +660,7 @@ func (d *Service) gregordConnect() (err error) {
 	}
 
 	// Connect to gregord
-	if err = d.gregor.Connect(uri); err != nil {
-		return err
-	}
-
-	return nil
+	return d.gregor.Connect(uri)
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and
@@ -684,10 +677,7 @@ func (d *Service) GetExclusiveLockWithoutAutoUnlock() error {
 	if _, err := d.ensureRuntimeDir(); err != nil {
 		return err
 	}
-	if err := d.lockPIDFile(); err != nil {
-		return err
-	}
-	return nil
+	return d.lockPIDFile()
 }
 
 // GetExclusiveLock grabs the exclusive lock over running keybase

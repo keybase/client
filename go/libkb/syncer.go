@@ -71,9 +71,5 @@ func RunSyncerCached(s Syncer, uid keybase1.UID) (err error) {
 		s.G().Log.Debug("- SyncerCached.Load(%s) -> %s", uid, ErrToOk(err))
 	}()
 
-	if err = s.loadFromStorage(uid); err != nil {
-		return err
-	}
-
-	return nil
+	return s.loadFromStorage(uid)
 }
