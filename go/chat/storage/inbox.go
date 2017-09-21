@@ -1108,8 +1108,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	for _, conv := range convs {
 		if removedMap[conv.GetConvID().String()] {
 			conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
+			conv.Metadata.Version = vers.ToConvVers()
 		}
-		conv.Metadata.Version = vers.ToConvVers()
 		ibox.Conversations = append(ibox.Conversations, conv)
 	}
 	sort.Sort(ByDatabaseOrder(ibox.Conversations))
@@ -1122,6 +1122,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	for _, oj := range othersJoined {
 		if cp, ok := convMap[oj.ConvID.String()]; ok {
 			cp.Metadata.AllList = append(cp.Metadata.AllList, oj.Uid)
+			cp.Metadata.Version = vers.ToConvVers()
 		}
 	}
 	for _, or := range othersRemoved {
@@ -1133,6 +1134,7 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 				}
 			}
 			cp.Metadata.AllList = newAllList
+			cp.Metadata.Version = vers.ToConvVers()
 		}
 	}
 
