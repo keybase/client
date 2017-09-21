@@ -42,17 +42,17 @@ dependencies:
     - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
     # Install Yarn
   cache_directories:
+    - $HOME/client/shared/node_modules
     - /usr/local/android-sdk-linux/tools
+    - /usr/local/android-sdk-linux/ndk_bundle
     - /usr/local/android-sdk-linux/build-tools/23.0.2
     - /usr/local/android-sdk-linux/extras/android/m2repository
-    # - android-ndk-r11c
   override:
     # TODO(mm): use the emulator when we figure out a consistent way of getting this working
     # - emulator -avd circleci-android22 -no-audio -no-window:
     #    background: true
     #    parallel: true
     # Maybe we dont need this with yarn - rm -rf $HOME/client/react-native/node_modules # Clear node_modules cache, it appears to be getting out of sync
-    - yarn cache clean
     - yarn install --pure-lockfile --ignore-engines
     - yarn global add react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
