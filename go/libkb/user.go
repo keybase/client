@@ -51,7 +51,7 @@ func NewUserThin(name string, uid keybase1.UID) *User {
 	return &User{name: name, id: uid}
 }
 
-func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
+func newUser(g *GlobalContext, o *jsonw.Wrapper, fromStorage bool) (*User, error) {
 	uid, err := GetUID(o.AtKey("id"))
 	if err != nil {
 		return nil, fmt.Errorf("user object lacks an ID: %s", err)
@@ -60,9 +60,17 @@ func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 	if err != nil {
 		return nil, fmt.Errorf("user object for %s lacks a name", uid)
 	}
+
+	// This field was a late addition, so cached objects might not have it.
+	// If we load from storage and it wasn't there, then it's safe to assume
+	// it's a 0. All server replies should have this field though.
 	status, err := o.AtPath("basics.status").GetInt()
 	if err != nil {
-		return nil, fmt.Errorf("user object for %s lacks a status field", uid)
+		if fromStorage {
+			status = SCOk
+		} else {
+			return nil, fmt.Errorf("user object for %s lacks a status field", uid)
+		}
 	}
 
 	kf, err := ParseKeyFamily(g, o.AtKey("public_keys"))
@@ -84,7 +92,7 @@ func NewUser(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 }
 
 func NewUserFromServer(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
-	u, e := NewUser(g, o)
+	u, e := newUser(g, o, false)
 	if e == nil {
 		u.dirty = true
 	}
@@ -92,7 +100,7 @@ func NewUserFromServer(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
 }
 
 func NewUserFromLocalStorage(g *GlobalContext, o *jsonw.Wrapper) (*User, error) {
-	u, err := NewUser(g, o)
+	u, err := newUser(g, o, true)
 	return u, err
 }
 

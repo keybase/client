@@ -25,6 +25,20 @@
       ],
       "response": "RepoID",
       "doc": "* createRepo creates a bare empty repo on KBFS under the given name in the given TLF.\n   * It returns the ID of the repo created."
+    },
+    "deleteRepo": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "name",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": null,
+      "doc": "* deleteRepo deletes repo on KBFS under the given name in the given TLF."
     }
   },
   "namespace": "keybase.1"

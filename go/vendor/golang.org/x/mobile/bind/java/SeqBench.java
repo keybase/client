@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 
-import go.benchmark.*;
+import benchmark.*;
 
 public class SeqBench extends InstrumentationTestCase {
 
@@ -22,7 +22,7 @@ public class SeqBench extends InstrumentationTestCase {
     }
   }
 
-  private static class Benchmarks implements go.benchmark.Benchmarks {
+  private static class Benchmarks implements benchmark.Benchmarks {
     private static Map<String, Runnable> benchmarks;
     private static ExecutorService executor = Executors.newSingleThreadExecutor();
 

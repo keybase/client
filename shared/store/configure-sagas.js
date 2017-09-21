@@ -9,6 +9,7 @@ import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login/saga'
 import notificationsSaga from '../actions/notifications'
 import pgpSaga from '../actions/pgp'
+import gitSaga from '../actions/git'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import routeSaga from '../actions/route-tree'
@@ -42,6 +43,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(settingsSaga)
   yield fork(appStateSaga)
   yield fork(teamsSaga)
+  yield fork(gitSaga)
 }
 
 let middleWare

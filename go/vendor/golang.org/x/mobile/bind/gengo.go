@@ -13,7 +13,22 @@ import (
 
 type goGen struct {
 	*Generator
-	imports map[string]struct{}
+
+	// imports is the list of imports, in the form
+	// "the/package/path"
+	//
+	// or
+	//
+	// name "the/package/path"
+	//
+	// in case of duplicates.
+	imports []string
+	// The set of taken import names.
+	importNames map[string]struct{}
+	// importMap is a map from packages to their names. The name of a package is the last
+	// segment of its path, with duplicates resolved by appending a underscore and a unique
+	// number.
+	importMap map[*types.Package]string
 }
 
 const (
@@ -40,7 +55,7 @@ func (g *goGen) genFuncBody(o *types.Func, selectorLHS string) {
 	params := sig.Params()
 	for i := 0; i < params.Len(); i++ {
 		p := params.At(i)
-		pn := "param_" + paramName(params, i)
+		pn := "param_" + g.paramName(params, i)
 		g.genRead("_"+pn, pn, p.Type(), modeTransient)
 	}
 
@@ -64,7 +79,7 @@ func (g *goGen) genFuncBody(o *types.Func, selectorLHS string) {
 		if i > 0 {
 			g.Printf(", ")
 		}
-		g.Printf("_param_%s", paramName(params, i))
+		g.Printf("_param_%s", g.paramName(params, i))
 	}
 	g.Printf(")\n")
 
@@ -152,7 +167,7 @@ func (g *goGen) genFuncSignature(o *types.Func, objName string) {
 			g.Printf(", ")
 		}
 		p := params.At(i)
-		g.Printf("param_%s C.%s", paramName(params, i), g.cgoType(p.Type()))
+		g.Printf("param_%s C.%s", g.paramName(params, i), g.cgoType(p.Type()))
 	}
 	g.Printf(") ")
 	res := sig.Results()
@@ -167,6 +182,10 @@ func (g *goGen) genFuncSignature(o *types.Func, objName string) {
 		g.Printf(") ")
 	}
 	g.Printf("{\n")
+}
+
+func (g *goGen) paramName(params *types.Tuple, pos int) string {
+	return basicParamName(params, pos)
 }
 
 func (g *goGen) genFunc(o *types.Func) {
@@ -223,6 +242,13 @@ func (g *goGen) genStruct(obj *types.TypeName, T *types.Struct) {
 		g.Outdent()
 		g.Printf("}\n\n")
 	}
+	// Export constructor for ObjC and Java default no-arg constructors
+	g.Printf("//export new_%s_%s\n", g.Pkg.Name(), obj.Name())
+	g.Printf("func new_%s_%s() C.int32_t {\n", g.Pkg.Name(), obj.Name())
+	g.Indent()
+	g.Printf("return C.int32_t(_seq.ToRefNum(new(%s%s)))\n", g.pkgName(g.Pkg), obj.Name())
+	g.Outdent()
+	g.Printf("}\n")
 }
 
 func (g *goGen) genVar(o *types.Var) {
@@ -307,7 +333,7 @@ func (g *goGen) genInterface(obj *types.TypeName) {
 			if i > 0 {
 				g.Printf(", ")
 			}
-			g.Printf("param_%s %s", paramName(params, i), g.typeString(params.At(i).Type()))
+			g.Printf("param_%s %s", g.paramName(params, i), g.typeString(params.At(i).Type()))
 		}
 		g.Printf(") ")
 
@@ -320,7 +346,7 @@ func (g *goGen) genInterface(obj *types.TypeName) {
 		g.Indent()
 
 		for i := 0; i < params.Len(); i++ {
-			pn := "param_" + paramName(params, i)
+			pn := "param_" + g.paramName(params, i)
 			g.genWrite("_"+pn, pn, params.At(i).Type(), modeTransient)
 		}
 
@@ -329,7 +355,7 @@ func (g *goGen) genInterface(obj *types.TypeName) {
 		}
 		g.Printf("C.cproxy%s_%s_%s(C.int32_t(p.Bind_proxy_refnum__())", g.pkgPrefix, obj.Name(), m.Name())
 		for i := 0; i < params.Len(); i++ {
-			g.Printf(", _param_%s", paramName(params, i))
+			g.Printf(", _param_%s", g.paramName(params, i))
 		}
 		g.Printf(")\n")
 		var retName string
@@ -387,8 +413,10 @@ func (g *goGen) genRead(toVar, fromVar string, typ types.Type, mode varMode) {
 				return
 			}
 			g.Printf("// Must be a Go object\n")
-			g.Printf("%s_ref := _seq.FromRefNum(int32(%s))\n", toVar, fromVar)
-			g.Printf("%s := %s_ref.Get().(*%s%s)\n", toVar, toVar, g.pkgName(oPkg), o.Name())
+			g.Printf("var %s *%s%s\n", toVar, g.pkgName(oPkg), o.Name())
+			g.Printf("if %s_ref := _seq.FromRefNum(int32(%s)); %s_ref != nil {\n", toVar, fromVar, toVar)
+			g.Printf("  %s = %s_ref.Get().(*%s%s)\n", toVar, toVar, g.pkgName(oPkg), o.Name())
+			g.Printf("}\n")
 		default:
 			g.errorf("unsupported pointer type %s", t)
 		}
@@ -399,9 +427,11 @@ func (g *goGen) genRead(toVar, fromVar string, typ types.Type, mode varMode) {
 			if iface, ok := t.Underlying().(*types.Interface); ok {
 				hasProxy = makeIfaceSummary(iface).implementable
 			}
+			pkgFirst := typePkgFirstElem(t)
+			isWrapper := pkgFirst == "Java" || pkgFirst == "ObjC"
 			o := t.Obj()
 			oPkg := o.Pkg()
-			if !isErrorType(t) && !g.validPkg(oPkg) {
+			if !isErrorType(t) && !g.validPkg(oPkg) && !isWrapper {
 				g.errorf("type %s is defined in %s, which is not bound", t, oPkg)
 				return
 			}
@@ -412,7 +442,18 @@ func (g *goGen) genRead(toVar, fromVar string, typ types.Type, mode varMode) {
 			g.Printf("  	 %s = %s_ref.Get().(%s%s)\n", toVar, toVar, g.pkgName(oPkg), o.Name())
 			if hasProxy {
 				g.Printf("	} else { // foreign object \n")
-				g.Printf("	   %s = (*proxy%s_%s)(%s_ref)\n", toVar, pkgPrefix(oPkg), o.Name(), toVar)
+				if isWrapper {
+					var clsName string
+					switch pkgFirst {
+					case "Java":
+						clsName = flattenName(classNameFor(t))
+					case "ObjC":
+						clsName = t.Obj().Name()
+					}
+					g.Printf("	   %s = (*proxy_class_%s)(%s_ref)\n", toVar, clsName, toVar)
+				} else {
+					g.Printf("	   %s = (*proxy%s_%s)(%s_ref)\n", toVar, pkgPrefix(oPkg), o.Name(), toVar)
+				}
 			}
 			g.Printf("	}\n")
 			g.Printf("}\n")
@@ -434,7 +475,7 @@ func (g *goGen) typeString(typ types.Type) string {
 			return types.TypeString(typ, types.RelativeTo(pkg))
 		}
 		oPkg := obj.Pkg()
-		if !g.validPkg(oPkg) {
+		if !g.validPkg(oPkg) && !isWrapperType(t) {
 			g.errorf("type %s is defined in %s, which is not bound", t, oPkg)
 			return "TODO"
 		}
@@ -473,15 +514,16 @@ func (g *goGen) genPreamble() {
 	g.Printf("import (\n")
 	g.Indent()
 	g.Printf("_seq \"golang.org/x/mobile/bind/seq\"\n")
-	for path := range g.imports {
-		g.Printf("%q\n", path)
+	for _, imp := range g.imports {
+		g.Printf("%s\n", imp)
 	}
 	g.Outdent()
 	g.Printf(")\n\n")
 }
 
 func (g *goGen) gen() error {
-	g.imports = make(map[string]struct{})
+	g.importNames = make(map[string]struct{})
+	g.importMap = make(map[*types.Package]string)
 
 	// Switch to a temporary buffer so the preamble can be
 	// written last.
@@ -521,6 +563,28 @@ func (g *goGen) pkgName(pkg *types.Package) string {
 	if pkg == nil {
 		return ""
 	}
-	g.imports[pkg.Path()] = struct{}{}
-	return pkg.Name() + "."
+	if name, exists := g.importMap[pkg]; exists {
+		return name + "."
+	}
+	i := 0
+	pname := pkg.Name()
+	name := pkg.Name()
+	for {
+		if _, exists := g.importNames[name]; !exists {
+			g.importNames[name] = struct{}{}
+			g.importMap[pkg] = name
+			var imp string
+			if pname != name {
+				imp = fmt.Sprintf("%s %q", name, pkg.Path())
+			} else {
+				imp = fmt.Sprintf("%q", pkg.Path())
+			}
+			g.imports = append(g.imports, imp)
+			break
+		}
+		i++
+		name = fmt.Sprintf("%s_%d", pname, i)
+	}
+	g.importMap[pkg] = name
+	return name + "."
 }

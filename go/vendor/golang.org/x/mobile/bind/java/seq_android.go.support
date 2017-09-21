@@ -8,6 +8,7 @@ package gomobile_bind
 // generated gomobile_bind package and compiled along with the
 // generated binding files.
 
+//#cgo CFLAGS: -Werror
 //#cgo LDFLAGS: -llog
 //#include <jni.h>
 //#include <stdint.h>

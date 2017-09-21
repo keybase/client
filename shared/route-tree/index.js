@@ -8,9 +8,9 @@ type LeafTagsParams = {
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
   modal: boolean,
   layerOnTop: boolean,
-  underStatusBar: boolean,
-  showStatusBarDarkContent: boolean,
-  hideStatusBar: boolean,
+  underStatusBar: boolean, // mobile only
+  showStatusBarDarkContent: boolean, // mobile only
+  hideStatusBar: boolean, // mobile only
   fullscreen: boolean,
   keepKeyboardOnLeave: boolean,
 }

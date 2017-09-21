@@ -1,6 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Text, Icon, Box, NativeDimensions, NativeFlatList} from '../../common-adapters/index.native'
+import {
+  Text,
+  Icon,
+  Box,
+  NativeDimensions,
+  NativeFlatList,
+  ErrorBoundary,
+} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
 import ChatFilterRow from './row/chat-filter-row'
@@ -151,39 +158,41 @@ class Inbox extends React.PureComponent<Props, State> {
   // TODO maybe we can put getItemLayout back if we do a bunch of pre-calc. The offset could be figured out based on index if we're very careful
   render() {
     return (
-      <Box style={boxStyle}>
-        <NativeFlatList
-          ListHeaderComponent={
-            <ChatFilterRow
-              isLoading={this.props.isLoading}
-              filter={this.props.filter}
-              onNewChat={this.props.onNewChat}
-              onSetFilter={this.props.onSetFilter}
-            />
-          }
-          loading={this.props.isLoading /* force loading to update */}
-          data={this.props.rows.toArray()}
-          isActiveRoute={this.props.isActiveRoute}
-          keyExtractor={this._keyExtractor}
-          renderItem={this._renderItem}
-          ref={this._setRef}
-          onViewableItemsChanged={this._onViewChanged}
-          initialNumToRender={this._maxVisible}
-          windowSize={this._maxVisible}
-        />
-        {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
-        {this.state.showFloating &&
-          this.props.showSmallTeamsExpandDivider &&
-          <FloatingDivider
-            toggle={this.props.toggleSmallTeamsExpanded}
-            badgeCount={this.props.bigTeamsBadgeCount}
-          />}
-        {/*
+      <ErrorBoundary>
+        <Box style={boxStyle}>
+          <NativeFlatList
+            ListHeaderComponent={
+              <ChatFilterRow
+                isLoading={this.props.isLoading}
+                filter={this.props.filter}
+                onNewChat={this.props.onNewChat}
+                onSetFilter={this.props.onSetFilter}
+              />
+            }
+            loading={this.props.isLoading /* force loading to update */}
+            data={this.props.rows.toArray()}
+            isActiveRoute={this.props.isActiveRoute}
+            keyExtractor={this._keyExtractor}
+            renderItem={this._renderItem}
+            ref={this._setRef}
+            onViewableItemsChanged={this._onViewChanged}
+            initialNumToRender={this._maxVisible}
+            windowSize={this._maxVisible}
+          />
+          {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
+          {this.state.showFloating &&
+            this.props.showSmallTeamsExpandDivider &&
+            <FloatingDivider
+              toggle={this.props.toggleSmallTeamsExpanded}
+              badgeCount={this.props.bigTeamsBadgeCount}
+            />}
+          {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&
               <BuildATeam />
               */}
-      </Box>
+        </Box>
+      </ErrorBoundary>
     )
   }
 }

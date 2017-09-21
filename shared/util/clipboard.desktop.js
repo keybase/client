@@ -8,6 +8,10 @@ export type ClipboardData = {
   title: string,
 }
 
+export function copyToClipboard(data: string) {
+  clipboard.writeText(data)
+}
+
 function readImage(): Promise<?ClipboardData> {
   return new Promise((resolve, reject) => {
     tmpRandFile('.png').then(path => {

@@ -3,6 +3,7 @@ import {RouteDefNode} from '../route-tree'
 import chatRoutes from '../chat/routes'
 import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
+import gitRoutes from '../git/routes'
 import foldersRoutes from '../folders/routes'
 import profileRoutes from '../profile/routes'
 import settingsRoutes from '../settings/routes'
@@ -18,12 +19,14 @@ import {
   profileTab,
   settingsTab,
   teamsTab,
+  gitTab,
 } from '../constants/tabs'
 
 const routeTree = new RouteDefNode({
   children: {
     [chatTab]: chatRoutes,
     [folderTab]: foldersRoutes,
+    [gitTab]: gitRoutes,
     [loginTab]: loginRoutes,
     [peopleTab]: profileRoutes,
     [profileTab]: profileRoutes,

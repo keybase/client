@@ -53,7 +53,7 @@ const Help = isMobile
           <Text
             type="Terminal"
             backgroundMode="Terminal"
-            style={{display: 'block'}}
+            style={{display: 'block', ...globalStyles.selectable}}
           >{`keybase team add-member ${name} --user={user} --role=writer`}</Text>
           <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
             # Remove a member
@@ -61,11 +61,14 @@ const Help = isMobile
           <Text
             type="Terminal"
             backgroundMode="Terminal"
+            style={globalStyles.selectable}
           >{`keybase team remove-member ${name} --user={user}`}</Text>
           <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
             # More commands
           </Text>
-          <Text type="Terminal" backgroundMode="Terminal">keybase team --help</Text>
+          <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
+            keybase team --help
+          </Text>
         </Box>
       </Box>
     )
@@ -95,12 +98,11 @@ class Team extends React.PureComponent<Props> {
                 type="iconfont-crown"
                 style={{
                   color: globalColors.black_40,
-                  fontSize: 12,
-                  marginLeft: globalMargins.xtiny,
+                  fontSize: isMobile ? 16 : 12,
                   marginRight: globalMargins.xtiny,
                 }}
               />}
-            <Text type="Body">{typeToLabel[item.type]}</Text>
+            <Text type="BodySmall">{typeToLabel[item.type]}</Text>
           </Box>
         </Box>
       </Box>
@@ -110,7 +112,13 @@ class Team extends React.PureComponent<Props> {
   render() {
     const {name, members, setShowMenu, onLeaveTeam, onManageChat} = this.props
     const tabs = [
-      <Text key="members" type="BodySmallSemibold" style={{color: globalColors.black_75, padding: 10}}>
+      <Text
+        key="members"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
         MEMBERS ({members.length})
       </Text>,
     ]
@@ -120,17 +128,12 @@ class Team extends React.PureComponent<Props> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
         <Avatar isTeam={true} teamname={name} size={64} />
-        <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+        <Text type="Header" style={{marginTop: globalMargins.tiny}}>
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-        <Tabs
-          tabs={tabs}
-          selected={selectedTab}
-          onSelect={() => {}}
-          style={{alignSelf: 'flex-start', height: globalMargins.large}}
-        />
+        <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />
         <List
           keyProperty="username"
           items={members}
@@ -141,11 +144,11 @@ class Team extends React.PureComponent<Props> {
         {this.props.showMenu &&
           <PopupMenu
             items={[
-              {onClick: onManageChat, title: 'Manage Chat Channels'},
-              {onClick: onLeaveTeam, title: 'Leave Team', danger: true},
+              {onClick: onManageChat, title: 'Manage chat channels'},
+              {onClick: onLeaveTeam, title: 'Leave team', danger: true},
             ]}
             onHidden={() => setShowMenu(false)}
-            style={{position: 'absolute', right: 20, top: 20}}
+            style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
           />}
       </Box>
     )
@@ -161,23 +164,27 @@ type CustomProps = {
 }
 
 const CustomComponent = ({onOpenFolder, onManageChat, onShowMenu}: CustomProps) => (
-  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 0, top: 16}}>
+  <Box style={{...globalStyles.flexBoxRow, position: 'absolute', right: 0}}>
     {!isMobile &&
       <Icon
         onClick={onManageChat}
         type="iconfont-chat"
-        style={{fontSize: 22, marginRight: globalMargins.tiny}}
+        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
       />}
     {!isMobile &&
       <Icon
         onClick={onOpenFolder}
         type="iconfont-folder-private"
-        style={{fontSize: 22, marginRight: globalMargins.tiny}}
+        style={{fontSize: isMobile ? 20 : 16, marginRight: globalMargins.tiny}}
       />}
     <Icon
       onClick={onShowMenu}
       type="iconfont-ellipsis"
-      style={{fontSize: 22, marginRight: globalMargins.tiny}}
+      style={{
+        fontSize: isMobile ? 20 : 16,
+        marginRight: isMobile ? globalMargins.xtiny : globalMargins.tiny,
+        padding: isMobile ? globalMargins.xtiny : 0,
+      }}
     />
   </Box>
 )

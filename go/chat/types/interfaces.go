@@ -125,6 +125,7 @@ type RetryDescription interface {
 	Fix(ctx context.Context, uid gregor1.UID) error
 	SendStale(ctx context.Context, uid gregor1.UID)
 	String() string
+	RekeyFixable(ctx context.Context, tlfID chat1.TLFID) bool
 }
 
 type FetchRetrier interface {
@@ -134,6 +135,8 @@ type FetchRetrier interface {
 	Failure(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
 	Success(ctx context.Context, uid gregor1.UID, desc RetryDescription) error
 	Force(ctx context.Context)
+	Rekey(ctx context.Context, name string, membersType chat1.ConversationMembersType,
+		public bool)
 }
 
 type ConvLoader interface {

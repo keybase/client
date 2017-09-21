@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../common-adapters'
+import {Box, ErrorBoundary} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import TabBar from './tab-bar/container'
@@ -28,10 +28,12 @@ function Nav(props: Props) {
     <Box style={stylesTabsContainer}>
       {props.routeSelected !== loginTab &&
         <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />}
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
-        {layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))}
-      </Box>
+      <ErrorBoundary>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
+          {layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))}
+        </Box>
+      </ErrorBoundary>
       <div id="popupContainer" />
       {![chatTab, loginTab].includes(props.routeSelected) &&
         <Offline reachable={props.reachable} appFocused={props.appFocused} />}

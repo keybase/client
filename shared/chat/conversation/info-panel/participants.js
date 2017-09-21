@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, Usernames, Divider} from '../../../common-adapters'
+import {Box, ClickableBox, Avatar, Text, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
@@ -17,7 +17,7 @@ type Props = {
 
 const Participants = ({participants, onShowProfile}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, paddingTop: globalMargins.tiny}}>
-    {participants.map((info, index, arr) => {
+    {participants.map(info => {
       const {username, following, fullname, broken, isYou} = info
       return (
         <ClickableBox key={username} onClick={() => onShowProfile(username)}>
@@ -41,7 +41,6 @@ const Participants = ({participants, onShowProfile}: Props) => (
                 {fullname}
               </Text>
             </Box>
-            {index < arr.length - 1 ? <Divider style={{marginLeft: 48}} /> : null}
           </Box>
         </ClickableBox>
       )
