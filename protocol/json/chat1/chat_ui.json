@@ -73,6 +73,10 @@
         {
           "type": "gregor1.Time",
           "name": "time"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
         }
       ]
     },
@@ -168,6 +172,10 @@
             "ConversationCreatorInfoLocal"
           ],
           "name": "creatorInfo"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
         },
         {
           "type": [

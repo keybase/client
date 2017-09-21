@@ -286,6 +286,7 @@ export const InboxStateRecord = Record({
   name: '',
   visibility: CommonTLFVisibility.private,
   teamType: ChatTypes.CommonTeamType.none,
+  version: 0,
 })
 
 export type InboxState = KBRecord<{
@@ -302,6 +303,7 @@ export type InboxState = KBRecord<{
   status: ConversationStateEnum,
   time: number,
   teamType: ChatTypes.TeamType,
+  version: ChatTypes.ConversationVers,
 }>
 
 export type SupersedeInfo = {

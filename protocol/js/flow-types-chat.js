@@ -969,6 +969,7 @@ export type ConversationInfoLocal = {
   membersType: ConversationMembersType,
   teamType: TeamType,
   existence: ConversationExistence,
+  version: ConversationVers,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
@@ -1011,6 +1012,7 @@ export type ConversationMetadata = {
   membersType: ConversationMembersType,
   teamType: TeamType,
   existence: ConversationExistence,
+  version: ConversationVers,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1046,6 +1048,8 @@ export type ConversationStatus =
   | 3 // BLOCKED_3
   | 4 // MUTED_4
   | 5 // REPORTED_5
+
+export type ConversationVers = uint64
 
 export type DeleteConversationLocalRes = {
   offline: boolean,
@@ -1313,6 +1317,7 @@ export type InboxUIItem = {
   time: gregor1.Time,
   notifications?: ?ConversationNotificationInfo,
   creatorInfo?: ?ConversationCreatorInfoLocal,
+  version: ConversationVers,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1995,6 +2000,7 @@ export type UnverifiedInboxUIItem = {
   teamType: TeamType,
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
+  version: ConversationVers,
 }
 
 export type UnverifiedInboxUIItems = {

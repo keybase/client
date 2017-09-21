@@ -601,6 +601,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if !alreadyIn {
 		// Send a message to the channel after joining.
 		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
 		irl, err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
 		if err != nil {
 			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
