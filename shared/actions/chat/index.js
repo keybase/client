@@ -1238,8 +1238,8 @@ function* _updateTempSearchConversation(
   yield all(actionsToPut)
 }
 
-function* _exitSearch({payload: {forSelectConversation}}: Constants.ExitSearch) {
-  const inboxSearch = forSelectConversation ? null : yield select(inboxSearchSelector)
+function* _exitSearch({payload: {skipSelectPreviousConversation}}: Constants.ExitSearch) {
+  const inboxSearch = skipSelectPreviousConversation ? null : yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.removeTempPendingConversations())

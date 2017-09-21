@@ -113,9 +113,9 @@ const loadAttachmentPreviewTransformer = ({
   type,
 })
 
-function exitSearch(forSelectConversation: boolean): Constants.ExitSearch {
+function exitSearch(skipSelectPreviousConversation: boolean): Constants.ExitSearch {
   return {
-    payload: {forSelectConversation},
+    payload: {skipSelectPreviousConversation},
     type: 'chat:exitSearch',
   }
 }
