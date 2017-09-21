@@ -34,8 +34,8 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {
-      flushLogFile()
       dumpLoggers()
+      flushLogFile()
       response.result()
     },
   }

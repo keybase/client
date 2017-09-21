@@ -1,7 +1,5 @@
 // @flow
 
-var logFd
-
 const fileDoesNotExist = __STORYBOOK__
   ? _ => true
   : err => {
@@ -54,21 +52,17 @@ const setupFileWritable = __STORYBOOK__
             fs.unlinkSync(logFileOld) // Remove old wrapped file
           }
           fs.renameSync(logFile, logFileOld)
-          logFd = fs.openSync(logFile, 'a+')
-          return fs.createWriteStream('', {fd: logFd})
+          return fs.openSync(logFile, 'a+')
         }
       } catch (e) {
         if (!fileDoesNotExist(e)) {
           console.error('Error checking log file size:', e)
         }
-        logFd = fs.openSync(logFile, 'a+')
-        return fs.createWriteStream('', {fd: logFd})
+        return fs.openSync(logFile, 'a+')
       }
 
       // Append to existing log
-      logFd = fs.openSync(logFile, 'a')
-      console.log('Using logFd = ', logFd)
-      return fs.createWriteStream('', {fd: logFd})
+      return fs.openSync(logFile, 'a')
     }
 
 type Log = (...args: Array<any>) => void
@@ -87,6 +81,7 @@ function tee(...writeFns) {
 const setupTarget = __STORYBOOK__
   ? () => {}
   : () => {
+      const fs = require('fs')
       const {forwardLogs} = require('../local-debug')
       if (!forwardLogs) {
         return
@@ -95,7 +90,9 @@ const setupTarget = __STORYBOOK__
       const util = require('util')
       const {isWindows} = require('../constants/platform.desktop')
 
-      const fileWritable = setupFileWritable()
+      const logFd = setupFileWritable()
+      console.log('Using logFd = ', logFd)
+      const fileWritable = logFd ? fs.createWriteStream('', {fd: logFd}) : null
 
       const stdOutWriter = t => {
         !isWindows && process.stdout.write(t)
@@ -129,6 +126,11 @@ const setupTarget = __STORYBOOK__
           override(...args)
         })
       })
+      ipcMain.on('console.flushLogFile', (event, ...args) => {
+        console.log('Flushing log file', logFd)
+        // $FlowIssue flow doesn't know about this function for some reason
+        logFd && fs.fdatasyncSync(logFd)
+      })
     }
 
 const setupSource = __STORYBOOK__
@@ -142,7 +144,7 @@ const setupSource = __STORYBOOK__
       const {ipcRenderer} = require('electron')
       const util = require('util')
 
-      const types = [('log', 'warn', 'error')]
+      const types = ['log', 'warn', 'error']
       types.forEach(key => {
         if (__DEV__ && typeof window !== 'undefined') {
           window.console[`${key}_original`] = window.console[key]
@@ -167,9 +169,8 @@ const setupSource = __STORYBOOK__
     }
 
 function flushLogFile() {
-  const fs = require('fs')
-  console.log('Flushing log fd ', logFd)
-  logFd && fs.fdatasyncSync(logFd)
+  const {ipcRenderer} = require('electron')
+  ipcRenderer.send('console.flushLogFile')
 }
 
 export {setupSource, setupTarget, localLog, localWarn, localError, flushLogFile}
