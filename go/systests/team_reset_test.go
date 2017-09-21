@@ -58,6 +58,7 @@ func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper
 			return messages, err
 		}
 
+		u.ctx.t.Logf("readChatsWithError polling for KBFS")
 		time.Sleep(wait)
 		totalWait += wait
 	}
@@ -73,9 +74,7 @@ func readChats(team smuTeam, u *smuUser, nMessages int) {
 func readChatsWithDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper, nMessages int) {
 	messages, err := readChatsWithErrorAndDevice(team, u, dev, nMessages)
 	t := u.ctx.t
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, nMessages, len(messages))
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
