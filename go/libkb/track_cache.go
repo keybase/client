@@ -13,15 +13,20 @@ import (
 )
 
 type TrackCache struct {
-	cache *ramcache.Ramcache
+	Contextified
+	cache    *ramcache.Ramcache
+	shutdown chan struct{}
 }
 
-func NewTrackCache() *TrackCache {
+func NewTrackCache(g *GlobalContext) *TrackCache {
 	res := &TrackCache{
-		cache: ramcache.New(),
+		Contextified: NewContextified(g),
+		cache:        ramcache.New(),
+		shutdown:     make(chan struct{}),
 	}
 	res.cache.TTL = 1 * time.Hour
 	res.cache.MaxAge = 1 * time.Hour
+	go res.periodicLog()
 	return res
 }
 
@@ -58,4 +63,16 @@ func (c *TrackCache) Delete(key keybase1.TrackToken) error {
 
 func (c *TrackCache) Shutdown() {
 	c.cache.Shutdown()
+	close(c.shutdown)
+}
+
+func (c *TrackCache) periodicLog() {
+	for {
+		select {
+		case <-c.shutdown:
+			return
+		case <-time.After(time.Minute):
+			c.G().Log.Debug("~~~ TrackCache num items in memory cache: %d", c.cache.Count())
+		}
+	}
 }

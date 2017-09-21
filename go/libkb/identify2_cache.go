@@ -14,7 +14,9 @@ import (
 // Identify2Cache stores User objects in memory for a fixed amount of
 // time.
 type Identify2Cache struct {
-	cache *ramcache.Ramcache
+	cache    *ramcache.Ramcache
+	shutdown chan struct{}
+	Contextified
 }
 
 type Identify2Cacher interface {
@@ -32,12 +34,15 @@ type GetCacheDurationFunc func(keybase1.Identify2Res) time.Duration
 // NewIdentify2Cache creates a Identify2Cache and sets the object max age to
 // maxAge.  Once a user is inserted, after maxAge duration passes,
 // the user will be removed from the cache.
-func NewIdentify2Cache(maxAge time.Duration) *Identify2Cache {
+func NewIdentify2Cache(g *GlobalContext, maxAge time.Duration) *Identify2Cache {
 	res := &Identify2Cache{
-		cache: ramcache.New(),
+		Contextified: NewContextified(g),
+		cache:        ramcache.New(),
+		shutdown:     make(chan struct{}),
 	}
 	res.cache.MaxAge = maxAge
 	res.cache.TTL = maxAge
+	go res.periodicLog()
 	return res
 }
 
@@ -89,9 +94,21 @@ func (c *Identify2Cache) Delete(uid keybase1.UID) error {
 // Shutdown stops any goroutines in the cache.
 func (c *Identify2Cache) Shutdown() {
 	c.cache.Shutdown()
+	close(c.shutdown)
 }
 
 // DidFullUserLoad is a noop unless we're testing...
 func (c *Identify2Cache) DidFullUserLoad(_ keybase1.UID) {}
 
 func (c *Identify2Cache) UseDiskCache() bool { return true }
+
+func (c *Identify2Cache) periodicLog() {
+	for {
+		select {
+		case <-c.shutdown:
+			return
+		case <-time.After(time.Minute):
+			c.G().Log.Debug("~~~ Identify2Cache num items in memory cache: %d", c.cache.Count())
+		}
+	}
+}

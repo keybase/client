@@ -686,6 +686,6 @@ func (u *CachedUPAKLoader) purgeMemCache() {
 func (u *CachedUPAKLoader) periodicLog() {
 	for {
 		time.Sleep(time.Minute)
-		u.G().Log.Debug("^^^ CachedUPAKLoader num items in memory cache: %d", u.cache.Len())
+		u.G().Log.Debug("~~~ CachedUPAKLoader num items in memory cache: %d", u.cache.Len())
 	}
 }

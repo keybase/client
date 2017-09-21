@@ -393,10 +393,11 @@ type ResolveCacheStats struct {
 
 type Resolver struct {
 	Contextified
-	cache   *ramcache.Ramcache
-	Stats   ResolveCacheStats
-	NowFunc func() time.Time
-	locktab LockTable
+	cache    *ramcache.Ramcache
+	Stats    ResolveCacheStats
+	NowFunc  func() time.Time
+	locktab  LockTable
+	shutdown chan struct{}
 }
 
 func (s ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
@@ -408,11 +409,14 @@ func (s ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
 }
 
 func NewResolver(g *GlobalContext) *Resolver {
-	return &Resolver{
+	r := &Resolver{
 		Contextified: NewContextified(g),
 		cache:        nil,
 		NowFunc:      func() time.Time { return time.Now() },
+		shutdown:     make(chan struct{}),
 	}
+	go r.periodicLog()
+	return r
 }
 
 func (r *Resolver) EnableCaching() {
@@ -423,6 +427,7 @@ func (r *Resolver) EnableCaching() {
 }
 
 func (r *Resolver) Shutdown() {
+	close(r.shutdown)
 	if r.cache == nil {
 		return
 	}
@@ -520,4 +525,17 @@ func (r *Resolver) putToMemCache(key string, res ResolveResult) {
 	res.cachedAt = r.NowFunc()
 	res.body = nil // Don't cache body
 	r.cache.Set(key, &res)
+}
+
+func (r *Resolver) periodicLog() {
+	for {
+		select {
+		case <-r.shutdown:
+			return
+		case <-time.After(time.Minute):
+			if r.cache != nil {
+				r.G().Log.Debug("~~~ Resolver num items in memory cache: %d", r.cache.Count())
+			}
+		}
+	}
 }

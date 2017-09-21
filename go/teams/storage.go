@@ -202,7 +202,7 @@ func (s *MemoryStorage) onLogout() {
 func (s *MemoryStorage) periodicLog() {
 	for {
 		time.Sleep(time.Minute)
-		s.G().Log.Debug("^^^ teams MemoryStorage num items in memory cache: %d", s.lru.Len())
+		s.G().Log.Debug("~~~ teams MemoryStorage num items in memory cache: %d", s.lru.Len())
 	}
 }
 

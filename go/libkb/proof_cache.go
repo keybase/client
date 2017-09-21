@@ -273,7 +273,7 @@ func (pc *ProofCache) periodicLog() {
 		time.Sleep(time.Minute)
 		pc.Lock()
 		if pc.lru != nil {
-			pc.G().Log.Debug("^^^ ProofCache num items in memory cache: %d", pc.lru.Len())
+			pc.G().Log.Debug("~~~ ProofCache num items in memory cache: %d", pc.lru.Len())
 		}
 		pc.Unlock()
 	}
