@@ -168,11 +168,10 @@ func NewMemoryStorage(g *libkb.GlobalContext) *MemoryStorage {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	s := &MemoryStorage{
+	return &MemoryStorage{
 		Contextified: libkb.NewContextified(g),
 		lru:          nlru,
 	}
-	return s
 }
 
 func (s *MemoryStorage) Put(ctx context.Context, state *keybase1.TeamData) {

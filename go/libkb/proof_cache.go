@@ -103,8 +103,7 @@ type ProofCache struct {
 }
 
 func NewProofCache(g *GlobalContext, capac int) *ProofCache {
-	pc := &ProofCache{Contextified: NewContextified(g), capac: capac}
-	return pc
+	return &ProofCache{Contextified: NewContextified(g), capac: capac}
 }
 
 func (pc *ProofCache) DisableDisk() {

@@ -408,12 +408,11 @@ func (s ResolveCacheStats) EqWithDiskHits(m, t, mt, et, h, dh int) bool {
 }
 
 func NewResolver(g *GlobalContext) *Resolver {
-	r := &Resolver{
+	return &Resolver{
 		Contextified: NewContextified(g),
 		cache:        nil,
 		NowFunc:      func() time.Time { return time.Now() },
 	}
-	return r
 }
 
 func (r *Resolver) EnableCaching() {
