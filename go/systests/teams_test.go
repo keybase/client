@@ -731,3 +731,39 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 	})
 	require.NoError(t, err)
 }
+
+func TestImpTeamLookupWithTrackingFailure(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	g := tt.users[0].tc.G
+
+	tt.addUser("wong")
+	wong := tt.users[1]
+
+	iTeamNameCreate := strings.Join([]string{alice.username, wong.username}, ",")
+
+	t.Logf("make an implicit team")
+	team, err := alice.lookupImplicitTeam(true /*create*/, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+
+	iui := newSimpleIdentifyUI()
+	attachIdentifyUI(t, g, iui)
+
+	t.Logf("prove rooter and track")
+	g.ProofCache.DisableDisk()
+	wong.proveRooter()
+	iui.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
+	tt.users[0].track(wong.username)
+	iui.confirmRes = keybase1.ConfirmResult{}
+
+	t.Logf("make rooter unreachable")
+	g.XAPI = &flakeyRooterAPI{orig: g.XAPI, hardFail: true, G: g}
+	g.ProofCache.Reset()
+
+	t.Logf("lookup the implicit team while full identify is failing")
+	team2, err := alice.lookupImplicitTeam(true /*create*/, iTeamNameCreate, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team, team2)
+}

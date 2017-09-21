@@ -115,7 +115,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
 
     {props.showTeamButton ? <Divider style={styleDivider} /> : null}
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute conversation" />
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire conversation" />
 
     <Notifications />
 
@@ -151,7 +151,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
 
     <Divider style={styleDivider} />
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
 
     <Notifications />
 
@@ -168,7 +168,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       style={{alignSelf: 'center', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.tiny}}
       type="BodySmall"
     >
-      Use @mentions to invite people to join.
+      Use @mentions to invite team members to join.
     </Text>
     <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>

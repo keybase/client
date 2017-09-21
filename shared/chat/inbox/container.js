@@ -238,7 +238,8 @@ const getRows = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
+const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
+  const {smallTeamsExpanded} = routeState
   const {
     bigTeamsBadgeCount,
     rows,
@@ -259,12 +260,13 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     showSmallTeamsExpandDivider,
+    smallTeamsExpanded,
     smallTeamsHiddenBadgeCount,
     smallTeamsHiddenRowCount,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
   loadInbox: () => dispatch(loadInbox()),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
@@ -277,6 +279,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
     conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
+  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
@@ -309,10 +312,8 @@ const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
   withState('filterFocusCount', 'setFilterFocusCount', 0),
-  withState('smallTeamsExpanded', 'setSmallTeamsExpanded', false),
   withHandlers({
     focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
-    toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
   }),
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({

@@ -214,7 +214,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	if encryptionKey == nil {
-		err := fmt.Errorf("no key found for generation %d", boxed.KeyGeneration)
+		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(nameInfo.CryptKeys))
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 

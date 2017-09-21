@@ -1035,6 +1035,10 @@
           "name": "existence"
         },
         {
+          "type": "ConversationVers",
+          "name": "version"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"

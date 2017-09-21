@@ -203,6 +203,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
           ...globalStyles.noSelect,
           height: this.props.size,
           maxWidth: this.props.size,
+          minHeight: this.props.size,
           minWidth: this.props.size,
           position: 'relative',
           ...this.props.style,

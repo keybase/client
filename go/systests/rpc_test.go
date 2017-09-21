@@ -500,8 +500,8 @@ func TestResolveIdentifyImplicitTeamWithDuplicates(t *testing.T) {
 	cli, err := client.GetIdentifyClient(g)
 	require.NoError(t, err, "failed to get new identifyclient")
 
-	for _, lookup := range []string{iTeamNameLookup1, iTeamNameLookup2, iTeamNameLookup3} {
-		t.Logf("checking: %v", lookup)
+	for i, lookup := range []string{iTeamNameLookup1, iTeamNameLookup2, iTeamNameLookup3} {
+		t.Logf("checking %v: %v", i, lookup)
 		res, err := cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
 			Assertions:       lookup,
 			Suffix:           "",

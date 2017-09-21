@@ -2023,6 +2023,7 @@ type ConversationInfoLocal struct {
 	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
 	TeamType     TeamType                  `codec:"teamType" json:"teamType"`
 	Existence    ConversationExistence     `codec:"existence" json:"existence"`
+	Version      ConversationVers          `codec:"version" json:"version"`
 	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
 	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
 	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
@@ -2039,6 +2040,7 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 		MembersType: o.MembersType.DeepCopy(),
 		TeamType:    o.TeamType.DeepCopy(),
 		Existence:   o.Existence.DeepCopy(),
+		Version:     o.Version.DeepCopy(),
 		WriterNames: (func(x []string) []string {
 			var ret []string
 			for _, v := range x {

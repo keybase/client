@@ -12,6 +12,7 @@ protocol common {
   @typedef("bytes")  record TLFID {}
   @typedef("bytes")  record Hash {}
   @typedef("uint64") @lint("ignore") record InboxVers {}
+  @typedef("uint64") @lint("ignore") record ConversationVers {}
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
 
@@ -186,6 +187,7 @@ protocol common {
     ConversationMembersType membersType;
     TeamType teamType;
     ConversationExistence existence;
+    ConversationVers version;
 
     // Finalize info for underlying TLF
     union { null, ConversationFinalizeInfo } finalizeInfo;

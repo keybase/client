@@ -150,20 +150,6 @@ func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u 
 	return res.UserOrTeam(), nil
 }
 
-func (h *IdentifyHandler) resolveUser(ctx context.Context, assertion string) (u keybase1.User, err error) {
-
-	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, assertion)
-	err = res.GetError()
-	if err != nil {
-		return u, err
-	}
-	u = res.User()
-	if !u.Uid.Exists() {
-		return u, fmt.Errorf("no resolution for: %v", assertion)
-	}
-	return u, nil
-}
-
 func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
 	ctx = libkb.WithLogTag(ctx, "RII")
 	defer h.G().CTrace(ctx, "IdentifyHandler#ResolveIdentifyImplicitTeam", func() error { return err })()
@@ -190,13 +176,13 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		}
 	}
 
-	var resolvedAssertions []resolvedAssertion
+	var resolvedAssertions []libkb.ResolvedAssertion
 
-	err = h.resolveImplicitTeamSet(ctx, writerAssertions, &lookupName.Writers, &resolvedAssertions)
+	err = teams.ResolveImplicitTeamSetUntrusted(ctx, h.G(), writerAssertions, &lookupName.Writers, &resolvedAssertions)
 	if err != nil {
 		return res, err
 	}
-	err = h.resolveImplicitTeamSet(ctx, readerAssertions, &lookupName.Readers, &resolvedAssertions)
+	err = teams.ResolveImplicitTeamSetUntrusted(ctx, h.G(), readerAssertions, &lookupName.Readers, &resolvedAssertions)
 	if err != nil {
 		return res, err
 	}
@@ -268,7 +254,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
-	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []resolvedAssertion) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
+	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []libkb.ResolvedAssertion) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
 
 	// errgroup collects errors and returns the first non-nil.
 	// subctx is canceled when the group finishes.
@@ -334,45 +320,6 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 		return res, libkb.NewIdentifiesFailedError()
 	}
 	return res, err
-}
-
-type resolvedAssertion struct {
-	Assertion libkb.AssertionExpression
-	UID       keybase1.UID
-}
-
-// Try to resolve implicit team members.
-// Modifies the arguments `resSet` and appends to `resolvedAssertions`.
-// For each assertion in `sourceAssertions`, try to resolve them.
-//   If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
-//   If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
-// `resSet` is expected to be empty when called.
-func (h *IdentifyHandler) resolveImplicitTeamSet(ctx context.Context,
-	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]resolvedAssertion) error {
-
-	for _, expr := range sourceAssertions {
-		u, err := h.resolveUser(ctx, expr.String())
-		if err != nil {
-			// Resolution failed. Could still be an SBS assertion.
-			sa, err := expr.ToSocialAssertion()
-			if err != nil {
-				// Could not convert to a social assertion.
-				// This could be because it is a compound assertion, which we do not support when SBS.
-				// Or it could be because it's a team assertion or something weird like that.
-				return err
-			}
-			resSet.UnresolvedUsers = append(resSet.UnresolvedUsers, sa)
-		} else {
-			// Resolution succeeded
-			resSet.KeybaseUsers = append(resSet.KeybaseUsers, u.Username)
-			// Append the resolvee and assertion to resolvedAssertions, in case we identify later.
-			*resolvedAssertions = append(*resolvedAssertions, resolvedAssertion{
-				UID:       u.Uid,
-				Assertion: expr,
-			})
-		}
-	}
-	return nil
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

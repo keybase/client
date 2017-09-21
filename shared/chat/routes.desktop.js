@@ -51,6 +51,7 @@ const routeTree = new RouteDefNode({
   defaultSelected: nothingSelected,
   children: () => conversationRoute,
   tags: {persistChildren: true},
+  initialState: {smallTeamsExpanded: false},
 })
 
 export default routeTree

@@ -356,6 +356,7 @@ protocol local {
     ConversationMembersType membersType;
     TeamType teamType;
     ConversationExistence existence;
+    ConversationVers version;
 
     // Lists of usernames, always complete, optionally sorted by activity.
     array<string> writerNames;
