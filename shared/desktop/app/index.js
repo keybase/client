@@ -16,16 +16,20 @@ import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
 import {isWindows, cacheRoot} from '../../constants/platform.desktop'
 
-crashReporter.start({
-  companyName: 'Keybase',
-  crashesDirectory: cacheRoot,
-  productName: 'Keybase',
-  submitURL: 'http://localhost/TEST',
-  uploadToServer: false,
+process.on('uncaughtException', e => {
+  console.log('Uncaught exception on main thread:', e)
 })
 
-const last = crashReporter.getLastCrashReport()
-console.log(`aaaamain ${JSON.stringify(last)}`)
+if (process.env.KEYBASE_CRASH_REPORT) {
+  console.log(`Adding crash reporting (local). Crash files located in ${app.getPath('temp')}`)
+  crashReporter.start({
+    companyName: 'Keybase',
+    crashesDirectory: cacheRoot,
+    productName: 'Keybase',
+    submitURL: '',
+    uploadToServer: false,
+  })
+}
 
 let mainWindow = null
 
@@ -59,10 +63,6 @@ function start() {
       return
     }
   }
-
-  process.on('uncaughtException', e => {
-    console.log('Uncaught exception on main thread:', e)
-  })
 
   // MUST do this else we get limited by simultaneous hot reload event streams
   app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')

@@ -9,7 +9,7 @@ import ReactDOM from 'react-dom'
 import RemoteManager from './remote-manager'
 import Root from './container'
 import configureStore from '../../store/configure-store'
-import electron, {ipcRenderer, crashReporter} from 'electron'
+import electron, {ipcRenderer} from 'electron'
 import engine, {makeEngine} from '../../engine'
 import hello from '../../util/hello'
 import loadPerf from '../../util/load-perf'
@@ -35,18 +35,6 @@ import flags from '../../util/feature-flags'
 import {updateDebugConfig} from '../../actions/dev'
 import {updateReloading} from '../../constants/dev'
 import InputMonitor from './inputmonitor'
-import {cacheRoot} from '../../constants/platform.desktop'
-
-crashReporter.start({
-  companyName: 'Keybase',
-  crashesDirectory: cacheRoot,
-  productName: 'Keybase',
-  submitURL: 'http://localhost/TEST',
-  uploadToServer: false,
-})
-
-const last = crashReporter.getLastCrashReport()
-console.log(`aaaa ${JSON.stringify(last)} ${electron.remote.app.getPath('temp')}`)
 
 let _store
 function setupStore() {
