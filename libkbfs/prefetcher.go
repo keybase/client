@@ -154,8 +154,20 @@ func (p *blockPrefetcher) run() {
 				if isPrefetchWaiting {
 					// Parent blocks are waiting for this prefetch, so we
 					// percolate up prefetch doneness.
-					p.applyToParentsRecursive(p.handleDoneBlock, req.ptr.ID, pre)
+					p.applyToParentsRecursive(p.handleDoneBlock, req.ptr.ID,
+						pre)
 				}
+				continue
+			}
+			// This is not a tail block.
+			if numBlocks == 0 {
+				// If `numBlocks` is 0, don't do anything.
+				// TODO: maybe this should actually percolate a cancelation up
+				// the tree. The idea here is that at some point we need to
+				// determine that no more prefetches are forthcoming. That
+				// should send a cancelation up.
+				// The trouble with a cancelation here is that `numBlocks` can
+				// be zero if the blocks already appear in the prefetch tree.
 				continue
 			}
 			if !isPrefetchWaiting {
@@ -363,15 +375,27 @@ func (p *blockPrefetcher) TriggerPrefetch(ptr BlockPointer, block Block,
 		// The issue is that if we don't cancel at some point down the tree,
 		// the prefetcher will never remove the prefetches unless we do a true
 		// deep prefetch.
+		// On the other hand, if we _do_ cancel, we could be canceling a
+		// prefetch that needs to finish. Since prefetches are de-duped, this
+		// is a real risk..
+		//
+		// Plan A: store whether a block is a tail block in the `prefetch`. If
+		// a tail block completes, and it makes its parent counter 0, it should
+		// percolate. But if a non-tail block completes, it should percolate
+		// its counter and remove blocks from the prefetch tree, but it
+		// shouldn't mark the block done in the cache.
+		// * Problem: if all the tail blocks complete before the non-tail is
+		//   done fetching, there's no way to know that the mid-tree block should
+		//   percolate doneness.
+		//   * Answer: This is fine. If a mid-tree block triggers a prefetch,
+		//   then it has already been retrieved. And if it doesn't trigger, we
+		//   rely on the completion counter.
 		return TriggeredPrefetch
 	}
 	if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged.
-		// TODO: maybe cancel here?
-		// The issue is that if we don't cancel at some point down the tree,
-		// the prefetcher will never remove the prefetches unless we do a true
-		// deep prefetch.
+		// TODO: maybe cancel here? (notes above)
 		return prefetchStatus
 	}
 	p.triggerPrefetch(ptr, block, kmd, priority, lifetime)
