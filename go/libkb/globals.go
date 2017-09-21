@@ -288,9 +288,9 @@ func (g *GlobalContext) Logout() error {
 		tl.OnLogout()
 	}
 
-	g.TrackCache = NewTrackCache(g)
+	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g, g.Env.GetUserCacheMaxAge())
-	g.CardCache = NewUserCardCache(g, g.Env.GetUserCacheMaxAge())
+	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()
@@ -398,13 +398,13 @@ func (g *GlobalContext) ConfigureAPI() error {
 
 func (g *GlobalContext) configureMemCachesLocked() {
 	g.Resolver.EnableCaching()
-	g.TrackCache = NewTrackCache(g)
+	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g, g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
 	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
 	g.LinkCache = NewLinkCache(g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
-	g.CardCache = NewUserCardCache(g, g.Env.GetUserCacheMaxAge())
+	g.CardCache = NewUserCardCache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created CardCache, max age: %s", g.Env.GetUserCacheMaxAge())
 	g.fullSelfer = NewCachedFullSelf(g)
 	g.Log.Debug("made a new full self cache")

@@ -45,14 +45,12 @@ func NewCachedUPAKLoader(g *GlobalContext, f time.Duration) *CachedUPAKLoader {
 	if err != nil {
 		panic(fmt.Sprintf("could not create lru cache (size = %d)", g.Env.GetUPAKCacheSize()))
 	}
-	loader := &CachedUPAKLoader{
+	return &CachedUPAKLoader{
 		Contextified: NewContextified(g),
 		Freshness:    f,
 		cache:        c,
 		noCache:      false,
 	}
-	go loader.periodicLog()
-	return loader
 }
 
 // NewUncachedUPAKLoader creates a UPAK loader that doesn't do any caching.
@@ -681,11 +679,4 @@ func (u *CachedUPAKLoader) removeMemCache(ctx context.Context, uid keybase1.UID)
 
 func (u *CachedUPAKLoader) purgeMemCache() {
 	u.cache.Purge()
-}
-
-func (u *CachedUPAKLoader) periodicLog() {
-	for {
-		time.Sleep(time.Minute)
-		u.G().Log.Debug("~~~ CachedUPAKLoader num items in memory cache: %d", u.cache.Len())
-	}
 }
