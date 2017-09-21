@@ -21,12 +21,9 @@ func goAndroidBind(pkgs []*build.Package, androidArchs []string) error {
 	if sdkDir := os.Getenv("ANDROID_HOME"); sdkDir == "" {
 		return fmt.Errorf("this command requires ANDROID_HOME environment variable (path to the Android SDK)")
 	}
-	var androidArgs []string
-	if goVersion == go1_6 {
-		// Ideally this would be -buildmode=c-shared.
-		// https://golang.org/issue/13234.
-		androidArgs = []string{"-gcflags=-shared", "-ldflags=-shared"}
-	}
+	// Ideally this would be -buildmode=c-shared.
+	// https://golang.org/issue/13234.
+	androidArgs := []string{"-gcflags=-shared", "-ldflags=-shared"}
 
 	paths := make([]string, len(pkgs))
 	for i, p := range pkgs {
@@ -35,11 +32,15 @@ func goAndroidBind(pkgs []*build.Package, androidArchs []string) error {
 
 	androidDir := filepath.Join(tmpdir, "android")
 	mainFile := filepath.Join(tmpdir, "androidlib/main.go")
+	jpkgSrc := filepath.Join(tmpdir, "gen")
 
 	// Generate binding code and java source code only when processing the first package.
 	first := true
 	for _, arch := range androidArchs {
 		env := androidEnv[arch]
+		// Add the generated Java class wrapper packages to GOPATH
+		gopath := fmt.Sprintf("GOPATH=%s%c%s", jpkgSrc, filepath.ListSeparator, os.Getenv("GOPATH"))
+		env = append(env, gopath)
 		toolchain := ndk.Toolchain(arch)
 
 		if !first {
@@ -60,9 +61,24 @@ func goAndroidBind(pkgs []*build.Package, androidArchs []string) error {
 		}
 		first = false
 
+		srcDir := filepath.Join(tmpdir, "gomobile_bind")
+		if err := mkdir(srcDir); err != nil {
+			return err
+		}
+
+		classes, err := GenClasses(pkgs, srcDir, jpkgSrc)
+		if err != nil {
+			return err
+		}
+
 		typesPkgs, err := loadExportData(pkgs, env, androidArgs...)
 		if err != nil {
-			return fmt.Errorf("loadExportData failed %v", err)
+			return fmt.Errorf("loadExportData failed: %v", err)
+		}
+
+		astPkgs, err := parse(pkgs)
+		if err != nil {
+			return fmt.Errorf("parseAST failed: %v", err)
 		}
 
 		binder, err := newBinder(typesPkgs)
@@ -70,7 +86,6 @@ func goAndroidBind(pkgs []*build.Package, androidArchs []string) error {
 			return err
 		}
 
-		srcDir := filepath.Join(tmpdir, "gomobile_bind")
 		for _, pkg := range binder.pkgs {
 			if err := binder.GenGo(pkg, binder.pkgs, srcDir); err != nil {
 				return err
@@ -95,16 +110,13 @@ func goAndroidBind(pkgs []*build.Package, androidArchs []string) error {
 		}
 		repo := filepath.Clean(filepath.Join(p.Dir, "..")) // golang.org/x/mobile directory.
 
-		for _, pkg := range binder.pkgs {
-			pkgpath := strings.Replace(bindJavaPkg, ".", "/", -1)
-			if bindJavaPkg == "" {
-				pkgpath = "go/" + pkg.Name()
-			}
-			if err := binder.GenJava(pkg, binder.pkgs, srcDir, filepath.Join(androidDir, "src/main/java/"+pkgpath)); err != nil {
+		jclsDir := filepath.Join(androidDir, "src", "main", "java")
+		for i, pkg := range binder.pkgs {
+			if err := binder.GenJava(pkg, astPkgs[i], binder.pkgs, classes, srcDir, jclsDir); err != nil {
 				return err
 			}
 		}
-		if err := binder.GenJava(nil, binder.pkgs, srcDir, filepath.Join(androidDir, "src/main/java/go")); err != nil {
+		if err := binder.GenJava(nil, nil, binder.pkgs, classes, srcDir, jclsDir); err != nil {
 			return err
 		}
 		if err := binder.GenJavaSupport(srcDir); err != nil {
@@ -138,7 +150,10 @@ func goAndroidBind(pkgs []*build.Package, androidArchs []string) error {
 		}
 	}
 
-	return buildAAR(androidDir, pkgs, androidArchs)
+	if err := buildAAR(androidDir, pkgs, androidArchs); err != nil {
+		return err
+	}
+	return buildSrcJar(androidDir)
 }
 
 var androidMainFile = []byte(`
@@ -151,6 +166,26 @@ import (
 
 func main() {}
 `)
+
+func buildSrcJar(androidDir string) error {
+	var out io.Writer = ioutil.Discard
+	if !buildN {
+		ext := filepath.Ext(buildO)
+		f, err := os.Create(buildO[:len(buildO)-len(ext)] + "-sources.jar")
+		if err != nil {
+			return err
+		}
+		defer func() {
+			if cerr := f.Close(); err == nil {
+				err = cerr
+			}
+		}()
+		out = f
+	}
+
+	src := filepath.Join(androidDir, "src/main/java")
+	return writeJar(out, src)
+}
 
 // AAR is the format for the binary distribution of an Android Library Project
 // and it is a ZIP archive with extension .aar.
@@ -328,7 +363,8 @@ func buildJar(w io.Writer, srcDir string) error {
 		}
 	}
 
-	apiPath, err := androidAPIPath()
+	bClspath, err := bootClasspath()
+
 	if err != nil {
 		return err
 	}
@@ -337,8 +373,12 @@ func buildJar(w io.Writer, srcDir string) error {
 		"-d", dst,
 		"-source", javacTargetVer,
 		"-target", javacTargetVer,
-		"-bootclasspath", filepath.Join(apiPath, "android.jar"),
+		"-bootclasspath", bClspath,
 	}
+	if bindClasspath != "" {
+		args = append(args, "-classpath", bindClasspath)
+	}
+
 	args = append(args, srcFiles...)
 
 	javac := exec.Command("javac", args...)
@@ -350,6 +390,10 @@ func buildJar(w io.Writer, srcDir string) error {
 	if buildX {
 		printcmd("jar c -C %s .", dst)
 	}
+	return writeJar(w, dst)
+}
+
+func writeJar(w io.Writer, dir string) error {
 	if buildN {
 		return nil
 	}
@@ -366,14 +410,14 @@ func buildJar(w io.Writer, srcDir string) error {
 	}
 	fmt.Fprintf(f, manifestHeader)
 
-	err = filepath.Walk(dst, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() {
 			return nil
 		}
-		out, err := jarwcreate(filepath.ToSlash(path[len(dst)+1:]))
+		out, err := jarwcreate(filepath.ToSlash(path[len(dir)+1:]))
 		if err != nil {
 			return err
 		}

@@ -48,3 +48,4 @@ pvl-tools/node_modules
 Keybase.app.dSYM.zip
 
 shared/react-native/ios/fastlane
+shared/react-native/android/keybaselib/keybaselib-sources.jar

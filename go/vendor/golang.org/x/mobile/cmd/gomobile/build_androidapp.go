@@ -22,6 +22,9 @@ import (
 )
 
 func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool, error) {
+	if ndkRoot == "" {
+		return nil, errors.New("no Android NDK path is set. Please run gomobile init with the ndk-bundle installed through the Android SDK manager or with the -ndk flag set.")
+	}
 	appName := path.Base(pkg.ImportPath)
 	libName := androidPkgName(appName)
 	manifestPath := filepath.Join(pkg.Dir, "AndroidManifest.xml")
@@ -170,13 +173,11 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 		toolchain := ndk.Toolchain(arch)
 		if nmpkgs[arch]["golang.org/x/mobile/exp/audio/al"] {
 			dst := "lib/" + toolchain.abi + "/libopenal.so"
-			src := dst
-			if arch == "arm" {
-				src = "lib/armeabi/libopenal.so"
-			} else if arch == "arm64" {
-				src = "lib/arm64/libopenal.so"
+			src := filepath.Join(gomobilepath, dst)
+			if _, err := os.Stat(src); err != nil {
+				return nil, errors.New("the Android requires the golang.org/x/mobile/exp/audio/al, but the OpenAL libraries was not found. Please run gomobile init with the -openal flag pointing to an OpenAL source directory.")
 			}
-			if err := apkwWriteFile(dst, filepath.Join(ndk.Root(), "openal/"+src)); err != nil {
+			if err := apkwWriteFile(dst, src); err != nil {
 				return nil, err
 			}
 		}

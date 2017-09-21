@@ -14,8 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"runtime"
-	"strconv"
 	"strings"
 )
 
@@ -111,8 +109,8 @@ func runBuild(cmd *command) (err error) {
 		}
 	case "darwin":
 		// TODO: use targetArchs?
-		if runtime.GOOS != "darwin" {
-			return fmt.Errorf("-target=ios requires darwin host")
+		if !xcodeAvailable() {
+			return fmt.Errorf("-target=ios requires XCode")
 		}
 		if pkg.Name != "main" {
 			if err := goBuild(pkg.ImportPath, darwinArmEnv); err != nil {
@@ -270,8 +268,10 @@ func goCmd(subcmd string, srcs []string, env []string, args ...string) error {
 		"go",
 		subcmd,
 		"-pkgdir="+pkgdir(env),
-		"-tags="+strconv.Quote(strings.Join(ctx.BuildTags, ",")),
 	)
+	if len(ctx.BuildTags) > 0 {
+		cmd.Args = append(cmd.Args, "-tags", strings.Join(ctx.BuildTags, " "))
+	}
 	if buildV {
 		cmd.Args = append(cmd.Args, "-v")
 	}
@@ -330,11 +330,7 @@ func parseBuildTarget(buildTarget string) (os string, archs []string, _ error) {
 	case "ios":
 		supported = []string{"arm", "arm64", "amd64"}
 	case "android":
-		for arch, tc := range ndk {
-			if tc.minGoVer <= goVersion {
-				supported = append(supported, arch)
-			}
-		}
+		supported = []string{"arm", "arm64", "386", "amd64"}
 	}
 
 	isSupported := func(arch string) bool {

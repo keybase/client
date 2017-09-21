@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 type Props = {
   error: ?Error,
@@ -155,7 +156,7 @@ const _containerStyle = {
   alignItems: 'center',
   flex: 1,
   height: '100%',
-  padding: globalMargins.large,
+  padding: isMobile ? globalMargins.tiny : globalMargins.large,
 }
 
 const _addIconStyle = {

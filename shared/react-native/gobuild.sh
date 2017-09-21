@@ -25,6 +25,9 @@ kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
 GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
 
+# if we don't set this gomobile init get confused
+GOMOBILE="$GOPATH/pkg/gomobile"
+
 # Clear source
 echo "Clearing $GOPATH/src"
 rm -rf "$GOPATH/src/"/*
@@ -36,7 +39,7 @@ go_kbfs_dir="$tmp_gopath/src/github.com/keybase/kbfs"
 
 if [ ! "$local_client" = "1" ]; then
   echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
-  (cd "$GOPATH/src/github.com/keybase" && git clone https://github.com/keybase/client)
+  (cd "$GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/client)
   client_dir=$go_client_dir
 else
   echo "Getting client (using local GOPATH)... To use git master, set LOCAL_CLIENT=0"
@@ -46,7 +49,7 @@ fi
 
 if [ ! "$local_kbfs" = "1" ]; then
   echo "Getting KBFS (via git clone)... To use local copy, set LOCAL_KBFS=1"
-  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone https://github.com/keybase/kbfs)
+  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/kbfs)
   kbfs_dir=$go_kbfs_dir
 else
   # For testing local KBFS changes
@@ -76,17 +79,6 @@ rm -rf "$go_client_dir/vendor"
 vendor_path="$GOPATH/src/github.com/keybase/vendor"
 gomobile_path="$vendor_path/golang.org/x/mobile/cmd/gomobile"
 
-echo "Build gomobile..."
-(cd "$gomobile_path" && go build -o "$GOPATH/bin/gomobile")
-# The gomobile binary only looks for packages in the GOPATH,
-rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
-
-if [ ! "$skip_gomobile_init" = "1" ]; then
-  echo "Doing gomobile init (to skip, set SKIP_GOMOBILE_INIT=1)"
-  "$GOPATH/bin/gomobile" init
-fi
-
-
 package="github.com/keybase/client/go/bind"
 
 ## TODO(mm) consolidate this with packaging/prerelease/
@@ -97,14 +89,44 @@ keybase_build=${KEYBASE_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 
+gomobileinit ()
+{
+  echo "Build gomobile..."
+  (cd "$gomobile_path" && go build -o "$GOPATH/bin/gomobile")
+  # The gomobile binary only looks for packages in the GOPATH,
+  rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
+  echo "Doing gomobile init"
+  if [ "$arg" = "ios" ]; then
+    "$GOPATH/bin/gomobile" init
+  elif [ "$arg" = "android" ]; then
+    "$GOPATH/bin/gomobile" init -ndk $ANDROID_HOME/ndk-bundle
+  fi
+}
+
 if [ "$arg" = "ios" ]; then
   ios_dest="$dir/ios/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+  set +e
+  OUTPUT="$("$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+  set -e
+  if [[ $OUTPUT == *"gomobile"* ]]; then
+    gomobileinit
+    "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+  else
+    echo $OUTPUT
+  fi
 elif [ "$arg" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+  set +e
+  OUTPUT="$("$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
+  set -e
+  if [[ $OUTPUT == *"gomobile"* ]]; then
+    gomobileinit
+    "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+  else
+    echo $OUTPUT
+  fi
 else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
 fi

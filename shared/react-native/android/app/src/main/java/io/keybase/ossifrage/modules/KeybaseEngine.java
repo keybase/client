@@ -14,12 +14,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import go.keybase.Keybase;
+import keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
 
-import static go.keybase.Keybase.readB64;
-import static go.keybase.Keybase.writeB64;
-import static go.keybase.Keybase.version;
+import static keybase.Keybase.readB64;
+import static keybase.Keybase.writeB64;
+import static keybase.Keybase.version;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 

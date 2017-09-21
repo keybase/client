@@ -8,8 +8,13 @@ import (
 	"fmt"
 	"go/constant"
 	"go/types"
+	"html"
 	"math"
+	"reflect"
+	"regexp"
 	"strings"
+
+	"golang.org/x/mobile/internal/importers/java"
 )
 
 // TODO(crawshaw): disallow basic android java type names in exported symbols.
@@ -17,10 +22,183 @@ import (
 
 type JavaGen struct {
 	// JavaPkg is the Java package prefix for the generated classes. The prefix is prepended to the Go
-	// package name to create the full Java package name. If JavaPkg is empty, 'go' is used as prefix.
+	// package name to create the full Java package name.
 	JavaPkg string
 
 	*Generator
+
+	jstructs map[*types.TypeName]*javaClassInfo
+	clsMap   map[string]*java.Class
+	// Constructors is a map from Go struct types to a list
+	// of exported constructor functions for the type, on the form
+	// func New<Type>(...) *Type
+	constructors map[*types.TypeName][]*types.Func
+}
+
+type javaClassInfo struct {
+	// The Java class this class extends.
+	extends *java.Class
+	// All Java classes and interfaces this class extends and implements.
+	supers  []*java.Class
+	methods map[string]*java.FuncSet
+	// Does the class need a default no-arg constructor
+	genNoargCon bool
+}
+
+// Init intializes the embedded Generator and initializes the Java class information
+// needed to generate structs that extend Java classes and interfaces.
+func (g *JavaGen) Init(classes []*java.Class) {
+	g.Generator.Init()
+	g.clsMap = make(map[string]*java.Class)
+	for _, cls := range classes {
+		g.clsMap[cls.Name] = cls
+	}
+	g.jstructs = make(map[*types.TypeName]*javaClassInfo)
+	g.constructors = make(map[*types.TypeName][]*types.Func)
+	for _, s := range g.structs {
+		classes := embeddedJavaClasses(s.t)
+		if len(classes) == 0 {
+			continue
+		}
+		inf := &javaClassInfo{
+			methods:     make(map[string]*java.FuncSet),
+			genNoargCon: true, // java.lang.Object has a no-arg constructor
+		}
+		for _, n := range classes {
+			cls := g.clsMap[n]
+			for _, fs := range cls.AllMethods {
+				hasMeth := false
+				for _, f := range fs.Funcs {
+					if !f.Final {
+						hasMeth = true
+					}
+				}
+				if hasMeth {
+					inf.methods[fs.GoName] = fs
+				}
+			}
+			inf.supers = append(inf.supers, cls)
+			if !cls.Interface {
+				if inf.extends != nil {
+					g.errorf("%s embeds more than one Java class; only one is allowed.", s.obj)
+				}
+				if cls.Final {
+					g.errorf("%s embeds final Java class %s", s.obj, cls.Name)
+				}
+				inf.extends = cls
+				inf.genNoargCon = cls.HasNoArgCon
+			}
+		}
+		g.jstructs[s.obj] = inf
+	}
+	for _, f := range g.funcs {
+		if t := g.constructorType(f); t != nil {
+			jinf := g.jstructs[t]
+			if jinf != nil {
+				sig := f.Type().(*types.Signature)
+				jinf.genNoargCon = jinf.genNoargCon && sig.Params().Len() > 0
+			}
+			g.constructors[t] = append(g.constructors[t], f)
+		}
+	}
+}
+
+func (j *javaClassInfo) toJavaType(T types.Type) *java.Type {
+	switch T := T.(type) {
+	case *types.Basic:
+		var kind java.TypeKind
+		switch T.Kind() {
+		case types.Bool, types.UntypedBool:
+			kind = java.Boolean
+		case types.Uint8:
+			kind = java.Byte
+		case types.Int16:
+			kind = java.Short
+		case types.Int32, types.UntypedRune: // types.Rune
+			kind = java.Int
+		case types.Int64, types.UntypedInt:
+			kind = java.Long
+		case types.Float32:
+			kind = java.Float
+		case types.Float64, types.UntypedFloat:
+			kind = java.Double
+		case types.String, types.UntypedString:
+			kind = java.String
+		default:
+			return nil
+		}
+		return &java.Type{Kind: kind}
+	case *types.Slice:
+		switch e := T.Elem().(type) {
+		case *types.Basic:
+			switch e.Kind() {
+			case types.Uint8: // Byte.
+				return &java.Type{Kind: java.Array, Elem: &java.Type{Kind: java.Byte}}
+			}
+		}
+		return nil
+	case *types.Named:
+		if isJavaType(T) {
+			return &java.Type{Kind: java.Object, Class: classNameFor(T)}
+		}
+	}
+	return nil
+}
+
+// lookupMethod searches the Java class descriptor for a method
+// that matches the Go method.
+func (j *javaClassInfo) lookupMethod(m *types.Func, hasThis bool) *java.Func {
+	jm := j.methods[m.Name()]
+	if jm == nil {
+		// If an exact match is not found, try the method with trailing underscores
+		// stripped. This way, name clashes can be avoided when overriding multiple
+		// overloaded methods from Go.
+		base := strings.TrimRight(m.Name(), "_")
+		jm = j.methods[base]
+		if jm == nil {
+			return nil
+		}
+	}
+	// A name match was found. Now use the parameter and return types to locate
+	// the correct variant.
+	sig := m.Type().(*types.Signature)
+	params := sig.Params()
+	// Convert Go parameter types to their Java counterparts, if possible.
+	var jparams []*java.Type
+	i := 0
+	if hasThis {
+		i = 1
+	}
+	for ; i < params.Len(); i++ {
+		jparams = append(jparams, j.toJavaType(params.At(i).Type()))
+	}
+	var ret *java.Type
+	var throws bool
+	if results := sig.Results(); results.Len() > 0 {
+		ret = j.toJavaType(results.At(0).Type())
+		if results.Len() > 1 {
+			throws = isErrorType(results.At(1).Type())
+		}
+	}
+loop:
+	for _, f := range jm.Funcs {
+		if len(f.Params) != len(jparams) {
+			continue
+		}
+		if throws != (f.Throws != "") {
+			continue
+		}
+		if !reflect.DeepEqual(ret, f.Ret) {
+			continue
+		}
+		for i, p := range f.Params {
+			if !reflect.DeepEqual(p, jparams[i]) {
+				continue loop
+			}
+		}
+		return f
+	}
+	return nil
 }
 
 // ClassNames returns the list of names of the generated Java classes and interfaces.
@@ -39,7 +217,7 @@ func (g *JavaGen) GenClass(idx int) error {
 	ns := len(g.structs)
 	if idx < ns {
 		s := g.structs[idx]
-		g.genStruct(s.obj, s.t)
+		g.genStruct(s)
 	} else {
 		iface := g.interfaces[idx-ns]
 		g.genInterface(iface)
@@ -50,18 +228,40 @@ func (g *JavaGen) GenClass(idx int) error {
 	return nil
 }
 
-func (g *JavaGen) genStruct(obj *types.TypeName, T *types.Struct) {
+func (g *JavaGen) genProxyImpl(name string) {
+	g.Printf("private final Seq.Ref ref;\n\n")
+	g.Printf("@Override public final int incRefnum() {\n")
+	g.Printf("      int refnum = ref.refnum;\n")
+	g.Printf("      Seq.incGoRef(refnum);\n")
+	g.Printf("      return refnum;\n")
+	g.Printf("}\n\n")
+}
+
+func (g *JavaGen) genStruct(s structInfo) {
 	pkgPath := ""
 	if g.Pkg != nil {
 		pkgPath = g.Pkg.Path()
 	}
-	g.Printf(javaPreamble, g.javaPkgName(g.Pkg), obj.Name(), g.gobindOpts(), pkgPath)
+	n := s.obj.Name()
+	g.Printf(javaPreamble, g.javaPkgName(g.Pkg), n, g.gobindOpts(), pkgPath)
 
-	fields := exportedFields(T)
-	methods := exportedMethodSet(types.NewPointer(obj.Type()))
+	fields := exportedFields(s.t)
+	methods := exportedMethodSet(types.NewPointer(s.obj.Type()))
 
 	var impls []string
-	pT := types.NewPointer(obj.Type())
+	jinf := g.jstructs[s.obj]
+	if jinf != nil {
+		impls = append(impls, "Seq.GoObject")
+		for _, cls := range jinf.supers {
+			if cls.Interface {
+				impls = append(impls, cls.Name)
+			}
+		}
+	} else {
+		impls = append(impls, "Seq.Proxy")
+	}
+
+	pT := types.NewPointer(s.obj.Type())
 	for _, iface := range g.allIntf {
 		if types.AssignableTo(pT, iface.obj.Type()) {
 			n := iface.obj.Name()
@@ -71,37 +271,179 @@ func (g *JavaGen) genStruct(obj *types.TypeName, T *types.Struct) {
 			impls = append(impls, n)
 		}
 	}
-	g.Printf("public final class %s extends Seq.Proxy", obj.Name())
+
+	doc := g.docs[n]
+	g.javadoc(doc.Doc())
+	g.Printf("public final class %s", n)
+	if jinf != nil {
+		if jinf.extends != nil {
+			g.Printf(" extends %s", jinf.extends.Name)
+		}
+	}
 	if len(impls) > 0 {
 		g.Printf(" implements %s", strings.Join(impls, ", "))
 	}
 	g.Printf(" {\n")
 	g.Indent()
 
-	n := obj.Name()
-	g.Printf("private %s(go.Seq.Ref ref) { super(ref); }\n\n", n)
+	g.Printf("static { %s.touch(); }\n\n", g.className())
+	g.genProxyImpl(n)
+	cons := g.constructors[s.obj]
+	for _, f := range cons {
+		if !g.isSigSupported(f.Type()) {
+			g.Printf("// skipped constructor %s.%s with unsupported parameter or return types\n\n", n, f.Name())
+			continue
+		}
+		g.genConstructor(f, n, jinf != nil)
+	}
+	if jinf == nil || jinf.genNoargCon {
+		// constructor for Go instantiated instances.
+		g.Printf("%s(Seq.Ref ref) { this.ref = ref; }\n\n", n)
+		if len(cons) == 0 {
+			// Generate default no-arg constructor
+			g.Printf("public %s() { this.ref = __New(); }\n\n", n)
+			g.Printf("private static native Seq.Ref __New();\n\n")
+		}
+	}
 
 	for _, f := range fields {
 		if t := f.Type(); !g.isSupported(t) {
 			g.Printf("// skipped field %s.%s with unsupported type: %T\n\n", n, f.Name(), t)
 			continue
 		}
+
+		fdoc := doc.Member(f.Name())
+		g.javadoc(fdoc)
 		g.Printf("public final native %s get%s();\n", g.javaType(f.Type()), f.Name())
+		g.javadoc(fdoc)
 		g.Printf("public final native void set%s(%s v);\n\n", f.Name(), g.javaType(f.Type()))
 	}
 
 	var isStringer bool
 	for _, m := range methods {
 		if !g.isSigSupported(m.Type()) {
-			g.Printf("// skipped method %s.%s with unsupported parameter or return types\n\n", obj.Name(), m.Name())
+			g.Printf("// skipped method %s.%s with unsupported parameter or return types\n\n", n, m.Name())
 			continue
 		}
-		g.genFuncSignature(m, false, false)
+		g.javadoc(doc.Member(m.Name()))
+		var jm *java.Func
+		hasThis := false
+		if jinf != nil {
+			hasThis = g.hasThis(n, m)
+			jm = jinf.lookupMethod(m, hasThis)
+			if jm != nil {
+				g.Printf("@Override ")
+			}
+		}
+		g.Printf("public native ")
+		g.genFuncSignature(m, jm, hasThis)
 		t := m.Type().(*types.Signature)
 		isStringer = isStringer || (m.Name() == "String" && t.Params().Len() == 0 && t.Results().Len() == 1 &&
 			types.Identical(t.Results().At(0).Type(), types.Typ[types.String]))
 	}
 
+	if jinf == nil {
+		g.genObjectMethods(n, fields, isStringer)
+	}
+
+	g.Outdent()
+	g.Printf("}\n\n")
+}
+
+func (g *JavaGen) javadoc(doc string) {
+	if doc == "" {
+		return
+	}
+	// JavaDoc expects HTML-escaped documentation.
+	g.Printf("/**\n * %s */\n", html.EscapeString(doc))
+}
+
+// hasThis returns whether a method has an implicit "this" parameter.
+func (g *JavaGen) hasThis(sName string, m *types.Func) bool {
+	sig := m.Type().(*types.Signature)
+	params := sig.Params()
+	if params.Len() == 0 {
+		return false
+	}
+	v := params.At(0)
+	if v.Name() != "this" {
+		return false
+	}
+	t, ok := v.Type().(*types.Named)
+	if !ok {
+		return false
+	}
+	obj := t.Obj()
+	pkg := obj.Pkg()
+	if pkgFirstElem(pkg) != "Java" {
+		return false
+	}
+	clsName := classNameFor(t)
+	exp := g.javaPkgName(g.Pkg) + "." + sName
+	if clsName != exp {
+		g.errorf("the type %s of the `this` argument to method %s.%s is not %s", clsName, sName, m.Name(), exp)
+		return false
+	}
+	return true
+}
+
+func (g *JavaGen) genConstructor(f *types.Func, n string, jcls bool) {
+	g.javadoc(g.docs[f.Name()].Doc())
+	g.Printf("public %s(", n)
+	g.genFuncArgs(f, nil, false)
+	g.Printf(") {\n")
+	g.Indent()
+	sig := f.Type().(*types.Signature)
+	params := sig.Params()
+	if jcls {
+		g.Printf("super(")
+		for i := 0; i < params.Len(); i++ {
+			if i > 0 {
+				g.Printf(", ")
+			}
+			g.Printf(g.paramName(params, i))
+		}
+		g.Printf(");\n")
+	}
+	g.Printf("this.ref = ")
+	g.Printf("__%s(", f.Name())
+	for i := 0; i < params.Len(); i++ {
+		if i > 0 {
+			g.Printf(", ")
+		}
+		g.Printf(g.paramName(params, i))
+	}
+	g.Printf(");\n")
+	g.Outdent()
+	g.Printf("}\n\n")
+	g.Printf("private static native Seq.Ref __%s(", f.Name())
+	g.genFuncArgs(f, nil, false)
+	g.Printf(");\n\n")
+}
+
+// genFuncArgs generated Java function arguments declaration for the function f.
+// If the supplied overridden java function is supplied, genFuncArgs omits the implicit
+// this argument.
+func (g *JavaGen) genFuncArgs(f *types.Func, jm *java.Func, hasThis bool) {
+	sig := f.Type().(*types.Signature)
+	params := sig.Params()
+	first := 0
+	if hasThis {
+		// Skip the implicit this argument to the Go method
+		first = 1
+	}
+	for i := first; i < params.Len(); i++ {
+		if i > first {
+			g.Printf(", ")
+		}
+		v := params.At(i)
+		name := g.paramName(params, i)
+		jt := g.javaType(v.Type())
+		g.Printf("%s %s", jt, name)
+	}
+}
+
+func (g *JavaGen) genObjectMethods(n string, fields []*types.Var, isStringer bool) {
 	g.Printf("@Override public boolean equals(Object o) {\n")
 	g.Indent()
 	g.Printf("if (o == null || !(o instanceof %s)) {\n    return false;\n}\n", n)
@@ -150,7 +492,7 @@ func (g *JavaGen) genStruct(obj *types.TypeName, T *types.Struct) {
 		g.Printf("return string();\n")
 	} else {
 		g.Printf("StringBuilder b = new StringBuilder();\n")
-		g.Printf(`b.append("%s").append("{");`, obj.Name())
+		g.Printf(`b.append("%s").append("{");`, n)
 		g.Printf("\n")
 		for _, f := range fields {
 			if t := f.Type(); !g.isSupported(t) {
@@ -165,9 +507,6 @@ func (g *JavaGen) genStruct(obj *types.TypeName, T *types.Struct) {
 	}
 	g.Outdent()
 	g.Printf("}\n")
-
-	g.Outdent()
-	g.Printf("}\n\n")
 }
 
 func (g *JavaGen) genInterface(iface interfaceInfo) {
@@ -189,6 +528,8 @@ func (g *JavaGen) genInterface(iface interfaceInfo) {
 			exts = append(exts, n)
 		}
 	}
+	doc := g.docs[iface.obj.Name()]
+	g.javadoc(doc.Doc())
 	g.Printf("public interface %s", iface.obj.Name())
 	if len(exts) > 0 {
 		g.Printf(" extends %s", strings.Join(exts, ", "))
@@ -201,7 +542,9 @@ func (g *JavaGen) genInterface(iface interfaceInfo) {
 			g.Printf("// skipped method %s.%s with unsupported parameter or return types\n\n", iface.obj.Name(), m.Name())
 			continue
 		}
-		g.genFuncSignature(m, false, true)
+		g.javadoc(doc.Member(m.Name()))
+		g.Printf("public ")
+		g.genFuncSignature(m, nil, false)
 	}
 
 	g.Printf("\n")
@@ -308,7 +651,9 @@ func (g *JavaGen) javaType(T types.Type) string {
 		// The error type is usually translated into an exception in
 		// Java, however the type can be exposed in other ways, such
 		// as an exported field.
-		return "String"
+		return "java.lang.Exception"
+	} else if isJavaType(T) {
+		return classNameFor(T)
 	}
 	switch T := T.(type) {
 	case *types.Basic:
@@ -341,7 +686,7 @@ func (g *JavaGen) javaType(T types.Type) string {
 	return "TODO"
 }
 
-func (g *JavaGen) genJNIFuncSignature(o *types.Func, sName string, proxy bool) {
+func (g *JavaGen) genJNIFuncSignature(o *types.Func, sName string, jm *java.Func, proxy, isjava bool) {
 	sig := o.Type().(*types.Signature)
 	res := sig.Results()
 
@@ -375,21 +720,32 @@ func (g *JavaGen) genJNIFuncSignature(o *types.Func, sName string, proxy bool) {
 	} else {
 		g.Printf(g.className())
 	}
-	oName := javaNameReplacer(lowerFirst(o.Name()))
-	if strings.HasSuffix(oName, "_") {
-		oName += "1" // JNI doesn't like methods ending with underscore, needs the _1 suffixing
-	}
-	g.Printf("_%s(JNIEnv* env, ", oName)
-	if sName != "" {
-		g.Printf("jobject this")
+	g.Printf("_")
+	if jm != nil {
+		g.Printf(jm.JNIName)
 	} else {
-		g.Printf("jclass clazz")
+		oName := javaNameReplacer(lowerFirst(o.Name()))
+		if strings.HasSuffix(oName, "_") {
+			oName += "1" // JNI doesn't like methods ending with underscore, needs the _1 suffixing
+		}
+		g.Printf(oName)
+	}
+	g.Printf("(JNIEnv* env, ")
+	if sName != "" {
+		g.Printf("jobject __this__")
+	} else {
+		g.Printf("jclass _clazz")
 	}
 	params := sig.Params()
-	for i := 0; i < params.Len(); i++ {
+	i := 0
+	if isjava && params.Len() > 0 && params.At(0).Name() == "this" {
+		// Skip the implicit this argument, if any.
+		i = 1
+	}
+	for ; i < params.Len(); i++ {
 		g.Printf(", ")
 		v := sig.Params().At(i)
-		name := paramName(params, i)
+		name := g.paramName(params, i)
 		jt := g.jniType(v.Type())
 		g.Printf("%s %s", jt, name)
 	}
@@ -400,7 +756,17 @@ func (g *JavaGen) jniPkgName() string {
 	return strings.Replace(g.javaPkgName(g.Pkg), ".", "_", -1)
 }
 
-func (g *JavaGen) genFuncSignature(o *types.Func, static, header bool) {
+var javaLetterDigitRE = regexp.MustCompile(`[0-9a-zA-Z$_]`)
+
+func (g *JavaGen) paramName(params *types.Tuple, pos int) string {
+	name := basicParamName(params, pos)
+	if !javaLetterDigitRE.MatchString(name) {
+		name = fmt.Sprintf("p%d", pos)
+	}
+	return javaNameReplacer(name)
+}
+
+func (g *JavaGen) genFuncSignature(o *types.Func, jm *java.Func, hasThis bool) {
 	sig := o.Type().(*types.Signature)
 	res := sig.Results()
 
@@ -428,27 +794,25 @@ func (g *JavaGen) genFuncSignature(o *types.Func, static, header bool) {
 		return
 	}
 
-	g.Printf("public ")
-	if static {
-		g.Printf("static ")
+	g.Printf("%s ", ret)
+	if jm != nil {
+		g.Printf(jm.Name)
+	} else {
+		g.Printf(javaNameReplacer(lowerFirst(o.Name())))
 	}
-	if !header {
-		g.Printf("native ")
-	}
-	g.Printf("%s %s(", ret, javaNameReplacer(lowerFirst(o.Name())))
-	params := sig.Params()
-	for i := 0; i < params.Len(); i++ {
-		if i > 0 {
-			g.Printf(", ")
-		}
-		v := sig.Params().At(i)
-		name := paramName(params, i)
-		jt := g.javaType(v.Type())
-		g.Printf("%s %s", jt, name)
-	}
+	g.Printf("(")
+	g.genFuncArgs(o, jm, hasThis)
 	g.Printf(")")
 	if returnsError {
-		g.Printf(" throws Exception")
+		if jm != nil {
+			if jm.Throws == "" {
+				g.errorf("%s declares an error return value but the overriden method does not throw", o)
+				return
+			}
+			g.Printf(" throws %s", jm.Throws)
+		} else {
+			g.Printf(" throws Exception")
+		}
 	}
 	g.Printf(";\n")
 }
@@ -460,11 +824,34 @@ func (g *JavaGen) genVar(o *types.Var) {
 	}
 	jType := g.javaType(o.Type())
 
+	doc := g.docs[o.Name()].Doc()
 	// setter
+	g.javadoc(doc)
 	g.Printf("public static native void set%s(%s v);\n", o.Name(), jType)
 
 	// getter
+	g.javadoc(doc)
 	g.Printf("public static native %s get%s();\n\n", jType, o.Name())
+}
+
+// genCRetClear clears the result value from a JNI call if an exception was
+// raised.
+func (g *JavaGen) genCRetClear(varName string, t types.Type, exc string) {
+	g.Printf("if (%s != NULL) {\n", exc)
+	g.Indent()
+	switch t := t.(type) {
+	case *types.Basic:
+		switch t.Kind() {
+		case types.String:
+			g.Printf("%s = NULL;\n", varName)
+		default:
+			g.Printf("%s = 0;\n", varName)
+		}
+	case *types.Slice, *types.Named, *types.Pointer:
+		g.Printf("%s = NULL;\n", varName)
+	}
+	g.Outdent()
+	g.Printf("}\n")
 }
 
 func (g *JavaGen) genJavaToC(varName string, t types.Type, mode varMode) {
@@ -481,7 +868,7 @@ func (g *JavaGen) genJavaToC(varName string, t types.Type, mode varMode) {
 		case *types.Basic:
 			switch e.Kind() {
 			case types.Uint8: // Byte.
-				g.Printf("nbyteslice _%s = go_seq_from_java_bytearray(env, %s, %d);\n", varName, varName, g.toCFlag(mode == modeRetained))
+				g.Printf("nbyteslice _%s = go_seq_from_java_bytearray(env, %s, %d);\n", varName, varName, toCFlag(mode == modeRetained))
 			default:
 				g.errorf("unsupported type: %s", t)
 			}
@@ -518,7 +905,7 @@ func (g *JavaGen) genCToJava(toName, fromName string, t types.Type, mode varMode
 		case *types.Basic:
 			switch e.Kind() {
 			case types.Uint8: // Byte.
-				g.Printf("jbyteArray %s = go_seq_to_java_bytearray(env, %s, %d);\n", toName, fromName, g.toCFlag(mode == modeRetained))
+				g.Printf("jbyteArray %s = go_seq_to_java_bytearray(env, %s, %d);\n", toName, fromName, toCFlag(mode == modeRetained))
 			default:
 				g.errorf("unsupported type: %s", t)
 			}
@@ -548,12 +935,19 @@ func (g *JavaGen) genCToJava(toName, fromName string, t types.Type, mode varMode
 
 func (g *JavaGen) genFromRefnum(toName, fromName string, t types.Type, o *types.TypeName) {
 	oPkg := o.Pkg()
-	if !isErrorType(o.Type()) && !g.validPkg(oPkg) {
+	isJava := isJavaType(o.Type())
+	if !isErrorType(o.Type()) && !g.validPkg(oPkg) && !isJava {
 		g.errorf("type %s is defined in package %s, which is not bound", t, oPkg)
 		return
 	}
 	p := pkgPrefix(oPkg)
-	g.Printf("jobject %s = go_seq_from_refnum(env, %s, proxy_class_%s_%s, proxy_class_%s_%s_cons);\n", toName, fromName, p, o.Name(), p, o.Name())
+	g.Printf("jobject %s = go_seq_from_refnum(env, %s, ", toName, fromName)
+	if isJava {
+		g.Printf("NULL, NULL")
+	} else {
+		g.Printf("proxy_class_%s_%s, proxy_class_%s_%s_cons", p, o.Name(), p, o.Name())
+	}
+	g.Printf(");\n")
 }
 
 func (g *JavaGen) gobindOpts() string {
@@ -574,22 +968,30 @@ var javaNameReplacer = newNameSanitizer([]string{
 	"try", "void", "volatile", "while", "false", "null", "true"})
 
 func (g *JavaGen) javaPkgName(pkg *types.Package) string {
+	return JavaPkgName(g.JavaPkg, pkg)
+}
+
+// JavaPkgName returns the Java package name for a Go package
+// given a pkg prefix. If the prefix is empty, "go" is used
+// instead.
+func JavaPkgName(pkgPrefix string, pkg *types.Package) string {
 	if pkg == nil {
 		return "go"
 	}
 	s := javaNameReplacer(pkg.Name())
-	if g.JavaPkg != "" {
-		return g.JavaPkg + "." + s
-	} else {
-		return "go." + s
+	if pkgPrefix == "" {
+		return s
 	}
+	return pkgPrefix + "." + s
 }
 
 func (g *JavaGen) className() string {
-	return className(g.Pkg)
+	return JavaClassName(g.Pkg)
 }
 
-func className(pkg *types.Package) string {
+// JavaClassName returns the name of the Java class that
+// contains Go package level identifiers.
+func JavaClassName(pkg *types.Package) string {
 	if pkg == nil {
 		return "Universe"
 	}
@@ -604,7 +1006,7 @@ func (g *JavaGen) genConst(o *types.Const) {
 	// TODO(hyangah): should const names use upper cases + "_"?
 	// TODO(hyangah): check invalid names.
 	jType := g.javaType(o.Type())
-	val := constExactString(o)
+	val := o.Val().ExactString()
 	switch b := o.Type().(*types.Basic); b.Kind() {
 	case types.Int64, types.UntypedInt:
 		i, exact := constant.Int64Val(o.Val())
@@ -626,6 +1028,7 @@ func (g *JavaGen) genConst(o *types.Const) {
 		}
 		val = fmt.Sprintf("%g", f)
 	}
+	g.javadoc(g.docs[o.Name()].Doc())
 	g.Printf("public static final %s %s = %s;\n", g.javaType(o.Type()), o.Name(), val)
 }
 
@@ -638,7 +1041,7 @@ func (g *JavaGen) genJNIField(o *types.TypeName, f *types.Var) {
 	g.Printf("JNIEXPORT void JNICALL\n")
 	g.Printf("Java_%s_%s_set%s(JNIEnv *env, jobject this, %s v) {\n", g.jniPkgName(), o.Name(), f.Name(), g.jniType(f.Type()))
 	g.Indent()
-	g.Printf("int32_t o = go_seq_to_refnum(env, this);\n")
+	g.Printf("int32_t o = go_seq_to_refnum_go(env, this);\n")
 	g.genJavaToC("v", f.Type(), modeRetained)
 	g.Printf("proxy%s_%s_%s_Set(o, _v);\n", g.pkgPrefix, o.Name(), f.Name())
 	g.genRelease("v", f.Type(), modeRetained)
@@ -649,7 +1052,7 @@ func (g *JavaGen) genJNIField(o *types.TypeName, f *types.Var) {
 	g.Printf("JNIEXPORT %s JNICALL\n", g.jniType(f.Type()))
 	g.Printf("Java_%s_%s_get%s(JNIEnv *env, jobject this) {\n", g.jniPkgName(), o.Name(), f.Name())
 	g.Indent()
-	g.Printf("int32_t o = go_seq_to_refnum(env, this);\n")
+	g.Printf("int32_t o = go_seq_to_refnum_go(env, this);\n")
 	g.Printf("%s r0 = ", g.cgoType(f.Type()))
 	g.Printf("proxy%s_%s_%s_Get(o);\n", g.pkgPrefix, o.Name(), f.Name())
 	g.genCToJava("_r0", "r0", f.Type(), modeRetained)
@@ -685,28 +1088,88 @@ func (g *JavaGen) genJNIVar(o *types.Var) {
 	g.Printf("}\n\n")
 }
 
-func (g *JavaGen) genJNIFunc(o *types.Func, sName string, proxy bool) {
+func (g *JavaGen) genJNIConstructor(f *types.Func, sName string) {
+	if !g.isSigSupported(f.Type()) {
+		return
+	}
+	sig := f.Type().(*types.Signature)
+	res := sig.Results()
+
+	g.Printf("JNIEXPORT jobject JNICALL\n")
+	g.Printf("Java_%s_%s_%s(JNIEnv *env, jclass clazz", g.jniPkgName(), sName, java.JNIMangle("__"+f.Name()))
+	params := sig.Params()
+	for i := 0; i < params.Len(); i++ {
+		v := params.At(i)
+		jt := g.jniType(v.Type())
+		g.Printf(", %s %s", jt, g.paramName(params, i))
+	}
+	g.Printf(") {\n")
+	g.Indent()
+	for i := 0; i < params.Len(); i++ {
+		name := g.paramName(params, i)
+		g.genJavaToC(name, params.At(i).Type(), modeTransient)
+	}
+	// Constructors always return a mandatory *T and an optional error
+	if res.Len() == 1 {
+		g.Printf("int32_t refnum = proxy%s__%s(", g.pkgPrefix, f.Name())
+	} else {
+		g.Printf("struct proxy%s__%s_return res = proxy%s__%s(", g.pkgPrefix, f.Name(), g.pkgPrefix, f.Name())
+	}
+	for i := 0; i < params.Len(); i++ {
+		if i > 0 {
+			g.Printf(", ")
+		}
+		g.Printf("_%s", g.paramName(params, i))
+	}
+	g.Printf(");\n")
+	for i := 0; i < params.Len(); i++ {
+		g.genRelease(g.paramName(params, i), params.At(i).Type(), modeTransient)
+	}
+	// Extract multi returns and handle errors
+	if res.Len() == 2 {
+		g.Printf("int32_t refnum = res.r0;\n")
+		g.genCToJava("_err", "res.r1", res.At(1).Type(), modeRetained)
+		g.Printf("go_seq_maybe_throw_exception(env, _err);\n")
+	}
+	// Pass no proxy class so that the Seq.Ref is returned instead.
+	g.Printf("return go_seq_from_refnum(env, refnum, NULL, NULL);\n")
+	g.Outdent()
+	g.Printf("}\n\n")
+}
+
+func (g *JavaGen) genJNIFunc(o *types.Func, sName string, jm *java.Func, proxy, isjava bool) {
 	if !g.isSigSupported(o.Type()) {
 		n := o.Name()
 		if sName != "" {
 			n = sName + "." + n
 		}
-		g.Printf("// skipped function %s with unsupported parameter or return types\n\n", o.Name())
+		g.Printf("// skipped function %s with unsupported parameter or return types\n\n", n)
 		return
 	}
-	g.genJNIFuncSignature(o, sName, proxy)
-	sig := o.Type().(*types.Signature)
-	res := sig.Results()
+	g.genJNIFuncSignature(o, sName, jm, proxy, isjava)
 
 	g.Printf(" {\n")
 	g.Indent()
+	g.genJNIFuncBody(o, sName, jm, isjava)
+	g.Outdent()
+	g.Printf("}\n\n")
+}
 
+func (g *JavaGen) genJNIFuncBody(o *types.Func, sName string, jm *java.Func, isjava bool) {
+	sig := o.Type().(*types.Signature)
+	res := sig.Results()
 	if sName != "" {
-		g.Printf("int32_t o = go_seq_to_refnum(env, this);\n")
+		g.Printf("int32_t o = go_seq_to_refnum_go(env, __this__);\n")
 	}
 	params := sig.Params()
-	for i := 0; i < params.Len(); i++ {
-		name := paramName(params, i)
+	first := 0
+	if isjava && params.Len() > 0 && params.At(0).Name() == "this" {
+		// Start after the implicit this argument.
+		first = 1
+		g.Printf("int32_t _%s = go_seq_to_refnum(env, __this__);\n", g.paramName(params, 0))
+	}
+	for i := first; i < params.Len(); i++ {
+		name := g.paramName(params, i)
 		g.genJavaToC(name, params.At(i).Type(), modeTransient)
 	}
 	resPrefix := ""
@@ -722,15 +1185,16 @@ func (g *JavaGen) genJNIFunc(o *types.Func, sName string, proxy bool) {
 	if sName != "" {
 		g.Printf("o")
 	}
+	// Pass all arguments, including the implicit this argument.
 	for i := 0; i < params.Len(); i++ {
 		if i > 0 || sName != "" {
 			g.Printf(", ")
 		}
-		g.Printf("_%s", paramName(params, i))
+		g.Printf("_%s", g.paramName(params, i))
 	}
 	g.Printf(");\n")
-	for i := 0; i < params.Len(); i++ {
-		g.genRelease(paramName(params, i), params.At(i).Type(), modeTransient)
+	for i := first; i < params.Len(); i++ {
+		g.genRelease(g.paramName(params, i), params.At(i).Type(), modeTransient)
 	}
 	for i := 0; i < res.Len(); i++ {
 		tn := fmt.Sprintf("_r%d", i)
@@ -747,8 +1211,6 @@ func (g *JavaGen) genJNIFunc(o *types.Func, sName string, proxy bool) {
 			g.Printf("go_seq_maybe_throw_exception(env, _r%d);\n", i)
 		}
 	}
-	g.Outdent()
-	g.Printf("}\n\n")
 }
 
 // genRelease cleans up arguments that weren't copied in genJavaToC.
@@ -761,9 +1223,7 @@ func (g *JavaGen) genRelease(varName string, t types.Type, mode varMode) {
 			switch e.Kind() {
 			case types.Uint8: // Byte.
 				if mode == modeTransient {
-					g.Printf("if (_%s.ptr != NULL) {\n", varName)
-					g.Printf("  (*env)->ReleaseByteArrayElements(env, %s, _%s.ptr, 0);\n", varName, varName)
-					g.Printf("}\n")
+					g.Printf("go_seq_release_byte_array(env, %s, _%s.ptr);\n", varName, varName)
 				}
 			}
 		}
@@ -778,14 +1238,12 @@ func (g *JavaGen) genMethodInterfaceProxy(oName string, m *types.Func) {
 	sig := m.Type().(*types.Signature)
 	params := sig.Params()
 	res := sig.Results()
-	g.genInterfaceMethodSignature(m, oName, false)
+	g.genInterfaceMethodSignature(m, oName, false, g.paramName)
 	g.Indent()
-	// Push a JNI reference frame with a conservative capacity of two for each per parameter (Seq.Ref and Seq.Object),
-	// plus extra space for the receiver, the return value, and exception (if any).
-	g.Printf("JNIEnv *env = go_seq_push_local_frame(%d);\n", 2*params.Len()+10)
+	g.Printf("JNIEnv *env = go_seq_push_local_frame(%d);\n", params.Len())
 	g.Printf("jobject o = go_seq_from_refnum(env, refnum, proxy_class_%s_%s, proxy_class_%s_%s_cons);\n", g.pkgPrefix, oName, g.pkgPrefix, oName)
 	for i := 0; i < params.Len(); i++ {
-		pn := paramName(params, i)
+		pn := g.paramName(params, i)
 		g.genCToJava("_"+pn, pn, params.At(i).Type(), modeTransient)
 	}
 	if res.Len() > 0 && !isErrorType(res.At(0).Type()) {
@@ -796,29 +1254,29 @@ func (g *JavaGen) genMethodInterfaceProxy(oName string, m *types.Func) {
 	}
 	g.Printf("mid_%s_%s", oName, m.Name())
 	for i := 0; i < params.Len(); i++ {
-		g.Printf(", _%s", paramName(params, i))
+		g.Printf(", _%s", g.paramName(params, i))
 	}
 	g.Printf(");\n")
 	var retName string
 	if res.Len() > 0 {
-		var rets []string
 		t := res.At(0).Type()
-		if !isErrorType(t) {
-			g.genJavaToC("res", t, modeRetained)
-			retName = "_res"
-			rets = append(rets, retName)
-		}
 		if res.Len() == 2 || isErrorType(t) {
-			g.Printf("jobject exc = go_seq_wrap_exception(env);\n")
+			g.Printf("jobject exc = go_seq_get_exception(env);\n")
 			errType := types.Universe.Lookup("error").Type()
 			g.genJavaToC("exc", errType, modeRetained)
 			retName = "_exc"
-			rets = append(rets, "_exc")
+		}
+		if !isErrorType(t) {
+			if res.Len() == 2 {
+				g.genCRetClear("res", t, "exc")
+			}
+			g.genJavaToC("res", t, modeRetained)
+			retName = "_res"
 		}
 
 		if res.Len() > 1 {
 			g.Printf("cproxy%s_%s_%s_return sres = {\n", g.pkgPrefix, oName, m.Name())
-			g.Printf("	%s\n", strings.Join(rets, ", "))
+			g.Printf("	_res, _exc\n")
 			g.Printf("};\n")
 			retName = "sres"
 		}
@@ -846,7 +1304,7 @@ func (g *JavaGen) GenH() error {
 				g.Printf("// skipped method %s.%s with unsupported parameter or return types\n\n", iface.obj.Name(), m.Name())
 				continue
 			}
-			g.genInterfaceMethodSignature(m, iface.obj.Name(), true)
+			g.genInterfaceMethodSignature(m, iface.obj.Name(), true, g.paramName)
 			g.Printf("\n")
 		}
 	}
@@ -906,6 +1364,9 @@ func (g *JavaGen) jniClassSigPrefix(pkg *types.Package) string {
 }
 
 func (g *JavaGen) jniSigType(T types.Type) string {
+	if isErrorType(T) {
+		return "Ljava/lang/Exception;"
+	}
 	switch T := T.(type) {
 	case *types.Basic:
 		switch T.Kind() {
@@ -988,15 +1449,29 @@ func (g *JavaGen) GenC() error {
 	g.Indent()
 	g.Printf("jclass clazz;\n")
 	for _, s := range g.structs {
+		if jinf, ok := g.jstructs[s.obj]; ok {
+			// Leave the class and constructor NULL for Java classes with no
+			// default constructor.
+			if !jinf.genNoargCon {
+				continue
+			}
+		}
 		g.Printf("clazz = (*env)->FindClass(env, %q);\n", g.jniClassSigPrefix(s.obj.Pkg())+s.obj.Name())
 		g.Printf("proxy_class_%s_%s = (*env)->NewGlobalRef(env, clazz);\n", g.pkgPrefix, s.obj.Name())
 		g.Printf("proxy_class_%s_%s_cons = (*env)->GetMethodID(env, clazz, \"<init>\", \"(Lgo/Seq$Ref;)V\");\n", g.pkgPrefix, s.obj.Name())
 	}
 	for _, iface := range g.interfaces {
 		pkg := iface.obj.Pkg()
-		g.Printf("clazz = (*env)->FindClass(env, %q);\n", g.jniClassSigPrefix(pkg)+className(pkg)+"$proxy"+iface.obj.Name())
+		g.Printf("clazz = (*env)->FindClass(env, %q);\n", g.jniClassSigPrefix(pkg)+JavaClassName(pkg)+"$proxy"+iface.obj.Name())
 		g.Printf("proxy_class_%s_%s = (*env)->NewGlobalRef(env, clazz);\n", g.pkgPrefix, iface.obj.Name())
 		g.Printf("proxy_class_%s_%s_cons = (*env)->GetMethodID(env, clazz, \"<init>\", \"(Lgo/Seq$Ref;)V\");\n", g.pkgPrefix, iface.obj.Name())
+		if isErrorType(iface.obj.Type()) {
+			// As a special case, Java Exceptions are passed to Go pretending to implement the Go error interface.
+			// To complete the illusion, use the Throwable.getMessage method for proxied calls to the error.Error method.
+			g.Printf("clazz = (*env)->FindClass(env, \"java/lang/Throwable\");\n")
+			g.Printf("mid_error_Error = (*env)->GetMethodID(env, clazz, \"getMessage\", \"()Ljava/lang/String;\");\n")
+			continue
+		}
 		g.Printf("clazz = (*env)->FindClass(env, %q);\n", g.jniClassSigPrefix(pkg)+iface.obj.Name())
 		for _, m := range iface.summary.callable {
 			if !g.isSigSupported(m.Type()) {
@@ -1024,12 +1499,32 @@ func (g *JavaGen) GenC() error {
 	g.Outdent()
 	g.Printf("}\n\n")
 	for _, f := range g.funcs {
-		g.genJNIFunc(f, "", false)
+		g.genJNIFunc(f, "", nil, false, false)
 	}
 	for _, s := range g.structs {
 		sName := s.obj.Name()
+		cons := g.constructors[s.obj]
+		jinf := g.jstructs[s.obj]
+		for _, f := range cons {
+			g.genJNIConstructor(f, sName)
+		}
+		if len(cons) == 0 && (jinf == nil || jinf.genNoargCon) {
+			g.Printf("JNIEXPORT jobject JNICALL\n")
+			g.Printf("Java_%s_%s_%s(JNIEnv *env, jclass clazz) {\n", g.jniPkgName(), sName, java.JNIMangle("__New"))
+			g.Indent()
+			g.Printf("int32_t refnum = new_%s_%s();\n", g.pkgPrefix, sName)
+			// Pass no proxy class so that the Seq.Ref is returned instead.
+			g.Printf("return go_seq_from_refnum(env, refnum, NULL, NULL);\n")
+			g.Outdent()
+			g.Printf("}\n\n")
+		}
+
 		for _, m := range exportedMethodSet(types.NewPointer(s.obj.Type())) {
-			g.genJNIFunc(m, sName, false)
+			var jm *java.Func
+			if jinf != nil {
+				jm = jinf.lookupMethod(m, g.hasThis(s.obj.Name(), m))
+			}
+			g.genJNIFunc(m, sName, jm, false, jinf != nil)
 		}
 		for _, f := range exportedFields(s.t) {
 			g.genJNIField(s.obj, f)
@@ -1037,7 +1532,7 @@ func (g *JavaGen) GenC() error {
 	}
 	for _, iface := range g.interfaces {
 		for _, m := range iface.summary.callable {
-			g.genJNIFunc(m, iface.obj.Name(), true)
+			g.genJNIFunc(m, iface.obj.Name(), nil, true, false)
 			g.genMethodInterfaceProxy(iface.obj.Name(), m)
 		}
 	}
@@ -1065,7 +1560,7 @@ func (g *JavaGen) GenJava() error {
 	if g.Pkg != nil {
 		for _, p := range g.Pkg.Imports() {
 			if g.validPkg(p) {
-				g.Printf("%s.%s.touch();\n", g.javaPkgName(p), className(p))
+				g.Printf("%s.%s.touch();\n", g.javaPkgName(p), JavaClassName(p))
 			}
 		}
 	}
@@ -1078,15 +1573,26 @@ func (g *JavaGen) GenJava() error {
 	g.Printf("private static native void _init();\n\n")
 
 	for _, iface := range g.interfaces {
-		g.Printf(javaProxyPreamble, iface.obj.Name())
+		n := iface.obj.Name()
+		g.Printf("private static final class proxy%s", n)
+		if isErrorType(iface.obj.Type()) {
+			g.Printf(" extends Exception")
+		}
+		g.Printf(" implements Seq.Proxy, %s {\n", n)
 		g.Indent()
+		g.genProxyImpl("proxy" + n)
+		g.Printf("proxy%s(Seq.Ref ref) { this.ref = ref; }\n\n", n)
 
+		if isErrorType(iface.obj.Type()) {
+			g.Printf("@Override public String getMessage() { return error(); }\n\n")
+		}
 		for _, m := range iface.summary.callable {
 			if !g.isSigSupported(m.Type()) {
-				g.Printf("// skipped method %s.%s with unsupported parameter or return types\n\n", iface.obj.Name(), m.Name())
+				g.Printf("// skipped method %s.%s with unsupported parameter or return types\n\n", n, m.Name())
 				continue
 			}
-			g.genFuncSignature(m, false, false)
+			g.Printf("public native ")
+			g.genFuncSignature(m, nil, false)
 		}
 
 		g.Outdent()
@@ -1107,7 +1613,8 @@ func (g *JavaGen) GenJava() error {
 			g.Printf("// skipped function %s with unsupported parameter or return types\n\n", f.Name())
 			continue
 		}
-		g.genFuncSignature(f, true, false)
+		g.Printf("public static native ")
+		g.genFuncSignature(f, nil, false)
 	}
 
 	g.Outdent()
@@ -1119,11 +1626,38 @@ func (g *JavaGen) GenJava() error {
 	return nil
 }
 
-const (
-	javaProxyPreamble = `private static final class proxy%[1]s extends Seq.Proxy implements %[1]s {
-    proxy%[1]s(Seq.Ref ref) { super(ref); }
+// embeddedJavaClasses returns the possible empty list of Java types embedded
+// in the given struct type.
+func embeddedJavaClasses(t *types.Struct) []string {
+	clsSet := make(map[string]struct{})
+	var classes []string
+	for i := 0; i < t.NumFields(); i++ {
+		f := t.Field(i)
+		if !f.Exported() {
+			continue
+		}
+		if t := f.Type(); isJavaType(t) {
+			cls := classNameFor(t)
+			if _, exists := clsSet[cls]; !exists {
+				clsSet[cls] = struct{}{}
+				classes = append(classes, cls)
+			}
+		}
+	}
+	return classes
+}
 
-`
+func classNameFor(t types.Type) string {
+	obj := t.(*types.Named).Obj()
+	pkg := obj.Pkg()
+	return strings.Replace(pkg.Path()[len("Java/"):], "/", ".", -1) + "." + obj.Name()
+}
+
+func isJavaType(t types.Type) bool {
+	return typePkgFirstElem(t) == "Java"
+}
+
+const (
 	javaPreamble = `// Java class %[1]s.%[2]s is a proxy for talking to a Go program.
 //   gobind %[3]s %[4]s
 //
