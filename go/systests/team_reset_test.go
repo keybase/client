@@ -33,27 +33,27 @@ func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
 }
 
 func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnboxed, err error) {
-	return readChatsWithErrorAndDevice(team, u, u.primaryDevice())
+	return readChatsWithErrorAndDevice(team, u, u.primaryDevice(), 0)
 }
 
-func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper) (messages []chat1.MessageUnboxed, err error) {
+func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper, nMessages int) (messages []chat1.MessageUnboxed, err error) {
 	tctx := dev.popClone()
 
-	wait := 100 * time.Millisecond
+	wait := time.Second
 	var totalWait time.Duration
 	for i := 0; i < 10; i++ {
 		runner := client.NewCmdChatReadRunner(tctx.G)
 		runner.SetTeamChatForTest(team.name)
 		_, messages, err = runner.Fetch()
 
-		if err == nil {
+		if err == nil && len(messages) == nMessages {
 			if i != 0 {
 				u.ctx.t.Logf("readChatsWithError success after retrying %d times, polling for %s", i, totalWait)
 			}
 			return messages, nil
 		}
 
-		if !strings.Contains(err.Error(), "KBFS client not found") {
+		if err != nil && !strings.Contains(err.Error(), "KBFS client not found") {
 			// Only retry on KBFS errors
 			return messages, err
 		}
@@ -71,7 +71,7 @@ func readChats(team smuTeam, u *smuUser, nMessages int) {
 }
 
 func readChatsWithDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper, nMessages int) {
-	messages, err := readChatsWithErrorAndDevice(team, u, dev)
+	messages, err := readChatsWithErrorAndDevice(team, u, dev, nMessages)
 	t := u.ctx.t
 	if err != nil {
 		u.ctx.t.Fatal(err)
@@ -145,7 +145,6 @@ func TestTeamDelete(t *testing.T) {
 }
 
 func TestTeamReset(t *testing.T) {
-	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
