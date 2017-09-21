@@ -124,7 +124,7 @@ func (c *CmdLogSend) pokeUI() error {
 		return err
 	}
 	err = cli.PrepareLogsend(context.Background())
-	// Give the client a moment to get its logs in order
+	// Give the GUI a moment to get its logs in order
 	time.Sleep(1 * time.Second)
 	return err
 }
