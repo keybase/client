@@ -46,26 +46,26 @@ const passesParticipantFilter = (filter: string, participants: Array<string>, yo
 // Simple score for a filter. returns 1 for exact match. 0.75 for full name match
 // in a group conversation. 0.5 for a partial match
 // 0 for no match
-function scoreFilter(filter, stringToFilterOn, you) {
-  if (stringToFilterOn.indexOf(',') > 0) {
-    const participants = stringToFilterOn.split(',')
-    if (participants.some(p => p.toLowerCase() === filter.toLowerCase())) {
+function scoreFilter(filter: string, stringToFilterOn: string, participants: Array<string>, you: string) {
+  const lcFilter = filter.toLowerCase()
+  if (participants.length) {
+    if (participants.some(p => p.toLowerCase() === lcFilter)) {
       if (participants.length === 2) {
         return 1
       }
       return 0.75
     }
 
-    if (passesParticipantFilter(filter, participants, you)) {
+    if (passesParticipantFilter(lcFilter, participants, you)) {
       return 0.5
     }
   }
 
-  if (filter.toLowerCase() === stringToFilterOn.toLowerCase()) {
+  if (lcFilter === stringToFilterOn.toLowerCase()) {
     return 1
   }
 
-  if (passesStringFilter(filter, stringToFilterOn)) {
+  if (passesStringFilter(lcFilter, stringToFilterOn)) {
     return 0.5
   }
 
@@ -86,7 +86,7 @@ const getSimpleRows = createSelector(
           const isEmpty = i.isEmpty && !alwaysShow.has(id)
           const isSuperseded = !!supersededByState.get(id)
           const passesFilter =
-            !filter || scoreFilter(filter, i.teamname || i.get('participants').join(','), you) > 0
+            !filter || scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you) > 0
 
           return !isEmpty && !isSuperseded && passesFilter
         })
@@ -94,7 +94,7 @@ const getSimpleRows = createSelector(
         .map(i => ({
           conversationIDKey: i.conversationIDKey,
           time: i.time,
-          filterScore: scoreFilter(filter, i.teamname || i.get('participants').join(','), you),
+          filterScore: scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you),
         }))
         .sort((a, b) => {
           if (filter) {
