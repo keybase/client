@@ -26,8 +26,8 @@ dependencies:
     # - sudo apt-cache show yarn
     - sudo apt-get install -y -qq yarn=1.0.2-1
     - sudo rm -rf /usr/local/go* # Remove old go installation
-    - mkdir ~/downloads
-    - mkdir ~/go-path
+    - mkdir -p ~/downloads
+    - mkdir -p ~/go-path
     - if [[ ! -e "$HOME/downloads/go.183.tar.gz" ]]; then wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/downloads/go.183.tar.gz && (cd $HOME; tar -xzvf downloads/go.183.tar.gz); fi
     - sudo mv $HOME/go /usr/local
     - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
@@ -35,7 +35,7 @@ dependencies:
      # Android Support Repository, revision 35 / Local Maven repository for Support Libraries
     - if [ ! -d "/usr/local/android-sdk-linux/extras/android/m2repository/com/android/support/design/24.1.0" ]; then echo y | android update sdk --no-ui --all --filter "extra-android-m2repository"; fi
     # Accept android licenses
-    - mkdir /usr/local/android-sdk-linux/licenses
+    - mkdir -p /usr/local/android-sdk-linux/licenses
     - if [[ ! -e "$ANDROID_HOME/ndk_bundle" ]]; then wget -nv http://dl.google.com/android/repository/android-ndk-r11c-linux-x86_64.zip -O android-ndk-r11c-linux-x86_64.zip && unzip -o android-ndk-r11c-linux-x86_64.zip -d "$ANDROID_HOME" && mv "$ANDROID_HOME/android-ndk-r11c" "$ANDROID_HOME/ndk-bundle"; fi
     - echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > /usr/local/android-sdk-linux/licenses/android-sdk-license
     # Install Yarn
