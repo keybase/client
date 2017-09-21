@@ -463,7 +463,7 @@ export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
-export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>
+export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {forSelectConversation: boolean}>
 export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
