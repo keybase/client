@@ -15,7 +15,6 @@ import (
 // time.
 type Identify2Cache struct {
 	cache *ramcache.Ramcache
-	Contextified
 }
 
 type Identify2Cacher interface {
@@ -33,10 +32,9 @@ type GetCacheDurationFunc func(keybase1.Identify2Res) time.Duration
 // NewIdentify2Cache creates a Identify2Cache and sets the object max age to
 // maxAge.  Once a user is inserted, after maxAge duration passes,
 // the user will be removed from the cache.
-func NewIdentify2Cache(g *GlobalContext, maxAge time.Duration) *Identify2Cache {
+func NewIdentify2Cache(maxAge time.Duration) *Identify2Cache {
 	res := &Identify2Cache{
-		Contextified: NewContextified(g),
-		cache:        ramcache.New(),
+		cache: ramcache.New(),
 	}
 	res.cache.MaxAge = maxAge
 	res.cache.TTL = maxAge
