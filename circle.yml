@@ -45,6 +45,8 @@ dependencies:
   cache_directories:
     - ~/downloads
     - ~/.cache/yarn
+    - /tmp/go-android/bin
+    - /tmp/go-android/pkg
     - /usr/local/android-sdk-linux/tools
     - /usr/local/android-sdk-linux/ndk-bundle
     - /usr/local/android-sdk-linux/build-tools/23.0.2
