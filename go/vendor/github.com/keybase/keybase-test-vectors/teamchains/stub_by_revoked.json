@@ -3,7 +3,8 @@
         "user:herb key:default",
         "user:basil key:default",
         "link team:cabal type:root",
-        "link team:cabal type:invite"
+        "link team:cabal type:invite",
+        "link team:cabal type:rotate_key"
     ],
     "teams": {
         "cabal": {
@@ -58,8 +59,8 @@
                 },
                 {
                     "seqno": 2,
-                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgx/Xzc1XM1LS+giV1hEq3kDxjqbgxv9MMlA0B8Ss5qkcKp3BheWxvYWTESJUCAsQgMQt+v0x2h+u1Id9QZE8/klkVvIA1Rsfanyn9/L+aOoDEIK2BXz0raojy8xeaSTaeWZIv8MU1JTBUfsmGFUthBDQIKKNzaWfEQA8XgUOjzUsf6Ap8cA1BwQbHOAXj17uclzkqDyxedpdAXELyGFZqkSpH+kvW9XWAQWdRkV+nbzmWRxU6nIkRAg2oc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==",
-                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a\",\"uid\":\"579651b0d574971040b531b66efbc519\",\"username\":\"basil\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd2000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"invites\":{\"admin\":[{\"id\":\"54eafff3400b5bcd8b40bff3d225ab27\",\"name\":\"max+be6ef086a4a5@keyba.se\",\"type\":\"email\"}]}},\"type\":\"team.invite\",\"version\":2},\"ctime\":1506109374,\"expire_in\":157680000,\"prev\":\"310b7ebf4c7687ebb521df50644f3f925915bc803546c7da9f29fdfcbf9a3a80\",\"seqno\":2,\"tag\":\"signature\"}",
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgx/Xzc1XM1LS+giV1hEq3kDxjqbgxv9MMlA0B8Ss5qkcKp3BheWxvYWTESJUCAsQgMQt+v0x2h+u1Id9QZE8/klkVvIA1Rsfanyn9/L+aOoDEIEvArNkb3sizvzobLAc041jp27MTjTVotQS++RlargbcKKNzaWfEQIuYMqZEGkFooxbLUAEYykIA4/vDqEvfqjzcKyvXC3xuW61atD7OIDZ2NPMJz6iTgkELA874p/vgCwN+JYtTAQOoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a\",\"uid\":\"579651b0d574971040b531b66efbc519\",\"username\":\"basil\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd2000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"invites\":{\"writer\":[{\"id\":\"54eafff3400b5bcd8b40bff3d225ab27\",\"name\":\"max+be6ef086a4a5@keyba.se\",\"type\":\"email\"}]}},\"type\":\"team.invite\",\"version\":2},\"ctime\":1506109374,\"expire_in\":157680000,\"prev\":\"310b7ebf4c7687ebb521df50644f3f925915bc803546c7da9f29fdfcbf9a3a80\",\"seqno\":2,\"tag\":\"signature\"}",
                     "uid": "579651b0d574971040b531b66efbc519",
                     "version": 2,
                     "debug_payload": {
@@ -85,7 +86,7 @@
                             "team": {
                                 "id": "2123209b98b16083c69c91152b861724",
                                 "invites": {
-                                    "admin": [
+                                    "writer": [
                                         {
                                             "id": "54eafff3400b5bcd8b40bff3d225ab27",
                                             "name": "max+be6ef086a4a5@keyba.se",
@@ -96,7 +97,46 @@
                             }
                         }
                     },
-                    "debug_link_id": "797962e54d70e1f5e986160139be3e3f0e77599814b5d63747c08a6e9153e8e2"
+                    "debug_link_id": "bf61ac702cadfbf51af0776430b23c4c2ce7f0319ddba40adbb1a62644b2daa6"
+                },
+                {
+                    "seqno": 3,
+                    "sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEgEmDPFbgK6vLCw2Lw3oi7xAJy1TTReblMBFel5YT80YYKp3BheWxvYWTESJUCA8Qgv2GscCyt+/Ua8HdkMLI8TCzn8DGd26QK27GmJkSy2qbEIG60iITI1kOyUvnBMeqwezHUHfLxwM/l3t0jZDniQFOAJKNzaWfEQMIbq2BmU1cRS2YbxQ85lcGcT++vWF/PffnmlFC6Xo6J5E3B4i78hLpHHB7+Cr3ZFuJ3YaZAZeuGwm1a+4VcRAioc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==",
+                    "payload_json": "{\"body\":{\"key\":{\"kid\":\"01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a\",\"uid\":\"25852c87d6e47fb8d7d55400be9c7a19\",\"username\":\"herb\"},\"merkle_root\":{\"ctime\":1500570001,\"hash\":\"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\",\"hash_meta\":\"cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd3000\",\"seqno\":8001},\"team\":{\"id\":\"2123209b98b16083c69c91152b861724\",\"per_team_key\":{\"encryption_kid\":\"01218cf575ccb5a33e0b7b767f8e6cffa5fce8b6bc3f1bba1ccdcc3c5fc2d754f91e0a\",\"generation\":2,\"reverse_sig\":\"g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEg4peSPB/o5PdSbVenBeZ9loJEIhqsi7MK3idiP+u49E8Kp3BheWxvYWTFA257ImJvZHkiOnsia2V5Ijp7ImtpZCI6IjAxMjAxMjYwY2YxNWI4MGFlYWYyYzJjMzYyZjBkZTg4YmJjNDAyNzJkNTM0ZDE3OWI5NGMwNDU3YTVlNTg0ZmNkMTg2MGEiLCJ1aWQiOiIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSIsInVzZXJuYW1lIjoiaGVyYiJ9LCJtZXJrbGVfcm9vdCI6eyJjdGltZSI6MTUwMDU3MDAwMSwiaGFzaCI6ImZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmIiwiaGFzaF9tZXRhIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkMzAwMCIsInNlcW5vIjo4MDAxfSwidGVhbSI6eyJpZCI6IjIxMjMyMDliOThiMTYwODNjNjljOTExNTJiODYxNzI0IiwicGVyX3RlYW1fa2V5Ijp7ImVuY3J5cHRpb25fa2lkIjoiMDEyMThjZjU3NWNjYjVhMzNlMGI3Yjc2N2Y4ZTZjZmZhNWZjZThiNmJjM2YxYmJhMWNjZGNjM2M1ZmMyZDc1NGY5MWUwYSIsImdlbmVyYXRpb24iOjIsInJldmVyc2Vfc2lnIjpudWxsLCJzaWduaW5nX2tpZCI6IjAxMjBlMjk3OTIzYzFmZThlNGY3NTI2ZDU3YTcwNWU2N2Q5NjgyNDQyMjFhYWM4YmIzMGFkZTI3NjIzZmViYjhmNDRmMGEifX0sInR5cGUiOiJ0ZWFtLnJvdGF0ZV9rZXkiLCJ2ZXJzaW9uIjoyfSwiY3RpbWUiOjE1MDYxMDkzNzUsImV4cGlyZV9pbiI6MTU3NjgwMDAwLCJwcmV2IjoiYmY2MWFjNzAyY2FkZmJmNTFhZjA3NzY0MzBiMjNjNGMyY2U3ZjAzMTlkZGJhNDBhZGJiMWE2MjY0NGIyZGFhNiIsInNlcW5vIjozLCJ0YWciOiJzaWduYXR1cmUifaNzaWfEQHwoT92nYE+svPBxe2AfUi/sii9OyRxjknwAwzppoKyW6Nz2DSfpmPFQsXijByABvYzInz0hdb/MFkuqSSi+pgKoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==\",\"signing_kid\":\"0120e297923c1fe8e4f7526d57a705e67d968244221aac8bb30ade27623febb8f44f0a\"}},\"type\":\"team.rotate_key\",\"version\":2},\"ctime\":1506109375,\"expire_in\":157680000,\"prev\":\"bf61ac702cadfbf51af0776430b23c4c2ce7f0319ddba40adbb1a62644b2daa6\",\"seqno\":3,\"tag\":\"signature\"}",
+                    "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                    "version": 2,
+                    "debug_payload": {
+                        "seqno": 3,
+                        "prev": "bf61ac702cadfbf51af0776430b23c4c2ce7f0319ddba40adbb1a62644b2daa6",
+                        "ctime": 1506109375,
+                        "tag": "signature",
+                        "expire_in": 157680000,
+                        "body": {
+                            "version": 2,
+                            "type": "team.rotate_key",
+                            "key": {
+                                "username": "herb",
+                                "uid": "25852c87d6e47fb8d7d55400be9c7a19",
+                                "kid": "01201260cf15b80aeaf2c2c362f0de88bbc40272d534d179b94c0457a5e584fcd1860a"
+                            },
+                            "merkle_root": {
+                                "ctime": 1500570001,
+                                "hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                                "hash_meta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd3000",
+                                "seqno": 8001
+                            },
+                            "team": {
+                                "id": "2123209b98b16083c69c91152b861724",
+                                "per_team_key": {
+                                    "reverse_sig": "g6Rib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEg4peSPB/o5PdSbVenBeZ9loJEIhqsi7MK3idiP+u49E8Kp3BheWxvYWTFA257ImJvZHkiOnsia2V5Ijp7ImtpZCI6IjAxMjAxMjYwY2YxNWI4MGFlYWYyYzJjMzYyZjBkZTg4YmJjNDAyNzJkNTM0ZDE3OWI5NGMwNDU3YTVlNTg0ZmNkMTg2MGEiLCJ1aWQiOiIyNTg1MmM4N2Q2ZTQ3ZmI4ZDdkNTU0MDBiZTljN2ExOSIsInVzZXJuYW1lIjoiaGVyYiJ9LCJtZXJrbGVfcm9vdCI6eyJjdGltZSI6MTUwMDU3MDAwMSwiaGFzaCI6ImZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmIiwiaGFzaF9tZXRhIjoiY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkY2RjZGNkMzAwMCIsInNlcW5vIjo4MDAxfSwidGVhbSI6eyJpZCI6IjIxMjMyMDliOThiMTYwODNjNjljOTExNTJiODYxNzI0IiwicGVyX3RlYW1fa2V5Ijp7ImVuY3J5cHRpb25fa2lkIjoiMDEyMThjZjU3NWNjYjVhMzNlMGI3Yjc2N2Y4ZTZjZmZhNWZjZThiNmJjM2YxYmJhMWNjZGNjM2M1ZmMyZDc1NGY5MWUwYSIsImdlbmVyYXRpb24iOjIsInJldmVyc2Vfc2lnIjpudWxsLCJzaWduaW5nX2tpZCI6IjAxMjBlMjk3OTIzYzFmZThlNGY3NTI2ZDU3YTcwNWU2N2Q5NjgyNDQyMjFhYWM4YmIzMGFkZTI3NjIzZmViYjhmNDRmMGEifX0sInR5cGUiOiJ0ZWFtLnJvdGF0ZV9rZXkiLCJ2ZXJzaW9uIjoyfSwiY3RpbWUiOjE1MDYxMDkzNzUsImV4cGlyZV9pbiI6MTU3NjgwMDAwLCJwcmV2IjoiYmY2MWFjNzAyY2FkZmJmNTFhZjA3NzY0MzBiMjNjNGMyY2U3ZjAzMTlkZGJhNDBhZGJiMWE2MjY0NGIyZGFhNiIsInNlcW5vIjozLCJ0YWciOiJzaWduYXR1cmUifaNzaWfEQHwoT92nYE+svPBxe2AfUi/sii9OyRxjknwAwzppoKyW6Nz2DSfpmPFQsXijByABvYzInz0hdb/MFkuqSSi+pgKoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==",
+                                    "generation": 2,
+                                    "encryption_kid": "01218cf575ccb5a33e0b7b767f8e6cffa5fce8b6bc3f1bba1ccdcc3c5fc2d754f91e0a",
+                                    "signing_kid": "0120e297923c1fe8e4f7526d57a705e67d968244221aac8bb30ade27623febb8f44f0a"
+                                }
+                            }
+                        }
+                    },
+                    "debug_link_id": "1bca7f2da3fd12e23cfa66549b9e3a1c27f4d9f2ed0515452998e05284eec84f"
                 }
             ],
             "team_key_boxes": [
@@ -110,16 +150,29 @@
                         "per_user_key_seqno": 1
                     },
                     "prev": null
+                },
+                {
+                    "seqno": 3,
+                    "box": {
+                        "nonce": "pTlNRHP1aLY9kTPW987BlfWN/NsAAAAB",
+                        "sender_kid": "012192b181dd77c93ceb4dcfd773c846f0a51cd04ee2c18a6d7f84e0c43217a7a54c0a",
+                        "generation": 2,
+                        "ctext": "9j4MCi6dZh1duFP0qsUTZqnmeX86OfDyRshqWoDzH2mAjeohIKe6+5wqTFTO5TmL",
+                        "per_user_key_seqno": 1
+                    },
+                    "prev": "kwHEGKU5TURz9Wi2PZEz1vfOwZX1jfzbAAAAAMQw/KL7pr4/++tj+ZidkRSGnrCofAadmwGW/1QdfjKMEqaAYWaa8SrAKU7sk6p5CKZo"
                 }
             ],
             "debug_tk_secs": [
                 [
-                    "96ae34bcc20c1c1922dbd1ab374a396e0f13cbb85634a5495993f41de616cf9f"
+                    "96ae34bcc20c1c1922dbd1ab374a396e0f13cbb85634a5495993f41de616cf9f",
+                    "d069bef322ce6739047130c6b3e9b7ab02ba6ee54570e28ca0746ed9e8c97212"
                 ]
             ],
             "debug_tk_sig_kids": [
                 [
-                    "0120bc800d778ff6bfd696113daab058a8304652fce326a8426643ba9283e1e5ac8e0a"
+                    "0120bc800d778ff6bfd696113daab058a8304652fce326a8426643ba9283e1e5ac8e0a",
+                    "0120e297923c1fe8e4f7526d57a705e67d968244221aac8bb30ade27623febb8f44f0a"
                 ]
             ]
         }
@@ -200,14 +253,27 @@
                         "hashMeta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdc500",
                         "seqno": 0
                     }
+                },
+                "revocation": {
+                    "sigChainLocation": {
+                        "seqno": 1,
+                        "seqType": 1
+                    },
+                    "signingKID": "0120c7f5f37355ccd4b4be822575844ab7903c63a9b831bfd30c940d01f12b39aa470a",
+                    "prevMerkleRootSigned": {
+                        "hashMeta": "cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1500",
+                        "seqno": 0
+                    },
+                    "time": 0,
+                    "firstAppearedUnverified": 0
                 }
             }
         }
     },
     "team_merkle": {
         "2123209b98b16083c69c91152b861724": {
-            "seqno": 2,
-            "link_id": "797962e54d70e1f5e986160139be3e3f0e77599814b5d63747c08a6e9153e8e2"
+            "seqno": 3,
+            "link_id": "1bca7f2da3fd12e23cfa66549b9e3a1c27f4d9f2ed0515452998e05284eec84f"
         },
         "2123209b98b16083c69c91152b861724-seqno:1": {
             "seqno": 1,
@@ -215,10 +281,18 @@
         },
         "2123209b98b16083c69c91152b861724-seqno:2": {
             "seqno": 2,
-            "link_id": "797962e54d70e1f5e986160139be3e3f0e77599814b5d63747c08a6e9153e8e2"
+            "link_id": "bf61ac702cadfbf51af0776430b23c4c2ce7f0319ddba40adbb1a62644b2daa6"
+        },
+        "2123209b98b16083c69c91152b861724-seqno:3": {
+            "seqno": 3,
+            "link_id": "1bca7f2da3fd12e23cfa66549b9e3a1c27f4d9f2ed0515452998e05284eec84f"
         }
     },
     "merkle_triples": {
+        "2123209b98b16083c69c91152b861724-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1500": {
+            "seqno": 1,
+            "id": "310b7ebf4c7687ebb521df50644f3f925915bc803546c7da9f29fdfcbf9a3a80"
+        },
         "579651b0d574971040b531b66efbc519-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd1000": {
             "seqno": 1,
             "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe1"
@@ -226,36 +300,82 @@
         "579651b0d574971040b531b66efbc519-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd2000": {
             "seqno": 1,
             "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe1"
+        },
+        "25852c87d6e47fb8d7d55400be9c7a19-cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd3000": {
+            "seqno": 1,
+            "id": "efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefe0"
         }
     },
     "sessions": [
         {
             "loads": [
                 {
-                    "stub": [
-                        2
-                    ],
                     "need_admin": true,
                     "error": true,
-                    "error_type": "StubbedError",
-                    "error_substr": "seqno 2"
+                    "error_type": "ProofError",
+                    "error_substr": "team link before user key revocation"
                 }
             ]
         },
         {
             "loads": [
                 {
-                    "upto": 1,
-                    "need_admin": true
-                },
-                {
-                    "need_admin": true,
                     "stub": [
                         2
                     ],
+                    "n_stubbed": 1
+                },
+                {
+                    "need_admin": true,
                     "error": true,
-                    "error_type": "StubbedError",
-                    "error_substr": "seqno 2"
+                    "error_type": "ProofError",
+                    "error_substr": "team link before user key revocation"
+                }
+            ]
+        },
+        {
+            "loads": [
+                {
+                    "upto": 2,
+                    "stub": [
+                        2
+                    ]
+                },
+                {
+                    "need_admin": true,
+                    "error": true,
+                    "error_type": "ProofError",
+                    "error_substr": "team link before user key revocation"
+                }
+            ]
+        },
+        {
+            "loads": [
+                {
+                    "upto": 2,
+                    "error": true,
+                    "error_type": "ProofError",
+                    "error_substr": "team link before user key revocation"
+                }
+            ]
+        },
+        {
+            "loads": [
+                {
+                    "upto": 1
+                },
+                {
+                    "upto": 2,
+                    "stub": [
+                        2
+                    ]
+                },
+                {
+                    "need_admin": true,
+                    "n_stubbed": 0,
+                    "error": true,
+                    "error_type": "ProofError",
+                    "error_substr": "team link before user key revocation"
                 }
             ]
         }
