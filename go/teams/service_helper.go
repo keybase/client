@@ -151,6 +151,8 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 		return err
 	}
 
+	actx := g.MakeAssertionContext()
+
 	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
 
 	for i, invite := range team.chain().inner.ActiveInvites {
@@ -182,30 +184,27 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 			continue
 		}
 
-		g.Log.CDebugf(ctx, "Found proof in user's ProofSet: key: %s value: %q; invite proof is %s@%s", proof.Key, proof.Value, string(invite.Name), ityp)
+		assertionStr := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
+		g.Log.CDebugf(ctx, "Found proof in user's ProofSet: key: %s value: %q; invite proof is %s", proof.Key, proof.Value, assertionStr)
 
-		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, fmt.Sprintf("%s@%s", string(invite.Name), ityp))
+		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, assertionStr)
 		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
 		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
 			// Cannot resolve invitation or it does not match user
 			continue
 		}
 
-		assertion := fmt.Sprintf("%s@%s+uid:%s", string(invite.Name), ityp, uv.Uid)
-		g.Log.CDebugf(ctx, "Assertion is: %s", assertion)
+		parsedAssertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
+		if err != nil {
+			return err
+		}
 
-		arg := keybase1.Identify2Arg{
-			UserAssertion:    assertion,
-			UseDelegateUI:    false,
-			Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
-			CanSuppressUI:    true,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		resolvedAssertion := libkb.ResolvedAssertion{
+			UID:           uv.Uid,
+			Assertion:     parsedAssertion,
+			ResolveResult: resolveResult,
 		}
-		eng := engine.NewResolveThenIdentify2(g, &arg)
-		ectx := &engine.Context{
-			NetContext: ctx,
-		}
-		if err := engine.RunEngine(eng, ectx); err == nil {
+		if err := verifyResolveResult(ctx, g, resolvedAssertion); err == nil {
 			completedInvites[invite.Id] = uv.PercentForm()
 		}
 	}
