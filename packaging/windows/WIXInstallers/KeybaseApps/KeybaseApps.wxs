@@ -124,6 +124,7 @@
               Action="createAndRemoveOnUninstall">
           <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
           <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
+	  <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
         </RegistryKey>
       </Component>
       
