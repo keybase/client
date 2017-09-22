@@ -86,11 +86,7 @@ func (g *gregorTestConnection) OnConnect(ctx context.Context, conn *rpc.Connecti
 		return fmt.Errorf("wrong uid authed: auth: %s uid: %s", auth.Uid, g.uid)
 	}
 
-	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
-		return err
-	}
-
-	return nil
+	return srv.Register(gregor1.OutgoingProtocol(g))
 }
 
 func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
@@ -197,11 +193,21 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	t.Logf("KBFS Stage End: %v", time.Now().Sub(start))
 
 	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
 	t.Logf("Team Stage Begin")
 	start = time.Now()
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
-	useRemoteMock = true
+
+	t.Logf("Not testing implicit teams (yet)")
+	if false {
+		t.Logf("Implicit Team Stage Begin")
+		os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+		defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+		start = time.Now()
+		f(chat1.ConversationMembersType_IMPTEAM)
+		t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
+	}
 }
 
 type chatTestUserContext struct {
@@ -381,6 +387,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 	default:
 		t.Fatalf("unhandled membersType: %v", membersType)
 	}
+
 	tc := ctc.as(t, creator)
 	ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx,
 		chat1.NewConversationLocalArg{
@@ -581,10 +588,11 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
+
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
+			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
 		}
 		if !conversations[0].Info.Id.Eq(created.Id) {
 			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
@@ -718,7 +726,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 
 		var name string
 		switch mt {
-		case chat1.ConversationMembersType_KBFS:
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
 			name = ctc.as(t, users[1]).user().Username + "," + ctc.as(t, users[0]).user().Username // not canonical
 		case chat1.ConversationMembersType_TEAM:
 			name = ctc.teamCache[teamKey(ctc.users())]
@@ -748,7 +756,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
 		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
+			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
 		}
 		if !conversations[0].Info.Id.Eq(created.Id) {
 			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
@@ -1739,6 +1747,7 @@ func TestChatSrvFindConversations(t *testing.T) {
 		t.Logf("basic test")
 		created := mustCreatePublicConversationForTest(t, ctc, users[2], chat1.TopicType_CHAT,
 			mt, users[1])
+		t.Logf("created public conversation: %+v", created)
 		convRemote := ctc.world.GetConversationByID(created.Id)
 		require.NotNil(t, convRemote)
 		convRemote.Metadata.Visibility = keybase1.TLFVisibility_PUBLIC

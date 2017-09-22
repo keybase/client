@@ -200,10 +200,7 @@ func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) error {
 	if err := k.ParseBase(l); err != nil {
 		return err
 	}
-	if err := k.AddUID(l); err != nil {
-		return err
-	}
-	return nil
+	return k.AddUID(l)
 }
 
 func NewGpgPrimaryKey(g *GlobalContext) *GpgPrimaryKey {

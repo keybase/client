@@ -157,6 +157,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.Notifications = rawConv.Notifications
 		conv.MembersType = rawConv.GetMembersType()
 		conv.TeamType = rawConv.Metadata.TeamType
+		conv.Version = rawConv.Metadata.Version
 		res.Items = append(res.Items, conv)
 	}
 	res.Pagination = utils.PresentPagination(vres.Pagination)
@@ -1617,11 +1618,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	if err = outbox.RemoveMessage(ctx, outboxID); err != nil {
-		return err
-	}
-
-	return nil
+	return outbox.RemoveMessage(ctx, outboxID)
 }
 
 func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {

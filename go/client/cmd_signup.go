@@ -421,10 +421,7 @@ func (s *CmdSignup) initClient() error {
 		loginUI.noPrompt = true
 		protocols = append(protocols, keybase1.LoginUiProtocol(loginUI))
 	}
-	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
-		return err
-	}
-	return nil
+	return RegisterProtocolsWithContext(protocols, s.G())
 }
 
 func (s *CmdSignup) postInviteRequest() (err error) {

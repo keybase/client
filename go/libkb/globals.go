@@ -622,11 +622,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 		}
 	}
 
-	if err = g.ConfigureTimers(); err != nil {
-		return err
-	}
-
-	return nil
+	return g.ConfigureTimers()
 }
 
 func (g *GlobalContext) OutputString(s string) {

@@ -601,6 +601,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if !alreadyIn {
 		// Send a message to the channel after joining.
 		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
 		irl, err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
 		if err != nil {
 			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
@@ -671,6 +672,7 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	ri func() chat1.RemoteInterface) *newConversationHelper {
 
 	if membersType == chat1.ConversationMembersType_IMPTEAM && g.ExternalG().Env.GetChatMemberType() != "impteam" {
+		g.Log.Debug("### note: impteam mt requested, but feature flagged off, using kbfs")
 		membersType = chat1.ConversationMembersType_KBFS
 	}
 
@@ -798,6 +800,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, rl, fmt.Errorf("error preparing message: %s", err)
 		}
+
 		var ncrres chat1.NewConversationRemoteRes
 		ncrres, reserr = n.ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:       triple,

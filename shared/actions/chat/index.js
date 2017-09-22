@@ -868,6 +868,10 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
+  if (fromUser) {
+    yield put(Creators.exitSearch(true))
+  }
+
   // Load the inbox item always
   if (conversationIDKey) {
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
@@ -1236,12 +1240,12 @@ function* _updateTempSearchConversation(
   yield all(actionsToPut)
 }
 
-function* _exitSearch() {
-  const inboxSearch = yield select(inboxSearchSelector)
+function* _exitSearch({payload: {skipSelectPreviousConversation}}: Constants.ExitSearch) {
+  const inboxSearch = skipSelectPreviousConversation ? null : yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.removeTempPendingConversations())
-  if (inboxSearch.count() === 0) {
+  if (inboxSearch !== null && inboxSearch.count() === 0) {
     yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
   }
 }

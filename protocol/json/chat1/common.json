@@ -66,6 +66,13 @@
     },
     {
       "type": "record",
+      "name": "ConversationVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "OutboxID",
       "fields": [],
       "typedef": "bytes"
@@ -451,6 +458,10 @@
         {
           "type": "ConversationExistence",
           "name": "existence"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
         },
         {
           "type": [

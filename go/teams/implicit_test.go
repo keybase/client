@@ -204,3 +204,38 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 		}
 	}
 }
+
+// Test the looking up an implicit team involving a resolved assertion gives the resolved iteam.
+func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	// assumption: t_tracy@rooter resolves to t_tracy
+
+	displayName1 := "t_tracy@rooter," + fus[0].Username
+	displayName2 := "t_tracy," + fus[0].Username
+
+	teamID1, impTeamName1, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName1, false /*isPublic*/)
+	require.NoError(t, err)
+	teamID2, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName2, false /*isPublic*/)
+	require.NoError(t, err)
+
+	require.Equal(t, teamID1, teamID2, "implicit team ID should be the same for %v and %v", displayName1, displayName2)
+
+	team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: teamID1,
+	})
+	require.NoError(t, err)
+	owners, err := team.UsersWithRole(keybase1.TeamRole_OWNER)
+	require.NoError(t, err)
+	// Note: t_tracy has no PUK so she shows up as an invite.
+	require.Len(t, owners, 1)
+	require.Len(t, team.chain().inner.ActiveInvites, 1, "number of invites")
+
+	teamDisplay, err := team.ImplicitTeamDisplayNameString(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, displayName2, teamDisplay)
+	formatName, err := FormatImplicitTeamDisplayName(context.TODO(), tcs[0].G, impTeamName1)
+	require.NoError(t, err)
+	require.Equal(t, displayName2, formatName)
+}

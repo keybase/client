@@ -535,8 +535,5 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	}
 
 	req.None = []keybase1.UserVersion{existingUV}
-	if err := t.ChangeMembership(ctx, req); err != nil {
-		return err
-	}
-	return nil
+	return t.ChangeMembership(ctx, req)
 }

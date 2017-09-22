@@ -310,7 +310,7 @@ func (e *Identify2WithUID) resetError(err error) error {
 	}
 
 	if e.arg.IdentifyBehavior.WarningInsteadOfErrorOnBrokenTracks() {
-		e.G().Log.Debug("| Reset err from %v -> nil since caller is 'CHAT_GUI'", err)
+		e.G().Log.Debug("| Reset err from %v -> nil since caller is '%s' %d", err, e.arg.IdentifyBehavior, e.arg.IdentifyBehavior)
 		return nil
 	}
 
@@ -503,10 +503,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	}
 
 	ctx.SetNetContext(bgNetCtx)
-	if err = e.runIdentifyUI(bgNetCtx, ctx); err != nil {
-		return err
-	}
-	return nil
+	return e.runIdentifyUI(bgNetCtx, ctx)
 }
 
 func (e *Identify2WithUID) allowEarlyOuts() bool {
@@ -600,10 +597,7 @@ func (e *Identify2WithUID) insertTrackToken(ctx *Context, outcome *libkb.Identif
 	if err != nil {
 		return err
 	}
-	if err = ui.ReportTrackToken(e.trackToken); err != nil {
-		return err
-	}
-	return nil
+	return ui.ReportTrackToken(e.trackToken)
 }
 
 // CCLCheckCompleted is triggered whenever a remote proof check completes.
@@ -900,10 +894,7 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	if e.them == nil {
 		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
 	}
-	if err = libkb.UserErrorFromStatus(e.them.GetStatus()); err != nil {
-		return err
-	}
-	return nil
+	return libkb.UserErrorFromStatus(e.them.GetStatus())
 }
 
 func (e *Identify2WithUID) loadUsers(ctx *Context) error {
