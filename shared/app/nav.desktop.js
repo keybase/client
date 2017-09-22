@@ -9,14 +9,10 @@ import {connect} from 'react-redux'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import {showUserProfile} from '../actions/profile'
-import {mergeProps} from './nav.shared.js'
 
 import type {Tab} from '../constants/tabs'
-import type {Props} from './nav'
+import type {Props, StateProps, DispatchProps, OwnProps} from './nav'
 import type {TypedState} from '../constants/reducer'
-import type {RouteProps} from '../route-tree/render-route'
-
-type OwnProps = RouteProps<{}, {}>
 
 function Nav(props: Props) {
   const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
@@ -54,7 +50,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _switchTab: (tab: Tab, me: string) => {
+  _switchTab: (tab: Tab, me: ?string) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       // clicking the chat tab when already selected should do nothing.
       return
@@ -74,7 +70,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     // profileTab = self avatar in bottom left corner
     // On click switch to people tab and push current user onto people route stack
     if (tab === profileTab) {
-      dispatch(showUserProfile(me))
+      me && dispatch(showUserProfile(me))
       dispatch(switchTo([peopleTab]))
       return
     }
@@ -85,5 +81,20 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     dispatch(action(ownProps.routePath.push(tab)))
   },
 })
+
+const mergeProps: (any, any, any) => any = (
+  stateProps: StateProps,
+  dispatchProps: DispatchProps,
+  ownProps: OwnProps
+) => {
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    ...ownProps,
+    switchTab: (tab: Tab) => {
+      dispatchProps._switchTab(tab, stateProps._me)
+    },
+  }
+}
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Nav)

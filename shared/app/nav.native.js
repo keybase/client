@@ -20,16 +20,12 @@ import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
 import {isIOS} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
-import {showUserProfile} from '../actions/profile'
-import {mergeProps} from './nav.shared.js'
 
-import type {Props} from './nav'
+import type {Props, OwnProps} from './nav'
 import type {TypedState} from '../constants/reducer'
 import type {Tab} from '../constants/tabs'
 import type {NavigationAction} from 'react-navigation'
-import type {RouteProps, RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
-
-type OwnProps = RouteProps<{}, {}>
+import type {RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
 
 type CardStackShimProps = {
   mode?: 'modal',
@@ -363,7 +359,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
-  _switchTab: (tab: Tab, me: ?string) => {
+  switchTab: (tab: Tab) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       dispatch(navigateTo(ownProps.routePath.push(tab)))
       return
@@ -386,4 +382,4 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(Nav)
+export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)
