@@ -80,7 +80,7 @@ func uidsToString(uids []keybase1.UID) string {
 	return strings.Join(s, ",")
 }
 
-func (u *UIDMap) lookupUIDsFromServer(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID) ([]libkb.NormalizedUsername, error) {
+func (u *UIDMap) lookupUIDsFromServerBatch(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID) ([]libkb.NormalizedUsername, error) {
 	arg := libkb.NewRetryAPIArg("user/uid_to_username")
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeNONE
@@ -88,7 +88,7 @@ func (u *UIDMap) lookupUIDsFromServer(ctx context.Context, g libkb.UIDMapperCont
 		"uids": libkb.S{Val: uidsToString(uids)},
 	}
 	var r apiReply
-	err := g.GetAPI().GetDecode(arg, &r)
+	err := g.GetAPI().PostDecode(arg, &r)
 	if err != nil {
 		return nil, err
 	}
@@ -102,6 +102,25 @@ func (u *UIDMap) lookupUIDsFromServer(ctx context.Context, g libkb.UIDMapperCont
 				ret[i] = nun
 			}
 		}
+	}
+	return ret, nil
+}
+
+func (u *UIDMap) lookupUIDsFromServer(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID) ([]libkb.NormalizedUsername, error) {
+
+	batchSize := 250
+	var ret []libkb.NormalizedUsername
+	for i := 0; i < len(uids); i += batchSize {
+		high := i + batchSize
+		if high > len(uids) {
+			high = len(uids)
+		}
+		inb := uids[i:high]
+		outb, err := u.lookupUIDsFromServerBatch(ctx, g, inb)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, outb...)
 	}
 	return ret, nil
 }
