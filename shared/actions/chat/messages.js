@@ -160,6 +160,8 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
 
   // Not editing anymore
   yield put(Creators.showEditor(null))
+
+  // if message post-edit is the same as message pre-edit, skip call and marking message as 'EDITED'
   const [prevMessageText, newMessageText] = [message.message.stringValue(), action.payload.text.stringValue()]
   if (prevMessageText === newMessageText) {
     return
