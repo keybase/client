@@ -64,6 +64,14 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	return l.load1(ctx, me, lArg)
 }
 
+func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) error {
+	// Single-flight lock by team ID.
+	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
+	defer lock.Release(ctx)
+
+	return l.storage.Delete(ctx, teamID)
+}
+
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
 // The key difference between load1 and load2 is that load2 is recursive (for subteams).
 func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg keybase1.LoadTeamArg) (*keybase1.TeamData, error) {
