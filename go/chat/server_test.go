@@ -86,11 +86,7 @@ func (g *gregorTestConnection) OnConnect(ctx context.Context, conn *rpc.Connecti
 		return fmt.Errorf("wrong uid authed: auth: %s uid: %s", auth.Uid, g.uid)
 	}
 
-	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
-		return err
-	}
-
-	return nil
+	return srv.Register(gregor1.OutgoingProtocol(g))
 }
 
 func (g *gregorTestConnection) BroadcastMessage(ctx context.Context, m gregor1.Message) error {

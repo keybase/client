@@ -97,11 +97,7 @@ func (c *CmdChatAPI) Run() error {
 		w = f
 	}
 
-	if err := d.Decode(context.Background(), r, w); err != nil {
-		return err
-	}
-
-	return nil
+	return d.Decode(context.Background(), r, w)
 }
 
 func NewCmdChatAPIRunner(g *libkb.GlobalContext) *CmdChatAPI {
