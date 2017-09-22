@@ -74,6 +74,7 @@ func initConfigForRunner(t *testing.T) (
 		ctx, tempdir, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
 	require.NoError(t, err)
 
+	success = true
 	return ctx, config, tempDir
 }
 
