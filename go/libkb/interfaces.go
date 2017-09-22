@@ -71,6 +71,7 @@ type configGetter interface {
 	GetTorHiddenAddress() string
 	GetTorMode() (TorMode, error)
 	GetTorProxy() string
+	GetUPAKCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string

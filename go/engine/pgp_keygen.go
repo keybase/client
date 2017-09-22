@@ -134,9 +134,5 @@ func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate b
 		del.EncodedPrivateKey = armored
 	}
 
-	if err := del.Run(ctx.LoginContext); err != nil {
-		return err
-	}
-
-	return nil
+	return del.Run(ctx.LoginContext)
 }

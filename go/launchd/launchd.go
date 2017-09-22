@@ -269,11 +269,7 @@ func (s Service) savePlist(p Plist) error {
 
 	s.log.Info("Saving %s", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
-	if err := file.Save(s.log); err != nil {
-		return err
-	}
-
-	return nil
+	return file.Save(s.log)
 }
 
 func (s Service) install(p Plist, wait time.Duration) error {

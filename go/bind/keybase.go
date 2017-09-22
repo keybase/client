@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/fsrpc"
+	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -166,7 +167,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 		config, ctx, log, true, nil, nil)
 	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
-		// TODO: add git protocol if mobile ever needs it.
+		keybase1.KBFSGitProtocol(libgit.NewRPCHandler(config)),
 	})
 	return keybaseService, nil
 }

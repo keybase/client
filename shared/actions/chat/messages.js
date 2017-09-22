@@ -80,7 +80,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   // that is deleted by exitSearch().
   const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
   if (inSearch) {
-    yield put(Creators.exitSearch())
+    yield put(Creators.exitSearch(false))
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([

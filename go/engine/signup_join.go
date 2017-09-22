@@ -143,10 +143,7 @@ func (s *SignupJoinEngine) WriteOut(lctx libkb.LoginContext, salt []byte) error 
 		return err
 	}
 	var nilDeviceID keybase1.DeviceID
-	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID); err != nil {
-		return err
-	}
-	return nil
+	return lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID)
 }
 
 func (s *SignupJoinEngine) PostInviteRequest(ctx context.Context, arg libkb.InviteRequestArg) error {

@@ -898,10 +898,7 @@ func (s3 *S3) prepare(req *request) error {
 	reqSignpathSpaceFix := (&url.URL{Path: signpath}).String()
 	req.headers["Host"] = []string{u.Host}
 	req.headers["Date"] = []string{time.Now().In(time.UTC).Format(time.RFC1123)}
-	if err := s3.sign(req.method, reqSignpathSpaceFix, req.params, req.headers); err != nil {
-		return err
-	}
-	return nil
+	return s3.sign(req.method, reqSignpathSpaceFix, req.params, req.headers)
 }
 
 // run sends req and returns the http response from the server.

@@ -56,13 +56,13 @@ func (t Token) Eq(t2 Token) bool {
 	return (t.Typ == t2.Typ) && byteArrayEq(t.value, t2.value)
 }
 
-func NewToken(typ int) *Token {
-	return &Token{Typ: typ}
+func NewToken(typ int) Token {
+	return Token{Typ: typ}
 }
 
 type Lexer struct {
 	buffer  []byte
-	last    *Token
+	last    Token
 	putback bool
 }
 
@@ -97,8 +97,8 @@ func (lx *Lexer) Putback() {
 	lx.putback = true
 }
 
-func (lx *Lexer) Get() *Token {
-	var ret *Token
+func (lx *Lexer) Get() Token {
+	var ret Token
 	if lx.putback {
 		ret = lx.last
 		lx.putback = false
@@ -109,7 +109,7 @@ func (lx *Lexer) Get() *Token {
 		seq := []int{NONE, NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
 		for i := 2; i <= len(seq); i++ {
 			if match[i*2] >= 0 {
-				ret = &Token{seq[i], lx.buffer[match[2*i]:match[2*i+1]]}
+				ret = Token{Typ: seq[i], value: lx.buffer[match[2*i]:match[2*i+1]]}
 				lx.advanceBuffer(match[2*i+1])
 				break
 			}

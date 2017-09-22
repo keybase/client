@@ -111,11 +111,7 @@ func (i *EncryptedDB) Put(ctx context.Context, key libkb.DbKey, data interface{}
 	}
 
 	// Write out
-	if err = db.PutRaw(key, dat); err != nil {
-		return err
-	}
-
-	return nil
+	return db.PutRaw(key, dat)
 }
 
 func encode(input interface{}) ([]byte, error) {

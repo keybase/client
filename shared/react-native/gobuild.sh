@@ -78,7 +78,7 @@ rm -rf "$go_client_dir/vendor"
 
 vendor_path="$GOPATH/src/github.com/keybase/vendor"
 gomobile_path="$vendor_path/golang.org/x/mobile/cmd/gomobile"
-
+rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
 
 ## TODO(mm) consolidate this with packaging/prerelease/
@@ -94,7 +94,6 @@ gomobileinit ()
   echo "Build gomobile..."
   (cd "$gomobile_path" && go build -o "$GOPATH/bin/gomobile")
   # The gomobile binary only looks for packages in the GOPATH,
-  rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
   echo "Doing gomobile init"
   if [ "$arg" = "ios" ]; then
     "$GOPATH/bin/gomobile" init
@@ -110,6 +109,7 @@ if [ "$arg" = "ios" ]; then
   OUTPUT="$("$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *"gomobile"* ]]; then
+    echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
     "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
   else
@@ -122,6 +122,7 @@ elif [ "$arg" = "android" ]; then
   OUTPUT="$("$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
   set -e
   if [[ $OUTPUT == *"gomobile"* ]]; then
+    echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
     "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
   else

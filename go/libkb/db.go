@@ -24,21 +24,21 @@ func (k DbKey) ToBytes(table string) []byte {
 
 var fieldExp = regexp.MustCompile(`[a-f0-9]{2}`)
 
-func DbKeyParse(s string) (string, *DbKey, error) {
+func DbKeyParse(s string) (string, DbKey, error) {
 	v := strings.Split(s, ":")
 	if len(v) != 3 {
-		return "", nil, fmt.Errorf("expected 3 colon-separated fields")
+		return "", DbKey{}, fmt.Errorf("expected 3 colon-separated fields")
 	}
 
 	if !fieldExp.MatchString(v[1]) {
-		return "", nil, fmt.Errorf("2nd field should be a 1-byte hex string")
+		return "", DbKey{}, fmt.Errorf("2nd field should be a 1-byte hex string")
 	}
 
 	b, err := strconv.ParseUint(v[1], 16, 8)
 	if err != nil {
-		return "", nil, err
+		return "", DbKey{}, err
 	}
-	return v[0], &DbKey{ObjType(b), v[2]}, nil
+	return v[0], DbKey{ObjType(b), v[2]}, nil
 }
 
 func jsonLocalDbPut(ops LocalDbOps, id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {

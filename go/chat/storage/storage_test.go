@@ -496,19 +496,19 @@ func TestStorageDetectBodyHashReplay(t *testing.T) {
 	tc, _, _ := setupStorageTest(t, "fetchMessages")
 
 	// The first time we encounter a body hash it's stored.
-	err := CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
+	err := CheckAndRecordBodyHash(context.Background(), tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
 	require.NoError(t, err)
 
 	// Seeing the same body hash again in the same message is fine. That just
 	// means we uboxed it twice.
-	err = CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
+	err = CheckAndRecordBodyHash(context.Background(), tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
 	require.NoError(t, err)
 
 	// But seeing the hash again with a different convID/msgID is a replay, and
 	// it must trigger an error.
-	err = CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar2"))
+	err = CheckAndRecordBodyHash(context.Background(), tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar2"))
 	require.Error(t, err)
-	err = CheckAndRecordBodyHash(tc.Context(), chat1.Hash("foo"), 2, chat1.ConversationID("bar"))
+	err = CheckAndRecordBodyHash(context.Background(), tc.Context(), chat1.Hash("foo"), 2, chat1.ConversationID("bar"))
 	require.Error(t, err)
 }
 
@@ -517,16 +517,16 @@ func TestStorageDetectPrevPtrInconsistency(t *testing.T) {
 
 	// The first time we encounter a message ID (either in unboxing or in
 	// another message's prev pointer) its header hash is stored.
-	err := CheckAndRecordPrevPointer(tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
+	err := CheckAndRecordPrevPointer(context.Background(), tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
 	require.NoError(t, err)
 
 	// Seeing the same header hash again in the same message is fine. That just
 	// means we uboxed it twice.
-	err = CheckAndRecordPrevPointer(tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
+	err = CheckAndRecordPrevPointer(context.Background(), tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo"))
 	require.NoError(t, err)
 
 	// But seeing the same convID/msgID with a different header hash is a
 	// consistency violation, and it must trigger an error.
-	err = CheckAndRecordPrevPointer(tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo2"))
+	err = CheckAndRecordPrevPointer(context.Background(), tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo2"))
 	require.Error(t, err)
 }
