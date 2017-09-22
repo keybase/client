@@ -169,11 +169,15 @@ function* installFuseSaga(): SagaGenerator<any, any> {
 function findKeybaseUninstallString(): Promise<string> {
   return new Promise((resolve, reject) => {
     const regedit = require('regedit')
-    const uninstallRegPath = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
-    regedit.list(uninstallRegPath).on('data', function(entry) {
-      for (var keyName of entry.data.keys) {
-        regedit.list(uninstallRegPath + '\\' + keyName).on('data', function(entry) {
+    const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
+    regedit.list(keybaseRegPath).on('data', function(entry) {
+      if (entry.data.values && entry.data.values.BUNDLEKEY) {
+        const uninstallRegPath =
+          'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + entry.data.values.BUNDLEKEY
+
+        regedit.list(uninstallRegPath).on('data', function(entry) {
           if (
+            entry.data.values &&
             entry.data.values.DisplayName &&
             entry.data.values.DisplayName.value === 'Keybase' &&
             entry.data.values.Publisher &&
@@ -186,8 +190,12 @@ function findKeybaseUninstallString(): Promise<string> {
             // Remove /modify and send it in with the other arguments, below
             modifyPath = modifyPath.replace(' /modify', '')
             resolve(modifyPath)
+          } else {
+            reject(new Error(`Keybase entry not found at` + uninstallRegPath))
           }
         })
+      } else {
+        reject(new Error(`BUNDLEKEY not found at` + keybaseRegPath))
       }
     })
   })
