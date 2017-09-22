@@ -3348,6 +3348,7 @@ export type GitRepoResult = {
   serverMetadata: GitServerMetadata,
   repoUrl: string,
   globalUniqueID: string,
+  canDelete: boolean,
 }
 
 export type GitServerMetadata = {

@@ -204,6 +204,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			RepoID:         responseRepo.RepoID,
 			RepoUrl:        formatRepoURL(repoFolder, string(localMetadata.RepoName)),
 			GlobalUniqueID: formatUniqueRepoID(responseRepo.TeamID, responseRepo.RepoID),
+			CanDelete:      true, // TODO: real data here
 			LocalMetadata:  localMetadata,
 			ServerMetadata: keybase1.GitServerMetadata{
 				Ctime: keybase1.ToTime(responseRepo.CTime),

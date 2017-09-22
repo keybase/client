@@ -136,6 +136,10 @@
         {
           "type": "string",
           "name": "globalUniqueID"
+        },
+        {
+          "type": "boolean",
+          "name": "canDelete"
         }
       ]
     }
