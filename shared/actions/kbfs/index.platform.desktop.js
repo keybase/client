@@ -171,12 +171,13 @@ function findKeybaseUninstallString(): Promise<string> {
     const regedit = require('regedit')
     const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
     regedit.list(keybaseRegPath).on('data', function(entry) {
-      if (entry.data.values.BUNDLEKEY) {
+      if (entry.data.values && entry.data.values.BUNDLEKEY) {
         const uninstallRegPath =
           'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + entry.data.values.BUNDLEKEY
 
         regedit.list(uninstallRegPath).on('data', function(entry) {
           if (
+            entry.data.values &&
             entry.data.values.DisplayName &&
             entry.data.values.DisplayName.value === 'Keybase' &&
             entry.data.values.Publisher &&
