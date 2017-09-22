@@ -72,6 +72,7 @@ export const Team = I.Record({
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
   teamNameToMembers: I.Map(),
+  teamNameToLoading: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })
@@ -81,6 +82,7 @@ export type TeamRecord = KBRecord<{
   sawChatBanner: boolean,
   teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
+  teamNameToLoading: I.Map<Teamname, boolean>,
   teamnames: I.Set<Teamname>,
   loaded: boolean,
 }>
