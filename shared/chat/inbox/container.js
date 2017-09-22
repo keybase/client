@@ -22,7 +22,6 @@ import type {TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
-const getAlwaysShow = (state: TypedState) => state.chat.get('alwaysShow')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 const getUnreadCounts = (state: TypedState) => state.chat.get('conversationUnreadCounts')
 
@@ -335,6 +334,12 @@ const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 // const TEMPInbox = (props: any) => <div>{'aaa'}{props.children}</div>
 
+const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
+const getInbox = (state: TypedState) => state.entities.get('inbox')
+const getAlwaysShow = (state: TypedState) => state.entities.get('inboxAlwaysShow')
+const getSupersededBy = (state: TypedState) => state.entities.get('inboxSupersededBy')
+const getIsEmpty = (state: TypedState) => state.entities.get('inboxIsEmpty')
+
 // This chain of reselects is to optimize not having to redo any work
 // If the timestamps are the same, we didn't change the list
 // If the timestamps did change, and after sorting its still the same, we didn't change the list
@@ -345,12 +350,13 @@ const getSortedSmallRows = createSelector([getSmallTimestamps], smallTimestamps 
   smallTimestamps.sort((a, b) => b - a).keySeq()
 )
 
-const getSmallRows = createImmutableEqualSelector([getSortedSmallRows], sortedSmallRows =>
-  sortedSmallRows.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+const getSmallRows = createImmutableEqualSelector(
+  [getSortedSmallRows, getAlwaysShow, getSupersededBy, getIsEmpty],
+  (sortedSmallRows, alwaysShow, supersededBy, isEmpty) =>
+    sortedSmallRows
+      .filter(conversationIDKey => true) // TODO
+      .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
 )
-
-const getFilter = (state: TypedState) => state.chat.get('inboxFilter')
-const getInbox = (state: TypedState) => state.entities.get('inbox')
 
 const getFilteredSmallRows = createSelector(
   [getSmallTimestamps, getFilter, getInbox, Constants.getYou],
