@@ -82,7 +82,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps: (any, any, any) => any = (
+const mergeProps: (StateProps, DispatchProps, OwnProps) => $FixMe = (
   stateProps: StateProps,
   dispatchProps: DispatchProps,
   ownProps: OwnProps
