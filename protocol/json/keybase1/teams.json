@@ -795,6 +795,45 @@
     },
     {
       "type": "record",
+      "name": "TeamAccessRequest",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamOpenReqMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamAccessRequest"
+          },
+          "name": "tars"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {
@@ -1135,6 +1174,10 @@
         },
         {
           "name": "sendChatNotification",
+          "type": "boolean"
+        },
+        {
+          "name": "open",
           "type": "boolean"
         }
       ],

@@ -306,6 +306,21 @@ protocol teams {
     array<TeamInvitee> invitees;
   }
 
+  record TeamAccessRequest {
+    @jsonkey("team_id")
+    TeamID teamID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+  }
+
+  @lint("ignore")
+  record TeamOpenReqMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    array<TeamAccessRequest> tars;
+  }
+
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
    * a refresh of the cache.
@@ -415,7 +430,7 @@ protocol teams {
     boolean creatorAdded;
   }
 
-  TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
+  TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification, boolean open);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all, boolean includeImplicitTeams);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);

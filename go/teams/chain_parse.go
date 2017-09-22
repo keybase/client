@@ -36,6 +36,7 @@ type SCTeamSection struct {
 	Implicit         bool                                                      `json:"is_implicit,omitempty"`
 	Public           bool                                                      `json:"is_public,omitempty"`
 	Entropy          SCTeamEntropy                                             `json:"entropy,omitempty"`
+	Settings         *SCTeamSettings                                           `json:"settings,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -82,6 +83,19 @@ type SCPerTeamKey struct {
 	EncKID     keybase1.KID                  `json:"encryption_kid"`
 	SigKID     keybase1.KID                  `json:"signing_kid"`
 	ReverseSig string                        `json:"reverse_sig"`
+}
+
+type SCTeamSettings struct {
+	Open *SCTeamSettingsOpen `json:"open,omitempty"`
+}
+
+type SCTeamSettingsOpenOptions struct {
+	JoinAs string `json:"join_as"`
+}
+
+type SCTeamSettingsOpen struct {
+	Enabled bool                      `json:"enabled"`
+	Options SCTeamSettingsOpenOptions `json:"options"`
 }
 
 func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {

@@ -7,6 +7,8 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+
+	"github.com/davecgh/go-spew/spew"
 )
 
 func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) (err error) {
@@ -198,4 +200,16 @@ func assertCanAcceptKeybaseInvite(ctx context.Context, g *libkb.GlobalContext, u
 	}
 
 	return fmt.Errorf("chain keybase invite link eldest seqno %d does not match eldest seqno %d in team.sbs message", chainUV.EldestSeqno, untrustedInviteeFromGregor.EldestSeqno)
+}
+
+func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenReqMsg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
+	for _, tar := range msg.Tars {
+		spew.Dump(tar)
+		// if err := handleSBSSingle(ctx, g, msg.TeamID, invitee); err != nil {
+		// 	return err
+		// }
+	}
+	return nil
 }

@@ -133,12 +133,12 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 
 	// Post the team
 	return teamID, makeSigAndPostRootTeam(ctx, g, me, members, invites, secretboxRecipients, name.String(),
-		teamID, impTeam.IsPublic, true)
+		teamID, impTeam.IsPublic, true, false)
 }
 
 func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, members SCTeamMembers,
 	invites *SCTeamInvites, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
-	teamID keybase1.TeamID, public, implicit bool) error {
+	teamID keybase1.TeamID, public, implicit, open bool) error {
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam get device keys")
 	deviceSigningKey, err := g.ActiveDevice.SigningKey()
@@ -171,7 +171,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam make sigs")
 	teamSection, err := makeRootTeamSection(name, teamID, members, invites, perTeamSigningKey.GetKID(),
-		perTeamEncryptionKey.GetKID(), public, implicit)
+		perTeamEncryptionKey.GetKID(), public, implicit, open)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	return nil
 }
 
-func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (err error) {
+func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string, open bool) (err error) {
 	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
 
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
@@ -269,7 +269,7 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 	}
 
 	return makeSigAndPostRootTeam(ctx, g, me, members, nil,
-		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false)
+		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false, open)
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
@@ -346,7 +346,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 }
 
 func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeamMembers, invites *SCTeamInvites,
-	perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, public bool, implicit bool) (SCTeamSection, error) {
+	perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, public bool, implicit bool, open bool) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
 		Name:     (*SCTeamName)(&teamName),
 		ID:       (SCTeamID)(teamID),
@@ -359,6 +359,19 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 		},
 		Members: &members,
 		Invites: invites,
+	}
+
+	if open {
+		openSection := SCTeamSettingsOpen{
+			Enabled: true,
+			Options: SCTeamSettingsOpenOptions{
+				JoinAs: "reader",
+			},
+		}
+		settingsSection := SCTeamSettings{
+			Open: &openSection,
+		}
+		teamSection.Settings = &settingsSection
 	}
 
 	// At this point the team section has every field filled out except the

@@ -991,6 +991,39 @@ func (o TeamSBSMsg) DeepCopy() TeamSBSMsg {
 	}
 }
 
+type TeamAccessRequest struct {
+	TeamID      TeamID `codec:"teamID" json:"team_id"`
+	Uid         UID    `codec:"uid" json:"uid"`
+	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldest_seqno"`
+}
+
+func (o TeamAccessRequest) DeepCopy() TeamAccessRequest {
+	return TeamAccessRequest{
+		TeamID:      o.TeamID.DeepCopy(),
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+	}
+}
+
+type TeamOpenReqMsg struct {
+	TeamID TeamID              `codec:"teamID" json:"team_id"`
+	Tars   []TeamAccessRequest `codec:"tars" json:"tars"`
+}
+
+func (o TeamOpenReqMsg) DeepCopy() TeamOpenReqMsg {
+	return TeamOpenReqMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		Tars: (func(x []TeamAccessRequest) []TeamAccessRequest {
+			var ret []TeamAccessRequest
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Tars),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
@@ -1309,6 +1342,7 @@ type TeamCreateArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	Name                 string `codec:"name" json:"name"`
 	SendChatNotification bool   `codec:"sendChatNotification" json:"sendChatNotification"`
+	Open                 bool   `codec:"open" json:"open"`
 }
 
 func (o TeamCreateArg) DeepCopy() TeamCreateArg {
@@ -1316,6 +1350,7 @@ func (o TeamCreateArg) DeepCopy() TeamCreateArg {
 		SessionID:            o.SessionID,
 		Name:                 o.Name,
 		SendChatNotification: o.SendChatNotification,
+		Open:                 o.Open,
 	}
 }
 
