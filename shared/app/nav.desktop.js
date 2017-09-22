@@ -82,14 +82,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps: (StateProps, DispatchProps, OwnProps) => $FixMe = (
-  stateProps: StateProps,
-  dispatchProps: DispatchProps,
-  ownProps: OwnProps
-) => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps): Props => {
   return {
     ...stateProps,
-    ...dispatchProps,
     ...ownProps,
     switchTab: (tab: Tab) => {
       dispatchProps._switchTab(tab, stateProps._me)

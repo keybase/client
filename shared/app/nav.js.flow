@@ -1,28 +1,15 @@
 // @flow
-import {Map} from 'immutable'
 import * as React from 'react'
 
-import type {RouteRenderStack, RouteProps} from '../route-tree/render-route'
+import type {RouteProps} from '../route-tree/render-route'
 import type {Reachable} from '../constants/types/flow-types'
 import type {Tab} from '../constants/tabs'
 
-export type Props = {
-  appFocused: boolean,
-  menuBadge: boolean,
-  username: string,
-  switchTab: (tab: Tab) => void,
-  navigateUp: () => void,
-  children: React.Node,
-  routeSelected: Tab,
-  routeStack: RouteRenderStack,
-  hideNav: boolean,
-  reachable: Reachable,
-  navBadges: Map<Tab, number>,
-}
-
 export type StateProps = {
   _me: ?string,
-  [key: string]: any,
+  appFocused: boolean,
+  reachable: Reachable,
+  hideNav?: boolean,
 }
 
 export type DispatchProps = {
@@ -30,5 +17,12 @@ export type DispatchProps = {
 }
 
 export type OwnProps = RouteProps<{}, {}>
+
+export type Props = OwnProps & {
+  appFocused: boolean,
+  switchTab: (tab: Tab) => void,
+  reachable: Reachable,
+  hideNav?: boolean,
+}
 
 export default class Nav extends React.Component<Props> {}
