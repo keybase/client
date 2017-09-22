@@ -182,8 +182,12 @@ function findKeybaseUninstallString(): Promise<string> {
             entry.data.values.DisplayName.value === 'Keybase' &&
             entry.data.values.Publisher &&
             entry.data.values.Publisher.value === 'Keybase, Inc.' &&
-            entry.data.values.ModifyPath
+            entry.data.values.ModifyPath &&
+            entry.data.values.BundleCachePath
           ) {
+            if (!fs.existsSync(entry.data.values.BundleCachePath)) {
+              reject(new Error(`cached bundle not found:` + uninstallRegPath))
+            }
             var modifyPath = entry.data.values.ModifyPath.value
             // Remove double quotes - won't work otherwise
             modifyPath = modifyPath.replace(/"/g, '')
