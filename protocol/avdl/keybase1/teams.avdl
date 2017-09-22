@@ -304,7 +304,7 @@ protocol teams {
 
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
-   * a refresh of the cached.
+   * a refresh of the cache.
    */
   record TeamRefreshers {
     // Load at least up to the keygen. Returns an error if the keygen is not loaded.
