@@ -173,7 +173,8 @@ function findKeybaseUninstallString(): Promise<string> {
     regedit.list(keybaseRegPath).on('data', function(entry) {
       if (entry.data.values && entry.data.values.BUNDLEKEY) {
         const uninstallRegPath =
-          'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + entry.data.values.BUNDLEKEY
+          'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' +
+          entry.data.values.BUNDLEKEY.value
 
         regedit.list(uninstallRegPath).on('data', function(entry) {
           if (
@@ -185,7 +186,7 @@ function findKeybaseUninstallString(): Promise<string> {
             entry.data.values.ModifyPath &&
             entry.data.values.BundleCachePath
           ) {
-            if (!fs.existsSync(entry.data.values.BundleCachePath)) {
+            if (!fs.existsSync(entry.data.values.BundleCachePath.value)) {
               reject(new Error(`cached bundle not found:` + uninstallRegPath))
             }
             var modifyPath = entry.data.values.ModifyPath.value
