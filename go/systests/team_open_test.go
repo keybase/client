@@ -21,14 +21,20 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 
 	nameStr, err := libkb.RandString("tt", 5)
 	require.NoError(t, err)
+	nameStr = strings.ToLower(nameStr)
 
 	cli := own.teamsClient
 	createRes, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
-		Name:                 strings.ToLower(nameStr),
+		Name:                 nameStr,
 		SendChatNotification: false,
 		Open:                 true,
 	})
 
-	_, _ = roo, createRes
+	_ = createRes
 	t.Logf("Open team name is %q", nameStr)
+
+	roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: nameStr})
+
+	own.kickTeamRekeyd()
+	own.waitForTeamChangedGregor(nameStr, keybase1.Seqno(2))
 }

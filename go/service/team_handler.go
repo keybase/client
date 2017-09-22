@@ -135,7 +135,7 @@ func (r *teamHandler) openTeamAccessRequest(ctx context.Context, item gregor.Ite
 		return err
 	}
 
-	r.G().Log.Debug("dismissing team.sbs item since it succeeded")
+	r.G().Log.Debug("dismissing team.openreq item since it succeeded")
 	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 }
 
