@@ -685,6 +685,15 @@ func (k *KID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (u *UID) UnmarshalJSON(b []byte) error {
+	uid, err := UIDFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*u = uid
+	return nil
+}
+
 func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
