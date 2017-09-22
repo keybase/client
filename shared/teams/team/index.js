@@ -134,21 +134,16 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-      {loading && <ProgressIndicator style={{alignSelf: 'flex-start', width: 100}} />}
-      {!loading && 
-        <Tabs 
-          tabs={tabs} 
-          selected={selectedTab} 
-          onSelect={() => {}} 
-        />}
-      {!loading &&  
-        <List
-          keyProperty="username"
-          items={members}
-          fixedHeight={48}
-          renderItem={this._renderItem}
-          style={{alignSelf: 'stretch'}}
-        />}
+        {loading && <ProgressIndicator style={{alignSelf: 'flex-start', width: 100}} />}
+        {!loading && <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />}
+        {!loading &&
+          <List
+            keyProperty="username"
+            items={members}
+            fixedHeight={48}
+            renderItem={this._renderItem}
+            style={{alignSelf: 'stretch'}}
+          />}
         {this.props.showMenu &&
           <PopupMenu
             items={[
