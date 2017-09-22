@@ -10,14 +10,14 @@ import type {Props} from './index.render'
 
 const _icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.profileTab]: 'iconfont-nav-people',
+  [Tabs.peopleTab]: 'iconfont-nav-people',
   [Tabs.folderTab]: 'iconfont-nav-folders',
   [Tabs.settingsTab]: 'iconfont-nav-more',
   [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
 const _tabs = [
-  Tabs.profileTab,
+  Tabs.peopleTab,
   Tabs.chatTab,
   ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
   Tabs.settingsTab,

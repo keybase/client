@@ -14,7 +14,7 @@ import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../co
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
-import {loginTab, profileTab, isValidInitialTab} from '../../constants/tabs'
+import {loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {setDeviceNameError} from '../signup'
@@ -132,7 +132,7 @@ function* navBasedOnLoginState() {
         yield put(navigateTo([initialTab]))
       }
     } else {
-      yield put(navigateTo([profileTab]))
+      yield put(navigateTo([peopleTab]))
     }
   } else if (registered) {
     // relogging in
