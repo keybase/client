@@ -334,7 +334,7 @@ const TEMPInbox = (props: any) => <div>{JSON.stringify(props)}{props.children}</
 
 const TEMPmapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
   return {
-    versions: state.entities.getIn(['inboxVersion'], I.Map()),
+    versions: state.entities.getIn(['inboxSmallTimestamps'], I.Set()),
   }
 }
 
@@ -350,9 +350,9 @@ export default compose(
   pausableConnect(TEMPmapStateToProps, mapDispatchToProps),
   lifecycle({
     componentDidMount: function() {
-      throttleHelper(() => {
-        this.props.loadInbox()
-      })
+      // throttleHelper(() => {
+      this.props.loadInbox()
+      // })
     },
   })
 )(TEMPInbox)

@@ -20,7 +20,7 @@ import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 import HiddenString from '../../util/hidden-string'
-import {replaceEntity} from '../entities'
+import {mergeEntity, replaceEntity} from '../entities'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -140,6 +140,14 @@ function* onInboxStale(): SagaGenerator<any, any> {
     )
 
     yield put(replaceEntity(['inboxVersion'], idToVersion))
+
+    const inboxSmallTimestamps = Map(
+      (inbox.items || []).reduce((map, c) => {
+        map[c.convID] = c.time
+        return map
+      })
+    )
+    yield put(mergeEntity(['inboxSmallTimestamps'], inboxSmallTimestamps))
 
     const author = yield select(usernameSelector)
     const conversations: List<Constants.InboxState> = List(
