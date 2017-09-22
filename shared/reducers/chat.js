@@ -115,11 +115,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       state = state.set('conversationStates', newConversationStates)
       return state
-    case 'chat:selectConversation': {
-      //  ensure selected converations are visible if they exist
-      const {conversationIDKey} = action.payload
-      return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
-    }
     case 'chat:loadingMessages': {
       const {isRequesting, conversationIDKey} = action.payload
       const newConversationStates = state
