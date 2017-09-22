@@ -570,11 +570,12 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	}
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.
-	if earliestReceivedGen != keybase1.PerTeamKeyGeneration(1) {
-		// Use `state` instead of `ret` to get the state before loading this round of secrets.
-		if _, ok := state.PerTeamKeySeeds[earliestReceivedGen]; !ok {
-			return nil, fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v",
-				latestReceivedGen, earliestReceivedGen)
+	if earliestReceivedGen > keybase1.PerTeamKeyGeneration(1) {
+		// We should have the seed for the generation preceeding the earliest received.
+		checkGen := earliestReceivedGen - 1
+		if _, ok := ret.PerTeamKeySeeds[earliestReceivedGen-1]; !ok {
+			return nil, fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v missing:%v",
+				latestReceivedGen, earliestReceivedGen, checkGen)
 		}
 	}
 

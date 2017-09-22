@@ -130,7 +130,7 @@ func runUnit(t *testing.T, unit TestCase) {
 			var inner interface{}
 			err = json.Unmarshal([]byte(outer.PayloadJSON), &inner)
 			if err != nil {
-				t.Logf("team link '%v' #'%v': corrupted: %v", err)
+				t.Logf("team link '%v' #'%v': corrupted: %v", teamLabel, i+1, err)
 			} else {
 				bs, err := json.MarshalIndent(inner, "", "  ")
 				require.NoError(t, err)
