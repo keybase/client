@@ -57,6 +57,7 @@ protocol git {
     GitServerMetadata serverMetadata;
     string repoUrl;
     string globalUniqueID;  // for the GUI's convenient bookkeeping
+    boolean canDelete;
   }
 
   // fetch git repos for a single team / implicit team

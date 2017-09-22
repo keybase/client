@@ -177,11 +177,7 @@ func (e *PGPPullEngine) processUserWhenLoggedOut(ctx *Context, u string) error {
 	if err != nil {
 		return err
 	}
-	if err := e.exportKeysToGPG(ctx, user, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return e.exportKeysToGPG(ctx, user, nil)
 }
 
 func (e *PGPPullEngine) Run(ctx *Context) error {

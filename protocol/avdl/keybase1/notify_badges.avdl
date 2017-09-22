@@ -12,6 +12,7 @@ protocol NotifyBadges {
     int inboxVers;
 
     array<BadgeConversationInfo> conversations;
+    array<string> newGitRepoGlobalUniqueIDs;
   }
 
   record BadgeConversationInfo {

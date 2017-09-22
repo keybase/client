@@ -62,11 +62,7 @@ func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, k
 		return err
 	}
 
-	if err = stream.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return stream.Close()
 }
 
 type saltSigner struct {
