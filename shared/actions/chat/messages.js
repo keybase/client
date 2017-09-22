@@ -160,11 +160,14 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
 
   // Not editing anymore
   yield put(Creators.showEditor(null))
-
+  const [prevMessageText, newMessageText] = [message.message.stringValue(), action.payload.text.stringValue()]
+  if (prevMessageText === newMessageText) {
+    return
+  }
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
   yield call(ChatTypes.localPostEditNonblockRpcPromise, {
     param: {
-      body: action.payload.text.stringValue(),
+      body: newMessageText,
       clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
       conversationID: Constants.keyToConversationID(conversationIDKey),
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
