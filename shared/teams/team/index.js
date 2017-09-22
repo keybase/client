@@ -134,7 +134,7 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-        {loading && <ProgressIndicator style={{alignSelf: 'flex-start', width: 100}} />}
+        {loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />}
         {!loading && <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />}
         {!loading &&
           <List
