@@ -4,8 +4,14 @@ import * as Constants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
+import {
+  loadInbox,
+  newChat,
+  untrustedInboxVisible,
+  setInboxFilter,
+  selectConversation,
+} from '../../actions/chat/creators'
 import {createSelector} from 'reselect'
-import {loadInbox, newChat, untrustedInboxVisible, setInboxFilter} from '../../actions/chat/creators'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
@@ -26,9 +32,44 @@ const passesStringFilter = (filter: string, toCheck: string): boolean => {
   return toCheck.toLowerCase().indexOf(filter.toLowerCase()) >= 0
 }
 
-const passesParticipantFilter = (participants: I.List<string>, filter: string, you: ?string): boolean => {
-  const names = participants.filter(p => p !== you).toArray()
+const passesParticipantFilter = (filter: string, participants: Array<string>, you: ?string): boolean => {
+  if (!filter) {
+    return true
+  }
+
+  // don't filter you out if its just a convo with you!
+  const justYou = participants.length === 1 && participants[0] === you
+  const names = justYou ? participants : participants.filter(p => p !== you)
   return names.some(n => passesStringFilter(filter, n))
+}
+
+// Simple score for a filter. returns 1 for exact match. 0.75 for full name match
+// in a group conversation. 0.5 for a partial match
+// 0 for no match
+function scoreFilter(filter: string, stringToFilterOn: string, participants: Array<string>, you: string) {
+  const lcFilter = filter.toLowerCase()
+  if (!stringToFilterOn && participants.length) {
+    if (lcFilter === you.toLowerCase()) {
+      return 1
+    }
+    if (participants.some(p => p.toLowerCase() === lcFilter)) {
+      return 1 - (participants.length - 1) / 100 * 0.25
+    }
+
+    if (passesParticipantFilter(lcFilter, participants, you)) {
+      return 0.5
+    }
+  }
+
+  if (lcFilter === stringToFilterOn.toLowerCase()) {
+    return 1
+  }
+
+  if (passesStringFilter(lcFilter, stringToFilterOn)) {
+    return 0.5
+  }
+
+  return 0
 }
 
 const getSimpleRows = createSelector(
@@ -45,9 +86,7 @@ const getSimpleRows = createSelector(
           const isEmpty = i.isEmpty && !alwaysShow.has(id)
           const isSuperseded = !!supersededByState.get(id)
           const passesFilter =
-            !filter ||
-            (i.teamname && passesStringFilter(filter, i.teamname)) ||
-            passesParticipantFilter(i.get('participants'), filter, you)
+            !filter || scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you) > 0
 
           return !isEmpty && !isSuperseded && passesFilter
         })
@@ -55,8 +94,15 @@ const getSimpleRows = createSelector(
         .map(i => ({
           conversationIDKey: i.conversationIDKey,
           time: i.time,
+          filterScore: scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you),
         }))
         .sort((a, b) => {
+          if (filter) {
+            if (b.filterScore !== a.filterScore) {
+              return b.filterScore - a.filterScore
+            }
+          }
+
           if (a.time === b.time) {
             return a.conversationIDKey.localeCompare(b.conversationIDKey)
           }
@@ -192,7 +238,8 @@ const getRows = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded}) => {
+const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
+  const {smallTeamsExpanded} = routeState
   const {
     bigTeamsBadgeCount,
     rows,
@@ -204,6 +251,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
   const filter = getFilter(state)
 
   return {
+    _selected: Constants.getSelectedConversation(state),
     bigTeamsBadgeCount,
     filter,
     isActiveRoute,
@@ -212,17 +260,51 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, smallTeamsExpanded})
     showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
     showSmallTeamsExpandDivider,
+    smallTeamsExpanded,
     smallTeamsHiddenBadgeCount,
     smallTeamsHiddenRowCount,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
   loadInbox: () => dispatch(loadInbox()),
-  onNewChat: () => dispatch(newChat([])),
+  onHotkey: cmd => {
+    if (cmd.endsWith('+n')) {
+      dispatch(newChat())
+    } else {
+      focusFilter()
+    }
+  },
+  onNewChat: () => dispatch(newChat()),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
+    dispatch(selectConversation(conversationIDKey, true))
+  },
   onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
+  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+})
+
+const findNextConvo = (rows: I.List<any>, selected, direction) => {
+  const filteredRows = rows.filter(r => ['small', 'big'].includes(r.type))
+  const idx = filteredRows.findIndex(r => r.conversationIDKey === selected)
+  let nextIdx
+  if (idx === -1) {
+    nextIdx = 0
+  } else {
+    nextIdx = Math.min(filteredRows.count() - 1, Math.max(0, idx + direction))
+  }
+  const r = filteredRows.get(nextIdx)
+  return r && r.conversationIDKey
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  ...stateProps,
+  ...dispatchProps,
+  onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
+  onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
+  smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
 })
 
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
@@ -230,11 +312,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 export default compose(
-  withState('smallTeamsExpanded', 'setSmallTeamsExpanded', false),
+  withState('filterFocusCount', 'setFilterFocusCount', 0),
   withHandlers({
-    toggleSmallTeamsExpanded: props => () => props.setSmallTeamsExpanded(!props.smallTeamsExpanded),
+    focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
   }),
-  pausableConnect(mapStateToProps, mapDispatchToProps),
+  pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
       throttleHelper(() => {

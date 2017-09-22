@@ -151,7 +151,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const newInbox = action.payload.inbox.map(newRow => {
         const id = newRow.get('conversationIDKey')
         const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
-        return existingRow ? (existingRow.teamType !== newRow.teamType ? newRow : existingRow) : newRow
+        return existingRow ? (existingRow.version !== newRow.version ? newRow : existingRow) : newRow
       })
 
       return state.set('inbox', newInbox).set('rekeyInfos', Map())
@@ -380,6 +380,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const inbox = state.get('inbox')
       const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
       return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
+    }
+    case 'teams:setTeamCreationError': {
+      const {payload: {teamCreationError}} = action
+      return state.set('teamCreationError', teamCreationError)
     }
   }
 

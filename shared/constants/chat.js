@@ -286,6 +286,7 @@ export const InboxStateRecord = Record({
   name: '',
   visibility: CommonTLFVisibility.private,
   teamType: ChatTypes.CommonTeamType.none,
+  version: 0,
 })
 
 export type InboxState = KBRecord<{
@@ -302,6 +303,7 @@ export type InboxState = KBRecord<{
   status: ConversationStateEnum,
   time: number,
   teamType: ChatTypes.TeamType,
+  version: ChatTypes.ConversationVers,
 }>
 
 export type SupersedeInfo = {
@@ -377,6 +379,7 @@ export const StateRecord: KBRecord<T> = Record({
   inSearch: false,
   tempPendingConversations: Map(),
   searchResultTerm: '',
+  teamCreationError: '',
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -414,6 +417,7 @@ export type State = KBRecord<{
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
   searchResultTerm: string,
+  teamCreationError: string,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -459,7 +463,7 @@ export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
-export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>
+export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {skipSelectPreviousConversation: boolean}>
 export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
@@ -489,7 +493,7 @@ export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',
   {conversationIDKey: ConversationIDKey, muted: boolean}
 >
-export type NewChat = NoErrorTypedAction<'chat:newChat', {existingParticipants: Array<string>}>
+export type NewChat = NoErrorTypedAction<'chat:newChat', {}>
 export type OpenAttachmentPopup = NoErrorTypedAction<
   'chat:openAttachmentPopup',
   {message: AttachmentMessage, currentPath: Path}

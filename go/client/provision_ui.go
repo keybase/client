@@ -62,7 +62,7 @@ You have two options.
 (1) Keybase can use GPG commands to sign the installation.
 
 (2) Keybase can export your secret key from GPG and save it to keybase's local encrypted
-    keyring. This way, it can be used in 'keybase pgp sign' and 'keybase pgp decrypt' 
+    keyring. This way, it can be used in 'keybase pgp sign' and 'keybase pgp decrypt'
     going forward.
 `)
 		gret, err := PromptSelectionOrCancel(PromptDescriptorChooseGPGMethod, p.parent, "Which do you prefer?", 1, 2)
@@ -103,7 +103,7 @@ func (p ProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.ChooseGPG
 (1) Keybase can use GPG commands to sign the installation.
 
 (2) Keybase can export your secret key from GPG and save it to keybase's local encrypted
-    keyring. This way, it can be used in 'keybase pgp sign' and 'keybase pgp decrypt' 
+    keyring. This way, it can be used in 'keybase pgp sign' and 'keybase pgp decrypt'
     going forward.
 `)
 	gret, err := PromptSelectionOrCancel(PromptDescriptorChooseGPGMethod, p.parent, "Which do you prefer?", 1, 2)
@@ -230,7 +230,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 			p.parent.Output("\nEnter the verification code from your other device here.  To get\n")
 			p.parent.Output("a verification code, run 'keybase login' on your other device.\n\n")
 
-			ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.CheckKex2SecretPhrase)
+			ret, err := PromptWithChecker(PromptDescriptorProvisionPhrase, p.parent, "Verification code", false, libkb.MakeCheckKex2SecretPhrase(p.parent.G()))
 			if err != nil {
 				return resp, err
 			}

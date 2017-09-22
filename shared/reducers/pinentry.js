@@ -31,9 +31,11 @@ export default function(state: Constants.State = initialState, action: Constants
       if (state.started && action.payload && sessionID != null) {
         const features = action.payload.features
         // Long form function to add annotation to help flow
+        // $FlowIssue
         const reducer = function(m: Constants.EnabledFeatures, f: string): Constants.EnabledFeatures {
           return {...m, [f]: features[f]}
         }
+        // $FlowIssue
         const enabledFeatures = Object.keys(features)
           .filter((f: string) => features[f].allow)
           .reduce(reducer, ({}: Constants.EnabledFeatures))

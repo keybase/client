@@ -725,7 +725,7 @@ func (d *Service) lockPIDFile() (err error) {
 	if fn, err = d.G().Env.GetPidFile(); err != nil {
 		return
 	}
-	d.lockPid = libkb.NewLockPIDFile(fn)
+	d.lockPid = libkb.NewLockPIDFile(d.G(), fn)
 	if err = d.lockPid.Lock(); err != nil {
 		return err
 	}

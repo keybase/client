@@ -37,7 +37,8 @@ type ComputedKeyInfosVersion int
 const (
 	ComputedKeyInfosV1             ComputedKeyInfosVersion = ComputedKeyInfosVersion(1)
 	ComputedKeyInfosV2             ComputedKeyInfosVersion = ComputedKeyInfosVersion(2)
-	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV2
+	ComputedKeyInfosV3             ComputedKeyInfosVersion = ComputedKeyInfosVersion(3)
+	ComputedKeyInfosVersionCurrent                         = ComputedKeyInfosV3
 )
 
 // refers to exactly one ServerKeyInfo.
@@ -793,6 +794,8 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
 		info.RevokedBy = tcl.GetKID()
+		tmp := tcl.ToSigChainLocation()
+		info.RevokedAtSigChainLocation = &tmp
 		mhm, err := tcl.GetMerkleHashMeta()
 		if err != nil {
 			return err

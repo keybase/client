@@ -4,7 +4,7 @@
  */
 
 plugins {
-    id "org.golang.mobile.bind" version "0.2.6"
+    id "org.golang.mobile.bind" version "0.2.9"
 }
 
 gobind {
@@ -13,10 +13,10 @@ gobind {
     pkg = "golang.org/x/mobile/example/bind/hello"
 
     /* GOPATH where the Go package is; check `go env` */
-    GOPATH = "/YOUR/GOPATH"
+    // GOPATH = "/YOUR/GOPATH"
 
     /* Absolute path to the go binary */
-    GO = "/PATH/TO/GO"
+    // GO = "/PATH/TO/GO"
 
     /* Optionally, set the absolute path to the gomobile binary if the
     /* gomobile binary is not located in the GOPATH's bin directory. */

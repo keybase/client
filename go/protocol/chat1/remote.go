@@ -632,6 +632,22 @@ func (o JoinLeaveConversationRemoteRes) DeepCopy() JoinLeaveConversationRemoteRe
 	}
 }
 
+type DeleteConversationRemoteRes struct {
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o DeleteConversationRemoteRes) DeepCopy() DeleteConversationRemoteRes {
+	return DeleteConversationRemoteRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type GetTLFConversationsRes struct {
 	Conversations []Conversation `codec:"conversations" json:"conversations"`
 	RateLimit     *RateLimit     `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
@@ -1042,6 +1058,16 @@ func (o LeaveConversationArg) DeepCopy() LeaveConversationArg {
 	}
 }
 
+type DeleteConversationArg struct {
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o DeleteConversationArg) DeepCopy() DeleteConversationArg {
+	return DeleteConversationArg{
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
 type GetTLFConversationsArg struct {
 	TlfID            TLFID                   `codec:"tlfID" json:"tlfID"`
 	TopicType        TopicType               `codec:"topicType" json:"topicType"`
@@ -1130,6 +1156,7 @@ type RemoteInterface interface {
 	UpdateTypingRemote(context.Context, UpdateTypingRemoteArg) error
 	JoinConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
 	LeaveConversation(context.Context, ConversationID) (JoinLeaveConversationRemoteRes, error)
+	DeleteConversation(context.Context, ConversationID) (DeleteConversationRemoteRes, error)
 	GetTLFConversations(context.Context, GetTLFConversationsArg) (GetTLFConversationsRes, error)
 	SetAppNotificationSettings(context.Context, SetAppNotificationSettingsArg) (SetAppNotificationSettingsRes, error)
 	SetGlobalAppNotificationSettings(context.Context, GlobalAppNotificationSettings) error
@@ -1509,6 +1536,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"deleteConversation": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteConversationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteConversationArg)(nil), args)
+						return
+					}
+					ret, err = i.DeleteConversation(ctx, (*typedArgs)[0].ConvID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getTLFConversations": {
 				MakeArg: func() interface{} {
 					ret := make([]GetTLFConversationsArg, 1)
@@ -1712,6 +1755,12 @@ func (c RemoteClient) JoinConversation(ctx context.Context, convID ConversationI
 func (c RemoteClient) LeaveConversation(ctx context.Context, convID ConversationID) (res JoinLeaveConversationRemoteRes, err error) {
 	__arg := LeaveConversationArg{ConvID: convID}
 	err = c.Cli.Call(ctx, "chat.1.remote.leaveConversation", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) DeleteConversation(ctx context.Context, convID ConversationID) (res DeleteConversationRemoteRes, err error) {
+	__arg := DeleteConversationArg{ConvID: convID}
+	err = c.Cli.Call(ctx, "chat.1.remote.deleteConversation", []interface{}{__arg}, &res)
 	return
 }
 

@@ -203,6 +203,58 @@ func TestTeamInviteResetNoKeys(t *testing.T) {
 	tt.users[0].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 }
 
+// See if we can re-invite user after they reset and thus make their
+// first invitation obsolete.
+func TestTeamReInviteAfterReset(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	ann := tt.addUser("ann")
+
+	// Ann creates a team.
+	team := ann.createTeam()
+	t.Logf("Created team %q", team)
+
+	ann.waitForTeamChangedAndRotated(team, keybase1.Seqno(1))
+
+	bob := ctx.installKeybaseForUserNoPUK("bob", 10)
+	bob.signupNoPUK()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	// Try to add bob to team, should add an invitation because bob is PUK-less.
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER) // Invitation 1
+
+	// Reset, invalidates invitation 1.
+	bob.reset()
+	bob.loginAfterResetNoPUK(10)
+
+	// Try to add again (bob still doesn't have a PUK).
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN) // Invitation 2
+
+	t.Logf("Trying to get a PUK")
+
+	libkb.G = bob.getPrimaryGlobalContext()
+	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
+
+	err := bob.perUserKeyUpgrade()
+	require.NoError(t, err)
+
+	t.Logf("Bob got a PUK, now let's see if Ann's client adds him to team")
+
+	ann.kickTeamRekeyd()
+	ann.waitForTeamChangedGregor(team, keybase1.Seqno(4))
+
+	details, err := ann.teamsClient.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team, ForceRepoll: true})
+	require.NoError(t, err)
+
+	// Bob should have became an admin, because the second invitations
+	// should have been used, not the first one.
+	require.Equal(t, len(details.Members.Admins), 1)
+	require.Equal(t, details.Members.Admins[0].Username, bob.username)
+}
+
 func TestImpTeamWithRooter(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -231,11 +283,12 @@ func TestImpTeamWithRooter(t *testing.T) {
 
 	team2, err := alice.lookupImplicitTeam(false /*create*/, newDisplayName, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, team2, team)
+	require.Equal(t, team, team2)
 
-	// Lookup by old name should fail
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
-	require.Error(t, err)
+	// Lookup by old name should get the same result
+	team2, err = alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team, team2)
 }
 
 func TestImpTeamWithRooterConflict(t *testing.T) {
@@ -266,15 +319,17 @@ func TestImpTeamWithRooterConflict(t *testing.T) {
 
 	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
 
-	// Display name with rooter name is no longer usable.
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter, false /*isPublic*/)
-	require.Error(t, err)
+	// Display name with rooter name now points to the conflict winner.
+	team3, err := alice.lookupImplicitTeam(false /*create*/, displayNameRooter, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team2, team3)
 
-	// "LookupOrCreate" rooter name should fail as well.
-	_, err = alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
-	require.Error(t, err)
+	// "LookupOrCreate" rooter name should work as well.
+	team3, err = alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team2, team3)
 
-	// Clients should refer to this team using comma-separated usernames.
+	// The original name works as well.
 	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameKeybase, false /*isPublic*/)
 	require.NoError(t, err)
 }

@@ -1,12 +1,13 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, Box} from '../../common-adapters'
+import {Text, Icon, Box, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import Row from './row/container'
 import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
+import {isDarwin} from '../../constants/platform'
 
 import type {Props} from './'
 
@@ -66,7 +67,7 @@ class Inbox extends PureComponent<Props, State> {
     showFloating: false,
   }
 
-  _list: any
+  _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {
     if (
@@ -167,44 +168,54 @@ class Inbox extends PureComponent<Props, State> {
     }
   }, 200)
 
-  _setRef = list => {
+  _setRef = (list: ?ReactList) => {
     this._list = list
+  }
+
+  _prepareNewChat = () => {
+    this._list && this._list.scrollTo(0)
+    this.props.onNewChat()
   }
 
   render() {
     return (
-      <div style={_containerStyle}>
-        <ChatFilterRow
-          isLoading={this.props.isLoading}
-          filter={this.props.filter}
-          onNewChat={this.props.onNewChat}
-          onSetFilter={this.props.onSetFilter}
-          hotkeys={['ctrl+n', 'command+n']}
-          onHotkey={this.props.onNewChat}
-        />
-        {this.props.showNewConversation && <NewConversation />}
-        <div style={_scrollableStyle} onScroll={this._onScroll}>
-          <ReactList
-            ref={this._setRef}
-            useTranslate3d={true}
-            itemRenderer={this._itemRenderer}
-            length={this.props.rows.count()}
-            type="variable"
-            itemSizeGetter={this._itemSizeGetter}
+      <ErrorBoundary>
+        <div style={_containerStyle}>
+          <ChatFilterRow
+            isLoading={this.props.isLoading}
+            filter={this.props.filter}
+            onNewChat={this._prepareNewChat}
+            onSetFilter={this.props.onSetFilter}
+            hotkeys={isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k']}
+            onHotkey={this.props.onHotkey}
+            filterFocusCount={this.props.filterFocusCount}
+            onSelectUp={this.props.onSelectUp}
+            onSelectDown={this.props.onSelectDown}
           />
-        </div>
-        {this.state.showFloating &&
-          this.props.showSmallTeamsExpandDivider &&
-          <FloatingDivider
-            toggle={this.props.toggleSmallTeamsExpanded}
-            badgeCount={this.props.bigTeamsBadgeCount}
-          />}
-        {/*
+          {this.props.showNewConversation && <NewConversation />}
+          <div style={_scrollableStyle} onScroll={this._onScroll}>
+            <ReactList
+              ref={this._setRef}
+              useTranslate3d={true}
+              itemRenderer={this._itemRenderer}
+              length={this.props.rows.count()}
+              type="variable"
+              itemSizeGetter={this._itemSizeGetter}
+            />
+          </div>
+          {this.state.showFloating &&
+            this.props.showSmallTeamsExpandDivider &&
+            <FloatingDivider
+              toggle={this.props.toggleSmallTeamsExpanded}
+              badgeCount={this.props.bigTeamsBadgeCount}
+            />}
+          {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&
               <BuildATeam />
               */}
-      </div>
+        </div>
+      </ErrorBoundary>
     )
   }
 }

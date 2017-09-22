@@ -44,6 +44,10 @@ func newCmdTeamAddMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 				Name:  "r, role",
 				Usage: "team role (owner, admin, writer, reader) [required]",
 			},
+			cli.BoolFlag{
+				Name:  "s, skip-chat-message",
+				Usage: "skip chat welcome message",
+			},
 		},
 		Description: teamAddMemberDoc,
 	}
@@ -78,6 +82,8 @@ func (c *CmdTeamAddMember) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
+	c.SkipChatNotification = ctx.Bool("skip-chat-message")
+
 	return nil
 }
 
@@ -104,7 +110,7 @@ func (c *CmdTeamAddMember) Run() error {
 	if !res.Invited {
 		// TeamAddMember resulted in the user added to the team
 		if res.ChatSent {
-			dui.Printf("Success! A keybase chat message has been sent to %s.\n", res.User.Username)
+			dui.Printf("Success! A keybase chat message has been sent to %s. To skip this, use `-s` or `--skip-chat-message`\n", res.User.Username)
 		} else {
 			dui.Printf("Success! %s added to team.\n", res.User.Username)
 		}

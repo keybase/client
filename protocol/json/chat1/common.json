@@ -66,6 +66,13 @@
     },
     {
       "type": "record",
+      "name": "ConversationVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "OutboxID",
       "fields": [],
       "typedef": "bytes"
@@ -75,6 +82,15 @@
       "name": "TopicNameState",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "enum",
+      "name": "ConversationExistence",
+      "symbols": [
+        "ACTIVE_0",
+        "ARCHIVED_1",
+        "DELETED_2"
+      ]
     },
     {
       "type": "enum",
@@ -331,6 +347,13 @@
         {
           "type": {
             "type": "array",
+            "items": "ConversationExistence"
+          },
+          "name": "existences"
+        },
+        {
+          "type": {
+            "type": "array",
             "items": "ConversationID"
           },
           "name": "convIDs"
@@ -431,6 +454,14 @@
         {
           "type": "TeamType",
           "name": "teamType"
+        },
+        {
+          "type": "ConversationExistence",
+          "name": "existence"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
         },
         {
           "type": [

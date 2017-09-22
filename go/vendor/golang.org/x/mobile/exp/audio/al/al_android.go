@@ -18,15 +18,18 @@ void al_init(uintptr_t java_vm, uintptr_t jni_env, jobject context, void** handl
   JNIEnv* env = (JNIEnv*)jni_env;
 
   jclass android_content_Context = (*env)->FindClass(env, "android/content/Context");
-  jmethodID get_package_name = (*env)->GetMethodID(env, android_content_Context, "getPackageName", "()Ljava/lang/String;");
-  jstring package_name = (*env)->CallObjectMethod(env, context, get_package_name);
-  const char *cpackage_name = (*env)->GetStringUTFChars(env, package_name, 0);
+  jmethodID get_application_info = (*env)->GetMethodID(env, android_content_Context, "getApplicationInfo", "()Landroid/content/pm/ApplicationInfo;");
+  jclass android_content_pm_ApplicationInfo = (*env)->FindClass(env, "android/content/pm/ApplicationInfo");
+  jfieldID native_library_dir = (*env)->GetFieldID(env, android_content_pm_ApplicationInfo, "nativeLibraryDir", "Ljava/lang/String;");
+  jobject app_info = (*env)->CallObjectMethod(env, context, get_application_info);
+  jstring native_dir = (*env)->GetObjectField(env, app_info, native_library_dir);
+  const char *cnative_dir = (*env)->GetStringUTFChars(env, native_dir, 0);
 
-  char lib_path[PATH_MAX] = "/data/data/";
-  strlcat(lib_path, cpackage_name, sizeof(lib_path));
-  strlcat(lib_path, "/lib/libopenal.so", sizeof(lib_path));
+  char lib_path[PATH_MAX] = "";
+  strlcat(lib_path, cnative_dir, sizeof(lib_path));
+  strlcat(lib_path, "/libopenal.so", sizeof(lib_path));
   *handle = dlopen(lib_path, RTLD_LAZY);
-  (*env)->ReleaseStringUTFChars(env, package_name, cpackage_name);
+  (*env)->ReleaseStringUTFChars(env, native_dir, cnative_dir);
 }
 
 void call_alEnable(LPALENABLE fn, ALenum capability) {

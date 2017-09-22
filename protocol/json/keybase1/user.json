@@ -549,6 +549,15 @@
         }
       ],
       "response": null
+    },
+    "deleteUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

@@ -55,6 +55,8 @@ const (
 	UPK2MinorVersion_V1 UPK2MinorVersion = 1
 	UPK2MinorVersion_V2 UPK2MinorVersion = 2
 	UPK2MinorVersion_V3 UPK2MinorVersion = 3
+	UPK2MinorVersion_V4 UPK2MinorVersion = 4
+	UPK2MinorVersion_V5 UPK2MinorVersion = 5
 )
 
 func (o UPK2MinorVersion) DeepCopy() UPK2MinorVersion { return o }
@@ -64,6 +66,8 @@ var UPK2MinorVersionMap = map[string]UPK2MinorVersion{
 	"V1": 1,
 	"V2": 2,
 	"V3": 3,
+	"V4": 4,
+	"V5": 5,
 }
 
 var UPK2MinorVersionRevMap = map[UPK2MinorVersion]string{
@@ -71,6 +75,8 @@ var UPK2MinorVersionRevMap = map[UPK2MinorVersion]string{
 	1: "V1",
 	2: "V2",
 	3: "V3",
+	4: "V4",
+	5: "V5",
 }
 
 func (e UPK2MinorVersion) String() string {
@@ -301,6 +307,7 @@ type UserPlusKeysV2 struct {
 	Uid          UID                           `codec:"uid" json:"uid"`
 	Username     string                        `codec:"username" json:"username"`
 	EldestSeqno  Seqno                         `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status       StatusCode                    `codec:"status" json:"status"`
 	PerUserKeys  []PerUserKey                  `codec:"perUserKeys" json:"perUserKeys"`
 	DeviceKeys   map[KID]PublicKeyV2NaCl       `codec:"deviceKeys" json:"deviceKeys"`
 	PGPKeys      map[KID]PublicKeyV2PGPSummary `codec:"pgpKeys" json:"pgpKeys"`
@@ -312,6 +319,7 @@ func (o UserPlusKeysV2) DeepCopy() UserPlusKeysV2 {
 		Uid:         o.Uid.DeepCopy(),
 		Username:    o.Username,
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
 		PerUserKeys: (func(x []PerUserKey) []PerUserKey {
 			var ret []PerUserKey
 			for _, v := range x {

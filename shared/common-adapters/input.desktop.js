@@ -244,6 +244,7 @@ class Input extends Component<Props, State> {
       onCompositionStart: this._onCompositionStart,
       onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.hintText,
+      readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? 'readonly' : undefined,
       ref: r => {
         this._input = r
       },

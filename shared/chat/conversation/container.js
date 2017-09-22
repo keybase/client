@@ -32,6 +32,7 @@ type StateProps = {|
   conversationIsError: boolean,
   conversationErrorText: string,
   defaultChatText: string,
+  inboxFilter: ?string,
 |}
 
 type DispatchProps = {|
@@ -83,11 +84,12 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     }
   }
 
-  const {inSearch, searchPending, searchResults, searchShowingSuggestions} = state.chat
+  const {inSearch, searchPending, searchResults, searchShowingSuggestions, inboxFilter} = state.chat
   return {
     conversationErrorText,
     conversationIsError,
     finalizeInfo,
+    inboxFilter,
     rekeyInfo,
     selectedConversationIDKey,
     showLoader,
@@ -107,7 +109,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {setRouteState, navigateUp, navigateAppend}
 ): DispatchProps => ({
-  onExitSearch: () => dispatch(Creators.exitSearch()),
+  onExitSearch: () => dispatch(Creators.exitSearch(false)),
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([

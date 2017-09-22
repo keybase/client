@@ -66,7 +66,7 @@ func (b *BlockingLocalizer) Name() string {
 }
 
 type NonblockInboxResult struct {
-	ConvID   chat1.ConversationID
+	Conv     chat1.Conversation
 	Err      *chat1.ConversationErrorLocal
 	ConvRes  *chat1.ConversationLocal
 	InboxRes *chat1.Inbox
@@ -486,7 +486,6 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, rl, err
 	}
-	s.Debug(ctx, "Read: tlfInfo: %+v", tlfInfo)
 	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
 		return inbox, rl, err
@@ -546,9 +545,11 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 			return res, rl, err
 		}
 
-		// Write out to local storage
-		if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
-			s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+		// Write out to local storage only if we are using local daata
+		if useLocalData {
+			if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
+				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+			}
 		}
 
 		res = chat1.Inbox{
@@ -812,13 +813,13 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 						s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
 							convLocal.Error.Message)
 						*localizeCb <- NonblockInboxResult{
-							Err:    convLocal.Error,
-							ConvID: conv.conv.Metadata.ConversationID,
+							Err:  convLocal.Error,
+							Conv: conv.conv,
 						}
 					} else {
 						*localizeCb <- NonblockInboxResult{
 							ConvRes: &convLocal,
-							ConvID:  convLocal.Info.Id,
+							Conv:    conv.conv,
 						}
 					}
 				}
@@ -918,6 +919,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Status:      conversationRemote.Metadata.Status,
 		MembersType: conversationRemote.Metadata.MembersType,
 		TeamType:    conversationRemote.Metadata.TeamType,
+		Version:     conversationRemote.Metadata.Version,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {

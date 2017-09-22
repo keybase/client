@@ -35,16 +35,15 @@ function nextPhase() {
 }
 
 function startRequestInvite() {
-  return (dispatch: Dispatch) =>
-    new Promise((resolve, reject) => {
-      dispatch({payload: {}, type: Constants.startRequestInvite})
-      dispatch(nextPhase())
-    })
+  return (dispatch: Dispatch) => {
+    dispatch({payload: {}, type: Constants.startRequestInvite})
+    dispatch(nextPhase())
+  }
 }
 
 function checkInviteCode(inviteCode: string) {
-  return (dispatch: Dispatch) =>
-    new Promise((resolve, reject) => {
+  return (dispatch: Dispatch) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       dispatch({payload: {inviteCode}, type: Constants.checkInviteCode})
 
       signupCheckInvitationCodeRpcPromise({
@@ -73,6 +72,8 @@ function checkInviteCode(inviteCode: string) {
           reject(err)
         })
     })
+    return p
+  }
 }
 
 function requestAutoInvite() {
@@ -80,7 +81,7 @@ function requestAutoInvite() {
     dispatch(Creators.setLoginFromRevokedDevice(''))
     dispatch(Creators.setRevokedSelf(''))
     dispatch(Creators.setDeletedSelf(''))
-    return new Promise((resolve, reject) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       // TODO: It would be better to book-keep having asked for an auto
       // invite code, instead of just acting as if the one we receive
       // here had been typed, using the same store entry as a manual one.
@@ -100,12 +101,13 @@ function requestAutoInvite() {
           reject(err)
         })
     })
+    return p
   }
 }
 
 function requestInvite(email: string, name: string) {
-  return (dispatch: Dispatch) =>
-    new Promise((resolve, reject) => {
+  return (dispatch: Dispatch) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       // Returns an error string if not valid
       const emailError = isValidEmail(email)
       const nameError = isValidName(name)
@@ -168,11 +170,13 @@ function requestInvite(email: string, name: string) {
           reject(err)
         })
     })
+    return p
+  }
 }
 
 function checkUsernameEmail(username: ?string, email: ?string) {
-  return (dispatch: Dispatch) =>
-    new Promise((resolve, reject) => {
+  return (dispatch: Dispatch) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       const emailError = isValidEmail(email)
       const usernameError = isValidUsername(username)
 
@@ -232,11 +236,13 @@ function checkUsernameEmail(username: ?string, email: ?string) {
           resolve()
         })
     })
+    return p
+  }
 }
 
 function checkPassphrase(passphrase1: string, passphrase2: string) {
-  return (dispatch: Dispatch) =>
-    new Promise((resolve, reject) => {
+  return (dispatch: Dispatch) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       let passphraseError = null
       if (!passphrase1 || !passphrase2) {
         passphraseError = new HiddenString('Fields cannot be blank')
@@ -264,11 +270,13 @@ function checkPassphrase(passphrase1: string, passphrase2: string) {
 
       resolve()
     })
+    return p
+  }
 }
 
 function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void) {
-  return (dispatch: Dispatch) =>
-    new Promise((resolve, reject) => {
+  return (dispatch: Dispatch) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       // TODO do some checking on the device name - ideally this is done on the service side
       let deviceNameError = null
       if (trim(deviceName).length === 0) {
@@ -326,6 +334,8 @@ function submitDeviceName(deviceName: string, skipMail?: boolean, onDisplayPaper
           })
       }
     })
+    return p
+  }
 }
 
 let paperKeyResponse = null
@@ -339,8 +349,8 @@ function sawPaperKey() {
 }
 
 function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
-  return (dispatch, getState) =>
-    new Promise((resolve, reject) => {
+  return (dispatch, getState) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       const {email, username, inviteCode, passphrase, deviceName} = getState().signup
       paperKeyResponse = null
       const deviceType = isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop
@@ -402,6 +412,8 @@ function signup(skipMail: boolean, onDisplayPaperKey?: () => void) {
         reject(new Error('null required field'))
       }
     })
+    return p
+  }
 }
 
 function waiting(isWaiting: boolean) {
@@ -419,8 +431,8 @@ function resetSignup() {
 }
 
 function restartSignup() {
-  return (dispatch: Dispatch) =>
-    new Promise((resolve, reject) => {
+  return (dispatch: Dispatch) => {
+    const p: Promise<*> = new Promise((resolve, reject) => {
       dispatch({
         payload: {},
         type: Constants.restartSignup,
@@ -428,6 +440,8 @@ function restartSignup() {
       dispatch(Creators.navBasedOnLoginState())
       resolve()
     })
+    return p
+  }
 }
 
 function showSuccess() {

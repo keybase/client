@@ -157,6 +157,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInbox
 		conv.Notifications = rawConv.Notifications
 		conv.MembersType = rawConv.GetMembersType()
 		conv.TeamType = rawConv.Metadata.TeamType
+		conv.Version = rawConv.Metadata.Version
 		res.Items = append(res.Items, conv)
 	}
 	res.Pagination = utils.PresentPagination(vres.Pagination)
@@ -196,7 +197,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
 				h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
-					NewConversationRetry(h.G(), convID, InboxLoad))
+					NewConversationRetry(h.G(), convID, nil, InboxLoad))
 			}
 		} else {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to load untrusted inbox, general query")
@@ -248,21 +249,22 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		go func(convRes NonblockInboxResult) {
 			if convRes.Err != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: *** error conv: id: %s err: %s",
-					convRes.ConvID, convRes.Err.Message)
+					convRes.Conv.GetConvID(), convRes.Err.Message)
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
-					ConvID:    convRes.ConvID,
+					ConvID:    convRes.Conv.GetConvID(),
 					Error:     *convRes.Err,
 				})
 
 				// If we get a transient failure, add this to the retrier queue
 				if convRes.Err.Typ == chat1.ConversationErrorType_TRANSIENT {
 					h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
-						NewConversationRetry(h.G(), convRes.ConvID, InboxLoad))
+						NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
+							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
 			} else if convRes.ConvRes != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
-					convRes.ConvID, convRes.ConvRes.Info.TLFNameExpanded())
+					convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded())
 				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 					SessionID: arg.SessionID,
 					Conv:      utils.PresentConversationLocal(*convRes.ConvRes),
@@ -270,7 +272,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 
 				// Send a note to the retrier that we actually loaded this guy successfully
 				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
-					NewConversationRetry(h.G(), convRes.ConvID, InboxLoad))
+					NewConversationRetry(h.G(), convRes.Conv.GetConvID(),
+						&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 			}
 			wg.Done()
 		}(convRes)
@@ -435,10 +438,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		// Otherwise, send notice that we successfully loaded the conversation.
 		if res.Offline || fullErr != nil {
 			h.G().FetchRetrier.Failure(ctx, uid.ToBytes(),
-				NewConversationRetry(h.G(), arg.ConversationID, ThreadLoad))
+				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
 			h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
-				NewConversationRetry(h.G(), arg.ConversationID, ThreadLoad))
+				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		}
 	}()
 	defer func() {
@@ -2123,6 +2126,45 @@ func (h *Server) LeaveConversationLocal(ctx context.Context, convID chat1.Conver
 	}
 
 	res.RateLimits = utils.AggRateLimits(rl)
+	res.Offline = h.G().InboxSource.IsOffline(ctx)
+	return res, nil
+}
+
+func (h *Server) DeleteConversationLocal(ctx context.Context, arg chat1.DeleteConversationLocalArg) (res chat1.DeleteConversationLocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		&identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("DeleteConversation(%s)", arg.ConvID))()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	defer func() {
+		if res.Offline {
+			h.Debug(ctx, "DeleteConversationLocal: result obtained offline")
+		}
+	}()
+	_, err = h.assertLoggedInUID(ctx)
+	if err != nil {
+		return res, err
+	}
+
+	ui := h.getChatUI(arg.SessionID)
+	confirmed, err := ui.ChatConfirmChannelDelete(ctx, chat1.ChatConfirmChannelDeleteArg{
+		SessionID: arg.SessionID,
+		Channel:   arg.ChannelName,
+	})
+	if err != nil {
+		return res, err
+	}
+	if !confirmed {
+		return res, errors.New("channel delete unconfirmed")
+	}
+
+	delRes, err := h.remoteClient().DeleteConversation(ctx, arg.ConvID)
+	if err != nil {
+		return res, err
+	}
+	if delRes.RateLimit != nil {
+		res.RateLimits = []chat1.RateLimit{*delRes.RateLimit}
+	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	return res, nil
 }

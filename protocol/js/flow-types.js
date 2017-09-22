@@ -621,6 +621,8 @@ export const UPKUPK2MinorVersion = {
   v1: 1,
   v2: 2,
   v3: 3,
+  v4: 4,
+  v5: 5,
 }
 
 export const UiPromptDefault = {
@@ -643,6 +645,14 @@ export function KBFSGitCreateRepoRpcChannelMap (configKeys: Array<string>, reque
 
 export function KBFSGitCreateRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: KBFSGitCreateRepoResult) => void} & {param: KBFSGitCreateRepoRpcParam})): Promise<KBFSGitCreateRepoResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function KBFSGitDeleteRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: KBFSGitDeleteRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.deleteRepo', request)
+}
+
+export function KBFSGitDeleteRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: KBFSGitDeleteRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function Kex2Provisionee2DidCounterSign2RpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): EngineChannel {
@@ -1467,6 +1477,14 @@ export function gitPutGitMetadataRpcChannelMap (configKeys: Array<string>, reque
 
 export function gitPutGitMetadataRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitPutGitMetadataRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.putGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gregorDismissCategoryRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gregorDismissCategoryRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissCategory', request)
+}
+
+export function gregorDismissCategoryRpcPromise (request: (requestCommon & requestErrorCallback & {param: gregorDismissCategoryRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissCategory', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function gregorGetStateRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}): EngineChannel {
@@ -2597,6 +2615,14 @@ export function trackUntrackRpcPromise (request: (requestCommon & requestErrorCa
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.track.untrack', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function userDeleteUserRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.deleteUser', request)
+}
+
+export function userDeleteUserRpcPromise (request: ?(requestCommon & requestErrorCallback)): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.user.deleteUser', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function userInterestingPeopleRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: userInterestingPeopleResult) => void} & {param: userInterestingPeopleRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.user.interestingPeople', request)
 }
@@ -2806,6 +2832,7 @@ export type BadgeState = {
   newFollowers: int,
   inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
+  newGitRepoGlobalUniqueIDs?: ?Array<string>,
 }
 
 export type BinaryKID = bytes
@@ -3468,6 +3495,11 @@ export type InterestingPerson = {
 }
 
 export type KBFSGitCreateRepoRpcParam = Exact<{
+  folder: Folder,
+  name: GitRepoName
+}>
+
+export type KBFSGitDeleteRepoRpcParam = Exact<{
   folder: Folder,
   name: GitRepoName
 }>
@@ -4956,6 +4988,8 @@ export type UPK2MinorVersion =
   | 1 // V1_1
   | 2 // V2_2
   | 3 // V3_3
+  | 4 // V4_4
+  | 5 // V5_5
 
 export type UnboxAnyRes = {
   kid: KID,
@@ -5012,6 +5046,7 @@ export type UserPlusKeys = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
+  status: StatusCode,
   deviceKeys?: ?Array<PublicKey>,
   revokedDeviceKeys?: ?Array<RevokedKey>,
   pgpKeyCount: int,
@@ -5024,6 +5059,7 @@ export type UserPlusKeysV2 = {
   uid: UID,
   username: string,
   eldestSeqno: Seqno,
+  status: StatusCode,
   perUserKeys?: ?Array<PerUserKey>,
   deviceKeys: {[key: string]: PublicKeyV2NaCl},
   pgpKeys: {[key: string]: PublicKeyV2PGPSummary},
@@ -5369,6 +5405,10 @@ export type gpgUiSelectKeyRpcParam = Exact<{
 export type gpgUiSignRpcParam = Exact<{
   msg: bytes,
   fingerprint: bytes
+}>
+
+export type gregorDismissCategoryRpcParam = Exact<{
+  category: gregor1.Category
 }>
 
 export type gregorInjectItemRpcParam = Exact<{

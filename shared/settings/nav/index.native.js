@@ -9,6 +9,7 @@ import {
   feedbackTab,
   aboutTab,
   foldersTab,
+  gitTab,
   devicesTab,
   notificationsTab,
   screenprotectorTab,
@@ -48,6 +49,7 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
             badgeNumber={badgeNumbers[foldersTab]}
             onClick={() => onTabChange(foldersTab)}
           />}
+        <SettingsItem text="Git" badgeNumber={badgeNumbers[gitTab]} onClick={() => onTabChange(gitTab)} />
         <SettingsItem
           text="Devices"
           badgeNumber={badgeNumbers[devicesTab]}

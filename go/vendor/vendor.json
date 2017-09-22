@@ -419,16 +419,16 @@
 			"revisionTime": "2015-05-20T14:06:47Z"
 		},
 		{
-			"checksumSHA1": "Q2V7Zs3diLmLfmfbiuLpSxETSuY=",
+			"checksumSHA1": "mGbTYZ8dHVTiPTTJu3ktp+84pPI=",
 			"path": "github.com/stretchr/testify/assert",
-			"revision": "976c720a22c8eb4eb6a0b4348ad85ad12491a506",
-			"revisionTime": "2016-09-25T22:06:09Z"
+			"revision": "890a5c3458b43e6104ff5da8dfa139d013d77544",
+			"revisionTime": "2017-07-05T02:17:15Z"
 		},
 		{
-			"checksumSHA1": "omdvCNu8sJIc9FbOfObC484M7Dg=",
+			"checksumSHA1": "7vs6dSc1PPGBKyzb/SCIyeMJPLQ=",
 			"path": "github.com/stretchr/testify/require",
-			"revision": "976c720a22c8eb4eb6a0b4348ad85ad12491a506",
-			"revisionTime": "2016-09-25T22:06:09Z"
+			"revision": "890a5c3458b43e6104ff5da8dfa139d013d77544",
+			"revisionTime": "2017-07-05T02:17:15Z"
 		},
 		{
 			"checksumSHA1": "HcDa/j4eMiKGYEo8qmrW+2NDFcE=",
@@ -665,10 +665,10 @@
 			"revisionTime": "2016-12-08T01:05:43Z"
 		},
 		{
-			"checksumSHA1": "/7kE7RA30R1A9nZ3mXbbfA/UDQY=",
+			"checksumSHA1": "yZW/GZU87G6S/SaV92usFTFwSds=",
 			"path": "golang.org/x/mobile",
-			"revision": "e99a906c3a3ac5959fa4b8d08f90dd5f75d3b27c",
-			"revisionTime": "2016-09-07T14:02:52Z",
+			"revision": "e095d655c7b68388a6d3e926d508f5f3b42b3e71",
+			"revisionTime": "2017-09-04T14:57:44Z",
 			"tree": true
 		},
 		{

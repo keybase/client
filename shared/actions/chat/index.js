@@ -239,51 +239,44 @@ function* _incomingTyping(action: Constants.IncomingTyping): SagaGenerator<any, 
 }
 
 function* _setupChatHandlers(): SagaGenerator<any, any> {
-  yield put((dispatch: Dispatch) => {
-    engine().setIncomingHandler('chat.1.NotifyChat.NewChatActivity', ({activity}) => {
-      dispatch(Creators.incomingMessage(activity))
-    })
+  engine().setIncomingActionCreator('chat.1.NotifyChat.NewChatActivity', ({activity}) =>
+    Creators.incomingMessage(activity)
+  )
 
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) => {
-      dispatch(Creators.incomingTyping(typingUpdates))
-    })
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTypingUpdate', ({typingUpdates}) =>
+    Creators.incomingTyping(typingUpdates)
+  )
 
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
-      const usernames = update.CanonicalName.split(',')
-      const broken = (update.breaks.breaks || []).map(b => b.user.username)
-      const userToBroken = usernames.reduce((map, name) => {
-        map[name] = !!broken.includes(name)
-        return map
-      }, {})
-      dispatch(Creators.updateBrokenTracker(userToBroken))
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) => {
-      dispatch(Creators.getInboxAndUnbox([Constants.conversationIDToKey(convID)]))
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatInboxStale', () => {
-      dispatch(Creators.inboxStale())
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatTLFResolve', ({convID, resolveInfo: {newTLFName}}) => {
-      dispatch(Creators.inboxStale())
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
-      if (updates) {
-        dispatch(Creators.markThreadsStale(updates))
-      }
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatJoinedConversation', () => {
-      dispatch(Creators.inboxStale())
-    })
-
-    engine().setIncomingHandler('chat.1.NotifyChat.ChatLeftConversation', () => {
-      dispatch(Creators.inboxStale())
-    })
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatIdentifyUpdate', ({update}) => {
+    const usernames = update.CanonicalName.split(',')
+    const broken = (update.breaks.breaks || []).map(b => b.user.username)
+    const userToBroken = usernames.reduce((map, name) => {
+      map[name] = !!broken.includes(name)
+      return map
+    }, {})
+    return Creators.updateBrokenTracker(userToBroken)
   })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatTLFFinalize', ({convID}) =>
+    Creators.getInboxAndUnbox([Constants.conversationIDToKey(convID)])
+  )
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxStale', () => Creators.inboxStale())
+
+  engine().setIncomingActionCreator(
+    'chat.1.NotifyChat.ChatTLFResolve',
+    ({convID, resolveInfo: {newTLFName}}) => Creators.inboxStale()
+  )
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
+    if (updates) {
+      return Creators.markThreadsStale(updates)
+    }
+    return null
+  })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () => Creators.inboxStale())
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () => Creators.inboxStale())
 }
 
 const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
@@ -352,7 +345,7 @@ function* _updateThread({
 }
 
 function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
-  return function*({thread}) {
+  return function* subSagaUpdateThreadHelper({thread}) {
     if (thread) {
       const decThread: ChatTypes.UIMessages = JSON.parse(thread)
       yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey))
@@ -822,15 +815,13 @@ function* _openFolder(): SagaGenerator<any, any> {
 }
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
+  yield put(Creators.setInboxFilter(''))
   const inboxSearch = yield select(inboxSearchSelector)
-  if (inboxSearch && !inboxSearch.isEmpty() && action.payload.existingParticipants.length === 0) {
+  if (inboxSearch && !inboxSearch.isEmpty()) {
     // Ignore 'New Chat' attempts when we're already building a chat
     return
   }
   yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
-  for (const username of action.payload.existingParticipants) {
-    yield put(Creators.stageUserForSearch(username))
-  }
   yield put(Creators.selectConversation(null, false))
   yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
 }
@@ -874,6 +865,10 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
+
+  if (fromUser) {
+    yield put(Creators.exitSearch(true))
+  }
 
   // Load the inbox item always
   if (conversationIDKey) {
@@ -1243,12 +1238,12 @@ function* _updateTempSearchConversation(
   yield all(actionsToPut)
 }
 
-function* _exitSearch() {
-  const inboxSearch = yield select(inboxSearchSelector)
+function* _exitSearch({payload: {skipSelectPreviousConversation}}: Constants.ExitSearch) {
+  const inboxSearch = skipSelectPreviousConversation ? null : yield select(inboxSearchSelector)
   yield put(Creators.clearSearchResults())
   yield put(Creators.setInboxSearch([]))
   yield put(Creators.removeTempPendingConversations())
-  if (inboxSearch.count() === 0) {
+  if (inboxSearch !== null && inboxSearch.count() === 0) {
     yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
   }
 }

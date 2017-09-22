@@ -599,7 +599,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 
 	// Write new message out to cache
 	s.Debug(ctx, "sending local updates to chat sources")
-	if _, _, err = s.G().ConvSource.Push(ctx, convID, msg.ClientHeader.Sender, *boxed); err != nil {
+	if _, _, err = s.G().ConvSource.Push(ctx, convID, boxed.ClientHeader.Sender, *boxed); err != nil {
 		return chat1.OutboxID{}, nil, nil, err
 	}
 	if _, err = s.G().InboxSource.NewMessage(ctx, boxed.ClientHeader.Sender, 0, convID, *boxed); err != nil {

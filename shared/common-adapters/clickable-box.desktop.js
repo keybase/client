@@ -37,7 +37,6 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
 
     let underlay
 
-    // if (true) {
     if (this.state.mouseIn) {
       const borderRadius = style && style.borderRadius
       // Down or hover

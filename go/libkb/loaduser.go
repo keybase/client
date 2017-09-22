@@ -439,7 +439,8 @@ func LoadUserFromServer(ctx context.Context, g *GlobalContext, uid keybase1.UID,
 			Endpoint:    "user/lookup",
 			SessionType: APISessionTypeNONE,
 			Args: HTTPArgs{
-				"uid": UIDArg(uid),
+				"uid":          UIDArg(uid),
+				"load_deleted": B{true},
 			},
 			NetContext: ctx,
 		})

@@ -17,6 +17,12 @@ const renderError = (error: RPCError) => {
     return acc
   }, {})
   switch (error.code) {
+    case ConstantsStatusCode.scdeviceprovisionoffline:
+      return (
+        <Text type="Body">
+          Device provisioning failed because this device went offline. Please check your network connection and try again.
+        </Text>
+      )
     case ConstantsStatusCode.scdevicenoprovision:
       return (
         <Box style={styleContent}>

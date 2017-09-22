@@ -33,27 +33,32 @@ func divDebug(ctx *smuContext, fmt string, arg ...interface{}) {
 }
 
 func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnboxed, err error) {
-	tctx := u.primaryDevice().popClone()
+	return readChatsWithErrorAndDevice(team, u, u.primaryDevice(), 0)
+}
 
-	wait := 100 * time.Millisecond
+func readChatsWithErrorAndDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper, nMessages int) (messages []chat1.MessageUnboxed, err error) {
+	tctx := dev.popClone()
+
+	wait := time.Second
 	var totalWait time.Duration
 	for i := 0; i < 10; i++ {
 		runner := client.NewCmdChatReadRunner(tctx.G)
 		runner.SetTeamChatForTest(team.name)
 		_, messages, err = runner.Fetch()
 
-		if err == nil {
+		if err == nil && len(messages) == nMessages {
 			if i != 0 {
 				u.ctx.t.Logf("readChatsWithError success after retrying %d times, polling for %s", i, totalWait)
 			}
 			return messages, nil
 		}
 
-		if !strings.Contains(err.Error(), "KBFS client not found") {
+		if err != nil && !strings.Contains(err.Error(), "KBFS client not found") {
 			// Only retry on KBFS errors
 			return messages, err
 		}
 
+		u.ctx.t.Logf("readChatsWithError polling for KBFS")
 		time.Sleep(wait)
 		totalWait += wait
 	}
@@ -63,11 +68,13 @@ func readChatsWithError(team smuTeam, u *smuUser) (messages []chat1.MessageUnbox
 }
 
 func readChats(team smuTeam, u *smuUser, nMessages int) {
-	messages, err := readChatsWithError(team, u)
+	readChatsWithDevice(team, u, u.primaryDevice(), nMessages)
+}
+
+func readChatsWithDevice(team smuTeam, u *smuUser, dev *smuDeviceWrapper, nMessages int) {
+	messages, err := readChatsWithErrorAndDevice(team, u, dev, nMessages)
 	t := u.ctx.t
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, nMessages, len(messages))
 	for i, msg := range messages {
 		require.Equal(t, msg.Valid().MessageBody.Text().Body, fmt.Sprintf("%d", len(messages)-i-1))
@@ -99,6 +106,43 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	ann.ctx.log.Debug("team details checked out: %+v", details)
 }
 
+func TestTeamDelete(t *testing.T) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	cam := ctx.installKeybaseForUser("cam", 10)
+	cam.signup()
+	divDebug(ctx, "Signed up cam (%s)", cam.username)
+
+	team := ann.createTeam([]*smuUser{bob, cam})
+	divDebug(ctx, "team created (%s)", team.name)
+
+	sendChat(team, ann, "0")
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
+
+	readChats(team, ann, 1)
+	readChats(team, bob, 1)
+	divDebug(ctx, "Ann and bob can read")
+
+	ann.delete()
+	divDebug(ctx, "Ann deleted her account")
+
+	// It's important for cam to clear her cache right before the attempt to send,
+	// since she might have received gregors that ann deleted her account,
+	// and thefore might be trying to refresh and load the team.
+	cam.primaryDevice().clearUPAKCache()
+	sendChat(team, cam, "1")
+
+	divDebug(ctx, "Cam sent a chat")
+	readChats(team, bob, 2)
+}
+
 func TestTeamReset(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
@@ -117,7 +161,7 @@ func TestTeamReset(t *testing.T) {
 	divDebug(ctx, "team created (%s)", team.name)
 
 	sendChat(team, ann, "0")
-	divDebug(ctx, "Sent chat '2' (%s via %s)", team.name, ann.username)
+	divDebug(ctx, "Sent chat '0' (%s via %s)", team.name, ann.username)
 
 	readChats(team, ann, 1)
 	readChats(team, bob, 1)

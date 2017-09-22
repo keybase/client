@@ -70,7 +70,6 @@ const MuteRow = (props: MuteRowProps) => (
 
 type infoPanelProps = {
   muted: boolean,
-  onAddParticipant: () => void,
   onMuteConversation: (muted: boolean) => void,
   onShowProfile: (username: string) => void,
   onToggleInfoPanel: () => void,
@@ -91,11 +90,7 @@ type SmallTeamInfoPanelProps = infoPanelProps & {
 
 const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
   <ScrollView style={scrollViewStyle} contentContainerStyle={contentContainerStyle}>
-    <Participants
-      participants={props.participants}
-      onAddParticipant={null /* off until this works */}
-      onShowProfile={props.onShowProfile}
-    />
+    <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
 
     <Divider style={{marginBottom: 20, marginTop: props.showTeamButton ? 10 : 20}} />
 
@@ -120,7 +115,7 @@ const _SmallTeamInfoPanel = (props: SmallTeamInfoPanelProps) => (
 
     {props.showTeamButton ? <Divider style={styleDivider} /> : null}
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute conversation" />
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire conversation" />
 
     <Notifications />
 
@@ -156,7 +151,7 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
 
     <Divider style={styleDivider} />
 
-    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute channel" />
+    <MuteRow muted={props.muted} onMute={props.onMuteConversation} label="Mute entire channel" />
 
     <Notifications />
 
@@ -173,13 +168,9 @@ const _BigTeamInfoPanel = (props: BigTeamInfoPanelProps) => (
       style={{alignSelf: 'center', paddingBottom: globalMargins.xtiny, paddingTop: globalMargins.tiny}}
       type="BodySmall"
     >
-      Use @mentions to invite people to join.
+      Use @mentions to invite team members to join.
     </Text>
-    <Participants
-      participants={props.participants}
-      onAddParticipant={null /* until this works TODO */}
-      onShowProfile={props.onShowProfile}
-    />
+    <Participants participants={props.participants} onShowProfile={props.onShowProfile} />
   </ScrollView>
 )
 

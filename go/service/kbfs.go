@@ -79,7 +79,7 @@ func (h *KBFSHandler) checkConversationRekey(arg keybase1.FSNotification) {
 
 	h.G().Log.Debug("received rekey finished notification for %s, checking for conversations", arg.Filename)
 
-	go h.notifyConversation(uid, arg.Filename)
+	h.notifyConversation(uid, arg.Filename)
 }
 
 // findFolderList returns the type of KBFS folder list containing the
@@ -98,56 +98,9 @@ func findFolderList(filename string) string {
 func (h *KBFSHandler) notifyConversation(uid keybase1.UID, filename string) {
 	tlf := filepath.Base(filename)
 	public := findFolderList(filename) == "public"
-	convIDs, err := h.conversationIDs(uid, tlf, public)
-	if err != nil {
-		h.G().Log.Debug("error getting conversation IDs for tlf %q: %s", tlf, err)
-		return
-	}
 
-	if len(convIDs) == 0 {
-		h.G().Log.Debug("no conversations for tlf %s (public: %v)", tlf, public)
-		return
-	}
-
-	h.G().Log.Debug("sending ChatThreadsStale notification (conversations: %d)", len(convIDs))
-	var updates []chat1.ConversationStaleUpdate
-	for _, convID := range convIDs {
-		updates = append(updates, chat1.ConversationStaleUpdate{
-			ConvID:     convID,
-			UpdateType: chat1.StaleUpdateType_CLEAR,
-		})
-	}
-	h.ChatG().Syncer.SendChatStaleNotifications(context.Background(), uid.ToBytes(), updates, false)
-}
-
-func (h *KBFSHandler) conversationIDs(uid keybase1.UID, tlf string, public bool) ([]chat1.ConversationID, error) {
-	vis := keybase1.TLFVisibility_PRIVATE
-	if public {
-		vis = keybase1.TLFVisibility_PUBLIC
-	}
-
-	toptype := chat1.TopicType_CHAT
-	query := chat1.GetInboxLocalQuery{
-		Name: &chat1.NameQuery{
-			Name:        tlf,
-			MembersType: chat1.ConversationMembersType_KBFS,
-		},
-		TlfVisibility: &vis,
-		TopicType:     &toptype,
-	}
-
-	var identBreaks []keybase1.TLFIdentifyFailure
 	g := globals.NewContext(h.G(), h.ChatG())
-	ctx := chat.Context(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_GUI,
-		&identBreaks, chat.NewIdentifyNotifier(g))
-	ib, _, err := h.ChatG().InboxSource.Read(ctx, uid.ToBytes(), nil, true, &query, nil)
-	if err != nil {
-		return nil, err
-	}
-	ids := make([]chat1.ConversationID, len(ib.Convs))
-	for i, c := range ib.Convs {
-		ids[i] = c.Info.Id
-	}
-
-	return ids, nil
+	ctx := chat.Context(context.Background(), g, keybase1.TLFIdentifyBehavior_CHAT_SKIP,
+		nil, chat.NewIdentifyNotifier(g))
+	h.ChatG().FetchRetrier.Rekey(ctx, tlf, chat1.ConversationMembersType_KBFS, public)
 }

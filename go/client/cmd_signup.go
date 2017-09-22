@@ -462,7 +462,7 @@ func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 			s.G().Log.Errorf("Email address '%s' already taken", v)
 			retry = true
 			err = nil
-		case "BAD_SIGNUP_USERNAME_TAKEN":
+		case "BAD_SIGNUP_USERNAME_TAKEN", "BAD_SIGNUP_TEAM_NAME":
 			v := s.fields.username.Clear()
 			s.G().Log.Errorf("Username '%s' already taken", v)
 			retry = true

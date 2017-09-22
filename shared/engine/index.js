@@ -1,21 +1,22 @@
 // @flow
 // Handles sending requests to the daemon
+import * as Saga from '../util/saga'
 import Session from './session'
-import type {CancelHandlerType} from './session'
-import type {createClientType} from './index.platform'
-import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
+import {call, race} from 'redux-saga/effects'
+import {convertToError} from '../util/errors'
+import {delay} from 'redux-saga'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {log} from '../native/log/logui'
-import {resetClient, createClient, rpcLog} from './index.platform'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
-import {convertToError} from '../util/errors'
-import * as Saga from '../util/saga'
-import {delay} from 'redux-saga'
-import {call, race} from 'redux-saga/effects'
+import {resetClient, createClient, rpcLog} from './index.platform'
 
 import type {ChannelMap} from '../constants/types/saga'
+import type {Action} from '../constants/types/flux'
+import type {CancelHandlerType} from './session'
+import type {createClientType} from './index.platform'
+import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 
 class EngineChannel {
   _map: ChannelMap<*>
@@ -77,6 +78,7 @@ class Engine {
   _rpcClient: createClientType
   // All incoming call handlers
   _incomingHandler: {[key: MethodKey]: (param: Object, response: ?Object) => void} = {}
+  _incomingActionCreator: {[key: MethodKey]: (param: Object, response: ?Object) => ?Action} = {}
   // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
   _onDisconnectHandlers: ?{[key: string]: () => void} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
@@ -87,8 +89,11 @@ class Engine {
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
   _hasConnected: boolean = false
+  // So we can dispatch actions
+  _dispatch: Dispatch
 
-  constructor() {
+  constructor(dispatch: Dispatch) {
+    this._dispatch = dispatch
     this._setupClient()
     this._setupCoreHandlers()
     this._setupIgnoredHandlers()
@@ -221,6 +226,12 @@ class Engine {
       const session = this._sessionsMap[String(sessionID)]
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
+      } else if (this._incomingActionCreator[method]) {
+        // General incoming
+        const handler = this._incomingActionCreator[method]
+        rpcLog('engineInternal', 'handling incoming')
+        const action = handler(param, response)
+        action && this._dispatch(action)
       } else if (this._incomingHandler[method]) {
         // General incoming
         const handler = this._incomingHandler[method]
@@ -373,6 +384,15 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
+  setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => ?Action) {
+    if (this._incomingActionCreator[method]) {
+      rpcLog('engineInternal', "duplicate incoming action creator!!! this isn't allowed", {method})
+      return
+    }
+    rpcLog('engineInternal', 'registering incoming action creator:', {method})
+    this._incomingActionCreator[method] = actionCreator
+  }
+
   setIncomingHandler(method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
       rpcLog('engineInternal', "duplicate incoming handler!!! this isn't allowed", {method})
@@ -451,6 +471,7 @@ class FakeEngine {
   listenOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
   setIncomingHandler(name: string, callback: Function) {}
+  setIncomingActionCreator(method: MethodKey, actionCreator: (param: Object, response: ?Object) => ?Action) {}
   createSession(
     incomingCallMap: ?incomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
@@ -486,13 +507,13 @@ export type ResponseType = {
 }
 
 let engine
-const makeEngine = () => {
+const makeEngine = (dispatch: Dispatch) => {
   if (__DEV__ && engine) {
     console.warn('makeEngine called multiple times')
   }
 
   if (!engine) {
-    engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine()
+    engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch)
   }
   return engine
 }
@@ -500,11 +521,6 @@ const makeEngine = () => {
 const getEngine = () => {
   if (__DEV__ && !engine) {
     throw new Error('Engine needs to be initialized first')
-  }
-
-  // This is just a sanity check so we don't break old code. Should never happen in practice
-  if (!engine) {
-    makeEngine()
   }
   return engine
 }

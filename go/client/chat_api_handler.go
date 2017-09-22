@@ -177,8 +177,8 @@ func (s sendOptionsV1) Check() error {
 
 type readOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID string `json:"conversation_id"`
-	Limit          string
+	ConversationID string            `json:"conversation_id"`
+	Pagination     *chat1.Pagination `json:"pagination,omitempty"`
 	Peek           bool
 	UnreadOnly     bool `json:"unread_only"`
 	FailOffline    bool `json:"fail_offline"`

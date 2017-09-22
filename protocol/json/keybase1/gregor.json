@@ -29,6 +29,15 @@
         }
       ],
       "response": "gregor1.MsgID"
+    },
+    "dismissCategory": {
+      "request": [
+        {
+          "name": "category",
+          "type": "gregor1.Category"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"
