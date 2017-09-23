@@ -8,21 +8,36 @@ import (
 	"testing"
 )
 
+type testPair struct {
+	uid      string
+	username string
+}
+
 func TestLookup(t *testing.T) {
 	tc := libkb.SetupTest(t, "TestLookup", 1)
 	defer tc.Cleanup()
 
-	var tests = []struct {
-		uid      string
-		username string
-	}{
+	var seed = []testPair{
 		{"afb5eda3154bc13c1df0189ce93ba119", "t_bob"},
+		{"00000000000000000000000000000119", ""},
 		{"295a7eea607af32040647123732bc819", "t_alice"},
+		{"00000000000000000000000000000219", ""},
 		{"9cbca30c38afba6ab02d76b206515919", "t_helen"},
-		{"8cbca30c38afba6ab02d76b206515919", ""},
+		{"00000000000000000000000000000319", ""},
 		{"dbb165b7879fe7b1174df73bed0b9500", "max"},
+		{"00000000000000000000000000000419", ""},
 		{"95e88f2087e480cae28f08d81554bc00", "mikem"},
-		{"acbca30c38afba6ab02d76b206515919", ""},
+		{"00000000000000000000000000000519", ""},
+		{"9f9611a4b7920637b1c2a839b2a0e119", "t_george"},
+		{"00000000000000000000000000000619", ""},
+		{"359c7644857203be38bfd3bf79bf1819", "t_frank"},
+		{"00000000000000000000000000000719", ""},
+	}
+
+	var tests []testPair
+	batchSize = 7
+	for len(tests) < batchSize*10 {
+		tests = append(tests, seed...)
 	}
 
 	var uids []keybase1.UID

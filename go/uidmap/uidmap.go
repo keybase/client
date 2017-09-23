@@ -33,6 +33,9 @@ const (
 	notFound       mapStatus = iota
 )
 
+// The number of UIDs per batch to send. It's not `const` so we can twiddle it in our tests.
+var batchSize = 250
+
 func (u *UIDMap) Clear() {
 	u.Lock()
 	defer u.Unlock()
@@ -108,7 +111,6 @@ func (u *UIDMap) lookupUIDsFromServerBatch(ctx context.Context, g libkb.UIDMappe
 
 func (u *UIDMap) lookupUIDsFromServer(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID) ([]libkb.NormalizedUsername, error) {
 
-	batchSize := 250
 	var ret []libkb.NormalizedUsername
 	for i := 0; i < len(uids); i += batchSize {
 		high := i + batchSize
