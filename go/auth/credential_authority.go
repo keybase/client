@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	userTimeout  = 5 * time.Minute
+	userTimeout  = 3 * time.Hour
 	cacheTimeout = 8 * time.Minute
 )
 
