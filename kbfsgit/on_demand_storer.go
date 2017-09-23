@@ -40,6 +40,15 @@ func (ods *onDemandStorer) EncodedObject(
 		size:        -1,
 		recentCache: ods.recentCache,
 	}
+	// If the object is missing, we need to return an error for that
+	// here.  But don't read all the object data from disk by calling
+	// `Storer.EncodedObject()` or `o.cache()`.  Instead use a
+	// KBFS-specific `HasEncodedObject()` method that just tells us
+	// whether or not the object exists.
+	err := ods.Storer.HasEncodedObject(hash)
+	if err != nil {
+		return nil, err
+	}
 
 	return o, nil
 }
