@@ -3344,17 +3344,20 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 			// Prefetch the new ref, but only if the old ref already exists in
 			// the block cache. Ideally we'd always prefetch it, but we need
 			// the type of the block so that we can call `NewEmpty`.
-			block, _, lifetime, err := fbo.config.BlockCache().GetWithPrefetch(oldPtr)
+			block, prefetchStatus, lifetime, err :=
+				fbo.config.BlockCache().GetWithPrefetch(oldPtr)
 			if err != nil {
 				return
 			}
 
 			// TODO: reintroduce updatePointerPrefetchPriority
-			fbo.config.BlockOps().Prefetcher().TriggerAndMonitorPrefetch(
+			fbo.config.BlockOps().Prefetcher().TriggerPrefetch(
 				newPtr,
 				block.NewEmpty(),
 				kmd,
+				updatePointerPrefetchPriority,
 				lifetime,
+				prefetchStatus,
 			)
 		}
 	}

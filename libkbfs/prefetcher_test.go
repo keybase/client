@@ -119,7 +119,7 @@ func TestPrefetcherIndirectFileBlock(t *testing.T) {
 	var block Block = &FileBlock{}
 	deepPrefetchDoneCh := make(chan struct{}, 1)
 	deepPrefetchCancelCh := make(chan struct{}, 1)
-	ch := q.RequestWithPrefetch(context.Background(),
+	ch := q.Request(context.Background(),
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
 		TransientEntry, deepPrefetchDoneCh, deepPrefetchCancelCh)
 	continueChRootBlock <- nil
@@ -169,7 +169,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 	block := NewDirBlock()
 	deepPrefetchDoneCh := make(chan struct{}, 1)
 	deepPrefetchCancelCh := make(chan struct{}, 1)
-	ch := q.RequestWithPrefetch(context.Background(),
+	ch := q.Request(context.Background(),
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
 		TransientEntry, deepPrefetchDoneCh, deepPrefetchCancelCh)
 	continueChRootBlock <- nil
@@ -225,7 +225,7 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	var block Block = &DirBlock{}
 	deepPrefetchDoneCh := make(chan struct{}, 1)
 	deepPrefetchCancelCh := make(chan struct{}, 1)
-	ch := q.RequestWithPrefetch(context.Background(),
+	ch := q.Request(context.Background(),
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
 		TransientEntry, deepPrefetchDoneCh, deepPrefetchCancelCh)
 	continueChRootDir <- nil
@@ -288,7 +288,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	var block Block = &DirBlock{}
 	deepPrefetchDoneCh := make(chan struct{}, 1)
 	deepPrefetchCancelCh := make(chan struct{}, 1)
-	ch := q.RequestWithPrefetch(context.Background(),
+	ch := q.Request(context.Background(),
 		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry,
 		deepPrefetchDoneCh, deepPrefetchCancelCh)
 	continueChRootDir <- nil
@@ -317,7 +317,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	block = &DirBlock{}
 	deepPrefetchDoneCh = make(chan struct{}, 1)
 	deepPrefetchCancelCh = make(chan struct{}, 1)
-	ch = q.RequestWithPrefetch(context.Background(),
+	ch = q.Request(context.Background(),
 		defaultOnDemandRequestPriority, kmd,
 		rootDir.Children["a"].BlockPointer, block, TransientEntry,
 		deepPrefetchDoneCh, deepPrefetchCancelCh)
@@ -351,7 +351,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	block = &DirBlock{}
 	deepPrefetchDoneCh = make(chan struct{}, 1)
 	deepPrefetchCancelCh = make(chan struct{}, 1)
-	ch = q.RequestWithPrefetch(context.Background(),
+	ch = q.Request(context.Background(),
 		defaultOnDemandRequestPriority, kmd,
 		rootDir.Children["a"].BlockPointer, block, TransientEntry,
 		deepPrefetchDoneCh, deepPrefetchCancelCh)
@@ -386,7 +386,7 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	kmd := makeKMD()
 	deepPrefetchDoneCh := make(chan struct{}, 1)
 	deepPrefetchCancelCh := make(chan struct{}, 1)
-	ch := q.RequestWithPrefetch(context.Background(),
+	ch := q.Request(context.Background(),
 		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry,
 		deepPrefetchDoneCh, deepPrefetchCancelCh)
 	continueChRootDir <- nil
@@ -415,7 +415,7 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	block = &DirBlock{}
 	deepPrefetchDoneCh = make(chan struct{}, 1)
 	deepPrefetchCancelCh = make(chan struct{}, 1)
-	ch = q.RequestWithPrefetch(context.Background(),
+	ch = q.Request(context.Background(),
 		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry,
 		deepPrefetchDoneCh, deepPrefetchCancelCh)
 	err = <-ch
@@ -443,7 +443,7 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 
 	var block Block = &DirBlock{}
 	deepPrefetchDoneCh := make(chan struct{}, 1)
-	ch := q.RequestWithPrefetch(context.Background(),
+	ch := q.Request(context.Background(),
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
 		TransientEntry, deepPrefetchDoneCh, nil)
 	continueChRootDir <- nil
@@ -514,7 +514,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 
 	var block Block = &DirBlock{}
 	deepPrefetchDoneCh := make(chan struct{}, 1)
-	ch := q.RequestWithPrefetch(context.Background(),
+	ch := q.Request(context.Background(),
 		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry,
 		deepPrefetchDoneCh, nil)
 	continueChRootDir <- nil
@@ -563,7 +563,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	block = &DirBlock{}
 	deepPrefetchDoneCh = make(chan struct{}, 1)
 	deepPrefetchCancelCh := make(chan struct{})
-	ch = q.RequestWithPrefetch(context.Background(),
+	ch = q.Request(context.Background(),
 		defaultOnDemandRequestPriority, kmd, rootPtr, block, TransientEntry,
 		deepPrefetchDoneCh, deepPrefetchCancelCh)
 	// We don't need to release the block this time because it should be cached

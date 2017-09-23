@@ -241,56 +241,6 @@ func (brq *blockRetrievalQueue) putInCaches(ctx context.Context,
 	return err
 }
 
-// CacheAndPrefetch caches a block along with its prefetch status, and then
-// triggers prefetches as appropriate.  It also updates the LRU time for
-// the block in the disk cache.
-func (brq *blockRetrievalQueue) CacheAndPrefetch(ctx context.Context,
-	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
-	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) (err error) {
-	prefetchStatus = brq.Prefetcher().TriggerPrefetch(
-		ptr, block, kmd, priority, lifetime, prefetchStatus)
-	dbc := brq.config.DiskBlockCache()
-	if prefetchStatus == FinishedPrefetch {
-		// Finished prefetches can always be short circuited and respond on the
-		// success channel (upstream prefetches might need to block on other
-		// parallel prefetches too).
-		brq.Prefetcher().NotifyPrefetchDone(ptr.ID)
-		return brq.putInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
-			FinishedPrefetch)
-	}
-	if brq.config.IsSyncedTlf(kmd.TlfID()) && dbc != nil {
-		// For synced blocks, callers need to be able to register themselves
-		// with the prefetcher as parents of a given block, so that their
-		// prefetch state is updated when the prefetch completes.
-	} else if prefetchStatus == TriggeredPrefetch {
-		// If a prefetch has already been triggered for a block in a non-synced
-		// TLF, then there is no waiting to be done.
-		brq.Prefetcher().CancelPrefetch(ptr.ID)
-		return brq.putInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
-			TriggeredPrefetch)
-	}
-	if priority < lowestTriggerPrefetchPriority {
-		// Only high priority requests can trigger prefetches. Leave the
-		// prefetchStatus unchanged.
-		brq.Prefetcher().CancelPrefetch(ptr.ID)
-		return brq.putInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
-			prefetchStatus)
-	}
-	// To prevent any other Gets from prefetching, we must let the cache know
-	// at this point that we've prefetched.
-	prefetchStatus = TriggeredPrefetch
-	err = brq.putInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
-		prefetchStatus)
-	if err != nil {
-		// We should return the error here because otherwise we could thrash
-		// the prefetcher.
-		brq.Prefetcher().CancelPrefetch(ptr.ID)
-		return err
-	}
-	brq.Prefetcher().TriggerPrefetch(ptr, block, kmd, priority, lifetime)
-	return nil
-}
-
 // checkCaches copies a block into `block` if it's in one of our caches.
 func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	kmd KeyMetadata, ptr BlockPointer, block Block) (PrefetchStatus, error) {
@@ -346,13 +296,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	// Check caches before locking the mutex.
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
 	if err == nil {
-		err = brq.CacheAndPrefetch(ctx, ptr, block, kmd, priority, lifetime,
+		ch <- brq.PrefetchAndCache(ctx, ptr, block, kmd, priority, lifetime,
 			prefetchStatus)
-		if err != nil {
-			brq.log.CWarningf(ctx, "An error occurred when caching and/or "+
-				"prefetching cached block %s: %+v", ptr.ID, err)
-		}
-		ch <- nil
 		return ch
 	}
 	err = checkDataVersion(brq.config, path{}, ptr)
@@ -426,6 +371,21 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	}
 }
 
+func (brq *blockRetrievalQueue) PrefetchAndCache(ctx context.Context,
+	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
+	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error {
+	prefetchStatus = brq.Prefetcher().TriggerPrefetch(ptr, block, kmd,
+		priority, lifetime, prefetchStatus)
+	err := brq.putInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
+		prefetchStatus)
+	if err != nil {
+		brq.log.CWarningf(ctx, "error caching block %s", ptr.ID)
+		// If there was an error caching, cancel the prefetch.
+		brq.Prefetcher().CancelPrefetch(ptr.ID)
+	}
+	return err
+}
+
 // FinalizeRequest is the last step of a retrieval request once a block has
 // been obtained. It removes the request from the blockRetrievalQueue,
 // preventing more requests from mutating the retrieval, then notifies all
@@ -458,8 +418,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// only way to get here is if the request wasn't already cached.
 		// Need to call with context.Background() because the retrieval's
 		// context will be canceled as soon as this method returns.
-		// TODO: verify that this is the case.
-		prefetchStatus := brq.Prefetcher().TriggerPrefetch(retrieval.blockPtr,
+		err = brq.PrefetchAndCache(context.Background(), retrieval.blockPtr,
 			block, retrieval.kmd, retrieval.priority, retrieval.cacheLifetime,
 			NoPrefetch)
 	} else {

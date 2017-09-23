@@ -33,11 +33,12 @@ type prefetcherConfig interface {
 }
 
 type prefetchRequest struct {
-	ptr      BlockPointer
-	block    Block
-	kmd      KeyMetadata
-	priority int
-	lifetime BlockCacheLifetime
+	ptr            BlockPointer
+	block          Block
+	kmd            KeyMetadata
+	priority       int
+	lifetime       BlockCacheLifetime
+	prefetchStatus PrefetchStatus
 }
 
 type prefetch struct {
@@ -111,11 +112,16 @@ func (p *blockPrefetcher) applyToParentsRecursive(f func(kbfsblock.ID, *prefetch
 // Walk up the block tree decrementing each node by one. Any
 // zeroes we hit get marked complete and deleted.
 // TODO: If we ever hit a lower number than the child, panic.
-func (p *blockPrefetcher) completePrefetch(blockID kbfsblock.ID, pp *prefetch) {
-	pp.subtreeBlockCount--
-	if pp.subtreeBlockCount == 0 {
-		// TODO: mark complete.
-		delete(p.prefetches, blockID)
+func (p *blockPrefetcher) completePrefetch(numBlocks int) func(kbfsblock.ID, *prefetch) {
+	return func(blockID kbfsblock.ID, pp *prefetch) {
+		pp.subtreeBlockCount -= numBlocks
+		if pp.subtreeBlockCount < 0 {
+			panic("completePrefetch overstepped its bounds")
+		}
+		if pp.subtreeBlockCount == 0 {
+			// TODO: mark complete.
+			delete(p.prefetches, blockID)
+		}
 	}
 }
 
@@ -130,16 +136,21 @@ func (p *blockPrefetcher) run() {
 		case blockID := <-p.prefetchMonitorSuccessCh:
 			pre, ok := p.prefetches[blockID]
 			if !ok {
+				// TODO: remove this line once we've debugged.
 				p.log.Debug("Missing prefetch completed for block %s", blockID)
 				continue
 			}
-			// FIXME: Since this results in a decrement, then a request for a
-			// cached block that is `FinishedPrefetch` can cause multiple
-			// decrements for the same block. BAD!
-			p.applyToParentsRecursive(p.completePrefetch, blockID, pre)
+			if pre.subtreeBlockCount < 0 {
+				panic("the subtreeBlockCount for a block should never be < 0")
+			}
+			// Since we decrement by `pre.subtreeBlockCount`, we're guaranteed
+			// that `pre` will be removed from the prefetcher.
+			p.applyToParentsRecursive(
+				p.completePrefetch(pre.subtreeBlockCount), blockID, pre)
 		case blockID := <-p.prefetchMonitorCancelCh:
 			pre, ok := p.prefetches[blockID]
 			if !ok {
+				// TODO: remove this line once we've debugged.
 				p.log.Debug("Missing prefetch canceled for block %s", blockID)
 				continue
 			}
@@ -192,8 +203,8 @@ func (p *blockPrefetcher) run() {
 					// prefetch is done.
 					// Note that only a tail block can trigger a completed
 					// prefetch.
-					p.applyToParentsRecursive(p.completePrefetch, req.ptr.ID,
-						pre)
+					p.applyToParentsRecursive(
+						p.completePrefetch(1), req.ptr.ID, pre)
 				}
 				continue
 			}
@@ -374,10 +385,11 @@ func (p *blockPrefetcher) handlePrefetch(ctx context.Context,
 }
 
 func (p *blockPrefetcher) triggerPrefetch(ptr BlockPointer, block Block,
-	kmd KeyMetadata, priority int, lifetime BlockCacheLifetime) {
+	kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
+	prefetchStatus PrefetchStatus) {
 	select {
 	case p.prefetchRequestCh <- prefetchRequest{
-		ptr, block, kmd, priority, lifetime}:
+		ptr, block, kmd, priority, lifetime, prefetchStatus}:
 	case <-p.shutdownCh:
 		p.log.Warning("Skipping prefetch for block %v since "+
 			"the prefetcher is shutdown", ptr.ID)
@@ -385,7 +397,7 @@ func (p *blockPrefetcher) triggerPrefetch(ptr BlockPointer, block Block,
 		go func() {
 			select {
 			case p.prefetchRequestCh <- prefetchRequest{
-				ptr, block, kmd, priority, lifetime}:
+				ptr, block, kmd, priority, lifetime, prefetchStatus}:
 			case <-p.shutdownCh:
 				p.log.Warning("Skipping prefetch for block %v since "+
 					"the prefetcher is shutdown", ptr.ID)
@@ -395,6 +407,7 @@ func (p *blockPrefetcher) triggerPrefetch(ptr BlockPointer, block Block,
 	return
 }
 
+// TriggerPrefetch triggers a prefetch if appropriate.
 func (p *blockPrefetcher) TriggerPrefetch(ptr BlockPointer, block Block,
 	kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
 	prefetchStatus PrefetchStatus) PrefetchStatus {
@@ -402,44 +415,48 @@ func (p *blockPrefetcher) TriggerPrefetch(ptr BlockPointer, block Block,
 		// Finished prefetches can always be short circuited and respond on the
 		// success channel (upstream prefetches might need to block on other
 		// parallel prefetches too).
+		// FIXME: this can cause duplicate decrements. The prefetcher should
+		// dedupe them.
 		p.NotifyPrefetchDone(ptr.ID)
-		return FinishedPrefetch
+		return prefetchStatus
 	}
-	if brq.config.IsSyncedTlf(kmd.TlfID()) {
-		// For synced blocks, callers need to be able to register themselves
-		// with the prefetcher as parents of a given block, so that their
-		// prefetch state is updated when the prefetch completes.
-	} else if prefetchStatus == TriggeredPrefetch {
-		// If a prefetch has already been triggered for a block in a non-synced
-		// TLF, then there is no waiting to be done.
-		// TODO: maybe cancel here?
-		// The issue is that if we don't cancel at some point down the tree,
-		// the prefetcher will never remove the prefetches unless we do a true
-		// deep prefetch.
-		// On the other hand, if we _do_ cancel, we could be canceling a
-		// prefetch that needs to finish. Since prefetches are de-duped, this
-		// is a real risk..
-		//
-		// Plan A: store whether a block is a tail block in the `prefetch`. If
-		// a tail block completes, and it makes its parent counter 0, it should
-		// percolate. But if a non-tail block completes, it should percolate
-		// its counter and remove blocks from the prefetch tree, but it
-		// shouldn't mark the block done in the cache.
-		// * Problem: if all the tail blocks complete before the non-tail is
-		//   done fetching, there's no way to know that the mid-tree block should
-		//   percolate doneness.
-		//   * Answer: This is fine. If a mid-tree block triggers a prefetch,
-		//   then it has already been retrieved. And if it doesn't trigger, we
-		//   rely on the completion counter.
-		return TriggeredPrefetch
-	}
+	// JZ: I'm removing this code to allow the prefetcher to decide how to
+	// handle prefetches. prefetchStatus should only be used in the actual
+	// prefetcher.
+	//if brq.config.IsSyncedTlf(kmd.TlfID()) {
+	//	// For synced blocks, callers need to be able to register themselves
+	//	// with the prefetcher as parents of a given block, so that their
+	//	// prefetch state is updated when the prefetch completes.
+	//} else if prefetchStatus == TriggeredPrefetch {
+	//	// If a prefetch has already been triggered for a block in a non-synced
+	//	// TLF, then there is no waiting to be done.
+	//	// TODO: maybe cancel here?
+	//	// The issue is that if we don't cancel at some point down the tree,
+	//	// the prefetcher will never remove the prefetches unless we do a true
+	//	// deep prefetch.
+	//	// On the other hand, if we _do_ cancel, we could be canceling a
+	//	// prefetch that needs to finish. Since prefetches are de-duped, this
+	//	// is a real risk..
+	//	//
+	//	// Plan A: store whether a block is a tail block in the `prefetch`. If
+	//	// a tail block completes, and it makes its parent counter 0, it should
+	//	// percolate. But if a non-tail block completes, it should percolate
+	//	// its counter and remove blocks from the prefetch tree, but it
+	//	// shouldn't mark the block done in the cache.
+	//	// * Problem: if all the tail blocks complete before the non-tail is
+	//	//   done fetching, there's no way to know that the mid-tree block should
+	//	//   percolate doneness.
+	//	//   * Answer: This is fine. If a mid-tree block triggers a prefetch,
+	//	//   then it has already been retrieved. And if it doesn't trigger, we
+	//	//   rely on the completion counter.
+	//	return TriggeredPrefetch
+	//}
 	if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged.
-		// TODO: maybe cancel here? (notes above)
 		return prefetchStatus
 	}
-	p.triggerPrefetch(ptr, block, kmd, priority, lifetime)
+	p.triggerPrefetch(ptr, block, kmd, priority, lifetime, prefetchStatus)
 	return TriggeredPrefetch
 }
 
