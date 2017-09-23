@@ -4650,7 +4650,11 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// Wait for CR to happen.
 	if fbo.isMasterBranchLocked(lState) {
 		mergedRev, err := fbo.getJournalPredecessorRevision(ctx)
-		if err != nil {
+		if err == errNoFlushedRevisions {
+			// If the journal is still on the initial revision, ignore
+			// the error and fall through to ignore CR.
+			mergedRev = kbfsmd.RevisionInitial
+		} else if err != nil {
 			return err
 		}
 		if mergedRev != kbfsmd.RevisionUninitialized {
