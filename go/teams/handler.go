@@ -205,11 +205,45 @@ func assertCanAcceptKeybaseInvite(ctx context.Context, g *libkb.GlobalContext, u
 func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenReqMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          msg.TeamID,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	var req keybase1.TeamChangeReq
+	// TODO: Check if team is open invites and what the join_as is.
+	//role := keybase1.TeamRole_READER
+
 	for _, tar := range msg.Tars {
-		spew.Dump(tar)
-		// if err := handleSBSSingle(ctx, g, msg.TeamID, invitee); err != nil {
+		// TODO: Remove teamID from TARs passed in OPENREQ?
+		if tar.TeamID != msg.TeamID {
+			return fmt.Errorf("Unexpected team id")
+		}
+
+		uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
+		if team.IsMember(ctx, uv) {
+			continue
+		}
+
+		req.Readers = append(req.Readers, uv)
+		// if err := handleOpenReqSingle(ctx, g, msg.TeamID, tar, role); err != nil {
 		// 	return err
 		// }
 	}
+
+	spew.Dump(req)
+	return team.ChangeMembership(ctx, req)
+}
+
+func handleOpenReqSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, tar keybase1.TeamAccessRequest, role keybase1.TeamRole) error {
+	// TODO: Remove teamID from TARs passed in OPENREQ?
+	if tar.TeamID != teamID {
+		return fmt.Errorf("Unexpected team id")
+	}
+
 	return nil
 }

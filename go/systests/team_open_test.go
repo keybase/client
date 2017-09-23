@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	//"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,4 +37,14 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 
 	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(nameStr, keybase1.Seqno(2))
+
+	team, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
+		Name:        nameStr,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	role, err := team.MemberRole(context.TODO(), roo.userVersion())
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_READER)
 }
