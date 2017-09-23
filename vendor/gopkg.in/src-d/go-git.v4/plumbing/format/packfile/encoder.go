@@ -45,8 +45,10 @@ func NewEncoder(w io.Writer, s storer.EncodedObjectStorer, useRefDeltas bool) *E
 	}
 }
 
-// Encode creates a packfile containing all the objects referenced in hashes
-// and writes it to the writer in the Encoder.
+// Encode creates a packfile containing all the objects referenced in
+// hashes and writes it to the writer in the Encoder.  `packWindow`
+// specifies the size of the sliding window used to compare objects
+// for delta compression; 0 turns off delta compression entirely.
 func (e *Encoder) Encode(
 	hashes []plumbing.Hash,
 	packWindow uint,

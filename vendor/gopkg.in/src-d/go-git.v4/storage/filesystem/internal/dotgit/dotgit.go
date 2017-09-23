@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	stdioutil "io/ioutil"
 	"os"
 	"strings"
@@ -242,7 +243,39 @@ func (d *DotGit) Object(h plumbing.Hash) (billy.File, error) {
 	return d.fs.Open(file)
 }
 
-func (d *DotGit) SetRef(r *plumbing.Reference) error {
+func (d *DotGit) readReferenceFrom(rd io.Reader, name string) (ref *plumbing.Reference, err error) {
+	b, err := stdioutil.ReadAll(rd)
+	if err != nil {
+		return nil, err
+	}
+
+	line := strings.TrimSpace(string(b))
+	return plumbing.NewReferenceFromStrings(name, line), nil
+}
+
+func (d *DotGit) checkReferenceAndTruncate(f billy.File, old *plumbing.Reference) error {
+	if old == nil {
+		return nil
+	}
+	ref, err := d.readReferenceFrom(f, old.Name().String())
+	if err != nil {
+		return err
+	}
+	if ref.Hash() != old.Hash() {
+		return fmt.Errorf("reference has changed concurrently")
+	}
+	_, err = f.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+	err = f.Truncate(0)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *DotGit) SetRef(r, old *plumbing.Reference) error {
 	var content string
 	switch r.Type() {
 	case plumbing.SymbolicReference:
@@ -251,12 +284,33 @@ func (d *DotGit) SetRef(r *plumbing.Reference) error {
 		content = fmt.Sprintln(r.Hash().String())
 	}
 
-	f, err := d.fs.Create(r.Name().String())
+	// If we are not checking an old ref, just truncate the file.
+	mode := os.O_RDWR | os.O_CREATE
+	if old == nil {
+		mode |= os.O_TRUNC
+	}
+
+	f, err := d.fs.OpenFile(r.Name().String(), mode, 0666)
 	if err != nil {
 		return err
 	}
 
 	defer ioutil.CheckClose(f, &err)
+
+	// Lock is unlocked by the deferred Close above. This is because Unlock
+	// does not imply a fsync and thus there would be a race between
+	// Unlock+Close and other concurrent writers. Adding Sync to go-billy
+	// could work, but this is better (and avoids superfluous syncs).
+	err = f.Lock()
+	if err != nil {
+		return err
+	}
+
+	// this is a no-op to call even when old is nil.
+	err = d.checkReferenceAndTruncate(f, old)
+	if err != nil {
+		return err
+	}
 
 	_, err = f.Write([]byte(content))
 	return err
@@ -512,13 +566,7 @@ func (d *DotGit) readReferenceFile(path, name string) (ref *plumbing.Reference, 
 	}
 	defer ioutil.CheckClose(f, &err)
 
-	b, err := stdioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-
-	line := strings.TrimSpace(string(b))
-	return plumbing.NewReferenceFromStrings(name, line), nil
+	return d.readReferenceFrom(f, name)
 }
 
 // Module return a billy.Filesystem poiting to the module folder

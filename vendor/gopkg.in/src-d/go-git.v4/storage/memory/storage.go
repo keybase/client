@@ -12,6 +12,7 @@ import (
 )
 
 var ErrUnsupportedObjectType = fmt.Errorf("unsupported object type")
+var ErrRefHasChanged = fmt.Errorf("reference has changed concurrently")
 
 // Storage is an implementation of git.Storer that stores data on memory, being
 // ephemeral. The use of this storage should be done in controlled envoriments,
@@ -113,6 +114,14 @@ func (o *ObjectStorage) SetEncodedObject(obj plumbing.EncodedObject) (plumbing.H
 	return h, nil
 }
 
+func (o *ObjectStorage) HasEncodedObject(h plumbing.Hash) (err error) {
+	_, ok := o.Objects[h]
+	if !ok {
+		return plumbing.ErrObjectNotFound
+	}
+	return nil
+}
+
 func (o *ObjectStorage) EncodedObject(t plumbing.ObjectType, h plumbing.Hash) (plumbing.EncodedObject, error) {
 	obj, ok := o.Objects[h]
 	if !ok || (plumbing.AnyObject != t && obj.Type() != t) {
@@ -196,6 +205,20 @@ type ReferenceStorage map[plumbing.ReferenceName]*plumbing.Reference
 
 func (r ReferenceStorage) SetReference(ref *plumbing.Reference) error {
 	if ref != nil {
+		r[ref.Name()] = ref
+	}
+
+	return nil
+}
+
+func (r ReferenceStorage) CheckAndSetReference(ref, old *plumbing.Reference) error {
+	if ref != nil {
+		if old != nil {
+			tmp := r[ref.Name()]
+			if tmp != nil && tmp.Hash() != old.Hash() {
+				return ErrRefHasChanged
+			}
+		}
 		r[ref.Name()] = ref
 	}
 

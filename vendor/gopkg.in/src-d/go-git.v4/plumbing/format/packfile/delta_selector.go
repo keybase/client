@@ -28,8 +28,11 @@ func newDeltaSelector(s storer.EncodedObjectStorer) *deltaSelector {
 	return &deltaSelector{s}
 }
 
-// ObjectsToPack creates a list of ObjectToPack from the hashes provided,
-// creating deltas if it's suitable, using an specific internal logic
+// ObjectsToPack creates a list of ObjectToPack from the hashes
+// provided, creating deltas if it's suitable, using an specific
+// internal logic.  `packWindow` specifies the size of the sliding
+// window used to compare objects for delta compression; 0 turns off
+// delta compression entirely.
 func (dw *deltaSelector) ObjectsToPack(
 	hashes []plumbing.Hash,
 	packWindow uint,

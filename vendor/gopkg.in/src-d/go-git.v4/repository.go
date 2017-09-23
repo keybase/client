@@ -625,9 +625,9 @@ func (r *Repository) calculateRemoteHeadReference(spec []config.RefSpec,
 	return refs
 }
 
-func updateReferenceStorerIfNeeded(
-	s storer.ReferenceStorer, r *plumbing.Reference) (updated bool, err error) {
-
+func checkAndUpdateReferenceStorerIfNeeded(
+	s storer.ReferenceStorer, r, old *plumbing.Reference) (
+	updated bool, err error) {
 	p, err := s.Reference(r.Name())
 	if err != nil && err != plumbing.ErrReferenceNotFound {
 		return false, err
@@ -635,7 +635,7 @@ func updateReferenceStorerIfNeeded(
 
 	// we use the string method to compare references, is the easiest way
 	if err == plumbing.ErrReferenceNotFound || r.String() != p.String() {
-		if err := s.SetReference(r); err != nil {
+		if err := s.CheckAndSetReference(r, old); err != nil {
 			return false, err
 		}
 
@@ -643,6 +643,11 @@ func updateReferenceStorerIfNeeded(
 	}
 
 	return false, nil
+}
+
+func updateReferenceStorerIfNeeded(
+	s storer.ReferenceStorer, r *plumbing.Reference) (updated bool, err error) {
+	return checkAndUpdateReferenceStorerIfNeeded(s, r, nil)
 }
 
 // Fetch fetches references along with the objects necessary to complete

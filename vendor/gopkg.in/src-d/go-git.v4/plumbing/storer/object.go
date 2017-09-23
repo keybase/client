@@ -36,6 +36,9 @@ type EncodedObjectStorer interface {
 	//
 	// Valid plumbing.ObjectType values are CommitObject, BlobObject, TagObject,
 	IterEncodedObjects(plumbing.ObjectType) (EncodedObjectIter, error)
+	// HasEncodedObject returns ErrObjNotFound if the object doesn't
+	// exist.  If the object does exist, it returns nil.
+	HasEncodedObject(plumbing.Hash) error
 }
 
 // DeltaObjectStorer is an EncodedObjectStorer that can return delta

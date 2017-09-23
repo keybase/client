@@ -95,6 +95,9 @@ type PullOptions struct {
 	// stored, if nil nothing is stored and the capability (if supported)
 	// no-progress, is sent to the server to avoid send this information.
 	Progress sideband.Progress
+	// Force allows the pull to update a local branch even when the remote
+	// branch does not descend from it.
+	Force bool
 }
 
 // Validate validates the fields and sets the default values.
@@ -143,6 +146,9 @@ type FetchOptions struct {
 	// by default is TagFollowing.
 	Tags       TagMode
 	StatusChan plumbing.StatusChan
+	// Force allows the fetch to update a local branch even when the remote
+	// branch does not descend from it.
+	Force bool
 }
 
 // Validate validates the fields and sets the default values.

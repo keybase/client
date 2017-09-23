@@ -69,6 +69,7 @@ func (w *Worktree) PullContext(ctx context.Context, o *PullOptions) error {
 		Depth:      o.Depth,
 		Auth:       o.Auth,
 		Progress:   o.Progress,
+		Force:      o.Force,
 	})
 
 	updated := true

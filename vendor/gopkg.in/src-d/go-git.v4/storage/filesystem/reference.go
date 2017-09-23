@@ -11,7 +11,11 @@ type ReferenceStorage struct {
 }
 
 func (r *ReferenceStorage) SetReference(ref *plumbing.Reference) error {
-	return r.dir.SetRef(ref)
+	return r.dir.SetRef(ref, nil)
+}
+
+func (r *ReferenceStorage) CheckAndSetReference(ref, old *plumbing.Reference) error {
+	return r.dir.SetRef(ref, old)
 }
 
 func (r *ReferenceStorage) Reference(n plumbing.ReferenceName) (*plumbing.Reference, error) {
