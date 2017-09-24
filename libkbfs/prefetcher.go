@@ -180,7 +180,7 @@ func (p *blockPrefetcher) run() {
 					continue
 				}
 			}
-			ctx, cancel := context.WithTimeout(context.Background(),
+			ctx, _ := context.WithTimeout(context.Background(),
 				prefetchTimeout)
 			// TODO: there is a potential optimization here that we can consider:
 			// Currently every time a prefetch is triggered, we iterate through
