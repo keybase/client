@@ -1892,11 +1892,18 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
+const (
+	// LockIDVersion0 is the first ever version for lock ID format.
+	LockIDVersion0 byte = iota
+)
+
 // LockIDFromBytes takes the first 8 bytes of the sha512 over data, interprets
-// it as int64 using little endian, and returns the value as LockID.
+// it as int64 using big endian, and returns the value as LockID. First byte
+// is used as the version byte.
 func LockIDFromBytes(data []byte) LockID {
 	sum := sha512.Sum512(data)
-	return LockID(binary.LittleEndian.Uint64(sum[:8]))
+	sum[0] = LockIDVersion0
+	return LockID(binary.BigEndian.Uint64(sum[:8]))
 }
 
 // MDPriority is the type for the priority field of a metadata put. mdserver
