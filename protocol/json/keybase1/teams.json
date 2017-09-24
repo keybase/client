@@ -623,6 +623,10 @@
             "keys": "TeamInviteID"
           },
           "name": "activeInvites"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
         }
       ]
     },

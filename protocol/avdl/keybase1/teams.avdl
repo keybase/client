@@ -230,6 +230,9 @@ protocol teams {
 
     // All invitations that are currently active.
     map<TeamInviteID,TeamInvite> activeInvites;
+
+    // Whether this is an open team.
+    boolean open;
   }
 
   // The team got this name at this point in time.

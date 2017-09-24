@@ -845,6 +845,16 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("signer is not an owner: %v (%v)", signer, team.Members.Owners)
 		}
 
+		if settings := team.Settings; settings != nil {
+			if open := settings.Open; open != nil {
+				if isImplicit {
+					return res, fmt.Errorf("implicit team cannot be open")
+				}
+
+				res.newState.inner.Open = open.Enabled
+			}
+		}
+
 		return res, nil
 	case libkb.LinkTypeChangeMembership:
 		err = libkb.PickFirstError(

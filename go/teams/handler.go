@@ -214,6 +214,10 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		return err
 	}
 
+	if !team.chain().inner.Open {
+		return fmt.Errorf("team %q is not an open team", team.Name)
+	}
+
 	var req keybase1.TeamChangeReq
 	// TODO: Check if team is open invites and what the join_as is.
 	//role := keybase1.TeamRole_READER
