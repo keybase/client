@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/fsrpc"
@@ -91,6 +92,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
+	kbCtx.SetUIDMapper(uidmap.NewUIDMap())
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,

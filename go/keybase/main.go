@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -55,6 +56,8 @@ func main() {
 
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
+	// Set our UID -> Username mapping service
+	g.SetUIDMapper(uidmap.NewUIDMap())
 
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.
