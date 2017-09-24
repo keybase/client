@@ -31,7 +31,7 @@ const _labels = {
 }
 
 const _tabs = [
-  ...(flags.tabPeopleEnabled ? [Tabs.profileTab] : []),
+  ...(flags.tabPeopleEnabled ? [Tabs.peopleTab] : []),
   Tabs.chatTab,
   Tabs.folderTab,
   ...(flags.teamChatEnabled ? [Tabs.teamsTab] : []),

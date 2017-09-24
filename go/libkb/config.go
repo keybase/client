@@ -609,6 +609,10 @@ func (f JSONConfigFile) GetLinkCacheCleanDur() (time.Duration, bool) {
 	return f.GetDurationAtPath("cache.clean_duration.links")
 }
 
+func (f JSONConfigFile) GetUPAKCacheSize() (int, bool) {
+	return f.getCacheSize("cache.limits.upak")
+}
+
 func (f JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
 	return f.GetIntAtPath("leveldb.num_files")
 }

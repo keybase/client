@@ -6,9 +6,10 @@
 package libkb
 
 import (
-	context "golang.org/x/net/context"
 	"testing"
 	"time"
+
+	context "golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -25,7 +26,10 @@ func TestCachedUserLoad(t *testing.T) {
 		UID: keybase1.UID("295a7eea607af32040647123732bc819"),
 	}
 	var info CachedUserLoadInfo
-	upk, user, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
+	_, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	checkLoad := func(upk *keybase1.UserPlusKeysV2AllIncarnations, err error) {
 		if err != nil {
@@ -44,7 +48,7 @@ func TestCachedUserLoad(t *testing.T) {
 
 	fakeClock.Advance(CachedUserTimeout / 100)
 	info = CachedUserLoadInfo{}
-	upk, user, err = tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
+	upk, user, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
 	checkLoad(upk, err)
 	if user != nil {
 		t.Fatal("expected no full user load")

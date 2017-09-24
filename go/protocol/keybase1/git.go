@@ -150,6 +150,7 @@ type GitRepoResult struct {
 	ServerMetadata GitServerMetadata `codec:"serverMetadata" json:"serverMetadata"`
 	RepoUrl        string            `codec:"repoUrl" json:"repoUrl"`
 	GlobalUniqueID string            `codec:"globalUniqueID" json:"globalUniqueID"`
+	CanDelete      bool              `codec:"canDelete" json:"canDelete"`
 }
 
 func (o GitRepoResult) DeepCopy() GitRepoResult {
@@ -160,6 +161,7 @@ func (o GitRepoResult) DeepCopy() GitRepoResult {
 		ServerMetadata: o.ServerMetadata.DeepCopy(),
 		RepoUrl:        o.RepoUrl,
 		GlobalUniqueID: o.GlobalUniqueID,
+		CanDelete:      o.CanDelete,
 	}
 }
 

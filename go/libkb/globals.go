@@ -95,6 +95,7 @@ type GlobalContext struct {
 	// tests, and non-nil in service mode.
 	UIRouter           UIRouter                  // How to route UIs
 	Services           ExternalServicesCollector // All known external services
+	UIDMapper          UIDMapper                 // maps from UID to Usernames
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
 	clockMu            *sync.Mutex               // protects Clock
@@ -146,6 +147,7 @@ func (g *GlobalContext) GetMerkleClient() *MerkleClient                { return 
 func (g *GlobalContext) GetNetContext() context.Context                { return g.NetContext }
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
+func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 
 type LogGetter func() logger.Logger
 
@@ -221,6 +223,10 @@ func (g *GlobalContext) SetService() {
 	g.Service = true
 	g.ConnectionManager = NewConnectionManager()
 	g.NotifyRouter = NewNotifyRouter(g)
+}
+
+func (g *GlobalContext) SetUIDMapper(u UIDMapper) {
+	g.UIDMapper = u
 }
 
 func (g *GlobalContext) SetUIRouter(u UIRouter) {
@@ -622,11 +628,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 		}
 	}
 
-	if err = g.ConfigureTimers(); err != nil {
-		return err
-	}
-
-	return nil
+	return g.ConfigureTimers()
 }
 
 func (g *GlobalContext) OutputString(s string) {

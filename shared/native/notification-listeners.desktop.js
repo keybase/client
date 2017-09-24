@@ -3,7 +3,7 @@ import shared from './notification-listeners.shared'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import {pgpKeyInSecretStoreFile} from '../constants/pgp'
 import {remote} from 'electron'
-import {dumpLoggers} from '../util/periodic-logger'
+import {flushLogFile} from '../util/forward-logs'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
@@ -33,7 +33,7 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       notify('Client out of date!', {body}, 60 * 60)
     },
     'keybase.1.logsend.prepareLogsend': (_, response) => {
-      dumpLoggers()
+      flushLogFile()
       response.result()
     },
   }

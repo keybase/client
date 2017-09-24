@@ -3,7 +3,7 @@ import Folders from '../folders'
 import React, {Component} from 'react'
 import UserAdd from './user-add'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
-import {folderTab, profileTab, chatTab, devicesTab} from '../constants/tabs'
+import {folderTab, peopleTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
 import {isWindows, isDarwin} from '../constants/platform'
 
@@ -134,7 +134,7 @@ class MenubarRender extends Component<Props, State> {
       onRekey: this.props.onRekey,
     }
 
-    const badgeTypes: Array<Tab> = [folderTab, profileTab, chatTab, devicesTab]
+    const badgeTypes: Array<Tab> = [folderTab, peopleTab, chatTab, devicesTab]
 
     return (
       <Box style={styles.container}>
@@ -235,7 +235,7 @@ const BadgeIcon = ({
 
   const iconType = {
     [folderTab]: 'iconfont-nav-folders',
-    [profileTab]: 'iconfont-nav-people',
+    [peopleTab]: 'iconfont-nav-people',
     [chatTab]: 'iconfont-nav-chat',
     [devicesTab]: 'iconfont-nav-devices',
     // $FlowIssue TODO

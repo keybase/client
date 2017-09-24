@@ -84,10 +84,7 @@ func (p *provisioner) run() (err error) {
 	if err = p.pickFirstConnection(); err != nil {
 		return err
 	}
-	if err = p.runProtocolWithCancel(); err != nil {
-		return err
-	}
-	return nil
+	return p.runProtocolWithCancel()
 }
 
 func (k KexBaseArg) getDeviceID() (ret DeviceID, err error) {
@@ -230,8 +227,5 @@ func (p *provisioner) runProtocolV1() (err error) {
 	if counterSigned, err = p.arg.Provisioner.CounterSign(res); err != nil {
 		return err
 	}
-	if err = cli.DidCounterSign(context.TODO(), counterSigned); err != nil {
-		return err
-	}
-	return nil
+	return cli.DidCounterSign(context.TODO(), counterSigned)
 }

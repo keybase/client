@@ -21,11 +21,7 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 			return err
 		}
 
-		if err := s.join(a, username, email, libkb.TestInvitationCode, true); err != nil {
-			return err
-		}
-
-		return nil
+		return s.join(a, username, email, libkb.TestInvitationCode, true)
 	}
 	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithNoKeys"); err != nil {
 		tc.T.Fatal(err)
@@ -120,10 +116,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 			return err
 		}
 
-		if err := s.addGPG(a, ctx, false); err != nil {
-			return err
-		}
-		return nil
+		return s.addGPG(a, ctx, false)
 	}
 	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPPubOnly"); err != nil {
 		t.Fatal(err)
@@ -170,11 +163,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 
 		// hack the gpg ui to select a different key:
 		ctx.GPGUI = &gpgtestui{index: 1}
-		if err := s.addGPG(a, ctx, true); err != nil {
-			return err
-		}
-
-		return nil
+		return s.addGPG(a, ctx, true)
 	}
 
 	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPPubMult"); err != nil {
@@ -219,11 +208,7 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 		}
 
 		// this will add the GPG key for fu.Email to their account
-		if err := s.addGPG(a, ctx, false); err != nil {
-			return err
-		}
-
-		return nil
+		return s.addGPG(a, ctx, false)
 	}
 
 	if err := s.G().LoginState().ExternalFunc(f, "createFakeUserWithPGPMultSubset"); err != nil {

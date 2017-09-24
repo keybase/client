@@ -156,9 +156,5 @@ func (e *PGPPurge) encryptToFile(ctx *Context, bundle *libkb.PGPKeyBundle, filen
 		},
 	}
 	eng := NewSaltpackEncrypt(arg, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return RunEngine(eng, ctx)
 }

@@ -120,10 +120,7 @@ func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
 	if err := mv("secring.gpg"); err != nil {
 		return err
 	}
-	if err := mv("pubring.gpg"); err != nil {
-		return err
-	}
-	return nil
+	return mv("pubring.gpg")
 }
 
 func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {

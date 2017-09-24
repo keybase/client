@@ -190,8 +190,5 @@ func (e *PGPProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error)
 // makeDeviceKeys uses DeviceWrap to generate device keys.
 func (e *PGPProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(args, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-	return nil
+	return RunEngine(eng, ctx)
 }

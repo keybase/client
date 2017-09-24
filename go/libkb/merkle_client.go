@@ -1431,10 +1431,7 @@ func (mc *MerkleClient) verifySkipSequenceAndRootHelper(ctx context.Context, ss 
 	if err = mc.verifySkipSequence(ctx, ss, curr, prev, historical); err != nil {
 		return err
 	}
-	if err = mc.verifyAndStoreRootHelper(ctx, curr, prev.Seqno(), historical); err != nil {
-		return err
-	}
-	return nil
+	return mc.verifyAndStoreRootHelper(ctx, curr, prev.Seqno(), historical)
 }
 
 func (mc *MerkleClient) LookupUser(ctx context.Context, q HTTPArgs, sigHints *SigHints) (u *MerkleUserLeaf, err error) {
