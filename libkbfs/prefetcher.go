@@ -64,6 +64,8 @@ type blockPrefetcher struct {
 	prefetchMonitorCancelCh  chan kbfsblock.ID
 	// map to store prefetch metadata
 	prefetches map[kbfsblock.ID]*prefetch
+	// channel to allow synchronization on completion
+	inFlightFetches chan (<-chan error)
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -79,6 +81,8 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		// TODO: re-evaluate the size of these channels
 		prefetchMonitorSuccessCh: make(chan kbfsblock.ID, maxNumPrefetches),
 		prefetchMonitorCancelCh:  make(chan kbfsblock.ID, maxNumPrefetches),
+		prefetches:               make(map[kbfsblock.ID]*prefetch),
+		inFlightFetches:          make(chan (<-chan error), maxNumPrefetches),
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -92,6 +96,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		close(p.doneCh)
 	} else {
 		go p.run()
+		go p.shutdownLoop()
 	}
 	return p
 }
@@ -129,9 +134,29 @@ func (p *blockPrefetcher) cancelPrefetch(blockID kbfsblock.ID, pp *prefetch) {
 	delete(p.prefetches, blockID)
 }
 
+func (p *blockPrefetcher) isShutdown() bool {
+	select {
+	case <-p.shutdownCh:
+		return true
+	default:
+		return false
+	}
+}
+
+// shutdownLoop tracks in-flight requests
+func (p *blockPrefetcher) shutdownLoop() {
+	for ch := range p.inFlightFetches {
+		<-ch
+	}
+	close(p.doneCh)
+}
+
 func (p *blockPrefetcher) run() {
-	// TODO: make prefetcher shutdown cleanly.
 	for {
+		// Handle shutdown: on a given loop, check if we should have shutdown
+		// and whether our prefetches are done.
+		// FIXME: this check is incorrect...since we aren't guaranteed that
+		// this condition will ever be true.
 		select {
 		case blockID := <-p.prefetchMonitorSuccessCh:
 			pre, ok := p.prefetches[blockID]
@@ -227,7 +252,7 @@ func (p *blockPrefetcher) run() {
 			p.applyToParentsRecursive(func(_ kbfsblock.ID, pp *prefetch) {
 				pp.subtreeBlockCount += numBlocks
 			}, req.ptr.ID, pre)
-		case <-p.shutdownCh:
+		case <-p.doneCh:
 			return
 		}
 	}
@@ -241,6 +266,20 @@ func (p *blockPrefetcher) calculatePriority(basePriority int,
 		return defaultOnDemandRequestPriority - 1
 	}
 	return basePriority
+}
+
+func (p *blockPrefetcher) request(ctx context.Context, priority int,
+	kmd KeyMetadata, ptr BlockPointer, block Block,
+	lifetime BlockCacheLifetime) {
+	ch := p.retriever.Request(ctx, priority, kmd, ptr, block, lifetime)
+	select {
+	case p.inFlightFetches <- ch:
+	default:
+		// Ensure this can't block.
+		go func() {
+			p.inFlightFetches <- ch
+		}()
+	}
 }
 
 // recordPrefetchParent maintains prefetch accounting for a given block. This
@@ -415,8 +454,6 @@ func (p *blockPrefetcher) TriggerPrefetch(ptr BlockPointer, block Block,
 		// Finished prefetches can always be short circuited and respond on the
 		// success channel (upstream prefetches might need to block on other
 		// parallel prefetches too).
-		// FIXME: this can cause duplicate decrements. The prefetcher should
-		// dedupe them.
 		p.NotifyPrefetchDone(ptr.ID)
 		return prefetchStatus
 	}
@@ -462,15 +499,35 @@ func (p *blockPrefetcher) TriggerPrefetch(ptr BlockPointer, block Block,
 
 func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
 	select {
-	case <-p.shutdownCh:
+	// After `p.shutdownCh` is closed, we still need to receive prefetch
+	// cancelation until all prefetching is done.
+	case <-p.doneCh:
 	case p.prefetchMonitorCancelCh <- blockID:
+	default:
+		// Ensure this can't block.
+		go func() {
+			select {
+			case <-p.doneCh:
+			case p.prefetchMonitorCancelCh <- blockID:
+			}
+		}()
 	}
 }
 
 func (p *blockPrefetcher) NotifyPrefetchDone(blockID kbfsblock.ID) {
 	select {
-	case <-p.shutdownCh:
+	// After `p.shutdownCh` is closed, we still need to receive prefetch
+	// cancelation until all prefetching is done.
+	case <-p.doneCh:
 	case p.prefetchMonitorSuccessCh <- blockID:
+	default:
+		// Ensure this can't block.
+		go func() {
+			select {
+			case <-p.doneCh:
+			case p.prefetchMonitorSuccessCh <- blockID:
+			}
+		}()
 	}
 }
 
@@ -480,6 +537,7 @@ func (p *blockPrefetcher) Shutdown() <-chan struct{} {
 	case <-p.shutdownCh:
 	default:
 		close(p.shutdownCh)
+		close(p.inFlightFetches)
 	}
 	return p.doneCh
 }
