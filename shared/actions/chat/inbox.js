@@ -185,38 +185,36 @@ function* onInboxStale(): SagaGenerator<any, any> {
         return map
       }, {})
     )
-    const inboxIsEmpty = I.Set(
-      conversations.reduce((arr, c) => {
-        if (c.isEmpty) {
-          arr.push(c.conversationIDKey)
-        }
-        return arr
-      }, [])
+    const inboxIsEmpty = I.Map(
+      conversations.reduce((map, c) => {
+        map[c.conversationIDKey] = c.isEmpty
+        return map
+      }, {})
     )
-    const inboxAlwaysShow = I.Map(
-      conversations.reduce((arr, c) => {
-        if (c.alwaysShow) {
-          arr.push(c.conversationIDKey)
-        }
-        return arr
-      }, [])
-    )
-    const inboxSupersededBy = I.Map(
-      conversations.reduce((arr, c) => {
-        if (c.supersededBy) {
-          arr.push(c.conversationIDKey)
-        }
-        return arr
-      }, [])
-    )
+    // const inboxAlwaysShow = I.Map(
+    // conversations.reduce((map, c) => {
+    // if (c.alwaysShow) {
+    // map[c.conversationIDKey] = true
+    // }
+    // return map
+    // }, {})
+    // )
+    // const inboxSupersededBy = I.Map(
+    // conversations.reduce((arr, c) => {
+    // if (c.supersededBy) {
+    // arr.push(c.conversationIDKey)
+    // }
+    // return arr
+    // }, [])
+    // )
 
     yield all([
       put(replaceEntity(['inboxVersion'], idToVersion)),
       put(replaceEntity(['inboxSmallTimestamps'], inboxSmallTimestamps)),
       put(replaceEntity(['inboxBigChannels'], inboxBigChannels)),
       put(replaceEntity(['inboxIsEmpty'], inboxIsEmpty)),
-      put(replaceEntity(['inboxAlwaysShow'], inboxAlwaysShow)),
-      put(replaceEntity(['inboxSupersededBy'], inboxSupersededBy)),
+      // put(replaceEntity(['inboxAlwaysShow'], inboxAlwaysShow)),
+      // put(replaceEntity(['inboxSupersededBy'], inboxSupersededBy)),
       put(replaceEntity(['inbox'], inboxMap)),
     ])
 

@@ -71,7 +71,7 @@ class Inbox extends PureComponent<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (
-      (this.props.rows !== prevProps.rows && prevProps.rows.count()) ||
+      (this.props.rows !== prevProps.rows && prevProps.rows.length) ||
       this.props.smallTeamsHiddenRowCount > 0 !== prevProps.smallTeamsHiddenRowCount > 0
     ) {
       this._updateShowFloating()
@@ -79,7 +79,7 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _itemSizeGetter = index => {
-    const row = this.props.rows.get(index)
+    const row = this.props.rows[index]
     switch (row.type) {
       case 'small':
         return 56
@@ -93,7 +93,7 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _itemRenderer = index => {
-    const row = this.props.rows.get(index)
+    const row = this.props.rows[index]
     if (row.type === 'divider') {
       return (
         <Divider
@@ -136,7 +136,7 @@ class Inbox extends PureComponent<Props, State> {
     if (this._list) {
       const [, last] = this._list.getVisibleRange()
       if (typeof last === 'number') {
-        const row = this.props.rows.get(last)
+        const row = this.props.rows[last]
 
         if (!row || row.type !== 'small') {
           showFloating = false
@@ -161,7 +161,7 @@ class Inbox extends PureComponent<Props, State> {
 
     const [first, end] = this._list.getVisibleRange()
     if (typeof first === 'number') {
-      const row = this.props.rows.get(first)
+      const row = this.props.rows[first]
       if (row && row.type === 'small') {
         this.props.onUntrustedInboxVisible(row.conversationIDKey, end - first)
       }
@@ -198,7 +198,7 @@ class Inbox extends PureComponent<Props, State> {
               ref={this._setRef}
               useTranslate3d={true}
               itemRenderer={this._itemRenderer}
-              length={this.props.rows.count()}
+              length={this.props.rows.length}
               type="variable"
               itemSizeGetter={this._itemSizeGetter}
             />

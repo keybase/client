@@ -5,13 +5,7 @@ import * as Constants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
-import {
-  loadInbox,
-  newChat,
-  untrustedInboxVisible,
-  setInboxFilter,
-  selectConversation,
-} from '../../actions/chat/creators'
+import * as Creators from '../../actions/chat/creators'
 import {createSelector} from 'reselect'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import throttle from 'lodash/throttle'
@@ -74,48 +68,6 @@ function scoreFilter(
 
   return 0
 }
-
-// const getSimpleRows = createSelector(
-// [getInbox, getAlwaysShow, getFilter, getSupersededByState, Constants.getYou],
-// (inbox, alwaysShow, filter, supersededByState, you) => {
-// return (
-// inbox
-// .filter(i => {
-// if (i.teamType === ChatTypes.CommonTeamType.complex) {
-// return false
-// }
-
-// const id = i.conversationIDKey
-// const isEmpty = i.isEmpty && !alwaysShow.has(id)
-// const isSuperseded = !!supersededByState.get(id)
-// const passesFilter =
-// !filter || scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you) > 0
-
-// return !isEmpty && !isSuperseded && passesFilter
-// })
-// // this is done for perf reasons and that sorting immutable lists is slow
-// .map(i => ({
-// conversationIDKey: i.conversationIDKey,
-// time: i.time,
-// filterScore: scoreFilter(filter, i.teamname || '', i.get('participants').toArray(), you),
-// }))
-// .sort((a, b) => {
-// if (filter) {
-// if (b.filterScore !== a.filterScore) {
-// return b.filterScore - a.filterScore
-// }
-// }
-
-// if (a.time === b.time) {
-// return a.conversationIDKey.localeCompare(b.conversationIDKey)
-// }
-
-// return b.time - a.time
-// })
-// .map(i => i.conversationIDKey)
-// )
-// }
-// )
 
 // const getBigRows = createSelector([getInbox, getFilter], (inbox, filter) => {
 // const bigTeamToChannels = inbox
@@ -272,21 +224,21 @@ function scoreFilter(
 // }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
-  loadInbox: () => dispatch(loadInbox()),
+  loadInbox: () => dispatch(Creators.loadInbox()),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
-      dispatch(newChat())
+      dispatch(Creators.newChat())
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(newChat()),
+  onNewChat: () => dispatch(Creators.newChat()),
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
-    conversationIDKey && dispatch(selectConversation(conversationIDKey, true)),
-  onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
+    conversationIDKey && dispatch(Creators.selectConversation(conversationIDKey, true)),
+  onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
-    dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+    dispatch(Creators.untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
 const findNextConvo = (rows: I.List<any>, selected, direction) => {
@@ -347,14 +299,19 @@ const getIsEmpty = (state: TypedState) => state.entities.get('inboxIsEmpty')
 const getSmallTimestamps = (state: TypedState) => state.entities.getIn(['inboxSmallTimestamps'], I.Map())
 
 const getSortedSmallRows = createSelector([getSmallTimestamps], smallTimestamps =>
-  smallTimestamps.sort((a, b) => b - a).keySeq()
+  smallTimestamps.sort((a, b) => b - a).keySeq().toArray()
 )
 
 const getSmallRows = createImmutableEqualSelector(
   [getSortedSmallRows, getAlwaysShow, getSupersededBy, getIsEmpty],
   (sortedSmallRows, alwaysShow, supersededBy, isEmpty) =>
     sortedSmallRows
-      .filter(conversationIDKey => true) // TODO
+      .filter(conversationIDKey => {
+        return (
+          !supersededBy.get(conversationIDKey) &&
+          (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
+        )
+      })
       .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
 )
 
@@ -365,6 +322,7 @@ const getFilteredSmallRows = createSelector(
 
     return smallTimestamps
       .keySeq()
+      .toArray()
       .filter(convID => {
         const i = inbox.get(convID)
         if (!i) {

@@ -144,8 +144,8 @@ class Inbox extends React.PureComponent<Props, State> {
   }, 1000)
 
   componentDidMount() {
-    if (this.props.rows.count()) {
-      this._askForUnboxing(this.props.rows.first(), 30)
+    if (this.props.rows.length) {
+      this._askForUnboxing(this.props.rows[0], 30)
     }
   }
 
@@ -170,7 +170,7 @@ class Inbox extends React.PureComponent<Props, State> {
               />
             }
             loading={this.props.isLoading /* force loading to update */}
-            data={this.props.rows.toArray()}
+            data={this.props.rows}
             isActiveRoute={this.props.isActiveRoute}
             keyExtractor={this._keyExtractor}
             renderItem={this._renderItem}
@@ -179,7 +179,7 @@ class Inbox extends React.PureComponent<Props, State> {
             initialNumToRender={this._maxVisible}
             windowSize={this._maxVisible}
           />
-          {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
+          {!this.props.isLoading && !this.props.rows.length && <NoChats />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
             <FloatingDivider

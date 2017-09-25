@@ -866,6 +866,11 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
+  // Always show this in the inbox
+  if (conversationIDKey) {
+    yield put(EntityCreators.mergeEntity(['inboxAlwaysShow'], {[conversationIDKey]: true}))
+  }
+
   // Load the inbox item always
   if (conversationIDKey) {
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
