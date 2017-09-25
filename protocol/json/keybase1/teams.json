@@ -806,11 +806,6 @@
       "name": "TeamAccessRequest",
       "fields": [
         {
-          "type": "TeamID",
-          "name": "teamID",
-          "jsonkey": "team_id"
-        },
-        {
           "type": "UID",
           "name": "uid"
         },

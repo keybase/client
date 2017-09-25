@@ -846,25 +846,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if settings := team.Settings; settings != nil {
-			if open := settings.Open; open != nil {
-				if isImplicit {
-					return res, fmt.Errorf("implicit team cannot be open")
-				}
-
-				res.newState.inner.Open = open.Enabled
-				if options := open.Options; options != nil {
-					switch options.JoinAs {
-					case "reader":
-						res.newState.inner.OpenTeamJoinAs = keybase1.TeamRole_READER
-					case "writer":
-						res.newState.inner.OpenTeamJoinAs = keybase1.TeamRole_WRITER
-					case "":
-						// noop
-					default:
-						return res, fmt.Errorf("invalid join_as role in open team: %s", options.JoinAs)
-					}
-				}
-			}
+			err = t.parseTeamSettings(settings, &res.newState)
+			return res, err
 		}
 
 		return res, nil
@@ -1397,6 +1380,30 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		res.newState = prevState.DeepCopy()
 		t.updateInvites(&res.newState, additions, cancelations)
 		return res, nil
+	case libkb.LinkTypeSettings:
+		err = libkb.PickFirstError(
+			allowInflate(false),
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasSubteam(false),
+			hasPerTeamKey(false),
+			hasInvites(true))
+		if err != nil {
+			return res, err
+		}
+
+		if prevState.IsImplicit() {
+			NewImplicitTeamOperationError(payload.Body.Type)
+		}
+
+		res.newState = prevState.DeepCopy()
+		if settings := team.Settings; settings != nil {
+			err = t.parseTeamSettings(settings, &res.newState)
+			return res, err
+		}
+		return res, errors.New("team.settings signature without settings object")
 	case "":
 		return res, errors.New("empty body type")
 	default:
@@ -1830,4 +1837,28 @@ func (t *TeamSigChainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.Te
 		return subteamID, fmt.Errorf("malformed subteam id")
 	}
 	return subteamID, nil
+}
+
+func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newState *TeamSigChainState) error {
+	if open := settings.Open; open != nil {
+		if newState.inner.Implicit {
+			return fmt.Errorf("implicit team cannot be open")
+		}
+
+		newState.inner.Open = open.Enabled
+		if options := open.Options; options != nil {
+			switch options.JoinAs {
+			case "reader":
+				newState.inner.OpenTeamJoinAs = keybase1.TeamRole_READER
+			case "writer":
+				newState.inner.OpenTeamJoinAs = keybase1.TeamRole_WRITER
+			case "":
+				// noop
+			default:
+				return fmt.Errorf("invalid join_as role in open team: %s", options.JoinAs)
+			}
+		}
+	}
+
+	return nil
 }

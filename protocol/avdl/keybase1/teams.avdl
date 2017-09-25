@@ -311,8 +311,6 @@ protocol teams {
   }
 
   record TeamAccessRequest {
-    @jsonkey("team_id")
-    TeamID teamID;
     UID uid;
     @jsonkey("eldest_seqno")
     Seqno eldestSeqno;

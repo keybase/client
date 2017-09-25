@@ -4700,7 +4700,6 @@ export type TLFVisibility =
   | 2 // PRIVATE_2
 
 export type TeamAccessRequest = {
-  teamID: TeamID,
   uid: UID,
   eldestSeqno: Seqno,
 }

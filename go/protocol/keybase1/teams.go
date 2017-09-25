@@ -996,14 +996,12 @@ func (o TeamSBSMsg) DeepCopy() TeamSBSMsg {
 }
 
 type TeamAccessRequest struct {
-	TeamID      TeamID `codec:"teamID" json:"team_id"`
-	Uid         UID    `codec:"uid" json:"uid"`
-	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldest_seqno"`
+	Uid         UID   `codec:"uid" json:"uid"`
+	EldestSeqno Seqno `codec:"eldestSeqno" json:"eldest_seqno"`
 }
 
 func (o TeamAccessRequest) DeepCopy() TeamAccessRequest {
 	return TeamAccessRequest{
-		TeamID:      o.TeamID.DeepCopy(),
 		Uid:         o.Uid.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
 	}

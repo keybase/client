@@ -220,11 +220,6 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	role := team.chain().inner.OpenTeamJoinAs
 
 	for _, tar := range msg.Tars {
-		// TODO: Remove teamID from TARs passed in OPENREQ?
-		if tar.TeamID != msg.TeamID {
-			return fmt.Errorf("Unexpected team id")
-		}
-
 		uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
 		if team.IsMember(ctx, uv) {
 			continue

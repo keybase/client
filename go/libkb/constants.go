@@ -309,6 +309,7 @@ const (
 	LinkTypeDeleteRoot       LinkType = "team.delete_root"
 	LinkTypeDeleteSubteam    LinkType = "team.delete_subteam"
 	LinkTypeDeleteUpPointer  LinkType = "team.delete_up_pointer"
+	LinkTypeSettings         LinkType = "team.settings"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"
