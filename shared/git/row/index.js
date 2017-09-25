@@ -94,7 +94,7 @@ class Row extends React.Component<Props, State> {
             <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
-            {!!this.props.teamname && this.props.isNew && <Meta title="New" style={_metaStyle} />}
+            {this.props.isNew && <Meta title="New" style={_metaStyle} />}
           </Box>
         </ClickableBox>
         {this.props.expanded &&

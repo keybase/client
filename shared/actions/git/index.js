@@ -5,6 +5,8 @@ import * as Entities from '../entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
+import * as Tabs from '../../constants/tabs'
+import * as RouteTreeConstants from '../../constants/route-tree'
 import {call, put, select} from 'redux-saga/effects'
 import {gitTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
@@ -28,10 +30,9 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
   const idToInfo = (results || []).reduce((map, r) => {
     const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
     map[r.globalUniqueID] = Constants.GitInfo({
-      canDelete: true, // TODO jack
+      canDelete: r.canDelete,
       devicename: r.serverMetadata.lastModifyingDeviceName,
       id: r.globalUniqueID,
-      isNew: false, // TODO jack
       lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
       lastEditUser: r.serverMetadata.lastModifyingUsername,
       name: r.localMetadata.repoName,
@@ -121,6 +122,31 @@ function* _setError(action: Constants.SetError): SagaGenerator<any, any> {
   yield put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.gitError]])))
 }
 
+function* _badgeAppForGit(action: Constants.BadgeAppForGit): SagaGenerator<any, any> {
+  yield put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
+}
+
+let _wasOnGitTab = false
+function* _onTabChange(action: RouteTreeConstants.SwitchTo): SagaGenerator<any, any> {
+  // on the git tab?
+  const root =
+    // $FlowIssue action allows array or list or iterable, for some reason
+    (action.payload.path.first && action.payload.path.first()) ||
+    // $FlowIssue action allows array or list or iterable, for some reason
+    (action.payload.path.length && action.payload.path[0])
+  if (root === Tabs.gitTab) {
+    _wasOnGitTab = true
+  } else if (_wasOnGitTab) {
+    _wasOnGitTab = false
+    // clear badges
+    yield call(RPCTypes.gregorDismissCategoryRpcPromise, {
+      param: {
+        category: 'new_git_repo',
+      },
+    })
+  }
+}
+
 function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('git:loadGit', _loadGit)
   yield Saga.safeTakeEvery('git:createPersonalRepo', _createPersonalRepo)
@@ -129,6 +155,8 @@ function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('git:deleteTeamRepo', _deleteTeamRepo)
   yield Saga.safeTakeLatest('git:setLoading', _setLoading)
   yield Saga.safeTakeLatest('git:setError', _setError)
+  yield Saga.safeTakeLatest('git:badgeAppForGit', _badgeAppForGit)
+  yield Saga.safeTakeEvery(RouteTreeConstants.switchTo, _onTabChange)
 }
 
 export default gitSaga

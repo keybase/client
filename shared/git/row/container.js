@@ -10,6 +10,7 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
   return {
     ...git,
     expanded,
+    isNew: state.entities.getIn(['git', 'isNew', id], false),
     lastEditUserFollowing: !!state.config.following[git.lastEditUser],
   }
 }
