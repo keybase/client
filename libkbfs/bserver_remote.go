@@ -405,7 +405,10 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 				id, tlfID, context, size)
 			dbc := b.config.DiskBlockCache()
 			if dbc != nil {
-				go dbc.Put(ctx, tlfID, id, buf, serverHalf)
+				// This used to be called in a goroutine to prevent blocking
+				// the `Get`. But we need this cached synchronously for
+				// later behavior.
+				dbc.Put(ctx, tlfID, id, buf, serverHalf)
 			}
 		}
 	}()
@@ -434,7 +437,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		go dbc.Put(ctx, tlfID, id, buf, serverHalf)
+		dbc.Put(ctx, tlfID, id, buf, serverHalf)
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)
@@ -469,7 +472,7 @@ func (b *BlockServerRemote) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsb
 	bContext kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
-		go dbc.Put(ctx, tlfID, id, buf, serverHalf)
+		dbc.Put(ctx, tlfID, id, buf, serverHalf)
 	}
 	size := len(buf)
 	b.log.LazyTrace(ctx, "BServer: Put %s", id)
