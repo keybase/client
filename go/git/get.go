@@ -199,12 +199,32 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			return nil, fmt.Errorf("can't find device name for %s's device ID %s", lastWriterUPAK.Current.Username, responseRepo.LastModifyingDeviceID)
 		}
 
+		// Load the team to get the current user's role, for canDelete.
+		team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
+			ID: responseRepo.TeamID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		selfUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{UID: g.Env.GetUID()})
+		if err != nil {
+			return nil, err
+		}
+		role, err := team.MemberRole(ctx, selfUPAK.Current.ToUserVersion())
+		if err != nil {
+			return nil, err
+		}
+		canDelete := false
+		if role == keybase1.TeamRole_ADMIN || role == keybase1.TeamRole_OWNER {
+			canDelete = true
+		}
+
 		resultList = append(resultList, keybase1.GitRepoResult{
 			Folder:         repoFolder,
 			RepoID:         responseRepo.RepoID,
 			RepoUrl:        formatRepoURL(repoFolder, string(localMetadata.RepoName)),
 			GlobalUniqueID: formatUniqueRepoID(responseRepo.TeamID, responseRepo.RepoID),
-			CanDelete:      true, // TODO: real data here
+			CanDelete:      canDelete,
 			LocalMetadata:  localMetadata,
 			ServerMetadata: keybase1.GitServerMetadata{
 				Ctime: keybase1.ToTime(responseRepo.CTime),
