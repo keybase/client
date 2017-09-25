@@ -153,10 +153,6 @@ func (p *blockPrefetcher) shutdownLoop() {
 
 func (p *blockPrefetcher) run() {
 	for {
-		// Handle shutdown: on a given loop, check if we should have shutdown
-		// and whether our prefetches are done.
-		// FIXME: this check is incorrect...since we aren't guaranteed that
-		// this condition will ever be true.
 		select {
 		case blockID := <-p.prefetchMonitorSuccessCh:
 			pre, ok := p.prefetches[blockID]
@@ -186,8 +182,8 @@ func (p *blockPrefetcher) run() {
 			if isPrefetchWaiting {
 				if pre.subtreeBlockCount == 0 {
 					// If this happens, something screwed up since any path
-					// that results in a `subtreeBlockCount` of 0 also cleans
-					// up after itself.
+					// that results in a `subtreeBlockCount` of 0 should also
+					// clean up after itself.
 					panic("prefetch is waiting but its subtreeBlockCount is 0")
 				}
 				if pre.subtreeTriggered {
@@ -204,6 +200,9 @@ func (p *blockPrefetcher) run() {
 					}
 					continue
 				}
+			}
+			if req.prefetchStatus == TriggeredPrefetch {
+				continue
 			}
 			ctx, _ := context.WithTimeout(context.Background(),
 				prefetchTimeout)
@@ -446,16 +445,33 @@ func (p *blockPrefetcher) triggerPrefetch(ptr BlockPointer, block Block,
 	return
 }
 
+func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
+	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
+	prefetchStatus PrefetchStatus) error {
+	err := p.retriever.PutInCaches(ctx, ptr, tlfID, block, lifetime,
+		prefetchStatus)
+	if err != nil {
+		p.log.CWarningf(ctx, "error prefetching block %s", ptr.ID)
+		p.CancelPrefetch(ptr.ID)
+	}
+	return err
+}
+
 // TriggerPrefetch triggers a prefetch if appropriate.
-func (p *blockPrefetcher) TriggerPrefetch(ptr BlockPointer, block Block,
-	kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) PrefetchStatus {
+func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
+	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
+	lifetime BlockCacheLifetime,
+	prefetchStatus PrefetchStatus) error {
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited and respond on the
 		// success channel (upstream prefetches might need to block on other
 		// parallel prefetches too).
-		p.NotifyPrefetchDone(ptr.ID)
-		return prefetchStatus
+		err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
+			FinishedPrefetch)
+		if err == nil {
+			p.NotifyPrefetchDone(ptr.ID)
+		}
+		return err
 	}
 	// JZ: I'm removing this code to allow the prefetcher to decide how to
 	// handle prefetches. prefetchStatus should only be used in the actual
@@ -491,10 +507,16 @@ func (p *blockPrefetcher) TriggerPrefetch(ptr BlockPointer, block Block,
 	if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged.
-		return prefetchStatus
+		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
+			prefetchStatus)
+		return nil
 	}
-	p.triggerPrefetch(ptr, block, kmd, priority, lifetime, prefetchStatus)
-	return TriggeredPrefetch
+	err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
+		TriggeredPrefetch)
+	if err == nil {
+		p.triggerPrefetch(ptr, block, kmd, priority, lifetime, prefetchStatus)
+	}
+	return nil
 }
 
 func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {

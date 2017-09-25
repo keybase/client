@@ -650,6 +650,7 @@ func (cache *DiskBlockCacheStandard) Put(ctx context.Context, tlfID tlf.ID,
 		// rely on the later-called UpdateMetadata to fix it.
 		md.TlfID = tlfID
 		md.BlockSize = uint32(encodedLen)
+		err = nil
 	}
 	return cache.updateMetadataLocked(ctx, blockKey, md)
 }

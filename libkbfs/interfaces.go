@@ -1235,9 +1235,9 @@ type KeyOps interface {
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
 	// TriggerPrefetch triggers and monitors a prefetch.
-	TriggerPrefetch(ptr BlockPointer, block Block, kmd KeyMetadata,
-		priority int, lifetime BlockCacheLifetime,
-		prefetchStatus PrefetchStatus) PrefetchStatus
+	TriggerPrefetch(ctx context.Context, ptr BlockPointer, block Block,
+		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
+		prefetchStatus PrefetchStatus) error
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(kbfsblock.ID)
@@ -2313,4 +2313,9 @@ type BlockRetriever interface {
 	// Request retrieves blocks asynchronously.
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime) <-chan error
+	// PutInCaches puts the block into the in-memory cache, and ensures that
+	// the disk cache metadata is updated.
+	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,
+		block Block, lifetime BlockCacheLifetime,
+		prefetchStatus PrefetchStatus) error
 }

@@ -381,8 +381,9 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
 		// correctly according to the new on-demand fetch priority.
-		fbo.config.BlockOps().Prefetcher().TriggerPrefetch(ptr, block, kmd,
-			defaultOnDemandRequestPriority, lifetime, prefetchStatus)
+		// No need to cache because it's already cached.
+		fbo.config.BlockOps().Prefetcher().TriggerPrefetch(ctx, ptr, block,
+			kmd, defaultOnDemandRequestPriority, lifetime, prefetchStatus)
 		return block, nil
 	}
 
@@ -3339,7 +3340,8 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 	// Only prefetch if the updated pointer is a new block ID.
 	if oldPtr.ID != newPtr.ID {
 		// TODO: Remove this comment when we're done debugging because it'll be everywhere.
-		fbo.log.CDebugf(context.TODO(), "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
+		ctx := context.TODO()
+		fbo.log.CDebugf(ctx, "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
 		if shouldPrefetch {
 			// Prefetch the new ref, but only if the old ref already exists in
 			// the block cache. Ideally we'd always prefetch it, but we need
@@ -3350,15 +3352,10 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 				return
 			}
 
-			// TODO: reintroduce updatePointerPrefetchPriority
+			// No need to cache because it's already cached.
 			fbo.config.BlockOps().Prefetcher().TriggerPrefetch(
-				newPtr,
-				block.NewEmpty(),
-				kmd,
-				updatePointerPrefetchPriority,
-				lifetime,
-				prefetchStatus,
-			)
+				ctx, newPtr, block.NewEmpty(), kmd,
+				updatePointerPrefetchPriority, lifetime, prefetchStatus)
 		}
 	}
 }
