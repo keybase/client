@@ -162,10 +162,12 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   yield put(Creators.showEditor(null))
 
   // if message post-edit is the same as message pre-edit, skip call and marking message as 'EDITED'
-  const [prevMessageText, newMessageText] = [message.message.stringValue(), action.payload.text.stringValue()]
+  const prevMessageText = message.message.stringValue()
+  const newMessageText = action.payload.text.stringValue()
   if (prevMessageText === newMessageText) {
     return
   }
+
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
   yield call(ChatTypes.localPostEditNonblockRpcPromise, {
     param: {
