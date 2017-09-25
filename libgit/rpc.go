@@ -19,16 +19,25 @@ import (
 
 // RPCHandler handles service->KBFS git RPC calls.
 type RPCHandler struct {
+	kbCtx  libkbfs.Context
 	config libkbfs.Config
 	log    logger.Logger
 }
 
-// NewRPCHandler returns a new instance of a Git RPC handler.
-func NewRPCHandler(config libkbfs.Config) keybase1.KBFSGitInterface {
+// NewRPCHandlerWithCtx returns a new instance of a Git RPC handler.
+func NewRPCHandlerWithCtx(
+	kbCtx libkbfs.Context, config libkbfs.Config) keybase1.KBFSGitInterface {
 	return &RPCHandler{
+		kbCtx:  kbCtx,
 		config: config,
 		log:    config.MakeLogger(""),
 	}
+}
+
+// NewRPCHandler returns a new instance of a Git RPC handler using the
+// default environment context.
+func NewRPCHandler(config libkbfs.Config) keybase1.KBFSGitInterface {
+	return NewRPCHandlerWithCtx(env.NewContext(), config)
 }
 
 var _ keybase1.KBFSGitInterface = (*RPCHandler)(nil)
@@ -108,8 +117,7 @@ func (rh *RPCHandler) getHandleAndConfig(
 	}
 
 	// Initialize libgit.
-	kbCtx := env.NewContext()
-	params, tempDir, err := Params(kbCtx, rh.config.StorageRoot())
+	params, tempDir, err := Params(rh.kbCtx, rh.config.StorageRoot())
 	if err != nil {
 		return nil, nil, nil, "", err
 	}
@@ -129,7 +137,7 @@ func (rh *RPCHandler) getHandleAndConfig(
 	params.LogFileConfig.Path = ""
 
 	newCtx, gitConfig, err = Init(
-		ctx, params, kbCtx, keybaseServicePassthrough{rh.config}, "")
+		ctx, params, rh.kbCtx, keybaseServicePassthrough{rh.config}, "")
 	if err != nil {
 		return nil, nil, nil, "", err
 	}

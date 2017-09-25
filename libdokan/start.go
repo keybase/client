@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
@@ -46,7 +47,10 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook simplefs implementation in.
 	options.KbfsParams.CreateSimpleFSInstance = simplefs.NewSimpleFS
 	// Hook git implementation in.
-	options.KbfsParams.CreateGitHandlerInstance = libgit.NewRPCHandler
+	options.KbfsParams.CreateGitHandlerInstance =
+		func(config libkbfs.Config) keybase1.KBFSGitInterface {
+			return libgit.NewRPCHandlerWithCtx(kbCtx, config)
+		}
 
 	log, err := libkbfs.InitLog(options.KbfsParams, kbCtx)
 	if err != nil {
