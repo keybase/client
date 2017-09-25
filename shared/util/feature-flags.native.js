@@ -9,6 +9,7 @@ const ff: FeatureFlags = {
   tabPeopleEnabled: false,
   teamChatEnabled: true,
   tabGitEnabled: false,
+  mentionHud: false,
 }
 
 if (__DEV__) {
