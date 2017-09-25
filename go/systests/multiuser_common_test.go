@@ -395,7 +395,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 			break
 		}
 		i++
-		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s", i, wait)
+		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d)", i, wait, details.KeyGeneration)
 		time.Sleep(wait)
 		totalWait += wait
 		wait = wait * 2
@@ -550,4 +550,8 @@ func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
 	cli := u.getTeamsClient()
 	details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})
 	return details, err
+}
+
+func (u *smuUser) uid() keybase1.UID {
+	return u.primaryDevice().tctx.G.Env.GetUID()
 }
