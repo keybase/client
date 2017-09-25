@@ -4,19 +4,15 @@ import {Box, ErrorBoundary} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import TabBar from './tab-bar/container'
-import {chatTab, loginTab, profileTab} from '../constants/tabs'
+import {chatTab, loginTab, peopleTab, profileTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
-import {getPathProps} from '../route-tree'
 import {showUserProfile} from '../actions/profile'
 
 import type {Tab} from '../constants/tabs'
-import type {Props} from './nav'
+import type {Props, StateProps, DispatchProps, OwnProps} from './nav'
 import type {TypedState} from '../constants/reducer'
-import type {RouteProps} from '../route-tree/render-route'
-
-type OwnProps = RouteProps<{}, {}>
 
 function Nav(props: Props) {
   const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
@@ -49,30 +45,33 @@ const stylesTabsContainer = {
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   _me: state.config.username,
-  _routeState: state.routeTree.routeState,
   appFocused: state.config.appFocused,
   reachable: state.gregor.reachability.reachable,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  _switchTab: (tab: Tab, isLastProfileMe: ?boolean, me: ?string) => {
+  _switchTab: (tab: Tab, me: ?string) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       // clicking the chat tab when already selected should do nothing.
       return
     }
 
-    // If we're going to the profile tab, switch to the current user's
-    // profile first before switching tabs, if necessary.
-    if (tab === profileTab) {
+    // If we're going to the people tab, switch to the current user's
+    // people first before switching tabs, if necessary.
+    if (tab === peopleTab) {
       if (ownProps.routeSelected === tab) {
-        // clicking on profile tab when already selected should back out to root profile page
-        dispatch(navigateTo([], [profileTab]))
+        // clicking on people tab when already selected should back out to root people page
+        dispatch(navigateTo([], [peopleTab]))
       }
-      if (me && !isLastProfileMe) {
-        // Add current user to top of profile stack
-        dispatch(showUserProfile(me))
-      }
-      dispatch(switchTo([profileTab]))
+      dispatch(switchTo([peopleTab]))
+      return
+    }
+
+    // profileTab = self avatar in bottom left corner
+    // On click switch to people tab and push current user onto people route stack
+    if (tab === profileTab) {
+      me && dispatch(showUserProfile(me))
+      dispatch(switchTo([peopleTab]))
       return
     }
 
@@ -83,26 +82,12 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  // Get route stack for profile tab
-  const profilePathProps = getPathProps(stateProps._routeState, [profileTab])
-  // Isolate leaf node
-  const profileNode =
-    (profilePathProps && profilePathProps.size > 0 && profilePathProps.get(profilePathProps.size - 1)) || null
-  // Check if either
-  // 1. The root of the profile tab is the leaf node or
-  // 2. The leaf profile page is the current user
-  const isLastProfileMe =
-    profileNode &&
-    (profileNode.node === profileTab ||
-      (profileNode.props && profileNode.props.get('username') === stateProps._me))
-
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps): Props => {
   return {
     ...stateProps,
-    ...dispatchProps,
     ...ownProps,
     switchTab: (tab: Tab) => {
-      dispatchProps._switchTab(tab, isLastProfileMe, stateProps._me)
+      dispatchProps._switchTab(tab, stateProps._me)
     },
   }
 }

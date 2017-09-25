@@ -145,6 +145,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
             teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
             teamType: c.teamType,
             time: c.time,
+            version: c.version,
           })
         })
         .filter(Boolean)
@@ -484,6 +485,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     teamType: c.teamType,
     time: c.time,
     visibility: c.visibility,
+    version: c.version,
   })
 }
 

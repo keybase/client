@@ -40,7 +40,7 @@ const mapStateToProps = createSelector(
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveUser: id => dispatch(Creators.unstageUserForSearch(id)),
-  onExitSearch: () => dispatch(Creators.exitSearch()),
+  onExitSearch: () => dispatch(Creators.exitSearch(false)),
   clearSearchResults: () => dispatch(Creators.clearSearchResults()),
   search: (term: string, service) => {
     if (term) {

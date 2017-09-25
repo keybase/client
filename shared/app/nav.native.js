@@ -15,19 +15,17 @@ import {
 } from '../common-adapters/index.native'
 import {NavigationActions} from 'react-navigation'
 import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
-import {chatTab, loginTab, profileTab, folderTab, settingsTab} from '../constants/tabs'
+import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
 import {isIOS} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
 
-import type {Props} from './nav'
+import type {Props, OwnProps} from './nav'
 import type {TypedState} from '../constants/reducer'
 import type {Tab} from '../constants/tabs'
 import type {NavigationAction} from 'react-navigation'
-import type {RouteProps, RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
-
-type OwnProps = RouteProps<{}, {}>
+import type {RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
 
 type CardStackShimProps = {
   mode?: 'modal',
@@ -144,7 +142,7 @@ function renderStackRoute(route, isActiveRoute, shouldRender) {
 }
 
 const tabIsCached = {
-  [profileTab]: true,
+  [peopleTab]: true,
   [folderTab]: true,
   [chatTab]: true,
   [settingsTab]: true,
@@ -353,6 +351,7 @@ const sceneWrapStyleOver = {
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+  _me: state.config.username,
   dumbFullscreen: state.dev.debugConfig.dumbFullscreen,
   hideNav: ownProps.routeSelected === loginTab,
   reachable: state.gregor.reachability.reachable,
@@ -363,6 +362,17 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   switchTab: (tab: Tab) => {
     if (tab === chatTab && ownProps.routeSelected === tab) {
       dispatch(navigateTo(ownProps.routePath.push(tab)))
+      return
+    }
+
+    // If we're going to the people tab, switch to the current user's
+    // profile first before switching tabs, if necessary.
+    if (tab === peopleTab) {
+      if (ownProps.routeSelected === tab) {
+        // clicking on profile tab when already selected should back out to root profile page
+        dispatch(navigateTo([], [peopleTab]))
+      }
+      dispatch(switchTo([peopleTab]))
       return
     }
 

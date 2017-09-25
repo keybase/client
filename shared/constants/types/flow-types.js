@@ -647,6 +647,14 @@ export function KBFSGitCreateRepoRpcPromise (request: (requestCommon & {callback
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.createRepo', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function KBFSGitDeleteRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: KBFSGitDeleteRepoRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.KBFSGit.deleteRepo', request)
+}
+
+export function KBFSGitDeleteRepoRpcPromise (request: (requestCommon & requestErrorCallback & {param: KBFSGitDeleteRepoRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.KBFSGit.deleteRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function Kex2Provisionee2DidCounterSign2RpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.Kex2Provisionee2.didCounterSign2', request)
 }
@@ -1469,6 +1477,14 @@ export function gitPutGitMetadataRpcChannelMap (configKeys: Array<string>, reque
 
 export function gitPutGitMetadataRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitPutGitMetadataRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.putGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gregorDismissCategoryRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gregorDismissCategoryRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissCategory', request)
+}
+
+export function gregorDismissCategoryRpcPromise (request: (requestCommon & requestErrorCallback & {param: gregorDismissCategoryRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissCategory', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function gregorGetStateRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}): EngineChannel {
@@ -2816,6 +2832,7 @@ export type BadgeState = {
   newFollowers: int,
   inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
+  newGitRepoGlobalUniqueIDs?: ?Array<string>,
 }
 
 export type BinaryKID = bytes
@@ -3331,6 +3348,7 @@ export type GitRepoResult = {
   serverMetadata: GitServerMetadata,
   repoUrl: string,
   globalUniqueID: string,
+  canDelete: boolean,
 }
 
 export type GitServerMetadata = {
@@ -3478,6 +3496,11 @@ export type InterestingPerson = {
 }
 
 export type KBFSGitCreateRepoRpcParam = Exact<{
+  folder: Folder,
+  name: GitRepoName
+}>
+
+export type KBFSGitDeleteRepoRpcParam = Exact<{
   folder: Folder,
   name: GitRepoName
 }>
@@ -5383,6 +5406,10 @@ export type gpgUiSelectKeyRpcParam = Exact<{
 export type gpgUiSignRpcParam = Exact<{
   msg: bytes,
   fingerprint: bytes
+}>
+
+export type gregorDismissCategoryRpcParam = Exact<{
+  category: gregor1.Category
 }>
 
 export type gregorInjectItemRpcParam = Exact<{

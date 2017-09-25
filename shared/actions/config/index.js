@@ -24,6 +24,7 @@ import * as Saga from '../../util/saga'
 import {configurePush} from '../push/creators'
 import {put, select} from 'redux-saga/effects'
 import {loggedInSelector} from '../../constants/selectors'
+import {flushLogFile} from '../../util/forward-logs'
 
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -157,6 +158,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
         dispatch({type: 'config:bootstrapSuccess', payload: undefined})
         engine().listenOnDisconnect('daemonError', () => {
           dispatch(daemonError('Disconnected'))
+          flushLogFile()
         })
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
@@ -176,6 +178,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
           console.error('[bootstrap] exhausted bootstrap retries')
           dispatch({payload: {error}, type: Constants.bootstrapFailed})
         }
+        flushLogFile()
       })
   }
 }

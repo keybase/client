@@ -286,6 +286,7 @@ export const InboxStateRecord = Record({
   name: '',
   visibility: CommonTLFVisibility.private,
   teamType: ChatTypes.CommonTeamType.none,
+  version: 0,
 })
 
 export type InboxState = KBRecord<{
@@ -302,6 +303,7 @@ export type InboxState = KBRecord<{
   status: ConversationStateEnum,
   time: number,
   teamType: ChatTypes.TeamType,
+  version: ChatTypes.ConversationVers,
 }>
 
 export type SupersedeInfo = {
@@ -461,7 +463,7 @@ export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
-export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {}>
+export type ExitSearch = NoErrorTypedAction<'chat:exitSearch', {skipSelectPreviousConversation: boolean}>
 export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}

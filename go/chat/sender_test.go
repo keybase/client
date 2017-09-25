@@ -180,7 +180,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	listener := chatListener{
 		incoming:       make(chan int, 100),
 		failing:        make(chan []chat1.OutboxRecord),
-		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
+		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),

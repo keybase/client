@@ -6,11 +6,28 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import type {Props, RowProps} from '.'
 
 const Row = (props: RowProps & {onToggle: () => void}) => (
-  <Box style={_rowBox}>
-    <Checkbox checked={props.selected} label="" onCheck={props.onToggle} style={{marginTop: 3}} />
-    <Box style={globalStyles.flexBoxColumn}>
-      <Text type="BodySemibold" style={{color: globalColors.blue}}>#{props.name}</Text>
-      <Text type="BodySmall">{props.description}</Text>
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      paddingLeft: globalMargins.medium,
+      paddingRight: globalMargins.medium,
+    }}
+  >
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 40}}>
+      <Box style={_rowBox}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 16}}>
+          <Checkbox
+            checked={props.selected}
+            label=""
+            onCheck={props.onToggle}
+            style={{alignSelf: 'flext-start', marginRight: 0}}
+          />
+        </Box>
+        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny, minHeight: 32}}>
+          <Text type="BodySemibold" style={{color: globalColors.blue}}>#{props.name}</Text>
+          <Text type="BodySmall">{props.description}</Text>
+        </Box>
+      </Box>
     </Box>
   </Box>
 )
@@ -18,29 +35,27 @@ const Row = (props: RowProps & {onToggle: () => void}) => (
 const _rowBox = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  flexShrink: 0,
-  height: 40,
-  paddingLeft: globalMargins.large,
-  paddingTop: 6,
-  width: '100%',
+  flex: 1,
+  paddingBottom: globalMargins.xtiny,
+  paddingTop: globalMargins.xtiny,
 }
 
 const ManageChannels = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
     <Box style={_boxStyle}>
-      <Avatar isTeam={true} teamname={props.teamname} size={16} />
+      <Avatar isTeam={true} teamname={props.teamname} size={24} />
       <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
         {props.teamname}
       </Text>
-      <Text type="Header" style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
-        {props.channels.length} chat channels
+      <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>
+        {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
       </Text>
-      <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
+      <ScrollView style={{alignSelf: 'flex-start', width: '100%', paddingBottom: globalMargins.xlarge}}>
         {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
       </ScrollView>
       <Box style={_createStyle}>
         <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-        <Text type="BodyBigLink" onClick={props.onCreate}>Create chat channel</Text>
+        <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
       </Box>
     </Box>
   </PopupDialog>
@@ -49,12 +64,9 @@ const ManageChannels = (props: Props) => (
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  height: '100%',
-  paddingLeft: 32,
-  paddingRight: 32,
-  paddingTop: 32,
-  position: 'relative',
-  width: '100%',
+  paddingLeft: globalMargins.large,
+  paddingRight: globalMargins.large,
+  paddingTop: globalMargins.medium,
 }
 
 const _createIcon = {
@@ -73,13 +85,14 @@ const _createStyle = {
 }
 
 const _styleCover = {
-  alignItems: 'stretch',
-  backgroundColor: globalColors.black_75,
-  justifyContent: 'stretch',
+  alignItems: 'center',
+  backgroundColor: globalColors.black_60,
+  justifyContent: 'center',
 }
 
 const _styleContainer = {
-  height: '100%',
+  width: 620,
+  height: 520,
 }
 
 export default ManageChannels

@@ -776,6 +776,7 @@ func TestMembershipUpdate(t *testing.T) {
 		if c.GetConvID().Eq(convs[5].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_LEFT, c.ReaderInfo.Status)
 			convs[5].ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
+			convs[5].Metadata.Version = chat1.ConversationVers(2)
 		}
 	}
 	expected := append(convs, joinedConvs...)

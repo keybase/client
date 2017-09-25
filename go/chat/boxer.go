@@ -192,6 +192,8 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (chat1.MessageUnboxed, UnboxingError) {
+	b.Debug(ctx, "+ UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
+	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
@@ -214,7 +216,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	if encryptionKey == nil {
-		err := fmt.Errorf("no key found for generation %d", boxed.KeyGeneration)
+		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(nameInfo.CryptKeys))
 		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
 	}
 
@@ -266,7 +268,7 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 	// header hash. Because the body hash is unique to each message (derived
 	// from a random nonce), and because it's *inside* the signature, we use
 	// that to detect replays instead.
-	replayErr := storage.CheckAndRecordBodyHash(b.G(), unboxed.BodyHash, boxed.ServerHeader.MessageID, convID)
+	replayErr := storage.CheckAndRecordBodyHash(ctx, b.G(), unboxed.BodyHash, boxed.ServerHeader.MessageID, convID)
 	if replayErr != nil {
 		b.Debug(ctx, "UnboxMessage found a replayed body hash: %s", replayErr)
 		return NewPermanentUnboxingError(replayErr)
@@ -280,13 +282,13 @@ func (b *Boxer) checkInvariants(ctx context.Context, convID chat1.ConversationID
 	// the only thing that covers the entire message. The goal isn't to prevent
 	// the creation of new messages (as it was above), but to prevent an old
 	// message from changing.
-	prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), boxed.ServerHeader.MessageID, convID, unboxed.HeaderHash)
+	prevPtrErr := storage.CheckAndRecordPrevPointer(ctx, b.G(), boxed.ServerHeader.MessageID, convID, unboxed.HeaderHash)
 	if prevPtrErr != nil {
 		b.Debug(ctx, "UnboxMessage found an inconsistent header hash: %s", prevPtrErr)
 		return NewPermanentUnboxingError(prevPtrErr)
 	}
 	for _, prevPtr := range unboxed.ClientHeader.Prev {
-		prevPtrErr := storage.CheckAndRecordPrevPointer(b.G(), prevPtr.Id, convID, prevPtr.Hash)
+		prevPtrErr := storage.CheckAndRecordPrevPointer(ctx, b.G(), prevPtr.Id, convID, prevPtr.Hash)
 		if prevPtrErr != nil {
 			b.Debug(ctx, "UnboxMessage found an inconsistent prev pointer: %s", prevPtrErr)
 			return NewPermanentUnboxingError(prevPtrErr)

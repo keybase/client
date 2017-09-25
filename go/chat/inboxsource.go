@@ -486,7 +486,6 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, rl, err
 	}
-	s.Debug(ctx, "Read: tlfInfo: %+v", tlfInfo)
 	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
 		return inbox, rl, err
@@ -546,9 +545,11 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 			return res, rl, err
 		}
 
-		// Write out to local storage
-		if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
-			s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+		// Write out to local storage only if we are using local daata
+		if useLocalData {
+			if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
+				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+			}
 		}
 
 		res = chat1.Inbox{
@@ -918,6 +919,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Status:      conversationRemote.Metadata.Status,
 		MembersType: conversationRemote.Metadata.MembersType,
 		TeamType:    conversationRemote.Metadata.TeamType,
+		Version:     conversationRemote.Metadata.Version,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {
@@ -1105,19 +1107,24 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		var kuids []keybase1.UID
 		for _, uid := range conversationRemote.Metadata.AllList {
-			uname, err := uloader.LookupUsername(ctx, keybase1.UID(uid.String()))
-			if err != nil {
-				// If we are offline, we just won't know who is in the channel
-				continue
-			}
-			conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
-				uname.String())
+			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
-		// Sort alphabetically
-		sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
-			return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
-		})
+		unames, err := s.G().UIDMapper.MapUIDsToUsernames(ctx, s.G(), kuids)
+		if err == nil {
+			for _, uname := range unames {
+				conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
+					uname.String())
+			}
+			// Sort alphabetically
+			sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
+				return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
+			})
+		} else {
+			// If we are offline, we just won't know who is in the channel
+			s.Debug(ctx, "localizeConversation: failed to get team channel usernames: %s", err)
+		}
 	case chat1.ConversationMembersType_KBFS:
 		var err error
 		conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(

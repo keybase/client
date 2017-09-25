@@ -146,10 +146,7 @@ func (e *SigsList) processSigs() error {
 	if err := e.selectSigs(); err != nil {
 		return err
 	}
-	if err := e.filterRxx(); err != nil {
-		return err
-	}
-	return nil
+	return e.filterRxx()
 }
 
 func (e *SigsList) skipSigs() error {

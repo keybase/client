@@ -283,11 +283,12 @@ func TestImpTeamWithRooter(t *testing.T) {
 
 	team2, err := alice.lookupImplicitTeam(false /*create*/, newDisplayName, false /*isPublic*/)
 	require.NoError(t, err)
-	require.Equal(t, team2, team)
+	require.Equal(t, team, team2)
 
-	// Lookup by old name should fail
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
-	require.Error(t, err)
+	// Lookup by old name should get the same result
+	team2, err = alice.lookupImplicitTeam(false /*create*/, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team, team2)
 }
 
 func TestImpTeamWithRooterConflict(t *testing.T) {
@@ -318,15 +319,17 @@ func TestImpTeamWithRooterConflict(t *testing.T) {
 
 	alice.waitForTeamIDChangedGregor(team, keybase1.Seqno(2))
 
-	// Display name with rooter name is no longer usable.
-	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter, false /*isPublic*/)
-	require.Error(t, err)
+	// Display name with rooter name now points to the conflict winner.
+	team3, err := alice.lookupImplicitTeam(false /*create*/, displayNameRooter, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team2, team3)
 
-	// "LookupOrCreate" rooter name should fail as well.
-	_, err = alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
-	require.Error(t, err)
+	// "LookupOrCreate" rooter name should work as well.
+	team3, err = alice.lookupImplicitTeam(true /*create*/, displayNameRooter, false /*isPublic*/)
+	require.NoError(t, err)
+	require.Equal(t, team2, team3)
 
-	// Clients should refer to this team using comma-separated usernames.
+	// The original name works as well.
 	_, err = alice.lookupImplicitTeam(false /*create*/, displayNameKeybase, false /*isPublic*/)
 	require.NoError(t, err)
 }

@@ -6,9 +6,11 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/pprof"
 	"syscall"
 	"time"
 
@@ -22,6 +24,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -53,6 +56,8 @@ func main() {
 
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
+	// Set our UID -> Username mapping service
+	g.SetUIDMapper(uidmap.NewUIDMap())
 
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.
@@ -129,6 +134,10 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 
 	checkSystemUser(g.Log)
+
+	if cl.IsService() {
+		startProfile(g)
+	}
 
 	if !cl.IsService() {
 		if logger.SaveConsoleMode() == nil {
@@ -362,4 +371,36 @@ func stripFieldsFromAppStatusError(e error) error {
 		return fmt.Errorf("%s (code %d)", ase.Desc, ase.Code)
 	}
 	return e
+}
+
+func startProfile(g *libkb.GlobalContext) {
+	if os.Getenv("KEYBASE_PERIODIC_MEMPROFILE") == "" {
+		return
+	}
+
+	interval, err := time.ParseDuration(os.Getenv("KEYBASE_PERIODIC_MEMPROFILE"))
+	if err != nil {
+		g.Log.Debug("error parsing KEYBASE_PERIODIC_MEMPROFILE interval duration: %s", err)
+		return
+	}
+
+	go func() {
+		g.Log.Debug("periodic memory profile enabled, will dump memory profiles every %s", interval)
+		for {
+			time.Sleep(interval)
+			g.Log.Debug("dumping periodic memory profile")
+			f, err := ioutil.TempFile("", "keybase_memprofile")
+			if err != nil {
+				g.Log.Debug("could not create memory profile: ", err)
+				continue
+			}
+			runtime.GC() // get up-to-date statistics
+			if err := pprof.WriteHeapProfile(f); err != nil {
+				g.Log.Debug("could not write memory profile: ", err)
+				continue
+			}
+			f.Close()
+			g.Log.Debug("wrote periodic memory profile to %s", f.Name())
+		}
+	}()
 }
