@@ -1113,7 +1113,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 		unames, err := s.G().UIDMapper.MapUIDsToUsernames(ctx, s.G(), kuids)
 		if err == nil {
-			// If we are offline, we just won't know who is in the channel
 			for _, uname := range unames {
 				conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
 					uname.String())
@@ -1123,6 +1122,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
 			})
 		} else {
+			// If we are offline, we just won't know who is in the channel
 			s.Debug(ctx, "localizeConversation: failed to get team channel usernames: %s", err)
 		}
 	case chat1.ConversationMembersType_KBFS:
