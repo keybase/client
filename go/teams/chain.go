@@ -852,6 +852,18 @@ func (t *TeamSigChainPlayer) addInnerLink(
 				}
 
 				res.newState.inner.Open = open.Enabled
+				if options := open.Options; options != nil {
+					switch options.JoinAs {
+					case "reader":
+						res.newState.inner.OpenTeamJoinAs = keybase1.TeamRole_READER
+					case "writer":
+						res.newState.inner.OpenTeamJoinAs = keybase1.TeamRole_WRITER
+					case "":
+						// noop
+					default:
+						return res, fmt.Errorf("invalid join_as role in open team: %s", options.JoinAs)
+					}
+				}
 			}
 		}
 

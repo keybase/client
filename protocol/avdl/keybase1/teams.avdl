@@ -233,6 +233,7 @@ protocol teams {
 
     // Whether this is an open team.
     boolean open;
+    TeamRole openTeamJoinAs;
   }
 
   // The team got this name at this point in time.

@@ -4916,6 +4916,7 @@ export type TeamSigChainState = {
   stubbedLinks: {[key: string]: boolean},
   activeInvites: {[key: string]: TeamInvite},
   open: boolean,
+  openTeamJoinAs: TeamRole,
 }
 
 export type TeamTreeEntry = {

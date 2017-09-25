@@ -627,6 +627,10 @@
         {
           "type": "boolean",
           "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "openTeamJoinAs"
         }
       ]
     },

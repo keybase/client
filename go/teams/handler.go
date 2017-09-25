@@ -7,8 +7,6 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
 func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) (err error) {
@@ -219,8 +217,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	}
 
 	var req keybase1.TeamChangeReq
-	// TODO: Check if team is open invites and what the join_as is.
-	//role := keybase1.TeamRole_READER
+	role := team.chain().inner.OpenTeamJoinAs
 
 	for _, tar := range msg.Tars {
 		// TODO: Remove teamID from TARs passed in OPENREQ?
@@ -233,21 +230,15 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			continue
 		}
 
-		req.Readers = append(req.Readers, uv)
-		// if err := handleOpenReqSingle(ctx, g, msg.TeamID, tar, role); err != nil {
-		// 	return err
-		// }
+		switch role {
+		case keybase1.TeamRole_READER:
+			req.Readers = append(req.Readers, uv)
+		case keybase1.TeamRole_WRITER:
+			req.Writers = append(req.Writers, uv)
+		default:
+			return fmt.Errorf("Unexpected role to add to open team: %v", role)
+		}
 	}
 
-	spew.Dump(req)
 	return team.ChangeMembership(ctx, req)
-}
-
-func handleOpenReqSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, tar keybase1.TeamAccessRequest, role keybase1.TeamRole) error {
-	// TODO: Remove teamID from TARs passed in OPENREQ?
-	if tar.TeamID != teamID {
-		return fmt.Errorf("Unexpected team id")
-	}
-
-	return nil
 }

@@ -94,8 +94,8 @@ type SCTeamSettingsOpenOptions struct {
 }
 
 type SCTeamSettingsOpen struct {
-	Enabled bool                      `json:"enabled"`
-	Options SCTeamSettingsOpenOptions `json:"options"`
+	Enabled bool                       `json:"enabled"`
+	Options *SCTeamSettingsOpenOptions `json:"options,omitempty"`
 }
 
 func (a SCTeamAdmin) SigChainLocation() keybase1.SigChainLocation {
