@@ -79,7 +79,6 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   branch(props => !props.data.length, renderNothing),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
-      console.log('nextProps', nextProps.selectedIndex)
       if (nextProps.data.length === 0) {
         nextProps.setSelectedIndex(0)
       }
@@ -104,7 +103,6 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   }),
   withPropsOnChange(['onPickUser'], ownerProps => ({
     rowRenderer: (index, props) => {
-      console.log('props', props)
       return (
         <MentionRowRenderer
           key={props.key}
