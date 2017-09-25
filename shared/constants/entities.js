@@ -41,6 +41,7 @@ export type State = KBRecord<{
   inbox: Map<ChatConstants.ConversationIDKey, ChatConstants.InboxState>,
   inboxAlwaysShow: Map<ChatConstants.ConversationIDKey, boolean>,
   inboxBigChannels: Map<ChatConstants.ConversationIDKey, string>,
+  inboxBigChannelsToTeam: Map<ChatConstants.ConversationIDKey, string>,
   inboxIsEmpty: Map<ChatConstants.ConversationIDKey, boolean>,
   inboxSmallTimestamps: Map<ChatConstants.ConversationIDKey, string>,
   inboxSupersededBy: Map<ChatConstants.ConversationIDKey, boolean>,
@@ -72,6 +73,7 @@ const StateRecord = Record({
   inbox: Map(),
   inboxAlwaysShow: Map(),
   inboxBigChannels: Map(),
+  inboxBigChannelsToTeam: Map(),
   inboxIsEmpty: Map(), // maps and not sets as we don't have good helpers for that in entities yet
   inboxSmallTimestamps: Map(),
   inboxSupersededBy: Map(),

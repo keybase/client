@@ -171,6 +171,14 @@ function* onInboxStale(): SagaGenerator<any, any> {
         return map
       }, {})
     )
+    const inboxBigChannelsToTeam = I.Map(
+      conversations.reduce((map, c) => {
+        if (c.teamType === ChatTypes.CommonTeamType.complex) {
+          map[c.conversationIDKey] = c.teamname
+        }
+        return map
+      }, {})
+    )
     const inboxBigChannels = I.Map(
       conversations.reduce((map, c) => {
         if (c.teamType === ChatTypes.CommonTeamType.complex) {
@@ -212,6 +220,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       put(replaceEntity(['inboxVersion'], idToVersion)),
       put(replaceEntity(['inboxSmallTimestamps'], inboxSmallTimestamps)),
       put(replaceEntity(['inboxBigChannels'], inboxBigChannels)),
+      put(replaceEntity(['inboxBigChannelsToTeam '], inboxBigChannelsToTeam)),
       put(replaceEntity(['inboxIsEmpty'], inboxIsEmpty)),
       // put(replaceEntity(['inboxAlwaysShow'], inboxAlwaysShow)),
       // put(replaceEntity(['inboxSupersededBy'], inboxSupersededBy)),
