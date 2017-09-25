@@ -236,9 +236,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
     conversationIDKey && dispatch(Creators.selectConversation(conversationIDKey, true)),
   onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
-  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(Creators.untrustedInboxVisible(converationIDKey, rowsVisible)),
+  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
 })
 
 const findNextConvo = (rows: I.List<any>, selected, direction) => {
@@ -253,17 +253,6 @@ const findNextConvo = (rows: I.List<any>, selected, direction) => {
   const r = filteredRows.get(nextIdx)
   return r && r.conversationIDKey
 }
-
-// const mergeProps = (stateProps, dispatchProps, ownProps) => {
-// return {
-// ...ownProps,
-// ...stateProps,
-// ...dispatchProps,
-// onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
-// onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
-// smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
-// }
-// }
 
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
@@ -296,16 +285,22 @@ const getIsEmpty = (state: TypedState) => state.entities.get('inboxIsEmpty')
 // If the timestamps are the same, we didn't change the list
 // If the timestamps did change, and after sorting its still the same, we didn't change the list
 // Else map it into the types and render
-const getSmallTimestamps = (state: TypedState) => state.entities.getIn(['inboxSmallTimestamps'], I.Map())
+const getSmallTimestamps = (state: TypedState) => {
+  console.log('aaa 2 getSmallTimestamps  ')
+  return state.entities.getIn(['inboxSmallTimestamps'], I.Map())
+}
 
-const getSortedSmallRows = createSelector([getSmallTimestamps], smallTimestamps =>
-  smallTimestamps.sort((a, b) => b - a).keySeq().toArray()
-)
+const getSortedSmallRows = createSelector([getSmallTimestamps], smallTimestamps => {
+  console.log('aaa 3 getSortedSmallRows ', smallTimestamps)
+  return smallTimestamps.sort((a, b) => b - a).keySeq()
+})
 
 const getSmallRows = createImmutableEqualSelector(
   [getSortedSmallRows, getAlwaysShow, getSupersededBy, getIsEmpty],
-  (sortedSmallRows, alwaysShow, supersededBy, isEmpty) =>
-    sortedSmallRows
+  (sortedSmallRows, alwaysShow, supersededBy, isEmpty) => {
+    console.log('aaa 4 getSmallRows', sortedSmallRows, alwaysShow, supersededBy, isEmpty)
+    return sortedSmallRows
+      .toArray()
       .filter(conversationIDKey => {
         return (
           !supersededBy.get(conversationIDKey) &&
@@ -313,6 +308,7 @@ const getSmallRows = createImmutableEqualSelector(
         )
       })
       .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+  }
 )
 
 const getFilteredSmallRows = createSelector(
@@ -335,21 +331,17 @@ const getFilteredSmallRows = createSelector(
   }
 )
 
-const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
-  const filter = getFilter(state)
-  const {smallTeamsExpanded} = routeState
+const smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
-  let smallRows
-  let showSmallTeamsExpandDivider = false
-  let smallTeamsHiddenBadgeCount = 0
-  let smallTeamsHiddenRowCount = 0
-
-  const bigRows = []
-
-  if (filter) {
-    smallRows = getFilteredSmallRows(state)
-  } else {
-    smallRows = getSmallRows(state)
+// Get big and small and deal with the divider hiding small rows
+const getRowsAndMetadata = createSelector(
+  [getSmallRows, smallTeamsPassThrough, getUnreadCounts],
+  (smallRows, smallTeamsExpanded, badgeCountMap) => {
+    const bigRows = []
+    console.log('aaa 5 getRows', smallRows, smallTeamsExpanded, badgeCountMap)
+    let showSmallTeamsExpandDivider = false
+    let smallTeamsHiddenBadgeCount = 0
+    let smallTeamsHiddenRowCount = 0
 
     const smallTeamsRowsToHideCount = Math.max(0, smallRows.length - smallTeamsCollapsedMaxShown)
     if (bigRows.length && smallTeamsRowsToHideCount) {
@@ -357,7 +349,6 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
       if (!smallTeamsExpanded) {
         const smallTeamsHidden = smallRows.slice(smallTeamsCollapsedMaxShown)
         smallRows = smallRows.slice(0, smallTeamsCollapsedMaxShown)
-        const badgeCountMap = getUnreadCounts(state)
         smallTeamsHiddenBadgeCount = smallTeamsHidden.reduce((total, team) => {
           const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
           return total + (unreadCount ? unreadCount.badged : 0)
@@ -365,9 +356,37 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
         smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
       }
     }
+    return {
+      rows: smallRows,
+      showSmallTeamsExpandDivider,
+      smallTeamsHiddenBadgeCount,
+      smallTeamsHiddenRowCount,
+    }
+  }
+)
+
+const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
+  console.log('aaa 1 mapStateToProps')
+
+  const filter = getFilter(state)
+  const {smallTeamsExpanded} = routeState
+
+  let rows
+  let showSmallTeamsExpandDivider = false
+  let smallTeamsHiddenBadgeCount = 0
+  let smallTeamsHiddenRowCount = 0
+
+  if (filter) {
+    rows = getFilteredSmallRows(state)
+  } else {
+    const rmd = getRowsAndMetadata(state, smallTeamsExpanded)
+    showSmallTeamsExpandDivider = rmd.showSmallTeamsExpandDivider
+    smallTeamsHiddenBadgeCount = rmd.smallTeamsHiddenBadgeCount
+    smallTeamsHiddenRowCount = rmd.smallTeamsHiddenRowCount
+    rows = rmd.rows
   }
 
-  const rows = smallRows // TODO big
+  // const rows = smallRows // TODO big
 
   return {
     _selected: Constants.getSelectedConversation(state),
