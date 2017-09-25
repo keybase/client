@@ -1107,19 +1107,24 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		var kuids []keybase1.UID
 		for _, uid := range conversationRemote.Metadata.AllList {
-			uname, err := uloader.LookupUsername(ctx, keybase1.UID(uid.String()))
-			if err != nil {
-				// If we are offline, we just won't know who is in the channel
-				continue
-			}
-			conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
-				uname.String())
+			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
-		// Sort alphabetically
-		sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
-			return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
-		})
+		unames, err := s.G().UIDMapper.MapUIDsToUsernames(ctx, s.G(), kuids)
+		if err == nil {
+			// If we are offline, we just won't know who is in the channel
+			for _, uname := range unames {
+				conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
+					uname.String())
+			}
+			// Sort alphabetically
+			sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
+				return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
+			})
+		} else {
+			s.Debug(ctx, "localizeConversation: failed to get team channel usernames: %s", err)
+		}
 	case chat1.ConversationMembersType_KBFS:
 		var err error
 		conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
