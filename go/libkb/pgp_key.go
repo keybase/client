@@ -335,7 +335,7 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 }
 
 var cleanPGPInputRxx = regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
-var core6142PrepassRxx = regexp.MustCompile(`^(?P<header>-{5}BEGIN PGP (.*?)-{5})(\s*(?P<junk>.+?))$`)
+var bug8162PrepassRxx = regexp.MustCompile(`^(?P<header>-{5}BEGIN PGP (.*?)-{5})(\s*(?P<junk>.+?))$`)
 
 func cleanPGPInput(s string) string {
 	s = strings.TrimSpace(s)
@@ -350,23 +350,23 @@ func ReadOneKeyFromString(originalArmor string) (*PGPKeyBundle, *Warnings, error
 	return readOneKeyFromString(originalArmor /* liberal */, false)
 }
 
-// core6142Prepass cleans off any garbage trailing the "-----" in the first line of a PGP
+// bug8162Prepass cleans off any garbage trailing the "-----" in the first line of a PGP
 // key. For years, the server allowed this junk through, so some keys on the server side
 // (and hashed into chains) have junk here. It's pretty safe to strip it out when replaying
 // sigchains, so do it.
-func core6142Prepass(a string) string {
+func bug8162Prepass(a string) string {
 	idx := strings.Index(a, "\n")
 	if idx < 0 {
 		return a
 	}
 	line0 := a[0:idx]
 	rest := a[idx:]
-	match := core6142PrepassRxx.FindStringSubmatch(line0)
+	match := bug8162PrepassRxx.FindStringSubmatch(line0)
 	if len(match) == 0 {
 		return a
 	}
 	result := make(map[string]string)
-	for i, name := range core6142PrepassRxx.SubexpNames() {
+	for i, name := range bug8162PrepassRxx.SubexpNames() {
 		if i != 0 {
 			result[name] = match[i]
 		}
@@ -383,7 +383,7 @@ func ReadOneKeyFromStringLiberal(originalArmor string) (*PGPKeyBundle, *Warnings
 func readOneKeyFromString(originalArmor string, liberal bool) (*PGPKeyBundle, *Warnings, error) {
 	cleanArmor := cleanPGPInput(originalArmor)
 	if liberal {
-		cleanArmor = core6142Prepass(cleanArmor)
+		cleanArmor = bug8162Prepass(cleanArmor)
 	}
 	reader := strings.NewReader(cleanArmor)
 	el, err := openpgp.ReadArmoredKeyRing(reader)

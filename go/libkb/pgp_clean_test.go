@@ -23,7 +23,7 @@ func TestKeithWinstein(t *testing.T) {
 	}
 }
 
-func TestCore6142Prepass(t *testing.T) {
+func TestBug8162Prepass(t *testing.T) {
 
 	whackyKey := `-----BEGIN PGP PUBLIC KEY BLOCK-----              [1/2]
 
@@ -63,8 +63,8 @@ UzzykQlAfLl74336wrkSZfa2GnBBJQHvlnLosnmbGCzsd3KMkuJv90hxxt1rqjN6
 =sJQD
 -----END PGP PUBLIC KEY BLOCK-----`
 
-	require.Equal(t, regularKey, core6142Prepass(regularKey))
-	require.Equal(t, regularKey, core6142Prepass(whackyKey))
+	require.Equal(t, regularKey, bug8162Prepass(regularKey))
+	require.Equal(t, regularKey, bug8162Prepass(whackyKey))
 
 	_, _, err := ReadOneKeyFromString(whackyKey)
 	require.Error(t, err)
