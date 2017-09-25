@@ -1897,9 +1897,9 @@ const (
 	LockIDVersion0 byte = iota
 )
 
-// LockIDFromBytes takes the first 8 bytes of the sha512 over data, interprets
-// it as int64 using big endian, and returns the value as LockID. First byte
-// is used as the version byte.
+// LockIDFromBytes takes the first 8 bytes of the sha512 over data, overwrites
+// first byte with the version byte, then interprets it as int64 using big
+// endian, and returns the value as LockID.
 func LockIDFromBytes(data []byte) LockID {
 	sum := sha512.Sum512(data)
 	sum[0] = LockIDVersion0
