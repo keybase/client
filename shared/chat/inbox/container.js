@@ -337,26 +337,49 @@ const getFilteredSmallRows = createSelector(
 
 const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
   const filter = getFilter(state)
+  const {smallTeamsExpanded} = routeState
 
   let smallRows
+  let showSmallTeamsExpandDivider = false
+  let smallTeamsHiddenBadgeCount = 0
+  let smallTeamsHiddenRowCount = 0
+
+  const bigRows = []
+
   if (filter) {
     smallRows = getFilteredSmallRows(state)
   } else {
     smallRows = getSmallRows(state)
+
+    const smallTeamsRowsToHideCount = Math.max(0, smallRows.length - smallTeamsCollapsedMaxShown)
+    if (bigRows.length && smallTeamsRowsToHideCount) {
+      showSmallTeamsExpandDivider = true
+      if (!smallTeamsExpanded) {
+        const smallTeamsHidden = smallRows.slice(smallTeamsCollapsedMaxShown)
+        smallRows = smallRows.slice(0, smallTeamsCollapsedMaxShown)
+        const badgeCountMap = getUnreadCounts(state)
+        smallTeamsHiddenBadgeCount = smallTeamsHidden.reduce((total, team) => {
+          const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
+          return total + (unreadCount ? unreadCount.badged : 0)
+        }, 0)
+        smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
+      }
+    }
   }
 
   const rows = smallRows // TODO big
 
   return {
     _selected: Constants.getSelectedConversation(state),
-    isActiveRoute,
     bigTeamsBadgeCount: 0, // TODO
     filter,
+    isActiveRoute,
     rows,
     showBuildATeam: false, // TODO
-    showSmallTeamsExpandDivider: true, // TODO
-    smallTeamsHiddenBadgeCount: 0, // TODO
-    smallTeamsHiddenRowCount: 0, // TODO
+    showSmallTeamsExpandDivider,
+    smallTeamsExpanded: smallTeamsExpanded && showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider,
+    smallTeamsHiddenBadgeCount,
+    smallTeamsHiddenRowCount,
   }
 }
 
@@ -376,7 +399,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     rows: stateProps.rows,
     showBuildATeam: stateProps.showBuildATeam,
     showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
-    smallTeamsExpanded: ownProps.smallTeamsExpanded && stateProps.showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider
+    smallTeamsExpanded: stateProps.smallTeamsExpanded,
     smallTeamsHiddenBadgeCount: stateProps.smallTeamsHiddenBadgeCount,
     smallTeamsHiddenRowCount: stateProps.smallTeamsHiddenRowCount,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
