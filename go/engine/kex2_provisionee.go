@@ -133,11 +133,7 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		KexBaseArg:  karg,
 		Provisionee: e,
 	}
-	if err := kex2.RunProvisionee(parg); err != nil {
-		return err
-	}
-
-	return nil
+	return kex2.RunProvisionee(parg)
 }
 
 // Cancel cancels the kex2 run if it is running.
@@ -306,11 +302,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, perUserKeyBox *keybas
 	}
 
 	// cache the device keys in memory
-	if err = e.cacheKeys(); err != nil {
-		return err
-	}
-
-	return nil
+	return e.cacheKeys()
 }
 
 // saveLoginState stores the user's login state. The user config
@@ -320,11 +312,7 @@ func (e *Kex2Provisionee) saveLoginState() error {
 	if err := e.ctx.LoginContext.LoadLoginSession(e.username); err != nil {
 		return err
 	}
-	err := e.ctx.LoginContext.SaveState(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
-	if err != nil {
-		return err
-	}
-	return nil
+	return e.ctx.LoginContext.SaveState(string(e.sessionToken), string(e.csrfToken), libkb.NewNormalizedUsername(e.username), e.uid, e.device.ID)
 }
 
 type decodedSig struct {
@@ -455,11 +443,7 @@ func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 	}
 	jw.SetValueAtPath("body.device", dw)
 
-	if err = jw.SetValueAtPath("body.sibkey.kid", jsonw.NewString(e.eddsa.GetKID().String())); err != nil {
-		return err
-	}
-
-	return nil
+	return jw.SetValueAtPath("body.sibkey.kid", jsonw.NewString(e.eddsa.GetKID().String()))
 }
 
 func (e *Kex2Provisionee) reverseSig(jw *jsonw.Wrapper) error {
@@ -474,11 +458,7 @@ func (e *Kex2Provisionee) reverseSig(jw *jsonw.Wrapper) error {
 	}
 
 	// put the signature in reverse_sig
-	if err := jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(sig)); err != nil {
-		return err
-	}
-
-	return nil
+	return jw.SetValueAtPath("body.sibkey.reverse_sig", jsonw.NewString(sig))
 }
 
 // postSigs takes the HTTP args for the signing key and encrypt
@@ -614,11 +594,7 @@ func (e *Kex2Provisionee) cacheKeys() (err error) {
 		return err
 	}
 
-	if err = e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh, e.device); err != nil {
-		return err
-	}
-
-	return nil
+	return e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh, e.device)
 }
 
 func (e *Kex2Provisionee) SigningKey() (libkb.GenericKey, error) {

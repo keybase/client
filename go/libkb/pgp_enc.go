@@ -31,10 +31,7 @@ func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PGPKeyBundle, rec
 	if err := w.Close(); err != nil {
 		return err
 	}
-	if err := sink.Close(); err != nil {
-		return err
-	}
-	return nil
+	return sink.Close()
 }
 
 func PGPEncryptString(input string, signer *PGPKeyBundle, recipients []*PGPKeyBundle) ([]byte, error) {

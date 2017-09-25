@@ -49,11 +49,7 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	if _, err := gz.Write([]byte(data)); err != nil {
 		return err
 	}
-	if err := gz.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return gz.Close()
 }
 
 func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog string) (string, error) {

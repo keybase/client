@@ -253,6 +253,7 @@
                   Permanent="no">
         <MsiProperty Name="DOKANPRODUCT86" Value="$(var.DokanProductCodeX86)" />
         <MsiProperty Name="DOKANPRODUCT64" Value="$(var.DokanProductCodeX64)" />
+	<MsiProperty Name="BUNDLEKEY" Value="[WixBundleProviderKey]" />        
       </MsiPackage>
 
     </Chain>

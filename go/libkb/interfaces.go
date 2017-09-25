@@ -71,6 +71,7 @@ type configGetter interface {
 	GetTorHiddenAddress() string
 	GetTorMode() (TorMode, error)
 	GetTorProxy() string
+	GetUPAKCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
@@ -122,6 +123,11 @@ type LocalDb interface {
 	Close() error
 	Nuke() (string, error)
 	OpenTransaction() (LocalDbTransaction, error)
+}
+
+type KVStorer interface {
+	GetInto(obj interface{}, id DbKey) (found bool, err error)
+	PutObj(id DbKey, aliases []DbKey, obj interface{}) (err error)
 }
 
 type ConfigReader interface {
@@ -588,4 +594,26 @@ type TeamLoader interface {
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	OnLogout()
+}
+
+type KVStoreContext interface {
+	GetKVStore() KVStorer
+}
+
+type UIDMapperContext interface {
+	LogContext
+	APIContext
+	KVStoreContext
+}
+
+type UIDMapper interface {
+	// CheckUIDAginstUsername makes sure that the UID actually does map to the given username.
+	// For new UIDs, it's a question of just SHA2'ing. For legacy usernames, we check the
+	// hardcoded map.
+	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
+
+	// MapUIDToUsernames maps the given set of UIDs to the normalized usernames. It can check
+	// caches or go to the server, but guarantees that any names returned pass the check
+	// as in CheckUIDAgainstUsername
+	MapUIDsToUsernames(ctx context.Context, g UIDMapperContext, uids []keybase1.UID) ([]NormalizedUsername, error)
 }

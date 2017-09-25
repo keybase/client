@@ -172,6 +172,8 @@ const flushLogFile = __STORYBOOK__
   ? () => {}
   : () => {
       const {ipcRenderer} = require('electron')
+      const {dumpLoggers} = require('./periodic-logger')
+      dumpLoggers()
       ipcRenderer.send('console.flushLogFile')
     }
 

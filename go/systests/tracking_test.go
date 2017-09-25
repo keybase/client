@@ -148,12 +148,9 @@ func TestTrackingNotifications(t *testing.T) {
 			return err
 		}
 		ncli := keybase1.NotifyCtlClient{Cli: cli}
-		if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+		return ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 			Tracking: true,
-		}); err != nil {
-			return err
-		}
-		return nil
+		})
 	}
 
 	// Actually launch it in the background

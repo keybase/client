@@ -14,8 +14,9 @@ import {
 import {call, put, select, fork} from 'redux-saga/effects'
 import {getMyProfile} from '.././tracker'
 import {navigateAppend, navigateTo, navigateUp, switchTo, putActionIfOnPath} from '../../actions/route-tree'
+import {getPathProps} from '../../route-tree'
 import {pgpSaga, dropPgp, generatePgp, updatePgpInfo} from './pgp'
-import {profileTab} from '../../constants/tabs'
+import {peopleTab} from '../../constants/tabs'
 import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
 import {safeTakeEvery} from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
@@ -36,7 +37,7 @@ function* _editProfile(action: Constants.EditProfile): SagaGenerator<any, any> {
     param: {bio, fullName, location},
   })
   // If the profile tab remained on the edit profile screen, navigate back to the top level.
-  yield put(putActionIfOnPath([profileTab, 'editProfile'], navigateTo([], [profileTab]), [profileTab]))
+  yield put(putActionIfOnPath([peopleTab, 'editProfile'], navigateTo([], [peopleTab]), [peopleTab]))
 }
 
 function updateUsername(username: string): Constants.UpdateUsername {
@@ -73,13 +74,32 @@ function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any
   const {username: userId} = action.payload
   const searchResultMap = yield select(Selectors.searchResultMapSelector)
   const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
+  // get data on whose profile is currently being shown
+  const me = yield select(Selectors.usernameSelector)
+  const topProfile = yield select((state: TypedState) => {
+    const routeState = state.routeTree.routeState
+    const routeProps = getPathProps(routeState, [peopleTab])
+    const profileNode = (routeProps && routeProps.size > 0 && routeProps.get(routeProps.size - 1)) || null
+    return (
+      (profileNode && profileNode.props && profileNode.props.get('username')) ||
+      (profileNode && profileNode.node === peopleTab && me)
+    )
+  })
 
-  if (!username.includes('@')) {
-    yield put(switchTo([profileTab]))
-    yield put(navigateAppend([{props: {username}, selected: 'profile'}], [profileTab]))
+  // If the username is the top profile, just switch to the profile tab
+  if (username === topProfile) {
+    yield put(switchTo([peopleTab]))
     return
   }
 
+  // Assume user exists
+  if (!username.includes('@')) {
+    yield put(switchTo([peopleTab]))
+    yield put(navigateAppend([{props: {username}, selected: 'profile'}], [peopleTab]))
+    return
+  }
+
+  // search for user first
   let props = {}
   const searchResult = yield select(Selectors.searchResultSelector, username)
   if (searchResult) {
@@ -98,8 +118,8 @@ function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any
     }
   }
 
-  yield put(switchTo([profileTab]))
-  yield put(navigateAppend([{props, selected: 'nonUserProfile'}], [profileTab]))
+  yield put(switchTo([peopleTab]))
+  yield put(navigateAppend([{props, selected: 'nonUserProfile'}], [peopleTab]))
 }
 
 function onClickAvatar(username: string, openWebsite?: boolean): Constants.OnClickAvatar {
@@ -250,7 +270,7 @@ function clearSearchResults(): Constants.ClearSearchResults {
 
 function* _backToProfile(): SagaGenerator<any, any> {
   yield put(getMyProfile())
-  yield put(navigateTo([], [profileTab]))
+  yield put(navigateTo([], [peopleTab]))
 }
 
 function* _profileSaga(): SagaGenerator<any, any> {

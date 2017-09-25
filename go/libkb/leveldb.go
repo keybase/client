@@ -68,7 +68,7 @@ func levelDbLookup(ops levelDBOps, id DbKey) (val []byte, found bool, err error)
 		} else if tab != levelDbTableKv {
 			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
 		} else {
-			val, found, err = levelDbGetWhich(ops, *id2, levelDbTableKv)
+			val, found, err = levelDbGetWhich(ops, id2, levelDbTableKv)
 		}
 	}
 	return val, found, err

@@ -1487,6 +1487,35 @@ func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
 	return err
 }
 
+func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
+	var err error
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.DismissCategory(%s)", category.String()),
+		func() error { return err },
+	)()
+
+	dismissal, err := g.templateMessage()
+	if err != nil {
+		return err
+	}
+
+	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		Ranges_: []gregor1.MsgRange{
+			gregor1.MsgRange{
+				Category_: category,
+				// A small non-zero offset that effectively means "now",
+				// because an actually-zero offset would be interpreted as "not
+				// an offset at all" by the SQL query builder.
+				EndTime_: gregor1.TimeOrOffset{
+					Offset_: gregor1.DurationMsec(1),
+				},
+			}},
+	}
+
+	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	err = incomingClient.ConsumeMessage(ctx, *dismissal)
+	return err
+}
+
 func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
 	var err error
 	defer g.G().CTrace(ctx, fmt.Sprintf("gregorHandler.InjectItem(%s)", cat),
@@ -1585,6 +1614,10 @@ func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err
 
 func (g *gregorRPCHandler) InjectItem(ctx context.Context, arg keybase1.InjectItemArg) (gregor1.MsgID, error) {
 	return g.gh.InjectItem(ctx, arg.Cat, []byte(arg.Body), arg.Dtime)
+}
+
+func (g *gregorRPCHandler) DismissCategory(ctx context.Context, category gregor1.Category) error {
+	return g.gh.DismissCategory(ctx, category)
 }
 
 func WrapGenericClientWithTimeout(client rpc.GenericClient, timeout time.Duration, timeoutErr error) rpc.GenericClient {

@@ -63,20 +63,8 @@ func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 		return nil, NewMockBoundsError("getLinksFromServer", "name", name.String())
 	}
 
-	var readerKeyMasks []keybase1.ReaderKeyMask
-	for i := 1; i < 2; i++ {
-		for _, app := range keybase1.TeamApplicationMap {
-			bs, err := libkb.RandBytes(32)
-			require.NoError(l.t, err)
-			readerKeyMasks = append(readerKeyMasks, keybase1.ReaderKeyMask{
-				Application: app,
-				Generation:  keybase1.PerTeamKeyGeneration(i),
-				Mask:        keybase1.MaskB64(bs),
-			})
-		}
-	}
-
 	var links []json.RawMessage
+	var latestLinkToSend keybase1.Seqno
 	for _, link := range teamSpec.Links {
 		// Stub out those links in teamSpec that claim seqnos
 		// that are in the Unit.Load.Stub list.
@@ -118,18 +106,63 @@ func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
 		} else {
 			links = append(links, link)
 		}
+		if !omit {
+			latestLinkToSend = keybase1.Seqno(seqno)
+		}
 	}
-	l.t.Logf("loadSpec: (returning %v links) %v", len(links), spew.Sdump(l.state.loadSpec))
+
+	l.t.Logf("loadSpec: %v", spew.Sdump(l.state.loadSpec))
+
+	var box *TeamBox
+	prevs := make(map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded)
+	require.NotEqual(l.t, len(teamSpec.TeamKeyBoxes), 0, "need some team key boxes")
+	for _, boxSpec := range teamSpec.TeamKeyBoxes {
+		require.NotEqual(l.t, 0, boxSpec.Seqno, "bad box seqno")
+		if boxSpec.Seqno <= latestLinkToSend || l.state.loadSpec.ForceLastBox {
+			box2 := boxSpec.TeamBox
+			box = &box2
+
+			if boxSpec.Prev != nil {
+				omitPrevs := int(l.state.loadSpec.OmitPrevs)
+				if !(omitPrevs > 0 && int(boxSpec.TeamBox.Generation)-1 <= omitPrevs) {
+					prevs[boxSpec.TeamBox.Generation] = *boxSpec.Prev
+				}
+			}
+		}
+	}
+	if l.state.loadSpec.OmitBox {
+		box = nil
+	}
+
+	l.t.Logf("returning %v links (latest %v)", len(links), latestLinkToSend)
+	if box != nil {
+		l.t.Logf("returning box generation:%v (%v prevs)", box.Generation, len(prevs))
+	}
+
+	var readerKeyMasks []keybase1.ReaderKeyMask
+	if box != nil {
+		for i := 1; i <= int(box.Generation); i++ {
+			for _, app := range keybase1.TeamApplicationMap {
+				bs, err := libkb.RandBytes(32)
+				require.NoError(l.t, err)
+				readerKeyMasks = append(readerKeyMasks, keybase1.ReaderKeyMask{
+					Application: app,
+					Generation:  keybase1.PerTeamKeyGeneration(i),
+					Mask:        keybase1.MaskB64(bs),
+				})
+			}
+		}
+	}
 
 	return &rawTeam{
 		ID:             teamID,
 		Name:           name,
 		Status:         libkb.AppStatus{Code: libkb.SCOk},
 		Chain:          links,
-		Box:            teamSpec.TeamKeyBox,
-		Prevs:          make(map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded), // TODO
-		ReaderKeyMasks: readerKeyMasks,                                               // TODO
-		SubteamReader:  false,                                                        // TODO
+		Box:            box,
+		Prevs:          prevs,
+		ReaderKeyMasks: readerKeyMasks,
+		SubteamReader:  l.state.loadSpec.SubteamReader,
 	}, nil
 }
 
@@ -231,6 +264,10 @@ func (l *MockLoaderContext) loadKeyV2(ctx context.Context, uid keybase1.UID, kid
 	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID,
 	err error) {
 
+	defer func() {
+		l.t.Logf("MockLoaderContext#loadKeyV2(%v, %v) -> %v", uid, kid, err)
+	}()
+
 	userLabel, ok := l.unit.KeyOwners[kid]
 	if !ok {
 		return uv, pubKey, linkMap, NewMockBoundsError("LoadKeyV2", "kid", kid)
@@ -238,6 +275,9 @@ func (l *MockLoaderContext) loadKeyV2(ctx context.Context, uid keybase1.UID, kid
 	userSpec, ok := l.unit.Users[userLabel]
 	if !ok {
 		return uv, pubKey, linkMap, NewMockBoundsError("LoadKeyV2", "kid", kid)
+	}
+	if !uid.Equal(userSpec.UID) {
+		return uv, pubKey, linkMap, NewMockError("LoadKeyV2 kid matched by wrong uid")
 	}
 	uv = keybase1.UserVersion{
 		Uid:         userSpec.UID,
