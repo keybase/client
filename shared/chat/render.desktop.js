@@ -17,7 +17,7 @@ const Render = ({
 }) => (
   <div style={style}>
     <Inbox isActiveRoute={isActiveRoute} routeState={routeState} setRouteState={setRouteState} />
-    {children}
+    {/*children*/}
   </div>
 )
 
