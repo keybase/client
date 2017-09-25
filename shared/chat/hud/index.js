@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {connect} from 'react-redux'
-import {compose, withState, lifecycle, withPropsOnChange} from 'recompose'
+import {compose, withState, lifecycle, withPropsOnChange, branch, renderNothing} from 'recompose'
 import {Avatar, Box, ClickableBox, List, Text} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
@@ -55,10 +55,11 @@ type MentionHudProps = {
   userIds: Array<string>,
   onPickUser: (user: string) => void,
   onSelectUser: (user: string) => void,
+  pickSelectedUserCounter: number,
   selectUpCounter: number,
   selectDownCounter: number,
   filter: string,
-  style: Object,
+  style?: ?Object,
 }
 
 // TODO figure typing out
@@ -69,12 +70,13 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       .map((u, i) => ({
         avatar: <Avatar username={u} size={16} />,
         username: u,
-        fullName: u, // TODO
+        fullName: '', // TODO
         key: u,
       }))
       .filter(u => u.username.indexOf(filter) >= 0)
       .map((u, i) => ({...u, selected: i === selectedIndex})),
   })),
+  branch(props => !props.data.length, renderNothing),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
       console.log('nextProps', nextProps.selectedIndex)
@@ -88,11 +90,15 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
         nextProps.setSelectedIndex(n => Math.max(n - 1, 0))
       } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        nextProps.setSelectedIndex(n => Math.min(n + 1, nextProps.userIds.length - 1))
+        nextProps.setSelectedIndex(n => Math.min(n + 1, nextProps.data.length - 1))
+      }
+
+      if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {
+        nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
       }
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
-        nextProps.onSelectUser(nextProps.userIds[nextProps.selectedIndex])
+        nextProps.onSelectUser(nextProps.data[nextProps.selectedIndex].username)
       }
     },
   }),

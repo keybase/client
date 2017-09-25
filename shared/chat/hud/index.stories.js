@@ -75,6 +75,7 @@ const load = () => {
             onSelectUser={action('onSelectUser')}
             selectUpCounter={upCounter}
             selectDownCounter={downCounter}
+            pickSelectedUserCounter={0}
             filter={filter}
             style={{flex: 1}}
             store={dummyStore}
