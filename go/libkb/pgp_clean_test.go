@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"encoding/base64"
+	require "github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -20,4 +21,54 @@ func TestKeithWinstein(t *testing.T) {
 	} else if _, _, err = ReadOneKeyFromString(string(key)); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestCore6142Prepass(t *testing.T) {
+
+	whackyKey := `-----BEGIN PGP PUBLIC KEY BLOCK-----              [1/2]
+
+mI0EWcknrwEEAK2X5lKA76pf6i5D1aVcApUAH6NnZ4NkFeSxKT92soiSWkFn+I/G
+VKJfTvx2dzxOAB4rvyFjUzjgAwhK3FblCnfXwgPAh6/vukF/YBwynCVyNxOVAVHY
+gCkw/+7zIM24RUxzI3V9wzJ6i/SpfNnWKkKqJXIt4Xzv3Rs/UXk5DMY5ABEBAAG0
+I01heCBUZXN0IDc3NyA8dGhlbWF4Kzc3N0BnbWFpbC5jb20+iLgEEwECACIFAlnJ
+J68CGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheAAAoJEM5jclcHa4v8ssQD/RJA
+JTrfydAkLzffGgZyKafs/aTraVDNtDv1sF+5iBtZvOB0FFjzivl3BGlplEqnPquB
+bg8/OQuxFLYM/f8+WgP5MDqBce8s6h5kGZPj73zP4GQLZWojS5/H3J1sDBmNTSnd
+ByELhvVxJmJiHdz2jMb74+thB/ZK4xf+zAkRF4WZuI0EWcknrwEEALk0Bsp/xJ+4
+75hswySLZmvNh79CyIC0K1gzXiEPDwqGy6xT1PbXLJ5HcXna4HJdNAgXf1T/n+zR
+19xJMAB6NSv2zigRaYAyy4It2p2cRPHseWWTcP7lMUpwqtQsnqNKJ14RuAaMOQtG
+xSaQMgMGZx6lxFWNaK40SxSnqFRtfRs9ABEBAAGInwQYAQIACQUCWcknrwIbDAAK
+CRDOY3JXB2uL/PX/A/9HvpLPVDrEMr9+vzmS8Ez0br2kgeoPh7yOAlEotS7OBNWU
+UzzykQlAfLl74336wrkSZfa2GnBBJQHvlnLosnmbGCzsd3KMkuJv90hxxt1rqjN6
+3GFiwBVdsSuyEb3uQJ/ytAyVozwwxjMQZ+gJTYfK8syPdf2T1W6cv7lfHp8E8g==
+=sJQD
+-----END PGP PUBLIC KEY BLOCK-----`
+
+	regularKey := `-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mI0EWcknrwEEAK2X5lKA76pf6i5D1aVcApUAH6NnZ4NkFeSxKT92soiSWkFn+I/G
+VKJfTvx2dzxOAB4rvyFjUzjgAwhK3FblCnfXwgPAh6/vukF/YBwynCVyNxOVAVHY
+gCkw/+7zIM24RUxzI3V9wzJ6i/SpfNnWKkKqJXIt4Xzv3Rs/UXk5DMY5ABEBAAG0
+I01heCBUZXN0IDc3NyA8dGhlbWF4Kzc3N0BnbWFpbC5jb20+iLgEEwECACIFAlnJ
+J68CGwMGCwkIBwMCBhUIAgkKCwQWAgMBAh4BAheAAAoJEM5jclcHa4v8ssQD/RJA
+JTrfydAkLzffGgZyKafs/aTraVDNtDv1sF+5iBtZvOB0FFjzivl3BGlplEqnPquB
+bg8/OQuxFLYM/f8+WgP5MDqBce8s6h5kGZPj73zP4GQLZWojS5/H3J1sDBmNTSnd
+ByELhvVxJmJiHdz2jMb74+thB/ZK4xf+zAkRF4WZuI0EWcknrwEEALk0Bsp/xJ+4
+75hswySLZmvNh79CyIC0K1gzXiEPDwqGy6xT1PbXLJ5HcXna4HJdNAgXf1T/n+zR
+19xJMAB6NSv2zigRaYAyy4It2p2cRPHseWWTcP7lMUpwqtQsnqNKJ14RuAaMOQtG
+xSaQMgMGZx6lxFWNaK40SxSnqFRtfRs9ABEBAAGInwQYAQIACQUCWcknrwIbDAAK
+CRDOY3JXB2uL/PX/A/9HvpLPVDrEMr9+vzmS8Ez0br2kgeoPh7yOAlEotS7OBNWU
+UzzykQlAfLl74336wrkSZfa2GnBBJQHvlnLosnmbGCzsd3KMkuJv90hxxt1rqjN6
+3GFiwBVdsSuyEb3uQJ/ytAyVozwwxjMQZ+gJTYfK8syPdf2T1W6cv7lfHp8E8g==
+=sJQD
+-----END PGP PUBLIC KEY BLOCK-----`
+
+	require.Equal(t, regularKey, core6142Prepass(regularKey))
+	require.Equal(t, regularKey, core6142Prepass(whackyKey))
+
+	_, _, err := ReadOneKeyFromString(whackyKey)
+	require.Error(t, err)
+	_, _, err = ReadOneKeyFromStringLiberal(whackyKey)
+	require.NoError(t, err)
+
 }
