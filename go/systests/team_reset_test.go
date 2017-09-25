@@ -106,6 +106,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	ann.ctx.log.Debug("team details checked out: %+v", details)
 }
 
+// tests a user deleting her account.
 func TestTeamDelete(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
@@ -132,6 +133,16 @@ func TestTeamDelete(t *testing.T) {
 
 	ann.delete()
 	divDebug(ctx, "Ann deleted her account")
+	divDebug(ctx, "ann uid: %s", ann.uid())
+	divDebug(ctx, "bob uid: %s", bob.uid())
+	divDebug(ctx, "cam uid: %s", cam.uid())
+
+	// just one person needs to do this
+	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
+
+	// bob and cam should see the key get rotated after ann deletes
+	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	cam.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
 
 	// It's important for cam to clear her cache right before the attempt to send,
 	// since she might have received gregors that ann deleted her account,
