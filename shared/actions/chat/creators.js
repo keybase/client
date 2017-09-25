@@ -364,15 +364,6 @@ function toggleChannelWideNotifications(
   return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
 }
 
-function updateConversationUnreadCounts(
-  conversationUnreadCounts: Map<Constants.ConversationIDKey, Constants.UnreadCounts>
-): Constants.UpdateConversationUnreadCounts {
-  return {
-    payload: {conversationUnreadCounts},
-    type: 'chat:updateConversationUnreadCounts',
-  }
-}
-
 function updateMetadata(users: Array<string>): Constants.UpdateMetadata {
   return {payload: {users}, type: 'chat:updateMetadata'}
 }
@@ -779,7 +770,6 @@ export {
   untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,
-  updateConversationUnreadCounts,
   updateFinalizedState,
   updateInbox,
   updateInboxComplete,

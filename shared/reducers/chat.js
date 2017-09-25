@@ -185,8 +185,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       })
 
       return state.set('metaData', metaData)
-    case 'chat:updateConversationUnreadCounts':
-      return state.set('conversationUnreadCounts', action.payload.conversationUnreadCounts)
     case 'chat:clearRekey': {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))

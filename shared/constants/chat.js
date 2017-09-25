@@ -363,7 +363,6 @@ export const StateRecord: KBRecord<T> = Record({
   finalizedState: Map(),
   supersedesState: Map(),
   supersededByState: Map(),
-  conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
   pendingConversations: Map(),
   nowOverride: null,
@@ -383,11 +382,6 @@ export const StateRecord: KBRecord<T> = Record({
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
-export type UnreadCounts = {
-  total: number,
-  badged: number,
-}
-
 export type State = KBRecord<{
   // TODO  move to entities
   messageMap: Map<MessageKey, Message>,
@@ -400,7 +394,6 @@ export type State = KBRecord<{
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
   metaData: MetaDataMap,
-  conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
   pendingConversations: Map<ConversationIDKey, Participants>,
   tempPendingConversations: Map<ConversationIDKey, boolean>,
@@ -590,10 +583,6 @@ export type UntrustedInboxVisible = NoErrorTypedAction<
   {conversationIDKey: ConversationIDKey, rowsVisible: number}
 >
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
-export type UpdateConversationUnreadCounts = NoErrorTypedAction<
-  'chat:updateConversationUnreadCounts',
-  {conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>}
->
 export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',
   {finalizedState: FinalizedState}

@@ -17,7 +17,7 @@ import type {TypedState} from '../../constants/reducer'
 const smallTeamsCollapsedMaxShown = 5
 const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
-const getUnreadCounts = (state: TypedState) => state.chat.get('conversationUnreadCounts')
+const getUnreadBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
 
 const passesStringFilter = (filter: string, toCheck: string): boolean => {
   // No need to worry about Unicode issues with toLowerCase(), since
@@ -241,22 +241,22 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
 })
 
-const findNextConvo = (rows: I.List<any>, selected, direction) => {
+const findNextConvo = (rows: Array<any>, selected, direction) => {
   const filteredRows = rows.filter(r => ['small', 'big'].includes(r.type))
   const idx = filteredRows.findIndex(r => r.conversationIDKey === selected)
   let nextIdx
   if (idx === -1) {
     nextIdx = 0
   } else {
-    nextIdx = Math.min(filteredRows.count() - 1, Math.max(0, idx + direction))
+    nextIdx = Math.min(filteredRows.length - 1, Math.max(0, idx + direction))
   }
-  const r = filteredRows.get(nextIdx)
+  const r = filteredRows[nextIdx]
   return r && r.conversationIDKey
 }
 
 // Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
 // to not call loadInbox multiple times
-const throttleHelper = throttle(cb => cb(), 60 * 1000)
+// const throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 // export default compose(
 // withState('filterFocusCount', 'setFilterFocusCount', 0),
@@ -334,11 +334,13 @@ const getFilteredSmallRows = createSelector(
 const smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
 // Get big and small and deal with the divider hiding small rows
+// Theoretically we could ignore getUnreadBadges and handle that as a connected component
+// for the divider itself
 const getRowsAndMetadata = createSelector(
-  [getSmallRows, smallTeamsPassThrough, getUnreadCounts],
-  (smallRows, smallTeamsExpanded, badgeCountMap) => {
+  [getSmallRows, smallTeamsPassThrough, getUnreadBadges],
+  (smallRows, smallTeamsExpanded, unreadBadges) => {
     const bigRows = []
-    console.log('aaa 5 getRows', smallRows, smallTeamsExpanded, badgeCountMap)
+    console.log('aaa 5 getRows', smallRows, smallTeamsExpanded, unreadBadges)
     let showSmallTeamsExpandDivider = false
     let smallTeamsHiddenBadgeCount = 0
     let smallTeamsHiddenRowCount = 0
@@ -350,8 +352,7 @@ const getRowsAndMetadata = createSelector(
         const smallTeamsHidden = smallRows.slice(smallTeamsCollapsedMaxShown)
         smallRows = smallRows.slice(0, smallTeamsCollapsedMaxShown)
         smallTeamsHiddenBadgeCount = smallTeamsHidden.reduce((total, team) => {
-          const unreadCount: ?Constants.UnreadCounts = badgeCountMap.get(team.conversationIDKey)
-          return total + (unreadCount ? unreadCount.badged : 0)
+          return total + unreadBadges.get(team.conversationIDKey, 0)
         }, 0)
         smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
       }
@@ -429,16 +430,7 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillReceiveProps: function(nextProps: any, nextState: any) {
-      console.log(
-        'aaa Render count',
-        TEMPCOUNT++,
-        this.props,
-        nextProps,
-        this.state,
-        nextState,
-        shallowEqualDebug(this.props, nextProps),
-        shallowEqualDebug(this.state, nextState)
-      )
+      console.log('aaa Render count', TEMPCOUNT++, this.props, nextProps, this.state, nextState)
     },
     componentDidMount: function() {
       // throttleHelper(() => {
