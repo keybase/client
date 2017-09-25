@@ -220,7 +220,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       put(replaceEntity(['inboxVersion'], idToVersion)),
       put(replaceEntity(['inboxSmallTimestamps'], inboxSmallTimestamps)),
       put(replaceEntity(['inboxBigChannels'], inboxBigChannels)),
-      put(replaceEntity(['inboxBigChannelsToTeam '], inboxBigChannelsToTeam)),
+      put(replaceEntity(['inboxBigChannelsToTeam'], inboxBigChannelsToTeam)),
       put(replaceEntity(['inboxIsEmpty'], inboxIsEmpty)),
       // put(replaceEntity(['inboxAlwaysShow'], inboxAlwaysShow)),
       // put(replaceEntity(['inboxSupersededBy'], inboxSupersededBy)),
