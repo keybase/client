@@ -7,6 +7,7 @@ import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {compose, withState, withHandlers} from 'recompose'
 import ConnectedMentionHud from '../../hud/mention-hud-container'
+import ff from '../../../util/feature-flags'
 
 import type {Props} from '.'
 
@@ -138,14 +139,12 @@ class ConversationInput extends Component<InputProps, State> {
     }
 
     if (e.key === '@') {
-      console.log('@ mention open', this.props.text)
       this.props.setMentionPopupOpen(true)
     }
 
     if (this.props.mentionPopupOpen && e.key === 'Backspace') {
       const lastChar = this.props.text[this.props.text.length - 1]
       if (lastChar === '@') {
-        console.log('@ mention closed')
         this.props.setMentionPopupOpen(false)
       }
     }
@@ -156,7 +155,6 @@ class ConversationInput extends Component<InputProps, State> {
     if (this.props.mentionPopupOpen || e.key === 'Backspace') {
       const wordSoFar = this._getWordAtCursor(false)
       if (wordSoFar && wordSoFar[0] === '@') {
-        console.log('setting filter to be', wordSoFar)
         !this.props.mentionPopupOpen && this.props.setMentionPopupOpen(true)
         this.props.setMentionFilter(wordSoFar.substring(1))
       } else {
@@ -236,6 +234,7 @@ class ConversationInput extends Component<InputProps, State> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         {this.props.mentionPopupOpen &&
+          ff.mentionHud &&
           <MentionHud
             selectDownCounter={this.state.downArrowCounter}
             selectUpCounter={this.state.upArrowCounter}
@@ -331,11 +330,7 @@ const InputAccessory = Component => props => (
 )
 
 const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud
-    onSelectUser={u => console.log('select', u)}
-    style={{flex: 1, height: 100}}
-    {...props}
-  />
+  <ConnectedMentionHud onSelectUser={u => {}} style={{flex: 1, height: 100}} {...props} />
 ))
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (
