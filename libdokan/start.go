@@ -90,7 +90,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}
-		log.CInfof(ctx, "Got mount dir from service: %s", options.DokanConfig.Path)
+		log.CInfof(ctx, "Got mount dir from service: -%s-", options.MountPoint)
 	}
 	options.DokanConfig.Path = options.MountPoint
 

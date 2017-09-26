@@ -974,20 +974,23 @@ func (k *KeybaseServiceBase) EstablishMountDir(ctx context.Context) (
 	string, error) {
 	dir, err := k.kbfsMountClient.GetCurrentMountDir(ctx)
 	if err != nil {
+		k.log.CInfof(ctx, "GetCurrentMountDir fails - ", err)
 		return "", err
 	}
 	if dir == "" {
-		dirs, err2 := k.kbfsMountClient.GetAllAvailableMountDirs(ctx)
+		dirs, err := k.kbfsMountClient.GetAllAvailableMountDirs(ctx)
 		if err != nil {
-			return "", err2
+			k.log.CInfof(ctx, "GetAllAvailableMountDirs fails - ", err)
+			return "", err
 		}
 		dir, err = chooseDefaultMount(ctx, dirs, k.log)
 		if err != nil {
+			k.log.CInfof(ctx, "chooseDefaultMount fails - ", err)
 			return "", err
 		}
-		err2 = k.kbfsMountClient.SetCurrentMountDir(ctx, dir)
+		err2 := k.kbfsMountClient.SetCurrentMountDir(ctx, dir)
 		if err2 != nil {
-			k.log.CInfof(ctx, "SetCurrentMount Dir fails - ", err2)
+			k.log.CInfof(ctx, "SetCurrentMountDir fails - ", err2)
 		}
 		// Continue mounting even if we can't save the mount
 		k.log.CDebugf(ctx, "Choosing mountdir %s from %v", dir, dirs)
