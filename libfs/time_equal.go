@@ -19,5 +19,5 @@ func TimeEqual(a, b time.Time) bool {
 		a = a.Truncate(1 * time.Second)
 		b = b.Truncate(1 * time.Second)
 	}
-	return a == b
+	return a.Equal(b)
 }

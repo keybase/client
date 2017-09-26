@@ -242,7 +242,7 @@ func TestStatAlias(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if g, e := fi.Mode().String(), `dLrwxrwxrwx`; g != e {
+	if g, e := fi.Mode().String(), `Lrw-rw-rw-`; g != e {
 		t.Errorf("wrong mode for alias : %q != %q", g, e)
 	}
 	// TODO Readlink support.
