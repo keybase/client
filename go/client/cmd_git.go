@@ -13,6 +13,7 @@ func NewCmdGit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	subcommands := []cli.Command{
 		newCmdGitCreate(cl, g),
 		newCmdGitDelete(cl, g),
+		newCmdGitList(cl, g),
 	}
 
 	if develUsage {
