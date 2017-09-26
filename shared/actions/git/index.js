@@ -8,7 +8,6 @@ import * as Saga from '../../util/saga'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeConstants from '../../constants/route-tree'
 import {call, put, select} from 'redux-saga/effects'
-import {gitTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
 import moment from 'moment'
 
@@ -54,7 +53,7 @@ function* _createDeleteHelper(theCall: *) {
   try {
     yield theCall
     yield put(Creators.loadGit())
-    yield put(navigateTo([gitTab], []))
+    yield put(navigateTo([Tabs.gitTab], []))
   } catch (err) {
     yield put(Creators.setError(err))
   } finally {
@@ -122,12 +121,11 @@ function* _setError(action: Constants.SetError): SagaGenerator<any, any> {
   yield put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.gitError]])))
 }
 
-function* _badgeAppForGit(action: Constants.BadgeAppForGit): SagaGenerator<any, any> {
-  yield put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
-}
+const _badgeAppForGit = (action: Constants.BadgeAppForGit) =>
+  put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
 
 let _wasOnGitTab = false
-function* _onTabChange(action: RouteTreeConstants.SwitchTo): SagaGenerator<any, any> {
+const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   // on the git tab?
   const root =
     // $FlowIssue action allows array or list or iterable, for some reason
@@ -139,12 +137,14 @@ function* _onTabChange(action: RouteTreeConstants.SwitchTo): SagaGenerator<any, 
   } else if (_wasOnGitTab) {
     _wasOnGitTab = false
     // clear badges
-    yield call(RPCTypes.gregorDismissCategoryRpcPromise, {
+    return call(RPCTypes.gregorDismissCategoryRpcPromise, {
       param: {
         category: 'new_git_repo',
       },
     })
   }
+
+  return null
 }
 
 function* gitSaga(): SagaGenerator<any, any> {
@@ -155,8 +155,8 @@ function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('git:deleteTeamRepo', _deleteTeamRepo)
   yield Saga.safeTakeLatest('git:setLoading', _setLoading)
   yield Saga.safeTakeLatest('git:setError', _setError)
-  yield Saga.safeTakeLatest('git:badgeAppForGit', _badgeAppForGit)
-  yield Saga.safeTakeEvery(RouteTreeConstants.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure('git:badgeAppForGit', _badgeAppForGit)
+  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
 }
 
 export default gitSaga
