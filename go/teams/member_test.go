@@ -367,7 +367,9 @@ func TestMemberAddNoPUK(t *testing.T) {
 	}
 
 	inviteNoPUK("t_alice", keybase1.UID("295a7eea607af32040647123732bc819"), keybase1.TeamRole_READER)
-	inviteNoPUK("t_bob", keybase1.UID("afb5eda3154bc13c1df0189ce93ba119"), keybase1.TeamRole_OWNER)
+
+	// Disabled until we back out CORE-6170
+	// inviteNoPUK("t_bob", keybase1.UID("afb5eda3154bc13c1df0189ce93ba119"), keybase1.TeamRole_OWNER)
 }
 
 // add user without keys to a team, should create invite link

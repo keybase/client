@@ -629,6 +629,13 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 	// without a PUK or without any keys. Note that we are allowed to invites Owners in this
 	// manner. But if we're inviting for anything else, then no owner invites are allowed.
 	if uv.Uid.Exists() {
+		if role == keybase1.TeamRole_OWNER {
+			txt := "We are sorry, you have hit a bug! The user you are inviting (" + username + ") hasn't logged into\n" +
+				"Keybase for a while and needs to upgrade their account. Until they do, you can only add them to this team\n" +
+				"as an admin, reader or writer. So you have three options: (1) wait until " + username + " upgrades;\n" +
+				"(2) wait until all Keybase users get the fixed app (by 2017-11-07); or (3) add " + username + " as an admin (or reader or writer)"
+			return keybase1.TeamAddMemberResult{}, errors.New(txt)
+		}
 		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
 	}
 
