@@ -39,6 +39,7 @@ func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool)       
 func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)                   { return 0, false }
 func (n NullConfiguration) GetLinkCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
+func (n NullConfiguration) GetUPAKCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
 func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
 func (n NullConfiguration) GetPinentry() string                                            { return "" }
@@ -241,11 +242,11 @@ func (e *Env) GetMountDir() (string, error) {
 	}
 }
 
-func NewEnv(cmd CommandLine, config ConfigReader) *Env {
-	return newEnv(cmd, config, runtime.GOOS)
+func NewEnv(cmd CommandLine, config ConfigReader, getLog LogGetter) *Env {
+	return newEnv(cmd, config, runtime.GOOS, getLog)
 }
 
-func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
+func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGetter) *Env {
 	if cmd == nil {
 		cmd = NullConfiguration{}
 	}
@@ -257,7 +258,8 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string) *Env {
 	e.HomeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
 		osname,
-		func() RunMode { return e.GetRunMode() })
+		func() RunMode { return e.GetRunMode() },
+		getLog)
 	return &e
 }
 
@@ -780,6 +782,14 @@ func (e *Env) GetLinkCacheSize() int {
 		e.cmd.GetLinkCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_LINK_CACHE_SIZE") },
 		e.config.GetLinkCacheSize,
+	)
+}
+
+func (e *Env) GetUPAKCacheSize() int {
+	return e.GetInt(UPAKCacheSize,
+		e.cmd.GetUPAKCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_UPAK_CACHE_SIZE") },
+		e.config.GetUPAKCacheSize,
 	)
 }
 

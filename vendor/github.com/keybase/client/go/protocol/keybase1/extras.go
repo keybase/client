@@ -685,6 +685,15 @@ func (k *KID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (u *UID) UnmarshalJSON(b []byte) error {
+	uid, err := UIDFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*u = uid
+	return nil
+}
+
 func (k *KID) MarshalJSON() ([]byte, error) {
 	return Quote(k.String()), nil
 }
@@ -997,13 +1006,20 @@ func (t TLFID) ToBytes() []byte {
 }
 
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
-	return b == TLFIdentifyBehavior_CHAT_GUI || b == TLFIdentifyBehavior_CHAT_CLI ||
-		b == TLFIdentifyBehavior_CHAT_GUI_STRICT
+	switch b {
+	case TLFIdentifyBehavior_CHAT_CLI,
+		TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_CHAT_GUI_STRICT:
+		return true
+	default:
+		return false
+	}
 }
 
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
-	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_CHAT_GUI_STRICT:
+	case TLFIdentifyBehavior_CHAT_GUI,
+		TLFIdentifyBehavior_CHAT_GUI_STRICT:
 		return true
 	default:
 		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
@@ -1013,10 +1029,15 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 }
 
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
-	// The chat GUI (in non-strict mode) is specifically exempted from broken
-	// track errors, because people need to be able to use it to ask each other
-	// about the fact that proofs are broken.
-	return b == TLFIdentifyBehavior_CHAT_GUI
+	switch b {
+	case TLFIdentifyBehavior_CHAT_GUI:
+		// The chat GUI (in non-strict mode) is specifically exempted from broken
+		// track errors, because people need to be able to use it to ask each other
+		// about the fact that proofs are broken.
+		return true
+	default:
+		return false
+	}
 }
 
 // All of the chat modes want to prevent tracker popups.
@@ -1086,6 +1107,10 @@ func (u UserPlusKeys) GetName() string {
 	return u.Username
 }
 
+func (u UserPlusKeys) GetStatus() StatusCode {
+	return u.Status
+}
+
 func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
 	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
 		return u.RemoteTracks[j].Username >= s
@@ -1105,6 +1130,10 @@ func (u UserPlusAllKeys) GetUID() UID {
 
 func (u UserPlusAllKeys) GetName() string {
 	return u.Base.GetName()
+}
+
+func (u UserPlusAllKeys) GetStatus() StatusCode {
+	return u.Base.GetStatus()
 }
 
 func (u UserPlusAllKeys) GetDeviceID(kid KID) (ret DeviceID, err error) {
@@ -1445,6 +1474,7 @@ func UPAKFromUPKV2AI(uV2 UserPlusKeysV2AllIncarnations) UserPlusAllKeys {
 			Uid:               uV2.Current.Uid,
 			Username:          uV2.Current.Username,
 			EldestSeqno:       uV2.Current.EldestSeqno,
+			Status:            uV2.Current.Status,
 			DeviceKeys:        deviceKeysV1,
 			RevokedDeviceKeys: revokedDeviceKeysV1,
 			DeletedDeviceKeys: deletedDeviceKeysV1,
@@ -1862,11 +1892,18 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
-// LockIDFromBytes takes the first 8 bytes of the sha512 over data, interprets
-// it as int64 using little endian, and returns the value as LockID.
+const (
+	// LockIDVersion0 is the first ever version for lock ID format.
+	LockIDVersion0 byte = iota
+)
+
+// LockIDFromBytes takes the first 8 bytes of the sha512 over data, overwrites
+// first byte with the version byte, then interprets it as int64 using big
+// endian, and returns the value as LockID.
 func LockIDFromBytes(data []byte) LockID {
 	sum := sha512.Sum512(data)
-	return LockID(binary.LittleEndian.Uint64(sum[:8]))
+	sum[0] = LockIDVersion0
+	return LockID(binary.BigEndian.Uint64(sum[:8]))
 }
 
 // MDPriority is the type for the priority field of a metadata put. mdserver

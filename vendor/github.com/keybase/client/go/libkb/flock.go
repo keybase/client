@@ -8,22 +8,23 @@ import (
 )
 
 type LockPIDFile struct {
+	Contextified
 	name string
 	file *os.File
 }
 
-func NewLockPIDFile(s string) *LockPIDFile {
-	return &LockPIDFile{name: s}
+func NewLockPIDFile(g *GlobalContext, s string) *LockPIDFile {
+	return &LockPIDFile{Contextified: NewContextified(g), name: s}
 }
 
 func (f *LockPIDFile) Close() (err error) {
 	if f.file != nil {
 		if e1 := f.file.Close(); e1 != nil {
-			G.Log.Warning("Error closing pid file: %s\n", e1)
+			f.G().Log.Warning("Error closing pid file: %s\n", e1)
 		}
-		G.Log.Debug("Cleaning up pidfile %s", f.name)
+		f.G().Log.Debug("Cleaning up pidfile %s", f.name)
 		if err = os.Remove(f.name); err != nil {
-			G.Log.Warning("Error removing pidfile: %s\n", err)
+			f.G().Log.Warning("Error removing pidfile: %s\n", err)
 		}
 	}
 	return
