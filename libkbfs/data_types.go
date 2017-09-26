@@ -865,7 +865,6 @@ func (s PrefetchStatus) String() string {
 		return "TriggeredPrefetch"
 	case FinishedPrefetch:
 		return "FinishedPrefetch"
-	default:
-		return "Unknown"
 	}
+	return "Unknown"
 }

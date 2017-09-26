@@ -81,8 +81,8 @@ func testPrefetcherCheckGet(t *testing.T, bcache BlockCache, ptr BlockPointer,
 	block, prefetchStatus, lifetime, err := bcache.GetWithPrefetch(ptr)
 	require.NoError(t, err)
 	require.Equal(t, expectedBlock, block)
-	require.Equal(t, expectedPrefetchStatus, prefetchStatus)
-	require.Equal(t, expectedLifetime, lifetime)
+	require.Equal(t, expectedPrefetchStatus.String(), prefetchStatus.String())
+	require.Equal(t, expectedLifetime.String(), lifetime.String())
 }
 
 func waitForPrefetchOrBust(t *testing.T, ch <-chan struct{}) {

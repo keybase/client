@@ -786,6 +786,18 @@ type KeyCache interface {
 // BlockCacheLifetime denotes the lifetime of an entry in BlockCache.
 type BlockCacheLifetime int
 
+func (l BlockCacheLifetime) String() string {
+	switch l {
+	case NoCacheEntry:
+		return "NoCacheEntry"
+	case TransientEntry:
+		return "TransientEntry"
+	case PermanentEntry:
+		return "PermanentEntry"
+	}
+	return "Unknown"
+}
+
 const (
 	// NoCacheEntry means that the entry will not be cached.
 	NoCacheEntry BlockCacheLifetime = iota
@@ -1241,9 +1253,6 @@ type Prefetcher interface {
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(kbfsblock.ID)
-	// NotifyPrefetchDone notifies the prefetcher that a prefetch has
-	// completed.
-	NotifyPrefetchDone(kbfsblock.ID)
 	// Shutdown shuts down the prefetcher idempotently. Future calls to
 	// the various Prefetch* methods will return io.EOF. The returned channel
 	// allows upstream components to block until all pending prefetches are
