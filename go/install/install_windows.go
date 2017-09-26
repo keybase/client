@@ -293,7 +293,7 @@ func getCachedPackageModifyString(log Log) (string, error) {
 		log.Debug("getCachedPackageModifyString: can't open SOFTWARE\\Keybase\\Keybase\\")
 		return "", err
 	}
-	bundleKey, _, err := k2.GetStringValue("BUNDLEKEY")
+	bundleKey, _, err := k.GetStringValue("BUNDLEKEY")
 	if err != nil || bundleKey == "" {
 		log.Debug("getCachedPackageModifyString: can't read SOFTWARE\\Keybase\\Keybase\\BUNDLEKEY")
 		return "", err

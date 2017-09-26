@@ -135,6 +135,7 @@ function* fuseStatusSaga(): SagaGenerator<any, any> {
     if (kbfsMount && fs.existsSync(kbfsMount)) {
       status.installStatus = 4 // installed
       status.installAction = 1 // none
+      status.kextStarted = true
     }
   }
   const action: FSFuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}

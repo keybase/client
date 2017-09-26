@@ -12,7 +12,7 @@ import (
 
 func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	status := keybase1.FuseStatus{}
-	if checkKeybaseDokanCodes(log) {
+	if installed, _ := checkRegistryKeybaseDokan(log); installed {
 		status.InstallStatus = keybase1.InstallStatus_INSTALLED
 		status.InstallAction = keybase1.InstallAction_NONE
 		status.KextStarted = true
@@ -32,7 +32,7 @@ func checkRegistryKeybaseDokan(log Log) (bool, error) {
 		return false, err
 	}
 	defer k.Close()
-	productID, _, err := k.GetStringValue(productIDKey)
+	productID, _, err := k.GetStringValue("BUNDLEKEY")
 	if err != nil {
 		return false, err
 	}
@@ -41,7 +41,7 @@ func checkRegistryKeybaseDokan(log Log) (bool, error) {
 		log.Info("CheckRegistryKeybaseDokan: Empty product ID, returning false")
 		return false, err
 	}
-	k2, err := registry.OpenKey(registry.LOCAL_MACHINE, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`+productID, registry.QUERY_VALUE|registry.WOW64_64KEY)
+	k2, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`+productID, registry.QUERY_VALUE|registry.WOW64_64KEY)
 	if err == nil {
 		return true, nil
 	}
