@@ -716,9 +716,8 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		invites.Writers = &invList
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
-	default:
-		// should be caught further up, but just in case
-		return errors.New("You cannot invite an owner to a team.")
+	case keybase1.TeamRole_OWNER:
+		invites.Owners = &invList
 	}
 
 	entropy, err := makeSCTeamEntropy()

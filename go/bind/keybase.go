@@ -169,7 +169,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 		config, ctx, log, true, nil, nil)
 	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
-		keybase1.KBFSGitProtocol(libgit.NewRPCHandler(config)),
+		keybase1.KBFSGitProtocol(libgit.NewRPCHandlerWithCtx(ctx, config)),
 	})
 	return keybaseService, nil
 }

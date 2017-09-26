@@ -48,9 +48,23 @@ class _ChatFilterRow extends Component<Props, State> {
       this.props.onSetFilter('')
       this._stopEditing()
     } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      e.stopPropagation()
       this.props.onSelectDown()
     } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      e.stopPropagation()
       this.props.onSelectUp()
+    }
+  }
+
+  _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    if (!isMobile) {
+      e.preventDefault()
+      e.stopPropagation()
+      this.props.onSetFilter('')
+      this._stopEditing()
+      this._input && this._input.blur()
     }
   }
 
@@ -91,6 +105,7 @@ class _ChatFilterRow extends Component<Props, State> {
           onFocus={this._startEditing}
           onBlur={this._stopEditing}
           onKeyDown={this._onKeyDown}
+          onEnterKeyDown={this._onEnterKeyDown}
           ref={this._setRef}
           style={{marginRight: globalMargins.tiny}}
         />,

@@ -1441,6 +1441,20 @@ type sanityCheckInvitesOptions struct {
 	implicitTeam bool
 }
 
+func assertIsKeybaseInvite(g *libkb.GlobalContext, i SCTeamInvite) bool {
+	typ, err := keybase1.TeamInviteTypeFromString(string(i.Type), g.Env.GetRunMode() == libkb.DevelRunMode)
+	if err != nil {
+		g.Log.Info("bad invite type: %s", err)
+		return false
+	}
+	cat, err := typ.C()
+	if err != nil {
+		g.Log.Info("bad invite category: %s", err)
+		return false
+	}
+	return cat == keybase1.TeamInviteCategory_KEYBASE
+}
+
 // sanityCheckInvites sanity checks a raw SCTeamInvites section and coerces it into a
 // format that we can use. It checks:
 //  - no owners are invited
@@ -1464,11 +1478,11 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 	additions = make(map[keybase1.TeamRole][]keybase1.TeamInvite)
 
 	if invites.Owners != nil && len(*invites.Owners) > 0 {
-		if !options.implicitTeam {
-			return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
-		}
 		additions[keybase1.TeamRole_OWNER] = nil
 		for _, i := range *invites.Owners {
+			if !options.implicitTeam && !assertIsKeybaseInvite(t.G(), i) {
+				return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
+			}
 			all = append(all, assignment{i, keybase1.TeamRole_OWNER})
 		}
 	}

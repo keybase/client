@@ -78,20 +78,23 @@ func TestPutAndGet(t *testing.T) {
 		require.Equal(t, repo.Folder.FolderType, keybase1.FolderType_TEAM)
 		require.Equal(t, repo.Folder.Private, true)
 		require.Equal(t, repo.ServerMetadata.LastModifyingUsername, u.Username)
+		require.Equal(t, repo.CanDelete, true)
 	}
 
 	// Now get the repos for just one team. Should be only one of the two we just created.
-	oneRepo, err := GetMetadata(context.Background(), tc.G, keybase1.Folder{
+	oneRepoList, err := GetMetadata(context.Background(), tc.G, keybase1.Folder{
 		Name:       teamName1,
 		Private:    true,
 		FolderType: keybase1.FolderType_TEAM,
 	})
 	require.NoError(t, err)
-	require.Equal(t, 1, len(oneRepo), "expected to get only one repo back, found: %d", len(oneRepo))
-	require.Equal(t, "repoNameFirst", string(oneRepo[0].LocalMetadata.RepoName))
-	require.Equal(t, kbtest.DefaultDeviceName, oneRepo[0].ServerMetadata.LastModifyingDeviceName)
-	require.Equal(t, string(team1.Chain.Id+"_abc123"), oneRepo[0].GlobalUniqueID)
-	require.Equal(t, "keybase://team/"+teamName1+"/repoNameFirst", oneRepo[0].RepoUrl)
+	require.Equal(t, 1, len(oneRepoList), "expected to get only one repo back, found: %d", len(oneRepoList))
+	oneRepo := oneRepoList[0]
+	require.Equal(t, "repoNameFirst", string(oneRepo.LocalMetadata.RepoName))
+	require.Equal(t, kbtest.DefaultDeviceName, oneRepo.ServerMetadata.LastModifyingDeviceName)
+	require.Equal(t, string(team1.Chain.Id+"_abc123"), oneRepo.GlobalUniqueID)
+	require.Equal(t, "keybase://team/"+teamName1+"/repoNameFirst", oneRepo.RepoUrl)
+	require.Equal(t, oneRepo.CanDelete, true)
 }
 
 func TestPutAndGetImplicitTeam(t *testing.T) {
@@ -126,6 +129,7 @@ func TestPutAndGetImplicitTeam(t *testing.T) {
 		require.Equal(t, true, repo.Folder.Private)
 		require.Equal(t, kbtest.DefaultDeviceName, repo.ServerMetadata.LastModifyingDeviceName)
 		require.Equal(t, "keybase://private/"+normalizedTLFName+"/"+repoName, repo.RepoUrl)
+		require.Equal(t, repo.CanDelete, true)
 	}
 
 	// Test fetching the implicit team repo with both Get and GetAll
@@ -138,4 +142,42 @@ func TestPutAndGetImplicitTeam(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, len(allRepos))
 	assertStuffAboutRepo(t, allRepos[0])
+}
+
+func TestPutAndGetWritersCantDelete(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	u1, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	u2, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	// u2 creates a team where u1 is just a writer
+	teamName := u2.Username + "t1"
+	err = teams.CreateRootTeam(context.TODO(), tc.G, teamName)
+	require.NoError(t, err)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a git repo for that team
+	doPut(t, tc.G, teamName, "abc123", "dummyRepoName")
+
+	// Load the repo and confirm that u2 sees it as CanDelete=true.
+	repos, err := GetAllMetadata(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(repos), "expected exactly one repo")
+	require.Equal(t, true, repos[0].CanDelete, "owners/admins should be able to delete")
+
+	// Now log in as u1, load the repo again, and confirm that u1 sees it as CanDelete=FALSE.
+	err = tc.G.Logout()
+	require.NoError(t, err)
+	err = u1.Login(tc.G)
+	require.NoError(t, err)
+	repos2, err := GetAllMetadata(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(repos2), "expected exactly one repo")
+	require.Equal(t, false, repos2[0].CanDelete, "non-admins must not be able to delete")
 }
