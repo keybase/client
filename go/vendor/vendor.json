@@ -741,6 +741,12 @@
 			"revisionTime": "2016-07-15T18:54:39Z"
 		},
 		{
+			"checksumSHA1": "vcN67ZjTbGpLLwSghHCbAEvmzMo=",
+			"path": "golang.org/x/sync/semaphore",
+			"revision": "f52d1811a62927559de87708c8913c1650ce4f26",
+			"revisionTime": "2017-05-17T20:25:26Z"
+		},
+		{
 			"path": "golang.org/x/sys/windows",
 			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
 			"revisionTime": "2016-04-14T16:31:22+03:00"
