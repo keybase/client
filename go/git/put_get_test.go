@@ -149,42 +149,75 @@ func TestPutAndGetImplicitTeam(t *testing.T) {
 	u2, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
-	repoName := "implicit repo foo bar"
+	// Create two repos, one in u2's personal directory (since we're signed in
+	// as u2 at this point), and one in the directory that u1 and u2 share. One
+	// of the things we'll be testing is that the second one does *not* show up
+	// in the results of GetAllMetadata. This is a product choice -- we want to
+	// pretent they kinda don't exist.
+
+	repoName1 := keybase1.GitRepoName("me only repo")
+	testFolder1 := keybase1.Folder{
+		Name:       u2.Username,
+		Private:    true,
+		FolderType: keybase1.FolderType_PRIVATE,
+	}
+	err = PutMetadata(context.TODO(), tc.G, keybase1.PutGitMetadataArg{
+		Folder: testFolder1,
+		RepoID: keybase1.RepoID("abc123"),
+		Metadata: keybase1.GitLocalMetadata{
+			RepoName: repoName1,
+		},
+	})
+	require.NoError(t, err)
+
+	repoName2 := keybase1.GitRepoName("two person private repo")
 	normalizedTLFName, err := kbfs.NormalizeNamesInTLF([]string{u1.Username, u2.Username}, nil, "")
 	require.NoError(t, err)
-	testFolder := keybase1.Folder{
+	testFolder2 := keybase1.Folder{
 		Name:       normalizedTLFName,
 		Private:    true,
 		FolderType: keybase1.FolderType_PRIVATE,
 	}
 	err = PutMetadata(context.Background(), tc.G, keybase1.PutGitMetadataArg{
-		Folder: testFolder,
+		Folder: testFolder2,
 		RepoID: keybase1.RepoID("abc123"),
 		Metadata: keybase1.GitLocalMetadata{
-			RepoName: keybase1.GitRepoName(repoName),
+			RepoName: repoName2,
 		},
 	})
 	require.NoError(t, err)
 
-	assertStuffAboutRepo := func(t *testing.T, repo keybase1.GitRepoResult) {
-		require.Equal(t, repoName, string(repo.LocalMetadata.RepoName))
+	// Now make sure we can query these repos (or not, as appropriate for the
+	// multi-person-private case).
+
+	assertStuffAboutRepo := func(t *testing.T, repo keybase1.GitRepoResult, folder keybase1.Folder, repoName keybase1.GitRepoName) {
+		require.Equal(t, repoName, repo.LocalMetadata.RepoName)
 		require.Equal(t, keybase1.FolderType_PRIVATE, repo.Folder.FolderType)
 		require.Equal(t, true, repo.Folder.Private)
 		require.Equal(t, kbtest.DefaultDeviceName, repo.ServerMetadata.LastModifyingDeviceName)
-		require.Equal(t, "keybase://private/"+normalizedTLFName+"/"+repoName, repo.RepoUrl)
+		require.Equal(t, "keybase://private/"+folder.Name+"/"+string(repoName), repo.RepoUrl)
 		require.Equal(t, repo.CanDelete, true)
 	}
 
-	// Test fetching the implicit team repo with both Get and GetAll
-	oneRepo, err := GetMetadata(context.Background(), tc.G, testFolder)
+	// Test fetching the private repo with GetMetadata.
+	oneRepo, err := GetMetadata(context.Background(), tc.G, testFolder1)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(oneRepo))
-	assertStuffAboutRepo(t, oneRepo[0])
+	assertStuffAboutRepo(t, oneRepo[0], testFolder1, repoName1)
 
+	// Also test fetching the 2-person private repo with GetMetadata. This
+	// *should* work, even though it's hidden from GetAllMetadata.
+	oneRepo, err = GetMetadata(context.Background(), tc.G, testFolder2)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(oneRepo))
+	assertStuffAboutRepo(t, oneRepo[0], testFolder2, repoName2)
+
+	// Finally test the GetAllMetadata results. This should *not* see the
+	// 2-person repo.
 	allRepos, err := GetAllMetadata(context.Background(), tc.G)
 	require.NoError(t, err)
-	require.Equal(t, 1, len(allRepos))
-	assertStuffAboutRepo(t, allRepos[0])
+	require.Equal(t, 1, len(allRepos), "the two-person repo should be hidden!")
+	assertStuffAboutRepo(t, allRepos[0], testFolder1, repoName1)
 }
 
 func TestPutAndGetWritersCantDelete(t *testing.T) {

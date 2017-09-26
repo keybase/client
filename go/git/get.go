@@ -122,6 +122,13 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			if err != nil {
 				return nil, err
 			}
+
+			// Currently we want to pretend that multi-user personal repos
+			// (/keybase/private/chris,max/...) don't exist. Short circuit here
+			// to keep those out of the results list.
+			if repoFolder.FolderType == keybase1.FolderType_PRIVATE && repoFolder.Name != g.Env.GetUsername().String() {
+				continue
+			}
 		}
 
 		teamIDVis := keybase1.TeamIDWithVisibility{
