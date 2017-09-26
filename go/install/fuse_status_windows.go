@@ -23,21 +23,10 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	return status
 }
 
-func checkKeybaseDokanCodes(log Log) bool {
-	foundDokan, err := checkRegistryKeybaseDokan("DOKANPRODUCT64", log)
-	if !foundDokan || err != nil {
-		foundDokan, err = checkRegistryKeybaseDokan("DOKANPRODUCT86", log)
-	}
-	if err != nil {
-		log.Errorf("checkKeybaseDokanCodes error: %v", err.Error())
-	}
-	return foundDokan
-}
-
 // Our installer writes the dokan product codes to our registry location,
 // which we can then look for in the list of windows uninstall keys.
 // Another alternative might be to look for %windir%\system32\dokan1.dll
-func checkRegistryKeybaseDokan(productIDKey string, log Log) (bool, error) {
+func checkRegistryKeybaseDokan(log Log) (bool, error) {
 	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Keybase\Keybase\`, registry.QUERY_VALUE|registry.WOW64_64KEY)
 	if err != nil {
 		return false, err

@@ -286,34 +286,36 @@ func IsInUse(mountDir string, log Log) bool {
 }
 
 func getCachedPackageModifyString(log Log) (string, error) {
-	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\`, registry.READ|registry.WOW64_64KEY)
+
+	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Keybase\Keybase\`, registry.READ|registry.WOW64_64KEY)
 	defer k.Close()
 	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't enumerate uninstall keys")
+		log.Debug("getCachedPackageModifyString: can't open SOFTWARE\\Keybase\\Keybase\\")
 		return "", err
 	}
-	subKeyNames, err := k.ReadSubKeyNames(0)
+	bundleKey, _, err := k2.GetStringValue("BUNDLEKEY")
+	if err != nil || bundleKey == "" {
+		log.Debug("getCachedPackageModifyString: can't read SOFTWARE\\Keybase\\Keybase\\BUNDLEKEY")
+		return "", err
+	}
+
+	k2, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall`+bundleKey, registry.QUERY_VALUE|registry.WOW64_64KEY)
 	if err != nil {
-		log.Debug("getCachedPackageModifyString: can't ReadSubKeyNames")
+		log.Debug("getCachedPackageModifyString: can't read " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
 		return "", err
 	}
-	for _, subKeyName := range subKeyNames {
-		k2, err := registry.OpenKey(k, subKeyName, registry.QUERY_VALUE|registry.WOW64_64KEY)
-		if err != nil {
-			continue
-		}
-		displayName, _, err := k2.GetStringValue("DisplayName")
-		if err != nil {
-			continue
-		}
-		publisher, _, err := k2.GetStringValue("Publisher")
-		if err != nil {
-			continue
-		}
-		if displayName == "Keybase" && publisher == "Keybase, Inc." {
-			modify, _, err := k2.GetStringValue("ModifyPath")
-			return modify, err
-		}
+	displayName, _, err := k2.GetStringValue("DisplayName")
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't read DisplayName of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
 	}
+	publisher, _, err := k2.GetStringValue("Publisher")
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't read publisher of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
+	}
+	if displayName == "Keybase" && publisher == "Keybase, Inc." {
+		modify, _, err := k2.GetStringValue("ModifyPath")
+		return modify, err
+	}
+	log.Debug("getCachedPackageModifyString: " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey + "displayName " + displayName + ", publisher " + publisher)
 	return "", errors.New("no cached package path found")
 }

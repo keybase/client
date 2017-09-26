@@ -128,7 +128,15 @@ function openInDefault(openPath: string): Promise<*> {
 function* fuseStatusSaga(): SagaGenerator<any, any> {
   const prevStatus = yield select(state => state.favorite.fuseStatus)
 
-  const status = yield call(installFuseStatusRpcPromise)
+  let status = yield call(installFuseStatusRpcPromise)
+  if (isWindows && status.installStatus !== 4) {
+    // Check if another Dokan we didn't install mounted the filesystem
+    const kbfsMount = yield call(kbfsMountGetCurrentMountDirRpcPromise)
+    if (kbfsMount && fs.existsSync(kbfsMount)) {
+      status.installStatus = 4 // installed
+      status.installAction = 1 // none
+    }
+  }
   const action: FSFuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}
   yield put(action)
 }
@@ -186,15 +194,16 @@ function findKeybaseUninstallString(): Promise<string> {
             entry.data.values.ModifyPath &&
             entry.data.values.BundleCachePath
           ) {
-            if (!fs.existsSync(entry.data.values.BundleCachePath.value)) {
+            if (fs.existsSync(entry.data.values.BundleCachePath.value)) {
+              var modifyPath = entry.data.values.ModifyPath.value
+              // Remove double quotes - won't work otherwise
+              modifyPath = modifyPath.replace(/"/g, '')
+              // Remove /modify and send it in with the other arguments, below
+              modifyPath = modifyPath.replace(' /modify', '')
+              resolve(modifyPath)
+            } else {
               reject(new Error(`cached bundle not found:` + uninstallRegPath))
             }
-            var modifyPath = entry.data.values.ModifyPath.value
-            // Remove double quotes - won't work otherwise
-            modifyPath = modifyPath.replace(/"/g, '')
-            // Remove /modify and send it in with the other arguments, below
-            modifyPath = modifyPath.replace(' /modify', '')
-            resolve(modifyPath)
           } else {
             reject(new Error(`Keybase entry not found at` + uninstallRegPath))
           }
