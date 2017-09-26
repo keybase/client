@@ -507,44 +507,13 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 		p.triggerPrefetch(req)
 		return nil
 	}
-	// JZ: I'm removing this code to allow the prefetcher to decide how to
-	// handle prefetches. prefetchStatus should only be used in the actual
-	// prefetcher.
-	//if brq.config.IsSyncedTlf(kmd.TlfID()) {
-	//	// For synced blocks, callers need to be able to register themselves
-	//	// with the prefetcher as parents of a given block, so that their
-	//	// prefetch state is updated when the prefetch completes.
-	//} else if prefetchStatus == TriggeredPrefetch {
-	//	// If a prefetch has already been triggered for a block in a non-synced
-	//	// TLF, then there is no waiting to be done.
-	//	// TODO: maybe cancel here?
-	//	// The issue is that if we don't cancel at some point down the tree,
-	//	// the prefetcher will never remove the prefetches unless we do a true
-	//	// deep prefetch.
-	//	// On the other hand, if we _do_ cancel, we could be canceling a
-	//	// prefetch that needs to finish. Since prefetches are de-duped, this
-	//	// is a real risk..
-	//	//
-	//	// Plan A: store whether a block is a tail block in the `prefetch`. If
-	//	// a tail block completes, and it makes its parent counter 0, it should
-	//	// percolate. But if a non-tail block completes, it should percolate
-	//	// its counter and remove blocks from the prefetch tree, but it
-	//	// shouldn't mark the block done in the cache.
-	//	// * Problem: if all the tail blocks complete before the non-tail is
-	//	//   done fetching, there's no way to know that the mid-tree block should
-	//	//   percolate doneness.
-	//	//   * Answer: This is fine. If a mid-tree block triggers a prefetch,
-	//	//   then it has already been retrieved. And if it doesn't trigger, we
-	//	//   rely on the completion counter.
-	//	return TriggeredPrefetch
-	//}
 	isDeepSync := false
 	if p.config.IsSyncedTlf(kmd.TlfID()) {
 		isDeepSync = true
 	}
 	if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
-		// prefetchStatus unchanged.
+		// prefetchStatus unchanged, but cache anyway.
 		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
 			prefetchStatus)
 		return nil
