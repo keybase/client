@@ -49,6 +49,10 @@ func (t TeamSigChainState) IsPublic() bool {
 	return t.inner.Public
 }
 
+func (t TeamSigChainState) IsOpen() bool {
+	return t.inner.Open
+}
+
 func (t TeamSigChainState) LatestLastNamePart() keybase1.TeamNamePart {
 	return t.inner.NameLog[len(t.inner.NameLog)-1].LastPart
 }

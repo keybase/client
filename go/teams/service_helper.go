@@ -642,3 +642,12 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	req.None = []keybase1.UserVersion{existingUV}
 	return t.ChangeMembership(ctx, req)
 }
+
+func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, open bool) error {
+	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+	if err != nil {
+		return err
+	}
+
+	return t.PostTeamSettings(ctx, open)
+}

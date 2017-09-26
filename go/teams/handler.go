@@ -212,7 +212,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		return err
 	}
 
-	if !team.chain().inner.Open {
+	if !team.IsOpen() {
 		return fmt.Errorf("team %q is not an open team", team.Name)
 	}
 

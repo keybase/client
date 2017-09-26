@@ -54,6 +54,10 @@ func (t *Team) IsImplicit() bool {
 	return t.chain().IsImplicit()
 }
 
+func (t *Team) IsOpen() bool {
+	return t.chain().IsOpen()
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()
@@ -1184,4 +1188,30 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
 		subteams = append(subteams, recursiveSubteams...)
 	}
 	return subteams, nil
+}
+
+func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
+	if _, err := t.SharedSecret(ctx); err != nil {
+		return err
+	}
+
+	admin, err := t.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	section := SCTeamSection{
+		ID:    SCTeamID(t.ID),
+		Admin: admin,
+		Settings: &SCTeamSettings{
+			Open: &SCTeamSettingsOpen{
+				Enabled: open,
+				Options: &SCTeamSettingsOpenOptions{
+					JoinAs: "reader",
+				},
+			},
+		},
+	}
+
+	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
 }

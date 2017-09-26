@@ -48,3 +48,31 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, role, keybase1.TeamRole_READER)
 }
+
+func TestTeamSetOpen(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	own := tt.addUser("own")
+
+	teamName := own.createTeam()
+	t.Logf("Open team name is %q", teamName)
+
+	team, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
+		Name:        teamName,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, team.IsOpen(), false)
+
+	tname, _ := keybase1.TeamNameFromString(teamName)
+	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, tname.ToTeamID(), true)
+	require.NoError(t, err)
+
+	team, err = teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
+		Name:        teamName,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+	require.Equal(t, team.IsOpen(), true)
+}
