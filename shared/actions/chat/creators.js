@@ -701,6 +701,10 @@ function unboxMore(): Constants.UnboxMore {
   return {type: 'chat:unboxMore', payload: undefined}
 }
 
+function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterSelectNext {
+  return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
+}
+
 export {
   addPending,
   appendMessages,
@@ -747,6 +751,7 @@ export {
   retryMessage,
   saveAttachment,
   selectAttachment,
+  selectNext,
   selectConversation,
   setInboxFilter,
   setInboxSearch,

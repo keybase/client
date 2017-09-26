@@ -571,7 +571,27 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
   })
 }
 
+function* filterSelectNext(action: Constants.FilterSelectNext): SagaGenerator<any, any> {
+  const rows = action.payload.rows
+  const direction = action.payload.direction
+
+  const selected = yield select(Constants.getSelectedConversation)
+
+  const idx = rows.findIndex(r => r.conversationIDKey === selected)
+  let nextIdx
+  if (idx === -1) {
+    nextIdx = 0
+  } else {
+    nextIdx = Math.min(rows.length - 1, Math.max(0, idx + direction))
+  }
+  const r = rows[nextIdx]
+  if (r && r.conversationIDKey) {
+    yield put(Creators.selectConversation(r.conversationIDKey, false))
+  }
+}
+
 export {
+  filterSelectNext,
   onInitialInboxLoad,
   onInboxStale,
   onGetInboxAndUnbox,

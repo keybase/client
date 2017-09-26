@@ -449,6 +449,10 @@ export type BlockConversation = NoErrorTypedAction<
     reportUser: boolean,
   }
 >
+export type InboxFilterSelectNext = NoErrorTypedAction<
+  'chat:inboxFilterSelectNext',
+  {rows: any, direction: 1 | -1}
+>
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>

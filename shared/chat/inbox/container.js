@@ -60,37 +60,6 @@ function scoreFilter(
   return 0
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
-  loadInbox: () => dispatch(Creators.loadInbox()),
-  onHotkey: cmd => {
-    if (cmd.endsWith('+n')) {
-      dispatch(Creators.newChat())
-    } else {
-      focusFilter()
-    }
-  },
-  onNewChat: () => dispatch(Creators.newChat()),
-  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
-    conversationIDKey && dispatch(Creators.selectConversation(conversationIDKey, true)),
-  onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
-  onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
-    dispatch(Creators.untrustedInboxVisible(converationIDKey, rowsVisible)),
-  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
-})
-
-const findNextConvo = (rows: Array<any>, selected, direction) => {
-  const filteredRows = rows.filter(r => ['small', 'big'].includes(r.type))
-  const idx = filteredRows.findIndex(r => r.conversationIDKey === selected)
-  let nextIdx
-  if (idx === -1) {
-    nextIdx = 0
-  } else {
-    nextIdx = Math.min(filteredRows.length - 1, Math.max(0, idx + direction))
-  }
-  const r = filteredRows[nextIdx]
-  return r && r.conversationIDKey
-}
-
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
 const getInbox = (state: TypedState) => state.entities.get('inbox')
 const getAlwaysShow = (state: TypedState) => state.entities.get('inboxAlwaysShow')
@@ -270,6 +239,25 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
   return TEMP
 }
 
+const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
+  _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
+  loadInbox: () => dispatch(Creators.loadInbox()),
+  onHotkey: cmd => {
+    if (cmd.endsWith('+n')) {
+      dispatch(Creators.newChat())
+    } else {
+      focusFilter()
+    }
+  },
+  onNewChat: () => dispatch(Creators.newChat()),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
+    conversationIDKey && dispatch(Creators.selectConversation(conversationIDKey, true)),
+  onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
+  onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
+    dispatch(Creators.untrustedInboxVisible(converationIDKey, rowsVisible)),
+  toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
+})
+
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   DEBUG_SELECTORS && console.log('aaa 8 mergeProps')
@@ -280,8 +268,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onNewChat: dispatchProps.onNewChat,
     onSelect: dispatchProps.onSelect,
     // TODO move this into action so we don't need to plumb selected
-    // onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
-    // onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
+    onSelectDown: () => {
+      const filteredRows = stateProps.rows.filter(r => ['small', 'big'].includes(r.type))
+      dispatchProps._onSelectNext(filteredRows, 1)
+    },
+    onSelectUp: () => {
+      const filteredRows = stateProps.rows.filter(r => ['small', 'big'].includes(r.type))
+      dispatchProps._onSelectNext(filteredRows, -1)
+    },
     onSetFilter: dispatchProps.onSetFilter,
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     rows: stateProps.rows,

@@ -1414,6 +1414,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
   yield Saga.safeTakeSerially('chat:unboxConversations', Inbox.unboxConversations)
   yield Saga.safeTakeLatest('chat:unboxMore', Inbox.unboxMore)
+  yield Saga.safeTakeEvery('chat:inboxFilterSelectNext', Inbox.filterSelectNext)
 }
 
 export default chatSaga
