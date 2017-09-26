@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import * as CommonConstants from '../constants/common'
-import {chatTab, folderTab} from '../constants/tabs'
+import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 
@@ -24,15 +24,17 @@ export default function(state: Constants.State = initialState, action: Constants
     case CommonConstants.resetStore:
       return initialState
     case 'notifications:receivedBadgeState': {
-      const {conversations, newTlfs, rekeysNeeded} = action.payload.badgeState
+      const {conversations, newTlfs, rekeysNeeded, newGitRepoGlobalUniqueIDs} = action.payload.badgeState
 
       const deviceType = isMobile ? RPCTypes.CommonDeviceType.mobile : RPCTypes.CommonDeviceType.desktop
       const totalMessages = (conversations || [])
         .reduce((total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total), 0)
+      const newGit = (newGitRepoGlobalUniqueIDs || []).length
 
       const navBadges = state.get('navBadges').withMutations(n => {
-        n.set(chatTab, totalMessages)
-        n.set(folderTab, newTlfs + rekeysNeeded)
+        n.set(Tabs.chatTab, totalMessages)
+        n.set(Tabs.folderTab, newTlfs + rekeysNeeded)
+        n.set(Tabs.gitTab, newGit)
       })
       // $FlowIssue withMutations
       let newState = state.withMutations(s => {
