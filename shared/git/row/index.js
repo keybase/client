@@ -214,7 +214,7 @@ const _inputInputStyle = {
   ...globalStyles.fontTerminal,
   // on desktop the input text isn't vertically aligned
   ...(isMobile
-    ? {height: 2}
+    ? {}
     : {
         display: 'inline-block',
         paddingTop: 3,

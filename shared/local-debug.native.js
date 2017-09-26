@@ -24,7 +24,7 @@ let config: {[key: string]: any} = {
   enableActionLogging: true,
   enableStoreLogging: false,
   featureFlagsOverride: null,
-  forceImmediateLogging: true,
+  forceImmediateLogging: false,
   forwardLogs: true,
   isDevApplePushToken: false,
   isTesting: nativeBridge.test === '1',
