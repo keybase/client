@@ -11,21 +11,21 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type CmdGitCreate struct {
+type CmdGitDelete struct {
 	libkb.Contextified
 	repoName keybase1.GitRepoName
 	teamName keybase1.TeamName
 }
 
-func newCmdGitCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdGitDelete(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "create",
+		Name:         "delete",
 		ArgumentHelp: "<repo name> [--team=<team name>]",
-		Usage:        "Create a personal or team git repository.",
-		Description:  "`keybase git create reponame` will create a personal git repo.\n   `keybase git create reponame --team=treehouse` will create a\n   team git repo for the `treehouse` team.",
+		Usage:        "Delete a personal or team git repository.",
+		Description:  "`keybase git delete reponame` will delete a personal git repo.\n   `keybase git delete reponame --team=treehouse` will delete a\n   team git repo for the `treehouse` team. DELETION IS IMMEDIATE\n   AND IRREVERSIBLE.",
 		Action: func(c *cli.Context) {
-			cmd := NewCmdGitCreateRunner(g)
-			cl.ChooseCommand(cmd, "create", c)
+			cmd := NewCmdGitDeleteRunner(g)
+			cl.ChooseCommand(cmd, "delete", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -36,11 +36,11 @@ func newCmdGitCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 	}
 }
 
-func NewCmdGitCreateRunner(g *libkb.GlobalContext) *CmdGitCreate {
-	return &CmdGitCreate{Contextified: libkb.NewContextified(g)}
+func NewCmdGitDeleteRunner(g *libkb.GlobalContext) *CmdGitDelete {
+	return &CmdGitDelete{Contextified: libkb.NewContextified(g)}
 }
 
-func (c *CmdGitCreate) ParseArgv(ctx *cli.Context) error {
+func (c *CmdGitDelete) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) == 0 {
 		return errors.New("repo name argument required")
 	}
@@ -56,7 +56,7 @@ func (c *CmdGitCreate) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdGitCreate) Run() error {
+func (c *CmdGitDelete) Run() error {
 	cli, err := GetGitClient(c.G())
 	if err != nil {
 		return err
@@ -73,29 +73,29 @@ func (c *CmdGitCreate) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Repo created!\n")
+	dui.Printf("Repo deleted!\n")
 	return nil
 }
 
-func (c *CmdGitCreate) runPersonal(cli keybase1.GitClient) error {
-	if _, err := cli.CreatePersonalRepo(context.Background(), c.repoName); err != nil {
+func (c *CmdGitDelete) runPersonal(cli keybase1.GitClient) error {
+	if err := cli.DeletePersonalRepo(context.Background(), c.repoName); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *CmdGitCreate) runTeam(cli keybase1.GitClient) error {
-	arg := keybase1.CreateTeamRepoArg{
+func (c *CmdGitDelete) runTeam(cli keybase1.GitClient) error {
+	arg := keybase1.DeleteTeamRepoArg{
 		TeamName: c.teamName,
 		RepoName: c.repoName,
 	}
-	if _, err := cli.CreateTeamRepo(context.Background(), arg); err != nil {
+	if err := cli.DeleteTeamRepo(context.Background(), arg); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *CmdGitCreate) GetUsage() libkb.Usage {
+func (c *CmdGitDelete) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
