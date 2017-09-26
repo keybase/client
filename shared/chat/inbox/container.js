@@ -16,6 +16,8 @@ const smallTeamsCollapsedMaxShown = 5
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
 const passesStringFilter = (filter: string, toCheck: string): boolean => toCheck.indexOf(filter) >= 0
 
+const DEBUG_SELECTORS = false
+
 const passesParticipantFilter = (lcFilter: string, lcParticipants: Array<string>, you: ?string): boolean => {
   if (!lcFilter) {
     return true
@@ -37,7 +39,7 @@ function scoreFilter(
   lcYou: string
 ) {
   if (!lcStringToFilterOn && lcParticipants.length) {
-    if (lcFilter === lcYou.toLowerCase()) {
+    if (lcFilter === lcYou) {
       return 1
     }
     if (lcParticipants.some(p => p === lcFilter)) {
@@ -101,6 +103,7 @@ const getSmallRows = createImmutableEqualSelector(
 const getFilteredSmallRows = createSelector(
   [getSmallTimestamps, getFilter, getInbox, Constants.getYou],
   (smallTimestamps, lcFilter, inbox, you) => {
+    const lcYou = you.toLowerCase()
     return smallTimestamps
       .keySeq()
       .toArray()
@@ -109,7 +112,8 @@ const getFilteredSmallRows = createSelector(
         if (!i) {
           return false
         }
-        const passesFilter = scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), you) > 0
+        const passesFilter =
+          scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou) > 0
         return passesFilter
       })
       .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
@@ -183,8 +187,6 @@ const getBigRows = createSelector([getTeamToChannel], teamToChannels => {
 })
 
 const smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
-
-const DEBUG_SELECTORS = true
 
 // Get big and small and deal with the divider hiding small rows
 const getRowsAndMetadata = createSelector(
