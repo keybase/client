@@ -224,6 +224,7 @@ const _containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.blue5,
   borderRight: `1px solid ${globalColors.black_05}`,
+  contain: 'strict',
   height: '100%',
   maxWidth: 240,
   minWidth: 240,
