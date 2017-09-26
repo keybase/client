@@ -1,20 +1,11 @@
 // @flow
 import * as React from 'react'
+import * as TabConstants from '../../constants/tabs'
+import * as Constants from '../../constants/settings'
 import {StyleSheet} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text, HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'
 import {isAndroid} from '../../constants/platform'
-import {
-  devMenuTab,
-  feedbackTab,
-  aboutTab,
-  foldersTab,
-  gitTab,
-  devicesTab,
-  notificationsTab,
-  screenprotectorTab,
-  passphraseTab,
-} from '../../constants/settings'
 import {compose, defaultProps} from 'recompose'
 import flags from '../../util/feature-flags'
 
@@ -31,7 +22,7 @@ export function SettingsItem({
 }) {
   return (
     <ClickableBox onClick={onClick} style={itemStyle}>
-      <Box>
+      <Box style={{...globalStyles.flexBoxRow}}>
         <Text type={'BodySmallSemibold'} style={itemTextStyle}>{text.toUpperCase()}</Text>
         {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
       </Box>
@@ -46,40 +37,44 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
         {flags.teamChatEnabled &&
           <SettingsItem
             text="Folders"
-            badgeNumber={badgeNumbers[foldersTab]}
-            onClick={() => onTabChange(foldersTab)}
+            badgeNumber={badgeNumbers[TabConstants.folderTab]}
+            onClick={() => onTabChange(Constants.foldersTab)}
           />}
-        <SettingsItem text="Git" badgeNumber={badgeNumbers[gitTab]} onClick={() => onTabChange(gitTab)} />
+        <SettingsItem
+          text="Git"
+          badgeNumber={badgeNumbers[TabConstants.gitTab]}
+          onClick={() => onTabChange(Constants.gitTab)}
+        />
         <SettingsItem
           text="Devices"
-          badgeNumber={badgeNumbers[devicesTab]}
-          onClick={() => onTabChange(devicesTab)}
+          badgeNumber={badgeNumbers[TabConstants.devicesTab]}
+          onClick={() => onTabChange(Constants.devicesTab)}
         />
         <SettingsItem
           text="Notifications"
-          badgeNumber={badgeNumbers[notificationsTab]}
-          onClick={() => onTabChange(notificationsTab)}
-        />
-        <SettingsItem text="Passphrase" badgeNumber={0} onClick={() => onTabChange(passphraseTab)} />
-        <SettingsItem
-          text="About"
-          badgeNumber={badgeNumbers[aboutTab]}
-          onClick={() => onTabChange(aboutTab)}
+          badgeNumber={0}
+          onClick={() => onTabChange(Constants.notificationsTab)}
         />
         <SettingsItem
-          text="Feedback"
-          badgeNumber={badgeNumbers[feedbackTab]}
-          onClick={() => onTabChange(feedbackTab)}
+          text="Passphrase"
+          badgeNumber={0}
+          onClick={() => onTabChange(Constants.passphraseTab)}
         />
+        <SettingsItem text="About" badgeNumber={0} onClick={() => onTabChange(Constants.aboutTab)} />
+        <SettingsItem text="Feedback" badgeNumber={0} onClick={() => onTabChange(Constants.feedbackTab)} />
         {isAndroid &&
           <SettingsItem
             text="Screen Protector"
             badgeNumber={0}
-            onClick={() => onTabChange(screenprotectorTab)}
+            onClick={() => onTabChange(Constants.screenprotectorTab)}
           />}
         <SettingsItem text="Sign out" badgeNumber={0} onClick={onLogout} />
         {__DEV__ &&
-          <SettingsItem text="😎 &nbsp; Dev Menu" badgeNumber={0} onClick={() => onTabChange(devMenuTab)} />}
+          <SettingsItem
+            text="😎 &nbsp; Dev Menu"
+            badgeNumber={0}
+            onClick={() => onTabChange(Constants.devMenuTab)}
+          />}
       </Box>
     </NativeScrollView>
   )

@@ -2,6 +2,7 @@
 import {Component} from 'react'
 
 import type {Tab} from '../../constants/settings'
+import * as TabConstants from '../../constants/tabs'
 
 export type SettingsItem = {
   text: string,
@@ -14,7 +15,7 @@ export type Props = {
   selectedTab: Tab,
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,
-  badgeNumbers: {[key: Tab]: number},
+  badgeNumbers: {[key: TabConstants.Tab]: number},
 }
 
 export default class SettingsNav extends Component<Props> {}

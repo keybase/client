@@ -102,7 +102,6 @@ class Row extends React.Component<Props, State> {
                 ...globalStyles.flexBoxRow,
                 alignItems: 'center',
                 position: 'relative',
-                flex: isMobile ? 1 : undefined,
               }}
             >
               <Text type="Body">Clone:</Text>
@@ -215,7 +214,7 @@ const _inputInputStyle = {
   ...globalStyles.fontTerminal,
   // on desktop the input text isn't vertically aligned
   ...(isMobile
-    ? {}
+    ? {height: 2}
     : {
         display: 'inline-block',
         paddingTop: 3,

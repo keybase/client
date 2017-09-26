@@ -48,16 +48,16 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
 
 // reset errors and set loading, make a call and either go back to the root or show an error
 function* _createDeleteHelper(theCall: *) {
-  yield put(Creators.setError(null))
-  yield put(Creators.setLoading(true))
+  yield put.resolve(Creators.setError(null))
+  yield put.resolve(Creators.setLoading(true))
   try {
     yield theCall
-    yield put(Creators.loadGit())
     yield put(navigateTo([Tabs.gitTab], []))
   } catch (err) {
     yield put(Creators.setError(err))
   } finally {
-    yield put(Creators.setLoading(false))
+    yield put.resolve(Creators.setLoading(false))
+    yield put(Creators.loadGit())
   }
 }
 

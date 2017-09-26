@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/settings'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
-import {landingTab, invitationsTab, notificationsTab, deleteMeTab, devMenuTab} from '../../constants/settings'
 
 import type {Props, SettingsItem as SettingsItemType} from './index'
 
@@ -22,34 +22,34 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
     <Box style={styleNavBox}>
       <SettingsItem
         text="Your Account"
-        selected={selectedTab === landingTab}
-        badgeNumber={badgeNumbers[landingTab]}
-        onClick={() => onTabChange(landingTab)}
+        selected={selectedTab === Constants.landingTab}
+        badgeNumber={0}
+        onClick={() => onTabChange(Constants.landingTab)}
       />
       <SettingsItem
         text="Invitations"
-        selected={selectedTab === invitationsTab}
-        badgeNumber={badgeNumbers[invitationsTab]}
-        onClick={() => onTabChange(invitationsTab)}
+        selected={selectedTab === Constants.invitationsTab}
+        badgeNumber={0}
+        onClick={() => onTabChange(Constants.invitationsTab)}
       />
       <SettingsItem
         text="Notifications"
-        selected={selectedTab === notificationsTab}
-        badgeNumber={badgeNumbers[notificationsTab]}
-        onClick={() => onTabChange(notificationsTab)}
+        selected={selectedTab === Constants.notificationsTab}
+        badgeNumber={0}
+        onClick={() => onTabChange(Constants.notificationsTab)}
       />
       <SettingsItem
         text="Delete Me"
-        selected={selectedTab === deleteMeTab}
-        badgeNumber={badgeNumbers[deleteMeTab]}
-        onClick={() => onTabChange(deleteMeTab)}
+        selected={selectedTab === Constants.deleteMeTab}
+        badgeNumber={0}
+        onClick={() => onTabChange(Constants.deleteMeTab)}
       />
       <SettingsItem text="Sign out" selected={false} badgeNumber={0} onClick={onLogout} />
       {__DEV__ &&
         <SettingsItem
           text="😎 &nbsp; Dev Menu"
-          selected={selectedTab === devMenuTab}
-          onClick={() => onTabChange(devMenuTab)}
+          selected={selectedTab === Constants.devMenuTab}
+          onClick={() => onTabChange(Constants.devMenuTab)}
         />}
     </Box>
   )
