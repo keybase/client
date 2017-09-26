@@ -286,19 +286,19 @@ const getIsEmpty = (state: TypedState) => state.entities.get('inboxIsEmpty')
 // If the timestamps did change, and after sorting its still the same, we didn't change the list
 // Else map it into the types and render
 const getSmallTimestamps = (state: TypedState) => {
-  console.log('aaa 2 getSmallTimestamps  ')
+  // console.log('aaa 2 getSmallTimestamps  ')
   return state.entities.getIn(['inboxSmallTimestamps'], I.Map())
 }
 
 const getSortedSmallRows = createSelector([getSmallTimestamps], smallTimestamps => {
-  console.log('aaa 3 getSortedSmallRows ', smallTimestamps)
+  // console.log('aaa 3 getSortedSmallRows ', smallTimestamps)
   return smallTimestamps.sort((a, b) => b - a).keySeq()
 })
 
 const getSmallRows = createImmutableEqualSelector(
   [getSortedSmallRows, getAlwaysShow, getSupersededBy, getIsEmpty],
   (sortedSmallRows, alwaysShow, supersededBy, isEmpty) => {
-    console.log('aaa 4 getSmallRows', sortedSmallRows, alwaysShow, supersededBy, isEmpty)
+    // console.log('aaa 4 getSmallRows', sortedSmallRows, alwaysShow, supersededBy, isEmpty)
     return sortedSmallRows
       .toArray()
       .filter(conversationIDKey => {
@@ -334,13 +334,11 @@ const getFilteredSmallRows = createSelector(
 const smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
 // Get big and small and deal with the divider hiding small rows
-// Theoretically we could ignore getUnreadBadges and handle that as a connected component
-// for the divider itself
 const getRowsAndMetadata = createSelector(
-  [getSmallRows, smallTeamsPassThrough, getUnreadBadges],
-  (smallRows, smallTeamsExpanded, unreadBadges) => {
+  [getSmallRows, smallTeamsPassThrough /*, getUnreadBadges*/],
+  (smallRows, smallTeamsExpanded /*, unreadBadges*/) => {
     const bigRows = []
-    console.log('aaa 5 getRows', smallRows, smallTeamsExpanded, unreadBadges)
+    // console.log('aaa 5 getRows', smallRows, smallTeamsExpanded, unreadBadges)
     let showSmallTeamsExpandDivider = false
     let smallTeamsHiddenBadgeCount = 0
     let smallTeamsHiddenRowCount = 0
@@ -348,42 +346,43 @@ const getRowsAndMetadata = createSelector(
     const smallTeamsRowsToHideCount = Math.max(0, smallRows.length - smallTeamsCollapsedMaxShown)
     if (bigRows.length && smallTeamsRowsToHideCount) {
       showSmallTeamsExpandDivider = true
-      if (!smallTeamsExpanded) {
-        const smallTeamsHidden = smallRows.slice(smallTeamsCollapsedMaxShown)
-        smallRows = smallRows.slice(0, smallTeamsCollapsedMaxShown)
-        smallTeamsHiddenBadgeCount = smallTeamsHidden.reduce((total, team) => {
-          return total + unreadBadges.get(team.conversationIDKey, 0)
-        }, 0)
-        smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
-      }
+      // TODO move this to a connected divider
+      // if (!smallTeamsExpanded) {
+      // const smallTeamsHidden = smallRows.slice(smallTeamsCollapsedMaxShown)
+      // smallRows = smallRows.slice(0, smallTeamsCollapsedMaxShown)
+      // smallTeamsHiddenBadgeCount = smallTeamsHidden.reduce((total, team) => {
+      // return total + unreadBadges.get(team.conversationIDKey, 0)
+      // }, 0)
+      // smallTeamsHiddenRowCount = smallTeamsRowsToHideCount
+      // }
     }
     return {
       rows: smallRows,
       showSmallTeamsExpandDivider,
-      smallTeamsHiddenBadgeCount,
-      smallTeamsHiddenRowCount,
+      // smallTeamsHiddenBadgeCount,
+      // smallTeamsHiddenRowCount,
     }
   }
 )
 
 const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
-  console.log('aaa 1 mapStateToProps')
+  // console.log('aaa 1 mapStateToProps')
 
   const filter = getFilter(state)
   const {smallTeamsExpanded} = routeState
 
   let rows
   let showSmallTeamsExpandDivider = false
-  let smallTeamsHiddenBadgeCount = 0
-  let smallTeamsHiddenRowCount = 0
+  // let smallTeamsHiddenBadgeCount = 0
+  // let smallTeamsHiddenRowCount = 0
 
   if (filter) {
     rows = getFilteredSmallRows(state)
   } else {
     const rmd = getRowsAndMetadata(state, smallTeamsExpanded)
     showSmallTeamsExpandDivider = rmd.showSmallTeamsExpandDivider
-    smallTeamsHiddenBadgeCount = rmd.smallTeamsHiddenBadgeCount
-    smallTeamsHiddenRowCount = rmd.smallTeamsHiddenRowCount
+    // smallTeamsHiddenBadgeCount = rmd.smallTeamsHiddenBadgeCount
+    // smallTeamsHiddenRowCount = rmd.smallTeamsHiddenRowCount
     rows = rmd.rows
   }
 
@@ -398,8 +397,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     showBuildATeam: false, // TODO
     showSmallTeamsExpandDivider,
     smallTeamsExpanded: smallTeamsExpanded && showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider,
-    smallTeamsHiddenBadgeCount,
-    smallTeamsHiddenRowCount,
+    // smallTeamsHiddenBadgeCount,
+    // smallTeamsHiddenRowCount,
   }
 }
 
@@ -430,7 +429,7 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentWillReceiveProps: function(nextProps: any, nextState: any) {
-      console.log('aaa Render count', TEMPCOUNT++, this.props, nextProps, this.state, nextState)
+      // console.log('aaa Render count', TEMPCOUNT++, this.props, nextProps, this.state, nextState)
     },
     componentDidMount: function() {
       // throttleHelper(() => {
