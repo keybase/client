@@ -2,29 +2,19 @@
 // import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
-// import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
-import {connect} from 'react-redux'
 import * as Creators from '../../actions/chat/creators'
 import {createSelector} from 'reselect'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
-// import throttle from 'lodash/throttle'
-// import flatten from 'lodash/flatten'
+import throttle from 'lodash/throttle'
 import createImmutableEqualSelector from '../../util/create-immutable-equal-selector'
 
 import type {TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
-// const getSupersededByState = (state: TypedState) => state.chat.get('supersededByState')
 const getPending = (state: TypedState) => state.chat.get('pendingConversations')
-// const getUnreadBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
-
-const passesStringFilter = (filter: string, toCheck: string): boolean => {
-  // No need to worry about Unicode issues with toLowerCase(), since
-  // names can only be ASCII.
-  return toCheck.indexOf(filter) >= 0
-}
+const passesStringFilter = (filter: string, toCheck: string): boolean => toCheck.indexOf(filter) >= 0
 
 const passesParticipantFilter = (lcFilter: string, lcParticipants: Array<string>, you: ?string): boolean => {
   if (!lcFilter) {
@@ -100,27 +90,6 @@ const findNextConvo = (rows: Array<any>, selected, direction) => {
   const r = filteredRows[nextIdx]
   return r && r.conversationIDKey
 }
-
-// Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
-// to not call loadInbox multiple times
-// const throttleHelper = throttle(cb => cb(), 60 * 1000)
-
-// export default compose(
-// withState('filterFocusCount', 'setFilterFocusCount', 0),
-// withHandlers({
-// focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
-// }),
-// pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-// lifecycle({
-// componentDidMount: function() {
-// throttleHelper(() => {
-// this.props.loadInbox()
-// })
-// },
-// })
-// )(Inbox)
-
-// const TEMPInbox = (props: any) => <div>{'aaa'}{props.children}</div>
 
 const getFilter = (state: TypedState) => state.chat.get('inboxFilter').toLowerCase()
 const getInbox = (state: TypedState) => state.entities.get('inbox')
@@ -264,7 +233,7 @@ const getRowsAndMetadata = createSelector(
     return {
       rows,
       showBuildATeam: bigRows.length === 0,
-      // showSmallTeamsExpandDivider,
+      showSmallTeamsExpandDivider,
     }
   }
 )
@@ -289,7 +258,6 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
   }
 
   const TEMP = {
-    // bigTeamsBadgeCount: 0, // TODO
     filter,
     isActiveRoute,
     rows,
@@ -306,36 +274,44 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   DEBUG_SELECTORS && console.log('aaa 8 mergeProps')
   return {
-    // bigTeamsBadgeCount: stateProps.bigTeamsBadgeCount,
     filter: stateProps.filter,
     loadInbox: dispatchProps.loadInbox,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
     onSelect: dispatchProps.onSelect,
-    onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
-    onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
+    // TODO move this into action so we don't need to plumb selected
+    // onSelectDown: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, 1)),
+    // onSelectUp: () => dispatchProps.onSelect(findNextConvo(stateProps.rows, stateProps._selected, -1)),
     onSetFilter: dispatchProps.onSetFilter,
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     rows: stateProps.rows,
     showBuildATeam: stateProps.showBuildATeam,
-    // showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
   }
 }
+
+// Inbox is being loaded a ton by the navigator for some reason. we need a module-level helper
+// to not call loadInbox multiple times
+const throttleHelper = throttle(cb => cb(), 60 * 1000)
+
 let TEMPCOUNT = 1
 export default compose(
+  withState('filterFocusCount', 'setFilterFocusCount', 0),
+  withHandlers({
+    focusFilter: props => () => props.setFilterFocusCount(props.filterFocusCount + 1),
+  }),
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
+    componentDidMount: function() {
+      throttleHelper(() => {
+        this.props.loadInbox()
+      })
+    },
     componentDidUpdate: function(prevProps, prevState) {
       // TODO remove
       DEBUG_SELECTORS &&
         console.log('aaa Render count', TEMPCOUNT++, this.props, prevProps, this.state, prevState)
-    },
-    componentDidMount: function() {
-      // throttleHelper(() => {
-      this.props.loadInbox()
-      // })
     },
   })
 )(Inbox)
