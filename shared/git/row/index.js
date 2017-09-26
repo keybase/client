@@ -102,7 +102,6 @@ class Row extends React.Component<Props, State> {
                 ...globalStyles.flexBoxRow,
                 alignItems: 'center',
                 position: 'relative',
-                flex: isMobile ? 1 : undefined,
               }}
             >
               <Text type="Body">Clone:</Text>
