@@ -347,7 +347,7 @@ func cleanPGPInput(s string) string {
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
 func ReadOneKeyFromString(originalArmor string) (*PGPKeyBundle, *Warnings, error) {
-	return readOneKeyFromString(originalArmor /* liberal */, false)
+	return readOneKeyFromString(originalArmor, false /* liberal */)
 }
 
 // bug8612Prepass cleans off any garbage trailing the "-----" in the first line of a PGP
@@ -377,7 +377,7 @@ func bug8612Prepass(a string) string {
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
 func ReadOneKeyFromStringLiberal(originalArmor string) (*PGPKeyBundle, *Warnings, error) {
-	return readOneKeyFromString(originalArmor /* liberal */, true)
+	return readOneKeyFromString(originalArmor, true /* liberal */)
 }
 
 func readOneKeyFromString(originalArmor string, liberal bool) (*PGPKeyBundle, *Warnings, error) {
