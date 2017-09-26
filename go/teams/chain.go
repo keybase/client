@@ -1052,7 +1052,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if prevState.IsImplicit() {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check that the signer is at least a reader.
@@ -1091,7 +1091,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if prevState.IsImplicit() {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1155,7 +1155,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("subteam has root team name: %s", teamName)
 		}
 		if teamName.IsImplicit() || team.Implicit {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
@@ -1216,7 +1216,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if prevState.IsImplicit() {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1257,7 +1257,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if prevState.IsImplicit() {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// These links only occur in subteam.
@@ -1317,7 +1317,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if prevState.IsImplicit() {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1355,7 +1355,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if prevState.IsImplicit() {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
@@ -1398,7 +1398,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		if prevState.IsImplicit() {
-			return nil, NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		res.newState = prevState.DeepCopy()
