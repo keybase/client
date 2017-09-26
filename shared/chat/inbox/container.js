@@ -193,6 +193,7 @@ const getRowsAndMetadata = createSelector(
     const smallTeamsRowsToHideCount = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
     const smallIDsToShow = smallTeamsExpanded ? smallIDs : smallIDs.slice(0, smallTeamsCollapsedMaxShown)
     const smallToShow = smallIDsToShow.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+    const smallIDsHidden = smallTeamsExpanded ? [] : smallIDs.slice(smallTeamsCollapsedMaxShown)
 
     const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount)
     const divider = showSmallTeamsExpandDivider ? [{type: 'divider'}] : []
@@ -203,6 +204,7 @@ const getRowsAndMetadata = createSelector(
       rows,
       showBuildATeam: bigRows.length === 0,
       showSmallTeamsExpandDivider,
+      smallIDsHidden,
     }
   }
 )
@@ -216,6 +218,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
   let rows
   let showSmallTeamsExpandDivider = false
   let showBuildATeam = false
+  let smallIDsHidden = null
 
   if (filter) {
     rows = getFilteredRows(state)
@@ -224,6 +227,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     showSmallTeamsExpandDivider = rmd.showSmallTeamsExpandDivider
     rows = rmd.rows
     showBuildATeam = rmd.showBuildATeam
+    smallIDsHidden = rmd.smallIDsHidden
   }
 
   const TEMP = {
@@ -232,6 +236,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     rows,
     showBuildATeam,
     showSmallTeamsExpandDivider,
+    smallIDsHidden,
     smallTeamsExpanded: smallTeamsExpanded && showSmallTeamsExpandDivider, // only collapse if we're actually showing a divider,
   }
 
@@ -281,6 +286,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     rows: stateProps.rows,
     showBuildATeam: stateProps.showBuildATeam,
     showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
+    smallIDsHidden: stateProps.smallIDsHidden,
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
   }

@@ -6,6 +6,9 @@ import {ClickableBox, Icon, Box, Text, Badge} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
+const getBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
+const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')
+
 type DividerProps = {
   badgeCount: number,
   hiddenCount: number,
@@ -40,7 +43,7 @@ const DividerBox = glamorous(Box)({
   width: '100%',
 })
 
-const Divider = ({badgeCount, hiddenCount, toggle}: DividerProps) => (
+const _Divider = ({badgeCount, hiddenCount, toggle}: DividerProps) => (
   <Box style={_toggleContainer}>
     <ClickableBox onClick={toggle} style={_toggleButtonStyle} className="toggleButtonClass">
       <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
@@ -50,6 +53,20 @@ const Divider = ({badgeCount, hiddenCount, toggle}: DividerProps) => (
     </ClickableBox>
   </Box>
 )
+
+const getOwnProps = (_, {smallIDsHidden}) => ({smallIDsHidden})
+const dividerSelector = createSelector([getBadges, getOwnProps], (badges, ownProps) => {
+  const badgeCount = (ownProps.smallIDsHidden || []).reduce((total, id) => {
+    return total + badges.get(id, 0)
+  }, 0)
+
+  return {
+    badgeCount,
+    hiddenCount: ownProps.smallIDsHidden.length,
+  }
+})
+
+const Divider = connect(dividerSelector)(_Divider)
 
 type FloatingDividerProps = {
   badgeCount: number,
@@ -68,17 +85,18 @@ const _FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
   </ClickableBox>
 )
 
-const getBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
-const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')
-const mapStateToProps = createSelector([getBadges, getInboxBigChannels], (badges, inboxBigChannels) => {
-  const badgeCount = inboxBigChannels.reduce((total, _, id) => {
-    return total + badges.get(id, 0)
-  }, 0)
+const floatinDividerSelector = createSelector(
+  [getBadges, getInboxBigChannels],
+  (badges, inboxBigChannels) => {
+    const badgeCount = inboxBigChannels.reduce((total, _, id) => {
+      return total + badges.get(id, 0)
+    }, 0)
 
-  return {badgeCount}
-})
+    return {badgeCount}
+  }
+)
 
-const FloatingDivider = connect(mapStateToProps)(_FloatingDivider)
+const FloatingDivider = connect(floatinDividerSelector)(_FloatingDivider)
 
 const BigTeamsLabel = ({isFiltered}: {isFiltered: boolean}) => (
   <Box style={_bigTeamsLabelBox}>
