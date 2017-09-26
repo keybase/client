@@ -82,20 +82,17 @@ const getSortedSmallRows = createSelector([getSmallTimestamps], smallTimestamps 
   return smallTimestamps.sort((a, b) => b - a).keySeq()
 })
 
-const getSmallRows = createImmutableEqualSelector(
+const getSmallIDs = createImmutableEqualSelector(
   [getSortedSmallRows, getPending, getAlwaysShow, getSupersededBy, getIsEmpty],
   (sortedSmallRows, pending, alwaysShow, supersededBy, isEmpty) => {
-    DEBUG_SELECTORS && console.log('aaa 4 getSmallRows', sortedSmallRows, alwaysShow, supersededBy, isEmpty)
-    const pendingRows = pending.keySeq().toArray().map(k => ({conversationIDKey: k, type: 'small'}))
-    const smallRows = sortedSmallRows
-      .toArray()
-      .filter(conversationIDKey => {
-        return (
-          !supersededBy.get(conversationIDKey) &&
-          (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
-        )
-      })
-      .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+    DEBUG_SELECTORS && console.log('aaa 4 getSmallIDs', sortedSmallRows, alwaysShow, supersededBy, isEmpty)
+    const pendingRows = pending.keySeq().toArray()
+    const smallRows = sortedSmallRows.toArray().filter(conversationIDKey => {
+      return (
+        !supersededBy.get(conversationIDKey) &&
+        (!isEmpty.get(conversationIDKey) || alwaysShow.get(conversationIDKey))
+      )
+    })
     return pendingRows.concat(smallRows)
   }
 )
@@ -190,11 +187,12 @@ const smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
 
 // Get big and small and deal with the divider hiding small rows
 const getRowsAndMetadata = createSelector(
-  [getSmallRows, smallTeamsPassThrough, getBigRows],
-  (smallRows, smallTeamsExpanded, bigRows) => {
-    DEBUG_SELECTORS && console.log('aaa 5 getRows', smallRows, bigRows, smallTeamsExpanded)
-    const smallTeamsRowsToHideCount = Math.max(0, smallRows.length - smallTeamsCollapsedMaxShown)
-    const smallToShow = smallTeamsExpanded ? smallRows : smallRows.slice(0, smallTeamsCollapsedMaxShown)
+  [getSmallIDs, smallTeamsPassThrough, getBigRows],
+  (smallIDs, smallTeamsExpanded, bigRows) => {
+    DEBUG_SELECTORS && console.log('aaa 5 getRows', smallIDs, bigRows, smallTeamsExpanded)
+    const smallTeamsRowsToHideCount = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
+    const smallIDsToShow = smallTeamsExpanded ? smallIDs : smallIDs.slice(0, smallTeamsCollapsedMaxShown)
+    const smallToShow = smallIDsToShow.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
 
     const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount)
     const divider = showSmallTeamsExpandDivider ? [{type: 'divider'}] : []
