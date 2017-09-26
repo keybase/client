@@ -205,10 +205,7 @@ class Inbox extends PureComponent<Props, State> {
           </div>
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
-            <FloatingDivider
-              toggle={this.props.toggleSmallTeamsExpanded}
-              badgeCount={this.props.bigTeamsBadgeCount}
-            />}
+            <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
           {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&

@@ -1,5 +1,7 @@
 // @flow
 import * as React from 'react'
+import {connect} from 'react-redux'
+import {createSelector} from 'reselect'
 import {ClickableBox, Icon, Box, Text, Badge} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -54,7 +56,7 @@ type FloatingDividerProps = {
   toggle: () => void,
 }
 
-const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
+const _FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
   <ClickableBox onClick={toggle} style={_floatingStyle}>
     <DividerBox>
       <BigTeamsLabel isFiltered={false} />
@@ -65,6 +67,18 @@ const FloatingDivider = ({toggle, badgeCount}: FloatingDividerProps) => (
     </DividerBox>
   </ClickableBox>
 )
+
+const getBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
+const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')
+const mapStateToProps = createSelector([getBadges, getInboxBigChannels], (badges, inboxBigChannels) => {
+  const badgeCount = inboxBigChannels.reduce((total, _, id) => {
+    return total + badges.get(id, 0)
+  }, 0)
+
+  return {badgeCount}
+})
+
+const FloatingDivider = connect(mapStateToProps)(_FloatingDivider)
 
 const BigTeamsLabel = ({isFiltered}: {isFiltered: boolean}) => (
   <Box style={_bigTeamsLabelBox}>

@@ -282,6 +282,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     rows: stateProps.rows,
     showBuildATeam: stateProps.showBuildATeam,
+    showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
   }
