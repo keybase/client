@@ -72,13 +72,49 @@ func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeam
 }
 
 func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) error {
-	// not yet implemented
-	return nil
+	client, err := h.kbfsClient()
+	if err != nil {
+		return err
+	}
+	folder := keybase1.Folder{
+		Name:       h.G().Env.GetUsername().String(),
+		FolderType: keybase1.FolderType_PRIVATE,
+		Private:    true,
+	}
+	darg := keybase1.DeleteRepoArg{
+		Folder: folder,
+		Name:   repoName,
+	}
+	err = client.DeleteRepo(ctx, darg)
+	if err != nil {
+		return err
+	}
+
+	// Delete the repo metadata from the Keybase server.
+	return git.DeleteMetadata(ctx, h.G(), folder, repoName)
 }
 
 func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) error {
-	// not yet implemented
-	return nil
+	client, err := h.kbfsClient()
+	if err != nil {
+		return err
+	}
+	folder := keybase1.Folder{
+		Name:       arg.TeamName.String(),
+		FolderType: keybase1.FolderType_TEAM,
+		Private:    true,
+	}
+	darg := keybase1.DeleteRepoArg{
+		Folder: folder,
+		Name:   arg.RepoName,
+	}
+	err = client.DeleteRepo(ctx, darg)
+	if err != nil {
+		return err
+	}
+
+	// Delete the repo metadata from the Keybase server.
+	return git.DeleteMetadata(ctx, h.G(), folder, arg.RepoName)
 }
 
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {

@@ -25,7 +25,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 }
 
 func doPut(t *testing.T, g *libkb.GlobalContext, teamName string, repoID string, repoName string) {
-	err := PutMetadata(context.TODO(), g, keybase1.PutGitMetadataArg{
+	err := PutMetadata(context.Background(), g, keybase1.PutGitMetadataArg{
 		Folder: keybase1.Folder{
 			Name:       teamName,
 			Private:    true,
@@ -51,13 +51,13 @@ func TestPutAndGet(t *testing.T) {
 
 	// Create two teams, so that we can test filtering by TeamID.
 	teamName1 := u.Username + "t1"
-	err = teams.CreateRootTeam(context.TODO(), tc.G, teamName1)
+	err = teams.CreateRootTeam(context.Background(), tc.G, teamName1)
 	require.NoError(t, err)
 	team1, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{Name: teamName1})
 	require.NoError(t, err)
 
 	teamName2 := u.Username + "t2"
-	err = teams.CreateRootTeam(context.TODO(), tc.G, teamName2)
+	err = teams.CreateRootTeam(context.Background(), tc.G, teamName2)
 	require.NoError(t, err)
 
 	// Create two git repos, one in each team. Remember that all we're
@@ -97,6 +97,49 @@ func TestPutAndGet(t *testing.T) {
 	require.Equal(t, oneRepo.CanDelete, true)
 }
 
+func TestDeleteRepo(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	// Note that the length limit for a team name, with the additional suffix
+	// below, is 16 characters. We have 5 to play with, including the implicit
+	// underscore after the prefix.
+	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	// Create a personal repo for this user. (This also exercises the
+	// personal-repos-create-an-implicit-team flow.)
+	repoName := keybase1.GitRepoName("testRepo123")
+	folder := keybase1.Folder{
+		Name:       u.Username,
+		Private:    true,
+		FolderType: keybase1.FolderType_PRIVATE,
+	}
+	err = PutMetadata(context.Background(), tc.G, keybase1.PutGitMetadataArg{
+		Folder: folder,
+		RepoID: keybase1.RepoID("abc123"),
+		Metadata: keybase1.GitLocalMetadata{
+			RepoName: repoName,
+		},
+	})
+	require.NoError(t, err)
+
+	// Get all repos, and make sure we see that one.
+	allRepos, err := GetAllMetadata(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(allRepos), "expected to see 1 git repo, saw %d", len(allRepos))
+	require.Equal(t, repoName, allRepos[0].LocalMetadata.RepoName)
+
+	// Now delete that repo.
+	err = DeleteMetadata(context.Background(), tc.G, folder, repoName)
+	require.NoError(t, err)
+
+	// Finally, get all repos again, and make sure it's gone.
+	allRepos, err = GetAllMetadata(context.Background(), tc.G)
+	require.NoError(t, err)
+	require.Equal(t, 0, len(allRepos), "expected the repo to get deleted")
+}
+
 func TestPutAndGetImplicitTeam(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
@@ -114,7 +157,7 @@ func TestPutAndGetImplicitTeam(t *testing.T) {
 		Private:    true,
 		FolderType: keybase1.FolderType_PRIVATE,
 	}
-	err = PutMetadata(context.TODO(), tc.G, keybase1.PutGitMetadataArg{
+	err = PutMetadata(context.Background(), tc.G, keybase1.PutGitMetadataArg{
 		Folder: testFolder,
 		RepoID: keybase1.RepoID("abc123"),
 		Metadata: keybase1.GitLocalMetadata{
@@ -155,9 +198,9 @@ func TestPutAndGetWritersCantDelete(t *testing.T) {
 
 	// u2 creates a team where u1 is just a writer
 	teamName := u2.Username + "t1"
-	err = teams.CreateRootTeam(context.TODO(), tc.G, teamName)
+	err = teams.CreateRootTeam(context.Background(), tc.G, teamName)
 	require.NoError(t, err)
-	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	_, err = teams.AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
 	if err != nil {
 		t.Fatal(err)
 	}

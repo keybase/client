@@ -16,6 +16,7 @@ func NewCmdGit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdGitMdput(cl, g),
+			NewCmdGitMddel(cl, g),
 			NewCmdGitMdget(cl, g),
 			newCmdGitCreate(cl, g),
 		},
