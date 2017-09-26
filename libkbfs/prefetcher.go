@@ -124,8 +124,12 @@ func (p *blockPrefetcher) completePrefetch(numBlocks int) func(kbfsblock.ID, *pr
 			panic("completePrefetch overstepped its bounds")
 		}
 		if pp.subtreeBlockCount == 0 {
-			// TODO: mark complete.
 			delete(p.prefetches, blockID)
+			// TODO: log error
+			// TODO: export brq.checkCaches, retrieve from a cache, then put.
+			ctx := context.Background()
+			_ = p.retriever.PutInCaches(ctx, ptr, tlfID, block, lifetime,
+				prefetchStatus)
 		}
 	}
 }
@@ -516,7 +520,7 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 	if err == nil {
 		p.triggerPrefetch(ptr, block, kmd, priority, lifetime, prefetchStatus)
 	}
-	return nil
+	return err
 }
 
 func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {

@@ -282,7 +282,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	return prefetchStatus, err
 }
 
-// Requestimplements the BlockRetriever interface for blockRetrievalQueue.
+// Request implements the BlockRetriever interface for blockRetrievalQueue.
 func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime) <-chan error {
