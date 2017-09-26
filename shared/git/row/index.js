@@ -213,6 +213,13 @@ const _copyStyle = {
 
 const _inputInputStyle = {
   ...globalStyles.fontTerminal,
+  // on desktop the input text isn't vertically aligned
+  ...(isMobile
+    ? {}
+    : {
+        display: 'inline-block',
+        paddingTop: 3,
+      }),
   color: globalColors.darkBlue,
   fontSize: 13,
 }
