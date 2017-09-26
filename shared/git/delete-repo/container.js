@@ -8,7 +8,7 @@ import {connect} from 'react-redux'
 import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const git = Constants.getIdToGit(state).get(routeProps.id)
+  const git = Constants.getIdToGit(state).get(routeProps.get('id'))
   return {
     error: Constants.getError(state),
     loading: Constants.getLoading(state),
@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   _onDelete: (teamname: ?string, name: string, notifyTeam: boolean) => {
     const deleteAction = teamname
       ? Creators.deleteTeamRepo(teamname, name, notifyTeam)

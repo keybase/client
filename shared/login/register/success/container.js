@@ -6,18 +6,18 @@ import {connect} from 'react-redux'
 
 import type {TypedState} from '../../../constants/reducer'
 
-type OwnProps = {
-  routeProps: {
-    paperkey: HiddenString,
-    title: string,
-    waiting: boolean,
-  },
-}
+// type OwnProps = {
+// routeProps: {
+// paperkey: HiddenString,
+// title: string,
+// waiting: boolean,
+// },
+// }
 
-const mapStateToProps = (s: TypedState, {routeProps: {paperkey, title, waiting}}: OwnProps) => ({
-  paperkey,
-  title,
-  waiting,
+const mapStateToProps = (s: TypedState, {routeProps}) => ({
+  paperkey: routeProps.get('paperkey'),
+  title: routeProps.get('title'),
+  waiting: routeProps.get('waiting'),
 })
 
 const mapDispatchToProps = dispatch => ({

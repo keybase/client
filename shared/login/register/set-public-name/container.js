@@ -77,15 +77,15 @@ class _SetPublicName extends Component<ContainerProps, State> {
   }
 }
 
-type OwnProps = {
-  routeProps: {
-    existingDevices?: ?Array<string>,
-  },
-}
+// type OwnProps = {
+// routeProps: {
+// existingDevices?: ?Array<string>,
+// },
+// }
 
-const mapStateToProps = (state: TypedState, {routeProps: {existingDevices}}: OwnProps) => ({
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
   deviceNameError: state.signup.deviceNameError,
-  existingDevices,
+  existingDevices: routeProps.get('existingDevices'),
   existingDevicesTrimmed: trimDeviceNames(existingDevices),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })

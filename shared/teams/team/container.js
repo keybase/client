@@ -19,8 +19,8 @@ type StateProps = {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.teamname], I.Set()),
-  name: routeProps.teamname,
+  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
+  name: routeProps.get('teamname'),
   you: state.config.username,
 })
 

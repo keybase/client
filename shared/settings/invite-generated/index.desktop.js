@@ -78,9 +78,9 @@ const linkContainerStyle = {
 }
 
 export default connect(
-  (state: any, {routeProps: {email, link}}) => ({
-    email,
-    link,
+  (state: any, {routeProps}) => ({
+    email: routeProps.get('email'),
+    link: routeProps.get('link'),
   }),
   (dispatch: any) => {
     return {

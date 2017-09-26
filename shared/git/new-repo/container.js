@@ -14,7 +14,7 @@ import type {TypedState} from '../../constants/reducer'
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   _teams: state.entities.getIn(['teams', 'teamnames'], I.Set()),
   error: Constants.getError(state),
-  isTeam: routeProps.isTeam,
+  isTeam: routeProps.get('isTeam'),
   loading: Constants.getLoading(state),
 })
 
@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routePro
   _loadTeams: () => dispatch(getTeams()),
   onClose: () => dispatch(navigateUp()),
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
-    const createAction = routeProps.isTeam && teamname
+    const createAction = routeProps.get('isTeam') && teamname
       ? Creators.createTeamRepo(teamname, name, notifyTeam)
       : Creators.createPersonalRepo(name)
     dispatch(createAction)

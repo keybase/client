@@ -17,7 +17,7 @@ type OwnProps = AttachmentInputRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
-    const {inputs} = routeProps
+    const inputs = routeProps.get('inputs')
     return {
       inputs,
     }

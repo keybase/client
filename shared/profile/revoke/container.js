@@ -12,12 +12,12 @@ export default connector.connect((state, dispatch, {routeProps}) => ({
     dispatch(finishRevoking())
   },
   onRevoke: () => {
-    if (routeProps.platform === 'pgp') {
-      dispatch(dropPgp(routeProps.proofId))
+    if (routeProps.get('platform') === 'pgp') {
+      dispatch(dropPgp(routeProps.get('proofId')))
     } else {
-      dispatch(submitRevokeProof(routeProps.proofId))
+      dispatch(submitRevokeProof(routeProps.get('proofId')))
     }
   },
-  platform: routeProps.platform,
-  platformHandle: routeProps.platformHandle,
+  platform: routeProps.get('platform'),
+  platformHandle: routeProps.get('platformHandle'),
 }))(Revoke)
