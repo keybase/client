@@ -68,7 +68,7 @@ class Git extends React.Component<Props, State> {
         </ClickableBox>
         <ScrollView>
           <Box style={_sectionHeaderStyle}>
-            <Text type="BodySmallSemibold">Personal repositories</Text>
+            <Text type="BodySmallSemibold">Personal</Text>
             {this.props.loading &&
               <ProgressIndicator
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
@@ -76,7 +76,7 @@ class Git extends React.Component<Props, State> {
           </Box>
           {this.props.personals.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
           <Box style={_sectionHeaderStyle}>
-            <Text type="BodySmallSemibold">Team repositories</Text>
+            <Text type="BodySmallSemibold">Team</Text>
             {this.props.loading &&
               <ProgressIndicator
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
@@ -96,6 +96,7 @@ const _sectionHeaderStyle = {
   alignItems: 'center',
   height: 24,
   paddingLeft: globalMargins.tiny,
+  marginTop: globalMargins.small,
   width: '100%',
 }
 

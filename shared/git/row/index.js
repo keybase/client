@@ -24,10 +24,12 @@ export type Props = {
   lastEditUser: string,
   lastEditUserFollowing: boolean,
   name: string,
+  you: ?string,
   teamname: ?string,
   url: string,
   isNew: boolean,
   onCopy: () => void,
+  onClickDevice: () => void,
   onShowDelete: () => void,
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
@@ -80,17 +82,13 @@ class Row extends React.Component<Props, State> {
               type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
               style={_iconCaretStyle}
             />
-            <Icon
-              type={this.props.teamname ? 'iconfont-repo-team' : 'iconfont-repo-personal'}
-              style={_iconRepoStyle}
+            <Avatar
+              size={24}
+              isTeam={!!this.props.teamname}
+              teamname={this.props.teamname}
+              username={this.props.teamname ? undefined : this.props.you}
+              style={{marginRight: globalMargins.xtiny}}
             />
-            {this.props.teamname &&
-              <Avatar
-                size={12}
-                isTeam={true}
-                teamname={this.props.teamname}
-                style={{marginRight: globalMargins.xtiny}}
-              />}
             <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
@@ -103,42 +101,7 @@ class Row extends React.Component<Props, State> {
               style={{
                 ...globalStyles.flexBoxRow,
                 alignItems: 'center',
-                flexWrap: 'wrap',
-                marginBottom: 5,
-                marginTop: 2,
-              }}
-            >
-              <Text type="BodySmall">
-                {`Last push ${this.props.lastEditTime}${!!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''}`}
-              </Text>
-              {!!this.props.teamname &&
-                !!this.props.lastEditUser &&
-                <Avatar
-                  username={this.props.lastEditUser}
-                  size={12}
-                  style={{marginLeft: 2, marginRight: 2}}
-                />}
-              {!!this.props.teamname &&
-                !!this.props.lastEditUser &&
-                <Usernames
-                  type="BodySmall"
-                  colorFollowing={true}
-                  users={[{following: this.props.lastEditUserFollowing, username: this.props.lastEditUser}]}
-                  style={{marginLeft: 2, marginRight: 2}}
-                />}
-              <Text type="BodySmall">
-                <Text type="BodySmall">
-                  {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
-                </Text>
-                <Text type="BodySmall" style={_deviceStyle}>{' '}{this.props.devicename}</Text>
-              </Text>
-            </Box>
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-                alignItems: 'center',
                 position: 'relative',
-                flex: isMobile ? 1 : undefined,
               }}
             >
               <Text type="Body">Clone:</Text>
@@ -178,6 +141,43 @@ class Row extends React.Component<Props, State> {
                 onClick={this.props.onShowDelete}
                 style={{marginTop: globalMargins.tiny, alignSelf: 'flex-end'}}
               />}
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                alignSelf: 'flex-end',
+                flexWrap: 'wrap',
+                marginBottom: 3,
+                marginTop: 5,
+              }}
+            >
+              <Text type="BodySmall">
+                {`Last push ${this.props.lastEditTime}${!!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''}`}
+              </Text>
+              {!!this.props.teamname &&
+                !!this.props.lastEditUser &&
+                <Avatar
+                  username={this.props.lastEditUser}
+                  size={12}
+                  style={{marginLeft: 2, marginRight: 2}}
+                />}
+              {!!this.props.teamname &&
+                !!this.props.lastEditUser &&
+                <Usernames
+                  type="BodySmall"
+                  colorFollowing={true}
+                  users={[{following: this.props.lastEditUserFollowing, username: this.props.lastEditUser}]}
+                  style={{marginLeft: 2, marginRight: 2}}
+                />}
+              <Text type="BodySmall">
+                <Text type="BodySmall">
+                  {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
+                </Text>
+                <Text type="BodySmall" style={_deviceStyle} onClick={this.props.onClickDevice}>
+                  {' '}{this.props.devicename}
+                </Text>
+              </Text>
+            </Box>
           </Box>}
       </Box>
     )
@@ -212,6 +212,13 @@ const _copyStyle = {
 
 const _inputInputStyle = {
   ...globalStyles.fontTerminal,
+  // on desktop the input text isn't vertically aligned
+  ...(isMobile
+    ? {}
+    : {
+        display: 'inline-block',
+        paddingTop: 3,
+      }),
   color: globalColors.darkBlue,
   fontSize: 13,
 }
@@ -257,18 +264,13 @@ const _iconCaretStyle = {
       }),
   fontSize: 12,
   marginBottom: 2,
+  marginRight: globalMargins.tiny,
 }
 
 const _metaStyle = {
   alignSelf: 'center',
   backgroundColor: globalColors.orange,
   marginLeft: 6,
-}
-
-const _iconRepoStyle = {
-  color: globalColors.darkBlue,
-  marginLeft: 12,
-  marginRight: 6,
 }
 
 const _rowTopStyle = {
@@ -279,6 +281,7 @@ const _rowTopStyle = {
 
 const _rowStyle = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
   borderBottomWidth: 1,
   borderColor: globalColors.transparent,
   borderStyle: 'solid',
