@@ -104,6 +104,25 @@ func (o ConsumePublishMessageArg) DeepCopy() ConsumePublishMessageArg {
 	}
 }
 
+type ConsumeMessageMultiArg struct {
+	Msg  Message `codec:"msg" json:"msg"`
+	Uids []UID   `codec:"uids" json:"uids"`
+}
+
+func (o ConsumeMessageMultiArg) DeepCopy() ConsumeMessageMultiArg {
+	return ConsumeMessageMultiArg{
+		Msg: o.Msg.DeepCopy(),
+		Uids: (func(x []UID) []UID {
+			var ret []UID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Uids),
+	}
+}
+
 type PingArg struct {
 }
 
@@ -189,6 +208,7 @@ type IncomingInterface interface {
 	Sync(context.Context, SyncArg) (SyncResult, error)
 	ConsumeMessage(context.Context, Message) error
 	ConsumePublishMessage(context.Context, Message) error
+	ConsumeMessageMulti(context.Context, ConsumeMessageMultiArg) error
 	Ping(context.Context) (string, error)
 	Version(context.Context, UID) (string, error)
 	State(context.Context, StateArg) (State, error)
@@ -247,6 +267,22 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 						return
 					}
 					err = i.ConsumePublishMessage(ctx, (*typedArgs)[0].M)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"consumeMessageMulti": {
+				MakeArg: func() interface{} {
+					ret := make([]ConsumeMessageMultiArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ConsumeMessageMultiArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ConsumeMessageMultiArg)(nil), args)
+						return
+					}
+					err = i.ConsumeMessageMulti(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -364,6 +400,11 @@ func (c IncomingClient) ConsumeMessage(ctx context.Context, m Message) (err erro
 func (c IncomingClient) ConsumePublishMessage(ctx context.Context, m Message) (err error) {
 	__arg := ConsumePublishMessageArg{M: m}
 	err = c.Cli.Call(ctx, "gregor.1.incoming.consumePublishMessage", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IncomingClient) ConsumeMessageMulti(ctx context.Context, __arg ConsumeMessageMultiArg) (err error) {
+	err = c.Cli.Call(ctx, "gregor.1.incoming.consumeMessageMulti", []interface{}{__arg}, nil)
 	return
 }
 

@@ -8,6 +8,7 @@ protocol incoming {
   SyncResult sync(UID uid, DeviceID deviceid, Time ctime);
   void consumeMessage(Message m);
   void consumePublishMessage(Message m);
+  void consumeMessageMulti(Message msg, array<UID> uids);
   string ping();
   string version(UID uid);
 

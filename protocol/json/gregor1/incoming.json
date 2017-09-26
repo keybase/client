@@ -96,6 +96,22 @@
       ],
       "response": null
     },
+    "consumeMessageMulti": {
+      "request": [
+        {
+          "name": "msg",
+          "type": "Message"
+        },
+        {
+          "name": "uids",
+          "type": {
+            "type": "array",
+            "items": "UID"
+          }
+        }
+      ],
+      "response": null
+    },
     "ping": {
       "request": [],
       "response": "string"
