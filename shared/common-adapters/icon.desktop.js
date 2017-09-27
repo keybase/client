@@ -57,12 +57,12 @@ class Icon extends Component<Exact<Props>, void> {
 
     const isFontIcon = iconType.startsWith('iconfont-')
     const fontSizeHint = shared.fontSize(iconType)
-    const onClick =
-      !!this.props.onClick &&
-      (e => {
-        e.stopPropagation()
-        this.props.onClick && this.props.onClick(e)
-      })
+    const onClick = this.props.onClick
+      ? e => {
+          e.stopPropagation()
+          this.props.onClick && this.props.onClick(e)
+        }
+      : null
 
     if (isFontIcon) {
       const cleanStyle = {
