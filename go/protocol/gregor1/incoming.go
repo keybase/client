@@ -208,6 +208,9 @@ type IncomingInterface interface {
 	Sync(context.Context, SyncArg) (SyncResult, error)
 	ConsumeMessage(context.Context, Message) error
 	ConsumePublishMessage(context.Context, Message) error
+	// consumeMessageMulti will take msg and consume it for all the users listed
+	// in uids. This is so a gregor client can send the same message to many UIDs
+	// with one call, as opposed to calling consumeMessage for each UID.
 	ConsumeMessageMulti(context.Context, ConsumeMessageMultiArg) error
 	Ping(context.Context) (string, error)
 	Version(context.Context, UID) (string, error)
@@ -403,6 +406,9 @@ func (c IncomingClient) ConsumePublishMessage(ctx context.Context, m Message) (e
 	return
 }
 
+// consumeMessageMulti will take msg and consume it for all the users listed
+// in uids. This is so a gregor client can send the same message to many UIDs
+// with one call, as opposed to calling consumeMessage for each UID.
 func (c IncomingClient) ConsumeMessageMulti(ctx context.Context, __arg ConsumeMessageMultiArg) (err error) {
 	err = c.Cli.Call(ctx, "gregor.1.incoming.consumeMessageMulti", []interface{}{__arg}, nil)
 	return
