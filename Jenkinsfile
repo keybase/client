@@ -138,6 +138,7 @@ helpers.rootLinuxNode(env, {
                                 "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                 "TMPDIR=${mountDir}",
+                                "GOTRACEBACK=all",
                             ]) {
                                 ws("${GOPATH}/src/github.com/keybase/kbfs") {
                                     println "Checkout OS X"
@@ -184,6 +185,7 @@ helpers.rootLinuxNode(env, {
 
                                     withEnv([
                                         "PATH=${env.PATH}:${env.GOPATH}/bin",
+                                        "GOTRACEBACK=all",
                                     ]) {
                                         runNixTest('linux_')
                                     }
