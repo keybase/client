@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"os"
 
@@ -122,7 +123,10 @@ func (c *CmdLogSend) pokeUI() error {
 	if err != nil {
 		return err
 	}
-	return cli.PrepareLogsend(context.Background())
+	err = cli.PrepareLogsend(context.Background())
+	// Give the GUI a moment to get its logs in order
+	time.Sleep(1 * time.Second)
+	return err
 }
 
 func (c *CmdLogSend) confirm() error {
@@ -200,6 +204,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 			Start:   status.Start.Log,
 			Install: installLogPath,
 			System:  install.SystemLogPath(),
+			Git:     status.Git.Log,
 		}
 	}
 
@@ -209,6 +214,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 		Service: filepath.Join(logDir, libkb.ServiceLogFileName),
 		Updater: filepath.Join(logDir, libkb.UpdaterLogFileName),
 		Start:   filepath.Join(logDir, libkb.StartLogFileName),
+		Git:     filepath.Join(logDir, libkb.GitLogFileName),
 		Install: installLogPath,
 	}
 }

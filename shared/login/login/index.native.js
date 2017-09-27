@@ -72,8 +72,8 @@ class LoginRender extends Component<Props> {
             Create an account
           </Text>
           <Text
-            style={{margin: globalMargins.small, marginTop: globalMargins.large, alignSelf: 'flex-end'}}
-            type="BodySmallPrimaryLink"
+            style={{margin: globalMargins.small, marginTop: globalMargins.large, alignSelf: 'center'}}
+            type="BodySmallSecondaryLink"
             onClick={this.props.onFeedback}
           >
             Problems logging in?
@@ -92,7 +92,7 @@ const styles = {
     backgroundColor: globalColors.white,
   },
   card: {
-    marginTop: globalMargins.tiny,
+    marginTop: globalMargins.medium,
     width: '100%',
   },
 }

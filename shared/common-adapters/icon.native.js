@@ -13,6 +13,7 @@ import type {IconType, Props} from './icon'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
 // so we can pass IDs around instead of full objects
+// $FlowIssue
 const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
   const meta = iconMeta[type]
   if (meta.gridSize) {
@@ -139,11 +140,35 @@ export function iconTypeToImgSet(type: IconType) {
   return iconMeta[type].require
 }
 
-export function urlsToImgSet(imgMap: {[size: string]: string}, size: number): any {
-  return Object.keys(imgMap).map(size => ({
-    height: parseInt(size, 10),
-    uri: imgMap[size],
-    width: parseInt(size, 10),
+export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: number): any {
+  let sizes: any = Object.keys(imgMap)
+
+  if (!sizes.length) {
+    return null
+  }
+
+  sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
+
+  // RCTImageView finds a 'fit' ratio of image size to targetSize and finds the largest one that isn't over, which
+  // too often chooses a low res image, this uses similar logic to the icon.desktop
+
+  const multsMap: any = {
+    '1': null,
+    '2': null,
+    '3': null,
+  }
+
+  Object.keys(multsMap).forEach(mult => {
+    const ideal = parseInt(mult, 10) * targetSize
+    // Find a larger than ideal size or just the largest possible
+    const size = sizes.find(size => size >= ideal)
+    multsMap[mult] = size || sizes[sizes.length - 1]
+  })
+
+  return Object.keys(multsMap).map(mult => ({
+    height: parseInt(mult, 10) * targetSize,
+    uri: imgMap[multsMap[mult]],
+    width: parseInt(mult, 10) * targetSize,
   }))
 }
 

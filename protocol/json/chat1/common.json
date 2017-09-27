@@ -66,6 +66,13 @@
     },
     {
       "type": "record",
+      "name": "ConversationVers",
+      "fields": [],
+      "typedef": "uint64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "OutboxID",
       "fields": [],
       "typedef": "bytes"
@@ -75,6 +82,15 @@
       "name": "TopicNameState",
       "fields": [],
       "typedef": "bytes"
+    },
+    {
+      "type": "enum",
+      "name": "ConversationExistence",
+      "symbols": [
+        "ACTIVE_0",
+        "ARCHIVED_1",
+        "DELETED_2"
+      ]
     },
     {
       "type": "enum",
@@ -112,6 +128,15 @@
         "DEV_2"
       ],
       "go": "nostring"
+    },
+    {
+      "type": "enum",
+      "name": "TeamType",
+      "symbols": [
+        "NONE_0",
+        "SIMPLE_1",
+        "COMPLEX_2"
+      ]
     },
     {
       "type": "enum",
@@ -253,15 +278,6 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "TLFVisibility",
-      "symbols": [
-        "ANY_0",
-        "PUBLIC_1",
-        "PRIVATE_2"
-      ]
-    },
-    {
       "type": "record",
       "name": "GetInboxQuery",
       "fields": [
@@ -289,7 +305,7 @@
         {
           "type": [
             null,
-            "TLFVisibility"
+            "keybase1.TLFVisibility"
           ],
           "name": "tlfVisibility"
         },
@@ -327,6 +343,13 @@
             "items": "ConversationMemberStatus"
           },
           "name": "memberStatus"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationExistence"
+          },
+          "name": "existences"
         },
         {
           "type": {
@@ -417,7 +440,7 @@
           "name": "conversationID"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {
@@ -427,6 +450,18 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "ConversationExistence",
+          "name": "existence"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
         },
         {
           "type": [

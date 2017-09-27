@@ -28,22 +28,33 @@ export type RowItem =
       isBadged: boolean,
     }
 
+export type RouteState = {
+  smallTeamsExpanded: boolean,
+}
+
 export type Props = {
   bigTeamsBadgeCount: number,
   children?: React$Element<*>,
   filter: string,
+  filterFocusCount: number,
   isActiveRoute: boolean,
   isLoading: boolean,
   loadInbox: () => void,
   nowOverride?: number, // just for dumb rendering
   onNewChat: () => void,
+  onSelectUp: () => void,
+  onSelectDown: () => void,
+  onHotkey: () => void,
   onSetFilter: (filter: string) => void,
   onUntrustedInboxVisible: (conversationIDKey: ConversationIDKey, rowsVisible: number) => void,
   rows: List<RowItem>,
+  routeState: RouteState,
+  setRouteState: RouteState => void,
   showBuildATeam: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,
-  smallTeamsExpanded: boolean,
+  smallTeamsHiddenBadgeCount: number,
+  smallTeamsHiddenRowCount: number,
   toggleSmallTeamsExpanded: () => void,
 }
 

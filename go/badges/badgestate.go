@@ -64,6 +64,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewTlfs = 0
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
+	b.state.NewGitRepoGlobalUniqueIDs = []string{}
 
 	items, err := gstate.Items()
 	if err != nil {
@@ -100,6 +101,18 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 			b.state.RekeysNeeded += body.Count
 		case "follow":
 			b.state.NewFollowers++
+		case "new_git_repo":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.Warning("BadgeState encountered non-json 'new_git_repo' item: %v", err)
+				continue
+			}
+			globalUniqueID, err := jsw.AtKey("global_unique_id").GetString()
+			if err != nil {
+				b.log.Warning("BadgeState encountered gregor 'new_git_repo' item without 'global_unique_id': %v", err)
+				continue
+			}
+			b.state.NewGitRepoGlobalUniqueIDs = append(b.state.NewGitRepoGlobalUniqueIDs, globalUniqueID)
 		}
 	}
 

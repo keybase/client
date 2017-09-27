@@ -61,7 +61,7 @@ const factory = (
     case 'timestamp':
       return <Timestamp messageKey={messageKey} />
     case 'messageIDUnhandled':
-      return <Box data-unhandled={true} data-messageKey={messageKey} />
+      return null
   }
 
   return <Box data-messageKey={messageKey} />

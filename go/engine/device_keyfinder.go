@@ -94,10 +94,7 @@ func (e *DeviceKeyfinder) identifyUser(ctx *Context, user string) error {
 	if err := RunEngine(eng, ctx); err != nil {
 		return libkb.IdentifyFailedError{Assertion: user, Reason: err.Error()}
 	}
-	if err := e.addUser(eng.Result()); err != nil {
-		return err
-	}
-	return nil
+	return e.addUser(eng.Result())
 }
 
 func (e *DeviceKeyfinder) hasUser(upk *keybase1.UserPlusKeys) bool {

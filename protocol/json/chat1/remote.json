@@ -171,6 +171,10 @@
           "name": "convID"
         },
         {
+          "type": "boolean",
+          "name": "createdComplexTeam"
+        },
+        {
           "type": [
             null,
             "RateLimit"
@@ -451,6 +455,19 @@
     {
       "type": "record",
       "name": "JoinLeaveConversationRemoteRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DeleteConversationRemoteRes",
       "fields": [
         {
           "type": [
@@ -875,6 +892,15 @@
         }
       ],
       "response": "JoinLeaveConversationRemoteRes"
+    },
+    "deleteConversation": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "DeleteConversationRemoteRes"
     },
     "getTLFConversations": {
       "request": [

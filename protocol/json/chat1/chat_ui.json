@@ -2,6 +2,11 @@
   "protocol": "chatUi",
   "imports": [
     {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    },
+    {
       "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
@@ -43,7 +48,7 @@
           "name": "name"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {
@@ -55,6 +60,10 @@
           "name": "membersType"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": [
             null,
             "ConversationNotificationInfo"
@@ -64,6 +73,10 @@
         {
           "type": "gregor1.Time",
           "name": "time"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
         }
       ]
     },
@@ -120,7 +133,7 @@
           "name": "headline"
         },
         {
-          "type": "TLFVisibility",
+          "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
         {
@@ -139,6 +152,10 @@
           "name": "membersType"
         },
         {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
           "type": "gregor1.Time",
           "name": "time"
         },
@@ -155,6 +172,10 @@
             "ConversationCreatorInfoLocal"
           ],
           "name": "creatorInfo"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
         },
         {
           "type": [
@@ -248,6 +269,17 @@
             "gregor1.Time"
           ],
           "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
         }
       ]
     },
@@ -537,6 +569,19 @@
       ],
       "response": null,
       "oneway": true
+    },
+    "chatConfirmChannelDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "channel",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "chat.1"

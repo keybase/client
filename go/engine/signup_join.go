@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
+	"golang.org/x/net/context"
 )
 
 type SignupJoinEngine struct {
@@ -142,12 +143,9 @@ func (s *SignupJoinEngine) WriteOut(lctx libkb.LoginContext, salt []byte) error 
 		return err
 	}
 	var nilDeviceID keybase1.DeviceID
-	if err := lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID); err != nil {
-		return err
-	}
-	return nil
+	return lctx.SaveState(s.session, s.csrf, s.username, s.uid, nilDeviceID)
 }
 
-func (s *SignupJoinEngine) PostInviteRequest(arg libkb.InviteRequestArg) error {
-	return libkb.PostInviteRequest(arg)
+func (s *SignupJoinEngine) PostInviteRequest(ctx context.Context, arg libkb.InviteRequestArg) error {
+	return libkb.PostInviteRequest(ctx, s.G(), arg)
 }

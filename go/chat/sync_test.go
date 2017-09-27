@@ -117,12 +117,6 @@ func TestSyncerConnected(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox stale received")
 	}
-	select {
-	case cids := <-list.threadsStale:
-		require.Zero(t, len(cids))
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no threads stale received")
-	}
 	_, _, err := ibox.ReadAll(ctx)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
@@ -192,12 +186,6 @@ func TestSyncerConnected(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox stale received")
 	}
-	select {
-	case cids := <-list.threadsStale:
-		require.Zero(t, len(cids))
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no threads stale received")
-	}
 	_, _, err = ibox.ReadAll(ctx)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
@@ -214,7 +202,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.Equal(t, 5, srvVers)
 }
 
-func TestSyncerLeaveConversation(t *testing.T) {
+func TestSyncerAdHocFullReload(t *testing.T) {
 	ctx, world, ri2, _, sender, list := setupTest(t, 1)
 	defer world.Cleanup()
 
@@ -226,10 +214,39 @@ func TestSyncerLeaveConversation(t *testing.T) {
 	syncer.isConnected = true
 
 	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	t.Logf("convID: %s", conv.GetConvID())
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
 			Vers:  100,
+			Convs: []chat1.Conversation{conv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case <-list.inboxStale:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox stale")
+	}
+
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		conv.Metadata.TeamType = chat1.TeamType_COMPLEX
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  101,
+			Convs: []chat1.Conversation{conv},
+		}), nil
+	}
+	doSync(t, syncer, ri, uid)
+	select {
+	case <-list.inboxStale:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox stale")
+	}
+
+	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
+		conv.Metadata.Existence = chat1.ConversationExistence_DELETED
+		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
+			Vers:  102,
 			Convs: []chat1.Conversation{conv},
 		}), nil
 	}
@@ -289,12 +306,6 @@ func TestSyncerAppState(t *testing.T) {
 	}
 
 	tc.G.AppState.Update(keybase1.AppState_FOREGROUND)
-	select {
-	case cids := <-list.threadsStale:
-		require.Zero(t, len(cids))
-	case <-time.After(20 * time.Second):
-		require.Fail(t, "no stale messages")
-	}
 	select {
 	case <-list.inboxStale:
 	case <-time.After(20 * time.Second):

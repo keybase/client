@@ -27,6 +27,7 @@ type Logs struct {
 	Start   string
 	Install string
 	System  string
+	Git     string
 }
 
 // LogSendContext for LogSend
@@ -48,14 +49,10 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	if _, err := gz.Write([]byte(data)); err != nil {
 		return err
 	}
-	if err := gz.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return gz.Close()
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog string) (string, error) {
+func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog string) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -87,6 +84,9 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 		return "", err
 	}
 	if err := addFile(mpart, "system_log_gz", "system_log.gz", systemLog); err != nil {
+		return "", err
+	}
+	if err := addFile(mpart, "git_log_gz", "git_log.gz", gitLog); err != nil {
 		return "", err
 	}
 
@@ -292,6 +292,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	var startLog string
 	var installLog string
 	var systemLog string
+	var gitLog string
 
 	if sendLogs {
 		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
@@ -301,6 +302,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		installLog = tail(l.G().Log, "install", logs.Install, numBytes)
 		systemLog = tail(l.G().Log, "system", logs.System, numBytes)
+		gitLog = tail(l.G().Log, "git", logs.Git, numBytes)
 	} else {
 		kbfsLog = ""
 		svcLog = ""
@@ -309,7 +311,8 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		startLog = ""
 		installLog = ""
 		systemLog = ""
+		gitLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog)
+	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog)
 }

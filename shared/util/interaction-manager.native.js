@@ -9,7 +9,7 @@ const runAfterInteractions = (f: Function, timeout: number = 500) => {
   let called = false
   const timeoutId = setTimeout(() => {
     if (__DEV__) {
-      console.warn('Some animation is taking too long. Could not run after interaction')
+      console.log('Some animation is taking too long. Could not run after interaction')
     }
     called = true
     f()

@@ -3,14 +3,10 @@ import * as React from 'react'
 import {Avatar, Icon, Text, Box} from '../../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
-import {marginColor, colorForAuthor} from '../shared'
+import {colorForAuthor} from '../shared'
 import Timestamp from '../timestamp'
 
 import type {Props} from '.'
-
-const LeftMarker = ({author, isYou, isFollowing, isBroken}) => (
-  <Box style={{..._leftMarkerStyle, backgroundColor: marginColor(author, isYou, isFollowing, isBroken)}} />
-)
 
 const UserAvatar = ({author, showImage, onClick}) => (
   <Box style={_userAvatarStyle}>
@@ -62,12 +58,6 @@ const MessageWrapper = (props: Props) => (
         ...(props.isSelected ? _stylesSelected : null),
       }}
     >
-      <LeftMarker
-        author={props.author}
-        isYou={props.isYou}
-        isFollowing={props.isFollowing}
-        isBroken={props.isBroken}
-      />
       <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
         <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onClick} />
         <Box style={_flexOneColumn} className="message-wrapper">
@@ -123,6 +113,7 @@ const _containerWithHeaderStyle = {
 
 const _rightSideNoHeaderStyle = {
   ..._flexOneRow,
+  marginLeft: globalMargins.tiny,
   paddingRight: globalMargins.tiny,
   paddingBottom: 2,
 }
@@ -170,12 +161,6 @@ const _textContainerStyle = {
 
 const _editedStyle = {
   color: globalColors.black_20,
-}
-
-const _leftMarkerStyle = {
-  alignSelf: 'stretch',
-  marginRight: globalMargins.tiny,
-  width: 2,
 }
 
 const _userAvatarStyle = {

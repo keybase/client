@@ -56,7 +56,16 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return Promise.resolve(filePath)
 }
 
-function displayNewMessageNotification(text: string, convID: string, badgeCount: number) {
+function displayNewMessageNotification(text: string, convID: string, badgeCount: number, myMsgID: number) {
+  // Dismiss any non-plaintext notifications for the same message ID
+  if (isIOS) {
+    PushNotificationIOS.getDeliveredNotifications(param => {
+      PushNotificationIOS.removeDeliveredNotifications(
+        param.filter(p => p.userInfo && p.userInfo.msgID === myMsgID).map(p => p.identifier)
+      )
+    })
+  }
+
   PushNotifications.localNotification({
     message: text,
     soundName: 'keybasemessage.wav',

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	client "github.com/keybase/client/go/client"
+	engine "github.com/keybase/client/go/engine"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -94,6 +95,11 @@ func (d *smuDeviceWrapper) startService(numClones int) {
 
 func (d *smuDeviceWrapper) stop() error {
 	return <-d.stopCh
+}
+
+func (d *smuDeviceWrapper) clearUPAKCache() {
+	d.tctx.G.LocalDb.Nuke()
+	d.tctx.G.GetUPAKLoader().ClearMemory()
 }
 
 type smuTerminalUI struct{}
@@ -296,6 +302,14 @@ func (u *smuUser) signup() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
 }
 
 func (u *smuUser) signupNoPUK() {
@@ -330,6 +344,25 @@ func (u *smuUser) signupNoPUK() {
 	backupKey = backups[0]
 	backupKey.secret = signupUI.info.displayedPaperKey
 	u.backupKeys = append(u.backupKeys, backupKey)
+
+	// Reconfigure config subsystem in Primary Global Context and also
+	// in all clones. This has to be done after signup because the
+	// username changes, and so does config filename.
+	dw.tctx.G.ConfigureConfig()
+	for _, clone := range dw.clones {
+		clone.G.ConfigureConfig()
+	}
+}
+
+func (u *smuUser) perUserKeyUpgrade() error {
+	g := u.getPrimaryGlobalContext()
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	ctx := &engine.Context{
+		LogUI: g.UI.GetLogUI(),
+	}
+	err := engine.RunEngine(eng, ctx)
+	return err
 }
 
 type smuTeam struct {
@@ -355,14 +388,14 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 			u.ctx.t.Fatal(err)
 		}
 		if details.KeyGeneration == kg {
-			u.ctx.log.Debug("found key generation 2")
+			u.ctx.log.Debug("found key generation %d", kg)
 			return details
 		}
 		if i == 9 {
 			break
 		}
 		i++
-		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s", i, wait)
+		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d)", i, wait, details.KeyGeneration)
 		time.Sleep(wait)
 		totalWait += wait
 		wait = wait * 2
@@ -378,7 +411,7 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 		u.ctx.t.Fatal(err)
 	}
 	cli := u.getTeamsClient()
-	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1})
+	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1.String()})
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
@@ -464,6 +497,13 @@ func (u *smuUser) reset() {
 	}
 }
 
+func (u *smuUser) delete() {
+	err := u.primaryDevice().userClient().DeleteUser(context.TODO(), 0)
+	if err != nil {
+		u.ctx.t.Fatal(err)
+	}
+}
+
 func (u *smuUser) getPrimaryGlobalContext() *libkb.GlobalContext {
 	return u.primaryDevice().tctx.G
 }
@@ -510,4 +550,8 @@ func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
 	cli := u.getTeamsClient()
 	details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})
 	return details, err
+}
+
+func (u *smuUser) uid() keybase1.UID {
+	return u.primaryDevice().tctx.G.Env.GetUID()
 }

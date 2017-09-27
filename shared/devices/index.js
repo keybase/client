@@ -36,8 +36,8 @@ const DeviceHeader = ({onAddNew}) => {
   return (
     <ClickableBox onClick={onAddNew}>
       <Box style={{...stylesCommonRow, alignItems: 'center', borderBottomWidth: 0}}>
-        <Icon type="iconfont-new" style={{color: globalColors.blue, marginRight: 5}} />
-        <Text type="HeaderLink" style={{padding: 5}}>Add new...</Text>
+        <Icon type="iconfont-new" style={{color: globalColors.blue}} />
+        <Text type="BodyBigLink" style={{padding: globalMargins.xtiny}}>Add new...</Text>
       </Box>
     </ClickableBox>
   )
@@ -104,7 +104,7 @@ class Devices extends PureComponent<Props> {
     if (this.props.waitingForServer) {
       return (
         <Box style={{...globalStyles.flexBoxRow, height: 64, justifyContent: 'center'}}>
-          <ProgressIndicator />
+          <ProgressIndicator style={{alignSelf: 'center', width: 24}} />
         </Box>
       )
     }

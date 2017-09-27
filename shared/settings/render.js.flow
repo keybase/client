@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
 
+import * as TabConstants from '../constants/tabs'
 import type {Tab} from '../constants/settings'
 
 export type Props = {
   children: React.Node,
-  badgeNumbers: {[key: Tab]: number},
+  badgeNumbers: {[key: TabConstants.Tab]: number},
   selectedTab: Tab,
-  showComingSoon: boolean,
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,
 }

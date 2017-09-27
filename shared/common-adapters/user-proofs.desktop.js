@@ -95,7 +95,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
               <Text
                 inline={true}
                 type="Body"
-                className="underline"
+                className="hover-underline"
                 style={{
                   ...shared.proofNameStyle(proof),
                   ...globalStyles.selectable,

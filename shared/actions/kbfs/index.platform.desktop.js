@@ -16,6 +16,8 @@ import {isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import {fuseStatus} from './index'
 import {execFile} from 'child_process'
+import {folderTab} from '../../constants/tabs'
+import {navigateTo, switchTo} from '../route-tree'
 
 import type {
   FSInstallFuseFinished,
@@ -167,11 +169,15 @@ function* installFuseSaga(): SagaGenerator<any, any> {
 function findKeybaseUninstallString(): Promise<string> {
   return new Promise((resolve, reject) => {
     const regedit = require('regedit')
-    const uninstallRegPath = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall'
-    regedit.list(uninstallRegPath).on('data', function(entry) {
-      for (var keyName of entry.data.keys) {
-        regedit.list(uninstallRegPath + '\\' + keyName).on('data', function(entry) {
+    const keybaseRegPath = 'HKCU\\SOFTWARE\\Keybase\\Keybase'
+    regedit.list(keybaseRegPath).on('data', function(entry) {
+      if (entry.data.values && entry.data.values.BUNDLEKEY) {
+        const uninstallRegPath =
+          'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + entry.data.values.BUNDLEKEY
+
+        regedit.list(uninstallRegPath).on('data', function(entry) {
           if (
+            entry.data.values &&
             entry.data.values.DisplayName &&
             entry.data.values.DisplayName.value === 'Keybase' &&
             entry.data.values.Publisher &&
@@ -184,8 +190,12 @@ function findKeybaseUninstallString(): Promise<string> {
             // Remove /modify and send it in with the other arguments, below
             modifyPath = modifyPath.replace(' /modify', '')
             resolve(modifyPath)
+          } else {
+            reject(new Error(`Keybase entry not found at` + uninstallRegPath))
           }
         })
+      } else {
+        reject(new Error(`BUNDLEKEY not found at` + keybaseRegPath))
       }
     })
   })
@@ -315,17 +325,28 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
 
 function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
-
-  console.log('openInKBFS:', openPath)
-  if (isWindows) {
-    yield* openInWindows(openPath)
+  const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+  if (enabled) {
+    console.log('openInKBFS:', openPath)
+    if (isWindows) {
+      yield* openInWindows(openPath)
+    } else {
+      yield call(openInDefault, openPath)
+    }
   } else {
-    yield call(openInDefault, openPath)
+    yield put(navigateTo([], [folderTab]))
+    yield put(switchTo([folderTab]))
   }
 }
 
 function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
-  yield call(_open, path)
+  const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
+  if (enabled) {
+    yield call(_open, path)
+  } else {
+    yield put(navigateTo([], [folderTab]))
+    yield put(switchTo([folderTab]))
+  }
 }
 
 export {

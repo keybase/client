@@ -4,7 +4,9 @@
 package libkb
 
 import (
+	"fmt"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -54,13 +56,13 @@ func (t Token) Eq(t2 Token) bool {
 	return (t.Typ == t2.Typ) && byteArrayEq(t.value, t2.value)
 }
 
-func NewToken(typ int) *Token {
-	return &Token{Typ: typ}
+func NewToken(typ int) Token {
+	return Token{Typ: typ}
 }
 
 type Lexer struct {
 	buffer  []byte
-	last    *Token
+	last    Token
 	putback bool
 }
 
@@ -95,8 +97,8 @@ func (lx *Lexer) Putback() {
 	lx.putback = true
 }
 
-func (lx *Lexer) Get() *Token {
-	var ret *Token
+func (lx *Lexer) Get() Token {
+	var ret Token
 	if lx.putback {
 		ret = lx.last
 		lx.putback = false
@@ -107,7 +109,7 @@ func (lx *Lexer) Get() *Token {
 		seq := []int{NONE, NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
 		for i := 2; i <= len(seq); i++ {
 			if match[i*2] >= 0 {
-				ret = &Token{seq[i], lx.buffer[match[2*i]:match[2*i+1]]}
+				ret = Token{Typ: seq[i], value: lx.buffer[match[2*i]:match[2*i+1]]}
 				lx.advanceBuffer(match[2*i+1])
 				break
 			}
@@ -136,9 +138,16 @@ func NewAssertionAnd(left, right AssertionExpression) AssertionAnd {
 	return AssertionAnd{factors}
 }
 
-func NewAssertionOr(left, right AssertionExpression) AssertionOr {
+func NewAssertionOr(left, right AssertionExpression, symbol string) AssertionOr {
 	terms := []AssertionExpression{left, right}
-	return AssertionOr{terms}
+	return AssertionOr{
+		terms:  terms,
+		symbol: symbol,
+	}
+}
+
+func NewAssertionKeybaseUsername(username string) AssertionKeybase {
+	return AssertionKeybase{AssertionURLBase: AssertionURLBase{Key: "keybase", Value: username}}
 }
 
 func (p *Parser) Parse(ctx AssertionContext) AssertionExpression {
@@ -213,7 +222,7 @@ func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 		p.err = NewAssertionParseError("Unexpected 'OR' operator")
 	} else {
 		ex := p.parseExpr(ctx)
-		ret = NewAssertionOr(term, ex)
+		ret = NewAssertionOr(term, ex, string(tok.value))
 	}
 	return ret
 }
@@ -230,4 +239,80 @@ func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression,
 	parser := Parser{lexer, nil, true}
 	ret := parser.Parse(ctx)
 	return ret, parser.err
+}
+
+// Parse an assertion list like "alice,bob&&bob@twitter#char"
+// OR nodes are not allowed (asides from the commas)
+func ParseAssertionsWithReaders(ctx AssertionContext, assertions string) (writers, readers []AssertionExpression, err error) {
+	if len(assertions) == 0 {
+		return writers, readers, fmt.Errorf("empty assertion")
+	}
+
+	split := strings.Split(assertions, "#")
+	if len(split) > 2 {
+		return writers, readers, fmt.Errorf("too many reader divisons ('#') in assertions: %v", assertions)
+	}
+
+	writers, err = ParseAssertionList(ctx, split[0])
+	if err != nil {
+		return writers, readers, err
+	}
+
+	if len(split) >= 2 && len(split[1]) > 0 {
+		readers, err = ParseAssertionList(ctx, split[1])
+		if err != nil {
+			return writers, readers, err
+		}
+	}
+	return writers, readers, nil
+}
+
+// Parse a string into one or more assertions. Only AND assertions are allowed within each part.
+// like "alice,bob&&bob@twitter"
+func ParseAssertionList(ctx AssertionContext, assertionsStr string) (res []AssertionExpression, err error) {
+	expr, err := AssertionParse(ctx, assertionsStr)
+	if err != nil {
+		return res, err
+	}
+	return unpackAssertionList(expr)
+}
+
+// Unpack an assertion with one or more comma-separated parts. Only AND assertions are allowed within each part.
+func unpackAssertionList(expr AssertionExpression) (res []AssertionExpression, err error) {
+	switch expr := expr.(type) {
+	case AssertionOr:
+		// List (or recursive tree) of comma-separated items.
+
+		if expr.symbol != "," {
+			// Don't allow "||". That would be confusing.
+			return res, fmt.Errorf("disallowed OR expression: '%v'", expr.symbol)
+		}
+		for _, sub := range expr.terms {
+			// Recurse because "a,b,c" could look like (OR a (OR b c))
+			sublist, err := unpackAssertionList(sub)
+			if err != nil {
+				return res, err
+			}
+			res = append(res, sublist...)
+		}
+		return res, nil
+	default:
+		// Just one item.
+		err = checkAssertionListItem(expr)
+		return []AssertionExpression{expr}, err
+	}
+}
+
+// A single item in a comma-separated assertion list must not have any ORs in its subtree.
+func checkAssertionListItem(expr AssertionExpression) error {
+	if expr.HasOr() {
+		return fmt.Errorf("assertions with OR are not allowed here")
+	}
+	switch expr.(type) {
+	case AssertionOr:
+		// this should never happen
+		return fmt.Errorf("assertion parse fault: unexpected OR")
+	}
+	// Anything else is allowed.
+	return nil
 }

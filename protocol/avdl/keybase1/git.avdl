@@ -1,0 +1,81 @@
+@namespace("keybase.1")
+
+protocol git {
+  import idl "common.avdl";
+  // for Folder and FolderType -- maybe these should be in kbfs_common?
+  import idl "favorite.avdl";
+
+  // The same format as in chat1.EncryptedData (and KBFS)
+  record EncryptedGitMetadata {
+    int   v;                  // version = 1
+    bytes e;                  // encryptedData (output of secret box)
+    BoxNonce n;               // nonce
+    PerTeamKeyGeneration gen; // key generation that was used
+  }
+
+  @typedef("string")
+  record RepoID {}
+
+  enum GitLocalMetadataVersion {
+    V1_1
+  }
+
+  record GitLocalMetadataV1 {
+    GitRepoName repoName;
+  }
+
+  // GitLocalMetadataVersioned is a variant container for all the
+  // versions of GitLocalMetadata.
+  variant GitLocalMetadataVersioned switch (GitLocalMetadataVersion version) {
+    case V1 : GitLocalMetadataV1;
+  }
+
+  // GitLocalMetadata is the struct that local RPCs use to read and write repo
+  // metadata. It's decoupled from GitLocalMetadataVersioned, which is the
+  // format that we serialize and encrypt, in case we ever need to support
+  // multiple versions. Right now, however, its fields are exactly the same as
+  // the only current variant, GitLocalMetadataV1.
+  record GitLocalMetadata {
+    GitRepoName repoName;
+  }
+
+  // Additional metadata maintained by the server, returned with query results.
+  record GitServerMetadata {
+    Time ctime;
+    Time mtime;
+    string lastModifyingUsername;
+    DeviceID lastModifyingDeviceID;
+    string lastModifyingDeviceName;
+  }
+
+  void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata);
+
+  record GitRepoResult {
+    Folder folder;
+    RepoID repoID;
+    GitLocalMetadata localMetadata;
+    GitServerMetadata serverMetadata;
+    string repoUrl;
+    string globalUniqueID;  // for the GUI's convenient bookkeeping
+    boolean canDelete;
+  }
+
+  // fetch git repos for a single team / implicit team
+  // (note that non-team TLFs are mapped to implicit teams on the core side of this)
+  array<GitRepoResult> getGitMetadata(Folder folder);
+
+  // fetch git repos for all teams that the user has access to
+  array<GitRepoResult> getAllGitMetadata();
+
+  // create a personal, private repo
+  RepoID createPersonalRepo(GitRepoName repoName);
+
+  // create a team repo
+  RepoID createTeamRepo(GitRepoName repoName, TeamName teamName, boolean notifyTeam);
+
+  // delete a personal, private repo
+  void deletePersonalRepo(GitRepoName repoName);
+
+  // delete a team repo
+  void deleteTeamRepo(GitRepoName repoName, TeamName teamName, boolean notifyTeam);
+}

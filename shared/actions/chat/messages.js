@@ -38,19 +38,17 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-    if (lastMessageID) {
-      yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
-        param: {
-          clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-          conversationID: Constants.keyToConversationID(conversationIDKey),
-          identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-          outboxID,
-          supersedes: messageID,
-          tlfName: inboxConvo.name,
-          tlfPublic: false,
-        },
-      })
-    }
+    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
+      param: {
+        clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+        conversationID: Constants.keyToConversationID(conversationIDKey),
+        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        outboxID,
+        supersedes: messageID,
+        tlfName: inboxConvo.name,
+        tlfPublic: false,
+      },
+    })
   } else {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
@@ -67,18 +65,22 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
 
 function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   let {conversationIDKey} = action.payload
-
-  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
-  if (inSearch) {
-    yield put(Creators.exitSearch())
-  }
+  let newConvoTlfName
 
   if (Constants.isPendingConversationIDKey(conversationIDKey)) {
     // Get a real conversationIDKey
-    conversationIDKey = yield call(Shared.startNewConversation, conversationIDKey)
+    ;[conversationIDKey, newConvoTlfName] = yield call(Shared.startNewConversation, conversationIDKey)
     if (!conversationIDKey) {
       return
     }
+  }
+
+  // Note: This should happen *after* startNewConversation, because
+  // startNewConversation() uses the presence of a pendingConversation
+  // that is deleted by exitSearch().
+  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
+  if (inSearch) {
+    yield put(Creators.exitSearch(false))
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
@@ -92,12 +94,12 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
   const message: Constants.Message = {
     author,
-    conversationIDKey: action.payload.conversationIDKey,
+    conversationIDKey: conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     editedCount: 0,
     failureDescription: '',
-    key: Constants.messageKey(action.payload.conversationIDKey, 'outboxIDText', outboxIDKey),
+    key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
     message: new HiddenString(action.payload.text.stringValue()),
     messageState: 'pending',
     outboxID: outboxIDKey,
@@ -120,19 +122,17 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     )
   )
 
-  if (lastMessageID) {
-    yield call(ChatTypes.localPostTextNonblockRpcPromise, {
-      param: {
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-        outboxID,
-        body: action.payload.text.stringValue(),
-        identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
-        clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-      },
-    })
-  }
+  yield call(ChatTypes.localPostTextNonblockRpcPromise, {
+    param: {
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,
+      tlfPublic: false,
+      outboxID,
+      body: action.payload.text.stringValue(),
+      identifyBehavior: yield call(Shared.getPostingIdentifyBehavior, conversationIDKey),
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+    },
+  })
 }
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
@@ -161,21 +161,26 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   // Not editing anymore
   yield put(Creators.showEditor(null))
 
-  const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-  if (lastMessageID) {
-    yield call(ChatTypes.localPostEditNonblockRpcPromise, {
-      param: {
-        body: action.payload.text.stringValue(),
-        clientPrev: Constants.parseMessageID(lastMessageID).msgID,
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        outboxID,
-        supersedes: messageID,
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-      },
-    })
+  // if message post-edit is the same as message pre-edit, skip call and marking message as 'EDITED'
+  const prevMessageText = message.message.stringValue()
+  const newMessageText = action.payload.text.stringValue()
+  if (prevMessageText === newMessageText) {
+    return
   }
+
+  const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
+  yield call(ChatTypes.localPostEditNonblockRpcPromise, {
+    param: {
+      body: newMessageText,
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID,
+      supersedes: messageID,
+      tlfName: inboxConvo.name,
+      tlfPublic: false,
+    },
+  })
 }
 
 function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {

@@ -54,6 +54,7 @@ func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)               
 func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
 func (n *chatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
+func (n *chatListener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }
@@ -179,7 +180,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	listener := chatListener{
 		incoming:       make(chan int, 100),
 		failing:        make(chan []chat1.OutboxRecord),
-		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks),
+		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
 		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),

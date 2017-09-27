@@ -47,7 +47,7 @@ class InstallBanner extends Component<Props, void> {
 const stylesContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.blue,
+  backgroundColor: globalColors.red,
   height: 56,
   justifyContent: 'center',
   minHeight: 56,

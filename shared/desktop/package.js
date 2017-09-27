@@ -7,7 +7,6 @@ import os from 'os'
 import packager from 'electron-packager'
 import path from 'path'
 import webpack from 'webpack'
-import {exec} from 'child_process'
 
 // absolute path relative to this script
 const desktopPath = (...args) => path.join(__dirname, ...args)
@@ -79,23 +78,15 @@ function main() {
 
   // use the same version as the currently-installed electron
   console.log('Finding electron version')
-  exec('yarn list electron', {cwd: path.join(__dirname, '..')}, (err, stdout, stderr) => {
-    if (!err) {
-      try {
-        // $FlowIssue
-        packagerOpts.electronVersion = stdout.match(/electron@([0-9.]+)/)[1]
-        console.log('Found electron version:', packagerOpts.electronVersion)
-      } catch (err) {
-        console.log("Couldn't parse yarn list to find electron:", err)
-        process.exit(1)
-      }
-    } else {
-      console.log("Couldn't list yarn to find electron:", err)
-      process.exit(1)
-    }
-
+  try {
+    // $FlowIssue
+    packagerOpts.electronVersion = require('../package.json').devDependencies.electron
+    console.log('Found electron version:', packagerOpts.electronVersion)
     startPack()
-  })
+  } catch (err) {
+    console.log("Couldn't parse yarn list to find electron:", err)
+    process.exit(1)
+  }
 }
 
 function startPack() {

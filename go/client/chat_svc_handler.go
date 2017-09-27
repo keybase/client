@@ -102,7 +102,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 		}
 		convSummary.Channel = ChatChannel{
 			Name:        conv.Info.TlfName,
-			Public:      conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
+			Public:      conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
 			TopicType:   strings.ToLower(conv.Info.Triple.TopicType.String()),
 			MembersType: strings.ToLower(conv.Info.MembersType.String()),
 			TopicName:   conv.Info.TopicName,
@@ -130,6 +130,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 
 	arg := chat1.GetThreadLocalArg{
 		ConversationID: conv.Info.Id,
+		Pagination:     opts.Pagination,
 		Query: &chat1.GetThreadQuery{
 			MarkAsRead: !opts.Peek,
 		},
@@ -158,6 +159,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 	thread := Thread{
 		Offline:          threadView.Offline,
 		IdentifyFailures: threadView.IdentifyFailures,
+		Pagination:       threadView.Thread.Pagination,
 	}
 	for _, m := range threadView.Thread.Messages {
 		st, err := m.State()
@@ -326,9 +328,9 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1)
 	defer fsource.Close()
 	src := c.G().XStreams.ExportReader(fsource)
 
-	vis := chat1.TLFVisibility_PRIVATE
+	vis := keybase1.TLFVisibility_PRIVATE
 	if header.clientHeader.TlfPublic {
-		vis = chat1.TLFVisibility_PUBLIC
+		vis = keybase1.TLFVisibility_PUBLIC
 	}
 	arg := chat1.PostAttachmentLocalArg{
 		ConversationID: header.conversationID,
@@ -405,9 +407,9 @@ func (c *chatServiceHandler) attachV1NoStream(ctx context.Context, opts attachOp
 	}
 	rl = append(rl, header.rateLimits...)
 
-	vis := chat1.TLFVisibility_PRIVATE
+	vis := keybase1.TLFVisibility_PRIVATE
 	if header.clientHeader.TlfPublic {
-		vis = chat1.TLFVisibility_PUBLIC
+		vis = keybase1.TLFVisibility_PUBLIC
 	}
 	arg := chat1.PostFileAttachmentLocalArg{
 		ConversationID: header.conversationID,
@@ -718,12 +720,12 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	var header postHeader
 	var convTriple chat1.ConversationIDTriple
 	var tlfName string
-	var visibility chat1.TLFVisibility
+	var visibility keybase1.TLFVisibility
 	switch len(existing) {
 	case 0:
-		visibility = chat1.TLFVisibility_PRIVATE
+		visibility = keybase1.TLFVisibility_PRIVATE
 		if arg.channel.Public {
-			visibility = chat1.TLFVisibility_PUBLIC
+			visibility = keybase1.TLFVisibility_PUBLIC
 		}
 		tt, err := TopicTypeFromStrDefault(arg.channel.TopicType)
 		if err != nil {
@@ -762,7 +764,7 @@ func (c *chatServiceHandler) makePostHeader(ctx context.Context, arg sendArgV1, 
 	header.clientHeader = chat1.MessageClientHeader{
 		Conv:        convTriple,
 		TlfName:     tlfName,
-		TlfPublic:   visibility == chat1.TLFVisibility_PUBLIC,
+		TlfPublic:   visibility == keybase1.TLFVisibility_PUBLIC,
 		MessageType: arg.mtype,
 		Supersedes:  arg.supersedes,
 		Deletes:     arg.deletes,
@@ -819,9 +821,9 @@ func (c *chatServiceHandler) getExistingConvs(ctx context.Context, id chat1.Conv
 		tlfName = channel.Name
 	}
 
-	vis := chat1.TLFVisibility_PRIVATE
+	vis := keybase1.TLFVisibility_PRIVATE
 	if channel.Public {
-		vis = chat1.TLFVisibility_PUBLIC
+		vis = keybase1.TLFVisibility_PUBLIC
 	}
 	tt, err := TopicTypeFromStrDefault(channel.TopicType)
 	if err != nil {
@@ -998,6 +1000,7 @@ type Message struct {
 // Thread is used for JSON output of a thread of messages.
 type Thread struct {
 	Messages         []Message                     `json:"messages"`
+	Pagination       *chat1.Pagination             `json:"pagination,omitempty"`
 	Offline          bool                          `json:"offline,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits

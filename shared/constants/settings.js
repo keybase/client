@@ -166,6 +166,10 @@ type FeedbackTab = 'settingsTabs:feedbackTab'
 export const feedbackTab = 'settingsTabs:feedbackTab'
 type AboutTab = 'settingsTabs:aboutTab'
 export const aboutTab = 'settingsTabs:aboutTab'
+type FoldersTab = 'settingsTabs:foldersTab'
+export const foldersTab = 'settingsTabs:foldersTab'
+type GitTab = 'settingsTabs:gitTab'
+export const gitTab = 'settingsTabs:gitTab'
 type DevicesTab = 'settingsTabs:devicesTab'
 export const devicesTab = 'settingsTabs:devicesTab'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
@@ -183,6 +187,8 @@ export type Tab =
   | FeedbackTab
   | AboutTab
   | DevicesTab
+  | GitTab
+  | FoldersTab
   | ScreenprotectorTab
   | PassphraseTab
 

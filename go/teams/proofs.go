@@ -1,9 +1,10 @@
 package teams
 
 import (
-	"context"
 	"fmt"
 	"sort"
+
+	"golang.org/x/net/context"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
@@ -20,6 +21,11 @@ type proofTerm struct {
 	linkMap map[keybase1.Seqno]keybase1.LinkID
 }
 
+func (t *proofTerm) shortForm() string {
+	return fmt.Sprintf("%v@%v", t.sigMeta.SigChainLocation.Seqno, t.leafID)
+
+}
+
 type proofTermBookends struct {
 	left  proofTerm
 	right *proofTerm
@@ -31,6 +37,10 @@ type proof struct {
 	reason string
 }
 
+func (p *proof) shortForm() string {
+	return fmt.Sprintf("%v --> %v '%v'", p.a.shortForm(), p.b.shortForm(), p.reason)
+}
+
 type proofIndex struct {
 	a keybase1.UserOrTeamID
 	b keybase1.UserOrTeamID
@@ -38,10 +48,17 @@ type proofIndex struct {
 
 func (t proofTerm) seqno() keybase1.Seqno { return t.sigMeta.SigChainLocation.Seqno }
 
+// comparison method only valid if `t` and `u` are known to be on the same chain
 func (t proofTerm) lessThanOrEqual(u proofTerm) bool {
 	return t.seqno() <= u.seqno()
 }
 
+// comparison method only valid if `t` and `u` are known to be on the same chain
+func (t proofTerm) equal(u proofTerm) bool {
+	return t.seqno() == u.seqno()
+}
+
+// comparison method only valid if `t` and `u` are known to be on the same chain
 func (t proofTerm) max(u proofTerm) proofTerm {
 	if t.lessThanOrEqual(u) {
 		return u
@@ -49,6 +66,7 @@ func (t proofTerm) max(u proofTerm) proofTerm {
 	return t
 }
 
+// comparison method only valid if `t` and `u` are known to be on the same chain
 func (t proofTerm) min(u proofTerm) proofTerm {
 	if t.lessThanOrEqual(u) {
 		return t
@@ -61,15 +79,21 @@ func newProofIndex(a keybase1.UserOrTeamID, b keybase1.UserOrTeamID) proofIndex 
 }
 
 type proofSetT struct {
-	proofs map[proofIndex][]proof
+	libkb.Contextified
+	proofs       map[proofIndex][]proof
+	teamLinkMaps map[keybase1.TeamID]map[keybase1.Seqno]keybase1.LinkID
 }
 
-func newProofSet() *proofSetT {
-	return &proofSetT{make(map[proofIndex][]proof)}
+func newProofSet(g *libkb.GlobalContext) *proofSetT {
+	return &proofSetT{
+		Contextified: libkb.NewContextified(g),
+		proofs:       make(map[proofIndex][]proof),
+		teamLinkMaps: make(map[keybase1.TeamID]map[keybase1.Seqno]keybase1.LinkID),
+	}
 }
 
 // AddNeededHappensBeforeProof adds a new needed proof to the proof set. The
-// proof is that a happened before b.  If there are other proofs in the proof set
+// proof is that `a` happened before `b`.  If there are other proofs in the proof set
 // that prove the same thing, then we can tighten those proofs with a and b if
 // it makes sense.  For instance, if there is an existing proof that c<d,
 // but we know that c<a and b<d, then it suffices to replace c<d with a<b as
@@ -77,20 +101,57 @@ func newProofSet() *proofSetT {
 // to a merkle tree lookup, so it makes sense to be stingy. Return the modified
 // proof set with the new proofs needed, but the original arugment p will
 // be mutated.
-func (p *proofSetT) AddNeededHappensBeforeProof(a proofTerm, b proofTerm, reason string) *proofSetT {
+func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm, b proofTerm, reason string) {
+
+	var action string
+	defer func() {
+		p.G().Log.CDebugf(ctx, "proofSet add(%v --> %v) [%v] '%v'", a.shortForm(), b.shortForm(), action, reason)
+	}()
+
 	idx := newProofIndex(a.leafID, b.leafID)
+
+	if idx.a.Equal(idx.b) {
+		// If both terms are on the same chain
+		if a.lessThanOrEqual(b) {
+			// The proof is self-evident.
+			// Discard it.
+			action = "discard-easy"
+			return
+		}
+		// The proof is self-evident FALSE.
+		// Add it and return immediately so the rest of this function doesn't have to trip over it.
+		// It should be failed later by the checker.
+		action = "added-easy-false"
+		p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
+		return
+	}
+
 	set := p.proofs[idx]
 	for i := len(set) - 1; i >= 0; i-- {
-		proof := set[i]
-		if proof.a.lessThanOrEqual(a) && b.lessThanOrEqual(proof.b) {
-			proof.a = proof.a.max(a)
-			proof.b = proof.b.min(b)
-			set[i] = proof
-			return p
+		existing := set[i]
+		if existing.a.lessThanOrEqual(a) && b.lessThanOrEqual(existing.b) {
+			// If the new proof is surrounded by the old proof.
+			existing.a = existing.a.max(a)
+			existing.b = existing.b.min(b)
+			set[i] = existing
+			action = "collapsed"
+			return
+		}
+		if existing.a.equal(a) && existing.b.lessThanOrEqual(b) {
+			// If the new proof is the same on the left and weaker on the right.
+			// Discard the new proof, as it is implied by the existing one.
+			action = "discard-weak"
+			return
 		}
 	}
+	action = "added"
 	p.proofs[idx] = append(p.proofs[idx], proof{a, b, reason})
-	return p
+	return
+}
+
+// Set the latest link map for the team
+func (p *proofSetT) SetTeamLinkMap(ctx context.Context, teamID keybase1.TeamID, linkMap map[keybase1.Seqno]keybase1.LinkID) {
+	p.teamLinkMaps[teamID] = linkMap
 }
 
 func (p *proofSetT) AllProofs() []proof {
@@ -137,7 +198,11 @@ func (p proof) lookupMerkleTreeChain(ctx context.Context, world LoaderContext) (
 
 // check a single proof. Call to the merkle API enddpoint, and then ensure that the
 // data that comes back fits the proof and previously checked sighcain links.
-func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext) error {
+func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext, proofSet *proofSetT) (err error) {
+	defer func() {
+		g.Log.CDebugf(ctx, "TeamLoader proofSet check1(%v) -> %v", p.shortForm(), err)
+	}()
+
 	triple, err := p.lookupMerkleTreeChain(ctx, world)
 	if err != nil {
 		return err
@@ -151,6 +216,14 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 		return NewProofError(p, fmt.Sprintf("seqno %d > %d", earlierSeqno, laterSeqno))
 	}
 	lm := p.a.linkMap
+	if p.a.leafID.IsTeamOrSubteam() {
+		// Pull in the latest link map, instead of the one from the proof object.
+		tid := p.a.leafID.AsTeamOrBust()
+		lm2, ok := proofSet.teamLinkMaps[tid]
+		if ok {
+			lm = lm2
+		}
+	}
 	if lm == nil {
 		return NewProofError(p, "nil link map")
 	}
@@ -182,8 +255,8 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 }
 
 // check the entire proof set, failing if any one proof fails.
-func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext, world LoaderContext) (err error) {
-	defer g.CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()
+func (p *proofSetT) check(ctx context.Context, world LoaderContext) (err error) {
+	defer p.G().CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()
 
 	var total int
 	for _, v := range p.proofs {
@@ -194,9 +267,9 @@ func (p *proofSetT) check(ctx context.Context, g *libkb.GlobalContext, world Loa
 	for _, v := range p.proofs {
 		for _, proof := range v {
 			if i%100 == 0 {
-				g.Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
+				p.G().Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
 			}
-			err = proof.check(ctx, g, world)
+			err = proof.check(ctx, p.G(), world, p)
 			if err != nil {
 				return err
 			}

@@ -285,7 +285,9 @@ func moveNonChromiumFiles(g *GlobalContext, oldHome string, currentHome string) 
 func RemoteSettingsRepairman(g *GlobalContext) error {
 	w := Win32{Base{"keybase",
 		func() string { return g.Env.getHomeFromCmdOrConfig() },
-		func() RunMode { return g.Env.GetRunMode() }}}
+		func() RunMode { return g.Env.GetRunMode() },
+		g.GetLog,
+	}}
 
 	if g.Env.GetRunMode() != ProductionRunMode {
 		return nil

@@ -43,6 +43,7 @@ class UsernameOrEmail extends Component<Props, State> {
             onChangeText={text => this.onChange(text)}
             onEnterKeyDown={() => this.onSubmit()}
             value={this.state.usernameOrEmail}
+            keyboardType="email-address"
           />
           <Button
             fullWidth={true}

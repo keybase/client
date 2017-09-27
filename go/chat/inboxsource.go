@@ -66,7 +66,7 @@ func (b *BlockingLocalizer) Name() string {
 }
 
 type NonblockInboxResult struct {
-	ConvID   chat1.ConversationID
+	Conv     chat1.Conversation
 	Err      *chat1.ConversationErrorLocal
 	ConvRes  *chat1.ConversationLocal
 	InboxRes *chat1.Inbox
@@ -238,7 +238,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
 		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
-			lquery.Visibility() == chat1.TLFVisibility_PUBLIC)
+			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			return nil, info, err
 		}
@@ -287,7 +287,7 @@ func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 		return types.NameInfo{}, nil
 	}
 	return CtxKeyFinder(ctx, g).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
-		lquery.Visibility() == chat1.TLFVisibility_PUBLIC)
+		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 }
 
 type RemoteInboxSource struct {
@@ -486,7 +486,6 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, rl, err
 	}
-	s.Debug(ctx, "Read: tlfInfo: %+v", tlfInfo)
 	inbox, rl, err = s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
 		return inbox, rl, err
@@ -546,9 +545,11 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 			return res, rl, err
 		}
 
-		// Write out to local storage
-		if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
-			s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+		// Write out to local storage only if we are using local daata
+		if useLocalData {
+			if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
+				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
+			}
 		}
 
 		res = chat1.Inbox{
@@ -663,6 +664,22 @@ func (s *HybridInboxSource) SetAppNotificationSettings(ctx context.Context, uid 
 	}
 	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
 		s.Debug(ctx, "SetAppNotificationSettings: unable to load conversation: convID: %s err: %s",
+			convID, err.Error())
+		return nil, nil
+	}
+	return conv, nil
+}
+
+func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers, convID chat1.ConversationID, teamType chat1.TeamType) (conv *chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.TeamTypeChanged(ctx, vers, convID, teamType); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if conv, err = s.getConvLocal(ctx, uid, convID); err != nil {
+		s.Debug(ctx, "TeamTypeChanged: unable to load conversation: convID: %s err: %s",
 			convID, err.Error())
 		return nil, nil
 	}
@@ -796,13 +813,13 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 						s.Debug(ctx, "error localizing: convID: %s err: %s", conv.conv.GetConvID(),
 							convLocal.Error.Message)
 						*localizeCb <- NonblockInboxResult{
-							Err:    convLocal.Error,
-							ConvID: conv.conv.Metadata.ConversationID,
+							Err:  convLocal.Error,
+							Conv: conv.conv,
 						}
 					} else {
 						*localizeCb <- NonblockInboxResult{
 							ConvRes: &convLocal,
-							ConvID:  convLocal.Info.Id,
+							Conv:    conv.conv,
 						}
 					}
 				}
@@ -901,6 +918,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		Triple:      conversationRemote.Metadata.IdTriple,
 		Status:      conversationRemote.Metadata.Status,
 		MembersType: conversationRemote.Metadata.MembersType,
+		TeamType:    conversationRemote.Metadata.TeamType,
+		Version:     conversationRemote.Metadata.Version,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {
@@ -1072,7 +1091,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
 		info, err := CtxKeyFinder(ctx, s.G()).Find(ctx,
 			conversationLocal.Info.TLFNameExpanded(), conversationLocal.GetMembersType(),
-			conversationLocal.Info.Visibility == chat1.TLFVisibility_PUBLIC)
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			errMsg := err.Error()
 			conversationLocal.Error = chat1.NewConversationErrorLocal(
@@ -1088,19 +1107,24 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		var kuids []keybase1.UID
 		for _, uid := range conversationRemote.Metadata.AllList {
-			uname, err := uloader.LookupUsername(ctx, keybase1.UID(uid.String()))
-			if err != nil {
-				// If we are offline, we just won't know who is in the channel
-				continue
-			}
-			conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
-				uname.String())
+			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
-		// Sort alphabetically
-		sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
-			return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
-		})
+		unames, err := s.G().UIDMapper.MapUIDsToUsernames(ctx, s.G(), kuids)
+		if err == nil {
+			for _, uname := range unames {
+				conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
+					uname.String())
+			}
+			// Sort alphabetically
+			sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
+				return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
+			})
+		} else {
+			// If we are offline, we just won't know who is in the channel
+			s.Debug(ctx, "localizeConversation: failed to get team channel usernames: %s", err)
+		}
 	case chat1.ConversationMembersType_KBFS:
 		var err error
 		conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(

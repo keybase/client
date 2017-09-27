@@ -32,6 +32,7 @@ type StateProps = {|
   conversationIsError: boolean,
   conversationErrorText: string,
   defaultChatText: string,
+  inboxFilter: ?string,
 |}
 
 type DispatchProps = {|
@@ -83,13 +84,13 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     }
   }
 
-  const {inSearch, searchPending, searchShowingSuggestions} = state.chat
+  const {inSearch, searchPending, searchShowingSuggestions, inboxFilter} = state.chat
   const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
-
   return {
     conversationErrorText,
     conversationIsError,
     finalizeInfo,
+    inboxFilter,
     rekeyInfo,
     selectedConversationIDKey,
     showLoader,
@@ -109,7 +110,7 @@ const mapDispatchToProps = (
   dispatch: Dispatch,
   {setRouteState, navigateUp, navigateAppend}
 ): DispatchProps => ({
-  onExitSearch: () => dispatch(Creators.exitSearch()),
+  onExitSearch: () => dispatch(Creators.exitSearch(false)),
   _onAttach: (selectedConversation, inputs: Array<Constants.AttachmentInput>) => {
     dispatch(
       navigateAppend([
@@ -147,7 +148,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch((props: Props) => !props.selectedConversationIDKey, renderNothing),
+  branch((props: Props) => !props.selectedConversationIDKey && !props.inSearch, renderNothing),
   branch(
     (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
     renderComponent(NoConversation)

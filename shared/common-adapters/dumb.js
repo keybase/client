@@ -697,10 +697,10 @@ const tabBarCustomButtons = selectedIndex => {
     },
     children: [
       {avatar: <Avatar size={32} onClick={null} username="max" />},
-      {icon: 'iconfont-people', label: 'PEOPLE', badgeNumber: 3},
-      {icon: 'iconfont-folder', label: 'FOLDERS'},
-      {icon: 'iconfont-device', label: 'DEVICES', badgeNumber: 12},
-      {icon: 'iconfont-settings', label: 'SETTINGS'},
+      {icon: 'iconfont-nav-people', label: 'PEOPLE', badgeNumber: 3},
+      {icon: 'iconfont-nav-folders', label: 'FOLDERS'},
+      {icon: 'iconfont-nav-devices', label: 'DEVICES', badgeNumber: 12},
+      {icon: 'iconfont-nav-settings', label: 'SETTINGS'},
     ].map((buttonInfo: any, i) => {
       const button = buttonInfo.avatar
         ? <AvatarButton
@@ -944,9 +944,10 @@ else echo "bar";\`\`\`How about *bold* and _italic?_ nice. :smile:
 Now youre thinking with ~portals~ crypto.
 how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
     },
-    emoji: {
-      children: 'hello there :santa::skin-tone-3: 🌸😎👍🏿!',
-    },
+    // Disabling this one, it's a visdiff flake.
+    // emoji: {
+    //  children: 'hello there :santa::skin-tone-3: 🌸😎👍🏿!',
+    // },
     'special chars in code block': {
       children: `I think we should try to use \`if else\` statements \`\`\`if (var == "foo")
   echo "foo";

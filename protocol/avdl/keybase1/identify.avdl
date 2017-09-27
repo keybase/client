@@ -72,19 +72,21 @@ protocol identify {
 
   /*
    * Resolve a set of assertions to an implicit team, optionally creating the team and identifying the members.
+   * When doIdentifies is not set, social assertion resolutions are server trust.
    */
   ResolveIdentifyImplicitTeamRes resolveIdentifyImplicitTeam(
     int sessionID,
     string assertions,
     string suffix,
     boolean isPublic,
-    boolean doIdentifies, // Whether core runs identifies on all the people or assertions
-    boolean create,       // Whether to create the team if none exists
-    string reason,     // Displayed in the header of the tracker popup
+    boolean doIdentifies,  // Whether core runs identifies on all the people or assertions
+    boolean create,        // Whether to create the team if none exists
+    IdentifyReason reason, // Displayed in the header of the tracker popup
     TLFIdentifyBehavior identifyBehavior
   );
   record ResolveIdentifyImplicitTeamRes {
-    // Display name possibly updated by resolutions and conflicts. With the logged-in user first (so not a canonical CORE display name).
+    // Display name possibly updated by resolutions and conflicts.
+    // With the logged-in user first (so not a canonical CORE display name).
     string displayName; // example: "alice,bob,zed#bot (conflicted copy 2017-05-08 #3)"
     TeamID teamID;
     array<UserVersion> writers; // Members of the team that can write. The team OWNERs.

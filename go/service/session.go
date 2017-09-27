@@ -22,7 +22,7 @@ type SessionHandler struct {
 // NewSessionHandler creates a SessionHandler for the xp transport.
 func NewSessionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SessionHandler {
 	return &SessionHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

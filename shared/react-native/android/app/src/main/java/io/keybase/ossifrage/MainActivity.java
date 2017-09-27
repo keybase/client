@@ -23,10 +23,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
-import go.keybase.Keybase;
+import keybase.Keybase;
 
-import static go.keybase.Keybase.initOnce;
-import static go.keybase.Keybase.logSend;
+import static keybase.Keybase.initOnce;
+import static keybase.Keybase.logSend;
 
 import io.keybase.ossifrage.util.DNSNSFetcher;
 

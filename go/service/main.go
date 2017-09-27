@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/teams"
@@ -86,7 +87,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
-		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
+		keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g, d.rekeyMaster)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
@@ -123,6 +124,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
+		keybase1.GitProtocol(NewGitHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
@@ -133,9 +135,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 }
 
 func (d *Service) Handle(c net.Conn) {
-	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.WrapError)
+	xp := rpc.NewTransport(c, libkb.NewRPCLogFactory(d.G()), libkb.MakeWrapError(d.G()))
 
-	server := rpc.NewServer(xp, libkb.WrapError)
+	server := rpc.NewServer(xp, libkb.MakeWrapError(d.G()))
 
 	cl := make(chan error, 1)
 	connID := d.G().NotifyRouter.AddConnection(xp, cl)
@@ -262,10 +264,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	if err = d.setupTeams(); err != nil {
 		return err
 	}
-	if err = d.setupPVL(); err != nil {
-		return err
-	}
-	return nil
+	return d.setupPVL()
 }
 
 func (d *Service) setupTeams() error {
@@ -661,11 +660,7 @@ func (d *Service) gregordConnect() (err error) {
 	}
 
 	// Connect to gregord
-	if err = d.gregor.Connect(uri); err != nil {
-		return err
-	}
-
-	return nil
+	return d.gregor.Connect(uri)
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and
@@ -682,10 +677,7 @@ func (d *Service) GetExclusiveLockWithoutAutoUnlock() error {
 	if _, err := d.ensureRuntimeDir(); err != nil {
 		return err
 	}
-	if err := d.lockPIDFile(); err != nil {
-		return err
-	}
-	return nil
+	return d.lockPIDFile()
 }
 
 // GetExclusiveLock grabs the exclusive lock over running keybase
@@ -723,7 +715,7 @@ func (d *Service) lockPIDFile() (err error) {
 	if fn, err = d.G().Env.GetPidFile(); err != nil {
 		return
 	}
-	d.lockPid = libkb.NewLockPIDFile(fn)
+	d.lockPid = libkb.NewLockPIDFile(d.G(), fn)
 	if err = d.lockPid.Lock(); err != nil {
 		return err
 	}
@@ -841,7 +833,7 @@ func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {
 	if d.gregor == nil {
 		return nil, errors.New("can't gregor inject without a gregor")
 	}
-	return d.gregor.InjectItem(cat, body)
+	return d.gregor.InjectItem(context.TODO(), cat, body, gregor1.TimeOrOffset{})
 }
 
 func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {

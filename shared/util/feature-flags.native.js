@@ -7,7 +7,8 @@ const ff: FeatureFlags = {
   plansEnabled: false,
   recentFilesEnabled: false,
   tabPeopleEnabled: false,
-  teamChatEnabled: false,
+  teamChatEnabled: true,
+  tabGitEnabled: false,
 }
 
 if (__DEV__) {

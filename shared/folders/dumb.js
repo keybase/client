@@ -1,7 +1,7 @@
 // @flow
 import File from './files/file/render'
 import Files from './files/render'
-import Folders from './render'
+import Folders from '.'
 import type {Folder} from './list'
 import type {Props as FilesProps} from './files/render'
 import type {PropsOf, DumbComponentMap} from '../constants/types/more'
@@ -155,10 +155,19 @@ const commonFolders = {
   onChat: tlf => console.log(`open chat with tlf ${tlf}`),
   onToggleShowIgnored,
   username: 'cecileb',
-  private: {tlfs, ignored, isPublic: false, parentProps, onToggleShowIgnored, showIgnored: true},
+  private: {
+    tlfs,
+    ignored,
+    installed: true,
+    isPublic: false,
+    parentProps,
+    onToggleShowIgnored,
+    showIgnored: true,
+  },
   public: {
     tlfs: [f2, f3, f4, f5],
     ignored,
+    installed: true,
     isPublic: true,
     privateBadge: 1,
     publicBadge: 222,
@@ -305,6 +314,7 @@ const filesMenuItems = [
 const commonFiles = (isPrivate): FilesProps => ({
   theme: isPrivate ? 'private' : 'public',
   ignored: false,
+  installed: true,
   allowIgnore: true,
   hasReadOnlyUsers: false,
   visiblePopupMenu: false,

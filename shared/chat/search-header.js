@@ -14,7 +14,7 @@ type OwnProps = {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onExitSearch: () => dispatch(Creators.exitSearch()),
+  onExitSearch: () => dispatch(Creators.exitSearch(false)),
 })
 
 const SearchHeader = props => (

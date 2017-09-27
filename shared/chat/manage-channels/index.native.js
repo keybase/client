@@ -25,6 +25,7 @@ const _rowBox = {
   alignItems: 'center',
   flexShrink: 0,
   height: 56,
+  padding: globalMargins.small,
   width: '100%',
 }
 
@@ -33,7 +34,7 @@ const ManageChannels = (props: Props) => (
     <ScrollView style={{alignSelf: 'flex-start', width: '100%'}}>
       <Box style={_createStyle}>
         <Icon style={_createIcon} type="iconfont-new" onClick={props.onCreate} />
-        <Text type="BodyBigLink" onClick={props.onCreate}>Create chat channel</Text>
+        <Text type="BodyBigLink" onClick={props.onCreate}>New chat channel</Text>
       </Box>
       {props.channels.map(c => <Row key={c.name} {...c} onToggle={() => props.onToggle(c.name)} />)}
     </ScrollView>
@@ -46,14 +47,14 @@ const Header = (props: Props) => (
       <Avatar isTeam={true} teamname={props.teamname} size={12} />
       <Text
         type="BodySmallSemibold"
-        style={{color: globalColors.darkBlue, fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}
+        style={{fontSize: 11, lineHeight: 15, marginLeft: globalMargins.xtiny}}
         lineClamp={1}
       >
         {props.teamname}
       </Text>
     </Box>
-    <Text type="BodySmallSemibold" style={{color: globalColors.black_75}}>
-      {props.channels.length} chat channels
+    <Text type="BodyBig">
+      {props.channels.length} {props.channels.length !== 1 ? 'chat channels' : 'chat channel'}
     </Text>
   </Box>
 )
@@ -66,8 +67,8 @@ const _headerStyle = {
 
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
   height: '100%',
-  padding: 16,
   width: '100%',
 }
 

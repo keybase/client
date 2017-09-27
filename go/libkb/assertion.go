@@ -21,10 +21,12 @@ type AssertionExpression interface {
 	HasOr() bool
 	NeedsParens() bool
 	CollectUrls([]AssertionURL) []AssertionURL
+	ToSocialAssertion() (keybase1.SocialAssertion, error)
 }
 
 type AssertionOr struct {
-	terms []AssertionExpression
+	symbol string // the divider symbol used e.g. "," or "||"
+	terms  []AssertionExpression
 }
 
 func (a AssertionOr) HasOr() bool { return true }
@@ -60,6 +62,10 @@ func (a AssertionOr) String() string {
 		v[i] = t.String()
 	}
 	return strings.Join(v, ",")
+}
+
+func (a AssertionOr) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert OR expression to single social assertion")
 }
 
 type AssertionAnd struct {
@@ -123,6 +129,10 @@ func (a AssertionAnd) String() string {
 		}
 	}
 	return strings.Join(v, "+")
+}
+
+func (a AssertionAnd) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AND expression to single social assertion")
 }
 
 type AssertionURL interface {
@@ -206,6 +216,43 @@ func (b AssertionURLBase) ToTeamID() (ret keybase1.TeamID)     { return ret }
 func (b AssertionURLBase) ToTeamName() (ret keybase1.TeamName) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
+}
+
+func (b AssertionURLBase) ToSocialAssertionHelper() (sa keybase1.SocialAssertion, err error) {
+	return keybase1.SocialAssertion{
+		User:    b.GetValue(),
+		Service: keybase1.SocialAssertionService(b.GetKey()),
+	}, nil
+}
+func (a AssertionUID) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionUID to social assertion")
+}
+func (a AssertionTeamID) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionTeamID to social assertion")
+}
+func (a AssertionTeamName) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionTeamName to social assertion")
+}
+func (a AssertionKeybase) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return sa, fmt.Errorf("cannot convert AssertionKeybase to social assertion")
+}
+func (a AssertionWeb) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionSocial) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionHTTP) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionHTTPS) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionDNS) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
+}
+func (a AssertionFingerprint) ToSocialAssertion() (sa keybase1.SocialAssertion, err error) {
+	return a.ToSocialAssertionHelper()
 }
 
 func (a AssertionSocial) GetValue() string {
@@ -623,6 +670,13 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 	return string(assertion.GetKey()), assertion.GetValue(), nil
 }
 
+func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictInfo) string {
+	return fmt.Sprintf("(conflicted %v #%v)",
+		conflict.Time.Time().UTC().Format("2006-01-02"),
+		conflict.Generation)
+}
+
+// Parse a name like "mlsteele,malgorithms@twitter#bot (conflicted 2017-03-04 #2)"
 func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
 	// Turn the whole string tolower
 	s = strings.ToLower(s)
@@ -727,6 +781,7 @@ func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bo
 	return ret, nil
 }
 
+// Parse a name like "/keybase/private/mlsteele,malgorithms@twitter#bot (conflicted 2017-03-04 #2)"
 func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamDisplayName, error) {
 	ret := keybase1.ImplicitTeamDisplayName{}
 	s = strings.ToLower(s)
@@ -739,4 +794,23 @@ func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.Implicit
 	}
 	isPublic := parts[2] == "public"
 	return ParseImplicitTeamDisplayName(ctx, parts[3], isPublic)
+}
+
+// Parse a name like "/keybase/team/happy.toucans"
+func ParseTeamPrivateKBFSPath(s string) (ret keybase1.TeamName, err error) {
+	s = strings.ToLower(s)
+	parts := strings.Split(s, "/")
+	if len(parts) != 4 {
+		return ret, fmt.Errorf("Invalid team TLF name, must have four parts")
+	}
+	if parts[0] != "" || parts[1] != "keybase" || parts[2] != "team" {
+		return ret, fmt.Errorf("Invalid team TLF name")
+	}
+	return keybase1.TeamNameFromString(parts[3])
+}
+
+type ResolvedAssertion struct {
+	UID           keybase1.UID
+	Assertion     AssertionExpression
+	ResolveResult ResolveResult
 }

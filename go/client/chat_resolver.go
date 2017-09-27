@@ -22,7 +22,7 @@ type chatConversationResolvingRequest struct {
 	TlfName     string
 	TopicName   string
 	TopicType   chat1.TopicType
-	Visibility  chat1.TLFVisibility
+	Visibility  keybase1.TLFVisibility
 	MembersType chat1.ConversationMembersType
 
 	ctx *chatConversationResolvingRequestContext
@@ -62,7 +62,7 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 	var cname keybase1.CanonicalTLFNameAndIDWithBreaks
 	var err error
 	var visout string
-	if req.Visibility == chat1.TLFVisibility_PUBLIC {
+	if req.Visibility == keybase1.TLFVisibility_PUBLIC {
 		visout = "public"
 		cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
 	} else {
@@ -213,8 +213,6 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		if err != nil {
 			return nil, err
 		}
-	} else {
-		r.G.UI.GetTerminalUI().Printf(newConversation+": %s.\n", req.ctx.canonicalizedTlfName)
 	}
 
 	var tnp *string
@@ -229,9 +227,9 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		MembersType:   req.MembersType,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("creating conversation error: %v\n", err)
+		return nil, err
 	}
-	return &ncres.Conv, err
+	return &ncres.Conv, nil
 }
 
 func (r *chatConversationResolver) Resolve(ctx context.Context, req chatConversationResolvingRequest, behavior chatConversationResolvingBehavior) (

@@ -5,6 +5,12 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 
 import type {Props} from '.'
 
+const ShhIcon = () => (
+  <Box style={{position: 'relative', alignSelf: 'flex-start'}}>
+    <Icon type="iconfont-shh" style={shhIconStyle} />
+  </Box>
+)
+
 const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPanel, teamName}: Props) => (
   <Box style={containerStyle}>
     <BackButton
@@ -19,25 +25,19 @@ const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPan
         ...globalStyles.flexBoxRow,
         justifyContent: 'center',
         flex: 1,
-        marginTop: 2,
-        padding: globalMargins.tiny,
       }}
     >
       <Box style={{...globalStyles.flexBoxColumn}}>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          <Avatar teamname={teamName} size={16} />
-          <Text type="BodyBig" style={{color: globalColors.black_40}}>&nbsp;{teamName}</Text>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', alignSelf: 'center'}}>
+          <Avatar teamname={teamName} size={12} />
+          <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>&nbsp;{teamName}</Text>
         </Box>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          <Text type="Header" style={{color: globalColors.black_75}}>#{channelName}</Text>
+        <Box style={{...globalStyles.flexBoxRow, alignSelf: 'center'}}>
+          <Text type="BodyBig" style={{color: globalColors.black_75}}>#{channelName}</Text>
+          {muted && <ShhIcon />}
         </Box>
       </Box>
 
-      {muted &&
-        <Icon
-          type="iconfont-shh"
-          style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}}
-        />}
     </Box>
     <Icon
       type="iconfont-info"
@@ -82,11 +82,7 @@ const UsernameHeader = ({
         containerStyle={styleCenter}
         onUsernameClicked={onShowProfile}
       />
-      {muted &&
-        <Icon
-          type="iconfont-shh"
-          style={{...styleCenter, ...styleLeft, color: globalColors.black_20, fontSize: 22}}
-        />}
+      {muted && <ShhIcon />}
     </Box>
     <Icon
       type="iconfont-info"
@@ -98,7 +94,7 @@ const UsernameHeader = ({
 
 const containerStyle = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'flex-start',
+  alignItems: 'center',
   borderBottomColor: globalColors.black_05,
   borderBottomWidth: 1,
   justifyContent: 'flex-start',
@@ -112,6 +108,12 @@ const styleCenter = {
 
 const styleLeft = {
   marginLeft: globalMargins.xtiny,
+}
+
+const shhIconStyle = {
+  ...styleLeft,
+  color: globalColors.black_20,
+  fontSize: 22,
 }
 
 export {ChannelHeader, UsernameHeader}

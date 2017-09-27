@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -19,17 +20,90 @@ import (
 	"github.com/keybase/client/go/teams"
 )
 
+func SendTextByID(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, text string, ri func() chat1.RemoteInterface) error {
+	return SendMsgByID(ctx, g, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: text,
+	}), chat1.MessageType_TEXT, ri)
+}
+
+func SendMsgByID(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType,
+	ri func() chat1.RemoteInterface) error {
+	boxer := NewBoxer(g)
+	sender := NewBlockingSender(g, boxer, nil, ri)
+	msg := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     tlfName,
+			MessageType: msgType,
+		},
+		MessageBody: body,
+	}
+	_, _, _, err := sender.Send(ctx, convID, msg, 0, nil)
+	return err
+}
+
+func SendTextByIDNonblock(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, text string, ri func() chat1.RemoteInterface) error {
+	return SendMsgByIDNonblock(ctx, g, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: text,
+	}), chat1.MessageType_TEXT, ri)
+}
+
+func SendMsgByIDNonblock(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType,
+	ri func() chat1.RemoteInterface) error {
+	boxer := NewBoxer(g)
+	baseSender := NewBlockingSender(g, boxer, nil, ri)
+	sender := NewNonblockingSender(g, baseSender)
+	msg := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     tlfName,
+			MessageType: msgType,
+		},
+		MessageBody: body,
+	}
+	_, _, _, err := sender.Send(ctx, convID, msg, 0, nil)
+	return err
+}
+
 func SendTextByName(ctx context.Context, g *globals.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string,
-	ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, topicName, membersType, ident, ri)
+	ri func() chat1.RemoteInterface) error {
+	boxer := NewBoxer(g)
+	sender := NewBlockingSender(g, boxer, nil, ri)
+	helper := newSendHelper(g, name, topicName, membersType, ident, sender, ri)
 	return helper.SendText(ctx, text)
 }
 
 func SendMsgByName(ctx context.Context, g *globals.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-	msgType chat1.MessageType, ri chat1.RemoteInterface) error {
-	helper := newSendHelper(g, name, topicName, membersType, ident, ri)
+	msgType chat1.MessageType, ri func() chat1.RemoteInterface) error {
+	boxer := NewBoxer(g)
+	sender := NewBlockingSender(g, boxer, nil, ri)
+	helper := newSendHelper(g, name, topicName, membersType, ident, sender, ri)
+	return helper.SendBody(ctx, body, msgType)
+}
+
+func SendTextByNameNonblock(ctx context.Context, g *globals.Context, name string, topicName *string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string,
+	ri func() chat1.RemoteInterface) error {
+	boxer := NewBoxer(g)
+	baseSender := NewBlockingSender(g, boxer, nil, ri)
+	sender := NewNonblockingSender(g, baseSender)
+	helper := newSendHelper(g, name, topicName, membersType, ident, sender, ri)
+	return helper.SendText(ctx, text)
+}
+
+func SendMsgByNameNonblock(ctx context.Context, g *globals.Context, name string, topicName *string,
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+	msgType chat1.MessageType, ri func() chat1.RemoteInterface) error {
+	boxer := NewBoxer(g)
+	baseSender := NewBlockingSender(g, boxer, nil, ri)
+	sender := NewNonblockingSender(g, baseSender)
+	helper := newSendHelper(g, name, topicName, membersType, ident, sender, ri)
 	return helper.SendBody(ctx, body, msgType)
 }
 
@@ -38,8 +112,9 @@ type sendHelper struct {
 
 	name        string
 	membersType chat1.ConversationMembersType
-	ri          chat1.RemoteInterface
 	ident       keybase1.TLFIdentifyBehavior
+	sender      types.Sender
+	ri          func() chat1.RemoteInterface
 
 	canonicalName string
 	topicName     *string
@@ -51,15 +126,17 @@ type sendHelper struct {
 }
 
 func newSendHelper(g *globals.Context, name string, topicName *string,
-	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, ri chat1.RemoteInterface) *sendHelper {
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, sender types.Sender,
+	ri func() chat1.RemoteInterface) *sendHelper {
 	return &sendHelper{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sendHelper", false),
 		name:         name,
 		topicName:    topicName,
 		membersType:  membersType,
-		ri:           ri,
 		ident:        ident,
+		sender:       sender,
+		ri:           ri,
 	}
 }
 
@@ -99,7 +176,7 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 	}
 	uid := gregor1.UID(kuid.ToBytes())
 	conv, _, err := NewConversation(ctx, s.G(), uid, s.canonicalName, s.topicName,
-		chat1.TopicType_CHAT, s.membersType, chat1.TLFVisibility_PRIVATE, s.remoteInterface)
+		chat1.TopicType_CHAT, s.membersType, keybase1.TLFVisibility_PRIVATE, s.remoteInterface)
 	if err != nil {
 		return err
 	}
@@ -127,14 +204,12 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 		},
 	}
 
-	boxer := NewBoxer(s.G())
-	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
-	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, first, s.membersType, nil)
+	mbox, _, _, _, topicNameState, err := s.sender.Prepare(ctx, first, s.membersType, nil)
 	if err != nil {
 		return err
 	}
 
-	ncrres, reserr := s.ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+	ncrres, reserr := s.ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:       s.triple,
 		TLFMessage:     *mbox,
 		MembersType:    s.membersType,
@@ -155,8 +230,6 @@ func (s *sendHelper) newConversation(ctx context.Context) error {
 }
 
 func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
-	boxer := NewBoxer(s.G())
-	sender := NewBlockingSender(s.G(), boxer, nil, s.remoteInterface)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        s.triple,
@@ -165,12 +238,12 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	_, _, _, err := sender.Send(ctx, s.convID, msg, 0, nil)
+	_, _, _, err := s.sender.Send(ctx, s.convID, msg, 0, nil)
 	return err
 }
 
 func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
-	return s.ri
+	return s.ri()
 }
 
 func CurrentUID(g *globals.Context) (keybase1.UID, error) {
@@ -319,12 +392,12 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 
 func FindConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType, vis chat1.TLFVisibility, topicName string,
+	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
 	if membersType == chat1.ConversationMembersType_IMPTEAM {
 		// in this case, we need to get the hidden implicit team name from the display name
-		_, teamName, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == chat1.TLFVisibility_PUBLIC)
+		_, teamName, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			if _, ok := err.(teams.TeamDoesNotExistError); ok {
 				// no exist is just empty response
@@ -388,7 +461,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		if len(res) > 0 {
 			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
 		}
-	} else if vis == chat1.TLFVisibility_PUBLIC {
+	} else if vis == keybase1.TLFVisibility_PUBLIC {
 		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
 
 		// Check for offline and return an error
@@ -472,7 +545,7 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:         conv.Info.Triple,
 			TlfName:      conv.Info.TlfName,
-			TlfPublic:    conv.Info.Visibility == chat1.TLFVisibility_PUBLIC,
+			TlfPublic:    conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
 			MessageType:  typ,
 			Supersedes:   chat1.MessageID(0),
 			Deletes:      nil,
@@ -528,6 +601,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if !alreadyIn {
 		// Send a message to the channel after joining.
 		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
 		irl, err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
 		if err != nil {
 			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
@@ -574,7 +648,7 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 }
 
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis chat1.TLFVisibility,
+	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface) (chat1.ConversationLocal, []chat1.RateLimit, error) {
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
@@ -589,15 +663,16 @@ type newConversationHelper struct {
 	topicName   *string
 	topicType   chat1.TopicType
 	membersType chat1.ConversationMembersType
-	vis         chat1.TLFVisibility
+	vis         keybase1.TLFVisibility
 	ri          func() chat1.RemoteInterface
 }
 
 func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName string, topicName *string,
-	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis chat1.TLFVisibility,
+	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility,
 	ri func() chat1.RemoteInterface) *newConversationHelper {
 
 	if membersType == chat1.ConversationMembersType_IMPTEAM && g.ExternalG().Env.GetChatMemberType() != "impteam" {
+		g.Log.Debug("### note: impteam mt requested, but feature flagged off, using kbfs")
 		membersType = chat1.ConversationMembersType_KBFS
 	}
 
@@ -685,7 +760,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
 
-	isPublic := n.vis == chat1.TLFVisibility_PUBLIC
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
 	if err != nil {
 		if n.membersType != chat1.ConversationMembersType_IMPTEAM {
@@ -725,6 +800,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, rl, fmt.Errorf("error preparing message: %s", err)
 		}
+
 		var ncrres chat1.NewConversationRemoteRes
 		ncrres, reserr = n.ri().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:       triple,
@@ -808,14 +884,29 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			// pass
 		}
 
+		// If we created a complex team in the process of creating this conversation, send a special
+		// message into the general channel letting everyone know about the change.
+		if ncrres.CreatedComplexTeam {
+			if err := SendTextByNameNonblock(ctx, n.G(), n.tlfName, &DefaultTeamTopic,
+				chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_GUI,
+				n.complexTeamIntroMessage(), n.ri); err != nil {
+				n.Debug(ctx, "failed to send complex team intro message: %s", err)
+			}
+		}
+
 		return res, rl, nil
 	}
 
 	return res, rl, reserr
 }
 
+func (n *newConversationHelper) complexTeamIntroMessage() string {
+	return fmt.Sprintf("Attention @channel!\n\nI have just created a new channel in team _%s_. Here are some things that are now different:\n\n1.) Notifications will not happen for every message. Click or tap the info icon on the right to configure them.\n2.) The #general channel is now in the \"Big Teams\" section of the inbox.\n3.) You can hit the three dots next to %s in the inbox view to join other channels.\n\nEnjoy!",
+		n.tlfName, n.tlfName)
+}
+
 func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple chat1.ConversationIDTriple,
-	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility chat1.TLFVisibility,
+	tlfName string, membersType chat1.ConversationMembersType, tlfVisibility keybase1.TLFVisibility,
 	topicName *string) (*chat1.MessageBoxed, *chat1.TopicNameState, error) {
 	var msg chat1.MessagePlaintext
 	if topicName != nil {
@@ -823,7 +914,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
 				TlfName:     tlfName,
-				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
+				TlfPublic:   tlfVisibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_METADATA,
 				Prev:        nil, // TODO
 				// Sender and SenderDevice filled by prepareMessageForRemote
@@ -838,7 +929,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        triple,
 				TlfName:     tlfName,
-				TlfPublic:   tlfVisibility == chat1.TLFVisibility_PUBLIC,
+				TlfPublic:   tlfVisibility == keybase1.TLFVisibility_PUBLIC,
 				MessageType: chat1.MessageType_TLFNAME,
 				Prev:        nil, // TODO
 				// Sender and SenderDevice filled by prepareMessageForRemote

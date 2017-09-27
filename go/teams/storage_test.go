@@ -133,3 +133,39 @@ func TestStorageUpdate(t *testing.T) {
 
 	require.True(t, newTime.Equal(team.CachedAt.Time()))
 }
+
+func TestStorageDelete(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	teamID := NewSubteamID()
+	st := getStorageFromG(tc.G)
+
+	t.Logf("store 1")
+	team := &keybase1.TeamData{
+		Chain: keybase1.TeamSigChainState{
+			Id: teamID,
+		},
+		CachedAt: keybase1.ToTime(tc.G.Clock().Now()),
+	}
+	st.Put(context.TODO(), team)
+
+	t.Logf("get 1")
+	team = st.Get(context.TODO(), teamID)
+	require.NotNil(t, team)
+
+	t.Logf("delete")
+	err = st.Delete(context.TODO(), teamID)
+	require.NoError(t, err)
+
+	t.Logf("delete again")
+	err = st.Delete(context.TODO(), teamID)
+	require.NoError(t, err)
+
+	t.Logf("get deleted")
+	team = st.Get(context.TODO(), teamID)
+	require.Nil(t, team, "should be deleted")
+}

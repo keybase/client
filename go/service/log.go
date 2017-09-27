@@ -21,7 +21,7 @@ type LogHandler struct {
 // NewLogHandler creates a LogHandler for the xp transport.
 func NewLogHandler(xp rpc.Transporter, logReg *logRegister, g *libkb.GlobalContext) *LogHandler {
 	return &LogHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		logReg:       logReg,
 		Contextified: libkb.NewContextified(g),
 	}

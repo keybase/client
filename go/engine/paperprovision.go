@@ -16,7 +16,6 @@ type PaperProvisionEngine struct {
 	Username       string
 	DeviceName     string
 	PaperKey       string
-	keepPaperKey   bool
 	result         error
 	lks            *libkb.LKSec
 	User           *libkb.User
@@ -243,11 +242,7 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs
 // makeDeviceKeys uses DeviceWrap to generate device keys.
 func (e *PaperProvisionEngine) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(args, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-
-	return nil
+	return RunEngine(eng, ctx)
 }
 
 // copied from loginProvision

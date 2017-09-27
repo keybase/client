@@ -2,16 +2,21 @@
 import {Component} from 'react'
 import * as Constants from '../../../../constants/chat'
 import type {DeviceType} from '../../../../constants/types/more'
+import type {NotifyType} from '../../../../constants/chat'
 
 export type StateProps = {|
   channelWide: boolean,
   conversationIDKey: string,
-  desktop: string,
-  mobile: string,
-|}
+  desktop: NotifyType,
+  mobile: NotifyType,
+|} | {||}
 
 export type DispatchProps = {|
-  onSetNotification: (conversationIDKey: Constants.ConversationIDKey, deviceType: DeviceType, notifyType: Constants.NotifyType) => void,
+  onSetNotification: (
+    conversationIDKey: Constants.ConversationIDKey,
+    deviceType: DeviceType,
+    notifyType: Constants.NotifyType
+  ) => void,
   onToggleChannelWide: (conversationIDKey: Constants.ConversationIDKey) => void,
 |}
 

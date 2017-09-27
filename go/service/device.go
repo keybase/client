@@ -22,7 +22,7 @@ type DeviceHandler struct {
 // NewDeviceHandler creates a DeviceHandler for the xp transport.
 func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DeviceHandler {
 	return &DeviceHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

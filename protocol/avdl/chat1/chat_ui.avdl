@@ -2,6 +2,7 @@
 
 protocol chatUi {
 
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   record UIPagination {
@@ -14,11 +15,13 @@ protocol chatUi {
   record UnverifiedInboxUIItem {
     string convID;
     string name;
-    TLFVisibility visibility;
+    keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
+    ConversationVers version;
   }
 
   record UnverifiedInboxUIItems {
@@ -34,13 +37,15 @@ protocol chatUi {
     string snippet;
     string channel;
     string headline;
-    TLFVisibility visibility;
+    keybase1.TLFVisibility visibility;
     array<string> participants;
     ConversationStatus status;
     ConversationMembersType membersType;
+    TeamType teamType;
     gregor1.Time time;
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
+    ConversationVers version;
 
     // Finalized convo stuff
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -64,6 +69,8 @@ protocol chatUi {
     string senderDeviceType;
     boolean superseded;
     union {null, gregor1.Time} senderDeviceRevokedAt;
+    array<string> atMentions;
+    ChannelMention channelMention;
   }
 
   record UIMessageOutbox {
@@ -111,4 +118,6 @@ protocol chatUi {
 
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
+
+  boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

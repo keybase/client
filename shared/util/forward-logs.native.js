@@ -45,4 +45,6 @@ function setupSource() {
   window.console.error = makeOverride('error')
 }
 
-export {setupSource, localLog, localWarn, localError}
+function flushLogFile() {}
+
+export {setupSource, localLog, localWarn, localError, flushLogFile}

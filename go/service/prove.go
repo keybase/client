@@ -26,7 +26,7 @@ type proveUI struct {
 // NewProveHandler makes a new ProveHandler object from an RPC transport.
 func NewProveHandler(xp rpc.Transporter, g *libkb.GlobalContext) *ProveHandler {
 	return &ProveHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

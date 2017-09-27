@@ -93,7 +93,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 23
         versionCode timestamp()
-        versionName "1.0.6"
+        versionName "1.0.7"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -119,7 +119,6 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
-
         }
 
         storyBook.initWith(buildTypes.debug)
@@ -135,6 +134,7 @@ android {
 
         releaseUnsigned.initWith(buildTypes.release)
         releaseUnsigned {
+            applicationIdSuffix ".unsigned"
             signingConfig buildTypes.debug.signingConfig
         }
     }

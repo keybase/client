@@ -67,11 +67,7 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 
 	g.GetLog().Debug("Verify: read %d bytes", n)
 
-	if err := sink.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return sink.Close()
 }
 
 func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {

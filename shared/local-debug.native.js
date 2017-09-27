@@ -41,24 +41,26 @@ let config: {[key: string]: any} = {
   reduxSagaLoggerMasked: true,
   redirectOnLogout: true,
   showAllTrackers: false,
+  userTimings: false,
 }
 
 if (__DEV__ && true) {
-  config.isDevApplePushToken = true
   config.clickableVisible = false
   config.dumbChatOnly = false
   config.dumbSheetOnly = false
   config.enableActionLogging = false
-  config.enableStoreLogging = true
-  config.forwardLogs = true
-  config.immediateStateLogging = true
+  config.enableStoreLogging = false
+  config.forwardLogs = false
+  config.immediateStateLogging = false
+  config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true
   config.reactPerf = false
   config.redirectOnLogout = false
-  config.reduxSagaLogger = true
+  config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
+  config.userTimings = true
   config.showAllTrackers = false
 }
 
@@ -98,6 +100,7 @@ if (PERF) {
     reduxSagaLoggerMasked: false,
     redirectOnLogout: false,
     showAllTrackers: false,
+    userTimings: false,
   }
 }
 
@@ -128,6 +131,7 @@ export const {
   showAllTrackers,
   showDevTools,
   filterActionLogs,
+  userTimings,
 } = config
 
 export function setup(store: any) {

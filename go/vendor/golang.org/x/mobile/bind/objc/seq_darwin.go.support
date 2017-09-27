@@ -9,7 +9,7 @@ package gomobile_bind
 // bindings.
 
 /*
-#cgo CFLAGS: -x objective-c -fobjc-arc
+#cgo CFLAGS: -x objective-c -fobjc-arc -Werror
 #cgo LDFLAGS: -framework Foundation
 
 #include <stdint.h>

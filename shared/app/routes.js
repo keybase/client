@@ -3,29 +3,43 @@ import {RouteDefNode} from '../route-tree'
 import chatRoutes from '../chat/routes'
 import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
+import gitRoutes from '../git/routes'
 import foldersRoutes from '../folders/routes'
 import profileRoutes from '../profile/routes'
 import settingsRoutes from '../settings/routes'
+import teamsRoutes from '../teams/routes'
 import Nav from './nav'
 import {isMobile} from '../constants/platform'
-import {chatTab, devicesTab, folderTab, loginTab, peopleTab, profileTab, settingsTab} from '../constants/tabs'
+import {
+  chatTab,
+  devicesTab,
+  folderTab,
+  loginTab,
+  peopleTab,
+  profileTab,
+  settingsTab,
+  teamsTab,
+  gitTab,
+} from '../constants/tabs'
 
 const routeTree = new RouteDefNode({
-  defaultSelected: loginTab,
-  containerComponent: Nav,
   children: {
     [chatTab]: chatRoutes,
-    [loginTab]: loginRoutes,
     [folderTab]: foldersRoutes,
+    [gitTab]: gitRoutes,
+    [loginTab]: loginRoutes,
+    [peopleTab]: profileRoutes,
+    [profileTab]: profileRoutes,
+    [settingsTab]: settingsRoutes,
+    [teamsTab]: teamsRoutes,
     ...(isMobile
       ? {}
       : {
           [devicesTab]: devicesRoutes, // not a top level route in mobile
         }),
-    [peopleTab]: profileRoutes,
-    [profileTab]: profileRoutes,
-    [settingsTab]: settingsRoutes,
   },
+  containerComponent: Nav,
+  defaultSelected: loginTab,
 })
 
 export default routeTree

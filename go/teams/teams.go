@@ -50,6 +50,10 @@ func (t *Team) IsPublic() bool {
 	return t.chain().IsPublic()
 }
 
+func (t *Team) IsImplicit() bool {
+	return t.chain().IsImplicit()
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()
@@ -76,6 +80,10 @@ func (t *Team) ChatKey(ctx context.Context) (keybase1.TeamApplicationKey, error)
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_CHAT)
 }
 
+func (t *Team) GitMetadataKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKey(ctx, keybase1.TeamApplication_GIT_METADATA)
+}
+
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
@@ -98,6 +106,10 @@ func (t *Team) UserVersionByUID(ctx context.Context, uid keybase1.UID) (keybase1
 
 func (t *Team) UsersWithRole(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
 	return t.chain().GetUsersWithRole(role)
+}
+
+func (t *Team) UsersWithRoleOrAbove(role keybase1.TeamRole) ([]keybase1.UserVersion, error) {
+	return t.chain().GetUsersWithRoleOrAbove(role)
 }
 
 func (t *Team) Members() (keybase1.TeamMembers, error) {
@@ -262,6 +274,8 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase
 		derivationString = libkb.TeamChatDerivationString
 	case keybase1.TeamApplication_SALTPACK:
 		derivationString = libkb.TeamSaltpackDerivationString
+	case keybase1.TeamApplication_GIT_METADATA:
+		derivationString = libkb.TeamGitMetadataDerivationString
 	default:
 		return keybase1.TeamApplicationKey{}, errors.New("invalid application id")
 	}
@@ -550,13 +564,18 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 
 	subteamName := SCTeamName(t.Data.Name.String())
 
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return err
+	}
 	parentSection := SCTeamSection{
 		ID: SCTeamID(parentTeam.ID),
 		Subteam: &SCSubteam{
 			ID:   SCTeamID(t.ID),
 			Name: subteamName, // weird this is required
 		},
-		Admin: admin,
+		Admin:   admin,
+		Entropy: entropy,
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
@@ -596,19 +615,33 @@ func (t *Team) NumActiveInvites() int {
 	return t.chain().NumActiveInvites()
 }
 
-func (t *Team) HasActiveInvite(name, typ string) (bool, error) {
-	return t.chain().HasActiveInvite(name, typ)
+func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, error) {
+	it, err := keybase1.TeamInviteTypeFromString(typ, t.G().Env.GetRunMode() == libkb.DevelRunMode)
+	if err != nil {
+		return false, err
+	}
+	return t.chain().HasActiveInvite(name, it)
 }
 
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
-	if role == keybase1.TeamRole_OWNER {
-		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
-	}
 
 	// if a user version was previously loaded, then there is a keybase user for username, but
-	// without a PUK or without any keys.
+	// without a PUK or without any keys. Note that we are allowed to invites Owners in this
+	// manner. But if we're inviting for anything else, then no owner invites are allowed.
 	if uv.Uid.Exists() {
+		if role == keybase1.TeamRole_OWNER {
+			txt := "We are sorry, you have hit a bug! The user you are inviting (" + username + ") hasn't logged into\n" +
+				"Keybase for a while and needs to upgrade their account. Until they do, you can only add them to this team\n" +
+				"as an admin, reader or writer. So you have three options: (1) wait until " + username + " upgrades;\n" +
+				"(2) wait until all Keybase users get the fixed app (by 2017-11-07); or (3) add " + username + " as an admin (or reader or writer)"
+			return keybase1.TeamAddMemberResult{}, errors.New(txt)
+		}
 		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
+	}
+
+	// If a social, or email, or other type of invite, assert it's now an owner.
+	if role == keybase1.TeamRole_OWNER {
+		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
 	}
 
 	return t.inviteSBSMember(ctx, username, role)
@@ -623,7 +656,7 @@ func (t *Team) InviteEmailMember(ctx context.Context, email string, role keybase
 
 	invite := SCTeamInvite{
 		Type: "email",
-		Name: email,
+		Name: keybase1.TeamInviteName(email),
 		ID:   NewInviteID(),
 	}
 	return t.postInvite(ctx, invite, role)
@@ -633,9 +666,10 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 	t.G().Log.Debug("team %s invite keybase member %s", t.Name(), uv)
 	invite := SCTeamInvite{
 		Type: "keybase",
-		Name: uv.PercentForm(),
+		Name: uv.TeamInviteName(),
 		ID:   NewInviteID(),
 	}
+	t.G().Log.CDebugf(ctx, "invite: %+v", invite)
 	if err := t.postInvite(ctx, invite, role); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -656,7 +690,7 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 
 	invite := SCTeamInvite{
 		Type: typ,
-		Name: name,
+		Name: keybase1.TeamInviteName(name),
 		ID:   NewInviteID(),
 	}
 
@@ -689,15 +723,20 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		invites.Writers = &invList
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
-	default:
-		// should be caught further up, but just in case
-		return errors.New("You cannot invite an owner to a team.")
+	case keybase1.TeamRole_OWNER:
+		invites.Owners = &invList
+	}
+
+	entropy, err := makeSCTeamEntropy()
+	if err != nil {
+		return err
 	}
 
 	teamSection := SCTeamSection{
 		ID:      SCTeamID(t.ID),
 		Admin:   admin,
 		Invites: &invites,
+		Entropy: entropy,
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
@@ -964,7 +1003,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 	memSet.removeExistingMembers(ctx, t)
 	t.G().Log.Debug("team change request: %d new members", len(memSet.recipients))
 	if len(memSet.recipients) == 0 {
-		return nil, nil, nil, nil
+		return nil, implicitAdminBoxes, nil, nil
 	}
 
 	boxes, err := t.keyManager.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)

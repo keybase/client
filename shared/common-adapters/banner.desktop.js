@@ -6,10 +6,10 @@ import {globalStyles, globalColors} from '../styles'
 
 import type {Props} from './banner'
 
-function Banner({error}: Props) {
+function Banner({error, style}: Props) {
   if (!error) return null
   return (
-    <Box style={{position: 'relative'}}>
+    <Box style={{position: 'relative', ...style}}>
       <Box
         style={{
           ...globalStyles.flexBoxRow,

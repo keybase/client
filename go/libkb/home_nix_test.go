@@ -11,7 +11,7 @@ import (
 )
 
 func TestPosix(t *testing.T) {
-	hf := NewHomeFinder("tester", nil, "posix", func() RunMode { return ProductionRunMode })
+	hf := NewHomeFinder("tester", nil, "posix", func() RunMode { return ProductionRunMode }, makeLogGetter(t))
 	d := hf.CacheDir()
 	if !strings.Contains(d, ".cache/tester") {
 		t.Errorf("Bad Cache dir: %s", d)
@@ -27,7 +27,7 @@ func TestPosix(t *testing.T) {
 }
 
 func TestDarwinHomeFinder(t *testing.T) {
-	hf := NewHomeFinder("keybase", nil, "darwin", func() RunMode { return ProductionRunMode })
+	hf := NewHomeFinder("keybase", nil, "darwin", func() RunMode { return ProductionRunMode }, makeLogGetter(t))
 	d := hf.ConfigDir()
 	if !strings.HasSuffix(d, "Library/Application Support/Keybase") {
 		t.Errorf("Bad config dir: %s", d)
@@ -39,7 +39,7 @@ func TestDarwinHomeFinder(t *testing.T) {
 }
 
 func TestDarwinHomeFinderInDev(t *testing.T) {
-	devHomeFinder := NewHomeFinder("keybase", nil, "darwin", func() RunMode { return DevelRunMode })
+	devHomeFinder := NewHomeFinder("keybase", nil, "darwin", func() RunMode { return DevelRunMode }, makeLogGetter(t))
 	configDir := devHomeFinder.ConfigDir()
 	if !strings.HasSuffix(configDir, "Library/Application Support/KeybaseDevel") {
 		t.Errorf("Bad config dir: %s", configDir)

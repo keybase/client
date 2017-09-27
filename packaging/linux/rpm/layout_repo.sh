@@ -67,10 +67,17 @@ for arch in i386 x86_64 ; do
    --define '__gpg_sign_cmd %{__gpg} gpg --batch --no-verbose --no-armor --use-agent --no-secmem-warning -u "%{_gpg_name}" -sbo %{__signature_filename} %{__plaintext_filename}' \
    --addsign "$rpmcopy" < /dev/null
 
+  # Add a standalone signature file, for user convenience. Other packaging
+  # steps will pick this up and copy it around.
+  code_signing_fingerprint="$(cat "$here/../code_signing_fingerprint")"
+  gpg --detach-sign --armor --use-agent --default-key "$code_signing_fingerprint" \
+      -o "$rpmcopy.sig" "$rpmcopy"
+
   # Update the latest pointer. Even though the RPM repo is split by
   # architecture, put these links at the root of it with the arch in the
   # filename, for consistency with what we're doing in Debian.
   ln -sf "repo/$arch/$rpmname" "$repo_root/$binary_name-latest-$arch.rpm"
+  ln -sf "repo/$arch/$rpmname.sig" "$repo_root/$binary_name-latest-$arch.rpm.sig"
 
   # Run createrepo to update the database files.
   "$CREATEREPO" "$repo_root/repo/$arch"

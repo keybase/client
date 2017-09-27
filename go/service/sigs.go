@@ -20,7 +20,7 @@ type SigsHandler struct {
 // NewSigsHandler creates a SigsHandler for the xp transport.
 func NewSigsHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SigsHandler {
 	return &SigsHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

@@ -51,7 +51,7 @@ TextBlock
  = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 InlineStart
- = InlineCode / Italic / Bold / Strike / Link / InlineCont
+ = InlineCode / Italic / Bold / Mention / Strike / Link / InlineCont
 
 InlineCont
  = !CodeBlock (Text / Emoji / EscapedChar / NativeEmoji / SpecialChar)
@@ -67,12 +67,16 @@ BoldMarker = "*"
 ItalicMarker = "_"
 EmojiMarker = ":"
 QuoteBlockMarker = ">"
+MentionMarker = "@"
+
+ValidMentionService = "keybase" / "Keybase"
+ClosingMentionMarker = MentionMarker ValidMentionService
 
 // Can mark the beginning of a link
 PunctuationMarker = [()[\].,!?]
 
 SpecialChar
- = EscapeMarker / StrikeMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
+ = EscapeMarker / StrikeMarker / MentionMarker / BoldMarker / ItalicMarker / EmojiMarker / QuoteBlockMarker / Ticks1 / PunctuationMarker { return text() }
 
 EscapedChar
  = EscapeMarker char:SpecialChar { return char }
@@ -95,6 +99,9 @@ Italic
 
 Strike
  = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
+
+Mention
+ = MentionMarker !WhiteSpace children:__INLINE_MACRO__<!ClosingMentionMarker> MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
 
 CodeBlock
  = Ticks3 LineTerminatorSequence? children:(!Ticks3 .)+ Ticks3 { return {type: 'code-block', children: flatten(children)} }

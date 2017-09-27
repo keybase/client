@@ -8,6 +8,8 @@ import InviteGenerated from './invite-generated'
 import Feedback from './feedback-container'
 import Push from '../app/push/push.native'
 import DevicesRoute from '../devices/routes'
+import GitRoute from '../git/routes'
+import FoldersRoute from '../folders/routes'
 import WebLinks from './web-links'
 import Passphrase from './passphrase/container'
 
@@ -51,7 +53,9 @@ const routeTree = new RouteDefNode({
         },
       },
     },
+    [Constants.foldersTab]: FoldersRoute,
     [Constants.devicesTab]: DevicesRoute,
+    [Constants.gitTab]: GitRoute,
     [Constants.notificationsTab]: {component: NotificationsContainer},
     [Constants.deleteMeTab]: {
       component: DeleteContainer,

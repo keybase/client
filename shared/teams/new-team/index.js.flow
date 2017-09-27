@@ -1,0 +1,12 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {
+  errorText: string,
+  name: string,
+  onBack: () => void,
+  onNameChange: () => void,
+  onSubmit: () => void,
+}
+
+export default class NewTeamDialog extends React.Component<Props> {}

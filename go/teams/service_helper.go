@@ -3,9 +3,11 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -120,12 +122,104 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
+func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, error) {
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    username,
+		UseDelegateUI:    false,
+		Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
+		CanSuppressUI:    true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		NeedProofSet:     true,
+	}
+	eng := engine.NewResolveThenIdentify2(g, &arg)
+	ectx := &engine.Context{
+		NetContext: ctx,
+	}
+	if err := engine.RunEngine(eng, ectx); err != nil {
+		return nil, err
+	}
+	return eng.GetProofSet(), nil
+}
+
+func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
+	if team.NumActiveInvites() == 0 {
+		return nil
+	}
+
+	proofs, err := getUserProofs(ctx, g, username)
+	if err != nil {
+		return err
+	}
+
+	actx := g.MakeAssertionContext()
+
+	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
+
+	for i, invite := range team.chain().inner.ActiveInvites {
+		g.Log.CDebugf(ctx, "tryToCompleteInvites invite %q %+v", i, invite)
+		ityp, err := invite.Type.String()
+		if err != nil {
+			return err
+		}
+		category, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+
+		if category != keybase1.TeamInviteCategory_SBS {
+			continue
+		}
+
+		proofsWithType := proofs.Get([]string{ityp})
+
+		var proof *libkb.Proof
+		for _, p := range proofsWithType {
+			if p.Value == string(invite.Name) {
+				proof = &p
+				break
+			}
+		}
+
+		if proof == nil {
+			continue
+		}
+
+		assertionStr := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
+		g.Log.CDebugf(ctx, "Found proof in user's ProofSet: key: %s value: %q; invite proof is %s", proof.Key, proof.Value, assertionStr)
+
+		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, assertionStr)
+		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
+		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
+			// Cannot resolve invitation or it does not match user
+			continue
+		}
+
+		parsedAssertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
+		if err != nil {
+			return err
+		}
+
+		resolvedAssertion := libkb.ResolvedAssertion{
+			UID:           uv.Uid,
+			Assertion:     parsedAssertion,
+			ResolveResult: resolveResult,
+		}
+		if err := verifyResolveResult(ctx, g, resolvedAssertion); err == nil {
+			completedInvites[invite.Id] = uv.PercentForm()
+		}
+	}
+
+	req.CompletedInvites = completedInvites
+	return nil
+}
+
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
 			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
@@ -144,7 +238,22 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
-
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err == nil {
+		// Case where same UV (uid+seqno) already exists is covered by
+		// `t.IsMember` check above. This only checks if there is a reset
+		// member in the team to automatically remove them (so AddMember
+		// can function as a Re-Add).
+		if existingUV.EldestSeqno > uv.EldestSeqno {
+			return keybase1.TeamAddMemberResult{}, fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
+		}
+		req.None = []keybase1.UserVersion{existingUV}
+	}
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+	if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
+		g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
+	}
+	timeoutCancel()
 	if err := t.ChangeMembership(ctx, req); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
@@ -209,7 +318,9 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if err != nil {
 		return err
 	}
-	if !t.IsMember(ctx, uv) {
+
+	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+	if err != nil {
 		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
 	}
 
@@ -221,7 +332,7 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
 		return Leave(ctx, g, teamname, false)
 	}
-	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{uv}}
+	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 	return t.ChangeMembership(ctx, req)
 }
 
@@ -392,18 +503,28 @@ func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.Iden
 	return res, errors.New("could not identify team by ID or name")
 }
 
-func MemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username, typ string) (*keybase1.TeamInvite, error) {
+func memberInvite(ctx context.Context, g *libkb.GlobalContext, teamname string, iname keybase1.TeamInviteName, itype keybase1.TeamInviteType) (*keybase1.TeamInvite, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return nil, err
 	}
-	return t.chain().FindActiveInvite(username, typ)
+	return t.chain().FindActiveInvite(iname, itype)
 }
 
 func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
 	arg := apiArg(ctx, "team/request_access")
 	arg.Args.Add("team", libkb.S{Val: teamname})
 	_, err := g.API.Post(arg)
+	return err
+}
+
+func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
+	// First try to accept as an invite
+	err := AcceptInvite(ctx, g, tokenOrName)
+	if err != nil {
+		// Failing that, request access as a team name
+		err = RequestAccess(ctx, g, tokenOrName)
+	}
 	return err
 }
 
@@ -491,13 +612,13 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 
 	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 	if err != nil {
-		return fmt.Errorf("User %s has never been a member of this team.", username)
+		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q has never been a member of this team.", username)}
 	}
 
 	if existingUV.EldestSeqno == uv.EldestSeqno {
-		return fmt.Errorf("No need to re-add member, user has not reset")
+		return libkb.ExistsError{Msg: fmt.Sprintf("user %q has not reset, no need to re-add", username)}
 	} else if existingUV.EldestSeqno > uv.EldestSeqno {
-		return fmt.Errorf("EldestSeqno going backwards?")
+		return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", username, teamID, existingUV.EldestSeqno, uv.EldestSeqno)
 	}
 
 	existingRole, err := t.MemberRole(ctx, existingUV)
@@ -511,8 +632,5 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	}
 
 	req.None = []keybase1.UserVersion{existingUV}
-	if err := t.ChangeMembership(ctx, req); err != nil {
-		return err
-	}
-	return nil
+	return t.ChangeMembership(ctx, req)
 }

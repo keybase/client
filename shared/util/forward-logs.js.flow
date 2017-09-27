@@ -5,3 +5,4 @@ export const setupTarget = () => {}
 export const localLog = (...args: any) => {}
 export const localWarn = (...args: any) => {}
 export const localError = (...args: any) => {}
+declare export function flushLogFile(): void

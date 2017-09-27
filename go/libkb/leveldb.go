@@ -29,7 +29,7 @@ type levelDBOps interface {
 
 func levelDbPut(ops levelDBOps, id DbKey, aliases []DbKey, value []byte) error {
 	idb := id.ToBytes(levelDbTableKv)
-	if aliases == nil || len(aliases) == 0 {
+	if len(aliases) == 0 {
 		// if no aliases, just do a put
 		return ops.Put(idb, value, nil)
 	}
@@ -68,7 +68,7 @@ func levelDbLookup(ops levelDBOps, id DbKey) (val []byte, found bool, err error)
 		} else if tab != levelDbTableKv {
 			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
 		} else {
-			val, found, err = levelDbGetWhich(ops, *id2, levelDbTableKv)
+			val, found, err = levelDbGetWhich(ops, id2, levelDbTableKv)
 		}
 	}
 	return val, found, err

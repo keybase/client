@@ -2,14 +2,12 @@ package chat
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/keybase/client/go/auth"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -21,12 +19,14 @@ import (
 type KBFSNameInfoSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+	*NameIdentifier
 }
 
 func NewKBFSNameInfoSource(g *globals.Context) *KBFSNameInfoSource {
 	return &KBFSNameInfoSource{
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "KBFSNameInfoSource", false),
-		Contextified: globals.NewContextified(g),
+		DebugLabeler:   utils.NewDebugLabeler(g.GetLog(), "KBFSNameInfoSource", false),
+		Contextified:   globals.NewContextified(g),
+		NameIdentifier: NewNameIdentifier(g),
 	}
 }
 
@@ -40,16 +40,16 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}
 	return &keybase1.TlfKeysClient{
 		Cli: rpc.NewClient(
-			xp, libkb.ErrorUnwrapper{}, libkb.LogTagsFromContext),
+			xp, libkb.NewContextifiedErrorUnwrapper(t.G().ExternalG()), libkb.LogTagsFromContext),
 	}, nil
 }
 
 func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string,
-	visibility chat1.TLFVisibility) (res types.NameInfo, err error) {
+	visibility keybase1.TLFVisibility) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", tlfName))()
 	var lastErr error
 	for i := 0; i < 5; i++ {
-		if visibility == chat1.TLFVisibility_PUBLIC {
+		if visibility == keybase1.TLFVisibility_PUBLIC {
 			var pres keybase1.CanonicalTLFNameAndIDWithBreaks
 			pres, err = t.PublicCanonicalTLFNameAndID(ctx, tlfName)
 			res.CanonicalName = pres.CanonicalName.String()
@@ -82,6 +82,7 @@ func (t *KBFSNameInfoSource) Lookup(ctx context.Context, tlfName string,
 }
 
 func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res keybase1.GetTLFCryptKeysRes, ferr error) {
+	idNotifier := CtxIdentifyNotifier(ctx)
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
@@ -98,21 +99,26 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	// canonical one.
 	tlfName = string(username) + "," + tlfName
 
-	// call identifyTLF and GetTLFCryptKeys concurrently:
+	// call Identify and GetTLFCryptKeys concurrently:
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
-	group.Go(func() error {
-		query := keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: identBehavior,
-		}
-		var err error
-		ib, err = t.identifyTLF(ectx, query, true)
-		return err
-	})
+	runIdentify := (identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP)
+	if runIdentify {
+		t.Debug(ectx, "CryptKeys: running identify")
+		group.Go(func() error {
+			query := keybase1.TLFQuery{
+				TlfName:          tlfName,
+				IdentifyBehavior: identBehavior,
+			}
+			var err error
+			ib, err = t.Identify(ectx, query, true)
+			return err
+		})
+	}
 
 	group.Go(func() error {
+		t.Debug(ectx, "CryptKeys: running GetTLFCryptKeys on KFBS daemon")
 		tlfClient, err := t.tlfKeysClient()
 		if err != nil {
 			return err
@@ -132,13 +138,14 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 		return keybase1.GetTLFCryptKeysRes{}, err
 	}
 
-	// use id breaks calculated by identifyTLF
-	res.NameIDBreaks.Breaks.Breaks = ib
-
-	if in := CtxIdentifyNotifier(ctx); in != nil {
-		in.Send(res.NameIDBreaks)
+	// use id breaks calculated by Identify
+	if runIdentify {
+		res.NameIDBreaks.Breaks.Breaks = ib
+		if idNotifier != nil {
+			idNotifier.Send(res.NameIDBreaks)
+		}
+		*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 	}
-	*breaks = appendBreaks(*breaks, res.NameIDBreaks.Breaks.Breaks)
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
@@ -151,6 +158,7 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 }
 
 func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tlfName string) (res keybase1.CanonicalTLFNameAndIDWithBreaks, ferr error) {
+	idNotifier := CtxIdentifyNotifier(ctx)
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
@@ -158,20 +166,29 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	defer t.Trace(ctx, func() error { return ferr },
 		fmt.Sprintf("PublicCanonicalTLFNameAndID(tlf=%s,mode=%v)", tlfName, identBehavior))()
 
-	// call identifyTLF and CanonicalTLFNameAndIDWithBreaks concurrently:
+	// call Identify and CanonicalTLFNameAndIDWithBreaks concurrently:
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 
 	var ib []keybase1.TLFIdentifyFailure
-	group.Go(func() error {
-		query := keybase1.TLFQuery{
-			TlfName:          tlfName,
-			IdentifyBehavior: identBehavior,
-		}
+	if identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP {
+		group.Go(func() error {
+			query := keybase1.TLFQuery{
+				TlfName:          tlfName,
+				IdentifyBehavior: identBehavior,
+			}
 
-		var err error
-		ib, err = t.identifyTLF(ectx, query, false)
-		return err
-	})
+			var err error
+			ib, err = t.Identify(ectx, query, false)
+			return err
+		})
+
+		// use id breaks calculated by Identify
+		res.Breaks.Breaks = ib
+		if idNotifier != nil {
+			idNotifier.Send(res)
+		}
+		*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
+	}
 
 	group.Go(func() error {
 		tlfClient, err := t.tlfKeysClient()
@@ -192,13 +209,6 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	if err := group.Wait(); err != nil {
 		return keybase1.CanonicalTLFNameAndIDWithBreaks{}, err
 	}
-
-	// use id breaks calculated by identifyTLF
-	res.Breaks.Breaks = ib
-	if in := CtxIdentifyNotifier(ctx); in != nil {
-		in.Send(res)
-	}
-	*breaks = appendBreaks(*breaks, res.Breaks.Breaks)
 
 	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
 	// after send to IdentifyNotifier)
@@ -231,129 +241,4 @@ func (t *KBFSNameInfoSource) CompleteAndCanonicalizePrivateTlfName(ctx context.C
 	}
 
 	return resp.NameIDBreaks, nil
-}
-
-func (t *KBFSNameInfoSource) identifyTLF(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
-	// need new context as errgroup will cancel it.
-	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
-	assertions := make(chan string)
-
-	group.Go(func() error {
-		defer close(assertions)
-		pieces := strings.Split(strings.Fields(arg.TlfName)[0], ",")
-		for _, p := range pieces {
-			select {
-			case assertions <- p:
-			case <-ectx.Done():
-				return ectx.Err()
-			}
-		}
-		return nil
-	})
-
-	fails := make(chan keybase1.TLFIdentifyFailure)
-	const numIdentifiers = 3
-	for i := 0; i < numIdentifiers; i++ {
-		group.Go(func() error {
-			for assertion := range assertions {
-				f, err := t.identifyUser(ectx, assertion, private, arg.IdentifyBehavior)
-				if err != nil {
-					return err
-				}
-				if f.Breaks == nil {
-					continue
-				}
-				select {
-				case fails <- f:
-				case <-ectx.Done():
-					return ectx.Err()
-				}
-			}
-			return nil
-		})
-	}
-
-	go func() {
-		group.Wait()
-		close(fails)
-	}()
-
-	var res []keybase1.TLFIdentifyFailure
-	for f := range fails {
-		res = append(res, f)
-	}
-
-	if err := group.Wait(); err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-func (t *KBFSNameInfoSource) identifyUser(ctx context.Context, assertion string, private bool, idBehavior keybase1.TLFIdentifyBehavior) (keybase1.TLFIdentifyFailure, error) {
-	reason := "You accessed a public conversation."
-	if private {
-		reason = fmt.Sprintf("You accessed a private conversation with %s.", assertion)
-	}
-
-	arg := keybase1.Identify2Arg{
-		UserAssertion:    assertion,
-		UseDelegateUI:    false,
-		Reason:           keybase1.IdentifyReason{Reason: reason},
-		CanSuppressUI:    true,
-		IdentifyBehavior: idBehavior,
-	}
-
-	ectx := engine.Context{
-		IdentifyUI: chatNullIdentifyUI{},
-		NetContext: ctx,
-	}
-
-	eng := engine.NewResolveThenIdentify2(t.G().ExternalG(), &arg)
-	err := engine.RunEngine(eng, &ectx)
-	if err != nil {
-		// Ignore these errors
-		if _, ok := err.(libkb.NotFoundError); ok {
-			return keybase1.TLFIdentifyFailure{}, nil
-		}
-		if _, ok := err.(libkb.ResolutionError); ok {
-			return keybase1.TLFIdentifyFailure{}, nil
-		}
-
-		// Special treatment is needed for GUI strict mode, since we need to
-		// simultaneously plumb identify breaks up to the UI, and make sure the
-		// overall process returns an error. Swallow the error here so the rest of
-		// the identify can proceed, but we will check later (in GetTLFCryptKeys) for breaks with this
-		// mode and return an error there.
-		if !(libkb.IsIdentifyProofError(err) &&
-			idBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT) {
-			return keybase1.TLFIdentifyFailure{}, err
-		}
-	}
-	resp := eng.Result()
-
-	var frep keybase1.TLFIdentifyFailure
-	if resp != nil && resp.TrackBreaks != nil {
-		frep.User = keybase1.User{
-			Uid:      resp.Upk.Uid,
-			Username: resp.Upk.Username,
-		}
-		frep.Breaks = resp.TrackBreaks
-	}
-
-	return frep, nil
-}
-
-func appendBreaks(l []keybase1.TLFIdentifyFailure, r []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
-	m := make(map[string]bool)
-	var res []keybase1.TLFIdentifyFailure
-	for _, f := range l {
-		m[f.User.Username] = true
-		res = append(res, f)
-	}
-	for _, f := range r {
-		if !m[f.User.Username] {
-			res = append(res, f)
-		}
-	}
-	return res
 }

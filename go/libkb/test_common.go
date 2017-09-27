@@ -32,6 +32,12 @@ type TestConfig struct {
 
 func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
 
+func MakeThinGlobalContextForTesting(t *testing.T) *GlobalContext {
+	g := NewGlobalContext().Init()
+	g.Log = logger.NewTestLogger(t)
+	return g
+}
+
 func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	G.Log = logger.NewTestLogger(t)
 	G.Init()
@@ -53,6 +59,10 @@ func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
 	if err = G.ConfigureConfig(); err != nil {
 		t.Fatalf("couldn't configure the config: %s", err)
 	}
+}
+
+func makeLogGetter(t *testing.T) func() logger.Logger {
+	return func() logger.Logger { return logger.NewTestLogger(t) }
 }
 
 func (c *TestConfig) CleanTest() {
@@ -110,10 +120,7 @@ func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
 	if err := mv("secring.gpg"); err != nil {
 		return err
 	}
-	if err := mv("pubring.gpg"); err != nil {
-		return err
-	}
-	return nil
+	return mv("pubring.gpg")
 }
 
 func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
@@ -259,6 +266,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	}
 
 	g.GregorDismisser = &FakeGregorDismisser{}
+	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 
 	tc.PrevGlobal = G
 	G = g
@@ -446,4 +454,29 @@ func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
 // Bypasses locks.
 func (g *GlobalContext) ResetLoginState() {
 	g.createLoginStateLocked()
+}
+
+type TestUIDMapper struct {
+	ul UPAKLoader
+}
+
+func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
+	return TestUIDMapper{
+		ul: ul,
+	}
+}
+
+func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
+	return true
+}
+
+func (t TestUIDMapper) MapUIDsToUsernames(ctx context.Context, g UIDMapperContext, uids []keybase1.UID) (res []NormalizedUsername, err error) {
+	for _, uid := range uids {
+		name, err := t.ul.LookupUsername(ctx, uid)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, name)
+	}
+	return res, nil
 }

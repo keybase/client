@@ -12,6 +12,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		64F44A6F1E2D433D009A4747 /* Hello.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 64F44A6E1E2D433D009A4747 /* Hello.framework */; };
 		EBA3E2861B681AFA00018449 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = EBA3E2851B681AFA00018449 /* main.m */; };
 		EBA3E2891B681AFA00018449 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EBA3E2881B681AFA00018449 /* AppDelegate.m */; };
 		EBA3E28C1B681AFA00018449 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = EBA3E28B1B681AFA00018449 /* ViewController.m */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		64F44A6E1E2D433D009A4747 /* Hello.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Hello.framework; sourceTree = "<group>"; };
 		EBA3E2801B681AFA00018449 /* bind.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = bind.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EBA3E2841B681AFA00018449 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EBA3E2851B681AFA00018449 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -36,6 +38,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				64F44A6F1E2D433D009A4747 /* Hello.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -47,6 +50,7 @@
 			children = (
 				EBA3E2821B681AFA00018449 /* bind */,
 				EBA3E2811B681AFA00018449 /* Products */,
+				64F44A6E1E2D433D009A4747 /* Hello.framework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -264,7 +268,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = bind/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -275,7 +282,10 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				INFOPLIST_FILE = bind/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";

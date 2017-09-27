@@ -111,7 +111,19 @@ func (e *PGPProvision) provision(ctx *Context) error {
 	}
 
 	// need a session to try to get synced private key
-	return e.G().LoginState().LoginWithPassphrase(e.user.GetName(), e.passphrase, false, afterLogin)
+	err := e.G().LoginState().LoginWithPassphrase(e.user.GetName(), e.passphrase, false, afterLogin)
+	if err != nil {
+		return err
+	}
+
+	// Get a per-user key.
+	// Wait for attempt but only warn on error.
+	eng := NewPerUserKeyUpgrade(e.G(), &PerUserKeyUpgradeArgs{})
+	err = RunEngine(eng, ctx)
+	if err != nil {
+		e.G().Log.CWarningf(ctx.GetNetContext(), "PGPProvision PerUserKeyUpgrade failed: %v", err)
+	}
+	return nil
 }
 
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
@@ -178,8 +190,5 @@ func (e *PGPProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error)
 // makeDeviceKeys uses DeviceWrap to generate device keys.
 func (e *PGPProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(args, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-	return nil
+	return RunEngine(eng, ctx)
 }

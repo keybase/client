@@ -4,6 +4,7 @@
 package keybase1
 
 import (
+	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -117,6 +118,158 @@ type UserOrTeamID string
 
 func (o UserOrTeamID) DeepCopy() UserOrTeamID {
 	return o
+}
+
+type GitRepoName string
+
+func (o GitRepoName) DeepCopy() GitRepoName {
+	return o
+}
+
+type TeamType int
+
+const (
+	TeamType_NONE   TeamType = 0
+	TeamType_LEGACY TeamType = 1
+	TeamType_MODERN TeamType = 2
+)
+
+func (o TeamType) DeepCopy() TeamType { return o }
+
+var TeamTypeMap = map[string]TeamType{
+	"NONE":   0,
+	"LEGACY": 1,
+	"MODERN": 2,
+}
+
+var TeamTypeRevMap = map[TeamType]string{
+	0: "NONE",
+	1: "LEGACY",
+	2: "MODERN",
+}
+
+func (e TeamType) String() string {
+	if v, ok := TeamTypeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type CompatibilityTeamID struct {
+	Typ__    TeamType `codec:"typ" json:"typ"`
+	Legacy__ *TLFID   `codec:"legacy,omitempty" json:"legacy,omitempty"`
+	Modern__ *TeamID  `codec:"modern,omitempty" json:"modern,omitempty"`
+}
+
+func (o *CompatibilityTeamID) Typ() (ret TeamType, err error) {
+	switch o.Typ__ {
+	case TeamType_LEGACY:
+		if o.Legacy__ == nil {
+			err = errors.New("unexpected nil value for Legacy__")
+			return ret, err
+		}
+	case TeamType_MODERN:
+		if o.Modern__ == nil {
+			err = errors.New("unexpected nil value for Modern__")
+			return ret, err
+		}
+	}
+	return o.Typ__, nil
+}
+
+func (o CompatibilityTeamID) Legacy() (res TLFID) {
+	if o.Typ__ != TeamType_LEGACY {
+		panic("wrong case accessed")
+	}
+	if o.Legacy__ == nil {
+		return
+	}
+	return *o.Legacy__
+}
+
+func (o CompatibilityTeamID) Modern() (res TeamID) {
+	if o.Typ__ != TeamType_MODERN {
+		panic("wrong case accessed")
+	}
+	if o.Modern__ == nil {
+		return
+	}
+	return *o.Modern__
+}
+
+func NewCompatibilityTeamIDWithLegacy(v TLFID) CompatibilityTeamID {
+	return CompatibilityTeamID{
+		Typ__:    TeamType_LEGACY,
+		Legacy__: &v,
+	}
+}
+
+func NewCompatibilityTeamIDWithModern(v TeamID) CompatibilityTeamID {
+	return CompatibilityTeamID{
+		Typ__:    TeamType_MODERN,
+		Modern__: &v,
+	}
+}
+
+func (o CompatibilityTeamID) DeepCopy() CompatibilityTeamID {
+	return CompatibilityTeamID{
+		Typ__: o.Typ__.DeepCopy(),
+		Legacy__: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Legacy__),
+		Modern__: (func(x *TeamID) *TeamID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Modern__),
+	}
+}
+
+type TLFVisibility int
+
+const (
+	TLFVisibility_ANY     TLFVisibility = 0
+	TLFVisibility_PUBLIC  TLFVisibility = 1
+	TLFVisibility_PRIVATE TLFVisibility = 2
+)
+
+func (o TLFVisibility) DeepCopy() TLFVisibility { return o }
+
+var TLFVisibilityMap = map[string]TLFVisibility{
+	"ANY":     0,
+	"PUBLIC":  1,
+	"PRIVATE": 2,
+}
+
+var TLFVisibilityRevMap = map[TLFVisibility]string{
+	0: "ANY",
+	1: "PUBLIC",
+	2: "PRIVATE",
+}
+
+func (e TLFVisibility) String() string {
+	if v, ok := TLFVisibilityRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type TeamIDWithVisibility struct {
+	TeamID     TeamID        `codec:"teamID" json:"teamID"`
+	Visibility TLFVisibility `codec:"visibility" json:"visibility"`
+}
+
+func (o TeamIDWithVisibility) DeepCopy() TeamIDWithVisibility {
+	return TeamIDWithVisibility{
+		TeamID:     o.TeamID.DeepCopy(),
+		Visibility: o.Visibility.DeepCopy(),
+	}
 }
 
 type Seqno int64
@@ -443,6 +596,7 @@ type UserPlusKeys struct {
 	Uid               UID               `codec:"uid" json:"uid"`
 	Username          string            `codec:"username" json:"username"`
 	EldestSeqno       Seqno             `codec:"eldestSeqno" json:"eldestSeqno"`
+	Status            StatusCode        `codec:"status" json:"status"`
 	DeviceKeys        []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
 	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
 	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
@@ -456,6 +610,7 @@ func (o UserPlusKeys) DeepCopy() UserPlusKeys {
 		Uid:         o.Uid.DeepCopy(),
 		Username:    o.Username,
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Status:      o.Status.DeepCopy(),
 		DeviceKeys: (func(x []PublicKey) []PublicKey {
 			var ret []PublicKey
 			for _, v := range x {

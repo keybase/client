@@ -180,7 +180,7 @@ func (m TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, erro
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibility) (res types.NameInfo, err error) {
+func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
 	name := CanonicalTlfNameForTest(tlfName)
 	res.CanonicalName = name.String()
@@ -188,7 +188,7 @@ func (m TlfMock) Lookup(ctx context.Context, tlfName string, vis chat1.TLFVisibi
 		return res, err
 	}
 	res.ID = tlfID.ToBytes()
-	if vis == chat1.TLFVisibility_PRIVATE {
+	if vis == keybase1.TLFVisibility_PRIVATE {
 		cres, err := m.CryptKeys(ctx, tlfName)
 		if err != nil {
 			return res, err
@@ -345,7 +345,7 @@ func (m *ChatRemoteMock) GetInboxRemote(ctx context.Context, arg chat1.GetInboxR
 func (m *ChatRemoteMock) GetPublicConversations(ctx context.Context, arg chat1.GetPublicConversationsArg) (res chat1.GetPublicConversationsRes, err error) {
 
 	for _, conv := range m.world.conversations {
-		if conv.Metadata.Visibility == chat1.TLFVisibility_PUBLIC &&
+		if conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC &&
 			conv.Metadata.IdTriple.Tlfid.Eq(arg.TlfID) &&
 			conv.Metadata.IdTriple.TopicType == arg.TopicType {
 
@@ -460,6 +460,7 @@ func (m *ChatRemoteMock) createBogusBody(typ chat1.MessageType) chat1.MessageBod
 		Attachmentuploaded__: &chat1.MessageAttachmentUploaded{},
 		Join__:               &chat1.MessageJoin{},
 		Leave__:              &chat1.MessageLeave{},
+		Headline__:           &chat1.MessageHeadline{},
 	}
 }
 
@@ -485,11 +486,12 @@ func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg
 	// hit notify router with new message
 	if m.world.TcsByID[uid.String()].G.NotifyRouter != nil {
 		activity := chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-			Message: utils.PresentMessageUnboxed(chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
-				ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
-				ServerHeader: *inserted.ServerHeader,
-				MessageBody:  m.createBogusBody(inserted.GetMessageType()),
-			})),
+			Message: utils.PresentMessageUnboxed(
+				chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
+					ClientHeader: m.headerToVerifiedForTesting(inserted.ClientHeader),
+					ServerHeader: *inserted.ServerHeader,
+					MessageBody:  m.createBogusBody(inserted.GetMessageType()),
+				})),
 		})
 		m.world.TcsByID[uid.String()].G.NotifyRouter.HandleNewChatActivity(context.Background(),
 			keybase1.UID(uid.String()), &activity)
@@ -535,7 +537,7 @@ func (m *ChatRemoteMock) NewConversationRemote2(ctx context.Context, arg chat1.N
 		Metadata: chat1.ConversationMetadata{
 			IdTriple:       arg.IdTriple,
 			ConversationID: res.ConvID,
-			Visibility:     chat1.TLFVisibility_PRIVATE,
+			Visibility:     keybase1.TLFVisibility_PRIVATE,
 			MembersType:    arg.MembersType,
 		},
 		MaxMsgs:         []chat1.MessageBoxed{first},
@@ -664,6 +666,10 @@ func (m *ChatRemoteMock) JoinConversation(ctx context.Context, convID chat1.Conv
 
 func (m *ChatRemoteMock) LeaveConversation(ctx context.Context, convID chat1.ConversationID) (chat1.JoinLeaveConversationRemoteRes, error) {
 	return chat1.JoinLeaveConversationRemoteRes{}, nil
+}
+
+func (m *ChatRemoteMock) DeleteConversation(ctx context.Context, convID chat1.ConversationID) (chat1.DeleteConversationRemoteRes, error) {
+	return chat1.DeleteConversationRemoteRes{}, nil
 }
 
 type convByNewlyUpdated struct {
@@ -850,4 +856,8 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg
 		Full:   true,
 	}
 	return nil
+}
+
+func (c *ChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+	return true, nil
 }

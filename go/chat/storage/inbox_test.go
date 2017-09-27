@@ -9,15 +9,16 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
 func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
-	ltc := externals.SetupTest(t, name, 2)
+	ltc := setupCommonTest(t, name)
+
 	tc := kbtest.ChatTestContext{
 		TestContext: ltc,
 		ChatG:       &globals.ChatContext{},
@@ -42,7 +43,7 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) c
 				TopicType: chat1.TopicType_CHAT,
 				TopicID:   randBytes(8),
 			},
-			Visibility: chat1.TLFVisibility_PRIVATE,
+			Visibility: keybase1.TLFVisibility_PRIVATE,
 			Status:     chat1.ConversationStatus_UNFILED,
 		},
 		ReaderInfo: &chat1.ConversationReaderInfo{
@@ -152,7 +153,7 @@ func TestInboxQueries(t *testing.T) {
 	devs = append(devs, []chat1.Conversation{convs[7], convs[3]}...)
 
 	// Make one public convos
-	convs[13].Metadata.Visibility = chat1.TLFVisibility_PUBLIC
+	convs[13].Metadata.Visibility = keybase1.TLFVisibility_PUBLIC
 	publics = append(publics, convs[13])
 
 	// Make three unread convos
@@ -210,7 +211,7 @@ func TestInboxQueries(t *testing.T) {
 	mergeReadAndCheck(t, devs, "devs")
 
 	t.Logf("merging public query")
-	publicVis := chat1.TLFVisibility_PUBLIC
+	publicVis := keybase1.TLFVisibility_PUBLIC
 	q = &chat1.GetInboxQuery{TlfVisibility: &publicVis}
 	mergeReadAndCheck(t, publics, "public")
 
@@ -668,7 +669,8 @@ func TestInboxSync(t *testing.T) {
 
 	vers, err := inbox.Version(context.TODO())
 	require.NoError(t, err)
-	require.NoError(t, inbox.Sync(context.TODO(), vers+1, syncConvs))
+	syncRes, err := inbox.Sync(context.TODO(), vers+1, syncConvs)
+	require.NoError(t, err)
 	newVers, newRes, _, err := inbox.Read(context.TODO(), nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, vers+1, newVers)
@@ -677,7 +679,19 @@ func TestInboxSync(t *testing.T) {
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[1].Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_MUTED, newRes[7].Metadata.Status)
 	require.Equal(t, chat1.ConversationStatus_UNFILED, newRes[4].Metadata.Status)
+	require.False(t, syncRes.TeamTypeChanged)
 
+	syncConvs = nil
+	vers, err = inbox.Version(context.TODO())
+	require.NoError(t, err)
+	convs[8].Metadata.TeamType = chat1.TeamType_COMPLEX
+	syncConvs = append(syncConvs, convs[8])
+	syncRes, err = inbox.Sync(context.TODO(), vers+1, syncConvs)
+	newVers, newRes, _, err = inbox.Read(context.TODO(), nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, vers+1, newVers)
+	require.Equal(t, chat1.TeamType_COMPLEX, newRes[9].Metadata.TeamType)
+	require.True(t, syncRes.TeamTypeChanged)
 }
 
 func TestInboxServerVersion(t *testing.T) {
@@ -762,6 +776,7 @@ func TestMembershipUpdate(t *testing.T) {
 		if c.GetConvID().Eq(convs[5].GetConvID()) {
 			require.Equal(t, chat1.ConversationMemberStatus_LEFT, c.ReaderInfo.Status)
 			convs[5].ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
+			convs[5].Metadata.Version = chat1.ConversationVers(2)
 		}
 	}
 	expected := append(convs, joinedConvs...)

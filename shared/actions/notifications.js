@@ -10,7 +10,9 @@ import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupChatHandlers, badgeAppForChat} from './chat'
+import {badgeAppForGit} from './git/creators'
 import {setupKBFSChangedHandler} from './favorite'
+import {setupTeamHandlers} from './teams/creators'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -53,7 +55,7 @@ function* _listenSaga(): SagaGenerator<any, any> {
     service: true,
     session: true,
     tracking: true,
-    team: false,
+    team: true,
     users: true,
   }
 
@@ -66,12 +68,13 @@ function* _listenSaga(): SagaGenerator<any, any> {
     })
   })
 
-  yield put((dispatch, getState) => {
+  const setHandlers = (dispatch, getState) => {
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
     Object.keys(listeners).forEach(key => {
       engine().setIncomingHandler(key, listeners[key])
     })
-  })
+  }
+  yield put(setHandlers)
 
   yield put(registerIdentifyUi())
   yield put(setupUserChangedHandler())
@@ -80,11 +83,13 @@ function* _listenSaga(): SagaGenerator<any, any> {
 function* _listenKBFSSaga(): SagaGenerator<any, any> {
   yield put(setupKBFSChangedHandler())
   yield put(setupChatHandlers())
+  yield put(setupTeamHandlers())
 }
 
 function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
-  const {conversations} = action.payload.badgeState
+  const {conversations, newGitRepoGlobalUniqueIDs} = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
+  yield put(badgeAppForGit(newGitRepoGlobalUniqueIDs))
 }
 
 function* _listenNotifications(): SagaGenerator<any, any> {

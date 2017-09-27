@@ -9,7 +9,6 @@ import java.util.IdentityHashMap;
 import java.util.logging.Logger;
 
 import go.Universe;
-import go.error;
 
 // Seq is a sequence of machine-dependent encoded values.
 // Used by automatically generated language bindings to talk to Go.
@@ -48,18 +47,6 @@ public class Seq {
 	private Seq() {
 	}
 
-	private static void throwException(error err) throws Exception {
-		throw new Exception(err.error());
-	}
-
-	private static error wrapThrowable(final Throwable t) {
-		return new error() {
-			@Override public String error() {
-				return t.getMessage();
-			}
-		};
-	}
-
 	// ctx is an android.context.Context.
 	static native void setContext(java.lang.Object ctx);
 
@@ -67,8 +54,16 @@ public class Seq {
 		tracker.incRefnum(refnum);
 	}
 
+	// incRef increments the reference count of Java objects.
+	// For proxies for Go objects, it calls into the Proxy method
+	// incRefnum() to make sure the Go reference count is positive
+	// even if the Proxy is garbage collected and its Ref is finalized.
 	public static int incRef(Object o) {
 		return tracker.inc(o);
+	}
+
+	public static int incGoObjectRef(GoObject o) {
+		return o.incRefnum();
 	}
 
 	public static Ref getRef(int refnum) {
@@ -76,7 +71,7 @@ public class Seq {
 	}
 
 	// Increment the Go reference count before sending over a refnum.
-	static native void incGoRef(int refnum);
+	public static native void incGoRef(int refnum);
 
 	// Informs the Go ref tracker that Java is done with this ref.
 	static native void destroyRef(int refnum);
@@ -86,23 +81,21 @@ public class Seq {
 		tracker.dec(refnum);
 	}
 
-	// A Proxy is a Java object that proxies a Go object.
-	public static abstract class Proxy {
-		private final Ref ref;
-
-		protected Proxy(Ref ref) {
-			this.ref = ref;
-		}
-
-		public final int incRefnum() {
-			// The Go reference count need to be bumped while the
-			// refnum is passed to Go, to avoid finalizing and
-			// invalidating it before being translated on the Go side.
-			int refnum = ref.refnum;
-			incGoRef(refnum);
-			return refnum;
-		}
+	// A GoObject is a Java class implemented in Go. When a GoObject
+	// is passed to Go, it is wrapped in a Go proxy, to make it behave
+	// the same as passing a regular Java class.
+	public interface GoObject {
+		// Increment refcount and return the refnum of the proxy.
+		//
+		// The Go reference count need to be bumped while the
+		// refnum is passed to Go, to avoid finalizing and
+		// invalidating it before being translated on the Go side.
+		int incRefnum();
 	}
+	// A Proxy is a Java object that proxies a Go object. Proxies, unlike
+	// GoObjects, are unwrapped to their Go counterpart when deserialized
+	// in Go.
+	public interface Proxy extends GoObject {}
 
 	// A Ref is an object tagged with an integer for passing back and
 	// forth across the language boundary.

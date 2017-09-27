@@ -184,6 +184,7 @@ type notifyHandler struct {
 	outOfDateCh chan keybase1.ClientOutOfDateArg
 	userCh      chan keybase1.UID
 	errCh       chan error
+	startCh     chan bool
 }
 
 func newNotifyHandler() *notifyHandler {
@@ -193,6 +194,7 @@ func newNotifyHandler() *notifyHandler {
 		outOfDateCh: make(chan keybase1.ClientOutOfDateArg),
 		userCh:      make(chan keybase1.UID),
 		errCh:       make(chan error),
+		startCh:     make(chan bool),
 	}
 }
 
@@ -271,13 +273,10 @@ func TestSignupLogout(t *testing.T) {
 			return err
 		}
 		ncli := keybase1.NotifyCtlClient{Cli: cli}
-		if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+		return ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 			Session: true,
 			Users:   true,
-		}); err != nil {
-			return err
-		}
-		return nil
+		})
 	}
 
 	// Actually launch it in the background
@@ -285,8 +284,19 @@ func TestSignupLogout(t *testing.T) {
 		err := launchServer(nh)
 		if err != nil {
 			nh.errCh <- err
+		} else {
+			nh.startCh <- true
 		}
 	}()
+
+	select {
+	case <-nh.startCh:
+		t.Logf("notify handler server started")
+	case err := <-nh.errCh:
+		t.Fatalf("Error starting notify handler server: %v", err)
+	case <-time.After(20 * time.Second):
+		t.Fatalf("timed out waiting for notify handler server to start")
+	}
 
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)

@@ -40,6 +40,13 @@
             "items": "BadgeConversationInfo"
           },
           "name": "conversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "newGitRepoGlobalUniqueIDs"
         }
       ]
     },

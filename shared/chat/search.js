@@ -11,7 +11,7 @@ import {globalMargins, globalStyles} from '../styles'
 import {isMobile} from '../constants/platform'
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onExitSearch: () => dispatch(Creators.exitSearch()),
+  onExitSearch: () => dispatch(Creators.exitSearch(false)),
 })
 
 const SearchHeader = props => (

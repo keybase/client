@@ -139,7 +139,7 @@ const disabled = {
   Danger: {opacity: 0.2},
   Follow: {opacity: 0.3},
   Following: {opacity: 0.3},
-  Primary: {opacity: 0.2},
+  Primary: {opacity: 0.3},
   PrimaryPrivate: {opacity: 0.2},
   Secondary: {opacity: 0.3},
   Unfollow: {opacity: 0.3},

@@ -16,7 +16,7 @@ import {shell, ipcRenderer} from 'electron'
 import {navigateTo, switchTo} from '../actions/route-tree'
 
 import type {KBFSStatus} from '../constants/favorite'
-import type {Props as FolderProps} from '../folders/render'
+import type {Props as FolderProps} from '../folders'
 import type {Tab} from '../constants/tabs'
 
 export type Props = $Shape<{

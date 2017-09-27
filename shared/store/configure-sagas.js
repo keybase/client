@@ -9,6 +9,7 @@ import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login/saga'
 import notificationsSaga from '../actions/notifications'
 import pgpSaga from '../actions/pgp'
+import gitSaga from '../actions/git'
 import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import routeSaga from '../actions/route-tree'
@@ -20,6 +21,7 @@ import sagaMonitor from './saga-monitor'
 import {reduxSagaLogger} from '../local-debug'
 import appStateSaga from '../actions/app'
 import teamsSaga from '../actions/teams'
+import {sagaTimer} from '../dev/user-timings'
 
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -41,6 +43,7 @@ function* mainSaga(): SagaGenerator<any, any> {
   yield fork(settingsSaga)
   yield fork(appStateSaga)
   yield fork(teamsSaga)
+  yield fork(gitSaga)
 }
 
 let middleWare
@@ -50,7 +53,7 @@ function create(crashHandler: (err: any) => void) {
   }
   middleWare = createSagaMiddleware({
     onError: crashHandler,
-    sagaMonitor: reduxSagaLogger ? sagaMonitor : undefined,
+    sagaMonitor: sagaTimer || (reduxSagaLogger ? sagaMonitor : undefined),
   })
   return middleWare
 }
