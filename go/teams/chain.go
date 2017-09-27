@@ -1202,6 +1202,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
+		if settings := team.Settings; settings != nil {
+			err = t.parseTeamSettings(settings, &res.newState)
+			return res, err
+		}
 
 		return res, nil
 	case libkb.LinkTypeRenameSubteam:
