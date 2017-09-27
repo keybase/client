@@ -7,6 +7,7 @@ package libfs
 import (
 	"bytes"
 	"io"
+	"sync"
 	"sync/atomic"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -26,6 +27,9 @@ type File struct {
 	node     libkbfs.Node
 	readOnly bool
 	offset   int64
+
+	lockedLock sync.Mutex
+	locked     bool
 }
 
 var _ billy.File = (*File)(nil)
@@ -116,6 +120,10 @@ func (f *File) Seek(offset int64, whence int) (n int64, err error) {
 
 // Close implements the billy.File interface for File.
 func (f *File) Close() error {
+	err := f.Unlock()
+	if err != nil {
+		return err
+	}
 	f.node = nil
 	return nil
 }
@@ -131,9 +139,21 @@ func (f *File) getLockID() keybase1.LockID {
 }
 
 // Lock implements the billy.File interface for File.
-func (f *File) Lock() error {
+func (f *File) Lock() (err error) {
+	f.fs.log.CDebugf(f.fs.ctx, "Locking!")
+	f.lockedLock.Lock()
+	defer f.lockedLock.Unlock()
+	if f.locked {
+		return nil
+	}
+	defer func() {
+		if err == nil {
+			f.locked = true
+		}
+	}()
+
 	// First, sync all and ask journal to flush blocks of all existing writes.
-	err := f.fs.SyncAll()
+	err = f.fs.SyncAll()
 	if err != nil {
 		return err
 	}
@@ -149,13 +169,25 @@ func (f *File) Lock() error {
 	// Now, sync up with the server, while making sure a lock is held by us. If
 	// lock taking fails, RPC layer retries automatically.
 	lockID := f.getLockID()
+	f.fs.log.CDebugf(f.fs.ctx, "Locking %d!", lockID)
 	return f.fs.config.KBFSOps().SyncFromServerForTesting(f.fs.ctx,
 		f.fs.root.GetFolderBranch(), &lockID)
 }
 
 // Unlock implements the billy.File interface for File.
-func (f *File) Unlock() error {
-	err := f.fs.SyncAll()
+func (f *File) Unlock() (err error) {
+	f.lockedLock.Lock()
+	defer f.lockedLock.Unlock()
+	if !f.locked {
+		return nil
+	}
+	defer func() {
+		if err == nil {
+			f.locked = false
+		}
+	}()
+
+	err = f.fs.SyncAll()
 	if err != nil {
 		return err
 	}
@@ -171,6 +203,7 @@ func (f *File) Unlock() error {
 		return f.fs.config.MDServer().ReleaseLock(f.fs.ctx,
 			f.fs.root.GetFolderBranch().Tlf, f.getLockID())
 	}
+	f.fs.log.CDebugf(f.fs.ctx, "Unlocking %d!", f.getLockID())
 	return jServer.FinishSingleOp(f.fs.ctx,
 		f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
 			RequireLockID:       f.getLockID(),

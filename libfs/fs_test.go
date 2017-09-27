@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/keybase/kbfs/ioutil"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/assert"
@@ -58,12 +59,6 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
 	fs, err := NewFS(ctx, config, h, subdir, "")
-	require.NoError(t, err)
-
-	// Flush the journal first otherwise tests fail on errNoFlushedRevisions.
-	jserver, err := libkbfs.GetJournalServer(config)
-	require.NoError(t, err)
-	err = jserver.FinishSingleOp(ctx, fs.root.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 
 	return ctx, h, fs, shutdown
@@ -597,19 +592,14 @@ func TestFileLocking(t *testing.T) {
 	f, err := fs.Create("a")
 	require.NoError(t, err)
 
-	// We don't have the lock yet so this should fail.
-	err = f.Unlock()
-	require.Error(t, err)
-
 	err = f.Lock()
 	require.NoError(t, err)
 
 	err = f.Unlock()
 	require.NoError(t, err)
 
-	// The lock has been released, but we also haven't made any changes. So the
-	// Unlock should just be a ReleaseLock call without needing to write any
-	// MDs. Since ReleaseLock is idempotent, this should succeed.
+	// The lock has been released, and we haven't made any changes.
+	// This should be a no-op.
 	err = f.Unlock()
 	require.NoError(t, err)
 
@@ -617,14 +607,22 @@ func TestFileLocking(t *testing.T) {
 	_, err = fs.Create("c")
 	require.NoError(t, err)
 
-	// Now we do have some stuff that needs to flush, and we don't have the
-	// lock, so this should fail like the first Unlock.
+	// Now we do have some stuff that needs to flush, but we don't
+	// have the lock, so this should complete without flushing
+	// anything.
 	err = f.Unlock()
-	require.Error(t, err)
+	require.NoError(t, err)
 
-	// Now manually flush again so the journal is clean.
+	// Make sure the journal didn't flush.
+	err = fs.SyncAll()
+	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(fs.config)
 	require.NoError(t, err)
+	status, err := jServer.JournalStatus(fs.root.GetFolderBranch().Tlf)
+	require.NoError(t, err)
+	require.NotEqual(t, kbfsmd.RevisionUninitialized, status.RevisionStart)
+
+	// Now manually flush again so the journal is clean.
 	err = jServer.FinishSingleOp(fs.ctx, fs.root.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 }
