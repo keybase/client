@@ -31,7 +31,7 @@ if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/rpm/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/rpm"
-  dependencies="Requires: fuse, libXss.so.1"
+  dependencies="Requires: fuse, 'libXss.so.1()(64bit)'"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean
