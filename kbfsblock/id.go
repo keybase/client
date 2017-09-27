@@ -19,6 +19,7 @@ type ID struct {
 	h kbfshash.Hash
 }
 
+// ZeroID is a zero-valued ID.
 var ZeroID = ID{}
 
 var _ encoding.BinaryMarshaler = ID{}
