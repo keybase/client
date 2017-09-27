@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -72,12 +73,14 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	require.NotEqual(t, id1, id5)
 
 	// Invalid names.
+	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "", "")
+	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, ".repo2", "")
-	require.NotNil(t, err)
+	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "repo3.ツ", "")
-	require.NotNil(t, err)
+	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "repo(4)", "")
-	require.NotNil(t, err)
+	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
 
 	fs.SyncAll()
 

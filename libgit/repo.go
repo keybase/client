@@ -118,10 +118,6 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 func createNewRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, fs *libfs.FS) (ID, error) {
-	if !checkValidRepoName(repoName, config) {
-		return NullID, errors.WithStack(InvalidRepoNameError{repoName})
-	}
-
 	// TODO: take a global repo lock here to make sure only one
 	// client generates the repo ID.
 	repoID, err := makeRandomID()
@@ -188,6 +184,10 @@ func lookupOrCreateDir(ctx context.Context, config libkbfs.Config,
 func getOrCreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, uniqID string, createOnly bool) (*libfs.FS, ID, error) {
+	if !checkValidRepoName(repoName, config) {
+		return nil, NullID, errors.WithStack(InvalidRepoNameError{repoName})
+	}
+
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, tlfHandle, libkbfs.MasterBranch)
 	if err != nil {
