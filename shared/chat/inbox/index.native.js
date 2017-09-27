@@ -49,10 +49,9 @@ class Inbox extends React.PureComponent<Props, State> {
     if (row.type === 'divider') {
       return (
         <Divider
-          badgeCount={this.props.smallTeamsHiddenBadgeCount}
           key="divider"
-          hiddenCount={this.props.smallTeamsHiddenRowCount}
           toggle={this.props.toggleSmallTeamsExpanded}
+          smallIDsHidden={this.props.smallIDsHidden}
         />
       )
     }
@@ -182,10 +181,7 @@ class Inbox extends React.PureComponent<Props, State> {
           {!this.props.isLoading && !this.props.rows.length && <NoChats />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
-            <FloatingDivider
-              toggle={this.props.toggleSmallTeamsExpanded}
-              badgeCount={this.props.bigTeamsBadgeCount}
-            />}
+            <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
           {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&
