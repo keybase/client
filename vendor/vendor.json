@@ -201,10 +201,10 @@
 			"revisionTime": "2017-09-26T18:12:42Z"
 		},
 		{
-			"checksumSHA1": "ee+ESv3+mJ4KZzQPBYNco5eSKOE=",
+			"checksumSHA1": "pngmXHFr5xfORTYmC0i4XjGqTcs=",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
-			"revision": "409e713a58c4977bd1b12c7c7087400a45b46813",
-			"revisionTime": "2017-09-26T21:22:12Z"
+			"revision": "4c95dc42e697c96ee06fb635b5ebd8bee0beaf61",
+			"revisionTime": "2017-09-27T17:23:30Z"
 		},
 		{
 			"checksumSHA1": "o26ztx0R+4h9il8gTztHccctK+4=",
@@ -721,39 +721,39 @@
 			"revisionTime": "2016-10-28T04:02:39Z"
 		},
 		{
-			"checksumSHA1": "WypVUTMK2+v2aiPmsFKP/Q2LPXc=",
+			"checksumSHA1": "OMS7bwaAYpmocTLflRC8ctukGo8=",
 			"origin": "github.com/keybase/go-billy",
 			"path": "gopkg.in/src-d/go-billy.v3",
-			"revision": "28d7191691eb6541e55e5049708108fc7e518e93",
-			"revisionTime": "2017-09-14T18:00:28Z"
+			"revision": "d0dc16de10d86398cc9aba4513a2453b401eceb3",
+			"revisionTime": "2017-07-10T15:31:57Z"
 		},
 		{
 			"checksumSHA1": "BfxlZXUAo+4gqICRNkn1fbJu/Jw=",
 			"origin": "github.com/keybase/go-billy/helper/chroot",
 			"path": "gopkg.in/src-d/go-billy.v3/helper/chroot",
-			"revision": "28d7191691eb6541e55e5049708108fc7e518e93",
-			"revisionTime": "2017-09-14T18:00:28Z"
+			"revision": "d0dc16de10d86398cc9aba4513a2453b401eceb3",
+			"revisionTime": "2017-07-10T15:31:57Z"
 		},
 		{
 			"checksumSHA1": "PwXEhy280k1rj6obYt+/ZfZ5SzI=",
 			"origin": "github.com/keybase/go-billy/helper/polyfill",
 			"path": "gopkg.in/src-d/go-billy.v3/helper/polyfill",
-			"revision": "28d7191691eb6541e55e5049708108fc7e518e93",
-			"revisionTime": "2017-09-14T18:00:28Z"
+			"revision": "d0dc16de10d86398cc9aba4513a2453b401eceb3",
+			"revisionTime": "2017-07-10T15:31:57Z"
 		},
 		{
-			"checksumSHA1": "4nKFqNcyk4iPrK2Du3SUiT6O48I=",
+			"checksumSHA1": "5QGZZIfRAeRt5guZzx6UA52uwEk=",
 			"origin": "github.com/keybase/go-billy/osfs",
 			"path": "gopkg.in/src-d/go-billy.v3/osfs",
-			"revision": "28d7191691eb6541e55e5049708108fc7e518e93",
-			"revisionTime": "2017-09-14T18:00:28Z"
+			"revision": "d0dc16de10d86398cc9aba4513a2453b401eceb3",
+			"revisionTime": "2017-07-10T15:31:57Z"
 		},
 		{
 			"checksumSHA1": "37r2pJ3xLgR49aFt2KZV9gqW/sQ=",
 			"origin": "github.com/keybase/go-billy/util",
 			"path": "gopkg.in/src-d/go-billy.v3/util",
-			"revision": "28d7191691eb6541e55e5049708108fc7e518e93",
-			"revisionTime": "2017-09-14T18:00:28Z"
+			"revision": "d0dc16de10d86398cc9aba4513a2453b401eceb3",
+			"revisionTime": "2017-07-10T15:31:57Z"
 		},
 		{
 			"checksumSHA1": "U3tqtWuGNTOEWX1ExyQ9YkJ+cNc=",
