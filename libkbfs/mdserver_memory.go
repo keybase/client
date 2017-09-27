@@ -336,12 +336,19 @@ func (md *MDServerMemory) getCurrentDeviceKey(ctx context.Context) (
 // GetRange implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
-	lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
+	lockBeforeGet *keybase1.LockID) (rmdses []*RootMetadataSigned, err error) {
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
-	bid, err := md.checkGetParamsRLocked(ctx, id, bid, mStatus)
+	bid, err = md.checkGetParamsRLocked(ctx, id, bid, mStatus)
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() {
+		if err == nil && lockBeforeGet != nil {
+			md.lockLocked(ctx, id, *lockBeforeGet)
+		}
+	}()
+
 	if mStatus == Unmerged && bid == NullBranchID {
 		return nil, nil
 	}
@@ -373,7 +380,6 @@ func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 
 	max := md.config.MetadataVersion()
 
-	var rmdses []*RootMetadataSigned
 	for i := startI; i < endI; i++ {
 		ver := blocks[i].version
 		buf := blocks[i].encodedMd
@@ -389,10 +395,6 @@ func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
 				expectedRevision, rmds.MD.RevisionNumber()))
 		}
 		rmdses = append(rmdses, rmds)
-	}
-
-	if lockBeforeGet != nil {
-		md.lockLocked(ctx, id, *lockBeforeGet)
 	}
 
 	return rmdses, nil
