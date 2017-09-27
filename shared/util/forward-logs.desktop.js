@@ -168,11 +168,13 @@ const setupSource = __STORYBOOK__
       })
     }
 
-function flushLogFile() {
-  const {ipcRenderer} = require('electron')
-  const {dumpLoggers} = require('./periodic-logger')
-  dumpLoggers()
-  ipcRenderer.send('console.flushLogFile')
-}
+const flushLogFile = __STORYBOOK__
+  ? () => {}
+  : () => {
+      const {ipcRenderer} = require('electron')
+      const {dumpLoggers} = require('./periodic-logger')
+      dumpLoggers()
+      ipcRenderer.send('console.flushLogFile')
+    }
 
 export {setupSource, setupTarget, localLog, localWarn, localError, flushLogFile}
