@@ -36,5 +36,11 @@ export default function(dispatch: Dispatch, getState: () => Object, notify: any)
       flushLogFile()
       response.result()
     },
+    'keybase.1.identifyUi.start': (_, response) => {
+      // XXX: Looks like we have a race with registering this handler
+      // for the tracker UI, placing a registration here to avoid getting
+      // an unknown RPC error.
+      response.result()
+    },
   }
 }
