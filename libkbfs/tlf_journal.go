@@ -896,7 +896,8 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 
 		flushedOneMD := false
 		for {
-			flushed, err := j.flushOneMDOp(ctx, maxMDRevToFlush, j.singleOpLockContext)
+			flushed, err := j.flushOneMDOp(
+				ctx, maxMDRevToFlush, j.singleOpLockContext)
 			if err != nil {
 				return err
 			}
@@ -1433,6 +1434,32 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 	}
 	if mdID == (kbfsmd.ID{}) {
 		return false, nil
+	}
+
+	// If this is the first revision, and there are more MD entries
+	// still to be flushed, don't pass in lc yet, wait for the next
+	// flush.  Normally the lock context is used in single-op mode,
+	// and there will always only be one revision to flush.  The
+	// exception is when the first revision of the TLF hasn't been
+	// pushed yet, since it can't be squashed.  In that case, there
+	// could be 2 revisions in the MD journal.  Don't unlock on the
+	// first flush, since we'll still need to hold the lock until the
+	// second flush.
+	if lc != nil {
+		_, mdCount, err := j.getJournalEntryCounts()
+		if err != nil {
+			return false, err
+		}
+		if mdCount > 1 {
+			if rmds.MD.RevisionNumber() != kbfsmd.RevisionInitial {
+				return false, errors.New("Unexpectedly flushing more " +
+					"than one revision while unlocking, and the first one " +
+					"isn't the initial revision")
+			}
+
+			j.log.CDebugf(ctx, "Ignoring lock context for initial MD flush")
+			lc = nil
+		}
 	}
 
 	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
