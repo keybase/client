@@ -379,7 +379,7 @@ func (p *blockPrefetcher) recordPrefetchParent(childBlockID kbfsblock.ID,
 	if !pre.parents[parentBlockID] {
 		// The new parent needs its subtree block count increased.
 		pre.parents[parentBlockID] = true
-		return 1, needNewFetch
+		return pre.subtreeBlockCount, needNewFetch
 	}
 	return 0, needNewFetch
 }
@@ -556,7 +556,7 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 		TriggeredPrefetch)
 	if err == nil {
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			prefetchStatus, isDeepSync}
+			TriggeredPrefetch, isDeepSync}
 		p.triggerPrefetch(req)
 	}
 	return err
