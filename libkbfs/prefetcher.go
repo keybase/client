@@ -141,6 +141,13 @@ func (p *blockPrefetcher) completePrefetch(
 	}
 }
 
+func (p *blockPrefetcher) decrementPrefetch(blockID kbfsblock.ID, pp *prefetch) {
+	pp.subtreeBlockCount--
+	if pp.subtreeBlockCount < 0 {
+		panic("decrementPrefetch overstepped its bounds")
+	}
+}
+
 func (p *blockPrefetcher) cancelPrefetch(blockID kbfsblock.ID, pp *prefetch) {
 	delete(p.prefetches, blockID)
 }
@@ -200,15 +207,9 @@ func (p *blockPrefetcher) run() {
 		case req := <-p.prefetchRequestCh:
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 			if isPrefetchWaiting {
-				if pre.subtreeBlockCount == 0 {
-					// If this happens, something screwed up since any path
-					// that results in a `subtreeBlockCount` of 0 should also
-					// clean up after itself.
-					panic("prefetch is waiting but its subtreeBlockCount is 0")
-				}
 				if pre.subtreeTriggered {
 					// Redundant prefetch request.
-					if pre.subtreeBlockCount == 1 {
+					if pre.subtreeBlockCount == 0 {
 						// Only this block is left, and we didn't prefetch on a
 						// previous prefetch through to the tail. So we cancel
 						// up the tree.
@@ -219,6 +220,13 @@ func (p *blockPrefetcher) run() {
 							pre)
 					}
 					continue
+				} else {
+					// This block was in the tree and thus was counted, but now
+					// it has been successfully fetched. We need to percolate
+					// that information up the tree.
+					p.applyToParentsRecursive(p.decrementPrefetch, req.ptr.ID,
+						pre)
+					pre.subtreeTriggered = true
 				}
 				if pre.req == nil {
 					// If this prefetch already appeared in the tree, ensure it
@@ -268,18 +276,20 @@ func (p *blockPrefetcher) run() {
 			}
 			if isTail {
 				// This is a tail block with no children.
-				if isPrefetchWaiting {
-					// Parent blocks are potentially waiting for this prefetch,
-					// so we percolate the information up the tree that this
-					// prefetch is done.
-					// Note that only a tail block or cached block with
-					// `FinishedPrefetch` can trigger a completed prefetch.
-					p.applyToParentsRecursive(
-						p.completePrefetch(1), req.ptr.ID, pre)
-				} else {
-					p.applyToParentsRecursive(
-						p.completePrefetch(0), req.ptr.ID, pre)
-				}
+				// Parent blocks are potentially waiting for this prefetch,
+				// so we percolate the information up the tree that this
+				// prefetch is done.
+				// Note that only a tail block or cached block with
+				// `FinishedPrefetch` can trigger a completed prefetch.
+				// We use 0 as our completion number because we've already
+				// decremented above as appropriate. This just walks up the
+				// tree removing blocks with a 0 subtree. We couldn't do that
+				// above because `handlePrefetch` potentially adds blocks.
+				// TODO: think about whether a refactor can be cleanly done to
+				// only walk up the tree once. We'd track a `numBlocks` and
+				// complete or decrement as appropriate.
+				p.applyToParentsRecursive(
+					p.completePrefetch(0), req.ptr.ID, pre)
 				continue
 			}
 			// This is not a tail block.
@@ -467,9 +477,6 @@ func (p *blockPrefetcher) handlePrefetch(ctx context.Context, pre *prefetch) (
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
 		return 0, false, errors.New("Unknown block type")
-	}
-	if !pre.subtreeTriggered {
-		pre.subtreeTriggered = true
 	}
 	return numBlocks, isTail, nil
 }
