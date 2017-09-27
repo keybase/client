@@ -782,8 +782,8 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
       .get('inbox')
       .find(
         convo =>
-          convo.get('participants').sort().join(',') === tlfName &&
-          convo.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs
+          convo.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs &&
+          convo.get('participants').sort().join(',') === tlfName
       )
   }
   const tlfName = users.sort().join(',')
