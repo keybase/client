@@ -314,10 +314,7 @@ func (m mockGregord) ConsumeMessage(ctx context.Context, msg gregor1.Message) er
 }
 
 func (m mockGregord) ConsumeMessageMulti(ctx context.Context, arg gregor1.ConsumeMessageMultiArg) error {
-	m.log.Debug("mockGregord: ConsumeMessageMulti: msgID: %s Ctime: %s", arg.Msg.ToInBandMessage().Metadata().MsgID(), arg.Msg.ToInBandMessage().Metadata().CTime())
-	// XXX fix
-	_, err := m.sm.ConsumeMessage(ctx, arg.Msg)
-	return err
+	return errors.New("unimplemented")
 }
 
 func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message) error {
