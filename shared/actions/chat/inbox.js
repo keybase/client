@@ -69,8 +69,7 @@ const _backgroundUnboxLoop = function*() {
         .toArray()
 
       if (conversationIDKeys.length) {
-        break // TEMP
-        // yield put(Creators.unboxConversations(conversationIDKeys))
+        yield put(Creators.unboxConversations(conversationIDKeys))
       } else {
         break
       }
@@ -199,22 +198,6 @@ function* onInboxStale(): SagaGenerator<any, any> {
         return map
       }, {})
     )
-    // const inboxAlwaysShow = I.Map(
-    // conversations.reduce((map, c) => {
-    // if (c.alwaysShow) {
-    // map[c.conversationIDKey] = true
-    // }
-    // return map
-    // }, {})
-    // )
-    // const inboxSupersededBy = I.Map(
-    // conversations.reduce((arr, c) => {
-    // if (c.supersededBy) {
-    // arr.push(c.conversationIDKey)
-    // }
-    // return arr
-    // }, [])
-    // )
 
     yield all([
       put(replaceEntity(['inboxVersion'], idToVersion)),
@@ -222,8 +205,6 @@ function* onInboxStale(): SagaGenerator<any, any> {
       put(replaceEntity(['inboxBigChannels'], inboxBigChannels)),
       put(replaceEntity(['inboxBigChannelsToTeam'], inboxBigChannelsToTeam)),
       put(replaceEntity(['inboxIsEmpty'], inboxIsEmpty)),
-      // put(replaceEntity(['inboxAlwaysShow'], inboxAlwaysShow)),
-      // put(replaceEntity(['inboxSupersededBy'], inboxSupersededBy)),
       put(replaceEntity(['inbox'], inboxMap)),
     ])
 
