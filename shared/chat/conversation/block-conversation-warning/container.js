@@ -15,7 +15,7 @@ type RenderBlockConversationWarningRouteProps = RouteProps<
   },
   {}
 >
-type OwnProps = RenderBlockConversationWarningRouteProps & {}
+type OwnProps = RenderBlockConversationWarningRouteProps
 
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const {conversationIDKey, participants} = routeProps.toObject()

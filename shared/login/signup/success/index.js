@@ -6,15 +6,15 @@ import {navigateUp} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 
-// type OwnProps = {
-// routeProps: {
-// title?: ?string,
-// },
-// }
+type OwnProps = {
+  routeProps: {
+    title?: ?string,
+  },
+}
 
 // $FlowIssue with connect
 export default connect(
-  (state: TypedState, {routeProps}) => ({
+  (state: TypedState, {routeProps}: OwnProps) => ({
     paperkey: state.signup.paperkey,
     waiting: state.signup.waiting,
     ...routeProps.toObject(),

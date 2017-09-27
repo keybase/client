@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 import * as Creators from '../../../actions/login/creators'
 import {clearDeviceNameError} from '../../../actions/signup'
 
+import type {RouteProps} from '../../../route-tree/render-route'
 import type {Dispatch} from 'redux'
 import type {TypedState} from '../../../constants/reducer'
 import type {State} from '.'
@@ -77,13 +78,14 @@ class _SetPublicName extends Component<ContainerProps, State> {
   }
 }
 
-// type OwnProps = {
-// routeProps: {
-// existingDevices?: ?Array<string>,
-// },
-// }
+type OwnProps = RouteProps<
+  {
+    existingDevices?: ?Array<string>,
+  },
+  {}
+>
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   deviceNameError: state.signup.deviceNameError,
   existingDevices: routeProps.get('existingDevices'),
   existingDevicesTrimmed: trimDeviceNames(existingDevices),

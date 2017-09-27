@@ -571,7 +571,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
   })
 }
 
-function* filterSelectNext(action: Constants.FilterSelectNext): SagaGenerator<any, any> {
+function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerator<any, any> {
   const rows = action.payload.rows
   const direction = action.payload.direction
 

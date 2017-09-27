@@ -1,32 +1,34 @@
 // @flow
 import * as React from 'react'
-import {List} from 'immutable'
 
 import type {ConversationIDKey} from '../../constants/chat'
 
-export type RowItem =
-  | {
-      type: 'small',
-      conversationIDKey: ConversationIDKey,
-    }
-  | {
-      type: 'bigTeamsLabel',
-      isFiltered: boolean,
-    }
-  | {
-      type: 'bigHeader',
-      teamname: string,
-    }
-  | {
-      type: 'big',
-      conversationIDKey: ?ConversationIDKey,
-      teamname: string,
-      channelname: ?string,
-    }
-  | {
-      type: 'divider',
-      isBadged: boolean,
-    }
+export type RowItemSmall = {
+  type: 'small',
+  conversationIDKey: ConversationIDKey,
+}
+
+export type RowItemBigTeamsLabel = {
+  type: 'bigTeamsLabel',
+  isFiltered: boolean,
+}
+export type RowItemBigHeader = {
+  type: 'bigHeader',
+  teamname: string,
+}
+export type RowItemBig = {
+  type: 'big',
+  conversationIDKey: ?ConversationIDKey,
+  teamname: string,
+  channelname: ?string,
+}
+
+export type RowItemDivider = {
+  type: 'divider',
+  isBadged: boolean,
+}
+
+export type RowItem = RowItemSmall | RowItemBigTeamsLabel | RowItemBigHeader | RowItemBig | RowItemDivider
 
 export type RouteState = {
   smallTeamsExpanded: boolean,
@@ -53,6 +55,7 @@ export type Props = {
   showBuildATeam: boolean,
   showNewConversation: boolean,
   showSmallTeamsExpandDivider: boolean,
+  smallIDsHidden: Array<ConversationIDKey>,
   smallTeamsHiddenBadgeCount: number,
   smallTeamsHiddenRowCount: number,
   toggleSmallTeamsExpanded: () => void,

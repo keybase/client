@@ -45,14 +45,14 @@ class _PaperKey extends Component<Props, State> {
   }
 }
 
-// type OwnProps = RouteProps<
-// {
-// error: string,
-// },
-// {}
-// >
+type OwnProps = RouteProps<
+  {
+    error: string,
+  },
+  {}
+>
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),
   error: routeProps.get('error'),
 })

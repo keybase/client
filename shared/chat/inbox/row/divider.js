@@ -5,6 +5,7 @@ import {createSelector} from 'reselect'
 import {ClickableBox, Icon, Box, Text, Badge} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, glamorous} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import type {TypedState} from '../../../constants/reducer'
 
 const getBadges = (state: TypedState) => state.entities.get('inboxUnreadCountBadge')
 const getInboxBigChannels = (state: TypedState) => state.entities.get('inboxBigChannels')

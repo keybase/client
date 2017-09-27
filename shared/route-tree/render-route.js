@@ -7,6 +7,7 @@ import {Box} from '../common-adapters'
 
 import type {Action} from '../constants/types/flux'
 import type {RouteDefNode, RouteStateNode, Path} from './'
+import type {KBRecord} from '../constants/types/more'
 
 type _RenderRouteResultParams = {
   path: I.List<string>,
@@ -33,10 +34,10 @@ export type RouteProps<P, S> = {
   shouldRender: boolean,
 
   // Route props (query params)
-  routeProps: P,
+  routeProps: KBRecord<P>, // Really a Map but typed as a record
 
   // Route state (state associated with this path. can change, see below)
-  routeState: S,
+  routeState: KBRecord<S>, // Really a Map but typed as a record
 
   // The name of the selected child route (useful for navs)
   routeSelected: string,
