@@ -484,6 +484,8 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		return err
 	}
 
+	var symRefs []string
+	hashesSeen := false
 	for {
 		ref, err := refs.Next()
 		if errors.Cause(err) == io.EOF {
@@ -497,15 +499,36 @@ func (r *runner) handleList(ctx context.Context, args []string) (err error) {
 		switch ref.Type() {
 		case plumbing.HashReference:
 			value = ref.Hash().String()
+			hashesSeen = true
 		case plumbing.SymbolicReference:
 			value = "@" + ref.Target().String()
 		default:
 			value = "?"
 		}
 		refStr := value + " " + ref.Name().String() + "\n"
+		if ref.Type() == plumbing.SymbolicReference {
+			// Don't list any symbolic references until we're sure
+			// there's at least one object available.  Otherwise
+			// cloning an empty repo will result in an error because
+			// the HEAD symbolic ref points to a ref that doesn't
+			// exist.
+			symRefs = append(symRefs, refStr)
+			continue
+		}
+		r.log.CDebugf(ctx, "Listing ref %s", refStr)
 		_, err = r.output.Write([]byte(refStr))
 		if err != nil {
 			return err
+		}
+	}
+
+	if hashesSeen {
+		for _, refStr := range symRefs {
+			r.log.CDebugf(ctx, "Listing symbolic ref %s", refStr)
+			_, err = r.output.Write([]byte(refStr))
+			if err != nil {
+				return err
+			}
 		}
 	}
 

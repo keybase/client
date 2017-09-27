@@ -94,8 +94,8 @@ func TestRunnerInitRepo(t *testing.T) {
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
-	// Just one symref, from HEAD to master (and master has no commits yet).
-	require.Equal(t, output.String(), "@refs/heads/master HEAD\n\n")
+	// No refs yet, including the HEAD symref.
+	require.Equal(t, output.String(), "\n")
 
 	// Now there should be a valid git repo stored in KBFS.  Check the
 	// existence of the HEAD file to be sure.
