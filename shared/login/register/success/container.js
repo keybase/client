@@ -4,15 +4,17 @@ import HiddenString from '../../../util/hidden-string'
 import RenderSuccess from '../../signup/success/index.render'
 import {connect} from 'react-redux'
 
+import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 
-type OwnProps = {
-  routeProps: {
+type OwnProps = RouteProps<
+  {
     paperkey: HiddenString,
     title: string,
     waiting: boolean,
   },
-}
+  {}
+>
 
 const mapStateToProps = (s: TypedState, {routeProps}: OwnProps) => ({
   paperkey: routeProps.get('paperkey'),

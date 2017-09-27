@@ -88,7 +88,7 @@ type OwnProps = RouteProps<
 const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   deviceNameError: state.signup.deviceNameError,
   existingDevices: routeProps.get('existingDevices'),
-  existingDevicesTrimmed: trimDeviceNames(existingDevices),
+  existingDevicesTrimmed: trimDeviceNames(routeProps.get('existingDevices')),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 

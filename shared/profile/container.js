@@ -26,11 +26,7 @@ import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
-type OwnProps = {
-  routeProps: {
-    username: ?string,
-  },
-} & RouteProps<{}, {currentFriendshipsTab: FriendshipsTab}>
+type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: FriendshipsTab}>
 
 type EitherProps<P> =
   | {
