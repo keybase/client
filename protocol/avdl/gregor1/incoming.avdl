@@ -8,6 +8,11 @@ protocol incoming {
   SyncResult sync(UID uid, DeviceID deviceid, Time ctime);
   void consumeMessage(Message m);
   void consumePublishMessage(Message m);
+  /**
+    consumeMessageMulti will take msg and consume it for all the users listed
+    in uids. This is so a gregor client can send the same message to many UIDs
+    with one call, as opposed to calling consumeMessage for each UID.
+   */
   void consumeMessageMulti(Message msg, array<UID> uids);
   string ping();
   string version(UID uid);
