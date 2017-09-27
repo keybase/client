@@ -538,3 +538,64 @@ func TestHiddenSubteam(t *testing.T) {
 	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
 	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
 }
+
+func TestSubteamHopWithNone(t *testing.T) {
+	testSubteamHop(t, keybase1.TeamRole_NONE)
+}
+
+// A member of A and A.B.C but not A.B should be able to load A.B.C
+// when they have already cached A with the new_subteam stubbed out.
+func TestSubteamHopWithWriter(t *testing.T) {
+	testSubteamHop(t, keybase1.TeamRole_WRITER)
+}
+
+func TestSubteamHopWithAdmin(t *testing.T) {
+	testSubteamHop(t, keybase1.TeamRole_ADMIN)
+}
+
+func testSubteamHop(t *testing.T, roleInRoot keybase1.TeamRole) {
+	t.Logf("testing with roleInRoot: %v", roleInRoot)
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 creates A.B")
+	subteamName, subteamID := createSubteam(tcs[0], rootName, "bbb")
+
+	if roleInRoot != keybase1.TeamRole_NONE {
+		t.Logf("U0 adds U1 to A")
+		_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, roleInRoot)
+		require.NoError(t, err, "add member")
+
+		t.Logf("U1 loads and caches A (with A.B's new_subteam link stubbed out)")
+		_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+			ID:          rootID,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err, "load team")
+	}
+
+	t.Logf("U0 creates A.B.C")
+	subsubteamName, subsubteamID := createSubteam(tcs[0], subteamName, "ccc")
+
+	t.Logf("U0 adds U1 to A.B.C")
+	_, err := AddMember(context.TODO(), tcs[0].G, subsubteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U1 loads A.B.C")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subsubteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+
+	if roleInRoot == keybase1.TeamRole_NONE {
+		t.Logf("U1 cannot load A.B")
+		_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+			ID: subteamID,
+		})
+		require.Error(t, err, "shouldn't load team")
+	}
+}

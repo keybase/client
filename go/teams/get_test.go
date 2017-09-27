@@ -198,3 +198,11 @@ func createTeam2(tc libkb.TestContext) (keybase1.TeamName, keybase1.TeamID) {
 	require.NoError(tc.T, err)
 	return teamName, teamName.ToTeamID()
 }
+
+func createSubteam(tc *libkb.TestContext, parent keybase1.TeamName, subteamNamePart string) (keybase1.TeamName, keybase1.TeamID) {
+	subteamName, err := parent.Append(subteamNamePart)
+	require.NoError(tc.T, err)
+	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamNamePart, parent)
+	require.NoError(tc.T, err)
+	return subteamName, *subteamID
+}
