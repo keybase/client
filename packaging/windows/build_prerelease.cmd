@@ -45,6 +45,11 @@ set CGO_ENABLED=1
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
 popd
 
+:: git-remote-keybase
+pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase
+go build -a
+popd
+
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
 go build -a -o upd.exe
