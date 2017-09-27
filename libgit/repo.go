@@ -51,6 +51,14 @@ func (e InvalidRepoNameError) Error() string {
 	return fmt.Sprintf("Invalid repo name %q", e.name)
 }
 
+// ToStatus implements the ExportableError interface for ServerError.
+func (e InvalidRepoNameError) ToStatus() (s keybase1.Status) {
+	s.Code = int(keybase1.StatusCode_SCGitInvalidRepoName)
+	s.Name = "GIT_INVALID_REPO_NAME"
+	s.Desc = e.Error()
+	return
+}
+
 // RepoAlreadyCreatedError is returned when trying to create a repo
 // that already exists.
 type RepoAlreadyCreatedError struct {
@@ -63,6 +71,14 @@ func (race RepoAlreadyCreatedError) Error() string {
 		"A repo named %s (id=%s) already existed when trying to create "+
 			"a repo named %s", race.ExistingConfig.Name,
 		race.ExistingConfig.ID, race.DesiredName)
+}
+
+// ToStatus implements the ExportableError interface for ServerError.
+func (race RepoAlreadyCreatedError) ToStatus() (s keybase1.Status) {
+	s.Code = int(keybase1.StatusCode_SCGitRepoAlreadyExists)
+	s.Name = "GIT_REPO_ALREADY_EXISTS"
+	s.Desc = race.Error()
+	return
 }
 
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
