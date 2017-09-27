@@ -231,6 +231,8 @@ func (p *blockPrefetcher) run() {
 						p.applyToParentsRecursive(p.cancelPrefetch, req.ptr.ID,
 							pre)
 					}
+					// We've already seen _this_ block, and already triggered
+					// prefetches for its children. No use doing it again!
 					continue
 				} else {
 					// This block was in the tree and thus was counted, but now
@@ -541,10 +543,6 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 		p.triggerPrefetch(req)
 		return nil
 	}
-	isDeepSync := false
-	if p.config.IsSyncedTlf(kmd.TlfID()) {
-		isDeepSync = true
-	}
 	if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
@@ -555,8 +553,12 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 	err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
 		TriggeredPrefetch)
 	if err == nil {
+		// Note that we're triggering a prefetch with `prefetchStatus`, not
+		// `TriggeredPrefetch` like we just set. We need to let the prefetcher
+		// make the decision on what to do with the _previous_ status.
+		isDeepSync := p.config.IsSyncedTlf(kmd.TlfID())
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			TriggeredPrefetch, isDeepSync}
+			prefetchStatus, isDeepSync}
 		p.triggerPrefetch(req)
 	}
 	return err
