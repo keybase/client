@@ -58,6 +58,9 @@ type blockPrefetcher struct {
 	prefetchRequestCh chan *prefetchRequest
 	// channel that is idempotently closed when a shutdown occurs
 	shutdownCh chan struct{}
+	// channel that is closed when all current fetches are done and prefetches
+	// have been triggered
+	almostDoneCh chan struct{}
 	// channel that is closed when a shutdown completes and all pending
 	// prefetch requests are complete
 	doneCh chan struct{}
@@ -78,6 +81,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		retriever:         retriever,
 		prefetchRequestCh: make(chan *prefetchRequest, maxNumPrefetches),
 		shutdownCh:        make(chan struct{}),
+		almostDoneCh:      make(chan struct{}),
 		doneCh:            make(chan struct{}),
 		// TODO: re-evaluate the size of this channel
 		prefetchCancelCh: make(chan kbfsblock.ID, maxNumPrefetches),
@@ -165,11 +169,24 @@ top:
 		ch := <-p.inFlightFetches
 		<-ch
 	}
-	close(p.doneCh)
+	// FIXME: at this point we know that all fetches have _triggered_ their
+	// prefetches, but not that those triggers are done. We ned some way to
+	// synchronize that.
+	close(p.almostDoneCh)
 }
 
 func (p *blockPrefetcher) run() {
+	defer func() {
+		close(p.doneCh)
+	}()
+	doneCounter := -1
 	for {
+		if doneCounter > 0 {
+			doneCounter--
+		}
+		if doneCounter == 0 {
+			return
+		}
 		select {
 		case blockID := <-p.prefetchCancelCh:
 			pre, ok := p.prefetches[blockID]
@@ -286,8 +303,8 @@ func (p *blockPrefetcher) run() {
 			p.applyToParentsRecursive(func(_ kbfsblock.ID, pp *prefetch) {
 				pp.subtreeBlockCount += numBlocks
 			}, req.ptr.ID, pre)
-		case <-p.doneCh:
-			return
+		case <-p.almostDoneCh:
+			doneCounter = len(p.prefetchRequestCh) + 1
 		}
 	}
 }
