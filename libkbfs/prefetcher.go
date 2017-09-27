@@ -62,8 +62,7 @@ type blockPrefetcher struct {
 	// prefetch requests are complete
 	doneCh chan struct{}
 	// channels to track the success or failure of prefetches
-	prefetchMonitorSuccessCh chan kbfsblock.ID
-	prefetchMonitorCancelCh  chan kbfsblock.ID
+	prefetchCancelCh chan kbfsblock.ID
 	// map to store prefetch metadata
 	prefetches map[kbfsblock.ID]*prefetch
 	// channel to allow synchronization on completion
@@ -80,11 +79,10 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		prefetchRequestCh: make(chan *prefetchRequest, maxNumPrefetches),
 		shutdownCh:        make(chan struct{}),
 		doneCh:            make(chan struct{}),
-		// TODO: re-evaluate the size of these channels
-		prefetchMonitorSuccessCh: make(chan kbfsblock.ID, maxNumPrefetches),
-		prefetchMonitorCancelCh:  make(chan kbfsblock.ID, maxNumPrefetches),
-		prefetches:               make(map[kbfsblock.ID]*prefetch),
-		inFlightFetches:          make(chan (<-chan error), maxNumPrefetches),
+		// TODO: re-evaluate the size of this channel
+		prefetchCancelCh: make(chan kbfsblock.ID, maxNumPrefetches),
+		prefetches:       make(map[kbfsblock.ID]*prefetch),
+		inFlightFetches:  make(chan (<-chan error), maxNumPrefetches),
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -154,7 +152,17 @@ func (p *blockPrefetcher) isShutdown() bool {
 
 // shutdownLoop tracks in-flight requests
 func (p *blockPrefetcher) shutdownLoop() {
-	for ch := range p.inFlightFetches {
+top:
+	for {
+		select {
+		case ch := <-p.inFlightFetches:
+			<-ch
+		case <-p.shutdownCh:
+			break top
+		}
+	}
+	for i := 0; i < len(p.inFlightFetches); i++ {
+		ch := <-p.inFlightFetches
 		<-ch
 	}
 	close(p.doneCh)
@@ -163,21 +171,7 @@ func (p *blockPrefetcher) shutdownLoop() {
 func (p *blockPrefetcher) run() {
 	for {
 		select {
-		case blockID := <-p.prefetchMonitorSuccessCh:
-			pre, ok := p.prefetches[blockID]
-			if !ok {
-				// TODO: remove this line once we've debugged.
-				p.log.Debug("Missing prefetch completed for block %s", blockID)
-				continue
-			}
-			if pre.subtreeBlockCount < 0 {
-				panic("the subtreeBlockCount for a block should never be < 0")
-			}
-			// Since we decrement by `pre.subtreeBlockCount`, we're guaranteed
-			// that `pre` will be removed from the prefetcher.
-			p.applyToParentsRecursive(
-				p.completePrefetch(pre.subtreeBlockCount), blockID, pre)
-		case blockID := <-p.prefetchMonitorCancelCh:
+		case blockID := <-p.prefetchCancelCh:
 			pre, ok := p.prefetches[blockID]
 			if !ok {
 				// TODO: remove this line once we've debugged.
@@ -265,6 +259,9 @@ func (p *blockPrefetcher) run() {
 					// `FinishedPrefetch` can trigger a completed prefetch.
 					p.applyToParentsRecursive(
 						p.completePrefetch(1), req.ptr.ID, pre)
+				} else {
+					p.applyToParentsRecursive(
+						p.completePrefetch(0), req.ptr.ID, pre)
 				}
 				continue
 			}
@@ -278,12 +275,11 @@ func (p *blockPrefetcher) run() {
 				// This block doesn't appear in the prefetch tree, so it's the
 				// root of a new prefetch tree. Add it to the tree.
 				p.prefetches[req.ptr.ID] = pre
-				// Originaly I thought that since this block wasn't in the
-				// tree, we need to `numBlocks++`. But since we're in this
-				// flow, the block has already been fetched and is thus done.
-				// So it shouldn't block anything above it in the tree from
+				// One might think that since this block wasn't in the tree, we
+				// need to `numBlocks++`. But since we're in this flow, the
+				// block has already been fetched and is thus done.  So it
+				// shouldn't block anything above it in the tree from
 				// completing.
-				// TODO: verify that this is the case.
 			}
 			// Walk up the block tree and add numBlocks to every parent,
 			// starting with this block.
@@ -358,7 +354,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
 			p.recordPrefetchParent(ptr.BlockPointer.ID, parentBlockID)
 		numBlocks += n
 		if needNewFetch {
-			_ = p.retriever.Request(ctx, startingPriority-i, kmd,
+			p.request(ctx, startingPriority-i, kmd,
 				ptr.BlockPointer, b.NewEmpty(), lifetime)
 		}
 	}
@@ -378,7 +374,7 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(ctx context.Context,
 			p.recordPrefetchParent(ptr.BlockPointer.ID, parentBlockID)
 		numBlocks += n
 		if needNewFetch {
-			_ = p.retriever.Request(ctx, startingPriority-i, kmd,
+			p.request(ctx, startingPriority-i, kmd,
 				ptr.BlockPointer, b.NewEmpty(), lifetime)
 		}
 	}
@@ -417,7 +413,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 			p.recordPrefetchParent(entry.BlockPointer.ID, parentBlockID)
 		numBlocks += n
 		if needNewFetch {
-			_ = p.retriever.Request(ctx, priority, kmd, entry.BlockPointer,
+			p.request(ctx, priority, kmd, entry.BlockPointer,
 				block, lifetime)
 		}
 	}
@@ -498,9 +494,7 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 	lifetime BlockCacheLifetime,
 	prefetchStatus PrefetchStatus) error {
 	if prefetchStatus == FinishedPrefetch {
-		// Finished prefetches can always be short circuited and respond on the
-		// success channel (upstream prefetches might need to block on other
-		// parallel prefetches too).
+		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
 			FinishedPrefetch, true}
@@ -533,30 +527,13 @@ func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
 	// After `p.shutdownCh` is closed, we still need to receive prefetch
 	// cancelation until all prefetching is done.
 	case <-p.doneCh:
-	case p.prefetchMonitorCancelCh <- blockID:
+	case p.prefetchCancelCh <- blockID:
 	default:
 		// Ensure this can't block.
 		go func() {
 			select {
 			case <-p.doneCh:
-			case p.prefetchMonitorCancelCh <- blockID:
-			}
-		}()
-	}
-}
-
-func (p *blockPrefetcher) notifyPrefetchDone(blockID kbfsblock.ID) {
-	select {
-	// After `p.shutdownCh` is closed, we still need to receive prefetch
-	// cancelation until all prefetching is done.
-	case <-p.doneCh:
-	case p.prefetchMonitorSuccessCh <- blockID:
-	default:
-		// Ensure this can't block.
-		go func() {
-			select {
-			case <-p.doneCh:
-			case p.prefetchMonitorSuccessCh <- blockID:
+			case p.prefetchCancelCh <- blockID:
 			}
 		}()
 	}
@@ -568,7 +545,6 @@ func (p *blockPrefetcher) Shutdown() <-chan struct{} {
 	case <-p.shutdownCh:
 	default:
 		close(p.shutdownCh)
-		close(p.inFlightFetches)
 	}
 	return p.doneCh
 }

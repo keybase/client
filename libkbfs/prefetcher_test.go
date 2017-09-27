@@ -420,11 +420,11 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	require.Equal(t, rootDir, block)
 
 	t.Log("Wait for prefetching to complete.")
+	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the directory block is in the cache.")
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, rootDir,
 		FinishedPrefetch, TransientEntry)
-	<-q.Prefetcher().Shutdown()
 }
 
 func notifyContinueCh(ch chan<- error) {
