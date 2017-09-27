@@ -200,7 +200,7 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
     createdTLFs
       .map(m => {
         const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-        if (folder != null) {
+        if (folder && folder.payload.folder) {
           return put(folder)
         }
         console.warn('Failed to parse tlf for oobm:', m)
