@@ -46,6 +46,7 @@ IF %DOKANVER%=="" (
 
 call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
@@ -62,6 +63,12 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that kbfs is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that kbfs is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
