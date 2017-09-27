@@ -505,7 +505,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 		notifyContinueCh(continueChDirBfileDblock2, wg)
 	}()
 	t.Log("Wait for prefetching to complete.")
-	// First we wait for all prefetches to been triggered.
+	// First we wait for all prefetches to be triggered.
 	wg.Wait()
 	// Then we wait for the pending prefetches to complete.
 	<-q.Prefetcher().Shutdown()
