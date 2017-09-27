@@ -21,6 +21,7 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
   }
 >
 
+export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
 
@@ -65,6 +66,13 @@ export const MemberInfo = I.Record({
 export type SetTeamCreationError = NoErrorTypedAction<
   'teams:setTeamCreationError',
   {teamCreationError: string}
+>
+
+export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
+export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: string}>
+export type SetTeamJoinSuccessBody = NoErrorTypedAction<
+  'teams:setTeamJoinSuccessBody',
+  {teamJoinSuccessBody: string}
 >
 
 export const Team = I.Record({

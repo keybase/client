@@ -52,8 +52,15 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   },
   onHideBanner: () => dispatch(injectItem('sawChatBanner', 'true')),
   onJoinTeam: () => {
-    // TODO: Hook this up once we have a join team dialog.
-    console.log('onJoinTeam not implemented yet')
+    dispatch(
+      navigateAppend([
+        {
+          props: {},
+          selected: 'showJoinTeamDialog',
+        },
+      ])
+    )
+    // console.log('onJoinTeam not implemented yet')
   },
   onManageChat: (teamname: Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
