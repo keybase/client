@@ -3139,7 +3139,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	}
 
 	// Wait for the archiving to finish
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server")
 	}
@@ -3198,7 +3198,7 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	}
 
 	// Wait for the archiving to finish
-	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server")
 	}
@@ -3340,7 +3340,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 
 	// Simulate the server triggering alice to update.
 	config1.SetKeyCache(NewKeyCacheStandard(1))
-	err = kbfsOps1.SyncFromServerForTesting(ctx, fb1)
+	err = kbfsOps1.SyncFromServerForTesting(ctx, fb1, nil)
 	// TODO: We can actually fake out the PrevRoot pointer, too
 	// and then we'll be caught by the handle check. But when we
 	// have MDOps do the handle check, that'll trigger first.

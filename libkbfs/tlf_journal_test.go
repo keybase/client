@@ -939,11 +939,11 @@ func testTLFJournalFlushMDBasic(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	for i := 0; i < mdCount; i++ {
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, nil)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, nil)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	requireJournalEntryCounts(t, tlfJournal, uint64(mdCount), 0)
@@ -985,7 +985,7 @@ func testTLFJournalFlushMDConflict(t *testing.T, ver MetadataVer) {
 
 	// Simulate a flush with a conflict error halfway through.
 	{
-		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+		flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, nil)
 		require.NoError(t, err)
 		require.False(t, flushed)
 
@@ -1650,7 +1650,7 @@ func testTLFJournalResolveBranch(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	// This will convert to a branch.
-	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd)
+	flushed, err := tlfJournal.flushOneMDOp(ctx, mdEnd, nil)
 	require.NoError(t, err)
 	require.False(t, flushed)
 
@@ -1811,7 +1811,7 @@ func testTLFJournalSingleOp(t *testing.T, ver MetadataVer) {
 	// a background goroutine to avoid deadlock.
 	errCh := make(chan error, 1)
 	go func() {
-		errCh <- tlfJournal.finishSingleOp(ctx)
+		errCh <- tlfJournal.finishSingleOp(ctx, nil)
 	}()
 
 	// Background loop awakens after the finish is signaled.  Should
@@ -1848,12 +1848,47 @@ func testTLFJournalSingleOp(t *testing.T, ver MetadataVer) {
 	require.Len(t, mdserver.rmdses, 1)
 }
 
+func testTLFJournalWaitForBlockFlush(t *testing.T, ver MetadataVer) {
+	tempdir, config, ctx, cancel, tlfJournal, delegate :=
+		setupTLFJournalTest(t, ver, TLFJournalSingleOpBackgroundWorkEnabled)
+	defer teardownTLFJournalTest(
+		tempdir, config, ctx, cancel, tlfJournal, delegate)
+
+	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
+
+	go func() {
+		// For waitForBlockFlush
+		delegate.requireNextState(ctx, bwBusy)
+		delegate.requireNextState(ctx, bwIdle)
+
+		// For finishSingleOp
+		delegate.requireNextState(ctx, bwBusy)
+		delegate.requireNextState(ctx, bwIdle)
+	}()
+
+	blockEntryCount, _, err := tlfJournal.getJournalEntryCounts()
+	require.NoError(t, err)
+	require.Equal(t, uint64(1), blockEntryCount)
+
+	err = tlfJournal.waitForBlockFlush(ctx)
+	require.NoError(t, err)
+
+	blockEntryCount, _, err = tlfJournal.getJournalEntryCounts()
+	require.NoError(t, err)
+	require.Equal(t, uint64(0), blockEntryCount)
+
+	// Clean up journal MDs.
+	err = tlfJournal.finishSingleOp(ctx, nil)
+	require.NoError(t, err)
+}
+
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testTLFJournalBasic,
 		testTLFJournalPauseResume,
 		testTLFJournalPauseShutdown,
 		testTLFJournalBlockOpBasic,
+		testTLFJournalWaitForBlockFlush,
 		testTLFJournalBlockOpBusyPause,
 		testTLFJournalBlockOpBusyShutdown,
 		testTLFJournalSecondBlockOpWhileBusy,

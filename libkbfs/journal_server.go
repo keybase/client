@@ -607,6 +607,7 @@ func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID) 
 func (j *JournalServer) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Flushing journal for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
+		// TODO: do we want to plumb lc through here as well?
 		return tlfJournal.flush(ctx)
 	}
 
@@ -631,11 +632,23 @@ func (j *JournalServer) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
 // FinishSingleOp lets the write journal know that the application has
 // finished a single op, and then blocks until the write journal has
 // finished flushing everything.
-func (j *JournalServer) FinishSingleOp(
-	ctx context.Context, tlfID tlf.ID) (err error) {
+func (j *JournalServer) FinishSingleOp(ctx context.Context,
+	tlfID tlf.ID, lc *keybase1.LockContext) (err error) {
 	j.log.CDebugf(ctx, "Finishing single op for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
-		return tlfJournal.finishSingleOp(ctx)
+		return tlfJournal.finishSingleOp(ctx, lc)
+	}
+
+	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
+	return nil
+}
+
+// WaitForBlockFlush waits for block to be flushed.
+func (j *JournalServer) WaitForBlockFlush(
+	ctx context.Context, tlfID tlf.ID) (err error) {
+	j.log.CDebugf(ctx, "Waiting for blocks to flush for %s", tlfID)
+	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
+		return tlfJournal.waitForBlockFlush(ctx)
 	}
 
 	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)

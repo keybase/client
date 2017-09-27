@@ -204,6 +204,10 @@ const (
 	singleOpFinished
 )
 
+type finishSingleOpContext struct {
+	lockContextForPut *keybase1.LockContext
+}
+
 // A tlfJournal contains all the journals for a (TLF, user, device)
 // tuple and controls the synchronization between the objects that are
 // adding to those journals (via journalBlockServer or journalMDOps)
@@ -253,10 +257,11 @@ type tlfJournal struct {
 
 	// Serializes all flushes, and protects `lastServerMDCheck` and
 	// `singleOpMode`.
-	flushLock         sync.Mutex
-	lastServerMDCheck time.Time
-	singleOpMode      singleOpMode
-	finishSingleOpCh  chan struct{}
+	flushLock           sync.Mutex
+	lastServerMDCheck   time.Time
+	singleOpMode        singleOpMode
+	finishSingleOpCh    chan finishSingleOpContext
+	singleOpLockContext *keybase1.LockContext
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
@@ -420,7 +425,7 @@ func makeTLFJournal(
 		needShutdownCh:       make(chan struct{}, 1),
 		needBranchCheckCh:    make(chan struct{}, 1),
 		backgroundShutdownCh: make(chan struct{}),
-		finishSingleOpCh:     make(chan struct{}, 1),
+		finishSingleOpCh:     make(chan finishSingleOpContext, 1),
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
 		flushingBlocks:       make(map[kbfsblock.ID]bool),
@@ -823,11 +828,12 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 
 		select {
-		case <-j.finishSingleOpCh:
+		case finishSingleOpCtx := <-j.finishSingleOpCh:
 			err := j.checkAndFinishSingleOpFlushLocked(ctx)
 			if err != nil {
 				return err
 			}
+			j.singleOpLockContext = finishSingleOpCtx.lockContextForPut
 		default:
 		}
 
@@ -851,6 +857,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			if j.singleOpMode == singleOpFinished {
 				j.log.CDebugf(ctx, "Resetting single op mode")
 				j.singleOpMode = singleOpRunning
+				j.singleOpLockContext = nil
 			}
 			break
 		}
@@ -889,7 +896,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 
 		flushedOneMD := false
 		for {
-			flushed, err := j.flushOneMDOp(ctx, maxMDRevToFlush)
+			flushed, err := j.flushOneMDOp(ctx, maxMDRevToFlush, j.singleOpLockContext)
 			if err != nil {
 				return err
 			}
@@ -1402,8 +1409,8 @@ func (j *tlfJournal) removeFlushedMDEntryLocked(ctx context.Context,
 	return clearedMDJournal, nil
 }
 
-func (j *tlfJournal) flushOneMDOp(
-	ctx context.Context, maxMDRevToFlush kbfsmd.Revision) (
+func (j *tlfJournal) flushOneMDOp(ctx context.Context,
+	maxMDRevToFlush kbfsmd.Revision, lc *keybase1.LockContext) (
 	flushed bool, err error) {
 	if maxMDRevToFlush == kbfsmd.RevisionUninitialized {
 		// Avoid a call to `getNextMDEntryToFlush`, which
@@ -1430,8 +1437,7 @@ func (j *tlfJournal) flushOneMDOp(
 
 	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
 		rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
-	// TODO: take care of locking in journal.
-	pushErr := mdServer.Put(ctx, rmds, extra, nil, keybase1.MDPriorityNormal)
+	pushErr := mdServer.Put(ctx, rmds, extra, lc, keybase1.MDPriorityNormal)
 	if isRevisionConflict(pushErr) {
 		headMdID, err := getMdID(ctx, mdServer, j.config.Codec(),
 			rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.MergedStatus(),
@@ -2329,14 +2335,15 @@ func (j *tlfJournal) wait(ctx context.Context) error {
 	return nil
 }
 
-func (j *tlfJournal) finishSingleOp(ctx context.Context) error {
+func (j *tlfJournal) finishSingleOp(ctx context.Context,
+	lc *keybase1.LockContext) error {
 	j.log.CDebugf(ctx, "Finishing single op")
 
 	// Let the background flusher know it should change the single op
 	// mode to finished, so we can have it set ASAP without waiting to
 	// take `flushLock` here.
 	select {
-	case j.finishSingleOpCh <- struct{}{}:
+	case j.finishSingleOpCh <- finishSingleOpContext{lockContextForPut: lc}:
 	default:
 	}
 
@@ -2350,6 +2357,37 @@ func (j *tlfJournal) finishSingleOp(ctx context.Context) error {
 		}
 		if blockEntryCount == 0 && mdEntryCount == 0 {
 			j.log.CDebugf(ctx, "Single op completely flushed")
+			return nil
+		}
+
+		// Let the background flusher know it should try to flush
+		// everything again, once any conflicts have been resolved.
+		j.signalWork()
+
+		err = j.wg.Wait(ctx)
+		if err != nil {
+			return err
+		}
+		_, noLock := j.lastFlushErr.(kbfsmd.ServerErrorRequiredLockIsNotHeld)
+		if noLock {
+			return j.lastFlushErr
+		}
+	}
+}
+
+func (j *tlfJournal) waitForBlockFlush(ctx context.Context) error {
+	j.log.CDebugf(ctx, "Waiting for blocks to flush in single op")
+
+	// Now we wait for the blocks in the journal to completely flush.  Waiting
+	// on the wg isn't enough, because conflicts/squashes can cause the journal
+	// to pause and we'll be called too early.
+	for {
+		blockEntryCount, _, err := j.getJournalEntryCounts()
+		if err != nil {
+			return err
+		}
+		if blockEntryCount == 0 {
+			j.log.CDebugf(ctx, "Blocks completely flushed")
 			return nil
 		}
 

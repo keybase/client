@@ -886,7 +886,7 @@ func (o TeamSBSMsg) DeepCopy() TeamSBSMsg {
 }
 
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
-// * a refresh of the cached.
+// * a refresh of the cache.
 type TeamRefreshers struct {
 	NeedKeyGeneration PerTeamKeyGeneration `codec:"needKeyGeneration" json:"needKeyGeneration"`
 	WantMembers       []UserVersion        `codec:"wantMembers" json:"wantMembers"`

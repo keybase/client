@@ -223,6 +223,8 @@ func getOrCreateRepoAndID(
 		return nil, NullID, RepoAlreadyCreatedError{repoName, *c}
 	}
 
+	fs.SetLockNamespace(c.ID.Bytes())
+
 	return fs, c.ID, nil
 }
 

@@ -88,7 +88,8 @@ func TestBasicMDUpdate(t *testing.T) {
 	err = kbfsOps1.SyncAll(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
 
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
@@ -147,7 +148,8 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	entries, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
@@ -386,10 +388,11 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	}
 
 	err = config1B.KBFSOps().SyncFromServerForTesting(
-		ctx, fileNode1B.GetFolderBranch())
+		ctx, fileNode1B.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	err = config2B.KBFSOps().
-		SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+		SyncFromServerForTesting(ctx,
+			rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	readAndCompareData(t, config1B, ctx, name, data2, userName2)
@@ -449,7 +452,8 @@ func TestMultiUserWrite(t *testing.T) {
 
 	readAndCompareData(t, config2, ctx, name, data3, userName2)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	readAndCompareData(t, config1, ctx, name, data3, userName2)
 }
@@ -516,10 +520,12 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// Make sure they both see the same set of children
@@ -731,10 +737,12 @@ func TestBasicCRFileConflict(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	cre := WriterDeviceDateConflictRenamer{}
@@ -819,10 +827,12 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// Make sure they both see the same set of children
@@ -930,7 +940,8 @@ func TestCRDouble(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// A few merged revisions
@@ -950,7 +961,8 @@ func TestCRDouble(t *testing.T) {
 	ops.fbm.waitForDeletingBlocks(ctx)
 
 	// Sync user 1, then start another round of CR.
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	// disable updates and CR on user 2
 	c, err = DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
@@ -978,7 +990,8 @@ func TestCRDouble(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 }
 
@@ -1040,7 +1053,8 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	require.IsType(t, NeedSelfRekeyError{}, err)
 
 	// User 2 syncs
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// disable updates on user2
@@ -1063,7 +1077,8 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	require.NoError(t, err)
 
 	// User 1 syncs
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// User 2 makes a new different file
@@ -1080,18 +1095,20 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	// wait for the rekey to happen
 	RequestRekeyAndWaitForOneFinishEvent(ctx,
 		config2.KBFSOps(), rootNode2.GetFolderBranch().Tlf)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// Look it up on user 2 dev 2 after syncing.
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
-		rootNode2.GetFolderBranch())
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
@@ -1177,7 +1194,8 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	require.IsType(t, NeedSelfRekeyError{}, err)
 
 	// User 2 syncs
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// disable updates on user1
@@ -1206,22 +1224,25 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config1,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	require.NoError(t, err)
 	// wait for the rekey to happen
 	RequestRekeyAndWaitForOneFinishEvent(ctx,
 		config1.KBFSOps(), rootNode1.GetFolderBranch().Tlf)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// Look it up on user 2 dev 2 after syncing.
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
-		rootNode2.GetFolderBranch())
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 	rootNode2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
@@ -1379,7 +1400,8 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 }
 
@@ -1455,7 +1477,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 			rootNode2.GetFolderBranch())
 		assert.NoError(t, err)
 		err = kbfsOps2.SyncFromServerForTesting(putCtx,
-			rootNode2.GetFolderBranch())
+			rootNode2.GetFolderBranch(), nil)
 		assert.Error(t, err)
 	}()
 	<-onPutStalledCh
@@ -1479,7 +1501,8 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// Now there should be a conflict file containing data2.
@@ -1576,7 +1599,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 			return
 		}
 		err = kbfsOps2.SyncFromServerForTesting(firstPutCtx,
-			rootNode2.GetFolderBranch())
+			rootNode2.GetFolderBranch(), nil)
 		if !assert.Error(t, err) {
 			return
 		}
@@ -1725,7 +1748,8 @@ func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 		BackgroundContextWithCancellationDelayer(), config2,
 		rootNode2.GetFolderBranch())
 	require.NoError(t, err)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	// Make sure they both see the same set of children.

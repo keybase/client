@@ -727,10 +727,10 @@ func (fs *KBFSOpsStandard) RequestRekey(ctx context.Context, id tlf.ID) {
 }
 
 // SyncFromServerForTesting implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) SyncFromServerForTesting(
-	ctx context.Context, folderBranch FolderBranch) error {
+func (fs *KBFSOpsStandard) SyncFromServerForTesting(ctx context.Context,
+	folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error {
 	ops := fs.getOps(ctx, folderBranch, FavoritesOpAdd)
-	return ops.SyncFromServerForTesting(ctx, folderBranch)
+	return ops.SyncFromServerForTesting(ctx, folderBranch, lockBeforeGet)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard

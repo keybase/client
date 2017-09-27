@@ -66,7 +66,7 @@ func (rh *RPCHandler) waitForJournal(
 	// revision, to make sure that no partial states of the bare repo
 	// are seen by other readers of the TLF.  It also waits for any
 	// necessary conflict resolution to complete.
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	if err != nil {
 		return err
 	}

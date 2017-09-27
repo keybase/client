@@ -353,6 +353,17 @@ func (j journalMDOps) getRange(
 		return nil, err
 	}
 
+	if len(jirmds) != 0 && lockBeforeGet != nil {
+		// We need to grab locks, so we have to hit the server. But it's
+		// dangerous to bypass journal if we have revisions in this range from
+		// the journal. For now, we just return error here.
+		// NOTE: In the future if we ever need locking in places other than
+		// SyncFromServer, we can use the naked Lock RPC to grab the lock if
+		// everything we need is in the journal already.
+		return nil, errors.New(
+			"cannot lock when getting revisions that exist in journal")
+	}
+
 	// If it's empty, fall back to the server if this isn't a local
 	// squash branch.  TODO: we should be able to avoid server access
 	// for regular conflict branches when the journal is enabled, as
@@ -435,6 +446,11 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata,
 
 	if tlfJournal, ok := j.jServer.getTLFJournal(
 		rmd.TlfID(), rmd.GetTlfHandle()); ok {
+		if lc != nil {
+			return ImmutableRootMetadata{}, errors.New(
+				"journal Put doesn't support LockContext " +
+					"yet. Use FinishSingleOp to require locks on MD write.")
+		}
 		// Just route to the journal.
 		irmd, err := tlfJournal.putMD(ctx, rmd, verifyingKey)
 		switch errors.Cause(err).(type) {

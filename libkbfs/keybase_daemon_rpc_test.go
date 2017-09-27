@@ -399,7 +399,8 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
@@ -407,7 +408,8 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	session1, err := config1.KBPKI().GetCurrentSession(context.Background())

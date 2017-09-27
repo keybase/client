@@ -86,7 +86,7 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 }
 
@@ -119,7 +119,7 @@ func TestCreateRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 }
 
@@ -138,7 +138,7 @@ func TestDeleteRepo(t *testing.T) {
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 
 	err = DeleteRepo(ctx, config, h, "Repo1")
@@ -151,6 +151,6 @@ func TestDeleteRepo(t *testing.T) {
 	require.Len(t, children, 1)
 	require.Contains(t, children, kbfsDeletedReposDir)
 
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 }

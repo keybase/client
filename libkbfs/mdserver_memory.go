@@ -54,6 +54,13 @@ type mdBlockMemList struct {
 	blocks          []mdBlockMem
 }
 
+const mdLockTimeout = time.Minute
+
+type mdLockMemKey struct {
+	tlfID  tlf.ID
+	lockID keybase1.LockID
+}
+
 type mdServerMemShared struct {
 	// Protects all *db variables and truncateLockManager. After
 	// Shutdown() is called, all *db variables and
@@ -72,6 +79,7 @@ type mdServerMemShared struct {
 	// (TLF ID, crypt public key) -> branch ID
 	branchDb            map[mdBranchKey]BranchID
 	truncateLockManager *mdServerLocalTruncateLockManager
+	lockIDs             map[mdLockMemKey]time.Time // tracks expire time
 
 	updateManager *mdServerLocalUpdateManager
 }
@@ -105,6 +113,7 @@ func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 		writerKeyBundleDb:   writerKeyBundleDb,
 		readerKeyBundleDb:   readerKeyBundleDb,
 		truncateLockManager: &truncateLockManager,
+		lockIDs:             make(map[mdLockMemKey]time.Time),
 		updateManager:       newMDServerLocalUpdateManager(),
 	}
 	mdserv := &MDServerMemory{config, log, &shared}
@@ -325,9 +334,9 @@ func (md *MDServerMemory) getCurrentDeviceKey(ctx context.Context) (
 }
 
 // GetRange implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) getRangeRLocked(ctx context.Context, id tlf.ID,
-	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision) (
-	[]*RootMetadataSigned, error) {
+func (md *MDServerMemory) getRangeLocked(ctx context.Context, id tlf.ID,
+	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
+	lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
 	bid, err := md.checkGetParamsRLocked(ctx, id, bid, mStatus)
 	if err != nil {
@@ -382,25 +391,29 @@ func (md *MDServerMemory) getRangeRLocked(ctx context.Context, id tlf.ID,
 		rmdses = append(rmdses, rmds)
 	}
 
+	if lockBeforeGet != nil {
+		md.lockLocked(ctx, id, *lockBeforeGet)
+	}
+
 	return rmdses, nil
 }
 
 // GetRange implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) GetRange(ctx context.Context, id tlf.ID,
 	bid BranchID, mStatus MergeStatus, start, stop kbfsmd.Revision,
-	_ *keybase1.LockID) ([]*RootMetadataSigned, error) {
+	lockBeforeGet *keybase1.LockID) ([]*RootMetadataSigned, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
 
-	md.lock.RLock()
-	defer md.lock.RUnlock()
-	return md.getRangeRLocked(ctx, id, bid, mStatus, start, stop)
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	return md.getRangeLocked(ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 }
 
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
-	extra ExtraMetadata, _ *keybase1.LockContext, _ keybase1.MDPriority) error {
+	extra ExtraMetadata, lc *keybase1.LockContext, _ keybase1.MDPriority) error {
 	if err := checkContext(ctx); err != nil {
 		return err
 	}
@@ -427,6 +440,10 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	// Check permissions
 	md.lock.Lock()
 	defer md.lock.Unlock()
+
+	if lc != nil && !md.isLockedLocked(ctx, id, lc.RequireLockID) {
+		return kbfsmd.ServerErrorRequiredLockIsNotHeld{}
+	}
 
 	mergedMasterHead, err :=
 		md.getHeadForTLFRLocked(ctx, id, NullBranchID, Merged)
@@ -466,8 +483,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	if mStatus == Unmerged && head == nil {
 		// currHead for unmerged history might be on the main branch
 		prevRev := rmds.MD.RevisionNumber() - 1
-		rmdses, err := md.getRangeRLocked(
-			ctx, id, NullBranchID, Merged, prevRev, prevRev)
+		rmdses, err := md.getRangeLocked(
+			ctx, id, NullBranchID, Merged, prevRev, prevRev, nil)
 		if err != nil {
 			return kbfsmd.ServerError{Err: err}
 		}
@@ -538,6 +555,10 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 		return kbfsmd.ServerError{Err: err}
 	}
 
+	if lc != nil && lc.ReleaseAfterSuccess {
+		md.releaseLockLocked(ctx, id, lc.RequireLockID)
+	}
+
 	if mStatus == Merged &&
 		// Don't send notifies if it's just a rekey (the real mdserver
 		// sends a "folder needs rekey" notification in this case).
@@ -548,19 +569,58 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	return nil
 }
 
+func (md *MDServerMemory) isLockedLocked(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) bool {
+	expireTime, ok := md.lockIDs[mdLockMemKey{
+		tlfID:  tlfID,
+		lockID: lockID,
+	}]
+	if !ok {
+		return false
+	}
+	return expireTime.After(md.config.Clock().Now())
+}
+
+func (md *MDServerMemory) lockLocked(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) {
+	// NOTE: taking lock would always succeed in MDServerMemory since it's
+	// always within the same session.
+	lockKey := mdLockMemKey{
+		tlfID:  tlfID,
+		lockID: lockID,
+	}
+	expireTime, ok := md.lockIDs[lockKey]
+	if !ok || !expireTime.After(md.config.Clock().Now()) {
+		// The lock doesn't exists or has expired.
+		md.lockIDs[lockKey] = md.config.Clock().Now().Add(mdLockTimeout)
+	}
+	// The lock is already held; just return without refreshing timestamp.
+}
+
+func (md *MDServerMemory) releaseLockLocked(ctx context.Context,
+	tlfID tlf.ID, lockID keybase1.LockID) {
+	delete(md.lockIDs, mdLockMemKey{
+		tlfID:  tlfID,
+		lockID: lockID,
+	})
+	return
+}
+
 // Lock (does not) implement the MDServer interface for MDServerMemory.
-func (*MDServerMemory) Lock(ctx context.Context,
+func (md *MDServerMemory) Lock(ctx context.Context,
 	tlfID tlf.ID, lockID keybase1.LockID) error {
-	// In-memory MD server doesn't need to do anything about locking since it's
-	// all within the same session.
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	md.lockLocked(ctx, tlfID, lockID)
 	return nil
 }
 
 // ReleaseLock (does not) implement the MDServer interface for MDServerMemory.
-func (*MDServerMemory) ReleaseLock(ctx context.Context,
+func (md *MDServerMemory) ReleaseLock(ctx context.Context,
 	tlfID tlf.ID, lockID keybase1.LockID) error {
-	// In-memory MD server doesn't need to do anything about locking since it's
-	// all within the same session.
+	md.lock.Lock()
+	defer md.lock.Unlock()
+	md.releaseLockLocked(ctx, tlfID, lockID)
 	return nil
 }
 

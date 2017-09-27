@@ -453,7 +453,8 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
 		} else {
 			// Make sure we're up to date first
-			if err := fbo.SyncFromServerForTesting(ctx, fbo.folderBranch); err != nil {
+			if err := fbo.SyncFromServerForTesting(ctx,
+				fbo.folderBranch, nil); err != nil {
 				return err
 			}
 
@@ -2159,7 +2160,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 				// If this was caused by an exclusive create, we shouldn't do an
 				// UnmergedPut, but rather try to get newest update from server, and
 				// retry afterwards.
-				err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdatesLocked)
+				err = fbo.getAndApplyMDUpdates(ctx,
+					lState, nil, fbo.applyMDUpdatesLocked)
 				if err != nil {
 					return err
 				}
@@ -2740,7 +2742,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 
 			// Now we should be in a clean state, so this should work.
 			err = fbo.getAndApplyMDUpdates(
-				ctx, lState, fbo.applyMDUpdatesLocked)
+				ctx, lState, nil, fbo.applyMDUpdatesLocked)
 			if err != nil {
 				return nil, DirEntry{}, err
 			}
@@ -4845,10 +4847,12 @@ func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, l
 // Assumes all necessary locking is either already done by caller, or
 // is done by applyFunc.
 func (fbo *folderBranchOps) getAndApplyMDUpdates(ctx context.Context,
-	lState *lockState, applyFunc applyMDUpdatesFunc) error {
+	lState *lockState, lockBeforeGet *keybase1.LockID,
+	applyFunc applyMDUpdatesFunc) error {
 	// first look up all MD revisions newer than my current head
 	start := fbo.getLatestMergedRevision(lState) + 1
-	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(), start, nil)
+	rmds, err := getMergedMDUpdates(ctx,
+		fbo.config, fbo.id(), start, lockBeforeGet)
 	if err != nil {
 		return err
 	}
@@ -5011,7 +5015,7 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 	}
 
 	// now go forward in time, if possible
-	err = fbo.getAndApplyMDUpdates(ctx, lState,
+	err = fbo.getAndApplyMDUpdates(ctx, lState, nil,
 		fbo.applyMDUpdatesLocked)
 	if err != nil {
 		return err
@@ -5112,7 +5116,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		// we don't actually get folder update notifications when the
 		// rekey bit is set, just a "folder needs rekey" update.
 		if err := fbo.getAndApplyMDUpdates(
-			ctx, lState, fbo.applyMDUpdatesLocked); err != nil {
+			ctx, lState, nil, fbo.applyMDUpdatesLocked); err != nil {
 			if applyErr, ok := err.(MDRevisionMismatch); !ok ||
 				applyErr.rev != applyErr.curr {
 				return RekeyResult{}, err
@@ -5258,8 +5262,8 @@ func (fbo *folderBranchOps) RequestRekey(_ context.Context, tlf tlf.ID) {
 	fbo.rekeyFSM.Event(NewRekeyRequestEvent())
 }
 
-func (fbo *folderBranchOps) SyncFromServerForTesting(
-	ctx context.Context, folderBranch FolderBranch) (err error) {
+func (fbo *folderBranchOps) SyncFromServerForTesting(ctx context.Context,
+	folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) (err error) {
 	fbo.log.CDebugf(ctx, "SyncFromServerForTesting")
 	defer func() {
 		fbo.deferLog.CDebugf(ctx,
@@ -5327,7 +5331,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		}
 
 		if err := fbo.getAndApplyMDUpdates(
-			ctx, lState, fbo.applyMDUpdates); err != nil {
+			ctx, lState, lockBeforeGet, fbo.applyMDUpdates); err != nil {
 			if applyErr, ok := err.(MDRevisionMismatch); ok {
 				if applyErr.rev == applyErr.curr {
 					fbo.log.CDebugf(ctx, "Already up-to-date with server")
@@ -5722,7 +5726,7 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 				return currUpdate, nil
 			}
 
-			err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates)
+			err = fbo.getAndApplyMDUpdates(ctx, lState, nil, fbo.applyMDUpdates)
 			if err != nil {
 				fbo.log.CDebugf(ctx, "Got an error while applying "+
 					"updates: %v", err)

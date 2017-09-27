@@ -59,7 +59,7 @@ func (f *SyncFromServerFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	// notifications generated from this sync won't be discarded.
 	syncCtx := context.WithValue(ctx, libfs.CtxAppIDKey, nil)
 	err = f.folder.fs.config.KBFSOps().SyncFromServerForTesting(
-		syncCtx, folderBranch)
+		syncCtx, folderBranch, nil)
 	if err != nil {
 		return err
 	}

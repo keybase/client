@@ -994,7 +994,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 
 	// u2 syncs after the rekey
 	if err := kbfsOps2.SyncFromServerForTesting(ctx,
-		rootNode2.GetFolderBranch()); err != nil {
+		rootNode2.GetFolderBranch(), nil); err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
 
@@ -1032,7 +1032,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 		t.Fatalf("Couldn't rekey: %+v", err)
 	}
 
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1063,7 +1064,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, root2Dev2.GetFolderBranch())
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		root2Dev2.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1081,7 +1083,8 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver MetadataVer) {
 	// all its cached data and refuse to serve any more.  (However, in
 	// production the device's session would likely be revoked,
 	// probably leading to NoCurrentSession errors anyway.)
-	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch(), nil)
 	if err == nil {
 		// This is not expected to succeed; the node will be unable to
 		// deserialize the private MD.
@@ -1325,7 +1328,8 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver MetadataVer) {
 	}
 
 	t.Log("User 1 syncs from the server")
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1636,7 +1640,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 		t, ctx, config2Dev2, rootNode1.GetFolderBranch().Tlf)
 
 	// user 1 syncs from server
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1649,7 +1654,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	}
 
 	// user 2 syncs from server
-	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1699,7 +1705,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	}
 
 	// user 2 dev 2 syncs from server
-	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1712,7 +1719,8 @@ func testKeyManagerRekeyBit(t *testing.T, ver MetadataVer) {
 	}
 
 	// user 3 dev 2 syncs from server
-	err = kbfsOps3Dev2.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps3Dev2.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1846,7 +1854,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 		t.Fatalf("Expected failure due to conflict")
 	}
 
-	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, root2Dev2.GetFolderBranch())
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		root2Dev2.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -1862,7 +1871,8 @@ func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver Metadat
 	}
 
 	// device 1 should still work
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -2000,7 +2010,8 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	}
 
 	// device 1 should be able to read the new file
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}
@@ -2306,7 +2317,7 @@ func testKeyManagerRekeyMinimal(t *testing.T, ver MetadataVer) {
 	root2Dev2 := GetRootNodeOrBust(ctx, t, config2Dev2, name, tlf.Private)
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
-		root2Dev2.GetFolderBranch())
+		root2Dev2.GetFolderBranch(), nil)
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %+v", err)
 	}

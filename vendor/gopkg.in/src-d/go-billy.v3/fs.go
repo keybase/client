@@ -135,4 +135,11 @@ type File interface {
 	io.ReaderAt
 	io.Seeker
 	io.Closer
+	// Lock locks the file like e.g. flock. It protects against access from
+	// other processes.
+	Lock() error
+	// Unlock unlocks the file.
+	Unlock() error
+	// Truncate the file.
+	Truncate(size int64) error
 }

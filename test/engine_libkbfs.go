@@ -583,7 +583,8 @@ func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, t tlf.Type) (
 		return err
 	}
 
-	return config.KBFSOps().SyncFromServerForTesting(ctx, dir.GetFolderBranch())
+	return config.KBFSOps().SyncFromServerForTesting(ctx,
+		dir.GetFolderBranch(), nil)
 }
 
 // ForceQuotaReclamation implements the Engine interface.

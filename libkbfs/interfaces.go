@@ -323,8 +323,10 @@ type KBFSOps interface {
 	// for the given top-level folder have been applied locally
 	// (and notifications sent out to any observers).  It returns
 	// an error if this folder-branch is currently unmerged or
-	// dirty locally.
-	SyncFromServerForTesting(ctx context.Context, folderBranch FolderBranch) error
+	// dirty locally. If lockBeforeGet is non-nil, it blocks on idempotently
+	// taking the lock from server at the time it gets any metadata.
+	SyncFromServerForTesting(ctx context.Context,
+		folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error
 	// GetUpdateHistory returns a complete history of all the merged
 	// updates of the given folder, in a data structure that's
 	// suitable for encoding directly into JSON.  This is an expensive

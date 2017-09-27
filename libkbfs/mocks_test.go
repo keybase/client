@@ -1108,15 +1108,15 @@ func (mr *MockKBFSOpsMockRecorder) RequestRekey(ctx, id interface{}) *gomock.Cal
 }
 
 // SyncFromServerForTesting mocks base method
-func (m *MockKBFSOps) SyncFromServerForTesting(ctx context.Context, folderBranch FolderBranch) error {
-	ret := m.ctrl.Call(m, "SyncFromServerForTesting", ctx, folderBranch)
+func (m *MockKBFSOps) SyncFromServerForTesting(ctx context.Context, folderBranch FolderBranch, lockBeforeGet *keybase1.LockID) error {
+	ret := m.ctrl.Call(m, "SyncFromServerForTesting", ctx, folderBranch, lockBeforeGet)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SyncFromServerForTesting indicates an expected call of SyncFromServerForTesting
-func (mr *MockKBFSOpsMockRecorder) SyncFromServerForTesting(ctx, folderBranch interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncFromServerForTesting", reflect.TypeOf((*MockKBFSOps)(nil).SyncFromServerForTesting), ctx, folderBranch)
+func (mr *MockKBFSOpsMockRecorder) SyncFromServerForTesting(ctx, folderBranch, lockBeforeGet interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncFromServerForTesting", reflect.TypeOf((*MockKBFSOps)(nil).SyncFromServerForTesting), ctx, folderBranch, lockBeforeGet)
 }
 
 // GetUpdateHistory mocks base method

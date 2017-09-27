@@ -12,8 +12,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	billy "gopkg.in/src-d/go-billy.v3"
 )
@@ -27,6 +29,44 @@ func makeFS(t *testing.T, subdir string) (
 	fs, err := NewFS(ctx, config, h, subdir, "")
 	require.NoError(t, err)
 	return ctx, h, fs
+}
+
+func makeFSWithJournal(t *testing.T, subdir string) (
+	context.Context, *libkbfs.TlfHandle, *FS, func()) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	config := libkbfs.MakeTestConfigOrBustLoggedInWithMode(
+		t, 0, libkbfs.InitSingleOp, "user1")
+
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
+	require.NoError(t, err)
+	defer func() {
+		if err != nil {
+			os.RemoveAll(tempdir)
+		}
+	}()
+	err = config.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config.EnableJournaling(
+		ctx, tempdir, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
+	require.NoError(t, err)
+	shutdown := func() {
+		libkbfs.CheckConfigAndShutdown(ctx, t, config)
+		err := ioutil.RemoveAll(tempdir)
+		assert.NoError(t, err)
+	}
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	fs, err := NewFS(ctx, config, h, subdir, "")
+	require.NoError(t, err)
+
+	// Flush the journal first otherwise tests fail on errNoFlushedRevisions.
+	jserver, err := libkbfs.GetJournalServer(config)
+	require.NoError(t, err)
+	err = jserver.FinishSingleOp(ctx, fs.root.GetFolderBranch().Tlf, nil)
+	require.NoError(t, err)
+
+	return ctx, h, fs, shutdown
 }
 
 func testCreateFile(
@@ -546,4 +586,45 @@ func TestChroot(t *testing.T) {
 	t.Log("Attempt a breakout")
 	_, err = fs.Chroot("../../../etc/passwd")
 	require.NotNil(t, err)
+}
+
+func TestFileLocking(t *testing.T) {
+	_, _, fs, shutdown := makeFSWithJournal(t, "")
+	defer shutdown()
+
+	// TODO: Write an integration tests where we also check to make sure lock
+	// namespace isn't empty.
+	f, err := fs.Create("a")
+	require.NoError(t, err)
+
+	// We don't have the lock yet so this should fail.
+	err = f.Unlock()
+	require.Error(t, err)
+
+	err = f.Lock()
+	require.NoError(t, err)
+
+	err = f.Unlock()
+	require.NoError(t, err)
+
+	// The lock has been released, but we also haven't made any changes. So the
+	// Unlock should just be a ReleaseLock call without needing to write any
+	// MDs. Since ReleaseLock is idempotent, this should succeed.
+	err = f.Unlock()
+	require.NoError(t, err)
+
+	// Make some more change so next Unlock actually needs to write a MD.
+	_, err = fs.Create("c")
+	require.NoError(t, err)
+
+	// Now we do have some stuff that needs to flush, and we don't have the
+	// lock, so this should fail like the first Unlock.
+	err = f.Unlock()
+	require.Error(t, err)
+
+	// Now manually flush again so the journal is clean.
+	jServer, err := libkbfs.GetJournalServer(fs.config)
+	require.NoError(t, err)
+	err = jServer.FinishSingleOp(fs.ctx, fs.root.GetFolderBranch().Tlf, nil)
+	require.NoError(t, err)
 }

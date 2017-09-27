@@ -23,6 +23,11 @@ func New(baseDir string) billy.Filesystem {
 	return chroot.New(&OS{}, baseDir)
 }
 
+// file is a wrapper for an os.File which adds support for file locking.
+type file struct {
+	*os.File
+}
+
 func (fs *OS) Create(filename string) (billy.File, error) {
 	return fs.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, defaultCreateMode)
 }
@@ -34,7 +39,11 @@ func (fs *OS) OpenFile(filename string, flag int, perm os.FileMode) (billy.File,
 		}
 	}
 
-	return os.OpenFile(filename, flag, perm)
+	f, err := os.OpenFile(filename, flag, perm)
+	if err != nil {
+		return nil, err
+	}
+	return file{f}, err
 }
 
 func (fs *OS) createDir(fullpath string) error {
@@ -87,7 +96,11 @@ func (fs *OS) TempFile(dir, prefix string) (billy.File, error) {
 		return nil, err
 	}
 
-	return ioutil.TempFile(dir, prefix)
+	f, err := ioutil.TempFile(dir, prefix)
+	if err != nil {
+		return nil, err
+	}
+	return file{f}, nil
 }
 
 func (fs *OS) Join(elem ...string) string {
