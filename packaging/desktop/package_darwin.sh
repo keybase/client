@@ -100,6 +100,7 @@ installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1
 updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.6-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
+git_remote_keybase_bin="$tmp_dir/git-remote-keybase"
 kbfs_bin="$tmp_dir/kbfs"
 kbnm_bin="$tmp_dir/kbnm"
 updater_bin="$tmp_dir/updater"
@@ -201,6 +202,7 @@ package_app() {(
   echo "Copying keybase binaries"
   mkdir -p "$shared_support_dir/bin"
   cp "$keybase_bin" "$shared_support_dir/bin"
+  cp "$git_remote_keybase_bin" "$shared_support_dir/bin"
   cp "$kbfs_bin" "$shared_support_dir/bin"
   cp "$kbnm_bin" "$shared_support_dir/bin"
   cp "$updater_bin" "$shared_support_dir/bin"
@@ -230,6 +232,7 @@ sign() {(
   codesign --verify --verbose=4 "$app_name.app"
   spctl --assess --verbose=4 "$app_name.app"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/git-remote-keybase"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbnm"
   codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"

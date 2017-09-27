@@ -20,6 +20,7 @@ kbfs_build=${KBFS_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$kbfs_build"
 pkg="github.com/keybase/kbfs/kbfsfuse"
+git_remote_helper_pkg="github.com/keybase/kbfs/kbfsgit"
 
 if [ "$PLATFORM" = "windows" ]; then
   pkg="github.com/keybase/kbfs/kbfsdokan"
@@ -28,10 +29,14 @@ fi
 echo "Building $build_dir/kbfs ($kbfs_build) with $(go version)"
 go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/kbfs" $pkg
 
+echo "Building $build_dir/kbfs/kbfsgit ($kbfs_build) with $(go version)"
+go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/git-remote-keybase" $git_remote_helper_pkg
+
 if [ "$PLATFORM" = "darwin" ]; then
-  echo "Signing binary..."
+  echo "Signing binaries..."
   code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/kbfs
+  codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/git-remote-keybase
 elif [ "$PLATFORM" = "linux" ]; then
   echo "No codesigning for linux"
 elif [ "$PLATFORM" = "windows" ]; then
