@@ -5,7 +5,7 @@ import {safeTakeLatest, safeTakeEvery} from '../../util/saga'
 import {isValidEmail, isValidName} from '../../util/simple-validators'
 import {navigateTo, navigateAppend} from '../../actions/route-tree'
 import {pgpPgpKeyGenDefaultRpcChannelMap, revokeRevokeKeyRpcPromise} from '../../constants/types/flow-types'
-import {profileTab} from '../../constants/tabs'
+import {peopleTab} from '../../constants/tabs'
 
 import type {KID} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
@@ -108,7 +108,7 @@ function* _dropPgpSaga(action: DropPgp): SagaGenerator<any, any> {
     yield put(_revokedWaitingForResponse(true))
     yield call(revokeRevokeKeyRpcPromise, {param: {keyID: kid}})
     yield put(_revokedWaitingForResponse(false))
-    yield put(navigateTo([], [profileTab]))
+    yield put(navigateTo([], [peopleTab]))
   } catch (e) {
     yield put(_revokedWaitingForResponse(false))
     yield put(_revokedErrorResponse(`Error in dropping Pgp Key: ${e}`))
@@ -118,7 +118,7 @@ function* _dropPgpSaga(action: DropPgp): SagaGenerator<any, any> {
 
 // TODO(mm) handle error better
 function* _generatePgpSaga(): SagaGenerator<any, any> {
-  yield put(navigateAppend(['generate'], [profileTab, 'pgp']))
+  yield put(navigateAppend(['generate'], [peopleTab, 'pgp']))
 
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
   const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
@@ -153,7 +153,7 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
 
     if (incoming.cancel) {
       generatePgpKeyChanMap.close()
-      yield put(navigateTo([], [profileTab]))
+      yield put(navigateTo([], [peopleTab]))
       return
     }
 
@@ -164,7 +164,7 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
     const publicKey = incoming['keybase.1.pgpUi.keyGenerated'].params.key.key
 
     yield put({payload: {publicKey}, type: Constants.updatePgpPublicKey})
-    yield put(navigateAppend(['finished'], [profileTab, 'pgp']))
+    yield put(navigateAppend(['finished'], [peopleTab, 'pgp']))
 
     const finishedAction: FinishedWithKeyGen = yield take(Constants.finishedWithKeyGen)
     const {shouldStoreKeyOnServer} = finishedAction.payload
@@ -175,7 +175,7 @@ function* _generatePgpSaga(): SagaGenerator<any, any> {
     const {response: finishedResponse} = yield generatePgpKeyChanMap.take('keybase.1.pgpUi.finished')
     yield call([finishedResponse, finishedResponse.result])
 
-    yield put(navigateTo([], [profileTab]))
+    yield put(navigateTo([], [peopleTab]))
   } catch (e) {
     generatePgpKeyChanMap.close()
     console.log('error in generating pgp key', e)

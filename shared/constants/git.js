@@ -17,6 +17,7 @@ export type DeleteTeamRepo = NoErrorTypedAction<
 export type DeletePersonalRepo = NoErrorTypedAction<'git:deletePersonalRepo', {name: string}>
 export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}>
 export type SetError = NoErrorTypedAction<'git:setError', {gitError: ?Error}>
+export type BadgeAppForGit = NoErrorTypedAction<'git:badgeAppForGit', {ids: Array<string>}>
 
 export type GitInfoRecord = KBRecord<{
   canDelete: boolean,
@@ -43,12 +44,14 @@ export const GitInfo = I.Record({
 export const Git = I.Record({
   error: null,
   idToInfo: I.Map(),
+  isNew: I.Set(),
   loading: false,
 })
 
 export type GitRecord = KBRecord<{
   error: ?Error,
   idToInfo: I.Map<string, GitInfo>,
+  isNew: I.Set<string>,
   loading: boolean,
 }>
 

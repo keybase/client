@@ -86,9 +86,5 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 	if err := plainsink.Close(); err != nil {
 		return err
 	}
-	if err := arg.Sink.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return arg.Sink.Close()
 }

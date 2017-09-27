@@ -211,6 +211,10 @@ export const ConstantsStatusCode = {
   scinstallerror: 1804,
   scloadkexterror: 1810,
   scloadkextpermerror: 1811,
+  scgitinternal: 2300,
+  scgitrepoalreadyexists: 2301,
+  scgitinvalidreponame: 2302,
+  scgitcannotdelete: 2303,
   scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
@@ -1477,6 +1481,14 @@ export function gitPutGitMetadataRpcChannelMap (configKeys: Array<string>, reque
 
 export function gitPutGitMetadataRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitPutGitMetadataRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.putGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gregorDismissCategoryRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gregorDismissCategoryRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.gregor.dismissCategory', request)
+}
+
+export function gregorDismissCategoryRpcPromise (request: (requestCommon & requestErrorCallback & {param: gregorDismissCategoryRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.gregor.dismissCategory', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function gregorGetStateRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}): EngineChannel {
@@ -2824,6 +2836,7 @@ export type BadgeState = {
   newFollowers: int,
   inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
+  newGitRepoGlobalUniqueIDs?: ?Array<string>,
 }
 
 export type BinaryKID = bytes
@@ -3339,6 +3352,7 @@ export type GitRepoResult = {
   serverMetadata: GitServerMetadata,
   repoUrl: string,
   globalUniqueID: string,
+  canDelete: boolean,
 }
 
 export type GitServerMetadata = {
@@ -4579,6 +4593,10 @@ export type StatusCode =
   | 1804 // SCInstallError_1804
   | 1810 // SCLoadKextError_1810
   | 1811 // SCLoadKextPermError_1811
+  | 2300 // SCGitInternal_2300
+  | 2301 // SCGitRepoAlreadyExists_2301
+  | 2302 // SCGitInvalidRepoName_2302
+  | 2303 // SCGitCannotDelete_2303
   | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
@@ -5396,6 +5414,10 @@ export type gpgUiSelectKeyRpcParam = Exact<{
 export type gpgUiSignRpcParam = Exact<{
   msg: bytes,
   fingerprint: bytes
+}>
+
+export type gregorDismissCategoryRpcParam = Exact<{
+  category: gregor1.Category
 }>
 
 export type gregorInjectItemRpcParam = Exact<{

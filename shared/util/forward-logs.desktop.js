@@ -170,6 +170,8 @@ const setupSource = __STORYBOOK__
 
 function flushLogFile() {
   const {ipcRenderer} = require('electron')
+  const {dumpLoggers} = require('./periodic-logger')
+  dumpLoggers()
   ipcRenderer.send('console.flushLogFile')
 }
 

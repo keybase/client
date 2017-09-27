@@ -6,6 +6,7 @@ import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tr
 import {Box} from '../common-adapters'
 
 import type {Action} from '../constants/types/flux'
+import type {Tab} from '../constants/tabs'
 import type {RouteDefNode, RouteStateNode, Path} from './'
 import type {KBRecord} from '../constants/types/more'
 
@@ -40,7 +41,7 @@ export type RouteProps<P, S> = {
   routeState: KBRecord<S>, // Really a Map but typed as a record
 
   // The name of the selected child route (useful for navs)
-  routeSelected: string,
+  routeSelected: Tab,
 
   // The path leading up to this component.
   routePath: I.List<string>,

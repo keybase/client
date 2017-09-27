@@ -129,11 +129,7 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 		DeviceName: e.provisioneeDeviceName,
 		DeviceType: e.provisioneeDeviceType,
 	}
-	if err := ctx.ProvisionUI.ProvisionerSuccess(context.TODO(), sarg); err != nil {
-		return err
-	}
-
-	return nil
+	return ctx.ProvisionUI.ProvisionerSuccess(context.TODO(), sarg)
 }
 
 func (e *Kex2Provisioner) loadSecretKeys(ctx *Context) (err error) {

@@ -209,8 +209,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     }
   },
   onNewChat: () => dispatch(Creators.newChat()),
-  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) =>
-    conversationIDKey && dispatch(Creators.selectConversation(conversationIDKey, true)),
+  onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
+    dispatch(Creators.selectConversation(conversationIDKey, true))
+  },
   onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
     dispatch(Creators.untrustedInboxVisible(converationIDKey, rowsVisible)),

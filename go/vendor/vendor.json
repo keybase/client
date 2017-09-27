@@ -336,10 +336,10 @@
 			"revisionTime": "2017-08-11T14:07:22Z"
 		},
 		{
-			"checksumSHA1": "k1ObysVfDPTtUa2/qEFhx6lco5M=",
+			"checksumSHA1": "x3Cnxu6dehCSPc9aTjS1PO6INLU=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "2bfb94411295f18596046369f6bcb3a950ceb1b5",
-			"revisionTime": "2017-08-11T14:07:22Z"
+			"revision": "c6dbadb0aef19380fc20ff29bf54feb1c549d270",
+			"revisionTime": "2017-09-22T19:43:39Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
@@ -739,6 +739,12 @@
 			"path": "golang.org/x/sync/errgroup",
 			"revision": "316e794f7b5e3df4e95175a45a5fb8b12f85cb4f",
 			"revisionTime": "2016-07-15T18:54:39Z"
+		},
+		{
+			"checksumSHA1": "vcN67ZjTbGpLLwSghHCbAEvmzMo=",
+			"path": "golang.org/x/sync/semaphore",
+			"revision": "f52d1811a62927559de87708c8913c1650ce4f26",
+			"revisionTime": "2017-05-17T20:25:26Z"
 		},
 		{
 			"path": "golang.org/x/sys/windows",

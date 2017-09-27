@@ -148,9 +148,5 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	}
 	c.binary = ctx.Bool("binary")
 	c.saltpackVersion = ctx.Int("saltpack-version")
-	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
-		return err
-	}
-
-	return nil
+	return c.filter.FilterInit(msg, infile, outfile)
 }

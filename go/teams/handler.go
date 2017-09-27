@@ -74,8 +74,15 @@ func HandleChangeNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 	return nil
 }
 
-func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow) error {
+func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamChangeRow) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("team.HandleDeleteNotification(%v)", len(rows)), func() error { return err })()
+
 	for _, row := range rows {
+		g.Log.CDebugf(ctx, "team.HandleDeleteNotification: (%+v)", row)
+		err := g.GetTeamLoader().Delete(ctx, row.Id)
+		if err != nil {
+			g.Log.CDebugf(ctx, "team.HandleDeleteNotification: error deleting team: %v", err)
+		}
 		g.NotifyRouter.HandleTeamDeleted(ctx, row.Id)
 	}
 	return nil

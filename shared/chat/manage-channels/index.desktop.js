@@ -13,7 +13,7 @@ const Row = (props: RowProps & {onToggle: () => void}) => (
       paddingRight: globalMargins.medium,
     }}
   >
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 40}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: 40}}>
       <Box style={_rowBox}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 16}}>
           <Checkbox
@@ -23,7 +23,7 @@ const Row = (props: RowProps & {onToggle: () => void}) => (
             style={{alignSelf: 'flext-start', marginRight: 0}}
           />
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny, height: 32}}>
+        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.tiny, minHeight: 32}}>
           <Text type="BodySemibold" style={{color: globalColors.blue}}>#{props.name}</Text>
           <Text type="BodySmall">{props.description}</Text>
         </Box>

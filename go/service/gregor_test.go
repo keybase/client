@@ -312,6 +312,11 @@ func (m mockGregord) ConsumeMessage(ctx context.Context, msg gregor1.Message) er
 	_, err := m.sm.ConsumeMessage(ctx, msg)
 	return err
 }
+
+func (m mockGregord) ConsumeMessageMulti(ctx context.Context, arg gregor1.ConsumeMessageMultiArg) error {
+	return errors.New("unimplemented")
+}
+
 func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message) error {
 	return errors.New("unimplemented")
 }

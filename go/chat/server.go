@@ -1618,11 +1618,7 @@ func (h *Server) CancelPost(ctx context.Context, outboxID chat1.OutboxID) (err e
 
 	uid := h.G().Env.GetUID()
 	outbox := storage.NewOutbox(h.G(), uid.ToBytes())
-	if err = outbox.RemoveMessage(ctx, outboxID); err != nil {
-		return err
-	}
-
-	return nil
+	return outbox.RemoveMessage(ctx, outboxID)
 }
 
 func (h *Server) RetryPost(ctx context.Context, outboxID chat1.OutboxID) (err error) {
