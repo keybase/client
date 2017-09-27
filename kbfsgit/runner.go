@@ -995,12 +995,6 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			}
 			results[dst] = err
 		} else {
-			if !refspec.IsForceUpdate() {
-				r.log.CDebugf(ctx,
-					"Turning a non-force push into a force push for now: %s",
-					refspec)
-			}
-
 			refspecs = append(refspecs, refspec)
 		}
 		if err != nil {
