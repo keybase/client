@@ -96,6 +96,23 @@
       ],
       "response": null
     },
+    "consumeMessageMulti": {
+      "request": [
+        {
+          "name": "msg",
+          "type": "Message"
+        },
+        {
+          "name": "uids",
+          "type": {
+            "type": "array",
+            "items": "UID"
+          }
+        }
+      ],
+      "response": null,
+      "doc": "consumeMessageMulti will take msg and consume it for all the users listed\n    in uids. This is so a gregor client can send the same message to many UIDs\n    with one call, as opposed to calling consumeMessage for each UID."
+    },
     "ping": {
       "request": [],
       "response": "string"
