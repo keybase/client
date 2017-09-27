@@ -12,7 +12,7 @@ import {
 import {delay} from 'redux-saga'
 import {call, put, select} from 'redux-saga/effects'
 import electron, {shell} from 'electron'
-import {isWindows} from '../../constants/platform'
+import {isLinux, isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import {fuseStatus} from './index'
 import {execFile} from 'child_process'
@@ -318,7 +318,7 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
 function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
   const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
-  if (enabled) {
+  if (isLinux || enabled) {
     console.log('openInKBFS:', openPath)
     if (isWindows) {
       yield* openInWindows(openPath)
@@ -333,7 +333,7 @@ function* openSaga(action: FSOpen): SagaGenerator<any, any> {
 
 function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
   const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
-  if (enabled) {
+  if (isLinux || enabled) {
     yield call(_open, path)
   } else {
     yield put(navigateTo([], [folderTab]))

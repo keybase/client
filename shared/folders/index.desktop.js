@@ -134,7 +134,7 @@ const tabBarStyle = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const installed = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  const installed = isLinux || state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
   return {
     installed,
     showSecurityPrefs: !installed && state.favorite.kextPermissionError,
