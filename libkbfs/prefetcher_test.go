@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -427,9 +428,10 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 		FinishedPrefetch, TransientEntry)
 }
 
-func notifyContinueCh(ch chan<- error) {
+func notifyContinueCh(ch chan<- error, wg *sync.WaitGroup) {
 	go func() {
 		ch <- nil
+		wg.Done()
 	}()
 }
 
@@ -488,6 +490,8 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	require.Equal(t, rootDir, block)
 
 	t.Log("Release all the blocks.")
+	wg := &sync.WaitGroup{}
+	wg.Add(4)
 	go func() {
 		continueChFileC <- nil
 		continueChDirB <- nil
@@ -495,12 +499,15 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 		// dir1 (continueCh2), or the first child of dir2 (continueCh5).
 		// TODO: The prefetcher should have a "global" prefetch priority
 		// reservation system that goes down with each next set of prefetches.
-		notifyContinueCh(continueChFileA)
-		notifyContinueCh(continueChDirBfileD)
-		notifyContinueCh(continueChDirBfileDblock1)
-		notifyContinueCh(continueChDirBfileDblock2)
+		notifyContinueCh(continueChFileA, wg)
+		notifyContinueCh(continueChDirBfileD, wg)
+		notifyContinueCh(continueChDirBfileDblock1, wg)
+		notifyContinueCh(continueChDirBfileDblock2, wg)
 	}()
 	t.Log("Wait for prefetching to complete.")
+	// First we wait for all prefetches to been triggered.
+	wg.Wait()
+	// Then we wait for the pending prefetches to complete.
 	<-q.Prefetcher().Shutdown()
 	q.TogglePrefetcher(context.Background(), true)
 
