@@ -393,15 +393,15 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	brq.mtx.Unlock()
 	defer retrieval.cancelFunc()
 
-	// This is a lock that exists for the race detector, since there shouldn't
-	// be any other goroutines accessing the retrieval at this point. In
-	// `Request`, the requests slice can be modified while locked
-	// by `brq.mtx`. But once we delete `bpLookup` from `brq.ptrs` here (while
-	// locked by `brq.mtx`), there is no longer a way for anyone else to write
-	// `retrieval.requests`. However, the race detector still notices that
-	// we're reading `retrieval.requests` without a lock, where it was written
-	// by a different goroutine in `Request`. So, we lock it with
-	// its own mutex in both places.
+	// This is a lock that exists for the race detector, since there
+	// shouldn't be any other goroutines accessing the retrieval at this
+	// point. In `Request`, the requests slice can be modified while locked
+	// by `brq.mtx`. But once we delete `bpLookup` from `brq.ptrs` here
+	// (while locked by `brq.mtx`), there is no longer a way for anyone else
+	// to write `retrieval.requests`. However, the race detector still
+	// notices that we're reading `retrieval.requests` without a lock, where
+	// it was written by a different goroutine in `Request`. So, we lock it
+	// with its own mutex in both places.
 	retrieval.reqMtx.RLock()
 	defer retrieval.reqMtx.RUnlock()
 
@@ -411,9 +411,9 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// only way to get here is if the request wasn't already cached.
 		// Need to call with context.Background() because the retrieval's
 		// context will be canceled as soon as this method returns.
-		brq.Prefetcher().TriggerPrefetch(context.Background(), retrieval.blockPtr,
-			block, retrieval.kmd, retrieval.priority, retrieval.cacheLifetime,
-			NoPrefetch)
+		brq.Prefetcher().TriggerPrefetch(context.Background(),
+			retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
+			retrieval.cacheLifetime, NoPrefetch)
 	} else {
 		brq.Prefetcher().CancelPrefetch(retrieval.blockPtr.ID)
 	}
@@ -438,8 +438,8 @@ func (brq *blockRetrievalQueue) Shutdown() {
 	select {
 	case <-brq.doneCh:
 	default:
-		// We close `doneCh` first so that new requests coming in get finalized
-		// immediately rather than racing with dying workers.
+		// We close `doneCh` first so that new requests coming in get
+		// finalized immediately rather than racing with dying workers.
 		close(brq.doneCh)
 		for _, w := range brq.workers {
 			w.Shutdown()

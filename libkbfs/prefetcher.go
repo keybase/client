@@ -176,12 +176,22 @@ top:
 		ch := <-p.inFlightFetches
 		<-ch
 	}
-	// FIXME: at this point we know that all fetches have _triggered_ their
-	// prefetches, but not that those triggers are done. We ned some way to
-	// synchronize that.
 	close(p.almostDoneCh)
 }
 
+// run prefetches blocks.
+// E.g. a synced prefetch:
+// a -> {b -> c, d -> e}:
+// 1) a is fetched, triggers b and d.
+//    * a is 2.
+// 2) b is fetched, decrements b and a by 1, and
+//    triggers c to increment them both.
+// 3) c is fetched, and isTail==true so it completes up the tree.
+//    * b is 0, so it gets flagged FinishedPrefetch.
+//    * a is 1.
+// 4) d is fetched, decrements d and a by 1, and
+//    triggers e to increment them both.
+// 5) e is fetched, completing d and a.
 func (p *blockPrefetcher) run() {
 	defer func() {
 		close(p.doneCh)
@@ -207,15 +217,17 @@ func (p *blockPrefetcher) run() {
 		case req := <-p.prefetchRequestCh:
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 			if isPrefetchWaiting {
+				if pre.req == nil {
+					// If this prefetch already appeared in the tree, ensure it
+					// has a req associated with it.
+					pre.req = req
+				}
 				if pre.subtreeTriggered {
 					// Redundant prefetch request.
 					if pre.subtreeBlockCount == 0 {
 						// Only this block is left, and we didn't prefetch on a
 						// previous prefetch through to the tail. So we cancel
 						// up the tree.
-						// TODO: make sure this doesn't screw up when request
-						// priorities cause weird reordering within the tree
-						// levels.
 						p.applyToParentsRecursive(p.cancelPrefetch, req.ptr.ID,
 							pre)
 					}
@@ -224,14 +236,13 @@ func (p *blockPrefetcher) run() {
 					// This block was in the tree and thus was counted, but now
 					// it has been successfully fetched. We need to percolate
 					// that information up the tree.
+					if pre.subtreeBlockCount == 0 {
+						panic("prefetch was in the tree, wasn't triggered, " +
+							"but had a block count of 0")
+					}
 					p.applyToParentsRecursive(p.decrementPrefetch, req.ptr.ID,
 						pre)
 					pre.subtreeTriggered = true
-				}
-				if pre.req == nil {
-					// If this prefetch already appeared in the tree, ensure it
-					// has a req associated with it.
-					pre.req = req
 				}
 			} else {
 				// Ensure we have a prefetch to work with.
@@ -262,25 +273,29 @@ func (p *blockPrefetcher) run() {
 			}
 			ctx, _ := context.WithTimeout(context.Background(),
 				prefetchTimeout)
-			// TODO: there is a potential optimization here that we can consider:
-			// Currently every time a prefetch is triggered, we iterate through
-			// all the block's child pointers. This is short circuited in
-			// `TriggerPrefetch` if the block has a `prefetchStatus` of
-			// `TriggeredPrefetch`. However, for synced trees we ignore that
-			// and prefetch anyway. So here we would need to figure out a
-			// heuristic to avoid that iteration.
+			// TODO: There is a potential optimization here that we can
+			// consider: Currently every time a prefetch is triggered, we
+			// iterate through all the block's child pointers. This is
+			// short circuited in `TriggerPrefetch` if the block has a
+			// `prefetchStatus` of `TriggeredPrefetch`. However, for synced
+			// trees we ignore that and prefetch anyway. So here we would
+			// need to figure out a heuristic to avoid that iteration.
+			//
+			// `numBlocks` now represents only the number of blocks to add
+			// to the tree from `pre` to its roots, inclusive.
 			numBlocks, isTail, err := p.handlePrefetch(ctx, pre)
 			if err != nil {
 				// There's nothing for us to do when there's an error.
 				continue
 			}
 			if isTail {
-				// This is a tail block with no children.
-				// Parent blocks are potentially waiting for this prefetch,
-				// so we percolate the information up the tree that this
-				// prefetch is done.
+				// This is a tail block with no children.  Parent blocks are
+				// potentially waiting for this prefetch, so we percolate the
+				// information up the tree that this prefetch is done.
+				//
 				// Note that only a tail block or cached block with
 				// `FinishedPrefetch` can trigger a completed prefetch.
+				//
 				// We use 0 as our completion number because we've already
 				// decremented above as appropriate. This just walks up the
 				// tree removing blocks with a 0 subtree. We couldn't do that
@@ -295,7 +310,8 @@ func (p *blockPrefetcher) run() {
 			// This is not a tail block.
 			if numBlocks == 0 {
 				// All the blocks to be triggered have already done so. Do
-				// nothing.
+				// nothing.  This is simply an optimization to avoid crawling
+				// the tree.
 				continue
 			}
 			if !isPrefetchWaiting {
@@ -461,18 +477,18 @@ func (p *blockPrefetcher) handlePrefetch(ctx context.Context, pre *prefetch) (
 	switch b := req.block.(type) {
 	case *FileBlock:
 		if b.IsInd {
-			numBlocks, isTail =
-				p.prefetchIndirectFileBlock(ctx, req.ptr.ID, b, req.kmd, req.lifetime)
+			numBlocks, isTail = p.prefetchIndirectFileBlock(ctx,
+				req.ptr.ID, b, req.kmd, req.lifetime)
 		} else {
 			isTail = true
 		}
 	case *DirBlock:
 		if b.IsInd {
-			numBlocks, isTail =
-				p.prefetchIndirectDirBlock(ctx, req.ptr.ID, b, req.kmd, req.lifetime)
+			numBlocks, isTail = p.prefetchIndirectDirBlock(ctx, req.ptr.ID,
+				b, req.kmd, req.lifetime)
 		} else {
-			numBlocks, isTail =
-				p.prefetchDirectDirBlock(ctx, req.ptr.ID, b, req.kmd, req.lifetime)
+			numBlocks, isTail = p.prefetchDirectDirBlock(ctx, req.ptr.ID,
+				b, req.kmd, req.lifetime)
 		}
 	default:
 		// Skipping prefetch for block of unknown type (likely CommonBlock)
@@ -550,13 +566,13 @@ func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
 	select {
 	// After `p.shutdownCh` is closed, we still need to receive prefetch
 	// cancelation until all prefetching is done.
-	case <-p.doneCh:
+	case <-p.almostDoneCh:
 	case p.prefetchCancelCh <- blockID:
 	default:
 		// Ensure this can't block.
 		go func() {
 			select {
-			case <-p.doneCh:
+			case <-p.almostDoneCh:
 			case p.prefetchCancelCh <- blockID:
 			}
 		}()

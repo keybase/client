@@ -506,6 +506,8 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	}()
 	t.Log("Wait for prefetching to complete.")
 	// First we wait for all prefetches to be triggered.
+	// FIXME: UGH this is still racy, between when the block getter returns
+	// and when the blocks are retrieved.
 	wg.Wait()
 	// Then we wait for the pending prefetches to complete.
 	<-q.Prefetcher().Shutdown()
