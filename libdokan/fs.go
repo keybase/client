@@ -274,7 +274,6 @@ func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.Creat
 		f.log.Errorf("FS CreateFile - Refusing real access: SID match error")
 		return openFakeRoot(ctx, f, fi)
 	}
-	f.logEnter(ctx, "FS CreateFile")
 	return f.openRaw(ctx, fi, cd)
 }
 
@@ -282,11 +281,13 @@ func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.Creat
 func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateData) (dokan.File, bool, error) {
 	ps, err := windowsPathSplit(fi.Path())
 	if err != nil {
+		f.log.Errorf("FS openRaw - path split error: %v", err)
 		return nil, false, err
 	}
 	oc := openContext{fi: fi, CreateData: caf, redirectionsLeft: 30}
 	file, isd, err := f.open(ctx, &oc, ps)
 	if err != nil {
+		f.log.CDebugf(ctx, "FS Open failed %#v with: %v", *caf, err)
 		err = errToDokan(err)
 	}
 	return file, isd, err
@@ -294,7 +295,7 @@ func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateD
 
 // open tries to open a file deferring to more specific implementations.
 func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, bool, error) {
-	f.log.CDebugf(ctx, "open: %#v", ps)
+	f.log.CDebugf(ctx, "FS Open: %q", ps)
 	psl := len(ps)
 	switch {
 	case psl < 1:
