@@ -1,3 +1,9 @@
+# -----------------------------------------------------------------------------
+#
+#   REMINDER: If you edit this file, you'll most likely also want to edit
+#   circle.yml in the client repository!
+#
+# -----------------------------------------------------------------------------
 machine:
   xcode:
     version: 7.2
@@ -19,7 +25,7 @@ dependencies:
   pre:
     - sudo rm -rf $HOME/go* # Remove old go installation
     - sudo rm -rf /usr/local/go* # Remove old go installation
-    - wget -nv https://storage.googleapis.com/golang/go1.8.3.linux-amd64.tar.gz -O $HOME/go.tar.gz
+    - wget -nv https://storage.googleapis.com/golang/go1.9.linux-amd64.tar.gz -O $HOME/go.tar.gz
     - mkdir $HOME/go-path
     - (cd $HOME; tar -xzvf go.tar.gz)
     - sudo mv $HOME/go /usr/local
