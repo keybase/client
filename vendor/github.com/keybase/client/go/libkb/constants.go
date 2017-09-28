@@ -267,6 +267,10 @@ const (
 	SCRevokeCurrentDevice      = int(keybase1.StatusCode_SCRevokeCurrentDevice)
 	SCRevokeLastDevice         = int(keybase1.StatusCode_SCRevokeLastDevice)
 	SCTeamKeyMaskNotFound      = int(keybase1.StatusCode_SCTeamKeyMaskNotFound)
+	SCGitInternal              = int(keybase1.StatusCode_SCGitInternal)
+	SCGitRepoAlreadyExists     = int(keybase1.StatusCode_SCGitRepoAlreadyExists)
+	SCGitInvalidRepoName       = int(keybase1.StatusCode_SCGitInvalidRepoName)
+	SCGitCannotDelete          = int(keybase1.StatusCode_SCGitCannotDelete)
 )
 
 const (
