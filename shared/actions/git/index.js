@@ -53,11 +53,11 @@ function* _createDeleteHelper(theCall: *) {
   try {
     yield theCall
     yield put(navigateTo([Tabs.gitTab], []))
-  } catch (err) {
-    yield put(Creators.setError(err))
-  } finally {
     yield put.resolve(Creators.setLoading(false))
     yield put(Creators.loadGit())
+  } catch (err) {
+    yield put(Creators.setError(err))
+    yield put.resolve(Creators.setLoading(false))
   }
 }
 
