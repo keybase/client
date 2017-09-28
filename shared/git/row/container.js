@@ -1,6 +1,8 @@
 // @flow
+import React from 'react'
 import Row from '.'
 import {connect} from 'react-redux'
+import {getProfile} from '../../actions/tracker'
 import {copyToClipboard} from '../../util/clipboard'
 import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
@@ -18,13 +20,27 @@ const mapStateToProps = (state: TypedState, {id, expanded}) => {
   }
 }
 
+const mapDispatchToProps = (dispatch: any) => ({
+  openUserTracker: (username: string) => dispatch(getProfile(username, false, true)),
+})
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   onClickDevice: () =>
     stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`),
   onCopy: () => copyToClipboard(stateProps.url),
   onShowDelete: () => ownProps.onShowDelete(stateProps.id),
+  openUserTracker: dispatchProps.openUserTracker,
   onToggleExpand: () => ownProps.onToggleExpand(stateProps.id),
 })
 
-export default connect(mapStateToProps, null, mergeProps)(Row)
+const ConnectedRow: Class<
+  React.Component<{
+    id: string,
+    expanded: boolean,
+    onShowDelete: (id: string) => void,
+    onToggleExpand: (id: string) => void,
+  }>
+> = connect(mapStateToProps, mapDispatchToProps, mergeProps)(Row)
+
+export default ConnectedRow
