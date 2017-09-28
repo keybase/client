@@ -87,9 +87,9 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   const searchResultIds = Constants.getSearchResultIdsArray(state, {searchKey})
   const selectedSearchId = entities.getIn(['searchKeyToSelectedId', searchKey])
   const userItems = getUserItems(state, {searchKey})
-  const clearSearchInput = Constants.getClearSearchInput(state, {searchKey})
+  const clearSearchTextInput = Constants.getClearSearchTextInput(state, {searchKey})
   return {
-    clearSearchInput,
+    clearSearchTextInput,
     searchResultIds,
     selectedSearchId,
     userItems,
@@ -153,7 +153,7 @@ const ConnectedUserInput: Class<React.Component<OwnProps, void>> = compose(
         )
       }
 
-      if (this.props.clearSearchInput !== nextProps.clearSearchInput) {
+      if (this.props.clearSearchTextInput !== nextProps.clearSearchTextInput) {
         nextProps.onChangeSearchText('')
       }
     },

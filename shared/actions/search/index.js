@@ -292,9 +292,11 @@ function* finishedSearch({payload: {searchKey, searchResultTerm, service}}) {
   )
 }
 
-function* clearSearchInput({payload: {searchKey}}: Constants.UserInputItemsUpdated) {
-  const clearSearchInput = yield select(Constants.getClearSearchInput, {searchKey})
-  yield put(EntityAction.replaceEntity(['searchKeyToClearSearchInput'], {[searchKey]: clearSearchInput + 1}))
+function* clearSearchTextInput({payload: {searchKey}}: Constants.UserInputItemsUpdated) {
+  const clearSearchTextInput = yield select(Constants.getClearSearchTextInput, {searchKey})
+  yield put(
+    EntityAction.replaceEntity(['searchKeyToClearSearchTextInput'], {[searchKey]: clearSearchTextInput + 1})
+  )
 }
 
 function* searchSaga(): SagaGenerator<any, any> {
@@ -306,7 +308,7 @@ function* searchSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('search:setUserInputItems', setUserInputItems)
   yield Saga.safeTakeLatest('search:clearSearchResults', clearSearchResults)
   yield Saga.safeTakeLatest('search:finishedSearch', finishedSearch)
-  yield Saga.safeTakeLatest('search:userInputItemsUpdated', clearSearchInput)
+  yield Saga.safeTakeLatest('search:userInputItemsUpdated', clearSearchTextInput)
 }
 
 export default searchSaga

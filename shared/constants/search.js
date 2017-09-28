@@ -239,8 +239,8 @@ const getUserInputItemIdsOrderedSet = ({entities}: TypedState, {searchKey}: {sea
   entities.getIn(['searchKeyToUserInputItemIds', searchKey], OrderedSet())
 const getUserInputItemIds = createSelector(getUserInputItemIdsOrderedSet, ids => ids && ids.toArray())
 
-const getClearSearchInput = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
-  entities.getIn(['searchKeyToClearSearchInput', searchKey], 0)
+const getClearSearchTextInput = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+  entities.getIn(['searchKeyToClearSearchTextInput', searchKey], 0)
 
 export {
   serviceIdToService,
@@ -250,7 +250,7 @@ export {
   platformToLogo32,
   platformToLogo24,
   platformToLogo16,
-  getClearSearchInput,
+  getClearSearchTextInput,
   getSearchResultIdsArray,
   getUserInputItemIds,
   getUserInputItemIdsOrderedSet,
