@@ -109,7 +109,7 @@
         <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
       </Component>
 			
-      <Component Id="Path" Guid="{71a0b7e4-d6ce-4438-b6b5-e937efb8be3a}">
+      <Component Id="PathAppend" Guid="{71a0b7e4-d6ce-4438-b6b5-e937efb8be3a}">
 	 <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
       </Component>
 			
