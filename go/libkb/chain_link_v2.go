@@ -270,6 +270,8 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamDeleteSubteam
 	case LinkTypeDeleteUpPointer:
 		ret = SigchainV2TypeTeamDeleteUpPointer
+	case LinkTypeLegacyTLFUpgrade:
+		ret = SigchainV2TypeTeamLegacyTLFUpgrade
 	case LinkTypeSettings:
 		ret = SigchainV2TypeTeamSettings
 	default:
