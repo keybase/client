@@ -104,6 +104,7 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 
 	// Check in memory cache first
 	if memibox := inboxMemCache.Get(i.uid); memibox != nil {
+		i.Debug(ctx, "hit in memory cache")
 		ibox = *memibox
 	} else {
 		found, err := i.readDiskBox(ctx, i.dbKey(), &ibox)
@@ -114,6 +115,7 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 		if !found {
 			return ibox, MissError{}
 		}
+		inboxMemCache.Put(i.uid, &ibox)
 	}
 
 	// Check on disk server version against known server version
