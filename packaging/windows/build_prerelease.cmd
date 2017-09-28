@@ -68,7 +68,7 @@ popd
 :: Browser Extension
 pushd %GOPATH%\src\github.com\keybase\client\go\kbnm
 if "%KBNM_BUILD%" == "" (
-    KBNM_BUILD = %KEYBASE_BUILD%
+    set KBNM_BUILD=%KEYBASE_BUILD%
 )
 echo KBNM_BUILD %KBNM_BUILD%
 go build -a -ldflags="-X main.Version=%KBNM_BUILD%"
