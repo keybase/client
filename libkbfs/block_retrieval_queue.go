@@ -304,8 +304,9 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	// Check caches before locking the mutex.
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
 	if err == nil {
-		ch <- brq.Prefetcher().TriggerPrefetch(ctx, ptr, block, kmd,
+		brq.Prefetcher().TriggerPrefetch(ctx, ptr, block, kmd,
 			priority, lifetime, prefetchStatus)
+		ch <- nil
 		return ch
 	}
 	err = checkDataVersion(brq.config, path{}, ptr)

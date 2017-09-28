@@ -1249,7 +1249,7 @@ type Prefetcher interface {
 	// TriggerPrefetch triggers and monitors a prefetch.
 	TriggerPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
-		prefetchStatus PrefetchStatus) error
+		prefetchStatus PrefetchStatus)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(kbfsblock.ID)

@@ -135,7 +135,7 @@ func (p *blockPrefetcher) completePrefetch(
 				pp.req.block, pp.req.lifetime, FinishedPrefetch)
 			if err != nil {
 				p.log.Warning("Failed to complete prefetch due to "+
-					"cache error: %+v", err)
+					"cache error, canceled it instead: %+v", err)
 			}
 		}
 	}
@@ -172,7 +172,7 @@ top:
 			break top
 		}
 	}
-	for i := 0; i < len(p.inFlightFetches); i++ {
+	for len(p.inFlightFetches) > 0 {
 		ch := <-p.inFlightFetches
 		<-ch
 	}
@@ -524,7 +524,7 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 	err := p.retriever.PutInCaches(ctx, ptr, tlfID, block, lifetime,
 		prefetchStatus)
 	if err != nil {
-		p.log.CWarningf(ctx, "error prefetching block %s", ptr.ID)
+		p.log.CWarningf(ctx, "error prefetching block %s, canceling", ptr.ID)
 		p.CancelPrefetch(ptr.ID)
 	}
 	return err
@@ -534,21 +534,21 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) error {
+	prefetchStatus PrefetchStatus) {
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
 			FinishedPrefetch, true}
 		p.triggerPrefetch(req)
-		return nil
+		return
 	}
 	if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
 		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
 			prefetchStatus)
-		return nil
+		return
 	}
 	err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
 		TriggeredPrefetch)
@@ -561,7 +561,7 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 			prefetchStatus, isDeepSync}
 		p.triggerPrefetch(req)
 	}
-	return err
+	return
 }
 
 func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
