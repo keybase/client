@@ -22,12 +22,6 @@ func NewCmdTeamAPIRunner(g *libkb.GlobalContext) *CmdTeamAPI {
 }
 
 func (c *CmdTeamAPI) Run() error {
-
-	/*
-		h := newChatServiceHandler(c.G())
-		d := NewChatAPIDecoder(&ChatAPI{svcHandler: h, indent: c.indent})
-
-		return c.runHandler(d)
-	*/
-	return nil
+	h := newTeamAPIHandler(c.G(), c.indent)
+	return c.runHandler(h)
 }

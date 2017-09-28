@@ -37,14 +37,6 @@ type RateLimits struct {
 	RateLimits []RateLimit `json:"ratelimits,omitempty"`
 }
 
-// Reply is returned with the results of procressing a Call.
-type Reply struct {
-	Jsonrpc string      `json:"jsonrpc,omitempty"`
-	ID      int         `json:"id,omitempty"`
-	Error   *CallError  `json:"error,omitempty"`
-	Result  interface{} `json:"result,omitempty"`
-}
-
 // ChatAPIHandler can handle all of the chat json api methods.
 type ChatAPIHandler interface {
 	ListV1(context.Context, Call, io.Writer) error

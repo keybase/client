@@ -72,6 +72,14 @@ type CallError struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
+// Reply is returned with the results of procressing a Call.
+type Reply struct {
+	Jsonrpc string      `json:"jsonrpc,omitempty"`
+	ID      int         `json:"id,omitempty"`
+	Error   *CallError  `json:"error,omitempty"`
+	Result  interface{} `json:"result,omitempty"`
+}
+
 // cmdAPI contains common functionality for json api commands
 type cmdAPI struct {
 	indent     bool
