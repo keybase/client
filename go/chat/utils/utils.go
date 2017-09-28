@@ -733,6 +733,14 @@ func (c ConvByConvID) Less(i, j int) bool {
 	return c[i].GetConvID().Less(c[j].GetConvID())
 }
 
+type RemoteConvByConvID []types.RemoteConversation
+
+func (c RemoteConvByConvID) Len() int      { return len(c) }
+func (c RemoteConvByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c RemoteConvByConvID) Less(i, j int) bool {
+	return c[i].GetConvID().Less(c[j].GetConvID())
+}
+
 type ConvLocalByTopicName []chat1.ConversationLocal
 
 func (c ConvLocalByTopicName) Len() int      { return len(c) }

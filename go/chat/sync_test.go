@@ -162,7 +162,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.Equal(t, len(convs), len(iconvs))
 	for _, ic := range iconvs {
 		if ic.GetConvID().Eq(mconv.GetConvID()) {
-			require.Equal(t, chat1.ConversationStatus_MUTED, ic.Metadata.Status)
+			require.Equal(t, chat1.ConversationStatus_MUTED, ic.Conv.Metadata.Status)
 		}
 	}
 	require.Equal(t, chat1.ConversationStatus_UNFILED, convs[1].Metadata.Status)

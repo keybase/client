@@ -233,6 +233,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 
 	// Consume localize callbacks and send out to UI.
 	var wg sync.WaitGroup
+	var convLocals []chat1.ConversationLocal
 	for convRes := range localizeCb {
 		wg.Add(1)
 		go func(convRes NonblockInboxResult) {
@@ -258,6 +259,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					SessionID: arg.SessionID,
 					Conv:      utils.PresentConversationLocal(*convRes.ConvRes),
 				})
+				convLocals = append(convLocals, *convRes.ConvRes)
 
 				// Send a note to the retrier that we actually loaded this guy successfully
 				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
@@ -268,6 +270,12 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		}(convRes)
 	}
 	wg.Wait()
+
+	// Write metadata to the inbox cache
+	if err = storage.NewInbox(h.G(), uid.ToBytes()).MergeLocalMetadata(ctx, convLocals); err != nil {
+		// Don't abort the operaton on this kind of error
+		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
+	}
 
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	res.IdentifyFailures = breaks
