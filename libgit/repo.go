@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -40,45 +41,6 @@ func checkValidRepoName(repoName string, config libkbfs.Config) bool {
 		uint32(len(repoName)) <= config.MaxNameBytes() &&
 		(os.Getenv("KBFS_GIT_REPONAME_SKIP_CHECK") != "" ||
 			repoNameRE.MatchString(repoName))
-}
-
-// InvalidRepoNameError indicates that a repo name is invalid.
-type InvalidRepoNameError struct {
-	name string
-}
-
-func (e InvalidRepoNameError) Error() string {
-	return fmt.Sprintf("Invalid repo name %q", e.name)
-}
-
-// ToStatus implements the ExportableError interface for ServerError.
-func (e InvalidRepoNameError) ToStatus() (s keybase1.Status) {
-	s.Code = int(keybase1.StatusCode_SCGitInvalidRepoName)
-	s.Name = "GIT_INVALID_REPO_NAME"
-	s.Desc = e.Error()
-	return
-}
-
-// RepoAlreadyCreatedError is returned when trying to create a repo
-// that already exists.
-type RepoAlreadyCreatedError struct {
-	DesiredName    string
-	ExistingConfig Config
-}
-
-func (race RepoAlreadyCreatedError) Error() string {
-	return fmt.Sprintf(
-		"A repo named %s (id=%s) already existed when trying to create "+
-			"a repo named %s", race.ExistingConfig.Name,
-		race.ExistingConfig.ID, race.DesiredName)
-}
-
-// ToStatus implements the ExportableError interface for ServerError.
-func (race RepoAlreadyCreatedError) ToStatus() (s keybase1.Status) {
-	s.Code = int(keybase1.StatusCode_SCGitRepoAlreadyExists)
-	s.Name = "GIT_REPO_ALREADY_EXISTS"
-	s.Desc = race.Error()
-	return
 }
 
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
@@ -185,7 +147,7 @@ func getOrCreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, uniqID string, createOnly bool) (*libfs.FS, ID, error) {
 	if !checkValidRepoName(repoName, config) {
-		return nil, NullID, errors.WithStack(InvalidRepoNameError{repoName})
+		return nil, NullID, errors.WithStack(libkb.InvalidRepoNameError{Name: repoName})
 	}
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
@@ -236,7 +198,11 @@ func getOrCreateRepoAndID(
 	if createOnly {
 		// If this was already created, but we were expected to create
 		// it, then send back an error.
-		return nil, NullID, RepoAlreadyCreatedError{repoName, *c}
+		return nil, NullID, libkb.RepoAlreadyExistsError{
+			DesiredName:  repoName,
+			ExistingName: c.Name,
+			ExistingID:   c.ID.String(),
+		}
 	}
 
 	fs.SetLockNamespace(c.ID.Bytes())
@@ -258,7 +224,7 @@ func GetOrCreateRepoAndID(
 
 // CreateRepoAndID returns a new stable repo ID for the provided
 // repoName in the given TLF.  If the repo has already been created,
-// it returns a `RepoAlreadyCreatedError`.  The caller is responsible
+// it returns a `RepoAlreadyExistsError`.  The caller is responsible
 // for syncing the FS and flushing the journal, if desired.  It
 // expects the `config` object to be unique during the lifetime of
 // this call.

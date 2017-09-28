@@ -10,6 +10,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -74,13 +75,13 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 
 	// Invalid names.
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "", "")
-	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
+	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, ".repo2", "")
-	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
+	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "repo3.ツ", "")
-	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
+	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
 	_, _, err = GetOrCreateRepoAndID(ctx, config, h, "repo(4)", "")
-	require.IsType(t, InvalidRepoNameError{}, errors.Cause(err))
+	require.IsType(t, libkb.InvalidRepoNameError{}, errors.Cause(err))
 
 	fs.SyncAll()
 
@@ -109,13 +110,13 @@ func TestCreateRepoAndID(t *testing.T) {
 	require.NotEqual(t, id1, id2)
 
 	_, err = CreateRepoAndID(ctx, config, h, "Repo1")
-	require.IsType(t, RepoAlreadyCreatedError{}, err)
+	require.IsType(t, libkb.RepoAlreadyExistsError{}, err)
 
 	_, err = CreateRepoAndID(ctx, config, h, "rePo1")
-	require.IsType(t, RepoAlreadyCreatedError{}, err)
+	require.IsType(t, libkb.RepoAlreadyExistsError{}, err)
 
 	_, err = CreateRepoAndID(ctx, config, h, "repo2")
-	require.IsType(t, RepoAlreadyCreatedError{}, err)
+	require.IsType(t, libkb.RepoAlreadyExistsError{}, err)
 
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
