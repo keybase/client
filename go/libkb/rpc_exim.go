@@ -613,6 +613,28 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return e
 	case SCDeviceProvisionOffline:
 		return ProvisionFailedOfflineError{}
+	case SCGitInvalidRepoName:
+		e := InvalidRepoNameError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Name":
+				e.Name = field.Value
+			}
+		}
+		return e
+	case SCGitRepoAlreadyExists:
+		e := RepoAlreadyExistsError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "DesiredName":
+				e.DesiredName = field.Value
+			case "ExistingName":
+				e.ExistingName = field.Value
+			case "ExistingID":
+				e.ExistingID = field.Value
+			}
+		}
+		return e
 
 	default:
 		ase := AppStatusError{
@@ -2080,4 +2102,26 @@ func (e ProvisionFailedOfflineError) ToStatus() keybase1.Status {
 		Name: "SC_DEVICE_PROVISION_OFFLINE",
 		Desc: e.Error(),
 	}
+}
+
+func (e InvalidRepoNameError) ToStatus() (s keybase1.Status) {
+	s.Code = int(keybase1.StatusCode_SCGitInvalidRepoName)
+	s.Name = "GIT_INVALID_REPO_NAME"
+	s.Desc = e.Error()
+	s.Fields = []keybase1.StringKVPair{
+		{Key: "Name", Value: e.Name},
+	}
+	return
+}
+
+func (e RepoAlreadyExistsError) ToStatus() (s keybase1.Status) {
+	s.Code = int(keybase1.StatusCode_SCGitRepoAlreadyExists)
+	s.Name = "GIT_REPO_ALREADY_EXISTS"
+	s.Desc = e.Error()
+	s.Fields = []keybase1.StringKVPair{
+		{Key: "DesiredName", Value: e.DesiredName},
+		{Key: "ExistingName", Value: e.ExistingName},
+		{Key: "ExistingID", Value: e.ExistingID},
+	}
+	return
 }
