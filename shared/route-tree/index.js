@@ -24,6 +24,7 @@ export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<Leaf
   showStatusBarDarkContent: false,
   fullscreen: false,
   keepKeyboardOnLeave: false,
+  root: false, // only used by the root shim to allow special padding logic as its the root container
 })
 
 const _RouteDefNode = I.Record({
