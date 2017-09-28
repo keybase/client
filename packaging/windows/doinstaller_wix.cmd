@@ -175,11 +175,11 @@ goto:eof
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
 
-SignTool.exe sign /i digicert /a /tr http://timestamp.verisign.com/scripts/timstamp.dll %~1
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %~1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /td SHA256 %~1
+SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 %~1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
