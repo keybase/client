@@ -67,7 +67,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-:: Double check that kbfs is codesigned
+:: Double check that git-remote-keybase is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
