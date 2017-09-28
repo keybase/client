@@ -145,6 +145,10 @@
   return [KBPath pathInDir:servicePath path:[self kbfsBinName] options:pathOptions];
 }
 
+- (NSString *)gitRemoteHelperName {
+  return @"git-remote-keybase";
+}
+
 - (NSString *)kbfsBinName {
   switch(_runMode) {
     case KBRunModeDevel: return @"kbfsdev";
