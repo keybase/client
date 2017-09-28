@@ -56,8 +56,8 @@ class ConversationInput extends Component<Props> {
       if (!response.didCancel && conversationIDKey) {
         const input: AttachmentInput = {
           conversationIDKey,
-          filename,
-          title: response.fileName,
+          filename: filename || '',
+          title: response.fileName || '',
           type: 'Image',
         }
         this.props.onAttach([input])
