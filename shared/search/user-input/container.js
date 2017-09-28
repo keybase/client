@@ -14,13 +14,13 @@ import {globalStyles, globalMargins} from '../../styles'
 
 import type {TypedState} from '../../constants/reducer'
 
-type OwnProps = {
+type OwnProps = {|
   searchKey: string,
-  autoFocus: boolean,
-  focusInputCounter: number,
+  autoFocus?: boolean,
+  focusInputCounter?: number,
   placeholder: ?string,
   onExitSearch: ?() => void,
-}
+|}
 
 const UserInputWithServiceFilter = props => {
   return (
@@ -113,13 +113,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
   },
 })
 
-export default compose(
+const ConnectedUserInput: Class<React.Component<OwnProps, void>> = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('searchText', 'onChangeSearchText', ''),
   withState('selectedService', '_onSelectService', 'Keybase'),
   HocHelpers.onChangeSelectedSearchResultHoc,
   HocHelpers.clearSearchHoc,
   HocHelpers.showServiceLogicHoc,
+  HocHelpers.placeholderServiceHoc,
   withHandlers(() => {
     let input
     return {
@@ -158,3 +159,5 @@ export default compose(
     },
   })
 )(UserInputWithServiceFilter)
+
+export default ConnectedUserInput

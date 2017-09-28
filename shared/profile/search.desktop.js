@@ -3,7 +3,7 @@ import React from 'react'
 import SearchResultsList from '../search/results-list/container'
 import UserInput from '../search/user-input/container'
 import {Box} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import {globalStyles, globalColors} from '../styles'
 
 import type {Props} from './search'
 
@@ -11,11 +11,12 @@ const Search = (props: Props) => (
   <Box style={styleCatcher} onClick={props.onClose}>
     <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
-        <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-          <Box style={{flexGrow: 1, paddingLeft: globalMargins.small}}>
-            <UserInput searchKey="profileSearch" onExitSearch={props.onClose} />
-          </Box>
-        </Box>
+        <UserInput
+          searchKey="profileSearch"
+          onExitSearch={props.onClose}
+          autoFocus={true}
+          placeholder={props.placeholder}
+        />
       </Box>
       <Box style={{...styleSearchRow, ...globalStyles.scrollable, justifyContent: 'center'}}>
         <SearchResultsList searchKey="profileSearch" onClick={props.onClick} disableListBuilding={true} />
@@ -47,8 +48,7 @@ const styleCatcher = {
 }
 
 const styleSearchRow = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
+  flexGrow: 1,
 }
 
 export default Search

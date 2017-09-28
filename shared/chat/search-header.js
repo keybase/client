@@ -1,51 +1,33 @@
 // @flow
 import * as React from 'react'
-import * as Creators from '../actions/chat/creators'
 import * as Constants from '../constants/chat'
 import UserInput from '../search/user-input/container'
-import ServiceFilter from '../search/services-filter'
-import {Box} from '../common-adapters'
-import {compose, withState, withHandlers, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
-import {globalStyles, globalMargins} from '../styles'
+import {compose, withState, lifecycle} from 'recompose'
 
 type OwnProps = {
-  selectedConversationIDKey: Constants.ConversationIDKey,
+  selectedConversationIDKey: ?Constants.ConversationIDKey,
+  onExitSearch: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onExitSearch: () => dispatch(Creators.exitSearch(false)),
-})
-
-const SearchHeader = props => (
-  <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
-    <UserInput
-      autoFocus={true}
-      searchKey={'chatSearch'}
-      focusInputCounter={props.focusInputCounter}
-      placeholder={props.placeholder}
-      onExitSearch={props.onExitSearch}
-    />
-    <Box style={{alignSelf: 'center'}}>
-      {props.showServiceFilter &&
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
-    </Box>
-  </Box>
+const _SearchHeader = props => (
+  <UserInput
+    autoFocus={true}
+    searchKey={'chatSearch'}
+    focusInputCounter={props.focusInputCounter}
+    placeholder={props.placeholder}
+    onExitSearch={props.onExitSearch}
+  />
 )
 
-export default compose(
-  connect(undefined, mapDispatchToProps),
+const SearchHeader: Class<React.Component<OwnProps, void>> = compose(
   withState('focusInputCounter', 'setFocusInputCounter', 0),
-  withHandlers({
-    onFocusInput: props => () => {
-      props.setFocusInputCounter(n => n + 1)
-    },
-  }),
   lifecycle({
-    componentWillReceiveProps(nextProps: OwnProps) {
+    componentWillReceiveProps(nextProps) {
       if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
-        this.props.onFocusInput()
+        nextProps.setFocusInputCounter(n => n + 1)
       }
     },
   })
-)(SearchHeader)
+)(_SearchHeader)
+
+export default SearchHeader

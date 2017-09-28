@@ -3,8 +3,7 @@ import * as React from 'react'
 import * as Creators from '../actions/chat/creators'
 import UserInput from '../search/user-input/container'
 import SearchResultsList from '../search/results-list/container'
-import ServiceFilter from '../search/services-filter'
-import {Box, Icon, ProgressIndicator, HeaderHoc} from '../common-adapters'
+import {Box, ProgressIndicator, HeaderHoc} from '../common-adapters'
 import {branch, compose, defaultProps, withPropsOnChange} from 'recompose'
 import {connect} from 'react-redux'
 import {globalMargins, globalStyles} from '../styles'
@@ -25,15 +24,6 @@ const SearchHeader = props => (
           onExitSearch={props.onExitSearch}
         />
       </Box>
-      <Icon
-        type="iconfont-close"
-        style={{height: 16, width: 16, marginRight: 10}}
-        onClick={props.onExitSearch}
-      />
-    </Box>
-    <Box style={{alignSelf: 'center'}}>
-      {props.showServiceFilter &&
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />}
     </Box>
     {props.showSearchPending
       ? <ProgressIndicator style={{width: globalMargins.large}} />

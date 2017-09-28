@@ -1,9 +1,8 @@
 // @flow
 import * as React from 'react'
-import ServiceFilter from '../search/services-filter'
 import ResultsList from '../search/results-list/container'
 import UserInput from '../search/user-input/container'
-import {Box, ProgressIndicator, StandardScreen, Text} from '../common-adapters'
+import {Box, ProgressIndicator, StandardScreen} from '../common-adapters'
 import {globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './search'
@@ -11,13 +10,13 @@ import type {Props} from './search'
 const Search = (props: Props) => (
   <StandardScreen style={styleContainer} onCancel={props.onClose} title="Search people">
     <Box style={styleInput}>
-      <UserInput searchKey="profileSearch" onExitSearch={props.onClose} />
+      <UserInput
+        searchKey="profileSearch"
+        onExitSearch={props.onClose}
+        autoFocus={true}
+        placeholder={props.placeholder}
+      />
     </Box>
-    {props.showServiceFilter &&
-      <Box style={styleSearchFilter}>
-        <Text style={{marginRight: globalMargins.tiny}} type="BodySmall">Filter:</Text>
-        <ServiceFilter selectedService={props.selectedService} onSelectService={props.onSelectService} />
-      </Box>}
     <Box>
       {props.showSearchPending
         ? <Box style={styleSpinner}>
@@ -42,13 +41,6 @@ const styleContainer = {
   paddingBottom: 0,
   paddingLeft: 0,
   paddingRight: 0,
-}
-
-const styleSearchFilter = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-  paddingTop: globalMargins.tiny,
 }
 
 const styleSpinner = {

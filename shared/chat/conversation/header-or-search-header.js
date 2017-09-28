@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import Header from './header/container'
-import _SearchHeader from '../../search/user-input/container'
-import {compose, withState, lifecycle} from 'recompose'
+import SearchHeader from '../search-header'
 import * as ChatConstants from '../../constants/chat'
 
 type Props = {
@@ -14,21 +13,9 @@ type Props = {
   onExitSearch: () => void,
 }
 
-const SearchHeader = compose(
-  withState('focusInputCounter', 'setCounter', 0),
-  lifecycle({
-    componentWillReceiveProps(nextProps: Props & {setCounter: (fn: (n: number) => number) => void}) {
-      if (this.props.selectedConversationIDKey !== nextProps.selectedConversationIDKey) {
-        nextProps.setCounter((n: number) => n + 1)
-      }
-    },
-  })
-)(_SearchHeader)
-
 export default (props: Props) =>
   props.inSearch
     ? <SearchHeader
-        searchKey="chatSearch"
         onExitSearch={props.onExitSearch}
         selectedConversationIDKey={props.selectedConversationIDKey}
       />
