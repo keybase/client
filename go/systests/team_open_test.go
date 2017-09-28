@@ -49,7 +49,7 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 	require.Equal(t, role, keybase1.TeamRole_READER)
 }
 
-func TestTeamSetOpen(t *testing.T) {
+func TestTeamOpenSettings(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
