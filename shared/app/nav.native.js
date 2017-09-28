@@ -186,7 +186,7 @@ class MainNavStack extends Component<any, any> {
       .toArray()
 
     const content = (
-      <Box style={_contentStyle}>
+      <Box style={globalStyles.flexGrow}>
         {stacks}
         {![chatTab].includes(props.routeSelected)
           ? <Offline key="offline" reachable={props.reachable} appFocused={true} />
@@ -205,10 +205,6 @@ class MainNavStack extends Component<any, any> {
       </Box>
     )
   }
-}
-
-const _contentStyle = {
-  ...globalStyles.flexGrow,
 }
 
 // TODO glamour
