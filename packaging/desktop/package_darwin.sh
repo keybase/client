@@ -149,6 +149,12 @@ get_deps() {(
 
   if [ ! "$kbfs_binpath" = "" ]; then
     echo "Using local kbfs binpath: $kbfs_binpath"
+    echo $kbfs_binpath
+    echo $git_remote_keybase_binpath
+    ls -l $kbfs_binpath
+    ls -l $git_remote_keybase_binpath
+    ls -l /tmp/build_kbfs
+    ls -l /tmp/build_kbfs/*
     cp "$kbfs_binpath" .
     cp "$git_remote_keybase_binpath" .
   else
