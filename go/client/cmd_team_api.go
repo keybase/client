@@ -1,11 +1,33 @@
 package client
 
-import "github.com/keybase/client/go/libkb"
+import (
+	"github.com/keybase/cli"
+	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
+)
 
 type CmdTeamAPI struct {
 	libkb.Contextified
-	indent     bool
-	inputFile  string
-	outputFile string
-	message    string
+	cmdAPI
+}
+
+func newCmdTeamAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return newCmdAPI(cl, NewCmdTeamAPIRunner(g), "JSON api", teamAPIDoc)
+}
+
+func NewCmdTeamAPIRunner(g *libkb.GlobalContext) *CmdTeamAPI {
+	return &CmdTeamAPI{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (c *CmdTeamAPI) Run() error {
+
+	/*
+		h := newChatServiceHandler(c.G())
+		d := NewChatAPIDecoder(&ChatAPI{svcHandler: h, indent: c.indent})
+
+		return c.runHandler(d)
+	*/
+	return nil
 }

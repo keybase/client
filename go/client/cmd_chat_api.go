@@ -18,15 +18,15 @@ func newCmdChatAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	return newCmdAPI(cl, NewCmdChatAPIRunner(g), "JSON api", chatAPIDoc)
 }
 
+func NewCmdChatAPIRunner(g *libkb.GlobalContext) *CmdChatAPI {
+	return &CmdChatAPI{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
 func (c *CmdChatAPI) Run() error {
 	h := newChatServiceHandler(c.G())
 	d := NewChatAPIDecoder(&ChatAPI{svcHandler: h, indent: c.indent})
 
 	return c.runHandler(d)
-}
-
-func NewCmdChatAPIRunner(g *libkb.GlobalContext) *CmdChatAPI {
-	return &CmdChatAPI{
-		Contextified: libkb.NewContextified(g),
-	}
 }

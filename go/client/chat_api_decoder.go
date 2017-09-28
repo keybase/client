@@ -4,7 +4,6 @@
 package client
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 
@@ -44,32 +43,6 @@ func NewChatAPIDecoder(h ChatAPIHandler) *ChatAPIDecoder {
 	return &ChatAPIDecoder{
 		handler: h,
 	}
-}
-
-func (d *ChatAPIDecoder) Decode(ctx context.Context, r io.Reader, w io.Writer) error {
-	dec := json.NewDecoder(r)
-	for {
-		var c Call
-		if err := dec.Decode(&c); err == io.EOF {
-			break
-		} else if err != nil {
-			if err == io.ErrUnexpectedEOF {
-				return ErrInvalidJSON{message: "expected more JSON in input"}
-			}
-			return err
-		}
-
-		switch c.Params.Version {
-		case 0, 1:
-			if err := d.handleV1(ctx, c, w); err != nil {
-				return err
-			}
-		default:
-			return ErrInvalidVersion{version: c.Params.Version}
-		}
-	}
-
-	return nil
 }
 
 func (d *ChatAPIDecoder) handle(ctx context.Context, c Call, w io.Writer) error {
