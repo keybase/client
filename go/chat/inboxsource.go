@@ -52,8 +52,9 @@ func (b *BlockingLocalizer) SetOffline() {
 	b.pipeline.offline = true
 }
 
-func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) (res []chat1.ConversationLocal, err error) {
-	res, err = b.pipeline.localizeConversationsPipeline(ctx, uid, inbox.ConvsUnverified, nil, nil)
+func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
+	res, err = b.pipeline.localizeConversationsPipeline(ctx, uid, utils.PluckConvs(inbox.ConvsUnverified),
+		nil, nil)
 	if err != nil {
 		return res, err
 	}
@@ -69,7 +70,7 @@ type NonblockInboxResult struct {
 	Conv     chat1.Conversation
 	Err      *chat1.ConversationErrorLocal
 	ConvRes  *chat1.ConversationLocal
-	InboxRes *chat1.Inbox
+	InboxRes *types.Inbox
 }
 
 type NonblockingLocalizer struct {
@@ -96,20 +97,20 @@ func (b *NonblockingLocalizer) SetOffline() {
 	b.pipeline.offline = true
 }
 
-func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.Inbox, uid gregor1.UID) chat1.Inbox {
+func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox types.Inbox, uid gregor1.UID) types.Inbox {
 	defer b.Trace(ctx, func() error { return nil }, "filterInboxRes")()
 
 	// Loop through and look for empty convs or known errors and skip them
-	var res []chat1.Conversation
+	var res []types.RemoteConversation
 	for _, conv := range inbox.ConvsUnverified {
-		if utils.IsConvEmpty(conv) {
-			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.GetConvID())
+		if utils.IsConvEmpty(conv.Conv) {
+			b.Debug(ctx, "filterInboxRes: skipping because empty: convID: %s", conv.Conv.GetConvID())
 			continue
 		}
 		res = append(res, conv)
 	}
 
-	return chat1.Inbox{
+	return types.Inbox{
 		Version:         inbox.Version,
 		ConvsUnverified: res,
 		Convs:           inbox.Convs,
@@ -117,7 +118,7 @@ func (b *NonblockingLocalizer) filterInboxRes(ctx context.Context, inbox chat1.I
 	}
 }
 
-func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) (res []chat1.ConversationLocal, err error) {
+func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
@@ -133,7 +134,7 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	go func() {
 		b.Debug(bctx, "Localize: starting background localization: convs: %d",
 			len(inbox.ConvsUnverified))
-		b.pipeline.localizeConversationsPipeline(bctx, uid, inbox.ConvsUnverified,
+		b.pipeline.localizeConversationsPipeline(bctx, uid, utils.PluckConvs(inbox.ConvsUnverified),
 			b.maxUnbox, &b.localizeCb)
 
 		// Shutdown localize channel
@@ -273,7 +274,7 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 		return false, rl, fmt.Errorf("conversation not found: %s", convID)
 	}
 	conv := ib.ConvsUnverified[0]
-	switch conv.ReaderInfo.Status {
+	switch conv.Conv.ReaderInfo.Status {
 	case chat1.ConversationMemberStatus_ACTIVE:
 		return true, rl, nil
 	default:
@@ -312,7 +313,7 @@ func NewRemoteInboxSource(g *globals.Context, ri func() chat1.RemoteInterface) *
 
 func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizer types.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
-	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+	p *chat1.Pagination) (types.Inbox, *chat1.RateLimit, error) {
 
 	if localizer == nil {
 		localizer = NewBlockingLocalizer(s.G())
@@ -324,24 +325,24 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
 	if err != nil {
-		return chat1.Inbox{}, nil, err
+		return types.Inbox{}, nil, err
 	}
 	inbox, rl, err := s.ReadUnverified(ctx, uid, useLocalData, rquery, p)
 	if err != nil {
-		return chat1.Inbox{}, rl, err
+		return types.Inbox{}, rl, err
 	}
 
 	res, err := localizer.Localize(ctx, uid, inbox)
 	if err != nil {
-		return chat1.Inbox{}, rl, err
+		return types.Inbox{}, rl, err
 	}
 
 	res, err = filterConvLocals(res, rquery, query, tlfInfo)
 	if err != nil {
-		return chat1.Inbox{}, rl, err
+		return types.Inbox{}, rl, err
 	}
 
-	return chat1.Inbox{
+	return types.Inbox{
 		Version:         inbox.Version,
 		Convs:           res,
 		ConvsUnverified: inbox.ConvsUnverified,
@@ -350,10 +351,10 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
-	rquery *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+	rquery *chat1.GetInboxQuery, p *chat1.Pagination) (types.Inbox, *chat1.RateLimit, error) {
 
 	if s.IsOffline(ctx) {
-		return chat1.Inbox{}, nil, OfflineError{}
+		return types.Inbox{}, nil, OfflineError{}
 	}
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
@@ -361,12 +362,12 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		Pagination: p,
 	})
 	if err != nil {
-		return chat1.Inbox{}, ib.RateLimit, err
+		return types.Inbox{}, ib.RateLimit, err
 	}
 
-	return chat1.Inbox{
+	return types.Inbox{
 		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: ib.Inbox.Full().Conversations,
+		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
 		Pagination:      ib.Inbox.Full().Pagination,
 	}, ib.RateLimit, nil
 }
@@ -470,7 +471,7 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 
 func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizer types.ChatLocalizer, useLocalData bool, query *chat1.GetInboxLocalQuery,
-	p *chat1.Pagination) (inbox chat1.Inbox, rl *chat1.RateLimit, err error) {
+	p *chat1.Pagination) (inbox types.Inbox, rl *chat1.RateLimit, err error) {
 
 	defer s.Trace(ctx, func() error { return err }, "Read")()
 	if localizer == nil {
@@ -506,7 +507,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 }
 
 func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
-	query *chat1.GetInboxQuery, p *chat1.Pagination) (res chat1.Inbox, rl *chat1.RateLimit, err error) {
+	query *chat1.GetInboxQuery, p *chat1.Pagination) (res types.Inbox, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
 
 	var inbox chat1.Inbox
@@ -516,12 +517,12 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	// Try local storage (if enabled)
 	if useLocalData {
 		var vers chat1.InboxVers
-		var convs []chat1.Conversation
+		var convs []types.RemoteConversation
 		var pagination *chat1.Pagination
 		vers, convs, pagination, cerr = inboxStore.Read(ctx, query, p)
 		if cerr == nil {
 			s.Debug(ctx, "ReadUnverified: hit local storage: uid: %s convs: %d", uid, len(convs))
-			res = chat1.Inbox{
+			res = types.Inbox{
 				Version:         vers,
 				ConvsUnverified: convs,
 				Pagination:      pagination,
@@ -552,9 +553,9 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 			}
 		}
 
-		res = chat1.Inbox{
+		res = types.Inbox{
 			Version:         inbox.Version,
-			ConvsUnverified: inbox.ConvsUnverified,
+			ConvsUnverified: utils.RemoteConvs(inbox.ConvsUnverified),
 			Pagination:      inbox.Pagination,
 		}
 	}
@@ -734,7 +735,7 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	// Load the user joined conversations
 	var userJoinedConvs []chat1.Conversation
 	if len(userJoined) > 0 {
-		var ibox chat1.Inbox
+		var ibox types.Inbox
 		ibox, _, err = s.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
 			ConvIDs: userJoined,
 		}, nil)
@@ -743,7 +744,7 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 			return
 		}
 
-		userJoinedConvs = ibox.ConvsUnverified
+		userJoinedConvs = utils.PluckConvs(ibox.ConvsUnverified)
 		res.UserJoinedConvs = ibox.Convs
 	}
 

@@ -14,6 +14,7 @@ import (
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -584,6 +585,27 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	return ""
 }
 
+func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+	rawConv := rc.Conv
+	res.ConvID = rawConv.GetConvID().String()
+	res.Name = rawConv.MaxMsgSummaries[0].TlfName
+	res.Status = rawConv.Metadata.Status
+	res.Time = GetConvMtime(rawConv)
+	res.Visibility = rawConv.Metadata.Visibility
+	res.Notifications = rawConv.Notifications
+	res.MembersType = rawConv.GetMembersType()
+	res.TeamType = rawConv.Metadata.TeamType
+	res.Version = rawConv.Metadata.Version
+	if rc.LocalMetadata != nil {
+		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
+			ChannelName: rc.LocalMetadata.TopicName,
+			Headline:    rc.LocalMetadata.Headline,
+			Snippet:     rc.LocalMetadata.Snippet,
+		}
+	}
+	return res
+}
+
 func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.Name = rawConv.Info.TlfName
@@ -785,4 +807,20 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 	b := make([]byte, base64.StdEncoding.DecodedLen(len(enc)))
 	n, err := base64.StdEncoding.Decode(b, enc)
 	return b[:n], err
+}
+
+func RemoteConvs(convs []chat1.Conversation) (res []types.RemoteConversation) {
+	for _, conv := range convs {
+		res = append(res, types.RemoteConversation{
+			Conv: conv,
+		})
+	}
+	return res
+}
+
+func PluckConvs(rcs []types.RemoteConversation) (res []chat1.Conversation) {
+	for _, rc := range rcs {
+		res = append(res, rc.Conv)
+	}
+	return res
 }

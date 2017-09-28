@@ -12,6 +12,12 @@ protocol chatUi {
     boolean last;
   }
 
+  record UnverifiedInboxUIItemMetadata {
+    string channelName;
+    string headline;
+    string snippet;
+  }
+
   record UnverifiedInboxUIItem {
     string convID;
     string name;
@@ -22,6 +28,7 @@ protocol chatUi {
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
+    union { null , UnverifiedInboxUIItemMetadata } localMetadata;
   }
 
   record UnverifiedInboxUIItems {

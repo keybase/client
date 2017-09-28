@@ -27,16 +27,31 @@ func (o UIPagination) DeepCopy() UIPagination {
 	}
 }
 
+type UnverifiedInboxUIItemMetadata struct {
+	ChannelName string `codec:"channelName" json:"channelName"`
+	Headline    string `codec:"headline" json:"headline"`
+	Snippet     string `codec:"snippet" json:"snippet"`
+}
+
+func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata {
+	return UnverifiedInboxUIItemMetadata{
+		ChannelName: o.ChannelName,
+		Headline:    o.Headline,
+		Snippet:     o.Snippet,
+	}
+}
+
 type UnverifiedInboxUIItem struct {
-	ConvID        string                        `codec:"convID" json:"convID"`
-	Name          string                        `codec:"name" json:"name"`
-	Visibility    keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
-	Status        ConversationStatus            `codec:"status" json:"status"`
-	MembersType   ConversationMembersType       `codec:"membersType" json:"membersType"`
-	TeamType      TeamType                      `codec:"teamType" json:"teamType"`
-	Notifications *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	Time          gregor1.Time                  `codec:"time" json:"time"`
-	Version       ConversationVers              `codec:"version" json:"version"`
+	ConvID        string                         `codec:"convID" json:"convID"`
+	Name          string                         `codec:"name" json:"name"`
+	Visibility    keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	Status        ConversationStatus             `codec:"status" json:"status"`
+	MembersType   ConversationMembersType        `codec:"membersType" json:"membersType"`
+	TeamType      TeamType                       `codec:"teamType" json:"teamType"`
+	Notifications *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	Time          gregor1.Time                   `codec:"time" json:"time"`
+	Version       ConversationVers               `codec:"version" json:"version"`
+	LocalMetadata *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
 }
 
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
@@ -56,6 +71,13 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 		})(o.Notifications),
 		Time:    o.Time.DeepCopy(),
 		Version: o.Version.DeepCopy(),
+		LocalMetadata: (func(x *UnverifiedInboxUIItemMetadata) *UnverifiedInboxUIItemMetadata {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.LocalMetadata),
 	}
 }
 

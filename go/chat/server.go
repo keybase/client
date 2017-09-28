@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -141,27 +142,18 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	return err
 }
 
-func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInboxLocalRes) (res chat1.UnverifiedInboxUIItems, err error) {
-	for _, rawConv := range vres.ConversationsUnverified {
-		if len(rawConv.MaxMsgSummaries) == 0 {
+func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.RemoteConversation,
+	p *chat1.Pagination, offline bool) (res chat1.UnverifiedInboxUIItems, err error) {
+	for _, rawConv := range convs {
+		if len(rawConv.Conv.MaxMsgSummaries) == 0 {
 			h.Debug(ctx, "presentUnverifiedInbox: invalid convo, no max msg summaries, skipping: %s",
-				rawConv.GetConvID())
+				rawConv.Conv.GetConvID())
 			continue
 		}
-		var conv chat1.UnverifiedInboxUIItem
-		conv.ConvID = rawConv.GetConvID().String()
-		conv.Name = rawConv.MaxMsgSummaries[0].TlfName
-		conv.Status = rawConv.Metadata.Status
-		conv.Time = utils.GetConvMtime(rawConv)
-		conv.Visibility = rawConv.Metadata.Visibility
-		conv.Notifications = rawConv.Notifications
-		conv.MembersType = rawConv.GetMembersType()
-		conv.TeamType = rawConv.Metadata.TeamType
-		conv.Version = rawConv.Metadata.Version
-		res.Items = append(res.Items, conv)
+		res.Items = append(res.Items, utils.PresentRemoteConversation(rawConv))
 	}
-	res.Pagination = utils.PresentPagination(vres.Pagination)
-	res.Offline = vres.Offline
+	res.Pagination = utils.PresentPagination(p)
+	res.Offline = offline
 	return res, err
 }
 
@@ -214,11 +206,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		if lres.InboxRes == nil {
 			return res, fmt.Errorf("invalid conversation localize callback received")
 		}
-		uires, err := h.presentUnverifiedInbox(ctx, chat1.GetInboxLocalRes{
-			ConversationsUnverified: lres.InboxRes.ConvsUnverified,
-			Pagination:              lres.InboxRes.Pagination,
-			Offline:                 h.G().InboxSource.IsOffline(ctx),
-		})
+		uires, err := h.presentUnverifiedInbox(ctx, lres.InboxRes.ConvsUnverified,
+			lres.InboxRes.Pagination, h.G().InboxSource.IsOffline(ctx))
 		if err != nil {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
 			return res, err
@@ -311,7 +300,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		ConvID: &arg.ConversationID,
 	}, nil)
 	if err == nil && len(readRes) > 0 && readRes[0].GetConvID().Eq(arg.ConversationID) &&
-		readRes[0].ReaderInfo.ReadMsgid == readRes[0].ReaderInfo.MaxMsgid {
+		readRes[0].Conv.ReaderInfo.ReadMsgid == readRes[0].Conv.ReaderInfo.MaxMsgid {
 		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
 			arg.ConversationID)
 		return chat1.MarkAsReadLocalRes{
@@ -2072,8 +2061,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// Localize the conversations so we can find the conversation ID
-	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, chat1.Inbox{
-		ConvsUnverified: teamConvs.Conversations,
+	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, types.Inbox{
+		ConvsUnverified: utils.RemoteConvs(teamConvs.Conversations),
 	})
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())

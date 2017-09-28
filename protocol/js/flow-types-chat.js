@@ -2001,6 +2001,13 @@ export type UnverifiedInboxUIItem = {
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
   version: ConversationVers,
+  localMetadata?: ?UnverifiedInboxUIItemMetadata,
+}
+
+export type UnverifiedInboxUIItemMetadata = {
+  channelName: string,
+  headline: string,
+  snippet: string,
 }
 
 export type UnverifiedInboxUIItems = {

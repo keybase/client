@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -18,7 +19,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 14
+const inboxVersion = 15
 
 type queryHash []byte
 
@@ -64,11 +65,11 @@ func (q inboxDiskQuery) match(other inboxDiskQuery) bool {
 }
 
 type inboxDiskData struct {
-	Version       int                  `codec:"V"`
-	ServerVersion int                  `codec:"S"`
-	InboxVersion  chat1.InboxVers      `codec:"I"`
-	Conversations []chat1.Conversation `codec:"C"`
-	Queries       []inboxDiskQuery     `codec:"Q"`
+	Version       int                        `codec:"V"`
+	ServerVersion int                        `codec:"S"`
+	InboxVersion  chat1.InboxVers            `codec:"I"`
+	Conversations []types.RemoteConversation `codec:"C"`
+	Queries       []inboxDiskQuery           `codec:"Q"`
 }
 
 type Inbox struct {
@@ -163,7 +164,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 	return nil
 }
 
-type ByDatabaseOrder []chat1.Conversation
+type ByDatabaseOrder []types.RemoteConversation
 
 func dbConvLess(a pager.InboxEntry, b pager.InboxEntry) bool {
 	if a.GetMtime() > b.GetMtime() {
@@ -180,28 +181,28 @@ func (a ByDatabaseOrder) Less(i, j int) bool {
 	return dbConvLess(a[i], a[j])
 }
 
-func (i *Inbox) summarizeConv(conv *chat1.Conversation) {
+func (i *Inbox) summarizeConv(rc *types.RemoteConversation) {
 	summaries := make(map[chat1.MessageType]chat1.MessageSummary)
 
 	// Collect the existing summaries
-	for _, m := range conv.MaxMsgSummaries {
+	for _, m := range rc.Conv.MaxMsgSummaries {
 		summaries[m.GetMessageType()] = m
 	}
 
 	// Collect the locally-grown summaries
-	for _, m := range conv.MaxMsgs {
+	for _, m := range rc.Conv.MaxMsgs {
 		summaries[m.GetMessageType()] = m.Summary()
 	}
 
 	// Insert all the summaries
-	conv.MaxMsgs = nil
-	conv.MaxMsgSummaries = nil
+	rc.Conv.MaxMsgs = nil
+	rc.Conv.MaxMsgSummaries = nil
 	for _, m := range summaries {
-		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, m)
+		rc.Conv.MaxMsgSummaries = append(rc.Conv.MaxMsgSummaries, m)
 	}
 }
 
-func (i *Inbox) summarizeConvs(convs []chat1.Conversation) (res []chat1.Conversation) {
+func (i *Inbox) summarizeConvs(convs []types.RemoteConversation) (res []types.RemoteConversation) {
 	for _, conv := range convs {
 		i.summarizeConv(&conv)
 		res = append(res, conv)
@@ -209,14 +210,14 @@ func (i *Inbox) summarizeConvs(convs []chat1.Conversation) (res []chat1.Conversa
 	return res
 }
 
-func (i *Inbox) mergeConvs(l []chat1.Conversation, r []chat1.Conversation) (res []chat1.Conversation) {
+func (i *Inbox) mergeConvs(l []types.RemoteConversation, r []types.RemoteConversation) (res []types.RemoteConversation) {
 	m := make(map[string]bool)
 	for _, conv := range l {
-		m[conv.Metadata.ConversationID.String()] = true
+		m[conv.Conv.Metadata.ConversationID.String()] = true
 		res = append(res, conv)
 	}
 	for _, conv := range r {
-		if !m[conv.Metadata.ConversationID.String()] {
+		if !m[conv.Conv.Metadata.ConversationID.String()] {
 			res = append(res, conv)
 		}
 	}
@@ -274,7 +275,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 		data = inboxDiskData{
 			Version:       inboxVersion,
 			InboxVersion:  vers,
-			Conversations: convs,
+			Conversations: utils.RemoteConvs(convs),
 			Queries:       []inboxDiskQuery{qp},
 		}
 	} else {
@@ -282,7 +283,7 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 		data = inboxDiskData{
 			Version:       inboxVersion,
 			InboxVersion:  vers,
-			Conversations: i.mergeConvs(convs, ibox.Conversations),
+			Conversations: i.mergeConvs(utils.RemoteConvs(convs), ibox.Conversations),
 			Queries:       append(ibox.Queries, qp),
 		}
 	}
@@ -294,11 +295,11 @@ func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1
 	return i.writeDiskInbox(ctx, data)
 }
 
-func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMetadata, convs []chat1.Conversation) bool {
+func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.ConversationMetadata, convs []types.RemoteConversation) bool {
 	for _, superseder := range superseders {
 		for _, conv := range convs {
-			if superseder.ConversationID.Eq(conv.Metadata.ConversationID) {
-				for _, msg := range conv.MaxMsgSummaries {
+			if superseder.ConversationID.Eq(conv.GetConvID()) {
+				for _, msg := range conv.Conv.MaxMsgSummaries {
 					if utils.IsVisibleChatMessageType(msg.GetMessageType()) {
 						return true
 					}
@@ -309,14 +310,15 @@ func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.Con
 	return false
 }
 
-func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, convs []chat1.Conversation) []chat1.Conversation {
+func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) []types.RemoteConversation {
 	if query == nil {
 		query = &chat1.GetInboxQuery{}
 	}
-	var res []chat1.Conversation
+	var res []types.RemoteConversation
 	filtered := 0
-	for _, conv := range convs {
+	for _, rc := range rcs {
 		ok := true
+		conv := rc.Conv
 
 		// Existence check
 		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
@@ -388,14 +390,14 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
 			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
-				if i.supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, convs) {
+				if i.supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, rcs) {
 					ok = false
 				}
 			}
 		}
 
 		if ok {
-			res = append(res, conv)
+			res = append(res, rc)
 		} else {
 			filtered++
 		}
@@ -405,14 +407,14 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, conv
 	return res
 }
 
-func (i *Inbox) applyPagination(ctx context.Context, convs []chat1.Conversation,
-	p *chat1.Pagination) ([]chat1.Conversation, *chat1.Pagination, Error) {
+func (i *Inbox) applyPagination(ctx context.Context, convs []types.RemoteConversation,
+	p *chat1.Pagination) ([]types.RemoteConversation, *chat1.Pagination, Error) {
 
 	if p == nil {
 		return convs, nil, nil
 	}
 
-	var res []chat1.Conversation
+	var res []types.RemoteConversation
 	var pnext, pprev pager.InboxPagerFields
 	num := p.Num
 	hasnext := len(p.Next) > 0
@@ -518,7 +520,7 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 	return false
 }
 
-func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []chat1.Conversation, err Error) {
+func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []types.RemoteConversation, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "ReadAll")()
@@ -535,7 +537,7 @@ func (i *Inbox) ReadAll(ctx context.Context) (vers chat1.InboxVers, res []chat1.
 	return ibox.InboxVersion, ibox.Conversations, nil
 }
 
-func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []chat1.Conversation, pagination *chat1.Pagination, err Error) {
+func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.Pagination) (vers chat1.InboxVers, res []types.RemoteConversation, pagination *chat1.Pagination, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Read(%s)", i.uid))()
@@ -634,21 +636,21 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 		// Find any conversations this guy might supersede and set supersededBy pointer
 		for index := range ibox.Conversations {
 			iconv := &ibox.Conversations[index]
-			if iconv.Metadata.FinalizeInfo == nil {
+			if iconv.Conv.Metadata.FinalizeInfo == nil {
 				continue
 			}
 			for _, super := range conv.Metadata.Supersedes {
 				if iconv.GetConvID().Eq(super.ConversationID) {
 					i.Debug(ctx, "NewConversation: setting supersededBy: target: %s superseder: %s",
 						iconv.GetConvID(), conv.GetConvID())
-					iconv.Metadata.SupersededBy = append(iconv.Metadata.SupersededBy, conv.Metadata)
-					iconv.Metadata.Version = vers.ToConvVers()
+					iconv.Conv.Metadata.SupersededBy = append(iconv.Conv.Metadata.SupersededBy, conv.Metadata)
+					iconv.Conv.Metadata.Version = vers.ToConvVers()
 				}
 			}
 		}
 
 		// Add the convo
-		ibox.Conversations = append([]chat1.Conversation{conv}, ibox.Conversations...)
+		ibox.Conversations = append(utils.RemoteConvs([]chat1.Conversation{conv}), ibox.Conversations...)
 	} else {
 		i.Debug(ctx, "NewConversation: skipping update, conversation exists in inbox")
 	}
@@ -658,10 +660,10 @@ func (i *Inbox) NewConversation(ctx context.Context, vers chat1.InboxVers, conv 
 	return i.writeDiskInbox(ctx, ibox)
 }
 
-func (i *Inbox) getConv(convID chat1.ConversationID, convs []chat1.Conversation) (int, *chat1.Conversation) {
+func (i *Inbox) getConv(convID chat1.ConversationID, convs []types.RemoteConversation) (int, *types.RemoteConversation) {
 
 	var index int
-	var conv chat1.Conversation
+	var conv types.RemoteConversation
 	found := false
 	for index, conv = range convs {
 		if conv.GetConvID().Eq(convID) {
@@ -731,45 +733,45 @@ func (i *Inbox) NewMessage(ctx context.Context, vers chat1.InboxVers, convID cha
 	// Update conversation
 	found := false
 	typ := msg.GetMessageType()
-	for mindex, maxmsg := range conv.MaxMsgSummaries {
+	for mindex, maxmsg := range conv.Conv.MaxMsgSummaries {
 		if maxmsg.GetMessageType() == typ {
-			conv.MaxMsgSummaries[mindex] = msg.Summary()
+			conv.Conv.MaxMsgSummaries[mindex] = msg.Summary()
 			found = true
 			break
 		}
 	}
 	if !found {
-		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, msg.Summary())
+		conv.Conv.MaxMsgSummaries = append(conv.Conv.MaxMsgSummaries, msg.Summary())
 	}
 
 	// If we are all up to date on the thread (and the sender is the current user),
 	// mark this message as read too
-	if conv.ReaderInfo.ReadMsgid == conv.ReaderInfo.MaxMsgid &&
+	if conv.Conv.ReaderInfo.ReadMsgid == conv.Conv.ReaderInfo.MaxMsgid &&
 		bytes.Equal(msg.ClientHeader.Sender.Bytes(), i.uid) {
-		conv.ReaderInfo.ReadMsgid = msg.GetMessageID()
+		conv.Conv.ReaderInfo.ReadMsgid = msg.GetMessageID()
 	}
-	conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
-	conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-	conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
-		conv.Metadata.ActiveList)
+	conv.Conv.ReaderInfo.MaxMsgid = msg.GetMessageID()
+	conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+	conv.Conv.Metadata.ActiveList = i.promoteWriter(ctx, msg.ClientHeader.Sender,
+		conv.Conv.Metadata.ActiveList)
 
 	// If we are the sender, adjust the status.
 	if bytes.Equal(msg.ClientHeader.Sender.Bytes(), i.uid) &&
-		utils.GetConversationStatusBehavior(conv.Metadata.Status).SendingRemovesStatus {
-		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
+		utils.GetConversationStatusBehavior(conv.Conv.Metadata.Status).SendingRemovesStatus {
+		conv.Conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
 	// If we are a participant, adjust the status.
-	if utils.GetConversationStatusBehavior(conv.Metadata.Status).ActivityRemovesStatus {
-		conv.Metadata.Status = chat1.ConversationStatus_UNFILED
+	if utils.GetConversationStatusBehavior(conv.Conv.Metadata.Status).ActivityRemovesStatus {
+		conv.Conv.Metadata.Status = chat1.ConversationStatus_UNFILED
 	}
-	conv.Metadata.Version = vers.ToConvVers()
+	conv.Conv.Metadata.Version = vers.ToConvVers()
 
 	// Slot in at the top
 	mconv := *conv
 	i.Debug(ctx, "NewMessage: promoting convID: %s to the top of %d convs", convID,
 		len(ibox.Conversations))
 	ibox.Conversations = append(ibox.Conversations[:index], ibox.Conversations[index+1:]...)
-	ibox.Conversations = append([]chat1.Conversation{mconv}, ibox.Conversations...)
+	ibox.Conversations = append([]types.RemoteConversation{mconv}, ibox.Conversations...)
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -806,13 +808,13 @@ func (i *Inbox) ReadMessage(ctx context.Context, vers chat1.InboxVers, convID ch
 	}
 
 	// Update conv
-	if conv.ReaderInfo.ReadMsgid < msgID {
-		i.Debug(ctx, "ReadMessage: updating mtime: readMsgID: %d msgID: %d", conv.ReaderInfo.ReadMsgid,
+	if conv.Conv.ReaderInfo.ReadMsgid < msgID {
+		i.Debug(ctx, "ReadMessage: updating mtime: readMsgID: %d msgID: %d", conv.Conv.ReaderInfo.ReadMsgid,
 			msgID)
-		conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-		conv.ReaderInfo.ReadMsgid = msgID
+		conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+		conv.Conv.ReaderInfo.ReadMsgid = msgID
 	}
-	conv.Metadata.Version = vers.ToConvVers()
+	conv.Conv.Metadata.Version = vers.ToConvVers()
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -848,9 +850,9 @@ func (i *Inbox) SetStatus(ctx context.Context, vers chat1.InboxVers, convID chat
 		return i.Clear(ctx)
 	}
 
-	conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
-	conv.Metadata.Status = status
-	conv.Metadata.Version = vers.ToConvVers()
+	conv.Conv.ReaderInfo.Mtime = gregor1.ToTime(time.Now())
+	conv.Conv.Metadata.Status = status
+	conv.Conv.Metadata.Version = vers.ToConvVers()
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -886,11 +888,11 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, vers chat1.Inbox
 	}
 	for apptype, kindMap := range settings.Settings {
 		for kind, enabled := range kindMap {
-			conv.Notifications.Settings[apptype][kind] = enabled
+			conv.Conv.Notifications.Settings[apptype][kind] = enabled
 		}
 	}
-	conv.Notifications.ChannelWide = settings.ChannelWide
-	conv.Metadata.Version = vers.ToConvVers()
+	conv.Conv.Notifications.ChannelWide = settings.ChannelWide
+	conv.Conv.Metadata.Version = vers.ToConvVers()
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -924,8 +926,8 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, vers chat1.InboxVers,
 		i.Debug(ctx, "TeamTypeChanged: no conversation found: convID: %s, clearing", convID)
 		return i.Clear(ctx)
 	}
-	conv.Metadata.TeamType = teamType
-	conv.Metadata.Version = vers.ToConvVers()
+	conv.Conv.Metadata.TeamType = teamType
+	conv.Conv.Metadata.Version = vers.ToConvVers()
 
 	// Write out to disk
 	ibox.InboxVersion = vers
@@ -962,8 +964,8 @@ func (i *Inbox) TlfFinalize(ctx context.Context, vers chat1.InboxVers, convIDs [
 			continue
 		}
 
-		conv.Metadata.FinalizeInfo = &finalizeInfo
-		conv.Metadata.Version = vers.ToConvVers()
+		conv.Conv.Metadata.FinalizeInfo = &finalizeInfo
+		conv.Conv.Metadata.Version = vers.ToConvVers()
 	}
 
 	// Write out to disk
@@ -1026,18 +1028,20 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 	}
 	for index, conv := range ibox.Conversations {
 		if newConv, ok := convMap[conv.GetConvID().String()]; ok {
-			if ibox.Conversations[index].Metadata.TeamType != newConv.Metadata.TeamType {
+			if ibox.Conversations[index].Conv.Metadata.TeamType != newConv.Metadata.TeamType {
 				// Changing the team type might be hard for clients of the inbox system to process,
 				// so call it out so they can know a hard update happened here.
 				res.TeamTypeChanged = true
 			}
-			ibox.Conversations[index] = newConv
+			ibox.Conversations[index].Conv = newConv
 			delete(convMap, conv.GetConvID().String())
 		}
 	}
 	i.Debug(ctx, "Sync: adding %d new conversations", len(convMap))
 	for _, conv := range convMap {
-		ibox.Conversations = append(ibox.Conversations, conv)
+		ibox.Conversations = append(ibox.Conversations, types.RemoteConversation{
+			Conv: conv,
+		})
 	}
 	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
@@ -1072,11 +1076,13 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	}
 
 	// Process our own changes
-	var ujs []chat1.Conversation
+	var ujs []types.RemoteConversation
 	for _, uj := range userJoined {
 		i.Debug(ctx, "MembershipUpdate: joined conv: %s", uj.GetConvID())
 		uj.ReaderInfo.Status = chat1.ConversationMemberStatus_ACTIVE
-		ujs = append(ujs, uj)
+		ujs = append(ujs, types.RemoteConversation{
+			Conv: uj,
+		})
 	}
 	convs := i.mergeConvs(ujs, ibox.Conversations)
 	removedMap := make(map[string]bool)
@@ -1087,34 +1093,34 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	ibox.Conversations = nil
 	for _, conv := range convs {
 		if removedMap[conv.GetConvID().String()] {
-			conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
-			conv.Metadata.Version = vers.ToConvVers()
+			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
+			conv.Conv.Metadata.Version = vers.ToConvVers()
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
 	}
 	sort.Sort(ByDatabaseOrder(ibox.Conversations))
 
 	// Update all lists with other people joining and leaving
-	convMap := make(map[string]*chat1.Conversation)
+	convMap := make(map[string]*types.RemoteConversation)
 	for index, c := range ibox.Conversations {
 		convMap[c.GetConvID().String()] = &ibox.Conversations[index]
 	}
 	for _, oj := range othersJoined {
 		if cp, ok := convMap[oj.ConvID.String()]; ok {
-			cp.Metadata.AllList = append(cp.Metadata.AllList, oj.Uid)
-			cp.Metadata.Version = vers.ToConvVers()
+			cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
 	}
 	for _, or := range othersRemoved {
 		if cp, ok := convMap[or.ConvID.String()]; ok {
 			var newAllList []gregor1.UID
-			for _, u := range cp.Metadata.AllList {
+			for _, u := range cp.Conv.Metadata.AllList {
 				if !u.Eq(or.Uid) {
 					newAllList = append(newAllList, u)
 				}
 			}
-			cp.Metadata.AllList = newAllList
-			cp.Metadata.Version = vers.ToConvVers()
+			cp.Conv.Metadata.AllList = newAllList
+			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
 	}
 
