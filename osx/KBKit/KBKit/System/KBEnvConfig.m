@@ -146,7 +146,7 @@
 }
 
 - (NSString *)gitRemoteHelperName {
-  return @"git-remote-keybase"
+  return @"git-remote-keybase";
 }
 
 - (NSString *)kbfsBinName {

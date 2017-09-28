@@ -98,7 +98,7 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 # The KeybaseInstaller.app installs KBFuse, keybase.Helper, services and CLI via a native app
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.58-darwin.tgz"
+installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.59-darwin.tgz"
 # KeybaseUpdater.app is the native updater UI (prompt dialogs)
 updater_url="https://prerelease.keybase.io/darwin-package/KeybaseUpdater-1.0.6-darwin.tgz"
 
@@ -151,12 +151,6 @@ get_deps() {(
 
   if [ ! "$kbfs_binpath" = "" ]; then
     echo "Using local kbfs binpath: $kbfs_binpath"
-    echo $kbfs_binpath
-    echo $git_remote_keybase_binpath
-    ls -l $kbfs_binpath
-    ls -l $git_remote_keybase_binpath
-    ls -l /tmp/build_kbfs
-    ls -l /tmp/build_kbfs/*
     cp "$kbfs_binpath" .
     cp "$git_remote_keybase_binpath" .
   else

@@ -34,6 +34,7 @@
     return;
   }
 
+
   NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: addToPath(%@)", params);
   [self.helperTool.helper sendRequest:@"addToPath" params:@[params] completion:^(NSError *error, id value) {
