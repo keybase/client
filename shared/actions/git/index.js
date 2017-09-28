@@ -42,7 +42,7 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
     return map
   }, {})
 
-  yield put(Entities.replaceEntity(['git', 'idToInfo'], I.Map(idToInfo)))
+  yield put(Entities.replaceEntity(['git'], {idToInfo: I.Map(idToInfo)}))
   yield put(Creators.setLoading(false))
 }
 
