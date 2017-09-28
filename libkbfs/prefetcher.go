@@ -81,7 +81,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		retriever:         retriever,
 		prefetchRequestCh: make(chan *prefetchRequest, maxNumPrefetches),
 		shutdownCh:        make(chan struct{}),
-		almostDoneCh:      make(chan struct{}),
+		almostDoneCh:      make(chan struct{}, 1),
 		doneCh:            make(chan struct{}),
 		// TODO: re-evaluate the size of this channel
 		prefetchCancelCh: make(chan kbfsblock.ID, maxNumPrefetches),
@@ -176,32 +176,32 @@ top:
 		ch := <-p.inFlightFetches
 		<-ch
 	}
-	close(p.almostDoneCh)
+	p.almostDoneCh <- struct{}{}
 }
 
 // run prefetches blocks.
 // E.g. a synced prefetch:
 // a -> {b -> c, d -> e}:
 // 1) a is fetched, triggers b and d.
-//    * a is 2.
-// 2) b is fetched, decrements b and a by 1, and
-//    triggers c to increment them both.
+//    * a:2 -> {b:1, d:1}
+// 2) b is fetched, decrements b and a by 1, and triggers c to increment them
+//    both.
+//    * a:2 -> {b:1 -> c:1, d:1}
 // 3) c is fetched, and isTail==true so it completes up the tree.
-//    * b is 0, so it gets flagged FinishedPrefetch.
-//    * a is 1.
-// 4) d is fetched, decrements d and a by 1, and
-//    triggers e to increment them both.
+//    * a:1 -> {d:1}
+// 4) d is fetched, decrements d and a by 1, and triggers e to increment them
+//    both.
+//    * a:1 -> {d:1 -> e:1}
 // 5) e is fetched, completing d and a.
+//    * <empty>
 func (p *blockPrefetcher) run() {
 	defer func() {
 		close(p.doneCh)
 	}()
-	doneCounter := -1
+	isShuttingDown := false
 	for {
-		if doneCounter > 0 {
-			doneCounter--
-		}
-		if doneCounter == 0 {
+		if isShuttingDown && len(p.inFlightFetches) == 0 &&
+			len(p.prefetchRequestCh) == 0 && len(p.prefetchCancelCh) == 0 {
 			return
 		}
 		select {
@@ -332,7 +332,7 @@ func (p *blockPrefetcher) run() {
 				pp.subtreeBlockCount += numBlocks
 			}, req.ptr.ID, pre)
 		case <-p.almostDoneCh:
-			doneCounter = len(p.prefetchRequestCh) + 1
+			isShuttingDown = true
 		}
 	}
 }
