@@ -1200,17 +1200,15 @@ func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
 		return err
 	}
 
+	settings, err := CreateTeamSettings(open, keybase1.TeamRole_READER)
+	if err != nil {
+		return err
+	}
+
 	section := SCTeamSection{
-		ID:    SCTeamID(t.ID),
-		Admin: admin,
-		Settings: &SCTeamSettings{
-			Open: &SCTeamSettingsOpen{
-				Enabled: open,
-				Options: &SCTeamSettingsOpenOptions{
-					JoinAs: "reader",
-				},
-			},
-		},
+		ID:       SCTeamID(t.ID),
+		Admin:    admin,
+		Settings: &settings,
 	}
 
 	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})

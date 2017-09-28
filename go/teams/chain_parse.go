@@ -3,6 +3,7 @@ package teams
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -227,5 +228,34 @@ func (i SCTeamInvite) TeamInvite(g *libkb.GlobalContext, r keybase1.TeamRole, in
 		Type:    typ,
 		Name:    keybase1.TeamInviteName(i.Name),
 		Inviter: inviter,
+	}, nil
+}
+
+func CreateTeamSettings(open bool, joinAs keybase1.TeamRole) (SCTeamSettings, error) {
+	if !open {
+		return SCTeamSettings{
+			Open: &SCTeamSettingsOpen{
+				Enabled: false,
+			},
+		}, nil
+	}
+
+	var roleStr string
+	switch joinAs {
+	case keybase1.TeamRole_READER:
+		roleStr = "reader"
+	case keybase1.TeamRole_WRITER:
+		roleStr = "writer"
+	default:
+		return SCTeamSettings{}, fmt.Errorf("%v is not a valid joinAs role for open team", joinAs)
+	}
+
+	return SCTeamSettings{
+		Open: &SCTeamSettingsOpen{
+			Enabled: true,
+			Options: &SCTeamSettingsOpenOptions{
+				JoinAs: roleStr,
+			},
+		},
 	}, nil
 }

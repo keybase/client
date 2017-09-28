@@ -362,14 +362,11 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 	}
 
 	if open {
-		teamSection.Settings = &SCTeamSettings{
-			Open: &SCTeamSettingsOpen{
-				Enabled: true,
-				Options: &SCTeamSettingsOpenOptions{
-					JoinAs: "reader",
-				},
-			},
+		settings, err := CreateTeamSettings(true, keybase1.TeamRole_READER)
+		if err != nil {
+			return SCTeamSection{}, err
 		}
+		teamSection.Settings = &settings
 	}
 
 	// At this point the team section has every field filled out except the
