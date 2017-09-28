@@ -31,6 +31,7 @@ import (
 	gogitcfg "gopkg.in/src-d/go-git.v4/config"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/storage"
+	"gopkg.in/src-d/go-git.v4/storage/filesystem"
 )
 
 const (
@@ -822,6 +823,49 @@ func (r *runner) copyFile(
 	return err
 }
 
+func (r *runner) copyFileWithCount(
+	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
+	name, countingText, countingProf, copyingText, copyingProf string) error {
+	var sw *statusWriter
+	if r.verbosity >= 1 {
+		// Get the total number of bytes we expect to fetch, for the
+		// progress report.
+		startTime := r.config.Clock().Now()
+		zeroStr := fmt.Sprintf("%s... ", humanizeBytes(0, 1))
+		r.errput.Write([]byte(fmt.Sprintf("%s: %s", countingText, zeroStr)))
+		fi, err := from.Stat(name)
+		if err != nil {
+			return err
+		}
+		eraseStr := strings.Repeat("\b", len(zeroStr))
+		newStr := fmt.Sprintf("%s... done.", humanizeBytes(fi.Size(), 1))
+		r.errput.Write([]byte(eraseStr + newStr))
+
+		elapsedStr := r.getElapsedStr(
+			ctx, startTime, fmt.Sprintf("mem.%s.prof", countingProf), "")
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+
+		sw = &statusWriter{r, nil, 0, fi.Size(), 0}
+		r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+	}
+
+	// Copy the entire objects subdirectory straight into the git
+	// directory.  This saves time and memory from having to calculate
+	// packfiles.
+	startTime := r.config.Clock().Now()
+	err := r.copyFile(ctx, from, to, name, sw)
+	if err != nil {
+		return err
+	}
+
+	if r.verbosity >= 1 {
+		elapsedStr := r.getElapsedStr(
+			ctx, startTime, fmt.Sprintf("mem.%s.prof", copyingProf), "")
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+	}
+	return nil
+}
+
 // recursiveCopy copies the entire subdirectory rooted at `fs` to
 // `localFS`.
 func (r *runner) recursiveCopy(
@@ -860,6 +904,44 @@ func (r *runner) recursiveCopy(
 	return nil
 }
 
+func (r *runner) recursiveCopyWithCounts(
+	ctx context.Context, from billy.Filesystem, to billy.Filesystem,
+	countingText, countingProf, copyingText, copyingProf string) error {
+	var sw *statusWriter
+	if r.verbosity >= 1 {
+		// Get the total number of bytes we expect to fetch, for the
+		// progress report.
+		startTime := r.config.Clock().Now()
+		r.errput.Write([]byte(fmt.Sprintf("%s: ", countingText)))
+		b, _, err := r.recursiveByteCount(ctx, from, 0, 0)
+		if err != nil {
+			return err
+		}
+		elapsedStr := r.getElapsedStr(
+			ctx, startTime, fmt.Sprintf("mem.%s.prof", countingProf), "")
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+
+		sw = &statusWriter{r, nil, 0, b, 0}
+		r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
+	}
+
+	// Copy the entire objects subdirectory straight into the git
+	// directory.  This saves time and memory from having to calculate
+	// packfiles.
+	startTime := r.config.Clock().Now()
+	err := r.recursiveCopy(ctx, from, to, sw)
+	if err != nil {
+		return err
+	}
+
+	if r.verbosity >= 1 {
+		elapsedStr := r.getElapsedStr(
+			ctx, startTime, fmt.Sprintf("mem.%s.prof", copyingProf), "")
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+	}
+	return nil
+}
+
 // handleClone copies all the object files of a KBFS repo directly
 // into the local git dir, instead of using go-git to calculate the
 // full set of objects that are to be transferred (which is slow and
@@ -892,35 +974,11 @@ func (r *runner) handleClone(ctx context.Context) (err error) {
 	}
 	localFSObjects := osfs.New(localObjectsPath)
 
-	var sw *statusWriter
-	if r.verbosity >= 1 {
-		// Get the total number of bytes we expect to fetch, for the
-		// progress report.
-		startTime := r.config.Clock().Now()
-		r.errput.Write([]byte("Counting: "))
-		b, _, err := r.recursiveByteCount(ctx, fsObjects, 0, 0)
-		if err != nil {
-			return err
-		}
-		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.count.prof", "")
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
-
-		sw = &statusWriter{r, nil, 0, b, 0}
-		r.errput.Write([]byte("Cryptographic cloning: "))
-	}
-
-	// Copy the entire objects subdirectory straight into the git
-	// directory.  This saves time and memory from having to calculate
-	// packfiles.
-	startTime := r.config.Clock().Now()
-	err = r.recursiveCopy(ctx, fsObjects, localFSObjects, sw)
+	err = r.recursiveCopyWithCounts(
+		ctx, fsObjects, localFSObjects,
+		"Counting", "count", "Cryptographic cloning", "clone")
 	if err != nil {
 		return err
-	}
-
-	if r.verbosity >= 1 {
-		elapsedStr := r.getElapsedStr(ctx, startTime, "mem.clone.prof", "")
-		r.errput.Write([]byte("done." + elapsedStr + "\n"))
 	}
 	_, err = r.output.Write([]byte("\n"))
 	return err
@@ -1014,40 +1072,143 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 	return err
 }
 
-// handlePushBatch: From https://git-scm.com/docs/git-remote-helpers
-//
-// push +<src>:<dst>
-// Pushes the given local <src> commit or branch to the remote branch
-// described by <dst>. A batch sequence of one or more push commands
-// is terminated with a blank line (if there is only one reference to
-// push, a single push command is followed by a blank line). For
-// example, the following would be two batches of push, the first
-// asking the remote-helper to push the local ref master to the remote
-// ref master and the local HEAD to the remote branch, and the second
-// asking to push ref foo to ref bar (forced update requested by the
-// +).
-//
-// push refs/heads/master:refs/heads/master
-// push HEAD:refs/heads/branch
-// \n
-// push +refs/heads/foo:refs/heads/bar
-// \n
-//
-// Zero or more protocol options may be entered after the last push
-// command, before the batch’s terminating blank line.
-//
-// When the push is complete, outputs one or more ok <dst> or error
-// <dst> <why>? lines to indicate success or failure of each pushed
-// ref. The status report output is terminated by a blank line. The
-// option field <why> may be quoted in a C style string if it contains
-// an LF.
-func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
-	err error) {
-	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
+// canPushAll returns true if a) the KBFS repo is currently empty, and
+// b) we've been asked to push all the local references (i.e.,
+// --all/--mirror).
+func (r *runner) canPushAll(
+	ctx context.Context, repo *gogit.Repository, args [][]string) (
+	bool, error) {
+	refs, err := repo.References()
+	if err != nil {
+		return false, err
+	}
+	defer refs.Close()
+
+	for {
+		ref, err := refs.Next()
+		if errors.Cause(err) == io.EOF {
+			break
+		} else if err != nil {
+			return false, err
+		}
+
+		if ref.Type() != plumbing.SymbolicReference {
+			r.log.CDebugf(ctx, "Remote has at least one non-symbolic ref: %s",
+				ref.String())
+			return false, nil
+		}
+	}
+
+	sources := make(map[string]bool)
+	for _, push := range args {
+		if len(push) != 1 {
+			return false, errors.Errorf("Bad push request: %v", push)
+		}
+		refspec := gogitcfg.RefSpec(push[0])
+		// If some ref is being pushed to a different name on the
+		// remote, we can't do a push-all.
+		if refspec.Src() != refspec.Dst("").String() {
+			return false, nil
+		}
+
+		src := refspec.Src()
+		sources[src] = true
+	}
+
+	localGit := osfs.New(r.gitDir)
+	localStorer, err := filesystem.NewStorage(localGit)
+	if err != nil {
+		return false, err
+	}
+	// The worktree is not used for listing refs, but is required to
+	// be non-nil to open a non-bare repo.
+	fakeWorktree := osfs.New("/dev/null")
+	localRepo, err := gogit.Open(localStorer, fakeWorktree)
+	if err != nil {
+		return false, err
+	}
+
+	localRefs, err := localRepo.References()
+	if err != nil {
+		return false, err
+	}
+
+	for {
+		ref, err := localRefs.Next()
+		if errors.Cause(err) == io.EOF {
+			break
+		}
+		if err != nil {
+			return false, err
+		}
+
+		if ref.Type() == plumbing.SymbolicReference {
+			continue
+		}
+
+		// If the local repo has a non-symbolic ref that's not being
+		// pushed, we can't push everything blindly, otherwise we
+		// might leak some data.
+		if !sources[ref.Name().String()] {
+			r.log.CDebugf(ctx, "Not pushing local ref %s (name=%s)", ref)
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
+
+func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
+	r.log.CDebugf(ctx, "Pushing the entire local repo")
+	localFS := osfs.New(r.gitDir)
+
+	// First copy objects.
+	localFSObjects, err := localFS.Chroot("objects")
+	if err != nil {
+		return err
+	}
+	fsObjects, err := fs.Chroot("objects")
+	if err != nil {
+		return err
+	}
+	err = r.recursiveCopyWithCounts(
+		ctx, localFSObjects, fsObjects,
+		"Counting objects", "countobj", "Pushing objects", "pushobj")
 	if err != nil {
 		return err
 	}
 
+	// Next, copy refs.
+	localFSRefs, err := localFS.Chroot("refs")
+	if err != nil {
+		return err
+	}
+	fsRefs, err := fs.Chroot("refs")
+	if err != nil {
+		return err
+	}
+	err = r.recursiveCopyWithCounts(
+		ctx, localFSRefs, fsRefs,
+		"Counting refs", "countref", "Pushing refs", "pushref")
+	if err != nil {
+		return err
+	}
+
+	// Finally, packed refs if it exists.
+	_, err = localFS.Stat("packed-refs")
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	return r.copyFileWithCount(ctx, localFS, fs, "packed-refs",
+		"Counting packed refs", "countprefs", "Pushing packed refs",
+		"pushprefs")
+}
+
+func (r *runner) pushSome(
+	ctx context.Context, repo *gogit.Repository, args [][]string) (
+	map[string]error, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
@@ -1059,12 +1220,12 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	var refspecs []gogitcfg.RefSpec
 	for _, push := range args {
 		if len(push) != 1 {
-			return errors.Errorf("Bad push request: %v", push)
+			return nil, errors.Errorf("Bad push request: %v", push)
 		}
 		refspec := gogitcfg.RefSpec(push[0])
 		err := refspec.Validate()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Delete the reference in the repo if needed; otherwise,
@@ -1123,6 +1284,65 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			dst := refStr[start:]
 			results[dst] = err
 		}
+	}
+	return results, nil
+}
+
+// handlePushBatch: From https://git-scm.com/docs/git-remote-helpers
+//
+// push +<src>:<dst>
+// Pushes the given local <src> commit or branch to the remote branch
+// described by <dst>. A batch sequence of one or more push commands
+// is terminated with a blank line (if there is only one reference to
+// push, a single push command is followed by a blank line). For
+// example, the following would be two batches of push, the first
+// asking the remote-helper to push the local ref master to the remote
+// ref master and the local HEAD to the remote branch, and the second
+// asking to push ref foo to ref bar (forced update requested by the
+// +).
+//
+// push refs/heads/master:refs/heads/master
+// push HEAD:refs/heads/branch
+// \n
+// push +refs/heads/foo:refs/heads/bar
+// \n
+//
+// Zero or more protocol options may be entered after the last push
+// command, before the batch’s terminating blank line.
+//
+// When the push is complete, outputs one or more ok <dst> or error
+// <dst> <why>? lines to indicate success or failure of each pushed
+// ref. The status report output is terminated by a blank line. The
+// option field <why> may be quoted in a C style string if it contains
+// an LF.
+func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
+	err error) {
+	repo, fs, err := r.initRepoIfNeeded(ctx, gitCmdPush)
+	if err != nil {
+		return err
+	}
+
+	canPushAll, err := r.canPushAll(ctx, repo, args)
+	if err != nil {
+		return err
+	}
+	var results map[string]error
+	if canPushAll {
+		err = r.pushAll(ctx, fs)
+		results = make(map[string]error, len(args))
+		for _, push := range args {
+			if len(push) != 1 {
+				return errors.Errorf("Bad push request: %v", push)
+			}
+			start := strings.Index(push[0], ":") + 1
+			dst := push[0][start:]
+			results[dst] = err
+		}
+	} else {
+		results, err = r.pushSome(ctx, repo, args)
+	}
+	if err != nil {
+		return err
 	}
 
 	err = r.waitForJournal(ctx)

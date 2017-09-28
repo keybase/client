@@ -400,3 +400,27 @@ func TestForcePush(t *testing.T) {
 	// But a force push should work
 	testPush(t, ctx, config, git, "+refs/heads/master:refs/heads/master")
 }
+
+func TestPushAllWithPackedRefs(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer os.RemoveAll(tempdir)
+
+	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git)
+
+	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
+
+	dotgit := filepath.Join(git, ".git")
+	cmd := exec.Command(
+		"git", "--git-dir", dotgit, "--work-tree", git, "pack-refs", "--all")
+	err = cmd.Run()
+	require.NoError(t, err)
+
+	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+
+	// Should be able to update the branch in a non-force way, even
+	// though it's a packed-ref.
+	addOneFileToRepo(t, git, "foo2", "hello2")
+	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+}

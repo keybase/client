@@ -311,7 +311,7 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 		err = translateErr(err)
 	}()
 
-	if filename == "/" || filename == "" {
+	if filename == "/" || filename == "" || filename == "." {
 		return nil
 	}
 
@@ -324,7 +324,13 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 	// Make all necessary dirs.
 	for _, p := range parts {
 		n, _, err = fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
-		if err != nil {
+		switch errors.Cause(err).(type) {
+		case libkbfs.NameExistsError:
+			// The child directory already exists.
+			continue
+		case nil:
+			continue
+		default:
 			return err
 		}
 	}
