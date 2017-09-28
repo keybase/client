@@ -151,12 +151,12 @@ var topTests = []topTest{
 	{input: `{"id": 39, "method": "mark", "params":{"version": 1}}`, markV1: 1},
 }
 
-// TestChatAPIDecoderTop tests that the "top-level" of the chat json makes it to
+// TestChatAPIVersionHandlerTop tests that the "top-level" of the chat json makes it to
 // the correct functions in a ChatAPIHandler.
-func TestChatAPIDecoderTop(t *testing.T) {
+func TestChatAPIVersionHandlerTop(t *testing.T) {
 	for i, test := range topTests {
 		h := new(handlerTracker)
-		d := NewChatAPIDecoder(h)
+		d := NewChatAPIVersionHandler(h)
 		c := &cmdAPI{}
 		var buf bytes.Buffer
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
@@ -371,11 +371,11 @@ var optTests = []optTest{
 	},
 }
 
-// TestChatAPIDecoderOptions tests the option decoding.
-func TestChatAPIDecoderOptions(t *testing.T) {
+// TestChatAPIVersionHandlerOptions tests the option decoding.
+func TestChatAPIVersionHandlerOptions(t *testing.T) {
 	for i, test := range optTests {
 		h := &ChatAPI{svcHandler: new(chatEcho)}
-		d := NewChatAPIDecoder(h)
+		d := NewChatAPIVersionHandler(h)
 		c := &cmdAPI{}
 		var buf bytes.Buffer
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
@@ -465,7 +465,7 @@ var echoTests = []echoTest{
 func TestChatAPIEcho(t *testing.T) {
 	for i, test := range echoTests {
 		h := &ChatAPI{svcHandler: new(chatEcho)}
-		d := NewChatAPIDecoder(h)
+		d := NewChatAPIVersionHandler(h)
 		var buf bytes.Buffer
 		c := &cmdAPI{}
 		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)

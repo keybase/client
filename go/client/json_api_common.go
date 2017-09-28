@@ -185,16 +185,6 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 		if err := h.handle(ctx, c, w); err != nil {
 			return err
 		}
-		/*
-			switch c.Params.Version {
-			case 0, 1:
-				if err := d.handleV1(ctx, c, w); err != nil {
-					return err
-				}
-			default:
-				return ErrInvalidVersion{version: c.Params.Version}
-			}
-		*/
 	}
 
 	return nil

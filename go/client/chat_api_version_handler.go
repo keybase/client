@@ -9,17 +9,17 @@ import (
 	"golang.org/x/net/context"
 )
 
-type ChatAPIDecoder struct {
+type ChatAPIVersionHandler struct {
 	handler ChatAPIHandler
 }
 
-func NewChatAPIDecoder(h ChatAPIHandler) *ChatAPIDecoder {
-	return &ChatAPIDecoder{
+func NewChatAPIVersionHandler(h ChatAPIHandler) *ChatAPIVersionHandler {
+	return &ChatAPIVersionHandler{
 		handler: h,
 	}
 }
 
-func (d *ChatAPIDecoder) handle(ctx context.Context, c Call, w io.Writer) error {
+func (d *ChatAPIVersionHandler) handle(ctx context.Context, c Call, w io.Writer) error {
 	switch c.Params.Version {
 	case 0, 1:
 		return d.handleV1(ctx, c, w)
@@ -28,7 +28,7 @@ func (d *ChatAPIDecoder) handle(ctx context.Context, c Call, w io.Writer) error 
 	}
 }
 
-func (d *ChatAPIDecoder) handleV1(ctx context.Context, c Call, w io.Writer) error {
+func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Writer) error {
 	switch c.Method {
 	case methodList:
 		return d.handler.ListV1(ctx, c, w)

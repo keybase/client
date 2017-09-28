@@ -26,7 +26,7 @@ func NewCmdChatAPIRunner(g *libkb.GlobalContext) *CmdChatAPI {
 
 func (c *CmdChatAPI) Run() error {
 	h := newChatServiceHandler(c.G())
-	d := NewChatAPIDecoder(&ChatAPI{svcHandler: h, indent: c.indent})
+	d := NewChatAPIVersionHandler(&ChatAPI{svcHandler: h, indent: c.indent})
 
 	return c.runHandler(d)
 }
