@@ -1863,8 +1863,6 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 				newState.inner.OpenTeamJoinAs = keybase1.TeamRole_READER
 			case "writer":
 				newState.inner.OpenTeamJoinAs = keybase1.TeamRole_WRITER
-			case "":
-				// noop
 			default:
 				return fmt.Errorf("invalid join_as role in open team: %s", options.JoinAs)
 			}
