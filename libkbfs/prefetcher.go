@@ -193,7 +193,7 @@ top:
 // 4) d is fetched, and isTail==true so it completes up the tree.
 //    * a:1 -> {e:1}
 // 5) e is fetched, decrements e and a by 1, and triggers f and g to increment
-//    them both.
+//    e an a by 2.
 //    * a:2 -> {e:2 -> {f:1, g:1}}
 // 6) f is fetched, and isTail==true so it completes up the tree.
 //    * a:1 -> {e:1 -> {g:1}}
@@ -229,15 +229,17 @@ func (p *blockPrefetcher) run() {
 				}
 				if pre.subtreeTriggered {
 					// Redundant prefetch request.
+					// We've already seen _this_ block, and already triggered
+					// prefetches for its children. No use doing it again!
 					if pre.subtreeBlockCount == 0 {
 						// Only this block is left, and we didn't prefetch on a
 						// previous prefetch through to the tail. So we cancel
-						// up the tree.
+						// up the tree. This still allows upgrades from an
+						// unsynced block to a synced block, since p.prefetches
+						// should be ephemeral.
 						p.applyToParentsRecursive(p.cancelPrefetch, req.ptr.ID,
 							pre)
 					}
-					// We've already seen _this_ block, and already triggered
-					// prefetches for its children. No use doing it again!
 					continue
 				} else {
 					// This block was in the tree and thus was counted, but now
