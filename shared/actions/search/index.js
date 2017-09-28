@@ -205,7 +205,7 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
     yield put(Creators.finishedSearch(searchKey, ids, term, service))
     yield all([
       put(EntityAction.replaceEntity(['searchKeyToResults'], {[searchKey]: ids})),
-      put(EntityAction.replaceEntity(['searchKeyToShowSearchSuggestion'], {[searchKey]: true})),
+      put(EntityAction.replaceEntity(['searchKeyToShowSearchSuggestion'], {[searchKey]: false})),
     ])
   } catch (error) {
     console.warn('error in searching', error)
