@@ -213,7 +213,8 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	}
 
 	if !team.IsOpen() {
-		return fmt.Errorf("team %q is not an open team", team.Name)
+		g.Log.CDebugf(ctx, "team %q is not an open team", team.Name)
+		return nil // Not an error - let the handler dismiss the message.
 	}
 
 	var req keybase1.TeamChangeReq
