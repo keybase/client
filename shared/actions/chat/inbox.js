@@ -3,6 +3,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
+import * as EntityCreators from '../entities'
 import {RPCTimeoutError} from '../../util/errors'
 import {List, Map} from 'immutable'
 import {
@@ -132,6 +133,12 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
+    const snippets = (inbox.items || []).reduce((map, c) => {
+      const snippet = c.localMetadata ? c.localMetadata.snippet : ''
+      map[c.convID] = new HiddenString(Constants.makeSnippet(snippet) || '')
+      return map
+    }, {})
+
     const conversations: List<Constants.InboxState> = List(
       (inbox.items || [])
         .map(c => {
@@ -146,11 +153,13 @@ function* onInboxStale(): SagaGenerator<any, any> {
             teamType: c.teamType,
             time: c.time,
             version: c.version,
+            channelname: c.localMetadata ? c.localMetadata.channelName : null,
           })
         })
         .filter(Boolean)
     )
 
+    yield put(EntityCreators.replaceEntity(['convIDToSnippet'], snippets))
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 

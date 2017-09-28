@@ -239,6 +239,43 @@ func (i *Inbox) hashQuery(ctx context.Context, query *chat1.GetInboxQuery) (quer
 	return hasher.Sum(nil), nil
 }
 
+func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.ConversationLocal) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "MergeLocalMetadata")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return err
+		}
+		// If we don't have anything on disk, then just do nothing
+		i.Debug(ctx, "MergeLocalMetadata: no inbox found to merge against")
+		return nil
+	}
+
+	convMap := make(map[string]*chat1.ConversationLocal)
+	for _, conv := range convs {
+		convMap[conv.GetConvID().String()] = &conv
+	}
+	for index, rc := range ibox.Conversations {
+		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
+			ibox.Conversations[index].LocalMetadata = &types.RemoteConversationMetadata{
+				TopicName: utils.GetTopicName(*convLocal),
+				Headline:  utils.GetHeadline(*convLocal),
+				Snippet:   utils.GetConvSnippet(*convLocal),
+			}
+		}
+	}
+
+	// Make sure that the inbox is in the write order before writing out
+	sort.Sort(ByDatabaseOrder(ibox.Conversations))
+
+	// Write out new inbox
+	return i.writeDiskInbox(ctx, ibox)
+}
+
 func (i *Inbox) Merge(ctx context.Context, vers chat1.InboxVers, convsIn []chat1.Conversation,
 	query *chat1.GetInboxQuery, p *chat1.Pagination) (err Error) {
 	locks.Inbox.Lock()

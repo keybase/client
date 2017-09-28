@@ -503,6 +503,13 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return inbox, rl, err
 	}
+
+	// Write metadata to the inbox cache
+	if err = storage.NewInbox(s.G(), uid).MergeLocalMetadata(ctx, inbox.Convs); err != nil {
+		// Don't abort the operaton on this kind of error
+		s.Debug(ctx, "Read: unable to write inbox local metadata: %s", err)
+	}
+
 	return inbox, rl, nil
 }
 
