@@ -22,7 +22,7 @@ func newCmdGitCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		Name:         "create",
 		ArgumentHelp: "<repo name> [--team=<team name>]",
 		Usage:        "Create a personal or team git repository.",
-		Description:  "`keybase git create reponame` will create a personal git repo.\n`keybase git create reponame --team=treehouse` will\ncreate a team git repo for the `treehouse` team.\n",
+		Description:  "`keybase git create reponame` will create a personal git repo.\n   `keybase git create reponame --team=treehouse` will create a\n   team git repo for the `treehouse` team.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdGitCreateRunner(g)
 			cl.ChooseCommand(cmd, "create", c)

@@ -260,6 +260,26 @@ func (m *Message) SetCTime(ctime time.Time) {
 	}
 }
 
+func (m *Message) SetUID(uid UID) error {
+	if m.Ibm_ != nil {
+		if m.Ibm_.StateUpdate_ != nil {
+			m.Ibm_.StateUpdate_.Md_.Uid_ = uid
+			return nil
+		}
+		if m.Ibm_.StateSync_ != nil {
+			m.Ibm_.StateSync_.Md_.Uid_ = uid
+			return nil
+		}
+		return errors.New("unable to set uid on inband message (no StatUpdate or StateSync)")
+	}
+	if m.Oobm_ != nil {
+		m.Oobm_.Uid_ = uid
+		return nil
+	}
+
+	return errors.New("unable to set uid (no inband or out-of-band message)")
+}
+
 func (r Reminder) Item() gregor.Item     { return r.Item_ }
 func (r Reminder) RemindTime() time.Time { return FromTime(r.RemindTime_) }
 func (r Reminder) Seqno() int            { return r.Seqno_ }

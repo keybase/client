@@ -335,6 +335,7 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 }
 
 var cleanPGPInputRxx = regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
+var bug8612PrepassRxx = regexp.MustCompile(`^(?P<header>-{5}BEGIN PGP (.*?)-{5})(\s*(?P<junk>.+?))$`)
 
 func cleanPGPInput(s string) string {
 	s = strings.TrimSpace(s)
@@ -346,7 +347,44 @@ func cleanPGPInput(s string) string {
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
 func ReadOneKeyFromString(originalArmor string) (*PGPKeyBundle, *Warnings, error) {
+	return readOneKeyFromString(originalArmor, false /* liberal */)
+}
+
+// bug8612Prepass cleans off any garbage trailing the "-----" in the first line of a PGP
+// key. For years, the server allowed this junk through, so some keys on the server side
+// (and hashed into chains) have junk here. It's pretty safe to strip it out when replaying
+// sigchains, so do it.
+func bug8612Prepass(a string) string {
+	idx := strings.Index(a, "\n")
+	if idx < 0 {
+		return a
+	}
+	line0 := a[0:idx]
+	rest := a[idx:]
+	match := bug8612PrepassRxx.FindStringSubmatch(line0)
+	if len(match) == 0 {
+		return a
+	}
+	result := make(map[string]string)
+	for i, name := range bug8612PrepassRxx.SubexpNames() {
+		if i != 0 {
+			result[name] = match[i]
+		}
+	}
+	return result["header"] + rest
+}
+
+// note:  openpgp.ReadArmoredKeyRing only returns the first block.
+// It will never return multiple entities.
+func ReadOneKeyFromStringLiberal(originalArmor string) (*PGPKeyBundle, *Warnings, error) {
+	return readOneKeyFromString(originalArmor, true /* liberal */)
+}
+
+func readOneKeyFromString(originalArmor string, liberal bool) (*PGPKeyBundle, *Warnings, error) {
 	cleanArmor := cleanPGPInput(originalArmor)
+	if liberal {
+		cleanArmor = bug8612Prepass(cleanArmor)
+	}
 	reader := strings.NewReader(cleanArmor)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
 	return finishReadOne(el, originalArmor, err)

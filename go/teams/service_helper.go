@@ -3,9 +3,11 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -120,6 +122,97 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
+func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, error) {
+	arg := keybase1.Identify2Arg{
+		UserAssertion:    username,
+		UseDelegateUI:    false,
+		Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
+		CanSuppressUI:    true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		NeedProofSet:     true,
+	}
+	eng := engine.NewResolveThenIdentify2(g, &arg)
+	ectx := &engine.Context{
+		NetContext: ctx,
+	}
+	if err := engine.RunEngine(eng, ectx); err != nil {
+		return nil, err
+	}
+	return eng.GetProofSet(), nil
+}
+
+func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion, req *keybase1.TeamChangeReq) error {
+	if team.NumActiveInvites() == 0 {
+		return nil
+	}
+
+	proofs, err := getUserProofs(ctx, g, username)
+	if err != nil {
+		return err
+	}
+
+	actx := g.MakeAssertionContext()
+
+	var completedInvites = map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm{}
+
+	for i, invite := range team.chain().inner.ActiveInvites {
+		g.Log.CDebugf(ctx, "tryToCompleteInvites invite %q %+v", i, invite)
+		ityp, err := invite.Type.String()
+		if err != nil {
+			return err
+		}
+		category, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+
+		if category != keybase1.TeamInviteCategory_SBS {
+			continue
+		}
+
+		proofsWithType := proofs.Get([]string{ityp})
+
+		var proof *libkb.Proof
+		for _, p := range proofsWithType {
+			if p.Value == string(invite.Name) {
+				proof = &p
+				break
+			}
+		}
+
+		if proof == nil {
+			continue
+		}
+
+		assertionStr := fmt.Sprintf("%s@%s", string(invite.Name), ityp)
+		g.Log.CDebugf(ctx, "Found proof in user's ProofSet: key: %s value: %q; invite proof is %s", proof.Key, proof.Value, assertionStr)
+
+		resolveResult := g.Resolver.ResolveFullExpressionNeedUsername(ctx, assertionStr)
+		g.Log.CDebugf(ctx, "Resolve result is: %+v", resolveResult)
+		if resolveResult.GetError() != nil || resolveResult.GetUID() != uv.Uid {
+			// Cannot resolve invitation or it does not match user
+			continue
+		}
+
+		parsedAssertion, err := libkb.AssertionParseAndOnly(actx, assertionStr)
+		if err != nil {
+			return err
+		}
+
+		resolvedAssertion := libkb.ResolvedAssertion{
+			UID:           uv.Uid,
+			Assertion:     parsedAssertion,
+			ResolveResult: resolveResult,
+		}
+		if err := verifyResolveResult(ctx, g, resolvedAssertion); err == nil {
+			completedInvites[invite.Id] = uv.PercentForm()
+		}
+	}
+
+	req.CompletedInvites = completedInvites
+	return nil
+}
+
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
@@ -156,7 +249,11 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		}
 		req.None = []keybase1.UserVersion{existingUV}
 	}
-
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+	if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
+		g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
+	}
+	timeoutCancel()
 	if err := t.ChangeMembership(ctx, req); err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}

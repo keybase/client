@@ -64,6 +64,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewTlfs = 0
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
+	b.state.NewGitRepoGlobalUniqueIDs = []string{}
 
 	items, err := gstate.Items()
 	if err != nil {

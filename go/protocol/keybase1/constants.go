@@ -91,6 +91,10 @@ const (
 	StatusCode_SCInstallError              StatusCode = 1804
 	StatusCode_SCLoadKextError             StatusCode = 1810
 	StatusCode_SCLoadKextPermError         StatusCode = 1811
+	StatusCode_SCGitInternal               StatusCode = 2300
+	StatusCode_SCGitRepoAlreadyExists      StatusCode = 2301
+	StatusCode_SCGitInvalidRepoName        StatusCode = 2302
+	StatusCode_SCGitCannotDelete           StatusCode = 2303
 	StatusCode_SCLoginStateTimeout         StatusCode = 2400
 	StatusCode_SCChatInternal              StatusCode = 2500
 	StatusCode_SCChatRateLimit             StatusCode = 2501
@@ -226,6 +230,10 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCInstallError":              1804,
 	"SCLoadKextError":             1810,
 	"SCLoadKextPermError":         1811,
+	"SCGitInternal":               2300,
+	"SCGitRepoAlreadyExists":      2301,
+	"SCGitInvalidRepoName":        2302,
+	"SCGitCannotDelete":           2303,
 	"SCLoginStateTimeout":         2400,
 	"SCChatInternal":              2500,
 	"SCChatRateLimit":             2501,
@@ -359,6 +367,10 @@ var StatusCodeRevMap = map[StatusCode]string{
 	1804: "SCInstallError",
 	1810: "SCLoadKextError",
 	1811: "SCLoadKextPermError",
+	2300: "SCGitInternal",
+	2301: "SCGitRepoAlreadyExists",
+	2302: "SCGitInvalidRepoName",
+	2303: "SCGitCannotDelete",
 	2400: "SCLoginStateTimeout",
 	2500: "SCChatInternal",
 	2501: "SCChatRateLimit",

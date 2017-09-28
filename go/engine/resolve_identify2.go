@@ -138,3 +138,10 @@ func (e *ResolveThenIdentify2) TrackToken() keybase1.TrackToken {
 func (e *ResolveThenIdentify2) ConfirmResult() keybase1.ConfirmResult {
 	return e.i2eng.ConfirmResult()
 }
+
+func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
+	if e.i2eng == nil {
+		return nil
+	}
+	return e.i2eng.GetProofSet()
+}

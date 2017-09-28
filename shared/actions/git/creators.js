@@ -44,4 +44,18 @@ const setError = (gitError: ?Error): Constants.SetError => ({
   type: 'git:setError',
 })
 
-export {loadGit, createTeamRepo, createPersonalRepo, setLoading, deleteTeamRepo, deletePersonalRepo, setError}
+const badgeAppForGit = (ids: ?Array<string>): Constants.BadgeAppForGit => ({
+  payload: {ids: ids || []},
+  type: 'git:badgeAppForGit',
+})
+
+export {
+  loadGit,
+  createTeamRepo,
+  createPersonalRepo,
+  setLoading,
+  deleteTeamRepo,
+  deletePersonalRepo,
+  setError,
+  badgeAppForGit,
+}
