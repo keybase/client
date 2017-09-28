@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderHoc, Input, PopupDialog, Text, ScrollView} from '../../common-adapters/index'
+import {Box, Button, HeaderHoc, Icon, Input, PopupDialog, Text, ScrollView} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
@@ -53,10 +53,30 @@ const renderContents = ({errorText, successText, successBody, name, onNameChange
             ...stylePadding,
             alignItems: 'center',
             justifyContent: 'center',
+            marginTop: globalMargins.large,
           }}
         >
-          <Text type="BodySemibold">Yay it worked!</Text>
-          <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'flex-start',
+              justifyContent: 'center',
+              width: 240,
+            }}
+          >
+            <Icon type="icon-fancy-email-sent-192-x-64" />
+          </Box>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginTop: globalMargins.large,
+            }}
+          >
+            <Text style={{textAlign: 'center'}} type="Body">{successBody}</Text>
+          </Box>
+          <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
             <Button type="Primary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Close" />
           </Box>
         </Box>
@@ -97,7 +117,7 @@ const renderContents = ({errorText, successText, successBody, name, onNameChange
             onChangeText={onNameChange}
             onEnterKeyDown={onSubmit}
           />
-          <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+          <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
             <Button
               type="Primary"
               style={{marginLeft: globalMargins.tiny}}

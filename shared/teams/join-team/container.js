@@ -12,10 +12,15 @@ import {upperFirst} from 'lodash'
 
 import type {TypedState} from '../../constants/reducer'
 
+// TODO successText => successHeader; errorText => errorHeader
 const mapStateToProps = (state: TypedState) => ({
   errorText: upperFirst(state.chat.teamJoinError),
   successBody: upperFirst(state.chat.teamJoinSuccessBody),
   successText: upperFirst(state.chat.teamJoinSuccess),
+  // successBody: upperFirst(
+  //   'We sent a request to chelseapiersoccer’s admins. We will notify you as soon as they let you in!'
+  // ),
+  // successText: upperFirst('Your request is on its way!'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
