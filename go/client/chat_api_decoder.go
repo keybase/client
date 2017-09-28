@@ -4,36 +4,10 @@
 package client
 
 import (
-	"fmt"
 	"io"
 
 	"golang.org/x/net/context"
 )
-
-type ErrInvalidMethod struct {
-	name    string
-	version int
-}
-
-func (e ErrInvalidMethod) Error() string {
-	return fmt.Sprintf("invalid v%d method %q", e.version, e.name)
-}
-
-type ErrInvalidVersion struct {
-	version int
-}
-
-func (e ErrInvalidVersion) Error() string {
-	return fmt.Sprintf("invalid version %d", e.version)
-}
-
-type ErrInvalidJSON struct {
-	message string
-}
-
-func (e ErrInvalidJSON) Error() string {
-	return fmt.Sprintf("invalid JSON: %s", e.message)
-}
 
 type ChatAPIDecoder struct {
 	handler ChatAPIHandler

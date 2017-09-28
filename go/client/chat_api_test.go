@@ -157,8 +157,9 @@ func TestChatAPIDecoderTop(t *testing.T) {
 	for i, test := range topTests {
 		h := new(handlerTracker)
 		d := NewChatAPIDecoder(h)
+		c := &cmdAPI{}
 		var buf bytes.Buffer
-		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
+		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
@@ -375,8 +376,9 @@ func TestChatAPIDecoderOptions(t *testing.T) {
 	for i, test := range optTests {
 		h := &ChatAPI{svcHandler: new(chatEcho)}
 		d := NewChatAPIDecoder(h)
+		c := &cmdAPI{}
 		var buf bytes.Buffer
-		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
+		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 				t.Errorf("test %d: input: %s", i, test.input)
@@ -465,7 +467,8 @@ func TestChatAPIEcho(t *testing.T) {
 		h := &ChatAPI{svcHandler: new(chatEcho)}
 		d := NewChatAPIDecoder(h)
 		var buf bytes.Buffer
-		err := d.Decode(context.Background(), strings.NewReader(test.input), &buf)
+		c := &cmdAPI{}
+		err := c.decode(context.Background(), strings.NewReader(test.input), &buf, d)
 		if test.err != nil {
 			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)

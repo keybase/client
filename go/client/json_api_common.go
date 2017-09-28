@@ -26,6 +26,31 @@ func (e ErrInvalidOptions) Error() string {
 	return fmt.Sprintf("invalid %s v%d options: %s", e.method, e.version, e.err)
 }
 
+type ErrInvalidMethod struct {
+	name    string
+	version int
+}
+
+func (e ErrInvalidMethod) Error() string {
+	return fmt.Sprintf("invalid v%d method %q", e.version, e.name)
+}
+
+type ErrInvalidVersion struct {
+	version int
+}
+
+func (e ErrInvalidVersion) Error() string {
+	return fmt.Sprintf("invalid version %d", e.version)
+}
+
+type ErrInvalidJSON struct {
+	message string
+}
+
+func (e ErrInvalidJSON) Error() string {
+	return fmt.Sprintf("invalid JSON: %s", e.message)
+}
+
 // Call represents a JSON api call.
 type Call struct {
 	Jsonrpc string
@@ -110,10 +135,6 @@ func (c *cmdAPI) GetUsage() libkb.Usage {
 		KbKeyring: true,
 		Config:    true,
 	}
-}
-
-type decoder interface {
-	Decode(ctx context.Context, r io.Reader, w io.Writer) error
 }
 
 type handler interface {
