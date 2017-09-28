@@ -1,5 +1,5 @@
-## Building on Windows  
-# Building and testing the client  
+# Building on Windows  
+## Building the client  
 - Install [Git](https://git-scm.com/download/win)  
 - Defaults are fine except these recommendations:  
 -- "Use Git from the Windows Command Prompt"  
