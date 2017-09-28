@@ -255,16 +255,16 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 		return nil
 	}
 
-	convMap := make(map[string]*chat1.ConversationLocal)
+	convMap := make(map[string]chat1.ConversationLocal)
 	for _, conv := range convs {
-		convMap[conv.GetConvID().String()] = &conv
+		convMap[conv.GetConvID().String()] = conv
 	}
 	for index, rc := range ibox.Conversations {
 		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
 			ibox.Conversations[index].LocalMetadata = &types.RemoteConversationMetadata{
-				TopicName: utils.GetTopicName(*convLocal),
-				Headline:  utils.GetHeadline(*convLocal),
-				Snippet:   utils.GetConvSnippet(*convLocal),
+				TopicName: utils.GetTopicName(convLocal),
+				Headline:  utils.GetHeadline(convLocal),
+				Snippet:   utils.GetConvSnippet(convLocal),
 			}
 		}
 	}

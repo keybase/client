@@ -220,6 +220,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 		start := time.Now()
 		h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
 			len(lres.InboxRes.ConvsUnverified))
+		h.Debug(ctx, "GetInboxNonblockLocal: JSON: %s", jbody)
 		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 			SessionID: arg.SessionID,
 			Inbox:     string(jbody),
