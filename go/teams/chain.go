@@ -854,7 +854,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		if settings := team.Settings; settings != nil {
 			err = t.parseTeamSettings(settings, &res.newState)
-			return res, err
+			if err != nil {
+				return res, err
+			}
 		}
 
 		return res, nil
@@ -866,7 +868,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasMembers(true),
 			hasParent(false),
 			hasInvites(false),
-			hasSubteam(false))
+			hasSubteam(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1006,7 +1009,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(true),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1050,7 +1054,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasInvites(false),
 			hasAdmin(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1089,7 +1094,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(true),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1204,7 +1210,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 		if settings := team.Settings; settings != nil {
 			err = t.parseTeamSettings(settings, &res.newState)
-			return res, err
+			if err != nil {
+				return res, err
+			}
 		}
 
 		return res, nil
@@ -1218,7 +1226,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(true),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1259,7 +1268,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1319,7 +1329,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(true),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1357,7 +1368,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasParent(false),
 			hasSubteam(false),
 			hasPerTeamKey(false),
-			hasInvites(true))
+			hasInvites(true),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1400,6 +1412,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasInvites(false),
 			hasSubteam(false),
 			hasPerTeamKey(false),
+			hasCompletedInvites(false),
 			hasSettings(true))
 		if err != nil {
 			return res, err
