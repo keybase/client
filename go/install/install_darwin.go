@@ -529,8 +529,9 @@ func installCommandLine(context Context, binPath string, force bool, log Log) er
 	}
 
 	// Now the git remote helper. Lives next to the keybase binary, same dir
-	gitBinPath := filepath.Join(filepath.Dir(bp), "git-remote-keybase")
-	gitLinkPath := filepath.Join(filepath.Dir(linkPath), "git-remote-keybase")
+	gitBinFilename := "git-remote-keybase"
+	gitBinPath := filepath.Join(filepath.Dir(bp), gitBinFilename)
+	gitLinkPath := filepath.Join(filepath.Dir(linkPath), gitBinFilename)
 	err = installCommandLineForBinPath(gitBinPath, gitLinkPath, force, log)
 	if err != nil {
 		log.Errorf("Git remote helper not installed properly (%s)", err)
