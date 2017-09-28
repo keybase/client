@@ -1,7 +1,7 @@
 :: Build keybase.exe with prerelease options
 set GOARCH=386
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
 echo DOKAN_PATH %DOKAN_PATH%
 
 echo GOPATH %GOPATH%

@@ -115,7 +115,7 @@
 			
       <Component Id="GitHelperExe" Guid="{d8938a5b-c45f-4942-b552-a357a5563329}">
         <CreateFolder />
-        <RemoveFolder Id="RemoveDokan" On="uninstall" />
+        <RemoveFolder Id="RemoveGitHelper" On="uninstall" />
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="GitHelperExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
