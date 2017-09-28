@@ -18,7 +18,7 @@ import {branch} from 'recompose'
 
 type Props = {
   expandedSet: I.Set<string>,
-  onShowDelete: (teamname: ?string, name: string) => void,
+  onShowDelete: (id: string) => void,
   onNewPersonalRepo: () => void,
   onNewTeamRepo: () => void,
   onToggleExpand: (id: string) => void,
