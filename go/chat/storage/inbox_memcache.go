@@ -7,7 +7,7 @@ import (
 )
 
 type inboxMemCacheImpl struct {
-	sync.Mutex
+	sync.RWMutex
 
 	datMap map[string]*inboxDiskData
 }
@@ -19,8 +19,8 @@ func newInboxMemCacheImpl() *inboxMemCacheImpl {
 }
 
 func (i *inboxMemCacheImpl) Get(uid gregor1.UID) *inboxDiskData {
-	i.Lock()
-	defer i.Unlock()
+	i.RLock()
+	defer i.RUnlock()
 	if ibox, ok := i.datMap[uid.String()]; ok {
 		return ibox
 	}
@@ -34,6 +34,8 @@ func (i *inboxMemCacheImpl) Put(uid gregor1.UID, ibox *inboxDiskData) {
 }
 
 func (i *inboxMemCacheImpl) Clear(uid gregor1.UID) {
+	i.Lock()
+	defer i.Unlock()
 	delete(i.datMap, uid.String())
 }
 
