@@ -626,3 +626,28 @@ func TestFileLocking(t *testing.T) {
 	err = jServer.FinishSingleOp(fs.ctx, fs.root.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 }
+
+func TestFileLockingExpiration(t *testing.T) {
+	_, _, fs, shutdown := makeFSWithJournal(t, "")
+	defer shutdown()
+
+	clock := &libkbfs.TestClock{}
+	clock.Set(time.Now())
+	fs.config.SetClock(clock)
+
+	f, err := fs.Create("a")
+	require.NoError(t, err)
+
+	err = f.Lock()
+	require.NoError(t, err)
+
+	clock.Add(2 * time.Minute)
+
+	// Close/Unlock should fail because the clock expired.
+	err = f.Close()
+	require.Error(t, err)
+
+	// Shut down the MD server first to avoid state-checking, since
+	// the journal is in a weird state.
+	fs.config.MDServer().Shutdown()
+}
