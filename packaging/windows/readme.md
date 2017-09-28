@@ -1,5 +1,5 @@
-##Building on Windows  
-#Building and testing the client  
+# Building on Windows  
+## Building the client  
 - Install [Git](https://git-scm.com/download/win)  
 - Defaults are fine except these recommendations:  
 -- "Use Git from the Windows Command Prompt"  
@@ -21,7 +21,7 @@
 - `cd %GOPATH%\github.com\keybase\client\go\keybase`  
 - `go build`
 
-#To build the gui
+# To build the gui
 - [yarn](https://yarnpkg.com/lang/en/docs/install/)
 - [VisualStudio 2015](https://my.visualstudio.com/downloads?q=visual%20studio%20enterprise%202015)   
 - Open a new command window to capture the environment changes and enter:
@@ -29,5 +29,5 @@
 - `yarn install`
 - `yarn run package -- --arch ia32 --platform win32 --appVersion [version]`
 
-#Windows VMs
+# Windows VMs
 available [here](https://dev.windows.com/en-us/microsoft-edge/tools/vms/windows/)
