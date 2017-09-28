@@ -26,38 +26,6 @@ const (
 	methodMark      = "mark"
 )
 
-// ErrInvalidOptions is returned when the options aren't valid.
-type ErrInvalidOptions struct {
-	method  string
-	version int
-	err     error
-}
-
-func (e ErrInvalidOptions) Error() string {
-	return fmt.Sprintf("invalid %s v%d options: %s", e.method, e.version, e.err)
-}
-
-// Call represents a JSON chat call.
-type Call struct {
-	Jsonrpc string
-	ID      int
-	Method  string
-	Params  Params
-}
-
-// Params represents the `params` portion of the JSON chat call.
-type Params struct {
-	Version int
-	Options json.RawMessage
-}
-
-// CallError is the result when there is an error.
-type CallError struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-}
-
 type RateLimit struct {
 	Tank     string `json:"tank"`
 	Capacity int    `json:"capacity"`

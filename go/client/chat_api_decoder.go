@@ -72,6 +72,15 @@ func (d *ChatAPIDecoder) Decode(ctx context.Context, r io.Reader, w io.Writer) e
 	return nil
 }
 
+func (d *ChatAPIDecoder) handle(ctx context.Context, c Call, w io.Writer) error {
+	switch c.Params.Version {
+	case 0, 1:
+		return d.handleV1(ctx, c, w)
+	default:
+		return ErrInvalidVersion{version: c.Params.Version}
+	}
+}
+
 func (d *ChatAPIDecoder) handleV1(ctx context.Context, c Call, w io.Writer) error {
 	switch c.Method {
 	case methodList:
