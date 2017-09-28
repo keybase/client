@@ -30,7 +30,7 @@ func (t *teamAPIHandler) handle(ctx context.Context, c Call, w io.Writer) error 
 }
 
 func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) error {
-	if err := t.requireOptions(c); err != nil {
+	if err := t.requireOptionsV1(c); err != nil {
 		return err
 	}
 
@@ -67,22 +67,6 @@ func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) erro
 }
 
 func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) error {
-	/*
-		var opts listOptionsV1
-		// Options are optional for list
-		if len(c.Params.Options) != 0 {
-			if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
-				return err
-			}
-		}
-		if err := opts.Check(); err != nil {
-			return err
-		}
-
-		// opts are valid for list v1
-
-		return a.encodeReply(c, a.svcHandler.ListV1(ctx, opts), w)
-	*/
 	return nil
 }
 
@@ -139,7 +123,7 @@ func (t *teamAPIHandler) deleteTeam(ctx context.Context, c Call, w io.Writer) er
 	return nil
 }
 
-func (t *teamAPIHandler) requireOptions(c Call) error {
+func (t *teamAPIHandler) requireOptionsV1(c Call) error {
 	if len(c.Params.Options) == 0 {
 		if c.Method != "list-self-memberships" {
 			return ErrInvalidOptions{version: 1, method: c.Method, err: errors.New("empty options")}
