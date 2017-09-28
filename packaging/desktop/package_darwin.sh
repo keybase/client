@@ -36,9 +36,7 @@ kbfs_version=${KBFS_VERSION:-}
 comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
-# FIXME: Replace before merging.
-# git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
-git_remote_keybase_binpath='/tmp/build_kbfs/git-remote-keybase'
+git_remote_keybase_binpath=${GIT_REMOTE_KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 kbnm_binpath=${KBNM_BINPATH:-}
 updater_binpath=${UPDATER_BINPATH:-}
