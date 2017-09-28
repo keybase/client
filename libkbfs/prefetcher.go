@@ -181,18 +181,23 @@ top:
 
 // run prefetches blocks.
 // E.g. a synced prefetch:
-// a -> {b -> c, d -> e}:
-// 1) a is fetched, triggers b and d.
-//    * a:2 -> {b:1, d:1}
-// 2) b is fetched, decrements b and a by 1, and triggers c to increment them
-//    both.
-//    * a:2 -> {b:1 -> c:1, d:1}
+// a -> {b -> {c, d}, e -> {f, g}}:
+// * state of prefetch tree in `p.prefetches`.
+// 1) a is fetched, triggers b and e.
+//    * a:2 -> {b:1, e:1}
+// 2) b is fetched, decrements b and a by 1, and triggers c and d to increment
+//    b and a by 2.
+//    * a:3 -> {b:2 -> {c:1, d:1}, e:1}
 // 3) c is fetched, and isTail==true so it completes up the tree.
-//    * a:1 -> {d:1}
-// 4) d is fetched, decrements d and a by 1, and triggers e to increment them
-//    both.
-//    * a:1 -> {d:1 -> e:1}
-// 5) e is fetched, completing d and a.
+//    * a:2 -> {b:1 -> {d:1}, e:1}
+// 4) d is fetched, and isTail==true so it completes up the tree.
+//    * a:1 -> {e:1}
+// 5) e is fetched, decrements e and a by 1, and triggers f and g to increment
+//    them both.
+//    * a:2 -> {e:2 -> {f:1, g:1}}
+// 6) f is fetched, and isTail==true so it completes up the tree.
+//    * a:1 -> {e:1 -> {g:1}}
+// 5) g is fetched, completing g, e, and a.
 //    * <empty>
 func (p *blockPrefetcher) run() {
 	defer func() {
