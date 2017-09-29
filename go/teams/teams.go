@@ -542,7 +542,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	return t.postMulti(payload)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context) error {
+func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
 
 	// subteam delete consists of two links:
 	// 1. delete_subteam in parent chain
@@ -560,6 +560,14 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	admin, err := parentTeam.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
+	}
+
+	confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return errors.New("team delete not confirmed")
 	}
 
 	subteamName := SCTeamName(t.Data.Name.String())

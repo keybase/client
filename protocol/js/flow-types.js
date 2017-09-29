@@ -6228,6 +6228,10 @@ export type teamsUiConfirmRootTeamDeleteRpcParam = Exact<{
   teamName: string
 }>
 
+export type teamsUiConfirmSubteamDeleteRpcParam = Exact<{
+  teamName: string
+}>
+
 export type testPanicRpcParam = Exact<{
   message: string
 }>
@@ -6490,6 +6494,7 @@ type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
 type teamsTeamTreeResult = TeamTreeResult
 type teamsUiConfirmRootTeamDeleteResult = boolean
+type teamsUiConfirmSubteamDeleteResult = boolean
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7175,6 +7180,16 @@ export type incomingCallMapType = Exact<{
     response: {
       error: RPCErrorHandler,
       result: (result: teamsUiConfirmRootTeamDeleteResult) => void,
+    }
+  ) => void,
+  'keybase.1.teamsUi.confirmSubteamDelete'?: (
+    params: Exact<{
+      sessionID: int,
+      teamName: string
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: teamsUiConfirmSubteamDeleteResult) => void,
     }
   ) => void,
   'keybase.1.ui.promptYesNo'?: (

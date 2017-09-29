@@ -58,6 +58,7 @@ const (
 	PromptDescriptorFSOverwrite
 	PromptDescriptorRemoveMember
 	PromptDescriptorDeleteRootTeam
+	PromptDescriptorDeleteSubteam
 )
 
 const (
