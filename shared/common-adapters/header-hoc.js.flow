@@ -8,6 +8,7 @@ export type Props = {
   headerStyle?: ?Object,
   customComponent?: ?React.Node,
   theme?: 'light' | 'dark', // defaults to light
+  showBorder?: boolean, // defaults to true
 }
 
 declare export default function HeaderHoc<P: {}>(

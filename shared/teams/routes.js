@@ -28,12 +28,14 @@ const routeTree = new RouteDefNode({
     showNewTeamDialog: {
       children: {},
       component: NewTeamDialog,
-      tags: {layerOnTop: true},
+      tags: {layerOnTop: !isMobile},
     },
     showJoinTeamDialog: {
       children: {},
       component: JoinTeamDialog,
-      tags: {layerOnTop: true},
+      tags: {
+        layerOnTop: !isMobile,
+      },
     },
     team: {
       children: {

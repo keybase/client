@@ -10,10 +10,17 @@ import type {Props} from './header-hoc'
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => {
-    const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light'} = props
+    const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light', showBorder = true} = props
     return (
       <Box style={_containerStyle}>
-        <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
+        <Box
+          style={{
+            ..._headerStyle,
+            ..._headerStyleThemed[theme],
+            ...headerStyle,
+            borderBottomWidth: showBorder ? StyleSheet.hairlineWidth : 0,
+          }}
+        >
           {customComponent}
           {!!title &&
             <Box style={_titleStyle}>
@@ -74,7 +81,6 @@ const _headerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   borderBottomColor: globalColors.black_05,
-  borderBottomWidth: StyleSheet.hairlineWidth,
   justifyContent: 'flex-start',
   minHeight: globalMargins.xlarge - statusBarHeight,
   paddingRight: globalMargins.small,

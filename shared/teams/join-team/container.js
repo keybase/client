@@ -1,13 +1,12 @@
 // @flow
-import JoinTeamDialog from './'
+import JoinTeamDialog from '.'
 import {connect} from 'react-redux'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import {joinTeam, setTeamJoinError, setTeamJoinSuccess} from '../../actions/teams/creators'
-import {upperFirst} from 'lodash'
+import upperFirst from 'lodash/upperFirst'
 
 import type {TypedState} from '../../constants/reducer'
 
-// TODO successText => successHeader; errorText => errorHeader
 const mapStateToProps = (state: TypedState) => ({
   errorText: upperFirst(state.chat.teamJoinError),
   success: state.chat.teamJoinSuccess,

@@ -39,8 +39,8 @@ const _joinTeam = function*(action: Constants.JoinTeam) {
   const {payload: {teamname}} = action
   yield all(put(Creators.setTeamJoinError('')), put(Creators.setTeamJoinSuccess(false)))
   try {
-    yield call(RpcTypes.teamsTeamRequestAccessRpcPromise, {
-      param: {name: teamname},
+    yield call(RpcTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
+      param: {tokenOrName: teamname},
     })
 
     // Success
