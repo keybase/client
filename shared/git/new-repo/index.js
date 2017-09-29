@@ -121,7 +121,7 @@ class NewRepo extends React.Component<Props, State> {
             value={this.state.name}
             autoFocus={true}
             onChangeText={name => this.setState({name})}
-            hintText="Name your respository"
+            hintText="Name your repository"
             onEnterKeyDown={this._onSubmit}
           />
           {this.props.isTeam &&

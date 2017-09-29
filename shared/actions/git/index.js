@@ -10,6 +10,8 @@ import * as RouteTreeConstants from '../../constants/route-tree'
 import {call, put, select} from 'redux-saga/effects'
 import {navigateTo} from '../route-tree'
 import moment from 'moment'
+import {isMobile} from '../../constants/platform'
+import * as SettingsConstants from '../../constants/settings'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -42,7 +44,7 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
     return map
   }, {})
 
-  yield put(Entities.replaceEntity(['git', 'idToInfo'], I.Map(idToInfo)))
+  yield put(Entities.replaceEntity(['git'], {idToInfo: I.Map(idToInfo)}))
   yield put(Creators.setLoading(false))
 }
 
@@ -52,12 +54,12 @@ function* _createDeleteHelper(theCall: *) {
   yield put.resolve(Creators.setLoading(true))
   try {
     yield theCall
-    yield put(navigateTo([Tabs.gitTab], []))
-  } catch (err) {
-    yield put(Creators.setError(err))
-  } finally {
+    yield put(navigateTo(isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab], []))
     yield put.resolve(Creators.setLoading(false))
     yield put(Creators.loadGit())
+  } catch (err) {
+    yield put(Creators.setError(err))
+    yield put.resolve(Creators.setLoading(false))
   }
 }
 

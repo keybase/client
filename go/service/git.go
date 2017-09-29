@@ -52,7 +52,8 @@ func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.G
 		Folder: folder,
 		Name:   repoName,
 	}
-	return client.CreateRepo(ctx, carg)
+	repoID, err := client.CreateRepo(ctx, carg)
+	return repoID, git.HumanizeGitErrors(err)
 }
 
 func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (keybase1.RepoID, error) {
@@ -68,7 +69,8 @@ func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeam
 		Folder: folder,
 		Name:   arg.RepoName,
 	}
-	return client.CreateRepo(ctx, carg)
+	repoID, err := client.CreateRepo(ctx, carg)
+	return repoID, git.HumanizeGitErrors(err)
 }
 
 func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) error {
@@ -91,7 +93,8 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 	}
 
 	// Delete the repo metadata from the Keybase server.
-	return git.DeleteMetadata(ctx, h.G(), folder, repoName)
+	err = git.DeleteMetadata(ctx, h.G(), folder, repoName)
+	return git.HumanizeGitErrors(err)
 }
 
 func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) error {
@@ -114,7 +117,8 @@ func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeam
 	}
 
 	// Delete the repo metadata from the Keybase server.
-	return git.DeleteMetadata(ctx, h.G(), folder, arg.RepoName)
+	err = git.DeleteMetadata(ctx, h.G(), folder, arg.RepoName)
+	return git.HumanizeGitErrors(err)
 }
 
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {

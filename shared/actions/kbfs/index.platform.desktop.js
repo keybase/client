@@ -12,7 +12,7 @@ import {
 import {delay} from 'redux-saga'
 import {call, put, select} from 'redux-saga/effects'
 import electron, {shell} from 'electron'
-import {isWindows} from '../../constants/platform'
+import {isLinux, isWindows} from '../../constants/platform'
 import {ExitCodeFuseKextPermissionError} from '../../constants/favorite'
 import {fuseStatus} from './index'
 import {execFile} from 'child_process'
@@ -128,7 +128,16 @@ function openInDefault(openPath: string): Promise<*> {
 function* fuseStatusSaga(): SagaGenerator<any, any> {
   const prevStatus = yield select(state => state.favorite.fuseStatus)
 
-  const status = yield call(installFuseStatusRpcPromise)
+  let status = yield call(installFuseStatusRpcPromise)
+  if (isWindows && status.installStatus !== 4) {
+    // Check if another Dokan we didn't install mounted the filesystem
+    const kbfsMount = yield call(kbfsMountGetCurrentMountDirRpcPromise)
+    if (kbfsMount && fs.existsSync(kbfsMount)) {
+      status.installStatus = 4 // installed
+      status.installAction = 1 // none
+      status.kextStarted = true
+    }
+  }
   const action: FSFuseStatusUpdate = {payload: {prevStatus, status}, type: 'fs:fuseStatusUpdate'}
   yield put(action)
 }
@@ -173,7 +182,8 @@ function findKeybaseUninstallString(): Promise<string> {
     regedit.list(keybaseRegPath).on('data', function(entry) {
       if (entry.data.values && entry.data.values.BUNDLEKEY) {
         const uninstallRegPath =
-          'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' + entry.data.values.BUNDLEKEY
+          'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\' +
+          entry.data.values.BUNDLEKEY.value
 
         regedit.list(uninstallRegPath).on('data', function(entry) {
           if (
@@ -182,14 +192,19 @@ function findKeybaseUninstallString(): Promise<string> {
             entry.data.values.DisplayName.value === 'Keybase' &&
             entry.data.values.Publisher &&
             entry.data.values.Publisher.value === 'Keybase, Inc.' &&
-            entry.data.values.ModifyPath
+            entry.data.values.ModifyPath &&
+            entry.data.values.BundleCachePath
           ) {
-            var modifyPath = entry.data.values.ModifyPath.value
-            // Remove double quotes - won't work otherwise
-            modifyPath = modifyPath.replace(/"/g, '')
-            // Remove /modify and send it in with the other arguments, below
-            modifyPath = modifyPath.replace(' /modify', '')
-            resolve(modifyPath)
+            if (fs.existsSync(entry.data.values.BundleCachePath.value)) {
+              var modifyPath = entry.data.values.ModifyPath.value
+              // Remove double quotes - won't work otherwise
+              modifyPath = modifyPath.replace(/"/g, '')
+              // Remove /modify and send it in with the other arguments, below
+              modifyPath = modifyPath.replace(' /modify', '')
+              resolve(modifyPath)
+            } else {
+              reject(new Error(`cached bundle not found:` + uninstallRegPath))
+            }
           } else {
             reject(new Error(`Keybase entry not found at` + uninstallRegPath))
           }
@@ -326,7 +341,7 @@ function* openInWindows(openPath: string): SagaGenerator<any, any> {
 function* openSaga(action: FSOpen): SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
   const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
-  if (enabled) {
+  if (isLinux || enabled) {
     console.log('openInKBFS:', openPath)
     if (isWindows) {
       yield* openInWindows(openPath)
@@ -341,7 +356,7 @@ function* openSaga(action: FSOpen): SagaGenerator<any, any> {
 
 function* openInFileUISaga({payload: {path}}: OpenInFileUI): SagaGenerator<any, any> {
   const enabled = yield select(state => state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
-  if (enabled) {
+  if (isLinux || enabled) {
     yield call(_open, path)
   } else {
     yield put(navigateTo([], [folderTab]))

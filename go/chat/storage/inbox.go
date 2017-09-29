@@ -99,18 +99,27 @@ func (i *Inbox) dbKey() libkb.DbKey {
 }
 
 func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
+
 	var ibox inboxDiskData
-	found, err := i.readDiskBox(ctx, i.dbKey(), &ibox)
-	if err != nil {
-		return ibox, NewInternalError(ctx, i.DebugLabeler,
-			"failed to read inbox: uid: %d err: %s", i.uid, err.Error())
-	}
-	if !found {
-		return ibox, MissError{}
+
+	// Check in memory cache first
+	if memibox := inboxMemCache.Get(i.uid); memibox != nil {
+		i.Debug(ctx, "hit in memory cache")
+		ibox = *memibox
+	} else {
+		found, err := i.readDiskBox(ctx, i.dbKey(), &ibox)
+		if err != nil {
+			return ibox, NewInternalError(ctx, i.DebugLabeler,
+				"failed to read inbox: uid: %d err: %s", i.uid, err.Error())
+		}
+		if !found {
+			return ibox, MissError{}
+		}
+		inboxMemCache.Put(i.uid, &ibox)
 	}
 
 	// Check on disk server version against known server version
-	if _, err = i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
+	if _, err := i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
 		i.Debug(ctx, "server version match error, clearing: %s", err.Error())
 		if cerr := i.Clear(ctx); cerr != nil {
 			return ibox, cerr
@@ -146,6 +155,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
 	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d convs: %d",
 		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
+	inboxMemCache.Put(i.uid, &ibox)
 	if ierr := i.writeDiskBox(ctx, i.dbKey(), ibox); ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
@@ -558,6 +568,7 @@ func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.P
 
 func (i *Inbox) Clear(ctx context.Context) (err Error) {
 	defer i.Trace(ctx, func() error { return err }, "Clear")()
+	inboxMemCache.Clear(i.uid)
 	ierr := i.G().LocalChatDb.Delete(i.dbKey())
 	if ierr != nil {
 		return NewInternalError(ctx, i.DebugLabeler,

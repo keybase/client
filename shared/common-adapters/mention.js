@@ -15,9 +15,11 @@ export type Props = {
 const mentionStyles = {
   follow: {
     color: globalColors.green2,
+    backgroundColor: globalColors.green3,
   },
   nonFollow: {
     color: globalColors.blue,
+    backgroundColor: globalColors.blue4,
   },
   highlight: {
     backgroundColor: globalColors.yellow,
@@ -31,7 +33,7 @@ export default ({key, username, theme, style, onClick}: Props) => (
     onClick={onClick || undefined}
     key={key}
     className={isMobile ? undefined : 'hover-underline'}
-    style={{...style, ...mentionStyles[theme]}}
+    style={{...style, ...mentionStyles[theme], borderRadius: 2}}
   >
     @{username}
   </Text>
