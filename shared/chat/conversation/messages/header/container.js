@@ -4,7 +4,6 @@ import Header from '.'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {CommonConversationMembersType} from '../../../../constants/types/flow-types-chat'
-import flags from '../../../../util/feature-flags'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'

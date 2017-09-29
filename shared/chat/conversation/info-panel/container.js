@@ -12,8 +12,6 @@ import {showUserProfile} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
 
-import flags from '../../../util/feature-flags'
-
 const getParticipants = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
   (you, tlf, followingMap, metaDataMap) => {
