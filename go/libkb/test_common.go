@@ -22,6 +22,7 @@ import (
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -445,7 +446,7 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }

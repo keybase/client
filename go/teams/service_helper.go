@@ -341,7 +341,15 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 	if err != nil {
 		return err
 	}
-	return t.Leave(ctx, permanent)
+	err = t.Leave(ctx, permanent)
+	if err != nil {
+		return err
+	}
+	err = g.GetTeamLoader().Delete(ctx, t.ID)
+	if err != nil {
+		g.Log.CDebugf(ctx, "team.Leave: error deleting team cache: %v", err)
+	}
+	return nil
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {

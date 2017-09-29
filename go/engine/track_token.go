@@ -136,7 +136,7 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 
 		// Dismiss any associated gregor item.
 		if outcome.ResponsibleGregorItem != nil {
-			err = e.G().GregorDismisser.DismissItem(outcome.ResponsibleGregorItem.Metadata().MsgID())
+			err = e.G().GregorDismisser.DismissItem(nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
 		}
 	}
 

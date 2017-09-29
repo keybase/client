@@ -77,6 +77,8 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
+	expectEmptyList := true
+
 	// Process all the teams in parallel. Limit to 15 in parallel so we don't crush the server.
 	// errgroup collects errors and returns the first non-nil.
 	// subctx is canceled when the group finishes.
@@ -85,6 +87,15 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	group, subctx := errgroup.WithContext(ctx)
 	for _, memberInfo := range teams {
 		memberInfo := memberInfo // https://golang.org/doc/faq#closures_and_goroutines
+
+		// Skip implicit teams unless --include-implicit-teams was passed from above.
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			g.Log.CDebugf(subctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			continue
+		}
+
+		expectEmptyList = false
+
 		group.Go(func() error {
 			// Grab one of the parallelLimit slots
 			err := sem.Acquire(subctx, 1)
@@ -92,11 +103,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 				return err
 			}
 			defer sem.Release(1)
-
-			// Skip implicit teams unless --include-implicit-teams was passed from above.
-			if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-				return nil
-			}
+			g.Log.CDebugf(subctx, "| TeamList entry: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 
 			var isAdminSaysServer bool
 			if memberInfo.UserID == meUID &&
@@ -202,7 +209,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 	err = group.Wait()
 
-	if len(res.Teams) == 0 && len(teams) > 0 {
+	if len(res.Teams) == 0 && !expectEmptyList {
 		return res, fmt.Errorf("multiple errors while loading team list")
 	}
 

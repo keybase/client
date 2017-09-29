@@ -284,6 +284,10 @@ protocol teams {
     Seqno latestSeqno;
   }
 
+  record TeamExitRow {
+    TeamID id;
+  }
+
   record TeamInvitee {
     @jsonkey("invite_id")
     TeamInviteID inviteID;
