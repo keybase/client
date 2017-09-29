@@ -256,6 +256,18 @@ func (u *UIDMap) lookupFromServer(ctx context.Context, g libkb.UIDMapperContext,
 	return ret, nil
 }
 
+// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
+// a username and a fullname, and when the mapping was loaded from the server. It blocks
+// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
+// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
+// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
+// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
+// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
+// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
+// with an empty fullName field means that the user just hasn't supplied a fullName.
+// FullNames can be cached bt the UIDMap, but expire after networkTimeBudget duration. If that value
+// is 0, then infinitely stale names are allowed. If non-zero, and some names aren't stale, we'll
+// have to go to the network.
 func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
 	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUserPackages(%s)", uidsToString(uids)), func() error { return err })()
 
@@ -269,9 +281,20 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 
 	for i, uid := range uids {
 		up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness, forceNetworkForFullNames)
+
+		// If we successfully looked up some of the user, set the return slot here.
 		if up != nil {
 			res[i] = *up
 		}
+
+		// There are 3 important cases when we should go to network:
+		//
+		//  1. No username is found (up == nil)
+		//  2. No FullName found and we've asked to force network lookups (status == notFound && forceNetworkForNullNames)
+		//  3. The FullName found was stale (status == stale).
+		//
+		// Thus, if you provide forceNetworkForFullName=false, and fullNameFreshness=0, you can avoid
+		// the network trip as long as all of your username lookups hit the cache or are hardcoded.
 		if up == nil || (status == notFound && forceNetworkForFullNames) || (status == stale) {
 			apiLookupIndex[len(uidsToLookup)] = i
 			uidsToLookup = append(uidsToLookup, uid)
@@ -288,7 +311,17 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 				uid := uidsToLookup[i]
 				g.GetLog().CDebugf(ctx, "| API server resolution %s -> %v", uid, row)
 
+				// Always write these results out if the cached value is unset.
+				// Or, see below for other case...
+				writeResults := res[apiLookupIndex[i]].NormalizedUsername.IsNil()
+
+				// Fill in caches independently after a successful return. First fill in
+				// the username cache...
 				if nun := row.NormalizedUsername; !nun.IsNil() {
+
+					// If we get a non-nil NormalizedUsername from the server, then also
+					// write results out...
+					writeResults = true
 					u.usernameCache[uid] = nun
 					key := usernameDBKey(uid)
 					err := g.GetKVStore().PutObj(key, nil, nun.String())
@@ -297,6 +330,7 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 					}
 				}
 
+				// Then fill in the fullName cache...
 				if fn := row.FullName; fn != nil {
 					u.fullNameCache.Add(uid, *fn)
 					key := fullNameDBKey(uid)
@@ -305,7 +339,11 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 						g.GetLog().CInfof(ctx, "failed to put %v -> %v: %s", key, *fn, err)
 					}
 				}
-				res[apiLookupIndex[i]] = row
+
+				if writeResults {
+					// Overwrite the row with whatever was returned from the server.
+					res[apiLookupIndex[i]] = row
+				}
 			}
 		}
 	}
