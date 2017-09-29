@@ -9,10 +9,12 @@ import type {SearchQuery} from './search'
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 
-const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, searchQuery: SearchQuery) =>
-  searchQueryToResult.get(searchQuery)
+const cachedSearchResults = (
+  {entities: {search: {searchQueryToResult}}}: TypedState,
+  searchQuery: SearchQuery
+) => searchQueryToResult.get(searchQuery)
 
-const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) => {
+const searchResultSelector = ({entities: {search: {searchResults}}}: TypedState, username: string) => {
   return searchResults.get(username)
 }
 
@@ -22,7 +24,7 @@ const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => f
 const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
 
 const searchResultMapSelector = createSelector(
-  ({entities: {searchResults}}: TypedState) => searchResults,
+  ({entities: {search: {searchResults}}}: TypedState) => searchResults,
   searchResults => searchResults
 )
 

@@ -29,10 +29,23 @@ export type Subtract = NoErrorTypedAction<
 
 export type Actions = Delete | Merge | Replace | Subtract
 
+type SearchSubState = KBRecord<{
+  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
+  searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
+  searchKeyToResults: Map<string, ?List<SearchConstants.SearchResultId>>,
+  searchKeyToPending: Map<string, boolean>,
+  searchKeyToSelectedId: Map<string, ?SearchConstants.SearchResultId>,
+  searchKeyToShowSearchSuggestion: Map<string, boolean>,
+  searchKeyToUserInputItemIds: Map<string, OrderedSet<SearchConstants.SearchResultId>>,
+  searchKeyToSearchResultQuery: Map<string, ?{text: string, service: SearchConstants.Service}>,
+  searchKeyToClearSearchTextInput: Map<string, number>,
+}>
+
 // State
 export type State = KBRecord<{
   devices: Map<string, DeviceDetailRecord>,
   teams: Teams.TeamRecord,
+  search: SearchSubState,
   searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
   searchKeyToResults: Map<string, ?List<SearchConstants.SearchResultId>>,
@@ -59,10 +72,7 @@ export type State = KBRecord<{
   git: Git.GitRecord,
 }>
 
-const StateRecord = Record({
-  devices: Map(),
-  git: new Git.Git(),
-  teams: new Teams.Team(),
+const SearchSubRecord: Class<SearchSubState> = Record({
   searchResults: Map(),
   searchQueryToResult: Map(),
   searchKeyToResults: Map(),
@@ -72,11 +82,18 @@ const StateRecord = Record({
   searchKeyToUserInputItemIds: Map(),
   searchKeyToSearchResultQuery: Map(),
   searchKeyToClearSearchTextInput: Map(),
+})
+
+const StateRecord = Record({
+  devices: Map(),
+  git: new Git.Git(),
+  teams: new Teams.Team(),
   messages: Map(),
   conversationMessages: Map(),
   deletedIDs: Map(),
   messageUpdates: Map(),
   convIDToSnippet: Map(),
+  search: SearchSubRecord(),
   attachmentSavedPath: Map(),
   attachmentDownloadedPath: Map(),
   attachmentPreviewPath: Map(),

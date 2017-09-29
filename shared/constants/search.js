@@ -224,16 +224,16 @@ const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
   action.type === 'search:userInputItemsUpdated' && action.payload && action.payload.searchKey === searchKey
 
 const _getSearchResultIds = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
-  entities.getIn(['searchKeyToResults', searchKey])
+  entities.getIn(['search', 'searchKeyToResults', searchKey])
 
 const getSearchResultIdsArray = createSelector(_getSearchResultIds, ids => ids && ids.toArray())
 
 const getUserInputItemIdsOrderedSet = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
-  entities.getIn(['searchKeyToUserInputItemIds', searchKey], OrderedSet())
+  entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], OrderedSet())
 const getUserInputItemIds = createSelector(getUserInputItemIdsOrderedSet, ids => ids && ids.toArray())
 
 const getClearSearchTextInput = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
-  entities.getIn(['searchKeyToClearSearchTextInput', searchKey], 0)
+  entities.getIn(['search', 'searchKeyToClearSearchTextInput', searchKey], 0)
 
 export {
   serviceIdToService,

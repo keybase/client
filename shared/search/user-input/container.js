@@ -50,7 +50,7 @@ const UserInputWithServiceFilter = props => {
 }
 
 const getSearchResultTerm = ({entities}: TypedState, {searchKey}: {searchKey: string}) => {
-  const searchResultQuery = entities.getIn(['searchKeyToSearchResultQuery', searchKey], null)
+  const searchResultQuery = entities.getIn(['search', 'searchKeyToSearchResultQuery', searchKey], null)
   return searchResultQuery && searchResultQuery.text
 }
 
@@ -85,7 +85,7 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   const {entities} = state
   const searchResultTerm = getSearchResultTerm(state, {searchKey})
   const searchResultIds = Constants.getSearchResultIdsArray(state, {searchKey})
-  const selectedSearchId = entities.getIn(['searchKeyToSelectedId', searchKey])
+  const selectedSearchId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
   const userItems = getUserItems(state, {searchKey})
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, {searchKey})
   return {
