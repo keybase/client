@@ -32,7 +32,7 @@ import io.keybase.ossifrage.keystore.KeyStoreHelper;
 public class KeyStore implements UnsafeExternalKeyStore {
     private final Context context;
     private final SharedPreferences prefs;
-    private final java.security.KeyStore ks;
+    private java.security.KeyStore ks;
 
     // Prefix for the key we use when we place the data in shared preferences
     private static final String PREFS_KEY = "_wrappedKey_";
@@ -89,8 +89,12 @@ public class KeyStore implements UnsafeExternalKeyStore {
             throw new KeyStoreException("Failed to get the RSA keys from the keystore");
         }
 
-        if (!(entry instanceof PrivateKeyEntry)){
+        if (entry == null){
             throw new KeyStoreException("No RSA keys in the keystore");
+        }
+
+        if (!(entry instanceof PrivateKeyEntry)){
+            throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
         }
 
         return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
@@ -116,6 +120,10 @@ public class KeyStore implements UnsafeExternalKeyStore {
         } catch (Exception e) {
             ks.deleteEntry(keyStoreAlias(serviceName));
             KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
+        } finally {
+          // Reload the keystore
+          ks = java.security.KeyStore.getInstance("AndroidKeyStore");
+          ks.load(null);
         }
     }
 
