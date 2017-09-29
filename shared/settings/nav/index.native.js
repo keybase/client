@@ -7,7 +7,6 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {Box, Badge, ClickableBox, Text, HeaderHoc, NativeScrollView} from '../../common-adapters/index.native'
 import {isAndroid} from '../../constants/platform'
 import {compose, defaultProps} from 'recompose'
-import flags from '../../util/feature-flags'
 
 import type {Props} from './index'
 
@@ -34,12 +33,11 @@ function SettingsNav({badgeNumbers, selectedTab, onTabChange, onLogout}: Props) 
   return (
     <NativeScrollView style={{width: '100%', height: '100%'}}>
       <Box style={styleNavBox}>
-        {flags.teamChatEnabled &&
-          <SettingsItem
-            text="Folders"
-            badgeNumber={badgeNumbers[TabConstants.folderTab]}
-            onClick={() => onTabChange(Constants.foldersTab)}
-          />}
+        <SettingsItem
+          text="Folders"
+          badgeNumber={badgeNumbers[TabConstants.folderTab]}
+          onClick={() => onTabChange(Constants.foldersTab)}
+        />
         <SettingsItem
           text="Git"
           badgeNumber={badgeNumbers[TabConstants.gitTab]}

@@ -17,12 +17,7 @@ const _icons = {
   [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
-const _tabs = [
-  Tabs.peopleTab,
-  Tabs.chatTab,
-  ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
-  Tabs.settingsTab,
-].filter(Boolean)
+const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab].filter(Boolean)
 
 const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
   <Box style={stylesTabBar}>

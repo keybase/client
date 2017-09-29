@@ -43,14 +43,12 @@ const mapStateToProps = (state: TypedState) => {
   const inbox = Constants.getSelectedInbox(state)
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
-  const showTeamButton = flags.teamChatEnabled
 
   return {
     channelname,
     muted: Constants.getMuted(state),
     participants: getParticipants(state),
     selectedConversationIDKey,
-    showTeamButton,
     teamname,
   }
 }
