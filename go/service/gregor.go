@@ -641,6 +641,9 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	iboxVers := g.inboxParams(ctx, uid)
 	latestCtime := g.notificationParams(ctx, gcli)
 
+	// Let people know we are trying to sync
+	g.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, keybase1.UID(uid.String()))
+
 	// Run SyncAll to both authenticate, and grab all the data we will need to run the
 	// various resync procedures for chat and notifications
 	var identBreaks []keybase1.TLFIdentifyFailure

@@ -450,6 +450,17 @@
       "notify": "",
       "lint": "ignore"
     },
+    "ChatInboxSyncStarted": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatInboxSynced": {
       "request": [
         {

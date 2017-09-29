@@ -671,6 +671,16 @@ func (o ChatLeftConversationArg) DeepCopy() ChatLeftConversationArg {
 	}
 }
 
+type ChatInboxSyncStartedArg struct {
+	Uid keybase1.UID `codec:"uid" json:"uid"`
+}
+
+func (o ChatInboxSyncStartedArg) DeepCopy() ChatInboxSyncStartedArg {
+	return ChatInboxSyncStartedArg{
+		Uid: o.Uid.DeepCopy(),
+	}
+}
+
 type ChatInboxSyncedArg struct {
 	Uid   keybase1.UID            `codec:"uid" json:"uid"`
 	Convs []UnverifiedInboxUIItem `codec:"convs" json:"convs"`
@@ -703,6 +713,7 @@ type NotifyChatInterface interface {
 	ChatTypingUpdate(context.Context, []ConvTypingUpdate) error
 	ChatJoinedConversation(context.Context, ChatJoinedConversationArg) error
 	ChatLeftConversation(context.Context, ChatLeftConversationArg) error
+	ChatInboxSyncStarted(context.Context, keybase1.UID) error
 	ChatInboxSynced(context.Context, ChatInboxSyncedArg) error
 }
 
@@ -854,6 +865,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatInboxSyncStarted": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatInboxSyncStartedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatInboxSyncStartedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatInboxSyncStartedArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxSyncStarted(ctx, (*typedArgs)[0].Uid)
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 			"ChatInboxSynced": {
 				MakeArg: func() interface{} {
 					ret := make([]ChatInboxSyncedArg, 1)
@@ -923,6 +950,12 @@ func (c NotifyChatClient) ChatJoinedConversation(ctx context.Context, __arg Chat
 
 func (c NotifyChatClient) ChatLeftConversation(ctx context.Context, __arg ChatLeftConversationArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatLeftConversation", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatInboxSyncStarted(ctx context.Context, uid keybase1.UID) (err error) {
+	__arg := ChatInboxSyncStartedArg{Uid: uid}
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSyncStarted", []interface{}{__arg})
 	return
 }
 

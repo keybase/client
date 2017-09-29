@@ -429,6 +429,10 @@ function markThreadsStale(updates: Array<ChatTypes.ConversationStaleUpdate>): Co
   return {payload: {updates}, type: 'chat:markThreadsStale'}
 }
 
+function inboxSynced(convs: Array<ChatTypes.UnverifiedInboxUIItem>): Constants.InboxSynced {
+  return {payload: {convs}, type: 'chat:inboxSynced'}
+}
+
 function loadingMessages(
   conversationIDKey: Constants.ConversationIDKey,
   isRequesting: boolean
@@ -701,9 +705,10 @@ function updateSnippet(
 
 function unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>,
-  force?: boolean = false
+  force?: boolean = false,
+  forInboxSync?: boolean = false
 ): Constants.UnboxConversations {
-  return {payload: {conversationIDKeys, force}, type: 'chat:unboxConversations'}
+  return {payload: {conversationIDKeys, force, forInboxSync}, type: 'chat:unboxConversations'}
 }
 
 function unboxMore(): Constants.UnboxMore {
@@ -728,6 +733,7 @@ export {
   exitSearch,
   getInboxAndUnbox,
   inboxStale,
+  inboxSynced,
   incomingMessage,
   incomingTyping,
   leaveConversation,
