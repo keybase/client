@@ -18,7 +18,7 @@ func TestRenameSimple(t *testing.T) {
 
 	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
 	require.NoError(t, err)
-	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String())
+	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
 	require.NoError(t, err)
 
 	subteamBasename := "bb1"

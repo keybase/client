@@ -25,7 +25,7 @@ func createRootTeam(tc libkb.TestContext) keybase1.TeamID {
 	require.NoError(tc.T, err)
 	teamName, err := keybase1.TeamNameFromString("T" + u.Username + "T")
 	require.NoError(tc.T, err)
-	err = teams.CreateRootTeam(context.Background(), tc.G, teamName.String(), nil)
+	err = teams.CreateRootTeam(context.Background(), tc.G, teamName.String(), keybase1.TeamSettings{})
 	require.NoError(tc.T, err)
 	return teams.RootTeamIDFromName(teamName)
 }

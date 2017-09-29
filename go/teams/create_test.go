@@ -26,7 +26,7 @@ func createUserAndRootTeam(t *testing.T) (fu *kbtest.FakeUser, nm keybase1.TeamN
 
 	teamName := u.Username + "t"
 
-	err = CreateRootTeam(context.TODO(), tc.G, teamName)
+	err = CreateRootTeam(context.TODO(), tc.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
 
 	nm, err = keybase1.TeamNameFromString(teamName)
@@ -63,7 +63,7 @@ func TestCreateTeamAfterAccountReset(t *testing.T) {
 	}
 
 	teamName := u.Username + "T"
-	err = CreateRootTeam(context.TODO(), tc.G, teamName)
+	err = CreateRootTeam(context.TODO(), tc.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
 }
 
@@ -76,7 +76,7 @@ func TestCreateSubteam(t *testing.T) {
 
 	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
 	require.NoError(t, err)
-	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String())
+	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
 	require.NoError(t, err)
 
 	subteamBasename := "mysubteam"
@@ -107,7 +107,7 @@ func TestCreateSubSubteam(t *testing.T) {
 
 	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
 	require.NoError(t, err)
-	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String())
+	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
 	require.NoError(t, err)
 
 	subteamBasename := "bbb"
