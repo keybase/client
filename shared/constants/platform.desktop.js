@@ -162,6 +162,7 @@ export {
   isDarwin,
   isElectron,
   isIOS,
+  isIPhoneX,
   isLargeScreen,
   isLinux,
   isMobile,
