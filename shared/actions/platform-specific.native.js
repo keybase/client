@@ -206,8 +206,8 @@ function persistRouteState(): AsyncAction {
 
     const s = JSON.stringify(toWrite)
     AsyncStorage.setItem('routeState', s, err => {
-      console.log('persistRouteState: err is:', err, 's is', s)
-      err && console.warn('Error clearing routeState:', err)
+      console.log('persistRouteState:', s)
+      err && console.warn('persistRouteState: Error setting routeState:', err)
     })
   }
 }
