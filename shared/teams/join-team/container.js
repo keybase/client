@@ -49,6 +49,7 @@ export default compose(
     componentDidMount: function() {
       this.props._onSetTeamJoinError('')
       this.props._onSetTeamJoinSuccess('')
+      this.props._onSetTeamJoinSuccessBody('')
     },
   })
 )(JoinTeamDialog)
