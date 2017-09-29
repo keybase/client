@@ -573,7 +573,6 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 }
 
 func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
-	t.Skip("Isn't quite working yet.")
 	t.Log("Test multi-level indirect file block prefetching.")
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
@@ -593,10 +592,12 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		makeFakeIndirectFilePtr(t, 10),
 		makeFakeIndirectFilePtr(t, 20),
 	}}
+	indBlock1.IsInd = true
 	indBlock2 := &FileBlock{IPtrs: []IndirectFilePtr{
 		makeFakeIndirectFilePtr(t, 30),
 		makeFakeIndirectFilePtr(t, 40),
 	}}
+	indBlock2.IsInd = true
 	indBlock11 := makeFakeFileBlock(t, true)
 	indBlock12 := makeFakeFileBlock(t, true)
 	indBlock21 := makeFakeFileBlock(t, true)
