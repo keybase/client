@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -41,45 +42,154 @@ func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) erro
 	t.cli = cli
 
 	switch c.Method {
-	case "create":
+	case "add-members":
+		return t.addMembers(ctx, c, w)
+	case "create-team":
 		return t.createTeam(ctx, c, w)
-	case "add-member":
-		return t.addMember(ctx, c, w)
-	case "remove-member":
-		return t.removeMember(ctx, c, w)
+	case "delete-team":
+		return t.deleteTeam(ctx, c, w)
 	case "edit-member":
 		return t.editMember(ctx, c, w)
+	case "leave-team":
+		return t.leaveTeam(ctx, c, w)
+	case "list-self-memberships":
+		return t.listSelfMemberships(ctx, c, w)
 	case "list-team-memberships":
 		return t.listTeamMemberships(ctx, c, w)
 	case "list-user-memberships":
 		return t.listUserMemberships(ctx, c, w)
-	case "list-self-memberships":
-		return t.listSelfMemberships(ctx, c, w)
-	case "rename":
+	case "remove-member":
+		return t.removeMember(ctx, c, w)
+	case "rename-subteam":
 		return t.renameSubteam(ctx, c, w)
-	case "leave":
-		return t.leaveTeam(ctx, c, w)
-	case "delete":
-		return t.deleteTeam(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}
+}
+
+type memberEmail struct {
+	Email string `json:"email"`
+	Role  string `json:"role"`
+}
+
+type memberUsername struct {
+	Username string `json:"username"`
+	Role     string `json:"role"`
+}
+
+type addMembersOptions struct {
+	Team      string           `json:"team"`
+	Emails    []memberEmail    `json:"emails"`
+	Usernames []memberUsername `json:"usernames"`
+}
+
+func (a *addMembersOptions) Check() error {
+	if len(a.Team) == 0 {
+		return errors.New("`team` field required")
+	}
+
+	if len(a.Emails) == 0 && len(a.Usernames) == 0 {
+		return errors.New("no emails or usernames specified")
+	}
+
+	for _, e := range a.Emails {
+		if len(e.Email) == 0 {
+			return errors.New("empty email address")
+		}
+		if len(e.Role) == 0 {
+			return errors.New("empty role")
+		}
+		if _, err := mapRole(e.Role); err != nil {
+			return err
+		}
+	}
+
+	for _, u := range a.Usernames {
+		if len(u.Username) == 0 {
+			return errors.New("empty username")
+		}
+		if len(u.Role) == 0 {
+			return errors.New("empty role")
+		}
+		if _, err := mapRole(u.Role); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *teamAPIHandler) addMembers(ctx context.Context, c Call, w io.Writer) error {
+	var opts addMembersOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return err
+	}
+
+	// currently service endpoint can only handle one at a time
+	// can improve this when CORE-6172 is complete
+	var args []keybase1.TeamAddMemberArg
+	for _, e := range opts.Emails {
+		role, err := mapRole(e.Role)
+		if err != nil {
+			return t.encodeErr(c, err, w)
+		}
+		arg := keybase1.TeamAddMemberArg{
+			Name:  opts.Team,
+			Email: e.Email,
+			Role:  role,
+		}
+		args = append(args, arg)
+	}
+	for _, u := range opts.Usernames {
+		role, err := mapRole(u.Role)
+		if err != nil {
+			return t.encodeErr(c, err, w)
+		}
+		arg := keybase1.TeamAddMemberArg{
+			Name:     opts.Team,
+			Username: u.Username,
+			Role:     role,
+		}
+		args = append(args, arg)
+	}
+
+	var all []keybase1.TeamAddMemberResult
+	for _, arg := range args {
+		res, err := t.cli.TeamAddMember(ctx, arg)
+		if err != nil {
+			return t.encodeErr(c, err, w)
+		}
+		all = append(all, res)
+	}
+
+	return t.encodeResult(c, all, w)
 }
 
 func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) error {
 	return nil
 }
 
-func (t *teamAPIHandler) addMember(ctx context.Context, c Call, w io.Writer) error {
-	return nil
-}
-
-func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) error {
+func (t *teamAPIHandler) deleteTeam(ctx context.Context, c Call, w io.Writer) error {
 	return nil
 }
 
 func (t *teamAPIHandler) editMember(ctx context.Context, c Call, w io.Writer) error {
 	return nil
+}
+
+func (t *teamAPIHandler) leaveTeam(ctx context.Context, c Call, w io.Writer) error {
+	return nil
+}
+
+func (t *teamAPIHandler) listSelfMemberships(ctx context.Context, c Call, w io.Writer) error {
+	arg := keybase1.TeamListArg{
+		All: true,
+	}
+	list, err := t.cli.TeamList(ctx, arg)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	return t.encodeResult(c, list, w)
 }
 
 type listTeamOptions struct {
@@ -100,26 +210,11 @@ func (t *teamAPIHandler) listUserMemberships(ctx context.Context, c Call, w io.W
 	return nil
 }
 
-func (t *teamAPIHandler) listSelfMemberships(ctx context.Context, c Call, w io.Writer) error {
-	arg := keybase1.TeamListArg{
-		All: true,
-	}
-	list, err := t.cli.TeamList(ctx, arg)
-	if err != nil {
-		return t.encodeErr(c, err, w)
-	}
-	return t.encodeResult(c, list, w)
+func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) error {
+	return nil
 }
 
 func (t *teamAPIHandler) renameSubteam(ctx context.Context, c Call, w io.Writer) error {
-	return nil
-}
-
-func (t *teamAPIHandler) leaveTeam(ctx context.Context, c Call, w io.Writer) error {
-	return nil
-}
-
-func (t *teamAPIHandler) deleteTeam(ctx context.Context, c Call, w io.Writer) error {
 	return nil
 }
 
@@ -154,4 +249,28 @@ func (t *teamAPIHandler) encodeReply(call Call, reply Reply, w io.Writer) error 
 		enc.SetIndent("", "    ")
 	}
 	return enc.Encode(reply)
+}
+
+func (t *teamAPIHandler) unmarshalOptions(c Call, opts Checker) error {
+	if len(c.Params.Options) == 0 {
+		return nil
+	}
+	if err := json.Unmarshal(c.Params.Options, opts); err != nil {
+		return err
+	}
+	return opts.Check()
+}
+
+func mapRole(srole string) (keybase1.TeamRole, error) {
+	role, ok := keybase1.TeamRoleMap[strings.ToUpper(srole)]
+	if !ok {
+		return 0, errors.New("invalid team role, please use owner, admin, writer, or reader")
+	}
+
+	return role, nil
+
+}
+
+type Checker interface {
+	Check() error
 }
