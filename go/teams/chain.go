@@ -1422,6 +1422,20 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
+		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
+		if !signer.implicitAdmin {
+			signerRole, err := prevState.GetUserRole(signer.signer)
+			if err != nil {
+				return res, err
+			}
+			switch signerRole {
+			case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+				// ok
+			default:
+				return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
+			}
+		}
+
 		res.newState = prevState.DeepCopy()
 		if settings := team.Settings; settings != nil {
 			err = t.parseTeamSettings(settings, &res.newState)
