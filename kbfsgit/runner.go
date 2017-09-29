@@ -76,7 +76,8 @@ const (
 	// objects into the bare repo.
 	localRepoRemoteName = "local"
 
-	packedRefsPath = "packed-refs"
+	packedRefsPath     = "packed-refs"
+	packedRefsTempPath = "._packed-refs"
 )
 
 type ctxCommandTagKey int
@@ -1166,7 +1167,7 @@ func (r *runner) canPushAll(
 	return true, true, nil
 }
 
-func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
+func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) (err error) {
 	r.log.CDebugf(ctx, "Pushing the entire local repo")
 	localFS := osfs.New(r.gitDir)
 
@@ -1189,6 +1190,26 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 		ctx, localFSObjects, fsObjects,
 		"Counting objects", "countobj",
 		fmt.Sprintf("Preparing and %s objects", verb), "pushobj")
+	if err != nil {
+		return err
+	}
+
+	// Hold the packed refs lock file while transferring, so we don't
+	// clash with anyone else trying to push-init this repo.  go-git
+	// takes the same lock while writing packed-refs during a
+	// `Remote.Fetch()` operation (used in `pushSome()` below).
+	lockFile, err := fs.Create(packedRefsTempPath)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		closeErr := lockFile.Close()
+		if closeErr != nil && err == nil {
+			err = closeErr
+		}
+	}()
+
+	err = lockFile.Lock()
 	if err != nil {
 		return err
 	}
@@ -1217,6 +1238,7 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 	} else if err != nil {
 		return err
 	}
+
 	return r.copyFileWithCount(ctx, localFS, fs, packedRefsPath,
 		"Counting packed refs", "countprefs",
 		fmt.Sprintf("Preparing and %s packed refs", verb), "pushprefs")
