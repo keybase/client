@@ -403,6 +403,10 @@ func (t *TeamSigChainState) ListSubteams() (res []keybase1.TeamIDAndName) {
 			continue
 		}
 		lastPoint := points[len(points)-1]
+		if lastPoint.Name.IsNil() {
+			// the subteam has been deleted
+			continue
+		}
 		entry := Entry{
 			ID:    subteamID,
 			Name:  lastPoint.Name,
