@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	clockwork "github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -72,6 +73,7 @@ type configGetter interface {
 	GetTorMode() (TorMode, error)
 	GetTorProxy() string
 	GetUPAKCacheSize() (int, bool)
+	GetUIDMapFullNameCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
@@ -602,10 +604,20 @@ type KVStoreContext interface {
 	GetKVStore() KVStorer
 }
 
+type ClockContext interface {
+	GetClock() clockwork.Clock
+}
+
 type UIDMapperContext interface {
 	LogContext
 	APIContext
 	KVStoreContext
+	ClockContext
+}
+
+type UsernamePackage struct {
+	NormalizedUsername NormalizedUsername
+	FullName           *keybase1.FullNamePackage
 }
 
 type UIDMapper interface {
@@ -614,8 +626,14 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
-	// MapUIDToUsernames maps the given set of UIDs to the normalized usernames. It can check
-	// caches or go to the server, but guarantees that any names returned pass the check
-	// as in CheckUIDAgainstUsername
-	MapUIDsToUsernames(ctx context.Context, g UIDMapperContext, uids []keybase1.UID) ([]NormalizedUsername, error)
+	// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
+	// a username and a fullname, and when the mapping was loaded from the server. It blocks
+	// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
+	// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
+	// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
+	// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
+	// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
+	// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
+	// with an empty fullName field means that the user just hasn't supplied a fullName.
+	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
 }
