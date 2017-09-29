@@ -42,6 +42,8 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{Renamed: true})
 	case "team.delete":
 		return true, r.deleteTeam(ctx, cli, item)
+	case "team.exit":
+		return true, r.exitTeam(ctx, cli, item)
 	default:
 		return false, fmt.Errorf("unknown teamHandler category: %q", category)
 	}
@@ -83,6 +85,22 @@ func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterf
 	}
 	r.G().Log.Debug("team.delete unmarshaled: %+v", rows)
 	return teams.HandleDeleteNotification(ctx, r.G(), rows)
+}
+
+func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	var rows []keybase1.TeamExitRow
+	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
+		r.G().Log.Debug("error unmarshaling team.exit item: %s", err)
+		return err
+	}
+	r.G().Log.Debug("team.exit unmarshaled: %+v", rows)
+	err := teams.HandleExitNotification(ctx, r.G(), rows)
+	if err != nil {
+		return err
+	}
+
+	r.G().Log.Debug("dismissing team.exit: %v", item.Metadata().MsgID().String())
+	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
