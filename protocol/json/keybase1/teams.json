@@ -738,6 +738,16 @@
     },
     {
       "type": "record",
+      "name": "TeamExitRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamInvitee",
       "fields": [
         {
@@ -803,7 +813,7 @@
           "name": "wantMembersRole"
         }
       ],
-      "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cached."
+      "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cache."
     },
     {
       "type": "record",

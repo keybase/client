@@ -8,7 +8,7 @@ const ff: FeatureFlags = {
   recentFilesEnabled: false,
   tabPeopleEnabled: false,
   teamChatEnabled: true,
-  tabGitEnabled: false,
+  tabGitEnabled: true,
   mentionHud: false,
 }
 

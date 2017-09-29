@@ -312,7 +312,12 @@ func TestMemberAddSocial(t *testing.T) {
 
 	tc.G.SetServices(externals.GetServices())
 
-	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER)
+	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_OWNER)
+	if err == nil {
+		t.Fatal("should not be able to invite a social user as an owner")
+	}
+
+	res, err = AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_READER)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -336,27 +341,35 @@ func TestMemberAddNoPUK(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	username := "t_alice"
-	res, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !res.Invited {
-		t.Fatal("res.Invited should be set")
-	}
-	if res.User.Username != username {
-		t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
+	inviteNoPUK := func(username string, uid keybase1.UID, role keybase1.TeamRole) {
+
+		res, err := AddMember(context.TODO(), tc.G, name, username, role)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !res.Invited {
+			t.Fatal("res.Invited should be set")
+		}
+		if res.User.Username != username {
+			t.Errorf("AddMember result username %q does not match arg username %q", res.User.Username, username)
+		}
+
+		fqUID := string(uid) + "%1"
+		assertInvite(tc, name, fqUID, "keybase", role)
+
+		// second AddMember should return err
+		if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
+			t.Errorf("second AddMember succeeded, should have failed since user already invited")
+		}
+
+		// existing invite should be untouched
+		assertInvite(tc, name, fqUID, "keybase", role)
 	}
 
-	assertInvite(tc, name, "295a7eea607af32040647123732bc819%1", "keybase", keybase1.TeamRole_READER)
+	inviteNoPUK("t_alice", keybase1.UID("295a7eea607af32040647123732bc819"), keybase1.TeamRole_READER)
 
-	// second AddMember should return err
-	if _, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_WRITER); err == nil {
-		t.Errorf("second AddMember succeeded, should have failed since user already invited")
-	}
-
-	// existing invite should be untouched
-	assertInvite(tc, name, "295a7eea607af32040647123732bc819%1", "keybase", keybase1.TeamRole_READER)
+	// Disabled until we back out CORE-6170
+	// inviteNoPUK("t_bob", keybase1.UID("afb5eda3154bc13c1df0189ce93ba119"), keybase1.TeamRole_OWNER)
 }
 
 // add user without keys to a team, should create invite link
@@ -392,6 +405,11 @@ func TestMemberAddEmail(t *testing.T) {
 	defer tc.Cleanup()
 
 	address := "noone@keybase.io"
+
+	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_OWNER); err == nil {
+		t.Fatal("should not be able to invite an owner over email")
+	}
+
 	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_READER); err != nil {
 		t.Fatal(err)
 	}

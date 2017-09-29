@@ -442,7 +442,7 @@ type Clock interface {
 }
 
 type GregorDismisser interface {
-	DismissItem(id gregor.MsgID) error
+	DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error
 }
 
 type GregorInBandMessageHandler interface {
@@ -593,6 +593,8 @@ type TeamLoader interface {
 	MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error)
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
+	// Delete the cache entry. Does not error if there is no cache entry.
+	Delete(context.Context, keybase1.TeamID) error
 	OnLogout()
 }
 

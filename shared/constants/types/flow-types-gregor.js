@@ -78,6 +78,14 @@ export function authUpdateRevokeSessionIDsRpcPromise (request: (requestCommon & 
   return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.authUpdate.revokeSessionIDs', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function incomingConsumeMessageMultiRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: incomingConsumeMessageMultiRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.consumeMessageMulti', request)
+}
+
+export function incomingConsumeMessageMultiRpcPromise (request: (requestCommon & requestErrorCallback & {param: incomingConsumeMessageMultiRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('gregor.1.incoming.consumeMessageMulti', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function incomingConsumeMessageRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'gregor.1.incoming.consumeMessage', request)
 }
@@ -306,6 +314,11 @@ export type authAuthenticateSessionTokenRpcParam = Exact<{
 
 export type authUpdateRevokeSessionIDsRpcParam = Exact<{
   sessionIDs?: ?Array<SessionID>
+}>
+
+export type incomingConsumeMessageMultiRpcParam = Exact<{
+  msg: Message,
+  uids?: ?Array<UID>
 }>
 
 export type incomingConsumeMessageRpcParam = Exact<{

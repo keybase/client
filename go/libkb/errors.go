@@ -2138,3 +2138,28 @@ func UserErrorFromStatus(s keybase1.StatusCode) error {
 }
 
 //=============================================================================
+
+// InvalidRepoNameError indicates that a repo name is invalid.
+type InvalidRepoNameError struct {
+	Name string
+}
+
+func (e InvalidRepoNameError) Error() string {
+	return fmt.Sprintf("Invalid repo name %q", e.Name)
+}
+
+//=============================================================================
+
+// RepoAlreadyCreatedError is returned when trying to create a repo
+// that already exists.
+type RepoAlreadyExistsError struct {
+	DesiredName  string
+	ExistingName string
+	ExistingID   string
+}
+
+func (e RepoAlreadyExistsError) Error() string {
+	return fmt.Sprintf(
+		"A repo named %s (id=%s) already existed when trying to create "+
+			"a repo named %s", e.ExistingName, e.ExistingID, e.DesiredName)
+}

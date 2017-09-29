@@ -16,14 +16,13 @@ const ff: FeatureFlags = {
   admin: false,
   plansEnabled: false,
   recentFilesEnabled: false,
-  tabGitEnabled: false,
+  tabGitEnabled: true,
   tabPeopleEnabled: true,
   teamChatEnabled: true,
   mentionHud: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
-  tabGitEnabled: true,
   mentionHud: true,
 }
 

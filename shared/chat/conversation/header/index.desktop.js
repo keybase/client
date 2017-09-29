@@ -48,6 +48,7 @@ const UsernameHeader = ({
     <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
       <Usernames
         colorFollowing={true}
+        underline={true}
         inline={false}
         commaColor={globalColors.black_40}
         type="BodyBig"

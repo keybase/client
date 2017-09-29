@@ -2,11 +2,14 @@
 import SettingsContainer from './render'
 import pausableConnect from '../util/pausable-connect'
 import {switchTo} from '../actions/route-tree'
+
 import {logout} from '../actions/login/creators'
 
 import type {Tab} from '../constants/settings'
 import type {TypedState} from '../constants/reducer'
 import type {RouteProps} from '../route-tree/render-route'
+
+const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 
 type StateProps = {
   badgeNumbers: {[key: Tab]: number},
@@ -18,7 +21,7 @@ const mapStateToProps = (
   state: TypedState,
   {routeLeafTags, routeSelected}: RouteProps<{}, {}>
 ): StateProps => ({
-  badgeNumbers: {}, // TODO add badging logic
+  badgeNumbers: getNavBadges(state).toObject(),
   isModal: routeLeafTags.modal,
   // TODO: Is there a way to validate that routeSelected is a Tab?
   selectedTab: (routeSelected: any),

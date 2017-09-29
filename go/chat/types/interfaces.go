@@ -64,7 +64,7 @@ type Sender interface {
 }
 
 type ChatLocalizer interface {
-	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
+	Localize(ctx context.Context, uid gregor1.UID, inbox Inbox) ([]chat1.ConversationLocal, error)
 	Name() string
 	SetOffline()
 }
@@ -73,9 +73,9 @@ type InboxSource interface {
 	Offlinable
 
 	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, useLocalData bool,
-		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, *chat1.RateLimit, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
-		query *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, *chat1.RateLimit, error)
 	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, *chat1.RateLimit, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,

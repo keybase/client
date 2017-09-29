@@ -95,15 +95,16 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 	}
 
 	for _, conv := range allConvs {
-		if conv.Includes(uid) {
-			maxText, err := conv.GetMaxMessage(chat1.MessageType_TEXT)
+		if conv.Conv.Includes(uid) {
+			maxText, err := conv.Conv.GetMaxMessage(chat1.MessageType_TEXT)
 			if err != nil {
 				h.Debug(ctx, "failed to get a max message from conv: uid: %s convID: %s err: %s",
 					uid, conv.GetConvID(), err.Error())
 				continue
 			}
 
-			return maxText.TLFNameExpanded(conv.Metadata.FinalizeInfo), conv.Metadata.IdTriple.Tlfid, nil
+			return maxText.TLFNameExpanded(conv.Conv.Metadata.FinalizeInfo),
+				conv.Conv.Metadata.IdTriple.Tlfid, nil
 		}
 	}
 

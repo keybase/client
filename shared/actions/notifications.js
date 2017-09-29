@@ -10,6 +10,7 @@ import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
 import {setupChatHandlers, badgeAppForChat} from './chat'
+import {badgeAppForGit} from './git/creators'
 import {setupKBFSChangedHandler} from './favorite'
 import {setupTeamHandlers} from './teams/creators'
 
@@ -86,8 +87,9 @@ function* _listenKBFSSaga(): SagaGenerator<any, any> {
 }
 
 function* _onRecievedBadgeState(action: Constants.ReceivedBadgeState): SagaGenerator<any, any> {
-  const {conversations} = action.payload.badgeState
+  const {conversations, newGitRepoGlobalUniqueIDs} = action.payload.badgeState
   yield put(badgeAppForChat(conversations))
+  yield put(badgeAppForGit(newGitRepoGlobalUniqueIDs))
 }
 
 function* _listenNotifications(): SagaGenerator<any, any> {

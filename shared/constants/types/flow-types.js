@@ -211,6 +211,10 @@ export const ConstantsStatusCode = {
   scinstallerror: 1804,
   scloadkexterror: 1810,
   scloadkextpermerror: 1811,
+  scgitinternal: 2300,
+  scgitrepoalreadyexists: 2301,
+  scgitinvalidreponame: 2302,
+  scgitcannotdelete: 2303,
   scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
@@ -4589,6 +4593,10 @@ export type StatusCode =
   | 1804 // SCInstallError_1804
   | 1810 // SCLoadKextError_1810
   | 1811 // SCLoadKextPermError_1811
+  | 2300 // SCGitInternal_2300
+  | 2301 // SCGitRepoAlreadyExists_2301
+  | 2302 // SCGitInvalidRepoName_2302
+  | 2303 // SCGitCannotDelete_2303
   | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
@@ -4757,6 +4765,10 @@ export type TeamDetails = {
   members: TeamMembersDetails,
   keyGeneration: PerTeamKeyGeneration,
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
+}
+
+export type TeamExitRow = {
+  id: TeamID,
 }
 
 export type TeamID = string

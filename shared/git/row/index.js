@@ -24,13 +24,16 @@ export type Props = {
   lastEditUser: string,
   lastEditUserFollowing: boolean,
   name: string,
+  you: ?string,
   teamname: ?string,
   url: string,
   isNew: boolean,
   onCopy: () => void,
+  onClickDevice: () => void,
   onShowDelete: () => void,
   onToggleExpand: () => void,
   setTimeout: (() => void, number) => number,
+  openUserTracker: (username: string) => void,
 }
 
 type State = {
@@ -65,13 +68,14 @@ class Row extends React.Component<Props, State> {
             ? {
                 backgroundColor: globalColors.blue5,
                 borderColor: globalColors.black_05,
+                paddingBottom: isMobile ? globalMargins.tiny : 0,
               }
             : {}),
         }}
       >
         <ClickableBox
           onClick={this.props.onToggleExpand}
-          style={_rowClickStyle}
+          style={this.props.expanded ? _rowClickStyleExpanded : _rowClickStyle}
           hoverColor={isMobile ? undefined : globalColors.transparent}
           underlayColor={globalColors.transparent}
         >
@@ -80,21 +84,17 @@ class Row extends React.Component<Props, State> {
               type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
               style={_iconCaretStyle}
             />
-            <Icon
-              type={this.props.teamname ? 'iconfont-repo-team' : 'iconfont-repo-personal'}
-              style={_iconRepoStyle}
+            <Avatar
+              size={isMobile ? 40 : 24}
+              isTeam={!!this.props.teamname}
+              teamname={this.props.teamname}
+              username={this.props.teamname ? undefined : this.props.you}
+              style={{marginRight: globalMargins.tiny}}
             />
-            {this.props.teamname &&
-              <Avatar
-                size={12}
-                isTeam={true}
-                teamname={this.props.teamname}
-                style={{marginRight: globalMargins.xtiny}}
-              />}
             <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
-            {!!this.props.teamname && this.props.isNew && <Meta title="New" style={_metaStyle} />}
+            {this.props.isNew && <Meta title="New" style={_metaStyle} />}
           </Box>
         </ClickableBox>
         {this.props.expanded &&
@@ -103,42 +103,7 @@ class Row extends React.Component<Props, State> {
               style={{
                 ...globalStyles.flexBoxRow,
                 alignItems: 'center',
-                flexWrap: 'wrap',
-                marginBottom: 5,
-                marginTop: 2,
-              }}
-            >
-              <Text type="BodySmall">
-                {`Last push ${this.props.lastEditTime}${!!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''}`}
-              </Text>
-              {!!this.props.teamname &&
-                !!this.props.lastEditUser &&
-                <Avatar
-                  username={this.props.lastEditUser}
-                  size={12}
-                  style={{marginLeft: 2, marginRight: 2}}
-                />}
-              {!!this.props.teamname &&
-                !!this.props.lastEditUser &&
-                <Usernames
-                  type="BodySmall"
-                  colorFollowing={true}
-                  users={[{following: this.props.lastEditUserFollowing, username: this.props.lastEditUser}]}
-                  style={{marginLeft: 2, marginRight: 2}}
-                />}
-              <Text type="BodySmall">
-                <Text type="BodySmall">
-                  {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
-                </Text>
-                <Text type="BodySmall" style={_deviceStyle}>{' '}{this.props.devicename}</Text>
-              </Text>
-            </Box>
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-                alignItems: 'center',
                 position: 'relative',
-                flex: isMobile ? 1 : undefined,
               }}
             >
               <Text type="Body">Clone:</Text>
@@ -154,13 +119,16 @@ class Row extends React.Component<Props, State> {
                   inputStyle={_inputInputStyle}
                   hideUnderline={true}
                 />
-                <Box style={_copyStyle}>
+                <ClickableBox style={_copyStyle} onClick={this._onCopy}>
                   <Icon
                     type="iconfont-clipboard"
-                    style={{color: globalColors.white, ...(isMobile ? {} : {hoverColor: globalColors.blue5})}}
-                    onClick={this._onCopy}
+                    style={{
+                      color: globalColors.white,
+                      fontSize: isMobile ? 20 : 16,
+                      ...(isMobile ? {} : {hoverColor: globalColors.blue5}),
+                    }}
                   />
-                </Box>
+                </ClickableBox>
               </Box>
               {!isMobile &&
                 this.props.canDelete &&
@@ -169,14 +137,56 @@ class Row extends React.Component<Props, State> {
                 <Copied showing={this.state.showingCopy} />
               </Box>
             </Box>
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                alignItems: 'center',
+                alignSelf: 'flex-start',
+                flexWrap: 'wrap',
+                marginBottom: globalMargins.xtiny,
+                marginTop: globalMargins.tiny,
+              }}
+            >
+              <Text type="BodySmall">
+                {`Last push ${this.props.lastEditTime}${!!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''}`}
+              </Text>
+              {!!this.props.teamname &&
+                !!this.props.lastEditUser &&
+                <Avatar
+                  username={this.props.lastEditUser}
+                  size={isMobile ? 16 : 12}
+                  style={{marginLeft: isMobile ? 0 : 4}}
+                />}
+              {!!this.props.teamname &&
+                !!this.props.lastEditUser &&
+                <Box style={{marginLeft: 2}}>
+                  <Usernames
+                    type="BodySmallSemibold"
+                    underline={true}
+                    colorFollowing={true}
+                    users={[{following: this.props.lastEditUserFollowing, username: this.props.lastEditUser}]}
+                    onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
+                  />
+                </Box>}
+              {isMobile && <Text type="BodySmall">.</Text>}
+              <Text type="BodySmall">
+                <Text type="BodySmall">
+                  {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
+                </Text>
+                <Text type="BodySmall" style={_deviceStyle} onClick={this.props.onClickDevice}>
+                  {' '}{this.props.devicename}
+                </Text>
+                <Text type="BodySmall">.</Text>
+              </Text>
+            </Box>
             {isMobile &&
               this.props.canDelete &&
               <Button
                 type="Danger"
-                small={true}
+                small={false}
                 label="Delete repo"
                 onClick={this.props.onShowDelete}
-                style={{marginTop: globalMargins.tiny, alignSelf: 'flex-end'}}
+                style={{marginTop: globalMargins.tiny, alignSelf: 'flex-start'}}
               />}
           </Box>}
       </Box>
@@ -189,15 +199,18 @@ const Copied = ({showing}) => (
     style={{
       ...transition('opacity'),
       backgroundColor: globalColors.black_60,
-      borderRadius: 10,
-      left: -160,
+      borderRadius: 20,
+      left: -165,
       opacity: showing ? 1 : 0,
-      padding: 5,
+      paddingBottom: 5,
+      paddingTop: globalMargins.xtiny,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
       position: 'absolute',
       top: -28,
     }}
   >
-    <Text type="Body" backgroundMode="Terminal">Copied!</Text>
+    <Text type="BodySmall" backgroundMode="Terminal" style={{color: globalColors.white}}>Copied!</Text>
   </Box>
 )
 
@@ -205,19 +218,27 @@ const _copyStyle = {
   ...globalStyles.fillAbsolute,
   ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.blue,
+  borderRadius: 0,
   left: undefined,
-  paddingLeft: 12,
-  paddingRight: 12,
+  paddingLeft: isMobile ? 24 : 12,
+  paddingRight: isMobile ? 24 : 12,
 }
 
 const _inputInputStyle = {
   ...globalStyles.fontTerminal,
+  // on desktop the input text isn't vertically aligned
+  ...(isMobile
+    ? {fontSize: 15}
+    : {
+        display: 'inline-block',
+        fontSize: 13,
+        paddingTop: 3,
+      }),
   color: globalColors.darkBlue,
-  fontSize: 13,
 }
 
 const _inputStyle = {
-  paddingTop: isMobile ? 5 : undefined,
+  paddingTop: isMobile ? 10 : undefined,
   width: '100%',
 }
 
@@ -225,13 +246,13 @@ const _bubbleStyle = {
   ...globalStyles.flexBoxCenter,
   backgroundColor: globalColors.white,
   borderColor: globalColors.black_05,
-  borderRadius: 100,
+  borderRadius: 200,
   borderStyle: 'solid',
   borderWidth: 1,
   flex: isMobile ? 1 : undefined,
-  marginLeft: 8,
-  marginRight: 8,
-  minHeight: 28,
+  marginLeft: globalMargins.xtiny,
+  marginRight: globalMargins.tiny,
+  minHeight: isMobile ? 40 : 28,
   minWidth: isMobile ? undefined : 367,
   overflow: 'hidden',
   paddingLeft: globalMargins.small,
@@ -246,7 +267,8 @@ const _deviceStyle = {
 
 const _rowBottomStyle = {
   ...globalStyles.flexBoxColumn,
-  paddingLeft: 32,
+  paddingLeft: globalMargins.medium,
+  paddingBottom: globalMargins.tiny,
 }
 
 const _iconCaretStyle = {
@@ -257,6 +279,7 @@ const _iconCaretStyle = {
       }),
   fontSize: 12,
   marginBottom: 2,
+  marginRight: globalMargins.tiny,
 }
 
 const _metaStyle = {
@@ -265,33 +288,35 @@ const _metaStyle = {
   marginLeft: 6,
 }
 
-const _iconRepoStyle = {
-  color: globalColors.darkBlue,
-  marginLeft: 12,
-  marginRight: 6,
-}
-
 const _rowTopStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  paddingLeft: 8,
+  paddingLeft: globalMargins.tiny,
+  marginBottom: globalMargins.xtiny,
 }
 
 const _rowStyle = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'flex-start',
   borderBottomWidth: 1,
   borderColor: globalColors.transparent,
   borderStyle: 'solid',
   borderTopWidth: 1,
   flexShrink: 0,
   minHeight: globalMargins.large,
-  padding: globalMargins.tiny,
   paddingLeft: 0,
-  paddingTop: 11,
   width: '100%',
 }
 const _rowClickStyle = {
   ...globalStyles.flexBoxColumn,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
+  width: '100%',
+}
+
+const _rowClickStyleExpanded = {
+  ..._rowClickStyle,
+  paddingBottom: 0,
 }
 
 // $FlowIssue we need to fix up timer hoc props

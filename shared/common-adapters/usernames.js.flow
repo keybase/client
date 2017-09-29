@@ -27,6 +27,7 @@ export type Props = {
   colorFollowing?: boolean,
   colorBroken?: boolean,
   onUsernameClicked?: (username: string) => void,
+  underline?: boolean,
 }
 
 export type PlaintextProps = {
