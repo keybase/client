@@ -431,11 +431,11 @@ func NewHybridInboxSource(g *globals.Context,
 }
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.GetInboxQuery,
-	p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error) {
+	p *chat1.Pagination) (types.Inbox, *chat1.RateLimit, error) {
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
-		return chat1.Inbox{}, nil, OfflineError{}
+		return types.Inbox{}, nil, OfflineError{}
 	}
 
 	// We always want this on for fetches to fill the local inbox, otherwise we never get the
@@ -459,12 +459,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, query *chat1.G
 		Pagination: p,
 	})
 	if err != nil {
-		return chat1.Inbox{}, ib.RateLimit, err
+		return types.Inbox{}, ib.RateLimit, err
 	}
 
-	return chat1.Inbox{
+	return types.Inbox{
 		Version:         ib.Inbox.Full().Vers,
-		ConvsUnverified: ib.Inbox.Full().Conversations,
+		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
 		Pagination:      ib.Inbox.Full().Pagination,
 	}, ib.RateLimit, nil
 }
@@ -517,7 +517,6 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	query *chat1.GetInboxQuery, p *chat1.Pagination) (res types.Inbox, rl *chat1.RateLimit, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
 
-	var inbox chat1.Inbox
 	var cerr storage.Error
 	inboxStore := storage.NewInbox(s.G(), uid)
 
@@ -548,22 +547,16 @@ func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 		}
 
 		// Go to the remote on miss
-		inbox, rl, err = s.fetchRemoteInbox(ctx, query, p)
+		res, rl, err = s.fetchRemoteInbox(ctx, query, p)
 		if err != nil {
 			return res, rl, err
 		}
 
 		// Write out to local storage only if we are using local daata
 		if useLocalData {
-			if cerr = inboxStore.Merge(ctx, inbox.Version, inbox.ConvsUnverified, query, p); cerr != nil {
+			if cerr = inboxStore.Merge(ctx, res.Version, utils.PluckConvs(res.ConvsUnverified), query, p); cerr != nil {
 				s.Debug(ctx, "ReadUnverified: failed to write inbox to local storage: %s", cerr.Error())
 			}
-		}
-
-		res = types.Inbox{
-			Version:         inbox.Version,
-			ConvsUnverified: utils.RemoteConvs(inbox.ConvsUnverified),
-			Pagination:      inbox.Pagination,
 		}
 	}
 

@@ -1291,13 +1291,6 @@ export type HeaderPlaintextVersion =
   | 9 // V9_9
   | 10 // V10_10
 
-export type Inbox = {
-  version: InboxVers,
-  convsUnverified?: ?Array<Conversation>,
-  convs?: ?Array<ConversationLocal>,
-  pagination?: ?Pagination,
-}
-
 export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1

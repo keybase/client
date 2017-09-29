@@ -141,13 +141,6 @@ protocol local {
     keybase1.TLFIdentifyBehavior identifyBehavior;
   }
 
-  record Inbox {
-    InboxVers version;
-    array<Conversation> convsUnverified;
-    array<ConversationLocal> convs;
-    union { null, Pagination } pagination;
-  }
-
   enum HeaderPlaintextVersion {
     V1_1,
     V2_2,

@@ -846,48 +846,6 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 	}
 }
 
-type Inbox struct {
-	Version         InboxVers           `codec:"version" json:"version"`
-	ConvsUnverified []Conversation      `codec:"convsUnverified" json:"convsUnverified"`
-	Convs           []ConversationLocal `codec:"convs" json:"convs"`
-	Pagination      *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
-}
-
-func (o Inbox) DeepCopy() Inbox {
-	return Inbox{
-		Version: o.Version.DeepCopy(),
-		ConvsUnverified: (func(x []Conversation) []Conversation {
-			if x == nil {
-				return nil
-			}
-			var ret []Conversation
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.ConvsUnverified),
-		Convs: (func(x []ConversationLocal) []ConversationLocal {
-			if x == nil {
-				return nil
-			}
-			var ret []ConversationLocal
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.Convs),
-		Pagination: (func(x *Pagination) *Pagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
-	}
-}
-
 type HeaderPlaintextVersion int
 
 const (
