@@ -16,8 +16,6 @@ const searchResultSelector = ({entities: {searchResults}}: TypedState, username:
   return searchResults.get(username)
 }
 
-const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
-
 const previousConversationSelector = ({chat: {previousConversation}}: TypedState) => previousConversation
 
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
@@ -61,7 +59,6 @@ export {
   chatSearchResultArray,
   createShallowEqualSelector,
   createImmutableEqualSelector,
-  inboxSearchSelector,
   loggedInSelector,
   previousConversationSelector,
   profileSearchResultArray,

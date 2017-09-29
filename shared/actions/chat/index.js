@@ -33,7 +33,7 @@ import {chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import some from 'lodash/some'
 import {toDeviceType} from '../../constants/types/more'
-import {usernameSelector, inboxSearchSelector, previousConversationSelector} from '../../constants/selectors'
+import {usernameSelector, previousConversationSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
 import type {KBOrderedSet, ReturnValue} from '../../constants/types/more'
@@ -813,8 +813,8 @@ function* _openFolder(): SagaGenerator<any, any> {
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   yield put(Creators.setInboxFilter(''))
-  const inboxSearch = yield select(inboxSearchSelector)
-  if (inboxSearch && !inboxSearch.isEmpty()) {
+  const ids = yield select(SearchConstants.getUserInputItemIds, {searchKey: 'chatSearch'})
+  if (ids && !!ids.length) {
     // Ignore 'New Chat' attempts when we're already building a chat
     return
   }
@@ -885,7 +885,6 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     // Update search but don't update the filter
     if (inSearch) {
       const me = yield select(usernameSelector)
-      yield put(Creators.setInboxSearch(participants.filter(u => u !== me)))
       yield put(SearchCreators.setUserInputItems('chatSearch', participants.filter(u => u !== me)))
     }
   }
@@ -1229,17 +1228,16 @@ function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUp
 
 function _exitSearch(
   {payload: {skipSelectPreviousConversation}}: Constants.ExitSearch,
-  [inboxSearch, previousConversation]: [
-    ReturnValue<typeof inboxSearchSelector>,
+  [userInputItemIds, previousConversation]: [
+    ReturnValue<typeof SearchConstants.getUserInputItemIds>,
     ReturnValue<typeof previousConversationSelector>,
   ]
 ) {
   return all([
     put(SearchCreators.clearSearchResults('chatSearch')),
     put(SearchCreators.setUserInputItems('chatSearch', [])),
-    put(Creators.setInboxSearch([])),
     put(Creators.removeTempPendingConversations()),
-    inboxSearch.count() === 0 && !skipSelectPreviousConversation
+    userInputItemIds.length === 0 && !skipSelectPreviousConversation
       ? put(Creators.selectConversation(previousConversation, false))
       : null,
   ])
@@ -1392,7 +1390,7 @@ function* chatSaga(): SagaGenerator<any, any> {
     _updateTempSearchConversation
   )
   yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch, s => [
-    inboxSearchSelector(s),
+    SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}),
     previousConversationSelector(s),
   ])
   yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)

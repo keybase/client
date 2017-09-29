@@ -652,10 +652,6 @@ function setInboxFilter(filter: string): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
 
-function setInboxSearch(search: Array<string>): Constants.SetInboxSearch {
-  return {payload: {search}, type: 'chat:inboxSearch'}
-}
-
 function setInboxUntrustedState(
   inboxUntrustedState: Constants.UntrustedState
 ): Constants.SetInboxUntrustedState {
@@ -758,7 +754,6 @@ export {
   selectAttachment,
   selectConversation,
   setInboxFilter,
-  setInboxSearch,
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,

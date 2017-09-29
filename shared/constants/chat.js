@@ -357,7 +357,6 @@ export const StateRecord: KBRecord<T> = Record({
   localMessageStates: Map(),
   inbox: List(),
   inboxFilter: '',
-  inboxSearch: List(),
   conversationStates: Map(),
   metaData: Map(),
   finalizedState: Map(),
@@ -395,7 +394,6 @@ export type State = KBRecord<{
   localMessageStates: Map<MessageKey, LocalMessageState>,
   inbox: List<InboxState>,
   inboxFilter: string,
-  inboxSearch: List<string>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
@@ -539,7 +537,6 @@ export type SelectConversation = NoErrorTypedAction<
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
 export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: string}>
-export type SetInboxSearch = NoErrorTypedAction<'chat:inboxSearch', {search: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
   'chat:inboxUntrustedState',
   {inboxUntrustedState: UntrustedState}
@@ -1164,9 +1161,8 @@ function isImageFileName(filename: string): boolean {
   return imageFileNameRegex.test(filename)
 }
 
-const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 const getFollowingStates = (state: TypedState) => {
-  const ids = getInboxSearch(state)
+  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
   let followingStateMap = {}
   ids.forEach(id => {
     const {username, serviceId} = parseUserId(id)
@@ -1177,22 +1173,20 @@ const getFollowingStates = (state: TypedState) => {
 }
 
 const getUserItems = createShallowEqualSelector(
-  [getInboxSearch, getFollowingStates],
-  (inboxSearch, followingStates) =>
-    inboxSearch
-      .map(id => {
-        const {username, serviceId} = parseUserId(id)
-        const service = SearchConstants.serviceIdToService(serviceId)
-        return {
-          id: id,
-          followingState: followingStates[id],
-          // $FlowIssue ??
-          icon: serviceIdToIcon(serviceId),
-          username,
-          service,
-        }
-      })
-      .toArray()
+  [s => SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}), getFollowingStates],
+  (userInputItemIds, followingStates) =>
+    userInputItemIds.map(id => {
+      const {username, serviceId} = parseUserId(id)
+      const service = SearchConstants.serviceIdToService(serviceId)
+      return {
+        id: id,
+        followingState: followingStates[id],
+        // $FlowIssue ??
+        icon: serviceIdToIcon(serviceId),
+        username,
+        service,
+      }
+    })
 )
 
 // Selectors for entities
