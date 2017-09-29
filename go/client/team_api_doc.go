@@ -7,6 +7,12 @@ EXAMPLES:
 List all your team memberships:
     {"method": "list-self-memberships"}
 
+Create a team:
+    {"method": "create-team", "params": {"options": {"team": "phoenix"}}}
+
+Create a subteam:
+    {"method": "create-team", "params": {"options": {"team": "phoenix.bots"}}}
+
 Add members to a team:
     {"method": "add-members", "params": {"options": {"team": "treehouse", "emails": [{"email": "alice@treehouse.org", "role": "writer"}, {"email": "cleo@treehose.hor", "role": "admin"}], "usernames": [{"username": "frank", "role": "reader"}, {"username": "keybaseio@twitter", "role": "writer"}]}}}
 

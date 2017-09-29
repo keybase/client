@@ -122,7 +122,7 @@ func (a *addMembersOptions) Check() error {
 func (t *teamAPIHandler) addMembers(ctx context.Context, c Call, w io.Writer) error {
 	var opts addMembersOptions
 	if err := t.unmarshalOptions(c, &opts); err != nil {
-		return err
+		return t.encodeErr(c, err, w)
 	}
 
 	// currently service endpoint can only handle one at a time
@@ -165,8 +165,36 @@ func (t *teamAPIHandler) addMembers(ctx context.Context, c Call, w io.Writer) er
 	return t.encodeResult(c, all, w)
 }
 
+type createTeamOptions struct {
+	Team string `json:"team"`
+}
+
+func (c *createTeamOptions) Check() error {
+	_, err := keybase1.TeamNameFromString(c.Team)
+	return err
+}
+
 func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) error {
-	return nil
+	var opts createTeamOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	name, err := keybase1.TeamNameFromString(opts.Team)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	sendChatNotification := name.IsRootTeam()
+
+	createRes, err := t.cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+		Name:                 name.String(),
+		SendChatNotification: sendChatNotification,
+	})
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	return t.encodeResult(c, createRes, w)
 }
 
 func (t *teamAPIHandler) deleteTeam(ctx context.Context, c Call, w io.Writer) error {
