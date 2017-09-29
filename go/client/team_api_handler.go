@@ -46,8 +46,6 @@ func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) erro
 		return t.addMembers(ctx, c, w)
 	case "create-team":
 		return t.createTeam(ctx, c, w)
-	case "delete-team":
-		return t.deleteTeam(ctx, c, w)
 	case "edit-member":
 		return t.editMember(ctx, c, w)
 	case "leave-team":
@@ -197,16 +195,34 @@ func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) er
 	return t.encodeResult(c, createRes, w)
 }
 
-func (t *teamAPIHandler) deleteTeam(ctx context.Context, c Call, w io.Writer) error {
-	return nil
-}
-
 func (t *teamAPIHandler) editMember(ctx context.Context, c Call, w io.Writer) error {
 	return nil
 }
 
+type leaveTeamOptions struct {
+	Team      string `json:"team"`
+	Permanent bool   `json:"permanent"`
+}
+
+func (c *leaveTeamOptions) Check() error {
+	_, err := keybase1.TeamNameFromString(c.Team)
+	return err
+}
+
 func (t *teamAPIHandler) leaveTeam(ctx context.Context, c Call, w io.Writer) error {
-	return nil
+	var opts leaveTeamOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	arg := keybase1.TeamLeaveArg{
+		Name:      opts.Team,
+		Permanent: opts.Permanent,
+	}
+	if err := t.cli.TeamLeave(ctx, arg); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	return t.encodeResult(c, nil, w)
 }
 
 func (t *teamAPIHandler) listSelfMemberships(ctx context.Context, c Call, w io.Writer) error {
