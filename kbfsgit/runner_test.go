@@ -180,7 +180,6 @@ func testPushWithTemplate(t *testing.T, ctx context.Context,
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
 		filepath.Join(gitDir, ".git"), inputReader, &output, testErrput{t})
 	require.NoError(t, err)
-	r.packedRefsThresh = 2
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
 

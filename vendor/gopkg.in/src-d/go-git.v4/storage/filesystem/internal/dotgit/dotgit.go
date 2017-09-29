@@ -576,11 +576,34 @@ func (d *DotGit) readReferenceFile(path, name string) (ref *plumbing.Reference, 
 }
 
 func (d *DotGit) SetPackedRefs(refs []plumbing.Reference) (err error) {
+	// Lock it using a temp file.  TODO: clean this up?
+	lockFile, err := d.fs.Create(tmpPackedRefsPrefix)
+	if err != nil {
+		return err
+	}
+	defer ioutil.CheckClose(lockFile, &err)
+
+	err = lockFile.Lock()
+	if err != nil {
+		return err
+	}
+
 	f, err := d.fs.Create(packedRefsPath)
 	if err != nil {
 		return err
 	}
 	defer ioutil.CheckClose(f, &err)
+
+	// Check that the file is empty. Technically the locked create
+	// above should fail if the file exists yet, but let's just be
+	// safe and check.
+	buf, err := stdioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+	if len(buf) != 0 {
+		return errors.New("packed-refs file already initialized")
+	}
 
 	for _, ref := range refs {
 		_, err := f.Write([]byte(ref.String() + "\n"))

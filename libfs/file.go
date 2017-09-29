@@ -147,7 +147,6 @@ func (f *File) Lock() (err error) {
 		Done:      done,
 	})
 	defer close(done)
-	f.fs.log.CDebugf(f.fs.ctx, "Locking!")
 	f.lockedLock.Lock()
 	defer f.lockedLock.Unlock()
 	if f.locked {
@@ -159,7 +158,7 @@ func (f *File) Lock() (err error) {
 		}
 	}()
 
-	// First, sync all and ask journal to flush blocks of all existing writes.
+	// First, sync all and ask journal to flush all existing writes.
 	err = f.fs.SyncAll()
 	if err != nil {
 		return err
@@ -168,15 +167,14 @@ func (f *File) Lock() (err error) {
 	if err != nil {
 		return err
 	}
-	if err = jServer.WaitForBlockFlush(
-		f.fs.ctx, f.fs.root.GetFolderBranch().Tlf); err != nil {
+	if err = jServer.FinishSingleOp(
+		f.fs.ctx, f.fs.root.GetFolderBranch().Tlf, nil); err != nil {
 		return err
 	}
 
 	// Now, sync up with the server, while making sure a lock is held by us. If
 	// lock taking fails, RPC layer retries automatically.
 	lockID := f.getLockID()
-	f.fs.log.CDebugf(f.fs.ctx, "Locking %d!", lockID)
 	return f.fs.config.KBFSOps().SyncFromServerForTesting(f.fs.ctx,
 		f.fs.root.GetFolderBranch(), &lockID)
 }
@@ -220,7 +218,6 @@ func (f *File) Unlock() (err error) {
 		return f.fs.config.MDServer().ReleaseLock(f.fs.ctx,
 			f.fs.root.GetFolderBranch().Tlf, f.getLockID())
 	}
-	f.fs.log.CDebugf(f.fs.ctx, "Unlocking %d!", f.getLockID())
 	return jServer.FinishSingleOp(f.fs.ctx,
 		f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
 			RequireLockID:       f.getLockID(),

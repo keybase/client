@@ -76,9 +76,7 @@ const (
 	// objects into the bare repo.
 	localRepoRemoteName = "local"
 
-	// The minimum number of refs needed to initialize a repo with a
-	// packed-refs file.
-	packedRefsThreshDefault = 10
+	packedRefsPath = "packed-refs"
 )
 
 type ctxCommandTagKey int
@@ -105,8 +103,6 @@ type runner struct {
 
 	logSync     sync.Once
 	logSyncDone sync.Once
-
-	packedRefsThresh int
 }
 
 // newRunner creates a new runner for git commands.  It expects `repo`
@@ -153,19 +149,18 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	uniqID := fmt.Sprintf("%s-%d", session.VerifyingKey.String(), os.Getpid())
 
 	return &runner{
-		config:           config,
-		log:              config.MakeLogger(""),
-		h:                h,
-		remote:           remote,
-		repo:             parts[2],
-		gitDir:           gitDir,
-		uniqID:           uniqID,
-		input:            input,
-		output:           output,
-		errput:           errput,
-		verbosity:        1,
-		progress:         true,
-		packedRefsThresh: packedRefsThreshDefault,
+		config:    config,
+		log:       config.MakeLogger(""),
+		h:         h,
+		remote:    remote,
+		repo:      parts[2],
+		gitDir:    gitDir,
+		uniqID:    uniqID,
+		input:     input,
+		output:    output,
+		errput:    errput,
+		verbosity: 1,
+		progress:  true,
 	}, nil
 }
 
@@ -1216,13 +1211,13 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 	}
 
 	// Finally, packed refs if it exists.
-	_, err = localFS.Stat("packed-refs")
+	_, err = localFS.Stat(packedRefsPath)
 	if os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
 		return err
 	}
-	return r.copyFileWithCount(ctx, localFS, fs, "packed-refs",
+	return r.copyFileWithCount(ctx, localFS, fs, packedRefsPath,
 		"Counting packed refs", "countprefs",
 		fmt.Sprintf("Preparing and %s packed refs", verb), "pushprefs")
 }
@@ -1290,18 +1285,16 @@ func (r *runner) pushSome(
 			}()
 		}
 
-		packRefs := kbfsRepoEmpty && len(refspecs) > r.packedRefsThresh
-		if packRefs {
+		if kbfsRepoEmpty {
 			r.log.CDebugf(
-				ctx, "Requesting a pack-refs file for %d refs (threshold=%d)",
-				len(refspecs), r.packedRefsThresh)
+				ctx, "Requesting a pack-refs file for %d refs", len(refspecs))
 		}
 
 		err = remote.FetchContext(ctx, &gogit.FetchOptions{
 			RemoteName: localRepoRemoteName,
 			RefSpecs:   refspecs,
 			StatusChan: statusChan,
-			PackRefs:   packRefs,
+			PackRefs:   kbfsRepoEmpty,
 		})
 		if err == gogit.NoErrAlreadyUpToDate {
 			err = nil
@@ -1356,6 +1349,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 	if err != nil {
 		return err
 	}
+
 	var results map[string]error
 	if canPushAll {
 		err = r.pushAll(ctx, fs)

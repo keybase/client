@@ -23,6 +23,7 @@ import (
 const (
 	kbfsRepoDir         = ".kbfs_git"
 	kbfsConfigName      = "kbfs_config"
+	kbfsConfigNameTemp  = "._kbfs_config"
 	gitSuffixToIgnore   = ".git"
 	kbfsDeletedReposDir = ".kbfs_deleted_repos"
 )
@@ -90,11 +91,58 @@ func createNewRepoAndID(
 		"Creating a new repo %s in %s: repoID=%s",
 		repoName, tlfHandle.GetCanonicalPath(), repoID)
 
-	session, err := config.KBPKI().GetCurrentSession(ctx)
+	// Lock a temp file to avoid a duplicate create of the actual
+	// file.  TODO: clean up this file at some point?
+	lockFile, err := fs.Create(kbfsConfigNameTemp)
+	if err != nil && !os.IsExist(err) {
+		return NullID, err
+	} else if os.IsExist(err) {
+		lockFile, err = fs.Open(kbfsConfigNameTemp)
+	}
+	if err != nil {
+		return NullID, err
+	}
+	defer lockFile.Close()
+
+	// Take a lock during creation.
+	err = lockFile.Lock()
 	if err != nil {
 		return NullID, err
 	}
 
+	f, err := fs.Create(kbfsConfigName)
+	if err != nil && !os.IsExist(err) {
+		return NullID, err
+	} else if os.IsExist(err) {
+		// The config file already exists, so someone else already
+		// initialized the repo.
+		config.MakeLogger("").CDebugf(
+			ctx, "Config file for repo %s already exists", repoName)
+		f, err := fs.Open(kbfsConfigName)
+		if err != nil {
+			return NullID, err
+		}
+		defer f.Close()
+		buf, err := ioutil.ReadAll(f)
+		if err != nil {
+			return NullID, err
+		}
+		existingConfig, err := configFromBytes(buf)
+		if err != nil {
+			return NullID, err
+		}
+		return NullID, errors.WithStack(libkb.RepoAlreadyExistsError{
+			DesiredName:  repoName,
+			ExistingName: existingConfig.Name,
+			ExistingID:   existingConfig.ID.String(),
+		})
+	}
+	defer f.Close()
+
+	session, err := config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return NullID, err
+	}
 	c := &Config{
 		ID:         repoID,
 		Name:       repoName,
@@ -105,11 +153,6 @@ func createNewRepoAndID(
 	if err != nil {
 		return NullID, err
 	}
-	f, err := fs.Create(kbfsConfigName)
-	if err != nil {
-		return NullID, err
-	}
-	defer f.Close()
 	_, err = f.Write(buf)
 	if err != nil {
 		return NullID, err
