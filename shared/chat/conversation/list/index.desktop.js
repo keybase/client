@@ -83,19 +83,15 @@ class BaseList extends React.Component<Props, State> {
     }
 
     if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
-      // if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
-      // const toFind = this.props.messageKeys.get(this._lastRowIdx)
-      // this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
-      // }
-
-      // Only do this if we've prepended
-      if (this.props.messageKeys.first() !== nextProps.messageKeys.first()) {
-        // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
-        // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
-        // another cache from row -> style which is out of sync
-        // this._cellCache.clearAll()
-        // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+      if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
+        const toFind = this.props.messageKeys.get(this._lastRowIdx)
+        this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
       }
+      // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
+      // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
+      // another cache from row -> style which is out of sync
+      this._cellCache.clearAll()
+      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
@@ -189,6 +185,7 @@ class BaseList extends React.Component<Props, State> {
     const rowCount = this.props.messageKeys.count()
     const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
 
+    // cellRangeRenderer={cellRangeRenderer}
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
       <ErrorBoundary>
