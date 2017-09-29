@@ -105,6 +105,7 @@ const _flexOneColumn = {
 
 const _containerNoHeaderStyle = {
   ...globalStyles.flexBoxColumn,
+  // transform: 'scaleY(-1)',
 }
 
 const _containerWithHeaderStyle = {

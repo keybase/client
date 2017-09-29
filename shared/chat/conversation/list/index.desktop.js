@@ -12,6 +12,7 @@ import clipboard from '../../../desktop/clipboard'
 import debounce from 'lodash/debounce'
 import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles, glamorous} from '../../../styles'
+import cellRangeRenderer from './cell-range-renderer'
 
 import type {Props} from '.'
 
@@ -57,9 +58,12 @@ class BaseList extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
+    // Force a rerender if we passed a row to scroll to. If it's kept around the virtual list gets confused so we only want it to render once basically
     if (this._keepIdxVisible !== -1) {
-      this.setState({listRerender: this.state.listRerender + 1}) // eslint-disable-line react/no-did-update-set-state
+      // eslint-disable-next-line react/no-did-update-set-state
+      this.setState(prevState => ({
+        listRerender: prevState.listRerender + 1,
+      }))
       this._keepIdxVisible = -1
     }
     this._lastRowIdx = -1 // always reset this to be safe
@@ -79,15 +83,19 @@ class BaseList extends React.Component<Props, State> {
     }
 
     if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
-      if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
-        const toFind = this.props.messageKeys.get(this._lastRowIdx)
-        this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
+      // if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
+      // const toFind = this.props.messageKeys.get(this._lastRowIdx)
+      // this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
+      // }
+
+      // Only do this if we've prepended
+      if (this.props.messageKeys.first() !== nextProps.messageKeys.first()) {
+        // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
+        // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
+        // another cache from row -> style which is out of sync
+        // this._cellCache.clearAll()
+        // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
       }
-      // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
-      // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
-      // another cache from row -> style which is out of sync
-      this._cellCache.clearAll()
-      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
@@ -428,6 +436,7 @@ const containerStyle = {
 const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
+  // transform: 'scaleY(-1)',
 }
 
 export default PopupEnabledList
