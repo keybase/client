@@ -187,6 +187,12 @@ function configurePush() {
   })
 }
 
+// TODO: persistRouteState() can race with loadRouteState(), i.e. it
+// can happen between the dispatching of setInitialTab and
+// setInitialConversation but before those are handled. Get logs for
+// the next time the initial tab/conversation isn't loaded properly
+// and see if that is really the problem.
+
 function persistRouteState(): AsyncAction {
   return (dispatch, getState) => {
     const routeState = getState().routeTree.routeState
