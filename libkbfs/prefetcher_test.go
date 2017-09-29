@@ -665,6 +665,8 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	prefetchSyncCh <- struct{}{}
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
+	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[0].BlockPointer,
+		indBlock1, TriggeredPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		indBlock1.IPtrs[0].BlockPointer, indBlock11, NoPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
@@ -687,6 +689,8 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	<-q.Prefetcher().Shutdown()
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
+	testPrefetcherCheckGet(t, config.BlockCache(), ptrs[1].BlockPointer,
+		indBlock2, TriggeredPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		indBlock2.IPtrs[0].BlockPointer, indBlock21, NoPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
