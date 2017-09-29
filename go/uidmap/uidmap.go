@@ -126,7 +126,7 @@ func (u *UIDMap) findFullNameLocally(ctx context.Context, g libkb.UIDMapperConte
 	}
 
 	if when, expired := isStale(g, tmp, fullNameFreshness); expired {
-		g.GetLog().CDebugf(ctx, "fullName disk mapping %s -> %s is expired (%s ago)", when)
+		g.GetLog().CDebugf(ctx, "fullName disk mapping %s -> %+v is expired (%s ago)", uid, tmp, when)
 		if when < staleExpired {
 			staleFullName = &tmp
 		}
