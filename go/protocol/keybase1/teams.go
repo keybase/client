@@ -1016,6 +1016,9 @@ func (o TeamOpenReqMsg) DeepCopy() TeamOpenReqMsg {
 	return TeamOpenReqMsg{
 		TeamID: o.TeamID.DeepCopy(),
 		Tars: (func(x []TeamAccessRequest) []TeamAccessRequest {
+			if x == nil {
+				return nil
+			}
 			var ret []TeamAccessRequest
 			for _, v := range x {
 				vCopy := v.DeepCopy()
