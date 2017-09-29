@@ -222,7 +222,12 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 
 	for _, tar := range msg.Tars {
 		uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
-		if team.IsMember(ctx, uv) {
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+
+		if currentRole >= role {
 			continue
 		}
 

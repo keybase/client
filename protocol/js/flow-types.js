@@ -2411,6 +2411,14 @@ export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamCreateWithSettingsRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateWithSettingsResult) => void} & {param: teamsTeamCreateWithSettingsRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
+}
+
+export function teamsTeamCreateWithSettingsRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateWithSettingsResult) => void} & {param: teamsTeamCreateWithSettingsRpcParam})): Promise<teamsTeamCreateWithSettingsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 }
@@ -2497,6 +2505,14 @@ export function teamsTeamRequestAccessRpcChannelMap (configKeys: Array<string>, 
 
 export function teamsTeamRequestAccessRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamSetSettingsRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamSetSettingsRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamSetSettings', request)
+}
+
+export function teamsTeamSetSettingsRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamSetSettingsRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamSetSettings', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamTreeRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamTreeResult) => void} & {param: teamsTeamTreeRpcParam}): EngineChannel {
@@ -4897,6 +4913,11 @@ export type TeamSBSMsg = {
   invitees?: ?Array<TeamInvitee>,
 }
 
+export type TeamSettings = {
+  open: boolean,
+  joinAs: TeamRole,
+}
+
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
@@ -6146,8 +6167,13 @@ export type teamsTeamChangeMembershipRpcParam = Exact<{
 
 export type teamsTeamCreateRpcParam = Exact<{
   name: string,
+  sendChatNotification: boolean
+}>
+
+export type teamsTeamCreateWithSettingsRpcParam = Exact<{
+  name: string,
   sendChatNotification: boolean,
-  open: boolean
+  settings: TeamSettings
 }>
 
 export type teamsTeamDeleteRpcParam = Exact<{
@@ -6198,6 +6224,11 @@ export type teamsTeamRenameRpcParam = Exact<{
 
 export type teamsTeamRequestAccessRpcParam = Exact<{
   name: string
+}>
+
+export type teamsTeamSetSettingsRpcParam = Exact<{
+  name: string,
+  settings: TeamSettings
 }>
 
 export type teamsTeamTreeRpcParam = Exact<{
@@ -6464,6 +6495,7 @@ type teamsLookupImplicitTeamResult = TeamID
 type teamsLookupOrCreateImplicitTeamResult = TeamID
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
+type teamsTeamCreateWithSettingsResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList

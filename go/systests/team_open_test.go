@@ -24,10 +24,13 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 	teamName = strings.ToLower(teamName)
 
 	cli := own.teamsClient
-	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{
+	_, err = cli.TeamCreateWithSettings(context.TODO(), keybase1.TeamCreateWithSettingsArg{
 		Name:                 teamName,
 		SendChatNotification: false,
-		Open:                 true,
+		Settings: keybase1.TeamSettings{
+			Open:   true,
+			JoinAs: keybase1.TeamRole_READER,
+		},
 	})
 
 	t.Logf("Open team name is %q", teamName)

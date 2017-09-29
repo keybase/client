@@ -432,7 +432,13 @@ protocol teams {
     boolean creatorAdded;
   }
 
-  TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification, boolean open);
+  record TeamSettings {
+    boolean open;
+    TeamRole joinAs;
+  }
+
+  TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
+  TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean sendChatNotification, TeamSettings settings);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
   AnnotatedTeamList teamList(int sessionID, string userAssertion, boolean all, boolean includeImplicitTeams);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
@@ -452,6 +458,7 @@ protocol teams {
   // Example: a -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
   TeamTreeResult teamTree(int sessionID, TeamName name);
   void teamDelete(int sessionID, string name);
+  void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
   record ImplicitTeamUserSet {
     array<string> keybaseUsers;

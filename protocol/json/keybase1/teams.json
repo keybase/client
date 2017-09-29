@@ -1105,6 +1105,20 @@
     },
     {
       "type": "record",
+      "name": "TeamSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "joinAs"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamUserSet",
       "fields": [
         {
@@ -1178,10 +1192,27 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        }
+      ],
+      "response": "TeamCreateResult"
+    },
+    "teamCreateWithSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         },
         {
-          "name": "open",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "sendChatNotification",
           "type": "boolean"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
         }
       ],
       "response": "TeamCreateResult"
@@ -1432,6 +1463,23 @@
         {
           "name": "name",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamSetSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
         }
       ],
       "response": null
