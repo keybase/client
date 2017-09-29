@@ -635,5 +635,8 @@ type UIDMapper interface {
 	// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
 	// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
 	// with an empty fullName field means that the user just hasn't supplied a fullName.
+	//
+	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
+	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
 	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
 }

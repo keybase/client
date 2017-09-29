@@ -268,6 +268,10 @@ func (u *UIDMap) lookupFromServer(ctx context.Context, g libkb.UIDMapperContext,
 // FullNames can be cached bt the UIDMap, but expire after networkTimeBudget duration. If that value
 // is 0, then infinitely stale names are allowed. If non-zero, and some names aren't stale, we'll
 // have to go to the network.
+//
+// *NOTE* that this function can return useful data and an error. In this regard, the error is more
+// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
+// it was able to get, and also the error.
 func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
 	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUserPackages(%s)", uidsToString(uids)), func() error { return err })()
 
