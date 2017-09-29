@@ -18,6 +18,7 @@ function usernameText({
   colorFollowing,
   colorBroken = true,
   onUsernameClicked,
+  underline = false,
 }: Props) {
   return users.map((u, i) => {
     const userStyle = {
@@ -34,19 +35,21 @@ function usernameText({
     // on native. (See DESKTOP-3963.)
     const _onUsernameClicked = onUsernameClicked
     return (
-      <Text
-        key={u.username}
-        type={type}
-        backgroundMode={backgroundMode}
-        onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
-        style={userStyle}
-      >
-        {u.username}
+      <Text type={type} key={u.username}>
+        <Text
+          type={type}
+          backgroundMode={backgroundMode}
+          className={underline ? 'hover-underline' : undefined}
+          onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
+          style={userStyle}
+        >
+          {u.username}
+        </Text>
         {i !== users.length - 1 && // Injecting the commas here so we never wrap and have newlines starting with a ,
           <Text
             type={type}
             backgroundMode={backgroundMode}
-            style={{...style, color: commaColor, marginRight: 1}}
+            style={{...style, color: commaColor, marginRight: 1, textDecoration: 'none'}}
           >
             ,
           </Text>}
