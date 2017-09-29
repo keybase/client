@@ -281,7 +281,7 @@ func (d *DotGit) checkReferenceAndTruncate(f billy.File, old *plumbing.Reference
 	return nil
 }
 
-func (d *DotGit) SetRef(r, old *plumbing.Reference) error {
+func (d *DotGit) SetRef(r, old *plumbing.Reference) (err error) {
 	var content string
 	switch r.Type() {
 	case plumbing.SymbolicReference:
@@ -352,7 +352,7 @@ func (d *DotGit) Ref(name plumbing.ReferenceName) (*plumbing.Reference, error) {
 	return d.packedRef(name)
 }
 
-func (d *DotGit) syncPackedRefs() error {
+func (d *DotGit) syncPackedRefs() (err error) {
 	fi, err := d.fs.Stat(packedRefsPath)
 	if os.IsNotExist(err) {
 		return nil
