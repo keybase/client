@@ -576,6 +576,10 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	if err != nil {
 		return ""
 	}
+	return GetMsgSnippet(msg)
+}
+
+func GetMsgSnippet(msg chat1.MessageUnboxed) string {
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msg.Valid().MessageBody.Text().Body

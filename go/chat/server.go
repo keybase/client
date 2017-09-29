@@ -201,8 +201,9 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	res.RateLimits = utils.AggRateLimitsP([]*chat1.RateLimit{rl})
 
 	// Wait for inbox to get sent to us
+	var lres NonblockInboxResult
 	select {
-	case lres := <-localizeCb:
+	case lres = <-localizeCb:
 		if lres.InboxRes == nil {
 			return res, fmt.Errorf("invalid conversation localize callback received")
 		}
@@ -234,7 +235,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 
 	// Consume localize callbacks and send out to UI.
 	var wg sync.WaitGroup
-	var convLocals []chat1.ConversationLocal
+	convLocalsCh := make(chan chat1.ConversationLocal, len(lres.InboxRes.ConvsUnverified))
 	for convRes := range localizeCb {
 		wg.Add(1)
 		go func(convRes NonblockInboxResult) {
@@ -260,7 +261,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					SessionID: arg.SessionID,
 					Conv:      utils.PresentConversationLocal(*convRes.ConvRes),
 				})
-				convLocals = append(convLocals, *convRes.ConvRes)
+				convLocalsCh <- *convRes.ConvRes
 
 				// Send a note to the retrier that we actually loaded this guy successfully
 				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
@@ -270,9 +271,16 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			wg.Done()
 		}(convRes)
 	}
-	wg.Wait()
 
 	// Write metadata to the inbox cache
+	var convLocals []chat1.ConversationLocal
+	go func() {
+		wg.Wait()
+		close(convLocalsCh)
+	}()
+	for convLocal := range convLocalsCh {
+		convLocals = append(convLocals, convLocal)
+	}
 	if err = storage.NewInbox(h.G(), uid.ToBytes()).MergeLocalMetadata(ctx, convLocals); err != nil {
 		// Don't abort the operaton on this kind of error
 		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)

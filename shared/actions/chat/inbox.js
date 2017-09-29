@@ -135,16 +135,13 @@ function* onInboxStale(): SagaGenerator<any, any> {
     const author = yield select(usernameSelector)
     const snippets = (inbox.items || []).reduce((map, c) => {
       const snippet = c.localMetadata ? c.localMetadata.snippet : ''
-      console.warn(`SNIPPET: id: ${c.convID} snippet: ${snippet}`)
       map[c.convID] = new HiddenString(Constants.makeSnippet(snippet) || '')
       return map
     }, {})
-    console.warn(`SNIPPET MAP: ${JSON.stringify(snippets)}`)
 
     const conversations: List<Constants.InboxState> = List(
       (inbox.items || [])
         .map(c => {
-          console.warn(`METADATA: name: ${c.name} metadata: ${JSON.stringify(c.localMetadata)}`)
           return new Constants.InboxStateRecord({
             channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
               ? c.localMetadata.channelName
