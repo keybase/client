@@ -262,9 +262,10 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 	for index, rc := range ibox.Conversations {
 		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
 			ibox.Conversations[index].LocalMetadata = &types.RemoteConversationMetadata{
-				TopicName: utils.GetTopicName(convLocal),
-				Headline:  utils.GetHeadline(convLocal),
-				Snippet:   utils.GetConvSnippet(convLocal),
+				TopicName:   utils.GetTopicName(convLocal),
+				Headline:    utils.GetHeadline(convLocal),
+				Snippet:     utils.GetConvSnippet(convLocal),
+				WriterNames: convLocal.Info.WriterNames,
 			}
 		}
 	}

@@ -50,6 +50,13 @@
         {
           "type": "string",
           "name": "snippet"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
         }
       ]
     },

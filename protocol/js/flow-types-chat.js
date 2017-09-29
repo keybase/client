@@ -2008,6 +2008,7 @@ export type UnverifiedInboxUIItemMetadata = {
   channelName: string,
   headline: string,
   snippet: string,
+  writerNames?: ?Array<string>,
 }
 
 export type UnverifiedInboxUIItems = {

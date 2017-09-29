@@ -142,6 +142,9 @@ function* onInboxStale(): SagaGenerator<any, any> {
     const conversations: List<Constants.InboxState> = List(
       (inbox.items || [])
         .map(c => {
+          const parts = c.localMetadata
+            ? List(c.localMetadata.writerNames || [])
+            : List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
           return new Constants.InboxStateRecord({
             channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
               ? c.localMetadata.channelName
@@ -149,7 +152,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
             conversationIDKey: c.convID,
             info: null,
             membersType: c.membersType,
-            participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
+            participants: parts,
             status: Constants.ConversationStatusByEnum[c.status || 0],
             teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
             teamType: c.teamType,

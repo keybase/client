@@ -605,6 +605,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			ChannelName: rc.LocalMetadata.TopicName,
 			Headline:    rc.LocalMetadata.Headline,
 			Snippet:     rc.LocalMetadata.Snippet,
+			WriterNames: rc.LocalMetadata.WriterNames,
 		}
 	}
 	return res

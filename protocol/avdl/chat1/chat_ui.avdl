@@ -16,6 +16,7 @@ protocol chatUi {
     string channelName;
     string headline;
     string snippet;
+    array<string> writerNames;
   }
 
   record UnverifiedInboxUIItem {

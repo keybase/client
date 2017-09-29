@@ -602,6 +602,104 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 		}
 	})
 }
+func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "GetInboxNonblockLocalLocalMetadata", 6)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		numconvs := 5
+		inboxCb := make(chan kbtest.NonblockInboxResult, 100)
+		threadCb := make(chan kbtest.NonblockThreadResult, 100)
+		ui := kbtest.NewChatUI(inboxCb, threadCb)
+		ctc.as(t, users[0]).h.mockChatUI = ui
+
+		// Create a bunch of blank convos
+		convs := make(map[string]bool)
+		for i := 0; i < numconvs; i++ {
+			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[i+1]).user())
+			convs[created.Id.String()] = true
+
+			mustPostLocalForTest(t, ctc, users[i+1], created,
+				chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: fmt.Sprintf("%d", i+1),
+				}))
+
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				mustPostLocalForTest(t, ctc, users[i+1], created,
+					chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
+						ConversationTitle: fmt.Sprintf("%d", i+1),
+					}))
+			}
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+			chat1.GetInboxNonblockLocalArg{
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			},
+		)
+		require.NoError(t, err)
+
+		select {
+		case ibox := <-inboxCb:
+			require.NotNil(t, ibox.InboxRes, "nil inbox")
+			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
+			for _, conv := range ibox.InboxRes.Items {
+				require.Nil(t, conv.LocalMetadata)
+			}
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no inbox received")
+		}
+		// Get all convos
+		for i := 0; i < numconvs; i++ {
+			select {
+			case conv := <-inboxCb:
+				require.NotNil(t, conv.ConvRes, "no conv")
+				delete(convs, conv.ConvID.String())
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no conv received")
+			}
+		}
+		require.Equal(t, 0, len(convs), "didnt get all convs")
+
+		_, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
+			chat1.GetInboxNonblockLocalArg{
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			},
+		)
+		require.NoError(t, err)
+
+		select {
+		case ibox := <-inboxCb:
+			require.NotNil(t, ibox.InboxRes, "nil inbox")
+			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
+			for index, conv := range ibox.InboxRes.Items {
+				require.NotNil(t, conv.LocalMetadata)
+				require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
+				switch mt {
+				case chat1.ConversationMembersType_TEAM:
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
+				}
+			}
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no inbox received")
+		}
+		// Get all convos
+		for i := 0; i < numconvs; i++ {
+			select {
+			case conv := <-inboxCb:
+				require.NotNil(t, conv.ConvRes, "no conv")
+				delete(convs, conv.ConvID.String())
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no conv received")
+			}
+		}
+		require.Equal(t, 0, len(convs), "didnt get all convs")
+	})
+}
 
 func TestChatSrvGetInboxNonblock(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {

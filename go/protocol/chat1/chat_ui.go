@@ -28,9 +28,10 @@ func (o UIPagination) DeepCopy() UIPagination {
 }
 
 type UnverifiedInboxUIItemMetadata struct {
-	ChannelName string `codec:"channelName" json:"channelName"`
-	Headline    string `codec:"headline" json:"headline"`
-	Snippet     string `codec:"snippet" json:"snippet"`
+	ChannelName string   `codec:"channelName" json:"channelName"`
+	Headline    string   `codec:"headline" json:"headline"`
+	Snippet     string   `codec:"snippet" json:"snippet"`
+	WriterNames []string `codec:"writerNames" json:"writerNames"`
 }
 
 func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata {
@@ -38,6 +39,17 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 		ChannelName: o.ChannelName,
 		Headline:    o.Headline,
 		Snippet:     o.Snippet,
+		WriterNames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.WriterNames),
 	}
 }
 
