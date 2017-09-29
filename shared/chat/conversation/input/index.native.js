@@ -1,6 +1,6 @@
 // @flow
 /* eslint-env browser */
-import ImagePicker from 'react-native-image-picker'
+import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'
 import {globalMargins, globalStyles, globalColors} from '../../../styles'
@@ -43,7 +43,7 @@ class ConversationInput extends Component<Props> {
   }
 
   _openFilePicker = () => {
-    ImagePicker.showImagePicker({}, response => {
+    showImagePicker({}, response => {
       if (response.didCancel) {
         return
       }
@@ -56,8 +56,8 @@ class ConversationInput extends Component<Props> {
       if (!response.didCancel && conversationIDKey) {
         const input: AttachmentInput = {
           conversationIDKey,
-          filename,
-          title: response.fileName,
+          filename: filename || '',
+          title: response.fileName || '',
           type: 'Image',
         }
         this.props.onAttach([input])

@@ -18,7 +18,7 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStac
 import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
 import {connect} from 'react-redux'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
-import {isIOS} from '../constants/platform'
+import {isIOS, isIPhoneX} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
 
 import type {Props, OwnProps} from './nav'
@@ -126,16 +126,24 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
 }
 
 function renderStackRoute(route, isActiveRoute, shouldRender) {
-  const {underStatusBar, hideStatusBar, showStatusBarDarkContent} = route.tags
+  const {underStatusBar, hideStatusBar, showStatusBarDarkContent, root} = route.tags
+
+  let style
+  if (root) {
+    style = sceneWrapStyleNoStatusBarPadding
+  } else {
+    style = route.tags.underStatusBar ? sceneWrapStyleNoStatusBarPadding : sceneWrapStyleWithStatusBarPadding
+  }
 
   return (
-    <Box style={route.tags.underStatusBar ? sceneWrapStyleUnder : sceneWrapStyleOver}>
-      <NativeStatusBar
-        hidden={hideStatusBar}
-        translucent={true}
-        backgroundColor="rgba(0, 26, 51, 0.25)"
-        barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
-      />
+    <Box style={style}>
+      {!isIPhoneX &&
+        <NativeStatusBar
+          hidden={hideStatusBar && !isIPhoneX}
+          translucent={true}
+          backgroundColor="rgba(0, 26, 51, 0.25)"
+          barStyle={barStyle(showStatusBarDarkContent, underStatusBar)}
+        />}
       {route.component({isActiveRoute, shouldRender})}
     </Box>
   )
@@ -312,7 +320,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
           routeStack={mainScreens}
         />
       ),
-      tags: {underStatusBar: true}, // don't pad nav stack (child screens have own padding)
+      tags: {root: true}, // special case to avoid padding else we'll double pad
     })
 
     const shim = (
@@ -340,14 +348,14 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
   }
 }
 
-const sceneWrapStyleUnder = {
+const sceneWrapStyleNoStatusBarPadding = {
   ...globalStyles.fullHeight,
   backgroundColor: globalColors.white,
 }
 
-const sceneWrapStyleOver = {
-  ...sceneWrapStyleUnder,
-  paddingTop: statusBarHeight,
+const sceneWrapStyleWithStatusBarPadding = {
+  ...sceneWrapStyleNoStatusBarPadding,
+  paddingTop: isIPhoneX ? 40 : statusBarHeight,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
