@@ -226,7 +226,7 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTe
 		return nil, err
 	}
 
-	teams, err := parent.loadAllTransitiveSubteams(ctx)
+	teams, err := parent.loadAllTransitiveSubteams(ctx, forceRepoll)
 	if err != nil {
 		return nil, err
 	}

@@ -982,7 +982,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 	adminAndOwnerRecipients := memSet.adminAndOwnerRecipients()
 	if len(adminAndOwnerRecipients) > 0 {
 		implicitAdminBoxes = map[keybase1.TeamID]*PerTeamSharedSecretBoxes{}
-		subteams, err := t.loadAllTransitiveSubteams(ctx)
+		subteams, err := t.loadAllTransitiveSubteams(ctx, true /*forceRepoll*/)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -1162,7 +1162,7 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 // Only call this on a Team that has been loaded with NeedAdmin.
 // Otherwise, you might get incoherent answers due to links that
 // were stubbed over the life of the cached object.
-func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
+func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) ([]*Team, error) {
 	subteams := []*Team{}
 	for _, idAndName := range t.chain().ListSubteams() {
 		// Load each subteam...
@@ -1185,7 +1185,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
 		subteams = append(subteams, subteam)
 
 		// ...and then recursively load each subteam's children.
-		recursiveSubteams, err := subteam.loadAllTransitiveSubteams(ctx)
+		recursiveSubteams, err := subteam.loadAllTransitiveSubteams(ctx, forceRepoll)
 		if err != nil {
 			return nil, err
 		}
