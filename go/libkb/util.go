@@ -727,3 +727,11 @@ func (t *TimeTracer) Finish() {
 	}
 	t.log.CDebugf(t.ctx, "- %s [time=%s]", t.label, t.clock.Since(t.start))
 }
+
+func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		return err.Code == int(code)
+	}
+	return false
+}

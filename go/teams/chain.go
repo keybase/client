@@ -375,11 +375,6 @@ func (t *TeamSigChainState) informSubteamDelete(id keybase1.TeamID, seqno keybas
 	return nil
 }
 
-type TeamIDAndName struct {
-	ID   keybase1.TeamID
-	Name keybase1.TeamName
-}
-
 // Only call this on a Team that has been loaded with NeedAdmin.
 // Otherwise, you might get incoherent answers due to links that
 // were stubbed over the life of the cached object.
@@ -389,7 +384,7 @@ type TeamIDAndName struct {
 // The list will not contain duplicate names.
 // Since this should only be called when you are an admin,
 // none of that should really come up, but it's here just to be less fragile.
-func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
+func (t *TeamSigChainState) ListSubteams() (res []keybase1.TeamIDAndName) {
 	type Entry struct {
 		ID   keybase1.TeamID
 		Name keybase1.TeamName
@@ -420,8 +415,8 @@ func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
 		}
 	}
 	for _, entry := range resMap {
-		res = append(res, TeamIDAndName{
-			ID:   entry.ID,
+		res = append(res, keybase1.TeamIDAndName{
+			Id:   entry.ID,
 			Name: entry.Name,
 		})
 	}

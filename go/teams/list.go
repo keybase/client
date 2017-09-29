@@ -216,6 +216,30 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	return res, err
 }
 
+func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTeamName string, forceRepoll bool) (res []keybase1.TeamIDAndName, err error) {
+	parent, err := Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        parentTeamName,
+		NeedAdmin:   true,
+		ForceRepoll: forceRepoll,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	teams, err := parent.loadAllTransitiveSubteams(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, team := range teams {
+		res = append(res, keybase1.TeamIDAndName{
+			Id:   team.ID,
+			Name: team.Name(),
+		})
+	}
+	return res, nil
+}
+
 func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[keybase1.TeamInviteID]keybase1.TeamInvite, teamName string) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
 
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))

@@ -1159,7 +1159,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
 	for _, idAndName := range t.chain().ListSubteams() {
 		// Load each subteam...
 		subteam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
-			ID:          idAndName.ID,
+			ID:          idAndName.Id,
 			NeedAdmin:   true,
 			ForceRepoll: true,
 		})

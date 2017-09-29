@@ -80,6 +80,11 @@ func (h *TeamsHandler) TeamList(ctx context.Context, arg keybase1.TeamListArg) (
 	return *x, nil
 }
 
+func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybase1.TeamListSubteamsRecursiveArg) (res []keybase1.TeamIDAndName, err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamListSubteamsRecursive(%s)", arg.ParentTeamName), func() error { return err })()
+	return teams.ListSubteamsRecursive(ctx, h.G().ExternalG(), arg.ParentTeamName, arg.ForceRepoll)
+}
+
 func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
 	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }
