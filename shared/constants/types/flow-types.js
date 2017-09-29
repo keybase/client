@@ -4767,6 +4767,10 @@ export type TeamDetails = {
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
 }
 
+export type TeamExitRow = {
+  id: TeamID,
+}
+
 export type TeamID = string
 
 export type TeamIDWithVisibility = {
