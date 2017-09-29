@@ -372,7 +372,6 @@ export const StateRecord: KBRecord<T> = Record({
   inboxUntrustedState: 'unloaded',
   previousConversation: null,
   searchPending: false,
-  searchResults: null,
   searchShowingSuggestions: false,
   selectedUsersInSearch: List(),
   inSearch: false,
@@ -410,7 +409,6 @@ export type State = KBRecord<{
   inboxUntrustedState: UntrustedState,
   previousConversation: ?ConversationIDKey,
   searchPending: boolean,
-  searchResults: ?List<SearchConstants.SearchResultId>,
   searchShowingSuggestions: boolean,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
@@ -457,7 +455,6 @@ export type BlockConversation = NoErrorTypedAction<
   }
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
-export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
@@ -564,10 +561,6 @@ export type SetUnboxing = TypedAction<
 >
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
-export type StageUserForSearch = NoErrorTypedAction<
-  'chat:stageUserForSearch',
-  {user: SearchConstants.SearchResultId}
->
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
   {users: Array<string>, forceImmediate: boolean, temporary: boolean}
@@ -579,10 +572,6 @@ export type ToggleChannelWideNotifications = NoErrorTypedAction<
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {conversationIDKeys: Array<ConversationIDKey>}
->
-export type UnstageUserForSearch = NoErrorTypedAction<
-  'chat:unstageUserForSearch',
-  {user: SearchConstants.SearchResultId}
 >
 export type UntrustedInboxVisible = NoErrorTypedAction<
   'chat:untrustedInboxVisible',
@@ -772,8 +761,6 @@ export type UpdateSnippet = NoErrorTypedAction<
   }
 >
 
-export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'chat:updateSearchResults'>
-
 export type Actions =
   | AddPendingConversation
   | AppendMessages
@@ -802,7 +789,6 @@ export type Actions =
   | MarkSeenMessage
   | AttachmentLoaded
   | UpdateFinalizedState
-  | UpdateSearchResults
   | UpdateSupersededByState
   | UpdateSupersedesState
   | UpdatedNotifications

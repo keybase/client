@@ -2,7 +2,7 @@
 import * as React from 'react'
 import ResultsList from '../search/results-list/container'
 import UserInput from '../search/user-input/container'
-import {Box, ProgressIndicator, StandardScreen} from '../common-adapters'
+import {Box, StandardScreen} from '../common-adapters'
 import {globalMargins, globalStyles} from '../styles'
 
 import type {Props} from './search'
@@ -17,13 +17,7 @@ const Search = (props: Props) => (
         placeholder={props.placeholder}
       />
     </Box>
-    <Box>
-      {props.showSearchPending
-        ? <Box style={styleSpinner}>
-            <ProgressIndicator size="large" />
-          </Box>
-        : <ResultsList searchKey="profileSearch" onClick={props.onClick} disableListBuilding={true} />}
-    </Box>
+    <ResultsList searchKey="profileSearch" onClick={props.onClick} disableListBuilding={true} />
   </StandardScreen>
 )
 
@@ -41,10 +35,6 @@ const styleContainer = {
   paddingBottom: 0,
   paddingLeft: 0,
   paddingRight: 0,
-}
-
-const styleSpinner = {
-  paddingTop: globalMargins.small,
 }
 
 export default Search

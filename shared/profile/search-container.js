@@ -1,5 +1,5 @@
 // @flow
-import {clearSearchResults, showUserProfile} from '../actions/profile'
+import {showUserProfile} from '../actions/profile'
 import {compose, defaultProps} from 'recompose'
 import {connect} from 'react-redux'
 import Search from './search'
@@ -12,7 +12,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInf
     dispatch(showUserProfile(username))
   },
   onClose: () => {
-    dispatch(clearSearchResults())
     dispatch(navigateUp())
   },
 })

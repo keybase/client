@@ -1,5 +1,5 @@
 // @flow
-import {List, OrderedSet} from 'immutable'
+import {OrderedSet} from 'immutable'
 import {amIFollowing, usernameSelector} from './selectors'
 import {createSelector} from 'reselect'
 
@@ -129,13 +129,6 @@ export type FinishedSearch = NoErrorTypedAction<
   'search:finishedSearch',
   {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service, searchKey: string}
 >
-
-// Generic so others can make their own version
-export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<
-  T,
-  {searchResultTerm: string, searchResults: List<SearchResultId>, searchShowingSuggestions: boolean}
->
-export type PendingSearchGeneric<T> = NoErrorTypedAction<T, boolean>
 
 function serviceIdToService(serviceId: string): Service {
   return {

@@ -26,23 +26,6 @@ const searchResultMapSelector = createSelector(
   searchResults => searchResults
 )
 
-const chatSearchPending = ({chat: {searchPending}}: TypedState) => searchPending
-
-const chatSearchResultArray = createSelector(
-  ({chat: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : [])
-)
-
-const chatSearchShowingSuggestions = ({chat: {searchShowingSuggestions}}: TypedState) =>
-  searchShowingSuggestions
-
-const chatSearchResultTerm = ({chat: {searchResultTerm}}: TypedState) => searchResultTerm
-
-const profileSearchResultArray = createSelector(
-  ({profile: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : null)
-)
-
 const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
   isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
 )
@@ -53,15 +36,10 @@ export {
   amIBeingFollowed,
   amIFollowing,
   cachedSearchResults,
-  chatSearchPending,
-  chatSearchShowingSuggestions,
-  chatSearchResultTerm,
-  chatSearchResultArray,
   createShallowEqualSelector,
   createImmutableEqualSelector,
   loggedInSelector,
   previousConversationSelector,
-  profileSearchResultArray,
   searchResultMapSelector,
   searchResultSelector,
   usernameSelector,

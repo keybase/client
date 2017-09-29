@@ -1,33 +1,14 @@
 // @flow
 import {Component} from 'react'
 
-import type {SearchResultId} from '../constants/search'
 import type {UserDetails} from '../search/user-input'
 
 export type Props = {
-  ids: Array<SearchResultId>,
-  navigateUp: () => void,
-  onClick: (id: SearchResultId) => void,
-  onClickAddButton: () => void,
-  onClose: () => void,
-  onChangeText: (s: string) => void,
-  onChangeSearchText: (s: string) => void,
-  onAddSelectedUser: () => void,
-  onMouseOverSearchResult?: (id: SearchResultId) => void,
-  onMoveSelectUp: () => void,
-  onMoveSelectDown: () => void,
-  onRemoveUser: () => void,
-  onSelectService: (s: string) => void,
-  onUpdateSelectedSearchResult: (id: ?SearchResultId) => void,
-  placeholder: string,
-  searchResultIds: Array<SearchResultId>,
-  searchText: string,
-  selectedSearchId: ?SearchResultId,
-  selectedService: string,
-  setInputRef: () => void,
+  onClick: (id: string) => void,
   showAddButton: boolean,
-  showSearchSuggestions: boolean,
-  userItems: Array<UserDetails>,
+  onClose: () => void,
+  placeholder: string,
+  navigateUp: () => void,
 }
 
 export default class Render extends Component<Props> {}
