@@ -63,7 +63,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 			return res, err
 		}
 	} else {
-		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String()); err != nil {
+		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings); err != nil {
 			return res, err
 		}
 		res.CreatorAdded = true

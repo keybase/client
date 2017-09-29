@@ -244,7 +244,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	return nil
 }
 
-func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (err error) {
+func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string, settings keybase1.TeamSettings) (err error) {
 	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
 
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
@@ -268,8 +268,17 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		Readers: &[]SCTeamMember{},
 	}
 
+	var scSettings *SCTeamSettings
+	if settings.Open {
+		settingsTemp, err := CreateTeamSettings(settings.Open, settings.JoinAs)
+		if err != nil {
+			return err
+		}
+		scSettings = &settingsTemp
+	}
+
 	return makeSigAndPostRootTeam(ctx, g, me, members, nil,
-		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false, nil)
+		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false, scSettings)
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
