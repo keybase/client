@@ -149,6 +149,12 @@ type FetchOptions struct {
 	// Force allows the fetch to update a local branch even when the remote
 	// branch does not descend from it.
 	Force bool
+	// PackRefs, if true, causes the fetch to write out a packed-refs
+	// file, rather that setting individual references.  If this is
+	// used, the caller MUST be assured that none of the references
+	// exist yet.  If packed-refs already exists, the fetch will
+	// return an error.
+	PackRefs bool
 }
 
 // Validate validates the fields and sets the default values.

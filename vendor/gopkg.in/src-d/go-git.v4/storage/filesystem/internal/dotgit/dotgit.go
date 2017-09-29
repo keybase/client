@@ -575,6 +575,22 @@ func (d *DotGit) readReferenceFile(path, name string) (ref *plumbing.Reference, 
 	return d.readReferenceFrom(f, name)
 }
 
+func (d *DotGit) SetPackedRefs(refs []plumbing.Reference) (err error) {
+	f, err := d.fs.Create(packedRefsPath)
+	if err != nil {
+		return err
+	}
+	defer ioutil.CheckClose(f, &err)
+
+	for _, ref := range refs {
+		_, err := f.Write([]byte(ref.String() + "\n"))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Module return a billy.Filesystem poiting to the module folder
 func (d *DotGit) Module(name string) (billy.Filesystem, error) {
 	return d.fs.Chroot(d.fs.Join(modulePath, name))

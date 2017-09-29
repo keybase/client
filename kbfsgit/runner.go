@@ -75,6 +75,10 @@ const (
 	// push, we actually fetch from the local repo and write the
 	// objects into the bare repo.
 	localRepoRemoteName = "local"
+
+	// The minimum number of refs needed to initialize a repo with a
+	// packed-refs file.
+	packedRefsThreshDefault = 10
 )
 
 type ctxCommandTagKey int
@@ -101,6 +105,8 @@ type runner struct {
 
 	logSync     sync.Once
 	logSyncDone sync.Once
+
+	packedRefsThresh int
 }
 
 // newRunner creates a new runner for git commands.  It expects `repo`
@@ -147,18 +153,19 @@ func newRunner(ctx context.Context, config libkbfs.Config,
 	uniqID := fmt.Sprintf("%s-%d", session.VerifyingKey.String(), os.Getpid())
 
 	return &runner{
-		config:    config,
-		log:       config.MakeLogger(""),
-		h:         h,
-		remote:    remote,
-		repo:      parts[2],
-		gitDir:    gitDir,
-		uniqID:    uniqID,
-		input:     input,
-		output:    output,
-		errput:    errput,
-		verbosity: 1,
-		progress:  true,
+		config:           config,
+		log:              config.MakeLogger(""),
+		h:                h,
+		remote:           remote,
+		repo:             parts[2],
+		gitDir:           gitDir,
+		uniqID:           uniqID,
+		input:            input,
+		output:           output,
+		errput:           errput,
+		verbosity:        1,
+		progress:         true,
+		packedRefsThresh: packedRefsThreshDefault,
 	}, nil
 }
 
@@ -1077,10 +1084,10 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 // --all/--mirror).
 func (r *runner) canPushAll(
 	ctx context.Context, repo *gogit.Repository, args [][]string) (
-	bool, error) {
+	canPushAll, repoEmpty bool, err error) {
 	refs, err := repo.References()
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 	defer refs.Close()
 
@@ -1089,26 +1096,26 @@ func (r *runner) canPushAll(
 		if errors.Cause(err) == io.EOF {
 			break
 		} else if err != nil {
-			return false, err
+			return false, false, err
 		}
 
 		if ref.Type() != plumbing.SymbolicReference {
 			r.log.CDebugf(ctx, "Remote has at least one non-symbolic ref: %s",
 				ref.String())
-			return false, nil
+			return false, false, nil
 		}
 	}
 
 	sources := make(map[string]bool)
 	for _, push := range args {
 		if len(push) != 1 {
-			return false, errors.Errorf("Bad push request: %v", push)
+			return false, false, errors.Errorf("Bad push request: %v", push)
 		}
 		refspec := gogitcfg.RefSpec(push[0])
 		// If some ref is being pushed to a different name on the
 		// remote, we can't do a push-all.
 		if refspec.Src() != refspec.Dst("").String() {
-			return false, nil
+			return false, true, nil
 		}
 
 		src := refspec.Src()
@@ -1118,19 +1125,19 @@ func (r *runner) canPushAll(
 	localGit := osfs.New(r.gitDir)
 	localStorer, err := filesystem.NewStorage(localGit)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 	// The worktree is not used for listing refs, but is required to
 	// be non-nil to open a non-bare repo.
 	fakeWorktree := osfs.New("/dev/null")
 	localRepo, err := gogit.Open(localStorer, fakeWorktree)
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 
 	localRefs, err := localRepo.References()
 	if err != nil {
-		return false, err
+		return false, false, err
 	}
 
 	for {
@@ -1139,7 +1146,7 @@ func (r *runner) canPushAll(
 			break
 		}
 		if err != nil {
-			return false, err
+			return false, false, err
 		}
 
 		if ref.Type() == plumbing.SymbolicReference {
@@ -1150,12 +1157,12 @@ func (r *runner) canPushAll(
 		// pushed, we can't push everything blindly, otherwise we
 		// might leak some data.
 		if !sources[ref.Name().String()] {
-			r.log.CDebugf(ctx, "Not pushing local ref %s (name=%s)", ref)
-			return false, nil
+			r.log.CDebugf(ctx, "Not pushing local ref %s", ref)
+			return false, true, nil
 		}
 	}
 
-	return true, nil
+	return true, true, nil
 }
 
 func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
@@ -1207,8 +1214,8 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 }
 
 func (r *runner) pushSome(
-	ctx context.Context, repo *gogit.Repository, args [][]string) (
-	map[string]error, error) {
+	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
+	repoEmpty bool) (map[string]error, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
@@ -1269,14 +1276,23 @@ func (r *runner) pushSome(
 			}()
 		}
 
+		packRefs := repoEmpty && len(refspecs) > r.packedRefsThresh
+		if packRefs {
+			r.log.CDebugf(
+				ctx, "Requesting a pack-refs file for %d refs (threshold=%d)",
+				len(refspecs), r.packedRefsThresh)
+		}
+
 		err = remote.FetchContext(ctx, &gogit.FetchOptions{
 			RemoteName: localRepoRemoteName,
 			RefSpecs:   refspecs,
 			StatusChan: statusChan,
+			PackRefs:   packRefs,
 		})
 		if err == gogit.NoErrAlreadyUpToDate {
 			err = nil
 		}
+
 		// All non-delete refspecs in the batch get the same error.
 		for _, refspec := range refspecs {
 			refStr := refspec.String()
@@ -1322,13 +1338,14 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		return err
 	}
 
-	canPushAll, err := r.canPushAll(ctx, repo, args)
+	canPushAll, repoEmpty, err := r.canPushAll(ctx, repo, args)
 	if err != nil {
 		return err
 	}
 	var results map[string]error
 	if canPushAll {
 		err = r.pushAll(ctx, fs)
+		// All refs in the batch get the same error.
 		results = make(map[string]error, len(args))
 		for _, push := range args {
 			if len(push) != 1 {
@@ -1339,7 +1356,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			results[dst] = err
 		}
 	} else {
-		results, err = r.pushSome(ctx, repo, args)
+		results, err = r.pushSome(ctx, repo, fs, args, repoEmpty)
 	}
 	if err != nil {
 		return err

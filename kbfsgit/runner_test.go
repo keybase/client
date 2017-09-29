@@ -164,27 +164,51 @@ func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
 }
 
 func testPushWithTemplate(t *testing.T, ctx context.Context,
-	config libkbfs.Config, gitDir, refspec, outputTemplate string) {
+	config libkbfs.Config, gitDir string, refspecs []string,
+	outputTemplate string) {
 	// Use the runner to push the local data into the KBFS repo.
 	inputReader, inputWriter := io.Pipe()
 	defer inputWriter.Close()
 	go func() {
-		inputWriter.Write([]byte(fmt.Sprintf("push %s\n\n\n", refspec)))
+		for _, refspec := range refspecs {
+			inputWriter.Write([]byte(fmt.Sprintf("push %s\n", refspec)))
+		}
+		inputWriter.Write([]byte("\n\n"))
 	}()
 
 	var output bytes.Buffer
 	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
 		filepath.Join(gitDir, ".git"), inputReader, &output, testErrput{t})
 	require.NoError(t, err)
+	r.packedRefsThresh = 2
 	err = r.processCommands(ctx)
 	require.NoError(t, err)
-	dst := gogitcfg.RefSpec(refspec).Dst("")
-	require.Equal(t, fmt.Sprintf(outputTemplate, dst), output.String())
+
+	// The output can list refs in any order, so we need to compare
+	// maps rather than raw strings.
+	outputLines := strings.Split(output.String(), "\n")
+	outputMap := make(map[string]bool)
+	for _, line := range outputLines {
+		outputMap[line] = true
+	}
+
+	dsts := make([]interface{}, 0, len(refspecs))
+	for _, refspec := range refspecs {
+		dsts = append(dsts, gogitcfg.RefSpec(refspec).Dst(""))
+	}
+	expectedOutput := fmt.Sprintf(outputTemplate, dsts...)
+	expectedOutputLines := strings.Split(expectedOutput, "\n")
+	expectedOutputMap := make(map[string]bool)
+	for _, line := range expectedOutputLines {
+		expectedOutputMap[line] = true
+	}
+
+	require.Equal(t, expectedOutputMap, outputMap)
 }
 
 func testPush(t *testing.T, ctx context.Context, config libkbfs.Config,
 	gitDir, refspec string) {
-	testPushWithTemplate(t, ctx, config, gitDir, refspec, "ok %s\n\n")
+	testPushWithTemplate(t, ctx, config, gitDir, []string{refspec}, "ok %s\n\n")
 }
 
 func testListAndGetHeads(t *testing.T, ctx context.Context,
@@ -395,7 +419,7 @@ func TestForcePush(t *testing.T) {
 	addOneFileToRepo(t, git, "foo3", "hello3")
 	// A non-force push should fail.
 	testPushWithTemplate(
-		t, ctx, config, git, "refs/heads/master:refs/heads/master",
+		t, ctx, config, git, []string{"refs/heads/master:refs/heads/master"},
 		"error %s some refs were not updated\n\n")
 	// But a force push should work
 	testPush(t, ctx, config, git, "+refs/heads/master:refs/heads/master")
@@ -423,4 +447,60 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 	// though it's a packed-ref.
 	addOneFileToRepo(t, git, "foo2", "hello2")
 	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
+}
+
+func TestPushSomeWithPackedRefs(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer os.RemoveAll(tempdir)
+
+	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git)
+
+	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
+
+	// Make a non-branch ref (under refs/test).  This ref would not be
+	// pushed as part of `git push --all`.
+	dotgit := filepath.Join(git, ".git")
+	cmd := exec.Command(
+		"git", "--git-dir", dotgit, "--work-tree", git,
+		"push", git, "HEAD:refs/test/ref")
+	err = cmd.Run()
+	require.NoError(t, err)
+
+	addOneFileToRepo(t, git, "foo2", "hello2")
+
+	// Make a tag, and then another branch.
+	cmd = exec.Command(
+		"git", "--git-dir", dotgit, "--work-tree", git, "tag", "v0")
+	err = cmd.Run()
+	require.NoError(t, err)
+
+	cmd = exec.Command(
+		"git", "--git-dir", dotgit, "--work-tree", git,
+		"checkout", "-b", "test")
+	err = cmd.Run()
+	require.NoError(t, err)
+	addOneFileToRepo(t, git, "foo3", "hello3")
+
+	// Simulate a `git push --all`, and make sure `refs/test/ref`
+	// isn't pushed.
+	testPushWithTemplate(
+		t, ctx, config, git, []string{
+			"refs/heads/master:refs/heads/master",
+			"refs/heads/test:refs/heads/test",
+			"refs/tags/v0:refs/tags/v0",
+		},
+		"ok %s\nok %s\nok %s\n\n")
+	testListAndGetHeads(t, ctx, config, git,
+		[]string{
+			"refs/heads/master",
+			"refs/heads/test",
+			"refs/tags/v0",
+			"HEAD",
+		})
+
+	// Make sure we can push over a packed-refs ref.
+	addOneFileToRepo(t, git, "foo4", "hello4")
+	testPush(t, ctx, config, git, "refs/heads/test:refs/heads/test")
 }

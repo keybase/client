@@ -243,6 +243,17 @@ func (r ReferenceStorage) IterReferences() (storer.ReferenceIter, error) {
 	return storer.NewReferenceSliceIter(refs), nil
 }
 
+func (r ReferenceStorage) SetPackedRefs(refs []plumbing.Reference) error {
+	// Memory storage doesn't have packed refs.
+	for _, ref := range refs {
+		err := r.SetReference(&ref)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (r ReferenceStorage) RemoveReference(n plumbing.ReferenceName) error {
 	delete(r, n)
 	return nil

@@ -302,7 +302,13 @@ func (r *Remote) fetch(ctx context.Context, o *FetchOptions) (storer.ReferenceSt
 		}
 	}
 
-	updated, err := r.updateLocalReferenceStorage(o.RefSpecs, refs, remoteRefs, o.Tags, o.Force)
+	updated := true
+	if o.PackRefs {
+		err = r.packRefs(o.RefSpecs, refs)
+	} else {
+		updated, err = r.updateLocalReferenceStorage(
+			o.RefSpecs, refs, remoteRefs, o.Tags, o.Force)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -693,6 +699,38 @@ func buildSidebandIfSupported(l *capability.List, reader io.Reader, p sideband.P
 	d.Progress = p
 
 	return d
+}
+
+func (r *Remote) packRefs(
+	specs []config.RefSpec,
+	fetchedRefs memory.ReferenceStorage,
+) error {
+	var refsToPack []plumbing.Reference
+	for _, spec := range specs {
+		for _, ref := range fetchedRefs {
+			if !spec.Match(ref.Name()) {
+				continue
+			}
+
+			if ref.Type() != plumbing.HashReference {
+				continue
+			}
+
+			localName := spec.Dst(ref.Name())
+			new := plumbing.NewHashReference(localName, ref.Hash())
+			refsToPack = append(refsToPack, *new)
+		}
+	}
+
+	for _, ref := range fetchedRefs {
+		if !ref.Name().IsTag() {
+			continue
+		}
+
+		refsToPack = append(refsToPack, *ref)
+	}
+
+	return r.s.SetPackedRefs(refsToPack)
 }
 
 func (r *Remote) updateLocalReferenceStorage(
