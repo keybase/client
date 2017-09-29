@@ -218,33 +218,49 @@ function loadRouteState(): AsyncAction {
           dispatch(setInitialLink(url))
         }
       })
-      .catch(_ => {})
+      .catch(e => console.warn('Error getting initial URL:', e))
       .finally(() => {
-        if (!foundLink) {
-          AsyncStorage.getItem('routeState', (err, s) => {
-            if (!err && s) {
-              try {
-                const item = JSON.parse(s)
-                //
-                // Before we actually nav to the saved routeState, we should clear
-                // it for future runs of the app.  That way, if the act of navigating
-                // to this route causes a crash for some reason, we won't get stuck
-                // in a loop of trying to restore the bad state every time we launch.
-                AsyncStorage.setItem('routeState', '', err => {
-                  err && console.warn('Error clearing routeState:', err)
-                })
-
-                if (item.tab) {
-                  dispatch(setInitialTab(item.tab))
-                }
-
-                if (item.selectedConversationIDKey) {
-                  dispatch(setInitialConversation(item.selectedConversationIDKey))
-                }
-              } catch (_) {}
-            }
-          })
+        if (foundLink) {
+          return
         }
+
+        AsyncStorage.getItem('routeState', (err, s) => {
+          if (err) {
+            console.warn('Error getting routeState:', err)
+            return
+          }
+
+          if (!s) {
+            console.warn('Empty routeState')
+            return
+          }
+
+          let item
+          try {
+            item = JSON.parse(s)
+          } catch (e) {
+            console.warn(`Error parsing routeState "${s}": ${e}`)
+          }
+          if (!item) {
+            return
+          }
+
+          // Before we actually nav to the saved routeState, we should clear
+          // it for future runs of the app.  That way, if the act of navigating
+          // to this route causes a crash for some reason, we won't get stuck
+          // in a loop of trying to restore the bad state every time we launch.
+          AsyncStorage.setItem('routeState', '', err => {
+            err && console.warn('Error clearing routeState:', err)
+          })
+
+          if (item.tab) {
+            dispatch(setInitialTab(item.tab))
+          }
+
+          if (item.selectedConversationIDKey) {
+            dispatch(setInitialConversation(item.selectedConversationIDKey))
+          }
+        })
       })
   }
 }
