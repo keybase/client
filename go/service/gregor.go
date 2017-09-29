@@ -230,6 +230,9 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_FOREGROUND:
 			// Make sure the URI is set before attempting this (possible it isnt in a race)
 			if g.uri != nil {
+				// Let people know we are trying to sync
+				g.G().NotifyRouter.HandleChatInboxSyncStarted(context.Background(),
+					g.G().Env.GetUID())
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
 				if err := g.Connect(g.uri); err != nil {
 					g.chatLog.Debug(context.Background(), "error reconnecting")
