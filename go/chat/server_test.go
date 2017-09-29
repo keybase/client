@@ -147,7 +147,7 @@ func createTeam(tc libkb.TestContext) string {
 		tc.T.Fatal(err)
 	}
 	name := hex.EncodeToString(b)
-	err = teams.CreateRootTeam(context.TODO(), tc.G, name)
+	err = teams.CreateRootTeam(context.TODO(), tc.G, name, nil)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
