@@ -204,7 +204,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(session.Name,
 			libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
-			fl.fs.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
+			fl.fs.log.CErrorf(ctx, "FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
 			continue
 		}
 		empty = false

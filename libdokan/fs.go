@@ -101,7 +101,7 @@ func wrapContext(ctx context.Context, f *FS) context.Context {
 func (f *FS) WithContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	id, err := libkbfs.MakeRandomRequestID()
 	if err != nil {
-		f.log.Errorf("Couldn't make request ID: %v", err)
+		f.log.CErrorf(ctx, "Couldn't make request ID: %v", err)
 		return ctx, func() {}
 	}
 
@@ -271,10 +271,9 @@ func newSyntheticOpenContext() *openContext {
 func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
 	// Only allow the current user access
 	if !fi.IsRequestorUserSidEqualTo(currentUserSID) {
-		f.log.Errorf("FS CreateFile - Refusing real access: SID match error")
+		f.log.CErrorf(ctx, "FS CreateFile - Refusing real access: SID match error")
 		return openFakeRoot(ctx, f, fi)
 	}
-	f.logEnter(ctx, "FS CreateFile")
 	return f.openRaw(ctx, fi, cd)
 }
 
@@ -282,11 +281,13 @@ func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.Creat
 func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateData) (dokan.File, bool, error) {
 	ps, err := windowsPathSplit(fi.Path())
 	if err != nil {
+		f.log.CErrorf(ctx, "FS openRaw - path split error: %v", err)
 		return nil, false, err
 	}
 	oc := openContext{fi: fi, CreateData: caf, redirectionsLeft: 30}
 	file, isd, err := f.open(ctx, &oc, ps)
 	if err != nil {
+		f.log.CDebugf(ctx, "FS Open failed %#v with: %v", *caf, err)
 		err = errToDokan(err)
 	}
 	return file, isd, err
@@ -294,7 +295,7 @@ func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateD
 
 // open tries to open a file deferring to more specific implementations.
 func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, bool, error) {
-	f.log.CDebugf(ctx, "open: %#v", ps)
+	f.log.CDebugf(ctx, "FS Open: %q", ps)
 	psl := len(ps)
 	switch {
 	case psl < 1:
@@ -418,13 +419,13 @@ func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileI
 	// isPotentialRenamePath filters out some special paths
 	// for rename. Especially those provided by fakeroot.go.
 	if !isPotentialRenamePath(sourceFI.Path()) {
-		f.log.Errorf("Refusing MoveFile access: not potential rename path")
+		f.log.CErrorf(ctx, "Refusing MoveFile access: not potential rename path")
 		return dokan.ErrAccessDenied
 	}
 	switch src.(type) {
 	case *FolderList, *File, *Dir, *TLF, *EmptyFolder:
 	default:
-		f.log.Errorf("Refusing MoveFile access: wrong type source argument")
+		f.log.CErrorf(ctx, "Refusing MoveFile access: wrong type source argument")
 		return dokan.ErrAccessDenied
 	}
 

@@ -115,7 +115,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 				mi.Done()
 				return libfs.MountError(err.Error())
 			}
-			log.Errorf("Running KBFS without a filesystem mount due to: %v", err)
+			log.CErrorf(ctx, "Running KBFS without a filesystem mount due to: %v", err)
 		}
 	}
 
