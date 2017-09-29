@@ -304,6 +304,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	// Check caches before locking the mutex.
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
 	if err == nil {
+		brq.log.CDebugf(ctx, "Triggering prefetch for block %s with priority %x", ptr.ID, priority)
 		brq.Prefetcher().TriggerPrefetch(ctx, ptr, block, kmd,
 			priority, lifetime, prefetchStatus)
 		ch <- nil

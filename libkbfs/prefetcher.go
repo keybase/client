@@ -223,14 +223,20 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// Walk up the block tree and delete every parent.
 			p.applyToParentsRecursive(p.cancelPrefetch, blockID, pre)
 		case req := <-p.prefetchRequestCh:
+			if req.priority < lowestTriggerPrefetchPriority {
+				// We put this check here for synchronization reasons.
+				continue
+			}
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 			if isPrefetchWaiting {
+				p.log.Debug("prefetch waiting for block ID %s", req.ptr.ID)
 				if pre.req == nil {
 					// If this prefetch already appeared in the tree, ensure it
 					// has a req associated with it.
 					pre.req = req
 				}
 				if pre.subtreeTriggered {
+					p.log.Debug("subtree triggered for block ID %s", req.ptr.ID)
 					// Redundant prefetch request.
 					// We've already seen _this_ block, and already triggered
 					// prefetches for its children. No use doing it again!
@@ -245,6 +251,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					}
 					continue
 				} else {
+					p.log.Debug("subtree not triggered for block ID %s", req.ptr.ID)
 					// This block was in the tree and thus was counted, but now
 					// it has been successfully fetched. We need to percolate
 					// that information up the tree.
@@ -257,6 +264,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					pre.subtreeTriggered = true
 				}
 			} else {
+				p.log.Debug("prefetch not waiting for block ID %s", req.ptr.ID)
 				// Ensure we have a prefetch to work with.
 				// If the prefetch is to be tracked, then the 0
 				// `subtreeBlockCount` will be incremented by `numBlocks`
@@ -266,6 +274,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			switch req.prefetchStatus {
 			case TriggeredPrefetch:
 				if !req.isDeepSync {
+					p.log.Debug("prefetch triggered for block ID %s", req.ptr.ID)
 					continue
 				}
 			case FinishedPrefetch:
@@ -287,11 +296,11 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				prefetchTimeout)
 			// TODO: There is a potential optimization here that we can
 			// consider: Currently every time a prefetch is triggered, we
-			// iterate through all the block's child pointers. This is
-			// short circuited in `TriggerPrefetch` if the block has a
-			// `prefetchStatus` of `TriggeredPrefetch`. However, for synced
-			// trees we ignore that and prefetch anyway. So here we would
-			// need to figure out a heuristic to avoid that iteration.
+			// iterate through all the block's child pointers. This is short
+			// circuited in `TriggerPrefetch` and here in various conditions.
+			// However, for synced trees we ignore that and prefetch anyway. So
+			// here we would need to figure out a heuristic to avoid that
+			// iteration.
 			//
 			// `numBlocks` now represents only the number of blocks to add
 			// to the tree from `pre` to its roots, inclusive.
@@ -300,7 +309,9 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// There's nothing for us to do when there's an error.
 				continue
 			}
+			p.log.Debug("block ID %s has %d blocks to fetch", req.ptr.ID, numBlocks)
 			if isTail {
+				p.log.Debug("block ID %s is a tail block", req.ptr.ID)
 				// This is a tail block with no children.  Parent blocks are
 				// potentially waiting for this prefetch, so we percolate the
 				// information up the tree that this prefetch is done.
@@ -327,6 +338,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				continue
 			}
 			if !isPrefetchWaiting {
+				p.log.Debug("adding block ID %s to the prefetch tree", req.ptr.ID)
 				// This block doesn't appear in the prefetch tree, so it's the
 				// root of a new prefetch tree. Add it to the tree.
 				p.prefetches[req.ptr.ID] = pre
@@ -407,6 +419,7 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
 	for i, ptr := range b.IPtrs {
 		n, needNewFetch :=
 			p.recordPrefetchParent(ptr.BlockPointer.ID, parentBlockID)
+		p.log.Debug("Recorded %s -> %s relationship, n=%d, needNewFetch=%b", parentBlockID, ptr.BlockPointer.ID, n, needNewFetch)
 		numBlocks += n
 		if needNewFetch {
 			p.request(ctx, startingPriority-i, kmd,
@@ -466,6 +479,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 		totalNumBlocks++
 		n, needNewFetch :=
 			p.recordPrefetchParent(entry.BlockPointer.ID, parentBlockID)
+		p.log.Debug("Recorded %s -> %s relationship, n=%d, needNewFetch=%b", parentBlockID, entry.BlockPointer.ID, n, needNewFetch)
 		numBlocks += n
 		if needNewFetch {
 			p.request(ctx, priority, kmd, entry.BlockPointer,
@@ -543,30 +557,37 @@ func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 // TriggerPrefetch triggers a prefetch if appropriate.
 func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
-	lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) {
+	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
+	isDeepSync := p.config.IsSyncedTlf(kmd.TlfID())
 	if prefetchStatus == FinishedPrefetch {
+		p.log.Debug("block %s is already finished prefetching", ptr.ID)
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			FinishedPrefetch, true}
+			FinishedPrefetch, isDeepSync}
 		p.triggerPrefetch(req)
 		return
 	}
 	if priority < lowestTriggerPrefetchPriority {
+		p.log.Debug("block %s below prefetch priority threshold: %x", ptr.ID, priority)
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
 		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
 			prefetchStatus)
+		// FIXME: we trigger here in order to synchronize. I don't like it
+		// though, figure out how to get rid of it.
+		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
+			prefetchStatus, isDeepSync}
+		p.triggerPrefetch(req)
 		return
 	}
 	err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
 		TriggeredPrefetch)
 	if err == nil {
+		p.log.Debug("block %s is cached and ready to prefetch", ptr.ID)
 		// Note that we're triggering a prefetch with `prefetchStatus`, not
 		// `TriggeredPrefetch` like we just set. We need to let the prefetcher
 		// make the decision on what to do with the _previous_ status.
-		isDeepSync := p.config.IsSyncedTlf(kmd.TlfID())
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
 			prefetchStatus, isDeepSync}
 		p.triggerPrefetch(req)
