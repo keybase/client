@@ -856,9 +856,7 @@ func (r *runner) copyFileWithCount(
 		r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
 	}
 
-	// Copy the entire objects subdirectory straight into the git
-	// directory.  This saves time and memory from having to calculate
-	// packfiles.
+	// Copy the file directly into the other file system.
 	startTime := r.config.Clock().Now()
 	err := r.copyFile(ctx, from, to, name, sw)
 	if err != nil {
@@ -932,9 +930,9 @@ func (r *runner) recursiveCopyWithCounts(
 		r.errput.Write([]byte(fmt.Sprintf("%s: ", copyingText)))
 	}
 
-	// Copy the entire objects subdirectory straight into the git
-	// directory.  This saves time and memory from having to calculate
-	// packfiles.
+	// Copy the entire subdirectory straight into the other file
+	// system.  This saves time and memory relative to going through
+	// go-git.
 	startTime := r.config.Clock().Now()
 	err := r.recursiveCopy(ctx, from, to, sw)
 	if err != nil {
