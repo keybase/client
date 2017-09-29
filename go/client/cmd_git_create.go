@@ -14,8 +14,9 @@ import (
 
 type CmdGitCreate struct {
 	libkb.Contextified
-	repoName keybase1.GitRepoName
-	teamName keybase1.TeamName
+	repoName   keybase1.GitRepoName
+	teamName   keybase1.TeamName
+	skipNotify bool
 }
 
 func newCmdGitCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -33,6 +34,10 @@ func newCmdGitCreate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Name:  "team",
 				Usage: "keybase team name (optional)",
 			},
+			cli.BoolFlag{
+				Name:  "skip-notify",
+				Usage: "skip posting new repo notifications for team members",
+			},
 		},
 	}
 }
@@ -46,6 +51,7 @@ func (c *CmdGitCreate) ParseArgv(ctx *cli.Context) error {
 		return errors.New("repo name argument required")
 	}
 	c.repoName = keybase1.GitRepoName(ctx.Args()[0])
+	c.skipNotify = ctx.Bool("skip-notify")
 	if len(ctx.String("team")) > 0 {
 		teamName, err := keybase1.TeamNameFromString(ctx.String("team"))
 		if err != nil {
@@ -89,8 +95,9 @@ func (c *CmdGitCreate) runPersonal(cli keybase1.GitClient) (string, error) {
 
 func (c *CmdGitCreate) runTeam(cli keybase1.GitClient) (string, error) {
 	arg := keybase1.CreateTeamRepoArg{
-		TeamName: c.teamName,
-		RepoName: c.repoName,
+		TeamName:   c.teamName,
+		RepoName:   c.repoName,
+		NotifyTeam: !c.skipNotify,
 	}
 	if _, err := cli.CreateTeamRepo(context.Background(), arg); err != nil {
 		return "", err

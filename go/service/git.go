@@ -39,38 +39,58 @@ func (h *GitHandler) GetAllGitMetadata(ctx context.Context) ([]keybase1.GitRepoR
 	return git.GetAllMetadata(ctx, h.G())
 }
 
-func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) (keybase1.RepoID, error) {
+func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.Folder, repoName keybase1.GitRepoName, notifyTeam bool) (keybase1.RepoID, error) {
 	client, err := h.kbfsClient()
 	if err != nil {
 		return "", err
 	}
-	folder := keybase1.Folder{
-		Name:       h.G().Env.GetUsername().String(),
-		FolderType: keybase1.FolderType_PRIVATE,
-	}
+
 	carg := keybase1.CreateRepoArg{
 		Folder: folder,
 		Name:   repoName,
 	}
 	repoID, err := client.CreateRepo(ctx, carg)
-	return repoID, git.HumanizeGitErrors(err)
-}
+	if err != nil {
+		// Real user errors are going to come through this path, like "repo
+		// already exists". Make them clear for the user.
+		return "", git.HumanizeGitErrors(err)
+	}
 
-func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (keybase1.RepoID, error) {
-	client, err := h.kbfsClient()
+	// Currently KBFS will also call back into the service to put metadata
+	// after a create, so the put might happen twice, but we don't want to
+	// depend on that behavior.
+	err = git.PutMetadata(ctx, h.G(), keybase1.PutGitMetadataArg{
+		Folder: folder,
+		RepoID: repoID,
+		Metadata: keybase1.GitLocalMetadata{
+			RepoName: repoName,
+		},
+		NotifyTeam: notifyTeam,
+	})
 	if err != nil {
 		return "", err
 	}
+
+	return repoID, nil
+}
+
+func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) (keybase1.RepoID, error) {
+	folder := keybase1.Folder{
+		Name:       h.G().Env.GetUsername().String(),
+		FolderType: keybase1.FolderType_PRIVATE,
+		Private:    true,
+	}
+	return h.createRepo(ctx, folder, repoName, false /* notifyTeam */)
+}
+
+func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (keybase1.RepoID, error) {
 	folder := keybase1.Folder{
 		Name:       arg.TeamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
+		// TODO: Support public teams.
+		Private: true,
 	}
-	carg := keybase1.CreateRepoArg{
-		Folder: folder,
-		Name:   arg.RepoName,
-	}
-	repoID, err := client.CreateRepo(ctx, carg)
-	return repoID, git.HumanizeGitErrors(err)
+	return h.createRepo(ctx, folder, arg.RepoName, arg.NotifyTeam)
 }
 
 func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) error {

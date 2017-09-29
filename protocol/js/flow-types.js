@@ -5419,7 +5419,8 @@ export type gitGetGitMetadataRpcParam = Exact<{
 export type gitPutGitMetadataRpcParam = Exact<{
   folder: Folder,
   repoID: RepoID,
-  metadata: GitLocalMetadata
+  metadata: GitLocalMetadata,
+  notifyTeam: boolean
 }>
 
 export type gpgUiSelectKeyAndPushOptionRpcParam = Exact<{
