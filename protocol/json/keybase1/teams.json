@@ -1178,6 +1178,26 @@
       ],
       "response": "AnnotatedTeamList"
     },
+    "teamListSubteamsRecursive": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "parentTeamName",
+          "type": "string"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamIDAndName"
+      }
+    },
     "teamChangeMembership": {
       "request": [
         {

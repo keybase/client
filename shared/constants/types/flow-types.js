@@ -2471,6 +2471,14 @@ export function teamsTeamListRpcPromise (request: (requestCommon & {callback?: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamListSubteamsRecursiveRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamListSubteamsRecursiveResult) => void} & {param: teamsTeamListSubteamsRecursiveRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
+}
+
+export function teamsTeamListSubteamsRecursiveRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamListSubteamsRecursiveResult) => void} & {param: teamsTeamListSubteamsRecursiveRpcParam})): Promise<teamsTeamListSubteamsRecursiveResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamReAddMemberAfterResetRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamReAddMemberAfterResetRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 }
@@ -4788,6 +4796,11 @@ export type TeamExitRow = {
 
 export type TeamID = string
 
+export type TeamIDAndName = {
+  id: TeamID,
+  name: TeamName,
+}
+
 export type TeamIDWithVisibility = {
   teamID: TeamID,
   visibility: TLFVisibility,
@@ -6183,6 +6196,11 @@ export type teamsTeamListRpcParam = Exact<{
   includeImplicitTeams: boolean
 }>
 
+export type teamsTeamListSubteamsRecursiveRpcParam = Exact<{
+  parentTeamName: string,
+  forceRepoll: boolean
+}>
+
 export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
   id: TeamID,
   username: string
@@ -6469,6 +6487,7 @@ type teamsTeamCreateResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
+type teamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
 type teamsTeamTreeResult = TeamTreeResult
 type teamsUiConfirmRootTeamDeleteResult = boolean
 type testTestCallbackResult = string

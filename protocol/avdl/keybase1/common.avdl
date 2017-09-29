@@ -82,6 +82,11 @@ protocol Common {
     TLFVisibility visibility;
   }
 
+  record TeamIDAndName {
+    TeamID id;
+    TeamName name;
+  }
+
   @typedef("int64") @lint("ignore")
   record Seqno {}
 

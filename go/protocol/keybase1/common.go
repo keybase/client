@@ -275,6 +275,18 @@ func (o TeamIDWithVisibility) DeepCopy() TeamIDWithVisibility {
 	}
 }
 
+type TeamIDAndName struct {
+	Id   TeamID   `codec:"id" json:"id"`
+	Name TeamName `codec:"name" json:"name"`
+}
+
+func (o TeamIDAndName) DeepCopy() TeamIDAndName {
+	return TeamIDAndName{
+		Id:   o.Id.DeepCopy(),
+		Name: o.Name.DeepCopy(),
+	}
+}
+
 type Seqno int64
 
 func (o Seqno) DeepCopy() Seqno {

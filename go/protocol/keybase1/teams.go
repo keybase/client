@@ -1349,6 +1349,20 @@ func (o TeamListArg) DeepCopy() TeamListArg {
 	}
 }
 
+type TeamListSubteamsRecursiveArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	ParentTeamName string `codec:"parentTeamName" json:"parentTeamName"`
+	ForceRepoll    bool   `codec:"forceRepoll" json:"forceRepoll"`
+}
+
+func (o TeamListSubteamsRecursiveArg) DeepCopy() TeamListSubteamsRecursiveArg {
+	return TeamListSubteamsRecursiveArg{
+		SessionID:      o.SessionID,
+		ParentTeamName: o.ParentTeamName,
+		ForceRepoll:    o.ForceRepoll,
+	}
+}
+
 type TeamChangeMembershipArg struct {
 	SessionID int           `codec:"sessionID" json:"sessionID"`
 	Name      string        `codec:"name" json:"name"`
@@ -1593,6 +1607,7 @@ type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
+	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
 	TeamChangeMembership(context.Context, TeamChangeMembershipArg) error
 	TeamAddMember(context.Context, TeamAddMemberArg) (TeamAddMemberResult, error)
 	TeamRemoveMember(context.Context, TeamRemoveMemberArg) error
@@ -1664,6 +1679,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamList(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamListSubteamsRecursive": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamListSubteamsRecursiveArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamListSubteamsRecursiveArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamListSubteamsRecursiveArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamListSubteamsRecursive(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1976,6 +2007,11 @@ func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDet
 
 func (c TeamsClient) TeamList(ctx context.Context, __arg TeamListArg) (res AnnotatedTeamList, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamList", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) TeamListSubteamsRecursive(ctx context.Context, __arg TeamListSubteamsRecursiveArg) (res []TeamIDAndName, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamListSubteamsRecursive", []interface{}{__arg}, &res)
 	return
 }
 
