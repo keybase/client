@@ -1180,7 +1180,7 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 	}
 	err = r.recursiveCopyWithCounts(
 		ctx, localFSObjects, fsObjects,
-		"Counting objects", "countobj", "Pushing objects", "pushobj")
+		"Counting objects", "countobj", "Preparing objects", "pushobj")
 	if err != nil {
 		return err
 	}
@@ -1196,7 +1196,7 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 	}
 	err = r.recursiveCopyWithCounts(
 		ctx, localFSRefs, fsRefs,
-		"Counting refs", "countref", "Pushing refs", "pushref")
+		"Counting refs", "countref", "Preparing refs", "pushref")
 	if err != nil {
 		return err
 	}
@@ -1209,7 +1209,7 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 		return err
 	}
 	return r.copyFileWithCount(ctx, localFS, fs, "packed-refs",
-		"Counting packed refs", "countprefs", "Pushing packed refs",
+		"Counting packed refs", "countprefs", "Preparing packed refs",
 		"pushprefs")
 }
 
