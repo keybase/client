@@ -75,7 +75,7 @@ type blockPrefetcher struct {
 var _ Prefetcher = (*blockPrefetcher)(nil)
 
 func newBlockPrefetcher(retriever BlockRetriever,
-	config prefetcherConfig) *blockPrefetcher {
+	config prefetcherConfig, testSyncCh <-chan struct{}) *blockPrefetcher {
 	p := &blockPrefetcher{
 		config:            config,
 		retriever:         retriever,
@@ -99,7 +99,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		p.Shutdown()
 		close(p.doneCh)
 	} else {
-		go p.run()
+		go p.run(testSyncCh)
 		go p.shutdownLoop()
 	}
 	return p
@@ -199,7 +199,7 @@ top:
 //    * a:1 -> {e:1 -> {g:1}}
 // 5) g is fetched, completing g, e, and a.
 //    * <empty>
-func (p *blockPrefetcher) run() {
+func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	defer func() {
 		close(p.doneCh)
 	}()
@@ -208,6 +208,9 @@ func (p *blockPrefetcher) run() {
 		if isShuttingDown && len(p.inFlightFetches) == 0 &&
 			len(p.prefetchRequestCh) == 0 && len(p.prefetchCancelCh) == 0 {
 			return
+		}
+		if testSyncCh != nil {
+			<-testSyncCh
 		}
 		select {
 		case blockID := <-p.prefetchCancelCh:

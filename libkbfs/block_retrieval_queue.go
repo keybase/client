@@ -150,7 +150,7 @@ func newBlockRetrievalQueue(numWorkers int, numPrefetchWorkers int,
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
 	}
-	q.prefetcher = newBlockPrefetcher(q, config)
+	q.prefetcher = newBlockPrefetcher(q, config, nil)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
 			config.blockGetter(), q, workerCh))
@@ -455,7 +455,7 @@ func (brq *blockRetrievalQueue) Shutdown() {
 // off. If an error is returned due to a context cancelation, the prefetcher is
 // never re-enabled.
 func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context,
-	enable bool) (err error) {
+	enable bool, testSyncCh <-chan struct{}) (err error) {
 	// We must hold this lock for the whole function so that multiple calls to
 	// this function doesn't leak prefetchers.
 	brq.prefetchMtx.Lock()
@@ -464,7 +464,7 @@ func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context,
 	// any callers.
 	_ = brq.prefetcher.Shutdown()
 	if enable {
-		brq.prefetcher = newBlockPrefetcher(brq, brq.config)
+		brq.prefetcher = newBlockPrefetcher(brq, brq.config, testSyncCh)
 	}
 	return nil
 }

@@ -111,7 +111,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	brq := newBlockRetrievalQueue(0, 0, brc)
 	config.mockBops.EXPECT().BlockRetriever().AnyTimes().Return(brq)
 	// Ignore Prefetcher calls
-	pre := newBlockPrefetcher(brq, brc)
+	pre := newBlockPrefetcher(brq, brc, nil)
 	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(pre)
 
 	// Ignore key bundle ID creation calls for now
