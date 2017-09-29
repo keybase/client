@@ -46,12 +46,8 @@ function setTeamJoinError(teamJoinError: string): Constants.SetTeamJoinError {
   return {payload: {teamJoinError}, type: 'teams:setTeamJoinError'}
 }
 
-function setTeamJoinSuccess(teamJoinSuccess: string): Constants.SetTeamJoinSuccess {
+function setTeamJoinSuccess(teamJoinSuccess: boolean): Constants.SetTeamJoinSuccess {
   return {payload: {teamJoinSuccess}, type: 'teams:setTeamJoinSuccess'}
-}
-
-function setTeamJoinSuccessBody(teamJoinSuccessBody: string): Constants.SetTeamJoinSuccessBody {
-  return {payload: {teamJoinSuccessBody}, type: 'teams:setTeamJoinSuccessBody'}
 }
 
 function setupTeamHandlers(): Constants.SetupTeamHandlers {
@@ -70,7 +66,6 @@ export {
   setTeamCreationError,
   setTeamJoinError,
   setTeamJoinSuccess,
-  setTeamJoinSuccessBody,
   setupTeamHandlers,
   toggleChannelMembership,
 }

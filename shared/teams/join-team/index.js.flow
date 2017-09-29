@@ -3,8 +3,7 @@ import * as React from 'react'
 
 export type Props = {
   errorText: string,
-  successText: string,
-  successBody: string,
+  success: boolean,
   name: string,
   onBack: () => void,
   onNameChange: () => void,

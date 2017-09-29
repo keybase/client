@@ -69,11 +69,7 @@ export type SetTeamCreationError = NoErrorTypedAction<
 >
 
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
-export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: string}>
-export type SetTeamJoinSuccessBody = NoErrorTypedAction<
-  'teams:setTeamJoinSuccessBody',
-  {teamJoinSuccessBody: string}
->
+export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
 export const Team = I.Record({
   convIDToChannelInfo: I.Map(),

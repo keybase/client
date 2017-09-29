@@ -35,6 +35,21 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   }
 }
 
+const _joinTeam = function*(action: Constants.JoinTeam) {
+  const {payload: {teamname}} = action
+  yield all(put(Creators.setTeamJoinError('')), put(Creators.setTeamJoinSuccess(false)))
+  try {
+    yield call(RpcTypes.teamsTeamRequestAccessRpcPromise, {
+      param: {name: teamname},
+    })
+
+    // Success
+    yield put(Creators.setTeamJoinSuccess(true))
+  } catch (error) {
+    yield put(Creators.setTeamJoinError(error.desc))
+  }
+}
+
 const _leaveTeam = function(action: Constants.LeaveTeam) {
   const {payload: {teamname}} = action
   return call(RpcTypes.teamsTeamLeaveRpcPromise, {
@@ -232,6 +247,7 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('teams:joinTeam', _joinTeam)
   yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)

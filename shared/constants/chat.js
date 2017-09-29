@@ -381,8 +381,7 @@ export const StateRecord: KBRecord<T> = Record({
   searchResultTerm: '',
   teamCreationError: '',
   teamJoinError: '',
-  teamJoinSuccess: '',
-  teamJoinSuccessBody: '',
+  teamJoinSuccess: false,
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -422,8 +421,7 @@ export type State = KBRecord<{
   searchResultTerm: string,
   teamCreationError: string,
   teamJoinError: string,
-  teamJoinSuccess: string,
-  teamJoinSuccessBody: string,
+  teamJoinSuccess: boolean,
 }>
 
 export const maxAttachmentPreviewSize = 320

@@ -33,8 +33,8 @@ const Contents = (props: Props) => (
   </ScrollView>
 )
 
-const renderContents = ({errorText, successText, successBody, name, onNameChange, onSubmit, onBack}) => {
-  if (successText) {
+const renderContents = ({errorText, success, name, onNameChange, onSubmit, onBack}) => {
+  if (success) {
     return (
       <Box style={globalStyles.flexBoxColumn}>
         <Box style={{...styleContainer, backgroundColor: globalColors.blue}}>
@@ -43,7 +43,7 @@ const renderContents = ({errorText, successText, successBody, name, onNameChange
             type="BodySemibold"
             backgroundMode="Announcements"
           >
-            {successText}
+            Your request is on its way!
           </Text>
         </Box>
 
@@ -72,9 +72,15 @@ const renderContents = ({errorText, successText, successBody, name, onNameChange
               alignItems: 'center',
               justifyContent: 'center',
               marginTop: globalMargins.large,
+              maxWidth: 410,
             }}
           >
-            <Text style={{textAlign: 'center'}} type="Body">{successBody}</Text>
+            <Text style={{textAlign: 'center'}} type="Body">
+              We sent a request to
+              {' '}
+              <Text type="BodySemibold">{name}</Text>
+              's admins. We will notify you as soon as they let you in!
+            </Text>
           </Box>
           <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
             <Button type="Primary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Close" />

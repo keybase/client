@@ -393,10 +393,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const {payload: {teamJoinSuccess}} = action
       return state.set('teamJoinSuccess', teamJoinSuccess)
     }
-    case 'teams:setTeamJoinSuccessBody': {
-      const {payload: {teamJoinSuccessBody}} = action
-      return state.set('teamJoinSuccessBody', teamJoinSuccessBody)
-    }
   }
 
   return state
