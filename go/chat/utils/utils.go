@@ -611,6 +611,13 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	return res
 }
 
+func PresentRemoteConversations(rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+	for _, rc := range rcs {
+		res = append(res, PresentRemoteConversation(rc))
+	}
+	return res
+}
+
 func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
 	res.ConvID = rawConv.GetConvID().String()
 	res.Name = rawConv.Info.TlfName

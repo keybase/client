@@ -294,6 +294,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		rtyp = chat1.SyncInboxResType_CLEAR
 	}
 
+	kuid := keybase1.UID(uid.String())
 	switch rtyp {
 	case chat1.SyncInboxResType_CLEAR:
 		s.Debug(ctx, "Sync: version out of date, clearing inbox: %v", vers)
@@ -301,7 +302,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to clear inbox: %s", err.Error())
 		}
 		// Send notifications for a full clear
-		s.SendChatStaleNotifications(ctx, uid, nil, true)
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, nil)
 	case chat1.SyncInboxResType_CURRENT:
 		s.Debug(ctx, "Sync: version is current, standing pat: %v", vers)
 	case chat1.SyncInboxResType_INCREMENTAL:
@@ -314,15 +315,16 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
-			s.SendChatStaleNotifications(ctx, uid, nil, true)
+			s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, nil)
 		} else {
 			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
 				// If we get word we shoudl full clear the inbox (like if the user left a conversation),
 				// then just reload everything
-				s.SendChatStaleNotifications(ctx, uid, nil, true)
+				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, nil)
 			} else {
 				// Send notifications for a successful partial sync
-				s.SendChatStaleNotifications(ctx, uid, s.getUpdates(incr.Convs), true)
+				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid,
+					utils.PresentRemoteConversations(utils.RemoteConvs(incr.Convs)))
 			}
 		}
 

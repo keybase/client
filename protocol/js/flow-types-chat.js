@@ -1622,6 +1622,11 @@ export type NotifyChatChatInboxStaleRpcParam = Exact<{
   uid: keybase1.UID
 }>
 
+export type NotifyChatChatInboxSyncedRpcParam = Exact<{
+  uid: keybase1.UID,
+  convs?: ?Array<UnverifiedInboxUIItem>
+}>
+
 export type NotifyChatChatJoinedConversationRpcParam = Exact<{
   uid: keybase1.UID,
   conv: InboxUIItem
@@ -2119,6 +2124,7 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
 
 export type localGetInboxNonblockLocalRpcParam = Exact<{
   maxUnbox?: ?int,
+  skipUnverified: boolean,
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -2691,6 +2697,14 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatInboxSynced'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convs?: ?Array<UnverifiedInboxUIItem>
     }> /* ,
     response: {} // Notify call
     */

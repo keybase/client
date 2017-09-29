@@ -449,6 +449,24 @@
       "response": null,
       "notify": "",
       "lint": "ignore"
+    },
+    "ChatInboxSynced": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convs",
+          "type": {
+            "type": "array",
+            "items": "UnverifiedInboxUIItem"
+          }
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
     }
   },
   "namespace": "chat.1"

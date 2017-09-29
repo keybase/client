@@ -671,6 +671,28 @@ func (o ChatLeftConversationArg) DeepCopy() ChatLeftConversationArg {
 	}
 }
 
+type ChatInboxSyncedArg struct {
+	Uid   keybase1.UID            `codec:"uid" json:"uid"`
+	Convs []UnverifiedInboxUIItem `codec:"convs" json:"convs"`
+}
+
+func (o ChatInboxSyncedArg) DeepCopy() ChatInboxSyncedArg {
+	return ChatInboxSyncedArg{
+		Uid: o.Uid.DeepCopy(),
+		Convs: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+			if x == nil {
+				return nil
+			}
+			var ret []UnverifiedInboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Convs),
+	}
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -681,6 +703,7 @@ type NotifyChatInterface interface {
 	ChatTypingUpdate(context.Context, []ConvTypingUpdate) error
 	ChatJoinedConversation(context.Context, ChatJoinedConversationArg) error
 	ChatLeftConversation(context.Context, ChatLeftConversationArg) error
+	ChatInboxSynced(context.Context, ChatInboxSyncedArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -831,6 +854,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatInboxSynced": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatInboxSyncedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatInboxSyncedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatInboxSyncedArg)(nil), args)
+						return
+					}
+					err = i.ChatInboxSynced(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -884,5 +923,10 @@ func (c NotifyChatClient) ChatJoinedConversation(ctx context.Context, __arg Chat
 
 func (c NotifyChatClient) ChatLeftConversation(ctx context.Context, __arg ChatLeftConversationArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatLeftConversation", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatInboxSynced(ctx context.Context, __arg ChatInboxSyncedArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSynced", []interface{}{__arg})
 	return
 }
