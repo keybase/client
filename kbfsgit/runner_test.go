@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
@@ -78,7 +79,7 @@ func initConfigForRunner(t *testing.T) (
 	return ctx, config, tempDir
 }
 
-func TestRunnerInitRepo(t *testing.T) {
+func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer os.RemoveAll(tempdir)
 
@@ -88,8 +89,16 @@ func TestRunnerInitRepo(t *testing.T) {
 		inputWriter.Write([]byte("list\n\n"))
 	}()
 
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlfType)
+	require.NoError(t, err)
+	if tlfType != tlf.Public {
+		_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+		require.NoError(t, err)
+	}
+
 	var output bytes.Buffer
-	r, err := newRunner(ctx, config, "origin", "keybase://private/user1/test",
+	r, err := newRunner(ctx, config, "origin",
+		fmt.Sprintf("keybase://%s/user1/test", typeString),
 		"", inputReader, &output, testErrput{t})
 	require.NoError(t, err)
 	err = r.processCommands(ctx)
@@ -99,8 +108,6 @@ func TestRunnerInitRepo(t *testing.T) {
 
 	// Now there should be a valid git repo stored in KBFS.  Check the
 	// existence of the HEAD file to be sure.
-	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
-	require.NoError(t, err)
 	fs, err := libfs.NewFS(ctx, config, h, ".kbfs_git/test", "")
 	require.NoError(t, err)
 	head, err := fs.Open("HEAD")
@@ -108,6 +115,14 @@ func TestRunnerInitRepo(t *testing.T) {
 	buf, err := ioutil.ReadAll(head)
 	require.NoError(t, err)
 	require.Equal(t, "ref: refs/heads/master\n", string(buf))
+}
+
+func TestRunnerInitRepoPrivate(t *testing.T) {
+	testRunnerInitRepo(t, tlf.Private, "private")
+}
+
+func TestRunnerInitRepoPublic(t *testing.T) {
+	testRunnerInitRepo(t, tlf.Public, "public")
 }
 
 func makeLocalRepoWithOneFile(t *testing.T,
@@ -266,6 +281,11 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "")
 
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
 	testPush(t, ctx, config, git1, "refs/heads/master:refs/heads/master")
 
 	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
@@ -344,6 +364,11 @@ func TestRunnerDeleteBranch(t *testing.T) {
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
 	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
 	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/test")
 
@@ -371,6 +396,8 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
 	require.NoError(t, err)
 
 	// Pause journal to force the processing to pause.
@@ -401,6 +428,12 @@ func TestForcePush(t *testing.T) {
 	defer os.RemoveAll(git)
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
 	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
 
 	// Push a second file.
@@ -440,6 +473,11 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 	err = cmd.Run()
 	require.NoError(t, err)
 
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
 	testPush(t, ctx, config, git, "refs/heads/master:refs/heads/master")
 
 	// Should be able to update the branch in a non-force way, even
@@ -455,6 +493,11 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 	git, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
 	defer os.RemoveAll(git)
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
 
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 

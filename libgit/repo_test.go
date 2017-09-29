@@ -127,6 +127,37 @@ func TestCreateRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestGetRepoAndID(t *testing.T) {
+	ctx, config, tempdir := initConfig(t)
+	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+
+	_, _, err = GetRepoAndID(ctx, config, h, "Repo1", "")
+	require.IsType(t, NoSuchRepoError{}, errors.Cause(err))
+
+	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")
+	require.NoError(t, err)
+
+	_, id2, err := GetRepoAndID(ctx, config, h, "Repo1", "")
+	require.NoError(t, err)
+	require.Equal(t, id1, id2)
+
+	_, id3, err := GetRepoAndID(ctx, config, h, "repo1", "")
+	require.NoError(t, err)
+	require.Equal(t, id1, id3)
+
+	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	require.NoError(t, err)
+	jServer, err := libkbfs.GetJournalServer(config)
+	require.NoError(t, err)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	require.NoError(t, err)
+}
+
 func TestDeleteRepo(t *testing.T) {
 	ctx, config, tempdir := initConfig(t)
 	defer os.RemoveAll(tempdir)
