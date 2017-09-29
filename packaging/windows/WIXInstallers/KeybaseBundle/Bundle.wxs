@@ -97,7 +97,7 @@
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes"
-	Cache="yes>
+	Cache="yes">
         <ExitCode Value="1641" Behavior="forceReboot"/>
         <ExitCode Value="3010" Behavior="forceReboot"/>
         <ExitCode Value="0" Behavior="success" />
@@ -229,7 +229,7 @@
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
-		  Cache="yes
+		  Cache="yes"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -242,7 +242,7 @@
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
-		  Cache="yes
+		  Cache="yes"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
