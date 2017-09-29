@@ -1418,10 +1418,6 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, err
 		}
 
-		if prevState.IsImplicit() {
-			return res, NewImplicitTeamOperationError(payload.Body.Type)
-		}
-
 		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
 		if !signer.implicitAdmin {
 			signerRole, err := prevState.GetUserRole(signer.signer)
@@ -1885,6 +1881,10 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 
 		newState.inner.Open = open.Enabled
 		if options := open.Options; options != nil {
+			if !open.Enabled {
+				return fmt.Errorf("closed team shouldn't defined team.settings.open.options")
+			}
+
 			switch options.JoinAs {
 			case "reader":
 				newState.inner.OpenTeamJoinAs = keybase1.TeamRole_READER
@@ -1893,6 +1893,8 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 			default:
 				return fmt.Errorf("invalid join_as role in open team: %s", options.JoinAs)
 			}
+		} else if open.Enabled {
+			return fmt.Errorf("team set to open but team.settings.open.options is missing")
 		}
 	}
 
