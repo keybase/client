@@ -22,7 +22,9 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}
     marginBottom: 2,
     alignSelf: 'flex-start',
   }
-  return <Text type="BodySmallSemibold" onClick={onClick} style={style}>{author}</Text>
+  return (
+    <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>{author}</Text>
+  )
 }
 
 const ActionButton = ({onAction}) => (
