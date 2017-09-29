@@ -261,8 +261,6 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 	}
 	for index, rc := range ibox.Conversations {
 		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
-			i.Debug(ctx, "merging local info: tlf: %s topicname: %s", convLocal.Info.TlfName,
-				utils.GetTopicName(convLocal))
 			ibox.Conversations[index].LocalMetadata = &types.RemoteConversationMetadata{
 				TopicName: utils.GetTopicName(convLocal),
 				Headline:  utils.GetHeadline(convLocal),
