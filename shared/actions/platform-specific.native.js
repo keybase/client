@@ -204,7 +204,11 @@ function persistRouteState(): AsyncAction {
       }
     }
 
-    AsyncStorage.setItem('routeState', JSON.stringify(toWrite))
+    const s = JSON.stringify(toWrite)
+    AsyncStorage.setItem('routeState', s, err => {
+      console.log('persistRouteState: err is:', err, 's is', s)
+      err && console.warn('Error clearing routeState:', err)
+    })
   }
 }
 
@@ -213,6 +217,7 @@ function loadRouteState(): AsyncAction {
     let foundLink = false
     Linking.getInitialURL()
       .then(url => {
+        console.log('loadRouteState: URL is:', url)
         if (url) {
           foundLink = true
           dispatch(setInitialLink(url))
@@ -220,11 +225,13 @@ function loadRouteState(): AsyncAction {
       })
       .catch(e => console.warn('Error getting initial URL:', e))
       .finally(() => {
+        console.log('loadRouteState: foundLink is:', foundLink)
         if (foundLink) {
           return
         }
 
         AsyncStorage.getItem('routeState', (err, s) => {
+          console.log('loadRouteState.getItem: err is:', err, 's is:', s)
           if (err) {
             console.warn('Error getting routeState:', err)
             return
@@ -250,14 +257,17 @@ function loadRouteState(): AsyncAction {
           // to this route causes a crash for some reason, we won't get stuck
           // in a loop of trying to restore the bad state every time we launch.
           AsyncStorage.setItem('routeState', '', err => {
+            console.log('loadRouteState.getItem.setItem: err is:', err)
             err && console.warn('Error clearing routeState:', err)
           })
 
           if (item.tab) {
+            console.log('loadRouteState dispatching setInitialTab', item.tab)
             dispatch(setInitialTab(item.tab))
           }
 
           if (item.selectedConversationIDKey) {
+            console.log('loadRouteState dispatching setInitialConversation', item.selectedConversationIDKey)
             dispatch(setInitialConversation(item.selectedConversationIDKey))
           }
         })
