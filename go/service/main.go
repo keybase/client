@@ -826,7 +826,7 @@ func (d *Service) GregorDismiss(id gregor.MsgID) error {
 	if d.gregor == nil {
 		return errors.New("can't gregor dismiss without a gregor")
 	}
-	return d.gregor.DismissItem(id)
+	return d.gregor.DismissItem(gregor1.IncomingClient{Cli: d.gregor.cli}, id)
 }
 
 func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {
