@@ -163,6 +163,12 @@ export default function() {
       menubarListeners.forEach(l => l.send('menubarHide'))
       isDarwin && updateIcon(false)
     })
+    mb.on('after-show', () => {
+      console.log('Showing menubar at', mb.window.getBounds())
+    })
+    mb.tray.on('click', (e, bounds) => {
+      console.log('Clicked tray icon:', bounds)
+    })
   })
 
   // Work around an OS X bug that leaves a gap in the status bar if you exit
