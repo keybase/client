@@ -562,7 +562,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			uid := m.UID().Bytes()
 
 			// We need to get this conversation and then localize it
-			var inbox chat1.Inbox
+			var inbox types.Inbox
 			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{nm.ConvID},
 			}, nil); err != nil {
@@ -573,7 +573,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to find conversation")
 				return
 			}
-			updateConv := inbox.ConvsUnverified[0]
+			updateConv := inbox.ConvsUnverified[0].Conv
 			if err = g.G().InboxSource.NewConversation(ctx, uid, nm.InboxVers, updateConv); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}
