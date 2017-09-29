@@ -1214,7 +1214,7 @@ function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUp
     return
   }
 
-  const actionsToPut = []
+  const actionsToPut = [put(Creators.removeTempPendingConversations())]
   if (userInputItemIds.length) {
     actionsToPut.push(put(Creators.startConversation(userInputItemIds.concat(me), false, true)))
   } else {

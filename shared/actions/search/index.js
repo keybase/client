@@ -20,6 +20,7 @@ import {OrderedSet, Map} from 'immutable'
 import type {ServiceId} from '../../util/platforms'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {InterestingPerson} from '../../constants/types/flow-types'
+import type {ReturnValue} from '../../constants/types/more'
 
 type RawResult = {
   score: number,
@@ -240,7 +241,14 @@ function* updateSelectedSearchResult({payload: {searchKey, id}}: Constants.Updat
 }
 
 function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants.AddResultsToUserInput) {
-  const searchResultMap = yield select(Selectors.searchResultMapSelector)
+  const [oldIds, searchResultMap]: [
+    ReturnValue<typeof Constants.getUserInputItemIds>,
+    ReturnValue<typeof Selectors.searchResultMapSelector>,
+  ] = yield all([
+    select(Constants.getUserInputItemIds, {searchKey}),
+    select(Selectors.searchResultMapSelector),
+  ])
+
   const maybeUpgradedUsers = searchResults.map(u =>
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )
@@ -248,15 +256,20 @@ function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants
     EntityAction.mergeEntity(['searchKeyToUserInputItemIds'], {[searchKey]: OrderedSet(maybeUpgradedUsers)})
   )
   const ids = yield select(Constants.getUserInputItemIds, {searchKey})
-  yield put(Creators.userInputItemsUpdated(searchKey, ids))
+  if (!_.isEqual(oldIds, ids)) {
+    yield put(Creators.userInputItemsUpdated(searchKey, ids))
+  }
 }
 
 function* removeResultsToUserInput({
   payload: {searchKey, searchResults},
 }: Constants.RemoveResultsToUserInput) {
+  const oldIds = yield select(Constants.getUserInputItemIds, {searchKey})
   yield put.resolve(EntityAction.subtractEntity(['searchKeyToUserInputItemIds', searchKey], searchResults))
   const ids = yield select(Constants.getUserInputItemIds, {searchKey})
-  yield put(Creators.userInputItemsUpdated(searchKey, ids))
+  if (!_.isEqual(oldIds, ids)) {
+    yield put(Creators.userInputItemsUpdated(searchKey, ids))
+  }
 }
 
 function* setUserInputItems({payload: {searchKey, searchResults}}: Constants.SetUserInputItems) {
