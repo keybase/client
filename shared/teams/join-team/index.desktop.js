@@ -46,16 +46,12 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}) => (
   </Box>
 )
 
-export const Contents = (props: Props) => (
-  <ScrollView>
-    {!!props.success && SuccessComponent(props)}
-    {!props.success && EntryComponent(props)}
-  </ScrollView>
-)
-
 const PopupWrapped = (props: Props) => (
   <PopupDialog onClose={props.onBack}>
-    <Contents {...props} />
+    <ScrollView>
+      {!!props.success && SuccessComponent(props)}
+      {!props.success && EntryComponent(props)}
+    </ScrollView>
   </PopupDialog>
 )
 
