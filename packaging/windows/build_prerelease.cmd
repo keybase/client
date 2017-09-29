@@ -1,7 +1,7 @@
 :: Build keybase.exe with prerelease options
 set GOARCH=386
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
 echo DOKAN_PATH %DOKAN_PATH%
 
 echo GOPATH %GOPATH%
@@ -45,6 +45,11 @@ set CGO_ENABLED=1
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
 popd
 
+:: git-remote-keybase
+pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase
+go build -a
+popd
+
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
 go build -a -o upd.exe
@@ -63,7 +68,7 @@ popd
 :: Browser Extension
 pushd %GOPATH%\src\github.com\keybase\client\go\kbnm
 if "%KBNM_BUILD%" == "" (
-    KBNM_BUILD = %KEYBASE_BUILD%
+    set KBNM_BUILD=%KEYBASE_BUILD%
 )
 echo KBNM_BUILD %KBNM_BUILD%
 go build -a -ldflags="-X main.Version=%KBNM_BUILD%"
