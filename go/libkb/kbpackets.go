@@ -183,9 +183,8 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 
 	switch p.Tag {
 	case TagP3skb:
-		// XXX this function should get a G passed into it, but to do that requires
-		// a lot of changes upstream.
-		body = NewSKB(G)
+		// We can't use this SKB until it's been SetContext'ed
+		body = NewSKB()
 	case TagSignature:
 		body = &NaclSigInfo{}
 	case TagEncryption:
