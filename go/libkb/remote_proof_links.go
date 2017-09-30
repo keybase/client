@@ -83,7 +83,7 @@ func (r *RemoteProofLinks) TrackingStatement() *jsonw.Wrapper {
 	for _, x := range r.active() {
 		d, err := x.link.ToTrackingStatement(x.state)
 		if err != nil {
-			G.Log.Warning("Problem with a proof: %s", err)
+			r.G().Log.Warning("Problem with a proof: %s", err)
 			continue
 		}
 		if d != nil {
