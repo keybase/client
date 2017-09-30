@@ -223,10 +223,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// Walk up the block tree and delete every parent.
 			p.applyToParentsRecursive(p.cancelPrefetch, blockID, pre)
 		case req := <-p.prefetchRequestCh:
-			if req.priority < lowestTriggerPrefetchPriority {
-				// We put this check here for synchronization reasons.
-				continue
-			}
+			p.log.Debug("handling prefetch for block %s", req.ptr.ID)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 			if isPrefetchWaiting {
 				p.log.Debug("prefetch waiting for block ID %s", req.ptr.ID)
@@ -235,6 +232,31 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					// has a req associated with it.
 					pre.req = req
 				}
+			} else {
+				p.log.Debug("prefetch not waiting for block ID %s", req.ptr.ID)
+			}
+			if req.prefetchStatus == FinishedPrefetch {
+				// First we handle finished prefetches.
+				if isPrefetchWaiting {
+					if pre.subtreeBlockCount < 0 {
+						panic("the subtreeBlockCount for a block should " +
+							"never be < 0")
+					}
+					// Since we decrement by `pre.subtreeBlockCount`, we're guaranteed
+					// that `pre` will be removed from the prefetcher.
+					p.log.Debug("completing prefetch for block %s", req.ptr.ID)
+					p.applyToParentsRecursive(
+						p.completePrefetch(pre.subtreeBlockCount),
+						req.ptr.ID,
+						pre)
+				}
+				// Always short circuit a finished prefetch.
+				continue
+			}
+			if req.priority < lowestTriggerPrefetchPriority {
+				continue
+			}
+			if isPrefetchWaiting {
 				if pre.subtreeTriggered {
 					p.log.Debug("subtree triggered for block ID %s", req.ptr.ID)
 					// Redundant prefetch request.
@@ -264,32 +286,14 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					pre.subtreeTriggered = true
 				}
 			} else {
-				p.log.Debug("prefetch not waiting for block ID %s", req.ptr.ID)
 				// Ensure we have a prefetch to work with.
 				// If the prefetch is to be tracked, then the 0
 				// `subtreeBlockCount` will be incremented by `numBlocks`
 				// below, once we've ensured that `numBlocks` is not 0.
 				pre = &prefetch{0, true, req, make(map[kbfsblock.ID]bool)}
 			}
-			switch req.prefetchStatus {
-			case TriggeredPrefetch:
-				if !req.isDeepSync {
-					p.log.Debug("prefetch triggered for block ID %s", req.ptr.ID)
-					continue
-				}
-			case FinishedPrefetch:
-				if isPrefetchWaiting {
-					if pre.subtreeBlockCount < 0 {
-						panic("the subtreeBlockCount for a block should never be < 0")
-					}
-					// Since we decrement by `pre.subtreeBlockCount`, we're guaranteed
-					// that `pre` will be removed from the prefetcher.
-					p.applyToParentsRecursive(
-						p.completePrefetch(pre.subtreeBlockCount),
-						req.ptr.ID,
-						pre)
-				}
-				// Always short circuit a finished prefetch.
+			if req.prefetchStatus == TriggeredPrefetch && !req.isDeepSync {
+				p.log.Debug("prefetch triggered for block ID %s", req.ptr.ID)
 				continue
 			}
 			ctx, _ := context.WithTimeout(context.Background(),
@@ -575,7 +579,7 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
 			prefetchStatus)
 		// FIXME: we trigger here in order to synchronize. I don't like it
-		// though, figure out how to get rid of it.
+		// though; figure out how to get rid of it.
 		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
 			prefetchStatus, isDeepSync}
 		p.triggerPrefetch(req)

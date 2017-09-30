@@ -626,16 +626,17 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 		defaultOnDemandRequestPriority, makeKMD(), rootPtr, block,
 		TransientEntry)
 	continueChRootBlock <- nil
+	notifySyncCh(t, prefetchSyncCh)
 	err := <-ch
 	require.NoError(t, err)
 	require.Equal(t, rootBlock, block)
 
 	t.Log("Release the prefetched indirect blocks.")
-	// Release after prefetching rootBlock
-	notifySyncCh(t, prefetchSyncCh)
 	// Release 2 blocks
 	continueChIndBlock1 <- nil
+	notifySyncCh(t, prefetchSyncCh)
 	continueChIndBlock2 <- nil
+	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Wait for the prefetch to finish.")
 	<-q.Prefetcher().Shutdown()
@@ -654,52 +655,46 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	block = &FileBlock{}
 	ch = q.Request(ctx, defaultOnDemandRequestPriority,
 		makeKMD(), rootBlock.IPtrs[0].BlockPointer, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 
 	t.Log("Release the prefetch for indirect block1.")
-	// Release after prefetching block1
-	notifySyncCh(t, prefetchSyncCh)
 	// Release 2 blocks
 	continueChIndBlock11 <- nil
+	notifySyncCh(t, prefetchSyncCh)
 	continueChIndBlock12 <- nil
+	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Fetch indirect block2 on-demand.")
 	block = &FileBlock{}
 	ch = q.Request(ctx, defaultOnDemandRequestPriority,
 		makeKMD(), rootBlock.IPtrs[1].BlockPointer, block, TransientEntry)
+	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 
 	t.Log("Release the prefetch for indirect block2.")
-	// Release after prefetching block2
-	notifySyncCh(t, prefetchSyncCh)
 	// Release 2 blocks
 	continueChIndBlock21 <- nil
+	notifySyncCh(t, prefetchSyncCh)
 	continueChIndBlock22 <- nil
+	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Fetch indirect block11 on-demand.")
 	block = &FileBlock{}
 	ch = q.Request(ctx, defaultOnDemandRequestPriority,
 		makeKMD(), indBlock1.IPtrs[0].BlockPointer, block, TransientEntry)
-	err = <-ch
-
-	t.Log("Release the prefetch for indirect block11.")
-	// Release after prefetching block1
 	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
 
 	t.Log("Fetch indirect block12 on-demand.")
 	block = &FileBlock{}
 	ch = q.Request(ctx, defaultOnDemandRequestPriority,
 		makeKMD(), indBlock1.IPtrs[1].BlockPointer, block, TransientEntry)
-	err = <-ch
-
-	t.Log("Release the prefetch for indirect block12.")
-	// Release after prefetching block1
 	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
 
 	t.Log("Wait for the prefetch to finish.")
 	<-q.Prefetcher().Shutdown()
-	q.TogglePrefetcher(ctx, true, prefetchSyncCh)
-	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
@@ -765,8 +760,7 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, aa, block)
 
-	t.Log("Release the prefetch for dir aa.")
-	t.Logf("inFlightFetches: %d", len(p.inFlightFetches))
+	t.Log("Release prefetched children of dir aa.")
 	contChAAA <- nil
 	notifySyncCh(t, prefetchSyncCh)
 	contChAAB <- nil
@@ -805,6 +799,8 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
+
+	t.Log("Release prefetched children of dir a.")
 	notifySyncCh(t, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
@@ -825,9 +821,10 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
+
+	t.Log("Release prefetched children of root.")
 	notifySyncCh(t, prefetchSyncCh)
-	// FIXME: I don't know why this took 2 and not 3 syncs. Should have been
-	// 1 for the return from root, and 1 for each child.
+	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Wait for the prefetch to finish.")
 	select {
@@ -838,12 +835,10 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 
 	t.Log("Ensure that the prefetched blocks are in the cache, " +
 		"and the prefetch statuses are correct.")
-	// TODO: figure out why these are TriggeredPrefetch and not
-	// FinishedPrefetch.
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		TriggeredPrefetch, TransientEntry)
+		FinishedPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
-		root.Children["a"].BlockPointer, a, TriggeredPrefetch, TransientEntry)
+		root.Children["a"].BlockPointer, a, FinishedPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		root.Children["b"].BlockPointer, b, FinishedPrefetch, TransientEntry)
 	testPrefetcherCheckGet(t, config.BlockCache(),
