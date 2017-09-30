@@ -608,6 +608,13 @@ type UIDMapperContext interface {
 	KVStoreContext
 }
 
+type SkinnyLogger interface {
+	// Error logs a message at error level, with formatting args
+	Errorf(format string, args ...interface{})
+	// Debug logs a message at debug level, with formatting args.
+	Debug(format string, args ...interface{})
+}
+
 type UIDMapper interface {
 	// CheckUIDAginstUsername makes sure that the UID actually does map to the given username.
 	// For new UIDs, it's a question of just SHA2'ing. For legacy usernames, we check the
