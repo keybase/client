@@ -102,6 +102,7 @@ func (s TrackSummary) Username() string    { return s.username }
 //=====================================================================
 
 type TrackLookup struct {
+	Contextified
 	link         *TrackChainLink     // The original chain link that I signed
 	set          *TrackSet           // The total set of tracked identities
 	ids          map[string][]string // A http -> [foo.com, boo.com] lookup
@@ -127,7 +128,7 @@ func (l TrackLookup) GetTrackerSeqno() keybase1.Seqno {
 func (l TrackLookup) GetTrackedKeys() []TrackedKey {
 	ret, err := l.link.GetTrackedKeys()
 	if err != nil {
-		G.Log.Warning("Error in lookup of tracked PGP fingerprints: %s", err)
+		l.G().Log.Warning("Error in lookup of tracked PGP fingerprints: %s", err)
 	}
 	return ret
 }
@@ -135,7 +136,7 @@ func (l TrackLookup) GetTrackedKeys() []TrackedKey {
 func (l TrackLookup) GetEldestKID() keybase1.KID {
 	ret, err := l.link.GetEldestKID()
 	if err != nil {
-		G.Log.Warning("Error in lookup of eldest KID: %s", err)
+		l.G().Log.Warning("Error in lookup of eldest KID: %s", err)
 	}
 	return ret
 }
@@ -372,7 +373,7 @@ func (t TrackDiffNewEldest) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())
 }
 
-func NewTrackLookup(link *TrackChainLink) *TrackLookup {
+func NewTrackLookup(g *GlobalContext, link *TrackChainLink) *TrackLookup {
 	sbs := link.ToServiceBlocks()
 	set := NewTrackSet()
 	ids := make(map[string][]string)
@@ -381,7 +382,7 @@ func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 		k, v := sb.ToKeyValuePair()
 		ids[k] = append(ids[k], v)
 	}
-	ret := &TrackLookup{link: link, set: set, ids: ids, trackerSeqno: link.GetSeqno()}
+	ret := &TrackLookup{Contextified: NewContextified(g), link: link, set: set, ids: ids, trackerSeqno: link.GetSeqno()}
 	return ret
 }
 
