@@ -148,7 +148,7 @@ func newFolderBlockManager(config Config, fb FolderBranch,
 
 	go fbm.archiveBlocksInBackground()
 	go fbm.deleteBlocksInBackground()
-	if fb.Branch == MasterBranch {
+	if fb.Branch == MasterBranch && config.Mode() != InitSingleOp {
 		go fbm.reclaimQuotaInBackground()
 	}
 	return fbm
