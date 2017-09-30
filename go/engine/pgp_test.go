@@ -22,7 +22,7 @@ func TestGenerateNewPGPKey(t *testing.T) {
 			SubkeyBits:  768,
 		},
 	}
-	arg.Gen.MakeAllIds()
+	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: secui,

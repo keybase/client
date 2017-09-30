@@ -2386,7 +2386,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
 	}
-	gen.AddDefaultUID()
+	gen.AddDefaultUID(tc.G)
 	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
 		Gen:        &gen,
 		PushSecret: true,
