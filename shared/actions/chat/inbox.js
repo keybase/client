@@ -106,6 +106,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
           identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
           maxUnbox: 0,
           query: _getInboxQuery,
+          skipUnverified: false,
         },
       }
     )

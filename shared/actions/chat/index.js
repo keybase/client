@@ -275,9 +275,14 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
     return null
   })
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({convs}) => {
-    if (convs) {
-      return Creators.inboxSynced(convs)
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
+    switch (syncRes.syncType) {
+      case ChatTypes.CommonSyncInboxResType.clear:
+        return Creators.inboxStale()
+      case ChatTypes.CommonSyncInboxResType.current:
+        return Creators.setInboxUntrustedState('loaded')
+      case ChatTypes.CommonSyncInboxResType.incremental:
+        return Creators.inboxSynced(syncRes.incremental.items)
     }
     return Creators.inboxStale()
   })

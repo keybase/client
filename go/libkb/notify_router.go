@@ -48,7 +48,7 @@ type NotifyListener interface {
 		resolveInfo chat1.ConversationResolveInfo)
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate)
-	ChatInboxSynced(uid keybase1.UID, convs []chat1.UnverifiedInboxUIItem)
+	ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)
 	ChatInboxSyncStarted(uid keybase1.UID)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
 	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
@@ -651,7 +651,7 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 }
 
 func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.UID,
-	convs []chat1.UnverifiedInboxUIItem) {
+	syncRes chat1.ChatSyncResult) {
 	if n == nil {
 		return
 	}
@@ -664,8 +664,8 @@ func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.U
 				(chat1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
 				}).ChatInboxSynced(context.Background(), chat1.ChatInboxSyncedArg{
-					Uid:   uid,
-					Convs: convs,
+					Uid:     uid,
+					SyncRes: syncRes,
 				})
 				wg.Done()
 			}()
@@ -674,7 +674,7 @@ func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.U
 	})
 	wg.Wait()
 	if n.listener != nil {
-		n.listener.ChatInboxSynced(uid, convs)
+		n.listener.ChatInboxSynced(uid, syncRes)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatInboxSynced notification")
 }

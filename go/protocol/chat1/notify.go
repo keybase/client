@@ -537,6 +537,84 @@ func (o ConversationStaleUpdate) DeepCopy() ConversationStaleUpdate {
 	}
 }
 
+type ChatSyncIncrementalInfo struct {
+	Items []UnverifiedInboxUIItem `codec:"items" json:"items"`
+}
+
+func (o ChatSyncIncrementalInfo) DeepCopy() ChatSyncIncrementalInfo {
+	return ChatSyncIncrementalInfo{
+		Items: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
+			if x == nil {
+				return nil
+			}
+			var ret []UnverifiedInboxUIItem
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Items),
+	}
+}
+
+type ChatSyncResult struct {
+	SyncType__    SyncInboxResType         `codec:"syncType" json:"syncType"`
+	Incremental__ *ChatSyncIncrementalInfo `codec:"incremental,omitempty" json:"incremental,omitempty"`
+}
+
+func (o *ChatSyncResult) SyncType() (ret SyncInboxResType, err error) {
+	switch o.SyncType__ {
+	case SyncInboxResType_INCREMENTAL:
+		if o.Incremental__ == nil {
+			err = errors.New("unexpected nil value for Incremental__")
+			return ret, err
+		}
+	}
+	return o.SyncType__, nil
+}
+
+func (o ChatSyncResult) Incremental() (res ChatSyncIncrementalInfo) {
+	if o.SyncType__ != SyncInboxResType_INCREMENTAL {
+		panic("wrong case accessed")
+	}
+	if o.Incremental__ == nil {
+		return
+	}
+	return *o.Incremental__
+}
+
+func NewChatSyncResultWithCurrent() ChatSyncResult {
+	return ChatSyncResult{
+		SyncType__: SyncInboxResType_CURRENT,
+	}
+}
+
+func NewChatSyncResultWithClear() ChatSyncResult {
+	return ChatSyncResult{
+		SyncType__: SyncInboxResType_CLEAR,
+	}
+}
+
+func NewChatSyncResultWithIncremental(v ChatSyncIncrementalInfo) ChatSyncResult {
+	return ChatSyncResult{
+		SyncType__:    SyncInboxResType_INCREMENTAL,
+		Incremental__: &v,
+	}
+}
+
+func (o ChatSyncResult) DeepCopy() ChatSyncResult {
+	return ChatSyncResult{
+		SyncType__: o.SyncType__.DeepCopy(),
+		Incremental__: (func(x *ChatSyncIncrementalInfo) *ChatSyncIncrementalInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Incremental__),
+	}
+}
+
 type NewChatActivityArg struct {
 	Uid      keybase1.UID `codec:"uid" json:"uid"`
 	Activity ChatActivity `codec:"activity" json:"activity"`
@@ -682,24 +760,14 @@ func (o ChatInboxSyncStartedArg) DeepCopy() ChatInboxSyncStartedArg {
 }
 
 type ChatInboxSyncedArg struct {
-	Uid   keybase1.UID            `codec:"uid" json:"uid"`
-	Convs []UnverifiedInboxUIItem `codec:"convs" json:"convs"`
+	Uid     keybase1.UID   `codec:"uid" json:"uid"`
+	SyncRes ChatSyncResult `codec:"syncRes" json:"syncRes"`
 }
 
 func (o ChatInboxSyncedArg) DeepCopy() ChatInboxSyncedArg {
 	return ChatInboxSyncedArg{
-		Uid: o.Uid.DeepCopy(),
-		Convs: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
-			if x == nil {
-				return nil
-			}
-			var ret []UnverifiedInboxUIItem
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.Convs),
+		Uid:     o.Uid.DeepCopy(),
+		SyncRes: o.SyncRes.DeepCopy(),
 	}
 }
 

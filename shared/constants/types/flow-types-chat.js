@@ -120,6 +120,12 @@ export const CommonNotificationKind = {
   atmention: 1,
 }
 
+export const CommonSyncInboxResType = {
+  current: 0,
+  incremental: 1,
+  clear: 2,
+}
+
 export const CommonTeamType = {
   none: 0,
   simple: 1,
@@ -231,12 +237,6 @@ export const RemoteMessageBoxedVersion = {
 export const RemoteSyncAllNotificationType = {
   state: 0,
   incremental: 1,
-}
-
-export const RemoteSyncInboxResType = {
-  current: 0,
-  incremental: 1,
-  clear: 2,
 }
 
 export function localCancelPostRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}): EngineChannel {
@@ -880,6 +880,15 @@ export type ChatActivityType =
   | 6 // MEMBERS_UPDATE_6
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
+
+export type ChatSyncIncrementalInfo = {
+  items?: ?Array<UnverifiedInboxUIItem>,
+}
+
+export type ChatSyncResult =
+    { syncType: 0 }
+  | { syncType: 2 }
+  | { syncType: 1, incremental: ?ChatSyncIncrementalInfo }
 
 export type ConvTypingUpdate = {
   convID: ConversationID,
@@ -1628,7 +1637,7 @@ export type NotifyChatChatInboxSyncStartedRpcParam = Exact<{
 
 export type NotifyChatChatInboxSyncedRpcParam = Exact<{
   uid: keybase1.UID,
-  convs?: ?Array<UnverifiedInboxUIItem>
+  syncRes: ChatSyncResult
 }>
 
 export type NotifyChatChatJoinedConversationRpcParam = Exact<{
@@ -2715,7 +2724,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatInboxSynced'?: (
     params: Exact<{
       uid: keybase1.UID,
-      convs?: ?Array<UnverifiedInboxUIItem>
+      syncRes: ChatSyncResult
     }> /* ,
     response: {} // Notify call
     */
