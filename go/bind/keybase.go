@@ -92,7 +92,9 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
-	kbCtx.SetUIDMapper(uidmap.NewUIDMap())
+
+	// 10k uid -> FullName cache entries allowed
+	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
