@@ -48,8 +48,8 @@ func (g *GpgCLI) Configure() (err error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	prog := G.Env.GetGpg()
-	opts := G.Env.GetGpgOptions()
+	prog := g.G().Env.GetGpg()
+	opts := g.G().Env.GetGpgOptions()
 
 	if len(prog) > 0 {
 		err = canExec(prog)
