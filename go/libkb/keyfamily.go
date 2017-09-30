@@ -1111,9 +1111,6 @@ func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did keybase1.DeviceID) (key Gen
 
 // GetCurrentDevice returns the current device.
 func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error) {
-	if g == nil {
-		g = G
-	}
 	did := g.Env.GetDeviceID()
 	if did.IsNil() {
 		return nil, NotProvisionedError{}

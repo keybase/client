@@ -112,7 +112,7 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 		}
 	}
 	if s.GetDictionary() == nil {
-		G.Log.Warning("s.GetDict() == nil")
+		s.G().Log.Warning("s.GetDict() == nil")
 	}
 	s.GetDictionary().SetKey("session", jsonw.NewString(sessionID))
 
