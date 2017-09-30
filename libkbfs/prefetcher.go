@@ -199,6 +199,15 @@ top:
 //    * a:1 -> {e:1 -> {g:1}}
 // 5) g is fetched, completing g, e, and a.
 //    * <empty>
+//
+// A *critical* assumption here is that a block tree will never have a diamond
+// topology. That is, while a block may have multiple parents, at no point can
+// there exist more than one path from a block to another block in the tree.
+// That assumption should hold because blocks are content addressed, so
+// changing anything about one block creates brand new parents all the way up
+// the tree. If this did ever happen, a completed fetch downstream of the
+// diamond would be double counted in all nodes above the diamond, and the
+// prefetcher would eventually panic.
 func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	defer func() {
 		close(p.doneCh)
@@ -226,7 +235,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			p.log.Debug("handling prefetch for block %s", req.ptr.ID)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 			if isPrefetchWaiting {
-				p.log.Debug("prefetch waiting for block ID %s", req.ptr.ID)
+				p.log.Debug("prefetch waiting for block ID %s, count=%d",
+					req.ptr.ID, pre.subtreeBlockCount)
 				if pre.req == nil {
 					// If this prefetch already appeared in the tree, ensure it
 					// has a req associated with it.
@@ -254,6 +264,11 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				continue
 			}
 			if req.priority < lowestTriggerPrefetchPriority {
+				p.log.Debug("skipping prefetch for block %s", req.ptr.ID)
+				continue
+			}
+			if req.prefetchStatus == TriggeredPrefetch && !req.isDeepSync {
+				p.log.Debug("prefetch already triggered for block ID %s", req.ptr.ID)
 				continue
 			}
 			if isPrefetchWaiting {
@@ -291,10 +306,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// `subtreeBlockCount` will be incremented by `numBlocks`
 				// below, once we've ensured that `numBlocks` is not 0.
 				pre = &prefetch{0, true, req, make(map[kbfsblock.ID]bool)}
-			}
-			if req.prefetchStatus == TriggeredPrefetch && !req.isDeepSync {
-				p.log.Debug("prefetch triggered for block ID %s", req.ptr.ID)
-				continue
 			}
 			ctx, _ := context.WithTimeout(context.Background(),
 				prefetchTimeout)
@@ -563,40 +574,27 @@ func (p *blockPrefetcher) TriggerPrefetch(ctx context.Context,
 	ptr BlockPointer, block Block, kmd KeyMetadata, priority int,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
 	isDeepSync := p.config.IsSyncedTlf(kmd.TlfID())
+	req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
+		prefetchStatus, isDeepSync}
 	if prefetchStatus == FinishedPrefetch {
-		p.log.Debug("block %s is already finished prefetching", ptr.ID)
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
-		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			FinishedPrefetch, isDeepSync}
-		p.triggerPrefetch(req)
-		return
-	}
-	if priority < lowestTriggerPrefetchPriority {
-		p.log.Debug("block %s below prefetch priority threshold: %x", ptr.ID, priority)
+	} else if priority < lowestTriggerPrefetchPriority {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
 		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
 			prefetchStatus)
-		// FIXME: we trigger here in order to synchronize. I don't like it
-		// though; figure out how to get rid of it.
-		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			prefetchStatus, isDeepSync}
-		p.triggerPrefetch(req)
-		return
+	} else {
+		// Note that here we are caching `TriggeredPrefetch`, but the request
+		// will still reflect the passed-in `prefetchStatus`, since that's the
+		// one the prefetching goroutine needs to decide what to do with.
+		err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
+			TriggeredPrefetch)
+		if err != nil {
+			return
+		}
 	}
-	err := p.cacheOrCancelPrefetch(ctx, ptr, kmd.TlfID(), block, lifetime,
-		TriggeredPrefetch)
-	if err == nil {
-		p.log.Debug("block %s is cached and ready to prefetch", ptr.ID)
-		// Note that we're triggering a prefetch with `prefetchStatus`, not
-		// `TriggeredPrefetch` like we just set. We need to let the prefetcher
-		// make the decision on what to do with the _previous_ status.
-		req := &prefetchRequest{ptr, block, kmd, priority, lifetime,
-			prefetchStatus, isDeepSync}
-		p.triggerPrefetch(req)
-	}
-	return
+	p.triggerPrefetch(req)
 }
 
 func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {

@@ -719,7 +719,6 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
-	p := q.Prefetcher().(*blockPrefetcher)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
