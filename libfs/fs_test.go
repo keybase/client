@@ -641,6 +641,9 @@ func TestFileLockingExpiration(t *testing.T) {
 	err = f.Lock()
 	require.NoError(t, err)
 
+	_, err = fs.Create("b")
+	require.NoError(t, err)
+
 	clock.Add(2 * time.Minute)
 
 	// Close/Unlock should fail because the clock expired.
