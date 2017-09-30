@@ -17,7 +17,7 @@ type IdentifyState struct {
 }
 
 func NewIdentifyStateWithGregorItem(g *GlobalContext, item gregor.Item, u *User) IdentifyState {
-	res := NewIdentifyOutcomeWithUsername(u.GetNormalizedName())
+	res := NewIdentifyOutcomeWithUsername(g, u.GetNormalizedName())
 	res.ResponsibleGregorItem = item
 	return IdentifyState{Contextified: NewContextified(g), res: res, u: u}
 }
