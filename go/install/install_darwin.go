@@ -265,7 +265,7 @@ func keybasePlist(context Context, binPath string, label string, log Log) (launc
 	// TODO: Remove -d when doing real release
 	logFile := filepath.Join(context.GetLogDir(), libkb.ServiceLogFileName)
 	startLogFile := filepath.Join(context.GetLogDir(), libkb.StartLogFileName)
-	err := libkb.MakeParentDirs(startLogFile)
+	err := libkb.MakeParentDirs(log, startLogFile)
 	if err != nil {
 		return launchd.Plist{}, err
 	}
@@ -292,10 +292,10 @@ func UninstallKeybaseServices(runMode libkb.RunMode, log Log) error {
 	return libkb.CombineErrors(err1, err2)
 }
 
-func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir string, skipMount bool) (launchd.Plist, error) {
+func kbfsPlist(context Context, kbfsBinPath string, label string, mountDir string, skipMount bool, log Log) (launchd.Plist, error) {
 	logFile := filepath.Join(context.GetLogDir(), libkb.KBFSLogFileName)
 	startLogFile := filepath.Join(context.GetLogDir(), libkb.StartLogFileName)
-	if err := libkb.MakeParentDirs(startLogFile); err != nil {
+	if err := libkb.MakeParentDirs(log, startLogFile); err != nil {
 		return launchd.Plist{}, err
 	}
 	// TODO: Remove debug flag when doing real release
@@ -619,7 +619,7 @@ func InstallKBFS(context Context, binPath string, force bool, skipMountIfNotAvai
 		}
 	}
 
-	plist, err := kbfsPlist(context, kbfsBinPath, label, mountDir, skipMount)
+	plist, err := kbfsPlist(context, kbfsBinPath, label, mountDir, skipMount, log)
 	if err != nil {
 		return err
 	}
@@ -1095,7 +1095,7 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout 
 
 	label := DefaultUpdaterLabel(context.GetRunMode())
 	service := launchd.NewService(label)
-	plist, err := updaterPlist(context, label, updaterBinPath, keybaseBinPath)
+	plist, err := updaterPlist(context, label, updaterBinPath, keybaseBinPath, log)
 	if err != nil {
 		return err
 	}
@@ -1109,12 +1109,12 @@ func InstallUpdater(context Context, keybaseBinPath string, force bool, timeout 
 	return nil
 }
 
-func updaterPlist(context Context, label string, serviceBinPath string, keybaseBinPath string) (launchd.Plist, error) {
+func updaterPlist(context Context, label string, serviceBinPath string, keybaseBinPath string, log Log) (launchd.Plist, error) {
 	plistArgs := []string{fmt.Sprintf("-path-to-keybase=%s", keybaseBinPath)}
 	envVars := DefaultLaunchdEnvVars(label)
 	comment := "It's not advisable to edit this plist, it may be overwritten"
 	logFile := filepath.Join(context.GetLogDir(), libkb.UpdaterLogFileName)
-	err := libkb.MakeParentDirs(logFile)
+	err := libkb.MakeParentDirs(log, logFile)
 	if err != nil {
 		return launchd.Plist{}, err
 	}

@@ -64,22 +64,22 @@ func FileExists(path string) (bool, error) {
 	return false, err
 }
 
-func MakeParentDirs(filename string) error {
+func MakeParentDirs(log SkinnyLogger, filename string) error {
 
 	dir, _ := filepath.Split(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
-		G.Log.Errorf("Can't see if parent dir %s exists", dir)
+		log.Errorf("Can't see if parent dir %s exists", dir)
 		return err
 	}
 
 	if !exists {
 		err = os.MkdirAll(dir, PermDir)
 		if err != nil {
-			G.Log.Errorf("Can't make parent dir %s", dir)
+			log.Errorf("Can't make parent dir %s", dir)
 			return err
 		}
-		G.Log.Debug("Created parent directory %s", dir)
+		log.Debug("Created parent directory %s", dir)
 	}
 	return nil
 }
@@ -371,8 +371,7 @@ func RandInt() (int, error) {
 func RandIntn(n int) int {
 	x, err := RandInt()
 	if err != nil {
-		G.Log.Warning("RandInt error: %s", err)
-		return 0
+		panic(fmt.Sprintf("RandInt error: %s", err))
 	}
 	return x % n
 }
