@@ -53,7 +53,7 @@ type Requester interface {
 // NewInternalAPIEngine makes an API engine for internally querying the keybase
 // API server
 func NewInternalAPIEngine(g *GlobalContext) (*InternalAPIEngine, error) {
-	cliConfig, err := g.Env.GenClientConfigForInternalAPI()
+	cliConfig, err := genClientConfigForInternalAPI(g)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func NewAPIEngines(g *GlobalContext) (*InternalAPIEngine, *ExternalAPIEngine, er
 	if err != nil {
 		return nil, nil, err
 	}
-	scraperConfig, err := g.Env.GenClientConfigForScrapers()
+	scraperConfig, err := genClientConfigForScrapers(g.Env)
 	if err != nil {
 		return nil, nil, err
 	}
