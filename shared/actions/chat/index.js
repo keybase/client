@@ -1198,6 +1198,13 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   }, [])
   yield all(updateActions)
   yield put(Creators.unboxConversations(convIDs, true, true))
+
+  const selectedConversation = yield select(Constants.getSelectedConversation)
+  if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
+    return
+  }
+  yield put(Creators.clearMessages(selectedConversation))
+  yield put(Creators.loadMoreMessages(selectedConversation, false))
 }
 
 function _threadIsCleared(originalAction: Action, checkAction: Action): boolean {
