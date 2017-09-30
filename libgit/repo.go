@@ -194,6 +194,8 @@ const (
 	getOnly
 )
 
+// NoSuchRepoError indicates that a repo doesn't yet exist, and it
+// will not be created.
 type NoSuchRepoError struct {
 	name string
 }
