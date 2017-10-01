@@ -32,7 +32,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	// Failing to open nul is non-fatal here.
 	devnull, err = os.OpenFile("nul", os.O_RDONLY, 0)
 	if err != nil {
-		G.Log.Warning("Cannot open nul: %v", err)
+		g.Log.Warning("Cannot open nul: %v", err)
 		// 0 is an invalid handle, but more importantly it will
 		// not be passed to DuplicateHandle by Go. This works
 		// with Go 1.6, but is hacky. This code path is taken
@@ -63,7 +63,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	if err != nil {
 		err = fmt.Errorf("Error in StartProcess: %s", err)
 	} else {
-		G.Log.Info("Starting background server with pid=%d", pid)
+		g.Log.Info("Starting background server with pid=%d", pid)
 	}
 	return
 }
