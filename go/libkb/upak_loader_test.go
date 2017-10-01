@@ -23,6 +23,7 @@ func TestCachedUserLoad(t *testing.T) {
 
 	// Load t_alice a few different ways
 	arg := LoadUserArg{
+		Contextified : NewContextified(tc.G),
 		UID: keybase1.UID("295a7eea607af32040647123732bc819"),
 	}
 	var info CachedUserLoadInfo
@@ -113,7 +114,7 @@ func TestCacheFallbacks(t *testing.T) {
 	test := func() *CachedUserLoadInfo {
 		var ret CachedUserLoadInfo
 		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
-		var arg LoadUserArg
+		arg := NewLoadUserArg(tc.G)
 		arg.UID = uid
 		upk, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &ret, nil, false)
 		require.NoError(t, err)

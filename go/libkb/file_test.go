@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"sync"
 	"testing"
+	"github.com/keybase/client/go/logger"
 )
 
 func TestFileSave(t *testing.T) {
@@ -16,7 +17,7 @@ func TestFileSave(t *testing.T) {
 
 	file := NewFile(filename, []byte("test data"), 0644)
 	t.Logf("Saving")
-	err := file.Save(G.Log)
+	err := file.Save(logger.NewTestLogger(t))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,13 +30,15 @@ func TestFileSaveConcurrent(t *testing.T) {
 	filename := "file_test.tmp"
 	defer os.Remove(filename)
 
+	log := logger.NewTestLogger(t)
+
 	var wg sync.WaitGroup
 	for i := 0; i < 20; i++ {
 		wg.Add(1)
 		go func() {
 			file := NewFile(filename, []byte("test data"), 0644)
 			t.Logf("Saving")
-			err := file.Save(G.Log)
+			err := file.Save(log)
 			if err != nil {
 				t.Errorf("save err: %s", err)
 			}
@@ -49,7 +52,7 @@ func TestFileSaveConcurrent(t *testing.T) {
 	for i := 0; i < 20; i++ {
 		wg2.Add(1)
 		go func() {
-			err := file.Save(G.Log)
+			err := file.Save(log)
 			if err != nil {
 				t.Errorf("save err: %s", err)
 			}
