@@ -20,8 +20,8 @@ func NewCmdFavorite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Usage:        "Manage favorites",
 		Subcommands: []cli.Command{
 			NewCmdFavoriteAdd(cl, g),
-			NewCmdFavoriteRemove(cl),
-			NewCmdFavoriteList(cl),
+			NewCmdFavoriteRemove(cl, g),
+			NewCmdFavoriteList(cl, g),
 		},
 	}
 }

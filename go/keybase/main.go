@@ -141,7 +141,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		if logger.SaveConsoleMode() == nil {
 			defer logger.RestoreConsoleMode()
 		}
-		client.InitUI()
+		client.InitUI(g)
 	}
 
 	if err = g.ConfigureCommand(cl, cmd); err != nil {
@@ -301,7 +301,7 @@ func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error 
 		return nil
 	}
 
-	protocols := []rpc.Protocol{client.NewLogUIProtocol()}
+	protocols := []rpc.Protocol{client.NewLogUIProtocol(g)}
 	if err := client.RegisterProtocolsWithContext(protocols, g); err != nil {
 		return err
 	}

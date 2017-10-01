@@ -469,7 +469,7 @@ func (c *chatServiceHandler) DownloadV1(ctx context.Context, opts downloadOption
 	if opts.Output == "-" {
 		fsink = &StdoutSink{}
 	} else {
-		fsink = NewFileSink(opts.Output)
+		fsink = NewFileSink(c.G(), opts.Output)
 	}
 	defer fsink.Close()
 	sink := c.G().XStreams.ExportWriter(fsink)

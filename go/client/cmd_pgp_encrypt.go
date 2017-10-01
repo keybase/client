@@ -108,7 +108,7 @@ func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
-	if err := c.FilterInit(msg, infile, outfile); err != nil {
+	if err := c.FilterInit(c.G(), msg, infile, outfile); err != nil {
 		return err
 	}
 	c.recipients = ctx.Args()

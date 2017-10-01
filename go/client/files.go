@@ -198,6 +198,7 @@ func (s *StdoutSink) Write(b []byte) (n int, err error) {
 func (s *StdoutSink) HitError(e error) error { return nil }
 
 type FileSink struct {
+	libkb.Contextified
 	name   string
 	file   *os.File
 	bufw   *bufio.Writer
@@ -206,8 +207,8 @@ type FileSink struct {
 	failed bool
 }
 
-func NewFileSink(s string) *FileSink {
-	return &FileSink{name: s}
+func NewFileSink(g *libkb.GlobalContext, s string) *FileSink {
+	return &FileSink{Contextified: libkb.NewContextified(g), name: s}
 }
 
 func (s *FileSink) Open() error {
@@ -259,7 +260,7 @@ func (s *FileSink) Close() error {
 func (s *FileSink) HitError(e error) error {
 	var err error
 	if e != nil && s.opened {
-		G.Log.Debug("Deleting file %s after error %s", s.name, e)
+		s.G().Log.Debug("Deleting file %s after error %s", s.name, e)
 		err = os.Remove(s.name)
 	}
 	return err
@@ -271,11 +272,11 @@ type UnixFilter struct {
 	source Source
 }
 
-func initSink(fn string) Sink {
+func initSink(g *libkb.GlobalContext, fn string) Sink {
 	if len(fn) == 0 || fn == "-" {
 		return &StdoutSink{}
 	}
-	return NewFileSink(fn)
+	return NewFileSink(g, fn)
 }
 
 func initSource(msg, infile string) (Source, error) {
@@ -291,10 +292,10 @@ func initSource(msg, infile string) (Source, error) {
 	return NewFileSource(infile), nil
 }
 
-func (u *UnixFilter) FilterInit(msg, infile, outfile string) (err error) {
+func (u *UnixFilter) FilterInit(g *libkb.GlobalContext, msg, infile, outfile string) (err error) {
 	u.source, err = initSource(msg, infile)
 	if err == nil {
-		u.sink = initSink(outfile)
+		u.sink = initSink(g, outfile)
 	}
 	return err
 }
