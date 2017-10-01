@@ -80,22 +80,21 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		return t.lookupInternalName(ctx, name, vis)
 	}
 
-	teamID, teamName, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name, vis == keybase1.TLFVisibility_PUBLIC)
+	teamID, teamName, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name,
+		vis == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		return res, err
 	}
-
 	if !teamID.IsRootTeam() {
 		panic(fmt.Sprintf("implicit team found via LookupImplicitTeam not root team: %s", teamID))
 	}
 
+	res.CanonicalName = teamName.String()
+	t.Debug(ctx, "NAME: %s", res.CanonicalName)
 	res.ID, err = teamIDToTLFID(teamID)
 	if err != nil {
 		return res, err
 	}
-
-	res.CanonicalName = teamName.String()
-
 	if vis == keybase1.TLFVisibility_PRIVATE {
 		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
 		if err != nil {
@@ -118,7 +117,7 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		return res, errors.New("invalid context with no chat metadata")
 	}
 	query := keybase1.TLFQuery{
-		TlfName:          res.CanonicalName,
+		TlfName:          impTeamName.String(),
 		IdentifyBehavior: identBehavior,
 	}
 	ib, err := t.Identify(ctx, query, true)
@@ -154,15 +153,11 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 	if err != nil {
 		return res, err
 	}
+	res.CanonicalName = name
 	res.ID, err = teamIDToTLFID(team.ID)
 	if err != nil {
 		return res, err
 	}
-	display, err := team.ImplicitTeamDisplayName(ctx)
-	if err != nil {
-		return res, err
-	}
-	res.CanonicalName = display.String()
 	if vis == keybase1.TLFVisibility_PRIVATE {
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {

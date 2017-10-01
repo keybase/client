@@ -199,15 +199,12 @@ func runWithMemberTypes(t *testing.T, f func(membersType chat1.ConversationMembe
 	f(chat1.ConversationMembersType_TEAM)
 	t.Logf("Team Stage End: %v", time.Now().Sub(start))
 
-	t.Logf("Not testing implicit teams (yet)")
-	if false {
-		t.Logf("Implicit Team Stage Begin")
-		os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-		defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
-		start = time.Now()
-		f(chat1.ConversationMembersType_IMPTEAM)
-		t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
-	}
+	t.Logf("Implicit Team Stage Begin")
+	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
+	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
+	start = time.Now()
+	f(chat1.ConversationMembersType_IMPTEAM)
+	t.Logf("Implicit Team Stage End: %v", time.Now().Sub(start))
 }
 
 type chatTestUserContext struct {
@@ -842,27 +839,16 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 				TlfVisibility: &visibility,
 			},
 		})
-		if err != nil {
-			t.Fatalf("ResolveConversationLocal error: %v", err)
-		}
+		require.NoError(t, err)
 		conversations := gilres.Conversations
-		if len(conversations) != 1 {
-			t.Fatalf("unexpected response from GetInboxAndUnboxLocal. expected 1 items, got %d\n", len(conversations))
-		}
-
+		require.Equal(t, 1, len(conversations))
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
 		require.NoError(t, err)
-		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
-		}
-		if !conversations[0].Info.Id.Eq(created.Id) {
-			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
-		}
-		if conversations[0].Info.Triple.TopicType != chat1.TopicType_CHAT {
-			t.Fatalf("unexpected topicType in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Triple.TopicType, chat1.TopicType_CHAT)
-		}
+		require.Equal(t, conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
+		require.Equal(t, conversations[0].Info.Id, created.Id)
+		require.Equal(t, chat1.TopicType_CHAT, conversations[0].Info.Triple.TopicType)
 	})
 }
 
@@ -2840,14 +2826,14 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 			KeybaseUsers: []string{users[0].Username, users[1].Username},
 		},
 	}
-	impTeamID, err := teams.CreateImplicitTeam(ctx, tc.G, implicitTeamDesc)
+	impTeamID, impTeamName, err := teams.CreateImplicitTeam(ctx, tc.G, implicitTeamDesc)
 	require.NoError(t, err)
 	require.True(t, impTeamID.IsRootTeam(), "not root team")
 
 	// create a new conversation
 	ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 		chat1.NewConversationLocalArg{
-			TlfName:          displayName,
+			TlfName:          impTeamName.String(),
 			TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
 			TopicType:        chat1.TopicType_CHAT,
 			MembersType:      chat1.ConversationMembersType_IMPTEAM,

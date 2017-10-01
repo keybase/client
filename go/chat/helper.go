@@ -397,7 +397,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 	if membersType == chat1.ConversationMembersType_IMPTEAM {
 		// in this case, we need to get the hidden implicit team name from the display name
-		_, teamName, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == keybase1.TLFVisibility_PUBLIC)
+		_, teamName, _, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			if _, ok := err.(teams.TeamDoesNotExistError); ok {
 				// no exist is just empty response
@@ -772,7 +772,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 		// couldn't find implicit team, so make one
 		n.Debug(ctx, "making new implicit team %q", n.tlfName)
-		_, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
+		_, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
 		if err != nil {
 			return res, rl, err
 		}

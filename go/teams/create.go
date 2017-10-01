@@ -10,18 +10,18 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, err error) {
+func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, teamName keybase1.TeamName, err error) {
 	defer g.CTrace(ctx, "CreateImplicitTeam", func() error { return err })()
 
-	name, err := NewImplicitTeamName()
+	teamName, err = NewImplicitTeamName()
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
-	teamID := RootTeamIDFromNameString(name.String())
+	teamID := RootTeamIDFromNameString(teamName.String())
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
 
 	// Load all the Keybase users
@@ -42,11 +42,11 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 
 	ownerUPAKs, err := loadUsernameList(impTeam.Writers.KeybaseUsers)
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
 	readerUPAKs, err := loadUsernameList(impTeam.Readers.KeybaseUsers)
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
 
 	var owners []SCTeamMember
@@ -132,8 +132,9 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	// Post the team
-	return teamID, makeSigAndPostRootTeam(ctx, g, me, members, invites, secretboxRecipients, name.String(),
-		teamID, impTeam.IsPublic, true, nil)
+	return teamID, teamName,
+		makeSigAndPostRootTeam(ctx, g, me, members, invites, secretboxRecipients, teamName.String(),
+			teamID, impTeam.IsPublic, true, nil)
 }
 
 func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, members SCTeamMembers,
