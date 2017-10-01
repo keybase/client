@@ -228,6 +228,7 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
@@ -250,6 +251,7 @@ func createFakeUserWithPGPSibkeyPaper(tc libkb.TestContext) *FakeUser {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
