@@ -298,7 +298,7 @@ func GetOrCreateRepoAndID(
 		ctx, config, tlfHandle, repoName, uniqID, getOrCreate)
 }
 
-// GetOrCreateRepoAndID returns a filesystem object rooted at the
+// GetRepoAndID returns a filesystem object rooted at the
 // specified repo, along with the stable repo ID, if it already
 // exists.
 func GetRepoAndID(
