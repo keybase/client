@@ -144,7 +144,6 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		}
 		runner.Run(t)
 
-
 		// connect to server
 		mdServer = NewMDServerRemote(config, mdServerAddr, env.NewContext().NewRPCLogFactory())
 		// for now the MD server acts as the key server in production
