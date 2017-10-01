@@ -1198,7 +1198,7 @@ func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *Si
 		sigChain:         sc,
 		revocations:      make(map[keybase1.SigID]bool),
 		links:            make(map[keybase1.SigID]TypedChainLink),
-		remoteProofLinks: NewRemoteProofLinks(),
+		remoteProofLinks: NewRemoteProofLinks(g),
 		tracks:           make(map[NormalizedUsername][]*TrackChainLink),
 		sigHints:         h,
 		eldest:           eldest,
