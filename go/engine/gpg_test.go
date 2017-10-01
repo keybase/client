@@ -13,6 +13,7 @@ import (
 )
 
 type gpgtestui struct {
+	libkb.Contextified
 	index          int
 	keyChosenCount int
 }
@@ -53,7 +54,7 @@ func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error
 	if err != nil {
 		return "", err
 	}
-	cli := libkb.G.GetGpgClient()
+	cli := g.G().GetGpgClient()
 	if err := cli.Configure(); err != nil {
 		return "", err
 	}
@@ -91,9 +92,9 @@ type gpgSelectEmailUI struct {
 	Email string
 }
 
-func newGPGSelectEmailUI(email string) *gpgSelectEmailUI {
+func newGPGSelectEmailUI(g *libkb.GlobalContext, email string) *gpgSelectEmailUI {
 	return &gpgSelectEmailUI{
-		gpgtestui: &gpgtestui{},
+		gpgtestui: &gpgtestui{Contextified: libkb.NewContextified(g)},
 		Email:     email,
 	}
 }

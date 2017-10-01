@@ -60,7 +60,7 @@ func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
 func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
 
-	var arg libkb.LoadUserArg
+	arg := libkb.NewLoadUserArg(e.G())
 
 	if len(e.arg.ForAssertion) > 0 {
 		arg = libkb.NewLoadUserByNameArg(e.G(), e.arg.ForAssertion)
