@@ -18,7 +18,7 @@ type LogUIServer struct {
 }
 
 func NewLogUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
-	return keybase1.LogUiProtocol(&LogUIServer{Contextified : libkb.NewContextified(g)})
+	return keybase1.LogUiProtocol(&LogUIServer{Contextified: libkb.NewContextified(g)})
 }
 
 func (s LogUIServer) Log(_ context.Context, arg keybase1.LogArg) error {

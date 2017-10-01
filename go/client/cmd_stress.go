@@ -27,7 +27,7 @@ func NewCmdStress(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Name:  "stress",
 		Usage: "Run some stressful commands on the service (devel only)",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdStress{Contextified : libkb.NewContextified(g)}, "stress", c)
+			cl.ChooseCommand(&CmdStress{Contextified: libkb.NewContextified(g)}, "stress", c)
 		},
 		Flags: []cli.Flag{
 			cli.IntFlag{

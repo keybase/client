@@ -30,7 +30,7 @@ func NewCmdUnlock(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
    logging back in, the "keybase unlock" command will restore your local
    key store access.`,
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdUnlock{Contextified:libkb.NewContextified(g)}, "unlock", c)
+			cl.ChooseCommand(&CmdUnlock{Contextified: libkb.NewContextified(g)}, "unlock", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{

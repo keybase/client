@@ -23,8 +23,8 @@ func TestCachedUserLoad(t *testing.T) {
 
 	// Load t_alice a few different ways
 	arg := LoadUserArg{
-		Contextified : NewContextified(tc.G),
-		UID: keybase1.UID("295a7eea607af32040647123732bc819"),
+		Contextified: NewContextified(tc.G),
+		UID:          keybase1.UID("295a7eea607af32040647123732bc819"),
 	}
 	var info CachedUserLoadInfo
 	_, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)

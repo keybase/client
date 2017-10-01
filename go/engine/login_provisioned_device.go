@@ -89,6 +89,7 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 
 	var config *libkb.UserConfig
 	loadUserArg := libkb.LoadUserArg{
+		Contextified:      libkb.NewContextified(e.G()),
 		PublicKeyOptional: true,
 		ForceReload:       true,
 	}

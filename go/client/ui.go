@@ -591,7 +591,7 @@ func (ui *UI) GetGPGUI() libkb.GPGUI {
 }
 
 func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
-	return ProvisionUI{Contextified : libkb.NewContextified(ui.G()), parent: ui, role: role}
+	return ProvisionUI{Contextified: libkb.NewContextified(ui.G()), parent: ui, role: role}
 }
 
 func (ui *UI) GetPgpUI() libkb.PgpUI {

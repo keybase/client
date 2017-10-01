@@ -1234,7 +1234,7 @@ func TestProvisionGPGSign(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    u1.NewSecretUI(),
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 		}
 		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine(eng, ctx); err != nil {
@@ -1354,7 +1354,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    secUI,
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 		}
 		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine(eng, ctx); err != nil {
@@ -1425,7 +1425,7 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    u1.NewSecretUI(),
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 		}
 
 		arg := loginProvisionArg{
@@ -1507,7 +1507,7 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 	}
 
 	arg := loginProvisionArg{
@@ -1542,7 +1542,7 @@ func TestProvisionGPGNoKeyring(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err == nil {
@@ -1575,7 +1575,7 @@ func TestProvisionGPGNoMatch(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err == nil {
@@ -1605,7 +1605,7 @@ func TestProvisionGPGNoGPGExecutable(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	err := RunEngine(eng, ctx)
@@ -1638,7 +1638,7 @@ func TestProvisionGPGNoGPGFound(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	err := RunEngine(eng, ctx)
@@ -2388,6 +2388,7 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 	}
 	gen.AddDefaultUID(tc.G)
 	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+		Ctx:        tc.G,
 		Gen:        &gen,
 		PushSecret: true,
 		NoSave:     true,
@@ -3084,7 +3085,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    u1.NewSecretUI(),
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 		}
 		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine(eng, ctx); err != nil {

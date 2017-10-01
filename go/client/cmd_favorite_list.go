@@ -15,7 +15,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type CmdFavoriteList struct{
+type CmdFavoriteList struct {
 	libkb.Contextified
 }
 
@@ -24,7 +24,7 @@ func NewCmdFavoriteList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Name:  "list",
 		Usage: "List favorites",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdFavoriteList{Contextified : libkb.NewContextified(g)}, "add", c)
+			cl.ChooseCommand(&CmdFavoriteList{Contextified: libkb.NewContextified(g)}, "add", c)
 		},
 	}
 }

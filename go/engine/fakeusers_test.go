@@ -68,6 +68,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 	}
 	gen.AddDefaultUID(tc.G)
 	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+		Ctx:        tc.G,
 		Gen:        &gen,
 		PushSecret: true,
 		Lks:        s.lks,
@@ -185,7 +186,7 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	s := NewSignupEngine(nil, tc.G)
 	ctx := &Context{
-		GPGUI:    newGPGSelectEmailUI(fu.Email),
+		GPGUI:    newGPGSelectEmailUI(tc.G, fu.Email),
 		SecretUI: secui,
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},

@@ -25,7 +25,7 @@ func NewCmdFavoriteRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		ArgumentHelp: "<folder-name>",
 		Usage:        "Remove a favorite",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdFavoriteRemove{Contextified : libkb.NewContextified(g)}, "remove", c)
+			cl.ChooseCommand(&CmdFavoriteRemove{Contextified: libkb.NewContextified(g)}, "remove", c)
 		},
 	}
 }

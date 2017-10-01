@@ -4,11 +4,11 @@
 package libkb
 
 import (
+	"github.com/keybase/client/go/logger"
 	"os"
 	"runtime"
 	"sync"
 	"testing"
-	"github.com/keybase/client/go/logger"
 )
 
 func TestFileSave(t *testing.T) {
