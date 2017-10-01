@@ -15,7 +15,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func NewCmdUnlock(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdUnlock(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name: "unlock",
 		Description: `"keybase unlock" can be used to restore access to your local key store
@@ -30,7 +30,7 @@ func NewCmdUnlock(cl *libcmdline.CommandLine) cli.Command {
    logging back in, the "keybase unlock" command will restore your local
    key store access.`,
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdUnlock{}, "unlock", c)
+			cl.ChooseCommand(&CmdUnlock{Contextified:libkb.NewContextified(g)}, "unlock", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -42,18 +42,19 @@ func NewCmdUnlock(cl *libcmdline.CommandLine) cli.Command {
 }
 
 type CmdUnlock struct {
+	libkb.Contextified
 	stdin bool
 }
 
 func (c *CmdUnlock) Run() error {
-	cli, err := GetLoginClient(G)
+	cli, err := GetLoginClient(c.G())
 	if err != nil {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	if c.stdin {

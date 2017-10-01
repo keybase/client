@@ -15,14 +15,16 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type CmdFavoriteList struct{}
+type CmdFavoriteList struct{
+	libkb.Contextified
+}
 
-func NewCmdFavoriteList(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdFavoriteList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "list",
 		Usage: "List favorites",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdFavoriteList{}, "add", c)
+			cl.ChooseCommand(&CmdFavoriteList{Contextified : libkb.NewContextified(g)}, "add", c)
 		},
 	}
 }
@@ -43,7 +45,7 @@ func (c *CmdFavoriteList) GetUsage() libkb.Usage {
 
 func (c *CmdFavoriteList) Run() error {
 	arg := keybase1.GetFavoritesArg{}
-	result, err := list(arg)
+	result, err := list(c.G(), arg)
 	if err != nil {
 		return err
 	}
@@ -57,8 +59,8 @@ func (c *CmdFavoriteList) Run() error {
 	return nil
 }
 
-func list(arg keybase1.GetFavoritesArg) (keybase1.FavoritesResult, error) {
-	cli, err := GetFavoriteClient()
+func list(g *libkb.GlobalContext, arg keybase1.GetFavoritesArg) (keybase1.FavoritesResult, error) {
+	cli, err := GetFavoriteClient(g)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
 	}

@@ -150,12 +150,12 @@ func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
 	args = append(args, "service")
 
 	var chdir string
-	chdir, err = G.Env.GetServiceSpawnDir()
+	chdir, err = g.Env.GetServiceSpawnDir()
 	if err != nil {
 		return
 	}
 
-	G.Log.Debug("| Setting run directory for keybase service to %s", chdir)
+	g.Log.Debug("| Setting run directory for keybase service to %s", chdir)
 	args = append(args, "--chdir", chdir)
 
 	if forkType == keybase1.ForkType_AUTO {
@@ -166,7 +166,7 @@ func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
 		args = append(args, "--launchd-forked")
 	}
 
-	G.Log.Debug("| Made server args: %s %v", arg0, args)
+	g.Log.Debug("| Made server args: %s %v", arg0, args)
 
 	return
 }
