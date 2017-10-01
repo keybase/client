@@ -587,6 +587,9 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		doneChans = append(doneChans, r.deepPrefetchDoneCh)
 		cancelChans = append(cancelChans, r.deepPrefetchCancelCh)
 	}
+	// Clearing references to the requested blocks seems to plug a
+	// leak, but not sure why yet.
+	retrieval.requests = nil
 
 	go func() {
 		// Fan-out the prefetch result to the channel of each individual
