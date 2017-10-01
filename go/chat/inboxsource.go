@@ -214,6 +214,7 @@ func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string) {
 	// Let the rest of the system know this user has changed
 	finalizeUser, err := libkb.LoadUser(libkb.LoadUserArg{
+		Contextified:      libkb.NewContextified(b.G().ExternalG()),
 		Name:              username,
 		PublicKeyOptional: true,
 	})

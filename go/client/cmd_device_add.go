@@ -51,7 +51,7 @@ func (c *CmdDeviceAdd) Run() error {
 		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisioner),
 		NewSecretUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 

@@ -100,7 +100,7 @@ func (v *cmdUpdateCheckInUse) Run() error {
 	if err != nil {
 		return err
 	}
-	inUse := install.IsInUse(mountDir, G.Log)
+	inUse := install.IsInUse(mountDir, v.G().Log)
 	result := checkInUseResult{InUse: inUse}
 	out, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
