@@ -142,7 +142,6 @@ protocol NotifyChat {
   @lint("ignore")
   void ChatLeftConversation(keybase1.UID uid, ConversationID convID);
 
-  @notify("")
   @lint("ignore")
   void ChatInboxSyncStarted(keybase1.UID uid);
 

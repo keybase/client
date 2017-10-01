@@ -252,9 +252,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		s.Debug(ctx, "Sync: aborting because currently offline")
 		return OfflineError{}
 	}
-	// Let people know we are trying to sync
 	kuid := keybase1.UID(uid.String())
-	s.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, kuid)
 
 	// Grab current on disk version
 	ibox := storage.NewInbox(s.G(), uid)

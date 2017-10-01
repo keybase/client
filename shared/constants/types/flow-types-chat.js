@@ -2717,9 +2717,8 @@ export type incomingCallMapType = Exact<{
   'keybase.1.NotifyChat.ChatInboxSyncStarted'?: (
     params: Exact<{
       uid: keybase1.UID
-    }> /* ,
-    response: {} // Notify call
-    */
+    }>,
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyChat.ChatInboxSynced'?: (
     params: Exact<{

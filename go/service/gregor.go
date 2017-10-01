@@ -230,9 +230,6 @@ func (g *gregorHandler) monitorAppState() {
 		case keybase1.AppState_FOREGROUND:
 			// Make sure the URI is set before attempting this (possible it isnt in a race)
 			if g.uri != nil {
-				// Let people know we are trying to sync
-				g.G().NotifyRouter.HandleChatInboxSyncStarted(context.Background(),
-					g.G().Env.GetUID())
 				g.chatLog.Debug(context.Background(), "foregrounded, reconnecting")
 				if err := g.Connect(g.uri); err != nil {
 					g.chatLog.Debug(context.Background(), "error reconnecting")
@@ -643,9 +640,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 	iboxVers := g.inboxParams(ctx, uid)
 	latestCtime := g.notificationParams(ctx, gcli)
-
-	// Let people know we are trying to sync
-	g.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, keybase1.UID(uid.String()))
 
 	// Run SyncAll to both authenticate, and grab all the data we will need to run the
 	// various resync procedures for chat and notifications
@@ -1381,6 +1375,8 @@ func (g *gregorHandler) connectTLS() error {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
 	g.chatLog.Debug(ctx, "Using CA for gregor: %s", libkb.ShortCA(rawCA))
+	// Let people know we are trying to sync
+	g.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, g.G().Env.GetUID())
 
 	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{

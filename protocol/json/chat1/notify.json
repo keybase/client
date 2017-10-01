@@ -502,7 +502,6 @@
         }
       ],
       "response": null,
-      "notify": "",
       "lint": "ignore"
     },
     "ChatInboxSynced": {
