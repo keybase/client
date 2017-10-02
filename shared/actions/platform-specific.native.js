@@ -219,7 +219,7 @@ function persistRouteState(): AsyncAction {
 }
 
 function loadRouteState(): AsyncAction {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState): Promise<void> => {
     let url
     try {
       url = await Linking.getInitialURL()
