@@ -126,7 +126,7 @@ IF %ERRORLEVEL% NEQ 0 (
 :: Run keybase sign to get signature of update
 set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
 set SigFile=sig.txt
-%KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+%KeybaseBin% sign -d --saltpack-version=1 -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
