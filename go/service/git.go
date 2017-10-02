@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/git"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -118,6 +119,29 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 }
 
 func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) error {
+	// First make sure the user is an admin of the team. KBFS doesn't directly
+	// enforce this requirement, so a non-admin could get around it by hacking
+	// up their own client, but they could already wreak a lot of abuse by
+	// pushing garbage to the repo, so we don't consider this a big deal.
+	team, err := teams.Load(ctx, h.G(), keybase1.LoadTeamArg{
+		Name:        arg.TeamName.String(),
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+	self, _, err := h.G().GetUPAKLoader().LoadV2(libkb.LoadUserArg{UID: h.G().GetMyUID()})
+	if err != nil {
+		return err
+	}
+	role, err := team.MemberRole(ctx, self.Current.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("self role missing from team %s", arg.TeamName)
+	}
+	if !role.IsAdminOrAbove() {
+		return fmt.Errorf("Only team admins may delete git repos.")
+	}
+
 	client, err := h.kbfsClient()
 	if err != nil {
 		return err
