@@ -164,7 +164,7 @@ export default function() {
       isDarwin && updateIcon(false)
     })
     mb.on('after-show', () => {
-      console.log('Showing menubar at', mb.window.getBounds())
+      console.log('Showing menubar at', mb.window && mb.window.getBounds())
     })
     mb.tray.on('click', (e, bounds) => {
       console.log('Clicked tray icon:', bounds)
