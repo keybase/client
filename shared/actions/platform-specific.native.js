@@ -230,7 +230,8 @@ function loadRouteState(): AsyncAction {
 
     if (url) {
       console.log('[RouteState] initial URL:', url)
-      return dispatch(setInitialLink(url))
+      await dispatch(setInitialLink(url))
+      return
     }
 
     let routeState
@@ -268,12 +269,10 @@ function loadRouteState(): AsyncAction {
     }
 
     if (routeState.selectedConversationIDKey) {
-      return Promise.all([
-        dispatch(setInitialTab(chatTab)),
-        dispatch(setInitialConversation(routeState.selectedConversationIDKey)),
-      ])
+      await dispatch(setInitialTab(chatTab))
+      await dispatch(setInitialConversation(routeState.selectedConversationIDKey))
     } else if (routeState.tab) {
-      return dispatch(setInitialTab(routeState.tab))
+      await dispatch(setInitialTab(routeState.tab))
     }
   }
 }

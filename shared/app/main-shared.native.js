@@ -93,7 +93,7 @@ const mapStateToProps = (state: TypedState) => ({
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   bootstrap: async () => {
     await dispatch(loadRouteState())
-    return dispatch(bootstrap())
+    await dispatch(bootstrap())
   },
   hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
   listenForNotifications: () => dispatch(listenForNotifications()),
