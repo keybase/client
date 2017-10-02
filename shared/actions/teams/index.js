@@ -78,6 +78,19 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     },
   })
 
+  const requests: RpcTypes.TeamJoinRequest[] = yield call(RpcTypes.teamsTeamListRequestsRpcPromise)
+  requests.sort((a, b) => a.username.localeCompare(b.username))
+
+  const requestMap = requests.reduce((reqMap, req) => {
+    if (!reqMap[req.name]) {
+      reqMap[req.name] = I.List()
+    }
+    reqMap[req.name] = reqMap[req.name].push(req.username)
+    return reqMap
+  }, {})
+
+  console.log('Got request map: ', I.Map(requestMap))
+
   const infos = []
   const types = ['admins', 'owners', 'readers', 'writers']
   types.forEach(type => {
@@ -95,6 +108,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
   yield all([
     put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
     put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]]))),
+    put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
   ])
 }
 

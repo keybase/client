@@ -13,6 +13,7 @@ export type Props = {
   you: string,
   name: Constants.Teamname,
   members: Array<RowProps>,
+  requests: string[],
   loading: boolean,
   setShowMenu: (s: boolean) => void,
   onLeaveTeam: () => void,
@@ -111,7 +112,7 @@ class Team extends React.PureComponent<Props> {
   }
 
   render() {
-    const {name, members, setShowMenu, onLeaveTeam, loading, onManageChat} = this.props
+    const {name, members, requests, setShowMenu, onLeaveTeam, loading, onManageChat} = this.props
     const tabs = [
       <Text
         key="members"
@@ -120,7 +121,10 @@ class Team extends React.PureComponent<Props> {
           color: globalColors.black_75,
         }}
       >
-        MEMBERS ({members.length})
+        MEMBERS {(!loading || members.length !== 0) && '(' + members.length + ')'}
+      </Text>,
+      <Text key="requests" type="BodySmallSemibold" style={{color: globalColors.black_75}}>
+        REQUESTS ({requests.length}){' '}
       </Text>,
     ]
     // TODO admin lets us have multiple tabs
@@ -134,9 +138,9 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-        {loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />}
-        {!loading && <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />}
-        {!loading &&
+        <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />
+        {members.length === 0 && loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />}
+        {(members.length !== 0 || !loading) &&
           <List
             keyProperty="username"
             items={members}

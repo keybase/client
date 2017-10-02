@@ -73,6 +73,7 @@ export const Team = I.Record({
   teamNameToConvIDs: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToLoading: I.Map(),
+  teamNameToRequests: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })
@@ -83,6 +84,7 @@ export type TeamRecord = KBRecord<{
   teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
+  teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamnames: I.Set<Teamname>,
   loaded: boolean,
 }>
