@@ -849,3 +849,112 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	testPrefetcherCheckGet(t, config.BlockCache(),
 		aa.Children["aab"].BlockPointer, aab, FinishedPrefetch, TransientEntry)
 }
+
+func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
+	t.Log("Test synced TLF prefetching in a more complex fetch order.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {b, a -> {ab, aa -> {aab, aaa}}}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, Dir, 10, "a"),
+		"b": makeRandomDirEntry(t, File, 20, "b"),
+	}}
+	a := &DirBlock{Children: map[string]DirEntry{
+		"aa": makeRandomDirEntry(t, Dir, 30, "aa"),
+		"ab": makeRandomDirEntry(t, File, 40, "ab"),
+	}}
+	b := makeFakeFileBlock(t, true)
+	aa := &DirBlock{Children: map[string]DirEntry{
+		"aaa": makeRandomDirEntry(t, File, 50, "aaa"),
+		"aab": makeRandomDirEntry(t, File, 60, "aab"),
+	}}
+	ab := makeFakeFileBlock(t, true)
+	aaa := makeFakeFileBlock(t, true)
+	aab := makeFakeFileBlock(t, true)
+
+	_, contChRoot := bg.setBlockToReturn(rootPtr, root)
+	_, contChA := bg.setBlockToReturn(root.Children["a"].BlockPointer, a)
+	_, contChB := bg.setBlockToReturn(root.Children["b"].BlockPointer, b)
+	_, contChAA := bg.setBlockToReturn(a.Children["aa"].BlockPointer, aa)
+	_, contChAB := bg.setBlockToReturn(a.Children["ab"].BlockPointer, ab)
+	_, contChAAA := bg.setBlockToReturn(aa.Children["aaa"].BlockPointer, aaa)
+	_, contChAAB := bg.setBlockToReturn(aa.Children["aab"].BlockPointer, aab)
+
+	t.Log("Fetch dir root.")
+	block := &DirBlock{}
+	ch := q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	contChRoot <- nil
+	notifySyncCh(t, prefetchSyncCh)
+	err := <-ch
+	require.NoError(t, err)
+
+	t.Log("Release prefetched children of root.")
+	contChA <- nil
+	notifySyncCh(t, prefetchSyncCh)
+	contChB <- nil
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Now set the folder to sync.")
+	config.SetTlfSyncState(kmd.TlfID(), true)
+
+	t.Log("Fetch dir root again.")
+	block = &DirBlock{}
+	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry)
+	err = <-ch
+
+	t.Log("Release all the blocks.")
+	go func() {
+		// After this, the prefetch worker order is less clear due to
+		// priorities.
+		// TODO: The prefetcher should have a "global" prefetch priority
+		// reservation system that goes down with each next set of prefetches.
+		notifyContinueCh(contChAA)
+		notifyContinueCh(contChAB)
+		notifyContinueCh(contChAAA)
+		notifyContinueCh(contChAAB)
+	}()
+
+	t.Log("Wait for prefetching to complete.")
+	// Release after prefetching root
+	notifySyncCh(t, prefetchSyncCh)
+	// Release after prefetching a
+	notifySyncCh(t, prefetchSyncCh)
+	// Release after prefetching b
+	notifySyncCh(t, prefetchSyncCh)
+	// Release after prefetching aa
+	notifySyncCh(t, prefetchSyncCh)
+	// Release after prefetching ab
+	notifySyncCh(t, prefetchSyncCh)
+	// Release after prefetching aaa
+	notifySyncCh(t, prefetchSyncCh)
+	// Release after prefetching aab
+	notifySyncCh(t, prefetchSyncCh)
+	// Then we wait for the pending prefetches to complete.
+	<-q.Prefetcher().Shutdown()
+
+	t.Log("Ensure that the prefetched blocks are in the cache, " +
+		"and the prefetch statuses are correct.")
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		root.Children["a"].BlockPointer, a, FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		root.Children["b"].BlockPointer, b, FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		a.Children["aa"].BlockPointer, aa, FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		a.Children["ab"].BlockPointer, ab, FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		aa.Children["aaa"].BlockPointer, aaa, FinishedPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		aa.Children["aab"].BlockPointer, aab, FinishedPrefetch, TransientEntry)
+}
