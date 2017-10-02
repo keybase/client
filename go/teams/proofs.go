@@ -217,36 +217,10 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 	if earlierSeqno > laterSeqno {
 		return NewProofError(p, fmt.Sprintf("seqno %d > %d", earlierSeqno, laterSeqno))
 	}
-	lm := p.a.linkMap
-	if p.a.leafID.IsTeamOrSubteam() {
-		// Pull in the latest link map, instead of the one from the proof object.
-		tid := p.a.leafID.AsTeamOrBust()
-		lm2, ok := proofSet.teamLinkMaps[tid]
-		if ok {
-			lm = lm2
-		}
-	}
-	if lm == nil {
-		return NewProofError(p, "nil link map")
-	}
 
-	linkID, ok := lm[laterSeqno]
-
-	// We loaded this user originally to get a sigchain as fresh as a certain key provisioning.
-	// In this scenario, we might need a fresher version, so force a poll all the way through
-	// the server, and then try again. If we fail the second time, we a force repoll, then
-	// we're toast.
-	if !ok && p.a.leafID.IsUser() {
-		g.Log.CDebugf(ctx, "proof#check: missed load for %s at %d; trying a force repoll", p.a.leafID.String(), laterSeqno)
-		lm, err := world.forceLinkMapRefreshForUser(ctx, p.a.leafID.AsUserOrBust())
-		if err != nil {
-			return err
-		}
-		linkID, ok = lm[laterSeqno]
-	}
-
-	if !ok {
-		return NewProofError(p, fmt.Sprintf("no linkID for seqno %d", laterSeqno))
+	linkID, err := p.findLink(ctx, g, world, p.a.leafID, laterSeqno, p.a.linkMap, proofSet)
+	if err != nil {
+		return err
 	}
 
 	if !triple.LinkID.Export().Eq(linkID) {
@@ -254,6 +228,47 @@ func (p proof) check(ctx context.Context, g *libkb.GlobalContext, world LoaderCo
 		return NewProofError(p, fmt.Sprintf("hash mismatch: %s != %s", triple.LinkID, linkID))
 	}
 	return nil
+}
+
+// Find the LinkID for the leaf at the seqno.
+func (p proof) findLink(ctx context.Context, g *libkb.GlobalContext, world LoaderContext, leafID keybase1.UserOrTeamID, seqno keybase1.Seqno, firstLinkMap linkMapT, proofSet *proofSetT) (linkID keybase1.LinkID, err error) {
+	lm := firstLinkMap
+
+	if leafID.IsTeamOrSubteam() {
+		// Pull in the latest link map, instead of the one from the proof object.
+		tid := leafID.AsTeamOrBust()
+		lm2, ok := proofSet.teamLinkMaps[tid]
+		if ok {
+			lm = lm2
+		}
+	}
+	if lm == nil {
+		return linkID, NewProofError(p, "nil link map")
+	}
+
+	linkID, ok := lm[seqno]
+	if ok {
+		return linkID, nil
+	}
+
+	// We loaded this user originally to get a sigchain as fresh as a certain key provisioning.
+	// In this scenario, we might need a fresher version, so force a poll all the way through
+	// the server, and then try again. If we fail the second time, we a force repoll, then
+	// we're toast.
+	if leafID.IsUser() {
+		g.Log.CDebugf(ctx, "proof#findLink: missed load for %s at %d; trying a force repoll", leafID.String(), seqno)
+		lm, err := world.forceLinkMapRefreshForUser(ctx, leafID.AsUserOrBust())
+		if err != nil {
+			return linkID, err
+		}
+		linkID, ok = lm[seqno]
+		return linkID, nil
+	}
+
+	if !ok {
+		return linkID, NewProofError(p, fmt.Sprintf("no linkID for seqno %d", seqno))
+	}
+	return linkID, nil
 }
 
 // check the entire proof set, failing if any one proof fails.
