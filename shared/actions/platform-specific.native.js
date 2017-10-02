@@ -10,7 +10,7 @@ import {setInitialTab, setInitialLink} from './config'
 import {setInitialConversation} from './chat'
 import {isImageFileName} from '../constants/chat'
 
-import type {AsyncAction, Dispatch, GetState} from '../constants/types/flux'
+import type {Dispatch, GetState} from '../constants/types/flux'
 
 function requestPushPermissions(): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -187,14 +187,8 @@ function configurePush() {
   })
 }
 
-// TODO: persistRouteState() can race with loadRouteState(), i.e. it
-// can happen between the dispatching of setInitialTab and
-// setInitialConversation but before those are handled. Get logs for
-// the next time the initial tab/conversation isn't loaded properly
-// and see if that is really the problem.
-
-function persistRouteState(): AsyncAction {
-  return async (dispatch: Dispatch, getState: GetState): Promise<void> => {
+class RouteStateStorage {
+  store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     const routeState = getState().routeTree.routeState
     const item = {}
 
@@ -218,10 +212,8 @@ function persistRouteState(): AsyncAction {
       console.warn('[RouteState] Error setting item:', e)
     }
   }
-}
 
-function loadRouteState(): AsyncAction {
-  return async (dispatch: Dispatch, getState: GetState): Promise<void> => {
+  load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     let url
     try {
       url = await Linking.getInitialURL()
@@ -281,8 +273,7 @@ function loadRouteState(): AsyncAction {
 
 export {
   displayNewMessageNotification,
-  loadRouteState,
-  persistRouteState,
+  RouteStateStorage,
   requestPushPermissions,
   showMainWindow,
   configurePush,

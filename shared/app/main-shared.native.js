@@ -10,7 +10,7 @@ import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
 import {listenForNotifications} from '../actions/notifications'
-import {persistRouteState, loadRouteState} from '../actions/platform-specific.native'
+import {RouteStateStorage} from '../actions/platform-specific.native'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 
 import type {TypedState} from '../constants/reducer'
@@ -90,21 +90,24 @@ const mapStateToProps = (state: TypedState) => ({
   showPushPrompt: state.push.permissionsPrompt,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  bootstrap: async () => {
-    await dispatch(loadRouteState())
-    await dispatch(bootstrap())
-  },
-  hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
-  listenForNotifications: () => dispatch(listenForNotifications()),
-  navigateUp: () => {
-    dispatch(navigateUp())
-  },
-  persistRouteState: () => dispatch(persistRouteState()),
-  setRouteState: (path, partialState) => {
-    dispatch(setRouteState(path, partialState))
-  },
-})
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
+  const storage = new RouteStateStorage()
+  return {
+    bootstrap: async () => {
+      await dispatch(storage.load)
+      await dispatch(bootstrap())
+    },
+    hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
+    listenForNotifications: () => dispatch(listenForNotifications()),
+    navigateUp: () => {
+      dispatch(navigateUp())
+    },
+    persistRouteState: () => dispatch(storage.store),
+    setRouteState: (path, partialState) => {
+      dispatch(setRouteState(path, partialState))
+    },
+  }
+}
 
 const connector = connect(mapStateToProps, mapDispatchToProps)
 
