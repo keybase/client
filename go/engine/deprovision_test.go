@@ -34,7 +34,7 @@ func isUserConfigInMemory(tc libkb.TestContext) bool {
 }
 
 func getNumKeys(tc libkb.TestContext, fu FakeUser) int {
-	loaded, err := libkb.LoadUser(libkb.LoadUserArg{Name: fu.Username, ForceReload: true})
+	loaded, err := libkb.LoadUser(libkb.NewLoadUserArg(tc.G).WithName(fu.Username).WithForceReload())
 	if err != nil {
 		switch err.(type) {
 		case libkb.NoKeyError:

@@ -272,8 +272,8 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		}
 
 		// Load me again so that keys will be up to date.
-		loadArg := libkb.NewLoadUserArgBase(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
-		e.arg.User, err = libkb.LoadUser(*loadArg)
+		loadArg := libkb.NewLoadUserArg(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
+		e.arg.User, err = libkb.LoadUser(loadArg)
 		if err != nil {
 			return err
 		}

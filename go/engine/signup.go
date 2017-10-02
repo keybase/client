@@ -189,7 +189,8 @@ func (s *SignupEngine) join(a libkb.LoginContext, username, email, inviteCode st
 	a.CreateStreamCache(s.tsec, s.ppStream)
 
 	s.uid = res.UID
-	user, err := libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: res.UID, PublicKeyOptional: true, Contextified: libkb.NewContextified(s.G())})
+	luArg := libkb.NewLoadUserArg(s.G()).WithSelf(true).WithUID(res.UID).WithPublicKeyOptional()
+	user, err := libkb.LoadUser(luArg)
 	if err != nil {
 		return err
 	}
@@ -259,7 +260,7 @@ func (s *SignupEngine) genPaperKeys(ctx *Context, lctx libkb.LoginContext) error
 	s.G().Log.CDebugf(ctx.NetContext, "SignupEngine#genPaperKeys")
 	// Load me again so that keys will be up to date.
 	var err error
-	s.me, err = libkb.LoadUser(libkb.LoadUserArg{Self: true, UID: s.me.GetUID(), PublicKeyOptional: true, Contextified: libkb.NewContextified(s.G())})
+	s.me, err = libkb.LoadUser(libkb.NewLoadUserArg(s.G()).WithSelf(true).WithUID(s.me.GetUID()).WithPublicKeyOptional())
 	if err != nil {
 		return err
 	}

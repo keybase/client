@@ -83,11 +83,7 @@ func (e *LoginOffline) run(ctx *Context) error {
 		deviceID = e.G().Env.GetDeviceIDForUID(uid)
 
 		// use the UPAKLoader with StaleOK, CachedOnly in order to get cached upak
-		arg := libkb.NewLoadUserByUIDArg(ctx.NetContext, e.G(), uid)
-		arg.PublicKeyOptional = true
-		arg.StaleOK = true
-		arg.CachedOnly = true
-		arg.LoginContext = a
+		arg := libkb.NewLoadUserByUIDArg(ctx.NetContext, e.G(), uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly().WithLoginContext(a)
 		upak, _, err := e.G().GetUPAKLoader().Load(arg)
 		if err != nil {
 			e.G().Log.Debug("LoginOffline: upak.Load err: %s", err)

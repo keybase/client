@@ -145,8 +145,7 @@ func (i *identifyUser) load(g *libkb.GlobalContext) (err error) {
 }
 
 func (i *identifyUser) forceFullLoad(g *libkb.GlobalContext) (err error) {
-	arg := i.arg
-	arg.ForceReload = true
+	arg := i.arg.WithForceReload()
 	i.thin, i.full, err = g.GetUPAKLoader().Load(arg)
 	return err
 }
@@ -160,8 +159,7 @@ func (i *identifyUser) Full() *libkb.User {
 }
 
 func loadIdentifyUser(ctx *Context, g *libkb.GlobalContext, arg libkb.LoadUserArg, cache libkb.Identify2Cacher) (*identifyUser, error) {
-	arg.SetGlobalContext(g)
-	arg.NetContext = ctx.GetNetContext()
+	arg = arg.WithNetContext(ctx.GetNetContext())
 	ret := &identifyUser{arg: arg}
 	err := ret.load(g)
 	if ret.isNil() {
@@ -875,10 +873,7 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 }
 
 func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
-	arg := libkb.NewLoadUserArg(e.G())
-	arg.UID = e.arg.Uid
-	arg.ResolveBody = e.ResolveBody
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserArg(e.G()).WithUID(e.arg.Uid).WithResolveBody(e.ResolveBody).WithPublicKeyOptional()
 	e.them, err = loadIdentifyUser(ctx, e.G(), arg, e.getCache())
 	if err != nil {
 		switch err.(type) {
@@ -886,13 +881,13 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 			// convert this error to NoSigChainError
 			return libkb.NoSigChainError{}
 		case libkb.NotFoundError:
-			return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
+			return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
 		default: // including libkb.DeletedError
 			return err
 		}
 	}
 	if e.them == nil {
-		return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
+		return libkb.UserNotFoundError{UID: e.arg.Uid, Msg: "in Identify2WithUID"}
 	}
 	return libkb.UserErrorFromStatus(e.them.GetStatus())
 }

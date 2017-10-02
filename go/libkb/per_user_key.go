@@ -454,8 +454,7 @@ func (s *PerUserKeyring) getUPAK(ctx context.Context, lctx LoginContext, upak *k
 	if upak != nil {
 		return upak, nil
 	}
-	upakArg := NewLoadUserByUIDArg(ctx, s.G(), s.uid)
-	upakArg.LoginContext = lctx
+	upakArg := NewLoadUserByUIDArg(ctx, s.G(), s.uid).WithLoginContext(lctx)
 	upak, _, err := s.G().GetUPAKLoader().Load(upakArg)
 	return upak, err
 }

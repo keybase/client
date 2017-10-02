@@ -13,8 +13,7 @@ import (
 )
 
 func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
-	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal(err)
