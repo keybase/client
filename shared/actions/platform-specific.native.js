@@ -262,11 +262,12 @@ class RouteStateStorage {
       return
     }
 
-    if (item.selectedConversationIDKey) {
-      await dispatch(setInitialTab(chatTab))
-      await dispatch(setInitialConversation(item.selectedConversationIDKey))
-    } else if (item.tab) {
+    if (item.tab) {
       await dispatch(setInitialTab(item.tab))
+
+      if (item.selectedConversationIDKey) {
+        await dispatch(setInitialConversation(item.selectedConversationIDKey))
+      }
     }
   }
 }
