@@ -1,6 +1,9 @@
 package client
 
 import (
+	"fmt"
+	"sort"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -56,12 +59,24 @@ func (c *CmdTeamDelete) Run() error {
 		Name: c.Team.String(),
 	}
 
+	dui := c.G().UI.GetTerminalUI()
+
+	subteams := c.listSubteamsRecursiveSoft(&cli)
+
+	if len(subteams) > 0 {
+		c.showSubteamsMessage(subteams)
+		return fmt.Errorf("team has active subteams")
+	}
+
 	err = cli.TeamDelete(context.Background(), arg)
 	if err != nil {
+		if libkb.IsAppStatusCode(err, keybase1.StatusCode_SCTeamHasLiveChildren) {
+			subteams = c.listSubteamsRecursiveSoft(&cli)
+			c.showSubteamsMessage(subteams)
+		}
 		return err
 	}
 
-	dui := c.G().UI.GetTerminalUI()
 	dui.Printf("Success! Team %s deleted.\n", c.Team)
 
 	return nil
@@ -73,4 +88,46 @@ func (c *CmdTeamDelete) GetUsage() libkb.Usage {
 		API:       true,
 		KbKeyring: true,
 	}
+}
+
+func (c *CmdTeamDelete) listSubteamsRecursiveSoft(cli *keybase1.TeamsClient) []keybase1.TeamName {
+	res, err := c.listSubteamsRecursive(cli)
+	if err != nil {
+		c.G().Log.CDebugf(context.TODO(), "error getting subteams: %v", err)
+		return nil
+	}
+	return res
+}
+
+// List the subteams of c.Team
+func (c *CmdTeamDelete) listSubteamsRecursive(cli *keybase1.TeamsClient) (res []keybase1.TeamName, err error) {
+	subs, err := cli.TeamListSubteamsRecursive(context.TODO(), keybase1.TeamListSubteamsRecursiveArg{
+		ParentTeamName: c.Team.String(),
+		ForceRepoll:    true,
+	})
+	if err != nil {
+		return res, err
+	}
+	// Sort the response alphabetically
+	sort.Slice(subs, func(i, j int) bool {
+		return subs[i].Name.String() < subs[j].Name.String()
+	})
+	for _, sub := range subs {
+		res = append(res, sub.Name)
+	}
+	return res, err
+}
+
+func (c *CmdTeamDelete) showSubteamsMessage(subteams []keybase1.TeamName) {
+	dui := c.G().UI.GetTerminalUI()
+	dui.Printf("\nCannot delete team %s because it has active subteams.\n", c.Team)
+	if len(subteams) == 0 {
+		dui.Printf("Delete all of its subteams first.\n")
+	} else {
+		dui.Printf("Delete all of its subteams first:\n")
+		for _, subteam := range subteams {
+			dui.Printf("- %s\n", subteam)
+		}
+	}
+	dui.Printf("\n")
 }

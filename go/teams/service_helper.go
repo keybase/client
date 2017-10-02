@@ -359,7 +359,7 @@ func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInte
 	}
 
 	if t.chain().IsSubteam() {
-		return t.deleteSubteam(ctx)
+		return t.deleteSubteam(ctx, ui)
 	}
 	return t.deleteRoot(ctx, ui)
 }

@@ -542,7 +542,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	return t.postMulti(payload)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context) error {
+func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
 
 	// subteam delete consists of two links:
 	// 1. delete_subteam in parent chain
@@ -560,6 +560,14 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	admin, err := parentTeam.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
+	}
+
+	confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return errors.New("team delete not confirmed")
 	}
 
 	subteamName := SCTeamName(t.Data.Name.String())
@@ -974,7 +982,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 	adminAndOwnerRecipients := memSet.adminAndOwnerRecipients()
 	if len(adminAndOwnerRecipients) > 0 {
 		implicitAdminBoxes = map[keybase1.TeamID]*PerTeamSharedSecretBoxes{}
-		subteams, err := t.loadAllTransitiveSubteams(ctx)
+		subteams, err := t.loadAllTransitiveSubteams(ctx, true /*forceRepoll*/)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -1154,12 +1162,12 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 // Only call this on a Team that has been loaded with NeedAdmin.
 // Otherwise, you might get incoherent answers due to links that
 // were stubbed over the life of the cached object.
-func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
+func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) ([]*Team, error) {
 	subteams := []*Team{}
 	for _, idAndName := range t.chain().ListSubteams() {
 		// Load each subteam...
 		subteam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
-			ID:          idAndName.ID,
+			ID:          idAndName.Id,
 			NeedAdmin:   true,
 			ForceRepoll: true,
 		})
@@ -1177,7 +1185,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
 		subteams = append(subteams, subteam)
 
 		// ...and then recursively load each subteam's children.
-		recursiveSubteams, err := subteam.loadAllTransitiveSubteams(ctx)
+		recursiveSubteams, err := subteam.loadAllTransitiveSubteams(ctx, forceRepoll)
 		if err != nil {
 			return nil, err
 		}

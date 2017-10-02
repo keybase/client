@@ -526,7 +526,7 @@ func TestHiddenSubteam(t *testing.T) {
 	require.NoError(t, err, "load team")
 	t.Logf(spew.Sdump(team.chain().inner.SubteamLog))
 	require.Len(t, team.chain().ListSubteams(), 1, "subteam list")
-	require.Equal(t, *subteamID, team.chain().ListSubteams()[0].ID, "subteam ID")
+	require.Equal(t, *subteamID, team.chain().ListSubteams()[0].Id, "subteam ID")
 	require.Equal(t, subteamName1.String(), team.chain().ListSubteams()[0].Name.String(), "subteam name")
 
 	t.Logf("U1 loads A")
