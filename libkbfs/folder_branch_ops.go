@@ -1583,7 +1583,7 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 
 	if md.IsReadable() && fbo.config.Mode() != InitMinimal {
 		// We `Get` the root block to ensure downstream prefetches occur.
-		go fbo.config.BlockOps().BlockRetriever().Request(ctx,
+		_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
 			defaultOnDemandRequestPriority, md, md.data.Dir.BlockPointer,
 			&DirBlock{}, TransientEntry)
 	} else {

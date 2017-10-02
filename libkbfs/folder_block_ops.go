@@ -3353,7 +3353,7 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 			}
 
 			// No need to cache because it's already cached.
-			go fbo.config.BlockOps().BlockRetriever().Request(ctx,
+			_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
 				updatePointerPrefetchPriority, kmd, newPtr, block.NewEmpty(),
 				lifetime)
 		}
