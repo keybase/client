@@ -4,13 +4,12 @@ import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
-import {bootstrap} from '../actions/config'
+import {bootstrap, routeStateStorage} from '../actions/config'
 import {connect} from 'react-redux'
 import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
 import {listenForNotifications} from '../actions/notifications'
-import {RouteStateStorage} from '../actions/platform-specific.native'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 
 import type {TypedState} from '../constants/reducer'
@@ -91,18 +90,14 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
-  const storage = new RouteStateStorage()
   return {
-    bootstrap: async () => {
-      await dispatch(storage.load)
-      await dispatch(bootstrap())
-    },
+    bootstrap: () => dispatch(bootstrap()),
     hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
     listenForNotifications: () => dispatch(listenForNotifications()),
     navigateUp: () => {
       dispatch(navigateUp())
     },
-    persistRouteState: () => dispatch(storage.store),
+    persistRouteState: () => dispatch(routeStateStorage.store),
     setRouteState: (path, partialState) => {
       dispatch(setRouteState(path, partialState))
     },

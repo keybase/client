@@ -20,6 +20,7 @@ import {
   listenForNativeReachabilityEvents,
 } from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
+import {RouteStateStorage} from '../../actions/platform-specific'
 import * as Saga from '../../util/saga'
 import {configurePush} from '../push/creators'
 import {put, select} from 'redux-saga/effects'
@@ -130,6 +131,7 @@ const daemonError = (error: ?string): Constants.DaemonError => ({
 })
 
 let bootstrapSetup = false
+const routeStateStorage = new RouteStateStorage()
 type BootstrapOptions = {isReconnect?: boolean}
 
 // TODO: We REALLY need to saga-ize this.
@@ -162,7 +164,10 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
         })
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
-          dispatch(navBasedOnLoginState())
+          dispatch(async () => {
+            await dispatch(routeStateStorage.load)
+            await dispatch(navBasedOnLoginState())
+          })
           dispatch(resetSignup())
         }
       })
@@ -228,6 +233,7 @@ export {
   isFollower,
   isFollowing,
   retryBootstrap,
+  routeStateStorage,
   setInitialTab,
   setInitialLink,
   setLaunchedViaPush,
