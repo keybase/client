@@ -274,7 +274,6 @@ const makeDllConfig = () => {
       'react',
       'react-dom',
       'react-list',
-      'react-virtualized',
       'recompose',
       'redux',
       'semver',

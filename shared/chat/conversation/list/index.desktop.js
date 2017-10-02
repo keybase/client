@@ -9,10 +9,9 @@ import messageFactory from '../messages'
 import {Icon, ErrorBoundary} from '../../../common-adapters'
 import {TextPopupMenu, AttachmentPopupMenu} from '../messages/popup'
 import clipboard from '../../../desktop/clipboard'
-import debounce from 'lodash/debounce'
+// import debounce from 'lodash/debounce'
 import {findDOMNode} from '../../../util/dom'
 import {globalColors, globalStyles, glamorous} from '../../../styles'
-import cellRangeRenderer from './cell-range-renderer'
 
 import type {Props} from '.'
 
@@ -38,8 +37,10 @@ class BaseList extends React.Component<Props, State> {
   })
 
   _list: any
+  _infiniteRegisterChild: any
   _keepIdxVisible: number = -1
-  _lastRowIdx: number = -1
+  _loadingPromiseResolve: ?() => void
+  // _lastRowIdx: number = -1
 
   state = {
     isLockedToBottom: true,
@@ -59,14 +60,14 @@ class BaseList extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virtual list gets confused so we only want it to render once basically
-    if (this._keepIdxVisible !== -1) {
-      // eslint-disable-next-line react/no-did-update-set-state
-      this.setState(prevState => ({
-        listRerender: prevState.listRerender + 1,
-      }))
-      this._keepIdxVisible = -1
-    }
-    this._lastRowIdx = -1 // always reset this to be safe
+    // if (this._keepIdxVisible !== -1) {
+    // // eslint-disable-next-line react/no-did-update-set-state
+    // this.setState(prevState => ({
+    // listRerender: prevState.listRerender + 1,
+    // }))
+    // this._keepIdxVisible = -1
+    // }
+    // this._lastRowIdx = -1 // always reset this to be safe
 
     if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
       this._onEditLastMessage()
@@ -78,48 +79,72 @@ class BaseList extends React.Component<Props, State> {
       this.props.selectedConversation !== nextProps.selectedConversation ||
       this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
     ) {
-      this._cellCache.clearAll()
+      // this._cellCache.clearAll()
       this.setState({isLockedToBottom: true})
     }
 
     if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
-      if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
-        const toFind = this.props.messageKeys.get(this._lastRowIdx)
-        this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
+      if (this._loadingPromiseResolve) {
+        const p = this._loadingPromiseResolve
+        this._loadingPromiseResolve = null
+        p()
       }
-      // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
-      // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
-      // another cache from row -> style which is out of sync
-      this._cellCache.clearAll()
-      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+
+      // if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
+      // const toFind = this.props.messageKeys.get(this._lastRowIdx)
+      // this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
+      // }
+      // // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
+      // // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
+      // // another cache from row -> style which is out of sync
+      // this._cellCache.clearAll()
+      // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
   _updateBottomLock = (clientHeight: number, scrollHeight: number, scrollTop: number) => {
     // meaningless otherwise
     if (clientHeight) {
-      const isLockedToBottom = scrollTop + clientHeight >= scrollHeight - lockedToBottomSlop
+      const isLockedToBottom = scrollTop < lockedToBottomSlop
       if (this.state.isLockedToBottom !== isLockedToBottom) {
         this.setState({isLockedToBottom})
       }
     }
   }
 
-  _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number) => {
-    if (clientHeight && scrollTop === 0) {
+  _loadMoreRows = ({startIndex, stopIndex}) => {
+    console.log('aaaa BBBB will asking for more', startIndex, stopIndex)
+
+    return new Promise((resolve, reject) => {
+      this._loadingPromiseResolve = resolve
       this.props.onLoadMoreMessages()
-    }
-  }, 500)
+    })
+  }
+  // _TEMPONCE = false
+  // _maybeLoadMoreMessages = debounce((clientHeight: number, scrollTop: number, scrollHeight: number) => {
+  // if (clientHeight) {
+  // const px = scrollHeight - clientHeight - scrollTop
+  // console.log('aaaa', clientHeight, scrollTop, scrollHeight, px)
+  // if (px < 20) {
+  // if (!this._TEMPONCE) {
+  // console.log('aaaa BBBB will asking for more')
+  // this._TEMPONCE = true
+
+  // this.props.onLoadMoreMessages()
+  // }
+  // }
+  // }
+  // }, 500)
 
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-    this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
-    this._maybeLoadMoreMessages(clientHeight, scrollTop)
+    // this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
+    // this._maybeLoadMoreMessages(clientHeight, scrollTop, scrollHeight)
   }
 
   _onResize = ({width}) => {
-    if (this._cellCache.columnWidth({index: 0}) !== width) {
-      this._cellCache.clearAll()
-    }
+    // if (this._cellCache.columnWidth({index: 0}) !== width) {
+    // this._cellCache.clearAll()
+    // }
   }
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
@@ -141,10 +166,16 @@ class BaseList extends React.Component<Props, State> {
             this._onAction,
             this._onShowEditor,
             isSelected,
-            measure
+            measure,
+            isScrolling
           )
           return (
-            <DivRow style={style}>
+            <DivRow
+              style={{
+                ...style,
+                ...flip /* change back to style and move flip into messages */,
+              }}
+            >
               {message}
             </DivRow>
           )
@@ -165,12 +196,19 @@ class BaseList extends React.Component<Props, State> {
     }
   }
 
-  _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
-    this._lastRowIdx = stopIndex
-  }
+  // _onRowsRendered = ({stopIndex}: {stopIndex: number}) => {
+  // this._lastRowIdx = stopIndex
+  // }
 
   _setListRef = (r: any) => {
     this._list = r
+    if (this._infiniteRegisterChild) {
+      this._infiniteRegisterChild(r)
+    }
+  }
+
+  _isRowLoaded = ({index}) => {
+    return !!this.props.messageKeys.get(index)
   }
 
   render() {
@@ -183,8 +221,10 @@ class BaseList extends React.Component<Props, State> {
     }
 
     const rowCount = this.props.messageKeys.count()
-    const scrollToIndex = this.state.isLockedToBottom ? rowCount - 1 : this._keepIdxVisible
+    // const scrollToIndex = this.state.isLockedToBottom ? 0 : undefined
 
+    // scrollToAlignment="end"
+    // scrollToIndex={scrollToIndex}
     // cellRangeRenderer={cellRangeRenderer}
     // We pass additional props (listRerender, selectedMessageKey) to Virtualized.List so we can force re-rendering automatically
     return (
@@ -193,24 +233,36 @@ class BaseList extends React.Component<Props, State> {
           <style>{realCSS}</style>
           <Virtualized.AutoSizer onResize={this._onResize}>
             {({height, width}) => (
-              <Virtualized.List
-                messageKeys={this.props.messageKeys}
-                listRerender={this.state.listRerender}
-                selectedMessageKey={this.state.selectedMessageKey}
-                columnWidth={width}
-                deferredMeasurementCache={this._cellCache}
-                height={height}
-                onScroll={this._onScroll}
-                onRowsRendered={this._onRowsRendered}
-                ref={this._setListRef}
-                rowCount={rowCount}
-                rowHeight={this._cellCache.rowHeight}
-                rowRenderer={this._rowRenderer}
-                scrollToAlignment="end"
-                scrollToIndex={scrollToIndex}
-                style={listStyle}
-                width={width}
-              />
+              <Virtualized.InfiniteLoader
+                isRowLoaded={this._isRowLoaded}
+                loadMoreRows={this._loadMoreRows}
+                rowCount={Number.MAX_VALUE}
+                minimumBatchSize={50}
+                threshold={15}
+              >
+                {({onRowsRendered, registerChild}) => {
+                  this._infiniteRegisterChild = registerChild
+
+                  return (
+                    <Virtualized.List
+                      messageKeys={this.props.messageKeys}
+                      listRerender={this.state.listRerender}
+                      selectedMessageKey={this.state.selectedMessageKey}
+                      columnWidth={width}
+                      deferredMeasurementCache={this._cellCache}
+                      height={height}
+                      onScroll={this._onScroll}
+                      onRowsRendered={onRowsRendered}
+                      ref={this._setListRef}
+                      rowCount={rowCount}
+                      rowHeight={this._cellCache.rowHeight}
+                      rowRenderer={this._rowRenderer}
+                      style={listStyle}
+                      width={width}
+                    />
+                  )
+                }}
+              </Virtualized.InfiniteLoader>
             )}
           </Virtualized.AutoSizer>
         </div>
@@ -424,6 +476,10 @@ class PopupEnabledList extends BaseList {
   }
 }
 
+const flip = {
+  //  transform: 'scaleY(-1)',
+}
+
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
@@ -433,7 +489,6 @@ const containerStyle = {
 const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
-  // transform: 'scaleY(-1)',
 }
 
 export default PopupEnabledList

@@ -25,11 +25,11 @@ const Username = ({author, isYou, isFollowing, isBroken, includeHeader, onClick}
   return <Text type="BodySmallSemibold" onClick={onClick} style={style}>{author}</Text>
 }
 
-const ActionButton = ({onAction}) => (
+const ActionButton = ({onAction, isScrolling}) =>
+  (isMobile || !isScrolling) &&
   <Box className="action-button">
     {!isMobile && <Icon type="iconfont-ellipsis" style={_ellipsisStyle} onClick={onAction} />}
   </Box>
-)
 
 const EditedMark = ({isEdited}) =>
   isEdited ? <Text type="BodySmall" style={_editedStyle}>EDITED</Text> : null
@@ -48,19 +48,38 @@ const Failure = ({failureDescription, onShowEditor, onRetry}) => {
   )
 }
 
-const MessageWrapper = (props: Props) => (
-  <Box style={props.includeHeader ? _containerWithHeaderStyle : _containerNoHeaderStyle}>
-    {props.timestamp && <Timestamp timestamp={props.timestamp} />}
-    <Box
-      style={{
-        ..._flexOneRow,
-        ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null),
-        ...(props.isSelected ? _stylesSelected : null),
-      }}
-    >
-      <Box style={props.includeHeader ? _rightSideWithHeaderStyle : _rightSideNoHeaderStyle}>
+const MessageWrapperContent = (props: Props) => [
+  <Box key="1" style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
+    <Box style={_flexOneColumn}>
+      {/* $FlowIssue */}
+      <props.innerClass messageKey={props.messageKey} measure={props.measure} onAction={props.onAction} />
+      <EditedMark isEdited={props.isEdited} />
+    </Box>
+    <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} isScrolling={props.isScrolling} />
+    {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
+  </Box>,
+  <Failure
+    key="2"
+    failureDescription={props.failureDescription}
+    onRetry={props.onRetry}
+    onShowEditor={props.onShowEditor}
+  />,
+]
+
+const MessageWrapper = (props: Props) => {
+  if (props.includeHeader) {
+    return [
+      props.timestamp && <Timestamp key="timestamp" timestamp={props.timestamp} />,
+      <Box
+        key="user"
+        style={{
+          ..._flexOneRow,
+          ...(props.isFirstNewMessage ? _stylesFirstNewMessage : null),
+          ...(props.isSelected ? _stylesSelected : null),
+        }}
+      >
         <UserAvatar author={props.author} showImage={props.includeHeader} onClick={props.onClick} />
-        <Box style={_flexOneColumn} className="message-wrapper">
+        <Box style={globalStyles.flexBoxColumn}>
           <Username
             author={props.author}
             isYou={props.isYou}
@@ -69,29 +88,18 @@ const MessageWrapper = (props: Props) => (
             includeHeader={props.includeHeader}
             onClick={props.onClick}
           />
-          <Box style={_textContainerStyle} className="message" data-message-key={props.messageKey}>
-            <Box style={_flexOneColumn}>
-              {/* $FlowIssue */}
-              <props.innerClass
-                messageKey={props.messageKey}
-                measure={props.measure}
-                onAction={props.onAction}
-              />
-              <EditedMark isEdited={props.isEdited} />
-            </Box>
-            <ActionButton isRevoked={props.isRevoked} onAction={props.onAction} />
-            {props.isRevoked && <Icon type="iconfont-exclamation" style={_exclamationStyle} />}
-          </Box>
-          <Failure
-            failureDescription={props.failureDescription}
-            onRetry={props.onRetry}
-            onShowEditor={props.onShowEditor}
-          />
+          <MessageWrapperContent {...props} />
         </Box>
+      </Box>,
+    ]
+  } else {
+    return (
+      <Box style={{marginLeft: 32}}>
+        <MessageWrapperContent {...props} />
       </Box>
-    </Box>
-  </Box>
-)
+    )
+  }
+}
 
 const _flexOneRow = {
   ...globalStyles.flexBoxRow,

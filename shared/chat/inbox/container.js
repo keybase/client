@@ -255,7 +255,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     bigTeamsBadgeCount,
     filter,
     isActiveRoute,
-    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    isLoading: true, // state.chat.get('inboxUntrustedState') === 'loading',
     rows,
     showBuildATeam,
     showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),

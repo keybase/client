@@ -20,7 +20,8 @@ const factory = (
   ) => void,
   onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
-  measure: () => void
+  measure: () => void,
+  isScrolling: boolean
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
@@ -37,6 +38,7 @@ const factory = (
           onAction={onAction}
           onShowEditor={onShowEditor}
           prevMessageKey={prevMessageKey}
+          isScrolling={isScrolling}
         />
       )
     case 'error': // fallthrough
