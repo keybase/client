@@ -225,35 +225,32 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		case blockID := <-p.prefetchCancelCh:
 			pre, ok := p.prefetches[blockID]
 			if !ok {
-				// TODO: remove this line once we've debugged.
-				p.log.Debug("Missing prefetch canceled for block %s", blockID)
 				continue
 			}
+			p.log.Debug("canceling prefetch for block %s", blockID)
 			// Walk up the block tree and delete every parent.
 			p.applyToParentsRecursive(p.cancelPrefetch, blockID, pre)
 		case req := <-p.prefetchRequestCh:
-			p.log.Debug("handling prefetch for block %s", req.ptr.ID)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 			if isPrefetchWaiting {
-				p.log.Debug("prefetch waiting for block ID %s, count=%d",
-					req.ptr.ID, pre.subtreeBlockCount)
 				if pre.req == nil {
 					// If this prefetch already appeared in the tree, ensure it
 					// has a req associated with it.
 					pre.req = req
 				}
-			} else {
-				p.log.Debug("prefetch not waiting for block ID %s", req.ptr.ID)
 			}
 			if req.prefetchStatus == FinishedPrefetch {
+				p.log.Debug("prefetch already finished for block %s",
+					req.ptr.ID)
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
 					if pre.subtreeBlockCount < 0 {
 						panic("the subtreeBlockCount for a block should " +
 							"never be < 0")
 					}
-					// Since we decrement by `pre.subtreeBlockCount`, we're guaranteed
-					// that `pre` will be removed from the prefetcher.
+					// Since we decrement by `pre.subtreeBlockCount`, we're
+					// guaranteed that `pre` will be removed from the
+					// prefetcher.
 					p.log.Debug("completing prefetch for block %s", req.ptr.ID)
 					p.applyToParentsRecursive(
 						p.completePrefetch(pre.subtreeBlockCount),
@@ -268,12 +265,14 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				continue
 			}
 			if req.prefetchStatus == TriggeredPrefetch && !req.isDeepSync {
-				p.log.Debug("prefetch already triggered for block ID %s", req.ptr.ID)
+				p.log.Debug("prefetch already triggered for block ID %s",
+					req.ptr.ID)
 				continue
 			}
 			if isPrefetchWaiting {
 				if pre.subtreeTriggered {
-					p.log.Debug("subtree triggered for block ID %s", req.ptr.ID)
+					p.log.Debug("prefetch subtree already triggered for "+
+						"block ID %s", req.ptr.ID)
 					// Redundant prefetch request.
 					// We've already seen _this_ block, and already triggered
 					// prefetches for its children. No use doing it again!
@@ -288,7 +287,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					}
 					continue
 				} else {
-					p.log.Debug("subtree not triggered for block ID %s", req.ptr.ID)
 					// This block was in the tree and thus was counted, but now
 					// it has been successfully fetched. We need to percolate
 					// that information up the tree.
@@ -321,12 +319,12 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			// to the tree from `pre` to its roots, inclusive.
 			numBlocks, isTail, err := p.handlePrefetch(ctx, pre)
 			if err != nil {
+				p.log.Debug("error handling prefetch for block %s", req.ptr.ID)
 				// There's nothing for us to do when there's an error.
 				continue
 			}
-			p.log.Debug("block ID %s has %d blocks to fetch", req.ptr.ID, numBlocks)
 			if isTail {
-				p.log.Debug("block ID %s is a tail block", req.ptr.ID)
+				p.log.Debug("completed prefetch for tail block %s ", req.ptr.ID)
 				// This is a tail block with no children.  Parent blocks are
 				// potentially waiting for this prefetch, so we percolate the
 				// information up the tree that this prefetch is done.
@@ -347,13 +345,14 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			}
 			// This is not a tail block.
 			if numBlocks == 0 {
+				p.log.Debug("no blocks to prefetch for block %s", req.ptr.ID)
 				// All the blocks to be triggered have already done so. Do
 				// nothing.  This is simply an optimization to avoid crawling
 				// the tree.
 				continue
 			}
 			if !isPrefetchWaiting {
-				p.log.Debug("adding block ID %s to the prefetch tree", req.ptr.ID)
+				p.log.Debug("adding block %s to the prefetch tree", req.ptr.ID)
 				// This block doesn't appear in the prefetch tree, so it's the
 				// root of a new prefetch tree. Add it to the tree.
 				p.prefetches[req.ptr.ID] = pre
@@ -363,6 +362,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// shouldn't block anything above it in the tree from
 				// completing.
 			}
+			p.log.Debug("prefetching %d blocks with parent block %s",
+				numBlocks, req.ptr.ID)
 			// Walk up the block tree and add numBlocks to every parent,
 			// starting with this block.
 			p.applyToParentsRecursive(func(_ kbfsblock.ID, pp *prefetch) {
