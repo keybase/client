@@ -393,6 +393,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	case p.inFlightFetches <- ch:
 	default:
 		// Ensure this can't block.
+		p.log.Debug("launching goroutine for request")
 		go func() {
 			p.inFlightFetches <- ch
 		}()
@@ -546,6 +547,7 @@ func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
 		p.log.Warning("Skipping prefetch for block %v since "+
 			"the prefetcher is shutdown", req.ptr.ID)
 	default:
+		p.log.Debug("launching goroutine for triggerPrefetch")
 		go func() {
 			select {
 			case p.prefetchRequestCh <- req:
@@ -606,6 +608,7 @@ func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
 	case p.prefetchCancelCh <- blockID:
 	default:
 		// Ensure this can't block.
+		p.log.Debug("launching goroutine for CancelPrefetch")
 		go func() {
 			select {
 			case <-p.almostDoneCh:
