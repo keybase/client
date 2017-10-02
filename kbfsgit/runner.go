@@ -354,7 +354,7 @@ func humanizeBytes(n int64, d int64) string {
 
 // caller should make sure doneCh is closed when journal is all flushed.
 func (r *runner) printJournalStatus(
-	ctx context.Context, jServer *libkbfs.JournalServer, tlf tlf.ID,
+	ctx context.Context, jServer *libkbfs.JournalServer, tlfID tlf.ID,
 	doneCh <-chan struct{}) {
 	// Note: the "first" status here gets us the number of unflushed
 	// bytes left at the time we started printing.  However, we don't
@@ -362,7 +362,7 @@ func (r *runner) printJournalStatus(
 	// throughout the whole operation, which would be more
 	// informative.  It would be better to have that as the
 	// denominator, but there's no easy way to get it right now.
-	firstStatus, err := jServer.JournalStatus(tlf)
+	firstStatus, err := jServer.JournalStatus(tlfID)
 	if err != nil {
 		r.log.CDebugf(ctx, "Error getting status: %+v", err)
 		return
@@ -370,8 +370,12 @@ func (r *runner) printJournalStatus(
 	if firstStatus.UnflushedBytes == 0 {
 		return
 	}
+	adj := "encrypted"
+	if r.h.Type() == tlf.Public {
+		adj = "signed"
+	}
 	if r.verbosity >= 1 {
-		r.errput.Write([]byte("Syncing data to Keybase: "))
+		r.errput.Write([]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)))
 	}
 	startTime := r.config.Clock().Now()
 	r.log.CDebugf(ctx, "Waiting for %d journal bytes to flush",
@@ -390,7 +394,7 @@ func (r *runner) printJournalStatus(
 	for {
 		select {
 		case <-ticker.C:
-			status, err := jServer.JournalStatus(tlf)
+			status, err := jServer.JournalStatus(tlfID)
 			if err != nil {
 				r.log.CDebugf(ctx, "Error getting status: %+v", err)
 				return
@@ -625,6 +629,10 @@ const unlockPrintBytesStatusThreshold = time.Second / 2
 
 func (r *runner) processGogitStatus(ctx context.Context,
 	statusChan <-chan plumbing.StatusUpdate, fsEvents <-chan libfs.FSEvent) {
+	if r.h.Type() == tlf.Public {
+		gogitStagesToStatus[plumbing.StatusFetch] = "Preparing and signing: "
+	}
+
 	currStage := plumbing.StatusUnknown
 	var startTime time.Time
 	lastByteCount := 0
@@ -1176,9 +1184,16 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 	if err != nil {
 		return err
 	}
+
+	verb := "encrypting"
+	if r.h.Type() == tlf.Public {
+		verb = "signing"
+	}
+
 	err = r.recursiveCopyWithCounts(
 		ctx, localFSObjects, fsObjects,
-		"Counting objects", "countobj", "Preparing objects", "pushobj")
+		"Counting objects", "countobj",
+		fmt.Sprintf("Preparing and %s objects", verb), "pushobj")
 	if err != nil {
 		return err
 	}
@@ -1194,7 +1209,8 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 	}
 	err = r.recursiveCopyWithCounts(
 		ctx, localFSRefs, fsRefs,
-		"Counting refs", "countref", "Preparing refs", "pushref")
+		"Counting refs", "countref",
+		fmt.Sprintf("Preparing and %s refs", verb), "pushref")
 	if err != nil {
 		return err
 	}
@@ -1207,8 +1223,8 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 		return err
 	}
 	return r.copyFileWithCount(ctx, localFS, fs, "packed-refs",
-		"Counting packed refs", "countprefs", "Preparing packed refs",
-		"pushprefs")
+		"Counting packed refs", "countprefs",
+		fmt.Sprintf("Preparing and %s packed refs", verb), "pushprefs")
 }
 
 func (r *runner) pushSome(
