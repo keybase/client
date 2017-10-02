@@ -225,6 +225,8 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		r.G.UI.GetTerminalUI().Printf("%s\n", newConversation)
 	}
 
 	var tnp *string
