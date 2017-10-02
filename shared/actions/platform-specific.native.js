@@ -10,7 +10,7 @@ import {setInitialTab, setInitialLink} from './config'
 import {setInitialConversation} from './chat'
 import {isImageFileName} from '../constants/chat'
 
-import type {AsyncAction} from '../constants/types/flux'
+import type {AsyncAction, Dispatch, GetState} from '../constants/types/flux'
 
 function requestPushPermissions(): Promise<*> {
   return PushNotifications.requestPermissions()
@@ -219,7 +219,7 @@ function persistRouteState(): AsyncAction {
 }
 
 function loadRouteState(): AsyncAction {
-  return async (dispatch, getState): Promise<void> => {
+  return async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     let url
     try {
       url = await Linking.getInitialURL()
