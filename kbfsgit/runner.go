@@ -626,8 +626,8 @@ func (r *runner) processGogitStatus(ctx context.Context,
 		if fsEvents == nil && statusChan == nil {
 			// statusChan is passed in as nil. So if both of them are nil, then
 			// they have both been closed in the select/case below, because
-			// receive failed. So instead of let select block forever, we break
-			// out of the loop here.
+			// receive failed. So instead of letting select block forever, we
+			// break out of the loop here.
 			break
 		}
 		select {
@@ -718,6 +718,8 @@ func (r *runner) processGogitStatus(ctx context.Context,
 				case <-timer.C:
 					r.printJournalStatusUntilFlushed(ctx, fsEvent.Done)
 				case <-fsEvent.Done:
+					timer.Stop()
+				case <-ctx.Done():
 					timer.Stop()
 				}
 			}
