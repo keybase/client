@@ -168,7 +168,7 @@ class Row extends React.Component<Props, State> {
                     onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
                   />
                 </Box>}
-              {isMobile && <Text type="BodySmall">.</Text>}
+              {isMobile && <Text type="BodySmall">.{' '}</Text>}
               <Text type="BodySmall">
                 <Text type="BodySmall">
                   {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
