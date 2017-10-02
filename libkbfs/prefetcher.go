@@ -287,7 +287,13 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 						p.applyToParentsRecursive(p.cancelPrefetch, req.ptr.ID,
 							pre)
 					}
-					continue
+					if !pre.req.isDeepSync && req.isDeepSync {
+						// The prefetcher doesn't know about a deep sync but
+						// now one has been created.
+						pre.req.isDeepSync = true
+					} else {
+						continue
+					}
 				} else {
 					// This block was in the tree and thus was counted, but now
 					// it has been successfully fetched. We need to percolate
