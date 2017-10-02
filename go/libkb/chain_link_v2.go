@@ -66,7 +66,8 @@ func (t SigchainV2Type) IsTeamType() bool {
 		SigchainV2TypeTeamSubteamHead,
 		SigchainV2TypeTeamRenameSubteam,
 		SigchainV2TypeTeamInvite,
-		SigchainV2TypeTeamRenameUpPointer:
+		SigchainV2TypeTeamRenameUpPointer,
+		SigchainV2TypeTeamSettings:
 		return true
 	default:
 		return false
