@@ -9,6 +9,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
@@ -55,7 +56,7 @@ type blockPrefetcher struct {
 	// blockRetriever to retrieve blocks from the server
 	retriever BlockRetriever
 	// channel to synchronize prefetch requests with the prefetcher shutdown
-	prefetchRequestCh chan *prefetchRequest
+	prefetchRequestCh channels.Channel
 	// channel that is idempotently closed when a shutdown occurs
 	shutdownCh chan struct{}
 	// channel that is closed when all current fetches are done and prefetches
@@ -65,7 +66,7 @@ type blockPrefetcher struct {
 	// prefetch requests are complete
 	doneCh chan struct{}
 	// channels to track the success or failure of prefetches
-	prefetchCancelCh chan kbfsblock.ID
+	prefetchCancelCh channels.Channel
 	// map to store prefetch metadata
 	prefetches map[kbfsblock.ID]*prefetch
 	// channel to allow synchronization on completion
@@ -79,14 +80,13 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	p := &blockPrefetcher{
 		config:            config,
 		retriever:         retriever,
-		prefetchRequestCh: make(chan *prefetchRequest, maxNumPrefetches),
+		prefetchRequestCh: channels.NewInfiniteChannel(),
+		prefetchCancelCh:  channels.NewInfiniteChannel(),
 		shutdownCh:        make(chan struct{}),
 		almostDoneCh:      make(chan struct{}, 1),
 		doneCh:            make(chan struct{}),
-		// TODO: re-evaluate the size of this channel
-		prefetchCancelCh: make(chan kbfsblock.ID, maxNumPrefetches),
-		prefetches:       make(map[kbfsblock.ID]*prefetch),
-		inFlightFetches:  make(chan (<-chan error), maxNumPrefetches),
+		prefetches:        make(map[kbfsblock.ID]*prefetch),
+		inFlightFetches:   make(chan (<-chan error), maxNumPrefetches),
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -215,14 +215,15 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	isShuttingDown := false
 	for {
 		if isShuttingDown && len(p.inFlightFetches) == 0 &&
-			len(p.prefetchRequestCh) == 0 && len(p.prefetchCancelCh) == 0 {
+			p.prefetchRequestCh.Len() == 0 && p.prefetchCancelCh.Len() == 0 {
 			return
 		}
 		if testSyncCh != nil {
 			<-testSyncCh
 		}
 		select {
-		case blockID := <-p.prefetchCancelCh:
+		case bid := <-p.prefetchCancelCh.Out():
+			blockID := bid.(kbfsblock.ID)
 			pre, ok := p.prefetches[blockID]
 			if !ok {
 				continue
@@ -230,7 +231,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			p.log.Debug("canceling prefetch for block %s", blockID)
 			// Walk up the block tree and delete every parent.
 			p.applyToParentsRecursive(p.cancelPrefetch, blockID, pre)
-		case req := <-p.prefetchRequestCh:
+		case reqInt := <-p.prefetchRequestCh.Out():
+			req := reqInt.(*prefetchRequest)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
 			if isPrefetchWaiting {
 				if pre.req == nil {
@@ -362,7 +364,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// shouldn't block anything above it in the tree from
 				// completing.
 			}
-			p.log.Debug("prefetching %d blocks with parent block %s",
+			p.log.Debug("prefetching %d block(s) with parent block %s",
 				numBlocks, req.ptr.ID)
 			// Walk up the block tree and add numBlocks to every parent,
 			// starting with this block.
@@ -534,20 +536,10 @@ func (p *blockPrefetcher) handlePrefetch(ctx context.Context, pre *prefetch) (
 
 func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
 	select {
-	case p.prefetchRequestCh <- req:
+	case p.prefetchRequestCh.In() <- req:
 	case <-p.shutdownCh:
 		p.log.Warning("Skipping prefetch for block %v since "+
 			"the prefetcher is shutdown", req.ptr.ID)
-	default:
-		p.log.Debug("launching goroutine for triggerPrefetch")
-		go func() {
-			select {
-			case p.prefetchRequestCh <- req:
-			case <-p.shutdownCh:
-				p.log.Warning("Skipping prefetch for block %v since "+
-					"the prefetcher is shutdown", req.ptr.ID)
-			}
-		}()
 	}
 	return
 }
@@ -597,16 +589,7 @@ func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
 	// After `p.shutdownCh` is closed, we still need to receive prefetch
 	// cancelation until all prefetching is done.
 	case <-p.almostDoneCh:
-	case p.prefetchCancelCh <- blockID:
-	default:
-		// Ensure this can't block.
-		p.log.Debug("launching goroutine for CancelPrefetch")
-		go func() {
-			select {
-			case <-p.almostDoneCh:
-			case p.prefetchCancelCh <- blockID:
-			}
-		}()
+	case p.prefetchCancelCh.In() <- blockID:
 	}
 }
 
