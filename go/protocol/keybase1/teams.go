@@ -239,6 +239,7 @@ type TeamMemberDetails struct {
 	Uv       UserVersion `codec:"uv" json:"uv"`
 	Username string      `codec:"username" json:"username"`
 	Active   bool        `codec:"active" json:"active"`
+	NeedsPUK bool        `codec:"needsPUK" json:"needsPUK"`
 }
 
 func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
@@ -246,6 +247,7 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 		Uv:       o.Uv.DeepCopy(),
 		Username: o.Username,
 		Active:   o.Active,
+		NeedsPUK: o.NeedsPUK,
 	}
 }
 
@@ -1144,6 +1146,7 @@ type AnnotatedMemberInfo struct {
 	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
 	Role           TeamRole      `codec:"role" json:"role"`
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1162,6 +1165,7 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Implicit),
+		NeedsPUK: o.NeedsPUK,
 	}
 }
 

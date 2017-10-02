@@ -398,6 +398,24 @@ func TestMemberAddNoKeys(t *testing.T) {
 
 	// existing invite should be untouched
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
+
+	// this is a keybase user, so they should show up in the member list
+	// even though they are technically only "invited"
+	details, err := Details(context.TODO(), tc.G, name, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, m := range details.Members.Readers {
+		if m.Username == username {
+			found = true
+			break
+		}
+		t.Logf("not a match: %s != %s", m.Username, username)
+	}
+	if !found {
+		t.Fatal("keybase invited user not in membership list")
+	}
 }
 
 func TestMemberAddEmail(t *testing.T) {

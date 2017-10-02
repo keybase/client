@@ -51,6 +51,45 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		return res, err
 	}
 	res.AnnotatedActiveInvites = annotatedInvites
+
+	// put any keybase invites in the members list
+	for invID, invite := range annotatedInvites {
+		cat, err := invite.Type.C()
+		if err != nil {
+			return res, err
+		}
+		if cat != keybase1.TeamInviteCategory_KEYBASE {
+			continue
+		}
+		orig, ok := activeInvites[invID]
+		if !ok {
+			return res, errors.New("couldn't find invite for annotated invite")
+		}
+		uv, err := orig.KeybaseUserVersion()
+		if err != nil {
+			return res, err
+		}
+		details := keybase1.TeamMemberDetails{
+			Uv:       uv,
+			Username: string(invite.Name),
+			Active:   true,
+			NeedsPUK: true,
+		}
+		switch invite.Role {
+		case keybase1.TeamRole_OWNER:
+			res.Members.Owners = append(res.Members.Owners, details)
+		case keybase1.TeamRole_ADMIN:
+			res.Members.Admins = append(res.Members.Admins, details)
+		case keybase1.TeamRole_WRITER:
+			res.Members.Writers = append(res.Members.Writers, details)
+		case keybase1.TeamRole_READER:
+			res.Members.Readers = append(res.Members.Readers, details)
+		}
+
+		// and remove them from the invite list
+		delete(res.AnnotatedActiveInvites, invID)
+	}
+
 	return res, nil
 }
 

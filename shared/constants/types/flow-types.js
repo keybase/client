@@ -2815,6 +2815,7 @@ export type AnnotatedMemberInfo = {
   isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
+  needsPUK: boolean,
 }
 
 export type AnnotatedTeamInvite = {
@@ -4879,6 +4880,7 @@ export type TeamMemberDetails = {
   uv: UserVersion,
   username: string,
   active: boolean,
+  needsPUK: boolean,
 }
 
 export type TeamMembers = {

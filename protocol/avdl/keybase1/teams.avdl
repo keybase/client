@@ -75,6 +75,8 @@ protocol teams {
     UserVersion uv;
     string username;
     boolean active;
+    @lint("ignore")
+    boolean needsPUK;
   }
 
   record TeamMembersDetails {
@@ -399,6 +401,8 @@ protocol teams {
     boolean isImplicitTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
+    @lint("ignore")
+    boolean needsPUK;
   }
 
   record AnnotatedTeamList {
