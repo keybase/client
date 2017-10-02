@@ -37,7 +37,7 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case "team.sbs":
 		return true, r.sharingBeforeSignup(ctx, cli, item)
 	case "team.openreq":
-		return true, r.openTeamAccessRequest(ctx, item)
+		return true, r.openTeamAccessRequest(ctx, cli, item)
 	case "team.change":
 		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{})
 	case "team.rename":
@@ -122,7 +122,7 @@ func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.Incom
 	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
 }
 
-func (r *teamHandler) openTeamAccessRequest(ctx context.Context, item gregor.Item) error {
+func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	r.G().Log.Debug("team.openreq received")
 	var msg keybase1.TeamOpenReqMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
@@ -136,7 +136,7 @@ func (r *teamHandler) openTeamAccessRequest(ctx context.Context, item gregor.Ite
 	}
 
 	r.G().Log.Debug("dismissing team.openreq item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
