@@ -904,6 +904,8 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 
 	t.Log("Now set the folder to sync.")
 	config.SetTlfSyncState(kmd.TlfID(), true)
+	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}

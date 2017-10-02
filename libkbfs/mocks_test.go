@@ -557,6 +557,41 @@ func (mr *MocksyncedTlfGetterSetterMockRecorder) SetTlfSyncState(tlfID, isSynced
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTlfSyncState", reflect.TypeOf((*MocksyncedTlfGetterSetter)(nil).SetTlfSyncState), tlfID, isSynced)
 }
 
+// MockblockRetrieverGetter is a mock of blockRetrieverGetter interface
+type MockblockRetrieverGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockblockRetrieverGetterMockRecorder
+}
+
+// MockblockRetrieverGetterMockRecorder is the mock recorder for MockblockRetrieverGetter
+type MockblockRetrieverGetterMockRecorder struct {
+	mock *MockblockRetrieverGetter
+}
+
+// NewMockblockRetrieverGetter creates a new mock instance
+func NewMockblockRetrieverGetter(ctrl *gomock.Controller) *MockblockRetrieverGetter {
+	mock := &MockblockRetrieverGetter{ctrl: ctrl}
+	mock.recorder = &MockblockRetrieverGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockblockRetrieverGetter) EXPECT() *MockblockRetrieverGetterMockRecorder {
+	return m.recorder
+}
+
+// BlockRetriever mocks base method
+func (m *MockblockRetrieverGetter) BlockRetriever() BlockRetriever {
+	ret := m.ctrl.Call(m, "BlockRetriever")
+	ret0, _ := ret[0].(BlockRetriever)
+	return ret0
+}
+
+// BlockRetriever indicates an expected call of BlockRetriever
+func (mr *MockblockRetrieverGetterMockRecorder) BlockRetriever() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRetriever", reflect.TypeOf((*MockblockRetrieverGetter)(nil).BlockRetriever))
+}
+
 // MockBlock is a mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -4135,6 +4170,18 @@ func (m *MockBlockOps) EXPECT() *MockBlockOpsMockRecorder {
 	return m.recorder
 }
 
+// BlockRetriever mocks base method
+func (m *MockBlockOps) BlockRetriever() BlockRetriever {
+	ret := m.ctrl.Call(m, "BlockRetriever")
+	ret0, _ := ret[0].(BlockRetriever)
+	return ret0
+}
+
+// BlockRetriever indicates an expected call of BlockRetriever
+func (mr *MockBlockOpsMockRecorder) BlockRetriever() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRetriever", reflect.TypeOf((*MockBlockOps)(nil).BlockRetriever))
+}
+
 // Get mocks base method
 func (m *MockBlockOps) Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block, cacheLifetime BlockCacheLifetime) error {
 	ret := m.ctrl.Call(m, "Get", ctx, kmd, blockPtr, block, cacheLifetime)
@@ -4201,27 +4248,15 @@ func (mr *MockBlockOpsMockRecorder) Archive(ctx, tlfID, ptrs interface{}) *gomoc
 }
 
 // TogglePrefetcher mocks base method
-func (m *MockBlockOps) TogglePrefetcher(ctx context.Context, enable bool) error {
+func (m *MockBlockOps) TogglePrefetcher(ctx context.Context, enable bool) <-chan struct{} {
 	ret := m.ctrl.Call(m, "TogglePrefetcher", ctx, enable)
-	ret0, _ := ret[0].(error)
+	ret0, _ := ret[0].(<-chan struct{})
 	return ret0
 }
 
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
 func (mr *MockBlockOpsMockRecorder) TogglePrefetcher(ctx, enable interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockOps)(nil).TogglePrefetcher), ctx, enable)
-}
-
-// BlockRetriever mocks base method
-func (m *MockBlockOps) BlockRetriever() BlockRetriever {
-	ret := m.ctrl.Call(m, "BlockRetriever")
-	ret0, _ := ret[0].(BlockRetriever)
-	return ret0
-}
-
-// BlockRetriever indicates an expected call of BlockRetriever
-func (mr *MockBlockOpsMockRecorder) BlockRetriever() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRetriever", reflect.TypeOf((*MockBlockOps)(nil).BlockRetriever))
 }
 
 // Prefetcher mocks base method
@@ -5866,6 +5901,18 @@ func (m *MockConfig) MaybeFinishTrace(ctx context.Context, err error) {
 // MaybeFinishTrace indicates an expected call of MaybeFinishTrace
 func (mr *MockConfigMockRecorder) MaybeFinishTrace(ctx, err interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeFinishTrace", reflect.TypeOf((*MockConfig)(nil).MaybeFinishTrace), ctx, err)
+}
+
+// BlockRetriever mocks base method
+func (m *MockConfig) BlockRetriever() BlockRetriever {
+	ret := m.ctrl.Call(m, "BlockRetriever")
+	ret0, _ := ret[0].(BlockRetriever)
+	return ret0
+}
+
+// BlockRetriever indicates an expected call of BlockRetriever
+func (mr *MockConfigMockRecorder) BlockRetriever() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRetriever", reflect.TypeOf((*MockConfig)(nil).BlockRetriever))
 }
 
 // KBFSOps mocks base method
@@ -8542,4 +8589,16 @@ func (m *MockBlockRetriever) PutInCaches(ctx context.Context, ptr BlockPointer, 
 // PutInCaches indicates an expected call of PutInCaches
 func (mr *MockBlockRetrieverMockRecorder) PutInCaches(ctx, ptr, tlfID, block, lifetime, prefetchStatus interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutInCaches", reflect.TypeOf((*MockBlockRetriever)(nil).PutInCaches), ctx, ptr, tlfID, block, lifetime, prefetchStatus)
+}
+
+// TogglePrefetcher mocks base method
+func (m *MockBlockRetriever) TogglePrefetcher(ctx context.Context, enable bool, syncCh <-chan struct{}) <-chan struct{} {
+	ret := m.ctrl.Call(m, "TogglePrefetcher", ctx, enable, syncCh)
+	ret0, _ := ret[0].(<-chan struct{})
+	return ret0
+}
+
+// TogglePrefetcher indicates an expected call of TogglePrefetcher
+func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(ctx, enable, syncCh interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), ctx, enable, syncCh)
 }

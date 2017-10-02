@@ -195,7 +195,7 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID tlf.ID,
 
 // TogglePrefetcher implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) TogglePrefetcher(ctx context.Context,
-	enable bool) error {
+	enable bool) <-chan struct{} {
 	return b.queue.TogglePrefetcher(ctx, enable, nil)
 }
 

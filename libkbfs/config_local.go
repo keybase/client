@@ -1346,6 +1346,7 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 		}
 	}
 	c.syncedTlfs[tlfID] = isSynced
+	<-c.BlockOps().TogglePrefetcher(context.Background(), true)
 	return nil
 }
 
@@ -1369,4 +1370,12 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 // GetRekeyFSMLimiter implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 	return c.rekeyFSMLimiter
+}
+
+// BlockRetriever implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) BlockRetriever() BlockRetriever {
+	if c.BlockOps() != nil {
+		return c.BlockOps().BlockRetriever()
+	}
+	return nil
 }

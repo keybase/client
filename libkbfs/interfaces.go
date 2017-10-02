@@ -81,6 +81,10 @@ type syncedTlfGetterSetter interface {
 	SetTlfSyncState(tlfID tlf.ID, isSynced bool) error
 }
 
+type blockRetrieverGetter interface {
+	BlockRetriever() BlockRetriever
+}
+
 // Block just needs to be (de)serialized using msgpack
 type Block interface {
 	dataVersioner
@@ -1267,6 +1271,8 @@ type Prefetcher interface {
 // BlockOps gets and puts data blocks to a BlockServer. It performs
 // the necessary crypto operations on each block.
 type BlockOps interface {
+	blockRetrieverGetter
+
 	// Get gets the block associated with the given block pointer
 	// (which belongs to the TLF with the given key metadata),
 	// decrypts it if necessary, and fills in the provided block
@@ -1303,10 +1309,7 @@ type BlockOps interface {
 	Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error
 
 	// TogglePrefetcher activates or deactivates the prefetcher.
-	TogglePrefetcher(ctx context.Context, enable bool) error
-
-	// BlockRetriever obtains the block retriever
-	BlockRetriever() BlockRetriever
+	TogglePrefetcher(ctx context.Context, enable bool) <-chan struct{}
 
 	// Prefetcher retrieves this BlockOps' Prefetcher.
 	Prefetcher() Prefetcher
@@ -1741,6 +1744,7 @@ type Config interface {
 	syncedTlfGetterSetter
 	initModeGetter
 	Tracer
+	blockRetrieverGetter
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
@@ -2327,4 +2331,7 @@ type BlockRetriever interface {
 	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,
 		block Block, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus) error
+	// TogglePrefetcher creates a new prefetcher.
+	TogglePrefetcher(ctx context.Context, enable bool,
+		syncCh <-chan struct{}) <-chan struct{}
 }
