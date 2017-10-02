@@ -2823,6 +2823,7 @@ export type AnnotatedTeamInvite = {
   id: TeamInviteID,
   type: TeamInviteType,
   name: TeamInviteName,
+  uv: UserVersion,
   inviter: UserVersion,
   inviterUsername: string,
   teamName: string,

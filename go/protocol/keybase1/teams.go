@@ -690,6 +690,7 @@ type AnnotatedTeamInvite struct {
 	Id              TeamInviteID   `codec:"id" json:"id"`
 	Type            TeamInviteType `codec:"type" json:"type"`
 	Name            TeamInviteName `codec:"name" json:"name"`
+	Uv              UserVersion    `codec:"uv" json:"uv"`
 	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
 	InviterUsername string         `codec:"inviterUsername" json:"inviterUsername"`
 	TeamName        string         `codec:"teamName" json:"teamName"`
@@ -701,6 +702,7 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 		Id:              o.Id.DeepCopy(),
 		Type:            o.Type.DeepCopy(),
 		Name:            o.Name.DeepCopy(),
+		Uv:              o.Uv.DeepCopy(),
 		Inviter:         o.Inviter.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		TeamName:        o.TeamName,

@@ -61,16 +61,8 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		if cat != keybase1.TeamInviteCategory_KEYBASE {
 			continue
 		}
-		orig, ok := activeInvites[invID]
-		if !ok {
-			return res, errors.New("couldn't find invite for annotated invite")
-		}
-		uv, err := orig.KeybaseUserVersion()
-		if err != nil {
-			return res, err
-		}
 		details := keybase1.TeamMemberDetails{
-			Uv:       uv,
+			Uv:       invite.Uv,
 			Username: string(invite.Name),
 			Active:   true,
 			NeedsPUK: true,

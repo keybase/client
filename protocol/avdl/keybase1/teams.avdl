@@ -175,6 +175,7 @@ protocol teams {
     TeamInviteID id;
     TeamInviteType type;
     TeamInviteName name;
+    UserVersion uv;
     UserVersion inviter;
     string inviterUsername;
     string teamName;

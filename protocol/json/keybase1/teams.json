@@ -513,6 +513,10 @@
         },
         {
           "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "UserVersion",
           "name": "inviter"
         },
         {
