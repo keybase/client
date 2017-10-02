@@ -242,7 +242,17 @@ type listTeamOptions struct {
 	ForcePoll       bool   `json:"force-poll"`
 }
 
+func (c *listTeamOptions) Check() error {
+	_, err := keybase1.TeamNameFromString(c.Team)
+	return err
+}
+
 func (t *teamAPIHandler) listTeamMemberships(ctx context.Context, c Call, w io.Writer) error {
+	var opts listTeamOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	_ = opts
 	return nil
 }
 
