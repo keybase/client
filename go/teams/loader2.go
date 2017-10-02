@@ -237,10 +237,11 @@ func (l *TeamLoader) walkUpToAdmin(
 			return nil, NewAdminNotFoundError(admin)
 		}
 		arg := load2ArgT{
-			teamID:        *parent,
-			reason:        "walkUpToAdmin",
-			me:            me,
-			staleOK:       true,
+			teamID: *parent,
+			reason: "walkUpToAdmin",
+			me:     me,
+			// Get the latest so that the linkmap is up to date for the proof order checker.
+			forceRepoll:   true,
 			readSubteamID: &readSubteamID,
 		}
 		if target.Eq(*parent) {
