@@ -314,8 +314,18 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	if err != nil {
 		return err
 	}
+
+	// if username looks like an email address, then remove an invite
+	// (the loadUserVersionByUsername will fail with an email address)
+	if libkb.CheckEmail.F(username) {
+		return removeMemberInvite(ctx, g, t, username, keybase1.UserVersion{})
+	}
+
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
+		if err == errInviteRequired {
+			return removeMemberInvite(ctx, g, t, username, uv)
+		}
 		return err
 	}
 
@@ -650,4 +660,63 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamID keyb
 	}
 
 	return t.PostTeamSettings(ctx, open)
+}
+
+func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) error {
+	var lookingFor keybase1.TeamInviteName
+	var typ string
+	if !uv.IsNil() {
+		lookingFor = uv.TeamInviteName()
+		typ = "keybase"
+	} else if libkb.CheckEmail.F(username) {
+		lookingFor = keybase1.TeamInviteName(username)
+		typ = "email"
+	} else {
+		ptyp, name, err := team.parseSocial(username)
+		if err != nil {
+			return err
+		}
+		lookingFor = keybase1.TeamInviteName(name)
+		typ = ptyp
+	}
+
+	// make sure this is a valid invite type
+	itype, err := keybase1.TeamInviteTypeFromString(typ, g.Env.GetRunMode() == libkb.DevelRunMode)
+	if err != nil {
+		return err
+	}
+	validatedType, err := itype.String()
+	if err != nil {
+		return err
+	}
+
+	g.Log.CDebugf(ctx, "looking for active invite in %s for %s/%s", team.Name(), typ, lookingFor)
+
+	for _, inv := range team.chain().inner.ActiveInvites {
+		invTypeStr, err := inv.Type.String()
+		if err != nil {
+			return err
+		}
+		if invTypeStr != validatedType {
+			continue
+		}
+		if inv.Name != lookingFor {
+			continue
+		}
+
+		g.Log.CDebugf(ctx, "found invite %s for %s/%s, removing it", inv.Id, typ, lookingFor)
+		return removeInviteID(ctx, team, inv.Id)
+	}
+
+	g.Log.CDebugf(ctx, "no invites found to remove for %q", username)
+
+	return libkb.NotFoundError{}
+}
+
+func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID) error {
+	cancelList := []SCTeamInviteID{SCTeamInviteID(invID)}
+	invites := SCTeamInvites{
+		Cancel: &cancelList,
+	}
+	return team.postTeamInvites(ctx, invites)
 }
