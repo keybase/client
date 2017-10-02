@@ -15,14 +15,18 @@ import {globalColors, globalStyles, glamorous} from '../../../styles'
 
 import type {Props} from '.'
 
+const KB_FLIP = true
+
 type State = {
-  isLockedToBottom: boolean,
+  isLockedToBottom: number, // 0 means no, 1+means to trigger it
   listRerender: number,
   selectedMessageKey: ?Constants.MessageKey,
 }
 
 const lockedToBottomSlop = 20
 const listBottomMargin = 10
+const batchSize = 50
+const lockedToBottomFirstRender = -1
 
 const DivRow = glamorous.div({
   ':last-child': {
@@ -33,17 +37,18 @@ const DivRow = glamorous.div({
 class BaseList extends React.Component<Props, State> {
   _cellCache = new Virtualized.CellMeasurerCache({
     fixedWidth: true,
-    keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex),
+    keyMapper: (rowIndex: number) => this.props.messageKeys.get(rowIndex, rowIndex),
   })
 
   _list: any
   _infiniteRegisterChild: any
   _keepIdxVisible: number = -1
-  _loadingPromiseResolve: ?() => void
+  _loadingPromiseResolves: {[startIndex: string]: () => void} = {}
+  _loadedRowsMap: {[startIndex: string]: boolean} = [] // if we've requested the index + batchsize
   // _lastRowIdx: number = -1
 
   state = {
-    isLockedToBottom: true,
+    isLockedToBottom: lockedToBottomFirstRender, //
     listRerender: 0,
     selectedMessageKey: null,
   }
@@ -72,6 +77,17 @@ class BaseList extends React.Component<Props, State> {
     if (this.props.editLastMessageCounter !== prevProps.editLastMessageCounter) {
       this._onEditLastMessage()
     }
+
+    if (this.state.isLockedToBottom === lockedToBottomFirstRender || this.state.isLockedToBottom) {
+      if (this._list && this._list.Grid && this._list.Grid._scrollingContainer) {
+        this._list.Grid._scrollingContainer.scrollTop =
+          this._list.Grid._scrollingContainer.scrollHeight - this._list.Grid._scrollingContainer.clientHeight
+        if (this.state.isLockedToBottom === lockedToBottomFirstRender) {
+          // // eslint-disable-next-line react/no-did-update-set-state
+          this.setState({isLockedToBottom: 1})
+        }
+      }
+    }
   }
 
   componentWillReceiveProps(nextProps: Props) {
@@ -79,16 +95,18 @@ class BaseList extends React.Component<Props, State> {
       this.props.selectedConversation !== nextProps.selectedConversation ||
       this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
     ) {
-      // this._cellCache.clearAll()
-      this.setState({isLockedToBottom: true})
+      this._cellCache.clearAll()
+      this.setState({isLockedToBottom: lockedToBottomFirstRender})
     }
 
     if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
-      if (this._loadingPromiseResolve) {
-        const p = this._loadingPromiseResolve
-        this._loadingPromiseResolve = null
-        p()
-      }
+      // resolve them all, we don't have a better way to do this now
+      const toResolve = this._loadingPromiseResolves
+
+      this._loadingPromiseResolves = {}
+      Object.keys(toResolve).forEach(key => {
+        toResolve[key]()
+      })
 
       // if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
       // const toFind = this.props.messageKeys.get(this._lastRowIdx)
@@ -97,8 +115,8 @@ class BaseList extends React.Component<Props, State> {
       // // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
       // // another cache from row -> style which is out of sync
-      // this._cellCache.clearAll()
-      // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+      this._cellCache.clearAll()
+      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
@@ -106,18 +124,29 @@ class BaseList extends React.Component<Props, State> {
     // meaningless otherwise
     if (clientHeight) {
       const isLockedToBottom = scrollTop < lockedToBottomSlop
-      if (this.state.isLockedToBottom !== isLockedToBottom) {
-        this.setState({isLockedToBottom})
+      if (!!this.state.isLockedToBottom !== !!isLockedToBottom) {
+        let nextLock
+        if (!isLockedToBottom) {
+          nextLock = 0
+        } else if (this.state.isLockedToBottom === lockedToBottomFirstRender) {
+          nextLock = 1
+        } else {
+          nextLock = this.state.isLockedToBottom + 1
+        }
+        this.setState({isLockedToBottom: nextLock})
       }
     }
   }
 
   _loadMoreRows = ({startIndex, stopIndex}) => {
     console.log('aaaa BBBB will asking for more', startIndex, stopIndex)
-
+    this._loadedRowsMap[String(startIndex)] = true
+    if (this._loadingPromiseResolves[String(startIndex)]) {
+      return null
+    }
     return new Promise((resolve, reject) => {
-      this._loadingPromiseResolve = resolve
-      this.props.onLoadMoreMessages()
+      this._loadingPromiseResolves[String(startIndex)] = resolve
+      // this.props.onLoadMoreMessages()
     })
   }
   // _TEMPONCE = false
@@ -137,14 +166,15 @@ class BaseList extends React.Component<Props, State> {
   // }, 500)
 
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-    // this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
+    console.log('bbb', scrollTop, scrollHeight)
+    this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
     // this._maybeLoadMoreMessages(clientHeight, scrollTop, scrollHeight)
   }
 
   _onResize = ({width}) => {
-    // if (this._cellCache.columnWidth({index: 0}) !== width) {
-    // this._cellCache.clearAll()
-    // }
+    if (this._cellCache.columnWidth({index: 0}) !== width) {
+      this._cellCache.clearAll()
+    }
   }
 
   _rowRenderer = ({index, isScrolling, isVisible, key, parent, style}) => {
@@ -208,7 +238,10 @@ class BaseList extends React.Component<Props, State> {
   }
 
   _isRowLoaded = ({index}) => {
-    return !!this.props.messageKeys.get(index)
+    return (
+      !!this.props.messageKeys.get(index) ||
+      this._loadedRowsMap[String(Math.floor(index / batchSize) * batchSize)]
+    )
   }
 
   render() {
@@ -333,7 +366,7 @@ class PopupEnabledList extends BaseList {
       const message: Constants.TextMessage = this.props.getMessageFromMessageKey(messageKey)
 
       this._keepIdxVisible = idx
-      this.setState({listRerender: this.state.listRerender + 1})
+      this.setState(({listRerender}) => ({listRerender: listRerender + 1}))
 
       const listNode = ReactDOM.findDOMNode(this._list)
       if (listNode) {
@@ -477,7 +510,7 @@ class PopupEnabledList extends BaseList {
 }
 
 const flip = {
-  //  transform: 'scaleY(-1)',
+  transform: KB_FLIP ? 'scaleY(-1)' : undefined,
 }
 
 const containerStyle = {
