@@ -947,7 +947,7 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 					err = i.ChatInboxSyncStarted(ctx, (*typedArgs)[0].Uid)
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 			"ChatInboxSynced": {
 				MakeArg: func() interface{} {
@@ -1023,7 +1023,7 @@ func (c NotifyChatClient) ChatLeftConversation(ctx context.Context, __arg ChatLe
 
 func (c NotifyChatClient) ChatInboxSyncStarted(ctx context.Context, uid keybase1.UID) (err error) {
 	__arg := ChatInboxSyncStartedArg{Uid: uid}
-	err = c.Cli.Call(ctx, "chat.1.NotifyChat.ChatInboxSyncStarted", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatInboxSyncStarted", []interface{}{__arg})
 	return
 }
 
