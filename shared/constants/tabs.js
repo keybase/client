@@ -36,12 +36,12 @@ export type Tab =
   | GitTab
 
 function isValidInitialTab(tab: ?Tab) {
+  // Keep this in left-to-right (for mobile) or top-to-bottom (for
+  // desktop) order in the app.
   if (isMobile) {
-    return [chatTab, folderTab, profileTab, searchTab, settingsTab].includes(tab)
+    return [peopleTab, chatTab, teamsTab, settingsTab].includes(tab)
   } else {
-    return [chatTab, folderTab, profileTab, devicesTab, searchTab, settingsTab, teamsTab, gitTab].includes(
-      tab
-    )
+    return [peopleTab, chatTab, folderTab, teamsTab, devicesTab, settingsTab, profileTab].includes(tab)
   }
 }
 
