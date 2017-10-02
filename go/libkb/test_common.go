@@ -17,6 +17,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -471,13 +472,14 @@ func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUs
 	return true
 }
 
-func (t TestUIDMapper) MapUIDsToUsernames(ctx context.Context, g UIDMapperContext, uids []keybase1.UID) (res []NormalizedUsername, err error) {
+func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error) {
+	var res []UsernamePackage
 	for _, uid := range uids {
 		name, err := t.ul.LookupUsername(ctx, uid)
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, name)
+		res = append(res, UsernamePackage{NormalizedUsername: name})
 	}
 	return res, nil
 }

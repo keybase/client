@@ -81,6 +81,10 @@ export const CommonDeviceType = {
   mobile: 1,
 }
 
+export const CommonFullNamePackageVersion = {
+  v0: 0,
+}
+
 export const CommonLogLevel = {
   none: 0,
   debug: 1,
@@ -3259,6 +3263,17 @@ export type ForkType =
   | 1 // AUTO_1
   | 2 // WATCHDOG_2
   | 3 // LAUNCHD_3
+
+export type FullName = string
+
+export type FullNamePackage = {
+  version: FullNamePackageVersion,
+  fullName: FullName,
+  cachedAt: Time,
+}
+
+export type FullNamePackageVersion =
+    0 // V0_0
 
 export type FuseMountInfo = {
   path: string,

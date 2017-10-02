@@ -1112,7 +1112,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		for _, uid := range conversationRemote.Metadata.AllList {
 			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
-		unames, err := s.G().UIDMapper.MapUIDsToUsernames(ctx, s.G(), kuids)
+
+		rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
+		unames := make([]libkb.NormalizedUsername, len(rows), len(rows))
+		for i, row := range rows {
+			unames[i] = row.NormalizedUsername
+		}
+
 		if err == nil {
 			for _, uname := range unames {
 				conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,

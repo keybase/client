@@ -54,16 +54,14 @@ func main() {
 	g := G
 	g.Init()
 
-	// Set our panel of external services.
-	g.SetServices(externals.GetServices())
-	// Set our UID -> Username mapping service
-	g.SetUIDMapper(uidmap.NewUIDMap())
-
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.
 	if err != nil {
 		g.Log.Errorf("SaferDLLLoading error: %v", err.Error())
 	}
+
+	// Set our panel of external services.
+	g.SetServices(externals.GetServices())
 
 	go HandleSignals()
 	err = mainInner(g)
@@ -153,6 +151,10 @@ func mainInner(g *libkb.GlobalContext) error {
 
 	warnNonProd(g.Log, g.Env)
 
+	if err := configOtherLibraries(g); err != nil {
+		return err
+	}
+
 	if err = configureProcesses(g, cl, &cmd); err != nil {
 		return err
 	}
@@ -163,6 +165,12 @@ func mainInner(g *libkb.GlobalContext) error {
 		client.PrintOutOfDateWarnings(g)
 	}
 	return err
+}
+
+func configOtherLibraries(g *libkb.GlobalContext) error {
+	// Set our UID -> Username mapping service
+	g.SetUIDMapper(uidmap.NewUIDMap(g.Env.GetUIDMapFullNameCacheSize()))
+	return nil
 }
 
 // AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
