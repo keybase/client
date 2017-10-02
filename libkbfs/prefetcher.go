@@ -21,7 +21,7 @@ const (
 	updatePointerPrefetchPriority     int           = 0
 	defaultPrefetchPriority           int           = -1024
 	prefetchTimeout                   time.Duration = 15 * time.Minute
-	maxNumPrefetches                  int           = 1000
+	maxNumPrefetches                  int           = 10000
 )
 
 type prefetcherConfig interface {
@@ -429,14 +429,11 @@ func (p *blockPrefetcher) prefetchIndirectFileBlock(ctx context.Context,
 	parentBlockID kbfsblock.ID, b *FileBlock, kmd KeyMetadata,
 	lifetime BlockCacheLifetime) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
-	p.log.CDebugf(ctx, "Prefetching pointers for indirect file "+
-		"block. Num pointers to prefetch: %d", len(b.IPtrs))
 	startingPriority :=
 		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
 	for i, ptr := range b.IPtrs {
 		n, needNewFetch :=
 			p.recordPrefetchParent(ptr.BlockPointer.ID, parentBlockID)
-		p.log.Debug("Recorded %s -> %s relationship, n=%d, needNewFetch=%b", parentBlockID, ptr.BlockPointer.ID, n, needNewFetch)
 		numBlocks += n
 		if needNewFetch {
 			p.request(ctx, startingPriority-i, kmd,
@@ -450,8 +447,6 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(ctx context.Context,
 	parentBlockID kbfsblock.ID, b *DirBlock, kmd KeyMetadata,
 	lifetime BlockCacheLifetime) (numBlocks int, isTail bool) {
 	// Prefetch indirect block pointers.
-	p.log.CDebugf(context.TODO(), "Prefetching pointers for indirect dir "+
-		"block. Num pointers to prefetch: %d", len(b.IPtrs))
 	startingPriority :=
 		p.calculatePriority(fileIndirectBlockPrefetchPriority, kmd.TlfID())
 	for i, ptr := range b.IPtrs {
@@ -469,8 +464,6 @@ func (p *blockPrefetcher) prefetchIndirectDirBlock(ctx context.Context,
 func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 	parentBlockID kbfsblock.ID, b *DirBlock, kmd KeyMetadata,
 	lifetime BlockCacheLifetime) (numBlocks int, isTail bool) {
-	p.log.CDebugf(context.TODO(), "Prefetching entries for directory block "+
-		"ID %s. Num entries: %d", parentBlockID, len(b.Children))
 	// Prefetch all DirEntry root blocks.
 	dirEntries := dirEntriesBySizeAsc{dirEntryMapToDirEntries(b.Children)}
 	sort.Sort(dirEntries)
@@ -496,7 +489,6 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 		totalNumBlocks++
 		n, needNewFetch :=
 			p.recordPrefetchParent(entry.BlockPointer.ID, parentBlockID)
-		p.log.Debug("Recorded %s -> %s relationship, n=%d, needNewFetch=%b", parentBlockID, entry.BlockPointer.ID, n, needNewFetch)
 		numBlocks += n
 		if needNewFetch {
 			p.request(ctx, priority, kmd, entry.BlockPointer,
