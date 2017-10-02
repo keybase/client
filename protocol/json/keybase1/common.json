@@ -646,6 +646,37 @@
         }
       ],
       "doc": "UserResolution maps how an unresolved user assertion has been resolved."
+    },
+    {
+      "type": "record",
+      "name": "FullName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "FullNamePackageVersion",
+      "symbols": [
+        "V0_0"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FullNamePackage",
+      "fields": [
+        {
+          "type": "FullNamePackageVersion",
+          "name": "version"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        }
+      ]
     }
   ],
   "messages": {},

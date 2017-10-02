@@ -33,21 +33,23 @@ func newTeamHandler(g *libkb.GlobalContext) *teamHandler {
 func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	switch category {
 	case "team.clkr":
-		return true, r.rotateTeam(ctx, item)
+		return true, r.rotateTeam(ctx, cli, item)
 	case "team.sbs":
-		return true, r.sharingBeforeSignup(ctx, item)
+		return true, r.sharingBeforeSignup(ctx, cli, item)
 	case "team.change":
-		return true, r.changeTeam(ctx, item, keybase1.TeamChangeSet{})
+		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{})
 	case "team.rename":
-		return true, r.changeTeam(ctx, item, keybase1.TeamChangeSet{Renamed: true})
+		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{Renamed: true})
 	case "team.delete":
-		return true, r.deleteTeam(ctx, item)
+		return true, r.deleteTeam(ctx, cli, item)
+	case "team.exit":
+		return true, r.exitTeam(ctx, cli, item)
 	default:
 		return false, fmt.Errorf("unknown teamHandler category: %q", category)
 	}
 }
 
-func (r *teamHandler) rotateTeam(ctx context.Context, item gregor.Item) error {
+func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	r.G().Log.Debug("team.clkr received")
 	var msg keybase1.TeamCLKRMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
@@ -61,10 +63,10 @@ func (r *teamHandler) rotateTeam(ctx context.Context, item gregor.Item) error {
 	}
 
 	r.G().Log.Debug("dismissing team.clkr item since rotate succeeded")
-	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
 }
 
-func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes keybase1.TeamChangeSet) error {
+func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
 	var rows []keybase1.TeamChangeRow
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
 		r.G().Log.Debug("error unmarshaling team.(change|rename) item: %s", err)
@@ -75,7 +77,7 @@ func (r *teamHandler) changeTeam(ctx context.Context, item gregor.Item, changes 
 	return teams.HandleChangeNotification(ctx, r.G(), rows, changes)
 }
 
-func (r *teamHandler) deleteTeam(ctx context.Context, item gregor.Item) error {
+func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	var rows []keybase1.TeamChangeRow
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
 		r.G().Log.Debug("error unmarshaling team.(change|rename) item: %s", err)
@@ -85,7 +87,23 @@ func (r *teamHandler) deleteTeam(ctx context.Context, item gregor.Item) error {
 	return teams.HandleDeleteNotification(ctx, r.G(), rows)
 }
 
-func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item) error {
+func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	var rows []keybase1.TeamExitRow
+	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
+		r.G().Log.Debug("error unmarshaling team.exit item: %s", err)
+		return err
+	}
+	r.G().Log.Debug("team.exit unmarshaled: %+v", rows)
+	err := teams.HandleExitNotification(ctx, r.G(), rows)
+	if err != nil {
+		return err
+	}
+
+	r.G().Log.Debug("dismissing team.exit: %v", item.Metadata().MsgID().String())
+	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
+}
+
+func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
 	r.G().Log.Debug("team.sbs received")
 	var msg keybase1.TeamSBSMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
@@ -99,7 +117,7 @@ func (r *teamHandler) sharingBeforeSignup(ctx context.Context, item gregor.Item)
 	}
 
 	r.G().Log.Debug("dismissing team.sbs item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
+	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {

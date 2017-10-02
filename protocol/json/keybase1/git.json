@@ -158,6 +158,10 @@
         {
           "name": "metadata",
           "type": "GitLocalMetadata"
+        },
+        {
+          "name": "notifyTeam",
+          "type": "boolean"
         }
       ],
       "response": null

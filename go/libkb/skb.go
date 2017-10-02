@@ -58,8 +58,12 @@ type SKB struct {
 	sync.Mutex // currently only for uid
 }
 
-func NewSKB(gc *GlobalContext) *SKB {
-	return &SKB{Contextified: NewContextified(gc)}
+func NewSKB() *SKB {
+	return &SKB{}
+}
+
+func NewSKBWithGlobalContext(g *GlobalContext) *SKB {
+	return &SKB{Contextified: NewContextified(g)}
 }
 
 type SKBPriv struct {
@@ -77,7 +81,7 @@ func ToServerSKB(gc *GlobalContext, key GenericKey, tsec Triplesec, gen Passphra
 
 func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen PassphraseGeneration) (ret *SKB, err error) {
 
-	ret = NewSKB(gc)
+	ret = NewSKBWithGlobalContext(gc)
 
 	var pk, sk bytes.Buffer
 
@@ -424,13 +428,14 @@ func (s *SKB) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (p KeybasePackets) ToListOfSKBs() ([]*SKB, error) {
+func (p KeybasePackets) ToListOfSKBs(g *GlobalContext) ([]*SKB, error) {
 	ret := make([]*SKB, len(p))
 	for i, e := range p {
 		k, ok := e.Body.(*SKB)
 		if !ok {
 			return nil, fmt.Errorf("Bad SKB sequence; got packet of wrong type %T", e.Body)
 		}
+		k.SetGlobalContext(g)
 		ret[i] = k
 	}
 	return ret, nil

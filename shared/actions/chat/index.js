@@ -775,7 +775,13 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
   }
 
   const inboxSelector = (state: TypedState, tlfName: string) => {
-    return state.chat.get('inbox').find(convo => convo.get('participants').sort().join(',') === tlfName)
+    return state.chat
+      .get('inbox')
+      .find(
+        convo =>
+          convo.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs &&
+          convo.get('participants').sort().join(',') === tlfName
+      )
   }
   const tlfName = users.sort().join(',')
   const existing = yield select(inboxSelector, tlfName)

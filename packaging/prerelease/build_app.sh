@@ -124,7 +124,7 @@ for ((i=1; i<=$number_of_builds; i++)); do
   rm -rf "$save_dir"
 
   if [ "$platform" = "darwin" ]; then
-    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
+    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$dir/../desktop/package_darwin.sh"
   else
     # TODO: Support linux build here?

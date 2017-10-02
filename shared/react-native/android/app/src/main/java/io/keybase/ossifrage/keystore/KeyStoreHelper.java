@@ -44,8 +44,6 @@ public class KeyStoreHelper {
               .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_PKCS1)
               .setCertificateSerialNumber(BigInteger.ONE)
               .setCertificateSubject(new X500Principal("CN=" + keyAlias))
-              .setKeyValidityStart(Calendar.getInstance().getTime())
-              .setKeyValidityEnd(endTime.getTime())
               .setKeySize(2048)
               .build();
         } else {

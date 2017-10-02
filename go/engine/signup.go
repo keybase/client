@@ -302,7 +302,7 @@ func (s *SignupEngine) genPGPBatch(ctx *Context) error {
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
 	}
-	gen.AddDefaultUID()
+	gen.AddDefaultUID(s.G())
 
 	tsec := ctx.LoginContext.PassphraseStreamCache().Triplesec()
 	sgen := ctx.LoginContext.GetStreamGeneration()

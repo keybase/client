@@ -37,6 +37,31 @@
     },
     {
       "type": "record",
+      "name": "UnverifiedInboxUIItemMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "channelName"
+        },
+        {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": "string",
+          "name": "snippet"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnverifiedInboxUIItem",
       "fields": [
         {
@@ -77,6 +102,13 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": [
+            null,
+            "UnverifiedInboxUIItemMetadata"
+          ],
+          "name": "localMetadata"
         }
       ]
     },

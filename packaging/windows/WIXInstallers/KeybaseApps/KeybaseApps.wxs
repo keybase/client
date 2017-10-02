@@ -19,8 +19,8 @@
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
-		<Feature Id="ProductFeature" Title="Keybase Application" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
+    <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComponents" />
       <ComponentGroupRef Id="PrompterComponents" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
@@ -108,7 +108,17 @@
         </RegistryKey>
         <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
       </Component>
-
+			
+      <Component Id="GitHelperExe" Guid="{d8938a5b-c45f-4942-b552-a357a5563329}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveGitHelper" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="GitHelperExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='GitHelperExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe" />
+        <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
+      </Component>
+      
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
         <RemoveFolder Id="RemoveUpdater" On="uninstall" />
@@ -127,7 +137,6 @@
 	  <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
         </RegistryKey>
       </Component>
-      
     </ComponentGroup>
   </Fragment>
   <Fragment>
@@ -207,15 +216,6 @@
         <File Id="kbnm.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.exe" Checksum="yes"/>
       </Component>
 
-      <Component Id="kbnm.json" Guid="{62193DE0-E8A9-4B64-BBA5-96CF3DEA48A7}">
-        <CreateFolder />
-        <RemoveFolder Id="RemoveMyBrowserExtensionJson" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="kbnmjson" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="kbnm.json" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.json" Checksum="yes"/>
-      </Component>
-
     </ComponentGroup>
   </Fragment>
 
@@ -228,7 +228,7 @@
               Name="Keybase Shell"
               Description="Open command console with keybase in the local path"
               Target="[SystemFolder]cmd.exe"
-              Arguments="/K &quot;set PATH=%PATH%;[INSTALLFOLDER]&quot;"
+              Arguments="/K"
               WorkingDirectory="INSTALLFOLDER"      
               Icon="ProductIcon"/>
           <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>

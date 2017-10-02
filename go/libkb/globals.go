@@ -148,6 +148,7 @@ func (g *GlobalContext) GetNetContext() context.Context                { return 
 func (g *GlobalContext) GetEnv() *Env                                  { return g.Env }
 func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return g.DNSNSFetcher }
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
+func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
 
 type LogGetter func() logger.Logger
 

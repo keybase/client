@@ -124,6 +124,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   withState('text', '_setText', props => props.defaultText || ''),
+  withState('mentionPopupOpen', 'setMentionPopupOpen', false),
+  withState('mentionFilter', 'setMentionFilter', ''),
   withHandlers(props => {
     let input
     // mutable value to store the latest text synchronously

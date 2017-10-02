@@ -41,6 +41,13 @@
     DDLogDebug(@"Result: %@", value);
     completion(error);
   }];
+
+  NSDictionary *gitParams = @{@"directory": self.servicePath, @"name": self.config.gitRemoteHelperName, @"appName": self.config.appName};
+  DDLogDebug(@"Helper: addToPath(%@)", gitParams);
+  [self.helperTool.helper sendRequest:@"addToPath" params:@[gitParams] completion:^(NSError *error, id value) {
+    DDLogDebug(@"Result: %@", value);
+    completion(error);
+  }];
 }
 
 - (void)uninstall:(KBCompletion)completion {

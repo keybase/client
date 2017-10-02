@@ -288,4 +288,17 @@ protocol Common {
       UID userID;
   }
 
+  @typedef("string")
+  record FullName {}
+
+  enum FullNamePackageVersion {
+    V0_0
+  }
+
+  record FullNamePackage {
+    FullNamePackageVersion version;
+    FullName fullName;
+    Time cachedAt;
+  }
+
 }
