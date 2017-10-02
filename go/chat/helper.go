@@ -395,20 +395,6 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
-	if membersType == chat1.ConversationMembersType_IMPTEAM {
-		// in this case, we need to get the hidden implicit team name from the display name
-		_, teamName, _, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == keybase1.TLFVisibility_PUBLIC)
-		if err != nil {
-			if _, ok := err.(teams.TeamDoesNotExistError); ok {
-				// no exist is just empty response
-				return res, rl, nil
-			}
-			return res, rl, err
-		}
-		debugger.Debug(ctx, "FindConversations: using implicit team name %q for display name %q", teamName, tlfName)
-		tlfName = teamName.String()
-	}
-
 	query := &chat1.GetInboxLocalQuery{
 		Name: &chat1.NameQuery{
 			Name:        tlfName,
