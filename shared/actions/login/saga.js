@@ -106,15 +106,11 @@ function* navBasedOnLoginState() {
     loginError,
   })
 
-  const {
-    loggedIn,
-    registered,
-    initialTab,
-    initialLink,
-    justDeletedSelf,
-    launchedViaPush,
-    loginError,
-  } = yield select(selector)
+  const args = yield select(selector)
+
+  console.log('[navBasedOnLoginState] args:', args)
+
+  const {loggedIn, registered, initialTab, initialLink, justDeletedSelf, launchedViaPush, loginError} = args
 
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
