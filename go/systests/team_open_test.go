@@ -60,22 +60,29 @@ func TestTeamOpenSettings(t *testing.T) {
 	teamName := own.createTeam()
 	t.Logf("Open team name is %q", teamName)
 
-	teamObj, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
-		Name:        teamName,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
+	loadTeam := func() *teams.Team {
+		ret, err := teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
+			Name:        teamName,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		return ret
+	}
+
+	teamObj := loadTeam()
 	require.Equal(t, teamObj.IsOpen(), false)
 
-	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamObj.ID, true)
+	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamObj.ID, true)
 	require.NoError(t, err)
 
-	teamObj, err = teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
-		Name:        teamName,
-		ForceRepoll: true,
-	})
-	require.NoError(t, err)
+	teamObj = loadTeam()
 	require.Equal(t, teamObj.IsOpen(), true)
+
+	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamObj.ID, false)
+	require.NoError(t, err)
+
+	teamObj = loadTeam()
+	require.Equal(t, teamObj.IsOpen(), false)
 }
 
 func TestOpenSubteamAdd(t *testing.T) {
