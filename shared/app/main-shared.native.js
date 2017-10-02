@@ -25,7 +25,6 @@ type Props = {
   bootstrap: () => void,
   hello: () => void,
   listenForNotifications: () => void,
-  loadRouteState: () => void,
   persistRouteState: () => void,
   setRouteState: (path: any, partialState: any) => void,
   navigateUp: () => void,
@@ -45,7 +44,6 @@ class Main extends Component<any> {
       initAvatarLookup(getUserImageMap, getTeamImageMap)
       initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 
-      this.props.loadRouteState()
       this.props.bootstrap()
       this.props.listenForNotifications()
       this.props.hello()
@@ -93,10 +91,12 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  bootstrap: () => dispatch(bootstrap()),
+  bootstrap: async () => {
+    await dispatch(loadRouteState())
+    return dispatch(bootstrap())
+  },
   hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
   listenForNotifications: () => dispatch(listenForNotifications()),
-  loadRouteState: () => dispatch(loadRouteState()),
   navigateUp: () => {
     dispatch(navigateUp())
   },
