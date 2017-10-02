@@ -4248,15 +4248,15 @@ func (mr *MockBlockOpsMockRecorder) Archive(ctx, tlfID, ptrs interface{}) *gomoc
 }
 
 // TogglePrefetcher mocks base method
-func (m *MockBlockOps) TogglePrefetcher(ctx context.Context, enable bool) <-chan struct{} {
-	ret := m.ctrl.Call(m, "TogglePrefetcher", ctx, enable)
+func (m *MockBlockOps) TogglePrefetcher(enable bool) <-chan struct{} {
+	ret := m.ctrl.Call(m, "TogglePrefetcher", enable)
 	ret0, _ := ret[0].(<-chan struct{})
 	return ret0
 }
 
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
-func (mr *MockBlockOpsMockRecorder) TogglePrefetcher(ctx, enable interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockOps)(nil).TogglePrefetcher), ctx, enable)
+func (mr *MockBlockOpsMockRecorder) TogglePrefetcher(enable interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockOps)(nil).TogglePrefetcher), enable)
 }
 
 // Prefetcher mocks base method
@@ -8592,13 +8592,13 @@ func (mr *MockBlockRetrieverMockRecorder) PutInCaches(ctx, ptr, tlfID, block, li
 }
 
 // TogglePrefetcher mocks base method
-func (m *MockBlockRetriever) TogglePrefetcher(ctx context.Context, enable bool, syncCh <-chan struct{}) <-chan struct{} {
-	ret := m.ctrl.Call(m, "TogglePrefetcher", ctx, enable, syncCh)
+func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{} {
+	ret := m.ctrl.Call(m, "TogglePrefetcher", enable, syncCh)
 	ret0, _ := ret[0].(<-chan struct{})
 	return ret0
 }
 
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
-func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(ctx, enable, syncCh interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), ctx, enable, syncCh)
+func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh)
 }

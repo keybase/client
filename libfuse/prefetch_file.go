@@ -41,7 +41,7 @@ func (f *PrefetchFile) Write(ctx context.Context, req *fuse.WriteRequest,
 		return nil
 	}
 
-	f.fs.config.BlockOps().TogglePrefetcher(ctx, f.enable)
+	f.fs.config.BlockOps().TogglePrefetcher(f.enable)
 
 	resp.Size = len(req.Data)
 	return nil

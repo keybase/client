@@ -288,7 +288,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	continueChDirA <- nil
 	t.Log("Wait for the prefetch to finish.")
 	<-q.Prefetcher().Shutdown()
-	q.TogglePrefetcher(context.Background(), true, nil)
+	q.TogglePrefetcher(true, nil)
 
 	t.Log("Ensure that the prefetched block is in the cache.")
 	block, err = cache.Get(rootDir.Children["a"].BlockPointer)
@@ -313,7 +313,7 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 	continueChFileB <- nil
 	t.Log("Wait for the prefetch to finish.")
 	<-q.Prefetcher().Shutdown()
-	q.TogglePrefetcher(context.Background(), true, nil)
+	q.TogglePrefetcher(true, nil)
 
 	testPrefetcherCheckGet(t, cache, dirA.Children["b"].BlockPointer, fileB,
 		NoPrefetch, TransientEntry)
@@ -374,7 +374,7 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Wait for the prefetch to finish, then verify that the prefetched " +
 		"block is in the cache.")
 	<-q.Prefetcher().Shutdown()
-	q.TogglePrefetcher(context.Background(), true, nil)
+	q.TogglePrefetcher(true, nil)
 	testPrefetcherCheckGet(t, config.BlockCache(), ptrA, fileA, NoPrefetch,
 		TransientEntry)
 
@@ -447,7 +447,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
@@ -529,7 +529,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 	// Then we wait for the pending prefetches to complete.
 	<-q.Prefetcher().Shutdown()
-	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Ensure that the prefetched blocks are all in the cache.")
@@ -580,7 +580,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 	ctx := context.Background()
 
@@ -640,7 +640,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 
 	t.Log("Wait for the prefetch to finish.")
 	<-q.Prefetcher().Shutdown()
-	q.TogglePrefetcher(ctx, true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Ensure that the prefetched blocks are in the cache.")
@@ -718,7 +718,7 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -856,7 +856,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -904,7 +904,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 
 	t.Log("Now set the folder to sync.")
 	config.SetTlfSyncState(kmd.TlfID(), true)
-	q.TogglePrefetcher(context.Background(), true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Fetch dir root again.")

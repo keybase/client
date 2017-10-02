@@ -456,14 +456,13 @@ func (brq *blockRetrievalQueue) Shutdown() {
 // TogglePrefetcher allows upstream components to turn the prefetcher on or
 // off. If an error is returned due to a context cancelation, the prefetcher is
 // never re-enabled.
-func (brq *blockRetrievalQueue) TogglePrefetcher(ctx context.Context,
-	enable bool, testSyncCh <-chan struct{}) <-chan struct{} {
+func (brq *blockRetrievalQueue) TogglePrefetcher(enable bool,
+	testSyncCh <-chan struct{}) <-chan struct{} {
 	// We must hold this lock for the whole function so that multiple calls to
 	// this function doesn't leak prefetchers.
 	brq.prefetchMtx.Lock()
 	defer brq.prefetchMtx.Unlock()
-	// Don't wait for the existing prefetcher to shutdown so we don't deadlock
-	// any callers.
+	// Allow the caller to block on the current shutdown.
 	ch := brq.prefetcher.Shutdown()
 	if enable {
 		brq.prefetcher = newBlockPrefetcher(brq, brq.config, testSyncCh)

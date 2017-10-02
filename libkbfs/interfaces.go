@@ -1309,7 +1309,7 @@ type BlockOps interface {
 	Archive(ctx context.Context, tlfID tlf.ID, ptrs []BlockPointer) error
 
 	// TogglePrefetcher activates or deactivates the prefetcher.
-	TogglePrefetcher(ctx context.Context, enable bool) <-chan struct{}
+	TogglePrefetcher(enable bool) <-chan struct{}
 
 	// Prefetcher retrieves this BlockOps' Prefetcher.
 	Prefetcher() Prefetcher
@@ -2332,6 +2332,5 @@ type BlockRetriever interface {
 		block Block, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus) error
 	// TogglePrefetcher creates a new prefetcher.
-	TogglePrefetcher(ctx context.Context, enable bool,
-		syncCh <-chan struct{}) <-chan struct{}
+	TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{}
 }
