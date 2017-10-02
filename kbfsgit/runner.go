@@ -688,8 +688,10 @@ func (r *runner) processGogitStatus(ctx context.Context,
 				lastByteCount = 0
 				currStage = update.Stage
 				startTime = r.config.Clock().Now()
-				r.log.CDebugf(ctx, "Entering stage: %s %s total",
-					gogitStagesToStatus[update.Stage], update.ObjectsTotal)
+				if stage, ok := gogitStagesToStatus[update.Stage]; ok {
+					r.log.CDebugf(ctx, "Entering stage: %s - %d total objects",
+						stage, update.ObjectsTotal)
+				}
 			}
 			eraseStr := strings.Repeat("\b", lastByteCount)
 			newStr := ""
