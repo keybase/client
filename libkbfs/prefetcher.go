@@ -236,12 +236,10 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		case reqInt := <-p.prefetchRequestCh.Out():
 			req := reqInt.(*prefetchRequest)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
-			if isPrefetchWaiting {
-				if pre.req == nil {
-					// If this prefetch already appeared in the tree, ensure it
-					// has a req associated with it.
-					pre.req = req
-				}
+			if isPrefetchWaiting && pre.req == nil {
+				// If this prefetch already appeared in the tree, ensure it
+				// has a req associated with it.
+				pre.req = req
 			}
 			if req.prefetchStatus == FinishedPrefetch {
 				p.log.Debug("prefetch already finished for block %s",
