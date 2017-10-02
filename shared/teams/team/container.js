@@ -74,6 +74,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   withState('showMenu', 'setShowMenu', false),
+  withState('selectedTab', 'setSelectedTab', 'members'),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {

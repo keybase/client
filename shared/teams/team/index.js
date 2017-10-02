@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
+import {Avatar, Box, Text, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
+import TabBar, {TabBarItem} from '../../common-adapters/tab-bar'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -15,7 +16,10 @@ export type Props = {
   members: Array<RowProps>,
   requests: string[],
   loading: boolean,
+  showMenu: boolean,
+  selectedTab: string,
   setShowMenu: (s: boolean) => void,
+  setSelectedTab: (t: string) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
 }
@@ -76,7 +80,7 @@ const Help = isMobile
     )
 
 class Team extends React.PureComponent<Props> {
-  _renderItem = (index: number, item: RowProps) => {
+  _renderMember = (index: number, item: RowProps) => {
     return (
       <Box
         key={item.username}
@@ -112,23 +116,26 @@ class Team extends React.PureComponent<Props> {
   }
 
   render() {
-    const {name, members, requests, setShowMenu, onLeaveTeam, loading, onManageChat} = this.props
-    const tabs = [
-      <Text
-        key="members"
-        type="BodySmallSemibold"
-        style={{
-          color: globalColors.black_75,
-        }}
-      >
-        MEMBERS {(!loading || members.length !== 0) && '(' + members.length + ')'}
-      </Text>,
-      <Text key="requests" type="BodySmallSemibold" style={{color: globalColors.black_75}}>
-        REQUESTS ({requests.length}){' '}
-      </Text>,
-    ]
+    const {
+      name,
+      members,
+      requests,
+      showMenu,
+      setShowMenu,
+      selectedTab,
+      setSelectedTab,
+      onLeaveTeam,
+      loading,
+      onManageChat,
+    } = this.props
+
     // TODO admin lets us have multiple tabs
-    const selectedTab = tabs[0]
+    let membersLabel = 'MEMBERS'
+    membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
+    const requestsLabel = `REQUESTS (${requests.length})`
+
+    const progressIndicator =
+      members.length === 0 && loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
@@ -138,17 +145,31 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-        <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />
-        {members.length === 0 && loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />}
-        {(members.length !== 0 || !loading) &&
-          <List
-            keyProperty="username"
-            items={members}
-            fixedHeight={48}
-            renderItem={this._renderItem}
-            style={{alignSelf: 'stretch'}}
-          />}
-        {this.props.showMenu &&
+        <TabBar style={{flex: 1, width: '100%'}}>
+          <TabBarItem
+            selected={selectedTab === 'members'}
+            label={membersLabel}
+            onClick={() => setSelectedTab && setSelectedTab('members')}
+          >
+            {progressIndicator}
+            {(members.length !== 0 || !loading) &&
+              <List
+                keyProperty="username"
+                items={members}
+                fixedHeight={48}
+                renderItem={this._renderMember}
+                style={{alignSelf: 'stretch'}}
+              />}
+          </TabBarItem>
+          <TabBarItem
+            selected={selectedTab === 'requests'}
+            label={requestsLabel}
+            onClick={() => setSelectedTab && setSelectedTab('requests')}
+          >
+            <Box style={{marginTop: globalMargins.small}}><Text type="Terminal">TEST</Text></Box>
+          </TabBarItem>
+        </TabBar>
+        {showMenu &&
           <PopupMenu
             items={[
               {onClick: onManageChat, title: 'Manage chat channels'},
