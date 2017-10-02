@@ -383,10 +383,16 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
 				return nil
 			}
+			if !haveMode {
+				idMode = keybase1.TLFIdentifyBehavior_CHAT_GUI
+			}
 
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
 
+			var names []string
 			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_KBFS:
+				names = strings.Split(strings.Fields(tlfName)[0], ",")
 			case chat1.ConversationMembersType_TEAM:
 				// early out of team convs
 				return nil
@@ -396,23 +402,23 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				for _, guid := range conv.Metadata.AllList {
 					allkuids = append(allkuids, keybase1.UID(guid.String()))
 				}
-				unames, err := s.G().UIDMapper.MapUIDsToUsernames(ctx, s.G(), allkuids)
+				rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), allkuids, 0, 0, false)
 				if err != nil {
 					return err
 				}
-				var nameStrs []string
-				for _, uname := range unames {
-					nameStrs = append(nameStrs, uname.String())
+				unames := make([]libkb.NormalizedUsername, len(rows), len(rows))
+				for i, row := range rows {
+					unames[i] = row.NormalizedUsername
 				}
-				tlfName = strings.Join(nameStrs, ",")
-				s.Debug(ctx, "identifyTLF: implicit team TLF, identify name", tlfName)
+				for _, uname := range unames {
+					names = append(names, uname.String())
+				}
 			}
 
-			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
-				msg.GetMessageID(), tlfName, conv.GetConvID())
-
-			_, err := CtxKeyFinder(ctx, s.G()).Find(ctx, tlfName, conv.GetMembersType(),
-				msg.Valid().ClientHeader.TlfPublic)
+			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
+				msg.GetMessageID(), names, conv.GetConvID())
+			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic,
+				idMode)
 			if err != nil {
 				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s err: %s", tlfName, conv.GetConvID(),
 					err)

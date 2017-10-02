@@ -110,16 +110,16 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		res.CryptKeys = []types.CryptKey{publicCryptKey}
 	}
 
+	var names []string
+	names = append(names, impTeamName.Writers.KeybaseUsers...)
+	names = append(names, impTeamName.Readers.KeybaseUsers...)
+
 	// identify the members in the conversation
 	identBehavior, breaks, ok := IdentifyMode(ctx)
 	if !ok {
 		return res, errors.New("invalid context with no chat metadata")
 	}
-	query := keybase1.TLFQuery{
-		TlfName:          impTeamName.String(),
-		IdentifyBehavior: identBehavior,
-	}
-	ib, err := t.Identify(ctx, query, true)
+	ib, err := t.Identify(ctx, names, true, identBehavior)
 	if err != nil {
 		return res, err
 	}

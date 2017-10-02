@@ -2768,122 +2768,111 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 }
 
 func TestChatSrvImplicitConversation(t *testing.T) {
-	os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "impteam")
-	defer os.Setenv("KEYBASE_CHAT_MEMBER_TYPE", "")
-	useRemoteMock = false
-	defer func() {
-		useRemoteMock = true
-	}()
-	ctc := makeChatTestContext(t, "ImplicitConversation", 2)
-	defer ctc.cleanup()
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		if mt != chat1.ConversationMembersType_IMPTEAM {
+			return
+		}
+		ctc := makeChatTestContext(t, "ImplicitConversation", 2)
+		defer ctc.cleanup()
 
-	users := ctc.users()
-	displayName := users[0].Username + "," + users[1].Username
+		users := ctc.users()
+		displayName := users[0].Username + "," + users[1].Username
 
-	listener := newServerChatListener()
-	ctc.as(t, users[0]).h.G().SetService()
-	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
 
-	tc := ctc.world.Tcs[users[0].Username]
-	ctx := ctc.as(t, users[0]).startCtx
-	res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
-		chat1.FindConversationsLocalArg{
-			TlfName:          displayName,
-			MembersType:      chat1.ConversationMembersType_IMPTEAM,
-			Visibility:       keybase1.TLFVisibility_PRIVATE,
-			TopicType:        chat1.TopicType_CHAT,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-	require.NoError(t, err)
-	require.Equal(t, 0, len(res.Conversations), "conv found")
+		tc := ctc.world.Tcs[users[0].Username]
+		ctx := ctc.as(t, users[0]).startCtx
+		res, err := ctc.as(t, users[0]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          displayName,
+				MembersType:      chat1.ConversationMembersType_IMPTEAM,
+				Visibility:       keybase1.TLFVisibility_PRIVATE,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 0, len(res.Conversations), "conv found")
 
-	// make the implicit team
-	implicitTeamDesc := keybase1.ImplicitTeamDisplayName{
-		Writers: keybase1.ImplicitTeamUserSet{
-			KeybaseUsers: []string{users[0].Username, users[1].Username},
-		},
-	}
-	impTeamID, impTeamName, err := teams.CreateImplicitTeam(ctx, tc.G, implicitTeamDesc)
-	require.NoError(t, err)
-	require.True(t, impTeamID.IsRootTeam(), "not root team")
+		// create a new conversation
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:          displayName,
+				TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
+				TopicType:        chat1.TopicType_CHAT,
+				MembersType:      chat1.ConversationMembersType_IMPTEAM,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
 
-	// create a new conversation
-	ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
-		chat1.NewConversationLocalArg{
-			TlfName:          impTeamName.String(),
-			TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
-			TopicType:        chat1.TopicType_CHAT,
-			MembersType:      chat1.ConversationMembersType_IMPTEAM,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		})
-	require.NoError(t, err)
+		ctx = ctc.as(t, users[0]).startCtx
+		uid := users[0].User.GetUID().ToBytes()
+		conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
+		require.NoError(t, err)
+		require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
+		require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAM, "implicit team")
 
-	ctx = ctc.as(t, users[0]).startCtx
-	uid := users[0].User.GetUID().ToBytes()
-	conv, _, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
-	require.NoError(t, err)
-	require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
-	require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAM, "implicit team")
+		t.Logf("ncres tlf name: %s", ncres.Conv.Info.TlfName)
 
-	t.Logf("ncres tlf name: %s", ncres.Conv.Info.TlfName)
-
-	// user 0 sends a message to conv
-	_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
-		ConversationID: ncres.Conv.Info.Id,
-		Msg: chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        ncres.Conv.Info.Triple,
-				MessageType: chat1.MessageType_TEXT,
-				TlfName:     ncres.Conv.Info.TlfName,
+		// user 0 sends a message to conv
+		_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+			ConversationID: ncres.Conv.Info.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        ncres.Conv.Info.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     ncres.Conv.Info.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "HI",
+				}),
 			},
-			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "HI",
-			}),
-		},
-	})
-	require.NoError(t, err)
-
-	// check identify updates
-	var update keybase1.CanonicalTLFNameAndIDWithBreaks
-	select {
-	case update = <-listener.identifyUpdate:
-		t.Logf("identify update: %+v", update)
-	case <-time.After(20 * time.Second):
-		t.Fatal("timed out waiting for identify update")
-	}
-	require.EqualValues(t, update.CanonicalName, ncres.Conv.Info.TlfName)
-	require.Empty(t, update.Breaks.Breaks)
-
-	// user 1 sends a message to conv
-	ctx = ctc.as(t, users[1]).startCtx
-	_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
-		ConversationID: ncres.Conv.Info.Id,
-		Msg: chat1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        ncres.Conv.Info.Triple,
-				MessageType: chat1.MessageType_TEXT,
-				TlfName:     ncres.Conv.Info.TlfName,
-			},
-			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "Hello",
-			}),
-		},
-	})
-	require.NoError(t, err)
-
-	// user 1 finds the conversation
-	tc = ctc.world.Tcs[users[1].Username]
-	ctx = ctc.as(t, users[1]).startCtx
-	res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
-		chat1.FindConversationsLocalArg{
-			TlfName:          displayName,
-			MembersType:      chat1.ConversationMembersType_IMPTEAM,
-			Visibility:       keybase1.TLFVisibility_PRIVATE,
-			TopicType:        chat1.TopicType_CHAT,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
-	require.NoError(t, err)
-	require.Equal(t, 1, len(res.Conversations), "no convs found")
+		require.NoError(t, err)
+
+		// check identify updates
+		var update keybase1.CanonicalTLFNameAndIDWithBreaks
+		select {
+		case update = <-listener.identifyUpdate:
+			t.Logf("identify update: %+v", update)
+		case <-time.After(20 * time.Second):
+			t.Fatal("timed out waiting for identify update")
+		}
+		require.EqualValues(t, update.CanonicalName, ncres.Conv.Info.TlfName)
+		require.Empty(t, update.Breaks.Breaks)
+
+		// user 1 sends a message to conv
+		ctx = ctc.as(t, users[1]).startCtx
+		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+			ConversationID: ncres.Conv.Info.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        ncres.Conv.Info.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     ncres.Conv.Info.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "Hello",
+				}),
+			},
+		})
+		require.NoError(t, err)
+
+		// user 1 finds the conversation
+		tc = ctc.world.Tcs[users[1].Username]
+		ctx = ctc.as(t, users[1]).startCtx
+		res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
+			chat1.FindConversationsLocalArg{
+				TlfName:          displayName,
+				MembersType:      chat1.ConversationMembersType_IMPTEAM,
+				Visibility:       keybase1.TLFVisibility_PRIVATE,
+				TopicType:        chat1.TopicType_CHAT,
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(res.Conversations), "no convs found")
+	})
 }
 
 func TestChatSrvImpTeamExistingKBFS(t *testing.T) {
