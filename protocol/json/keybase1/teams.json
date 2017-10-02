@@ -623,6 +623,14 @@
             "keys": "TeamInviteID"
           },
           "name": "activeInvites"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "openTeamJoinAs"
         }
       ]
     },
@@ -789,6 +797,40 @@
             "items": "TeamInvitee"
           },
           "name": "invitees"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamAccessRequest",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamOpenReqMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamAccessRequest"
+          },
+          "name": "tars"
         }
       ],
       "lint": "ignore"
@@ -1063,6 +1105,20 @@
     },
     {
       "type": "record",
+      "name": "TeamSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "joinAs"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamUserSet",
       "fields": [
         {
@@ -1136,6 +1192,27 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        }
+      ],
+      "response": "TeamCreateResult"
+    },
+    "teamCreateWithSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
         }
       ],
       "response": "TeamCreateResult"
@@ -1406,6 +1483,23 @@
         {
           "name": "name",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamSetSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
         }
       ],
       "response": null

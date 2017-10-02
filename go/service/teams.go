@@ -36,6 +36,15 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 }
 
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
+	arg2 := keybase1.TeamCreateWithSettingsArg{
+		SessionID:            arg.SessionID,
+		Name:                 arg.Name,
+		SendChatNotification: arg.SendChatNotification,
+	}
+	return h.TeamCreateWithSettings(ctx, arg2)
+}
+
+func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.TeamCreateWithSettingsArg) (res keybase1.TeamCreateResult, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), func() error { return err })()
 	teamName, err := keybase1.TeamNameFromString(arg.Name)
 	if err != nil {
@@ -54,7 +63,7 @@ func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateAr
 			return res, err
 		}
 	} else {
-		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String()); err != nil {
+		if err := teams.CreateRootTeam(ctx, h.G().ExternalG(), teamName.String(), arg.Settings); err != nil {
 			return res, err
 		}
 		res.CreatorAdded = true
@@ -224,6 +233,10 @@ func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteAr
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDelete(%s)", arg.Name), func() error { return err })()
 	ui := h.getTeamsUI(arg.SessionID)
 	return teams.Delete(ctx, h.G().ExternalG(), ui, arg.Name)
+}
+
+func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
+	return fmt.Errorf("Not implemented")
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

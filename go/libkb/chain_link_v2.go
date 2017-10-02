@@ -43,6 +43,8 @@ const (
 	SigchainV2TypeTeamDeleteRoot       SigchainV2Type = 42
 	SigchainV2TypeTeamDeleteSubteam    SigchainV2Type = 43
 	SigchainV2TypeTeamDeleteUpPointer  SigchainV2Type = 44
+	SigchainV2TypeTeamLegacyTLFUpgrade SigchainV2Type = 45
+	SigchainV2TypeTeamSettings         SigchainV2Type = 46
 )
 
 func (t SigchainV2Type) NeedsSignature() bool {
@@ -64,7 +66,8 @@ func (t SigchainV2Type) IsTeamType() bool {
 		SigchainV2TypeTeamSubteamHead,
 		SigchainV2TypeTeamRenameSubteam,
 		SigchainV2TypeTeamInvite,
-		SigchainV2TypeTeamRenameUpPointer:
+		SigchainV2TypeTeamRenameUpPointer,
+		SigchainV2TypeTeamSettings:
 		return true
 	default:
 		return false
@@ -268,6 +271,10 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamDeleteSubteam
 	case LinkTypeDeleteUpPointer:
 		ret = SigchainV2TypeTeamDeleteUpPointer
+	case LinkTypeLegacyTLFUpgrade:
+		ret = SigchainV2TypeTeamLegacyTLFUpgrade
+	case LinkTypeSettings:
+		ret = SigchainV2TypeTeamSettings
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}

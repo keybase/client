@@ -199,3 +199,47 @@ func assertCanAcceptKeybaseInvite(ctx context.Context, g *libkb.GlobalContext, u
 
 	return fmt.Errorf("chain keybase invite link eldest seqno %d does not match eldest seqno %d in team.sbs message", chainUV.EldestSeqno, untrustedInviteeFromGregor.EldestSeqno)
 }
+
+func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamOpenReqMsg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          msg.TeamID,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	if !team.IsOpen() {
+		g.Log.CDebugf(ctx, "team %q is not an open team", team.Name)
+		return nil // Not an error - let the handler dismiss the message.
+	}
+
+	var req keybase1.TeamChangeReq
+	role := team.chain().inner.OpenTeamJoinAs
+
+	for _, tar := range msg.Tars {
+		uv := NewUserVersion(tar.Uid, tar.EldestSeqno)
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+
+		if currentRole.IsOrAbove(role) {
+			continue
+		}
+
+		switch role {
+		case keybase1.TeamRole_READER:
+			req.Readers = append(req.Readers, uv)
+		case keybase1.TeamRole_WRITER:
+			req.Writers = append(req.Writers, uv)
+		default:
+			return fmt.Errorf("Unexpected role to add to open team: %v", role)
+		}
+	}
+
+	return team.ChangeMembership(ctx, req)
+}

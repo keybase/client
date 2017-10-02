@@ -706,22 +706,24 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 }
 
 type TeamSigChainState struct {
-	Reader        UserVersion                         `codec:"reader" json:"reader"`
-	Id            TeamID                              `codec:"id" json:"id"`
-	Implicit      bool                                `codec:"implicit" json:"implicit"`
-	Public        bool                                `codec:"public" json:"public"`
-	RootAncestor  TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
-	NameDepth     int                                 `codec:"nameDepth" json:"nameDepth"`
-	NameLog       []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
-	LastSeqno     Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
-	LastLinkID    LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
-	ParentID      *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
-	UserLog       map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
-	SubteamLog    map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
-	PerTeamKeys   map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
-	LinkIDs       map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
-	StubbedLinks  map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
-	ActiveInvites map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
+	Reader         UserVersion                         `codec:"reader" json:"reader"`
+	Id             TeamID                              `codec:"id" json:"id"`
+	Implicit       bool                                `codec:"implicit" json:"implicit"`
+	Public         bool                                `codec:"public" json:"public"`
+	RootAncestor   TeamName                            `codec:"rootAncestor" json:"rootAncestor"`
+	NameDepth      int                                 `codec:"nameDepth" json:"nameDepth"`
+	NameLog        []TeamNameLogPoint                  `codec:"nameLog" json:"nameLog"`
+	LastSeqno      Seqno                               `codec:"lastSeqno" json:"lastSeqno"`
+	LastLinkID     LinkID                              `codec:"lastLinkID" json:"lastLinkID"`
+	ParentID       *TeamID                             `codec:"parentID,omitempty" json:"parentID,omitempty"`
+	UserLog        map[UserVersion][]UserLogPoint      `codec:"userLog" json:"userLog"`
+	SubteamLog     map[TeamID][]SubteamLogPoint        `codec:"subteamLog" json:"subteamLog"`
+	PerTeamKeys    map[PerTeamKeyGeneration]PerTeamKey `codec:"perTeamKeys" json:"perTeamKeys"`
+	LinkIDs        map[Seqno]LinkID                    `codec:"linkIDs" json:"linkIDs"`
+	StubbedLinks   map[Seqno]bool                      `codec:"stubbedLinks" json:"stubbedLinks"`
+	ActiveInvites  map[TeamInviteID]TeamInvite         `codec:"activeInvites" json:"activeInvites"`
+	Open           bool                                `codec:"open" json:"open"`
+	OpenTeamJoinAs TeamRole                            `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -844,6 +846,8 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.ActiveInvites),
+		Open:           o.Open,
+		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
 	}
 }
 
@@ -988,6 +992,40 @@ func (o TeamSBSMsg) DeepCopy() TeamSBSMsg {
 			}
 			return ret
 		})(o.Invitees),
+	}
+}
+
+type TeamAccessRequest struct {
+	Uid         UID   `codec:"uid" json:"uid"`
+	EldestSeqno Seqno `codec:"eldestSeqno" json:"eldest_seqno"`
+}
+
+func (o TeamAccessRequest) DeepCopy() TeamAccessRequest {
+	return TeamAccessRequest{
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+	}
+}
+
+type TeamOpenReqMsg struct {
+	TeamID TeamID              `codec:"teamID" json:"team_id"`
+	Tars   []TeamAccessRequest `codec:"tars" json:"tars"`
+}
+
+func (o TeamOpenReqMsg) DeepCopy() TeamOpenReqMsg {
+	return TeamOpenReqMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		Tars: (func(x []TeamAccessRequest) []TeamAccessRequest {
+			if x == nil {
+				return nil
+			}
+			var ret []TeamAccessRequest
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Tars),
 	}
 }
 
@@ -1238,6 +1276,18 @@ func (o TeamCreateResult) DeepCopy() TeamCreateResult {
 	}
 }
 
+type TeamSettings struct {
+	Open   bool     `codec:"open" json:"open"`
+	JoinAs TeamRole `codec:"joinAs" json:"joinAs"`
+}
+
+func (o TeamSettings) DeepCopy() TeamSettings {
+	return TeamSettings{
+		Open:   o.Open,
+		JoinAs: o.JoinAs.DeepCopy(),
+	}
+}
+
 type ImplicitTeamUserSet struct {
 	KeybaseUsers    []string          `codec:"keybaseUsers" json:"keybaseUsers"`
 	UnresolvedUsers []SocialAssertion `codec:"unresolvedUsers" json:"unresolvedUsers"`
@@ -1316,6 +1366,22 @@ func (o TeamCreateArg) DeepCopy() TeamCreateArg {
 		SessionID:            o.SessionID,
 		Name:                 o.Name,
 		SendChatNotification: o.SendChatNotification,
+	}
+}
+
+type TeamCreateWithSettingsArg struct {
+	SessionID            int          `codec:"sessionID" json:"sessionID"`
+	Name                 string       `codec:"name" json:"name"`
+	SendChatNotification bool         `codec:"sendChatNotification" json:"sendChatNotification"`
+	Settings             TeamSettings `codec:"settings" json:"settings"`
+}
+
+func (o TeamCreateWithSettingsArg) DeepCopy() TeamCreateWithSettingsArg {
+	return TeamCreateWithSettingsArg{
+		SessionID:            o.SessionID,
+		Name:                 o.Name,
+		SendChatNotification: o.SendChatNotification,
+		Settings:             o.Settings.DeepCopy(),
 	}
 }
 
@@ -1539,6 +1605,20 @@ func (o TeamDeleteArg) DeepCopy() TeamDeleteArg {
 	}
 }
 
+type TeamSetSettingsArg struct {
+	SessionID int          `codec:"sessionID" json:"sessionID"`
+	Name      string       `codec:"name" json:"name"`
+	Settings  TeamSettings `codec:"settings" json:"settings"`
+}
+
+func (o TeamSetSettingsArg) DeepCopy() TeamSetSettingsArg {
+	return TeamSetSettingsArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Settings:  o.Settings.DeepCopy(),
+	}
+}
+
 type LookupImplicitTeamArg struct {
 	Name   string `codec:"name" json:"name"`
 	Public bool   `codec:"public" json:"public"`
@@ -1605,6 +1685,7 @@ func (o GetTeamRootIDArg) DeepCopy() GetTeamRootIDArg {
 
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
+	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
 	TeamGet(context.Context, TeamGetArg) (TeamDetails, error)
 	TeamList(context.Context, TeamListArg) (AnnotatedTeamList, error)
 	TeamListSubteamsRecursive(context.Context, TeamListSubteamsRecursiveArg) ([]TeamIDAndName, error)
@@ -1621,6 +1702,7 @@ type TeamsInterface interface {
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
+	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (TeamID, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (TeamID, error)
 	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
@@ -1647,6 +1729,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.TeamCreate(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"teamCreateWithSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamCreateWithSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamCreateWithSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamCreateWithSettingsArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateWithSettings(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1907,6 +2005,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamSetSettings": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamSetSettingsArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamSetSettingsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamSetSettingsArg)(nil), args)
+						return
+					}
+					err = i.TeamSetSettings(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"lookupImplicitTeam": {
 				MakeArg: func() interface{} {
 					ret := make([]LookupImplicitTeamArg, 1)
@@ -2000,6 +2114,11 @@ func (c TeamsClient) TeamCreate(ctx context.Context, __arg TeamCreateArg) (res T
 	return
 }
 
+func (c TeamsClient) TeamCreateWithSettings(ctx context.Context, __arg TeamCreateWithSettingsArg) (res TeamCreateResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateWithSettings", []interface{}{__arg}, &res)
+	return
+}
+
 func (c TeamsClient) TeamGet(ctx context.Context, __arg TeamGetArg) (res TeamDetails, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamGet", []interface{}{__arg}, &res)
 	return
@@ -2078,6 +2197,11 @@ func (c TeamsClient) TeamTree(ctx context.Context, __arg TeamTreeArg) (res TeamT
 
 func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamDelete", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []interface{}{__arg}, nil)
 	return
 }
 
