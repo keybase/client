@@ -40,6 +40,31 @@ func (h *GitHandler) GetAllGitMetadata(ctx context.Context) ([]keybase1.GitRepoR
 	return git.GetAllMetadata(ctx, h.G())
 }
 
+// In several cases (implicit admins doing anything, writers doing deletes),
+// KBFS will allow or give confusing error messages for operations that don't
+// have the right permissions. Doing an explicit check for these helps us give
+// clear errors.
+//
+// Note that the minimumRole here does *not* respect implicit adminship.
+func isRoleAtLeast(ctx context.Context, g *libkb.GlobalContext, teamName string, minimumRole keybase1.TeamRole) (bool, error) {
+	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
+		Name:        teamName,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return false, err
+	}
+	self, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{UID: g.GetMyUID()})
+	if err != nil {
+		return false, err
+	}
+	role, err := team.MemberRole(ctx, self.Current.ToUserVersion())
+	if err != nil {
+		return false, fmt.Errorf("self role missing from team %s", teamName)
+	}
+	return role.IsOrAbove(minimumRole), nil
+}
+
 func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.Folder, repoName keybase1.GitRepoName, notifyTeam bool) (keybase1.RepoID, error) {
 	client, err := h.kbfsClient()
 	if err != nil {
@@ -85,6 +110,15 @@ func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.G
 }
 
 func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (keybase1.RepoID, error) {
+	// This prevents implicit admins from getting a confusing error message.
+	isWriter, err := isRoleAtLeast(ctx, h.G(), arg.TeamName.String(), keybase1.TeamRole_WRITER)
+	if err != nil {
+		return "", err
+	}
+	if !isWriter {
+		return "", fmt.Errorf("Only team writers may create git repos.")
+	}
+
 	folder := keybase1.Folder{
 		Name:       arg.TeamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
@@ -123,22 +157,11 @@ func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeam
 	// enforce this requirement, so a non-admin could get around it by hacking
 	// up their own client, but they could already wreak a lot of abuse by
 	// pushing garbage to the repo, so we don't consider this a big deal.
-	team, err := teams.Load(ctx, h.G(), keybase1.LoadTeamArg{
-		Name:        arg.TeamName.String(),
-		ForceRepoll: true,
-	})
+	isAdmin, err := isRoleAtLeast(ctx, h.G(), arg.TeamName.String(), keybase1.TeamRole_ADMIN)
 	if err != nil {
 		return err
 	}
-	self, _, err := h.G().GetUPAKLoader().LoadV2(libkb.LoadUserArg{UID: h.G().GetMyUID()})
-	if err != nil {
-		return err
-	}
-	role, err := team.MemberRole(ctx, self.Current.ToUserVersion())
-	if err != nil {
-		return fmt.Errorf("self role missing from team %s", arg.TeamName)
-	}
-	if !role.IsAdminOrAbove() {
+	if !isAdmin {
 		return fmt.Errorf("Only team admins may delete git repos.")
 	}
 
