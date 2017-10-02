@@ -431,6 +431,8 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	}
 	// Clearing references to the requested blocks seems to plug a
 	// leak, but not sure why yet.
+	// TODO: strib fixed this earlier. Should be safe to remove here, but
+	// follow up in PR.
 	retrieval.requests = nil
 }
 
