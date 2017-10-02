@@ -501,7 +501,7 @@ func TestLoaderGetImplicitAdminsList(t *testing.T) {
 // U0 creates a subteam
 // U0 adds U1 to the root team
 // U1 should not see any subteams
-func TestHiddenSubteam(t *testing.T) {
+func TestLoaderHiddenSubteam(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -539,21 +539,21 @@ func TestHiddenSubteam(t *testing.T) {
 	require.Len(t, team.chain().inner.SubteamLog, 0, "subteam log should be empty because all subteam links were stubbed for this user")
 }
 
-func TestSubteamHopWithNone(t *testing.T) {
-	testSubteamHop(t, keybase1.TeamRole_NONE)
+func TestLoaderSubteamHopWithNone(t *testing.T) {
+	testLoaderSubteamHop(t, keybase1.TeamRole_NONE)
 }
 
 // A member of A and A.B.C but not A.B should be able to load A.B.C
 // when they have already cached A with the new_subteam stubbed out.
-func TestSubteamHopWithWriter(t *testing.T) {
-	testSubteamHop(t, keybase1.TeamRole_WRITER)
+func TestLoaderSubteamHopWithWriter(t *testing.T) {
+	testLoaderSubteamHop(t, keybase1.TeamRole_WRITER)
 }
 
-func TestSubteamHopWithAdmin(t *testing.T) {
-	testSubteamHop(t, keybase1.TeamRole_ADMIN)
+func TestLoaderSubteamHopWithAdmin(t *testing.T) {
+	testLoaderSubteamHop(t, keybase1.TeamRole_ADMIN)
 }
 
-func testSubteamHop(t *testing.T, roleInRoot keybase1.TeamRole) {
+func testLoaderSubteamHop(t *testing.T, roleInRoot keybase1.TeamRole) {
 	t.Logf("testing with roleInRoot: %v", roleInRoot)
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
@@ -598,4 +598,39 @@ func testSubteamHop(t *testing.T, roleInRoot keybase1.TeamRole) {
 		})
 		require.Error(t, err, "shouldn't load team")
 	}
+}
+
+func TestLoaderCORE_6230(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to A")
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U1 loads and caches A")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+
+	t.Logf("U0 creates A.B")
+	subteamName, subteamID := createSubteam(tcs[0], rootName, "bbb")
+
+	t.Logf("U0 adds U1 to A.B")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U1 loads A.B")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subteamID,
+		ForceRepoll: true,
+	})
+	// There was a bug where this would fail with:
+	//   proof error for proof 'became admin before team link': no linkID for seqno 3
+	require.NoError(t, err, "load team")
 }
