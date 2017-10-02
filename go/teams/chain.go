@@ -1433,11 +1433,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		}
 
 		res.newState = prevState.DeepCopy()
-		if settings := team.Settings; settings != nil {
-			err = t.parseTeamSettings(settings, &res.newState)
-			return res, err
-		}
-		return res, errors.New("team.settings signature without settings object")
+		err = t.parseTeamSettings(team.Settings, &res.newState)
+		return res, err
 	case "":
 		return res, errors.New("empty body type")
 	default:
