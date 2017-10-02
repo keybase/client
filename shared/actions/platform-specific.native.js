@@ -194,27 +194,29 @@ function configurePush() {
 // and see if that is really the problem.
 
 function persistRouteState(): AsyncAction {
-  return (dispatch, getState) => {
+  return async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     const routeState = getState().routeTree.routeState
-    const toWrite = {}
+    const item = {}
 
     const selectedTab = routeState.selected
     if (selectedTab) {
-      toWrite.tab = selectedTab
-    }
-
-    if (selectedTab === chatTab) {
-      const tab = routeState.children.get(chatTab)
-      if (tab && tab.selected) {
-        toWrite.selectedConversationIDKey = tab.selected
+      item.tab = selectedTab
+      if (selectedTab === chatTab) {
+        const tab = routeState.children.get(chatTab)
+        if (tab && tab.selected) {
+          item.selectedConversationIDKey = tab.selected
+        }
       }
     }
 
-    const s = JSON.stringify(toWrite)
-    AsyncStorage.setItem('routeState', s, err => {
-      console.log('persistRouteState:', s)
-      err && console.warn('persistRouteState: Error setting routeState:', err)
-    })
+    console.log('[RouteState] Setting item:', item)
+
+    const s = JSON.stringify(item)
+    try {
+      await AsyncStorage.setItem('routeState', s)
+    } catch (e) {
+      console.warn('[RouteState] Error setting item:', e)
+    }
   }
 }
 
@@ -234,20 +236,20 @@ function loadRouteState(): AsyncAction {
       return
     }
 
-    let routeState
+    let item
 
     let s
     try {
       s = await AsyncStorage.getItem('routeState')
     } catch (e) {
-      console.warn('[RouteState] Error getting routeState:', e)
+      console.warn('[RouteState] Error getting item:', e)
       throw e
     }
 
     try {
-      routeState = JSON.parse(s)
+      item = JSON.parse(s)
     } catch (e) {
-      console.warn('[RouteState] Error parsing routeState:', s, e)
+      console.warn('[RouteState] Error parsing item:', s, e)
       throw e
     }
 
@@ -258,21 +260,21 @@ function loadRouteState(): AsyncAction {
     try {
       AsyncStorage.setItem('routeState', '')
     } catch (e) {
-      console.warn('[RouteState] Error clearing routeState:', e)
+      console.warn('[RouteState] Error clearing item:', e)
       throw e
     }
 
-    console.log('[RouteState] routeState:', routeState)
+    console.log('[RouteState] Got item:', item)
 
-    if (!routeState) {
+    if (!item) {
       return
     }
 
-    if (routeState.selectedConversationIDKey) {
+    if (item.selectedConversationIDKey) {
       await dispatch(setInitialTab(chatTab))
-      await dispatch(setInitialConversation(routeState.selectedConversationIDKey))
-    } else if (routeState.tab) {
-      await dispatch(setInitialTab(routeState.tab))
+      await dispatch(setInitialConversation(item.selectedConversationIDKey))
+    } else if (item.tab) {
+      await dispatch(setInitialTab(item.tab))
     }
   }
 }
