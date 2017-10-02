@@ -29,9 +29,9 @@ type TestCase struct {
 		} `json:"team_key_boxes"`
 	} `json:"teams"`
 	Users map[string] /*user label*/ struct {
-		UID               keybase1.UID                       `json:"uid"`
-		EldestSeqno       keybase1.Seqno                     `json:"eldest_seqno"`
-		LinkMap           map[keybase1.Seqno]keybase1.LinkID `json:"link_map"`
+		UID               keybase1.UID   `json:"uid"`
+		EldestSeqno       keybase1.Seqno `json:"eldest_seqno"`
+		LinkMap           linkMapT       `json:"link_map"`
 		PerUserKeySecrets map[keybase1.Seqno]string/*hex of PerUserKeySeed*/ `json:"puk_secrets"`
 	} `json:"users"`
 	KeyOwners        map[keybase1.KID] /*kid*/ string/*username*/ `json:"key_owners"`

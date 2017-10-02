@@ -11,14 +11,16 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata, lm map[keybase1.Seqno]keybase1.LinkID) proofTerm {
+func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata, lm linkMapT) proofTerm {
 	return proofTerm{leafID: i, sigMeta: s, linkMap: lm}
 }
+
+type linkMapT map[keybase1.Seqno]keybase1.LinkID
 
 type proofTerm struct {
 	leafID  keybase1.UserOrTeamID
 	sigMeta keybase1.SignatureMetadata
-	linkMap map[keybase1.Seqno]keybase1.LinkID
+	linkMap linkMapT
 }
 
 func (t *proofTerm) shortForm() string {
@@ -81,14 +83,14 @@ func newProofIndex(a keybase1.UserOrTeamID, b keybase1.UserOrTeamID) proofIndex 
 type proofSetT struct {
 	libkb.Contextified
 	proofs       map[proofIndex][]proof
-	teamLinkMaps map[keybase1.TeamID]map[keybase1.Seqno]keybase1.LinkID
+	teamLinkMaps map[keybase1.TeamID]linkMapT
 }
 
 func newProofSet(g *libkb.GlobalContext) *proofSetT {
 	return &proofSetT{
 		Contextified: libkb.NewContextified(g),
 		proofs:       make(map[proofIndex][]proof),
-		teamLinkMaps: make(map[keybase1.TeamID]map[keybase1.Seqno]keybase1.LinkID),
+		teamLinkMaps: make(map[keybase1.TeamID]linkMapT),
 	}
 }
 
@@ -150,7 +152,7 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 }
 
 // Set the latest link map for the team
-func (p *proofSetT) SetTeamLinkMap(ctx context.Context, teamID keybase1.TeamID, linkMap map[keybase1.Seqno]keybase1.LinkID) {
+func (p *proofSetT) SetTeamLinkMap(ctx context.Context, teamID keybase1.TeamID, linkMap linkMapT) {
 	p.teamLinkMaps[teamID] = linkMap
 }
 
