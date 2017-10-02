@@ -1882,7 +1882,7 @@ func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newStat
 		newState.inner.Open = open.Enabled
 		if options := open.Options; options != nil {
 			if !open.Enabled {
-				return fmt.Errorf("closed team shouldn't defined team.settings.open.options")
+				return fmt.Errorf("closed team shouldn't define team.settings.open.options")
 			}
 
 			switch options.JoinAs {

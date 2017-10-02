@@ -227,7 +227,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 			return err
 		}
 
-		if currentRole >= role {
+		if currentRole.IsOrAbove(role) {
 			continue
 		}
 
