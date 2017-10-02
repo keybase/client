@@ -292,7 +292,7 @@ func (r *Remote) fetch(ctx context.Context, o *FetchOptions) (storer.ReferenceSt
 
 	req.Wants, err = getWants(r.s, refs)
 	if len(req.Wants) > 0 {
-		req.Haves, err = getHaves(localRefs)
+		req.Haves, err = getHaves(localRefs, remoteRefs, r.s)
 		if err != nil {
 			return nil, err
 		}
@@ -511,8 +511,29 @@ func (r *Remote) references() ([]*plumbing.Reference, error) {
 	return localRefs, nil
 }
 
-func getHaves(localRefs []*plumbing.Reference) ([]plumbing.Hash, error) {
+func getHaves(
+	localRefs []*plumbing.Reference,
+	remoteRefs storer.ReferenceStorer,
+	s storage.Storer,
+) ([]plumbing.Hash, error) {
 	haves := map[plumbing.Hash]bool{}
+
+	// Build a map of all the remote references, to avoid loading too
+	// many parent commits for references we know don't need to be
+	// transferred.
+	stopEarlyRefs := map[plumbing.Hash]bool{}
+	iter, err := remoteRefs.IterReferences()
+	if err != nil {
+		return nil, err
+	}
+	err = iter.ForEach(func(ref *plumbing.Reference) error {
+		stopEarlyRefs[ref.Hash()] = true
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	for _, ref := range localRefs {
 		if haves[ref.Hash()] == true {
 			continue
@@ -522,7 +543,36 @@ func getHaves(localRefs []*plumbing.Reference) ([]plumbing.Hash, error) {
 			continue
 		}
 
-		haves[ref.Hash()] = true
+		// No need to load the commit if we know the remote already
+		// has this hash.
+		if stopEarlyRefs[ref.Hash()] {
+			haves[ref.Hash()] = true
+			continue
+		}
+
+		commit, err := object.GetCommit(s, ref.Hash())
+		if err != nil {
+			haves[ref.Hash()] = true
+			continue
+		}
+
+		// Until go-git supports proper commit negotiation during an
+		// upload pack request, include up to 100 commits from the
+		// history of each ref.
+		walker := object.NewCommitPreorderIter(commit, haves, nil)
+		const maxToVisit = 100
+		toVisit := maxToVisit
+		err = walker.ForEach(func(c *object.Commit) error {
+			haves[c.Hash] = true
+			toVisit--
+			if toVisit == 0 || stopEarlyRefs[c.Hash] {
+				return storer.ErrStop
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var result []plumbing.Hash
