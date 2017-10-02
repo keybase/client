@@ -219,68 +219,62 @@ function persistRouteState(): AsyncAction {
 }
 
 function loadRouteState(): AsyncAction {
-  return (dispatch, getState) => {
-    let foundLink = false
-    Linking.getInitialURL()
-      .then(url => {
-        console.log('loadRouteState: initial URL is:', url)
-        if (url) {
-          foundLink = true
-          dispatch(setInitialLink(url))
-        }
-      })
-      .catch(e => console.warn('loadRouteState: Error getting initial URL:', e))
-      .finally(() => {
-        if (foundLink) {
-          return
-        }
+  return async (dispatch, getState) => {
+    let url
+    try {
+      url = await Linking.getInitialURL()
+    } catch (e) {
+      console.warn('[RouteState] Error getting initial URL:', e)
+      throw e
+    }
 
-        AsyncStorage.getItem('routeState', (err, s) => {
-          console.log('loadRouteState: got:', s)
-          if (err) {
-            console.warn('loadRouteState: Error getting routeState:', err)
-            return
-          }
+    if (url) {
+      console.log('[RouteState] initial URL:', url)
+      return dispatch(setInitialLink(url))
+    }
 
-          if (!s) {
-            return
-          }
+    let routeState
 
-          let item
-          try {
-            item = JSON.parse(s)
-          } catch (e) {
-            console.warn('loadRouteState: Error parsing routeState:', s, e)
-          }
+    let s
+    try {
+      s = await AsyncStorage.getItem('routeState')
+    } catch (e) {
+      console.warn('[RouteState] Error getting routeState:', e)
+      throw e
+    }
 
-          // Before we actually nav to the saved routeState, we should clear
-          // it for future runs of the app.  That way, if the act of navigating
-          // to this route causes a crash for some reason, we won't get stuck
-          // in a loop of trying to restore the bad state every time we launch.
-          AsyncStorage.setItem('routeState', '', err => {
-            err && console.warn('loadRouteState: Error clearing routeState:', err)
+    try {
+      routeState = JSON.parse(s)
+    } catch (e) {
+      console.warn('[RouteState] Error parsing routeState:', s, e)
+      throw e
+    }
 
-            if (!item) {
-              return
-            }
+    // Before we actually nav to the saved routeState, we should clear
+    // it for future runs of the app.  That way, if the act of navigating
+    // to this route causes a crash for some reason, we won't get stuck
+    // in a loop of trying to restore the bad state every time we launch.
+    try {
+      AsyncStorage.setItem('routeState', '')
+    } catch (e) {
+      console.warn('[RouteState] Error clearing routeState:', e)
+      throw e
+    }
 
-            console.log(
-              'loadRouteState: tab is',
-              item.tab,
-              'selected conversation is',
-              item.selectedConversationIDKey
-            )
+    console.log('[RouteState] routeState:', routeState)
 
-            if (item.tab) {
-              dispatch(setInitialTab(item.tab))
-            }
+    if (!routeState) {
+      return
+    }
 
-            if (item.selectedConversationIDKey) {
-              dispatch(setInitialConversation(item.selectedConversationIDKey))
-            }
-          })
-        })
-      })
+    if (routeState.selectedConversationIDKey) {
+      return Promise.all([
+        dispatch(setInitialTab(chatTab)),
+        dispatch(setInitialConversation(routeState.selectedConversationIDKey)),
+      ])
+    } else if (routeState.tab) {
+      return dispatch(setInitialTab(routeState.tab))
+    }
   }
 }
 
