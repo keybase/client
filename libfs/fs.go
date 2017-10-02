@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -19,6 +20,25 @@ import (
 	"github.com/pkg/errors"
 	billy "gopkg.in/src-d/go-billy.v3"
 )
+
+// FSEventType is FS event type.
+type FSEventType int
+
+const (
+	_ FSEventType = iota
+	// FSEventLock indicates Lock method has been called.
+	FSEventLock
+	// FSEventUnlock indicates Unlock method has been called.
+	FSEventUnlock
+)
+
+// FSEvent is the type for events sent into the events channel passed into
+// NewFS.
+type FSEvent struct {
+	EventType FSEventType
+	File      *File
+	Done      <-chan struct{}
+}
 
 // FS is a wrapper around a KBFS subdirectory that implements the
 // billy.Filesystem interface.  It uses forward-slash separated paths.
@@ -45,6 +65,9 @@ type FS struct {
 	// appended to the existing lockNamespace to form the new one. Note that
 	// this is a naive append without and path clean.
 	lockNamespace []byte
+
+	eventsLock sync.RWMutex
+	events     map[chan<- FSEvent]bool
 }
 
 var _ billy.Filesystem = (*FS)(nil)
@@ -91,6 +114,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	// Use the canonical unix path for default locking namespace, as this needs
 	// to be the same across all platforms.
 	unixFullPath := path.Join("/keybase", tlfHandle.Type().String(), subdir)
+
 	return &FS{
 		ctx:           ctx,
 		config:        config,
@@ -102,6 +126,7 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 		log:           log,
 		deferLog:      log.CloneWithAddedDepth(1),
 		lockNamespace: []byte(unixFullPath),
+		events:        make(map[chan<- FSEvent]bool),
 	}, nil
 }
 
@@ -662,4 +687,31 @@ func (fs *FS) SetLockNamespace(lockNamespace []byte) {
 // GetLockNamespace returns the namespace used in locking.
 func (fs *FS) GetLockNamespace() (lockNamespace []byte) {
 	return fs.lockNamespace
+}
+
+// SubscribeToEvents causes *File objects constructed from this *FS to send
+// events to the channel at beginning of Lock and Unlock. The send is done
+// blockingly so caller needs to drain the channel properly or make it buffered
+// with enough size.
+func (fs *FS) SubscribeToEvents(ch chan<- FSEvent) {
+	fs.eventsLock.Lock()
+	defer fs.eventsLock.Unlock()
+	fs.events[ch] = true
+}
+
+// UnsubscribeToEvents stops *File objects constructed from this *FS from
+// sending events to ch. It also closes ch.
+func (fs *FS) UnsubscribeToEvents(ch chan<- FSEvent) {
+	fs.eventsLock.Lock()
+	defer fs.eventsLock.Unlock()
+	delete(fs.events, ch)
+	close(ch)
+}
+
+func (fs *FS) sendEvents(e FSEvent) {
+	fs.eventsLock.RLock()
+	defer fs.eventsLock.RUnlock()
+	for ch := range fs.events {
+		ch <- e
+	}
 }
