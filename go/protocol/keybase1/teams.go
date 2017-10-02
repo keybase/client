@@ -1355,6 +1355,20 @@ func (o ImplicitTeamConflictInfo) DeepCopy() ImplicitTeamConflictInfo {
 	}
 }
 
+type LookupImplicitTeamRes struct {
+	TeamID      TeamID                  `codec:"teamID" json:"teamID"`
+	Name        TeamName                `codec:"name" json:"name"`
+	DisplayName ImplicitTeamDisplayName `codec:"displayName" json:"displayName"`
+}
+
+func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
+	return LookupImplicitTeamRes{
+		TeamID:      o.TeamID.DeepCopy(),
+		Name:        o.Name.DeepCopy(),
+		DisplayName: o.DisplayName.DeepCopy(),
+	}
+}
+
 type TeamCreateArg struct {
 	SessionID            int    `codec:"sessionID" json:"sessionID"`
 	Name                 string `codec:"name" json:"name"`
@@ -1702,9 +1716,14 @@ type TeamsInterface interface {
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
+<<<<<<< HEAD
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (TeamID, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (TeamID, error)
+=======
+	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
+	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
+>>>>>>> wip
 	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
@@ -2200,17 +2219,21 @@ func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err e
 	return
 }
 
+<<<<<<< HEAD
 func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []interface{}{__arg}, nil)
 	return
 }
 
 func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res TeamID, err error) {
+=======
+func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
+>>>>>>> wip
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res TeamID, err error) {
+func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
 	return
 }

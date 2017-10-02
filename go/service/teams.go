@@ -249,17 +249,35 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }
 
-func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.TeamID, err error) {
+func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-	teamID, _, _, err := teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
-	return teamID, err
+	if !arg.Public {
+		// Prepend our username on here just in case for private imp teams
+		username := h.G().Env.GetUsername()
+		if len(username) == 0 {
+			return res, libkb.LoginRequiredError{}
+		}
+		arg.Name = username.String() + "," + arg.Name
+	}
+	res.TeamID, res.Name, res.DisplayName, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
+		arg.Public)
+	return res, err
 }
 
-func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.TeamID, err error) {
+func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%s)", arg.Name),
 		func() error { return err })()
-	teamID, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
-	return teamID, err
+	if !arg.Public {
+		// Prepend our username on here just in case for private imp teams
+		username := h.G().Env.GetUsername()
+		if len(username) == 0 {
+			return res, libkb.LoginRequiredError{}
+		}
+		arg.Name = username.String() + "," + arg.Name
+	}
+	res.TeamID, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
+		arg.Name, arg.Public)
+	return res, err
 }
 
 func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) error {

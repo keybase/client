@@ -145,6 +145,8 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 // Lookup or create an implicit team by name like "alice,bob+bob@twitter (conflicted 2017-03-04 #1)"
 // Resolves social assertions.
 func LookupOrCreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, displayName string, public bool) (res keybase1.TeamID, teamName keybase1.TeamName, impTeamName keybase1.ImplicitTeamDisplayName, err error) {
+	defer g.CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%v)", displayName),
+		func() error { return err })()
 	lookupName, err := ResolveImplicitTeamDisplayName(ctx, g, displayName, public)
 	if err != nil {
 		return res, teamName, impTeamName, err

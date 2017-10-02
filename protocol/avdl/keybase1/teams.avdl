@@ -482,8 +482,14 @@ protocol teams {
     Time time;
   }
 
-  TeamID lookupImplicitTeam(string name, boolean public);
-  TeamID lookupOrCreateImplicitTeam(string name, boolean public);
+  record LookupImplicitTeamRes {
+    TeamID teamID;
+    TeamName name;
+    ImplicitTeamDisplayName displayName;
+  }
+
+  LookupImplicitTeamRes lookupImplicitTeam(string name, boolean public);
+  LookupImplicitTeamRes lookupOrCreateImplicitTeam(string name, boolean public);
 
   void teamReAddMemberAfterReset(int sessionID, TeamID id, string username);
 

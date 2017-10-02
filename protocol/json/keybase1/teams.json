@@ -1176,6 +1176,24 @@
           "name": "time"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LookupImplicitTeamRes",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "ImplicitTeamDisplayName",
+          "name": "displayName"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1515,7 +1533,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "lookupOrCreateImplicitTeam": {
       "request": [
@@ -1528,7 +1546,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "teamReAddMemberAfterReset": {
       "request": [
