@@ -1082,7 +1082,7 @@ func (r *runner) handleFetchBatch(ctx context.Context, args [][]string) (
 // --all/--mirror).
 func (r *runner) canPushAll(
 	ctx context.Context, repo *gogit.Repository, args [][]string) (
-	canPushAll, repoEmpty bool, err error) {
+	canPushAll, kbfsRepoEmpty bool, err error) {
 	refs, err := repo.References()
 	if err != nil {
 		return false, false, err
@@ -1213,7 +1213,7 @@ func (r *runner) pushAll(ctx context.Context, fs *libfs.FS) error {
 
 func (r *runner) pushSome(
 	ctx context.Context, repo *gogit.Repository, fs *libfs.FS, args [][]string,
-	repoEmpty bool) (map[string]error, error) {
+	kbfsRepoEmpty bool) (map[string]error, error) {
 	r.log.CDebugf(ctx, "Pushing %d refs into %s", len(args), r.gitDir)
 
 	remote, err := repo.CreateRemote(&gogitcfg.RemoteConfig{
@@ -1274,7 +1274,7 @@ func (r *runner) pushSome(
 			}()
 		}
 
-		packRefs := repoEmpty && len(refspecs) > r.packedRefsThresh
+		packRefs := kbfsRepoEmpty && len(refspecs) > r.packedRefsThresh
 		if packRefs {
 			r.log.CDebugf(
 				ctx, "Requesting a pack-refs file for %d refs (threshold=%d)",
@@ -1336,7 +1336,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		return err
 	}
 
-	canPushAll, repoEmpty, err := r.canPushAll(ctx, repo, args)
+	canPushAll, kbfsRepoEmpty, err := r.canPushAll(ctx, repo, args)
 	if err != nil {
 		return err
 	}
@@ -1354,7 +1354,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			results[dst] = err
 		}
 	} else {
-		results, err = r.pushSome(ctx, repo, fs, args, repoEmpty)
+		results, err = r.pushSome(ctx, repo, fs, args, kbfsRepoEmpty)
 	}
 	if err != nil {
 		return err
