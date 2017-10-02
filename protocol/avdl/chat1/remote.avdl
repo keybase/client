@@ -64,6 +64,7 @@ protocol remote {
 
   record GetThreadRemoteRes {
     ThreadViewBoxed thread;
+    ConversationMembersType membersType;
     union { null, RateLimit } rateLimit;
   }
 

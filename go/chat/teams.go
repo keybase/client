@@ -90,7 +90,6 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 	}
 
 	res.CanonicalName = teamName.String()
-	t.Debug(ctx, "NAME: %s", res.CanonicalName)
 	res.ID, err = teamIDToTLFID(teamID)
 	if err != nil {
 		return res, err
@@ -149,16 +148,22 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 }
 
 func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
-	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{Name: name})
+	teamName, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		return res, err
+	}
+	res.ID, err = teamIDToTLFID(teamName.ToTeamID())
 	if err != nil {
 		return res, err
 	}
 	res.CanonicalName = name
-	res.ID, err = teamIDToTLFID(team.ID)
-	if err != nil {
-		return res, err
-	}
 	if vis == keybase1.TLFVisibility_PRIVATE {
+		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
+			Name: name,
+		})
+		if err != nil {
+			return res, err
+		}
 		chatKeys, err := team.AllApplicationKeys(ctx, keybase1.TeamApplication_CHAT)
 		if err != nil {
 			return res, err

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"sync"
 
@@ -15,7 +16,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 )
 
@@ -392,21 +392,20 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				return nil
 			case chat1.ConversationMembersType_IMPTEAM:
 				s.Debug(ctx, "identifyTLF: implicit team TLF, looking up display name for %s", tlfName)
-
-				tlfID := msg.Valid().ClientHeader.Conv.Tlfid
-				teamID, err := keybase1.TeamIDFromString(tlfID.String())
+				var allkuids []keybase1.UID
+				for _, guid := range conv.Metadata.AllList {
+					allkuids = append(allkuids, keybase1.UID(guid.String()))
+				}
+				unames, err := s.G().UIDMapper.MapUIDsToUsernames(ctx, s.G(), allkuids)
 				if err != nil {
 					return err
 				}
-				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
-				if err != nil {
-					return err
+				var nameStrs []string
+				for _, uname := range unames {
+					nameStrs = append(nameStrs, uname.String())
 				}
-				display, err := team.ImplicitTeamDisplayName(ctx)
-				if err != nil {
-					return err
-				}
-				tlfName = display.String()
+				tlfName = strings.Join(nameStrs, ",")
+				s.Debug(ctx, "identifyTLF: implicit team TLF, identify name", tlfName)
 			}
 
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
@@ -415,7 +414,8 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 			_, err := CtxKeyFinder(ctx, s.G()).Find(ctx, tlfName, conv.GetMembersType(),
 				msg.Valid().ClientHeader.TlfPublic)
 			if err != nil {
-				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, conv.GetConvID())
+				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s err: %s", tlfName, conv.GetConvID(),
+					err)
 				return err
 			}
 
@@ -565,9 +565,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	} else {
 		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
-		// Assume this is a public convo for unbox purposes, since it is the only way any unboxing
-		// will succeed here since we don't know the members type.
-		unboxConv = newPublicUnboxConverstionInfo(convID)
 	}
 
 	// Insta fail if we are offline
@@ -585,6 +582,12 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
+	}
+
+	// Set up public inbox info if we don't have one with members type from remote call. Assume this is a
+	// public chat here, since it is the only chance we have to unbox it.
+	if unboxConv == nil {
+		unboxConv = newPublicUnboxConverstionInfo(convID, boxed.MembersType)
 	}
 
 	// Unbox

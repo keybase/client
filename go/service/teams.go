@@ -251,14 +251,14 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 
 func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.TeamID, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-	teamID, _, err := teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
+	teamID, _, _, err := teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
 	return teamID, err
 }
 
 func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.TeamID, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%s)", arg.Name),
 		func() error { return err })()
-	teamID, _, err := teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
+	teamID, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
 	return teamID, err
 }
 

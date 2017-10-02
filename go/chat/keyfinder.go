@@ -103,7 +103,13 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 	membersType chat1.ConversationMembersType, public bool) (res types.NameInfo, err error) {
 
 	switch membersType {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_IMPTEAM:
+		if public {
+			// If this is public, then just make sure we get to the name info source
+			return k.Find(ctx, tlfName, membersType, public)
+		}
+		fallthrough
+	case chat1.ConversationMembersType_TEAM:
 		teamID, err := tlfIDToTeamdID(teamID)
 		if err != nil {
 			return res, err
@@ -131,7 +137,13 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 	keyGeneration int) (res types.NameInfo, err error) {
 
 	switch membersType {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_IMPTEAM:
+		if public {
+			// If this is public, then just make sure we get to the name info source
+			return k.Find(ctx, tlfName, membersType, public)
+		}
+		fallthrough
+	case chat1.ConversationMembersType_TEAM:
 		teamID, err := tlfIDToTeamdID(teamID)
 		if err != nil {
 			return res, err

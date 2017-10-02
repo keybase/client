@@ -448,7 +448,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
 		}
 	} else if vis == keybase1.TLFVisibility_PUBLIC {
-		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
+		debugger.Debug(ctx, "FindConversations: no conversations found in inbox, trying public chats")
 
 		// Check for offline and return an error
 		if g.InboxSource.IsOffline(ctx) {
@@ -487,8 +487,13 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 			// Search for conversations that match the topic name
 			for _, convLocal := range convsLocal {
+				if convLocal.Error != nil {
+					debugger.Debug(ctx, "FindConversations: skipping convID: %s localization failure: %s",
+						convLocal.GetConvID(), convLocal.Error.Message)
+					continue
+				}
 				if convLocal.Info.TopicName == topicName {
-					debugger.Debug(ctx, "FindConversation: found matching public conv: id: %s topicName: %s",
+					debugger.Debug(ctx, "FindConversations: found matching public conv: id: %s topicName: %s",
 						convLocal.GetConvID(), topicName)
 					res = append(res, convLocal)
 				}
