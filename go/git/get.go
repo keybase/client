@@ -221,17 +221,13 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		if err != nil {
 			return nil, err
 		}
-		canDelete := false
-		if role == keybase1.TeamRole_ADMIN || role == keybase1.TeamRole_OWNER {
-			canDelete = true
-		}
 
 		resultList = append(resultList, keybase1.GitRepoResult{
 			Folder:         repoFolder,
 			RepoID:         responseRepo.RepoID,
 			RepoUrl:        formatRepoURL(repoFolder, string(localMetadata.RepoName)),
 			GlobalUniqueID: formatUniqueRepoID(responseRepo.TeamID, responseRepo.RepoID),
-			CanDelete:      canDelete,
+			CanDelete:      role.IsAdminOrAbove(),
 			LocalMetadata:  localMetadata,
 			ServerMetadata: keybase1.GitServerMetadata{
 				Ctime: keybase1.ToTime(responseRepo.CTime),
