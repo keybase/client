@@ -443,7 +443,7 @@ func (l *TeamLoader) inflateLink(ctx context.Context,
 // Check that the parent-child operations appear in the parent sigchains.
 func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 	me keybase1.UserVersion, loadingTeamID keybase1.TeamID, parentID *keybase1.TeamID, readSubteamID keybase1.TeamID,
-	parentChildOperations []*parentChildOperation) error {
+	parentChildOperations []*parentChildOperation, proofSet *proofSetT) error {
 
 	if len(parentChildOperations) == 0 {
 		return nil
@@ -479,13 +479,19 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		return fmt.Errorf("error loading parent: %v", err)
 	}
 
+	parentChain := TeamSigChainState{inner: parent.team.Chain}
+
 	for _, pco := range parentChildOperations {
-		parentChain := TeamSigChainState{inner: parent.team.Chain}
 		err = l.checkOneParentChildOperation(ctx, pco, loadingTeamID, &parentChain)
 		if err != nil {
 			return err
 		}
 	}
+
+	// Give a more up-to-date linkmap to the ordering checker for the parent.
+	// Without this it could fail if the parent is new.
+	// Because the team linkmap in the proof objects is stale.
+	proofSet.SetTeamLinkMap(ctx, parentChain.inner.Id, parentChain.inner.LinkIDs)
 
 	return nil
 }
