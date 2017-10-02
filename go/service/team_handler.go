@@ -86,7 +86,13 @@ func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterf
 		return err
 	}
 	r.G().Log.Debug("team.delete unmarshaled: %+v", rows)
-	return teams.HandleDeleteNotification(ctx, r.G(), rows)
+
+	err := teams.HandleDeleteNotification(ctx, r.G(), rows)
+	if err != nil {
+		return err
+	}
+
+	return r.G().GregorDismisser.DismissItem(cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
