@@ -1,7 +1,7 @@
 // @flow
 import {ipcRenderer} from 'electron'
 
-import type {AsyncAction} from '../constants/types/flux'
+import type {AsyncAction, Dispatch, GetState} from '../constants/types/flux'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -37,6 +37,11 @@ function displayNewMessageNotification(text: string, convID: string, badgeCount:
   throw new Error('Display new message notification not available on this platform')
 }
 
+class RouteStateStorage {
+  store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {}
+  load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {}
+}
+
 export {
   requestPushPermissions,
   showMainWindow,
@@ -45,4 +50,5 @@ export {
   showShareActionSheet,
   setNoPushPermissions,
   displayNewMessageNotification,
+  RouteStateStorage,
 }

@@ -286,11 +286,11 @@ class RouteStateStorage {
 
 export {
   displayNewMessageNotification,
-  RouteStateStorage,
   requestPushPermissions,
   showMainWindow,
   configurePush,
   saveAttachmentDialog,
   setNoPushPermissions,
   showShareActionSheet,
+  RouteStateStorage,
 }

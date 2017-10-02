@@ -1,5 +1,6 @@
 // @flow
-import type {AsyncAction} from '../constants/types/flux'
+
+import type {AsyncAction, Dispatch, GetState} from '../constants/types/flux'
 
 declare function setNoPushPermissions(): Promise<*>
 declare function requestPushPermissions(): Promise<*>
@@ -14,6 +15,11 @@ type NextURI = string
 declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 declare function displayNewMessageNotification(text: string, convID: string, badgeCount: number): void
 
+declare class RouteStateStorage {
+  store: (dispatch: Dispatch, getState: GetState) => Promise<void>,
+  load: (dispatch: Dispatch, getState: GetState) => Promise<void>
+}
+
 export {
   requestPushPermissions,
   showMainWindow,
@@ -22,4 +28,5 @@ export {
   showShareActionSheet,
   setNoPushPermissions,
   displayNewMessageNotification,
+  RouteStateStorage,
 }
