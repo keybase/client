@@ -413,7 +413,7 @@ func (a *Account) UserInfo() (uid keybase1.UID, username NormalizedUsername,
 		return
 	}
 
-	arg := LoadUserArg{LoginContext: a, Contextified: NewContextified(a.G()), Self: true}
+	arg := NewLoadUserArg(a.G()).WithSelf(true).WithLoginContext(a)
 	err = a.G().GetFullSelfer().WithUser(arg, func(user *User) error {
 		var err error
 		deviceSubkey, err = user.GetDeviceSubkey()

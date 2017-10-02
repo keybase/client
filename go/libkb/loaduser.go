@@ -13,7 +13,7 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type LoadUserArg struct {
+type loadUserArg struct {
 	Contextified
 	UID                      keybase1.UID
 	Name                     string // Can also be an assertion like foo@twitter
@@ -46,20 +46,27 @@ type LoadUserArg struct {
 	NetContext context.Context
 }
 
+type LoadUserArg struct {
+	loadUserArg
+}
+
 func (arg LoadUserArg) String() string {
+	ex := arg.loadUserArg
 	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
-		arg.UID, arg.Name, arg.PublicKeyOptional, arg.NoCacheResult, arg.Self, arg.ForceReload,
-		arg.ForcePoll, arg.StaleOK, arg.AbortIfSigchainUnchanged, arg.CachedOnly)
+		ex.UID, ex.Name, ex.PublicKeyOptional, ex.NoCacheResult, ex.Self, ex.ForceReload,
+		ex.ForcePoll, ex.StaleOK, ex.AbortIfSigchainUnchanged, ex.CachedOnly)
 }
 
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
-	return LoadUserArg{Contextified: NewContextified(g)}
+	return LoadUserArg{loadUserArg{Contextified: NewContextified(g)}}
 }
 
 func NewLoadUserArgWithContext(ctx context.Context, g *GlobalContext) LoadUserArg {
 	return LoadUserArg{
-		Contextified: NewContextified(g),
-		NetContext:   ctx,
+		loadUserArg{
+			Contextified: NewContextified(g),
+			NetContext:   ctx,
+		},
 	}
 }
 
@@ -101,36 +108,41 @@ func NewLoadUserPubOptionalArg(g *GlobalContext) LoadUserArg {
 	return arg
 }
 
-func NewLoadUserArgBase(g *GlobalContext) *LoadUserArg {
-	return &LoadUserArg{Contextified: NewContextified(g)}
+func NewLoadUserArgBase(g *GlobalContext) *loadUserArg {
+	return &loadUserArg{Contextified: NewContextified(g)}
 }
 
-func (arg *LoadUserArg) WithSelf(self bool) *LoadUserArg {
+func (arg LoadUserArg) WithSelf(self bool) LoadUserArg {
 	arg.Self = self
 	return arg
 }
 
-func (arg *LoadUserArg) WithNetContext(ctx context.Context) *LoadUserArg {
+func (arg LoadUserArg) WithLoginContext(lctx LoginContext) LoadUserArg {
+	arg.loadUserArg.LoginContext = lctx
+	return arg
+}
+
+func (arg LoadUserArg) WithNetContext(ctx context.Context) LoadUserArg {
 	arg.NetContext = ctx
 	return arg
 }
 
-func (arg *LoadUserArg) WithUID(uid keybase1.UID) *LoadUserArg {
+func (arg *loadUserArg) WithUID(uid keybase1.UID) *loadUserArg {
 	arg.UID = uid
 	return arg
 }
 
-func (arg *LoadUserArg) WithPublicKeyOptional() *LoadUserArg {
+func (arg LoadUserArg) WithPublicKeyOptional() LoadUserArg {
 	arg.PublicKeyOptional = true
 	return arg
 }
 
-func (arg *LoadUserArg) WithForcePoll() *LoadUserArg {
+func (arg *loadUserArg) WithForcePoll() *loadUserArg {
 	arg.ForcePoll = true
 	return arg
 }
 
-func (arg *LoadUserArg) GetNetContext() context.Context {
+func (arg *loadUserArg) GetNetContext() context.Context {
 	if arg.NetContext != nil {
 		return arg.NetContext
 	}
@@ -140,14 +152,14 @@ func (arg *LoadUserArg) GetNetContext() context.Context {
 	return context.Background()
 }
 
-func (arg *LoadUserArg) WithLogTag() context.Context {
+func (arg *loadUserArg) WithLogTag() context.Context {
 	ctx := WithLogTag(arg.GetNetContext(), "LU")
 	arg.NetContext = ctx
 	arg.SetGlobalContext(arg.G().CloneWithNetContextAndNewLogger(ctx))
 	return ctx
 }
 
-func (arg *LoadUserArg) checkUIDName() error {
+func (arg *loadUserArg) checkUIDName() error {
 	if arg.UID.Exists() {
 		return nil
 	}
@@ -173,7 +185,7 @@ func (arg *LoadUserArg) checkUIDName() error {
 	return nil
 }
 
-func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
+func (arg *loadUserArg) resolveUID() (ResolveResult, error) {
 	var rres ResolveResult
 	if arg.UID.Exists() {
 		return rres, nil
@@ -197,7 +209,7 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 }
 
 // after resolution, check if this is a self load
-func (arg *LoadUserArg) checkSelf() {
+func (arg *loadUserArg) checkSelf() {
 	if arg.Self {
 		return
 	}
@@ -217,10 +229,12 @@ func LoadMeByUID(ctx context.Context, g *GlobalContext, uid keybase1.UID) (*User
 	return LoadMe(NewLoadUserByUIDArg(ctx, g, uid))
 }
 
-func LoadUser(arg LoadUserArg) (ret *User, err error) {
+func LoadUser(xArg LoadUserArg) (ret *User, err error) {
+
+	arg := xArg.loadUserArg
 
 	ctx := arg.WithLogTag()
-	defer arg.G().CTraceTimed(ctx, fmt.Sprintf("LoadUser(%s)", arg), func() error { return err })()
+	defer arg.G().CTraceTimed(ctx, fmt.Sprintf("LoadUser"), func() error { return err })()
 
 	var refresh bool
 

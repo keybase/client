@@ -22,7 +22,7 @@ func TestCachedUserLoad(t *testing.T) {
 	tc.G.SetClock(fakeClock)
 
 	// Load t_alice a few different ways
-	arg := LoadUserArg{
+	arg := loadUserArg{
 		Contextified: NewContextified(tc.G),
 		UID:          keybase1.UID("295a7eea607af32040647123732bc819"),
 	}

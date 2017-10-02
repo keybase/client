@@ -23,13 +23,7 @@ type UncachedFullSelf struct {
 var _ FullSelfer = (*UncachedFullSelf)(nil)
 
 func (n *UncachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) error {
-	arg := LoadUserArg{
-		Contextified:      NewContextified(n.G()),
-		PublicKeyOptional: true,
-		Self:              true,
-		NetContext:        ctx,
-	}
-
+	arg := NewLoadUserArg(n.G()).WithPublicKeyOptional().WithSelf(true).WithNetContext(ctx)
 	return n.WithUser(arg, f)
 }
 
@@ -89,12 +83,7 @@ func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
 // but we should be sure the user never escapes this closure. If the user
 // is fresh-loaded, then it is stored in memory.
 func (m *CachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) error {
-	arg := LoadUserArg{
-		Contextified:      NewContextified(m.G()),
-		PublicKeyOptional: true,
-		Self:              true,
-		NetContext:        ctx,
-	}
+	arg := NewLoadUserArg(m.G()).WithPublicKeyOptional().WithSelf(true).WithNetContext(ctx)
 	return m.WithUser(arg, f)
 }
 

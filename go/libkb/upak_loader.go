@@ -14,8 +14,8 @@ import (
 // almost as good for many purposes, but can be safely copied and serialized.
 type UPAKLoader interface {
 	ClearMemory()
-	Load(arg LoadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
-	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
+	Load(arg loadUserArg) (ret *keybase1.UserPlusAllKeys, user *User, err error)
+	LoadV2(arg loadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
 	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
@@ -235,7 +235,7 @@ func (u *CachedUPAKLoader) PutUserToCache(ctx context.Context, user *User) error
 // In some cases, that deep copy can be expensive, so as for users who have lots of
 // followees. So if you provide accessor, the UPAK won't be deep-copied, but you'll
 // be able to access it from inside the accessor with exclusion.
-func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusKeysV2AllIncarnations) error, shouldReturnFullUser bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error) {
+func (u *CachedUPAKLoader) loadWithInfo(arg loadUserArg, info *CachedUserLoadInfo, accessor func(k *keybase1.UserPlusKeysV2AllIncarnations) error, shouldReturnFullUser bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error) {
 
 	// Shorthand
 	g := u.G()
@@ -396,7 +396,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 // non-nil, nor never both nil. If we had to do a full LoadUser as part of the
 // request, it's returned too. Convert to UserPlusAllKeys on the way out, for
 // backwards compatibility.
-func (u *CachedUPAKLoader) Load(arg LoadUserArg) (*keybase1.UserPlusAllKeys, *User, error) {
+func (u *CachedUPAKLoader) Load(arg loadUserArg) (*keybase1.UserPlusAllKeys, *User, error) {
 	ret, user, err := u.loadWithInfo(arg, nil, nil, true)
 
 	// NOTE -- it's OK to return an error and a user, since certain code paths
@@ -415,7 +415,7 @@ func (u *CachedUPAKLoader) Load(arg LoadUserArg) (*keybase1.UserPlusAllKeys, *Us
 // non-nil UserPlusKeysV2AllIncarnations, or a non-nil error, but never both
 // non-nil, nor never both nil. If we had to do a full LoadUser as part of the
 // request, it's returned too.
-func (u *CachedUPAKLoader) LoadV2(arg LoadUserArg) (*keybase1.UserPlusKeysV2AllIncarnations, *User, error) {
+func (u *CachedUPAKLoader) LoadV2(arg loadUserArg) (*keybase1.UserPlusKeysV2AllIncarnations, *User, error) {
 	return u.loadWithInfo(arg, nil, nil, true)
 }
 
