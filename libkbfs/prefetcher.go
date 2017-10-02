@@ -70,7 +70,7 @@ type blockPrefetcher struct {
 	// map to store prefetch metadata
 	prefetches map[kbfsblock.ID]*prefetch
 	// channel to allow synchronization on completion
-	inFlightFetches chan (<-chan error)
+	inFlightFetches channels.Channel
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -86,7 +86,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		almostDoneCh:      make(chan struct{}, 1),
 		doneCh:            make(chan struct{}),
 		prefetches:        make(map[kbfsblock.ID]*prefetch),
-		inFlightFetches:   make(chan (<-chan error), maxNumPrefetches),
+		inFlightFetches:   channels.NewInfiniteChannel(),
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -166,14 +166,16 @@ func (p *blockPrefetcher) shutdownLoop() {
 top:
 	for {
 		select {
-		case ch := <-p.inFlightFetches:
+		case chInterface := <-p.inFlightFetches.Out():
+			ch := chInterface.(<-chan error)
 			<-ch
 		case <-p.shutdownCh:
 			break top
 		}
 	}
-	for len(p.inFlightFetches) > 0 {
-		ch := <-p.inFlightFetches
+	for p.inFlightFetches.Len() > 0 {
+		chInterface := <-p.inFlightFetches.Out()
+		ch := chInterface.(<-chan error)
 		<-ch
 	}
 	p.almostDoneCh <- struct{}{}
@@ -214,7 +216,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	}()
 	isShuttingDown := false
 	for {
-		if isShuttingDown && len(p.inFlightFetches) == 0 &&
+		if isShuttingDown && p.inFlightFetches.Len() == 0 &&
 			p.prefetchRequestCh.Len() == 0 && p.prefetchCancelCh.Len() == 0 {
 			return
 		}
@@ -391,15 +393,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime) {
 	ch := p.retriever.Request(ctx, priority, kmd, ptr, block, lifetime)
-	select {
-	case p.inFlightFetches <- ch:
-	default:
-		// Ensure this can't block.
-		p.log.Debug("launching goroutine for request")
-		go func() {
-			p.inFlightFetches <- ch
-		}()
-	}
+	p.inFlightFetches.In() <- ch
 }
 
 // recordPrefetchParent maintains prefetch accounting for a given block. This
