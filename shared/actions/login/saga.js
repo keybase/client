@@ -109,34 +109,41 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
 
   const args = yield select(selector)
 
-  console.log('[RouteState] args:', args)
+  console.log('[RouteState] navBasedOnLoginAndInitialState:', args)
 
   const {loggedIn, registered, initialState, justDeletedSelf, loginError, routeChanged} = args
 
+  // All branches except for when loggedIn is true and initialState is
+  // null must yield an action which sets state.routeTree.routeChanged
+  // to true.
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
   } else if (loggedIn) {
+    // If the user has already performed a navigation action, or if
+    // we've already applied the initialState, do nothing.
     if (routeChanged) {
       return
     }
 
     if (overrideLoggedInTab) {
-      console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
     } else if (initialState) {
-      if (initialState.link) {
-        yield put(appLink(initialState.Link))
-      } else if (isValidInitialTab(initialState.tab)) {
-        if (initialState.tab === chatTab && initialState.conversation) {
+      const {link, tab, conversation} = initialState
+      if (link) {
+        yield put(appLink(link))
+      } else if (isValidInitialTab(tab)) {
+        if (tab === chatTab && conversation) {
           yield put(navigateTo([chatTab], null, true))
-          yield put(selectConversation(initialState.conversation, false))
+          yield put(selectConversation(conversation, false))
         } else {
-          yield put(navigateTo([initialState.tab], null))
+          yield put(navigateTo([tab]))
         }
       } else {
         yield put(navigateTo([peopleTab]))
       }
     } else {
+      // If the initial state is not set yet, navigate to the people
+      // tab without setting state.routeTree.routeChanged to true.
       yield put(navigateTo([peopleTab], null, true))
     }
   } else if (registered) {
