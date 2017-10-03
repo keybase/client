@@ -37,6 +37,7 @@ function displayNewMessageNotification(text: string, convID: string, badgeCount:
   throw new Error('Display new message notification not available on this platform')
 }
 
+// For now, don't save any route state for desktop.
 class RouteStateStorage {
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {}
   load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {}
