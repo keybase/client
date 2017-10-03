@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
@@ -96,7 +97,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 	// It is safe for the answer to be wrong because the name is checked on the way out,
 	// and the merkle tree check guarantees one sigchain per team id.
 	if !teamID.Exists() {
-		teamID, err = l.world.resolveNameToIDUntrusted(ctx, *teamName)
+		teamID, err = l.world.resolveNameToIDUntrusted(ctx, *teamName, lArg.Public)
 		if err != nil {
 			l.G().Log.CDebugf(ctx, "TeamLoader looking up team by name failed: %v -> %v", *teamName, err)
 			return nil, err
@@ -112,6 +113,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		mungedWantMembers = nil
 	}
 
+	l.G().Log.CDebugf(ctx, "TeamLoader: public: %v", lArg.Public)
 	ret, err := l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
@@ -122,6 +124,7 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		forceFullReload:   lArg.ForceFullReload,
 		forceRepoll:       mungedForceRepoll,
 		staleOK:           lArg.StaleOK,
+		public:            lArg.Public,
 
 		needSeqnos:    nil,
 		readSubteamID: nil,
@@ -186,6 +189,7 @@ type load2ArgT struct {
 	forceFullReload bool
 	forceRepoll     bool
 	staleOK         bool
+	public          bool
 
 	needSeqnos []keybase1.Seqno
 	// Non-nil if we are loading an ancestor for the greater purpose of
@@ -300,10 +304,12 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
-		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
+		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, arg.public, lows, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
+		dat, _ := json.Marshal(*teamUpdate)
+		l.G().Log.CDebugf(ctx, "TeamLoader links response: %s", dat)
 		l.G().Log.CDebugf(ctx, "TeamLoader got %v links", len(teamUpdate.Chain))
 	}
 

@@ -361,6 +361,7 @@ protocol teams {
     boolean forceFullReload;      // Ignore local data and fetch from the server.
     boolean forceRepoll;          // Force a sync with merkle.
     boolean staleOK;              // If a very stale cache hit is OK.
+    boolean public;               // For public teams.
   }
 
   record ImplicitRole {

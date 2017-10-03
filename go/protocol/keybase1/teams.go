@@ -1063,6 +1063,7 @@ type LoadTeamArg struct {
 	ForceFullReload bool           `codec:"forceFullReload" json:"forceFullReload"`
 	ForceRepoll     bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK         bool           `codec:"staleOK" json:"staleOK"`
+	Public          bool           `codec:"public" json:"public"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -1074,6 +1075,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		ForceFullReload: o.ForceFullReload,
 		ForceRepoll:     o.ForceRepoll,
 		StaleOK:         o.StaleOK,
+		Public:          o.Public,
 	}
 }
 

@@ -911,8 +911,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
-	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v", unverifiedTLFName,
-		conversationRemote.GetConvID(), s.offline)
+	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v vis: %v", unverifiedTLFName,
+		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:          conversationRemote.Metadata.ConversationID,
@@ -1094,8 +1094,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 		ok := true
 		var errMsg string
+		s.Debug(ctx, "localizeConversation: trying to load team for %v chat", conversationLocal.Info.Visibility)
 		iteam, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
-			ID: teamID,
+			ID:     teamID,
+			Public: conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
 		})
 		if err != nil {
 			ok = false

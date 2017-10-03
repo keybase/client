@@ -13,7 +13,7 @@ import (
 type LoaderContext interface {
 	// Get new links from the server.
 	getNewLinksFromServer(ctx context.Context,
-		teamID keybase1.TeamID, lows getLinksLows,
+		teamID keybase1.TeamID, public bool, lows getLinksLows,
 		readSubteamID *keybase1.TeamID) (*rawTeam, error)
 	// Get full links from the server.
 	// Does not guarantee that the server returned the correct links, nor that they are unstubbed.
@@ -23,7 +23,7 @@ type LoaderContext interface {
 	getMe(context.Context) (keybase1.UserVersion, error)
 	// Lookup the eldest seqno of a user. Can use the cache.
 	lookupEldestSeqno(context.Context, keybase1.UID) (keybase1.Seqno, error)
-	resolveNameToIDUntrusted(context.Context, keybase1.TeamName) (keybase1.TeamID, error)
+	resolveNameToIDUntrusted(context.Context, keybase1.TeamName, bool) (keybase1.TeamID, error)
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
@@ -47,15 +47,16 @@ func NewLoaderContextFromG(g *libkb.GlobalContext) LoaderContext {
 
 // Get new links from the server.
 func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, lows getLinksLows,
+	teamID keybase1.TeamID, public bool, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
 	arg := libkb.NewRetryAPIArg("team/get")
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
-		"id":  libkb.S{Val: teamID.String()},
-		"low": libkb.I{Val: int(lows.Seqno)},
+		"id":     libkb.S{Val: teamID.String()},
+		"low":    libkb.I{Val: int(lows.Seqno)},
+		"public": libkb.B{Val: public},
 		// These don't really work yet on the client or server.
 		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
 		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
@@ -134,7 +135,8 @@ func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID
 
 // Resolve a team name to a team ID.
 // Will always hit the server for subteams. The server can lie in this return value.
-func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
+func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName,
+	public bool) (id keybase1.TeamID, err error) {
 	// For root team names, just hash.
 	if teamName.IsRootTeam() {
 		return teamName.ToTeamID(), nil
@@ -146,6 +148,7 @@ func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName 
 	arg.Args = libkb.HTTPArgs{
 		"name":        libkb.S{Val: teamName.String()},
 		"lookup_only": libkb.B{Val: true},
+		"public":      libkb.B{Val: public},
 	}
 
 	var rt rawTeam

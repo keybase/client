@@ -3646,6 +3646,7 @@ export type LoadTeamArg = {
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
+  public: boolean,
 }
 
 export type LockContext = {

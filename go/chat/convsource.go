@@ -404,7 +404,10 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				if err != nil {
 					return err
 				}
-				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
+				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
+					ID:     teamID,
+					Public: conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
+				})
 				if err != nil {
 					return err
 				}
