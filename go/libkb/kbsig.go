@@ -342,8 +342,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	// Save what kind of client we're running.
 	ret.SetKey("client", clientInfo(g))
 
-	// SeqTypePublic (1) is the default, and we don't write it out explicitly
-	if arg.SeqType != 0 && arg.SeqType != SeqTypePublic {
+	if arg.SeqType != 0 {
 		ret.SetKey("seq_type", jsonw.NewInt(arg.SeqType))
 	}
 
