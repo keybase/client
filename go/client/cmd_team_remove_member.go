@@ -126,10 +126,23 @@ func (c *CmdTeamRemoveMember) Run() error {
 	}
 
 	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {
+		switch err.(type) {
+		case libkb.NotFoundError:
+			if len(c.Email) > 0 {
+				ui.Printf("Error: there is currently no pending invitation for %s.\nIf that person is already on your team, please remove them with their keybase username.\n\n", c.Email)
+				return nil
+			}
+			ui.Printf("Error: there is currently no user %s on team %s.\n\n", c.Username, c.Team)
+			return nil
+		}
 		return err
 	}
 
-	ui.Printf("Success! %s removed from team %s.\n", c.Username, c.Team)
+	if len(c.Email) > 0 {
+		ui.Printf("Success! %s invitation canceled for team %s.\n", c.Email, c.Team)
+	} else {
+		ui.Printf("Success! %s removed from team %s.\n", c.Username, c.Team)
+	}
 
 	return nil
 }

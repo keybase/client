@@ -783,4 +783,22 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 
 	assertNoInvite(tc, name, address, "email")
+
+	// check error type for an email address with no invite
+	err := CancelEmailInvite(context.TODO(), tc.G, name, "nope@keybase.io")
+	if err == nil {
+		t.Fatal("expected error canceling email invite for unknown email address")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Errorf("expected libkb.NotFoundError, got %T", err)
+	}
+
+	// check error type for unknown team
+	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address)
+	if err == nil {
+		t.Fatal("expected error canceling email invite for unknown team")
+	}
+	if _, ok := err.(TeamDoesNotExistError); !ok {
+		t.Errorf("expected teams.TeamDoesNotExistError, got %T", err)
+	}
 }
