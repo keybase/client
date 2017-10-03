@@ -316,12 +316,11 @@ const InputAccessory = Component => props => (
   <Box style={{position: 'relative', width: '100%'}}>
     <Box
       style={{
-        bottom: 0,
+        bottom: 1,
+        display: 'flex',
+        left: 0,
         position: 'absolute',
         right: 0,
-        left: 0,
-        backgroundColor: 'white',
-        display: 'flex',
       }}
     >
       <Component {...props} />

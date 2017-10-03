@@ -62,6 +62,7 @@ const Hud = ({style, data, rowRenderer}: Props<*>) => (
 
 const hudStyle = {
   ...globalStyles.flexBoxRow,
+  backgroundColor: globalColors.white,
 }
 
 type MentionHudProps = {
