@@ -10,7 +10,7 @@ import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
+import {bootstrap, getExtendedStatus} from '../config'
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
@@ -19,7 +19,7 @@ import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
-import {selectConversation, setInitialConversation} from '../chat/creators'
+import {selectConversation} from '../chat/creators'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
@@ -136,13 +136,8 @@ function* navBasedOnLoginState(): SagaGenerator<any, any> {
       console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
     } else if (initialLink) {
-      yield put(setInitialLink(null))
       yield put(appLink(initialLink))
     } else if (initialTab && isValidInitialTab(initialTab)) {
-      // only do this once
-      yield put(setInitialTab(null))
-      yield put(setInitialConversation(null))
-
       if (isValidInitialTab(initialTab)) {
         if (initialTab === chatTab && initialConversation) {
           yield put(navigateTo([initialTab], null, true))
