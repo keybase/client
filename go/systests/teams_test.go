@@ -445,14 +445,14 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
 	cli := u.teamsClient
 	var err error
-	var teamID keybase1.TeamID
+	var res keybase1.LookupImplicitTeamRes
 	if create {
-		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
 	} else {
-		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
 
-	return teamID, err
+	return res.TeamID, err
 }
 
 func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
