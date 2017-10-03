@@ -54,9 +54,9 @@ const MentionRowRenderer = ({
   </ClickableBox>
 )
 
-const Hud = ({style, data, rowRenderer}: Props<*>) => (
+const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) => (
   <Box style={{...hudStyle, ...style}}>
-    <List items={data} renderItem={rowRenderer} />
+    <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} />
   </Box>
 )
 

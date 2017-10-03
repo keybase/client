@@ -6,9 +6,20 @@ import {globalStyles} from '../styles'
 import type {Props} from './list'
 
 class List extends PureComponent<Props<*>, void> {
+  _list: ?ReactList
   _itemRender = index => {
     const item = this.props.items[index]
     return this.props.renderItem(index, item)
+  }
+
+  _setListRef = r => {
+    this._list = r
+  }
+
+  componentDidUpdate() {
+    if (this.props.selectedIndex !== -1) {
+      this._list && this._list.scrollAround(this.props.selectedIndex)
+    }
   }
 
   render() {
@@ -29,6 +40,7 @@ class List extends PureComponent<Props<*>, void> {
             }}
           >
             <ReactList
+              ref={this._setListRef}
               useTranslate3d={true}
               useStaticSize={!!this.props.fixedHeight}
               itemRenderer={this._itemRender}
