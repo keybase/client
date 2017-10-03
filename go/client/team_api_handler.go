@@ -297,8 +297,41 @@ func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) 
 	return t.encodeResult(c, nil, w)
 }
 
+type renameOptions struct {
+	Team        string `json:"team"`
+	NewTeamName string `json:"new-team-name"`
+}
+
+func (c *renameOptions) Check() error {
+	if err := checkSubteam(c.Team); err != nil {
+		return err
+	}
+	return checkSubteam(c.NewTeamName)
+}
+
 func (t *teamAPIHandler) renameSubteam(ctx context.Context, c Call, w io.Writer) error {
-	return nil
+	var opts renameOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	name, err := keybase1.TeamNameFromString(opts.Team)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	newName, err := keybase1.TeamNameFromString(opts.NewTeamName)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	arg := keybase1.TeamRenameArg{
+		PrevName: name,
+		NewName:  newName,
+	}
+	if err := t.cli.TeamRename(ctx, arg); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	return t.encodeResult(c, nil, w)
 }
 
 func (t *teamAPIHandler) requireOptionsV1(c Call) error {
@@ -356,4 +389,15 @@ func mapRole(srole string) (keybase1.TeamRole, error) {
 
 type Checker interface {
 	Check() error
+}
+
+func checkSubteam(name string) error {
+	n, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		return err
+	}
+	if n.IsRootTeam() {
+		return errors.New("can only rename subteams")
+	}
+	return nil
 }
