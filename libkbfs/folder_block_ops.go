@@ -3462,6 +3462,11 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	lState *lockState, md ReadOnlyRootMetadata) (
 	changes []NodeChange, err error) {
+	if fbo.nodeCache == nil {
+		// Nothing needs to be done!
+		return nil, nil
+	}
+
 	// Take a hard lock through this whole process.  TODO: is there
 	// any way to relax this?  It could lead to file system operation
 	// timeouts, even on reads, if we hold it too long.
