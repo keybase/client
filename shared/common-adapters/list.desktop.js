@@ -16,7 +16,7 @@ class List extends PureComponent<Props<*>, void> {
     this._list = r
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: Props<*>) {
     if (this.props.selectedIndex !== -1 && this.props.selectedIndex !== prevProps.selectedIndex) {
       this._list && this._list.scrollAround(this.props.selectedIndex)
     }

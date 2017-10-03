@@ -11,7 +11,7 @@ type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
   data: Array<D>,
   style: Object,
-  selectedIndex: ?number,
+  selectedIndex: number,
 }
 
 type MentionDatum = {
