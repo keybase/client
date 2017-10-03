@@ -62,6 +62,8 @@ export const MemberInfo = I.Record({
   username: '',
 })
 
+export type TabKey = 'members' | 'requests'
+
 export type SetTeamCreationError = NoErrorTypedAction<
   'teams:setTeamCreationError',
   {teamCreationError: string}

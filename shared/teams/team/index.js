@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Text, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
-import TabBar, {TabBarItem} from '../../common-adapters/tab-bar'
+import {Avatar, Box, Text, List, Tabs, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -17,9 +16,9 @@ export type Props = {
   requests: string[],
   loading: boolean,
   showMenu: boolean,
-  selectedTab: string,
+  selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
-  setSelectedTab: (t: string) => void,
+  setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
 }
@@ -79,6 +78,58 @@ const Help = isMobile
       </Box>
     )
 
+type TeamTabsProps = {
+  admin: boolean,
+  members: Array<RowProps>,
+  requests: string[],
+  loading?: boolean,
+  selectedTab?: string,
+  setSelectedTab: (?Constants.TabKey) => void,
+}
+
+const TeamTabs = (props: TeamTabsProps) => {
+  const {admin, members, requests, loading = false, selectedTab, setSelectedTab} = props
+  let membersLabel = 'MEMBERS'
+  membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
+  const tabs = [
+    <Text
+      key="members"
+      type="BodySmallSemibold"
+      style={{
+        color: globalColors.black_75,
+      }}
+    >
+      {membersLabel}
+    </Text>,
+  ]
+  if (admin) {
+    const requestsLabel = `REQUESTS (${requests.length})`
+    // TODO Pending invite tab
+    tabs.push(
+      ...[
+        <Text
+          key="requests"
+          type="BodySmallSemibold"
+          style={{
+            color: globalColors.black_75,
+          }}
+        >
+          {requestsLabel}
+        </Text>,
+      ]
+    )
+  }
+  const selected = tabs.find(tab => tab.key === selectedTab)
+  return (
+    <Tabs
+      tabs={tabs}
+      selected={selected}
+      // $FlowIssue with tab key
+      onSelect={tab => (tab.key ? setSelectedTab(tab.key) : setSelectedTab('members'))}
+    />
+  )
+}
+
 class Team extends React.PureComponent<Props> {
   _renderMember = (index: number, item: RowProps) => {
     return (
@@ -119,23 +170,33 @@ class Team extends React.PureComponent<Props> {
     const {
       name,
       members,
-      requests,
       showMenu,
       setShowMenu,
-      selectedTab,
-      setSelectedTab,
       onLeaveTeam,
+      selectedTab,
       loading,
       onManageChat,
+      you,
     } = this.props
 
     // TODO admin lets us have multiple tabs
-    let membersLabel = 'MEMBERS'
-    membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
-    const requestsLabel = `REQUESTS (${requests.length})`
-
+    const me = members.find(member => member.username === you)
+    const admin = me ? showCrown[me.type] : false
     const progressIndicator =
       members.length === 0 && loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />
+
+    let contents
+    if (selectedTab === 'members') {
+      contents =
+        (members.length !== 0 || !loading) &&
+        <List
+          keyProperty="username"
+          items={members}
+          fixedHeight={48}
+          renderItem={this._renderMember}
+          style={{alignSelf: 'stretch'}}
+        />
+    }
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
@@ -145,30 +206,9 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
-        <TabBar style={{flex: 1, width: '100%'}}>
-          <TabBarItem
-            selected={selectedTab === 'members'}
-            label={membersLabel}
-            onClick={() => setSelectedTab && setSelectedTab('members')}
-          >
-            {progressIndicator}
-            {(members.length !== 0 || !loading) &&
-              <List
-                keyProperty="username"
-                items={members}
-                fixedHeight={48}
-                renderItem={this._renderMember}
-                style={{alignSelf: 'stretch'}}
-              />}
-          </TabBarItem>
-          <TabBarItem
-            selected={selectedTab === 'requests'}
-            label={requestsLabel}
-            onClick={() => setSelectedTab && setSelectedTab('requests')}
-          >
-            <Box style={{marginTop: globalMargins.small}}><Text type="Terminal">TEST</Text></Box>
-          </TabBarItem>
-        </TabBar>
+        <TeamTabs {...this.props} admin={admin} />
+        {progressIndicator}
+        {contents}
         {showMenu &&
           <PopupMenu
             items={[
