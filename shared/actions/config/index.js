@@ -167,10 +167,9 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
           // backend, so call navBasedOnLoginState to load the default
           // tab, then call it again once the .load finishes.
           dispatch(async (): Promise<*> => {
-            await dispatch(navBasedOnLoginState(false))
+            await dispatch(navBasedOnLoginState())
             await dispatch(routeStateStorage.load)
-            console.log('[RouteState] calling navBased again')
-            await dispatch(navBasedOnLoginState(true))
+            await dispatch(navBasedOnLoginState())
           })
           dispatch(resetSignup())
         }

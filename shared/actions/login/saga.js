@@ -29,7 +29,7 @@ import * as Saga from '../../util/saga'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, AsyncAction, NoErrorTypedAction} from '../../constants/types/flux'
+import type {Dispatch, AsyncAction} from '../../constants/types/flux'
 import type {SagaGenerator, AfterSelect} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
@@ -93,9 +93,7 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
-function* navBasedOnLoginState(
-  action: NoErrorTypedAction<'login:navBasedOnLoginState', boolean>
-): SagaGenerator<any, any> {
+function* navBasedOnLoginState(): SagaGenerator<any, any> {
   const selector = ({
     chat: {initialConversation},
     config: {loggedIn, registered, initialTab, initialLink},
@@ -114,7 +112,7 @@ function* navBasedOnLoginState(
 
   const args = yield select(selector)
 
-  console.log('[RouteState] args:', args, ' payload:', action.payload)
+  console.log('[RouteState] args:', args)
 
   const {
     initialConversation,
@@ -126,8 +124,6 @@ function* navBasedOnLoginState(
     loginError,
     routeChanged,
   } = args
-
-  const isInitial = !action.payload
 
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
@@ -147,12 +143,18 @@ function* navBasedOnLoginState(
       yield put(setInitialTab(null))
       yield put(setInitialConversation(null))
 
-      yield put(navigateTo([initialTab], null, isInitial))
-      if (initialTab === chatTab && initialConversation) {
-        yield put(selectConversation(initialConversation, false, isInitial))
+      if (isValidInitialTab(initialTab)) {
+        if (initialTab === chatTab && initialConversation) {
+          yield put(navigateTo([initialTab], null, true))
+          yield put(selectConversation(initialConversation, false))
+        } else {
+          yield put(navigateTo([initialTab], null))
+        }
+      } else {
+        yield put(navigateTo([peopleTab]))
       }
     } else {
-      yield put(navigateTo([peopleTab], null, isInitial))
+      yield put(navigateTo([peopleTab], null, true))
     }
   } else if (registered) {
     // relogging in
