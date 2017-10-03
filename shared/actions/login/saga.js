@@ -19,7 +19,7 @@ import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
-import {selectConversation} from '../chat/creators'
+import {selectConversation, setInitialConversation} from '../chat/creators'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
@@ -136,6 +136,8 @@ function* navBasedOnLoginState() {
     } else if (isValidInitialTab(initialTab)) {
       // only do this once
       yield put(setInitialTab(null))
+      yield put(setInitialConversation(null))
+
       if (!launchedViaPush) {
         yield put(navigateTo([initialTab]))
         if (initialTab === chatTab && initialConversation) {
