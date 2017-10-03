@@ -11,6 +11,8 @@ export type Props = {
   you: ?string,
   onOpenProfile: (u: string) => void,
   onChat: () => void,
+  onAcceptRequest: (role: 'owners' | 'admins' | 'writers' | 'readers', sendChatNotification: boolean) => void,
+  onIgnoreRequest: () => void,
 }
 
 export const TeamRequestRow = (props: Props) => {
@@ -18,15 +20,23 @@ export const TeamRequestRow = (props: Props) => {
     <Box
       style={{
         ...globalStyles.flexBoxRow,
+        flexDirection: isMobile ? 'column' : 'row',
         alignItems: 'center',
         flexShrink: 0,
-        height: isMobile ? 56 : 48,
+        height: isMobile ? 112 : 48,
         padding: globalMargins.tiny,
         width: '100%',
       }}
+      key={props.username}
     >
       <ClickableBox
-        style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flexGrow: 1,
+          flexShrink: 0,
+          width: isMobile ? '100%' : 'initial',
+        }}
         onClick={() => props.onOpenProfile(props.username)}
       >
         <Avatar username={props.username} size={isMobile ? 48 : 32} />
@@ -36,7 +46,21 @@ export const TeamRequestRow = (props: Props) => {
           </Text>
         </Box>
       </ClickableBox>
-      <Button type="Primary" label="Start a Chat" onClick={() => props.onChat()} />
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          marginTop: isMobile ? globalMargins.tiny : 0,
+        }}
+      >
+        <Button type="Primary" label="Start a Chat" onClick={() => props.onChat()} />
+        <Button
+          style={{marginLeft: globalMargins.xtiny}}
+          type="Danger"
+          label="Ignore request"
+          onClick={() => props.onIgnoreRequest()}
+        />
+      </Box>
     </Box>
   )
 }
