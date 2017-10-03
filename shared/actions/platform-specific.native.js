@@ -6,8 +6,7 @@ import {eventChannel} from 'redux-saga'
 import {isIOS} from '../constants/platform'
 import {isDevApplePushToken} from '../local-debug'
 import {chatTab} from '../constants/tabs'
-import {setInitialTab, setInitialLink} from './config'
-import {setInitialConversation} from './chat'
+import {setInitialState} from './config'
 import {isImageFileName} from '../constants/chat'
 
 import type {Dispatch, GetState} from '../constants/types/flux'
@@ -202,7 +201,7 @@ class RouteStateStorage {
 
       if (url) {
         console.log('[RouteState] initial URL:', url)
-        await dispatch(setInitialLink(url))
+        await dispatch(setInitialState({url}))
         return
       }
 
@@ -241,10 +240,10 @@ class RouteStateStorage {
       }
 
       if (item.tab) {
-        await dispatch(setInitialTab(item.tab))
-
         if (item.selectedConversationIDKey) {
-          await dispatch(setInitialConversation(item.selectedConversationIDKey))
+          await dispatch(setInitialState({conversation: item.selectedConversationIDKey, tab: chatTab}))
+        } else {
+          await dispatch(setInitialState({tab: item.tab}))
         }
       }
     } finally {

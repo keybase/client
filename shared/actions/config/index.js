@@ -29,8 +29,7 @@ import {flushLogFile} from '../../util/forward-logs'
 
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {Tab} from '../../constants/tabs'
-import type {UpdateFollowing} from '../../constants/config'
+import type {InitialState, UpdateFollowing} from '../../constants/config'
 import type {AsyncAction} from '../../constants/types/flux'
 
 // TODO convert to sagas
@@ -41,11 +40,9 @@ isMobile &&
     console.log('accepted update in actions/config')
   })
 
-const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => ({payload: {tab}, type: 'config:setInitialTab'})
-
-const setInitialLink = (url: ?string): Constants.SetInitialLink => ({
-  payload: {url},
-  type: 'config:setInitialLink',
+const setInitialState = (initialState: InitialState): Constants.SetInitialState => ({
+  payload: initialState,
+  type: 'config:setInitialState',
 })
 
 const getConfig = (): AsyncAction => (dispatch, getState) =>
@@ -239,8 +236,7 @@ export {
   isFollowing,
   retryBootstrap,
   persistRouteState,
-  setInitialTab,
-  setInitialLink,
+  setInitialState,
   updateFollowing,
   waitForKBFS,
 }

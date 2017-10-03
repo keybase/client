@@ -23,8 +23,7 @@ const initialState: Constants.State = {
   followers: {},
   following: {},
   globalError: null,
-  initialTab: null,
-  initialLink: null,
+  initialState: null,
   kbfsPath: Constants.defaultKBFSPath,
   loggedIn: false,
   registered: false,
@@ -170,17 +169,10 @@ export default function(state: Constants.State = initialState, action: Action): 
       }
     }
 
-    case 'config:setInitialTab': {
+    case 'config:setInitialState': {
       return {
         ...state,
-        initialTab: action.payload.tab,
-      }
-    }
-
-    case 'config:setInitialLink': {
-      return {
-        ...state,
-        initialLink: action.payload.url,
+        initialState: action.payload,
       }
     }
 

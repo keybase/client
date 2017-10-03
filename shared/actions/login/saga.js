@@ -95,16 +95,13 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
 
 function* navBasedOnLoginState(): SagaGenerator<any, any> {
   const selector = ({
-    chat: {initialConversation},
-    config: {loggedIn, registered, initialTab, initialLink},
+    config: {loggedIn, registered, initialState},
     login: {justDeletedSelf, loginError},
     routeTree: {routeChanged},
   }: TypedState) => ({
-    initialConversation,
     loggedIn,
     registered,
-    initialTab,
-    initialLink,
+    initialState,
     justDeletedSelf,
     loginError,
     routeChanged,
@@ -114,16 +111,7 @@ function* navBasedOnLoginState(): SagaGenerator<any, any> {
 
   console.log('[RouteState] args:', args)
 
-  const {
-    initialConversation,
-    loggedIn,
-    registered,
-    initialTab,
-    initialLink,
-    justDeletedSelf,
-    loginError,
-    routeChanged,
-  } = args
+  const {loggedIn, registered, initialState, justDeletedSelf, loginError, routeChanged} = args
 
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
@@ -135,15 +123,15 @@ function* navBasedOnLoginState(): SagaGenerator<any, any> {
     if (overrideLoggedInTab) {
       console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
-    } else if (initialLink) {
-      yield put(appLink(initialLink))
-    } else if (initialTab && isValidInitialTab(initialTab)) {
-      if (isValidInitialTab(initialTab)) {
-        if (initialTab === chatTab && initialConversation) {
-          yield put(navigateTo([initialTab], null, true))
-          yield put(selectConversation(initialConversation, false))
+    } else if (initialState) {
+      if (initialState.link) {
+        yield put(appLink(initialState.Link))
+      } else if (isValidInitialTab(initialState.tab)) {
+        if (initialState.tab === chatTab && initialState.conversation) {
+          yield put(navigateTo([chatTab], null, true))
+          yield put(selectConversation(initialState.Conversation, false))
         } else {
-          yield put(navigateTo([initialTab], null))
+          yield put(navigateTo([initialState.tab], null))
         }
       } else {
         yield put(navigateTo([peopleTab]))

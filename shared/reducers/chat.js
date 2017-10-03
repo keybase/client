@@ -272,9 +272,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:showEditor': {
       return state.set('editingMessage', action.payload.message)
     }
-    case 'chat:setInitialConversation': {
-      return state.set('initialConversation', action.payload.conversationIDKey)
-    }
     case 'chat:setPreviousConversation': {
       return state.set('previousConversation', action.payload.conversationIDKey)
     }

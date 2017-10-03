@@ -2,6 +2,7 @@
 import uniq from 'lodash/uniq'
 import {runMode} from './platform'
 
+import type {ConversationIDKey} from './chat'
 import type {Tab} from './tabs'
 import type {BootstrapStatus, Config, DeviceID, ExtendedStatus} from './types/flow-types'
 import type {NoErrorTypedAction} from './types/flux'
@@ -38,8 +39,15 @@ export type UpdateFollowing = NoErrorTypedAction<
   'config:updateFollowing',
   {username: string, isTracking: boolean}
 >
-export type SetInitialLink = NoErrorTypedAction<'config:setInitialLink', {url: ?string}>
-export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
+
+export type InitialState = {
+  conversation?: ConversationIDKey,
+  link?: string,
+  tab?: Tab,
+}
+
+export type SetInitialState = NoErrorTypedAction<'config:setInitialState', InitialState>
+
 export type PushLoaded = NoErrorTypedAction<'config:pushLoaded', boolean>
 
 export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
@@ -72,8 +80,7 @@ export type State = {
   readyForBootstrap: boolean,
   uid: ?string,
   username: ?string,
-  initialTab: ?Tab,
-  initialLink: ?string,
+  initialState: ?InitialState,
   deviceID: ?DeviceID,
   deviceName: ?string,
 }
