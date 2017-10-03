@@ -6,6 +6,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -175,4 +176,45 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, role, keybase1.TeamRole_READER)
 	}
+}
+
+func TestTeamOpenBans(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	own := tt.addUser("own")
+	bob := tt.addUser("bob")
+
+	team := own.createTeam()
+	t.Logf("Open team name is %q", team)
+
+	teamName, err := keybase1.TeamNameFromString(team)
+	require.NoError(t, err)
+
+	t.Logf("Trying team edit cli...")
+	runner := client.NewCmdTeamEditRunner(own.tc.G)
+	runner.Team = teamName
+	runner.IsSet = true
+	runner.Settings = keybase1.TeamSettings{
+		Open:   true,
+		JoinAs: keybase1.TeamRole_READER,
+	}
+	err = runner.Run()
+	require.NoError(t, err)
+
+	own.addTeamMember(team, bob.username, keybase1.TeamRole_READER)
+
+	removeRunner := client.NewCmdTeamRemoveMemberRunner(own.tc.G)
+	removeRunner.Team = team
+	removeRunner.Username = bob.username
+	removeRunner.Force = true
+	removeRunner.Permanent = true
+	err = removeRunner.Run()
+	require.NoError(t, err)
+
+	err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
+	require.Error(t, err)
+	appErr, ok := err.(libkb.AppStatusError)
+	require.True(t, ok)
+	require.Equal(t, appErr.Code, libkb.SCTeamBanned)
 }

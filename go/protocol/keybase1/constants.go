@@ -144,6 +144,7 @@ const (
 	StatusCode_SCTeamImplicitBadAdd        StatusCode = 2685
 	StatusCode_SCTeamImplicitBadRemove     StatusCode = 2686
 	StatusCode_SCTeamKeyMaskNotFound       StatusCode = 2697
+	StatusCode_SCTeamBanned                StatusCode = 2702
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
