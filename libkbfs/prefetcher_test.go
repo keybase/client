@@ -907,6 +907,13 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		TriggeredPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		root.Children["a"].BlockPointer, a, NoPrefetch, TransientEntry)
+	testPrefetcherCheckGet(t, config.BlockCache(),
+		root.Children["b"].BlockPointer, b, NoPrefetch, TransientEntry)
+
 	t.Log("Fetch dir root again.")
 	block = &DirBlock{}
 	ch = q.Request(context.Background(), defaultOnDemandRequestPriority, kmd,
