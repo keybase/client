@@ -213,6 +213,9 @@ top:
 func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	defer func() {
 		close(p.doneCh)
+		p.prefetchRequestCh.Close()
+		p.prefetchCancelCh.Close()
+		p.inFlightFetches.Close()
 	}()
 	isShuttingDown := false
 	for {
