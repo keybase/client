@@ -4818,6 +4818,7 @@ export type TeamDetails = {
   members: TeamMembersDetails,
   keyGeneration: PerTeamKeyGeneration,
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
+  settings: TeamSettings,
 }
 
 export type TeamExitRow = {

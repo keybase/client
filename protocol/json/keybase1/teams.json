@@ -251,6 +251,10 @@
             "keys": "TeamInviteID"
           },
           "name": "annotatedActiveInvites"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "settings"
         }
       ]
     },

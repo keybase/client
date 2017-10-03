@@ -90,6 +90,7 @@ protocol teams {
     TeamMembersDetails members;
     PerTeamKeyGeneration keyGeneration;
     map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
+    TeamSettings settings;
   }
 
   record UserVersion {

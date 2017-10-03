@@ -82,6 +82,8 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		delete(res.AnnotatedActiveInvites, invID)
 	}
 
+	res.Settings.Open = t.IsOpen()
+	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
 	return res, nil
 }
 
