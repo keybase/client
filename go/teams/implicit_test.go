@@ -66,7 +66,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 	}
 
 	displayName := strings.Join(usernames, ",")
-	//	lookupAndCreate(displayName, false)
+	lookupAndCreate(displayName, false)
 	lookupAndCreate(displayName, true)
 	displayName = fmt.Sprintf("mike@twitter,%s,james@github", displayName)
 	lookupAndCreate(displayName, false)
