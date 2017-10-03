@@ -48,11 +48,6 @@ const setInitialLink = (url: ?string): Constants.SetInitialLink => ({
   type: 'config:setInitialLink',
 })
 
-const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => ({
-  payload: pushed,
-  type: 'config:setLaunchedViaPush',
-})
-
 const getConfig = (): AsyncAction => (dispatch, getState) =>
   new Promise((resolve, reject) => {
     configGetConfigRpcPromise()
@@ -247,7 +242,6 @@ export {
   persistRouteState,
   setInitialTab,
   setInitialLink,
-  setLaunchedViaPush,
   updateFollowing,
   waitForKBFS,
 }

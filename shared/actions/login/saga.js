@@ -98,7 +98,7 @@ function* navBasedOnLoginState(
 ): SagaGenerator<any, any> {
   const selector = ({
     chat: {initialConversation},
-    config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
+    config: {loggedIn, registered, initialTab, initialLink},
     login: {justDeletedSelf, loginError},
     routeTree: {routeChanged},
   }: TypedState) => ({
@@ -108,7 +108,6 @@ function* navBasedOnLoginState(
     initialTab,
     initialLink,
     justDeletedSelf,
-    launchedViaPush,
     loginError,
     routeChanged,
   })
@@ -124,7 +123,6 @@ function* navBasedOnLoginState(
     initialTab,
     initialLink,
     justDeletedSelf,
-    launchedViaPush,
     loginError,
     routeChanged,
   } = args
@@ -144,16 +142,14 @@ function* navBasedOnLoginState(
     } else if (initialLink) {
       yield put(setInitialLink(null))
       yield put(appLink(initialLink))
-    } else if (isValidInitialTab(initialTab)) {
+    } else if (initialTab && isValidInitialTab(initialTab)) {
       // only do this once
       yield put(setInitialTab(null))
       yield put(setInitialConversation(null))
 
-      if (!launchedViaPush) {
-        yield put(navigateTo([initialTab], null, isInitial))
-        if (initialTab === chatTab && initialConversation) {
-          yield put(selectConversation(initialConversation, false, isInitial))
-        }
+      yield put(navigateTo([initialTab], null, isInitial))
+      if (initialTab === chatTab && initialConversation) {
+        yield put(selectConversation(initialConversation, false, isInitial))
       }
     } else {
       yield put(navigateTo([peopleTab], null, isInitial))

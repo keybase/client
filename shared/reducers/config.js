@@ -26,7 +26,6 @@ const initialState: Constants.State = {
   initialTab: null,
   initialLink: null,
   kbfsPath: Constants.defaultKBFSPath,
-  launchedViaPush: false,
   loggedIn: false,
   registered: false,
   readyForBootstrap,
@@ -130,13 +129,6 @@ export default function(state: Constants.State = initialState, action: Action): 
         ...state,
         bootStatus: 'bootStatusLoading',
         bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
-      }
-    }
-
-    case Constants.setLaunchedViaPush: {
-      return {
-        ...state,
-        launchedViaPush: action.payload,
       }
     }
 

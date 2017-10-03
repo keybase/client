@@ -26,7 +26,6 @@ const globalErrorDismiss = 'config:globalErrorDismiss'
 const readAppVersion = 'config:readAppVersion'
 const setFollowers = 'config:setFollowers'
 const setFollowing = 'config:setFollowing'
-const setLaunchedViaPush = 'config:setLaunchedViaPush'
 const statusLoaded = 'config:statusLoaded'
 const updateFollowing = 'config:updateFollowing'
 
@@ -41,7 +40,6 @@ export type UpdateFollowing = NoErrorTypedAction<
 >
 export type SetInitialLink = NoErrorTypedAction<'config:setInitialLink', {url: ?string}>
 export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
-export type SetLaunchedViaPush = NoErrorTypedAction<'config:setLaunchedViaPush', boolean>
 export type PushLoaded = NoErrorTypedAction<'config:pushLoaded', boolean>
 
 export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
@@ -69,7 +67,6 @@ export type State = {
   following: {[key: string]: true},
   globalError: ?Error,
   kbfsPath: string,
-  launchedViaPush: boolean,
   loggedIn: boolean,
   registered: boolean,
   readyForBootstrap: boolean,
@@ -101,7 +98,6 @@ export {
   readAppVersion,
   setFollowers,
   setFollowing,
-  setLaunchedViaPush,
   statusLoaded,
   updateFollowing,
 }
