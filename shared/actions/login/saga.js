@@ -139,7 +139,7 @@ function* navBasedOnLoginState() {
       yield put(setInitialConversation(null))
 
       if (!launchedViaPush) {
-        yield put(navigateTo([initialTab]))
+        yield put(navigateTo([initialTab], null, true))
         if (initialTab === chatTab && initialConversation) {
           yield put(selectConversation(initialConversation, false))
         }

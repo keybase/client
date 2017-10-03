@@ -11,7 +11,10 @@ export const switchTo = 'routeTree:switchTo'
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
 export const navigateTo = 'routeTree:navigateTo'
-export type NavigateTo = NoErrorTypedAction<'routeTree:navigateTo', {path: PropsPath<*>, parentPath: ?Path}>
+export type NavigateTo = NoErrorTypedAction<
+  'routeTree:navigateTo',
+  {path: PropsPath<*>, parentPath: ?Path, isInitial: boolean}
+>
 
 export const navigateAppend = 'routeTree:navigateAppend'
 export type NavigateAppend = NoErrorTypedAction<
