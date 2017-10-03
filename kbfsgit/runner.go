@@ -252,7 +252,8 @@ func (r *runner) initRepoIfNeeded(ctx context.Context, forCmd string) (
 	}
 
 	// Only allow lazy creates for public and multi-user TLFs.
-	if r.h.Type() == tlf.Public || len(r.h.ResolvedWriters()) > 1 {
+	if r.h.Type() == tlf.Public ||
+		len(r.h.ResolvedWriters())+len(r.h.UnresolvedWriters()) > 1 {
 		fs, _, err = libgit.GetOrCreateRepoAndID(
 			ctx, r.config, r.h, r.repo, r.uniqID)
 	} else {
