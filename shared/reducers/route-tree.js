@@ -18,10 +18,10 @@ const initialState = Constants.State()
 function routeChangedReducer(routeChanged, action) {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return true
+      return routeChanged
 
     case Constants.setRouteDef:
-      return true
+      return routeChanged
 
     case Constants.switchTo:
       return true
