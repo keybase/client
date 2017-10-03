@@ -89,20 +89,18 @@ const mapStateToProps = (state: TypedState) => ({
   showPushPrompt: state.push.permissionsPrompt,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
-  return {
-    bootstrap: () => dispatch(bootstrap()),
-    hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
-    listenForNotifications: () => dispatch(listenForNotifications()),
-    navigateUp: () => {
-      dispatch(navigateUp())
-    },
-    persistRouteState: () => dispatch(persistRouteState),
-    setRouteState: (path, partialState) => {
-      dispatch(setRouteState(path, partialState))
-    },
-  }
-}
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  bootstrap: () => dispatch(bootstrap()),
+  hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
+  listenForNotifications: () => dispatch(listenForNotifications()),
+  navigateUp: () => {
+    dispatch(navigateUp())
+  },
+  persistRouteState: () => dispatch(persistRouteState),
+  setRouteState: (path, partialState) => {
+    dispatch(setRouteState(path, partialState))
+  },
+})
 
 const connector = connect(mapStateToProps, mapDispatchToProps)
 
