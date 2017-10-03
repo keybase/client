@@ -13,10 +13,8 @@ import {
   TlfKeysTLFIdentifyBehavior,
 } from '../../constants/types/flow-types'
 import {call, put, select, cancelled, take, spawn, all} from 'redux-saga/effects'
-import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
-import {navigateTo} from '../route-tree'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
@@ -208,21 +206,6 @@ function* onInboxStale(): SagaGenerator<any, any> {
       .concat(conversations.filter(c => c.teamname))
 
     yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
-
-    const {
-      initialConversation,
-      launchedViaPush,
-    } = yield select(({chat: {initialConversation}, config: {launchedViaPush}}: TypedState) => ({
-      initialConversation,
-      launchedViaPush,
-    }))
-    if (initialConversation) {
-      yield put(Creators.setInitialConversation(null))
-      if (!launchedViaPush) {
-        yield put(navigateTo([initialConversation], [chatTab]))
-        yield put(Creators.selectConversation(initialConversation, false))
-      }
-    }
   } finally {
     if (yield cancelled()) {
       yield put(Creators.setInboxUntrustedState('unloaded'))

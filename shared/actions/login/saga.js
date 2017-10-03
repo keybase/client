@@ -14,11 +14,12 @@ import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../co
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
-import {loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
+import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
+import {selectConversation} from '../chat/creators'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
@@ -94,9 +95,11 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
 
 function* navBasedOnLoginState() {
   const selector = ({
+    chat: {initialConversation},
     config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
     login: {justDeletedSelf, loginError},
   }: TypedState) => ({
+    initialConversation,
     loggedIn,
     registered,
     initialTab,
@@ -110,7 +113,16 @@ function* navBasedOnLoginState() {
 
   console.log('[navBasedOnLoginState] args:', args)
 
-  const {loggedIn, registered, initialTab, initialLink, justDeletedSelf, launchedViaPush, loginError} = args
+  const {
+    initialConversation,
+    loggedIn,
+    registered,
+    initialTab,
+    initialLink,
+    justDeletedSelf,
+    launchedViaPush,
+    loginError,
+  } = args
 
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
@@ -126,6 +138,10 @@ function* navBasedOnLoginState() {
       yield put(setInitialTab(null))
       if (!launchedViaPush) {
         yield put(navigateTo([initialTab]))
+        if (initialTab === chatTab && initialConversation) {
+          yield put(navigateTo([initialConversation], [chatTab]))
+          yield put(selectConversation(initialConversation, false))
+        }
       }
     } else {
       yield put(navigateTo([peopleTab]))
