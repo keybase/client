@@ -254,7 +254,7 @@ class RouteStateStorage {
 
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     if (!this.loaded) {
-      console.log('[RouteState] Ignoring store before initial load:')
+      console.log('[RouteState] Ignoring store before initial load')
       return
     }
 
