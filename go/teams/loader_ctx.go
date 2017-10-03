@@ -28,8 +28,8 @@ type LoaderContext interface {
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
 	merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
-	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error)
-	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
+	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
+	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
 }
 
 // The main LoaderContext is G.
@@ -204,7 +204,7 @@ func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafI
 	return triple, nil
 }
 
-func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error) {
 	arg := libkb.NewLoadUserArgBase(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll()
 	upak, _, err := l.G().GetUPAKLoader().LoadV2(*arg)
 	if err != nil {
@@ -214,7 +214,7 @@ func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid key
 }
 
 func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
-	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID,
+	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT,
 	err error) {
 
 	user, pubKey, linkMap, err := l.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)

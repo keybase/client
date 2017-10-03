@@ -252,7 +252,7 @@ func (l *MockLoaderContext) merkleLookupTripleAtHashMeta(ctx context.Context,
 	return &triple1, nil
 }
 
-func (l *MockLoaderContext) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+func (l *MockLoaderContext) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error) {
 	panic("TODO")
 	// if !ok {
 	// 	return nil, NewMockBoundsError("ForceLinkMapRefreshForUser", "uid", uid)
@@ -261,7 +261,7 @@ func (l *MockLoaderContext) forceLinkMapRefreshForUser(ctx context.Context, uid 
 }
 
 func (l *MockLoaderContext) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
-	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID,
+	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT,
 	err error) {
 
 	defer func() {
