@@ -16,34 +16,47 @@ import {
 const initialState = Constants.State()
 
 function routeChangedReducer(routeChanged, action) {
-  switch (action.type) {
-    case CommonConstants.resetStore:
-      return routeChanged
+  const newRouteChanged = (function() {
+    switch (action.type) {
+      case CommonConstants.resetStore:
+        return routeChanged
 
-    case Constants.setRouteDef:
-      return routeChanged
+      case Constants.setRouteDef:
+        return routeChanged
 
-    case Constants.switchTo:
-      return true
+      case Constants.switchTo:
+        return true
 
-    case Constants.navigateTo:
-      return routeChanged || !action.payload.isInitial
+      case Constants.navigateTo:
+        return routeChanged || !action.payload.isInitial
 
-    case Constants.navigateAppend:
-      return true
+      case Constants.navigateAppend:
+        return true
 
-    case Constants.navigateUp:
-      return true
+      case Constants.navigateUp:
+        return true
 
-    case Constants.setRouteState:
-      return true
+      case Constants.setRouteState:
+        return true
 
-    case Constants.resetRoute:
-      return true
+      case Constants.resetRoute:
+        return true
 
-    default:
-      return routeChanged
+      default:
+        return routeChanged
+    }
+  })()
+  if (routeChanged !== newRouteChanged) {
+    console.log(
+      '[RouteState] route changed changed from',
+      routeChanged,
+      'to',
+      newRouteChanged,
+      '; action: ',
+      action
+    )
   }
+  return newRouteChanged
 }
 
 function routeDefReducer(routeDef, action) {
