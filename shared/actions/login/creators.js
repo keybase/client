@@ -5,7 +5,7 @@ import * as DeviceConstants from '../../constants/devices'
 import HiddenString from '../../util/hidden-string'
 import {qrGenerate} from './provision-helpers'
 
-import type {Action, TypedAction} from '../../constants/types/flux'
+import type {NoErrorTypedAction, TypedAction} from '../../constants/types/flux'
 
 function submitUsernameOrEmail(usernameOrEmail: string): Constants.SubmitUsernameOrEmail {
   return {type: Constants.submitUsernameOrEmail, payload: {usernameOrEmail}}
@@ -150,8 +150,10 @@ function openAccountResetPage() {
   return {payload: {}, type: Constants.openAccountResetPage}
 }
 
-function navBasedOnLoginState(): Action {
-  return {payload: {}, type: Constants.navBasedOnLoginState}
+function navBasedOnLoginState(
+  routeStateLoaded: boolean
+): NoErrorTypedAction<'login:navBasedOnLoginState', boolean> {
+  return {payload: routeStateLoaded, type: Constants.navBasedOnLoginState}
 }
 
 function waitingForResponse(waiting: boolean): TypedAction<'login:waitingForResponse', boolean, void> {

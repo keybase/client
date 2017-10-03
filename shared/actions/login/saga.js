@@ -29,7 +29,7 @@ import * as Saga from '../../util/saga'
 
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, AsyncAction} from '../../constants/types/flux'
+import type {Dispatch, AsyncAction, NoErrorTypedAction} from '../../constants/types/flux'
 import type {SagaGenerator, AfterSelect} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
@@ -93,7 +93,9 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
-function* navBasedOnLoginState() {
+function* navBasedOnLoginState(
+  action: NoErrorTypedAction<'login:navBasedOnLoginState', boolean>
+): SagaGenerator<any, any> {
   const selector = ({
     chat: {initialConversation},
     config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
@@ -145,7 +147,7 @@ function* navBasedOnLoginState() {
         }
       }
     } else {
-      yield put(navigateTo([peopleTab], null, true))
+      yield put(navigateTo([peopleTab], null, !action.payload))
     }
   } else if (registered) {
     // relogging in

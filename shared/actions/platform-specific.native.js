@@ -248,6 +248,11 @@ class RouteStateStorage {
         }
       }
     } finally {
+      console.log('[RouteState] sleeping')
+      // Sleep for 2s.
+      const ms = 2000
+      await new Promise(resolve => setTimeout(resolve, ms))
+      console.log('[RouteState] waking')
       this.loaded = true
     }
   }
@@ -256,6 +261,7 @@ class RouteStateStorage {
     const state = getState()
     if (!state.routeTree.routeChanged) {
       console.log('[RouteState] Ignoring store before route changed')
+      return
     }
 
     const routeState = state.routeTree.routeState
