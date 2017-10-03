@@ -54,9 +54,9 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "ConversationLocalParticipant"
           },
-          "name": "writerNames"
+          "name": "participants"
         },
         {
           "type": {
@@ -182,7 +182,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "ConversationLocalParticipant"
           },
           "name": "participants"
         },

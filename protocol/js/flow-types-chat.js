@@ -981,8 +981,7 @@ export type ConversationInfoLocal = {
   teamType: TeamType,
   existence: ConversationExistence,
   version: ConversationVers,
-  writerNames?: ?Array<string>,
-  readerNames?: ?Array<string>,
+  participants?: ?Array<ConversationLocalParticipant>,
   finalizeInfo?: ?ConversationFinalizeInfo,
   resetNames?: ?Array<string>,
 }
@@ -998,6 +997,11 @@ export type ConversationLocal = {
   maxMessages?: ?Array<MessageUnboxed>,
   isEmpty: boolean,
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
+}
+
+export type ConversationLocalParticipant = {
+  username: string,
+  fullname: string,
 }
 
 export type ConversationMember = {
@@ -1318,7 +1322,7 @@ export type InboxUIItem = {
   channel: string,
   headline: string,
   visibility: keybase1.TLFVisibility,
-  participants?: ?Array<string>,
+  participants?: ?Array<ConversationLocalParticipant>,
   resetParticipants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
@@ -2033,7 +2037,7 @@ export type UnverifiedInboxUIItemMetadata = {
   channelName: string,
   headline: string,
   snippet: string,
-  writerNames?: ?Array<string>,
+  participants?: ?Array<ConversationLocalParticipant>,
   resetParticipants?: ?Array<string>,
 }
 

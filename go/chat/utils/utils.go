@@ -111,13 +111,25 @@ type ReorderUsernameSource interface {
 	LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
 }
 
-// Reorder participants based on the order in activeList.
+// ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, uloader ReorderUsernameSource, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
-	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
+func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, tuloader ReorderUsernameSource,
+	umapper libkb.UIDMapper, tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
-		return writerNames, readerNames, err
+		return writerNames, err
+	}
+	var activeKuids []keybase1.UID
+	for _, a := range activeList {
+		activeKuids = append(activeKuids, keybase1.UID(a.String()))
+	}
+	packages, err := umapper.MapUIDsToUsernamePackages(ctx, g, activeKuids, 0, 0, false)
+	activeMap := make(map[string]chat1.ConversationLocalParticipant)
+	if err == nil {
+		for i := 0; i < len(activeKuids); i++ {
+			activeMap[activeKuids[i].String()] = UsernamePackageToParticipant(packages[i])
+		}
 	}
 
 	allowedWriters := make(map[string]bool)
@@ -130,33 +142,29 @@ func ReorderParticipants(ctx context.Context, uloader ReorderUsernameSource, tlf
 	// Fill from the active list first.
 	for _, uid := range activeList {
 		kbUID := keybase1.UID(uid.String())
-		normalizedUsername, err := uloader.LookupUsername(ctx, kbUID)
-		if err != nil {
+		p, ok := activeMap[kbUID.String()]
+		if !ok {
 			continue
 		}
-		user := normalizedUsername.String()
-		user, err = kbfs.NormalizeAssertionOrName(user)
-		if err != nil {
-			continue
-		}
-		if allowed, _ := allowedWriters[user]; allowed {
-			writerNames = append(writerNames, user)
+		if allowed, _ := allowedWriters[p.Username]; allowed {
+			writerNames = append(writerNames, p)
 			// Allow only one occurrence.
-			allowedWriters[user] = false
+			allowedWriters[p.Username] = false
 		}
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
 	for _, user := range srcWriterNames {
 		if allowed, _ := allowedWriters[user]; allowed {
-			writerNames = append(writerNames, user)
+			writerNames = append(writerNames, UsernamePackageToParticipant(libkb.UsernamePackage{
+				NormalizedUsername: libkb.NewNormalizedUsername(user),
+				FullName:           nil,
+			}))
 			allowedWriters[user] = false
 		}
 	}
 
-	readerNames = srcReaderNames
-
-	return writerNames, readerNames, nil
+	return writerNames, nil
 }
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
@@ -602,11 +610,18 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Version = rawConv.Metadata.Version
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
+<<<<<<< HEAD
 			ChannelName:       rc.LocalMetadata.TopicName,
 			Headline:          rc.LocalMetadata.Headline,
 			Snippet:           rc.LocalMetadata.Snippet,
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
+=======
+			ChannelName:  rc.LocalMetadata.TopicName,
+			Headline:     rc.LocalMetadata.Headline,
+			Snippet:      rc.LocalMetadata.Snippet,
+			Participants: rc.LocalMetadata.Participants,
+>>>>>>> wip
 		}
 	}
 	return res
@@ -625,8 +640,12 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Snippet = GetConvSnippet(rawConv)
 	res.Channel = GetTopicName(rawConv)
 	res.Headline = GetHeadline(rawConv)
+<<<<<<< HEAD
 	res.Participants = rawConv.Info.WriterNames
 	res.ResetParticipants = rawConv.Info.ResetNames
+=======
+	res.Participants = rawConv.Info.Participants
+>>>>>>> wip
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
 	res.Visibility = rawConv.Info.Visibility
@@ -849,4 +868,15 @@ func PluckConvs(rcs []types.RemoteConversation) (res []chat1.Conversation) {
 
 func SplitTLFName(tlfName string) []string {
 	return strings.Split(strings.Fields(tlfName)[0], ",")
+}
+
+func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLocalParticipant {
+	fullName := "Unknown"
+	if p.FullName != nil {
+		fullName = string(p.FullName.FullName)
+	}
+	return chat1.ConversationLocalParticipant{
+		Username: p.NormalizedUsername.String(),
+		Fullname: fullName,
+	}
 }

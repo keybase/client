@@ -63,7 +63,7 @@ func (c *CmdChatListMembers) Run() error {
 	}
 
 	ui.Printf("Listing members in %s [#%s]:\n\n", c.tlfName, c.topicName)
-	for _, memb := range inboxRes.Conversations[0].Info.WriterNames {
+	for _, memb := range inboxRes.Conversations[0].Names() {
 		ui.Printf("%s\n", memb)
 	}
 
