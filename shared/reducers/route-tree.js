@@ -27,7 +27,7 @@ function routeChangedReducer(routeChanged, action) {
       return true
 
     case Constants.navigateTo:
-      return true
+      return routeChanged || !action.payload.isInitial
 
     case Constants.navigateAppend:
       return true

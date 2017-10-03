@@ -883,7 +883,7 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 }
 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
-  const {conversationIDKey, fromUser} = action.payload
+  const {conversationIDKey, fromUser, isInitial} = action.payload
 
   // Always show this in the inbox
   if (conversationIDKey) {
@@ -918,9 +918,9 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
 
   if (conversationIDKey) {
     yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
-    yield put(navigateTo([conversationIDKey], [chatTab]))
+    yield put(navigateTo([conversationIDKey], [chatTab], isInitial))
   } else {
-    yield put(navigateTo([chatTab]))
+    yield put(navigateTo([chatTab], null, isInitial))
   }
 
   // Do this here because it's possible loadMoreMessages bails early
