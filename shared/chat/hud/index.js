@@ -2,7 +2,7 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import {compose, withState, lifecycle, withPropsOnChange, branch, renderNothing} from 'recompose'
-import {Avatar, Box, ClickableBox, List, Text} from '../../common-adapters/index'
+import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {TypedState} from '../../constants/reducer'
@@ -14,7 +14,7 @@ type Props<D: {key: string, selected: boolean}> = {
 }
 
 type MentionDatum = {
-  avatar: React$Element<*>,
+  following: {[username]: boolean},
   username: string,
   fullName: string,
   selected: boolean,
@@ -22,21 +22,34 @@ type MentionDatum = {
   onHover: () => void,
 }
 
-const MentionRowRenderer = ({avatar, username, fullName, selected, onClick, onHover}: MentionDatum) => (
+const MentionRowRenderer = ({
+  username,
+  fullName,
+  selected,
+  onClick,
+  onHover,
+  following,
+  you,
+}: MentionDatum) => (
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
-      height: 24,
+      height: 40,
       alignItems: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
       backgroundColor: selected ? globalColors.blue4 : undefined,
     }}
     onClick={onClick}
     onMouseOver={onHover}
   >
-    {avatar}
-    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>{username}</Text>
+    <Avatar username={username} size={32} />
+    <Usernames
+      type="Body"
+      colorFollowing={true}
+      users={[{you: you === username, username, following: following[username]}]}
+      style={{marginLeft: globalMargins.small}}
+    />
     <Text type="Body" style={{marginLeft: globalMargins.tiny}}>{fullName}</Text>
   </ClickableBox>
 )
@@ -66,9 +79,10 @@ type MentionHudProps = {
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
   connect((state: TypedState, {userIds, selectedIndex, filter}) => ({
+    following: state.config.following,
+    you: state.config.username || '',
     data: userIds
       .map((u, i) => ({
-        avatar: <Avatar username={u} size={16} />,
         username: u,
         fullName: '', // TODO
         key: u,
@@ -108,6 +122,8 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
           key={props.key}
           onClick={() => ownerProps.onPickUser(props.username)}
           onHover={() => ownerProps.setSelectedIndex(index)}
+          following={ownerProps.following}
+          you={ownerProps.you}
           {...props}
         />
       )

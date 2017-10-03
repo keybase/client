@@ -330,7 +330,18 @@ const InputAccessory = Component => props => (
 )
 
 const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud onSelectUser={u => {}} style={{flex: 1, height: 100}} {...props} />
+  <ConnectedMentionHud
+    onSelectUser={u => {}}
+    style={{
+      borderRadius: 4,
+      boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
+      height: 220,
+      marginLeft: 20,
+      marginRight: 20,
+      width: '100%',
+    }}
+    {...props}
+  />
 ))
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (
