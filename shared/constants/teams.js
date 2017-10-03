@@ -62,10 +62,6 @@ export const MemberInfo = I.Record({
   username: '',
 })
 
-export type RequestInfoRecord = KBRecord<{
-  username: string,
-}>
-
 export const RequestInfo = I.Record({
   username: '',
 })

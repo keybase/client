@@ -4,6 +4,8 @@ import * as Constants from '../../constants/teams'
 import {Avatar, Box, Text, List, Tabs, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
+import TeamUserRow from './memberRow/container'
+import TeamRequestRow from './requestRow/container'
 
 export type MemberRowProps = {
   ...Constants.MemberInfo,
@@ -17,7 +19,7 @@ export type Props = {
   you: string,
   name: Constants.Teamname,
   members: Array<MemberRowProps>,
-  requests: string[],
+  requests: Array<RequestRowProps>,
   loading: boolean,
   showMenu: boolean,
   selectedTab: Constants.TabKey,
@@ -25,20 +27,6 @@ export type Props = {
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
-}
-
-const typeToLabel = {
-  admins: 'Admin',
-  owners: 'Owner',
-  readers: 'Reader',
-  writers: 'Writer',
-}
-
-const showCrown = {
-  admins: true,
-  owners: true,
-  readers: false,
-  writer: false,
 }
 
 const Help = isMobile
@@ -135,76 +123,6 @@ const TeamTabs = (props: TeamTabsProps) => {
 }
 
 class Team extends React.PureComponent<Props> {
-  _renderMember = (index: number, item: MemberRowProps) => {
-    return (
-      <Box
-        key={item.username}
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flexShrink: 0,
-          height: isMobile ? 56 : 48,
-          padding: globalMargins.tiny,
-          width: '100%',
-        }}
-      >
-        <Avatar username={item.username} size={isMobile ? 48 : 32} />
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Text type={this.props.you === item.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
-            {item.username}
-          </Text>
-          <Box style={globalStyles.flexBoxRow}>
-            {!!showCrown[item.type] &&
-              <Icon
-                type="iconfont-crown"
-                style={{
-                  color: globalColors.black_40,
-                  fontSize: isMobile ? 16 : 12,
-                  marginRight: globalMargins.xtiny,
-                }}
-              />}
-            <Text type="BodySmall">{typeToLabel[item.type]}</Text>
-          </Box>
-        </Box>
-      </Box>
-    )
-  }
-
-  _renderRequest = (index: number, item: RequestRowProps) => {
-    return (
-      <Box
-        key={item.username}
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flexShrink: 0,
-          height: isMobile ? 56 : 48,
-          padding: globalMargins.tiny,
-          width: '100%',
-        }}
-      >
-        <Avatar username={item.username} size={isMobile ? 48 : 32} />
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Text type={this.props.you === item.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
-            {item.username}
-          </Text>
-          <Box style={globalStyles.flexBoxRow}>
-            {!!showCrown[item.type] &&
-              <Icon
-                type="iconfont-crown"
-                style={{
-                  color: globalColors.black_40,
-                  fontSize: isMobile ? 16 : 12,
-                  marginRight: globalMargins.xtiny,
-                }}
-              />}
-            <Text type="BodySmall">{typeToLabel[item.type]}</Text>
-          </Box>
-        </Box>
-      </Box>
-    )
-  }
-
   render() {
     const {
       name,
@@ -219,11 +137,14 @@ class Team extends React.PureComponent<Props> {
       you,
     } = this.props
 
-    // TODO admin lets us have multiple tabs
     const me = members.find(member => member.username === you)
-    const admin = me ? showCrown[me.type] : false
+    const admin = me ? me.type === 'admins' || me.type === 'owners' : false
     const progressIndicator =
       members.length === 0 && loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />
+
+    // massage data for rowrenderers
+    const memberProps = members.map(member => ({username: member.username, teamname: name}))
+    const requestProps = requests.map(req => ({username: req.username, teamname: name}))
 
     let contents
     if (selectedTab === 'members') {
@@ -231,9 +152,9 @@ class Team extends React.PureComponent<Props> {
         (members.length !== 0 || !loading) &&
         <List
           keyProperty="username"
-          items={members}
+          items={memberProps}
           fixedHeight={48}
-          renderItem={this._renderMember}
+          renderItem={TeamUserRow}
           style={{alignSelf: 'stretch'}}
         />
     } else if (selectedTab === 'requests') {
@@ -250,9 +171,9 @@ class Team extends React.PureComponent<Props> {
         contents = (
           <List
             keyProperty="username"
-            items={requests}
+            items={requestProps}
             fixedHeight={48}
-            renderItem={this._renderRequest}
+            renderItem={TeamRequestRow}
             style={{alignSelf: 'stretch'}}
           />
         )
