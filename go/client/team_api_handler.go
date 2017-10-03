@@ -237,9 +237,8 @@ func (t *teamAPIHandler) listSelfMemberships(ctx context.Context, c Call, w io.W
 }
 
 type listTeamOptions struct {
-	Team            string `json:"team"`
-	IncludeSubteams bool   `json:"include-subteams"`
-	ForcePoll       bool   `json:"force-poll"`
+	Team      string `json:"team"`
+	ForcePoll bool   `json:"force-poll"`
 }
 
 func (c *listTeamOptions) Check() error {
@@ -252,16 +251,48 @@ func (t *teamAPIHandler) listTeamMemberships(ctx context.Context, c Call, w io.W
 	if err := t.unmarshalOptions(c, &opts); err != nil {
 		return t.encodeErr(c, err, w)
 	}
-	_ = opts
-	return nil
+
+	arg := keybase1.TeamGetArg{
+		Name:        opts.Team,
+		ForceRepoll: opts.ForcePoll,
+	}
+	details, err := t.cli.TeamGet(ctx, arg)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	return t.encodeResult(c, details, w)
 }
 
 type listUserOptions struct {
-	UserAssertion string `json:"user"`
+	UserAssertion        string `json:"user"`
+	IncludeImplicitTeams bool   `json:"include-implicit-teams"`
+}
+
+func (o *listUserOptions) Check() error {
+	if len(o.UserAssertion) == 0 {
+		return errors.New("list-user-memberships: \"user\" required")
+	}
+
+	return nil
 }
 
 func (t *teamAPIHandler) listUserMemberships(ctx context.Context, c Call, w io.Writer) error {
-	return nil
+	var opts listUserOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	arg := keybase1.TeamListArg{
+		UserAssertion:        opts.UserAssertion,
+		IncludeImplicitTeams: opts.IncludeImplicitTeams,
+	}
+	list, err := t.cli.TeamList(ctx, arg)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	return t.encodeResult(c, list, w)
 }
 
 type removeMemberOptions struct {
