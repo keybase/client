@@ -1117,6 +1117,7 @@ func (r *runner) canPushAll(
 		}
 	}
 
+	// Build a set of all the source refs that the user is pushing.
 	sources := make(map[string]bool)
 	for _, push := range args {
 		if len(push) != 1 {
@@ -1151,6 +1152,8 @@ func (r *runner) canPushAll(
 		return false, false, err
 	}
 
+	// Check whether all of the local refs are being used as a source
+	// for this push.  If not, we can't blindly push everything.
 	for {
 		ref, err := localRefs.Next()
 		if errors.Cause(err) == io.EOF {
@@ -1387,9 +1390,7 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 		// All refs in the batch get the same error.
 		results = make(map[string]error, len(args))
 		for _, push := range args {
-			if len(push) != 1 {
-				return errors.Errorf("Bad push request: %v", push)
-			}
+			// `canPushAll` already validates the push reference.
 			start := strings.Index(push[0], ":") + 1
 			dst := push[0][start:]
 			results[dst] = err
