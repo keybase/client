@@ -160,6 +160,10 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
+    // Ignore our arrows
+    if (this.props.mentionPopupOpen && ['ArrowUp', 'ArrowDown'].includes(e.key)) {
+      return
+    }
     // Get the word typed so far
     if (this.props.mentionPopupOpen || e.key === 'Backspace') {
       const wordSoFar = this._getWordAtCursor(false)
@@ -235,8 +239,12 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _insertMention = (u: string) => {
-    this.props.setMentionPopupOpen(false)
     this._replaceWordAtCursor(`@${u} `)
+    this.props.setMentionPopupOpen(false)
+  }
+
+  _switchMention = (u: string) => {
+    this._replaceWordAtCursor(`@${u}`)
   }
 
   render() {
@@ -251,6 +259,7 @@ class ConversationInput extends Component<InputProps, State> {
             selectUpCounter={this.state.upArrowCounter}
             pickSelectedUserCounter={this.state.pickSelectedCounter}
             onPickUser={this._insertMention}
+            onSelectUser={this._switchMention}
             filter={this.props.mentionFilter}
           />}
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
@@ -341,7 +350,6 @@ const InputAccessory = Component => props => (
 
 const MentionHud = InputAccessory(props => (
   <ConnectedMentionHud
-    onSelectUser={u => {}}
     style={{
       borderRadius: 4,
       boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
