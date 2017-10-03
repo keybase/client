@@ -31,6 +31,15 @@ type State = {
   pickSelectedCounter: number,
 }
 
+const MentionCatcher = ({onClick}) => (
+  <Box
+    onClick={onClick}
+    style={{
+      ...globalStyles.fillAbsolute,
+      backgroundColor: globalColors.transparent,
+    }}
+  />
+)
 class ConversationInput extends Component<InputProps, State> {
   state: State
   _inputRef: ?any
@@ -233,6 +242,8 @@ class ConversationInput extends Component<InputProps, State> {
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
+        {this.props.mentionPopupOpen &&
+          <MentionCatcher onClick={() => this.props.setMentionPopupOpen(false)} />}
         {this.props.mentionPopupOpen &&
           ff.mentionHud &&
           <MentionHud
