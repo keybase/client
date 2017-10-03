@@ -30,8 +30,11 @@ declare function displayNewMessageNotification(text: string, convID: string, bad
 //   // On a tab switch:
 //   dispatch(routeStateStorage.store)
 //
-// Implementations should handle the case of a .store happening before
-// the first .load by ignoring the .store.
+// Implementations should ignore stores that happen when
+// getState().routeTree.routeChanged is false, since that is set when
+// a user has performed a navigation action, or the state from .load
+// has been applied, and we don't want to store any state until either
+// of those two events happens.
 declare class RouteStateStorage {
   // load returns a promise that, when resolved, means that the route
   // state has been loaded from the storage into the redux state.

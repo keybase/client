@@ -187,8 +187,6 @@ function configurePush() {
 }
 
 class RouteStateStorage {
-  loaded = false
-
   load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     try {
       let url
@@ -252,7 +250,6 @@ class RouteStateStorage {
       const ms = 2000
       await new Promise(resolve => setTimeout(resolve, ms))
       console.log('[RouteState] waking')
-      this.loaded = true
     }
   }
 
