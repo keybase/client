@@ -357,6 +357,10 @@ func (f failingUpak) LookupUsername(ctx context.Context, uid keybase1.UID) (libk
 	require.Fail(f.t, "LookupUsername call")
 	return "", nil
 }
+func (f failingUpak) LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
+	require.Fail(f.t, "LookupUsernameUPAK call")
+	return "", nil
+}
 func (f failingUpak) LookupUID(ctx context.Context, un libkb.NormalizedUsername) (keybase1.UID, error) {
 	require.Fail(f.t, "LookupUID call")
 	return keybase1.UID(""), nil
