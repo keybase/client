@@ -136,7 +136,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     editLastMessageCounter: stateProps.editLastMessageCounter,
     getMessageFromMessageKey: stateProps.getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
-    messageKeys: messageKeysWithHeaders,
+    messageKeys: messageKeysWithHeaders.reverse(), // TEMP
     onDeleteMessage: dispatchProps.onDeleteMessage,
     onEditMessage: dispatchProps.onEditMessage,
     onFocusInput: stateProps.onFocusInput,

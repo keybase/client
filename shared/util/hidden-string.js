@@ -7,6 +7,7 @@ class HiddenString {
 
   constructor(stringValue: string) {
     this._value = () => stringValue
+    this.TEMP = stringValue
   }
 
   toString(): string {

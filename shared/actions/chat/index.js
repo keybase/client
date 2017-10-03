@@ -359,7 +359,12 @@ const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey) =
   'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
 })
 
+let ONCE = false
 function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
+  // if (ONCE) {
+  // console.log('BAIL TEMP ')
+  // return
+  // }
   const conversationIDKey = action.payload.conversationIDKey
 
   try {
@@ -444,6 +449,8 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         },
       }
     )
+
+    ONCE = true
 
     const result = yield call(loadThreadChanMapRpc.run)
 

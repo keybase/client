@@ -49,7 +49,7 @@ function* onInitialInboxLoad(): SagaGenerator<any, any> {
       if (!_backgroundLoopTask) {
         yield take('chat:loadedInbox')
         // Use spawn so this is never cancelled if this is
-        _backgroundLoopTask = yield spawn(_backgroundUnboxLoop)
+        // _backgroundLoopTask = yield spawn(_backgroundUnboxLoop)
       }
     }
   } finally {
@@ -168,12 +168,12 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.loadedInbox(conversations))
 
     // Load the first visible simple and teams so we can get the channel names
-    const toUnbox = conversations
-      .filter(c => !c.teamname)
-      .take(20)
-      .concat(conversations.filter(c => c.teamname))
+    // const toUnbox = conversations
+    // .filter(c => !c.teamname)
+    // .take(20)
+    // .concat(conversations.filter(c => c.teamname))
 
-    yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
+    // yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
 
     const {
       initialConversation,

@@ -20,7 +20,8 @@ const factory = (
   ) => void,
   onShowEditor: (message: Constants.ServerMessage, event: SyntheticEvent<>) => void,
   isSelected: boolean,
-  measure: () => void
+  measure: () => void,
+  isScrolling: boolean
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
@@ -37,6 +38,7 @@ const factory = (
           onAction={onAction}
           onShowEditor={onShowEditor}
           prevMessageKey={prevMessageKey}
+          isScrolling={isScrolling}
         />
       )
     case 'error': // fallthrough
@@ -64,7 +66,13 @@ const factory = (
       return null
   }
 
-  return <Box data-messageKey={messageKey} />
+  return <Box data-messageKey={messageKey} style={_unknownStyle} />
+}
+
+const _unknownStyle = {
+  height: 22,
+  width: '100%',
+  backgroundColor: 'red',
 }
 
 export default factory
