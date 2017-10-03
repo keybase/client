@@ -150,8 +150,8 @@ function openAccountResetPage() {
   return {payload: {}, type: Constants.openAccountResetPage}
 }
 
-function navBasedOnLoginState(): NoErrorTypedAction<'login:navBasedOnLoginState', void> {
-  return {payload: undefined, type: Constants.navBasedOnLoginState}
+function navBasedOnLoginAndInitialState(): NoErrorTypedAction<'login:navBasedOnLoginAndInitialState', void> {
+  return {payload: undefined, type: Constants.navBasedOnLoginAndInitialState}
 }
 
 function waitingForResponse(waiting: boolean): TypedAction<'login:waitingForResponse', boolean, void> {
@@ -166,7 +166,7 @@ export {
   loginDone,
   logout,
   logoutDone,
-  navBasedOnLoginState,
+  navBasedOnLoginAndInitialState,
   onBack,
   onFinish,
   onWont,

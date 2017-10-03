@@ -12,7 +12,7 @@ import {
 import {isMobile, isSimulator} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {fuseStatus} from '../../actions/kbfs'
-import {navBasedOnLoginState} from '../../actions/login/creators'
+import {navBasedOnLoginAndInitialState} from '../../actions/login/creators'
 import {
   checkReachabilityOnConnect,
   registerGregorListeners,
@@ -158,15 +158,15 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
         })
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
-          // navBasedOnLoginState depends on initialTab and
+          // navBasedOnLoginAndInitialState depends on initialTab and
           // initialLink, which is set by routeStateStorage.load.  But
           // we don't want to block on a possibly-slow storage
-          // backend, so call navBasedOnLoginState to load the default
+          // backend, so call navBasedOnLoginAndInitialState to load the default
           // tab, then call it again once the .load finishes.
           dispatch(async (): Promise<*> => {
-            await dispatch(navBasedOnLoginState())
+            await dispatch(navBasedOnLoginAndInitialState())
             await dispatch(routeStateStorage.load)
-            await dispatch(navBasedOnLoginState())
+            await dispatch(navBasedOnLoginAndInitialState())
           })
           dispatch(resetSignup())
         }

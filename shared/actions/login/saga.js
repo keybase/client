@@ -93,7 +93,7 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
-function* navBasedOnLoginState(): SagaGenerator<any, any> {
+function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
   const selector = ({
     config: {loggedIn, registered, initialState},
     login: {justDeletedSelf, loginError},
@@ -464,7 +464,7 @@ function* loginFlowSaga(usernameOrEmail) {
         yield call(handleProvisioningError, error)
       } else {
         yield put(Creators.loginDone())
-        yield call(navBasedOnLoginState)
+        yield call(navBasedOnLoginAndInitialState)
       }
     } else if (result === EngineRpc.BailedEarly) {
       console.log('Bailed early')
@@ -626,7 +626,7 @@ function* openAccountResetPageSaga() {
 function* logoutDoneSaga() {
   yield put({payload: undefined, type: CommonConstants.resetStore})
 
-  yield call(navBasedOnLoginState)
+  yield call(navBasedOnLoginAndInitialState)
   yield put(bootstrap())
 }
 
@@ -649,7 +649,7 @@ function* loginSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
   yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
   yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
-  yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
+  yield Saga.safeTakeLatest(Constants.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
   yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
   yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)
