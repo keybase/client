@@ -195,8 +195,50 @@ func (t *teamAPIHandler) createTeam(ctx context.Context, c Call, w io.Writer) er
 	return t.encodeResult(c, createRes, w)
 }
 
-func (t *teamAPIHandler) editMember(ctx context.Context, c Call, w io.Writer) error {
+type editMemberOptions struct {
+	Team     string `json:"team"`
+	Username string `json:"username"`
+	Role     string `json:"role"`
+}
+
+func (e *editMemberOptions) Check() error {
+	_, err := keybase1.TeamNameFromString(e.Team)
+	if err != nil {
+		return err
+	}
+	if len(e.Username) == 0 {
+		return errors.New("empty username")
+	}
+	if len(e.Role) == 0 {
+		return errors.New("empty role")
+	}
+	if _, err := mapRole(e.Role); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (t *teamAPIHandler) editMember(ctx context.Context, c Call, w io.Writer) error {
+	var opts editMemberOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	role, err := mapRole(opts.Role)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	arg := keybase1.TeamEditMemberArg{
+		Name:     opts.Team,
+		Username: opts.Username,
+		Role:     role,
+	}
+	if err := t.cli.TeamEditMember(ctx, arg); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	return t.encodeResult(c, nil, w)
 }
 
 type leaveTeamOptions struct {
@@ -265,7 +307,7 @@ func (t *teamAPIHandler) listTeamMemberships(ctx context.Context, c Call, w io.W
 }
 
 type listUserOptions struct {
-	UserAssertion        string `json:"user"`
+	UserAssertion        string `json:"username"`
 	IncludeImplicitTeams bool   `json:"include-implicit-teams"`
 }
 
