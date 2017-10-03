@@ -145,7 +145,7 @@ function* navBasedOnLoginState() {
         }
       }
     } else {
-      yield put(navigateTo([peopleTab]))
+      yield put(navigateTo([peopleTab], null, true))
     }
   } else if (registered) {
     // relogging in
