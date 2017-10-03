@@ -38,7 +38,8 @@ const load = () => {
     .add('Mention Row', () => (
       <Box style={{width: 240}}>
         <MentionRowRenderer
-          avatar={<Avatar username="marcopolo" size={16} />}
+          following={{}}
+          you="chris"
           username="trex"
           fullName="T. Bone Rexasaurus"
           key="trex"
@@ -47,7 +48,8 @@ const load = () => {
           onHover={action('onHover')}
         />
         <MentionRowRenderer
-          avatar={<Avatar username="marcopolo" size={16} />}
+          following={{}}
+          you="chris"
           username="marcopolo"
           fullName="Marco Munizaga"
           key="marcopolo"
@@ -56,7 +58,8 @@ const load = () => {
           onHover={action('onHover')}
         />
         <MentionRowRenderer
-          avatar={<Avatar username="marcopolo" size={16} />}
+          following={{}}
+          you="chris"
           username="missingno"
           fullName="MissingNo"
           key="missingno"

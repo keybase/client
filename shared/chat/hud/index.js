@@ -11,10 +11,12 @@ type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
   data: Array<D>,
   style: Object,
+  selectedIndex: ?number,
 }
 
 type MentionDatum = {
-  following: {[username]: boolean},
+  following: {[username: string]: boolean},
+  you: string,
   username: string,
   fullName: string,
   selected: boolean,
@@ -56,7 +58,7 @@ const MentionRowRenderer = ({
 
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) => (
   <Box style={{...hudStyle, ...style}}>
-    <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} />
+    <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex || -1} />
   </Box>
 )
 
