@@ -253,12 +253,12 @@ class RouteStateStorage {
   }
 
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
-    if (!this.loaded) {
-      console.log('[RouteState] Ignoring store before initial load')
-      return
+    const state = getState()
+    if (!state.routeTree.routeChanged) {
+      console.log('[RouteState] Ignoring store before route changed')
     }
 
-    const routeState = getState().routeTree.routeState
+    const routeState = state.routeTree.routeState
     const item = {}
 
     const selectedTab = routeState.selected
