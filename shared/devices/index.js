@@ -88,13 +88,14 @@ class Devices extends PureComponent<Props> {
     if (item.type === 'revokedHeader') {
       return (
         <RevokedHeader
+          key="revokedHeader"
           expanded={this.props.showingRevoked}
           onToggleExpanded={this.props.onToggleShowRevoked}
         />
       )
     }
 
-    return <DeviceRow deviceID={item.id} />
+    return <DeviceRow key={item.id} deviceID={item.id} />
   }
 
   render() {
