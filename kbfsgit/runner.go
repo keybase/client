@@ -104,6 +104,12 @@ type runner struct {
 
 	logSync     sync.Once
 	logSyncDone sync.Once
+
+	printStageLock   sync.Mutex
+	needPrintDone    bool
+	stageStartTime   time.Time
+	stageMemProfName string
+	stageCPUProfPath string
 }
 
 // newRunner creates a new runner for git commands.  It expects `repo`
@@ -355,10 +361,59 @@ func humanizeBytes(n int64, d int64) string {
 	return fmt.Sprintf("%.2f/%.2f GB", float64(n)/gbf, float64(d)/gbf)
 }
 
+// printStageEndIfNeeded should only be used to end stages started with
+// printStageStart.
+func (r *runner) printStageEndIfNeeded(ctx context.Context) {
+	r.printStageLock.Lock()
+	defer r.printStageLock.Unlock()
+	// go-git grabs the lock right after plumbing.StatusIndexOffset, but before
+	// sending the Done status update. As a result, it would look like we are
+	// flushing the journal before plumbing.StatusIndexOffset is done. So
+	// instead, print "done." only if it's not printed yet.
+	if r.needPrintDone {
+		elapsedStr := r.getElapsedStr(ctx,
+			r.stageStartTime, r.stageMemProfName, r.stageCPUProfPath)
+		r.errput.Write([]byte("done." + elapsedStr + "\n"))
+		r.needPrintDone = false
+	}
+}
+
+func (r *runner) printStageStart(ctx context.Context,
+	toPrint []byte, memProfName, cpuProfName string) {
+	if len(toPrint) == 0 {
+		return
+	}
+	r.printStageEndIfNeeded(ctx)
+
+	r.printStageLock.Lock()
+	defer r.printStageLock.Unlock()
+
+	r.stageStartTime = r.config.Clock().Now()
+	r.stageMemProfName = memProfName
+
+	if len(cpuProfName) > 0 && r.verbosity >= 4 {
+		cpuProfPath := filepath.Join(
+			os.TempDir(), cpuProfName)
+		f, err := os.Create(cpuProfPath)
+		if err != nil {
+			r.log.CDebugf(
+				ctx, "Couldn't create CPU profile: %s", cpuProfName)
+			cpuProfPath = ""
+		} else {
+			pprof.StartCPUProfile(f)
+		}
+		r.stageCPUProfPath = cpuProfPath
+	}
+
+	r.errput.Write(toPrint)
+	r.needPrintDone = true
+}
+
 // caller should make sure doneCh is closed when journal is all flushed.
 func (r *runner) printJournalStatus(
 	ctx context.Context, jServer *libkbfs.JournalServer, tlfID tlf.ID,
 	doneCh <-chan struct{}) {
+	r.printStageEndIfNeeded(ctx)
 	// Note: the "first" status here gets us the number of unflushed
 	// bytes left at the time we started printing.  However, we don't
 	// have the total number of bytes being flushed to the server
@@ -378,9 +433,10 @@ func (r *runner) printJournalStatus(
 		adj = "signed"
 	}
 	if r.verbosity >= 1 {
-		r.errput.Write([]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)))
+		r.printStageStart(ctx,
+			[]byte(fmt.Sprintf("Syncing %s data to Keybase: ", adj)),
+			"mem.flush.prof", "")
 	}
-	startTime := r.config.Clock().Now()
 	r.log.CDebugf(ctx, "Waiting for %d journal bytes to flush",
 		firstStatus.UnflushedBytes)
 
@@ -425,9 +481,8 @@ func (r *runner) printJournalStatus(
 				r.errput.Write([]byte(eraseStr + str))
 			}
 
-			elapsedStr := r.getElapsedStr(ctx, startTime, "mem.flush.prof", "")
 			if r.verbosity >= 1 {
-				r.errput.Write([]byte("done." + elapsedStr + "\n"))
+				r.printStageEndIfNeeded(ctx)
 			}
 			return
 		}
@@ -637,16 +692,13 @@ func (r *runner) processGogitStatus(ctx context.Context,
 	}
 
 	currStage := plumbing.StatusUnknown
-	var startTime time.Time
 	lastByteCount := 0
-	cpuProf := ""
-	donePrinted := true
 	for {
-		if fsEvents == nil && statusChan == nil {
-			// statusChan is passed in as nil. So if both of them are nil, then
-			// they have both been closed in the select/case below, because
-			// receive failed. So instead of letting select block forever, we
-			// break out of the loop here.
+		if statusChan == nil && fsEvents == nil {
+			// statusChan is never passed in as nil. So if it's nil, it's been
+			// closed in the select/case below because receive failed. So
+			// instead of letting select block forever, we break out of the
+			// loop here.
 			break
 		}
 		select {
@@ -657,38 +709,15 @@ func (r *runner) processGogitStatus(ctx context.Context,
 			}
 			if update.Stage != currStage {
 				if currStage != plumbing.StatusUnknown {
-					memProf := fmt.Sprintf("mem.%d.prof", currStage)
-					elapsedStr := r.getElapsedStr(ctx, startTime, memProf, cpuProf)
-					// go-git grabs the lock right after
-					// plumbing.StatusIndexOffset, but before sending the Done
-					// status update. As a result, it would look like we are
-					// flushing the journal before plumbing.StatusIndexOffset
-					// is done. So instead, print "done." only if it's not
-					// printed yet.
-					if !donePrinted {
-						r.errput.Write([]byte("done." + elapsedStr + "\n"))
-						// Technically we've printed "done.", but there's no
-						// need to set donePrinted=true here since it's
-						// overridden below immediately.
-					}
+					r.printStageEndIfNeeded(ctx)
 				}
-				if r.verbosity >= 4 {
-					cpuProf = filepath.Join(
-						os.TempDir(), fmt.Sprintf("cpu.%d.prof", update.Stage))
-					f, err := os.Create(cpuProf)
-					if err != nil {
-						r.log.CDebugf(
-							ctx, "Couldn't create CPU profile: %s", cpuProf)
-						cpuProf = ""
-					} else {
-						pprof.StartCPUProfile(f)
-					}
-				}
-				r.errput.Write([]byte(gogitStagesToStatus[update.Stage]))
-				donePrinted = false
+				r.printStageStart(ctx,
+					[]byte(gogitStagesToStatus[update.Stage]),
+					fmt.Sprintf("mem.%d.prof", update.Stage),
+					fmt.Sprintf("cpu.%d.prof", update.Stage),
+				)
 				lastByteCount = 0
 				currStage = update.Stage
-				startTime = r.config.Clock().Now()
 				if stage, ok := gogitStagesToStatus[update.Stage]; ok {
 					r.log.CDebugf(ctx, "Entering stage: %s - %d total objects",
 						stage, update.ObjectsTotal)
@@ -725,10 +754,7 @@ func (r *runner) processGogitStatus(ctx context.Context,
 			}
 			switch fsEvent.EventType {
 			case libfs.FSEventLock, libfs.FSEventUnlock:
-				if !donePrinted {
-					fmt.Fprintf(r.errput, "done.\n")
-					donePrinted = true
-				}
+				r.printStageEndIfNeeded(ctx)
 				// Since we flush all blocks in Lock, subsequent calls to
 				// Lock/Unlock normally don't take much time. So we only print
 				// journal status if it's been longer than
@@ -747,7 +773,7 @@ func (r *runner) processGogitStatus(ctx context.Context,
 		}
 	}
 	r.log.CDebugf(ctx, "Status channel closed")
-	r.errput.Write([]byte("\n"))
+	r.printStageEndIfNeeded(ctx)
 }
 
 // recursiveByteCount returns a sum of the size of all files under the
@@ -858,7 +884,7 @@ func (r *runner) copyFileWithCount(
 			return err
 		}
 		eraseStr := strings.Repeat("\b", len(zeroStr))
-		newStr := fmt.Sprintf("%s... done.", humanizeBytes(fi.Size(), 1))
+		newStr := fmt.Sprintf("%s... ", humanizeBytes(fi.Size(), 1))
 		r.errput.Write([]byte(eraseStr + newStr))
 
 		elapsedStr := r.getElapsedStr(
