@@ -62,7 +62,15 @@ export const MemberInfo = I.Record({
   username: '',
 })
 
-export type TabKey = 'members' | 'requests'
+export type RequestInfoRecord = KBRecord<{
+  username: string,
+}>
+
+export const RequestInfo = I.Record({
+  username: '',
+})
+
+export type TabKey = 'members' | 'requests' | 'pending'
 
 export type SetTeamCreationError = NoErrorTypedAction<
   'teams:setTeamCreationError',

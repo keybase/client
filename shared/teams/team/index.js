@@ -5,14 +5,18 @@ import {Avatar, Box, Text, List, Tabs, Icon, PopupMenu, ProgressIndicator} from 
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
-export type RowProps = {
+export type MemberRowProps = {
   ...Constants.MemberInfo,
+}
+
+type RequestRowProps = {
+  ...Constants.RequestInfo,
 }
 
 export type Props = {
   you: string,
   name: Constants.Teamname,
-  members: Array<RowProps>,
+  members: Array<MemberRowProps>,
   requests: string[],
   loading: boolean,
   showMenu: boolean,
@@ -80,7 +84,7 @@ const Help = isMobile
 
 type TeamTabsProps = {
   admin: boolean,
-  members: Array<RowProps>,
+  members: Array<MemberRowProps>,
   requests: string[],
   loading?: boolean,
   selectedTab?: string,
@@ -131,7 +135,42 @@ const TeamTabs = (props: TeamTabsProps) => {
 }
 
 class Team extends React.PureComponent<Props> {
-  _renderMember = (index: number, item: RowProps) => {
+  _renderMember = (index: number, item: MemberRowProps) => {
+    return (
+      <Box
+        key={item.username}
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          flexShrink: 0,
+          height: isMobile ? 56 : 48,
+          padding: globalMargins.tiny,
+          width: '100%',
+        }}
+      >
+        <Avatar username={item.username} size={isMobile ? 48 : 32} />
+        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
+          <Text type={this.props.you === item.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
+            {item.username}
+          </Text>
+          <Box style={globalStyles.flexBoxRow}>
+            {!!showCrown[item.type] &&
+              <Icon
+                type="iconfont-crown"
+                style={{
+                  color: globalColors.black_40,
+                  fontSize: isMobile ? 16 : 12,
+                  marginRight: globalMargins.xtiny,
+                }}
+              />}
+            <Text type="BodySmall">{typeToLabel[item.type]}</Text>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+
+  _renderRequest = (index: number, item: RequestRowProps) => {
     return (
       <Box
         key={item.username}
@@ -170,6 +209,7 @@ class Team extends React.PureComponent<Props> {
     const {
       name,
       members,
+      requests,
       showMenu,
       setShowMenu,
       onLeaveTeam,
@@ -196,6 +236,27 @@ class Team extends React.PureComponent<Props> {
           renderItem={this._renderMember}
           style={{alignSelf: 'stretch'}}
         />
+    } else if (selectedTab === 'requests') {
+      if (requests.length === 0) {
+        contents = (
+          <Text
+            type="BodySmall"
+            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+          >
+            This team has no pending requests.
+          </Text>
+        )
+      } else {
+        contents = (
+          <List
+            keyProperty="username"
+            items={requests}
+            fixedHeight={48}
+            renderItem={this._renderRequest}
+            style={{alignSelf: 'stretch'}}
+          />
+        )
+      }
     }
 
     return (

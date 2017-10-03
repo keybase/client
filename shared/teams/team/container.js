@@ -9,13 +9,16 @@ import * as I from 'immutable'
 import Team, {CustomComponent} from '.'
 import {openInKBFS} from '../../actions/kbfs'
 import {navigateAppend} from '../../actions/route-tree'
+import {showUserProfile} from '../../actions/profile'
+import {getProfile} from '../../actions/tracker'
+import {isMobile} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   loading: boolean,
-  _requests: I.List<string>,
+  _requests: I.Set<Constants.RequestInfo>,
   name: Constants.Teamname,
   you: ?string,
 }
@@ -23,7 +26,7 @@ type StateProps = {
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.teamname], I.Set()),
   loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.teamname], true),
-  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.teamname], I.List()),
+  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.teamname], I.Set()),
   name: routeProps.teamname,
   you: state.config.username,
 })
@@ -43,6 +46,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
   _onManageChat: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Constants.Teamname) => dispatch(openInKBFS(`/keybase/team/${teamname}`)),
+  onUsernameClick: (username: string) => {
+    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+  },
   onBack: () => dispatch(navigateUp()),
 })
 

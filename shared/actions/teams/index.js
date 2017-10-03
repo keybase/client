@@ -85,7 +85,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     if (!reqMap[req.name]) {
       reqMap[req.name] = I.List()
     }
-    reqMap[req.name] = reqMap[req.name].push(req.username)
+    reqMap[req.name] = reqMap[req.name].push({username: req.username})
     return reqMap
   }, {})
 
