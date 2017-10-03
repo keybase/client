@@ -66,7 +66,13 @@ const factory = (
       return null
   }
 
-  return <Box data-messageKey={messageKey} />
+  return <Box data-messageKey={messageKey} style={_unknownStyle} />
+}
+
+const _unknownStyle = {
+  height: 22,
+  width: '100%',
+  backgroundColor: 'red',
 }
 
 export default factory

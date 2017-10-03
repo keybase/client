@@ -95,7 +95,7 @@ class BaseList extends React.Component<Props, State> {
       this.props.selectedConversation !== nextProps.selectedConversation ||
       this.props.listScrollDownCounter !== nextProps.listScrollDownCounter
     ) {
-      this._cellCache.clearAll()
+      // this._cellCache.clearAll()
       this.setState({isLockedToBottom: lockedToBottomFirstRender})
     }
 
@@ -115,8 +115,8 @@ class BaseList extends React.Component<Props, State> {
       // // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
       // // another cache from row -> style which is out of sync
-      this._cellCache.clearAll()
-      this._list && this._list.Grid && this._list.recomputeRowHeights(0)
+      // this._cellCache.clearAll()
+      // this._list && this._list.Grid && this._list.recomputeRowHeights(0)
     }
   }
 
@@ -141,12 +141,13 @@ class BaseList extends React.Component<Props, State> {
   _loadMoreRows = ({startIndex, stopIndex}) => {
     console.log('aaaa BBBB will asking for more', startIndex, stopIndex)
     this._loadedRowsMap[String(startIndex)] = true
-    if (this._loadingPromiseResolves[String(startIndex)]) {
-      return null
-    }
+    // can't really tell the state of this yet
+    // if (this._loadingPromiseResolves[String(startIndex)]) {
+    // return null
+    // }
     return new Promise((resolve, reject) => {
       this._loadingPromiseResolves[String(startIndex)] = resolve
-      // this.props.onLoadMoreMessages()
+      this.props.onLoadMoreMessages()
     })
   }
   // _TEMPONCE = false
@@ -166,7 +167,7 @@ class BaseList extends React.Component<Props, State> {
   // }, 500)
 
   _onScroll = ({clientHeight, scrollHeight, scrollTop}) => {
-    console.log('bbb', scrollTop, scrollHeight)
+    console.log('bbb onscroll', scrollTop, scrollHeight)
     this._updateBottomLock(clientHeight, scrollHeight, scrollTop)
     // this._maybeLoadMoreMessages(clientHeight, scrollTop, scrollHeight)
   }
@@ -278,6 +279,7 @@ class BaseList extends React.Component<Props, State> {
 
                   return (
                     <Virtualized.List
+                      estimatedRowSize={22}
                       messageKeys={this.props.messageKeys}
                       listRerender={this.state.listRerender}
                       selectedMessageKey={this.state.selectedMessageKey}
