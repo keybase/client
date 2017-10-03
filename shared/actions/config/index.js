@@ -167,8 +167,12 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
           // navBasedOnLoginState depends on initialTab and
-          // initialLink, which is set by routeStateStorage.load.
+          // initialLink, which is set by routeStateStorage.load.  But
+          // we don't want to block on a possibly-slow storage
+          // backend, so call navBasedOnLoginState to load the default
+          // tab, then call it again once the .load finishes.
           dispatch(async (): Promise<*> => {
+            await dispatch(navBasedOnLoginState())
             await dispatch(routeStateStorage.load)
             await dispatch(navBasedOnLoginState())
           })
