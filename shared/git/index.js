@@ -50,7 +50,7 @@ class Git extends React.Component<Props, State> {
       disabled: isMobile,
       onClick: isMobile ? undefined : () => this.props.onNewTeamRepo(),
       style: isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
-      title: `New team repository ${isMobile ? '(desktop only)' : ''}`,
+      title: `New team repository${isMobile ? ' (desktop only)' : ''}`,
     },
   ]
 
