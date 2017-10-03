@@ -100,6 +100,7 @@ function* navBasedOnLoginState(
     chat: {initialConversation},
     config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
     login: {justDeletedSelf, loginError},
+    routeTree: {routeChanged},
   }: TypedState) => ({
     initialConversation,
     loggedIn,
@@ -109,11 +110,12 @@ function* navBasedOnLoginState(
     justDeletedSelf,
     launchedViaPush,
     loginError,
+    routeChanged,
   })
 
   const args = yield select(selector)
 
-  console.log('[navBasedOnLoginState] args:', args)
+  console.log('[RouteState] args:', args, ' payload:', action.payload)
 
   const {
     initialConversation,
@@ -124,11 +126,18 @@ function* navBasedOnLoginState(
     justDeletedSelf,
     launchedViaPush,
     loginError,
+    routeChanged,
   } = args
+
+  const isInitial = !action.payload
 
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
   } else if (loggedIn) {
+    if (routeChanged) {
+      return
+    }
+
     if (overrideLoggedInTab) {
       console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
@@ -141,13 +150,13 @@ function* navBasedOnLoginState(
       yield put(setInitialConversation(null))
 
       if (!launchedViaPush) {
-        yield put(navigateTo([initialTab], null, true))
+        yield put(navigateTo([initialTab], null, isInitial))
         if (initialTab === chatTab && initialConversation) {
-          yield put(selectConversation(initialConversation, false, true))
+          yield put(selectConversation(initialConversation, false, isInitial))
         }
       }
     } else {
-      yield put(navigateTo([peopleTab], null, !action.payload))
+      yield put(navigateTo([peopleTab], null, isInitial))
     }
   } else if (registered) {
     // relogging in

@@ -174,6 +174,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
           dispatch(async (): Promise<*> => {
             await dispatch(navBasedOnLoginState(false))
             await dispatch(routeStateStorage.load)
+            console.log('[RouteState] calling navBased again')
             await dispatch(navBasedOnLoginState(true))
           })
           dispatch(resetSignup())
