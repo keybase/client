@@ -117,15 +117,15 @@ function startPack() {
 
           platforms.forEach(plat => {
             archs.forEach(arch => {
-              pack(plat, arch, log(plat, arch))
+              pack(plat, arch, postPack(plat, arch))
             })
           })
         } else if (shouldBuildAnArch) {
           // build for a specified arch on current platform only
-          pack(os.platform(), shouldBuildAnArch, log(os.platform(), shouldBuildAnArch))
+          pack(os.platform(), shouldBuildAnArch, postPack(os.platform(), shouldBuildAnArch))
         } else {
           // build for current platform only
-          pack(os.platform(), os.arch(), log(os.platform(), os.arch()))
+          pack(os.platform(), os.arch(), postPack(os.platform(), os.arch()))
         }
       })
       .catch(err => {
@@ -166,7 +166,7 @@ function pack(plat, arch, cb) {
   packager(opts, cb)
 }
 
-function log(plat, arch) {
+function postPack(plat, arch) {
   return (err, filepath) => {
     if (err) {
       console.error(err)
@@ -188,6 +188,20 @@ function log(plat, arch) {
         process.exit(1)
       }
     })
+    if (plat === 'win32') {
+      let packageOutDir = outDir
+      if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
+      const regeditVbsDir = `${packageOutDir}/Keybase-${plat}-${arch}/node_modules/regedit/vbs`
+      fs
+        .ensureDir(regeditVbsDir)
+        .then(() => {
+          fs.copy('node_modules/regedit/vbs', regeditVbsDir)
+        })
+        .catch(err => {
+          console.error(err)
+          process.exit(1)
+        })
+    }
     console.log(`${plat}-${arch} finished!`)
   }
 }
