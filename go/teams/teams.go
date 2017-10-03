@@ -1201,7 +1201,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) 
 	return subteams, nil
 }
 
-func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
+func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSettings) error {
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
 	}
@@ -1211,7 +1211,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
 		return err
 	}
 
-	settings, err := CreateTeamSettings(open, keybase1.TeamRole_READER)
+	scSettings, err := CreateTeamSettings(settings.Open, settings.JoinAs)
 	if err != nil {
 		return err
 	}
@@ -1219,7 +1219,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
 	section := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Admin:    admin,
-		Settings: &settings,
+		Settings: &scSettings,
 	}
 
 	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})

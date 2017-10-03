@@ -242,7 +242,7 @@ func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteAr
 }
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
-	return fmt.Errorf("Not implemented")
+	return teams.ChangeTeamSettings(ctx, h.G().ExternalG(), arg.Name, arg.Settings)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

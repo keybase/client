@@ -72,13 +72,13 @@ func TestTeamOpenSettings(t *testing.T) {
 	teamObj := loadTeam()
 	require.Equal(t, teamObj.IsOpen(), false)
 
-	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamObj.ID, true)
+	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamName, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	teamObj = loadTeam()
 	require.Equal(t, teamObj.IsOpen(), true)
 
-	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamObj.ID, false)
+	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamName, keybase1.TeamSettings{Open: false})
 	require.NoError(t, err)
 
 	teamObj = loadTeam()
@@ -110,7 +110,7 @@ func TestOpenSubteamAdd(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, subteamObj.ID, true)
+	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, subteamObj.Name().String(), keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	subteamObj, err = teams.Load(context.TODO(), own.tc.G, keybase1.LoadTeamArg{
@@ -155,10 +155,7 @@ func TestTeamOpenMultipleTars(t *testing.T) {
 	tar2.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
 
 	// Change settings to open
-	teamName, err := keybase1.TeamNameFromString(team)
-	require.NoError(t, err)
-	teamID := teamName.ToTeamID()
-	err = teams.ChangeTeamSettings(context.TODO(), own.tc.G, teamID, true)
+	err := teams.ChangeTeamSettings(context.TODO(), own.tc.G, team, keybase1.TeamSettings{Open: true, JoinAs: keybase1.TeamRole_READER})
 	require.NoError(t, err)
 
 	// tar3 requests, but rekeyd will grab all requests

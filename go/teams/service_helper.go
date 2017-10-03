@@ -691,13 +691,13 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	return t.ChangeMembership(ctx, req)
 }
 
-func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, open bool) error {
-	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName string, settings keybase1.TeamSettings) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 	if err != nil {
 		return err
 	}
 
-	return t.PostTeamSettings(ctx, open)
+	return t.PostTeamSettings(ctx, settings)
 }
 
 func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) error {
