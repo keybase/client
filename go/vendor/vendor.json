@@ -720,10 +720,9 @@
 			"revisionTime": "2016-09-07T14:02:52Z"
 		},
 		{
-			"checksumSHA1": "dr5+PfIRzXeN+l1VG+s0lea9qz8=",
 			"path": "golang.org/x/net/context",
-			"revision": "0a9397675ba34b2845f758fe3cd68828369c6517",
-			"revisionTime": "2017-07-19T03:24:12Z"
+			"revision": "7c71ca708c71bcbd0e6c856b01468ee07fe24557",
+			"revisionTime": "2016-06-20T16:30:30-04:00"
 		},
 		{
 			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
