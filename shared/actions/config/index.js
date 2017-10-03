@@ -190,7 +190,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
   }
 }
 
-const persistRouteState = routeStateStorage.store
+const persistRouteState: AsyncAction = routeStateStorage.store
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
