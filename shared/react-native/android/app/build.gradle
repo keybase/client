@@ -171,6 +171,7 @@ dependencies {
     // @see DESKTOP-1703
     compile 'com.facebook.fresco:animated-base-support:0.14.1'
     compile 'com.facebook.fresco:animated-gif:0.14.1'
+    compile 'com.facebook.fresco:fresco:1.5.0'
     debugCompile 'com.hanhuy.android:viewserver:1.0.3'
     compile project(':keybaselib')
     testCompile 'junit:junit:4.12'
