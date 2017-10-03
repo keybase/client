@@ -114,8 +114,6 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     return reqMap
   }, {})
 
-  console.log('Got request map: ', I.Map(requestMap))
-
   const infos = []
   const types = ['admins', 'owners', 'readers', 'writers']
   types.forEach(type => {
@@ -129,6 +127,11 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       )
     })
   })
+
+  // if we have no requests for this team, make sure we don't hold on to any old ones
+  if (!requestMap[teamname]) {
+    yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
+  }
 
   yield all([
     put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
