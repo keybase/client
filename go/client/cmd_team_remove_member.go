@@ -16,10 +16,17 @@ import (
 
 type CmdTeamRemoveMember struct {
 	libkb.Contextified
+<<<<<<< HEAD
 	Team     string
 	Username string
 	Email    string
 	Force    bool
+=======
+	Team      string
+	Username  string
+	Force     bool
+	Permanent bool
+>>>>>>> Add `team remove-member --permanent` command
 }
 
 func NewCmdTeamRemoveMemberRunner(g *libkb.GlobalContext) *CmdTeamRemoveMember {
@@ -48,6 +55,10 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 				Name:  "f, force",
 				Usage: "bypass warnings",
 			},
+			cli.BoolFlag{
+				Name:  "p, permanent",
+				Usage: "prevent user from re-joining (open teams only)",
+			},
 		},
 	}
 }
@@ -67,6 +78,7 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 		return errors.New("You cannot specify --user and --email.  Please choose one.")
 	}
 
+<<<<<<< HEAD
 	if len(c.Username) == 0 && len(c.Email) == 0 {
 		return errors.New("Username or email required.  Use --user or --email flag.")
 	}
@@ -82,6 +94,10 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 			return fmt.Errorf("Invalid email address %q. If you'd like to remove an existing member for your team, please use their keybase username and the `--user` flag instead of `--email`.", c.Email)
 		}
 	}
+=======
+	c.Force = ctx.Bool("force")
+	c.Permanent = ctx.Bool("permanent")
+>>>>>>> Add `team remove-member --permanent` command
 
 	return nil
 }
@@ -120,9 +136,15 @@ func (c *CmdTeamRemoveMember) Run() error {
 	}
 
 	arg := keybase1.TeamRemoveMemberArg{
+<<<<<<< HEAD
 		Name:     c.Team,
 		Username: c.Username,
 		Email:    c.Email,
+=======
+		Name:      c.Team,
+		Username:  c.Username,
+		Permanent: c.Permanent,
+>>>>>>> Add `team remove-member --permanent` command
 	}
 
 	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {

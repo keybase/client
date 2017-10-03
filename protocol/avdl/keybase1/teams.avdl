@@ -452,7 +452,7 @@ protocol teams {
   array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
-  void teamRemoveMember(int sessionID, string name, string username, string email);
+  void teamRemoveMember(int sessionID, string name, string username, string email, boolean permanent);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
   void teamRename(int sessionID, TeamName prevName, TeamName newName);

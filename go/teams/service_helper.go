@@ -342,7 +342,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return t.MemberRole(ctx, uv)
 }
 
-func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, permanent bool) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
@@ -370,7 +370,11 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		return Leave(ctx, g, teamname, false)
 	}
 	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
-	return t.ChangeMembership(ctx, req)
+
+	if permanent && !t.IsOpen() {
+		return fmt.Errorf("team %q is not open, cannot permanently remove member", teamname)
+	}
+	return t.ChangeMembershipPermanent(ctx, req, permanent)
 }
 
 func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string) error {

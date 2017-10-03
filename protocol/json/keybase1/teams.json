@@ -1378,6 +1378,10 @@
         {
           "name": "email",
           "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
         }
       ],
       "response": null

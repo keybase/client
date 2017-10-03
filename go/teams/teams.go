@@ -408,7 +408,7 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 	return uids, nil
 }
 
-func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
+func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamChangeReq, permanent bool) error {
 	// create the change membership section + secretBoxes
 	section, secretBoxes, implicitAdminBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
@@ -440,6 +440,10 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		lease:              lease,
 	}
 
+	if permanent {
+		sigPayloadArgs.prePayload = libkb.JSONPayload{"permanent": true}
+	}
+
 	if err := t.postChangeItem(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs); err != nil {
 		return err
 	}
@@ -448,6 +452,10 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
 	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
 	return nil
+}
+
+func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
+	return t.ChangeMembershipPermanent(ctx, req, false)
 }
 
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
