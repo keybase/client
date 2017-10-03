@@ -532,7 +532,7 @@ export type RetryMessage = NoErrorTypedAction<
 >
 export type SelectConversation = NoErrorTypedAction<
   'chat:selectConversation',
-  {conversationIDKey: ?ConversationIDKey, fromUser: boolean, isInitial: boolean}
+  {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
 export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: string}>
 export type SetInboxUntrustedState = NoErrorTypedAction<

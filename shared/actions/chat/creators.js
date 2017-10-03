@@ -512,11 +512,10 @@ function uploadProgress(messageKey: Constants.MessageKey, progress: ?number): Co
 // Select conversation, fromUser indicates it was triggered by a user and not programatically
 function selectConversation(
   conversationIDKey: ?Constants.ConversationIDKey,
-  fromUser: boolean,
-  isInitial?: boolean
+  fromUser: boolean
 ): Constants.SelectConversation {
   return {
-    payload: {conversationIDKey, fromUser, isInitial: isInitial || false},
+    payload: {conversationIDKey, fromUser},
     type: 'chat:selectConversation',
   }
 }
