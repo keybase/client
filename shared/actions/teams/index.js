@@ -42,6 +42,31 @@ const _leaveTeam = function(action: Constants.LeaveTeam) {
   })
 }
 
+const _addToTeam = function*(action: Constants.AddToTeam) {
+  const {payload: {name, email, username, role, sendChatNotification}} = action
+  yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+    param: {
+      name: name,
+      email: email,
+      username: username,
+      role: role,
+      sendChatNotification: sendChatNotification,
+    },
+  })
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name)))
+}
+
+const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
+  const {payload: {name, username}} = action
+  yield call(RpcTypes.teamsTeamIgnoreRequestRpcPromise, {
+    param: {
+      name: name,
+      username: username,
+    },
+  })
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name)))
+}
+
 const _createNewTeamFromConversation = function*(
   action: Constants.CreateNewTeamFromConversation
 ): SagaGenerator<any, any> {
@@ -253,6 +278,8 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
+  yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)
+  yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
 }
 
 export default teamsSaga

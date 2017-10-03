@@ -21,6 +21,17 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
   }
 >
 
+export type AddToTeam = NoErrorTypedAction<
+  'teams:addToTeam',
+  {
+    name: string,
+    email: string,
+    username: string,
+    role: 'owners' | 'admins' | 'writers' | 'readers',
+    sendChatNotification: boolean,
+  }
+>
+export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: string, username: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
 
