@@ -778,7 +778,7 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, address); err != nil {
+	if err := CancelEmailInvite(context.TODO(), tc.G, name, address); err != nil {
 		t.Fatal(err)
 	}
 

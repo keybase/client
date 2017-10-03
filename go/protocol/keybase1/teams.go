@@ -1473,6 +1473,7 @@ type TeamRemoveMemberArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
 	Username  string `codec:"username" json:"username"`
+	Email     string `codec:"email" json:"email"`
 }
 
 func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
@@ -1480,6 +1481,7 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 		SessionID: o.SessionID,
 		Name:      o.Name,
 		Username:  o.Username,
+		Email:     o.Email,
 	}
 }
 

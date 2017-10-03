@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -17,6 +18,7 @@ type CmdTeamRemoveMember struct {
 	libkb.Contextified
 	Team     string
 	Username string
+	Email    string
 	Force    bool
 }
 
@@ -38,6 +40,10 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 				Name:  "u, user",
 				Usage: "username",
 			},
+			cli.StringFlag{
+				Name:  "email",
+				Usage: "cancel pending email invite address",
+			},
 			cli.BoolFlag{
 				Name:  "f, force",
 				Usage: "bypass warnings",
@@ -53,12 +59,29 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
-	c.Username, err = ParseUser(ctx)
-	if err != nil {
-		return err
+	c.Username = ctx.String("user")
+	c.Email = ctx.String("email")
+	c.Force = ctx.Bool("force")
+
+	if len(c.Username) > 0 && len(c.Email) > 0 {
+		return errors.New("You cannot specify --user and --email.  Please choose one.")
 	}
 
-	c.Force = ctx.Bool("force")
+	if len(c.Username) == 0 && len(c.Email) == 0 {
+		return errors.New("Username or email required.  Use --user or --email flag.")
+	}
+
+	if len(c.Username) > 0 {
+		if libkb.CheckEmail.F(c.Username) {
+			return errors.New("If you'd like to cancel a pending invite by email address, please use `--email` instead of `--user`. If you'd like to remove an existing member from your team, please use their keybase username.")
+		}
+	}
+
+	if len(c.Email) > 0 {
+		if !libkb.CheckEmail.F(c.Email) {
+			return fmt.Errorf("Invalid email address %q. If you'd like to remove an existing member for your team, please use their keybase username and the `--user` flag instead of `--email`.", c.Email)
+		}
+	}
 
 	return nil
 }
@@ -99,6 +122,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 	arg := keybase1.TeamRemoveMemberArg{
 		Name:     c.Team,
 		Username: c.Username,
+		Email:    c.Email,
 	}
 
 	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {

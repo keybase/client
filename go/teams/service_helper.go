@@ -346,12 +346,6 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		return err
 	}
 
-	// if username looks like an email address, then remove an invite
-	// (the loadUserVersionByUsername will fail with an email address)
-	if libkb.CheckEmail.F(username) {
-		return removeMemberInvite(ctx, g, t, username, keybase1.UserVersion{})
-	}
-
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		if err == errInviteRequired {
@@ -375,6 +369,19 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	}
 	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 	return t.ChangeMembership(ctx, req)
+}
+
+func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+
+	if !libkb.CheckEmail.F(email) {
+		return errors.New("Invalid email address")
+	}
+
+	return removeMemberInvite(ctx, g, t, email, keybase1.UserVersion{})
 }
 
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
