@@ -1371,11 +1371,3 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 	return c.rekeyFSMLimiter
 }
-
-// BlockRetriever implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) BlockRetriever() BlockRetriever {
-	if c.BlockOps() != nil {
-		return c.BlockOps().BlockRetriever()
-	}
-	return nil
-}

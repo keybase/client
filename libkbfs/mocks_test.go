@@ -5903,18 +5903,6 @@ func (mr *MockConfigMockRecorder) MaybeFinishTrace(ctx, err interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaybeFinishTrace", reflect.TypeOf((*MockConfig)(nil).MaybeFinishTrace), ctx, err)
 }
 
-// BlockRetriever mocks base method
-func (m *MockConfig) BlockRetriever() BlockRetriever {
-	ret := m.ctrl.Call(m, "BlockRetriever")
-	ret0, _ := ret[0].(BlockRetriever)
-	return ret0
-}
-
-// BlockRetriever indicates an expected call of BlockRetriever
-func (mr *MockConfigMockRecorder) BlockRetriever() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockRetriever", reflect.TypeOf((*MockConfig)(nil).BlockRetriever))
-}
-
 // KBFSOps mocks base method
 func (m *MockConfig) KBFSOps() KBFSOps {
 	ret := m.ctrl.Call(m, "KBFSOps")

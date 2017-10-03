@@ -1744,7 +1744,6 @@ type Config interface {
 	syncedTlfGetterSetter
 	initModeGetter
 	Tracer
-	blockRetrieverGetter
 	KBFSOps() KBFSOps
 	SetKBFSOps(KBFSOps)
 	KBPKI() KBPKI
