@@ -129,7 +129,7 @@ function* navBasedOnLoginState(): SagaGenerator<any, any> {
       } else if (isValidInitialTab(initialState.tab)) {
         if (initialState.tab === chatTab && initialState.conversation) {
           yield put(navigateTo([chatTab], null, true))
-          yield put(selectConversation(initialState.Conversation, false))
+          yield put(selectConversation(initialState.conversation, false))
         } else {
           yield put(navigateTo([initialState.tab], null))
         }
