@@ -72,30 +72,31 @@ const _createNewTeamFromConversation = function*(
 const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, any> {
   const teamname = action.payload.teamname
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  const results: RpcTypes.TeamDetails = yield call(RpcTypes.teamsTeamGetRpcPromise, {
-    param: {
-      name: teamname,
-    },
-  })
-
-  const infos = []
-  const types = ['admins', 'owners', 'readers', 'writers']
-  types.forEach(type => {
-    const details = results.members[type] || []
-    details.forEach(({username}) => {
-      infos.push(
-        Constants.MemberInfo({
-          type,
-          username,
-        })
-      )
+  try {
+    const results: RpcTypes.TeamDetails = yield call(RpcTypes.teamsTeamGetRpcPromise, {
+      param: {
+        name: teamname,
+      },
     })
-  })
 
-  yield all([
-    put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
-    put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]]))),
-  ])
+    const infos = []
+    const types = ['admins', 'owners', 'readers', 'writers']
+    types.forEach(type => {
+      const details = results.members[type] || []
+      details.forEach(({username}) => {
+        infos.push(
+          Constants.MemberInfo({
+            type,
+            username,
+          })
+        )
+      })
+    })
+
+    yield put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]])))
+  } finally {
+    yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
+  }
 }
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
@@ -133,18 +134,20 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
 
 const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any> {
   const username = yield select(usernameSelector)
-  const results: AnnotatedTeamList = yield call(RpcTypes.teamsTeamListRpcPromise, {
-    param: {
-      userAssertion: username,
-    },
-  })
+  yield put(replaceEntity(['teams'], I.Map([['loaded', false]])))
+  try {
+    const results: AnnotatedTeamList = yield call(RpcTypes.teamsTeamListRpcPromise, {
+      param: {
+        userAssertion: username,
+      },
+    })
 
-  const teams = results.teams || []
-  const teamnames = teams.map(team => team.fqName)
-  yield all([
-    put(replaceEntity(['teams'], {teamnames: I.Set(teamnames)})),
-    put(replaceEntity(['teams'], I.Map([['loaded', true]]))),
-  ])
+    const teams = results.teams || []
+    const teamnames = teams.map(team => team.fqName)
+    yield put(replaceEntity(['teams'], {teamnames: I.Set(teamnames)}))
+  } finally {
+    yield put(replaceEntity(['teams'], I.Map([['loaded', true]])))
+  }
 }
 
 const _toggleChannelMembership = function*(

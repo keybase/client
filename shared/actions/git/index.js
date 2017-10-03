@@ -7,7 +7,7 @@ import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeConstants from '../../constants/route-tree'
-import {call, put, select} from 'redux-saga/effects'
+import {call, put} from 'redux-saga/effects'
 import {navigateTo} from '../route-tree'
 import moment from 'moment'
 import {isMobile} from '../../constants/platform'
@@ -17,35 +17,33 @@ import type {SagaGenerator} from '../../constants/types/saga'
 
 function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
   yield put(Creators.setError(null))
-  const alreadyLoading = yield select(s => s.entities.getIn(['git', 'loading'], false))
-  if (alreadyLoading) {
-    console.log('Skipping git load as we have one in progress')
-    return
-  }
   yield put(Creators.setLoading(true))
 
-  const results: ?Array<RPCTypes.GitRepoResult> = yield call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
-    param: {},
-  })
-
-  const idToInfo = (results || []).reduce((map, r) => {
-    const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
-    map[r.globalUniqueID] = Constants.GitInfo({
-      canDelete: r.canDelete,
-      devicename: r.serverMetadata.lastModifyingDeviceName,
-      id: r.globalUniqueID,
-      lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
-      lastEditUser: r.serverMetadata.lastModifyingUsername,
-      name: r.localMetadata.repoName,
-      repoID: r.repoID,
-      teamname,
-      url: r.repoUrl,
+  try {
+    const results: ?Array<RPCTypes.GitRepoResult> = yield call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
+      param: {},
     })
-    return map
-  }, {})
 
-  yield put(Entities.replaceEntity(['git'], {idToInfo: I.Map(idToInfo)}))
-  yield put(Creators.setLoading(false))
+    const idToInfo = (results || []).reduce((map, r) => {
+      const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
+      map[r.globalUniqueID] = Constants.GitInfo({
+        canDelete: r.canDelete,
+        devicename: r.serverMetadata.lastModifyingDeviceName,
+        id: r.globalUniqueID,
+        lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
+        lastEditUser: r.serverMetadata.lastModifyingUsername,
+        name: r.localMetadata.repoName,
+        repoID: r.repoID,
+        teamname,
+        url: r.repoUrl,
+      })
+      return map
+    }, {})
+
+    yield put(Entities.replaceEntity(['git'], {idToInfo: I.Map(idToInfo)}))
+  } finally {
+    yield put(Creators.setLoading(false))
+  }
 }
 
 // reset errors and set loading, make a call and either go back to the root or show an error
@@ -59,6 +57,9 @@ function* _createDeleteHelper(theCall: *) {
     yield put(Creators.loadGit())
   } catch (err) {
     yield put(Creators.setError(err))
+    yield put.resolve(Creators.setLoading(false))
+  } finally {
+    // just in case
     yield put.resolve(Creators.setLoading(false))
   }
 }
