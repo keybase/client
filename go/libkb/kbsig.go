@@ -599,6 +599,7 @@ type SigMultiItem struct {
 	Sig        string                  `json:"sig"`
 	SigningKID keybase1.KID            `json:"signing_kid"`
 	Type       string                  `json:"type"`
+	SeqType    keybase1.SeqType        `json:"seq_type"`
 	SigInner   string                  `json:"sig_inner"`
 	TeamID     keybase1.TeamID         `json:"team_id"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`

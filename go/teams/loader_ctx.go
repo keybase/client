@@ -26,7 +26,7 @@ type LoaderContext interface {
 	resolveNameToIDUntrusted(context.Context, keybase1.TeamName, bool) (keybase1.TeamID, error)
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
-	merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
+	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
 	merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
 	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
@@ -179,13 +179,21 @@ func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno key
 	return encKey, err
 }
 
-func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
+func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	leaf, err := l.G().GetMerkleClient().LookupTeam(ctx, teamID)
 	if err != nil {
 		return r1, r2, err
 	}
 	if !leaf.TeamID.Eq(teamID) {
 		return r1, r2, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
+	}
+
+	if public {
+		if leaf.Public == nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
+			return r1, r2, NewTeamDoesNotExistError(teamID.String())
+		}
+		return leaf.Public.Seqno, leaf.Public.LinkID.Export(), nil
 	}
 	if leaf.Private == nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")

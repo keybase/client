@@ -1,7 +1,6 @@
 package teams
 
 import (
-	"encoding/json"
 	"errors"
 
 	"golang.org/x/net/context"
@@ -170,6 +169,10 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	if err != nil {
 		return err
 	}
+	seqType := keybase1.SeqType_SEMIPRIVATE
+	if public {
+		seqType = keybase1.SeqType_PUBLIC
+	}
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam make sigs")
 	teamSection, err := makeRootTeamSection(name, teamID, members, invites, perTeamSigningKey.GetKID(),
@@ -187,7 +190,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	if err != nil {
 		return err
 	}
-	g.Log.CDebugf(ctx, "BODY: %s", sigBodyBeforeReverse.MarshalPretty())
+
 	// Note that this (sigchain-v1-style) reverse sig is made with the derived *per-team* signing key.
 	reverseSig, _, _, err := libkb.SignJSON(sigBodyBeforeReverse, perTeamSigningKey)
 	if err != nil {
@@ -213,7 +216,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		sigJSONAfterReverse,
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
-		public,
+		seqType,
 	)
 	if err != nil {
 		return err
@@ -223,6 +226,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		Sig:        v2Sig,
 		SigningKID: deviceSigningKey.GetKID(),
 		Type:       string(libkb.LinkTypeTeamRoot),
+		SeqType:    seqType,
 		SigInner:   string(sigJSONAfterReverse),
 		TeamID:     teamID,
 		PublicKeys: &libkb.SigMultiItemPublicKeys{
@@ -235,8 +239,6 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
 	payload["per_team_key"] = secretboxes
-	dat, _ := json.MarshalIndent(payload, "", "\t")
-	g.Log.CDebugf(ctx, "SIG: %s", dat)
 
 	_, err = g.API.PostJSON(libkb.APIArg{
 		Endpoint:    "sig/multi",
@@ -394,7 +396,7 @@ func makeSigchainV2OuterSig(
 	innerLinkJSON []byte,
 	prevLinkID libkb.LinkID,
 	hasRevokes bool,
-	public bool,
+	seqType keybase1.SeqType,
 ) (
 	string,
 	error,
@@ -406,10 +408,6 @@ func makeSigchainV2OuterSig(
 		return "", err
 	}
 
-	seqType := keybase1.SeqType_SEMIPRIVATE
-	if public {
-		seqType = keybase1.SeqType_PUBLIC
-	}
 	outerLink := libkb.OuterLinkV2{
 		Version:  2,
 		Seqno:    seqno,
@@ -452,7 +450,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		newSubteamSigJSON,
 		prevLinkID,
 		false, /* hasRevokes */
-		false, /* public */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return nil, err
@@ -539,7 +537,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		subteamHeadSigJSON,
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
-		false, /* public */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return

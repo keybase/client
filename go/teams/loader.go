@@ -1,7 +1,6 @@
 package teams
 
 import (
-	"encoding/json"
 	"fmt"
 	"sort"
 	"time"
@@ -113,7 +112,6 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		mungedWantMembers = nil
 	}
 
-	l.G().Log.CDebugf(ctx, "TeamLoader: public: %v", lArg.Public)
 	ret, err := l.load2(ctx, load2ArgT{
 		teamID: teamID,
 
@@ -270,7 +268,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 	if (ret == nil) || repoll {
 		l.G().Log.CDebugf(ctx, "TeamLoader looking up merkle leaf (force:%v)", arg.forceRepoll)
 		// Reference the merkle tree to fetch the sigchain tail leaf for the team.
-		lastSeqno, lastLinkID, err = l.world.merkleLookup(ctx, arg.teamID)
+		lastSeqno, lastLinkID, err = l.world.merkleLookup(ctx, arg.teamID, arg.public)
 		if err != nil {
 			return nil, err
 		}
@@ -308,8 +306,6 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 		if err != nil {
 			return nil, err
 		}
-		dat, _ := json.Marshal(*teamUpdate)
-		l.G().Log.CDebugf(ctx, "TeamLoader links response: %s", dat)
 		l.G().Log.CDebugf(ctx, "TeamLoader got %v links", len(teamUpdate.Chain))
 	}
 
@@ -388,13 +384,18 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 			ret.Secretless = true
 		} else {
 			// Add the secrets unless this is a secretless team.
-			if !ret.Secretless {
+			if !ret.Secretless && !arg.public {
 				ret, err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
 				}
 			}
 		}
+	}
+
+	// Make sure public works out
+	if ret.Chain.Public != arg.public {
+		return nil, fmt.Errorf("team public mismatch: %v != %v", ret.Chain.Public, arg.public)
 	}
 
 	// Sanity check the id

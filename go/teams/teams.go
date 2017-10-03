@@ -950,7 +950,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		sigJSON,
 		latestLinkID,
 		false, /* hasRevokes */
-		false, /* public */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, err

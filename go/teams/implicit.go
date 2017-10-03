@@ -117,6 +117,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          imp.TeamID,
 		ForceRepoll: true,
+		Public:      impTeamName.IsPublic,
 	})
 	if err != nil {
 		return teamID, teamName, impTeamName, conflicts, err

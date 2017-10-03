@@ -38,7 +38,7 @@ func NewMockLoaderContext(t *testing.T, g *libkb.GlobalContext, unit TestCase) *
 }
 
 func (l *MockLoaderContext) getNewLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, lows getLinksLows,
+	teamID keybase1.TeamID, public bool, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
 	return l.getLinksFromServerHelper(ctx, teamID, lows, nil, readSubteamID)
@@ -184,7 +184,8 @@ func (l *MockLoaderContext) lookupEldestSeqno(ctx context.Context, uid keybase1.
 	return seqno, NewMockBoundsError("LookupEldestSeqno", "uid", uid)
 }
 
-func (l *MockLoaderContext) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
+func (l *MockLoaderContext) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName,
+	public bool) (id keybase1.TeamID, err error) {
 	for name, teamSpec := range l.unit.Teams {
 		if teamName.String() == name {
 			id = teamSpec.ID
@@ -225,7 +226,7 @@ func (l *MockLoaderContext) perUserEncryptionKey(ctx context.Context, userSeqno 
 	return key, err
 }
 
-func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
+func (l *MockLoaderContext) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	key := fmt.Sprintf("%s", teamID)
 	if l.state.loadSpec.Upto > 0 {
 		key = fmt.Sprintf("%s-seqno:%d", teamID, int64(l.state.loadSpec.Upto))
