@@ -47,8 +47,9 @@ class Git extends React.Component<Props, State> {
       title: 'New personal repository',
     },
     {
-      onClick: () => this.props.onNewTeamRepo(),
+      onClick: isMobile ? undefined : () => this.props.onNewTeamRepo(),
       title: 'New team repository',
+      disabled: isMobile,
     },
   ]
 
