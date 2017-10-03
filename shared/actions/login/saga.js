@@ -121,7 +121,7 @@ function* navBasedOnLoginState() {
     } else if (initialLink) {
       yield put(setInitialLink(null))
       yield put(appLink(initialLink))
-    } else if (initialTab && isValidInitialTab(initialTab)) {
+    } else if (isValidInitialTab(initialTab)) {
       // only do this once
       yield put(setInitialTab(null))
       if (!launchedViaPush) {

@@ -130,6 +130,8 @@ const daemonError = (error: ?string): Constants.DaemonError => ({
   type: Constants.daemonError,
 })
 
+// TODO: It's unfortunate that we have these globals. Ideally,
+// bootstrap would be a method on an object.
 let bootstrapSetup = false
 const routeStateStorage = new RouteStateStorage()
 type BootstrapOptions = {isReconnect?: boolean}
@@ -164,7 +166,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
         })
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
-          dispatch(async () => {
+          dispatch(async (): Promise<*> => {
             await dispatch(routeStateStorage.load)
             await dispatch(navBasedOnLoginState())
           })
