@@ -15,6 +15,37 @@ import {
 
 const initialState = Constants.State()
 
+function routeChangedReducer(routeChanged, action) {
+  switch (action.type) {
+    case CommonConstants.resetStore:
+      return true
+
+    case Constants.setRouteDef:
+      return true
+
+    case Constants.switchTo:
+      return true
+
+    case Constants.navigateTo:
+      return true
+
+    case Constants.navigateAppend:
+      return true
+
+    case Constants.navigateUp:
+      return true
+
+    case Constants.setRouteState:
+      return true
+
+    case Constants.resetRoute:
+      return true
+
+    default:
+      return routeChanged
+  }
+}
+
 function routeDefReducer(routeDef, action) {
   switch (action.type) {
     case Constants.setRouteDef:
@@ -74,11 +105,13 @@ export default function routeTreeReducer(
   state: Constants.State = initialState,
   action: any
 ): Constants.State {
-  let {routeDef, routeState} = state
+  let {routeChanged, routeDef, routeState} = state
 
+  let newRouteChanged
   let newRouteDef
   let newRouteState
   try {
+    newRouteChanged = routeChangedReducer(routeChanged, action)
     newRouteDef = routeDefReducer(routeDef, action)
     newRouteState = routeStateReducer(routeDef, routeState, action)
   } catch (err) {
@@ -94,9 +127,13 @@ export default function routeTreeReducer(
     return state
   }
 
-  if (!I.is(routeDef, newRouteDef) || !I.is(routeState, newRouteState)) {
+  if (
+    !I.is(routeChanged, newRouteChanged) ||
+    !I.is(routeDef, newRouteDef) ||
+    !I.is(routeState, newRouteState)
+  ) {
     // If we changed something, sanity check new state for errors.
-    const routeError = checkRouteState(newRouteDef, newRouteState)
+    const routeError = checkRouteState(newRouteChanged, newRouteDef, newRouteState)
     if (routeError) {
       console.error(
         `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`
@@ -106,6 +143,7 @@ export default function routeTreeReducer(
   }
 
   return state.merge({
+    routeChanged: newRouteChanged,
     routeDef: newRouteDef,
     routeState: newRouteState,
   })
