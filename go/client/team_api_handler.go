@@ -264,8 +264,37 @@ func (t *teamAPIHandler) listUserMemberships(ctx context.Context, c Call, w io.W
 	return nil
 }
 
-func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) error {
+type removeMemberOptions struct {
+	Team     string `json:"team"`
+	Username string `json:"username"`
+}
+
+func (c *removeMemberOptions) Check() error {
+	if _, err := keybase1.TeamNameFromString(c.Team); err != nil {
+		return err
+	}
+	if len(c.Username) == 0 {
+		return errors.New("remove-member: specify username to remove")
+	}
+
 	return nil
+}
+
+// XXX implement Email option after CORE-6223 merged
+func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) error {
+	var opts removeMemberOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	arg := keybase1.TeamRemoveMemberArg{
+		Name:     opts.Team,
+		Username: opts.Username,
+	}
+	if err := t.cli.TeamRemoveMember(ctx, arg); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+	return t.encodeResult(c, nil, w)
 }
 
 func (t *teamAPIHandler) renameSubteam(ctx context.Context, c Call, w io.Writer) error {
