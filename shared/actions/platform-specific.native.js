@@ -190,37 +190,6 @@ function configurePush() {
 class RouteStateStorage {
   loaded = false
 
-  store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
-    if (!this.loaded) {
-      console.log('[RouteState] Ignoring store before initial load:')
-      return
-    }
-
-    const routeState = getState().routeTree.routeState
-    const item = {}
-
-    const selectedTab = routeState.selected
-    if (selectedTab) {
-      item.tab = selectedTab
-      if (selectedTab === chatTab) {
-        const tab = routeState.children.get(chatTab)
-        if (tab && tab.selected) {
-          item.selectedConversationIDKey = tab.selected
-        }
-      }
-    }
-
-    console.log('[RouteState] Setting item:', item)
-
-    const s = JSON.stringify(item)
-    try {
-      await AsyncStorage.setItem('routeState', s)
-    } catch (e) {
-      console.warn('[RouteState] Error setting item:', e)
-      throw e
-    }
-  }
-
   load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     try {
       let url
@@ -280,6 +249,37 @@ class RouteStateStorage {
       }
     } finally {
       this.loaded = true
+    }
+  }
+
+  store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
+    if (!this.loaded) {
+      console.log('[RouteState] Ignoring store before initial load:')
+      return
+    }
+
+    const routeState = getState().routeTree.routeState
+    const item = {}
+
+    const selectedTab = routeState.selected
+    if (selectedTab) {
+      item.tab = selectedTab
+      if (selectedTab === chatTab) {
+        const tab = routeState.children.get(chatTab)
+        if (tab && tab.selected) {
+          item.selectedConversationIDKey = tab.selected
+        }
+      }
+    }
+
+    console.log('[RouteState] Setting item:', item)
+
+    const s = JSON.stringify(item)
+    try {
+      await AsyncStorage.setItem('routeState', s)
+    } catch (e) {
+      console.warn('[RouteState] Error setting item:', e)
+      throw e
     }
   }
 }
