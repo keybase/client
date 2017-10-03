@@ -2,7 +2,7 @@
 import React from 'react'
 import {MentionRowRenderer, MentionHud} from '.'
 import {compose, withState} from 'recompose'
-import {Box, Avatar, Button, Input} from '../../common-adapters'
+import {Box, Button, Input} from '../../common-adapters'
 import {storiesOf, action} from '../../stories/storybook'
 import {globalStyles, globalMargins} from '../../styles'
 
