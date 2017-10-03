@@ -12,6 +12,7 @@ package dokan
 import "C"
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -23,7 +24,6 @@ import (
 	"unsafe"
 
 	"github.com/keybase/kbfs/dokan/winacl"
-	"golang.org/x/net/context"
 	"golang.org/x/sys/windows"
 )
 
