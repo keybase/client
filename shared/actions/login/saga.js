@@ -141,7 +141,7 @@ function* navBasedOnLoginState() {
       if (!launchedViaPush) {
         yield put(navigateTo([initialTab], null, true))
         if (initialTab === chatTab && initialConversation) {
-          yield put(selectConversation(initialConversation, false))
+          yield put(selectConversation(initialConversation, false, true))
         }
       }
     } else {
