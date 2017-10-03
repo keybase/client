@@ -190,6 +190,8 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
   }
 }
 
+const persistRouteState = routeStateStorage.store
+
 const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
     configGetBootstrapStatusRpcPromise()
@@ -235,7 +237,7 @@ export {
   isFollower,
   isFollowing,
   retryBootstrap,
-  routeStateStorage,
+  persistRouteState,
   setInitialTab,
   setInitialLink,
   setLaunchedViaPush,

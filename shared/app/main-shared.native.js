@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
-import {bootstrap, routeStateStorage} from '../actions/config'
+import {bootstrap, persistRouteState} from '../actions/config'
 import {connect} from 'react-redux'
 import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
@@ -97,7 +97,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
     navigateUp: () => {
       dispatch(navigateUp())
     },
-    persistRouteState: () => dispatch(routeStateStorage.store),
+    persistRouteState: () => dispatch(persistRouteState),
     setRouteState: (path, partialState) => {
       dispatch(setRouteState(path, partialState))
     },
