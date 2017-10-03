@@ -1848,47 +1848,12 @@ func testTLFJournalSingleOp(t *testing.T, ver MetadataVer) {
 	require.Len(t, mdserver.rmdses, 1)
 }
 
-func testTLFJournalWaitForBlockFlush(t *testing.T, ver MetadataVer) {
-	tempdir, config, ctx, cancel, tlfJournal, delegate :=
-		setupTLFJournalTest(t, ver, TLFJournalSingleOpBackgroundWorkEnabled)
-	defer teardownTLFJournalTest(
-		tempdir, config, ctx, cancel, tlfJournal, delegate)
-
-	putBlock(ctx, t, config, tlfJournal, []byte{1, 2, 3, 4})
-
-	go func() {
-		// For waitForBlockFlush
-		delegate.requireNextState(ctx, bwBusy)
-		delegate.requireNextState(ctx, bwIdle)
-
-		// For finishSingleOp
-		delegate.requireNextState(ctx, bwBusy)
-		delegate.requireNextState(ctx, bwIdle)
-	}()
-
-	blockEntryCount, _, err := tlfJournal.getJournalEntryCounts()
-	require.NoError(t, err)
-	require.Equal(t, uint64(1), blockEntryCount)
-
-	err = tlfJournal.waitForBlockFlush(ctx)
-	require.NoError(t, err)
-
-	blockEntryCount, _, err = tlfJournal.getJournalEntryCounts()
-	require.NoError(t, err)
-	require.Equal(t, uint64(0), blockEntryCount)
-
-	// Clean up journal MDs.
-	err = tlfJournal.finishSingleOp(ctx, nil)
-	require.NoError(t, err)
-}
-
 func TestTLFJournal(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
 		testTLFJournalBasic,
 		testTLFJournalPauseResume,
 		testTLFJournalPauseShutdown,
 		testTLFJournalBlockOpBasic,
-		testTLFJournalWaitForBlockFlush,
 		testTLFJournalBlockOpBusyPause,
 		testTLFJournalBlockOpBusyShutdown,
 		testTLFJournalSecondBlockOpWhileBusy,

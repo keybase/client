@@ -643,18 +643,6 @@ func (j *JournalServer) FinishSingleOp(ctx context.Context,
 	return nil
 }
 
-// WaitForBlockFlush waits for block to be flushed.
-func (j *JournalServer) WaitForBlockFlush(
-	ctx context.Context, tlfID tlf.ID) (err error) {
-	j.log.CDebugf(ctx, "Waiting for blocks to flush for %s", tlfID)
-	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
-		return tlfJournal.waitForBlockFlush(ctx)
-	}
-
-	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
-	return nil
-}
-
 // Disable turns off the write journal for the given TLF.
 func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 	wasEnabled bool, err error) {

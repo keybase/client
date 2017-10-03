@@ -2401,30 +2401,3 @@ func (j *tlfJournal) finishSingleOp(ctx context.Context,
 		}
 	}
 }
-
-func (j *tlfJournal) waitForBlockFlush(ctx context.Context) error {
-	j.log.CDebugf(ctx, "Waiting for blocks to flush in single op")
-
-	// Now we wait for the blocks in the journal to completely flush.  Waiting
-	// on the wg isn't enough, because conflicts/squashes can cause the journal
-	// to pause and we'll be called too early.
-	for {
-		blockEntryCount, _, err := j.getJournalEntryCounts()
-		if err != nil {
-			return err
-		}
-		if blockEntryCount == 0 {
-			j.log.CDebugf(ctx, "Blocks completely flushed")
-			return nil
-		}
-
-		// Let the background flusher know it should try to flush
-		// everything again, once any conflicts have been resolved.
-		j.signalWork()
-
-		err = j.wg.Wait(ctx)
-		if err != nil {
-			return err
-		}
-	}
-}
