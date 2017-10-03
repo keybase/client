@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 )
 
@@ -398,21 +399,20 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				return nil
 			case chat1.ConversationMembersType_IMPTEAM:
 				s.Debug(ctx, "identifyTLF: implicit team TLF, looking up display name for %s", tlfName)
-				var allkuids []keybase1.UID
-				for _, guid := range conv.Metadata.AllList {
-					allkuids = append(allkuids, keybase1.UID(guid.String()))
-				}
-				rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), allkuids, 0, 0, false)
+				tlfID := msg.Valid().ClientHeader.Conv.Tlfid
+				teamID, err := keybase1.TeamIDFromString(tlfID.String())
 				if err != nil {
 					return err
 				}
-				unames := make([]libkb.NormalizedUsername, len(rows), len(rows))
-				for i, row := range rows {
-					unames[i] = row.NormalizedUsername
+				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
+				if err != nil {
+					return err
 				}
-				for _, uname := range unames {
-					names = append(names, uname.String())
+				display, err := team.ImplicitTeamDisplayName(ctx)
+				if err != nil {
+					return err
 				}
+				names = strings.Split(strings.Fields(display.String())[0], ",")
 			}
 
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
