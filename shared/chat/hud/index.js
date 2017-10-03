@@ -58,7 +58,7 @@ const MentionRowRenderer = ({
 
 const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) => (
   <Box style={{...hudStyle, ...style}}>
-    <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex || -1} />
+    <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
   </Box>
 )
 
@@ -104,9 +104,21 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       }
 
       if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
-        nextProps.setSelectedIndex(n => Math.max(n - 1, 0))
+        nextProps.setSelectedIndex(n => {
+          const next = n - 1
+          if (next < 0) {
+            return Math.max(nextProps.data.length - 1, 0)
+          }
+          return next
+        })
       } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        nextProps.setSelectedIndex(n => Math.min(n + 1, nextProps.data.length - 1))
+        nextProps.setSelectedIndex(n => {
+          const next = n + 1
+          if (next >= nextProps.data.length) {
+            return 0
+          }
+          return next
+        })
       }
 
       if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {

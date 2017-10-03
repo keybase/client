@@ -142,7 +142,7 @@ class ConversationInput extends Component<InputProps, State> {
       this.setState(({upArrowCounter}) => ({upArrowCounter: upArrowCounter + 1}))
     }
 
-    if (e.key === 'ArrowDown' && this.props.mentionPopupOpen) {
+    if (['ArrowDown', 'Tab'].includes(e.key) && this.props.mentionPopupOpen) {
       e.preventDefault()
       this.setState(({downArrowCounter}) => ({downArrowCounter: downArrowCounter + 1}))
     }
@@ -160,8 +160,8 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
-    // Ignore our arrows
-    if (this.props.mentionPopupOpen && ['ArrowUp', 'ArrowDown'].includes(e.key)) {
+    // Ignore moving within the list
+    if (this.props.mentionPopupOpen && ['ArrowUp', 'ArrowDown', 'Tab'].includes(e.key)) {
       return
     }
     // Get the word typed so far
