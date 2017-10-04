@@ -1963,10 +1963,3 @@ func (p StringKVPair) IntValue() int {
 	}
 	return i
 }
-
-func (s TeamSettings) Equal(other TeamSettings) bool {
-	if s.Open {
-		return other.Open && other.JoinAs == s.JoinAs
-	}
-	return !other.Open
-}

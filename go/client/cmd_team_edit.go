@@ -92,40 +92,55 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func (c *CmdTeamEdit) applySettings(cli keybase1.TeamsClient) error {
+	dui := c.G().UI.GetTerminalUI()
+
+	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: false})
+	if err != nil {
+		return err
+	}
+
+	if !details.Settings.Open && !c.Settings.Open {
+		dui.Printf("The team is already closed.\n")
+		return nil
+	}
+
+	if details.Settings.Open && c.Settings.Open && details.Settings.JoinAs == c.Settings.JoinAs {
+		dui.Printf("The team is already open with default role: %s\n", strings.ToLower(details.Settings.JoinAs.String()))
+		return nil
+	}
+
+	arg := keybase1.TeamSetSettingsArg{
+		Name:     c.Team.String(),
+		Settings: c.Settings,
+	}
+
+	err = cli.TeamSetSettings(context.Background(), arg)
+	if err != nil {
+		return err
+	}
+
+	dui.Printf("Team settings were changed.\n")
+	return nil
+}
+
 func (c *CmdTeamEdit) Run() error {
 	protocols := []rpc.Protocol{
 		NewTeamsUIProtocol(c.G()),
 	}
+
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
+
 	cli, err := GetTeamsClient(c.G())
 	if err != nil {
 		return err
 	}
 
-	dui := c.G().UI.GetTerminalUI()
-
 	if c.IsSet {
-		details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: false})
-		if err != nil {
+		if err := c.applySettings(cli); err != nil {
 			return err
-		}
-
-		if !details.Settings.Equal(c.Settings) {
-			arg := keybase1.TeamSetSettingsArg{
-				Name:     c.Team.String(),
-				Settings: c.Settings,
-			}
-
-			err = cli.TeamSetSettings(context.Background(), arg)
-			if err != nil {
-				return err
-			}
-
-			dui.Printf("Team settings change was successful!\n")
-		} else {
-			dui.Printf("No changes were needed.\n")
 		}
 	}
 
@@ -134,10 +149,11 @@ func (c *CmdTeamEdit) Run() error {
 		return err
 	}
 
+	dui := c.G().UI.GetTerminalUI()
 	dui.Printf("Current settings of team %q:\n", c.Team.String())
 	if details.Settings.Open {
 		dui.Printf("  Open:\t\t\ttrue\n")
-		dui.Printf("  New member role:\t%s\n", details.Settings.JoinAs)
+		dui.Printf("  New member role:\t%s\n", strings.ToLower(details.Settings.JoinAs.String()))
 	} else {
 		dui.Printf("  Open:\tfalse\n")
 	}
