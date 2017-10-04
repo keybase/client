@@ -388,7 +388,9 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			<-testSyncCh
 		}
 		select {
-		case <-shuttingDownCh:
+		case chInterface := <-shuttingDownCh:
+			ch := chInterface.(<-chan error)
+			<-ch
 		case bid := <-p.prefetchCancelCh.Out():
 			blockID := bid.(kbfsblock.ID)
 			pre, ok := p.prefetches[blockID]
