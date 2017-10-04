@@ -285,6 +285,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamImplicitBadAdd":        2685,
 	"SCTeamImplicitBadRemove":     2686,
 	"SCTeamKeyMaskNotFound":       2697,
+	"SCTeamBanned":                2702,
 	"SCNoOp":                      2703,
 }
 
@@ -423,6 +424,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2685: "SCTeamImplicitBadAdd",
 	2686: "SCTeamImplicitBadRemove",
 	2697: "SCTeamKeyMaskNotFound",
+	2702: "SCTeamBanned",
 	2703: "SCNoOp",
 }
 

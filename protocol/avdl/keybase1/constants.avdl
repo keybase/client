@@ -135,6 +135,8 @@ protocol constants {
     SCTeamBadAdminSeqnoType_2684,
     SCTeamImplicitBadAdd_2685,
     SCTeamImplicitBadRemove_2686,
-    SCTeamKeyMaskNotFound_2697
+    SCTeamKeyMaskNotFound_2697,
+    SCTeamBanned_2702,
+    SCNoOp_2703
   }
 }
