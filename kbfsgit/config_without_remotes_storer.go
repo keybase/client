@@ -34,8 +34,13 @@ func newConfigWithoutRemotesStorer(fs *libfs.FS) (
 		return nil, err
 	}
 	// To figure out if this config has been written already, check if
-	// the "IsBare" bit is already flipped.
-	return &configWithoutRemotesStorer{fsStorer, cfg, cfg.Core.IsBare}, nil
+	// it differs from the zero Core value (probably because the
+	// IsBare bit is flipped).
+	return &configWithoutRemotesStorer{
+		fsStorer,
+		cfg,
+		cfg.Core != gogitcfg.Config{}.Core,
+	}, nil
 }
 
 func (cwrs *configWithoutRemotesStorer) Init() error {
