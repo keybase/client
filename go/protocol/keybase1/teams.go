@@ -239,6 +239,7 @@ type TeamMemberDetails struct {
 	Uv       UserVersion `codec:"uv" json:"uv"`
 	Username string      `codec:"username" json:"username"`
 	Active   bool        `codec:"active" json:"active"`
+	NeedsPUK bool        `codec:"needsPUK" json:"needsPUK"`
 }
 
 func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
@@ -246,6 +247,7 @@ func (o TeamMemberDetails) DeepCopy() TeamMemberDetails {
 		Uv:       o.Uv.DeepCopy(),
 		Username: o.Username,
 		Active:   o.Active,
+		NeedsPUK: o.NeedsPUK,
 	}
 }
 
@@ -688,6 +690,7 @@ type AnnotatedTeamInvite struct {
 	Id              TeamInviteID   `codec:"id" json:"id"`
 	Type            TeamInviteType `codec:"type" json:"type"`
 	Name            TeamInviteName `codec:"name" json:"name"`
+	Uv              UserVersion    `codec:"uv" json:"uv"`
 	Inviter         UserVersion    `codec:"inviter" json:"inviter"`
 	InviterUsername string         `codec:"inviterUsername" json:"inviterUsername"`
 	TeamName        string         `codec:"teamName" json:"teamName"`
@@ -699,6 +702,7 @@ func (o AnnotatedTeamInvite) DeepCopy() AnnotatedTeamInvite {
 		Id:              o.Id.DeepCopy(),
 		Type:            o.Type.DeepCopy(),
 		Name:            o.Name.DeepCopy(),
+		Uv:              o.Uv.DeepCopy(),
 		Inviter:         o.Inviter.DeepCopy(),
 		InviterUsername: o.InviterUsername,
 		TeamName:        o.TeamName,
@@ -1144,6 +1148,7 @@ type AnnotatedMemberInfo struct {
 	IsImplicitTeam bool          `codec:"isImplicitTeam" json:"is_implicit_team"`
 	Role           TeamRole      `codec:"role" json:"role"`
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
+	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1162,6 +1167,7 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Implicit),
+		NeedsPUK: o.NeedsPUK,
 	}
 }
 
@@ -1467,6 +1473,7 @@ type TeamRemoveMemberArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
 	Username  string `codec:"username" json:"username"`
+	Email     string `codec:"email" json:"email"`
 }
 
 func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
@@ -1474,6 +1481,7 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 		SessionID: o.SessionID,
 		Name:      o.Name,
 		Username:  o.Username,
+		Email:     o.Email,
 	}
 }
 

@@ -190,6 +190,11 @@
         {
           "type": "boolean",
           "name": "active"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
         }
       ]
     },
@@ -505,6 +510,10 @@
         {
           "type": "TeamInviteName",
           "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "uv"
         },
         {
           "type": "UserVersion",
@@ -999,6 +1008,11 @@
             "ImplicitRole"
           ],
           "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
         }
       ]
     },
@@ -1333,6 +1347,10 @@
         },
         {
           "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "email",
           "type": "string"
         }
       ],

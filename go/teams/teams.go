@@ -690,14 +690,10 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 
 func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
 	// parse username to get social
-	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, false)
+	typ, name, err := t.parseSocial(username)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
-	if assertion.IsKeybase() {
-		return keybase1.TeamAddMemberResult{}, fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
-	}
-	typ, name := assertion.ToKeyValuePair()
 	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name(), typ, name)
 
 	invite := SCTeamInvite{
@@ -722,10 +718,6 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return libkb.ExistsError{Msg: "An invite for this user already exists."}
 	}
 
-	admin, err := t.getAdminPermission(ctx, true)
-	if err != nil {
-		return err
-	}
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
@@ -737,6 +729,15 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		invites.Readers = &invList
 	case keybase1.TeamRole_OWNER:
 		invites.Owners = &invList
+	}
+
+	return t.postTeamInvites(ctx, invites)
+}
+
+func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error {
+	admin, err := t.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
 	}
 
 	entropy, err := makeSCTeamEntropy()
@@ -766,6 +767,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
+
 }
 
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
@@ -1220,4 +1222,17 @@ func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
 	}
 
 	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+}
+
+func (t *Team) parseSocial(username string) (typ string, name string, err error) {
+	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, false)
+	if err != nil {
+		return "", "", err
+	}
+	if assertion.IsKeybase() {
+		return "", "", fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
+	}
+	typ, name = assertion.ToKeyValuePair()
+
+	return typ, name, nil
 }

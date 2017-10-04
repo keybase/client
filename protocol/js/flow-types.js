@@ -2815,6 +2815,7 @@ export type AnnotatedMemberInfo = {
   isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
+  needsPUK: boolean,
 }
 
 export type AnnotatedTeamInvite = {
@@ -2822,6 +2823,7 @@ export type AnnotatedTeamInvite = {
   id: TeamInviteID,
   type: TeamInviteType,
   name: TeamInviteName,
+  uv: UserVersion,
   inviter: UserVersion,
   inviterUsername: string,
   teamName: string,
@@ -4879,6 +4881,7 @@ export type TeamMemberDetails = {
   uv: UserVersion,
   username: string,
   active: boolean,
+  needsPUK: boolean,
 }
 
 export type TeamMembers = {
@@ -6248,7 +6251,8 @@ export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
   name: string,
-  username: string
+  username: string,
+  email: string
 }>
 
 export type teamsTeamRenameRpcParam = Exact<{

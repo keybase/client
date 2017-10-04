@@ -180,6 +180,12 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s,%s)", arg.Name, arg.Username),
 		func() error { return err })()
+
+	if len(arg.Email) > 0 {
+		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.Name)
+		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
+	}
+	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
 	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
 
