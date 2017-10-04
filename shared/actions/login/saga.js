@@ -638,9 +638,7 @@ function* logoutDoneSaga() {
 }
 
 function* logoutSaga() {
-  console.log('[RouteState] logging out')
   yield all([call(deletePushTokenSaga), put(clearRouteState)])
-  console.log('[RouteState] logged out')
 
   // Add waiting handler
   const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})
