@@ -69,6 +69,13 @@ func NewLoadUserSelfArg(g *GlobalContext) LoadUserArg {
 	return ret
 }
 
+func NewLoadUserSelfAndUIDArg(g *GlobalContext) LoadUserArg {
+	ret := NewLoadUserArg(g)
+	ret.self = true
+	ret.uid = g.GetMyUID()
+	return ret
+}
+
 func NewLoadUserForceArg(g *GlobalContext) LoadUserArg {
 	arg := NewLoadUserPubOptionalArg(g)
 	arg.forceReload = true
