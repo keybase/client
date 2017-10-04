@@ -239,12 +239,17 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 
 		if fbsk.quotaUsage == nil {
 			loggerSuffix := fmt.Sprintf("status-%s", fbsk.md.TlfID())
-			w := fbsk.md.GetTlfHandle().FirstResolvedWriter()
+			chargedTo, err := chargedToForTLF(
+				ctx, fbsk.config.KBPKI(), fbsk.config.KBPKI(),
+				fbsk.md.GetTlfHandle())
+			if err != nil {
+				return FolderBranchStatus{}, nil, err
+			}
 			// TODO: somehow share this quota usage instance with the
 			// journal for the TLF?
-			if w.IsTeam() {
+			if chargedTo.IsTeam() {
 				fbsk.quotaUsage = NewEventuallyConsistentTeamQuotaUsage(
-					fbsk.config, w.AsTeamOrBust(), loggerSuffix)
+					fbsk.config, chargedTo.AsTeamOrBust(), loggerSuffix)
 			} else {
 				fbsk.quotaUsage = NewEventuallyConsistentQuotaUsage(
 					fbsk.config, loggerSuffix)
