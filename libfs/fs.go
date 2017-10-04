@@ -323,16 +323,22 @@ func (fs *FS) mkdirAll(filename string, perm os.FileMode) (err error) {
 	parts := strings.Split(leftover, "/")
 	// Make all necessary dirs.
 	for _, p := range parts {
-		n, _, err = fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
+		child, _, err := fs.config.KBFSOps().CreateDir(fs.ctx, n, p)
 		switch errors.Cause(err).(type) {
 		case libkbfs.NameExistsError:
 			// The child directory already exists.
-			continue
+		case libkbfs.WriteAccessError:
+			// If the child already exists, this doesn't matter.
+			var lookupErr error
+			child, _, lookupErr = fs.config.KBFSOps().Lookup(fs.ctx, n, p)
+			if lookupErr != nil {
+				return err
+			}
 		case nil:
-			continue
 		default:
 			return err
 		}
+		n = child
 	}
 
 	return nil

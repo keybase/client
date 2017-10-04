@@ -19,7 +19,8 @@ import (
 // backslashes in git file URLs.
 type configWithoutRemotesStorer struct {
 	*filesystem.Storage
-	cfg *gogitcfg.Config
+	cfg    *gogitcfg.Config
+	stored bool
 }
 
 func newConfigWithoutRemotesStorer(fs *libfs.FS) (
@@ -32,7 +33,9 @@ func newConfigWithoutRemotesStorer(fs *libfs.FS) (
 	if err != nil {
 		return nil, err
 	}
-	return &configWithoutRemotesStorer{fsStorer, cfg}, nil
+	// To figure out if this config has been written already, check if
+	// the "IsBare" bit is already flipped.
+	return &configWithoutRemotesStorer{fsStorer, cfg, cfg.Core.IsBare}, nil
 }
 
 func (cwrs *configWithoutRemotesStorer) Init() error {
@@ -43,7 +46,21 @@ func (cwrs *configWithoutRemotesStorer) Config() (*gogitcfg.Config, error) {
 	return cwrs.cfg, nil
 }
 
-func (cwrs *configWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) error {
+func (cwrs *configWithoutRemotesStorer) SetConfig(c *gogitcfg.Config) (
+	err error) {
+	if cwrs.stored && c.Core == cwrs.cfg.Core {
+		// Ignore any change that doesn't change the core we know
+		// about, to avoid attempting to write config files with
+		// read-only access.
+		return nil
+	}
+
+	defer func() {
+		if err != nil {
+			cwrs.stored = true
+		}
+	}()
+
 	cwrs.cfg = c
 	if len(c.Remotes) != 0 {
 		// If there are remotes, we need to strip them out before

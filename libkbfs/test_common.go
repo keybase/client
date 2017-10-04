@@ -281,7 +281,7 @@ func configAsUserWithMode(config *ConfigLocal,
 // `config`.
 func ConfigAsUser(config *ConfigLocal,
 	loggedInUser libkb.NormalizedUsername) *ConfigLocal {
-	return configAsUserWithMode(config, loggedInUser, InitDefault)
+	return configAsUserWithMode(config, loggedInUser, config.Mode())
 }
 
 // FakeBranchID creates a fake branch ID from the given
