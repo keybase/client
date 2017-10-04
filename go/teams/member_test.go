@@ -169,7 +169,7 @@ func TestMemberRemove(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -269,7 +269,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
 		t.Fatal(err)
 	}
 
