@@ -20,7 +20,7 @@ import {
   listenForNativeReachabilityEvents,
 } from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
-import {RouteStateStorage} from '../../actions/platform-specific'
+import {RouteStateStorage} from '../../actions/route-state-storage'
 import * as Saga from '../../util/saga'
 import {configurePush} from '../push/creators'
 import {put, select} from 'redux-saga/effects'

@@ -1,6 +1,6 @@
 // @flow
 
-import type {AsyncAction, Dispatch, GetState} from '../constants/types/flux'
+import type {AsyncAction} from '../constants/types/flux'
 
 declare function setNoPushPermissions(): Promise<*>
 declare function requestPushPermissions(): Promise<*>
@@ -15,36 +15,6 @@ type NextURI = string
 declare function saveAttachmentDialog(filePath: string): Promise<NextURI>
 declare function displayNewMessageNotification(text: string, convID: string, badgeCount: number): void
 
-// RouteStateStorage is a platform-specific implementation of route
-// state storage, e.g. storing the current loaded tab so that it is
-// restored on the next load.
-//
-// Usage:
-//
-//   const routeStateStorage = new RouteStateStorage()
-//
-//   // Once on app load:
-//   await dispatch(routeStateStorage.load)
-//   // Read e.g. config.initialTab from the state and navigate to it.
-//
-//   // On a tab switch:
-//   dispatch(routeStateStorage.store)
-//
-// Implementations should ignore stores that happen when
-// getState().routeTree.routeChanged is false, since that is set when
-// a user has performed a navigation action, or the state from .load
-// has been applied, and we don't want to store any state until either
-// of those two events happens.
-declare class RouteStateStorage {
-  // load returns a promise that, when resolved, means that the route
-  // state has been loaded from the storage into the redux state.
-  load: (dispatch: Dispatch, getState: GetState) => Promise<void>,
-  // store returns a promise that, when resolved, means that the route
-  // state in the redux state has been stored.
-  store: (dispatch: Dispatch, getState: GetState) => Promise<void>,
-  clear: (dispatch: Dispatch, getState: GetState) => Promise<void>,
-}
-
 export {
   requestPushPermissions,
   showMainWindow,
@@ -53,5 +23,4 @@ export {
   showShareActionSheet,
   setNoPushPermissions,
   displayNewMessageNotification,
-  RouteStateStorage,
 }
