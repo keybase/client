@@ -4,6 +4,7 @@ import {ProveCommonProofStatus} from '../constants/types/flow-types'
 import {cancelAddProof, backToProfile} from '../actions/profile'
 import {globalColors} from '../styles'
 import {connect} from 'react-redux'
+import {type TypedState} from '../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
   const profile = state.profile

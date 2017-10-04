@@ -128,7 +128,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channe
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
   } else {
-    return {teamname}
+    return {teamname, conversationIDKey}
   }
 }
 

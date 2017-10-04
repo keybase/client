@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../utils/container'
 import {
   submitUsername,
   cancelAddProof,
