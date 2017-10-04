@@ -1,10 +1,10 @@
 // @flow
 import * as Constants from '../constants/unlock-folders'
-import * as actions from '../actions/unlock-folders'
+import * as Creators from '../actions/unlock-folders'
 import HiddenString from '../util/hidden-string'
 import React, {Component} from 'react'
 import Render from './render'
-import {TypedConnector} from '../util/typed-connect'
+import {connect} from 'react-redux'
 
 export type Props = {
   devices: ?Array<Constants.Device>,
@@ -36,28 +36,19 @@ class UnlockFolders extends Component<Props> {
   }
 }
 
-const connector = new TypedConnector()
+const mapStateToProps = ({unlockFolders: {devices, phase, paperkeyError, waiting}}: TypedState) => ({
+  devices,
+  paperkeyError,
+  phase,
+  waiting,
+})
 
-export default connector.connect(
-  ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({
-    close: () => {
-      ownProps.onCancel()
-    },
-    toPaperKeyInput: () => {
-      dispatch(actions.toPaperKeyInput())
-    },
-    onBackFromPaperKey: () => {
-      dispatch(actions.onBackFromPaperKey())
-    },
-    onContinueFromPaperKey: pk => {
-      dispatch(actions.checkPaperKey(pk))
-    },
-    onFinish: () => {
-      dispatch(actions.finish())
-    },
-    paperkeyError,
-    waiting,
-    devices,
-    phase,
-  })
-)(UnlockFolders)
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: any) => ({
+  close: () => ownProps.onCancel(),
+  onBackFromPaperKey: () => dispatch(Creators.onBackFromPaperKey()),
+  onContinueFromPaperKey: pk => dispatch(Creators.checkPaperKey(pk)),
+  onFinish: () => dispatch(Creators.finish()),
+  toPaperKeyInput: () => dispatch(Creators.toPaperKeyInput()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(UnlockFolders)

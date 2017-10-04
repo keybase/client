@@ -1,16 +1,17 @@
 // @flow
 import Revoke from './index'
-import {TypedConnector} from '../../util/typed-connect'
 import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
+import {connect} from 'react-redux'
 
-const connector = new TypedConnector()
-
-export default connector.connect((state, dispatch, {routeProps}) => ({
-  isWaiting: state.profile.revoke.waiting,
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
   errorMessage: state.profile.revoke.error,
-  onCancel: () => {
-    dispatch(finishRevoking())
-  },
+  isWaiting: state.profile.revoke.waiting,
+  platform: routeProps.platform,
+  platformHandle: routeProps.platformHandle,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+  onCancel: () => dispatch(finishRevoking()),
   onRevoke: () => {
     if (routeProps.platform === 'pgp') {
       dispatch(dropPgp(routeProps.proofId))
@@ -18,6 +19,6 @@ export default connector.connect((state, dispatch, {routeProps}) => ({
       dispatch(submitRevokeProof(routeProps.proofId))
     }
   },
-  platform: routeProps.platform,
-  platformHandle: routeProps.platformHandle,
-}))(Revoke)
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Revoke)

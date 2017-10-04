@@ -1,13 +1,11 @@
 // @flow
-import {Map} from 'immutable'
-import {connect} from 'react-redux'
 import SearchResultRow from '.'
-import {followStateHelper} from '../../constants/search'
+import {Map} from 'immutable'
+import {connect, type MapStateToProps} from 'react-redux'
+import {followStateHelper, type SearchResultId} from '../../constants/search'
+import {type TypedState} from '../../constants/reducer'
 
-import type {TypedState} from '../../constants/reducer'
-import type {SearchResultId} from '../../constants/search'
-
-const mapStateToProps = (
+const mapStateToProps: MapStateToProps<*, *, *> = (
   state: TypedState,
   {
     id,

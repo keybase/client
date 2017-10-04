@@ -1,11 +1,10 @@
 // @flow
 import EditAvatar from './edit-avatar'
-import {TypedConnector} from '../util/typed-connect'
+import {connect} from 'react-redux'
 import {navigateUp} from '../actions/route-tree'
+import {type TypedState} from '../constants/reducers'
 
-const connector: any = new TypedConnector()
-
-export default connector.connect((state, dispatch, ownProps) => {
+const mapStateToProps = (state: TypedState) => {
   const username = state.config.username
   if (!username) {
     throw new Error('Not logged in')
@@ -17,8 +16,11 @@ export default connector.connect((state, dispatch, ownProps) => {
   return {
     keybaseUsername: username,
     hasAvatar: hasAvatarProof,
-    onAck: () => {
-      dispatch(navigateUp())
-    },
   }
-})(EditAvatar)
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onAck: () => dispatch(navigateUp()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(EditAvatar)

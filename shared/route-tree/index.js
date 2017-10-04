@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import type {Component} from 'react'
 import type {ConnectedComponent} from 'react-redux'
-import type {ConnectedComponent as TypedConnectedComponent} from '../util/typed-connect'
 
 type LeafTagsParams = {
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
@@ -48,8 +47,7 @@ type RouteDefParams<P> = {
   component?: ?(
     | Component<P, any>
     | $Supertype<Component<P, any>>
-    | Class<ConnectedComponent<P, any, any, any>>
-    | Class<TypedConnectedComponent<P>>),
+    | Class<ConnectedComponent<P, any, any, any>>),
   containerComponent?: ?Component<P, any>,
   ...RouteDefParamsCommon<P>,
 }

@@ -1,13 +1,11 @@
 // @flow
 import ConfirmOrPending from './confirm-or-pending'
 import {ProveCommonProofStatus} from '../constants/types/flow-types'
-import {TypedConnector} from '../util/typed-connect'
 import {cancelAddProof, backToProfile} from '../actions/profile'
 import {globalColors} from '../styles'
+import {connect} from 'react-redux'
 
-const connector: any = new TypedConnector()
-
-export default connector.connect((state, dispatch, ownProps) => {
+const mapStateToProps = (state: TypedState) => {
   const profile = state.profile
   const isGood = profile.proofFound && profile.proofStatus === ProveCommonProofStatus.ok
   const isPending =
@@ -22,15 +20,16 @@ export default connector.connect((state, dispatch, ownProps) => {
 
   return {
     isPending,
-    onCancel: () => {
-      dispatch(cancelAddProof())
-    },
-    onReloadProfile: () => {
-      dispatch(backToProfile())
-    },
     platform: profile.platform,
     platformIconOverlayColor: isGood ? globalColors.green : globalColors.grey,
     titleColor: isGood ? globalColors.green : globalColors.blue,
     username: profile.username,
   }
-})(ConfirmOrPending)
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onCancel: () => dispatch(cancelAddProof()),
+  onReloadProfile: () => dispatch(backToProfile()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(ConfirmOrPending)

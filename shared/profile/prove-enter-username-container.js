@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
-import {TypedConnector} from '../util/typed-connect'
+import {connect} from 'react-redux'
 import {
   submitUsername,
   cancelAddProof,
@@ -32,9 +32,7 @@ class ProveEnterUsernameContainer extends Component<any, State> {
   }
 }
 
-const connector = new TypedConnector()
-
-export default connector.connect((state, dispatch, ownProps) => {
+const mapStateToProps = (state: TypedState) => {
   const profile = state.profile
 
   if (!profile.platform) {
@@ -45,23 +43,33 @@ export default connector.connect((state, dispatch, ownProps) => {
     canContinue: true,
     errorCode: profile.errorCode,
     errorText: profile.errorText,
-    title: 'Add Proof',
-    onCancel: () => {
-      dispatch(cancelAddProof())
-    },
-    onContinue: (username: string) => {
-      dispatch(updateUsername(username))
-
-      if (profile.platform === 'btc') {
-        dispatch(submitBTCAddress())
-      } else if (profile.platform === 'zcash') {
-        dispatch(submitZcashAddress())
-      } else {
-        dispatch(submitUsername())
-      }
-    },
     platform: profile.platform,
+    title: 'Add Proof',
     username: profile.username,
     waiting: profile.waiting,
   }
-})(ProveEnterUsernameContainer)
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onContinue: (username: string, platform: ?string) => {
+    dispatch(updateUsername(username))
+
+    if (platform === 'btc') {
+      dispatch(submitBTCAddress())
+    } else if (platform === 'zcash') {
+      dispatch(submitZcashAddress())
+    } else {
+      dispatch(submitUsername())
+    }
+  },
+  onCancel: () => dispatch(cancelAddProof()),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  ...ownProps,
+  onContinue: (username: string) => dispatchProps._onContinue(username, stateProps.platform),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProveEnterUsernameContainer)

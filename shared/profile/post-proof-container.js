@@ -1,13 +1,11 @@
 // @flow
 import PostProof from './post-proof'
-import {TypedConnector} from '../util/typed-connect'
 import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
+import {connect} from 'react-redux'
+import {type ProvablePlatformsType} from '../constants/types/more'
+import {type TypedState} from '../constants/reducer'
 
-import type {ProvablePlatformsType} from '../constants/types/more'
-
-const connector = new TypedConnector()
-
-export default connector.connect((state, dispatch, ownProps) => {
+const mapStateToProps = (state: TypedState) => {
   const profile = state.profile
 
   if (
@@ -26,18 +24,17 @@ export default connector.connect((state, dispatch, ownProps) => {
   return {
     errorMessage: profile.errorText,
     isOnCompleteWaiting: profile.waiting,
-    onCancel: () => {
-      dispatch(cancelAddProof())
-    },
     onCancelText: 'Cancel',
-    onComplete: () => {
-      dispatch(checkProof())
-    },
     platform,
     platformUserName: profile.username,
-    proofAction: () => {
-      dispatch(outputInstructionsActionLink())
-    },
     proofText: profile.proofText || '',
   }
-})(PostProof)
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onCancel: () => dispatch(cancelAddProof()),
+  onComplete: () => dispatch(checkProof()),
+  proofAction: () => dispatch(outputInstructionsActionLink()),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(PostProof)

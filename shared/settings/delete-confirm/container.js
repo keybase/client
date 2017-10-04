@@ -1,13 +1,11 @@
 // @flow
+import DeleteConfirm, {type Props} from '.'
 import React, {Component} from 'react'
-import {TypedConnector} from '../../util/typed-connect'
-import {navigateUp} from '../../actions/route-tree'
 import {HOCTimers} from '../../common-adapters'
-import DeleteConfirm from './index'
+import {navigateUp} from '../../actions/route-tree'
 import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
-
-import type {TimerProps} from '../../common-adapters/hoc-timers'
-import type {Props} from './index'
+import {type TimerProps} from '../../common-adapters/hoc-timers'
+import {connect} from 'react-redux'
 
 class DeleteConfirmContainer extends Component<Props & TimerProps> {
   componentWillMount() {
@@ -29,24 +27,21 @@ class DeleteConfirmContainer extends Component<Props & TimerProps> {
   }
 }
 
-const connector = new TypedConnector()
-
-export default connector.connect((state, dispatch, ownProps) => {
+const mapStateToProps = (state: TypedState) => {
   if (!state.config.username) {
     throw new Error('No current username for delete confirm container')
   }
 
   return {
-    username: state.config.username,
     allowDeleteForever: state.settings.allowDeleteAccount,
-    setAllowDeleteAccount: allow => {
-      dispatch(setAllowDeleteAccount(allow))
-    },
-    onCancel: () => {
-      dispatch(navigateUp())
-    },
-    onDeleteForever: () => {
-      dispatch(deleteAccountForever())
-    },
+    username: state.config.username,
   }
-})(HOCTimers(DeleteConfirmContainer))
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onCancel: () => dispatch(navigateUp()),
+  onDeleteForever: () => dispatch(deleteAccountForever()),
+  setAllowDeleteAccount: allow => dispatch(setAllowDeleteAccount(allow)),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(HOCTimers(DeleteConfirmContainer))
