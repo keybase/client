@@ -10,10 +10,12 @@ export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef:
 export const switchTo = 'routeTree:switchTo'
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
+export type NavigationSource = 'user' | 'restore' | 'default'
+
 export const navigateTo = 'routeTree:navigateTo'
 export type NavigateTo = NoErrorTypedAction<
   'routeTree:navigateTo',
-  {path: PropsPath<*>, parentPath: ?Path, fromUser: boolean}
+  {path: PropsPath<*>, parentPath: ?Path, navigationSource: NavigationSource}
 >
 
 export const navigateAppend = 'routeTree:navigateAppend'

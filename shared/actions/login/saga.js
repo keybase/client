@@ -133,18 +133,18 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
         yield put(appLink(link))
       } else if (isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
-          yield put(navigateTo([chatTab], null, false /* fromUser */))
+          yield put(navigateTo([chatTab], null, 'restore'))
           yield put(selectConversation(conversation, false))
         } else {
-          yield put(navigateTo([tab]))
+          yield put(navigateTo([tab], null, 'restore'))
         }
       } else {
-        yield put(navigateTo([peopleTab]))
+        yield put(navigateTo([peopleTab], null, 'restore'))
       }
     } else {
       // If the initial state is not set yet, navigate to the people
       // tab without setting state.routeTree.loggedInUserNavigated to true.
-      yield put(navigateTo([peopleTab], null, false /* fromUser */))
+      yield put(navigateTo([peopleTab], null, 'default'))
     }
   } else if (registered) {
     // relogging in
