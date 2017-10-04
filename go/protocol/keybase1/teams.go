@@ -1067,6 +1067,7 @@ type LoadTeamArg struct {
 	ForceFullReload bool           `codec:"forceFullReload" json:"forceFullReload"`
 	ForceRepoll     bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK         bool           `codec:"staleOK" json:"staleOK"`
+	Public          bool           `codec:"public" json:"public"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
@@ -1078,6 +1079,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 		ForceFullReload: o.ForceFullReload,
 		ForceRepoll:     o.ForceRepoll,
 		StaleOK:         o.StaleOK,
+		Public:          o.Public,
 	}
 }
 
@@ -1358,6 +1360,20 @@ func (o ImplicitTeamConflictInfo) DeepCopy() ImplicitTeamConflictInfo {
 	return ImplicitTeamConflictInfo{
 		Generation: o.Generation,
 		Time:       o.Time.DeepCopy(),
+	}
+}
+
+type LookupImplicitTeamRes struct {
+	TeamID      TeamID                  `codec:"teamID" json:"teamID"`
+	Name        TeamName                `codec:"name" json:"name"`
+	DisplayName ImplicitTeamDisplayName `codec:"displayName" json:"displayName"`
+}
+
+func (o LookupImplicitTeamRes) DeepCopy() LookupImplicitTeamRes {
+	return LookupImplicitTeamRes{
+		TeamID:      o.TeamID.DeepCopy(),
+		Name:        o.Name.DeepCopy(),
+		DisplayName: o.DisplayName.DeepCopy(),
 	}
 }
 
@@ -1711,8 +1727,8 @@ type TeamsInterface interface {
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
-	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (TeamID, error)
-	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (TeamID, error)
+	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
+	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
 	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
@@ -2213,12 +2229,12 @@ func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsA
 	return
 }
 
-func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res TeamID, err error) {
+func (c TeamsClient) LookupImplicitTeam(ctx context.Context, __arg LookupImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupImplicitTeam", []interface{}{__arg}, &res)
 	return
 }
 
-func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res TeamID, err error) {
+func (c TeamsClient) LookupOrCreateImplicitTeam(ctx context.Context, __arg LookupOrCreateImplicitTeamArg) (res LookupImplicitTeamRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.lookupOrCreateImplicitTeam", []interface{}{__arg}, &res)
 	return
 }

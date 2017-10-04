@@ -364,6 +364,7 @@ protocol teams {
     boolean forceFullReload;      // Ignore local data and fetch from the server.
     boolean forceRepoll;          // Force a sync with merkle.
     boolean staleOK;              // If a very stale cache hit is OK.
+    boolean public;               // For public teams.
   }
 
   record ImplicitRole {
@@ -487,8 +488,14 @@ protocol teams {
     Time time;
   }
 
-  TeamID lookupImplicitTeam(string name, boolean public);
-  TeamID lookupOrCreateImplicitTeam(string name, boolean public);
+  record LookupImplicitTeamRes {
+    TeamID teamID;
+    TeamName name;
+    ImplicitTeamDisplayName displayName;
+  }
+
+  LookupImplicitTeamRes lookupImplicitTeam(string name, boolean public);
+  LookupImplicitTeamRes lookupOrCreateImplicitTeam(string name, boolean public);
 
   void teamReAddMemberAfterReset(int sessionID, TeamID id, string username);
 

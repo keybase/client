@@ -3648,6 +3648,7 @@ export type LoadTeamArg = {
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
+  public: boolean,
 }
 
 export type LockContext = {
@@ -3666,6 +3667,12 @@ export type LogLevel =
   | 5 // ERROR_5
   | 6 // CRITICAL_6
   | 7 // FATAL_7
+
+export type LookupImplicitTeamRes = {
+  teamID: TeamID,
+  name: TeamName,
+  displayName: ImplicitTeamDisplayName,
+}
 
 export type MDBlock = {
   version: int,
@@ -6533,8 +6540,8 @@ type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsGetTeamRootIDResult = TeamID
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
-type teamsLookupImplicitTeamResult = TeamID
-type teamsLookupOrCreateImplicitTeamResult = TeamID
+type teamsLookupImplicitTeamResult = LookupImplicitTeamRes
+type teamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
 type teamsTeamCreateWithSettingsResult = TeamCreateResult

@@ -49,13 +49,12 @@ func (c *CmdChatDeleteChannel) Run() error {
 		return err
 	}
 
-	chatClient, err := GetChatLocalClient(c.G())
+	resolver, err := newChatConversationResolver(c.G())
 	if err != nil {
 		return err
 	}
 
 	ctx := context.Background()
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
 	conv, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		MustNotExist:      false,
@@ -66,7 +65,7 @@ func (c *CmdChatDeleteChannel) Run() error {
 		return err
 	}
 
-	_, err = chatClient.DeleteConversationLocal(ctx, chat1.DeleteConversationLocalArg{
+	_, err = resolver.ChatClient.DeleteConversationLocal(ctx, chat1.DeleteConversationLocalArg{
 		ConvID:      conv.GetConvID(),
 		ChannelName: c.resolvingRequest.TopicName,
 	})

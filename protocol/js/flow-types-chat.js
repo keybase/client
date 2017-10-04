@@ -1239,6 +1239,7 @@ export type GetThreadQuery = {
 
 export type GetThreadRemoteRes = {
   thread: ThreadViewBoxed,
+  membersType: ConversationMembersType,
   rateLimit?: ?RateLimit,
 }
 

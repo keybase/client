@@ -32,26 +32,29 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	lookupAndCreate := func(displayName string, public bool) {
 		t.Logf("displayName:%v public:%v", displayName, public)
-		_, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		_, _, _, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.Error(t, err)
 		require.IsType(t, TeamDoesNotExistError{}, err)
 
-		createdTeamID, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
+		createdTeamID, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
+			public)
 		require.NoError(t, err)
 		require.Equal(t, public, impTeamName.IsPublic)
 
 		// second time, LookupOrCreate should Lookup the team just created.
-		createdTeamID2, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
+		createdTeamID2, _, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
+			public)
 		require.NoError(t, err)
 		require.Equal(t, createdTeamID, createdTeamID2)
 		require.Equal(t, impTeamName, impTeamName2, "public: %v", public)
 
-		lookupTeamID, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
+		lookupTeamID, _, impTeamName, err := LookupImplicitTeam(context.TODO(), tc.G, displayName, public)
 		require.NoError(t, err)
 		require.Equal(t, createdTeamID, lookupTeamID)
 
 		team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
-			ID: createdTeamID,
+			ID:     createdTeamID,
+			Public: public,
 		})
 		require.NoError(t, err)
 		teamDisplay, err := team.ImplicitTeamDisplayNameString(context.TODO())
@@ -69,9 +72,9 @@ func TestLookupImplicitTeams(t *testing.T) {
 	lookupAndCreate(displayName, false)
 	lookupAndCreate(displayName, true)
 
-	_, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", false)
+	_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", false)
 	require.Error(t, err)
-	_, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", true)
+	_, _, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", true)
 	require.Error(t, err)
 }
 
@@ -82,14 +85,14 @@ func TestImplicitPukless(t *testing.T) {
 
 	displayName := "" + fus[0].Username + "," + fus[1].Username
 	t.Logf("U0 creates an implicit team: %v", displayName)
-	teamID, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	teamID, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 
-	teamID2, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	teamID2, _, _, err := LookupImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID2)
 
-	teamID2, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
+	teamID2, _, _, err = LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*isPublic*/)
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID2)
 
@@ -118,11 +121,11 @@ func TestImplicitTeamReader(t *testing.T) {
 
 	displayName := "" + fus[0].Username + ",bob@twitter#" + fus[1].Username
 	t.Logf("U0 creates an implicit team: %v", displayName)
-	teamID, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
+	teamID, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
 	require.NoError(t, err)
 
 	t.Logf("U1 looks up the team")
-	teamID2, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
+	teamID2, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, displayName, false /*public*/)
 	require.NoError(t, err)
 	require.Equal(t, teamID, teamID2, "users should lookup the same team ID")
 
@@ -215,9 +218,9 @@ func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
 	displayName1 := "t_tracy@rooter," + fus[0].Username
 	displayName2 := "t_tracy," + fus[0].Username
 
-	teamID1, impTeamName1, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName1, false /*isPublic*/)
+	teamID1, _, impTeamName1, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName1, false /*isPublic*/)
 	require.NoError(t, err)
-	teamID2, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName2, false /*isPublic*/)
+	teamID2, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName2, false /*isPublic*/)
 	require.NoError(t, err)
 
 	require.Equal(t, teamID1, teamID2, "implicit team ID should be the same for %v and %v", displayName1, displayName2)

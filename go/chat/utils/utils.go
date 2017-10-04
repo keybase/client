@@ -844,3 +844,7 @@ func PluckConvs(rcs []types.RemoteConversation) (res []chat1.Conversation) {
 	}
 	return res
 }
+
+func SplitTLFName(tlfName string) []string {
+	return strings.Split(strings.Fields(tlfName)[0], ",")
+}

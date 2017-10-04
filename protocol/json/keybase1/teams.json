@@ -898,6 +898,10 @@
         {
           "type": "boolean",
           "name": "staleOK"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         }
       ]
     },
@@ -1188,6 +1192,24 @@
         {
           "type": "Time",
           "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LookupImplicitTeamRes",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "ImplicitTeamDisplayName",
+          "name": "displayName"
         }
       ]
     }
@@ -1533,7 +1555,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "lookupOrCreateImplicitTeam": {
       "request": [
@@ -1546,7 +1568,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "teamReAddMemberAfterReset": {
       "request": [

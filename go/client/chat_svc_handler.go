@@ -203,7 +203,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		msg := MsgSummary{
 			ID: mv.ServerHeader.MessageID,
 			Channel: ChatChannel{
-				Name:        mv.ClientHeader.TlfName,
+				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
 				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
