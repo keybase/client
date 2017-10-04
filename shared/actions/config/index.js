@@ -165,8 +165,10 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
           // then navBasedOnLoginAndInitialState should detect that.
           dispatch(async (): Promise<*> => {
             await dispatch(navBasedOnLoginAndInitialState())
-            await dispatch(routeStateStorage.load)
-            await dispatch(navBasedOnLoginAndInitialState())
+            if (getState().config.loggedIn) {
+              await dispatch(routeStateStorage.load)
+              await dispatch(navBasedOnLoginAndInitialState())
+            }
           })
           dispatch(resetSignup())
         }
