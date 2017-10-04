@@ -10,7 +10,7 @@ import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
-import {bootstrap, getExtendedStatus} from '../config'
+import {bootstrap, clearRouteState, getExtendedStatus} from '../config'
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
@@ -638,7 +638,9 @@ function* logoutDoneSaga() {
 }
 
 function* logoutSaga() {
-  yield call(deletePushTokenSaga)
+  console.log('[RouteState] logging out')
+  yield all([call(deletePushTokenSaga), put(clearRouteState)])
+  console.log('[RouteState] logged out')
 
   // Add waiting handler
   const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})

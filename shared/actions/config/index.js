@@ -191,6 +191,7 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
 }
 
 const persistRouteState: AsyncAction = routeStateStorage.store
+const clearRouteState: AsyncAction = routeStateStorage.clear
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
@@ -237,6 +238,7 @@ export {
   isFollower,
   isFollowing,
   retryBootstrap,
+  clearRouteState,
   persistRouteState,
   setInitialState,
   updateFollowing,
