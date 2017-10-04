@@ -623,10 +623,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 	t.Logf("bob updates cache of alice's info")
 	{
-		arg := libkb.NewLoadUserArg(bob.tc.G)
-		arg.UID = alice.uid
-		arg.PublicKeyOptional = true
-		arg.ForcePoll = true
+		arg := libkb.NewLoadUserArg(bob.tc.G).WithUID(alice.uid).WithPublicKeyOptional().WithForcePoll(true)
 		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
 		require.NoError(t, err)
 	}
@@ -707,10 +704,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 
 	t.Logf("bob updates cache of alice's info")
 	{
-		arg := libkb.NewLoadUserArg(bob.tc.G)
-		arg.UID = alice.uid
-		arg.PublicKeyOptional = true
-		arg.ForcePoll = true
+		arg := libkb.NewLoadUserArg(bob.tc.G).WithUID(alice.uid).WithPublicKeyOptional().WithForcePoll(true)
 		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
 		require.NoError(t, err)
 	}

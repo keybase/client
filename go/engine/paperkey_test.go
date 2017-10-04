@@ -12,8 +12,7 @@ import (
 )
 
 func paperDevs(tc libkb.TestContext, fu *FakeUser) (*libkb.User, []*libkb.Device) {
-	arg := libkb.NewLoadUserForceArg(tc.G)
-	arg.Name = fu.Username
+	arg := libkb.NewLoadUserForceArg(tc.G).WithName(fu.Username)
 	u, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal(err)

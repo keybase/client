@@ -111,12 +111,12 @@ func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 }
 
 func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
-	loadMeArg := libkb.NewLoadUserArgBase(l.G()).
+	loadMeArg := libkb.NewLoadUserArg(l.G()).
 		WithNetContext(ctx).
 		WithUID(l.G().Env.GetUID()).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(*loadMeArg)
+	upak, _, err := l.G().GetUPAKLoader().LoadV2(loadMeArg)
 	if err != nil {
 		return keybase1.UserVersion{}, err
 	}
@@ -216,8 +216,8 @@ func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafI
 }
 
 func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error) {
-	arg := libkb.NewLoadUserArgBase(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll()
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(*arg)
+	arg := libkb.NewLoadUserArg(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll(true)
+	upak, _, err := l.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return nil, err
 	}

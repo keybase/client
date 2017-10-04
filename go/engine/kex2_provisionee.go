@@ -251,8 +251,7 @@ func (e *Kex2Provisionee) handleDidCounterSign(sig []byte, perUserKeyBox *keybas
 
 	// load self user (to load merkle root)
 	e.G().Log.Debug("| running for username %s", e.username)
-	loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username)
-	loadArg.LoginContext = e.ctx.LoginContext
+	loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username).WithLoginContext(e.ctx.LoginContext)
 	_, err = libkb.LoadUser(loadArg)
 	if err != nil {
 		return err
@@ -411,8 +410,7 @@ func (e *Kex2Provisionee) addDeviceSibkey(jw *jsonw.Wrapper) error {
 		e.G().Log.Debug("kex2 provisionee: proceeding to prompt user for device name, but figure out how this happened...")
 
 		// need user to get existing device names
-		loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username)
-		loadArg.LoginContext = e.ctx.LoginContext
+		loadArg := libkb.NewLoadUserByNameArg(e.G(), e.username).WithLoginContext(e.ctx.LoginContext)
 		user, err := libkb.LoadUser(loadArg)
 		if err != nil {
 			return err

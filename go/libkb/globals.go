@@ -907,8 +907,7 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
-	arg := NewLoadUserByUIDArg(nil, g, uid)
-	arg.PublicKeyOptional = true
+	arg := NewLoadUserByUIDArg(nil, g, uid).WithPublicKeyOptional()
 	return LoadUser(arg)
 }
 
