@@ -4103,14 +4103,14 @@ func (m *MockPrefetcher) EXPECT() *MockPrefetcherMockRecorder {
 	return m.recorder
 }
 
-// TriggerPrefetch mocks base method
-func (m *MockPrefetcher) TriggerPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
-	m.ctrl.Call(m, "TriggerPrefetch", ctx, ptr, block, kmd, priority, lifetime, prefetchStatus)
+// ProcessBlockForPrefetch mocks base method
+func (m *MockPrefetcher) ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block, kmd KeyMetadata, priority int, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) {
+	m.ctrl.Call(m, "ProcessBlockForPrefetch", ctx, ptr, block, kmd, priority, lifetime, prefetchStatus)
 }
 
-// TriggerPrefetch indicates an expected call of TriggerPrefetch
-func (mr *MockPrefetcherMockRecorder) TriggerPrefetch(ctx, ptr, block, kmd, priority, lifetime, prefetchStatus interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TriggerPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).TriggerPrefetch), ctx, ptr, block, kmd, priority, lifetime, prefetchStatus)
+// ProcessBlockForPrefetch indicates an expected call of ProcessBlockForPrefetch
+func (mr *MockPrefetcherMockRecorder) ProcessBlockForPrefetch(ctx, ptr, block, kmd, priority, lifetime, prefetchStatus interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProcessBlockForPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).ProcessBlockForPrefetch), ctx, ptr, block, kmd, priority, lifetime, prefetchStatus)
 }
 
 // CancelPrefetch mocks base method
@@ -4133,18 +4133,6 @@ func (m *MockPrefetcher) Shutdown() <-chan struct{} {
 // Shutdown indicates an expected call of Shutdown
 func (mr *MockPrefetcherMockRecorder) Shutdown() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Shutdown", reflect.TypeOf((*MockPrefetcher)(nil).Shutdown))
-}
-
-// ShutdownCh mocks base method
-func (m *MockPrefetcher) ShutdownCh() <-chan struct{} {
-	ret := m.ctrl.Call(m, "ShutdownCh")
-	ret0, _ := ret[0].(<-chan struct{})
-	return ret0
-}
-
-// ShutdownCh indicates an expected call of ShutdownCh
-func (mr *MockPrefetcherMockRecorder) ShutdownCh() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ShutdownCh", reflect.TypeOf((*MockPrefetcher)(nil).ShutdownCh))
 }
 
 // MockBlockOps is a mock of BlockOps interface

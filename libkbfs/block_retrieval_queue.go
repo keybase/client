@@ -304,7 +304,7 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 	// Check caches before locking the mutex.
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block)
 	if err == nil {
-		brq.Prefetcher().TriggerPrefetch(ctx, ptr, block, kmd,
+		brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
 			priority, lifetime, prefetchStatus)
 		ch <- nil
 		return ch
@@ -412,7 +412,7 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		// only way to get here is if the request wasn't already cached.
 		// Need to call with context.Background() because the retrieval's
 		// context will be canceled as soon as this method returns.
-		brq.Prefetcher().TriggerPrefetch(context.Background(),
+		brq.Prefetcher().ProcessBlockForPrefetch(context.Background(),
 			retrieval.blockPtr, block, retrieval.kmd, retrieval.priority,
 			retrieval.cacheLifetime, NoPrefetch)
 	} else {

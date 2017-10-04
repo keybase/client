@@ -1250,8 +1250,8 @@ type KeyOps interface {
 
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
-	// TriggerPrefetch triggers and monitors a prefetch.
-	TriggerPrefetch(ctx context.Context, ptr BlockPointer, block Block,
+	// ProcessBlockForPrefetch potentially triggers and monitors a prefetch.
+	ProcessBlockForPrefetch(ctx context.Context, ptr BlockPointer, block Block,
 		kmd KeyMetadata, priority int, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
@@ -1263,9 +1263,6 @@ type Prefetcher interface {
 	// complete. This feature is mainly used for testing, but also to toggle
 	// the prefetcher on and off.
 	Shutdown() <-chan struct{}
-	// ShutdownCh returns a channel that is closed if and when the prefetcher
-	// is shut down.
-	ShutdownCh() <-chan struct{}
 }
 
 // BlockOps gets and puts data blocks to a BlockServer. It performs
