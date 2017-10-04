@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {MentionHud} from '.'
-import {connect} from 'react-redux'
+import {connect, type MapStateToProps} from 'react-redux'
 import {getSelectedInbox} from '../../constants/chat'
 
 type ConnectedMentionHudProps = {
@@ -14,12 +14,16 @@ type ConnectedMentionHudProps = {
   style?: Object,
 }
 
-const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(state => {
+const mapStateToProps: MapStateToProps<*, *, *> = state => {
   const inbox = getSelectedInbox(state)
   const participants = inbox ? inbox.get('participants').toArray() : ['trex']
   return {
     userIds: participants,
   }
-})(MentionHud)
+}
+
+const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(mapStateToProps)(
+  MentionHud
+)
 
 export default ConnectedMentionHud
