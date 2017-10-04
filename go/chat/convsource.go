@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-	"strings"
 
 	"sync"
 
@@ -393,7 +392,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 			var names []string
 			switch conv.GetMembersType() {
 			case chat1.ConversationMembersType_KBFS:
-				names = strings.Split(strings.Fields(tlfName)[0], ",")
+				names = utils.SplitTLFName(tlfName)
 			case chat1.ConversationMembersType_TEAM:
 				// early out of team convs
 				return nil
@@ -415,7 +414,7 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				if err != nil {
 					return err
 				}
-				names = strings.Split(strings.Fields(display.String())[0], ",")
+				names = utils.SplitTLFName(display.String())
 			}
 
 			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
