@@ -249,24 +249,8 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }
 
-func (h *TeamsHandler) prependUsername(ctx context.Context, name string, public bool) (string, error) {
-	if !public {
-		// Prepend our username on here just in case for private imp teams
-		username := h.G().Env.GetUsername()
-		if len(username) == 0 {
-			return "", libkb.LoginRequiredError{}
-		}
-		return username.String() + "," + name, nil
-	}
-	return name, nil
-}
-
 func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-
-	if arg.Name, err = h.prependUsername(ctx, arg.Name, arg.Public); err != nil {
-		return res, err
-	}
 	res.TeamID, res.Name, res.DisplayName, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
 		arg.Public)
 	return res, err
@@ -275,9 +259,6 @@ func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.Look
 func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%s)", arg.Name),
 		func() error { return err })()
-	if arg.Name, err = h.prependUsername(ctx, arg.Name, arg.Public); err != nil {
-		return res, err
-	}
 	res.TeamID, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
 		arg.Name, arg.Public)
 	return res, err
