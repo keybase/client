@@ -30,7 +30,11 @@ func newCmdTeamEdit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "open",
-				Usage: "Change team to be open or closed",
+				Usage: "set team to open",
+			},
+			cli.BoolFlag{
+				Name:  "closed",
+				Usage: "set team to closed",
 			},
 			cli.StringFlag{
 				Name:  "join-as",
@@ -57,12 +61,14 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 		return nil
 	}
 
-	if ctx.Generic("open") == nil {
-		return errors.New("--open flag is required")
+	if ctx.Bool("open") && ctx.Bool("closed") {
+		return errors.New("cannot use --open and --closed at the same time")
+
 	}
 
-	c.Settings.Open = ctx.Bool("open")
-	if c.Settings.Open {
+	if ctx.Bool("open") {
+		c.Settings.Open = true
+
 		srole := ctx.String("join-as")
 		if srole == "" {
 			return errors.New("team role required via --join-as flag")
@@ -81,6 +87,14 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 		}
 
 		c.Settings.JoinAs = role
+	} else if ctx.Bool("closed") {
+		c.Settings.Open = false
+	} else {
+		// Happens when user supplies --join-as only:
+		// > keybase team edit teamname --join-as reader
+		// For simplicity, we require always --open/--closed flag,
+		// even if user just wants to change join_as role.
+		return errors.New("--open or --closed flag is required")
 	}
 
 	return nil
@@ -89,27 +103,12 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 func (c *CmdTeamEdit) applySettings(cli keybase1.TeamsClient) error {
 	dui := c.G().UI.GetTerminalUI()
 
-	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: false})
-	if err != nil {
-		return err
-	}
-
-	if !details.Settings.Open && !c.Settings.Open {
-		dui.Printf("The team is already closed.\n")
-		return nil
-	}
-
-	if details.Settings.Open && c.Settings.Open && details.Settings.JoinAs == c.Settings.JoinAs {
-		dui.Printf("The team is already open with default role: %s\n", strings.ToLower(details.Settings.JoinAs.String()))
-		return nil
-	}
-
 	arg := keybase1.TeamSetSettingsArg{
 		Name:     c.Team.String(),
 		Settings: c.Settings,
 	}
 
-	err = cli.TeamSetSettings(context.Background(), arg)
+	err := cli.TeamSetSettings(context.Background(), arg)
 	if err != nil {
 		return err
 	}

@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -701,6 +702,14 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 	t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 	if err != nil {
 		return err
+	}
+
+	if !settings.Open && !t.IsOpen() {
+		return errors.New("Team is already closed.")
+	}
+
+	if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
+		return fmt.Errorf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String()))
 	}
 
 	return t.PostTeamSettings(ctx, settings)

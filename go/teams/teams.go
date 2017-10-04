@@ -58,6 +58,10 @@ func (t *Team) IsOpen() bool {
 	return t.chain().IsOpen()
 }
 
+func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
+	return t.chain().inner.OpenTeamJoinAs
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()
