@@ -74,7 +74,7 @@ function makeMessage(messageID: string, you: string, author: string, timestamp: 
 const messageCount = 100
 const messageMapFn = (corpus: Array<string>) =>
   range(messageCount).reduce((acc, i) => {
-    const m = makeMessage(i, you, users[i % users.length], 1, corpus[i % corpus.length])
+    const m = makeMessage(String(i), you, users[i % users.length], 1, corpus[i % corpus.length])
     acc[m.key] = m
     return acc
   }, {})

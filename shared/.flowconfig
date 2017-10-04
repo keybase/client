@@ -31,7 +31,6 @@
 .*/node_modules/har.*
 .*/node_modules/highlight.*
 .*/node_modules/is-my-json-valid/.*
-.*/node_modules/jest.*
 .*/node_modules/jsdom.*
 .*/node_modules/json5/.*
 .*/node_modules/metro-bundler/.*
