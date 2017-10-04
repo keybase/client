@@ -80,10 +80,6 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		return t.lookupInternalName(ctx, name, vis)
 	}
 
-	username := t.G().Env.GetUsername()
-	if len(username) == 0 {
-		return res, libkb.LoginRequiredError{}
-	}
 	teamID, teamName, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name,
 		vis == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {

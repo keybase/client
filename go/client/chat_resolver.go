@@ -99,7 +99,6 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 		}
 		req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
 	case chat1.ConversationMembersType_IMPTEAM:
-		// Put ourselves out front just to make sure we end up on imp team
 		impRes, err := r.TeamsClient.LookupOrCreateImplicitTeam(ctx, keybase1.LookupOrCreateImplicitTeamArg{
 			Name:   tlfName,
 			Public: req.Visibility == keybase1.TLFVisibility_PUBLIC,
@@ -146,6 +145,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 }
 
 func (r *chatConversationResolver) resolveWithService(ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
+
 	arg, err := r.makeGetInboxAndUnboxLocalArg(ctx, req, identifyBehavior)
 	if err != nil {
 		return nil, err
