@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -35,12 +34,6 @@ func (v *CmdTeamCreate) Run() (err error) {
 	}
 
 	dui := v.G().UI.GetDumbOutputUI()
-	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(v.G()),
-	}
-	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
-		return err
-	}
 
 	// only send a chat notification if creating a root team.
 	// (if creating a sub team, the creator is not a member of the team
