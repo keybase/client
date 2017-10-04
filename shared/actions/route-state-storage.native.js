@@ -121,14 +121,14 @@ class RouteStateStorage {
           item.selectedConversationIDKey = tab.selected
         }
       }
+      await this._setItem(item)
     } else {
       // If we have a selected invalid tab, we're most likely signed
       // out. In any case, just clobber the store so we load the
       // default initial tab on the next login.
       console.log('[RouteState] Invalid initial tab:', selectedTab)
+      await this._removeItem()
     }
-
-    await this._setItem(item)
   }
 
   clear = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
