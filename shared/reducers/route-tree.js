@@ -12,6 +12,7 @@ import {
   routeClear,
   checkRouteState,
 } from '../route-tree'
+import {isValidInitialTab} from '../constants/tabs'
 
 const initialState = Constants.State()
 
@@ -25,7 +26,13 @@ function routeChangedReducer(routeChanged, action) {
         return true
 
       case Constants.navigateTo:
-        return routeChanged || !action.payload.isInitial
+        return (
+          routeChanged ||
+          (!action.payload.isInitial &&
+            !action.payload.parentPath &&
+            action.payload.path.length === 1 &&
+            isValidInitialTab(action.payload.path[0]))
+        )
 
       case Constants.navigateAppend:
         return true
