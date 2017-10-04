@@ -194,7 +194,6 @@ func TestTeamOpenBans(t *testing.T) {
 	t.Logf("Trying team edit cli...")
 	runner := client.NewCmdTeamEditRunner(own.tc.G)
 	runner.Team = teamName
-	runner.IsSet = true
 	runner.Settings = keybase1.TeamSettings{
 		Open:   true,
 		JoinAs: keybase1.TeamRole_READER,

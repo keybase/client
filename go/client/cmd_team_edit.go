@@ -14,9 +14,9 @@ import (
 
 type CmdTeamEdit struct {
 	libkb.Contextified
-	Team     keybase1.TeamName
-	IsSet    bool
-	Settings keybase1.TeamSettings
+	Team      keybase1.TeamName
+	PrintOnly bool
+	Settings  keybase1.TeamSettings
 }
 
 func newCmdTeamEdit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -54,6 +54,7 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 
 	if ctx.NumFlags() == 0 {
 		// Just a team name and no other flags - print current team settings.
+		c.PrintOnly = true
 		return nil
 	}
 
@@ -88,7 +89,6 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 		c.Settings.JoinAs = role
 	}
 
-	c.IsSet = true
 	return nil
 }
 
@@ -138,13 +138,13 @@ func (c *CmdTeamEdit) Run() error {
 		return err
 	}
 
-	if c.IsSet {
+	if !c.PrintOnly {
 		if err := c.applySettings(cli); err != nil {
 			return err
 		}
 	}
 
-	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: c.IsSet})
+	details, err := cli.TeamGet(context.Background(), keybase1.TeamGetArg{Name: c.Team.String(), ForceRepoll: !c.PrintOnly})
 	if err != nil {
 		return err
 	}
