@@ -606,10 +606,10 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 
 func (p *blockPrefetcher) CancelPrefetch(blockID kbfsblock.ID) {
 	select {
-	// After `p.shutdownCh` is closed, we still need to receive prefetch
-	// cancelation until all prefetching is done.
-	case <-p.almostDoneCh:
 	case p.prefetchCancelCh.In() <- blockID:
+	case <-p.shutdownCh:
+		p.log.Warning("Skipping prefetch cancel for block %v since "+
+			"the prefetcher is shutdown", blockID)
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	defaultInfiniteBufferSize int = 100
+	defaultInfiniteBufferSize int = 0
 )
 
 // infiniteChannelWrapper is a wrapper to allow us to select on sending to an
