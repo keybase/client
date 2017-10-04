@@ -137,6 +137,10 @@ func (c *cmdAPI) SetMessage(m string) {
 	c.message = m
 }
 
+func (c *cmdAPI) SetOutputFile(f string) {
+	c.outputFile = f
+}
+
 func (c *cmdAPI) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		API:       true,

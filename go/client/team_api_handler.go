@@ -353,7 +353,6 @@ func (c *removeMemberOptions) Check() error {
 	return nil
 }
 
-// XXX implement Email option after CORE-6223 merged
 func (t *teamAPIHandler) removeMember(ctx context.Context, c Call, w io.Writer) error {
 	var opts removeMemberOptions
 	if err := t.unmarshalOptions(c, &opts); err != nil {
