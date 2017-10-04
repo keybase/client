@@ -39,15 +39,6 @@ func newChatServiceHandler(g *libkb.GlobalContext) *chatServiceHandler {
 	}
 }
 
-func (c *chatServiceHandler) channelName(conv chat1.ConversationLocal) string {
-	switch conv.Info.MembersType {
-	case chat1.ConversationMembersType_IMPTEAM:
-		return strings.Join(conv.Info.WriterNames, ",")
-	default:
-		return conv.Info.TlfName
-	}
-}
-
 // ListV1 implements ChatServiceHandler.ListV1.
 func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Reply {
 	var rlimits []chat1.RateLimit
@@ -110,7 +101,7 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 				super.ConversationID.String())
 		}
 		convSummary.Channel = ChatChannel{
-			Name:        c.channelName(conv),
+			Name:        conv.Info.TlfName,
 			Public:      conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
 			TopicType:   strings.ToLower(conv.Info.Triple.TopicType.String()),
 			MembersType: strings.ToLower(conv.Info.MembersType.String()),
@@ -212,7 +203,7 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		msg := MsgSummary{
 			ID: mv.ServerHeader.MessageID,
 			Channel: ChatChannel{
-				Name:        c.channelName(conv),
+				Name:        conv.Info.TlfName,
 				Public:      mv.ClientHeader.TlfPublic,
 				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
