@@ -21,14 +21,16 @@ type StateProps = {
   _requests: I.Set<Constants.RequestInfo>,
   name: Constants.Teamname,
   you: ?string,
+  selectedTab: string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
+const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.teamname], I.Set()),
   loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.teamname], true),
   _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.teamname], I.Set()),
   name: routeProps.teamname,
   you: state.config.username,
+  selectedTab: routeState.selectedTab || 'members',
 })
 
 type DispatchProps = {
@@ -36,10 +38,11 @@ type DispatchProps = {
   _onOpenFolder: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
+  setSelectedTab: (tab: string) => void,
   onBack: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState}): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
@@ -49,6 +52,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
   onUsernameClick: (username: string) => {
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
+  setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -80,7 +84,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
 export default compose(
   withState('showMenu', 'setShowMenu', false),
-  withState('selectedTab', 'setSelectedTab', 'members'),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {

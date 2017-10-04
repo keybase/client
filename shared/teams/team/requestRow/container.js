@@ -74,9 +74,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 
 export const ConnectedRequestRow = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('showMenu', 'setShowMenu', false)
+  withState('showMenu', 'setShowMenu', false),
+  withState('selectedRole', 'setSelectedRole', 0)
 )(TeamRequestRow)
 
 export default function(i: number, props: OwnProps) {
-  return <ConnectedRequestRow {...props} />
+  return <ConnectedRequestRow key={props.username} {...props} />
 }
