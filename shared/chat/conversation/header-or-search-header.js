@@ -3,32 +3,21 @@ import * as React from 'react'
 import Header from './header/container'
 import SearchHeader from '../search-header'
 import * as ChatConstants from '../../constants/chat'
-import * as SearchConstants from '../../constants/search'
 
 type Props = {
   inSearch: boolean,
-  onChangeSearchText: (searchText: string) => void,
-  searchText: string,
-  selectedSearchId: ?SearchConstants.SearchResultId,
   selectedConversationIDKey: ?ChatConstants.ConversationIDKey,
-  onUpdateSelectedSearchResult: (id: ?SearchConstants.SearchResultId) => void,
   infoPanelOpen: boolean,
   onToggleInfoPanel: () => void,
   onBack: () => void,
-  onAddNewParticipant: (clicked: boolean) => void,
-  addNewParticipant: boolean,
+  onExitSearch: () => void,
 }
 
 export default (props: Props) =>
   props.inSearch
     ? <SearchHeader
-        onChangeSearchText={props.onChangeSearchText}
-        searchText={props.searchText}
+        onExitSearch={props.onExitSearch}
         selectedConversationIDKey={props.selectedConversationIDKey}
-        selectedSearchId={props.selectedSearchId}
-        onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
-        onAddNewParticipant={props.onAddNewParticipant}
-        addNewParticipant={props.addNewParticipant}
       />
     : <Header
         infoPanelOpen={props.infoPanelOpen}

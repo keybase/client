@@ -1,15 +1,55 @@
 // @flow
+import React from 'react'
 import {connect} from 'react-redux'
+import {isMobile} from '../../constants/platform'
+import {ProgressIndicator} from '../../common-adapters'
 import SearchResultsList from '.'
+import * as Creators from '../../actions/search/creators'
+import {branch, compose, renderComponent} from 'recompose'
+import {globalMargins} from '../../styles'
 
 import type {TypedState} from '../../constants/reducer'
 
-// TODO use entities
-const mapStateToProps = ({entities}: TypedState) => {
-  return {}
+type OwnProps = {
+  searchKey: string,
+  onShowTracker: (id: string) => void,
+  onClick?: (id: string) => void,
+  disableListBuilding: boolean,
 }
 
-// TODO
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapStateToProps = ({entities}: TypedState, {searchKey}: OwnProps) => {
+  const searchResultIds = entities.getIn(['search', 'searchKeyToResults', searchKey])
+  const pending = entities.getIn(['search', 'searchKeyToPending', searchKey], false)
+  const showSearchSuggestions = entities.getIn(
+    ['search', 'searchKeyToShowSearchSuggestion', searchKey],
+    false
+  )
+  const selectedId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
+  return {
+    items: searchResultIds && searchResultIds.toArray(),
+    showSearchSuggestions,
+    selectedId,
+    pending,
+  }
+}
 
-export default connect(mapStateToProps, mapDispatchToProps)(SearchResultsList)
+const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
+  onClick: id => {
+    !disableListBuilding && dispatch(Creators.addResultsToUserInput(searchKey, [id]))
+    onClick && onClick(id)
+  },
+  onMouseOver: id => dispatch(Creators.updateSelectedSearchResult(searchKey, id)),
+})
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  branch(props => props.pending, renderComponent(() => <ProgressIndicator style={styleSpinner} />))
+)(SearchResultsList)
+
+const styleSpinner = isMobile
+  ? {width: globalMargins.xlarge}
+  : {
+      alignSelf: 'center',
+      marginTop: globalMargins.small,
+      width: globalMargins.large,
+    }

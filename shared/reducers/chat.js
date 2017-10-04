@@ -37,10 +37,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
-    case 'chat:clearSearchResults': {
-      return state.set('searchResults', initialState.searchResults)
-    }
-
     case 'chat:setLoaded': {
       const {conversationIDKey, isLoaded} = action.payload
       const newConversationStates = state
@@ -289,13 +285,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:setPreviousConversation': {
       return state.set('previousConversation', action.payload.conversationIDKey)
     }
-    case 'chat:stageUserForSearch': {
-      const {payload: {user}} = action
-      if (state.selectedUsersInSearch.includes(user)) {
-        return state
-      }
-      return state.update('selectedUsersInSearch', l => l.push(user))
-    }
     case 'chat:threadLoadedOffline': {
       const {conversationIDKey} = action.payload
       const newConversationStates = state
@@ -321,29 +310,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:inboxFilter': {
       return state.set('inboxFilter', action.payload.filter)
     }
-    case 'chat:inboxSearch': {
-      return state.set('inboxSearch', List(action.payload.search))
-    }
-    case 'chat:updateSearchResults': {
-      const {payload: {searchResultTerm, searchResults, searchShowingSuggestions}} = action
-      return state
-        .set('searchResults', List(searchResults))
-        .set('searchShowingSuggestions', searchShowingSuggestions)
-        .set('searchResultTerm', searchResultTerm)
-    }
-    case 'chat:unstageUserForSearch': {
-      const {payload: {user}} = action
-      return state.update('selectedUsersInSearch', l => l.filterNot(u => u === user))
-    }
     case 'chat:newChat': {
       return state.set('inSearch', true)
     }
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
-    }
-    case 'chat:pendingSearchResults': {
-      const {payload: {pending}} = action
-      return state.set('searchPending', pending)
     }
     case 'chat:setNotifications': {
       const {payload: {conversationIDKey, deviceType, notifyType}} = action

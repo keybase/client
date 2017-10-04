@@ -123,7 +123,7 @@ export default pausableConnect(
       )
     },
     onSearch: () => {
-      dispatch(searchSuggestions('profile:updateSearchResults'))
+      dispatch(searchSuggestions('profileSearch'))
       dispatch(navigateAppend([{props: {}, selected: 'search'}]))
     },
     onUnfollow: username => {

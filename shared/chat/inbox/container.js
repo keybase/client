@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
+import * as SearchConstants from '../../constants/search'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
@@ -249,6 +250,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     smallTeamsHiddenRowCount,
   } = getRows(state, smallTeamsExpanded)
   const filter = getFilter(state)
+  const userInputItems = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   return {
     _selected: Constants.getSelectedConversation(state),
@@ -258,7 +260,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     isLoading: state.chat.get('inboxUntrustedState') === 'loading',
     rows,
     showBuildATeam,
-    showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
+    showNewConversation: state.chat.inSearch && !userInputItems.length,
     showSmallTeamsExpandDivider,
     smallTeamsExpanded,
     smallTeamsHiddenBadgeCount,
