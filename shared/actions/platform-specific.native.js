@@ -187,21 +187,7 @@ function configurePush() {
 }
 
 class RouteStateStorage {
-  load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
-    let url
-    try {
-      url = await Linking.getInitialURL()
-    } catch (e) {
-      console.warn('[RouteState] Error getting initial URL:', e)
-      throw e
-    }
-
-    if (url) {
-      console.log('[RouteState] initial URL:', url)
-      await dispatch(setInitialState({url}))
-      return
-    }
-
+  _getAndClearItem = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     let item
 
     let s
@@ -243,6 +229,24 @@ class RouteStateStorage {
         await dispatch(setInitialState({tab: item.tab}))
       }
     }
+  }
+
+  load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
+    let url
+    try {
+      url = await Linking.getInitialURL()
+    } catch (e) {
+      console.warn('[RouteState] Error getting initial URL:', e)
+      throw e
+    }
+
+    if (url) {
+      console.log('[RouteState] initial URL:', url)
+      await dispatch(setInitialState({url}))
+      return
+    }
+
+    await this._getAndClearItem(dispatch, getState)
   }
 
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
