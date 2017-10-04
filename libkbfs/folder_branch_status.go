@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 
@@ -30,6 +31,10 @@ type FolderBranchStatus struct {
 	RootBlockID         string
 	SyncEnabled         bool
 	PrefetchStatus      string
+	UsageBytes          int64
+	LimitBytes          int64
+	GitUsageBytes       int64
+	GitLimitBytes       int64
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -70,12 +75,13 @@ type folderBranchStatusKeeper struct {
 	config    Config
 	nodeCache NodeCache
 
+	dataMutex  sync.Mutex
 	md         ImmutableRootMetadata
 	permErr    error
 	dirtyNodes map[NodeID]Node
 	unmerged   []*crChainSummary
 	merged     []*crChainSummary
-	dataMutex  sync.Mutex
+	quotaUsage *EventuallyConsistentQuotaUsage
 
 	updateChan  chan StatusUpdate
 	updateMutex sync.Mutex
@@ -230,6 +236,32 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 				fbs.Journal = &jStatus
 			}
 		}
+
+		if fbsk.quotaUsage == nil {
+			loggerSuffix := fmt.Sprintf("status-%s", fbsk.md.TlfID())
+			w := fbsk.md.GetTlfHandle().FirstResolvedWriter()
+			// TODO: somehow share this quota usage instance with the
+			// journal for the TLF?
+			if w.IsTeam() {
+				fbsk.quotaUsage = NewEventuallyConsistentTeamQuotaUsage(
+					fbsk.config, w.AsTeamOrBust(), loggerSuffix)
+			} else {
+				fbsk.quotaUsage = NewEventuallyConsistentQuotaUsage(
+					fbsk.config, loggerSuffix)
+			}
+		}
+		_, usageBytes, limitBytes, gitUsageBytes, gitLimitBytes, quErr :=
+			fbsk.quotaUsage.GetAllTypes(ctx, 0, 0)
+		if quErr != nil {
+			// The error is ignored here so that other fields can
+			// still be populated even if this fails.
+			log := fbsk.config.MakeLogger("")
+			log.CDebugf(ctx, "Getting quota usage error: %v", quErr)
+		}
+		fbs.UsageBytes = usageBytes
+		fbs.LimitBytes = limitBytes
+		fbs.GitUsageBytes = gitUsageBytes
+		fbs.GitLimitBytes = gitLimitBytes
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)

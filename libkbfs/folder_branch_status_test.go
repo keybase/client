@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -138,6 +139,19 @@ func TestFBStatusAllFields(t *testing.T) {
 	config.mockBcache.EXPECT().GetWithPrefetch(gomock.Any()).
 		Return(nil, NoPrefetch, NoCacheEntry, nil)
 
+	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
+	config.mockBserv.EXPECT().GetUserQuotaInfo(gomock.Any()).AnyTimes().Return(
+		&kbfsblock.QuotaInfo{
+			Total: &kbfsblock.UsageStat{
+				Bytes: map[kbfsblock.UsageType]int64{
+					kbfsblock.UsageWrite:    10,
+					kbfsblock.UsageGitWrite: 20,
+				},
+			},
+			Limit:    1000,
+			GitLimit: 2000,
+		}, nil)
+
 	// check the returned status for accuracy
 	status, _, err := fbsk.getStatus(ctx, nil)
 	if err != nil {
@@ -152,4 +166,9 @@ func TestFBStatusAllFields(t *testing.T) {
 	}
 	expectedDirtyPaths := []string{p1.String(), p2.String()}
 	checkStringSlices(t, expectedDirtyPaths, status.DirtyPaths)
+
+	require.Equal(t, int64(10), status.UsageBytes)
+	require.Equal(t, int64(1000), status.LimitBytes)
+	require.Equal(t, int64(20), status.GitUsageBytes)
+	require.Equal(t, int64(2000), status.GitLimitBytes)
 }
