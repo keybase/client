@@ -242,3 +242,31 @@ func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, displayName2, formatName)
 }
+
+// Test that you can rotate the key on an implicit team.
+func TestImplicitTeamRotate(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	displayName := strings.Join([]string{fus[0].Username, fus[1].Username}, ",")
+
+	teamID, _, err := LookupOrCreateImplicitTeam(context.TODO(), tcs[0].G, displayName, false /*isPublic*/)
+	require.NoError(t, err)
+
+	team, err := Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), team.Generation())
+
+	t.Logf("rotate the key")
+	err = team.Rotate(context.TODO())
+	require.NoError(t, err)
+
+	// load as the second user on a whim
+	team, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), team.Generation())
+}
