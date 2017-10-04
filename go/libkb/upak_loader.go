@@ -22,6 +22,7 @@ type UPAKLoader interface {
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
+	LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
@@ -555,7 +556,22 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 	return &upakV1, deviceKey, revoked, err
 }
 
+// LookupUsername uses the UIDMapper to find a username for uid.
 func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error) {
+	var empty NormalizedUsername
+	uids := []keybase1.UID{uid}
+	namePkgs, err := u.G().UIDMapper.MapUIDsToUsernamePackages(ctx, u.G(), uids, 0, 0, false)
+	if err != nil {
+		return empty, err
+	}
+	if len(namePkgs) == 0 {
+		return empty, UserNotFoundError{UID: uid, Msg: "in CachedUPAKLoader"}
+	}
+	return namePkgs[0].NormalizedUsername, nil
+}
+
+// LookupUsernameUPAK uses the upak loader to find a username for uid.
+func (u *CachedUPAKLoader) LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error) {
 	var info CachedUserLoadInfo
 	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithStaleOK(true)
 	var ret NormalizedUsername
