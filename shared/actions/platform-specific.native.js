@@ -212,9 +212,9 @@ class RouteStateStorage {
     // to this route causes a crash for some reason, we won't get stuck
     // in a loop of trying to restore the bad state every time we launch.
     try {
-      await AsyncStorage.setItem('routeState', '')
+      await AsyncStorage.removeItem('routeState')
     } catch (e) {
-      console.warn('[RouteState] Error clearing item:', e)
+      console.warn('[RouteState] Error removing item:', e)
       throw e
     }
 
