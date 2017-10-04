@@ -2166,7 +2166,7 @@ func (e RepoAlreadyExistsError) Error() string {
 
 //=============================================================================
 
-// NoOpError is returned when an RPC call is issued but it would be
+// NoOpError is returned when an RPC call is issued but it would
 // result in no change, so the call is dropped.
 type NoOpError struct {
 	Desc string
