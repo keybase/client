@@ -381,7 +381,7 @@ func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, em
 		return errors.New("Invalid email address")
 	}
 
-	return removeMemberInvite(ctx, g, t, email, keybase1.UserVersion{})
+	return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email")
 }
 
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
@@ -706,9 +706,6 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 	if !uv.IsNil() {
 		lookingFor = uv.TeamInviteName()
 		typ = "keybase"
-	} else if libkb.CheckEmail.F(username) {
-		lookingFor = keybase1.TeamInviteName(username)
-		typ = "email"
 	} else {
 		ptyp, name, err := team.parseSocial(username)
 		if err != nil {
@@ -717,6 +714,12 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		lookingFor = keybase1.TeamInviteName(name)
 		typ = ptyp
 	}
+
+	return removeMemberInviteOfType(ctx, g, team, lookingFor, typ)
+}
+
+func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team *Team, inviteName keybase1.TeamInviteName, typ string) error {
+	g.Log.CDebugf(ctx, "looking for active invite in %s for %s/%s", team.Name(), typ, inviteName)
 
 	// make sure this is a valid invite type
 	itype, err := keybase1.TeamInviteTypeFromString(typ, g.Env.GetRunMode() == libkb.DevelRunMode)
@@ -728,8 +731,6 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "looking for active invite in %s for %s/%s", team.Name(), typ, lookingFor)
-
 	for _, inv := range team.chain().inner.ActiveInvites {
 		invTypeStr, err := inv.Type.String()
 		if err != nil {
@@ -738,15 +739,15 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		if invTypeStr != validatedType {
 			continue
 		}
-		if inv.Name != lookingFor {
+		if inv.Name != inviteName {
 			continue
 		}
 
-		g.Log.CDebugf(ctx, "found invite %s for %s/%s, removing it", inv.Id, typ, lookingFor)
+		g.Log.CDebugf(ctx, "found invite %s for %s/%s, removing it", inv.Id, validatedType, inviteName)
 		return removeInviteID(ctx, team, inv.Id)
 	}
 
-	g.Log.CDebugf(ctx, "no invites found to remove for %q", username)
+	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s", validatedType, inviteName)
 
 	return libkb.NotFoundError{}
 }
