@@ -7,7 +7,6 @@ import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {compose, withState, withHandlers} from 'recompose'
 import ConnectedMentionHud from '../../hud/mention-hud-container'
-import ff from '../../../util/feature-flags'
 
 import type {Props} from '.'
 
@@ -290,7 +289,6 @@ class ConversationInput extends Component<InputProps, State> {
         {this.props.mentionPopupOpen &&
           <MentionCatcher onClick={() => this.props.setMentionPopupOpen(false)} />}
         {this.props.mentionPopupOpen &&
-          ff.mentionHud &&
           <MentionHud
             selectDownCounter={this.state.downArrowCounter}
             selectUpCounter={this.state.upArrowCounter}
