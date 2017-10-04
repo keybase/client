@@ -77,10 +77,10 @@ export function switchTo(path: Path, parentPath?: Path): SwitchTo {
 //
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
-export function navigateTo(path: PropsPath<*>, parentPath?: ?Path, isInitial?: boolean): NavigateTo {
+export function navigateTo(path: PropsPath<*>, parentPath?: ?Path, fromUser: boolean = true): NavigateTo {
   return {
     type: Constants.navigateTo,
-    payload: {path, parentPath, isInitial: isInitial || false},
+    payload: {path, parentPath, fromUser},
     logTransformer: pathActionTransformer,
   }
 }

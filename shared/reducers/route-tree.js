@@ -28,7 +28,7 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, action) {
       case Constants.navigateTo:
         return (
           loggedInUserNavigated ||
-          (!action.payload.isInitial &&
+          (action.payload.fromUser &&
             !action.payload.parentPath &&
             action.payload.path.length === 1 &&
             isValidInitialTab(action.payload.path[0]))
