@@ -8,6 +8,7 @@ package dokan
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"os"
 	"strings"
@@ -19,7 +20,6 @@ import (
 
 	"github.com/keybase/kbfs/dokan/winacl"
 	"github.com/keybase/kbfs/ioutil"
-	"golang.org/x/net/context"
 	"golang.org/x/sys/windows"
 )
 
