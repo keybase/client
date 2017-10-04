@@ -206,7 +206,7 @@ func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafI
 
 func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error) {
 	arg := libkb.NewLoadUserArg(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll(true)
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(*arg)
+	upak, _, err := l.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return nil, err
 	}
