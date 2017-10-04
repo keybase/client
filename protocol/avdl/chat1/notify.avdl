@@ -95,6 +95,16 @@ protocol NotifyChat {
     StaleUpdateType updateType;
   }
 
+  record ChatSyncIncrementalInfo {
+    array<UnverifiedInboxUIItem> items;
+  }
+
+  variant ChatSyncResult switch (SyncInboxResType syncType) {
+    case CURRENT: void;
+    case CLEAR: void;
+    case INCREMENTAL: ChatSyncIncrementalInfo;
+  }
+
   @notify("")
   @lint("ignore")
   void NewChatActivity(keybase1.UID uid, ChatActivity activity);
@@ -131,5 +141,13 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatLeftConversation(keybase1.UID uid, ConversationID convID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatInboxSyncStarted(keybase1.UID uid);
+
+  @notify("")
+  @lint("ignore")
+  void ChatInboxSynced(keybase1.UID uid, ChatSyncResult syncRes);
 
 }

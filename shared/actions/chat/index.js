@@ -12,7 +12,7 @@ import * as Saga from '../../util/saga'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
-import {Map, OrderedSet, Set} from 'immutable'
+import {List, Map, OrderedSet, Set} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
@@ -273,6 +273,22 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
       return Creators.markThreadsStale(updates)
     }
     return null
+  })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
+    switch (syncRes.syncType) {
+      case ChatTypes.CommonSyncInboxResType.clear:
+        return Creators.inboxStale()
+      case ChatTypes.CommonSyncInboxResType.current:
+        return Creators.setInboxUntrustedState('loaded')
+      case ChatTypes.CommonSyncInboxResType.incremental:
+        return Creators.inboxSynced(syncRes.incremental.items)
+    }
+    return Creators.inboxStale()
+  })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
+    return Creators.setInboxUntrustedState('loading')
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () => Creators.inboxStale())
@@ -1167,6 +1183,24 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
   yield put(Creators.loadMoreMessages(selectedConversation, false))
 }
 
+function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
+  const {convs} = action.payload
+  const author = yield select(usernameSelector)
+  const items: List<Constants.InboxState> = Shared.makeInboxStateRecords(author, convs)
+
+  const convIDs = items.map(item => item.conversationIDKey).toArray()
+  const updateActions = items.map(item => put(Creators.updateInbox(item)))
+  yield all(updateActions)
+  yield put(Creators.unboxConversations(convIDs, true, true))
+
+  const selectedConversation = yield select(Constants.getSelectedConversation)
+  if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
+    return
+  }
+  yield put(Creators.clearMessages(selectedConversation))
+  yield put(Creators.loadMoreMessages(selectedConversation, false))
+}
+
 function _threadIsCleared(originalAction: Action, checkAction: Action): boolean {
   return (
     originalAction.type === 'chat:loadMoreMessages' &&
@@ -1366,6 +1400,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
   yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
   yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
+  yield Saga.safeTakeEvery('chat:inboxSynced', _inboxSynced)
   yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
   yield Saga.safeTakeEvery('chat:newChat', _newChat)
   yield Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup)

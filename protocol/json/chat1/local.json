@@ -2051,6 +2051,10 @@
           ]
         },
         {
+          "name": "skipUnverified",
+          "type": "boolean"
+        },
+        {
           "name": "query",
           "type": [
             null,

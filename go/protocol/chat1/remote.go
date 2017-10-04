@@ -383,35 +383,6 @@ func (o S3Params) DeepCopy() S3Params {
 	}
 }
 
-type SyncInboxResType int
-
-const (
-	SyncInboxResType_CURRENT     SyncInboxResType = 0
-	SyncInboxResType_INCREMENTAL SyncInboxResType = 1
-	SyncInboxResType_CLEAR       SyncInboxResType = 2
-)
-
-func (o SyncInboxResType) DeepCopy() SyncInboxResType { return o }
-
-var SyncInboxResTypeMap = map[string]SyncInboxResType{
-	"CURRENT":     0,
-	"INCREMENTAL": 1,
-	"CLEAR":       2,
-}
-
-var SyncInboxResTypeRevMap = map[SyncInboxResType]string{
-	0: "CURRENT",
-	1: "INCREMENTAL",
-	2: "CLEAR",
-}
-
-func (e SyncInboxResType) String() string {
-	if v, ok := SyncInboxResTypeRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
 type SyncIncrementalRes struct {
 	Vers  InboxVers      `codec:"vers" json:"vers"`
 	Convs []Conversation `codec:"convs" json:"convs"`

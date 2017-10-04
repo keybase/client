@@ -155,12 +155,6 @@ protocol remote {
   // Get the inbox version for a user
   InboxVers getInboxVersion(gregor1.UID uid);
 
-  enum SyncInboxResType {
-    CURRENT_0,
-    INCREMENTAL_1,
-    CLEAR_2
-  }
-
   record SyncIncrementalRes {
     InboxVers vers;
     array<Conversation> convs;

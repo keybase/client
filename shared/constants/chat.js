@@ -431,7 +431,7 @@ export const blankChat = 'chat:blankChat'
 export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
-  {conversationIDKeys: Array<ConversationIDKey>, force: boolean}
+  {conversationIDKeys: Array<ConversationIDKey>, force: boolean, forInboxSync: boolean}
 >
 
 export type AddPendingConversation = NoErrorTypedAction<
@@ -488,6 +488,10 @@ export type LoadingMessages = NoErrorTypedAction<
 export type MarkThreadsStale = NoErrorTypedAction<
   'chat:markThreadsStale',
   {updates: Array<ChatTypes.ConversationStaleUpdate>}
+>
+export type InboxSynced = NoErrorTypedAction<
+  'chat:inboxSynced',
+  {convs: Array<ChatTypes.UnverifiedInboxUIItem>}
 >
 export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',

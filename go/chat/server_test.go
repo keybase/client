@@ -1601,6 +1601,7 @@ type serverChatListener struct {
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	identifyUpdate          chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	teamType                chan chat1.TeamTypeInfo
+	inboxSynced             chan chat1.ChatSyncResult
 }
 
 func (n *serverChatListener) Logout()                                                             {}
@@ -1619,6 +1620,7 @@ func (n *serverChatListener) KeyfamilyChanged(uid keybase1.UID)                 
 func (n *serverChatListener) PGPKeyInSecretStoreFile()                                            {}
 func (n *serverChatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
 func (n *serverChatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
+func (n *serverChatListener) ChatInboxSyncStarted(u keybase1.UID)                                 {}
 func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
 }
@@ -1635,6 +1637,11 @@ func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
+
+func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
+	n.inboxSynced <- syncRes
+}
+
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()
 	switch typ {
@@ -1668,6 +1675,7 @@ func newServerChatListener() *serverChatListener {
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
 		identifyUpdate:          make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 100),
 		teamType:                make(chan chat1.TeamTypeInfo, 100),
+		inboxSynced:             make(chan chat1.ChatSyncResult, 100),
 	}
 }
 

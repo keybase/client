@@ -106,6 +106,18 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         })
       )
     }
+    case 'chat:inboxSynced': {
+      const {convs} = action.payload
+      const convIDs = convs.map(u => u.convID)
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.map((conversationState, conversationIDKey) => {
+          if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            return conversationState.set('isStale', true)
+          }
+          return conversationState
+        })
+      )
+    }
     case 'chat:updateLatestMessage':
       // Clear new messages id of conversation
       const newConversationStates = state
