@@ -8,17 +8,40 @@ import type {Dispatch, GetState} from '../constants/types/flux'
 class RouteStateStorage {
   _getAndClearPromise: Promise<void>
 
-  _getAndClearItem = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
-    let item
-
-    let s
+  _getItem = async (): Promise<string> => {
     try {
-      s = await AsyncStorage.getItem('routeState')
+      return await AsyncStorage.getItem('routeState')
     } catch (e) {
       console.warn('[RouteState] Error getting item:', e)
       throw e
     }
+  }
 
+  _setItem = async (item: Object): Promise<void> => {
+    console.log('[RouteState] Setting item:', item)
+    const s = JSON.stringify(item)
+    try {
+      await AsyncStorage.setItem('routeState', s)
+    } catch (e) {
+      console.warn('[RouteState] Error setting item:', e)
+      throw e
+    }
+  }
+
+  _removeItem = async (): Promise<void> => {
+    console.log('[RouteState] Removing item')
+    try {
+      return await AsyncStorage.removeItem('routeState')
+    } catch (e) {
+      console.warn('[RouteState] Error removing item:', e)
+      throw e
+    }
+  }
+
+  _getAndClearItem = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
+    let s = await this._getItem()
+
+    let item
     try {
       item = JSON.parse(s)
     } catch (e) {
@@ -30,12 +53,7 @@ class RouteStateStorage {
     // it for future runs of the app.  That way, if the act of navigating
     // to this route causes a crash for some reason, we won't get stuck
     // in a loop of trying to restore the bad state every time we launch.
-    try {
-      await AsyncStorage.removeItem('routeState')
-    } catch (e) {
-      console.warn('[RouteState] Error removing item:', e)
-      throw e
-    }
+    await this._removeItem()
 
     console.log('[RouteState] Got item:', item)
 
@@ -108,15 +126,7 @@ class RouteStateStorage {
       console.log('[RouteState] Invalid initial tab:', selectedTab)
     }
 
-    console.log('[RouteState] Setting item:', item)
-
-    const s = JSON.stringify(item)
-    try {
-      await AsyncStorage.setItem('routeState', s)
-    } catch (e) {
-      console.warn('[RouteState] Error setting item:', e)
-      throw e
-    }
+    await this._setItem(item)
   }
 
   clear = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
@@ -131,14 +141,7 @@ class RouteStateStorage {
       delete this._getAndClearPromise
     }
 
-    console.log('[RouteState] Clearing item')
-
-    try {
-      await AsyncStorage.removeItem('routeState')
-    } catch (e) {
-      console.warn('[RouteState] Error removing item:', e)
-      throw e
-    }
+    await this._removeItem()
   }
 }
 
