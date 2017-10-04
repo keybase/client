@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {connect} from 'react-redux'
-import {compose, withState, lifecycle, withPropsOnChange, branch, renderNothing} from 'recompose'
+import {compose, withState, lifecycle, withPropsOnChange} from 'recompose'
 import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
@@ -56,11 +56,14 @@ const MentionRowRenderer = ({
   </ClickableBox>
 )
 
-const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) => (
-  <Box style={{...hudStyle, ...style}}>
-    <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
-  </Box>
-)
+// We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
+// This is important if you type a filter that gives you no results and you press enter for instance
+const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
+  data.length
+    ? <Box style={{...hudStyle, ...style}}>
+        <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+      </Box>
+    : null
 
 const hudStyle = {
   ...globalStyles.flexBoxRow,
@@ -93,7 +96,6 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       .filter(u => u.username.indexOf(filter) >= 0)
       .map((u, i) => ({...u, selected: i === selectedIndex})),
   })),
-  branch(props => !props.data.length, renderNothing),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
       if (nextProps.data.length === 0) {
@@ -122,7 +124,12 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       }
 
       if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {
-        nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
+        if (nextProps.data.length) {
+          nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
+        } else {
+          // Just exit
+          nextProps.onPickUser(nextProps.filter, {notUser: true})
+        }
       }
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {

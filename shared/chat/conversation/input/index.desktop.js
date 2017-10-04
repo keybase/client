@@ -274,9 +274,18 @@ class ConversationInput extends Component<InputProps, State> {
     this._inputRef = r
   }
 
-  _insertMention = (u: string) => {
+  _insertMention = (u: string, options?: {notUser: boolean}) => {
     this._replaceWordAtCursor(`@${u} `)
     this.props.setMentionPopupOpen(false)
+
+    // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
+    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
+    if (options && options.notUser) {
+      if (this.props.text) {
+        this.props.onPostMessage(this.props.text)
+        this.props.setText('')
+      }
+    }
   }
 
   _switchMention = (u: string) => {
