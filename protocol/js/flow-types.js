@@ -243,6 +243,7 @@ export const ConstantsStatusCode = {
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
+  scnoop: 2638,
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
@@ -269,7 +270,7 @@ export const ConstantsStatusCode = {
   scteamimplicitbadremove: 2686,
   scteamkeymasknotfound: 2697,
   scteambanned: 2702,
-  scnoop: 2703,
+  scteaminvalidban: 2703,
 }
 
 export const CtlDbType = {
@@ -4671,6 +4672,7 @@ export type StatusCode =
   | 2614 // SCTeamNotFound_2614
   | 2619 // SCTeamExists_2619
   | 2623 // SCTeamReadError_2623
+  | 2638 // SCNoOp_2638
   | 2663 // SCTeamTarDuplicate_2663
   | 2664 // SCTeamTarNotFound_2664
   | 2665 // SCTeamMemberExists_2665
@@ -4697,7 +4699,7 @@ export type StatusCode =
   | 2686 // SCTeamImplicitBadRemove_2686
   | 2697 // SCTeamKeyMaskNotFound_2697
   | 2702 // SCTeamBanned_2702
-  | 2703 // SCNoOp_2703
+  | 2703 // SCTeamInvalidBan_2703
 
 export type Stream = {
   fd: int,
