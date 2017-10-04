@@ -1188,14 +1188,8 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   const items: List<Constants.InboxState> = Shared.makeInboxStateRecords(author, convs)
 
-  const convIDs = items.reduce(function(l, item) {
-    l.push(item.conversationIDKey)
-    return l
-  }, [])
-  const updateActions = items.reduce(function(l, item) {
-    l.push(put(Creators.updateInbox(item)))
-    return l
-  }, [])
+  const convIDs = items.map(item => item.conversationIDKey).toArray()
+  const updateActions = items.map(item => put(Creators.updateInbox(item)))
   yield all(updateActions)
   yield put(Creators.unboxConversations(convIDs, true, true))
 
