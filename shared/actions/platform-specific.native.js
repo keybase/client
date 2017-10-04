@@ -187,6 +187,8 @@ function configurePush() {
 }
 
 class RouteStateStorage {
+  _getAndClearPromise: Promise<void>
+
   _getAndClearItem = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     let item
 
@@ -246,7 +248,14 @@ class RouteStateStorage {
       return
     }
 
-    await this._getAndClearItem(dispatch, getState)
+    if (this._getAndClearPromise) {
+      console.log('[RouteState] Using existing getAndClear promise')
+    } else {
+      console.log('[RouteState] Creating new getAndClear promise')
+      this._getAndClearPromise = this._getAndClearItem(dispatch, getState)
+    }
+
+    await this._getAndClearPromise
   }
 
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
@@ -254,6 +263,11 @@ class RouteStateStorage {
     if (!state.routeTree.routeChanged) {
       console.log('[RouteState] Ignoring store before route changed')
       return
+    }
+
+    if (this._getAndClearPromise) {
+      console.log('[RouteState] Removing getAndClear promise')
+      delete this._getAndClearPromise
     }
 
     const routeState = state.routeTree.routeState
