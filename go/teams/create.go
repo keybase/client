@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -18,6 +19,8 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 		return res, err
 	}
 	teamID := RootTeamIDFromNameString(name.String())
+
+	perUserKeyUpgradeSoft(ctx, g, "create-implicit-team")
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
@@ -247,6 +250,8 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string, settings keybase1.TeamSettings) (err error) {
 	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
 
+	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
+
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
@@ -283,12 +288,15 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string, se
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
+
 	subteamName, err := parentName.Append(subteamBasename)
 	if err != nil {
 		return nil, err
 	}
 
 	subteamID := NewSubteamID()
+
+	perUserKeyUpgradeSoft(ctx, g, "create-subteam")
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
@@ -578,4 +586,18 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 	// signing key, after the reverse sig has been written in.
 
 	return teamSection, nil
+}
+
+// Get a per-user key.
+// Wait for attempt but only warn on error.
+func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason string) {
+	ectx := engine.Context{
+		NetContext: ctx,
+	}
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	err := engine.RunEngine(eng, &ectx)
+	if err != nil {
+		g.Log.CDebugf(ctx, "PerUserKeyUpgrade failed (%s): %v", reason, err)
+	}
 }
