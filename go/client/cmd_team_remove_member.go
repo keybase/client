@@ -16,10 +16,10 @@ import (
 
 type CmdTeamRemoveMember struct {
 	libkb.Contextified
-	Team     string
-	Username string
-	Email    string
-	Force    bool
+	Team      string
+	Username  string
+	Email     string
+	Force     bool
 	Permanent bool
 }
 
@@ -128,7 +128,7 @@ func (c *CmdTeamRemoveMember) Run() error {
 	arg := keybase1.TeamRemoveMemberArg{
 		Name:      c.Team,
 		Username:  c.Username,
-		Email:    c.Email,
+		Email:     c.Email,
 		Permanent: c.Permanent,
 	}
 
