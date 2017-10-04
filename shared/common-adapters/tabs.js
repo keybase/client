@@ -9,7 +9,7 @@ import {isMobile} from '../constants/platform'
 type Props = {
   tabs: Array<React.Node>,
   selected: React.Node,
-  onSelect: (s: React.Node) => void,
+  onSelect: (s: React.Node) => any,
   style?: any,
 }
 

@@ -111,15 +111,20 @@ const TeamTabs = (props: TeamTabsProps) => {
       ]
     )
   }
-  const selected = tabs.find(tab => tab.key === selectedTab)
-  return (
-    <Tabs
-      tabs={tabs}
-      selected={selected}
-      // $FlowIssue with tab key
-      onSelect={tab => (tab.key ? setSelectedTab(tab.key) : setSelectedTab('members'))}
-    />
+  tabs.push(
+    <Text key="loadingIndicator" style={{cursor: 'default'}} type="BodySmallSemibold">
+      {loading && <ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />}
+    </Text>
   )
+
+  // $FlowIssue with tab typing
+  const onSelect = (tab: any) => {
+    const key = tab && tab.key
+    key ? key !== 'loadingIndicator' && setSelectedTab(key) : setSelectedTab('members')
+  }
+
+  const selected = tabs.find(tab => tab.key === selectedTab)
+  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} />
 }
 
 class Team extends React.PureComponent<Props> {
