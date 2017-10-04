@@ -114,7 +114,7 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
   const {loggedIn, registered, initialState, justDeletedSelf, loginError, loggedInUserNavigated} = args
 
   // All branches except for when loggedIn is true and initialState is
-  // null must yield an action which sets
+  // null must for its final yield, yield an action which sets
   // state.routeTree.loggedInUserNavigated to true.
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
@@ -133,8 +133,8 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
         yield put(appLink(link))
       } else if (isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
-          yield put(navigateTo([chatTab], null, 'initial-restore-partial'))
           yield put(selectConversation(conversation, false))
+          yield put(navigateTo([chatTab], null, 'initial-restore'))
         } else {
           yield put(navigateTo([tab], null, 'initial-restore'))
         }
