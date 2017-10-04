@@ -141,7 +141,7 @@ func (c Context) String() string {
 		s += fmt.Sprintf(", RefNonce: %s", c.RefNonce)
 	}
 	if c.BlockType != keybase1.BlockType_DATA {
-		s += ", BlockType: MD"
+		s += ", BlockType: " + c.BlockType.String()
 	}
 	s += "}"
 	return s
