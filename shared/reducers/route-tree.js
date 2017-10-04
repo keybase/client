@@ -19,10 +19,7 @@ function routeChangedReducer(routeChanged, action) {
   const newRouteChanged = (function() {
     switch (action.type) {
       case CommonConstants.resetStore:
-        return routeChanged
-
-      case Constants.setRouteDef:
-        return routeChanged
+        return false
 
       case Constants.switchTo:
         return true
@@ -34,12 +31,6 @@ function routeChangedReducer(routeChanged, action) {
         return true
 
       case Constants.navigateUp:
-        return true
-
-      case Constants.setRouteState:
-        return true
-
-      case Constants.resetRoute:
         return true
 
       default:
