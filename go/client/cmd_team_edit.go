@@ -8,7 +8,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -29,7 +28,7 @@ func newCmdTeamEdit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(cmd, "edit", c)
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{
+			cli.BoolFlag{
 				Name:  "open",
 				Usage: "Change team to be open or closed",
 			},
@@ -58,16 +57,11 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 		return nil
 	}
 
-	sopen := ctx.String("open")
-	switch sopen {
-	case "true":
-		c.Settings.Open = true
-	case "false":
-		c.Settings.Open = false
-	default:
-		return errors.New("invalid --open flag, please use true or false")
+	if ctx.Generic("open") == nil {
+		return errors.New("--open flag is required")
 	}
 
+	c.Settings.Open = ctx.Bool("open")
 	if c.Settings.Open {
 		srole := ctx.String("join-as")
 		if srole == "" {
@@ -125,14 +119,6 @@ func (c *CmdTeamEdit) applySettings(cli keybase1.TeamsClient) error {
 }
 
 func (c *CmdTeamEdit) Run() error {
-	protocols := []rpc.Protocol{
-		NewTeamsUIProtocol(c.G()),
-	}
-
-	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
-		return err
-	}
-
 	cli, err := GetTeamsClient(c.G())
 	if err != nil {
 		return err
