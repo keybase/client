@@ -406,8 +406,8 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 			dbc := b.config.DiskBlockCache()
 			if dbc != nil {
 				// This used to be called in a goroutine to prevent blocking
-				// the `Get`. But we need this cached synchronously for
-				// later behavior.
+				// the `Get`. But we need this cached synchronously so prefetch
+				// operations can work correctly.
 				dbc.Put(ctx, tlfID, id, buf, serverHalf)
 			}
 		}

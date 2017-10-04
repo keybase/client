@@ -44,11 +44,24 @@ type prefetchRequest struct {
 	isDeepSync     bool
 }
 
+type ctxPrefetchTagKey int
+
+const (
+	ctxPrefetchIDKey ctxPrefetchTagKey = iota
+	ctxPrefetchID                      = "PREID"
+)
+
 type prefetch struct {
 	subtreeBlockCount int
 	subtreeTriggered  bool
 	req               *prefetchRequest
 	parents           map[kbfsblock.ID]bool
+	ctx               context.Context
+	cancel            context.CancelFunc
+}
+
+func (p *prefetch) Close() {
+	p.cancel()
 }
 
 type blockPrefetcher struct {
@@ -108,6 +121,21 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	return p
 }
 
+func (p *blockPrefetcher) newPrefetch(count int, triggered bool,
+	req *prefetchRequest) *prefetch {
+	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
+	ctx = CtxWithRandomIDReplayable(
+		ctx, ctxPrefetchIDKey, ctxPrefetchID, p.log)
+	return &prefetch{
+		subtreeBlockCount: count,
+		subtreeTriggered:  triggered,
+		req:               req,
+		parents:           make(map[kbfsblock.ID]bool),
+		ctx:               ctx,
+		cancel:            cancel,
+	}
+}
+
 func (p *blockPrefetcher) applyToParentsRecursive(
 	f func(kbfsblock.ID, *prefetch),
 	blockID kbfsblock.ID, pre *prefetch) {
@@ -126,7 +154,7 @@ func (p *blockPrefetcher) applyToParentsRecursive(
 // zeroes we hit get marked complete and deleted.
 // TODO: If we ever hit a lower number than the child, panic.
 func (p *blockPrefetcher) completePrefetch(
-	ctx context.Context, numBlocks int) func(kbfsblock.ID, *prefetch) {
+	numBlocks int) func(kbfsblock.ID, *prefetch) {
 	return func(blockID kbfsblock.ID, pp *prefetch) {
 		pp.subtreeBlockCount -= numBlocks
 		if pp.subtreeBlockCount < 0 {
@@ -134,12 +162,14 @@ func (p *blockPrefetcher) completePrefetch(
 		}
 		if pp.subtreeBlockCount == 0 {
 			delete(p.prefetches, blockID)
-			err := p.retriever.PutInCaches(ctx, pp.req.ptr, pp.req.kmd.TlfID(),
-				pp.req.block, pp.req.lifetime, FinishedPrefetch)
+			err := p.retriever.PutInCaches(pp.ctx, pp.req.ptr,
+				pp.req.kmd.TlfID(), pp.req.block, pp.req.lifetime,
+				FinishedPrefetch)
 			if err != nil {
-				p.log.Warning("Failed to complete prefetch due to "+
+				p.log.CWarningf(pp.ctx, "Failed to complete prefetch due to "+
 					"cache error, canceled it instead: %+v", err)
 			}
+			pp.Close()
 		}
 	}
 }
@@ -151,8 +181,9 @@ func (p *blockPrefetcher) decrementPrefetch(_ kbfsblock.ID, pp *prefetch) {
 	}
 }
 
-func (p *blockPrefetcher) cancelPrefetch(blockID kbfsblock.ID, _ *prefetch) {
+func (p *blockPrefetcher) cancelPrefetch(blockID kbfsblock.ID, pp *prefetch) {
 	delete(p.prefetches, blockID)
+	pp.Close()
 }
 
 func (p *blockPrefetcher) isShutdown() bool {
@@ -214,7 +245,7 @@ func (p *blockPrefetcher) recordPrefetchParent(childBlockID kbfsblock.ID,
 	if !isPrefetchWaiting {
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
-		pre = &prefetch{1, false, nil, make(map[kbfsblock.ID]bool)}
+		pre = p.newPrefetch(1, false, nil)
 		p.prefetches[childBlockID] = pre
 		needNewFetch = true
 	}
@@ -283,7 +314,7 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 		case Exec:
 			block = &FileBlock{}
 		default:
-			p.log.CDebugf(context.TODO(), "Skipping prefetch for entry of "+
+			p.log.CDebugf(ctx, "Skipping prefetch for entry of "+
 				"unknown type %d", entry.Type)
 			continue
 		}
@@ -308,23 +339,23 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(ctx context.Context,
 // Returns `numBlocks` which indicates how many additional blocks (blocks not
 // currently in the prefetch tree) with a parent of `pre.req.ptr.ID` must be
 // added to the tree.
-func (p *blockPrefetcher) handlePrefetch(ctx context.Context, pre *prefetch) (
+func (p *blockPrefetcher) handlePrefetch(pre *prefetch) (
 	numBlocks int, isTail bool, err error) {
 	req := pre.req
 	switch b := req.block.(type) {
 	case *FileBlock:
 		if b.IsInd {
-			numBlocks, isTail = p.prefetchIndirectFileBlock(ctx,
+			numBlocks, isTail = p.prefetchIndirectFileBlock(pre.ctx,
 				req.ptr.ID, b, req.kmd, req.lifetime)
 		} else {
 			isTail = true
 		}
 	case *DirBlock:
 		if b.IsInd {
-			numBlocks, isTail = p.prefetchIndirectDirBlock(ctx, req.ptr.ID,
+			numBlocks, isTail = p.prefetchIndirectDirBlock(pre.ctx, req.ptr.ID,
 				b, req.kmd, req.lifetime)
 		} else {
-			numBlocks, isTail = p.prefetchDirectDirBlock(ctx, req.ptr.ID,
+			numBlocks, isTail = p.prefetchDirectDirBlock(pre.ctx, req.ptr.ID,
 				b, req.kmd, req.lifetime)
 		}
 	default:
@@ -408,9 +439,11 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// has a req associated with it.
 				pre.req = req
 			}
+			ctx := context.TODO()
+			if isPrefetchWaiting {
+				ctx = pre.ctx
+			}
 			if req.prefetchStatus == FinishedPrefetch {
-				p.log.Debug("prefetch already finished for block %s",
-					req.ptr.ID)
 				// First we handle finished prefetches.
 				if isPrefetchWaiting {
 					if pre.subtreeBlockCount < 0 {
@@ -420,30 +453,33 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 					// Since we decrement by `pre.subtreeBlockCount`, we're
 					// guaranteed that `pre` will be removed from the
 					// prefetcher.
-					p.log.Debug("completing prefetch for block %s", req.ptr.ID)
-					ctx, _ := context.WithTimeout(context.Background(),
-						prefetchTimeout)
+					p.log.CDebugf(ctx, "finishing prefetch for block %s",
+						req.ptr.ID)
 					p.applyToParentsRecursive(
-						p.completePrefetch(ctx, pre.subtreeBlockCount),
+						p.completePrefetch(pre.subtreeBlockCount),
 						req.ptr.ID,
 						pre)
+				} else {
+					p.log.CDebugf(ctx, "skipping prefetch for finished block "+
+						"%s", req.ptr.ID)
 				}
 				// Always short circuit a finished prefetch.
 				continue
 			}
 			if req.priority < lowestTriggerPrefetchPriority {
-				p.log.Debug("skipping prefetch for block %s", req.ptr.ID)
+				p.log.CDebugf(ctx, "skipping prefetch for block %s",
+					req.ptr.ID)
 				continue
 			}
 			if req.prefetchStatus == TriggeredPrefetch && !req.isDeepSync {
-				p.log.Debug("prefetch already triggered for block ID %s",
-					req.ptr.ID)
+				p.log.CDebugf(ctx, "prefetch already triggered for block ID "+
+					"%s", req.ptr.ID)
 				continue
 			}
 			if isPrefetchWaiting {
 				if pre.subtreeTriggered {
-					p.log.Debug("prefetch subtree already triggered for "+
-						"block ID %s", req.ptr.ID)
+					p.log.CDebugf(ctx, "prefetch subtree already triggered "+
+						"for block ID %s", req.ptr.ID)
 					// Redundant prefetch request.
 					// We've already seen _this_ block, and already triggered
 					// prefetches for its children. No use doing it again!
@@ -480,10 +516,10 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// If the prefetch is to be tracked, then the 0
 				// `subtreeBlockCount` will be incremented by `numBlocks`
 				// below, once we've ensured that `numBlocks` is not 0.
-				pre = &prefetch{0, true, req, make(map[kbfsblock.ID]bool)}
+				pre = p.newPrefetch(0, true, req)
+				p.prefetches[req.ptr.ID] = pre
+				ctx = pre.ctx
 			}
-			ctx, _ := context.WithTimeout(context.Background(),
-				prefetchTimeout)
 			// TODO: There is a potential optimization here that we can
 			// consider: Currently every time a prefetch is triggered, we
 			// iterate through all the block's child pointers. This is short
@@ -494,14 +530,16 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			//
 			// `numBlocks` now represents only the number of blocks to add
 			// to the tree from `pre` to its roots, inclusive.
-			numBlocks, isTail, err := p.handlePrefetch(ctx, pre)
+			numBlocks, isTail, err := p.handlePrefetch(pre)
 			if err != nil {
-				p.log.Debug("error handling prefetch for block %s", req.ptr.ID)
+				p.log.CDebugf(ctx, "error handling prefetch for block %s",
+					req.ptr.ID)
 				// There's nothing for us to do when there's an error.
 				continue
 			}
 			if isTail {
-				p.log.Debug("completed prefetch for tail block %s ", req.ptr.ID)
+				p.log.CDebugf(ctx, "completed prefetch for tail block %s ",
+					req.ptr.ID)
 				// This is a tail block with no children.  Parent blocks are
 				// potentially waiting for this prefetch, so we percolate the
 				// information up the tree that this prefetch is done.
@@ -517,19 +555,21 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// only walk up the tree once. We'd track a `numBlocks` and
 				// complete or decrement as appropriate.
 				p.applyToParentsRecursive(
-					p.completePrefetch(ctx, 0), req.ptr.ID, pre)
+					p.completePrefetch(0), req.ptr.ID, pre)
 				continue
 			}
 			// This is not a tail block.
 			if numBlocks == 0 {
-				p.log.Debug("no blocks to prefetch for block %s", req.ptr.ID)
+				p.log.CDebugf(ctx, "no blocks to prefetch for block %s",
+					req.ptr.ID)
 				// All the blocks to be triggered have already done so. Do
 				// nothing.  This is simply an optimization to avoid crawling
 				// the tree.
 				continue
 			}
 			if !isPrefetchWaiting {
-				p.log.Debug("adding block %s to the prefetch tree", req.ptr.ID)
+				p.log.CDebugf(ctx, "adding block %s to the prefetch tree",
+					req.ptr.ID)
 				// This block doesn't appear in the prefetch tree, so it's the
 				// root of a new prefetch tree. Add it to the tree.
 				p.prefetches[req.ptr.ID] = pre
@@ -539,7 +579,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				// shouldn't block anything above it in the tree from
 				// completing.
 			}
-			p.log.Debug("prefetching %d block(s) with parent block %s",
+			p.log.CDebugf(ctx, "prefetching %d block(s) with parent block %s",
 				numBlocks, req.ptr.ID)
 			// Walk up the block tree and add numBlocks to every parent,
 			// starting with this block.
