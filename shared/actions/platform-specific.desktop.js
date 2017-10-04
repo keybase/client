@@ -41,6 +41,7 @@ function displayNewMessageNotification(text: string, convID: string, badgeCount:
 class RouteStateStorage {
   load = async (dispatch: Dispatch, getState: GetState): Promise<void> => {}
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {}
+  clear = async (dispatch: Dispatch, getState: GetState): Promise<void> => {}
 }
 
 export {

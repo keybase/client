@@ -40,8 +40,9 @@ declare class RouteStateStorage {
   // state has been loaded from the storage into the redux state.
   load: (dispatch: Dispatch, getState: GetState) => Promise<void>,
   // store returns a promise that, when resolved, means that the route
-  // state has been loaded redux state into storage.
+  // state in the redux state has been stored.
   store: (dispatch: Dispatch, getState: GetState) => Promise<void>,
+  clear: (dispatch: Dispatch, getState: GetState) => Promise<void>,
 }
 
 export {

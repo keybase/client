@@ -299,6 +299,28 @@ class RouteStateStorage {
       throw e
     }
   }
+
+  clear = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
+    const state = getState()
+    if (!state.routeTree.routeChanged) {
+      console.log('[RouteState] Ignoring clear before route changed')
+      return
+    }
+
+    if (this._getAndClearPromise) {
+      console.log('[RouteState] Removing getAndClear promise')
+      delete this._getAndClearPromise
+    }
+
+    console.log('[RouteState] Clearing item')
+
+    try {
+      await AsyncStorage.removeItem('routeState')
+    } catch (e) {
+      console.warn('[RouteState] Error removing item:', e)
+      throw e
+    }
+  }
 }
 
 export {
