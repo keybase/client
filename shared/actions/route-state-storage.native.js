@@ -85,6 +85,8 @@ class RouteStateStorage {
       return
     }
 
+    // Make sure that concurrent loads return the same result until
+    // the next call to store/clear.
     if (this._getAndClearPromise) {
       console.log('[RouteState] Using existing getAndClear promise')
     } else {
