@@ -16,8 +16,8 @@ import {isValidInitialTab} from '../constants/tabs'
 
 const initialState = Constants.State()
 
-function routeChangedReducer(routeChanged, action) {
-  const newRouteChanged = (function() {
+function loggedInUserNavigatedReducer(loggedInUserNavigated, action) {
+  const newLoggedInUserNavigated = (function() {
     switch (action.type) {
       case CommonConstants.resetStore:
         return false
@@ -27,7 +27,7 @@ function routeChangedReducer(routeChanged, action) {
 
       case Constants.navigateTo:
         return (
-          routeChanged ||
+          loggedInUserNavigated ||
           (!action.payload.isInitial &&
             !action.payload.parentPath &&
             action.payload.path.length === 1 &&
@@ -41,20 +41,20 @@ function routeChangedReducer(routeChanged, action) {
         return true
 
       default:
-        return routeChanged
+        return loggedInUserNavigated
     }
   })()
-  if (routeChanged !== newRouteChanged) {
+  if (loggedInUserNavigated !== newLoggedInUserNavigated) {
     console.log(
       '[RouteState] route changed changed from',
-      routeChanged,
+      loggedInUserNavigated,
       'to',
-      newRouteChanged,
+      newLoggedInUserNavigated,
       '; action: ',
       action
     )
   }
-  return newRouteChanged
+  return newLoggedInUserNavigated
 }
 
 function routeDefReducer(routeDef, action) {
@@ -116,13 +116,13 @@ export default function routeTreeReducer(
   state: Constants.State = initialState,
   action: any
 ): Constants.State {
-  let {routeChanged, routeDef, routeState} = state
+  let {loggedInUserNavigated, routeDef, routeState} = state
 
-  let newRouteChanged
+  let newLoggedInUserNavigated
   let newRouteDef
   let newRouteState
   try {
-    newRouteChanged = routeChangedReducer(routeChanged, action)
+    newLoggedInUserNavigated = loggedInUserNavigatedReducer(loggedInUserNavigated, action)
     newRouteDef = routeDefReducer(routeDef, action)
     newRouteState = routeStateReducer(routeDef, routeState, action)
   } catch (err) {
@@ -139,12 +139,12 @@ export default function routeTreeReducer(
   }
 
   if (
-    !I.is(routeChanged, newRouteChanged) ||
+    !I.is(loggedInUserNavigated, newLoggedInUserNavigated) ||
     !I.is(routeDef, newRouteDef) ||
     !I.is(routeState, newRouteState)
   ) {
     // If we changed something, sanity check new state for errors.
-    const routeError = checkRouteState(newRouteChanged, newRouteDef, newRouteState)
+    const routeError = checkRouteState(newLoggedInUserNavigated, newRouteDef, newRouteState)
     if (routeError) {
       console.error(
         `Attempt to perform ${action.type} on ${pathToString(getPath(routeState))} would result in invalid routeTree state: "${routeError}". Aborting.`
@@ -154,7 +154,7 @@ export default function routeTreeReducer(
   }
 
   return state.merge({
-    routeChanged: newRouteChanged,
+    loggedInUserNavigated: newLoggedInUserNavigated,
     routeDef: newRouteDef,
     routeState: newRouteState,
   })

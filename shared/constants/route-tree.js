@@ -47,7 +47,7 @@ export type NavigateActions =
   | ResetRoute
 
 export const State = I.Record({
-  routeChanged: false,
+  loggedInUserNavigated: false,
   routeDef: null,
   routeState: null,
 })

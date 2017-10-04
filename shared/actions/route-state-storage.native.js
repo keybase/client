@@ -99,7 +99,7 @@ class RouteStateStorage {
 
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     const state = getState()
-    if (!state.routeTree.routeChanged) {
+    if (!state.routeTree.loggedInUserNavigated) {
       console.log('[RouteState] Ignoring store before route changed')
       return
     }
@@ -133,7 +133,7 @@ class RouteStateStorage {
 
   clear = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     const state = getState()
-    if (!state.routeTree.routeChanged) {
+    if (!state.routeTree.loggedInUserNavigated) {
       console.log('[RouteState] Ignoring clear before route changed')
       return
     }

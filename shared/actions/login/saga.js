@@ -97,31 +97,31 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
   const selector = ({
     config: {loggedIn, registered, initialState},
     login: {justDeletedSelf, loginError},
-    routeTree: {routeChanged},
+    routeTree: {loggedInUserNavigated},
   }: TypedState) => ({
     loggedIn,
     registered,
     initialState,
     justDeletedSelf,
     loginError,
-    routeChanged,
+    loggedInUserNavigated,
   })
 
   const args = yield select(selector)
 
   console.log('[RouteState] navBasedOnLoginAndInitialState:', args)
 
-  const {loggedIn, registered, initialState, justDeletedSelf, loginError, routeChanged} = args
+  const {loggedIn, registered, initialState, justDeletedSelf, loginError, loggedInUserNavigated} = args
 
   // All branches except for when loggedIn is true and initialState is
-  // null must yield an action which sets state.routeTree.routeChanged
-  // to true.
+  // null must yield an action which sets
+  // state.routeTree.loggedInUserNavigated to true.
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
   } else if (loggedIn) {
     // If the user has already performed a navigation action, or if
     // we've already applied the initialState, do nothing.
-    if (routeChanged) {
+    if (loggedInUserNavigated) {
       return
     }
 
@@ -143,7 +143,7 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
       }
     } else {
       // If the initial state is not set yet, navigate to the people
-      // tab without setting state.routeTree.routeChanged to true.
+      // tab without setting state.routeTree.loggedInUserNavigated to true.
       yield put(navigateTo([peopleTab], null, true))
     }
   } else if (registered) {
