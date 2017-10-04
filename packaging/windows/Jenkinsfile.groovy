@@ -238,7 +238,7 @@ def notifySlack(String buildStatus = 'STARTED') {
 
 // Invoke the build with a separate workspace for each executor,
 // and with GOPATH set to that workspace
-node ('windows-release') {
+node ('windows-release-VM') {
     ws("${WORKSPACE}_${EXECUTOR_NUMBER}") {
         withEnv(["GOPATH=${pwd()}"]) {
             try {
