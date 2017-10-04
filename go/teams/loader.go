@@ -384,7 +384,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 			ret.Secretless = true
 		} else {
 			// Add the secrets unless this is a secretless team.
-			if !ret.Secretless && !arg.public {
+			if !ret.Secretless && !ret.Chain.Public {
 				ret, err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
