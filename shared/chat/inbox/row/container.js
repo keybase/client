@@ -149,7 +149,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const ConnectedRow = compose(
-  // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(
     ({participants, type}) => isSmallOrBig(type) && (!participants || participants.isEmpty() === 0),
