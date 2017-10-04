@@ -273,6 +273,7 @@ const (
 	SCGitInvalidRepoName       = int(keybase1.StatusCode_SCGitInvalidRepoName)
 	SCGitCannotDelete          = int(keybase1.StatusCode_SCGitCannotDelete)
 	SCTeamBanned               = int(keybase1.StatusCode_SCTeamBanned)
+	SCNoOp                     = int(keybase1.StatusCode_SCNoOp)
 )
 
 const (

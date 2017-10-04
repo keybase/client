@@ -145,6 +145,7 @@ const (
 	StatusCode_SCTeamImplicitBadRemove     StatusCode = 2686
 	StatusCode_SCTeamKeyMaskNotFound       StatusCode = 2697
 	StatusCode_SCTeamBanned                StatusCode = 2702
+	StatusCode_SCNoOp                      StatusCode = 2703
 )
 
 func (o StatusCode) DeepCopy() StatusCode { return o }
@@ -284,6 +285,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamImplicitBadAdd":        2685,
 	"SCTeamImplicitBadRemove":     2686,
 	"SCTeamKeyMaskNotFound":       2697,
+	"SCNoOp":                      2703,
 }
 
 var StatusCodeRevMap = map[StatusCode]string{
@@ -421,6 +423,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2685: "SCTeamImplicitBadAdd",
 	2686: "SCTeamImplicitBadRemove",
 	2697: "SCTeamKeyMaskNotFound",
+	2703: "SCNoOp",
 }
 
 func (e StatusCode) String() string {

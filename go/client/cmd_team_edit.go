@@ -110,6 +110,11 @@ func (c *CmdTeamEdit) applySettings(cli keybase1.TeamsClient) error {
 
 	err := cli.TeamSetSettings(context.Background(), arg)
 	if err != nil {
+		if e, ok := err.(libkb.NoOpError); ok {
+			dui.Printf("%s\n", e.Desc)
+			return nil
+		}
+
 		return err
 	}
 
