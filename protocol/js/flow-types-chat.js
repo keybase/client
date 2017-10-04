@@ -73,6 +73,7 @@ export const CommonConversationMemberStatus = {
   removed: 1,
   left: 2,
   preview: 3,
+  reset: 4,
 }
 
 export const CommonConversationMembersType = {
@@ -1007,6 +1008,7 @@ export type ConversationMemberStatus =
   | 1 // REMOVED_1
   | 2 // LEFT_2
   | 3 // PREVIEW_3
+  | 4 // RESET_4
 
 export type ConversationMembersType =
     0 // KBFS_0
