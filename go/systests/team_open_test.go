@@ -192,7 +192,7 @@ func TestTeamOpenBans(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("Trying team edit cli...")
-	runner := client.NewCmdTeamEditRunner(own.tc.G)
+	runner := client.NewCmdTeamSettingsRunner(own.tc.G)
 	runner.Team = teamName
 	runner.Settings = keybase1.TeamSettings{
 		Open:   true,

@@ -11,29 +11,29 @@ import (
 	"golang.org/x/net/context"
 )
 
-type CmdTeamEdit struct {
+type CmdTeamSettings struct {
 	libkb.Contextified
 	Team      keybase1.TeamName
 	PrintOnly bool
 	Settings  keybase1.TeamSettings
 }
 
-func newCmdTeamEdit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdTeamSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "edit",
+		Name:         "settings",
 		ArgumentHelp: "<team name>",
 		Usage:        "Edit team settings.",
 		Action: func(c *cli.Context) {
-			cmd := NewCmdTeamEditRunner(g)
-			cl.ChooseCommand(cmd, "edit", c)
+			cmd := NewCmdTeamSettingsRunner(g)
+			cl.ChooseCommand(cmd, "settings", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "open",
+				Name:  "set-open",
 				Usage: "set team to open",
 			},
 			cli.BoolFlag{
-				Name:  "closed",
+				Name:  "set-closed",
 				Usage: "set team to closed",
 			},
 			cli.StringFlag{
@@ -44,11 +44,11 @@ func newCmdTeamEdit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	}
 }
 
-func NewCmdTeamEditRunner(g *libkb.GlobalContext) *CmdTeamEdit {
-	return &CmdTeamEdit{Contextified: libkb.NewContextified(g)}
+func NewCmdTeamSettingsRunner(g *libkb.GlobalContext) *CmdTeamSettings {
+	return &CmdTeamSettings{Contextified: libkb.NewContextified(g)}
 }
 
-func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
+func (c *CmdTeamSettings) ParseArgv(ctx *cli.Context) error {
 	var err error
 	c.Team, err = ParseOneTeamNameK1(ctx)
 	if err != nil {
@@ -61,12 +61,12 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 		return nil
 	}
 
-	if ctx.Bool("open") && ctx.Bool("closed") {
-		return errors.New("cannot use --open and --closed at the same time")
+	if ctx.Bool("set-open") && ctx.Bool("set-closed") {
+		return errors.New("cannot use --set-open and --set-closed at the same time")
 
 	}
 
-	if ctx.Bool("open") {
+	if ctx.Bool("set-open") {
 		c.Settings.Open = true
 
 		srole := ctx.String("join-as")
@@ -87,20 +87,20 @@ func (c *CmdTeamEdit) ParseArgv(ctx *cli.Context) error {
 		}
 
 		c.Settings.JoinAs = role
-	} else if ctx.Bool("closed") {
+	} else if ctx.Bool("set-closed") {
 		c.Settings.Open = false
 	} else {
 		// Happens when user supplies --join-as only:
 		// > keybase team edit teamname --join-as reader
-		// For simplicity, we require always --open/--closed flag,
+		// For simplicity, we require always --set-open/--set-closed flag,
 		// even if user just wants to change join_as role.
-		return errors.New("--open or --closed flag is required")
+		return errors.New("--set-open or --set-closed flag is required")
 	}
 
 	return nil
 }
 
-func (c *CmdTeamEdit) applySettings(cli keybase1.TeamsClient) error {
+func (c *CmdTeamSettings) applySettings(cli keybase1.TeamsClient) error {
 	dui := c.G().UI.GetTerminalUI()
 
 	arg := keybase1.TeamSetSettingsArg{
@@ -122,7 +122,7 @@ func (c *CmdTeamEdit) applySettings(cli keybase1.TeamsClient) error {
 	return nil
 }
 
-func (c *CmdTeamEdit) Run() error {
+func (c *CmdTeamSettings) Run() error {
 	cli, err := GetTeamsClient(c.G())
 	if err != nil {
 		return err
@@ -151,7 +151,7 @@ func (c *CmdTeamEdit) Run() error {
 	return nil
 }
 
-func (c *CmdTeamEdit) GetUsage() libkb.Usage {
+func (c *CmdTeamSettings) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
