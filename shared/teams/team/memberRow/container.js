@@ -15,12 +15,19 @@ type OwnProps = {
   teamname: string,
 }
 
+const getFollowing = (state, username: string) => {
+  const followingMap = Constants.getFollowingMap(state)
+  return !!followingMap[username]
+}
+
 type StateProps = {
+  following: boolean,
   you: ?string,
   _members: I.Set<Constants.MemberInfo>,
 }
 
 const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): StateProps => ({
+  following: getFollowing(state, username),
   you: state.config.username,
   _members: state.entities.getIn(['teams', 'teamNameToMembers', teamname]),
 })

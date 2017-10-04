@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Text} from '../../../common-adapters'
+import {Avatar, Box, Button, ClickableBox, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 // For use in list RowRenderer prop
 export type Props = {
   username: string,
+  following: boolean,
   teamname: string,
   you: ?string,
   onOpenProfile: (u: string) => void,
@@ -16,6 +17,7 @@ export type Props = {
 }
 
 export const TeamRequestRow = (props: Props) => {
+  const {username, following, onOpenProfile, you, onChat, onIgnoreRequest} = props
   return (
     <Box
       style={{
@@ -27,7 +29,7 @@ export const TeamRequestRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      key={props.username}
+      key={username}
     >
       <ClickableBox
         style={{
@@ -37,13 +39,15 @@ export const TeamRequestRow = (props: Props) => {
           flexShrink: 0,
           width: isMobile ? '100%' : 'initial',
         }}
-        onClick={() => props.onOpenProfile(props.username)}
+        onClick={() => onOpenProfile(username)}
       >
-        <Avatar username={props.username} size={isMobile ? 48 : 32} />
+        <Avatar username={username} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Text type={props.you === props.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
-            {props.username}
-          </Text>
+          <Usernames
+            type="BodySemibold"
+            colorFollowing={true}
+            users={[{username, following, you: you === username}]}
+          />
         </Box>
       </ClickableBox>
       <Box
@@ -53,12 +57,12 @@ export const TeamRequestRow = (props: Props) => {
           marginTop: isMobile ? globalMargins.tiny : 0,
         }}
       >
-        <Button type="Primary" label="Start a Chat" onClick={() => props.onChat()} />
+        <Button type="Primary" label="Start a Chat" onClick={() => onChat()} />
         <Button
           style={{marginLeft: globalMargins.xtiny}}
           type="Danger"
           label="Ignore request"
-          onClick={() => props.onIgnoreRequest()}
+          onClick={() => onIgnoreRequest()}
         />
       </Box>
     </Box>

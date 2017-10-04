@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, ClickableBox, Text, Icon} from '../../../common-adapters'
+import {Avatar, Box, ClickableBox, Text, Icon, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 // For use in list RowRenderer prop
 export type Props = {
   username: string,
+  following: boolean,
   teamname: string,
   you: ?string,
   type: ?string,
@@ -28,9 +29,10 @@ const showCrown = {
 }
 
 export const TeamMemberRow = (props: Props) => {
+  const {username, onOpenProfile, you, following, type} = props
   return (
     <ClickableBox
-      key={props.username}
+      key={username}
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -39,16 +41,18 @@ export const TeamMemberRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      onClick={() => props.onOpenProfile(props.username)}
+      onClick={() => onOpenProfile(username)}
     >
-      <Avatar username={props.username} size={isMobile ? 48 : 32} />
+      <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-        <Text type={props.you === props.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
-          {props.username}
-        </Text>
+        <Usernames
+          type="BodySemibold"
+          colorFollowing={true}
+          users={[{username, following, you: you === username}]}
+        />
         <Box style={globalStyles.flexBoxRow}>
-          {props.type &&
-            !!showCrown[props.type] &&
+          {type &&
+            !!showCrown[type] &&
             <Icon
               type="iconfont-crown"
               style={{
@@ -57,7 +61,7 @@ export const TeamMemberRow = (props: Props) => {
                 marginRight: globalMargins.xtiny,
               }}
             />}
-          <Text type="BodySmall">{props.type && typeToLabel[props.type]}</Text>
+          <Text type="BodySmall">{type && typeToLabel[type]}</Text>
         </Box>
       </Box>
     </ClickableBox>

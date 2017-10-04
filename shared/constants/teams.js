@@ -112,4 +112,6 @@ const getConversationIDKeyFromChannelName = (state: TypedState, channelname: str
 const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
+export const getFollowingMap = ChatConstants.getFollowingMap
+
 export {getConversationIDKeyFromChannelName, getParticipants}
