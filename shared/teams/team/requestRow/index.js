@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Usernames} from '../../../common-adapters'
+import {Avatar, Box, Button, ClickableBox, Usernames, PopupMenu} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
@@ -10,14 +10,37 @@ export type Props = {
   following: boolean,
   teamname: string,
   you: ?string,
+  showMenu: boolean,
+  setShowMenu: (s: boolean) => void,
   onOpenProfile: (u: string) => void,
   onChat: () => void,
   onAcceptRequest: (role: 'owners' | 'admins' | 'writers' | 'readers', sendChatNotification: boolean) => void,
   onIgnoreRequest: () => void,
 }
 
+const teamRoleMap = {
+  reader: 1,
+  writer: 2,
+  admin: 3,
+  owner: 4,
+}
+
+function toRole(r: string) {
+  return teamRoleMap[r.toLowerCase()]
+}
+
 export const TeamRequestRow = (props: Props) => {
-  const {username, following, onOpenProfile, you, onChat, onIgnoreRequest} = props
+  const {
+    username,
+    following,
+    onOpenProfile,
+    you,
+    onAcceptRequest,
+    onChat,
+    onIgnoreRequest,
+    showMenu,
+    setShowMenu,
+  } = props
   return (
     <Box
       style={{
@@ -57,13 +80,30 @@ export const TeamRequestRow = (props: Props) => {
           marginTop: isMobile ? globalMargins.tiny : 0,
         }}
       >
-        <Button type="Primary" label="Start a Chat" onClick={() => onChat()} />
+        <Button type="Secondary" label="Chat" onClick={() => onChat()} />
         <Button
           style={{marginLeft: globalMargins.xtiny}}
-          type="Danger"
-          label="Ignore request"
+          type="Secondary"
+          label="Ignore"
           onClick={() => onIgnoreRequest()}
         />
+        <Button
+          style={{marginLeft: globalMargins.xtiny}}
+          type="Primary"
+          label="Accept"
+          onClick={() => setShowMenu(true)}
+        />
+        {showMenu &&
+          <PopupMenu
+            items={[
+              {onClick: () => onAcceptRequest(toRole('reader'), false), title: 'Reader'},
+              {onClick: () => onAcceptRequest(toRole('writer'), false), title: 'Writer'},
+              {onClick: () => onAcceptRequest(toRole('admin'), false), title: 'Admin', danger: true},
+              {onClick: () => onAcceptRequest(toRole('OWNER'), false), title: 'Owner', danger: true},
+            ]}
+            onHidden={() => setShowMenu(false)}
+            style={{position: 'absolute', right: globalMargins.tiny, top: globalMargins.large}}
+          />}
       </Box>
     </Box>
   )

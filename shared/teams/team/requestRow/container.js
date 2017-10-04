@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import {connect} from 'react-redux'
+import {compose, withState} from 'recompose'
 import {TeamRequestRow} from '.'
 import {addToTeam, ignoreRequest} from '../../../actions/teams/creators'
 import {showUserProfile} from '../../../actions/profile'
@@ -71,7 +72,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   }
 }
 
-export const ConnectedRequestRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)
+export const ConnectedRequestRow = compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withState('showMenu', 'setShowMenu', false)
+)(TeamRequestRow)
 
 export default function(i: number, props: OwnProps) {
   return <ConnectedRequestRow {...props} />
