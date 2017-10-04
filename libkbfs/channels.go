@@ -6,6 +6,10 @@ import (
 	"github.com/eapache/channels"
 )
 
+const (
+	defaultInfiniteBufferSize int = 100
+)
+
 // infiniteChannelWrapper is a wrapper to allow us to select on sending to an
 // infinite channel without fearing a panic when we Close() it.
 type infiniteChannelWrapper struct {
@@ -20,7 +24,7 @@ var _ channels.Channel = (*infiniteChannelWrapper)(nil)
 func newInfiniteChannelWrapper() *infiniteChannelWrapper {
 	ch := &infiniteChannelWrapper{
 		InfiniteChannel: channels.NewInfiniteChannel(),
-		input:           make(chan interface{}),
+		input:           make(chan interface{}, defaultInfiniteBufferSize),
 		shutdownCh:      make(chan struct{}),
 	}
 	go ch.run()
