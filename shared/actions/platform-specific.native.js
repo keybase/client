@@ -5,7 +5,7 @@ import * as PushConstants from '../constants/push'
 import {eventChannel} from 'redux-saga'
 import {isIOS} from '../constants/platform'
 import {isDevApplePushToken} from '../local-debug'
-import {chatTab} from '../constants/tabs'
+import {chatTab, isValidInitialTab} from '../constants/tabs'
 import {setInitialState} from './config'
 import {isImageFileName} from '../constants/chat'
 
@@ -256,7 +256,7 @@ class RouteStateStorage {
     const item = {}
 
     const selectedTab = routeState.selected
-    if (selectedTab) {
+    if (isValidInitialTab(selectedTab)) {
       item.tab = selectedTab
       if (selectedTab === chatTab) {
         const tab = routeState.children.get(chatTab)
@@ -264,6 +264,8 @@ class RouteStateStorage {
           item.selectedConversationIDKey = tab.selected
         }
       }
+    } else {
+      console.log('[RouteState] Invalid initial tab:', selectedTab)
     }
 
     console.log('[RouteState] Setting item:', item)
