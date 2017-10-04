@@ -132,19 +132,52 @@ class ConversationInput extends Component<InputProps, State> {
     this.props.emojiPickerToggle()
   }
 
+  _triggerUpArrowCounter = () => {
+    this.setState(({upArrowCounter}) => ({upArrowCounter: upArrowCounter + 1}))
+  }
+
+  _triggerDownArrowCounter = () => {
+    this.setState(({downArrowCounter}) => ({downArrowCounter: downArrowCounter + 1}))
+  }
+
+  _triggerPickSelectedCounter = () => {
+    this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
+      return
     }
 
-    if (e.key === 'ArrowUp' && this.props.mentionPopupOpen) {
-      e.preventDefault()
-      this.setState(({upArrowCounter}) => ({upArrowCounter: upArrowCounter + 1}))
-    }
-
-    if (['ArrowDown', 'Tab'].includes(e.key) && this.props.mentionPopupOpen) {
-      e.preventDefault()
-      this.setState(({downArrowCounter}) => ({downArrowCounter: downArrowCounter + 1}))
+    if (this.props.mentionPopupOpen) {
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        // If you tab with a partial name typed, we pick the selected item
+        if (this.props.mentionFilter.length > 0) {
+          this._triggerPickSelectedCounter()
+          return
+        }
+        // else we move you up/down
+        if (e.shiftKey) {
+          this._triggerUpArrowCounter()
+        } else {
+          this._triggerDownArrowCounter()
+        }
+        return
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        this._triggerUpArrowCounter()
+        return
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        this._triggerDownArrowCounter()
+        return
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        this.props.setMentionPopupOpen(false)
+        return
+      }
     }
 
     if (e.key === '@') {
@@ -161,9 +194,13 @@ class ConversationInput extends Component<InputProps, State> {
 
   _onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
     // Ignore moving within the list
-    if (this.props.mentionPopupOpen && ['ArrowUp', 'ArrowDown', 'Tab'].includes(e.key)) {
-      return
+    if (this.props.mentionPopupOpen) {
+      if (['ArrowUp', 'ArrowDown', 'Shift', 'Tab'].includes(e.key)) {
+        // handled above in _onKeyDown
+        return
+      }
     }
+
     // Get the word typed so far
     if (this.props.mentionPopupOpen || e.key === 'Backspace') {
       const wordSoFar = this._getWordAtCursor(false)
@@ -213,7 +250,7 @@ class ConversationInput extends Component<InputProps, State> {
     e.preventDefault()
 
     if (this.props.mentionPopupOpen) {
-      this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
+      this._triggerPickSelectedCounter()
       return
     }
 
