@@ -206,7 +206,8 @@ func (nsre NoSuchRepoError) Error() string {
 
 func getOrCreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
-	repoName string, uniqID string, op repoOpType) (*libfs.FS, ID, error) {
+	repoName string, uniqID string, op repoOpType) (
+	fs *libfs.FS, id ID, err error) {
 	if !checkValidRepoName(repoName, config) {
 		return nil, NullID, errors.WithStack(libkb.InvalidRepoNameError{Name: repoName})
 	}
@@ -217,6 +218,16 @@ func getOrCreateRepoAndID(
 		return nil, NullID, err
 	}
 	normalizedRepoName := normalizeRepoName(repoName)
+
+	// If the user doesn't have write access, but the repo doesn't
+	// exist, give them a nice error message.
+	repoExists := false
+	defer func() {
+		_, isWriteAccessErr := errors.Cause(err).(libkbfs.WriteAccessError)
+		if !repoExists && isWriteAccessErr {
+			err = NoSuchRepoError{repoName}
+		}
+	}()
 
 	repoDir, err := lookupOrCreateDir(ctx, config, rootNode, kbfsRepoDir)
 	if err != nil {
@@ -237,8 +248,9 @@ func getOrCreateRepoAndID(
 			return nil, NullID, err
 		}
 	}
+	repoExists = true
 
-	fs, err := libfs.NewFS(
+	fs, err = libfs.NewFS(
 		ctx, config, tlfHandle, path.Join(kbfsRepoDir, normalizedRepoName),
 		uniqID)
 	if err != nil {
