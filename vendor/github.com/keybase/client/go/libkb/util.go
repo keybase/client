@@ -64,22 +64,22 @@ func FileExists(path string) (bool, error) {
 	return false, err
 }
 
-func MakeParentDirs(filename string) error {
+func MakeParentDirs(log SkinnyLogger, filename string) error {
 
 	dir, _ := filepath.Split(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
-		G.Log.Errorf("Can't see if parent dir %s exists", dir)
+		log.Errorf("Can't see if parent dir %s exists", dir)
 		return err
 	}
 
 	if !exists {
 		err = os.MkdirAll(dir, PermDir)
 		if err != nil {
-			G.Log.Errorf("Can't make parent dir %s", dir)
+			log.Errorf("Can't make parent dir %s", dir)
 			return err
 		}
-		G.Log.Debug("Created parent directory %s", dir)
+		log.Debug("Created parent directory %s", dir)
 	}
 	return nil
 }
@@ -371,8 +371,7 @@ func RandInt() (int, error) {
 func RandIntn(n int) int {
 	x, err := RandInt()
 	if err != nil {
-		G.Log.Warning("RandInt error: %s", err)
-		return 0
+		panic(fmt.Sprintf("RandInt error: %s", err))
 	}
 	return x % n
 }
@@ -450,6 +449,15 @@ func RandStringB64(numTriads int) string {
 		return ""
 	}
 	return base64.URLEncoding.EncodeToString(buf)
+}
+
+func RandHexString(prefix string, numbytes int) (string, error) {
+	buf, err := RandBytes(numbytes)
+	if err != nil {
+		return "", err
+	}
+	str := hex.EncodeToString(buf)
+	return prefix + str, nil
 }
 
 func Trace(log logger.Logger, msg string, f func() error) func() {
@@ -727,4 +735,12 @@ func (t *TimeTracer) Finish() {
 		t.finishStage()
 	}
 	t.log.CDebugf(t.ctx, "- %s [time=%s]", t.label, t.clock.Since(t.start))
+}
+
+func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		return err.Code == int(code)
+	}
+	return false
 }

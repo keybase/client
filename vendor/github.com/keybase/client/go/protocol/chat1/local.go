@@ -846,48 +846,6 @@ func (o OutboxRecord) DeepCopy() OutboxRecord {
 	}
 }
 
-type Inbox struct {
-	Version         InboxVers           `codec:"version" json:"version"`
-	ConvsUnverified []Conversation      `codec:"convsUnverified" json:"convsUnverified"`
-	Convs           []ConversationLocal `codec:"convs" json:"convs"`
-	Pagination      *Pagination         `codec:"pagination,omitempty" json:"pagination,omitempty"`
-}
-
-func (o Inbox) DeepCopy() Inbox {
-	return Inbox{
-		Version: o.Version.DeepCopy(),
-		ConvsUnverified: (func(x []Conversation) []Conversation {
-			if x == nil {
-				return nil
-			}
-			var ret []Conversation
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.ConvsUnverified),
-		Convs: (func(x []ConversationLocal) []ConversationLocal {
-			if x == nil {
-				return nil
-			}
-			var ret []ConversationLocal
-			for _, v := range x {
-				vCopy := v.DeepCopy()
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.Convs),
-		Pagination: (func(x *Pagination) *Pagination {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Pagination),
-	}
-}
-
 type HeaderPlaintextVersion int
 
 const (
@@ -3355,6 +3313,7 @@ func (o GetInboxAndUnboxLocalArg) DeepCopy() GetInboxAndUnboxLocalArg {
 type GetInboxNonblockLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	MaxUnbox         *int                         `codec:"maxUnbox,omitempty" json:"maxUnbox,omitempty"`
+	SkipUnverified   bool                         `codec:"skipUnverified" json:"skipUnverified"`
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -3370,6 +3329,7 @@ func (o GetInboxNonblockLocalArg) DeepCopy() GetInboxNonblockLocalArg {
 			tmp := (*x)
 			return &tmp
 		})(o.MaxUnbox),
+		SkipUnverified: o.SkipUnverified,
 		Query: (func(x *GetInboxLocalQuery) *GetInboxLocalQuery {
 			if x == nil {
 				return nil

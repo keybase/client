@@ -510,7 +510,7 @@ func (s *LKSec) ToSKB(key GenericKey) (ret *SKB, err error) {
 	if s == nil {
 		return nil, errors.New("nil lks")
 	}
-	ret = NewSKB(s.G())
+	ret = NewSKBWithGlobalContext(s.G())
 
 	var publicKey RawPublicKey
 	var privateKey RawPrivateKey

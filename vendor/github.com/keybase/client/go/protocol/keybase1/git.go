@@ -166,16 +166,18 @@ func (o GitRepoResult) DeepCopy() GitRepoResult {
 }
 
 type PutGitMetadataArg struct {
-	Folder   Folder           `codec:"folder" json:"folder"`
-	RepoID   RepoID           `codec:"repoID" json:"repoID"`
-	Metadata GitLocalMetadata `codec:"metadata" json:"metadata"`
+	Folder     Folder           `codec:"folder" json:"folder"`
+	RepoID     RepoID           `codec:"repoID" json:"repoID"`
+	Metadata   GitLocalMetadata `codec:"metadata" json:"metadata"`
+	NotifyTeam bool             `codec:"notifyTeam" json:"notifyTeam"`
 }
 
 func (o PutGitMetadataArg) DeepCopy() PutGitMetadataArg {
 	return PutGitMetadataArg{
-		Folder:   o.Folder.DeepCopy(),
-		RepoID:   o.RepoID.DeepCopy(),
-		Metadata: o.Metadata.DeepCopy(),
+		Folder:     o.Folder.DeepCopy(),
+		RepoID:     o.RepoID.DeepCopy(),
+		Metadata:   o.Metadata.DeepCopy(),
+		NotifyTeam: o.NotifyTeam,
 	}
 }
 

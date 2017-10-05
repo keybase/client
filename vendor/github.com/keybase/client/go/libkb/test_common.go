@@ -17,11 +17,13 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -445,7 +447,7 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
@@ -470,13 +472,14 @@ func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUs
 	return true
 }
 
-func (t TestUIDMapper) MapUIDsToUsernames(ctx context.Context, g UIDMapperContext, uids []keybase1.UID) (res []NormalizedUsername, err error) {
+func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error) {
+	var res []UsernamePackage
 	for _, uid := range uids {
-		name, err := t.ul.LookupUsername(ctx, uid)
+		name, err := t.ul.LookupUsernameUPAK(ctx, uid)
 		if err != nil {
 			return nil, err
 		}
-		res = append(res, name)
+		res = append(res, UsernamePackage{NormalizedUsername: name})
 	}
 	return res, nil
 }

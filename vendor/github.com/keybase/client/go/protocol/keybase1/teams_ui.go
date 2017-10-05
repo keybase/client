@@ -20,8 +20,21 @@ func (o ConfirmRootTeamDeleteArg) DeepCopy() ConfirmRootTeamDeleteArg {
 	}
 }
 
+type ConfirmSubteamDeleteArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	TeamName  string `codec:"teamName" json:"teamName"`
+}
+
+func (o ConfirmSubteamDeleteArg) DeepCopy() ConfirmSubteamDeleteArg {
+	return ConfirmSubteamDeleteArg{
+		SessionID: o.SessionID,
+		TeamName:  o.TeamName,
+	}
+}
+
 type TeamsUiInterface interface {
 	ConfirmRootTeamDelete(context.Context, ConfirmRootTeamDeleteArg) (bool, error)
+	ConfirmSubteamDelete(context.Context, ConfirmSubteamDeleteArg) (bool, error)
 }
 
 func TeamsUiProtocol(i TeamsUiInterface) rpc.Protocol {
@@ -44,6 +57,22 @@ func TeamsUiProtocol(i TeamsUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"confirmSubteamDelete": {
+				MakeArg: func() interface{} {
+					ret := make([]ConfirmSubteamDeleteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ConfirmSubteamDeleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ConfirmSubteamDeleteArg)(nil), args)
+						return
+					}
+					ret, err = i.ConfirmSubteamDelete(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -54,5 +83,10 @@ type TeamsUiClient struct {
 
 func (c TeamsUiClient) ConfirmRootTeamDelete(ctx context.Context, __arg ConfirmRootTeamDeleteArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmRootTeamDelete", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsUiClient) ConfirmSubteamDelete(ctx context.Context, __arg ConfirmSubteamDeleteArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teamsUi.confirmSubteamDelete", []interface{}{__arg}, &res)
 	return
 }

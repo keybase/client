@@ -115,7 +115,6 @@ var urlRxx = regexp.MustCompile(`https://(\S+)`)
 func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (err error) {
 	target := id.ToMediumID()
 	urls := urlRxx.FindAllString(text, -1)
-	G.Log.Debug("Found urls %v", urls)
 	found := false
 	for _, u := range urls {
 		if strings.HasSuffix(u, target) {

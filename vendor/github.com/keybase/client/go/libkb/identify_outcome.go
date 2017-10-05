@@ -13,6 +13,7 @@ import (
 )
 
 type IdentifyOutcome struct {
+	Contextified
 	Username              NormalizedUsername
 	Error                 error
 	KeyDiffs              []TrackDiff
@@ -27,16 +28,12 @@ type IdentifyOutcome struct {
 	ResponsibleGregorItem gregor.Item
 }
 
-func NewIdentifyOutcome() *IdentifyOutcome {
-	return &IdentifyOutcome{}
-}
-
-func NewIdentifyOutcomeWithUsername(u NormalizedUsername) *IdentifyOutcome {
-	return &IdentifyOutcome{Username: u}
+func NewIdentifyOutcomeWithUsername(g *GlobalContext, u NormalizedUsername) *IdentifyOutcome {
+	return &IdentifyOutcome{Contextified: NewContextified(g), Username: u}
 }
 
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
-	rpl := NewRemoteProofLinks()
+	rpl := NewRemoteProofLinks(i.G())
 	for _, p := range i.ProofChecks {
 		rpl.Insert(p.link, p.err)
 	}

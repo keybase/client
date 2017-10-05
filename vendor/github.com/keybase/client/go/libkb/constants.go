@@ -109,7 +109,8 @@ const (
 	LinkCacheSize     = 0x10000
 	LinkCacheCleanDur = 1 * time.Minute
 
-	UPAKCacheSize = 2000
+	UPAKCacheSize           = 2000
+	UIDMapFullNameCacheSize = 100000
 
 	SigShortIDBytes  = 27
 	LocalTrackMaxAge = 48 * time.Hour
@@ -309,6 +310,8 @@ const (
 	LinkTypeDeleteRoot       LinkType = "team.delete_root"
 	LinkTypeDeleteSubteam    LinkType = "team.delete_subteam"
 	LinkTypeDeleteUpPointer  LinkType = "team.delete_up_pointer"
+	LinkTypeLegacyTLFUpgrade LinkType = "team.legacy_tlf_upgrade"
+	LinkTypeSettings         LinkType = "team.settings"
 
 	DelegationTypeEldest    DelegationType = "eldest"
 	DelegationTypePGPUpdate DelegationType = "pgp_update"

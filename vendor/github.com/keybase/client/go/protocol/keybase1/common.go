@@ -275,6 +275,18 @@ func (o TeamIDWithVisibility) DeepCopy() TeamIDWithVisibility {
 	}
 }
 
+type TeamIDAndName struct {
+	Id   TeamID   `codec:"id" json:"id"`
+	Name TeamName `codec:"name" json:"name"`
+}
+
+func (o TeamIDAndName) DeepCopy() TeamIDAndName {
+	return TeamIDAndName{
+		Id:   o.Id.DeepCopy(),
+		Name: o.Name.DeepCopy(),
+	}
+}
+
 type Seqno int64
 
 func (o Seqno) DeepCopy() Seqno {
@@ -811,6 +823,49 @@ func (o UserResolution) DeepCopy() UserResolution {
 	return UserResolution{
 		Assertion: o.Assertion.DeepCopy(),
 		UserID:    o.UserID.DeepCopy(),
+	}
+}
+
+type FullName string
+
+func (o FullName) DeepCopy() FullName {
+	return o
+}
+
+type FullNamePackageVersion int
+
+const (
+	FullNamePackageVersion_V0 FullNamePackageVersion = 0
+)
+
+func (o FullNamePackageVersion) DeepCopy() FullNamePackageVersion { return o }
+
+var FullNamePackageVersionMap = map[string]FullNamePackageVersion{
+	"V0": 0,
+}
+
+var FullNamePackageVersionRevMap = map[FullNamePackageVersion]string{
+	0: "V0",
+}
+
+func (e FullNamePackageVersion) String() string {
+	if v, ok := FullNamePackageVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type FullNamePackage struct {
+	Version  FullNamePackageVersion `codec:"version" json:"version"`
+	FullName FullName               `codec:"fullName" json:"fullName"`
+	CachedAt Time                   `codec:"cachedAt" json:"cachedAt"`
+}
+
+func (o FullNamePackage) DeepCopy() FullNamePackage {
+	return FullNamePackage{
+		Version:  o.Version.DeepCopy(),
+		FullName: o.FullName.DeepCopy(),
+		CachedAt: o.CachedAt.DeepCopy(),
 	}
 }
 
