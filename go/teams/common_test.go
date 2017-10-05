@@ -80,3 +80,12 @@ func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, 
 	}
 	return fus, tcs, cleanup
 }
+
+func multiTest(t *testing.T, test func(implicit, public bool)) {
+	for _, implicit := range []bool{false, true} {
+		for _, public := range []bool{false, true} {
+			t.Logf("multiTest implicit:%v public:%v", implicit, public)
+			test(implicit, public)
+		}
+	}
+}
