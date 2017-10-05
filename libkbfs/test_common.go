@@ -136,14 +136,6 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		}
 
 	case len(mdServerAddr) != 0:
-		var err error
-		// start/restart local in-memory DynamoDB
-		runner, err := NewTestDynamoDBRunner()
-		if err != nil {
-			t.Fatal(err)
-		}
-		runner.Run(t)
-
 		// connect to server
 		mdServer = NewMDServerRemote(config, mdServerAddr, env.NewContext().NewRPCLogFactory())
 		// for now the MD server acts as the key server in production
