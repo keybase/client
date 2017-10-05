@@ -1,11 +1,11 @@
-// @flow
+// @noflow
+import * as I from 'immutable'
 import {compose, withHandlers, withState} from 'recompose'
 import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
 import UserInput from './user-input'
 import {makeState as makeEntitiesState} from '../constants/entities'
-import {Map} from 'immutable'
 import {isMobile} from '../constants/platform'
 
 import type {DumbComponentMap} from '../constants/types/more'
@@ -53,7 +53,7 @@ const commonServicesResultMapProps = {
         },
   },
   showTrackerButton: false,
-  id: 0,
+  id: '0',
   onShowTracker: () => console.log('onShowTracker clicked'),
 }
 
@@ -220,7 +220,8 @@ Object.keys(servicesResultsListMapCommonRows).forEach(name => {
 })
 
 Object.keys(servicesResultsListMapCommonRows).forEach(name => {
-  servicesResultsListMapCommonRows[name] = Map(servicesResultsListMapCommonRows[name])
+  // $FlowIssue gets confused
+  servicesResultsListMapCommonRows[name] = I.Record(servicesResultsListMapCommonRows[name])
 })
 
 const servicesResultsListMapCommon = {
@@ -230,7 +231,7 @@ const servicesResultsListMapCommon = {
       following: {},
     },
     entities: makeEntitiesState({
-      searchResults: Map(servicesResultsListMapCommonRows),
+      searchResults: I.Map(servicesResultsListMapCommonRows),
     }),
   },
   parentProps: {

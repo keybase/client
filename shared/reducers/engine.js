@@ -2,7 +2,7 @@
 import * as Constants from '../constants/engine'
 import * as CommonConstants from '../constants/common'
 
-const initialState: Constants.State = Constants.StateRecord()
+const initialState: Constants.State = Constants.makeState()
 
 export default function(state: Constants.State = initialState, action: Constants.Actions) {
   if (action.type === CommonConstants.resetStore) {

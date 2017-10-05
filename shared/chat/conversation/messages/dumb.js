@@ -1,16 +1,16 @@
 // @flow
 // import AttachmentMessageComponent from './attachment'
 // import AttachmentPopup from '../attachment-popup'
+// import {TextPopupMenu, AttachmentPopupMenu} from './popup'
 import HiddenString from '../../../util/hidden-string'
 import * as React from 'react'
 import TextContainer from './text/container'
 import Wrapper from './wrapper'
 import {Box} from '../../../common-adapters'
-import {Map} from 'immutable'
-// import {TextPopupMenu, AttachmentPopupMenu} from './popup'
 import * as ChatConstants from '../../../constants/chat'
 import * as EntityConstants from '../../../constants/entities'
 import * as ChatCreators from '../../../actions/chat/creators'
+import * as I from 'immutable'
 import chatReducer from '../../../reducers/chat'
 
 import type {DumbComponentMap} from '../../../constants/types/more'
@@ -94,8 +94,8 @@ const followStates = ['You', 'Following', 'Broken', 'NotFollowing']
 const followingMap = {
   other: true,
 }
-const metaDataMap = Map({
-  cecileb: new ChatConstants.MetaDataRecord({
+const metaDataMap = I.Map({
+  cecileb: ChatConstants.makeMetaData({
     fullname: 'Cecile Bee',
     brokenTracker: false,
   }),
@@ -136,8 +136,8 @@ const mocks = followStates.reduce(
               message: textMessageMock(messageState, 'other', 'cecileb'),
               you: 'cecileb',
               followingMap,
-              metaDataMap: Map({
-                other: new ChatConstants.MetaDataRecord({
+              metaDataMap: I.Map({
+                other: new ChatConstants.makeMetaData({
                   fullname: 'other person',
                   brokenTracker: true,
                 }),
@@ -397,7 +397,7 @@ const attachmentMap: DumbComponentMap<AttachmentMessageComponent> = {
 }
 */
 
-let mockState = new ChatConstants.StateRecord()
+let mockState = ChatConstants.makeState()
 const firstMsg = textMessageMock('sent', 'cecileb', 'cecileb', {
   text: 'Can you bring the lentils tomorrow?',
 })
@@ -426,14 +426,14 @@ const msgs = [firstMsg, secondMsg, pendingMessage, failedMessage]
 const mockStore = {
   chat: mockState,
   entities: EntityConstants.makeState({
-    messages: Map(
+    messages: I.Map(
       msgs.reduce((acc, m) => {
         acc[m.key] = m
         return acc
       }, {})
     ),
-    conversationMessages: Map({[convID]: msgs.map(m => [m.key])}),
-    convIDToSnippet: Map({[convID]: 'Snippet here'}),
+    conversationMessages: I.Map({[convID]: I.OrderedSet(msgs.map(m => m.key))}),
+    convIDToSnippet: I.Map({[convID]: new HiddenString('Snippet here')}),
   }),
 }
 

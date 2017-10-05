@@ -61,7 +61,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     members: stateProps._memberInfo
-      .toJS()
+      .toArray()
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     onLeaveTeam,
     onManageChat,

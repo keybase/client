@@ -130,9 +130,7 @@ let _wasOnGitTab = false
 const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   // on the git tab?
   const root =
-    // $FlowIssue action allows array or list or iterable, for some reason
     (action.payload.path.first && action.payload.path.first()) ||
-    // $FlowIssue action allows array or list or iterable, for some reason
     (action.payload.path.length && action.payload.path[0])
   if (root === Tabs.gitTab) {
     _wasOnGitTab = true

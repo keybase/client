@@ -1,4 +1,5 @@
-// @flow
+// @noflow
+// ^ Very broken right now
 import {BrokenTrackerBanner, ErrorBanner, InviteBanner, InfoBanner} from './conversation/banner'
 import {UsernameHeader} from './conversation/header'
 import ConversationInput from './conversation/input'
@@ -124,8 +125,6 @@ const inbox = [
     status: 'unfiled',
     teamType: ChatTypes.CommonTeamType.none,
     time: now,
-    snippet: 'fiveTEMPTEMP',
-    unreadCount: 3,
   }),
   Constants.makeInboxState({
     info: null,
@@ -134,8 +133,6 @@ const inbox = [
     status: 'unfiled',
     teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
-    snippet: '3 hours ago',
-    unreadCount: 0,
   }),
   Constants.makeInboxState({
     info: null,
@@ -144,8 +141,6 @@ const inbox = [
     status: 'muted',
     teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 3,
-    snippet: '3 days ago',
-    unreadCount: 0,
   }),
   Constants.makeInboxState({
     info: null,
@@ -154,8 +149,6 @@ const inbox = [
     status: 'unfiled',
     teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 24 * 30,
-    snippet: 'long ago',
-    unreadCount: 0,
   }),
   Constants.makeInboxState({
     info: null,
@@ -164,8 +157,6 @@ const inbox = [
     status: 'unfiled',
     teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 3,
-    snippet: '3 hours ago',
-    unreadCount: 1,
   }),
   Constants.makeInboxState({
     info: null,
@@ -174,18 +165,16 @@ const inbox = [
     status: 'muted',
     teamType: ChatTypes.CommonTeamType.none,
     time: now - 1000 * 60 * 60 * 5,
-    snippet: '3 hours ago',
-    unreadCount: 1,
   }),
 ]
 
 const conversationUnreadCounts = {
-  convo1: 3,
-  convo2: 0,
-  convo3: 0,
-  convo5: 0,
-  convo6: 1,
-  convo7: 1,
+  convo1: {total: 3, badged: 0},
+  convo2: {total: 0, badged: 0},
+  convo3: {total: 0, badged: 0},
+  convo5: {total: 0, badged: 0},
+  convo6: {total: 1, badged: 0},
+  convo7: {total: 1, badged: 0},
 }
 
 const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) => ({
@@ -194,16 +183,14 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       conversationUnreadCounts: Map(conversationUnreadCounts),
       inbox: _inbox || List(inbox),
       nowOverride: now,
-      pending: List(),
-      pendingConversations: List(),
+      pendingConversations: Map(),
       rekeyInfos: rekeyInfos || Map(),
-      selectedConversation: null,
       supersededByState: Map(),
     }),
     entities: EntityConstants.makeState({
       convIDToSnippet: Map(
         inbox.reduce((acc, m) => {
-          acc[m.conversationIDKey] = m.snippet
+          acc[m.conversationIDKey] = `${m.conversationIDKey}`
           return acc
         }, {})
       ),
@@ -442,7 +429,6 @@ const conversationsList = {
               'nine',
               'ten',
             ]),
-            snippet: 'look up!',
             time: now,
             unreadCount: 3,
           }),
@@ -458,7 +444,6 @@ const conversationsList = {
             info: null,
             status: 'unfiled',
             participants: List(['look down!']),
-            snippet: 'one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen',
             time: now,
             unreadCount: 3,
           }),

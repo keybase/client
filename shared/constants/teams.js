@@ -51,13 +51,13 @@ export const makeChannelInfo: I.RecordFactory<_ChannelInfo> = I.Record({
   participants: I.Set(),
 })
 
-export type MemberInfoTypes = null | 'reader' | 'writer' | 'admin' | 'owner'
+export type MemberInfoTypes = 'readers' | 'writers' | 'admins' | 'owners'
 type _MemberInfo = {
-  type: MemberInfoTypes,
+  type: ?MemberInfoTypes,
   username: string,
 }
 
-export type MemberInfo = RecordOf<_MemberInfo>
+export type MemberInfo = I.RecordOf<_MemberInfo>
 export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
   type: null,
   username: '',

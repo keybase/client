@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as I from 'immutable'
 import type {Component} from 'react'
 import type {ConnectedComponent} from 'react-redux'

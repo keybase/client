@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import * as I from 'immutable'
 import * as React from 'react'
 import {LeafTags, pathToString} from './'
@@ -157,22 +157,26 @@ function renderRouteStack({
       // If this route specifies a container component, compose it around every
       // view in the stack.
       stack = stack.map(r =>
-        r.update('component', child => ({isActiveRoute, shouldRender}) => (
-          <RenderRouteNode
-            isActiveRoute={isActiveRoute}
-            shouldRender={shouldRender}
-            isContainer={true}
-            routeDef={routeDef}
-            routeState={routeState}
-            path={path}
-            setRouteState={setRouteState}
-            leafTags={childStack.last().tags}
-            stack={childStack}
-            key={path.join(':')}
-          >
-            {child({isActiveRoute, shouldRender})}
-          </RenderRouteNode>
-        ))
+        r.update('component', child => ({isActiveRoute, shouldRender}) => {
+          const last = childStack.last()
+          const leafTags = last ? last.tags : {}
+          return (
+            <RenderRouteNode
+              isActiveRoute={isActiveRoute}
+              shouldRender={shouldRender}
+              isContainer={true}
+              routeDef={routeDef}
+              routeState={routeState}
+              path={path}
+              setRouteState={setRouteState}
+              leafTags={leafTags}
+              stack={childStack}
+              key={path.join(':')}
+            >
+              {child({isActiveRoute, shouldRender})}
+            </RenderRouteNode>
+          )
+        })
       )
     }
   }
@@ -217,7 +221,8 @@ export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>
   render() {
     // renderRouteStack gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.
-    var viewStack = renderRouteStack({...this.props, path: I.List()})
-    return viewStack.last().component({isActiveRoute: true})
+    const viewStack = renderRouteStack({...this.props, path: I.List()})
+    const last = viewStack.last()
+    return last ? last.component({isActiveRoute: true}) : null
   }
 }

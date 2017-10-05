@@ -35,8 +35,8 @@ type DispatchProps = {
 const mapStateToProps = (state: TypedState, {selectedConversationIDKey}: OwnProps): StateProps => {
   let rekeyInfo = null
 
-  if (selectedConversationIDKey !== Constants.nothingSelected) {
-    rekeyInfo = state.chat.get('rekeyInfos').get(selectedConversationIDKey)
+  if (selectedConversationIDKey !== Constants.nothingSelected && selectedConversationIDKey) {
+    rekeyInfo = state.chat.rekeyInfos.get(selectedConversationIDKey)
   }
 
   return {

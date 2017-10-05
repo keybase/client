@@ -58,7 +58,7 @@ const makeGetParticipants = conversationIDKey => state =>
     state.chat.get('pendingConversations').get(conversationIDKey) || I.List(),
     state.config.username || ''
   )
-const getNowOverride = state => state.chat.get('nowOverride')
+const getNowOverride = state => state.chat.nowOverride
 const makeGetFinalizedInfo = conversationIDKey => state =>
   state.chat.getIn(['finalizedState', conversationIDKey])
 

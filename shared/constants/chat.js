@@ -2,11 +2,11 @@
 import * as I from 'immutable'
 import * as ChatTypes from './types/flow-types-chat'
 import * as SearchConstants from './search'
+import * as RPCTypes from './types/flow-types'
 import HiddenString from '../util/hidden-string'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
-import {CommonTLFVisibility} from './types/flow-types'
 import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
 import {createShallowEqualSelector} from './selectors'
@@ -277,13 +277,13 @@ type _InboxState = {
   name: ?string,
   membersType: ChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
-  participants: List<string>,
+  participants: I.List<string>,
   state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
   time: number,
   teamType: ChatTypes.TeamType,
   version: ChatTypes.ConversationVers,
-  visibility: ChatTypes.Visibility,
+  visibility: RPCTypes.TLFVisibility,
 }
 
 export type InboxState = I.RecordOf<_InboxState>
@@ -295,12 +295,12 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   channelname: null,
   membersType: 0,
   notifications: null,
-  participants: List(),
+  participants: I.List(),
   state: 'untrusted',
   status: 'unfiled',
   time: 0,
   name: '',
-  visibility: CommonTLFVisibility.private,
+  visibility: RPCTypes.CommonTLFVisibility.private,
   teamType: ChatTypes.CommonTeamType.none,
   version: 0,
 })
@@ -329,7 +329,7 @@ export const makeMetaData: I.RecordFactory<_MetaData> = I.Record({
   brokenTracker: false,
 })
 
-export type Participants = List<string>
+export type Participants = I.List<string>
 
 export type _RekeyInfo = {
   rekeyParticipants: Participants,
@@ -338,7 +338,7 @@ export type _RekeyInfo = {
 
 export type RekeyInfo = I.RecordOf<_RekeyInfo>
 export const makeRekeyInfo: I.RecordFactory<_RekeyInfo> = I.Record({
-  rekeyParticipants: List(),
+  rekeyParticipants: I.List(),
   youCanRekey: false,
 })
 
@@ -362,9 +362,9 @@ type _State = {
   // TODO  move to entities
   messageMap: I.Map<MessageKey, Message>,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
-  inbox: List<InboxState>,
+  inbox: I.List<InboxState>,
   inboxFilter: string,
-  inboxSearch: List<string>,
+  inboxSearch: I.List<string>,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
@@ -381,9 +381,9 @@ type _State = {
   inboxUntrustedState: UntrustedState,
   previousConversation: ?ConversationIDKey,
   searchPending: boolean,
-  searchResults: ?List<SearchConstants.SearchResultId>,
+  searchResults: ?I.List<SearchConstants.SearchResultId>,
   searchShowingSuggestions: boolean,
-  selectedUsersInSearch: List<SearchConstants.SearchResultId>,
+  selectedUsersInSearch: I.List<SearchConstants.SearchResultId>,
   inSearch: boolean,
   searchResultTerm: string,
   teamCreationError: string,
@@ -393,9 +393,9 @@ export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
   messageMap: I.Map(),
   localMessageStates: I.Map(),
-  inbox: List(),
+  inbox: I.List(),
   inboxFilter: '',
-  inboxSearch: List(),
+  inboxSearch: I.List(),
   conversationStates: I.Map(),
   metaData: I.Map(),
   finalizedState: I.Map(),
@@ -413,7 +413,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   searchPending: false,
   searchResults: null,
   searchShowingSuggestions: false,
-  selectedUsersInSearch: List(),
+  selectedUsersInSearch: I.List(),
   inSearch: false,
   tempPendingConversations: I.Map(),
   searchResultTerm: '',
@@ -449,7 +449,7 @@ export type AppendMessages = NoErrorTypedAction<
     svcShouldDisplayNotification: boolean,
   }
 >
-export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
+export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', I.List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<
   'chat:blockConversation',
   {
@@ -480,7 +480,7 @@ export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
   {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
 >
-export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
+export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: I.List<InboxState>}>
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
   {conversationIDKey: ConversationIDKey, isRequesting: boolean}
@@ -914,7 +914,7 @@ function textSnippet(message: ?string = '', max: number) {
 }
 
 // Filters out myself from most of our views of the list, unless the list is just me
-function participantFilter(participants: List<string>, you: string): List<string> {
+function participantFilter(participants: I.List<string>, you: string): I.List<string> {
   const withoutYou = participants.filter(p => p !== you)
   if (withoutYou.count() === 0) {
     return participants
@@ -939,7 +939,7 @@ function usernamesToUserListItem(
 ): Array<UserListItem> {
   return usernames.map(username => ({
     username,
-    broken: metaDataMap.get(username, I.Map()).get('brokenTracker', false),
+    broken: metaDataMap.getIn([username, 'brokenTracker'], false),
     you: username === you,
     following: !!followingMap[username],
   }))

@@ -81,18 +81,12 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
     const infos = []
     const types = ['admins', 'owners', 'readers', 'writers']
-    const typeMap: {[key: string]: Constants.MemberInfoTypes} = {
-      admins: 'admin',
-      owners: 'owner',
-      readers: 'reader',
-      writers: 'writer',
-    }
     types.forEach(type => {
       const details = results.members[type] || []
       details.forEach(({username}) => {
         infos.push(
           Constants.makeMemberInfo({
-            type: typeMap[type],
+            type,
             username,
           })
         )

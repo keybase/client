@@ -5,9 +5,7 @@ import {Avatar, Box, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from 
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
-export type RowProps = {
-  ...Constants.MemberInfo,
-}
+export type RowProps = Constants.MemberInfo
 
 export type Props = {
   you: string,
@@ -30,7 +28,7 @@ const showCrown = {
   admins: true,
   owners: true,
   readers: false,
-  writer: false,
+  writers: false,
 }
 
 const Help = isMobile
@@ -94,7 +92,8 @@ class Team extends React.PureComponent<Props> {
             {item.username}
           </Text>
           <Box style={globalStyles.flexBoxRow}>
-            {!!showCrown[item.type] &&
+            {!!item.type &&
+              !!showCrown[item.type] &&
               <Icon
                 type="iconfont-crown"
                 style={{
@@ -103,7 +102,7 @@ class Team extends React.PureComponent<Props> {
                   marginRight: globalMargins.xtiny,
                 }}
               />}
-            <Text type="BodySmall">{typeToLabel[item.type]}</Text>
+            {!!item.type && <Text type="BodySmall">{typeToLabel[item.type]}</Text>}
           </Box>
         </Box>
       </Box>

@@ -114,7 +114,7 @@ const storeFn = (messageMap: {[key: string]: Constants.Message}) => ({
     username: 'tester',
   },
   chat: Constants.makeState({
-    messageMap: new I.Map(messageMap),
+    messageMap: I.Map(messageMap),
     localMessageStates: I.Map(),
     inbox: I.List(),
     inboxFilter: '',

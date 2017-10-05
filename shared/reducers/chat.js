@@ -4,8 +4,8 @@ import * as Constants from '../constants/chat'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
-const initialState: Constants.State = new Constants.StateRecord()
-const initialConversation: Constants.ConversationState = new Constants.ConversationStateRecord()
+const initialState: Constants.State = Constants.makeState()
+const initialConversation: Constants.ConversationState = Constants.makeConversationState()
 
 type ConversationsStates = Map<Constants.ConversationIDKey, Constants.ConversationState>
 type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
@@ -20,7 +20,7 @@ function updateConversation(
 function reducer(state: Constants.State = initialState, action: Constants.Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return new Constants.StateRecord()
+      return Constants.makeState()
     case 'chat:clearMessages': {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
@@ -117,7 +117,9 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:selectConversation': {
       //  ensure selected converations are visible if they exist
       const {conversationIDKey} = action.payload
-      return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
+      if (conversationIDKey) {
+        return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
+      } else return state
     }
     case 'chat:loadingMessages': {
       const {isRequesting, conversationIDKey} = action.payload
@@ -201,14 +203,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         'rekeyInfos',
         state
           .get('rekeyInfos')
-          .set(conversationIDKey, new Constants.RekeyInfoRecord({rekeyParticipants: List(rekeyers)}))
+          .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: List(rekeyers)}))
       )
     }
     case 'chat:updateInboxRekeySelf': {
       const {conversationIDKey} = action.payload
       return state.set(
         'rekeyInfos',
-        state.get('rekeyInfos').set(conversationIDKey, new Constants.RekeyInfoRecord({youCanRekey: true}))
+        state.get('rekeyInfos').set(conversationIDKey, Constants.makeRekeyInfo({youCanRekey: true}))
       )
     }
     case 'chat:addPendingConversation': {

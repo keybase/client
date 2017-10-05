@@ -12,17 +12,17 @@ const mapStateToProps = (state: TypedState) => {
     // $FlowIssue this isn't typesafe
     return {}
   }
-  const finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
+  const finalizeInfo = state.chat.finalizedState.get(selectedConversationIDKey)
   const _supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
 
-  const inbox = state.chat.get('inbox')
+  const inbox = state.chat.inbox
   const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
   const _participants = (selected && selected.participants) || List()
 
   return {
     _participants,
     _supersededBy,
-    username: finalizeInfo.resetUser,
+    username: finalizeInfo ? finalizeInfo.resetUser : '',
   }
 }
 

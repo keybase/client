@@ -74,7 +74,7 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '80': 'icon-team-placeholder-avatar-80',
 }
 
-const followStateToType = I.fromJS({
+const followStateToType = I.Map({
   '112': {
     theyNo: {youYes: 'icon-following-28'},
     theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'},
@@ -97,7 +97,7 @@ const followStateToType = I.fromJS({
   },
 })
 
-const followStateToSize = I.fromJS({
+const followStateToSize = I.Map({
   '112': {
     theyNo: {youYes: 28},
     theyYes: {youNo: 28, youYes: 28},

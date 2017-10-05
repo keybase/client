@@ -1,15 +1,13 @@
 // @flow
 import * as CommonConstants from '../constants/common'
-import {StateRecord} from '../constants/entities'
+import {makeState, type Actions, type State} from '../constants/entities'
 
-import type {Actions, State} from '../constants/entities'
-
-const initialState: State = new StateRecord()
+const initialState: State = makeState()
 
 export default function(state: State = initialState, action: Actions): State {
   switch (action.type) {
     case CommonConstants.resetStore: {
-      return new StateRecord()
+      return initialState
     }
     case 'entity:delete': {
       const {keyPath, ids} = action.payload

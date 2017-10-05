@@ -98,7 +98,7 @@ export default function(state: Constants.State = initialState, action: any): Con
     case Constants.actionUpdateForgotPasswordEmailAddress:
       return {
         ...state,
-        forgotPasswordEmailAddress: action.error ? null : action.payload,
+        forgotPasswordEmailAddress: action.error ? '' : action.payload,
         forgotPasswordError: action.error ? action.payload : null,
         forgotPasswordSuccess: false,
       }
@@ -119,7 +119,10 @@ export default function(state: Constants.State = initialState, action: any): Con
     case Constants.cameraBrokenMode:
       return {
         ...state,
-        codePage: {cameraBrokenMode: action.payload},
+        codePage: {
+          ...state.codePage,
+          cameraBrokenMode: action.payload,
+        },
       }
     case Constants.configuredAccounts:
       if (action.payload.error) {
