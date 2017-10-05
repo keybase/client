@@ -381,9 +381,9 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		// If the block was cached in the past, we need to handle it as if it's
 		// an on-demand request so that its downstream prefetches are triggered
 		// correctly according to the new on-demand fetch priority.
-		fbo.config.BlockOps().BlockRetriever().CacheAndPrefetch(ctx,
-			ptr, block, kmd, defaultOnDemandRequestPriority, lifetime,
-			prefetchStatus, nil, nil)
+		fbo.config.BlockOps().Prefetcher().ProcessBlockForPrefetch(ctx, ptr,
+			block, kmd, defaultOnDemandRequestPriority, lifetime,
+			prefetchStatus)
 		return block, nil
 	}
 
@@ -3340,25 +3340,22 @@ func (fbo *folderBlockOps) updatePointer(kmd KeyMetadata, oldPtr BlockPointer, n
 	// Only prefetch if the updated pointer is a new block ID.
 	if oldPtr.ID != newPtr.ID {
 		// TODO: Remove this comment when we're done debugging because it'll be everywhere.
-		fbo.log.CDebugf(context.TODO(), "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
+		ctx := context.TODO()
+		fbo.log.CDebugf(ctx, "Updated reference for pointer %s to %s.", oldPtr.ID, newPtr.ID)
 		if shouldPrefetch {
 			// Prefetch the new ref, but only if the old ref already exists in
 			// the block cache. Ideally we'd always prefetch it, but we need
 			// the type of the block so that we can call `NewEmpty`.
-			// TODO KBFS-1850: Eventually we should use the codec library's
-			// ability to decode into a nil interface to no longer need to
-			// pre-initialize the correct type.
-			block, _, _, err := fbo.config.BlockCache().GetWithPrefetch(oldPtr)
+			block, _, lifetime, err :=
+				fbo.config.BlockCache().GetWithPrefetch(oldPtr)
 			if err != nil {
 				return
 			}
 
-			fbo.config.BlockOps().Prefetcher().PrefetchBlock(
-				block.NewEmpty(),
-				newPtr,
-				kmd,
-				updatePointerPrefetchPriority,
-			)
+			// No need to cache because it's already cached.
+			_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
+				updatePointerPrefetchPriority, kmd, newPtr, block.NewEmpty(),
+				lifetime)
 		}
 	}
 }

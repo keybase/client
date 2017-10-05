@@ -1346,6 +1346,7 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 		}
 	}
 	c.syncedTlfs[tlfID] = isSynced
+	<-c.BlockOps().TogglePrefetcher(true)
 	return nil
 }
 

@@ -758,10 +758,8 @@ func (k *LibKBFS) DirtyPaths(u User, tlfName string, t tlf.Type) (
 func (k *LibKBFS) TogglePrefetch(u User, enable bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx, cancel := k.newContext(u)
-	defer cancel()
-
-	return config.BlockOps().TogglePrefetcher(ctx, enable)
+	_ = config.BlockOps().TogglePrefetcher(enable)
+	return nil
 }
 
 // Shutdown implements the Engine interface.

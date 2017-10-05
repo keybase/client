@@ -28,7 +28,7 @@ func (f *PrefetchFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []b
 		return 0, nil
 	}
 
-	f.fs.config.BlockOps().TogglePrefetcher(ctx, f.enable)
+	f.fs.config.BlockOps().TogglePrefetcher(f.enable)
 
 	return len(bs), err
 }

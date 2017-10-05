@@ -1582,11 +1582,10 @@ func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	}()
 
 	if md.IsReadable() && fbo.config.Mode() != InitMinimal {
-		// We will prefetch this as on-demand so that it triggers downstream
-		// prefetches.
-		fbo.config.BlockOps().Prefetcher().PrefetchBlock(
-			&DirBlock{}, md.data.Dir.BlockPointer, md,
-			defaultOnDemandRequestPriority)
+		// We `Get` the root block to ensure downstream prefetches occur.
+		_ = fbo.config.BlockOps().BlockRetriever().Request(ctx,
+			defaultOnDemandRequestPriority, md, md.data.Dir.BlockPointer,
+			&DirBlock{}, TransientEntry)
 	} else {
 		fbo.log.CDebugf(ctx,
 			"Setting an unreadable head with revision=%d", md.Revision())
