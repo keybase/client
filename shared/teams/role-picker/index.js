@@ -59,21 +59,23 @@ const makeRoleOption = (role, selected, setSelected) => (
     <Icon
       type={roleIconMap[role]}
       style={{
-        color: globalColors.black_40,
+        color: selected === role ? globalColors.blue : globalColors.black_40,
         fontSize: isMobile ? 32 : 28,
         marginRight: globalMargins.small,
       }}
     />
     <Box style={{...globalStyles.flexBoxColumn}}>
       <Text type="Header">{mapRoleToName(role)}</Text>
-      <Text type="BodySmallSemibold" style={{maxWidth: 200}}>{roleDescMap[role]}</Text>
+      <Text type="BodySmallSemibold" style={{maxWidth: 200}}>
+        {roleDescMap[role]}
+      </Text>
     </Box>
     <Box style={{width: isMobile ? 32 : 28, marginLeft: globalMargins.small}}>
       {selected === role &&
         <Icon
           type="iconfont-check"
           style={{
-            color: globalColors.black_40,
+            color: globalColors.blue,
             fontSize: isMobile ? 32 : 28,
             alignSelf: 'center',
           }}
