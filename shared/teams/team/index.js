@@ -117,7 +117,6 @@ const TeamTabs = (props: TeamTabsProps) => {
     </Text>
   )
 
-  // $FlowIssue with tab typing
   const onSelect = (tab: any) => {
     const key = tab && tab.key
     key ? key !== 'loadingIndicator' && setSelectedTab(key) : setSelectedTab('members')
@@ -144,8 +143,6 @@ class Team extends React.PureComponent<Props> {
 
     const me = members.find(member => member.username === you)
     const admin = me ? me.type === 'admins' || me.type === 'owners' : false
-    const progressIndicator =
-      members.length === 0 && loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
@@ -194,7 +191,6 @@ class Team extends React.PureComponent<Props> {
         <Text type="BodySmall">TEAM</Text>
         <Help name={name} />
         <TeamTabs {...this.props} admin={admin} />
-        {progressIndicator}
         {contents}
         {showMenu &&
           <PopupMenu

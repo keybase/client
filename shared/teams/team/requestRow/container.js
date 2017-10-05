@@ -2,9 +2,9 @@
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import {connect} from 'react-redux'
-import {compose, withState} from 'recompose'
 import {TeamRequestRow} from '.'
-import {addToTeam, ignoreRequest} from '../../../actions/teams/creators'
+import {ignoreRequest} from '../../../actions/teams/creators'
+import {navigateAppend} from '../../../actions/route-tree'
 import {showUserProfile} from '../../../actions/profile'
 import {getProfile} from '../../../actions/tracker'
 import {startConversation} from '../../../actions/chat'
@@ -34,13 +34,8 @@ const mapStateToProps = (state: TypedState, {username}: OwnProps): StateProps =>
 
 type DispatchProps = {
   onOpenProfile: (u: string) => void,
+  _onAccept: (string, string) => void,
   _onChat: (string, ?string) => void,
-  _onAcceptRequest: (
-    name: string,
-    username: string,
-    role: 'owners' | 'admins' | 'writers' | 'readers',
-    sendChatNotification: boolean
-  ) => void,
   _onIgnoreRequest: (name: string, username: string) => void,
 }
 
@@ -48,15 +43,18 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   onOpenProfile: (username: string) => {
     isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
   },
+  _onAccept: (name: string, username: string) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {teamname: name, username},
+          selected: 'rolePicker',
+        },
+      ])
+    ),
   _onChat: (username, myUsername) => {
     username && myUsername && dispatch(startConversation([username, myUsername]))
   },
-  _onAcceptRequest: (
-    name: string,
-    username: string,
-    role: 'owners' | 'admins' | 'writers' | 'readers',
-    sendChatNotification: boolean
-  ) => dispatch(addToTeam(name, '', username, role, sendChatNotification)),
   _onIgnoreRequest: (name: string, username: string) => dispatch(ignoreRequest(name, username)),
 })
 
@@ -66,17 +64,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...dispatchProps,
     ...stateProps,
     onChat: () => dispatchProps._onChat(ownProps.username, stateProps.you),
-    onAcceptRequest: (role: 'owners' | 'admins' | 'writers' | 'readers', sendChatNotification: boolean) =>
-      dispatchProps._onAcceptRequest(ownProps.teamname, ownProps.username, role, sendChatNotification),
+    onAccept: () => dispatchProps._onAccept(ownProps.teamname, ownProps.username),
     onIgnoreRequest: () => dispatchProps._onIgnoreRequest(ownProps.teamname, ownProps.username),
   }
 }
 
-export const ConnectedRequestRow = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  withState('showMenu', 'setShowMenu', false),
-  withState('selectedRole', 'setSelectedRole', 0)
-)(TeamRequestRow)
+export const ConnectedRequestRow = connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamRequestRow)
 
 export default function(i: number, props: OwnProps) {
   return <ConnectedRequestRow key={props.username} {...props} />
