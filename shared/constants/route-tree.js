@@ -10,7 +10,7 @@ export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef:
 export const switchTo = 'routeTree:switchTo'
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
-export type NavigationSource = 'initial-default' | 'initial-restore-partial' | 'initial-restore' | 'user'
+export type NavigationSource = 'initial-default' | 'initial-restore' | 'user'
 
 export const navigateTo = 'routeTree:navigateTo'
 export type NavigateTo = NoErrorTypedAction<
