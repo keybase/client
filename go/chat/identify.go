@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -210,15 +209,15 @@ func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 	}
 }
 
-func (t *NameIdentifier) Identify(ctx context.Context, arg keybase1.TLFQuery, private bool) ([]keybase1.TLFIdentifyFailure, error) {
+func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
+	identBehavior keybase1.TLFIdentifyBehavior) ([]keybase1.TLFIdentifyFailure, error) {
 	// need new context as errgroup will cancel it.
 	group, ectx := errgroup.WithContext(BackgroundContext(ctx, t.G()))
 	assertions := make(chan string)
 
 	group.Go(func() error {
 		defer close(assertions)
-		pieces := strings.Split(strings.Fields(arg.TlfName)[0], ",")
-		for _, p := range pieces {
+		for _, p := range names {
 			select {
 			case assertions <- p:
 			case <-ectx.Done():
@@ -233,7 +232,7 @@ func (t *NameIdentifier) Identify(ctx context.Context, arg keybase1.TLFQuery, pr
 	for i := 0; i < numIdentifiers; i++ {
 		group.Go(func() error {
 			for assertion := range assertions {
-				f, err := t.identifyUser(ectx, assertion, private, arg.IdentifyBehavior)
+				f, err := t.identifyUser(ectx, assertion, private, identBehavior)
 				if err != nil {
 					return err
 				}

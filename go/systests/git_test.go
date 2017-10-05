@@ -65,7 +65,7 @@ func TestGitTeamer(t *testing.T) {
 		FolderType: keybase1.FolderType_PRIVATE,
 	})
 	require.NoError(t, err)
-	expectedTeamID, _, err := teams.LookupImplicitTeam(context.Background(), g, frag, false /*isPublic*/)
+	expectedTeamID, _, _, err := teams.LookupImplicitTeam(context.Background(), g, frag, false /*isPublic*/)
 	require.NoError(t, err)
 	require.Equal(t, expectedTeamID, res.TeamID, "teamer should have created a team that was then looked up")
 	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
@@ -74,7 +74,7 @@ func TestGitTeamer(t *testing.T) {
 	bob = tt.addUser("bob")
 	gil = tt.addUser("gil")
 	frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-	teamID, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, false /*isPublic*/)
+	teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, false /*isPublic*/)
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
 		Name:       frag,
 		Private:    true,
@@ -88,7 +88,7 @@ func TestGitTeamer(t *testing.T) {
 	bob = tt.addUser("bob")
 	gil = tt.addUser("gil")
 	frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-	teamID, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, true /*isPublic*/)
+	teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, true /*isPublic*/)
 	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
 		Name:       frag,
 		Private:    false,
@@ -103,15 +103,15 @@ func TestGitTeamer(t *testing.T) {
 	bob = tt.addUser("bob")
 	iTeamNameCreate1 := strings.Join([]string{alice.username, bob.username}, ",")
 	iTeamNameCreate2 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",")
-	_, _, err = teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	_, _, _, err = teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
 	require.NoError(t, err)
-	iTeamID2, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
+	iTeamID2, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
 	require.NoError(t, err)
 	t.Logf("prove to create the conflict")
 	bob.proveRooter()
 	alice.waitForTeamIDChangedGregor(iTeamID2, alice.getTeamSeqno(iTeamID2)+1)
 	t.Logf("find out the conflict suffix")
-	_, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	_, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
 	require.NoError(t, err)
 	require.Len(t, conflicts, 1)
 	t.Logf("check")

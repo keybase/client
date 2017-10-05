@@ -149,7 +149,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 	}
 	sort.Sort(keybase1.ByUserVersionID(uvs))
 	impTeam.IsPublic = false
-	teamID, err := CreateImplicitTeam(context.TODO(), tc.G, impTeam)
+	teamID, _, err := CreateImplicitTeam(context.TODO(), tc.G, impTeam)
 	require.NoError(t, err)
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		ID: teamID,
@@ -172,7 +172,7 @@ func TestCreateImplicitTeam(t *testing.T) {
 			Service: keybase1.SocialAssertionService("github"),
 		},
 	}
-	teamID, err = CreateImplicitTeam(context.TODO(), tc.G, impTeam)
+	teamID, _, err = CreateImplicitTeam(context.TODO(), tc.G, impTeam)
 	require.NoError(t, err)
 	team, err = Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		ID: teamID,

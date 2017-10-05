@@ -10,7 +10,7 @@ import {navigateTo} from '../../actions/route-tree'
 import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', routeProps.teamname], I.Set())
+  const convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', routeProps.get('teamname')], I.Set())
   const you = state.config.username
 
   const channels = convIDs
@@ -31,19 +31,23 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   return {
     channels,
-    teamname: routeProps.teamname,
+    teamname: routeProps.get('teamname'),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => ({
-  _loadChannels: () => dispatch(getChannels(routeProps.teamname)),
+  _loadChannels: () => dispatch(getChannels(routeProps.get('teamname'))),
   onBack: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onCreate: () =>
     dispatch(
-      navigateTo([{selected: 'createChannel', props: {teamname: routeProps.teamname}}], routePath.butLast())
+      navigateTo(
+        [{selected: 'createChannel', props: {teamname: routeProps.get('teamname')}}],
+        routePath.butLast()
+      )
     ),
-  onToggle: (channelname: string) => dispatch(toggleChannelMembership(routeProps.teamname, channelname)),
+  onToggle: (channelname: string) =>
+    dispatch(toggleChannelMembership(routeProps.get('teamname'), channelname)),
 })
 
 export default compose(

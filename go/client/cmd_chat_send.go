@@ -173,7 +173,7 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if nActions < 1 {
 		cli.ShowCommandHelp(ctx, "send")
-		return fmt.Errorf("Incorrect Usage.")
+		return fmt.Errorf("incorrect usage")
 	}
 	if nActions > 1 {
 		cli.ShowCommandHelp(ctx, "send")

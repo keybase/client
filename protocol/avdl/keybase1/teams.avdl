@@ -75,6 +75,8 @@ protocol teams {
     UserVersion uv;
     string username;
     boolean active;
+    @lint("ignore")
+    boolean needsPUK;
   }
 
   record TeamMembersDetails {
@@ -88,6 +90,7 @@ protocol teams {
     TeamMembersDetails members;
     PerTeamKeyGeneration keyGeneration;
     map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
+    TeamSettings settings;
   }
 
   record UserVersion {
@@ -173,6 +176,7 @@ protocol teams {
     TeamInviteID id;
     TeamInviteType type;
     TeamInviteName name;
+    UserVersion uv;
     UserVersion inviter;
     string inviterUsername;
     string teamName;
@@ -361,6 +365,7 @@ protocol teams {
     boolean forceFullReload;      // Ignore local data and fetch from the server.
     boolean forceRepoll;          // Force a sync with merkle.
     boolean staleOK;              // If a very stale cache hit is OK.
+    boolean public;               // For public teams.
   }
 
   record ImplicitRole {
@@ -399,6 +404,8 @@ protocol teams {
     boolean isImplicitTeam;
     TeamRole role;
     union{null, ImplicitRole} implicit;
+    @lint("ignore")
+    boolean needsPUK;
   }
 
   record AnnotatedTeamList {
@@ -445,7 +452,7 @@ protocol teams {
   array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);
   void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
   TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
-  void teamRemoveMember(int sessionID, string name, string username);
+  void teamRemoveMember(int sessionID, string name, string username, string email, boolean permanent);
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
@@ -482,8 +489,14 @@ protocol teams {
     Time time;
   }
 
-  TeamID lookupImplicitTeam(string name, boolean public);
-  TeamID lookupOrCreateImplicitTeam(string name, boolean public);
+  record LookupImplicitTeamRes {
+    TeamID teamID;
+    TeamName name;
+    ImplicitTeamDisplayName displayName;
+  }
+
+  LookupImplicitTeamRes lookupImplicitTeam(string name, boolean public);
+  LookupImplicitTeamRes lookupOrCreateImplicitTeam(string name, boolean public);
 
   void teamReAddMemberAfterReset(int sessionID, TeamID id, string username);
 

@@ -63,8 +63,7 @@ func (e *loginLoadUser) Run(ctx *Context) error {
 
 	e.G().Log.Debug("loginLoadUser: found username %q", username)
 
-	arg := libkb.NewLoadUserByNameArg(e.G(), username)
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserByNameArg(e.G(), username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		return err

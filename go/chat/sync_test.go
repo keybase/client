@@ -106,6 +106,14 @@ func TestSyncerConnected(t *testing.T) {
 		return chat1.NewSyncInboxResWithCurrent(), nil
 	}
 	doSync(t, syncer, ri, uid)
+	select {
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_CURRENT, typ)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox sync received")
+	}
 
 	t.Logf("test clear")
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
@@ -113,9 +121,12 @@ func TestSyncerConnected(t *testing.T) {
 	}
 	doSync(t, syncer, ri, uid)
 	select {
-	case <-list.inboxStale:
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "no inbox stale received")
+		require.Fail(t, "no inbox synced received")
 	}
 	_, _, err := ibox.ReadAll(ctx)
 	require.Error(t, err)
@@ -139,15 +150,13 @@ func TestSyncerConnected(t *testing.T) {
 	}
 	doSync(t, syncer, ri, uid)
 	select {
-	case <-list.inboxStale:
-		require.Fail(t, "should not receive inbox stale")
-	default:
-	}
-	select {
-	case updates := <-list.threadsStale:
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
+		updates := sres.Incremental().Items
 		require.Equal(t, 1, len(updates))
-		require.Equal(t, convs[1].GetConvID(), updates[0].ConvID)
-		require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
+		require.Equal(t, convs[1].GetConvID().String(), updates[0].ConvID)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no threads stale received")
 	}
@@ -182,7 +191,10 @@ func TestSyncerConnected(t *testing.T) {
 	ri.CacheBodiesVersion = 5
 	doSync(t, syncer, ri, uid)
 	select {
-	case <-list.inboxStale:
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox stale received")
 	}
@@ -200,6 +212,18 @@ func TestSyncerConnected(t *testing.T) {
 	srvVers, err = ibox.ServerVersion(context.TODO())
 	require.NoError(t, err)
 	require.Equal(t, 5, srvVers)
+
+	// Make sure we didn't get any stales
+	select {
+	case <-list.threadsStale:
+		require.Fail(t, "no thread stales")
+	default:
+	}
+	select {
+	case <-list.inboxStale:
+		require.Fail(t, "no inbox stales")
+	default:
+	}
 }
 
 func TestSyncerAdHocFullReload(t *testing.T) {
@@ -224,9 +248,12 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 	}
 	doSync(t, syncer, ri, uid)
 	select {
-	case <-list.inboxStale:
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "no inbox stale")
+		require.Fail(t, "no inbox synced received")
 	}
 
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
@@ -238,9 +265,12 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 	}
 	doSync(t, syncer, ri, uid)
 	select {
-	case <-list.inboxStale:
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "no inbox stale")
+		require.Fail(t, "no inbox synced received")
 	}
 
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
@@ -252,9 +282,19 @@ func TestSyncerAdHocFullReload(t *testing.T) {
 	}
 	doSync(t, syncer, ri, uid)
 	select {
-	case <-list.inboxStale:
+	case sres := <-list.inboxSynced:
+		typ, err := sres.SyncType()
+		require.NoError(t, err)
+		require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
 	case <-time.After(20 * time.Second):
+		require.Fail(t, "no inbox synced received")
+	}
+
+	// Make sure we don't get inbox stale
+	select {
+	case <-list.inboxStale:
 		require.Fail(t, "no inbox stale")
+	default:
 	}
 }
 
@@ -272,13 +312,12 @@ func TestSyncerAppState(t *testing.T) {
 	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	t.Logf("test incremental")
 	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
-	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		return chat1.NewSyncInboxResWithIncremental(chat1.SyncIncrementalRes{
-			Vers:  100,
-			Convs: []chat1.Conversation{conv},
-		}), nil
-	}
-	doSync(t, syncer, ri, uid)
+	syncer.SendChatStaleNotifications(context.TODO(), uid, []chat1.ConversationStaleUpdate{
+		chat1.ConversationStaleUpdate{
+			ConvID:     conv.GetConvID(),
+			UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+		},
+	}, true)
 	select {
 	case <-list.threadsStale:
 		require.Fail(t, "no stale messages in bkg mode")
@@ -295,10 +334,7 @@ func TestSyncerAppState(t *testing.T) {
 	}
 
 	tc.G.AppState.Update(keybase1.AppState_BACKGROUND)
-	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
-		return chat1.NewSyncInboxResWithClear(), nil
-	}
-	doSync(t, syncer, ri, uid)
+	syncer.SendChatStaleNotifications(context.TODO(), uid, nil, true)
 	select {
 	case <-list.inboxStale:
 		require.Fail(t, "no stale messages in bkg mode")

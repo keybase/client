@@ -53,8 +53,7 @@ func (e *ListTrackers2Engine) lookupUID() error {
 		return nil
 	}
 
-	larg := libkb.NewLoadUserPubOptionalArg(e.G())
-	larg.Name = e.arg.Assertion
+	larg := libkb.NewLoadUserPubOptionalArg(e.G()).WithName(e.arg.Assertion)
 	u, err := libkb.LoadUser(larg)
 	if err != nil {
 		return err

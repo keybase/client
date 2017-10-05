@@ -90,18 +90,19 @@ func (p Paragraph) Output(out io.Writer) {
 }
 
 type Renderer struct {
+	libkb.Contextified
 	indent    int
 	cols      int
 	out       io.Writer
 	paragraph *Paragraph
 }
 
-func NewRenderer(out io.Writer) *Renderer {
+func NewRenderer(g *libkb.GlobalContext, out io.Writer) *Renderer {
 	width, _ := GlobUI.GetTerminalSize()
 	if width == 0 {
 		width = 80
 	}
-	return &Renderer{indent: 0, out: out, cols: width}
+	return &Renderer{Contextified: libkb.NewContextified(g), indent: 0, out: out, cols: width}
 }
 
 func (r *Renderer) RenderNodes(nodes []*html.Node) {
@@ -114,7 +115,7 @@ func (r *Renderer) Buffer(d []byte) {
 	if r.paragraph == nil {
 		d = bytes.TrimSpace(d)
 		if len(d) > 0 {
-			G.Log.Warning("floating data in Markup is ignored: %v", d)
+			r.G().Log.Warning("floating data in Markup is ignored: %v", d)
 		}
 	} else {
 		r.paragraph.Buffer(d)
@@ -206,7 +207,7 @@ func getWriter(w io.Writer) io.Writer {
 	return w
 }
 
-func Render(w io.Writer, m *libkb.Markup) {
+func Render(g *libkb.GlobalContext, w io.Writer, m *libkb.Markup) {
 	if m == nil {
 		return
 	}
@@ -216,16 +217,16 @@ func Render(w io.Writer, m *libkb.Markup) {
 		GlobUI.Printf("Cannot render markup: %s\n", err)
 		return
 	}
-	renderer := NewRenderer(w)
+	renderer := NewRenderer(g, w)
 	renderer.RenderNodes(doc.Nodes)
 }
 
-func RenderText(w io.Writer, txt keybase1.Text) {
+func RenderText(g *libkb.GlobalContext, w io.Writer, txt keybase1.Text) {
 	w = getWriter(w)
 	if !txt.Markup {
 		w.Write([]byte(txt.Data))
 	} else {
-		Render(w, libkb.NewMarkup(txt.Data))
+		Render(g, w, libkb.NewMarkup(txt.Data))
 	}
 }
 

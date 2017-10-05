@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/keybase/client/go/teams"
+
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -15,7 +17,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -213,10 +214,8 @@ func newBaseInboxSource(g *globals.Context, ibs types.InboxSource,
 
 func (b *baseInboxSource) notifyTlfFinalize(ctx context.Context, username string) {
 	// Let the rest of the system know this user has changed
-	finalizeUser, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name:              username,
-		PublicKeyOptional: true,
-	})
+	arg := libkb.NewLoadUserArg(b.G().ExternalG()).WithName(username).WithPublicKeyOptional()
+	finalizeUser, err := libkb.LoadUser(arg)
 	if err != nil {
 		b.Debug(ctx, "notifyTlfFinalize: failed to load finalize user, skipping user changed notification: err: %s", err.Error())
 	} else {
@@ -910,8 +909,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
-	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v", unverifiedTLFName,
-		conversationRemote.GetConvID(), s.offline)
+	s.Debug(ctx, "localizing: TLF: %s convID: %s offline: %v vis: %v", unverifiedTLFName,
+		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
 		Id:          conversationRemote.Metadata.ConversationID,
@@ -1063,30 +1062,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// if this is an implicit team conversation, then the TLF name is the internal team name.
-	// Lookup the display name and use it instead.
-	if conversationLocal.GetMembersType() == chat1.ConversationMembersType_IMPTEAM {
-		teamID, err := keybase1.TeamIDFromString(conversationLocal.Info.Triple.Tlfid.String())
-		if err != nil {
-			errMsg := fmt.Sprintf("teams.Load failed for implicit team %q: %s", conversationLocal.Info.TlfName, err)
-			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
-			return conversationLocal
-		}
-		team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
-		if err != nil {
-			errMsg := fmt.Sprintf("teams.Load failed for implicit team %q: %s", conversationLocal.Info.TlfName, err)
-			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
-			return conversationLocal
-		}
-		display, err := team.ImplicitTeamDisplayName(ctx)
-		if err != nil {
-			errMsg := fmt.Sprintf("implicit team display name error for %q: %s", conversationLocal.Info.TlfName, err)
-			conversationLocal.Error = chat1.NewConversationErrorLocal(errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
-			return conversationLocal
-		}
-		conversationLocal.Info.TlfName = display.String()
-	}
-
 	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
 	// this if we are online
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
@@ -1107,7 +1082,48 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+	case chat1.ConversationMembersType_IMPTEAM:
+		teamID, err := tlfIDToTeamdID(conversationLocal.Info.Triple.Tlfid)
+		if err != nil {
+			errMsg := fmt.Sprintf("error parsing impteam TLFID: %v", err.Error())
+			conversationLocal.Error = chat1.NewConversationErrorLocal(
+				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_PERMANENT, nil)
+			return conversationLocal
+		}
+		ok := true
+		var errMsg string
+		s.Debug(ctx, "localizeConversation: trying to load team for %v chat", conversationLocal.Info.Visibility)
+		iteam, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
+			ID:     teamID,
+			Public: conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC,
+		})
+		if err != nil {
+			ok = false
+			errMsg = fmt.Sprintf("unable to load iteam: %v", err.Error())
+		}
+		var iteamName string
+		if ok {
+			iteamName, err = iteam.ImplicitTeamDisplayNameString(ctx)
+			if err != nil {
+				ok = false
+				errMsg = fmt.Sprintf("failed to read : %v", err.Error())
+			}
+		}
+		if ok {
+			conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+				ctx,
+				uloader,
+				iteamName,
+				conversationRemote.Metadata.ActiveList)
+			if err != nil {
+				ok = false
+				errMsg = fmt.Sprintf("error reordering participants: %v", err.Error())
+			}
+		}
+		if !ok {
+			s.Debug(ctx, "localizeConversation: failed to get implicit team members: %s", errMsg)
+		}
+	case chat1.ConversationMembersType_TEAM:
 		var kuids []keybase1.UID
 		for _, uid := range conversationRemote.Metadata.AllList {
 			kuids = append(kuids, keybase1.UID(uid.String()))

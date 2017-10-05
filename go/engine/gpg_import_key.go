@@ -210,6 +210,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
 	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+		Ctx:         e.G(),
 		Pregen:      bundle,
 		SigningKey:  e.arg.Signer,
 		Me:          me,

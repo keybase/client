@@ -31,7 +31,9 @@ func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainL
 }
 
 func TestIdentify2WithUIDImportTrackingLink(t *testing.T) {
-	link := importTrackingLink(t, nil)
+	tc := libkb.SetupTest(t, "TestIdentify2WithUIDImportTrackingLink", 0)
+	defer tc.Cleanup()
+	link := importTrackingLink(t, tc.G)
 	if link == nil {
 		t.Fatalf("link import failed")
 	}

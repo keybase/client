@@ -26,11 +26,7 @@ import type {RouteProps} from '../route-tree/render-route'
 import type {Props} from './index'
 import type {Tab as FriendshipsTab} from './friendships'
 
-type OwnProps = {
-  routeProps: {
-    username: ?string,
-  },
-} & RouteProps<{}, {currentFriendshipsTab: FriendshipsTab}>
+type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: FriendshipsTab}>
 
 type EitherProps<P> =
   | {
@@ -58,10 +54,10 @@ class ProfileContainer extends PureComponent<EitherProps<Props>, void> {
 export default pausableConnect(
   (state, {routeProps, routeState, routePath}: OwnProps) => {
     const myUsername = state.config.username
-    const username = routeProps.username ? routeProps.username : myUsername
+    const username = routeProps.get('username') ? routeProps.get('username') : myUsername
 
     return {
-      currentFriendshipsTab: routeState.currentFriendshipsTab,
+      currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
       myUsername,
       profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
       trackerState: state.tracker.trackers[username],
@@ -123,7 +119,7 @@ export default pausableConnect(
       )
     },
     onSearch: () => {
-      dispatch(searchSuggestions('profile:updateSearchResults'))
+      dispatch(searchSuggestions('profileSearch'))
       dispatch(navigateAppend([{props: {}, selected: 'search'}]))
     },
     onUnfollow: username => {

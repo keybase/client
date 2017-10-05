@@ -23,7 +23,6 @@ type CmdTeamListMemberships struct {
 	json                 bool
 	forcePoll            bool
 	userAssertion        string
-	includeSubteams      bool
 	includeImplicitTeams bool
 	showAll              bool
 	verbose              bool
@@ -100,7 +99,6 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 		c.team = ctx.Args()[0]
 	}
 	c.userAssertion = ctx.String("user")
-	c.includeSubteams = ctx.Bool("include-subteams")
 	c.includeImplicitTeams = ctx.Bool("include-implicit-teams")
 	c.showAll = ctx.Bool("all")
 
@@ -248,7 +246,7 @@ func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.Team
 
 func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
 	for _, invite := range invites {
-		fmtstring := "%s\t%s*\t%s\t(* invited by %s; awaiting acceptance)\n"
+		fmtstring := "%s\t%s*\t%s\t(* added by %s; awaiting acceptance)\n"
 		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()), invite.Name, invite.InviterUsername)
 	}
 }

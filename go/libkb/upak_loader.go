@@ -22,6 +22,7 @@ type UPAKLoader interface {
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
 	LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
+	LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error)
 	LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error)
 	LookupUsernameAndDevice(ctx context.Context, uid keybase1.UID, did keybase1.DeviceID) (username NormalizedUsername, deviceName string, deviceType string, err error)
 	ListFollowedUIDs(uid keybase1.UID) ([]keybase1.UID, error)
@@ -243,20 +244,20 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	// Add a LU= tax to this context, for all subsequent debugging
 	ctx := arg.WithLogTag()
 
-	defer g.CVTrace(ctx, VLog0, culDebug(arg.UID), func() error { return err })()
+	defer g.CVTrace(ctx, VLog0, culDebug(arg.uid), func() error { return err })()
 
-	if arg.UID.IsNil() {
-		if len(arg.Name) == 0 {
+	if arg.uid.IsNil() {
+		if len(arg.name) == 0 {
 			return nil, nil, errors.New("need a UID or username to load UPAK from loader")
 		}
 		// Modifies the load arg, setting a UID
-		arg.UID, err = u.LookupUID(ctx, NewNormalizedUsername(arg.Name))
+		arg.uid, err = u.LookupUID(ctx, NewNormalizedUsername(arg.name))
 		if err != nil {
 			return nil, nil, err
 		}
 	}
 
-	lock := u.locktab.AcquireOnName(ctx, g, arg.UID.String())
+	lock := u.locktab.AcquireOnName(ctx, g, arg.uid.String())
 
 	defer func() {
 		lock.Release(ctx)
@@ -291,17 +292,17 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	var upak *keybase1.UserPlusKeysV2AllIncarnations
 	var fresh bool
 
-	if !arg.ForceReload {
-		upak, fresh = u.getCachedUPAK(ctx, arg.UID, info)
+	if !arg.forceReload {
+		upak, fresh = u.getCachedUPAK(ctx, arg.uid, info)
 	}
-	if arg.ForcePoll {
-		g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.UID), fresh)
+	if arg.forcePoll {
+		g.VDL.CLogf(ctx, VLog0, "%s: force-poll required us to repoll (fresh=%v)", culDebug(arg.uid), fresh)
 		fresh = false
 	}
 
 	if upak != nil {
-		g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh=%v", culDebug(arg.UID), fresh)
-		if fresh || arg.StaleOK {
+		g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh=%v", culDebug(arg.uid), fresh)
+		if fresh || arg.staleOK {
 			return returnUPAK(upak, true)
 		}
 		if info != nil {
@@ -311,7 +312,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		var sigHints *SigHints
 		var leaf *MerkleUserLeaf
 
-		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, u.G(), arg.UID, true)
+		sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, u.G(), arg.uid, true)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -321,21 +322,21 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		}
 
 		if leaf.eldest == "" {
-			g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; but user is nuked, evicting", culDebug(arg.UID))
+			g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; but user is nuked, evicting", culDebug(arg.uid))
 
 			// Our cached user turned out to be in reset state (without
 			// current sigchain), remove from cache, and then fall
 			// through. LoadUser shall return an error, which we will
 			// return to the caller.
-			u.removeMemCache(ctx, arg.UID)
+			u.removeMemCache(ctx, arg.uid)
 
-			err := u.G().LocalDb.Delete(culDBKeyV2(arg.UID))
+			err := u.G().LocalDb.Delete(culDBKeyV2(arg.uid))
 			if err != nil {
-				u.G().Log.Warning("Failed to remove %s from disk cache: %s", arg.UID, err)
+				u.G().Log.Warning("Failed to remove %s from disk cache: %s", arg.uid, err)
 			}
-			u.deleteV1UPAK(arg.UID)
+			u.deleteV1UPAK(arg.uid)
 		} else if leaf.public != nil && leaf.public.Seqno == keybase1.Seqno(upak.Uvv.SigChain) {
-			g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh after poll", culDebug(arg.UID))
+			g.VDL.CLogf(ctx, VLog0, "%s: cache-hit; fresh after poll", culDebug(arg.uid))
 
 			upak.Uvv.CachedAt = keybase1.ToTime(g.Clock().Now())
 			// This is only necessary to update the levelDB representation,
@@ -348,13 +349,13 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 		if info != nil {
 			info.StaleVersion = true
 		}
-		arg.SigHints = sigHints
-		arg.MerkleLeaf = leaf
-	} else if arg.CachedOnly {
-		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "no cached user found"}
+		arg.sigHints = sigHints
+		arg.merkleLeaf = leaf
+	} else if arg.cachedOnly {
+		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "no cached user found"}
 	}
 
-	g.VDL.CLogf(ctx, VLog0, "%s: LoadUser", culDebug(arg.UID))
+	g.VDL.CLogf(ctx, VLog0, "%s: LoadUser", culDebug(arg.uid))
 	user, err = LoadUser(arg)
 	if info != nil {
 		info.LoadedUser = true
@@ -378,7 +379,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 	}
 
 	if user == nil {
-		return nil, nil, UserNotFoundError{UID: arg.UID, Msg: "LoadUser failed"}
+		return nil, nil, UserNotFoundError{UID: arg.uid, Msg: "LoadUser failed"}
 	}
 
 	err = u.putUPAKToCache(ctx, ret)
@@ -422,8 +423,7 @@ func (u *CachedUPAKLoader) LoadV2(arg LoadUserArg) (*keybase1.UserPlusKeysV2AllI
 func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error) {
 
 	var info CachedUserLoadInfo
-	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
-	larg.PublicKeyOptional = true
+	larg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithPublicKeyOptional()
 	upak, _, err := u.loadWithInfo(larg, &info, nil, false)
 
 	if err != nil {
@@ -433,7 +433,7 @@ func (u *CachedUPAKLoader) CheckKIDForUID(ctx context.Context, uid keybase1.UID,
 	if found || info.LoadedLeaf || info.LoadedUser {
 		return found, revokedAt, deleted, nil
 	}
-	larg.ForceReload = true
+	larg = larg.WithForceReload()
 	upak, _, err = u.loadWithInfo(larg, nil, nil, false)
 	if err != nil {
 		return false, nil, false, err
@@ -448,16 +448,12 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 		return up, NoUIDError{}
 	}
 
-	arg := NewLoadUserArg(u.G())
-	arg.UID = uid
-	arg.PublicKeyOptional = true
-	arg.NetContext = ctx
-
+	arg := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
 	forcePollValues := []bool{false, true}
 
 	for _, fp := range forcePollValues {
 
-		arg.ForcePoll = fp
+		arg = arg.WithForcePoll(fp)
 
 		upak, _, err := u.Load(arg)
 		if err != nil {
@@ -484,16 +480,13 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		return nil, nil, nil, NoUIDError{}
 	}
 
-	arg := NewLoadUserArg(u.G())
-	arg.UID = uid
-	arg.PublicKeyOptional = true
-	arg.NetContext = ctx
+	arg := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
 
 	forcePollValues := []bool{false, true}
 
 	for _, fp := range forcePollValues {
 
-		arg.ForcePoll = fp
+		arg = arg.WithForcePoll(fp)
 
 		upak, _, err := u.LoadV2(arg)
 		if err != nil {
@@ -552,7 +545,7 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 	}
 
 	// Try again with a forced load in case the device is very new.
-	larg.ForcePoll = true
+	larg = larg.WithForcePoll(true)
 	upakV2, _, err = u.loadWithInfo(larg, nil, nil, false)
 	if err != nil {
 		return nil, nil, nil, err
@@ -563,10 +556,24 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 	return &upakV1, deviceKey, revoked, err
 }
 
+// LookupUsername uses the UIDMapper to find a username for uid.
 func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error) {
+	var empty NormalizedUsername
+	uids := []keybase1.UID{uid}
+	namePkgs, err := u.G().UIDMapper.MapUIDsToUsernamePackages(ctx, u.G(), uids, 0, 0, false)
+	if err != nil {
+		return empty, err
+	}
+	if len(namePkgs) == 0 {
+		return empty, UserNotFoundError{UID: uid, Msg: "in CachedUPAKLoader"}
+	}
+	return namePkgs[0].NormalizedUsername, nil
+}
+
+// LookupUsernameUPAK uses the upak loader to find a username for uid.
+func (u *CachedUPAKLoader) LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error) {
 	var info CachedUserLoadInfo
-	arg := NewLoadUserByUIDArg(ctx, u.G(), uid)
-	arg.StaleOK = true
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithStaleOK(true)
 	var ret NormalizedUsername
 	_, _, err := u.loadWithInfo(arg, &info, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		if upak == nil {
@@ -605,7 +612,7 @@ func (u *CachedUPAKLoader) lookupUsernameAndDeviceWithInfo(ctx context.Context, 
 	// mappings, so the second time through, we request a fresh object.
 	staleOK := []bool{true, false}
 	for _, b := range staleOK {
-		arg.StaleOK = b
+		arg = arg.WithStaleOK(b)
 		found := false
 		u.loadWithInfo(arg, info, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 			if upak == nil {

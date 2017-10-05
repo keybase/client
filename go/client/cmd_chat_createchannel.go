@@ -37,11 +37,10 @@ func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 
 func (c *CmdChatCreateChannel) Run() error {
 	c.G().StartStandaloneChat()
-	chatClient, err := GetChatLocalClient(c.G())
+	resolver, err := newChatConversationResolver(c.G())
 	if err != nil {
 		return err
 	}
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
 
 	req := chatConversationResolvingRequest{
 		TlfName:     c.teamName,
@@ -76,7 +75,7 @@ func (c *CmdChatCreateChannel) Run() error {
 
 func (c *CmdChatCreateChannel) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 2 {
-		return errors.New("create channel takes two arguments.")
+		return errors.New("create channel takes two arguments")
 	}
 
 	c.teamName = ctx.Args().Get(0)

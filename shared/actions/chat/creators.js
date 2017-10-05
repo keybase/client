@@ -1,10 +1,9 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
-import * as SearchConstants from '../../constants/search'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
-import {List, Map} from 'immutable'
+import {List} from 'immutable'
 import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
@@ -354,23 +353,10 @@ function setNotifications(
   return {payload: {conversationIDKey, deviceType, notifyType}, type: 'chat:setNotifications'}
 }
 
-function clearSearchResults(): Constants.ClearSearchResults {
-  return {payload: {}, type: 'chat:clearSearchResults'}
-}
-
 function toggleChannelWideNotifications(
   conversationIDKey: Constants.ConversationIDKey
 ): Constants.ToggleChannelWideNotifications {
   return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
-}
-
-function updateConversationUnreadCounts(
-  conversationUnreadCounts: Map<Constants.ConversationIDKey, Constants.UnreadCounts>
-): Constants.UpdateConversationUnreadCounts {
-  return {
-    payload: {conversationUnreadCounts},
-    type: 'chat:updateConversationUnreadCounts',
-  }
 }
 
 function updateMetadata(users: Array<string>): Constants.UpdateMetadata {
@@ -427,6 +413,10 @@ function inboxStale(): Constants.InboxStale {
 
 function markThreadsStale(updates: Array<ChatTypes.ConversationStaleUpdate>): Constants.MarkThreadsStale {
   return {payload: {updates}, type: 'chat:markThreadsStale'}
+}
+
+function inboxSynced(convs: Array<ChatTypes.UnverifiedInboxUIItem>): Constants.InboxSynced {
+  return {payload: {convs}, type: 'chat:inboxSynced'}
 }
 
 function loadingMessages(
@@ -652,22 +642,10 @@ function setInboxFilter(filter: string): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
 
-function setInboxSearch(search: Array<string>): Constants.SetInboxSearch {
-  return {payload: {search}, type: 'chat:inboxSearch'}
-}
-
 function setInboxUntrustedState(
   inboxUntrustedState: Constants.UntrustedState
 ): Constants.SetInboxUntrustedState {
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
-}
-
-function stageUserForSearch(user: SearchConstants.SearchResultId): Constants.StageUserForSearch {
-  return {payload: {user}, type: 'chat:stageUserForSearch'}
-}
-
-function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.UnstageUserForSearch {
-  return {payload: {user}, type: 'chat:unstageUserForSearch'}
 }
 
 function updateThread(
@@ -701,13 +679,18 @@ function updateSnippet(
 
 function unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>,
-  force?: boolean = false
+  force?: boolean = false,
+  forInboxSync?: boolean = false
 ): Constants.UnboxConversations {
-  return {payload: {conversationIDKeys, force}, type: 'chat:unboxConversations'}
+  return {payload: {conversationIDKeys, force, forInboxSync}, type: 'chat:unboxConversations'}
 }
 
 function unboxMore(): Constants.UnboxMore {
   return {type: 'chat:unboxMore', payload: undefined}
+}
+
+function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterSelectNext {
+  return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
 }
 
 export {
@@ -721,13 +704,13 @@ export {
   blockConversation,
   clearMessages,
   clearRekey,
-  clearSearchResults,
   deleteMessage,
   downloadProgress,
   editMessage,
   exitSearch,
   getInboxAndUnbox,
   inboxStale,
+  inboxSynced,
   incomingMessage,
   incomingTyping,
   leaveConversation,
@@ -756,9 +739,9 @@ export {
   retryMessage,
   saveAttachment,
   selectAttachment,
+  selectNext,
   selectConversation,
   setInboxFilter,
-  setInboxSearch,
   setInboxUntrustedState,
   setInitialConversation,
   setLoaded,
@@ -769,17 +752,14 @@ export {
   setUnboxing,
   setupChatHandlers,
   showEditor,
-  stageUserForSearch,
   startConversation,
   threadLoadedOffline,
   toggleChannelWideNotifications,
   unboxConversations,
   unboxMore,
-  unstageUserForSearch,
   untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,
-  updateConversationUnreadCounts,
   updateFinalizedState,
   updateInbox,
   updateInboxComplete,

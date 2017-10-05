@@ -42,7 +42,7 @@ func NewCmdPGPExport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Usage: "When exporting private keys, do not protect with a passphrase.",
 			},
 		},
-		Description: `"keybase pgp export" exports public (and optionally private) 
+		Description: `"keybase pgp export" exports public (and optionally private)
    PGP keys from Keybase, and into a file or to standard output.
    It doesn't access the GnuPG keychain at all. By default, when
    exporting private keys, you will be asked for passphrase to encrypt
@@ -104,7 +104,7 @@ func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {
 		return fmt.Errorf("No matching keys found")
 	}
 
-	snk := initSink(s.outfile)
+	snk := initSink(s.G(), s.outfile)
 	if err := snk.Open(); err != nil {
 		return err
 	}

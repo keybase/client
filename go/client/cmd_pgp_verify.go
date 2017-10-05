@@ -89,7 +89,7 @@ func (c *CmdPGPVerify) ParseArgv(ctx *cli.Context) error {
 
 	msg := ctx.String("message")
 	infile := ctx.String("infile")
-	if err := c.FilterInit(msg, infile, "/dev/null"); err != nil {
+	if err := c.FilterInit(c.G(), msg, infile, "/dev/null"); err != nil {
 		return err
 	}
 	c.signedBy = ctx.String("signed-by")

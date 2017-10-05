@@ -136,7 +136,7 @@ func TestAllChains(t *testing.T) {
 	sort.Strings(testNames)
 	for _, name := range testNames {
 		testCase := testList.Tests[name]
-		G.Log.Info("starting sigchain test case %s (%s)", name, testCase.Input)
+		tc.G.Log.Info("starting sigchain test case %s (%s)", name, testCase.Input)
 		doChainTest(t, tc, testCase)
 	}
 }
@@ -185,7 +185,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	}
 
 	// Parse all the key bundles.
-	keyFamily, err := createKeyFamily(input.Keys)
+	keyFamily, err := createKeyFamily(tc.G, input.Keys)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,7 +193,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	// Run the actual sigchain parsing and verification. This is most of the
 	// code that's actually being tested.
 	var sigchainErr error
-	ckf := ComputedKeyFamily{kf: keyFamily}
+	ckf := ComputedKeyFamily{Contextified: NewContextified(tc.G), kf: keyFamily}
 	sigchain := SigChain{
 		username:          NewNormalizedUsername(input.Username),
 		uid:               uid,
@@ -202,7 +202,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	}
 	for i := 0; i < chainLen; i++ {
 		linkBlob := inputBlob.AtKey("chain").AtIndex(i)
-		link, err := ImportLinkFromServer(nil, &sigchain, linkBlob, uid)
+		link, err := ImportLinkFromServer(tc.G, &sigchain, linkBlob, uid)
 		if err != nil {
 			sigchainErr = err
 			break
@@ -229,7 +229,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 		}
 		if expectedTypes[foundType] {
 			// Success! We found the error we expected. This test is done.
-			G.Log.Debug("EXPECTED error encountered: %s", sigchainErr)
+			tc.G.Log.Debug("EXPECTED error encountered: %s", sigchainErr)
 			return
 		}
 
@@ -250,8 +250,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0
 
-	// XXX we should really contextify this
-	idtable, err := NewIdentityTable(nil, eldestKID, &sigchain, nil)
+	idtable, err := NewIdentityTable(tc.G, eldestKID, &sigchain, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -368,7 +367,7 @@ func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
 	}
 }
 
-func createKeyFamily(bundles []string) (*KeyFamily, error) {
+func createKeyFamily(g *GlobalContext, bundles []string) (*KeyFamily, error) {
 	allKeys := jsonw.NewArray(len(bundles))
 	for i, bundle := range bundles {
 		err := allKeys.SetIndex(i, jsonw.NewString(bundle))
@@ -378,7 +377,7 @@ func createKeyFamily(bundles []string) (*KeyFamily, error) {
 	}
 	publicKeys := jsonw.NewDictionary()
 	publicKeys.SetKey("all_bundles", allKeys)
-	return ParseKeyFamily(G, publicKeys)
+	return ParseKeyFamily(g, publicKeys)
 }
 
 func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
