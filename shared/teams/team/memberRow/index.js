@@ -32,7 +32,6 @@ export const TeamMemberRow = (props: Props) => {
   const {username, onOpenProfile, you, following, type} = props
   return (
     <ClickableBox
-      key={username}
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',

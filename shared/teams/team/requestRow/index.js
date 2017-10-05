@@ -28,7 +28,6 @@ export const TeamRequestRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      key={username}
     >
       <ClickableBox
         style={{
