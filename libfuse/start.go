@@ -83,7 +83,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	// Hook git implementation in.
 	options.KbfsParams.CreateGitHandlerInstance =
 		func(config libkbfs.Config) keybase1.KBFSGitInterface {
-			return libgit.NewRPCHandlerWithCtx(kbCtx, config)
+			return libgit.NewRPCHandlerWithCtx(kbCtx, config, &options.KbfsParams)
 		}
 
 	log, err := libkbfs.InitLog(options.KbfsParams, kbCtx)

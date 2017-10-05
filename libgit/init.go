@@ -22,13 +22,19 @@ const (
 type ctxGitTagKey int
 
 const (
+	paramKeybaseGitMDServerAddr = "KEYBASE_GIT_MDSERVER_ADDR"
+	paramKeybaseGitBServerAddr  = "KEYBASE_GIT_BSERVER_ADDR"
+)
+
+const (
 	ctxGitIDKey ctxGitTagKey = iota
 )
 
 // Params returns a set of default parameters for git-related
 // operations, along with a temp directory that should be cleaned
 // after the git work is complete.
-func Params(kbCtx libkbfs.Context, storageRoot string) (
+func Params(kbCtx libkbfs.Context,
+	storageRoot string, paramsBase *libkbfs.InitParams) (
 	params libkbfs.InitParams, tempDir string, err error) {
 	// TODO(KBFS-2443): Also remove all kbfsgit directories older than
 	// an hour.
@@ -37,7 +43,11 @@ func Params(kbCtx libkbfs.Context, storageRoot string) (
 		return libkbfs.InitParams{}, "", err
 	}
 
-	params = libkbfs.DefaultInitParams(kbCtx)
+	if paramsBase != nil {
+		params = *paramsBase
+	} else {
+		params = libkbfs.DefaultInitParams(kbCtx)
+	}
 	params.LogToFile = true
 	// Set the debug default to true only if the env variable isn't
 	// explicitly set to a false option.
@@ -45,21 +55,32 @@ func Params(kbCtx libkbfs.Context, storageRoot string) (
 	if envDebug != "0" && envDebug != "false" && envDebug != "no" {
 		params.Debug = true
 	}
+	// This is set to false in docker tests for now, but we need it. So
+	// override it to true here.
+	params.EnableJournal = true
 	params.EnableDiskCache = false
 	params.StorageRoot = tempDir
 	params.Mode = libkbfs.InitSingleOpString
 	params.TLFJournalBackgroundWorkStatus =
 		libkbfs.TLFJournalSingleOpBackgroundWorkEnabled
+
+	if baddr := os.Getenv(paramKeybaseGitBServerAddr); len(baddr) > 0 {
+		params.BServerAddr = baddr
+	}
+	if mdaddr := os.Getenv(paramKeybaseGitMDServerAddr); len(mdaddr) > 0 {
+		params.MDServerAddr = mdaddr
+	}
+
 	return params, tempDir, nil
 }
 
 // Init initializes a context and a libkbfs.Config for git operations.
 // The config should be shutdown when it is done being used.
-func Init(ctx context.Context, kbfsParams libkbfs.InitParams,
+func Init(ctx context.Context, gitKBFSParams libkbfs.InitParams,
 	kbCtx libkbfs.Context, keybaseServiceCn libkbfs.KeybaseServiceCn,
 	defaultLogPath string) (context.Context, libkbfs.Config, error) {
 	log, err := libkbfs.InitLogWithPrefix(
-		kbfsParams, kbCtx, "git", defaultLogPath)
+		gitKBFSParams, kbCtx, "git", defaultLogPath)
 	if err != nil {
 		return ctx, nil, err
 	}
@@ -75,7 +96,7 @@ func Init(ctx context.Context, kbfsParams libkbfs.InitParams,
 	log.CDebugf(ctx, "Initialized new git config")
 
 	config, err := libkbfs.InitWithLogPrefix(
-		ctx, kbCtx, kbfsParams, keybaseServiceCn, nil, log, "git")
+		ctx, kbCtx, gitKBFSParams, keybaseServiceCn, nil, log, "git")
 	if err != nil {
 		return ctx, nil, err
 	}

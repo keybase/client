@@ -72,7 +72,8 @@ func start() (startErr *libfs.Error) {
 		panic(fmt.Sprintf("Unexpected run mode: %s", kbCtx.GetRunMode()))
 	}
 
-	defaultParams, storageRoot, err := libgit.Params(kbCtx, kbCtx.GetDataDir())
+	defaultParams, storageRoot, err := libgit.Params(kbCtx,
+		kbCtx.GetDataDir(), nil)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}

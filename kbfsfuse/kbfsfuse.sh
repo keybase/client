@@ -23,6 +23,9 @@ if [ -f client_revision ]; then
     echo "Client revision $(cat client_revision)"
 fi
 
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
 keybase -debug service &
 SERVICE=$!
 # Journaling is turned off for all tests until we change the tests to
