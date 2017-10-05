@@ -158,14 +158,11 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
         })
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
-          // We don't want to block on loading the initial state, so
-          // first call navBasedOnLoginAndInitialState to load based
-          // on a null initial state, then call it again once the
-          // initial state is loaded. If a user navigates in between,
-          // then navBasedOnLoginAndInitialState should detect that.
           dispatch(async (): Promise<*> => {
             await dispatch(navBasedOnLoginAndInitialState())
             if (getState().config.loggedIn) {
+              // If we're logged in, restore any saved route state and
+              // then nav again based on it.
               await dispatch(routeStateStorage.load)
               await dispatch(navBasedOnLoginAndInitialState())
             }
