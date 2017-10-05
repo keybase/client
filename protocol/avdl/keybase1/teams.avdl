@@ -469,6 +469,8 @@ protocol teams {
   void teamDelete(int sessionID, string name);
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
+  void teamAddEmailsBulk(int sessionID, string name, string emails, TeamRole role);
+
   record ImplicitTeamUserSet {
     array<string> keybaseUsers;
     array<SocialAssertion> unresolvedUsers;
