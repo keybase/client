@@ -11,9 +11,9 @@ import * as Messages from './messages'
 import * as Shared from './shared'
 import * as Saga from '../../util/saga'
 import * as EngineRpc from '../engine/helper'
+import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
-import {List, Map, OrderedSet, Set} from 'immutable'
 import {NotifyPopup} from '../../native/notifications'
 import {
   apiserverGetRpcPromise,
@@ -583,7 +583,7 @@ function _unboxedToMessage(
         timestamp: payload.ctime,
         you: yourName,
         outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
-        mentions: Set(payload.atMentions || []),
+        mentions: I.Set(payload.atMentions || []),
         channelMention: _parseChannelMention(payload.channelMention),
       }
 
@@ -885,6 +885,11 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
 function* _selectConversation(action: Constants.SelectConversation): SagaGenerator<any, any> {
   const {conversationIDKey, fromUser} = action.payload
 
+  // Always show this in the inbox
+  if (conversationIDKey) {
+    yield put(EntityCreators.mergeEntity(['inboxAlwaysShow'], {[conversationIDKey]: true}))
+  }
+
   if (fromUser) {
     yield put(Creators.exitSearch(true))
   }
@@ -1008,18 +1013,34 @@ function* _changedActive(action: ChangedActive): SagaGenerator<any, any> {
 
 function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any, any> {
   const conversations = action.payload
-  const conversationUnreadCounts = conversations.reduce((map, conv) => {
-    const unreadCounts: Constants.UnreadCounts = {
-      total: conv.get('unreadMessages'),
-      badged: conv.get('badgeCounts')[`${isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop}`],
+  let totals: {[key: string]: number} = {}
+  let badges: {[key: string]: number} = {}
+
+  conversations.forEach(conv => {
+    const total = conv.get('unreadMessages')
+    if (total) {
+      const badged = conv.get('badgeCounts')[
+        `${isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop}`
+      ]
+      const conversationIDKey = Constants.conversationIDToKey(conv.get('convID'))
+      totals[conversationIDKey] = total
+      if (badged) {
+        badges[conversationIDKey] = badged
+      }
     }
-    if (!unreadCounts.total) {
-      return map
-    } else {
-      return map.set(Constants.conversationIDToKey(conv.get('convID')), unreadCounts)
-    }
-  }, Map())
-  yield put(Creators.updateConversationUnreadCounts(conversationUnreadCounts))
+  })
+
+  badges = I.Map(badges)
+  totals = I.Map(totals)
+
+  const oldBadge = yield select(s => s.entities.inboxUnreadCountBadge)
+  const oldTotal = yield select(s => s.entities.inboxUnreadCountTotal)
+  if (!I.is(oldBadge, badges)) {
+    yield put(EntityCreators.replaceEntity([], {inboxUnreadCountBadge: badges}))
+  }
+  if (!I.is(oldTotal, totals)) {
+    yield put(EntityCreators.replaceEntity([], {inboxUnreadCountTotal: totals}))
+  }
 }
 
 function* _appendMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
@@ -1030,17 +1051,17 @@ function* _appendMessagesToConversation({payload: {conversationIDKey, messages}}
 
 function* _prependMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
   const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
-  const nextMessages = OrderedSet(messages.map(m => m.key)).concat(currentMessages)
+  const nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
   yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
 }
 
 function* _clearConversationMessages({payload: {conversationIDKey}}: Constants.ClearMessages) {
-  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: OrderedSet()}))
+  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: I.OrderedSet()}))
 }
 
 function* _storeMessageToEntity(action: Constants.AppendMessages | Constants.PrependMessages) {
   const newMessages = action.payload.messages
-  yield put(EntityCreators.mergeEntity(['messages'], Map(newMessages.map(m => [m.key, m]))))
+  yield put(EntityCreators.mergeEntity(['messages'], I.Map(newMessages.map(m => [m.key, m]))))
 }
 
 function _updateMessageEntity(action: Constants.UpdateTempMessage) {
@@ -1048,7 +1069,7 @@ function _updateMessageEntity(action: Constants.UpdateTempMessage) {
     const {payload: {message}} = action
     // You have to wrap this in Map(...) because otherwise the merge will turn message into an immutable struct
     // We use merge instead of replace because otherwise the replace will turn message into an immutable struct
-    return put(EntityCreators.mergeEntity(['messages'], Map({[message.key]: message})))
+    return put(EntityCreators.mergeEntity(['messages'], I.Map({[message.key]: message})))
   } else {
     console.warn('error in updating temp message', action.payload)
   }
@@ -1086,12 +1107,12 @@ function* _updateOutboxMessageToReal({
     put(
       EntityCreators.mergeEntity(
         [],
-        Map({
-          attachmentDownloadedPath: Map({[newMessageKey]: localMessageState.downloadedPath}),
-          attachmentPreviewPath: Map({[newMessageKey]: localMessageState.previewPath}),
-          attachmentPreviewProgress: Map({[newMessageKey]: localMessageState.previewProgress}),
-          attachmentDownloadProgress: Map({[newMessageKey]: localMessageState.downloadProgress}),
-          attachmentUploadProgress: Map({[newMessageKey]: localMessageState.uploadProgress}),
+        I.Map({
+          attachmentDownloadedPath: I.Map({[newMessageKey]: localMessageState.downloadedPath}),
+          attachmentPreviewPath: I.Map({[newMessageKey]: localMessageState.previewPath}),
+          attachmentPreviewProgress: I.Map({[newMessageKey]: localMessageState.previewProgress}),
+          attachmentDownloadProgress: I.Map({[newMessageKey]: localMessageState.downloadProgress}),
+          attachmentUploadProgress: I.Map({[newMessageKey]: localMessageState.uploadProgress}),
         })
       )
     ),
@@ -1109,7 +1130,7 @@ function* _findMessagesToDelete(action: Constants.AppendMessages | Constants.Pre
   })
 
   if (deletedIDs.length) {
-    yield put(EntityCreators.mergeEntity(['deletedIDs'], Map({[conversationIDKey]: Set(deletedIDs)})))
+    yield put(EntityCreators.mergeEntity(['deletedIDs'], I.Map({[conversationIDKey]: I.Set(deletedIDs)})))
   }
 }
 
@@ -1120,12 +1141,12 @@ function* _findMessageUpdates(action: Constants.AppendMessages | Constants.Prepe
   const conversationIDKey = action.payload.conversationIDKey
   newMessages.forEach(message => {
     if (message.type === 'Edit' || message.type === 'UpdateAttachment') {
-      updateIDs[message.targetMessageID] = OrderedSet([message.key])
+      updateIDs[message.targetMessageID] = I.OrderedSet([message.key])
     }
   })
 
   if (Object.keys(updateIDs).length) {
-    yield put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], Map(updateIDs)))
+    yield put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], I.Map(updateIDs)))
   }
 }
 
@@ -1183,7 +1204,7 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
 function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   const {convs} = action.payload
   const author = yield select(usernameSelector)
-  const items: List<Constants.InboxState> = Shared.makeInboxStateRecords(author, convs)
+  const items: I.List<Constants.InboxState> = Shared.makeInboxStateRecords(author, convs)
 
   const convIDs = items.map(item => item.conversationIDKey).toArray()
   const updateActions = items.map(item => put(Creators.updateInbox(item)))
@@ -1438,6 +1459,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
   yield Saga.safeTakeSerially('chat:unboxConversations', Inbox.unboxConversations)
   yield Saga.safeTakeLatest('chat:unboxMore', Inbox.unboxMore)
+  yield Saga.safeTakeEvery('chat:inboxFilterSelectNext', Inbox.filterSelectNext)
 }
 
 export default chatSaga

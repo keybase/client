@@ -10,7 +10,7 @@ import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    teamname: routeProps.teamname,
+    teamname: routeProps.get('teamname'),
   }
 }
 
