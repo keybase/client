@@ -108,17 +108,17 @@ func (k *KeyringFile) Load() error {
 	k.G().Log.Debug(fmt.Sprintf("+ Loading PGP Keyring %s", k.filename))
 	file, err := os.Open(k.filename)
 	if os.IsNotExist(err) {
-		G.Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
+		k.G().Log.Warning(fmt.Sprintf("No PGP Keyring found at %s", k.filename))
 		err = nil
 	} else if err != nil {
-		G.Log.Errorf("Cannot open keyring %s: %s\n", k.filename, err)
+		k.G().Log.Errorf("Cannot open keyring %s: %s\n", k.filename, err)
 		return err
 	}
 	if file != nil {
 		defer file.Close()
 		k.Entities, err = openpgp.ReadKeyRing(file)
 		if err != nil {
-			G.Log.Errorf("Cannot parse keyring %s: %s\n", k.filename, err)
+			k.G().Log.Errorf("Cannot parse keyring %s: %s\n", k.filename, err)
 			return err
 		}
 	}

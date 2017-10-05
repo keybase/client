@@ -134,7 +134,7 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 		if err != nil {
 			return
 		} else if d.Me == nil {
-			G.Log.Debug("| Me didn't load")
+			d.G().Log.Debug("| Me didn't load")
 			return
 		}
 	}

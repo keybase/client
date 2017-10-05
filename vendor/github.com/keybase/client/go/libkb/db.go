@@ -170,6 +170,7 @@ const (
 	// NOTE: This file needs to stay consistent with config/id.iced on the
 	// website, and that one has IDs on the lower end of the range that aren't
 	// represented here.
+	DBUidToFullName           = 0xdd
 	DBUidToUsername           = 0xde
 	DBUserPlusKeysVersioned   = 0xdf
 	DBLink                    = 0xe0

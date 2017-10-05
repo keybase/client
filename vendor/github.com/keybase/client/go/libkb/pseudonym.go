@@ -138,7 +138,7 @@ func PostTlfPseudonyms(ctx context.Context, g *GlobalContext, pnymInfos []TlfPse
 	payload := make(JSONPayload)
 	payload["tlf_pseudonyms"] = pnymReqs
 
-	_, err := G.API.PostJSON(APIArg{
+	_, err := g.API.PostJSON(APIArg{
 		Endpoint:    "kbfs/pseudonym/put",
 		JSONPayload: payload,
 		SessionType: APISessionTypeREQUIRED,

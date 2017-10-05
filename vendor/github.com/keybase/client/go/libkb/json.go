@@ -182,7 +182,7 @@ func (f *JSONFile) save() (err error) {
 	filename := f.tx.tmpname
 	f.G().Log.Debug("+ saving %s file %s", f.which, filename)
 
-	err = MakeParentDirs(filename)
+	err = MakeParentDirs(f.G().Log, filename)
 	if err != nil {
 		f.G().Log.Errorf("Failed to make parent dirs for %s", filename)
 		return err
@@ -278,7 +278,7 @@ func (f *jsonFileTransaction) Commit() (err error) {
 	defer func() { f.f.G().Log.Debug("- Commit %s rewrite %s", f.f.which, ErrToOk(err)) }()
 
 	f.f.G().Log.Debug("| Commit: making parent directories for %q", f.f.filename)
-	if err = MakeParentDirs(f.f.filename); err != nil {
+	if err = MakeParentDirs(f.f.G().Log, f.f.filename); err != nil {
 		return err
 	}
 	f.f.G().Log.Debug("| Commit : renaming %q => %q", f.tmpname, f.f.filename)

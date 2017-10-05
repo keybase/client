@@ -58,9 +58,9 @@ func (i Identity) ToPGPUserID() *packet.UserId {
 
 }
 
-func KeybaseIdentity(un NormalizedUsername) Identity {
+func KeybaseIdentity(g *GlobalContext, un NormalizedUsername) Identity {
 	if un.IsNil() {
-		un = G.Env.GetUsername()
+		un = g.Env.GetUsername()
 	}
 	return Identity{
 		Username: CanonicalHost + "/" + un.String(),
