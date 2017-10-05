@@ -22,7 +22,7 @@ const (
 	dirEntryPrefetchPriority          int           = -200
 	updatePointerPrefetchPriority     int           = 0
 	defaultPrefetchPriority           int           = -1024
-	prefetchTimeout                   time.Duration = 15 * time.Minute
+	prefetchTimeout                   time.Duration = 24 * time.Hour
 	maxNumPrefetches                  int           = 10000
 )
 
