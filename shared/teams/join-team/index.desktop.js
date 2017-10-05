@@ -55,8 +55,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}) => (
 
 const PopupWrapped = (props: Props) => (
   <PopupDialog onClose={props.onBack}>
-    {!!props.success && <SuccessComponent {...props} />}
-    {!props.success && <EntryComponent {...props} />}
+    {props.success ? <SuccessComponent {...props} /> : <EntryComponent {...props} />}
   </PopupDialog>
 )
 
