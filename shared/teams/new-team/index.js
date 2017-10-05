@@ -60,8 +60,8 @@ const styleContainer = {
   minHeight: 40,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  borderTopLeftRadius: 4,
-  borderTopRightRadius: 4,
+  borderTopLeftRadius: isMobile ? 0 : 4,
+  borderTopRightRadius: isMobile ? 0 : 4,
 }
 
 const stylePadding = isMobile

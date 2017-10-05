@@ -378,6 +378,8 @@ export const StateRecord: KBRecord<T> = Record({
   tempPendingConversations: Map(),
   searchResultTerm: '',
   teamCreationError: '',
+  teamJoinError: '',
+  teamJoinSuccess: false,
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
@@ -414,6 +416,8 @@ export type State = KBRecord<{
   inSearch: boolean,
   searchResultTerm: string,
   teamCreationError: string,
+  teamJoinError: string,
+  teamJoinSuccess: boolean,
 }>
 
 export const maxAttachmentPreviewSize = 320
