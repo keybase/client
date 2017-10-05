@@ -100,10 +100,9 @@ func warnNonProd(log logger.Logger, e *libkb.Env) {
 	}
 }
 
-func checkSystemUser(log logger.Logger) {
+func warnSystemUser(log logger.Logger) {
 	if isAdminUser, match, _ := libkb.IsSystemAdminUser(); isAdminUser {
-		log.Errorf("Oops, you are trying to run as an admin user (%s). This isn't supported.", match)
-		os.Exit(int(keybase1.ExitCode_NOTOK))
+		log.Warning("You are trying to run as an admin user (%s). This is not recommended.", match)
 	}
 }
 
@@ -128,7 +127,6 @@ func mainInner(g *libkb.GlobalContext) error {
 		return nil
 	}
 
-	checkSystemUser(g.Log)
 
 	if cl.IsService() {
 		startProfile(g)
@@ -146,6 +144,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 	g.StartupMessage()
 
+	warnSystemUser(g.Log)
 	warnNonProd(g.Log, g.Env)
 
 	if err := configOtherLibraries(g); err != nil {
