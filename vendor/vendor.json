@@ -642,11 +642,10 @@
 			"revisionTime": "2017-04-09T18:29:52Z"
 		},
 		{
-			"checksumSHA1": "pancewZW3HwGvpDwfH5Imrbadc4=",
-			"origin": "github.com/keybase/client/go/vendor/golang.org/x/net/context",
+			"checksumSHA1": "dr5+PfIRzXeN+l1VG+s0lea9qz8=",
 			"path": "golang.org/x/net/context",
-			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
-			"revisionTime": "2016-08-26T20:58:34Z"
+			"revision": "0a9397675ba34b2845f758fe3cd68828369c6517",
+			"revisionTime": "2017-07-19T03:24:12Z"
 		},
 		{
 			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
