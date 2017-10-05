@@ -18,7 +18,7 @@ func dupStderr() (*os.File, error) {
 	var dupStderrFd windows.Handle
 	err = windows.DuplicateHandle(
 		proc, windows.Handle(os.Stderr.Fd()), proc, &dupStderrFd, 0,
-		true, syscall.DUPLICATE_SAME_ACCESS)
+		true, windows.DUPLICATE_SAME_ACCESS)
 	if err != nil {
 		return nil, err
 	}

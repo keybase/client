@@ -53,7 +53,9 @@ build_script:
   - go test -c
   - cd ..\kbfsdokan
   - go install
-  - cd ..\test
+  - cd ..\kbfsgit\git-remote-keybase
+  - go install
+  - cd ..\..\test
   - go test -i
   - cd ..
 # Eventually there will be more tests, but let's just start with these for now
