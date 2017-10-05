@@ -250,7 +250,6 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0
 
-	// XXX we should really contextify this
 	idtable, err := NewIdentityTable(tc.G, eldestKID, &sigchain, nil)
 	if err != nil {
 		t.Fatal(err)
