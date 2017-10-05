@@ -7,6 +7,7 @@ import chatInfoPanelNotifications from '../chat/conversation/info-panel/notifica
 import chatList from '../chat/conversation/list/index.stories'
 import chatCreateChannel from '../chat/create-channel/index.stories'
 import chatManageChannels from '../chat/manage-channels/index.stories'
+import chatHud from '../chat/hud/index.stories'
 import checkbox from '../common-adapters/checkbox.stories'
 import dropdown from '../common-adapters/dropdown.stories'
 import git from '../git/index.stories'
@@ -25,6 +26,7 @@ const stories = {
   chatList,
   chatCreateChannel,
   chatManageChannels,
+  chatHud,
   checkbox,
   dropdown,
   git,

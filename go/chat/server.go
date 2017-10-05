@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -141,27 +142,18 @@ func (h *Server) handleOfflineError(ctx context.Context, err error,
 	return err
 }
 
-func (h *Server) presentUnverifiedInbox(ctx context.Context, vres chat1.GetInboxLocalRes) (res chat1.UnverifiedInboxUIItems, err error) {
-	for _, rawConv := range vres.ConversationsUnverified {
-		if len(rawConv.MaxMsgSummaries) == 0 {
+func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.RemoteConversation,
+	p *chat1.Pagination, offline bool) (res chat1.UnverifiedInboxUIItems, err error) {
+	for _, rawConv := range convs {
+		if len(rawConv.Conv.MaxMsgSummaries) == 0 {
 			h.Debug(ctx, "presentUnverifiedInbox: invalid convo, no max msg summaries, skipping: %s",
-				rawConv.GetConvID())
+				rawConv.Conv.GetConvID())
 			continue
 		}
-		var conv chat1.UnverifiedInboxUIItem
-		conv.ConvID = rawConv.GetConvID().String()
-		conv.Name = rawConv.MaxMsgSummaries[0].TlfName
-		conv.Status = rawConv.Metadata.Status
-		conv.Time = utils.GetConvMtime(rawConv)
-		conv.Visibility = rawConv.Metadata.Visibility
-		conv.Notifications = rawConv.Notifications
-		conv.MembersType = rawConv.GetMembersType()
-		conv.TeamType = rawConv.Metadata.TeamType
-		conv.Version = rawConv.Metadata.Version
-		res.Items = append(res.Items, conv)
+		res.Items = append(res.Items, utils.PresentRemoteConversation(rawConv))
 	}
-	res.Pagination = utils.PresentPagination(vres.Pagination)
-	res.Offline = vres.Offline
+	res.Pagination = utils.PresentPagination(p)
+	res.Offline = offline
 	return res, err
 }
 
@@ -209,41 +201,51 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	res.RateLimits = utils.AggRateLimitsP([]*chat1.RateLimit{rl})
 
 	// Wait for inbox to get sent to us
-	select {
-	case lres := <-localizeCb:
-		if lres.InboxRes == nil {
-			return res, fmt.Errorf("invalid conversation localize callback received")
+	var lres NonblockInboxResult
+	if arg.SkipUnverified {
+		select {
+		case lres = <-localizeCb:
+			h.Debug(ctx, "GetInboxNonblockLocal: received unverified inbox, skipping send")
+		case <-time.After(15 * time.Second):
+			return res, fmt.Errorf("timeout waiting for inbox result")
+		case <-ctx.Done():
+			return res, ctx.Err()
 		}
-		uires, err := h.presentUnverifiedInbox(ctx, chat1.GetInboxLocalRes{
-			ConversationsUnverified: lres.InboxRes.ConvsUnverified,
-			Pagination:              lres.InboxRes.Pagination,
-			Offline:                 h.G().InboxSource.IsOffline(ctx),
-		})
-		if err != nil {
-			h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
-			return res, err
+	} else {
+		select {
+		case lres = <-localizeCb:
+			if lres.InboxRes == nil {
+				return res, fmt.Errorf("invalid conversation localize callback received")
+			}
+			uires, err := h.presentUnverifiedInbox(ctx, lres.InboxRes.ConvsUnverified,
+				lres.InboxRes.Pagination, h.G().InboxSource.IsOffline(ctx))
+			if err != nil {
+				h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
+				return res, err
+			}
+			jbody, err := json.Marshal(uires)
+			if err != nil {
+				h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON up unverified inbox: %s", err.Error())
+				return res, err
+			}
+			start := time.Now()
+			h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
+				len(lres.InboxRes.ConvsUnverified))
+			chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
+				SessionID: arg.SessionID,
+				Inbox:     string(jbody),
+			})
+			h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v", time.Now().Sub(start))
+		case <-time.After(15 * time.Second):
+			return res, fmt.Errorf("timeout waiting for inbox result")
+		case <-ctx.Done():
+			return res, ctx.Err()
 		}
-		jbody, err := json.Marshal(uires)
-		if err != nil {
-			h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON up unverified inbox: %s", err.Error())
-			return res, err
-		}
-		start := time.Now()
-		h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
-			len(lres.InboxRes.ConvsUnverified))
-		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
-			SessionID: arg.SessionID,
-			Inbox:     string(jbody),
-		})
-		h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v", time.Now().Sub(start))
-	case <-time.After(15 * time.Second):
-		return res, fmt.Errorf("timeout waiting for inbox result")
-	case <-ctx.Done():
-		return res, ctx.Err()
 	}
 
 	// Consume localize callbacks and send out to UI.
 	var wg sync.WaitGroup
+	convLocalsCh := make(chan chat1.ConversationLocal, len(lres.InboxRes.ConvsUnverified))
 	for convRes := range localizeCb {
 		wg.Add(1)
 		go func(convRes NonblockInboxResult) {
@@ -269,6 +271,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 					SessionID: arg.SessionID,
 					Conv:      utils.PresentConversationLocal(*convRes.ConvRes),
 				})
+				convLocalsCh <- *convRes.ConvRes
 
 				// Send a note to the retrier that we actually loaded this guy successfully
 				h.G().FetchRetrier.Success(ctx, uid.ToBytes(),
@@ -278,7 +281,20 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			wg.Done()
 		}(convRes)
 	}
-	wg.Wait()
+
+	// Write metadata to the inbox cache
+	var convLocals []chat1.ConversationLocal
+	go func() {
+		wg.Wait()
+		close(convLocalsCh)
+	}()
+	for convLocal := range convLocalsCh {
+		convLocals = append(convLocals, convLocal)
+	}
+	if err = storage.NewInbox(h.G(), uid.ToBytes()).MergeLocalMetadata(ctx, convLocals); err != nil {
+		// Don't abort the operaton on this kind of error
+		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
+	}
 
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
 	res.IdentifyFailures = breaks
@@ -311,7 +327,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 		ConvID: &arg.ConversationID,
 	}, nil)
 	if err == nil && len(readRes) > 0 && readRes[0].GetConvID().Eq(arg.ConversationID) &&
-		readRes[0].ReaderInfo.ReadMsgid == readRes[0].ReaderInfo.MaxMsgid {
+		readRes[0].Conv.ReaderInfo.ReadMsgid == readRes[0].Conv.ReaderInfo.MaxMsgid {
 		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
 			arg.ConversationID)
 		return chat1.MarkAsReadLocalRes{
@@ -2072,8 +2088,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// Localize the conversations so we can find the conversation ID
-	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, chat1.Inbox{
-		ConvsUnverified: teamConvs.Conversations,
+	teamConvsLocal, err := NewBlockingLocalizer(h.G()).Localize(ctx, uid, types.Inbox{
+		ConvsUnverified: utils.RemoteConvs(teamConvs.Conversations),
 	})
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to localize conversations: %s", err.Error())

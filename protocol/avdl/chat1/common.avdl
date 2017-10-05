@@ -28,6 +28,12 @@ protocol common {
     IMPTEAM_2
   }
 
+  enum SyncInboxResType {
+    CURRENT_0,
+    INCREMENTAL_1,
+    CLEAR_2
+  }
+
   @go("nostring")
   enum MessageType {
     NONE_0,

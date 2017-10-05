@@ -15,18 +15,18 @@ import (
 
 type LoadUserArg struct {
 	Contextified
-	UID                      keybase1.UID
-	Name                     string // Can also be an assertion like foo@twitter
-	PublicKeyOptional        bool
-	NoCacheResult            bool // currently ignore
-	Self                     bool
-	ForceReload              bool
-	ForcePoll                bool // for cached user load, force a repoll
-	StaleOK                  bool // if stale cached versions are OK (for immutable fields)
-	CachedOnly               bool // only return cached data (StaleOK should be true as well)
-	LoginContext             LoginContext
-	AbortIfSigchainUnchanged bool
-	ResolveBody              *jsonw.Wrapper // some load paths plumb this through
+	uid                      keybase1.UID
+	name                     string // Can also be an assertion like foo@twitter
+	publicKeyOptional        bool
+	noCacheResult            bool // currently ignore
+	self                     bool
+	forceReload              bool
+	forcePoll                bool // for cached user load, force a repoll
+	staleOK                  bool // if stale cached versions are OK (for immutable fields)
+	cachedOnly               bool // only return cached data (StaleOK should be true as well)
+	loginContext             LoginContext
+	abortIfSigchainUnchanged bool
+	resolveBody              *jsonw.Wrapper // some load paths plumb this through
 
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
@@ -38,18 +38,18 @@ type LoadUserArg struct {
 
 	// We might have already loaded these if we're falling back from a
 	// failed LoadUserPlusKeys load
-	MerkleLeaf *MerkleUserLeaf
-	SigHints   *SigHints
+	merkleLeaf *MerkleUserLeaf
+	sigHints   *SigHints
 
 	// NetContext is the context to build on top of.  We'll make a new
 	// Debug Tag for this LoadUser Operation.
-	NetContext context.Context
+	netContext context.Context
 }
 
 func (arg LoadUserArg) String() string {
 	return fmt.Sprintf("{UID:%s Name:%q PublicKeyOptional:%v NoCacheResult:%v Self:%v ForceReload:%v ForcePoll:%v StaleOK:%v AbortIfSigchainUnchanged:%v CachedOnly:%v}",
-		arg.UID, arg.Name, arg.PublicKeyOptional, arg.NoCacheResult, arg.Self, arg.ForceReload,
-		arg.ForcePoll, arg.StaleOK, arg.AbortIfSigchainUnchanged, arg.CachedOnly)
+		arg.uid, arg.name, arg.publicKeyOptional, arg.noCacheResult, arg.self, arg.forceReload,
+		arg.forcePoll, arg.staleOK, arg.abortIfSigchainUnchanged, arg.cachedOnly)
 }
 
 func NewLoadUserArg(g *GlobalContext) LoadUserArg {
@@ -59,80 +59,103 @@ func NewLoadUserArg(g *GlobalContext) LoadUserArg {
 func NewLoadUserArgWithContext(ctx context.Context, g *GlobalContext) LoadUserArg {
 	return LoadUserArg{
 		Contextified: NewContextified(g),
-		NetContext:   ctx,
+		netContext:   ctx,
 	}
 }
 
 func NewLoadUserSelfArg(g *GlobalContext) LoadUserArg {
 	ret := NewLoadUserArg(g)
-	ret.Self = true
+	ret.self = true
+	return ret
+}
+
+func NewLoadUserSelfAndUIDArg(g *GlobalContext) LoadUserArg {
+	ret := NewLoadUserArg(g)
+	ret.self = true
+	ret.uid = g.GetMyUID()
 	return ret
 }
 
 func NewLoadUserForceArg(g *GlobalContext) LoadUserArg {
 	arg := NewLoadUserPubOptionalArg(g)
-	arg.ForceReload = true
+	arg.forceReload = true
 	return arg
 }
 
 func NewLoadUserByNameArg(g *GlobalContext, name string) LoadUserArg {
 	arg := NewLoadUserArg(g)
-	arg.Name = name
+	arg.name = name
 	return arg
 }
 
 func NewLoadUserByUIDArg(ctx context.Context, g *GlobalContext, uid keybase1.UID) LoadUserArg {
 	arg := NewLoadUserArg(g)
-	arg.UID = uid
-	arg.NetContext = ctx
+	arg.uid = uid
+	arg.netContext = ctx
 	return arg
 }
 
 func NewLoadUserByUIDForceArg(g *GlobalContext, uid keybase1.UID) LoadUserArg {
 	arg := NewLoadUserArg(g)
-	arg.UID = uid
-	arg.ForceReload = true
+	arg.uid = uid
+	arg.forceReload = true
 	return arg
 }
 
 func NewLoadUserPubOptionalArg(g *GlobalContext) LoadUserArg {
 	arg := NewLoadUserArg(g)
-	arg.PublicKeyOptional = true
+	arg.publicKeyOptional = true
 	return arg
 }
 
-func NewLoadUserArgBase(g *GlobalContext) *LoadUserArg {
-	return &LoadUserArg{Contextified: NewContextified(g)}
-}
-
-func (arg *LoadUserArg) WithSelf(self bool) *LoadUserArg {
-	arg.Self = self
+func (arg LoadUserArg) WithSelf(self bool) LoadUserArg {
+	arg.self = self
 	return arg
 }
 
-func (arg *LoadUserArg) WithNetContext(ctx context.Context) *LoadUserArg {
-	arg.NetContext = ctx
+func (arg LoadUserArg) WithCachedOnly() LoadUserArg {
+	arg.cachedOnly = true
 	return arg
 }
 
-func (arg *LoadUserArg) WithUID(uid keybase1.UID) *LoadUserArg {
-	arg.UID = uid
+func (arg LoadUserArg) WithResolveBody(r *jsonw.Wrapper) LoadUserArg {
+	arg.resolveBody = r
 	return arg
 }
 
-func (arg *LoadUserArg) WithPublicKeyOptional() *LoadUserArg {
-	arg.PublicKeyOptional = true
+func (arg LoadUserArg) WithName(n string) LoadUserArg {
+	arg.name = n
 	return arg
 }
 
-func (arg *LoadUserArg) WithForcePoll() *LoadUserArg {
-	arg.ForcePoll = true
+func (arg LoadUserArg) WithNetContext(ctx context.Context) LoadUserArg {
+	arg.netContext = ctx
 	return arg
 }
 
-func (arg *LoadUserArg) GetNetContext() context.Context {
-	if arg.NetContext != nil {
-		return arg.NetContext
+func (arg LoadUserArg) WithUID(uid keybase1.UID) LoadUserArg {
+	arg.uid = uid
+	return arg
+}
+
+func (arg LoadUserArg) WithPublicKeyOptional() LoadUserArg {
+	arg.publicKeyOptional = true
+	return arg
+}
+
+func (arg LoadUserArg) WithForcePoll(fp bool) LoadUserArg {
+	arg.forcePoll = fp
+	return arg
+}
+
+func (arg LoadUserArg) WithStaleOK(b bool) LoadUserArg {
+	arg.staleOK = b
+	return arg
+}
+
+func (arg LoadUserArg) GetNetContext() context.Context {
+	if arg.netContext != nil {
+		return arg.netContext
 	}
 	if ctx := arg.G().NetContext; ctx != nil {
 		return ctx
@@ -140,33 +163,48 @@ func (arg *LoadUserArg) GetNetContext() context.Context {
 	return context.Background()
 }
 
+func (arg LoadUserArg) WithLoginContext(l LoginContext) LoadUserArg {
+	arg.loginContext = l
+	return arg
+}
+
+func (arg LoadUserArg) WithAbortIfSigchainUnchanged() LoadUserArg {
+	arg.abortIfSigchainUnchanged = true
+	return arg
+}
+
+func (arg LoadUserArg) WithForceReload() LoadUserArg {
+	arg.forceReload = true
+	return arg
+}
+
 func (arg *LoadUserArg) WithLogTag() context.Context {
 	ctx := WithLogTag(arg.GetNetContext(), "LU")
-	arg.NetContext = ctx
+	arg.netContext = ctx
 	arg.SetGlobalContext(arg.G().CloneWithNetContextAndNewLogger(ctx))
 	return ctx
 }
 
 func (arg *LoadUserArg) checkUIDName() error {
-	if arg.UID.Exists() {
+	if arg.uid.Exists() {
 		return nil
 	}
 
-	if len(arg.Name) == 0 && !arg.Self {
+	if len(arg.name) == 0 && !arg.self {
 		return fmt.Errorf("no username given to LoadUser")
 	}
 
-	if len(arg.Name) > 0 && arg.Self {
+	if len(arg.name) > 0 && arg.self {
 		return fmt.Errorf("If loading self, can't provide a username")
 	}
 
-	if !arg.Self {
+	if !arg.self {
 		return nil
 	}
 
-	if arg.UID = myUID(arg.G(), arg.LoginContext); arg.UID.IsNil() {
-		arg.Name = arg.G().Env.GetUsername().String()
-		if len(arg.Name) == 0 {
+	if arg.uid = myUID(arg.G(), arg.loginContext); arg.uid.IsNil() {
+		arg.name = arg.G().Env.GetUsername().String()
+		if len(arg.name) == 0 {
 			return SelfNotFoundError{msg: "could not find UID or username for self"}
 		}
 	}
@@ -175,41 +213,41 @@ func (arg *LoadUserArg) checkUIDName() error {
 
 func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 	var rres ResolveResult
-	if arg.UID.Exists() {
+	if arg.uid.Exists() {
 		return rres, nil
 	}
-	if len(arg.Name) == 0 {
+	if len(arg.name) == 0 {
 		// this won't happen anymore because check moved to
 		// checkUIDName() func, but just in case
 		return rres, fmt.Errorf("resolveUID: no uid or name")
 	}
 
-	if rres = arg.G().Resolver.ResolveWithBody(arg.Name); rres.err != nil {
+	if rres = arg.G().Resolver.ResolveWithBody(arg.name); rres.err != nil {
 		return rres, rres.err
 	}
 
 	if rres.uid.IsNil() {
-		return rres, fmt.Errorf("No resolution for name=%s", arg.Name)
+		return rres, fmt.Errorf("No resolution for name=%s", arg.name)
 	}
 
-	arg.UID = rres.uid
+	arg.uid = rres.uid
 	return rres, nil
 }
 
 // after resolution, check if this is a self load
 func (arg *LoadUserArg) checkSelf() {
-	if arg.Self {
+	if arg.self {
 		return
 	}
 
-	myuid := myUID(arg.G(), arg.LoginContext)
-	if myuid.Exists() && arg.UID.Exists() && myuid.Equal(arg.UID) {
-		arg.Self = true
+	myuid := myUID(arg.G(), arg.loginContext)
+	if myuid.Exists() && arg.uid.Exists() && myuid.Equal(arg.uid) {
+		arg.self = true
 	}
 }
 
 func LoadMe(arg LoadUserArg) (*User, error) {
-	arg.Self = true
+	arg.self = true
 	return LoadUser(arg)
 }
 
@@ -243,7 +281,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
-	arg.G().Log.CDebugf(ctx, "+ LoadUser(uid=%v, name=%v)", arg.UID, arg.Name)
+	arg.G().Log.CDebugf(ctx, "+ LoadUser(uid=%v, name=%v)", arg.uid, arg.name)
 
 	// resolve the uid from the name, if necessary
 	rres, err := arg.resolveUID()
@@ -254,27 +292,27 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// check to see if this is a self load
 	arg.checkSelf()
 
-	arg.G().Log.CDebugf(ctx, "| resolved to %s", arg.UID)
+	arg.G().Log.CDebugf(ctx, "| resolved to %s", arg.uid)
 
 	// We can get the user object's body from either the resolution result or
 	// if it was plumbed through as a parameter.
 	resolveBody := rres.body
 	if resolveBody == nil {
-		resolveBody = arg.ResolveBody
+		resolveBody = arg.resolveBody
 	}
 
 	// get sig hints from local db in order to populate during merkle leaf lookup
 	// They might have already been loaded in.
 	var sigHints *SigHints
-	if sigHints = arg.SigHints; sigHints == nil {
-		sigHints, err = LoadSigHints(ctx, arg.UID, arg.G())
+	if sigHints = arg.sigHints; sigHints == nil {
+		sigHints, err = LoadSigHints(ctx, arg.uid, arg.G())
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// load user from local, remote
-	ret, refresh, err = loadUser(ctx, arg.G(), arg.UID, resolveBody, sigHints, arg.ForceReload, arg.MerkleLeaf)
+	ret, refresh, err = loadUser(ctx, arg.G(), arg.uid, resolveBody, sigHints, arg.forceReload, arg.merkleLeaf)
 	if err != nil {
 		return nil, err
 	}
@@ -284,15 +322,15 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// Match the returned User object to the Merkle tree. Also make sure
 	// that the username queried for matches the User returned (if it
 	// was indeed queried for)
-	if err = ret.leaf.MatchUser(ret, arg.UID, rres.GetNormalizedQueriedUsername()); err != nil {
+	if err = ret.leaf.MatchUser(ret, arg.uid, rres.GetNormalizedQueriedUsername()); err != nil {
 		return ret, err
 	}
 
-	if err = ret.LoadSigChains(ctx, &ret.leaf, arg.Self); err != nil {
+	if err = ret.LoadSigChains(ctx, &ret.leaf, arg.self); err != nil {
 		return ret, err
 	}
 
-	if arg.AbortIfSigchainUnchanged && ret.sigChain().wasFullyCached {
+	if arg.abortIfSigchainUnchanged && ret.sigChain().wasFullyCached {
 		return nil, nil
 	}
 
@@ -316,11 +354,11 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 			return ret, err
 		}
 
-	} else if !arg.PublicKeyOptional {
+	} else if !arg.publicKeyOptional {
 		arg.G().Log.CDebugf(ctx, "No active key for user: %s", ret.GetUID())
 
 		var emsg string
-		if arg.Self {
+		if arg.self {
 			emsg = "You don't have a public key; try `keybase pgp select` or `keybase pgp import` if you have a key; or `keybase pgp gen` if you don't"
 		}
 		err = NoKeyError{emsg}

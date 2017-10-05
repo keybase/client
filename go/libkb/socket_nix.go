@@ -32,7 +32,7 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 	defer bindLock.Unlock()
 
 	bindFile := s.bindFile
-	if err := MakeParentDirs(bindFile); err != nil {
+	if err := MakeParentDirs(s.log, bindFile); err != nil {
 		return nil, err
 	}
 

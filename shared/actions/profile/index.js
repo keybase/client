@@ -20,11 +20,11 @@ import {peopleTab} from '../../constants/tabs'
 import {revokeRevokeSigsRpcPromise, userProfileEditRpcPromise} from '../../constants/types/flow-types'
 import {safeTakeEvery} from '../../util/saga'
 import * as Selectors from '../../constants/selectors'
+import * as SearchConstants from '../../constants/search'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
-import {maybeUpgradeSearchResultIdToKeybaseId, serviceIdToService} from '../../constants/search'
 import {parseUserId} from '../../util/platforms'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
@@ -73,7 +73,7 @@ function showUserProfile(username: string): Constants.ShowUserProfile {
 function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any, any> {
   const {username: userId} = action.payload
   const searchResultMap = yield select(Selectors.searchResultMapSelector)
-  const username = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
+  const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
   // get data on whose profile is currently being shown
   const me = yield select(Selectors.usernameSelector)
   const topProfile = yield select((state: TypedState) => {
@@ -113,7 +113,7 @@ function* _showUserProfile(action: Constants.ShowUserProfile): SagaGenerator<any
     const {username: parsedUsername, serviceId} = parseUserId(username)
     props = {
       fullUsername: username,
-      serviceName: serviceIdToService(serviceId),
+      serviceName: SearchConstants.serviceIdToService(serviceId),
       username: parsedUsername,
     }
   }
@@ -264,10 +264,6 @@ function backToProfile(): Constants.BackToProfile {
   return {payload: undefined, type: Constants.backToProfile}
 }
 
-function clearSearchResults(): Constants.ClearSearchResults {
-  return {payload: undefined, type: Constants.clearSearchResults}
-}
-
 function* _backToProfile(): SagaGenerator<any, any> {
   yield put(getMyProfile())
   yield put(navigateTo([], [peopleTab]))
@@ -297,7 +293,6 @@ export {
   backToProfile,
   cancelAddProof,
   checkProof,
-  clearSearchResults,
   dropPgp,
   editProfile,
   finishRevoking,

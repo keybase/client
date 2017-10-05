@@ -112,6 +112,30 @@ class Input extends Component<Props, State> {
     n && n.blur()
   }
 
+  insertTextAtCursor(text: string) {
+    const n = this._input && this._inputNode()
+    const selections = this.selections()
+    if (n && selections) {
+      const {selectionStart, selectionEnd} = selections
+      this.replaceText(text, selectionStart, selectionEnd)
+    }
+  }
+
+  replaceText(text: string, startIdx: number, endIdx: number) {
+    const n = this._input && this._inputNode()
+    if (n) {
+      // $FlowIssue
+      const v = n.value
+      const nextValue = v.slice(0, startIdx) + text + v.slice(endIdx)
+      // $FlowIssue
+      n.value = nextValue
+      this.setState({value: nextValue})
+      this._autoResize()
+
+      this.props.onChangeText && this.props.onChangeText(nextValue || '')
+    }
+  }
+
   _onCompositionStart = () => {
     this._isComposingIME = true
   }
@@ -127,6 +151,12 @@ class Input extends Component<Props, State> {
 
     if (this.props.onEnterKeyDown && e.key === 'Enter' && !e.shiftKey && !this._isComposingIME) {
       this.props.onEnterKeyDown(e)
+    }
+  }
+
+  _onKeyUp = (e: SyntheticKeyboardEvent<>) => {
+    if (this.props.onKeyUp) {
+      this.props.onKeyUp(e, this._isComposingIME)
     }
   }
 
@@ -241,6 +271,7 @@ class Input extends Component<Props, State> {
       onChange: this._onChange,
       onFocus: this._onFocus,
       onKeyDown: this._onKeyDown,
+      onKeyUp: this._onKeyUp,
       onCompositionStart: this._onCompositionStart,
       onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.hintText,

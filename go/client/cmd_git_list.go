@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -43,6 +44,34 @@ func (c *CmdGitList) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func fullRepoName(repo keybase1.GitRepoResult) string {
+	if repo.Folder.FolderType == keybase1.FolderType_PRIVATE {
+		return string(repo.LocalMetadata.RepoName)
+	} else if repo.Folder.FolderType == keybase1.FolderType_TEAM {
+		return repo.Folder.Name + "/" + string(repo.LocalMetadata.RepoName)
+	} else {
+		return "<repo type error>"
+	}
+}
+
+func longestRepoName(repos []keybase1.GitRepoResult) int {
+	max := 0
+	for _, repo := range repos {
+		l := len(fullRepoName(repo))
+		if l > max {
+			max = l
+		}
+	}
+	return max
+}
+
+func padToLen(s string, paddedLen int) string {
+	if len(s) >= paddedLen {
+		return s
+	}
+	return s + strings.Repeat(" ", paddedLen-len(s))
+}
+
 func (c *CmdGitList) Run() error {
 	cli, err := GetGitClient(c.G())
 	if err != nil {
@@ -56,16 +85,19 @@ func (c *CmdGitList) Run() error {
 		return err
 	}
 
+	// Get the length of the longest repo name, for some nice looking padding.
+	longest := longestRepoName(repos)
+
 	dui.Printf("personal repos:\n")
 	for _, repo := range repos {
 		if repo.Folder.FolderType == keybase1.FolderType_PRIVATE {
-			dui.Printf("  %s  %s\n", repo.LocalMetadata.RepoName, repo.RepoUrl)
+			dui.Printf("  %s  %s\n", padToLen(fullRepoName(repo), longest), repo.RepoUrl)
 		}
 	}
 	dui.Printf("team repos:\n")
 	for _, repo := range repos {
 		if repo.Folder.FolderType == keybase1.FolderType_TEAM {
-			dui.Printf("  %s/%s  %s\n", repo.Folder.Name, repo.LocalMetadata.RepoName, repo.RepoUrl)
+			dui.Printf("  %s  %s\n", padToLen(fullRepoName(repo), longest), repo.RepoUrl)
 		}
 	}
 

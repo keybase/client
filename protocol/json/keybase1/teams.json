@@ -190,6 +190,11 @@
         {
           "type": "boolean",
           "name": "active"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
         }
       ]
     },
@@ -508,6 +513,10 @@
         },
         {
           "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "UserVersion",
           "name": "inviter"
         },
         {
@@ -623,6 +632,14 @@
             "keys": "TeamInviteID"
           },
           "name": "activeInvites"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "openTeamJoinAs"
         }
       ]
     },
@@ -738,6 +755,16 @@
     },
     {
       "type": "record",
+      "name": "TeamExitRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamInvitee",
       "fields": [
         {
@@ -779,6 +806,40 @@
             "items": "TeamInvitee"
           },
           "name": "invitees"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamAccessRequest",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamOpenReqMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamAccessRequest"
+          },
+          "name": "tars"
         }
       ],
       "lint": "ignore"
@@ -837,6 +898,10 @@
         {
           "type": "boolean",
           "name": "staleOK"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         }
       ]
     },
@@ -947,6 +1012,11 @@
             "ImplicitRole"
           ],
           "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
         }
       ]
     },
@@ -1053,6 +1123,20 @@
     },
     {
       "type": "record",
+      "name": "TeamSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "joinAs"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamUserSet",
       "fields": [
         {
@@ -1110,6 +1194,24 @@
           "name": "time"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LookupImplicitTeamRes",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "ImplicitTeamDisplayName",
+          "name": "displayName"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1126,6 +1228,27 @@
         {
           "name": "sendChatNotification",
           "type": "boolean"
+        }
+      ],
+      "response": "TeamCreateResult"
+    },
+    "teamCreateWithSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
         }
       ],
       "response": "TeamCreateResult"
@@ -1167,6 +1290,26 @@
         }
       ],
       "response": "AnnotatedTeamList"
+    },
+    "teamListSubteamsRecursive": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "parentTeamName",
+          "type": "string"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamIDAndName"
+      }
     },
     "teamChangeMembership": {
       "request": [
@@ -1226,6 +1369,10 @@
         },
         {
           "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "email",
           "type": "string"
         }
       ],
@@ -1380,6 +1527,23 @@
       ],
       "response": null
     },
+    "teamSetSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
+        }
+      ],
+      "response": null
+    },
     "lookupImplicitTeam": {
       "request": [
         {
@@ -1391,7 +1555,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "lookupOrCreateImplicitTeam": {
       "request": [
@@ -1404,7 +1568,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "teamReAddMemberAfterReset": {
       "request": [

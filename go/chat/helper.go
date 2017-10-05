@@ -286,11 +286,11 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 	r.Debug(ctx, "get: convs: %d", len(convs))
 	m := make(map[string]float64)
 	for _, conv := range convs {
-		for _, uid := range conv.Metadata.ActiveList {
+		for _, uid := range conv.Conv.Metadata.ActiveList {
 			if uid.Eq(myUID) {
 				continue
 			}
-			m[uid.String()] += r.getActiveScore(ctx, conv)
+			m[uid.String()] += r.getActiveScore(ctx, conv.Conv)
 		}
 	}
 	for suid := range m {
@@ -324,7 +324,7 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	if len(inbox.ConvsUnverified) == 0 {
 		return chat1.Conversation{}, ratelim, errGetUnverifiedConvNotFound
 	}
-	return inbox.ConvsUnverified[0], ratelim, nil
+	return inbox.ConvsUnverified[0].Conv, ratelim, nil
 }
 
 func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -345,8 +345,8 @@ func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils
 	}
 
 	// Localize the conversations
-	res, err = NewBlockingLocalizer(g).Localize(ctx, uid, chat1.Inbox{
-		ConvsUnverified: tlfRes.Conversations,
+	res, err = NewBlockingLocalizer(g).Localize(ctx, uid, types.Inbox{
+		ConvsUnverified: utils.RemoteConvs(tlfRes.Conversations),
 	})
 	if err != nil {
 		debugger.Debug(ctx, "GetTLFConversations: failed to localize conversations: %s", err.Error())
@@ -394,20 +394,6 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
-
-	if membersType == chat1.ConversationMembersType_IMPTEAM {
-		// in this case, we need to get the hidden implicit team name from the display name
-		_, teamName, err := teams.LookupImplicitTeam(ctx, g.ExternalG(), tlfName, vis == keybase1.TLFVisibility_PUBLIC)
-		if err != nil {
-			if _, ok := err.(teams.TeamDoesNotExistError); ok {
-				// no exist is just empty response
-				return res, rl, nil
-			}
-			return res, rl, err
-		}
-		debugger.Debug(ctx, "FindConversations: using implicit team name %q for display name %q", teamName, tlfName)
-		tlfName = teamName.String()
-	}
 
 	query := &chat1.GetInboxLocalQuery{
 		Name: &chat1.NameQuery{
@@ -462,7 +448,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
 		}
 	} else if vis == keybase1.TLFVisibility_PUBLIC {
-		debugger.Debug(ctx, "FindConversation: no conversations found in inbox, trying public chats")
+		debugger.Debug(ctx, "FindConversations: no conversations found in inbox, trying public chats")
 
 		// Check for offline and return an error
 		if g.InboxSource.IsOffline(ctx) {
@@ -492,8 +478,8 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		// Localize the convs (if any)
 		if len(pubConvs.Conversations) > 0 {
 			localizer := NewBlockingLocalizer(g)
-			convsLocal, err := localizer.Localize(ctx, uid, chat1.Inbox{
-				ConvsUnverified: pubConvs.Conversations,
+			convsLocal, err := localizer.Localize(ctx, uid, types.Inbox{
+				ConvsUnverified: utils.RemoteConvs(pubConvs.Conversations),
 			})
 			if err != nil {
 				return res, rl, err
@@ -501,8 +487,13 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 			// Search for conversations that match the topic name
 			for _, convLocal := range convsLocal {
+				if convLocal.Error != nil {
+					debugger.Debug(ctx, "FindConversations: skipping convID: %s localization failure: %s",
+						convLocal.GetConvID(), convLocal.Error.Message)
+					continue
+				}
 				if convLocal.Info.TopicName == topicName {
-					debugger.Debug(ctx, "FindConversation: found matching public conv: id: %s topicName: %s",
+					debugger.Debug(ctx, "FindConversations: found matching public conv: id: %s topicName: %s",
 						convLocal.GetConvID(), topicName)
 					res = append(res, convLocal)
 				}
@@ -772,7 +763,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 		// couldn't find implicit team, so make one
 		n.Debug(ctx, "making new implicit team %q", n.tlfName)
-		_, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
+		_, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
 		if err != nil {
 			return res, rl, err
 		}
@@ -793,8 +784,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, rl, fmt.Errorf("error creating topic ID: %s", err)
 		}
-		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s]", i, triple.Tlfid, triple.TopicType,
-			triple.TopicID)
+		n.Debug(ctx, "attempt: %v [tlfID: %s topicType: %d topicID: %s name: %s]", i, triple.Tlfid,
+			triple.TopicType, triple.TopicID, info.CanonicalName)
 		firstMessageBoxed, topicNameState, err := n.makeFirstMessage(ctx, triple, info.CanonicalName,
 			n.membersType, n.vis, n.topicName)
 		if err != nil {
@@ -862,7 +853,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 
 		// Update inbox cache
 		updateConv := ib.ConvsUnverified[0]
-		if err = n.G().InboxSource.NewConversation(ctx, n.uid, 0, updateConv); err != nil {
+		if err = n.G().InboxSource.NewConversation(ctx, n.uid, 0, updateConv.Conv); err != nil {
 			return res, rl, err
 		}
 

@@ -21,12 +21,7 @@ type chatCLIConversationFetcher struct {
 }
 
 func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conversations chat1.ConversationLocal, messages []chat1.MessageUnboxed, err error) {
-	chatClient, err := GetChatLocalClient(g)
-	if err != nil {
-		return chat1.ConversationLocal{}, nil, fmt.Errorf("Getting chat service client error: %s", err)
-	}
-	resolver := &chatConversationResolver{G: g, ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(g)
+	resolver, err := newChatConversationResolver(g)
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, err
 	}
@@ -52,13 +47,13 @@ func (f chatCLIConversationFetcher) fetch(ctx context.Context, g *libkb.GlobalCo
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("empty conversationInfo.Id: %+v", conversation.Info)
 	}
 
-	gcfclres, err := chatClient.GetConversationForCLILocal(ctx, f.query)
+	gcfclres, err := resolver.ChatClient.GetConversationForCLILocal(ctx, f.query)
 	if err != nil {
 		return chat1.ConversationLocal{}, nil, fmt.Errorf("GetConversationForCLILocal error: %s", err)
 	}
 
 	if gcfclres.Offline {
-		g.UI.GetTerminalUI().Printf(ColorString("yellow", "WARNING: conversation results obtained in OFFLINE mode\n"))
+		g.UI.GetTerminalUI().Printf(ColorString(g, "yellow", "WARNING: conversation results obtained in OFFLINE mode\n"))
 	}
 
 	return gcfclres.Conversation, gcfclres.Messages, nil
@@ -81,7 +76,7 @@ func (f chatCLIInboxFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) 
 	}
 	convs = res.Conversations
 	if res.Offline {
-		g.UI.GetTerminalUI().Printf(ColorString("yellow", "WARNING: inbox results obtained in OFFLINE mode\n"))
+		g.UI.GetTerminalUI().Printf(ColorString(g, "yellow", "WARNING: inbox results obtained in OFFLINE mode\n"))
 	}
 
 	return convs, nil

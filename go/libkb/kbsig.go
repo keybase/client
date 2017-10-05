@@ -342,8 +342,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	// Save what kind of client we're running.
 	ret.SetKey("client", clientInfo(g))
 
-	// SeqTypePublic (1) is the default, and we don't write it out explicitly
-	if arg.SeqType != 0 && arg.SeqType != SeqTypePublic {
+	if arg.SeqType != 0 {
 		ret.SetKey("seq_type", jsonw.NewInt(arg.SeqType))
 	}
 
@@ -600,6 +599,7 @@ type SigMultiItem struct {
 	Sig        string                  `json:"sig"`
 	SigningKID keybase1.KID            `json:"signing_kid"`
 	Type       string                  `json:"type"`
+	SeqType    keybase1.SeqType        `json:"seq_type"`
 	SigInner   string                  `json:"sig_inner"`
 	TeamID     keybase1.TeamID         `json:"team_id"`
 	PublicKeys *SigMultiItemPublicKeys `json:"public_keys,omitempty"`

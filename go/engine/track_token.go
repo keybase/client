@@ -136,7 +136,7 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 
 		// Dismiss any associated gregor item.
 		if outcome.ResponsibleGregorItem != nil {
-			err = e.G().GregorDismisser.DismissItem(outcome.ResponsibleGregorItem.Metadata().MsgID())
+			err = e.G().GregorDismisser.DismissItem(nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
 		}
 	}
 
@@ -182,8 +182,7 @@ func (e *TrackToken) loadMe() error {
 
 func (e *TrackToken) loadThem(username libkb.NormalizedUsername) error {
 
-	arg := libkb.NewLoadUserByNameArg(e.G(), username.String())
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserByNameArg(e.G(), username.String()).WithPublicKeyOptional()
 	them, err := libkb.LoadUser(arg)
 	if err != nil {
 		return err

@@ -46,6 +46,7 @@ IF %DOKANVER%=="" (
 
 call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
@@ -62,6 +63,12 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that kbfs is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that git-remote-keybase is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -119,7 +126,7 @@ IF %ERRORLEVEL% NEQ 0 (
 :: Run keybase sign to get signature of update
 set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
 set SigFile=sig.txt
-%KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+%KeybaseBin% sign -d --saltpack-version=1 -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -162,6 +169,7 @@ goto:eof
 :dosignexe
 :: Other alternate time servers:
 ::   http://timestamp.verisign.com/scripts/timstamp.dll
+::   http://sha256timestamp.ws.symantec.com/sha256/timestamp (sha256)
 ::   http://timestamp.globalsign.com/scripts/timestamp.dll
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode

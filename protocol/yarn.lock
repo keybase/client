@@ -14,9 +14,9 @@ amdefine@>=0.0.4:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/amdefine/-/amdefine-1.0.1.tgz#4a5282ac164729e93619bcfd3ad151f817ce91f5"
 
-avdl-compiler@1.3.17:
-  version "1.3.17"
-  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.3.17.tgz#c1361c7d6961937bc0e90c7592ee12d9c1e7d9bd"
+avdl-compiler@1.3.20:
+  version "1.3.20"
+  resolved "https://registry.yarnpkg.com/avdl-compiler/-/avdl-compiler-1.3.20.tgz#cf34b06a7b9ed3604b3e5ea9070abced4871d1d0"
   dependencies:
     avdl2json "^2.2.4"
     iced-error "0.0.9"

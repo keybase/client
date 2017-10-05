@@ -78,10 +78,7 @@ func (c *CmdGitDelete) Run() error {
 }
 
 func (c *CmdGitDelete) runPersonal(cli keybase1.GitClient) error {
-	if err := cli.DeletePersonalRepo(context.Background(), c.repoName); err != nil {
-		return err
-	}
-	return nil
+	return cli.DeletePersonalRepo(context.Background(), c.repoName)
 }
 
 func (c *CmdGitDelete) runTeam(cli keybase1.GitClient) error {
@@ -89,10 +86,7 @@ func (c *CmdGitDelete) runTeam(cli keybase1.GitClient) error {
 		TeamName: c.teamName,
 		RepoName: c.repoName,
 	}
-	if err := cli.DeleteTeamRepo(context.Background(), arg); err != nil {
-		return err
-	}
-	return nil
+	return cli.DeleteTeamRepo(context.Background(), arg)
 }
 
 func (c *CmdGitDelete) GetUsage() libkb.Usage {

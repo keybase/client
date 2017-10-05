@@ -59,12 +59,11 @@ func (e *SigsList) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *SigsList) Run(ctx *Context) error {
-	arg := libkb.LoadUserArg{Contextified: libkb.NewContextified(e.G())}
-	arg.SetGlobalContext(e.G())
+	arg := libkb.NewLoadUserArg(e.G())
 	if len(e.Username) > 0 {
-		arg.Name = e.Username
+		arg = arg.WithName(e.Username)
 	} else {
-		arg.Self = true
+		arg = arg.WithSelf(true)
 	}
 
 	var err error

@@ -88,7 +88,7 @@ func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keyb
 
 	isPublic := !folder.Private
 
-	teamID, _, err := teams.LookupOrCreateImplicitTeam(ctx, t.G(), lookupName, isPublic)
+	teamID, _, _, err := teams.LookupOrCreateImplicitTeam(ctx, t.G(), lookupName, isPublic)
 	if err != nil {
 		return res, err
 	}

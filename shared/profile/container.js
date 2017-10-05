@@ -17,7 +17,7 @@ import {isLoading} from '../constants/tracker'
 import {isTesting} from '../local-debug'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {openInKBFS} from '../actions/kbfs'
-import {peopleTab, profileTab} from '../constants/tabs'
+import {peopleTab} from '../constants/tabs'
 import {startConversation} from '../actions/chat'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
@@ -59,8 +59,7 @@ export default pausableConnect(
     return {
       currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
       myUsername,
-      profileIsRoot: routePath.size === 1 &&
-        (routePath.first() === profileTab || routePath.first() === peopleTab),
+      profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
       trackerState: state.tracker.trackers[username],
       username,
     }
@@ -115,12 +114,12 @@ export default pausableConnect(
               selected: 'revoke',
             },
           ],
-          [profileTab]
+          [peopleTab]
         )
       )
     },
     onSearch: () => {
-      dispatch(searchSuggestions('profile:updateSearchResults'))
+      dispatch(searchSuggestions('profileSearch'))
       dispatch(navigateAppend([{props: {}, selected: 'search'}]))
     },
     onUnfollow: username => {

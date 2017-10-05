@@ -357,7 +357,6 @@ export const StateRecord: KBRecord<T> = Record({
   localMessageStates: Map(),
   inbox: List(),
   inboxFilter: '',
-  inboxSearch: List(),
   conversationStates: Map(),
   metaData: Map(),
   finalizedState: Map(),
@@ -371,7 +370,6 @@ export const StateRecord: KBRecord<T> = Record({
   inboxUntrustedState: 'unloaded',
   previousConversation: null,
   searchPending: false,
-  searchResults: null,
   searchShowingSuggestions: false,
   selectedUsersInSearch: List(),
   inSearch: false,
@@ -388,7 +386,6 @@ export type State = KBRecord<{
   localMessageStates: Map<MessageKey, LocalMessageState>,
   inbox: List<InboxState>,
   inboxFilter: string,
-  inboxSearch: List<string>,
   conversationStates: Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
@@ -403,7 +400,6 @@ export type State = KBRecord<{
   inboxUntrustedState: UntrustedState,
   previousConversation: ?ConversationIDKey,
   searchPending: boolean,
-  searchResults: ?List<SearchConstants.SearchResultId>,
   searchShowingSuggestions: boolean,
   selectedUsersInSearch: List<SearchConstants.SearchResultId>,
   inSearch: boolean,
@@ -422,7 +418,7 @@ export const blankChat = 'chat:blankChat'
 export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
-  {conversationIDKeys: Array<ConversationIDKey>, force: boolean}
+  {conversationIDKeys: Array<ConversationIDKey>, force: boolean, forInboxSync: boolean}
 >
 
 export type AddPendingConversation = NoErrorTypedAction<
@@ -454,7 +450,6 @@ export type InboxFilterSelectNext = NoErrorTypedAction<
   {rows: any, direction: 1 | -1}
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
-export type ClearSearchResults = NoErrorTypedAction<'chat:clearSearchResults', {}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
 export type DeleteMessage = NoErrorTypedAction<'chat:deleteMessage', {message: Message}>
 export type EditMessage = NoErrorTypedAction<'chat:editMessage', {message: Message, text: HiddenString}>
@@ -483,6 +478,10 @@ export type LoadingMessages = NoErrorTypedAction<
 export type MarkThreadsStale = NoErrorTypedAction<
   'chat:markThreadsStale',
   {updates: Array<ChatTypes.ConversationStaleUpdate>}
+>
+export type InboxSynced = NoErrorTypedAction<
+  'chat:inboxSynced',
+  {convs: Array<ChatTypes.UnverifiedInboxUIItem>}
 >
 export type MuteConversation = NoErrorTypedAction<
   'chat:muteConversation',
@@ -534,7 +533,6 @@ export type SelectConversation = NoErrorTypedAction<
   {conversationIDKey: ?ConversationIDKey, fromUser: boolean}
 >
 export type SetInboxFilter = NoErrorTypedAction<'chat:inboxFilter', {filter: string}>
-export type SetInboxSearch = NoErrorTypedAction<'chat:inboxSearch', {search: Array<string>}>
 export type SetInboxUntrustedState = NoErrorTypedAction<
   'chat:inboxUntrustedState',
   {inboxUntrustedState: UntrustedState}
@@ -562,10 +560,6 @@ export type SetUnboxing = TypedAction<
 >
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
-export type StageUserForSearch = NoErrorTypedAction<
-  'chat:stageUserForSearch',
-  {user: SearchConstants.SearchResultId}
->
 export type StartConversation = NoErrorTypedAction<
   'chat:startConversation',
   {users: Array<string>, forceImmediate: boolean, temporary: boolean}
@@ -577,10 +571,6 @@ export type ToggleChannelWideNotifications = NoErrorTypedAction<
 export type UnboxInbox = NoErrorTypedAction<
   'chat:updateSupersededByState',
   {conversationIDKeys: Array<ConversationIDKey>}
->
-export type UnstageUserForSearch = NoErrorTypedAction<
-  'chat:unstageUserForSearch',
-  {user: SearchConstants.SearchResultId}
 >
 export type UntrustedInboxVisible = NoErrorTypedAction<
   'chat:untrustedInboxVisible',
@@ -766,8 +756,6 @@ export type UpdateSnippet = NoErrorTypedAction<
   }
 >
 
-export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'chat:updateSearchResults'>
-
 export type Actions =
   | AddPendingConversation
   | AppendMessages
@@ -796,7 +784,6 @@ export type Actions =
   | MarkSeenMessage
   | AttachmentLoaded
   | UpdateFinalizedState
-  | UpdateSearchResults
   | UpdateSupersededByState
   | UpdateSupersedesState
   | UpdatedNotifications
@@ -1155,9 +1142,8 @@ function isImageFileName(filename: string): boolean {
   return imageFileNameRegex.test(filename)
 }
 
-const getInboxSearch = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 const getFollowingStates = (state: TypedState) => {
-  const ids = getInboxSearch(state)
+  const ids = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
   let followingStateMap = {}
   ids.forEach(id => {
     const {username, serviceId} = parseUserId(id)
@@ -1168,22 +1154,20 @@ const getFollowingStates = (state: TypedState) => {
 }
 
 const getUserItems = createShallowEqualSelector(
-  [getInboxSearch, getFollowingStates],
-  (inboxSearch, followingStates) =>
-    inboxSearch
-      .map(id => {
-        const {username, serviceId} = parseUserId(id)
-        const service = SearchConstants.serviceIdToService(serviceId)
-        return {
-          id: id,
-          followingState: followingStates[id],
-          // $FlowIssue ??
-          icon: serviceIdToIcon(serviceId),
-          username,
-          service,
-        }
-      })
-      .toArray()
+  [s => SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}), getFollowingStates],
+  (userInputItemIds, followingStates) =>
+    userInputItemIds.map(id => {
+      const {username, serviceId} = parseUserId(id)
+      const service = SearchConstants.serviceIdToService(serviceId)
+      return {
+        id: id,
+        followingState: followingStates[id],
+        // $FlowIssue ??
+        icon: serviceIdToIcon(serviceId),
+        username,
+        service,
+      }
+    })
 )
 
 // Selectors for entities

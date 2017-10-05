@@ -81,6 +81,10 @@ export const CommonDeviceType = {
   mobile: 1,
 }
 
+export const CommonFullNamePackageVersion = {
+  v0: 0,
+}
+
 export const CommonLogLevel = {
   none: 0,
   debug: 1,
@@ -2411,6 +2415,14 @@ export function teamsTeamCreateRpcPromise (request: (requestCommon & {callback?:
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreate', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamCreateWithSettingsRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateWithSettingsResult) => void} & {param: teamsTeamCreateWithSettingsRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamCreateWithSettings', request)
+}
+
+export function teamsTeamCreateWithSettingsRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamCreateWithSettingsResult) => void} & {param: teamsTeamCreateWithSettingsRpcParam})): Promise<teamsTeamCreateWithSettingsResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamCreateWithSettings', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamDeleteRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamDeleteRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamDelete', request)
 }
@@ -2467,6 +2479,14 @@ export function teamsTeamListRpcPromise (request: (requestCommon & {callback?: ?
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamList', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
+export function teamsTeamListSubteamsRecursiveRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamListSubteamsRecursiveResult) => void} & {param: teamsTeamListSubteamsRecursiveRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamListSubteamsRecursive', request)
+}
+
+export function teamsTeamListSubteamsRecursiveRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamListSubteamsRecursiveResult) => void} & {param: teamsTeamListSubteamsRecursiveRpcParam})): Promise<teamsTeamListSubteamsRecursiveResult> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamListSubteamsRecursive', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
 export function teamsTeamReAddMemberAfterResetRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamReAddMemberAfterResetRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamReAddMemberAfterReset', request)
 }
@@ -2497,6 +2517,14 @@ export function teamsTeamRequestAccessRpcChannelMap (configKeys: Array<string>, 
 
 export function teamsTeamRequestAccessRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam})): Promise<void> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function teamsTeamSetSettingsRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamSetSettingsRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamSetSettings', request)
+}
+
+export function teamsTeamSetSettingsRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamSetSettingsRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamSetSettings', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function teamsTeamTreeRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamTreeResult) => void} & {param: teamsTeamTreeRpcParam}): EngineChannel {
@@ -2787,6 +2815,7 @@ export type AnnotatedMemberInfo = {
   isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
+  needsPUK: boolean,
 }
 
 export type AnnotatedTeamInvite = {
@@ -2794,6 +2823,7 @@ export type AnnotatedTeamInvite = {
   id: TeamInviteID,
   type: TeamInviteType,
   name: TeamInviteName,
+  uv: UserVersion,
   inviter: UserVersion,
   inviterUsername: string,
   teamName: string,
@@ -3260,6 +3290,17 @@ export type ForkType =
   | 2 // WATCHDOG_2
   | 3 // LAUNCHD_3
 
+export type FullName = string
+
+export type FullNamePackage = {
+  version: FullNamePackageVersion,
+  fullName: FullName,
+  cachedAt: Time,
+}
+
+export type FullNamePackageVersion =
+    0 // V0_0
+
 export type FuseMountInfo = {
   path: string,
   fstype: string,
@@ -3607,6 +3648,7 @@ export type LoadTeamArg = {
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
+  public: boolean,
 }
 
 export type LockContext = {
@@ -3625,6 +3667,12 @@ export type LogLevel =
   | 5 // ERROR_5
   | 6 // CRITICAL_6
   | 7 // FATAL_7
+
+export type LookupImplicitTeamRes = {
+  teamID: TeamID,
+  name: TeamName,
+  displayName: ImplicitTeamDisplayName,
+}
 
 export type MDBlock = {
   version: int,
@@ -4699,6 +4747,11 @@ export type TLFVisibility =
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
 
+export type TeamAccessRequest = {
+  uid: UID,
+  eldestSeqno: Seqno,
+}
+
 export type TeamAddMemberResult = {
   invited: boolean,
   user?: ?User,
@@ -4767,7 +4820,16 @@ export type TeamDetails = {
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
 }
 
+export type TeamExitRow = {
+  id: TeamID,
+}
+
 export type TeamID = string
+
+export type TeamIDAndName = {
+  id: TeamID,
+  name: TeamName,
+}
 
 export type TeamIDWithVisibility = {
   teamID: TeamID,
@@ -4826,6 +4888,7 @@ export type TeamMemberDetails = {
   uv: UserVersion,
   username: string,
   active: boolean,
+  needsPUK: boolean,
 }
 
 export type TeamMembers = {
@@ -4852,6 +4915,11 @@ export type TeamNameLogPoint = {
 }
 
 export type TeamNamePart = string
+
+export type TeamOpenReqMsg = {
+  teamID: TeamID,
+  tars?: ?Array<TeamAccessRequest>,
+}
 
 export type TeamPlusApplicationKeys = {
   id: TeamID,
@@ -4883,6 +4951,11 @@ export type TeamSBSMsg = {
   invitees?: ?Array<TeamInvitee>,
 }
 
+export type TeamSettings = {
+  open: boolean,
+  joinAs: TeamRole,
+}
+
 export type TeamSigChainState = {
   reader: UserVersion,
   id: TeamID,
@@ -4900,6 +4973,8 @@ export type TeamSigChainState = {
   linkIDs: {[key: string]: LinkID},
   stubbedLinks: {[key: string]: boolean},
   activeInvites: {[key: string]: TeamInvite},
+  open: boolean,
+  openTeamJoinAs: TeamRole,
 }
 
 export type TeamTreeEntry = {
@@ -5400,7 +5475,8 @@ export type gitGetGitMetadataRpcParam = Exact<{
 export type gitPutGitMetadataRpcParam = Exact<{
   folder: Folder,
   repoID: RepoID,
-  metadata: GitLocalMetadata
+  metadata: GitLocalMetadata,
+  notifyTeam: boolean
 }>
 
 export type gpgUiSelectKeyAndPushOptionRpcParam = Exact<{
@@ -6133,6 +6209,12 @@ export type teamsTeamCreateRpcParam = Exact<{
   sendChatNotification: boolean
 }>
 
+export type teamsTeamCreateWithSettingsRpcParam = Exact<{
+  name: string,
+  sendChatNotification: boolean,
+  settings: TeamSettings
+}>
+
 export type teamsTeamDeleteRpcParam = Exact<{
   name: string
 }>
@@ -6164,6 +6246,11 @@ export type teamsTeamListRpcParam = Exact<{
   includeImplicitTeams: boolean
 }>
 
+export type teamsTeamListSubteamsRecursiveRpcParam = Exact<{
+  parentTeamName: string,
+  forceRepoll: boolean
+}>
+
 export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
   id: TeamID,
   username: string
@@ -6171,7 +6258,8 @@ export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
   name: string,
-  username: string
+  username: string,
+  email: string
 }>
 
 export type teamsTeamRenameRpcParam = Exact<{
@@ -6183,11 +6271,20 @@ export type teamsTeamRequestAccessRpcParam = Exact<{
   name: string
 }>
 
+export type teamsTeamSetSettingsRpcParam = Exact<{
+  name: string,
+  settings: TeamSettings
+}>
+
 export type teamsTeamTreeRpcParam = Exact<{
   name: TeamName
 }>
 
 export type teamsUiConfirmRootTeamDeleteRpcParam = Exact<{
+  teamName: string
+}>
+
+export type teamsUiConfirmSubteamDeleteRpcParam = Exact<{
   teamName: string
 }>
 
@@ -6443,15 +6540,18 @@ type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsGetTeamRootIDResult = TeamID
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
-type teamsLookupImplicitTeamResult = TeamID
-type teamsLookupOrCreateImplicitTeamResult = TeamID
+type teamsLookupImplicitTeamResult = LookupImplicitTeamRes
+type teamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
+type teamsTeamCreateWithSettingsResult = TeamCreateResult
 type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
+type teamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
 type teamsTeamTreeResult = TeamTreeResult
 type teamsUiConfirmRootTeamDeleteResult = boolean
+type teamsUiConfirmSubteamDeleteResult = boolean
 type testTestCallbackResult = string
 type testTestResult = Test
 type tlfCompleteAndCanonicalizePrivateTlfNameResult = CanonicalTLFNameAndIDWithBreaks
@@ -7137,6 +7237,16 @@ export type incomingCallMapType = Exact<{
     response: {
       error: RPCErrorHandler,
       result: (result: teamsUiConfirmRootTeamDeleteResult) => void,
+    }
+  ) => void,
+  'keybase.1.teamsUi.confirmSubteamDelete'?: (
+    params: Exact<{
+      sessionID: int,
+      teamName: string
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: teamsUiConfirmSubteamDeleteResult) => void,
     }
   ) => void,
   'keybase.1.ui.promptYesNo'?: (

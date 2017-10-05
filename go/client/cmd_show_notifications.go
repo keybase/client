@@ -46,7 +46,7 @@ func (c *CmdShowNotifications) Run() error {
 		Tracking: true,
 	}
 
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	cli, err := GetNotifyCtlClient(c.G())

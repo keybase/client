@@ -51,13 +51,13 @@ func TestPutAndGet(t *testing.T) {
 
 	// Create two teams, so that we can test filtering by TeamID.
 	teamName1 := u.Username + "t1"
-	err = teams.CreateRootTeam(context.Background(), tc.G, teamName1)
+	err = teams.CreateRootTeam(context.Background(), tc.G, teamName1, keybase1.TeamSettings{})
 	require.NoError(t, err)
 	team1, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{Name: teamName1})
 	require.NoError(t, err)
 
 	teamName2 := u.Username + "t2"
-	err = teams.CreateRootTeam(context.Background(), tc.G, teamName2)
+	err = teams.CreateRootTeam(context.Background(), tc.G, teamName2, keybase1.TeamSettings{})
 	require.NoError(t, err)
 
 	// Create two git repos, one in each team. Remember that all we're
@@ -231,7 +231,7 @@ func TestPutAndGetWritersCantDelete(t *testing.T) {
 
 	// u2 creates a team where u1 is just a writer
 	teamName := u2.Username + "t1"
-	err = teams.CreateRootTeam(context.Background(), tc.G, teamName)
+	err = teams.CreateRootTeam(context.Background(), tc.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
 	_, err = teams.AddMember(context.Background(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
 	if err != nil {

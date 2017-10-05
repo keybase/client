@@ -1,5 +1,5 @@
 // @flow
-import {Map, Record, List, Set} from 'immutable'
+import {Map, Record, List, OrderedSet, Set} from 'immutable'
 import * as SearchConstants from './search'
 import * as Teams from './teams'
 import * as Git from './git'
@@ -22,8 +22,24 @@ export type Replace = NoErrorTypedAction<
   'entity:replace',
   {keyPath: Array<string>, entities: {[id: string]: EntityType}}
 >
+export type Subtract = NoErrorTypedAction<
+  'entity:subtract',
+  {keyPath: Array<string>, entities: Array<EntityType>}
+>
 
-export type Actions = Delete | Merge | Replace
+export type Actions = Delete | Merge | Replace | Subtract
+
+type SearchSubState = KBRecord<{
+  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
+  searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
+  searchKeyToResults: Map<string, ?List<SearchConstants.SearchResultId>>,
+  searchKeyToPending: Map<string, boolean>,
+  searchKeyToSelectedId: Map<string, ?SearchConstants.SearchResultId>,
+  searchKeyToShowSearchSuggestion: Map<string, boolean>,
+  searchKeyToUserInputItemIds: Map<string, OrderedSet<SearchConstants.SearchResultId>>,
+  searchKeyToSearchResultQuery: Map<string, ?{text: string, service: SearchConstants.Service}>,
+  searchKeyToClearSearchTextInput: Map<string, number>,
+}>
 
 // State
 export type State = KBRecord<{
@@ -53,10 +69,23 @@ export type State = KBRecord<{
     Map<ChatConstants.MessageID, KBOrderedSet<ChatConstants.MessageKey>>
   >,
   messages: Map<ChatConstants.MessageKey, ChatConstants.Message>,
+  search: SearchSubState,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
   searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   teams: Teams.TeamRecord,
 }>
+
+const SearchSubRecord: Class<SearchSubState> = Record({
+  searchResults: Map(),
+  searchQueryToResult: Map(),
+  searchKeyToResults: Map(),
+  searchKeyToPending: Map(),
+  searchKeyToSelectedId: Map(),
+  searchKeyToShowSearchSuggestion: Map(),
+  searchKeyToUserInputItemIds: Map(),
+  searchKeyToSearchResultQuery: Map(),
+  searchKeyToClearSearchTextInput: Map(),
+})
 
 const StateRecord = Record({
   attachmentDownloadProgress: Map(),
@@ -82,8 +111,7 @@ const StateRecord = Record({
   inboxVersion: Map(),
   messageUpdates: Map(),
   messages: Map(),
-  searchQueryToResult: Map(),
-  searchResults: Map(),
+  search: SearchSubRecord(),
   teams: new Teams.Team(),
 })
 

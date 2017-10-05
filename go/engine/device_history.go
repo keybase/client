@@ -76,9 +76,9 @@ func (e *DeviceHistory) Devices() []keybase1.DeviceDetail {
 func (e *DeviceHistory) loadUserArg() libkb.LoadUserArg {
 	arg := libkb.NewLoadUserPubOptionalArg(e.G())
 	if len(e.username) == 0 {
-		arg.Self = true
+		arg = arg.WithSelf(true)
 	} else {
-		arg.Name = e.username
+		arg = arg.WithName(e.username)
 	}
 	return arg
 }

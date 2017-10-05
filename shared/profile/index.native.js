@@ -3,6 +3,7 @@ import * as shared from './index.shared'
 import ErrorComponent from '../common-adapters/error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
+import {isIPhoneX} from '../constants/platform'
 import orderBy from 'lodash/orderBy'
 import chunk from 'lodash/chunk'
 import moment from 'moment'
@@ -278,7 +279,7 @@ class Profile extends Component<Props, State> {
             ...styleHeader,
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: globalMargins.tiny,
-            paddingTop: globalMargins.tiny + statusBarHeight,
+            paddingTop: isIPhoneX ? 40 : globalMargins.tiny + statusBarHeight,
           }}
         >
           {this.props.onBack &&

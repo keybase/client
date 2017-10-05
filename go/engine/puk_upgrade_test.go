@@ -50,8 +50,7 @@ func TestPerUserKeyUpgrade(t *testing.T) {
 	require.False(t, upgrade().DidNewKey, "did not create key")
 
 	t.Logf("check SignedByKID field of the PUKs")
-	loadArg := libkb.NewLoadUserSelfArg(tc.G)
-	loadArg.UID = fu.UID()
+	loadArg := libkb.NewLoadUserSelfArg(tc.G).WithUID(fu.UID())
 	upak, _, err := tc.G.GetUPAKLoader().LoadV2(loadArg)
 	require.NoError(t, err)
 	require.Len(t, upak.Current.PerUserKeys, 2, "PUK count")

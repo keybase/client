@@ -26,6 +26,9 @@ const isWindows = false
 const fileUIName = 'File Explorer'
 const mobileOsVersion = Platform.Version
 
+const isIPhoneX =
+  Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && Dimensions.get('window').height === 812
+
 // isLargeScreen means you have at larger screen like iPhone 6,7 or Pixel
 // See https://material.io/devices/
 const isLargeScreen = Dimensions.get('window').height >= 667
@@ -47,4 +50,5 @@ export {
   runMode,
   version,
   isStoryBook,
+  isIPhoneX,
 }

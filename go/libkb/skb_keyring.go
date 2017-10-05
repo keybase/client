@@ -85,7 +85,7 @@ func (k *SKBKeyringFile) loadLocked() (err error) {
 		}
 
 	} else if err == nil {
-		k.Blocks, err = packets.ToListOfSKBs()
+		k.Blocks, err = packets.ToListOfSKBs(k.G())
 	}
 
 	k.G().Log.Debug("- Loaded SKB keyring: %s -> %s", k.filename, ErrToOk(err))

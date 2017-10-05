@@ -419,7 +419,7 @@ type FakeGregorDismisser struct {
 
 var _ libkb.GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (d *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+func (d *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	d.dismissedMsgID = id
 	return nil
 }

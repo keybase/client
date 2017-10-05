@@ -185,7 +185,7 @@ func createTeam(tc libkb.TestContext) string {
 		tc.T.Fatal(err)
 	}
 	name := hex.EncodeToString(b)
-	err = CreateRootTeam(context.TODO(), tc.G, name)
+	err = CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -197,4 +197,12 @@ func createTeam2(tc libkb.TestContext) (keybase1.TeamName, keybase1.TeamID) {
 	teamName, err := keybase1.TeamNameFromString(teamNameS)
 	require.NoError(tc.T, err)
 	return teamName, teamName.ToTeamID()
+}
+
+func createSubteam(tc *libkb.TestContext, parent keybase1.TeamName, subteamNamePart string) (keybase1.TeamName, keybase1.TeamID) {
+	subteamName, err := parent.Append(subteamNamePart)
+	require.NoError(tc.T, err)
+	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamNamePart, parent)
+	require.NoError(tc.T, err)
+	return subteamName, *subteamID
 }

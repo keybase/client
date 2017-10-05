@@ -48,6 +48,8 @@ type NotifyListener interface {
 		resolveInfo chat1.ConversationResolveInfo)
 	ChatInboxStale(uid keybase1.UID)
 	ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate)
+	ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)
+	ChatInboxSyncStarted(uid keybase1.UID)
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
 	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
@@ -646,6 +648,60 @@ func (n *NotifyRouter) HandleChatThreadsStale(ctx context.Context, uid keybase1.
 		n.listener.ChatThreadsStale(uid, updates)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatThreadsStale notification")
+}
+
+func (n *NotifyRouter) HandleChatInboxSynced(ctx context.Context, uid keybase1.UID,
+	syncRes chat1.ChatSyncResult) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxSynced notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatInboxSynced(context.Background(), chat1.ChatInboxSyncedArg{
+					Uid:     uid,
+					SyncRes: syncRes,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatInboxSynced(uid, syncRes)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatInboxSynced notification")
+}
+
+func (n *NotifyRouter) HandleChatInboxSyncStarted(ctx context.Context, uid keybase1.UID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatInboxSyncStarted notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatInboxSyncStarted(context.Background(), uid)
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatInboxSyncStarted(uid)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatInboxSyncStarted notification")
 }
 
 func (n *NotifyRouter) HandleChatTypingUpdate(ctx context.Context, updates []chat1.ConvTypingUpdate) {

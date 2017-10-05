@@ -88,20 +88,17 @@ func (e *LoginProvisionedDevice) run(ctx *Context) error {
 	}
 
 	var config *libkb.UserConfig
-	loadUserArg := libkb.LoadUserArg{
-		PublicKeyOptional: true,
-		ForceReload:       true,
-	}
+	loadUserArg := libkb.NewLoadUserArg(e.G()).WithPublicKeyOptional().WithForceReload()
 	var nu libkb.NormalizedUsername
 	if len(e.username) == 0 {
 		e.G().Log.Debug("| using current username")
 		config, err = e.G().Env.GetConfig().GetUserConfig()
-		loadUserArg.Self = true
+		loadUserArg = loadUserArg.WithSelf(true)
 	} else {
 		e.G().Log.Debug("| using new username %s", e.username)
 		nu = libkb.NewNormalizedUsername(e.username)
 		config, err = e.G().Env.GetConfig().GetUserConfigForUsername(nu)
-		loadUserArg.Name = e.username
+		loadUserArg = loadUserArg.WithName(e.username)
 	}
 	if err != nil {
 		e.G().Log.Debug("error getting user config: %s (%T)", err, err)

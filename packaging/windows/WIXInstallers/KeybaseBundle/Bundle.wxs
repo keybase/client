@@ -96,7 +96,8 @@
         DetectCondition="DokanUninstallString OR NOT driver"
         Description="Remove previous drivers"
         PerMachine="yes"
-        Permanent="yes">
+        Permanent="yes"
+	Cache="yes">
         <ExitCode Value="1641" Behavior="forceReboot"/>
         <ExitCode Value="3010" Behavior="forceReboot"/>
         <ExitCode Value="0" Behavior="success" />
@@ -113,7 +114,7 @@
                   DetectCondition="(vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918) OR NOT driver"
                   PerMachine="yes"
                   Vital="yes"
-                  Cache="no"
+                  Cache="yes"
                   SuppressSignatureVerification="yes"
                   SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
                   DownloadUrl="https://download.microsoft.com/download/6/D/F/6DF3FF94-F7F9-4F0B-838C-A328D1A7D0EE/vc_redist.x86.exe"
@@ -228,6 +229,7 @@
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
+		  Cache="yes"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -240,6 +242,7 @@
                   Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
+		  Cache="yes"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -257,7 +260,7 @@
       </MsiPackage>
 
     </Chain>
-	</Bundle>
+  </Bundle>
   <Fragment>    
     <util:FileSearch Id="WINTRUST_FileSearch"
                      Path="[SystemFolder]Wintrust.dll"

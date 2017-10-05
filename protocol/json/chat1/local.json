@@ -457,37 +457,6 @@
       ]
     },
     {
-      "type": "record",
-      "name": "Inbox",
-      "fields": [
-        {
-          "type": "InboxVers",
-          "name": "version"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "Conversation"
-          },
-          "name": "convsUnverified"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationLocal"
-          },
-          "name": "convs"
-        },
-        {
-          "type": [
-            null,
-            "Pagination"
-          ],
-          "name": "pagination"
-        }
-      ]
-    },
-    {
       "type": "enum",
       "name": "HeaderPlaintextVersion",
       "symbols": [
@@ -2080,6 +2049,10 @@
             null,
             "int"
           ]
+        },
+        {
+          "name": "skipUnverified",
+          "type": "boolean"
         },
         {
           "name": "query",

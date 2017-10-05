@@ -18,7 +18,7 @@ import {branch} from 'recompose'
 
 type Props = {
   expandedSet: I.Set<string>,
-  onShowDelete: (teamname: ?string, name: string) => void,
+  onShowDelete: (id: string) => void,
   onNewPersonalRepo: () => void,
   onNewTeamRepo: () => void,
   onToggleExpand: (id: string) => void,
@@ -47,8 +47,10 @@ class Git extends React.Component<Props, State> {
       title: 'New personal repository',
     },
     {
-      onClick: () => this.props.onNewTeamRepo(),
-      title: 'New team repository',
+      disabled: isMobile,
+      onClick: isMobile ? undefined : () => this.props.onNewTeamRepo(),
+      style: isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
+      title: `New team repository${isMobile ? ' (desktop only)' : ''}`,
     },
   ]
 

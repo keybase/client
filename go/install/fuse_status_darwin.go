@@ -116,16 +116,6 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 	return mountInfos, nil
 }
 
-// KeybaseFuseStatusForAppBundle returns Fuse status for application at appPath
-func KeybaseFuseStatusForAppBundle(appPath string, log Log) (keybase1.FuseStatus, error) {
-	bundleVersion, err := fuseBundleVersion(appPath, log)
-	if err != nil {
-		return keybase1.FuseStatus{}, err
-	}
-	fuseStatus := KeybaseFuseStatus(bundleVersion, log)
-	return fuseStatus, err
-}
-
 func findStringInPlist(key string, plistData []byte, log Log) string {
 	// Hack to parse plist, instead of parsing we'll use a regex
 	res := fmt.Sprintf(`<key>%s<\/key>\s*<string>([\S ]+)<\/string>`, key)

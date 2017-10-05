@@ -26,38 +26,6 @@ const (
 	methodMark      = "mark"
 )
 
-// ErrInvalidOptions is returned when the options aren't valid.
-type ErrInvalidOptions struct {
-	method  string
-	version int
-	err     error
-}
-
-func (e ErrInvalidOptions) Error() string {
-	return fmt.Sprintf("invalid %s v%d options: %s", e.method, e.version, e.err)
-}
-
-// Call represents a JSON chat call.
-type Call struct {
-	Jsonrpc string
-	ID      int
-	Method  string
-	Params  Params
-}
-
-// Params represents the `params` portion of the JSON chat call.
-type Params struct {
-	Version int
-	Options json.RawMessage
-}
-
-// CallError is the result when there is an error.
-type CallError struct {
-	Code    int         `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data,omitempty"`
-}
-
 type RateLimit struct {
 	Tank     string `json:"tank"`
 	Capacity int    `json:"capacity"`
@@ -67,14 +35,6 @@ type RateLimit struct {
 
 type RateLimits struct {
 	RateLimits []RateLimit `json:"ratelimits,omitempty"`
-}
-
-// Reply is returned with the results of procressing a Call.
-type Reply struct {
-	Jsonrpc string      `json:"jsonrpc,omitempty"`
-	ID      int         `json:"id,omitempty"`
-	Error   *CallError  `json:"error,omitempty"`
-	Result  interface{} `json:"result,omitempty"`
 }
 
 // ChatAPIHandler can handle all of the chat json api methods.

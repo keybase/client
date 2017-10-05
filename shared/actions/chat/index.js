@@ -2,6 +2,7 @@
 import * as Attachment from './attachment'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as SearchConstants from '../../constants/search'
 import * as Creators from './creators'
 import * as EntityCreators from '../entities'
 import * as SearchCreators from '../search/creators'
@@ -32,20 +33,16 @@ import {chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import some from 'lodash/some'
 import {toDeviceType} from '../../constants/types/more'
-import {
-  usernameSelector,
-  inboxSearchSelector,
-  previousConversationSelector,
-  searchResultMapSelector,
-} from '../../constants/selectors'
-import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
+import {usernameSelector, previousConversationSelector} from '../../constants/selectors'
 
 import type {Action} from '../../constants/types/flux'
-import type {KBOrderedSet} from '../../constants/types/more'
+import type {KBOrderedSet, ReturnValue} from '../../constants/types/more'
 import type {ChangedFocus, ChangedActive} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
+
+const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 
 function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
@@ -273,6 +270,22 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
       return Creators.markThreadsStale(updates)
     }
     return null
+  })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
+    switch (syncRes.syncType) {
+      case ChatTypes.CommonSyncInboxResType.clear:
+        return Creators.inboxStale()
+      case ChatTypes.CommonSyncInboxResType.current:
+        return Creators.setInboxUntrustedState('loaded')
+      case ChatTypes.CommonSyncInboxResType.incremental:
+        return Creators.inboxSynced(syncRes.incremental.items)
+    }
+    return Creators.inboxStale()
+  })
+
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
+    return Creators.setInboxUntrustedState('loading')
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () => Creators.inboxStale())
@@ -822,14 +835,14 @@ function* _openFolder(): SagaGenerator<any, any> {
 
 function* _newChat(action: Constants.NewChat): SagaGenerator<any, any> {
   yield put(Creators.setInboxFilter(''))
-  const inboxSearch = yield select(inboxSearchSelector)
-  if (inboxSearch && !inboxSearch.isEmpty()) {
+  const ids = yield select(SearchConstants.getUserInputItemIds, {searchKey: 'chatSearch'})
+  if (ids && !!ids.length) {
     // Ignore 'New Chat' attempts when we're already building a chat
     return
   }
   yield put(Creators.setPreviousConversation(yield select(Constants.getSelectedConversation)))
   yield put(Creators.selectConversation(null, false))
-  yield put(SearchCreators.searchSuggestions('chat:updateSearchResults'))
+  yield put(SearchCreators.searchSuggestions('chatSearch'))
 }
 
 function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, any> {
@@ -892,14 +905,14 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
   }
 
   const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
-  const inSearch = yield select((state: TypedState) => state.chat.get('inSearch'))
+  const inSearch = yield select(inSearchSelector)
   if (inbox && !inbox.teamname) {
     const participants = inbox.get('participants').toArray()
     yield put(Creators.updateMetadata(participants))
     // Update search but don't update the filter
     if (inSearch) {
       const me = yield select(usernameSelector)
-      yield put(Creators.setInboxSearch(participants.filter(u => u !== me)))
+      yield put(SearchCreators.setUserInputItems('chatSearch', participants.filter(u => u !== me)))
     }
   }
 
@@ -1188,6 +1201,24 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
   yield put(Creators.loadMoreMessages(selectedConversation, false))
 }
 
+function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
+  const {convs} = action.payload
+  const author = yield select(usernameSelector)
+  const items: I.List<Constants.InboxState> = Shared.makeInboxStateRecords(author, convs)
+
+  const convIDs = items.map(item => item.conversationIDKey).toArray()
+  const updateActions = items.map(item => put(Creators.updateInbox(item)))
+  yield all(updateActions)
+  yield put(Creators.unboxConversations(convIDs, true, true))
+
+  const selectedConversation = yield select(Constants.getSelectedConversation)
+  if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
+    return
+  }
+  yield put(Creators.clearMessages(selectedConversation))
+  yield put(Creators.loadMoreMessages(selectedConversation, false))
+}
+
 function _threadIsCleared(originalAction: Action, checkAction: Action): boolean {
   return (
     originalAction.type === 'chat:loadMoreMessages' &&
@@ -1234,45 +1265,43 @@ function* _updateTyping({
   }
 }
 
-function* _updateTempSearchConversation(
-  action: Constants.StageUserForSearch | Constants.UnstageUserForSearch
-) {
-  const {payload: {user}} = action
-  const searchResultMap = yield select(searchResultMapSelector)
-  const maybeUpgradedUser = maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, user)
-  const me = yield select(usernameSelector)
-  const inboxSearch = yield select(inboxSearchSelector)
+// TODO this is kinda confusing. I think there is duplicated state...
+function* _updateTempSearchConversation(action: SearchConstants.UserInputItemsUpdated) {
+  const {payload: {userInputItemIds}} = action
+  const [me, inSearch] = yield all([select(usernameSelector), select(inSearchSelector)])
 
-  const actionsToPut = []
+  if (!inSearch) {
+    return
+  }
 
-  if (action.type === 'chat:stageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.push(maybeUpgradedUser)
-    actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
-    actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
-  } else if (action.type === 'chat:unstageUserForSearch') {
-    const nextTempSearchConv = inboxSearch.filterNot(u => u === maybeUpgradedUser)
-    if (!nextTempSearchConv.isEmpty()) {
-      actionsToPut.push(put(Creators.startConversation(nextTempSearchConv.toArray().concat(me), false, true)))
-    } else {
-      actionsToPut.push(put(Creators.selectConversation(null, false)))
-    }
-
-    actionsToPut.push(put(Creators.setInboxSearch(nextTempSearchConv.filter(u => u !== me).toArray())))
+  const actionsToPut = [put(Creators.removeTempPendingConversations())]
+  if (userInputItemIds.length) {
+    actionsToPut.push(put(Creators.startConversation(userInputItemIds.concat(me), false, true)))
+  } else {
+    actionsToPut.push(put(Creators.selectConversation(null, false)))
+    actionsToPut.push(put(SearchCreators.searchSuggestions('chatSearch')))
   }
 
   // Always clear the search results when you select/unselect
-  actionsToPut.push(put(Creators.clearSearchResults()))
+  actionsToPut.push(put(SearchCreators.clearSearchResults('chatSearch')))
   yield all(actionsToPut)
 }
 
-function* _exitSearch({payload: {skipSelectPreviousConversation}}: Constants.ExitSearch) {
-  const inboxSearch = skipSelectPreviousConversation ? null : yield select(inboxSearchSelector)
-  yield put(Creators.clearSearchResults())
-  yield put(Creators.setInboxSearch([]))
-  yield put(Creators.removeTempPendingConversations())
-  if (inboxSearch !== null && inboxSearch.count() === 0) {
-    yield put(Creators.selectConversation(yield select(previousConversationSelector), false))
-  }
+function _exitSearch(
+  {payload: {skipSelectPreviousConversation}}: Constants.ExitSearch,
+  [userInputItemIds, previousConversation]: [
+    ReturnValue<typeof SearchConstants.getUserInputItemIds>,
+    ReturnValue<typeof previousConversationSelector>,
+  ]
+) {
+  return all([
+    put(SearchCreators.clearSearchResults('chatSearch')),
+    put(SearchCreators.setUserInputItems('chatSearch', [])),
+    put(Creators.removeTempPendingConversations()),
+    userInputItemIds.length === 0 && !skipSelectPreviousConversation
+      ? put(Creators.selectConversation(previousConversation, false))
+      : null,
+  ])
 }
 
 const _setNotifications = function*(action: Constants.SetNotifications) {
@@ -1387,6 +1416,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
   yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
   yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
+  yield Saga.safeTakeEvery('chat:inboxSynced', _inboxSynced)
   yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
   yield Saga.safeTakeEvery('chat:newChat', _newChat)
   yield Saga.safeTakeEvery('chat:openAttachmentPopup', Attachment.onOpenAttachmentPopup)
@@ -1417,9 +1447,14 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
-  yield Saga.safeTakeLatest('chat:stageUserForSearch', _updateTempSearchConversation)
-  yield Saga.safeTakeLatest('chat:unstageUserForSearch', _updateTempSearchConversation)
-  yield Saga.safeTakeLatest('chat:exitSearch', _exitSearch)
+  yield Saga.safeTakeLatest(
+    SearchConstants.isUserInputItemsUpdated('chatSearch'),
+    _updateTempSearchConversation
+  )
+  yield Saga.safeTakeEveryPure('chat:exitSearch', _exitSearch, s => [
+    SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}),
+    previousConversationSelector(s),
+  ])
   yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
   yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
   yield Saga.safeTakeSerially('chat:unboxConversations', Inbox.unboxConversations)

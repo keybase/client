@@ -14,6 +14,7 @@ import (
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -575,6 +576,10 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	if err != nil {
 		return ""
 	}
+	return GetMsgSnippet(msg)
+}
+
+func GetMsgSnippet(msg chat1.MessageUnboxed) string {
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msg.Valid().MessageBody.Text().Body
@@ -582,6 +587,35 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 		return msg.Valid().MessageBody.Attachment().Object.Title
 	}
 	return ""
+}
+
+func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+	rawConv := rc.Conv
+	res.ConvID = rawConv.GetConvID().String()
+	res.Name = rawConv.MaxMsgSummaries[0].TlfName
+	res.Status = rawConv.Metadata.Status
+	res.Time = GetConvMtime(rawConv)
+	res.Visibility = rawConv.Metadata.Visibility
+	res.Notifications = rawConv.Notifications
+	res.MembersType = rawConv.GetMembersType()
+	res.TeamType = rawConv.Metadata.TeamType
+	res.Version = rawConv.Metadata.Version
+	if rc.LocalMetadata != nil {
+		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
+			ChannelName: rc.LocalMetadata.TopicName,
+			Headline:    rc.LocalMetadata.Headline,
+			Snippet:     rc.LocalMetadata.Snippet,
+			WriterNames: rc.LocalMetadata.WriterNames,
+		}
+	}
+	return res
+}
+
+func PresentRemoteConversations(rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+	for _, rc := range rcs {
+		res = append(res, PresentRemoteConversation(rc))
+	}
+	return res
 }
 
 func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
@@ -711,6 +745,14 @@ func (c ConvByConvID) Less(i, j int) bool {
 	return c[i].GetConvID().Less(c[j].GetConvID())
 }
 
+type RemoteConvByConvID []types.RemoteConversation
+
+func (c RemoteConvByConvID) Len() int      { return len(c) }
+func (c RemoteConvByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c RemoteConvByConvID) Less(i, j int) bool {
+	return c[i].GetConvID().Less(c[j].GetConvID())
+}
+
 type ConvLocalByTopicName []chat1.ConversationLocal
 
 func (c ConvLocalByTopicName) Len() int      { return len(c) }
@@ -785,4 +827,24 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 	b := make([]byte, base64.StdEncoding.DecodedLen(len(enc)))
 	n, err := base64.StdEncoding.Decode(b, enc)
 	return b[:n], err
+}
+
+func RemoteConvs(convs []chat1.Conversation) (res []types.RemoteConversation) {
+	for _, conv := range convs {
+		res = append(res, types.RemoteConversation{
+			Conv: conv,
+		})
+	}
+	return res
+}
+
+func PluckConvs(rcs []types.RemoteConversation) (res []chat1.Conversation) {
+	for _, rc := range rcs {
+		res = append(res, rc.Conv)
+	}
+	return res
+}
+
+func SplitTLFName(tlfName string) []string {
+	return strings.Split(strings.Fields(tlfName)[0], ",")
 }

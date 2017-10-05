@@ -74,7 +74,7 @@ func (h *TrackHandler) DismissWithToken(_ context.Context, arg keybase1.DismissW
 		return nil
 	}
 
-	return h.G().GregorDismisser.DismissItem(outcome.ResponsibleGregorItem.Metadata().MsgID())
+	return h.G().GregorDismisser.DismissItem(nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
 }
 
 // Untrack creates an UntrackEngine and runs it.
@@ -99,9 +99,7 @@ func (h *TrackHandler) CheckTracking(_ context.Context, sessionID int) error {
 }
 
 func (h *TrackHandler) FakeTrackingChanged(_ context.Context, arg keybase1.FakeTrackingChangedArg) error {
-	user, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name: arg.Username,
-	})
+	user, err := libkb.LoadUser(libkb.NewLoadUserArg(h.G()).WithName(arg.Username))
 	if err != nil {
 		return err
 	}
