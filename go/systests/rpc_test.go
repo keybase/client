@@ -27,8 +27,6 @@ func TestRPCs(t *testing.T) {
 	tc := setupTest(t, "rpcs")
 	tc2 := cloneContext(tc)
 
-	libkb.G.LocalDb = nil
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)

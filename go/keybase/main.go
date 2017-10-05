@@ -28,9 +28,6 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-// Keep this around to simplify things
-var G = libkb.G
-
 var cmd libcmdline.Command
 
 var errParseArgs = errors.New("failed to parse command line arguments")
@@ -51,7 +48,7 @@ func main() {
 		return
 	}
 
-	g := G
+	g := libkb.NewGlobalContext()
 	g.Init()
 
 	// Don't abort here. This should not happen on any known version of Windows, but
@@ -63,7 +60,7 @@ func main() {
 	// Set our panel of external services.
 	g.SetServices(externals.GetServices())
 
-	go HandleSignals()
+	go HandleSignals(g)
 	err = mainInner(g)
 
 	if g.Env.GetDebug() {
@@ -335,34 +332,34 @@ func configurePath(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
 	return client.SendPath(g)
 }
 
-func HandleSignals() {
+func HandleSignals(g *libkb.GlobalContext) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM, os.Kill)
 	for {
 		s := <-c
 		if s != nil {
-			G.Log.Debug("trapped signal %v", s)
+			g.Log.Debug("trapped signal %v", s)
 
 			// if the current command has a Stop function, then call it.
 			// It will do its own stopping of the process and calling
 			// shutdown
 			if stop, ok := cmd.(client.Stopper); ok {
-				G.Log.Debug("Stopping command cleanly via stopper")
+				g.Log.Debug("Stopping command cleanly via stopper")
 				stop.Stop(keybase1.ExitCode_OK)
 				return
 			}
 
 			// if the current command has a Cancel function, then call it:
 			if canc, ok := cmd.(client.Canceler); ok {
-				G.Log.Debug("canceling running command")
+				g.Log.Debug("canceling running command")
 				if err := canc.Cancel(); err != nil {
-					G.Log.Warning("error canceling command: %s", err)
+					g.Log.Warning("error canceling command: %s", err)
 				}
 			}
 
-			G.Log.Debug("calling shutdown")
-			G.Shutdown()
-			G.Log.Error("interrupted")
+			g.Log.Debug("calling shutdown")
+			g.Shutdown()
+			g.Log.Error("interrupted")
 			os.Exit(3)
 		}
 	}
