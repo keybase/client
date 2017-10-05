@@ -4,6 +4,7 @@ import type {UserList} from '../../../common-adapters/usernames'
 
 export type Props = {|
   badgeNumber?: number,
+  canOpenInfoPanel: boolean,
   channelName: ?string,
   muted: boolean,
   onBack: () => void,
