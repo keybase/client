@@ -27,7 +27,7 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, action) {
 
       case Constants.navigateTo:
         const payload = action.payload
-        const navigationSource: Constants.NavigationSource = payload.navigationsource
+        const navigationSource: Constants.NavigationSource = payload.navigationSource
         const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
         const validTab = !payload.parentPath && payload.path.length >= 1 && isValidInitialTab(payload.path[0])
         return loggedInUserNavigated || (validNavigationSource && validTab)
