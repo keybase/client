@@ -16,7 +16,7 @@ type ConnectedMentionHudProps = {
 
 const ConnectedMentionHud: Class<React.Component<ConnectedMentionHudProps, void>> = connect(state => {
   const inbox = getSelectedInbox(state)
-  const participants = inbox ? inbox.get('participants').toArray() : ['trex']
+  const participants = inbox ? inbox.get('participants').toArray() : []
   return {
     userIds: participants,
   }

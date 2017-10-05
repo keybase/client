@@ -6,7 +6,7 @@ import {navigateUp} from '../../actions/route-tree'
 import {load, paperKeyMake} from '../../actions/devices'
 
 const mapStateToProps = (state, {routeProps}) => ({
-  paperkey: routeProps.paperKey,
+  paperkey: routeProps.get('paperKey'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

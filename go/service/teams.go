@@ -186,7 +186,7 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
 	}
 	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
-	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Permanent)
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
@@ -242,7 +242,7 @@ func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteAr
 }
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
-	return fmt.Errorf("Not implemented")
+	return teams.ChangeTeamSettings(ctx, h.G().ExternalG(), arg.Name, arg.Settings)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {

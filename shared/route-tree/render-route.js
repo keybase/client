@@ -8,6 +8,7 @@ import {Box} from '../common-adapters'
 import type {Action} from '../constants/types/flux'
 import type {Tab} from '../constants/tabs'
 import type {RouteDefNode, RouteStateNode, Path} from './'
+import type {KBRecord} from '../constants/types/more'
 
 type _RenderRouteResultParams = {
   path: I.List<string>,
@@ -34,10 +35,10 @@ export type RouteProps<P, S> = {
   shouldRender: boolean,
 
   // Route props (query params)
-  routeProps: P,
+  routeProps: KBRecord<P>, // Really a Map but typed as a record
 
   // Route state (state associated with this path. can change, see below)
-  routeState: S,
+  routeState: KBRecord<S>, // Really a Map but typed as a record
 
   // The name of the selected child route (useful for navs)
   routeSelected: Tab,
@@ -75,6 +76,10 @@ type RenderRouteNodeProps<S> = {
 // Helper to render a component based on route state and use
 // shouldComponentUpdate (via PureComponent).
 class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
+  _setRouteState = partialState => this.props.setRouteState(this.props.path, partialState)
+  _navigateUp = () => putActionIfOnPath(this.props.path, navigateUp())
+  _navigateAppend = (...args) => putActionIfOnPath(this.props.path, navigateAppend(...args))
+
   static defaultProps: *
   render() {
     const {
@@ -83,7 +88,6 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
       isContainer,
       routeDef,
       routeState,
-      setRouteState,
       path,
       leafTags,
       stack,
@@ -94,15 +98,15 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
       <RouteComponent
         isActiveRoute={isActiveRoute}
         shouldRender={shouldRender}
-        routeProps={routeState.props.toObject()}
-        routeState={routeDef.initialState.merge(routeState.state).toObject()}
+        routeProps={routeState.props}
+        routeState={routeState.state}
         routeSelected={routeState.selected}
-        navigateUp={() => putActionIfOnPath(path, navigateUp())}
-        navigateAppend={(...args) => putActionIfOnPath(path, navigateAppend(...args))}
+        navigateUp={this._navigateUp}
+        navigateAppend={this._navigateAppend}
         routePath={path}
         routeLeafTags={leafTags || LeafTags()}
         routeStack={stack || I.Stack()}
-        setRouteState={partialState => setRouteState(path, partialState)}
+        setRouteState={this._setRouteState}
       >
         {children}
       </RouteComponent>

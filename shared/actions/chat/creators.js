@@ -3,7 +3,7 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
-import {List, Map} from 'immutable'
+import {List} from 'immutable'
 import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
@@ -359,15 +359,6 @@ function toggleChannelWideNotifications(
   return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
 }
 
-function updateConversationUnreadCounts(
-  conversationUnreadCounts: Map<Constants.ConversationIDKey, Constants.UnreadCounts>
-): Constants.UpdateConversationUnreadCounts {
-  return {
-    payload: {conversationUnreadCounts},
-    type: 'chat:updateConversationUnreadCounts',
-  }
-}
-
 function updateMetadata(users: Array<string>): Constants.UpdateMetadata {
   return {payload: {users}, type: 'chat:updateMetadata'}
 }
@@ -698,6 +689,10 @@ function unboxMore(): Constants.UnboxMore {
   return {type: 'chat:unboxMore', payload: undefined}
 }
 
+function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterSelectNext {
+  return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
+}
+
 export {
   addPending,
   appendMessages,
@@ -744,6 +739,7 @@ export {
   retryMessage,
   saveAttachment,
   selectAttachment,
+  selectNext,
   selectConversation,
   setInboxFilter,
   setInboxUntrustedState,
@@ -764,7 +760,6 @@ export {
   untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,
-  updateConversationUnreadCounts,
   updateFinalizedState,
   updateInbox,
   updateInboxComplete,

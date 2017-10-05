@@ -232,6 +232,9 @@ func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid ke
 	if err != nil {
 		return
 	}
+	if user == nil {
+		return uv, pubKey, linkMap, libkb.NotFoundError{}
+	}
 
 	return user.ToUserVersion(), pubKey, linkMap, nil
 }

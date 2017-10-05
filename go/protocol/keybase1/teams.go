@@ -311,6 +311,7 @@ type TeamDetails struct {
 	Members                TeamMembersDetails                   `codec:"members" json:"members"`
 	KeyGeneration          PerTeamKeyGeneration                 `codec:"keyGeneration" json:"keyGeneration"`
 	AnnotatedActiveInvites map[TeamInviteID]AnnotatedTeamInvite `codec:"annotatedActiveInvites" json:"annotatedActiveInvites"`
+	Settings               TeamSettings                         `codec:"settings" json:"settings"`
 }
 
 func (o TeamDetails) DeepCopy() TeamDetails {
@@ -329,6 +330,7 @@ func (o TeamDetails) DeepCopy() TeamDetails {
 			}
 			return ret
 		})(o.AnnotatedActiveInvites),
+		Settings: o.Settings.DeepCopy(),
 	}
 }
 
@@ -1490,6 +1492,7 @@ type TeamRemoveMemberArg struct {
 	Name      string `codec:"name" json:"name"`
 	Username  string `codec:"username" json:"username"`
 	Email     string `codec:"email" json:"email"`
+	Permanent bool   `codec:"permanent" json:"permanent"`
 }
 
 func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
@@ -1498,6 +1501,7 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 		Name:      o.Name,
 		Username:  o.Username,
 		Email:     o.Email,
+		Permanent: o.Permanent,
 	}
 }
 

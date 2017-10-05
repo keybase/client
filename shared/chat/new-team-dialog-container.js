@@ -7,7 +7,7 @@ import {selectConversation} from '../actions/chat/creators'
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   _onCreateNewTeam: name => {
-    dispatch(createNewTeamFromConversation(routeProps.conversationIDKey, name))
+    dispatch(createNewTeamFromConversation(routeProps.get('conversationIDKey'), name))
     dispatch(selectConversation(null, true))
   },
   onBack: () => dispatch(navigateUp()),

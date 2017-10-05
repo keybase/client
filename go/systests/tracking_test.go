@@ -98,8 +98,6 @@ func TestTrackingNotifications(t *testing.T) {
 	tc2 := cloneContext(tc)
 	tc5 := cloneContext(tc)
 
-	libkb.G.LocalDb = nil
-
 	// Hack the various portions of the service that aren't
 	// properly contextified.
 

@@ -47,8 +47,7 @@ const Header = (props: Props) => (
     }}
   >
     <HeaderButton iconType="iconfont-new" label="Create a team" onClick={props.onCreateTeam} />
-    {/* off until this works */}
-    {false && <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />}
+    <HeaderButton iconType="iconfont-team-join" label="Join a team" onClick={props.onJoinTeam} />
   </Box>
 )
 

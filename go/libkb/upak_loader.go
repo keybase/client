@@ -475,7 +475,7 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 // KID, as well as the Key data associated with that KID. It picks the latest such
 // incarnation if there are multiple.
 func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
-	defer u.G().CVTrace(ctx, VLog0, fmt.Sprintf("uid:%s,kid:%s", uid, kid), func() error { return err })()
+	defer u.G().CVTrace(ctx, VLog0, fmt.Sprintf("LoadKeyV2 uid:%s,kid:%s", uid, kid), func() error { return err })()
 	if uid.IsNil() {
 		return nil, nil, nil, NoUIDError{}
 	}
@@ -500,11 +500,12 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		ret, key = upak.FindKID(kid)
 		if key != nil {
 			u.G().VDL.CLogf(ctx, VLog0, "- found kid in UPAK: %v", *ret)
-			break
+			return ret, key, linkMap, nil
 		}
 		ret = nil
 	}
-	return ret, key, linkMap, nil
+
+	return nil, nil, nil, NotFoundError{}
 }
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {

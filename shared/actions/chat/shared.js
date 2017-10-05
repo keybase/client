@@ -19,7 +19,7 @@ function followingSelector(state: TypedState) {
   return state.config.following
 }
 function alwaysShowSelector(state: TypedState) {
-  return state.chat.get('alwaysShow')
+  return state.entities.get('inboxAlwaysShow')
 }
 function metaDataSelector(state: TypedState) {
   return state.chat.get('metaData')

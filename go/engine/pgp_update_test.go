@@ -111,6 +111,7 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
