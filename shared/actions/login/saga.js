@@ -113,8 +113,9 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
 
   const {loggedIn, registered, initialState, justDeletedSelf, loginError, loggedInUserNavigated} = args
 
-  // All branches except for when loggedIn is true and initialState is
-  // null must for its final yield, yield an action which sets
+  // All branches except for when loggedIn is true,
+  // loggedInUserNavigated is false, and and initialState is null must
+  // finish by yielding an action which sets
   // state.routeTree.loggedInUserNavigated to true; see
   // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
