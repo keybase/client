@@ -13,17 +13,14 @@ export default function(state: State = initialState, action: Actions): State {
     }
     case 'entity:delete': {
       const {keyPath, ids} = action.payload
-      // $FlowIssue doesn't understand this API
       return state.updateIn(keyPath, map => map.deleteAll(ids))
     }
     case 'entity:merge': {
       const {keyPath, entities} = action.payload
-      // $FlowIssue doesn't understand this API
       return state.mergeDeepIn(keyPath, entities)
     }
     case 'entity:replace': {
       const {keyPath, entities} = action.payload
-      // $FlowIssue doesn't understand this API
       return state.mergeIn(keyPath, entities)
     }
     default:

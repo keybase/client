@@ -74,7 +74,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 
     // otherwise, back out to the default route of the tab.
     const action = ownProps.routeSelected === tab ? navigateTo : switchTo
-    // $FlowIssue TODO
     dispatch(action(ownProps.routePath.push(tab)))
   },
 })

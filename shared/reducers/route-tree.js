@@ -13,7 +13,7 @@ import {
   checkRouteState,
 } from '../route-tree'
 
-const initialState = Constants.State()
+const initialState = Constants.makeState()
 
 function routeDefReducer(routeDef, action) {
   switch (action.type) {

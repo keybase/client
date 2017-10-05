@@ -60,7 +60,7 @@ const makeGetParticipants = conversationIDKey => state =>
   )
 const getNowOverride = state => state.chat.get('nowOverride')
 const makeGetFinalizedInfo = conversationIDKey => state =>
-  state.chat.get('finalizedState').get(conversationIDKey)
+  state.chat.getIn(['finalizedState', conversationIDKey])
 
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)

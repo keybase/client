@@ -4,7 +4,7 @@ import ServicesFilter from './services-filter'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
 import UserInput from './user-input'
-import {StateRecord as EntitiesStateRecord} from '../constants/entities'
+import {makeState as makeEntitiesState} from '../constants/entities'
 import {Map} from 'immutable'
 import {isMobile} from '../constants/platform'
 
@@ -229,7 +229,7 @@ const servicesResultsListMapCommon = {
       username: 'tester',
       following: {},
     },
-    entities: new EntitiesStateRecord({
+    entities: makeEntitiesState({
       searchResults: Map(servicesResultsListMapCommonRows),
     }),
   },

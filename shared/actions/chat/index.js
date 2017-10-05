@@ -1053,7 +1053,6 @@ function _removeOutboxMessage(
     return messageID !== outboxID
   })
 
-  // $FlowIssue Iterable<K,V> apparently doesn't apply to Set
   if (nextMessages.equals(msgKeys)) {
     return
   }

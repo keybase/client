@@ -11,7 +11,6 @@ export default function(state: Constants.State = initialState, action: Constants
 
   if (action.type === 'engine:waitingForRpc') {
     const payload = action.payload
-    // $FlowIssue updating records
     return state.update('rpcWaitingStates', waitingStates =>
       waitingStates.set(payload.rpcName, payload.waiting)
     )

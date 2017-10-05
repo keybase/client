@@ -29,7 +29,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         return state
       }
 
-      // $FlowIssue
       const clearedConversationState = initialConversation.merge({
         firstNewMessageID: origConversationState.get('firstNewMessageID'),
       })

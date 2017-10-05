@@ -6,7 +6,7 @@ import ServicesFilter from './services-filter'
 import UserInput from './user-input'
 import {Box, Text} from '../common-adapters'
 import {Map} from 'immutable'
-import {StateRecord as EntitiesStateRecord} from '../constants/entities'
+import {makeState as makeEntitiesState} from '../constants/entities'
 import {compose, withHandlers, withState} from 'recompose'
 import {isMobile} from '../constants/platform'
 import {storiesOf, action} from '../stories/storybook'
@@ -321,7 +321,7 @@ const load = () => {
           following: {},
           username: 'tester',
         },
-        entities: new EntitiesStateRecord({
+        entities: makeEntitiesState({
           searchResults: Map(servicesResultsListMapCommonRows),
         }),
       }

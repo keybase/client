@@ -33,7 +33,7 @@ function activeSelector(state: TypedState) {
   return state.config.userActive
 }
 function conversationStateSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
-  return state.chat.get('conversationStates', Map()).get(conversationIDKey)
+  return state.chat.getIn(['conversationStates', conversationIDKey])
 }
 
 function messageOutboxIDSelector(

@@ -51,7 +51,13 @@ const corpus = [
 
 const emojiOnly = [':ghost:', ':+1:', ':100:']
 
-function makeMessage(messageID: string, you: string, author: string, timestamp: number, message: string) {
+function makeMessage(
+  messageID: string,
+  you: string,
+  author: string,
+  timestamp: number,
+  message: string
+): Constants.Message {
   const key = Constants.messageKey(conversationIDKey, 'messageIDText', messageID)
   return {
     type: 'Text',
@@ -102,13 +108,12 @@ const mockFn = messageMap => ({
   },
 })
 
-const storeFn = (messageMap: Object) => ({
+const storeFn = (messageMap: {[key: string]: Constants.Message}) => ({
   config: {
     following: {},
     username: 'tester',
   },
-  chat: new Constants.StateRecord({
-    // $FlowIssue
+  chat: Constants.makeState({
     messageMap: new I.Map(messageMap),
     localMessageStates: I.Map(),
     inbox: I.List(),
@@ -119,7 +124,6 @@ const storeFn = (messageMap: Object) => ({
     finalizedState: I.Map(),
     supersedesState: I.Map(),
     supersededByState: I.Map(),
-    pendingFailures: I.Map(),
     conversationUnreadCounts: I.Map(),
     rekeyInfos: I.Map(),
     alwaysShow: I.Set(),
