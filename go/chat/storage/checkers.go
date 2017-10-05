@@ -82,7 +82,7 @@ func CheckAndRecordPrevPointer(ctx context.Context, g *globals.Context, msgID ch
 		if !bytes.Equal(existingVal, headerHashVal) {
 			g.Log.CErrorf(ctx, "chat message prev pointer inconsistency detected")
 			g.Log.CErrorf(ctx, "in conv_id %s, msg_id %s", convID.String(), msgID.String())
-			g.Log.CErrorf(ctx, "mismatch: %s (stored) != %s (computed)", string(existingVal), string(headerHashVal))
+			g.Log.CErrorf(ctx, "mismatch: %s (stored) != %s (new)", string(existingVal), string(headerHashVal))
 			err := fmt.Errorf("chat message prev pointer inconsistency detected, %s != %s", string(existingVal), string(headerHashVal))
 			return err
 		}

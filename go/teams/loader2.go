@@ -109,7 +109,7 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 
 func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	inner SCChainLinkPayload) (
-	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
 
 	defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
 	keySection := inner.Body.Key
@@ -129,7 +129,7 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap map[keybase1.Seqno]keybase1.LinkID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap map[keybase1.Seqno]keybase1.LinkID, proofSet *proofSetT) {
+func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap linkMapT, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
 	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning, userLinkMap)
 	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	c := key.Base.Revocation
@@ -181,7 +181,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return nil, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
-	teamLinkMap := make(map[keybase1.Seqno]keybase1.LinkID)
+	teamLinkMap := make(linkMapT)
 	if state != nil {
 		// copy over the stored links
 		for k, v := range state.Chain.LinkIDs {
@@ -237,10 +237,11 @@ func (l *TeamLoader) walkUpToAdmin(
 			return nil, NewAdminNotFoundError(admin)
 		}
 		arg := load2ArgT{
-			teamID:        *parent,
-			reason:        "walkUpToAdmin",
-			me:            me,
-			staleOK:       true,
+			teamID: *parent,
+			reason: "walkUpToAdmin",
+			me:     me,
+			// Get the latest so that the linkmap is up to date for the proof order checker.
+			forceRepoll:   true,
 			readSubteamID: &readSubteamID,
 		}
 		if target.Eq(*parent) {
@@ -443,7 +444,7 @@ func (l *TeamLoader) inflateLink(ctx context.Context,
 // Check that the parent-child operations appear in the parent sigchains.
 func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 	me keybase1.UserVersion, loadingTeamID keybase1.TeamID, parentID *keybase1.TeamID, readSubteamID keybase1.TeamID,
-	parentChildOperations []*parentChildOperation) error {
+	parentChildOperations []*parentChildOperation, proofSet *proofSetT) error {
 
 	if len(parentChildOperations) == 0 {
 		return nil
@@ -479,13 +480,19 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		return fmt.Errorf("error loading parent: %v", err)
 	}
 
+	parentChain := TeamSigChainState{inner: parent.team.Chain}
+
 	for _, pco := range parentChildOperations {
-		parentChain := TeamSigChainState{inner: parent.team.Chain}
 		err = l.checkOneParentChildOperation(ctx, pco, loadingTeamID, &parentChain)
 		if err != nil {
 			return err
 		}
 	}
+
+	// Give a more up-to-date linkmap to the ordering checker for the parent.
+	// Without this it could fail if the parent is new.
+	// Because the team linkmap in the proof objects is stale.
+	proofSet.SetTeamLinkMap(ctx, parentChain.inner.Id, parentChain.inner.LinkIDs)
 
 	return nil
 }
@@ -529,10 +536,13 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	// Earliest generation received. If there were gaps, the earliest in the consecutive run from the box.
+	// Earliest generation received.
 	earliestReceivedGen := latestReceivedGen - keybase1.PerTeamKeyGeneration(len(seeds)-1)
 	// Latest generation from the sigchain
 	latestChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
+
+	l.G().Log.CDebugf(ctx, "TeamLoader#addSecrets: received:%v->%v nseeds:%v nprevs:%v",
+		earliestReceivedGen, latestReceivedGen, len(seeds), len(prevs))
 
 	if latestReceivedGen != latestChainGen {
 		return nil, fmt.Errorf("wrong latest key generation: %v != %v",
@@ -567,10 +577,12 @@ func (l *TeamLoader) addSecrets(ctx context.Context,
 	}
 
 	// Make sure there is not a gap between the latest local key and the earliest received key.
-	if earliestReceivedGen != keybase1.PerTeamKeyGeneration(1) {
-		if _, ok := ret.PerTeamKeySeeds[earliestReceivedGen]; !ok {
-			return nil, fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v",
-				latestReceivedGen, earliestReceivedGen)
+	if earliestReceivedGen > keybase1.PerTeamKeyGeneration(1) {
+		// We should have the seed for the generation preceeding the earliest received.
+		checkGen := earliestReceivedGen - 1
+		if _, ok := ret.PerTeamKeySeeds[earliestReceivedGen-1]; !ok {
+			return nil, fmt.Errorf("gap in per-team-keys: latestRecvd:%v earliestRecvd:%v missing:%v",
+				latestReceivedGen, earliestReceivedGen, checkGen)
 		}
 	}
 
@@ -695,7 +707,7 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 
 	secret1, err := box.Open(userKey)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, fmt.Errorf("opening key box: %v", err)
 	}
 
 	// Secrets starts as descending
@@ -719,7 +731,7 @@ func (l *TeamLoader) unboxPerTeamSecrets(ctx context.Context,
 		}
 		secret, err := decryptPrevSingle(ctx, prev, secrets[len(secrets)-1])
 		if err != nil {
-			return box.Generation, nil, fmt.Errorf("gen %v: %v", openGeneration, err)
+			return box.Generation, nil, fmt.Errorf("opening prev gen %v: %v", openGeneration, err)
 		}
 		secrets = append(secrets, *secret)
 		openGeneration--

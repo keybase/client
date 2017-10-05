@@ -205,6 +205,9 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlffinalize: nil message body")
 	}
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
 
 	var update chat1.TLFFinalizeUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
@@ -268,6 +271,9 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	if m.Body() == nil {
 		return errors.New("gregor handler for chat.tlfresolve: nil message body")
 	}
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
 
 	var update chat1.TLFResolveUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
@@ -304,6 +310,8 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		resolveInfo := chat1.ConversationResolveInfo{
 			NewTLFName: updateConv.Info.TlfName,
 		}
+		g.Debug(ctx, "TlfResolve: convID: %s new TLF name: %s", updateConv.GetConvID(),
+			updateConv.Info.TlfName)
 
 		if updateConv.GetTopicType() == chat1.TopicType_CHAT {
 			if g.shouldSendNotifications() {
@@ -419,8 +427,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: error decoding newMessage: %s", err.Error())
 				return
 			}
-			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s",
-				nm.ConvID, nm.Message.ClientHeader.Sender)
+			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s msgID: %d",
+				nm.ConvID, nm.Message.ClientHeader.Sender, nm.Message.GetMessageID())
 			if nm.Message.ClientHeader.OutboxID != nil {
 				g.Debug(ctx, "chat activity: newMessage: outboxID: %s",
 					hex.EncodeToString(*nm.Message.ClientHeader.OutboxID))
@@ -562,7 +570,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			uid := m.UID().Bytes()
 
 			// We need to get this conversation and then localize it
-			var inbox chat1.Inbox
+			var inbox types.Inbox
 			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{nm.ConvID},
 			}, nil); err != nil {
@@ -573,7 +581,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to find conversation")
 				return
 			}
-			updateConv := inbox.ConvsUnverified[0]
+			updateConv := inbox.ConvsUnverified[0].Conv
 			if err = g.G().InboxSource.NewConversation(ctx, uid, nm.InboxVers, updateConv); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
 			}

@@ -1,5 +1,5 @@
 // @flow
-import {Map, Record, List, Set} from 'immutable'
+import {Map, Record, List, OrderedSet, Set} from 'immutable'
 import * as SearchConstants from './search'
 import * as Teams from './teams'
 import * as Git from './git'
@@ -22,15 +22,39 @@ export type Replace = NoErrorTypedAction<
   'entity:replace',
   {keyPath: Array<string>, entities: {[id: string]: EntityType}}
 >
+export type Subtract = NoErrorTypedAction<
+  'entity:subtract',
+  {keyPath: Array<string>, entities: Array<EntityType>}
+>
 
-export type Actions = Delete | Merge | Replace
+export type Actions = Delete | Merge | Replace | Subtract
+
+type SearchSubState = KBRecord<{
+  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
+  searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
+  searchKeyToResults: Map<string, ?List<SearchConstants.SearchResultId>>,
+  searchKeyToPending: Map<string, boolean>,
+  searchKeyToSelectedId: Map<string, ?SearchConstants.SearchResultId>,
+  searchKeyToShowSearchSuggestion: Map<string, boolean>,
+  searchKeyToUserInputItemIds: Map<string, OrderedSet<SearchConstants.SearchResultId>>,
+  searchKeyToSearchResultQuery: Map<string, ?{text: string, service: SearchConstants.Service}>,
+  searchKeyToClearSearchTextInput: Map<string, number>,
+}>
 
 // State
 export type State = KBRecord<{
   devices: Map<string, DeviceDetailRecord>,
   teams: Teams.TeamRecord,
+  search: SearchSubState,
   searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
   searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
+  searchKeyToResults: Map<string, ?List<SearchConstants.SearchResultId>>,
+  searchKeyToPending: Map<string, boolean>,
+  searchKeyToSelectedId: Map<string, ?SearchConstants.SearchResultId>,
+  searchKeyToShowSearchSuggestion: Map<string, boolean>,
+  searchKeyToUserInputItemIds: Map<string, OrderedSet<SearchConstants.SearchResultId>>,
+  searchKeyToSearchResultQuery: Map<string, ?{text: string, service: SearchConstants.Service}>,
+  searchKeyToClearSearchTextInput: Map<string, number>,
   messages: Map<ChatConstants.MessageKey, ChatConstants.Message>,
   conversationMessages: Map<ChatConstants.ConversationIDKey, KBOrderedSet<ChatConstants.MessageKey>>,
   deletedIDs: Map<ChatConstants.ConversationIDKey, Set<ChatConstants.MessageID>>,
@@ -48,17 +72,28 @@ export type State = KBRecord<{
   git: Git.GitRecord,
 }>
 
+const SearchSubRecord: Class<SearchSubState> = Record({
+  searchResults: Map(),
+  searchQueryToResult: Map(),
+  searchKeyToResults: Map(),
+  searchKeyToPending: Map(),
+  searchKeyToSelectedId: Map(),
+  searchKeyToShowSearchSuggestion: Map(),
+  searchKeyToUserInputItemIds: Map(),
+  searchKeyToSearchResultQuery: Map(),
+  searchKeyToClearSearchTextInput: Map(),
+})
+
 const StateRecord = Record({
   devices: Map(),
   git: new Git.Git(),
   teams: new Teams.Team(),
-  searchResults: Map(),
-  searchQueryToResult: Map(),
   messages: Map(),
   conversationMessages: Map(),
   deletedIDs: Map(),
   messageUpdates: Map(),
   convIDToSnippet: Map(),
+  search: SearchSubRecord(),
   attachmentSavedPath: Map(),
   attachmentDownloadedPath: Map(),
   attachmentPreviewPath: Map(),

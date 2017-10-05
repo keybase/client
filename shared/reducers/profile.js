@@ -1,7 +1,6 @@
 // @flow
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/profile'
-import {List} from 'immutable'
 import type {Actions, State} from '../constants/profile'
 
 const initialState: State = {
@@ -27,7 +26,6 @@ const initialState: State = {
   username: '',
   usernameValid: true,
   waiting: false,
-  searchPending: false,
   searchResults: null,
   searchShowingSuggestions: false,
 }
@@ -178,27 +176,6 @@ export default function(state: State = initialState, action: Actions) {
         ...state,
         pgpPublicKey: action.payload.publicKey,
       }
-    case 'profile:updateSearchResults': {
-      const {payload: {searchResults, searchShowingSuggestions}} = action
-      return {
-        ...state,
-        searchResults: List(searchResults),
-        searchShowingSuggestions,
-      }
-    }
-    case 'profile:clearSearchResults': {
-      return {
-        ...state,
-        searchResults: null,
-      }
-    }
-    case 'profile:pendingSearchResults': {
-      const {payload: {pending}} = action
-      return {
-        ...state,
-        searchPending: pending,
-      }
-    }
   }
 
   return state

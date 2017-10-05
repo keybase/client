@@ -10,14 +10,24 @@ import (
 )
 
 func NewCmdGit(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	subcommands := []cli.Command{
+		newCmdGitCreate(cl, g),
+		newCmdGitDelete(cl, g),
+		newCmdGitList(cl, g),
+	}
+
+	if develUsage {
+		subcommands = append(subcommands, []cli.Command{
+			NewCmdGitMdput(cl, g),
+			NewCmdGitMddel(cl, g),
+			NewCmdGitMdget(cl, g),
+		}...)
+	}
+
 	return cli.Command{
 		Name:         "git",
-		Usage:        "[devel only] Manage git repo metadata",
+		Usage:        "Manage git repos",
 		ArgumentHelp: "[arguments...]",
-		Subcommands: []cli.Command{
-			NewCmdGitMdput(cl, g),
-			NewCmdGitMdget(cl, g),
-			newCmdGitCreate(cl, g),
-		},
+		Subcommands:  subcommands,
 	}
 }

@@ -118,7 +118,7 @@ func (c *CmdSimpleFSList) HandleTopLevelKeybaseList(path keybase1.Path) (bool, e
 	}
 
 	arg := keybase1.GetFavoritesArg{}
-	tlfs, err := list(arg)
+	tlfs, err := list(c.G(), arg)
 	if err != nil {
 		return true, err
 	}

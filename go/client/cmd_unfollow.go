@@ -16,8 +16,8 @@ import (
 )
 
 type CmdUntrack struct {
-	user string
 	libkb.Contextified
+	user string
 }
 
 func NewCmdUntrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -47,9 +47,9 @@ func (v *CmdUntrack) Run() error {
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(v.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 

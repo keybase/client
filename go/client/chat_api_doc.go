@@ -38,10 +38,10 @@ Download an attachment:
     {"method": "download", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 59, "output": "/tmp/movie.mp4"}}}
 
 Peek into a conversation (doesn't mark messages as read):
-    {"method": "read", "params": {"options": {"channel": {"name": "you,them"}}, "peek": true}}
+    {"method": "read", "params": {"options": {"channel": {"name": "you,them"}, "peek": true}}}
 
 Get unread messages only, and just peek at them:
-    {"method": "read", "params": {"options": {"channel": {"name": "you,them"}}, "unread_only": true, "peek": true}}
+    {"method": "read", "params": {"options": {"channel": {"name": "you,them"}, "unread_only": true, "peek": true}}}
 
 Mark a conversation as read up to a specific message:
     {"method": "mark", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 72}}}

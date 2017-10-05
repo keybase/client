@@ -122,6 +122,13 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			if err != nil {
 				return nil, err
 			}
+
+			// Currently we want to pretend that multi-user personal repos
+			// (/keybase/private/chris,max/...) don't exist. Short circuit here
+			// to keep those out of the results list.
+			if repoFolder.FolderType == keybase1.FolderType_PRIVATE && repoFolder.Name != g.Env.GetUsername().String() {
+				continue
+			}
 		}
 
 		teamIDVis := keybase1.TeamIDWithVisibility{
@@ -184,7 +191,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		}
 
 		// Load UPAKs to get the last writer username and device name.
-		lastWriterUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{UID: responseRepo.LastModifyingUID})
+		lastWriterUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithUID(responseRepo.LastModifyingUID))
 		if err != nil {
 			return nil, err
 		}
@@ -199,12 +206,28 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			return nil, fmt.Errorf("can't find device name for %s's device ID %s", lastWriterUPAK.Current.Username, responseRepo.LastModifyingDeviceID)
 		}
 
+		// Load the team to get the current user's role, for canDelete.
+		team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
+			ID: responseRepo.TeamID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		selfUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithSelf(true).WithUID(g.GetMyUID()))
+		if err != nil {
+			return nil, err
+		}
+		role, err := team.MemberRole(ctx, selfUPAK.Current.ToUserVersion())
+		if err != nil {
+			return nil, err
+		}
+
 		resultList = append(resultList, keybase1.GitRepoResult{
 			Folder:         repoFolder,
 			RepoID:         responseRepo.RepoID,
 			RepoUrl:        formatRepoURL(repoFolder, string(localMetadata.RepoName)),
 			GlobalUniqueID: formatUniqueRepoID(responseRepo.TeamID, responseRepo.RepoID),
-			CanDelete:      true, // TODO: real data here
+			CanDelete:      role.IsAdminOrAbove(),
 			LocalMetadata:  localMetadata,
 			ServerMetadata: keybase1.GitServerMetadata{
 				Ctime: keybase1.ToTime(responseRepo.CTime),

@@ -45,9 +45,25 @@ type chatConversationResolvingBehavior struct {
 }
 
 type chatConversationResolver struct {
-	G          *libkb.GlobalContext
-	ChatClient chat1.LocalInterface
-	TlfClient  keybase1.TlfInterface
+	G           *libkb.GlobalContext
+	ChatClient  chat1.LocalInterface
+	TlfClient   keybase1.TlfInterface
+	TeamsClient keybase1.TeamsInterface
+}
+
+func newChatConversationResolver(g *libkb.GlobalContext) (c *chatConversationResolver, err error) {
+	c = new(chatConversationResolver)
+	if c.ChatClient, err = GetChatLocalClient(g); err != nil {
+		return c, err
+	}
+	if c.TlfClient, err = GetTlfClient(g); err != nil {
+		return c, err
+	}
+	if c.TeamsClient, err = GetTeamsClient(g); err != nil {
+		return c, err
+	}
+	c.G = g
+	return c, nil
 }
 
 // completeAndCanonicalizeTLFName completes tlfName and canonicalizes it if
@@ -55,31 +71,53 @@ type chatConversationResolver struct {
 // len(tlfName) must > 0
 func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Context, tlfName string, req chatConversationResolvingRequest) error {
 
-	query := keybase1.TLFQuery{
-		TlfName:          tlfName,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	switch req.MembersType {
+	case chat1.ConversationMembersType_KBFS:
+		query := keybase1.TLFQuery{
+			TlfName:          tlfName,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+		}
+		var cname keybase1.CanonicalTLFNameAndIDWithBreaks
+		var err error
+		var visout string
+		if req.Visibility == keybase1.TLFVisibility_PUBLIC {
+			visout = "public"
+			cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
+		} else {
+			visout = "private"
+			cname, err = r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
+		}
+		if err != nil {
+			// When a recipient's proofs are failing, this is the error a CLI user
+			// will see. It needs to be human readable.
+			return fmt.Errorf("failed to open chat conversation: %v", err)
+		}
+		if string(cname.CanonicalName) != tlfName {
+			// If we auto-complete TLF name, we should let users know.
+			// TODO: don't spam user here if it's just re-ordering
+			r.G.UI.GetTerminalUI().Printf("Using %s conversation %s.\n", visout, cname.CanonicalName)
+		}
+		req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
+	case chat1.ConversationMembersType_IMPTEAM:
+		// Add our name out front
+		if req.Visibility == keybase1.TLFVisibility_PRIVATE {
+			username := r.G.Env.GetUsername()
+			if len(username) == 0 {
+				return libkb.LoginRequiredError{}
+			}
+			tlfName = username.String() + "," + tlfName
+		}
+		impRes, err := r.TeamsClient.LookupOrCreateImplicitTeam(ctx, keybase1.LookupOrCreateImplicitTeamArg{
+			Name:   tlfName,
+			Public: req.Visibility == keybase1.TLFVisibility_PUBLIC,
+		})
+		if err != nil {
+			return err
+		}
+		req.ctx.canonicalizedTlfName = impRes.DisplayName.String()
+	case chat1.ConversationMembersType_TEAM:
+		req.ctx.canonicalizedTlfName = tlfName
 	}
-	var cname keybase1.CanonicalTLFNameAndIDWithBreaks
-	var err error
-	var visout string
-	if req.Visibility == keybase1.TLFVisibility_PUBLIC {
-		visout = "public"
-		cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
-	} else {
-		visout = "private"
-		cname, err = r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
-	}
-	if err != nil {
-		// When a recipient's proofs are failing, this is the error a CLI user
-		// will see. It needs to be human readable.
-		return fmt.Errorf("failed to open chat conversation: %v", err)
-	}
-	if string(cname.CanonicalName) != tlfName {
-		// If we auto-complete TLF name, we should let users know.
-		// TODO: don't spam user here if it's just re-ordering
-		r.G.UI.GetTerminalUI().Printf("Using %s conversation %s.\n", visout, cname.CanonicalName)
-	}
-	req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
 
 	return nil
 }
@@ -88,32 +126,13 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 	ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) (chat1.GetInboxAndUnboxLocalArg, error) {
 
 	var nameQuery *chat1.NameQuery
-	switch req.MembersType {
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAM:
-
-		if len(req.TopicName) > 0 && req.TopicType == chat1.TopicType_CHAT {
-			return chat1.GetInboxAndUnboxLocalArg{},
-				errors.New("multiple topics only supported for teams and dev conversations")
+	if len(req.TlfName) > 0 {
+		if err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req); err != nil {
+			return chat1.GetInboxAndUnboxLocalArg{}, err
 		}
-
-		if len(req.TlfName) > 0 {
-			nameQuery = &chat1.NameQuery{
-				Name:        req.TlfName,
-				MembersType: req.MembersType,
-			}
-			if req.MembersType == chat1.ConversationMembersType_KBFS {
-				// resolve KBFS TLF
-				if err := r.completeAndCanonicalizeTLFName(ctx, req.TlfName, req); err != nil {
-					return chat1.GetInboxAndUnboxLocalArg{}, err
-				}
-				nameQuery.Name = req.ctx.canonicalizedTlfName
-			}
-		}
-	case chat1.ConversationMembersType_TEAM:
-		req.ctx.canonicalizedTlfName = req.TlfName
 		nameQuery = &chat1.NameQuery{
-			Name:        req.TlfName,
-			MembersType: chat1.ConversationMembersType_TEAM,
+			Name:        req.ctx.canonicalizedTlfName,
+			MembersType: req.MembersType,
 		}
 	}
 
@@ -134,6 +153,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 }
 
 func (r *chatConversationResolver) resolveWithService(ctx context.Context, req chatConversationResolvingRequest, identifyBehavior keybase1.TLFIdentifyBehavior) ([]chat1.ConversationLocal, error) {
+
 	arg, err := r.makeGetInboxAndUnboxLocalArg(ctx, req, identifyBehavior)
 	if err != nil {
 		return nil, err
@@ -213,6 +233,8 @@ func (r *chatConversationResolver) create(ctx context.Context, req chatConversat
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		r.G.UI.GetTerminalUI().Printf("%s\n", newConversation)
 	}
 
 	var tnp *string

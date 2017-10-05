@@ -5,19 +5,20 @@ import {Box} from '../../common-adapters'
 import flags from '../../util/feature-flags'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../../styles'
+import {isIPhoneX} from '../../constants/platform'
 
 import type {Props} from './index.render'
 
 const _icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.profileTab]: 'iconfont-nav-people',
+  [Tabs.peopleTab]: 'iconfont-nav-people',
   [Tabs.folderTab]: 'iconfont-nav-folders',
   [Tabs.settingsTab]: 'iconfont-nav-more',
   [Tabs.teamsTab]: 'iconfont-nav-teams',
 }
 
 const _tabs = [
-  Tabs.profileTab,
+  Tabs.peopleTab,
   Tabs.chatTab,
   ...(flags.teamChatEnabled ? [Tabs.teamsTab] : [Tabs.folderTab]),
   Tabs.settingsTab,
@@ -50,13 +51,18 @@ const _selectedIconStyle = {
   color: globalColors.white,
 }
 
-const tabBarHeight = 48
+const tabBarHeight = isIPhoneX ? 80 : 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
   backgroundColor: globalColors.darkBlue2,
   height: tabBarHeight,
   justifyContent: 'flex-start',
+  ...(isIPhoneX
+    ? {
+        paddingBottom: 30,
+      }
+    : {}),
 }
 
 export default TabBarRender

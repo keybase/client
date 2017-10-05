@@ -5,32 +5,33 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, err error) {
+func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam keybase1.ImplicitTeamDisplayName) (res keybase1.TeamID, teamName keybase1.TeamName, err error) {
 	defer g.CTrace(ctx, "CreateImplicitTeam", func() error { return err })()
 
-	name, err := NewImplicitTeamName()
+	teamName, err = NewImplicitTeamName()
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
-	teamID := RootTeamIDFromNameString(name.String())
+	teamID := RootTeamIDFromNameString(teamName.String())
+
+	perUserKeyUpgradeSoft(ctx, g, "create-implicit-team")
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
 
 	// Load all the Keybase users
 	loadUsernameList := func(usernames []string) (res []*keybase1.UserPlusKeysV2, err error) {
 		for _, username := range usernames {
-			upak, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{
-				Name:       username,
-				NetContext: ctx,
-			})
+			arg := libkb.NewLoadUserArg(g).WithName(username).WithNetContext(ctx)
+			upak, _, err := g.GetUPAKLoader().LoadV2(arg)
 			if err != nil {
 				g.Log.CDebugf(ctx, "CreateImplicitTeam: failed to load user: %s msg: %s", username, err)
 				return res, err
@@ -42,11 +43,11 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 
 	ownerUPAKs, err := loadUsernameList(impTeam.Writers.KeybaseUsers)
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
 	readerUPAKs, err := loadUsernameList(impTeam.Readers.KeybaseUsers)
 	if err != nil {
-		return res, err
+		return res, teamName, err
 	}
 
 	var owners []SCTeamMember
@@ -132,13 +133,14 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	}
 
 	// Post the team
-	return teamID, makeSigAndPostRootTeam(ctx, g, me, members, invites, secretboxRecipients, name.String(),
-		teamID, impTeam.IsPublic, true)
+	return teamID, teamName,
+		makeSigAndPostRootTeam(ctx, g, me, members, invites, secretboxRecipients, teamName.String(),
+			teamID, impTeam.IsPublic, true, nil)
 }
 
 func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *libkb.User, members SCTeamMembers,
 	invites *SCTeamInvites, secretboxRecipients map[keybase1.UserVersion]keybase1.PerUserKey, name string,
-	teamID keybase1.TeamID, public, implicit bool) error {
+	teamID keybase1.TeamID, public, implicit bool, settings *SCTeamSettings) error {
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam get device keys")
 	deviceSigningKey, err := g.ActiveDevice.SigningKey()
@@ -168,10 +170,14 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	if err != nil {
 		return err
 	}
+	seqType := keybase1.SeqType_SEMIPRIVATE
+	if public {
+		seqType = keybase1.SeqType_PUBLIC
+	}
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam make sigs")
 	teamSection, err := makeRootTeamSection(name, teamID, members, invites, perTeamSigningKey.GetKID(),
-		perTeamEncryptionKey.GetKID(), public, implicit)
+		perTeamEncryptionKey.GetKID(), public, implicit, settings)
 	if err != nil {
 		return err
 	}
@@ -185,6 +191,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	if err != nil {
 		return err
 	}
+
 	// Note that this (sigchain-v1-style) reverse sig is made with the derived *per-team* signing key.
 	reverseSig, _, _, err := libkb.SignJSON(sigBodyBeforeReverse, perTeamSigningKey)
 	if err != nil {
@@ -210,6 +217,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		sigJSONAfterReverse,
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
+		seqType,
 	)
 	if err != nil {
 		return err
@@ -219,6 +227,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		Sig:        v2Sig,
 		SigningKID: deviceSigningKey.GetKID(),
 		Type:       string(libkb.LinkTypeTeamRoot),
+		SeqType:    seqType,
 		SigInner:   string(sigJSONAfterReverse),
 		TeamID:     teamID,
 		PublicKeys: &libkb.SigMultiItemPublicKeys{
@@ -244,8 +253,10 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	return nil
 }
 
-func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (err error) {
+func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string, settings keybase1.TeamSettings) (err error) {
 	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
+
+	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
 
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
@@ -268,18 +279,30 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string) (e
 		Readers: &[]SCTeamMember{},
 	}
 
+	var scSettings *SCTeamSettings
+	if settings.Open {
+		settingsTemp, err := CreateTeamSettings(settings.Open, settings.JoinAs)
+		if err != nil {
+			return err
+		}
+		scSettings = &settingsTemp
+	}
+
 	return makeSigAndPostRootTeam(ctx, g, me, members, nil,
-		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false)
+		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false, scSettings)
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
 	defer g.CTrace(ctx, "CreateSubteam", func() error { return err })()
+
 	subteamName, err := parentName.Append(subteamBasename)
 	if err != nil {
 		return nil, err
 	}
 
 	subteamID := NewSubteamID()
+
+	perUserKeyUpgradeSoft(ctx, g, "create-subteam")
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
@@ -346,7 +369,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 }
 
 func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeamMembers, invites *SCTeamInvites,
-	perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, public bool, implicit bool) (SCTeamSection, error) {
+	perTeamSigningKID keybase1.KID, perTeamEncryptionKID keybase1.KID, public bool, implicit bool, settings *SCTeamSettings) (SCTeamSection, error) {
 	teamSection := SCTeamSection{
 		Name:     (*SCTeamName)(&teamName),
 		ID:       (SCTeamID)(teamID),
@@ -360,6 +383,8 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 		Members: &members,
 		Invites: invites,
 	}
+
+	teamSection.Settings = settings
 
 	// At this point the team section has every field filled out except the
 	// reverse sig. Now we'll wrap it into a full sig, marshal it to JSON, and
@@ -377,6 +402,7 @@ func makeSigchainV2OuterSig(
 	innerLinkJSON []byte,
 	prevLinkID libkb.LinkID,
 	hasRevokes bool,
+	seqType keybase1.SeqType,
 ) (
 	string,
 	error,
@@ -394,6 +420,7 @@ func makeSigchainV2OuterSig(
 		Prev:     prevLinkID,
 		Curr:     linkID,
 		LinkType: v2LinkType,
+		SeqType:  seqType,
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
@@ -429,6 +456,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		newSubteamSigJSON,
 		prevLinkID,
 		false, /* hasRevokes */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return nil, err
@@ -515,6 +543,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		subteamHeadSigJSON,
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return
@@ -567,4 +596,18 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 	// signing key, after the reverse sig has been written in.
 
 	return teamSection, nil
+}
+
+// Get a per-user key.
+// Wait for attempt but only warn on error.
+func perUserKeyUpgradeSoft(ctx context.Context, g *libkb.GlobalContext, reason string) {
+	ectx := engine.Context{
+		NetContext: ctx,
+	}
+	arg := &engine.PerUserKeyUpgradeArgs{}
+	eng := engine.NewPerUserKeyUpgrade(g, arg)
+	err := engine.RunEngine(eng, &ectx)
+	if err != nil {
+		g.Log.CDebugf(ctx, "PerUserKeyUpgrade failed (%s): %v", reason, err)
+	}
 }

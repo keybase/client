@@ -66,6 +66,14 @@ func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID) *keybase1.Tea
 	return nil
 }
 
+func (s *Storage) Delete(ctx context.Context, teamID keybase1.TeamID) error {
+	s.Lock()
+	defer s.Unlock()
+
+	s.mem.Delete(ctx, teamID)
+	return s.disk.Delete(ctx, teamID)
+}
+
 func (s *Storage) onLogout() {
 	s.mem.onLogout()
 }
@@ -80,7 +88,7 @@ type DiskStorage struct {
 }
 
 // Increment to invalidate the disk cache.
-const diskStorageVersion = 4
+const diskStorageVersion = 5
 
 type DiskStorageItem struct {
 	Version int                `codec:"V"`
@@ -145,6 +153,14 @@ func (s *DiskStorage) Get(ctx context.Context, teamID keybase1.TeamID) (res *key
 	return item.State, true, nil
 }
 
+func (s *DiskStorage) Delete(ctx context.Context, teamID keybase1.TeamID) error {
+	s.Lock()
+	defer s.Unlock()
+
+	key := s.dbKey(ctx, teamID)
+	return s.encryptedDB.Delete(ctx, key)
+}
+
 func (s *DiskStorage) dbKey(ctx context.Context, teamID keybase1.TeamID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatInbox,
@@ -190,6 +206,10 @@ func (s *MemoryStorage) Get(ctx context.Context, teamID keybase1.TeamID) *keybas
 		return nil
 	}
 	return state
+}
+
+func (s *MemoryStorage) Delete(ctx context.Context, teamID keybase1.TeamID) {
+	s.lru.Remove(teamID)
 }
 
 func (s *MemoryStorage) onLogout() {

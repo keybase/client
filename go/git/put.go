@@ -50,6 +50,7 @@ func PutMetadata(ctx context.Context, g *libkb.GlobalContext, arg keybase1.PutGi
 			"key_generation":     libkb.I{Val: int(encryptedMetadata.Gen)},
 			"device_id":          libkb.S{Val: string(g.Env.GetDeviceID())},
 			"encryption_version": libkb.I{Val: encryptedMetadata.V},
+			"notify_team":        libkb.B{Val: arg.NotifyTeam},
 		},
 	}
 	_, err = g.GetAPI().Post(apiArg)

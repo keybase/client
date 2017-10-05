@@ -136,8 +136,7 @@ func (n nullProvisionUI) ProvisionerSuccess(context.Context, keybase1.Provisione
 }
 
 func getActiveDevicesAndKeys(tc *libkb.TestContext, username string) ([]*libkb.Device, []libkb.GenericKey) {
-	arg := libkb.NewLoadUserByNameArg(tc.G, username)
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserByNameArg(tc.G, username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal(err)

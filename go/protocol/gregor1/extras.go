@@ -19,6 +19,7 @@ func (u UID) String() string { return hex.EncodeToString(u) }
 func (u UID) Eq(other UID) bool {
 	return bytes.Equal(u.Bytes(), other.Bytes())
 }
+
 func (d DeviceID) Bytes() []byte  { return []byte(d) }
 func (d DeviceID) String() string { return hex.EncodeToString(d) }
 func (d DeviceID) Eq(other DeviceID) bool {
@@ -258,6 +259,26 @@ func (m *Message) SetCTime(ctime time.Time) {
 	if m.Ibm_ != nil && m.Ibm_.StateUpdate_ != nil {
 		m.Ibm_.StateUpdate_.Md_.Ctime_ = ToTime(ctime)
 	}
+}
+
+func (m *Message) SetUID(uid UID) error {
+	if m.Ibm_ != nil {
+		if m.Ibm_.StateUpdate_ != nil {
+			m.Ibm_.StateUpdate_.Md_.Uid_ = uid
+			return nil
+		}
+		if m.Ibm_.StateSync_ != nil {
+			m.Ibm_.StateSync_.Md_.Uid_ = uid
+			return nil
+		}
+		return errors.New("unable to set uid on inband message (no StatUpdate or StateSync)")
+	}
+	if m.Oobm_ != nil {
+		m.Oobm_.Uid_ = uid
+		return nil
+	}
+
+	return errors.New("unable to set uid (no inband or out-of-band message)")
 }
 
 func (r Reminder) Item() gregor.Item     { return r.Item_ }

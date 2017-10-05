@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
+import * as SearchConstants from '../../constants/search'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
 import pausableConnect from '../../util/pausable-connect'
@@ -40,7 +41,7 @@ const passesParticipantFilter = (filter: string, participants: Array<string>, yo
   // don't filter you out if its just a convo with you!
   const justYou = participants.length === 1 && participants[0] === you
   const names = justYou ? participants : participants.filter(p => p !== you)
-  return names.some(n => passesStringFilter(filter, n))
+  return passesStringFilter(filter, names.join(','))
 }
 
 // Simple score for a filter. returns 1 for exact match. 0.75 for full name match
@@ -249,6 +250,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     smallTeamsHiddenRowCount,
   } = getRows(state, smallTeamsExpanded)
   const filter = getFilter(state)
+  const userInputItems = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   return {
     _selected: Constants.getSelectedConversation(state),
@@ -258,7 +260,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     isLoading: state.chat.get('inboxUntrustedState') === 'loading',
     rows,
     showBuildATeam,
-    showNewConversation: state.chat.inSearch && state.chat.inboxSearch.isEmpty(),
+    showNewConversation: state.chat.inSearch && !userInputItems.length,
     showSmallTeamsExpandDivider,
     smallTeamsExpanded,
     smallTeamsHiddenBadgeCount,

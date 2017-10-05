@@ -29,7 +29,7 @@ func (c *ChatUI) ChatAttachmentUploadStart(context.Context, chat1.ChatAttachment
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment upload "+ColorString("green", "starting")+"\n")
+	fmt.Fprintf(w, "Attachment upload "+ColorString(c.G(), "green", "starting")+"\n")
 	return nil
 }
 
@@ -51,7 +51,7 @@ func (c *ChatUI) ChatAttachmentUploadDone(context.Context, int) error {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment upload "+ColorString("magenta", "finished")+"\n")
+	fmt.Fprintf(w, "Attachment upload "+ColorString(c.G(), "magenta", "finished")+"\n")
 	return nil
 }
 
@@ -60,7 +60,7 @@ func (c *ChatUI) ChatAttachmentPreviewUploadStart(context.Context, chat1.ChatAtt
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment preview upload "+ColorString("green", "starting")+"\n")
+	fmt.Fprintf(w, "Attachment preview upload "+ColorString(c.G(), "green", "starting")+"\n")
 	return nil
 }
 
@@ -69,7 +69,7 @@ func (c *ChatUI) ChatAttachmentPreviewUploadDone(context.Context, int) error {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment preview upload "+ColorString("magenta", "finished")+"\n")
+	fmt.Fprintf(w, "Attachment preview upload "+ColorString(c.G(), "magenta", "finished")+"\n")
 	return nil
 }
 
@@ -78,7 +78,7 @@ func (c *ChatUI) ChatAttachmentDownloadStart(context.Context, int) error {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment download "+ColorString("green", "starting")+"\n")
+	fmt.Fprintf(w, "Attachment download "+ColorString(c.G(), "green", "starting")+"\n")
 	return nil
 }
 
@@ -100,7 +100,7 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context, int) error {
 		return nil
 	}
 	w := c.terminal.ErrorWriter()
-	fmt.Fprintf(w, "Attachment download "+ColorString("magenta", "finished")+"\n")
+	fmt.Fprintf(w, "Attachment download "+ColorString(c.G(), "magenta", "finished")+"\n")
 	return nil
 }
 

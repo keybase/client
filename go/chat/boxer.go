@@ -144,14 +144,16 @@ func (b *basicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinali
 }
 
 type publicUnboxConversationInfo struct {
-	convID chat1.ConversationID
+	convID      chat1.ConversationID
+	membersType chat1.ConversationMembersType
 }
 
 var _ unboxConversationInfo = (*publicUnboxConversationInfo)(nil)
 
-func newPublicUnboxConverstionInfo(convID chat1.ConversationID) *publicUnboxConversationInfo {
+func newPublicUnboxConverstionInfo(convID chat1.ConversationID, membersType chat1.ConversationMembersType) *publicUnboxConversationInfo {
 	return &publicUnboxConversationInfo{
-		convID: convID,
+		convID:      convID,
+		membersType: membersType,
 	}
 }
 
@@ -160,9 +162,7 @@ func (p *publicUnboxConversationInfo) GetConvID() chat1.ConversationID {
 }
 
 func (p *publicUnboxConversationInfo) GetMembersType() chat1.ConversationMembersType {
-	// This won't matter for a public conversation, since we don't really encrypt them,
-	// we use a known key in KeyFinder
-	return chat1.ConversationMembersType_KBFS
+	return p.membersType
 }
 
 func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinalizeInfo {
@@ -192,6 +192,8 @@ func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinal
 // Permanent errors can be cached and must be treated as a value to deal with,
 // whereas temporary errors are transient failures.
 func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv unboxConversationInfo) (chat1.MessageUnboxed, UnboxingError) {
+	b.Debug(ctx, "+ UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
+	defer b.Debug(ctx, "- UnboxMessage for convID %s msg_id %s", conv.GetConvID().String(), boxed.GetMessageID().String())
 	tlfName := boxed.ClientHeader.TLFNameExpanded(conv.GetFinalizeInfo())
 	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),

@@ -395,7 +395,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 			break
 		}
 		i++
-		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s", i, wait)
+		u.ctx.log.Debug("in pollForMembershipUpdate: iter=%d; missed it, now waiting for %s (latest details.KG = %d)", i, wait, details.KeyGeneration)
 		time.Sleep(wait)
 		totalWait += wait
 		wait = wait * 2
@@ -431,16 +431,16 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public bool) smuImplicitTeam {
 	cli := u.getTeamsClient()
 	var err error
-	var teamID keybase1.TeamID
+	var res keybase1.LookupImplicitTeamRes
 	if create {
-		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
 	} else {
-		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
-	return smuImplicitTeam{ID: teamID}
+	return smuImplicitTeam{ID: res.TeamID}
 }
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {
@@ -550,4 +550,8 @@ func (u *smuUser) teamGet(team smuTeam) (keybase1.TeamDetails, error) {
 	cli := u.getTeamsClient()
 	details, err := cli.TeamGet(context.TODO(), keybase1.TeamGetArg{Name: team.name, ForceRepoll: true})
 	return details, err
+}
+
+func (u *smuUser) uid() keybase1.UID {
+	return u.primaryDevice().tctx.G.Env.GetUID()
 }

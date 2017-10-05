@@ -336,10 +336,10 @@
 			"revisionTime": "2017-08-11T14:07:22Z"
 		},
 		{
-			"checksumSHA1": "k1ObysVfDPTtUa2/qEFhx6lco5M=",
+			"checksumSHA1": "x3Cnxu6dehCSPc9aTjS1PO6INLU=",
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
-			"revision": "2bfb94411295f18596046369f6bcb3a950ceb1b5",
-			"revisionTime": "2017-08-11T14:07:22Z"
+			"revision": "c6dbadb0aef19380fc20ff29bf54feb1c549d270",
+			"revisionTime": "2017-09-22T19:43:39Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",
@@ -394,6 +394,12 @@
 			"path": "github.com/nfnt/resize",
 			"revision": "891127d8d1b52734debe1b3c3d7e747502b6c366",
 			"revisionTime": "2016-07-24T20:39:20Z"
+		},
+		{
+			"checksumSHA1": "rJab1YdNhQooDiBWNnt7TLWPyBU=",
+			"path": "github.com/pkg/errors",
+			"revision": "2b3a18b5f0fb6b4f9190549597d3f962c02bc5eb",
+			"revisionTime": "2017-09-10T13:46:14Z"
 		},
 		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
@@ -714,9 +720,10 @@
 			"revisionTime": "2016-09-07T14:02:52Z"
 		},
 		{
+			"checksumSHA1": "dr5+PfIRzXeN+l1VG+s0lea9qz8=",
 			"path": "golang.org/x/net/context",
-			"revision": "7c71ca708c71bcbd0e6c856b01468ee07fe24557",
-			"revisionTime": "2016-06-20T16:30:30-04:00"
+			"revision": "0a9397675ba34b2845f758fe3cd68828369c6517",
+			"revisionTime": "2017-07-19T03:24:12Z"
 		},
 		{
 			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
@@ -739,6 +746,12 @@
 			"path": "golang.org/x/sync/errgroup",
 			"revision": "316e794f7b5e3df4e95175a45a5fb8b12f85cb4f",
 			"revisionTime": "2016-07-15T18:54:39Z"
+		},
+		{
+			"checksumSHA1": "vcN67ZjTbGpLLwSghHCbAEvmzMo=",
+			"path": "golang.org/x/sync/semaphore",
+			"revision": "f52d1811a62927559de87708c8913c1650ce4f26",
+			"revisionTime": "2017-05-17T20:25:26Z"
 		},
 		{
 			"path": "golang.org/x/sys/windows",

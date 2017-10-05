@@ -40,6 +40,7 @@ func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)        
 func (n NullConfiguration) GetLinkCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetUPAKCacheSize() (int, bool)                                  { return 0, false }
+func (n NullConfiguration) GetUIDMapFullNameCacheSize() (int, bool)                        { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
 func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
 func (n NullConfiguration) GetPinentry() string                                            { return "" }
@@ -790,6 +791,14 @@ func (e *Env) GetUPAKCacheSize() int {
 		e.cmd.GetUPAKCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_UPAK_CACHE_SIZE") },
 		e.config.GetUPAKCacheSize,
+	)
+}
+
+func (e *Env) GetUIDMapFullNameCacheSize() int {
+	return e.GetInt(UIDMapFullNameCacheSize,
+		e.cmd.GetUIDMapFullNameCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_UID_MAP_FULL_NAME_CACHE_SIZE") },
+		e.config.GetUIDMapFullNameCacheSize,
 	)
 }
 

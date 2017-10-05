@@ -54,6 +54,10 @@ func (t *Team) IsImplicit() bool {
 	return t.chain().IsImplicit()
 }
 
+func (t *Team) IsOpen() bool {
+	return t.chain().IsOpen()
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()
@@ -542,7 +546,7 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	return t.postMulti(payload)
 }
 
-func (t *Team) deleteSubteam(ctx context.Context) error {
+func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) error {
 
 	// subteam delete consists of two links:
 	// 1. delete_subteam in parent chain
@@ -560,6 +564,14 @@ func (t *Team) deleteSubteam(ctx context.Context) error {
 	admin, err := parentTeam.getAdminPermission(ctx, true)
 	if err != nil {
 		return err
+	}
+
+	confirmed, err := ui.ConfirmSubteamDelete(ctx, keybase1.ConfirmSubteamDeleteArg{TeamName: t.Name().String()})
+	if err != nil {
+		return err
+	}
+	if !confirmed {
+		return errors.New("team delete not confirmed")
 	}
 
 	subteamName := SCTeamName(t.Data.Name.String())
@@ -629,6 +641,13 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 	// without a PUK or without any keys. Note that we are allowed to invites Owners in this
 	// manner. But if we're inviting for anything else, then no owner invites are allowed.
 	if uv.Uid.Exists() {
+		if role == keybase1.TeamRole_OWNER {
+			txt := "We are sorry, you have hit a bug! The user you are inviting (" + username + ") hasn't logged into\n" +
+				"Keybase for a while and needs to upgrade their account. Until they do, you can only add them to this team\n" +
+				"as an admin, reader or writer. So you have three options: (1) wait until " + username + " upgrades;\n" +
+				"(2) wait until all Keybase users get the fixed app (by 2017-11-07); or (3) add " + username + " as an admin (or reader or writer)"
+			return keybase1.TeamAddMemberResult{}, errors.New(txt)
+		}
 		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
 	}
 
@@ -671,14 +690,10 @@ func (t *Team) inviteKeybaseMember(ctx context.Context, uv keybase1.UserVersion,
 
 func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
 	// parse username to get social
-	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, false)
+	typ, name, err := t.parseSocial(username)
 	if err != nil {
 		return keybase1.TeamAddMemberResult{}, err
 	}
-	if assertion.IsKeybase() {
-		return keybase1.TeamAddMemberResult{}, fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
-	}
-	typ, name := assertion.ToKeyValuePair()
 	t.G().Log.Debug("team %s invite sbs member %s/%s", t.Name(), typ, name)
 
 	invite := SCTeamInvite{
@@ -703,10 +718,6 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		return libkb.ExistsError{Msg: "An invite for this user already exists."}
 	}
 
-	admin, err := t.getAdminPermission(ctx, true)
-	if err != nil {
-		return err
-	}
 	invList := []SCTeamInvite{invite}
 	var invites SCTeamInvites
 	switch role {
@@ -716,9 +727,17 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 		invites.Writers = &invList
 	case keybase1.TeamRole_READER:
 		invites.Readers = &invList
-	default:
-		// should be caught further up, but just in case
-		return errors.New("You cannot invite an owner to a team.")
+	case keybase1.TeamRole_OWNER:
+		invites.Owners = &invList
+	}
+
+	return t.postTeamInvites(ctx, invites)
+}
+
+func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error {
+	admin, err := t.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
 	}
 
 	entropy, err := makeSCTeamEntropy()
@@ -748,6 +767,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs{})
 	return t.postMulti(payload)
+
 }
 
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
@@ -932,6 +952,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		sigJSON,
 		latestLinkID,
 		false, /* hasRevokes */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -968,7 +989,7 @@ func (t *Team) recipientBoxes(ctx context.Context, memSet *memberSet) (*PerTeamS
 	adminAndOwnerRecipients := memSet.adminAndOwnerRecipients()
 	if len(adminAndOwnerRecipients) > 0 {
 		implicitAdminBoxes = map[keybase1.TeamID]*PerTeamSharedSecretBoxes{}
-		subteams, err := t.loadAllTransitiveSubteams(ctx)
+		subteams, err := t.loadAllTransitiveSubteams(ctx, true /*forceRepoll*/)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -1148,12 +1169,12 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 // Only call this on a Team that has been loaded with NeedAdmin.
 // Otherwise, you might get incoherent answers due to links that
 // were stubbed over the life of the cached object.
-func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
+func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) ([]*Team, error) {
 	subteams := []*Team{}
 	for _, idAndName := range t.chain().ListSubteams() {
 		// Load each subteam...
 		subteam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
-			ID:          idAndName.ID,
+			ID:          idAndName.Id,
 			NeedAdmin:   true,
 			ForceRepoll: true,
 		})
@@ -1171,11 +1192,48 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context) ([]*Team, error) {
 		subteams = append(subteams, subteam)
 
 		// ...and then recursively load each subteam's children.
-		recursiveSubteams, err := subteam.loadAllTransitiveSubteams(ctx)
+		recursiveSubteams, err := subteam.loadAllTransitiveSubteams(ctx, forceRepoll)
 		if err != nil {
 			return nil, err
 		}
 		subteams = append(subteams, recursiveSubteams...)
 	}
 	return subteams, nil
+}
+
+func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
+	if _, err := t.SharedSecret(ctx); err != nil {
+		return err
+	}
+
+	admin, err := t.getAdminPermission(ctx, true)
+	if err != nil {
+		return err
+	}
+
+	settings, err := CreateTeamSettings(open, keybase1.TeamRole_READER)
+	if err != nil {
+		return err
+	}
+
+	section := SCTeamSection{
+		ID:       SCTeamID(t.ID),
+		Admin:    admin,
+		Settings: &settings,
+	}
+
+	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
+}
+
+func (t *Team) parseSocial(username string) (typ string, name string, err error) {
+	assertion, err := libkb.ParseAssertionURL(t.G().MakeAssertionContext(), username, false)
+	if err != nil {
+		return "", "", err
+	}
+	if assertion.IsKeybase() {
+		return "", "", fmt.Errorf("invalid user assertion %q, keybase assertion should be handled earlier", username)
+	}
+	typ, name = assertion.ToKeyValuePair()
+
+	return typ, name, nil
 }

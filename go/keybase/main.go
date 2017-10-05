@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -53,14 +54,14 @@ func main() {
 	g := G
 	g.Init()
 
-	// Set our panel of external services.
-	g.SetServices(externals.GetServices())
-
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.
 	if err != nil {
 		g.Log.Errorf("SaferDLLLoading error: %v", err.Error())
 	}
+
+	// Set our panel of external services.
+	g.SetServices(externals.GetServices())
 
 	go HandleSignals()
 	err = mainInner(g)
@@ -140,7 +141,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		if logger.SaveConsoleMode() == nil {
 			defer logger.RestoreConsoleMode()
 		}
-		client.InitUI()
+		client.InitUI(g)
 	}
 
 	if err = g.ConfigureCommand(cl, cmd); err != nil {
@@ -149,6 +150,10 @@ func mainInner(g *libkb.GlobalContext) error {
 	g.StartupMessage()
 
 	warnNonProd(g.Log, g.Env)
+
+	if err := configOtherLibraries(g); err != nil {
+		return err
+	}
 
 	if err = configureProcesses(g, cl, &cmd); err != nil {
 		return err
@@ -160,6 +165,12 @@ func mainInner(g *libkb.GlobalContext) error {
 		client.PrintOutOfDateWarnings(g)
 	}
 	return err
+}
+
+func configOtherLibraries(g *libkb.GlobalContext) error {
+	// Set our UID -> Username mapping service
+	g.SetUIDMapper(uidmap.NewUIDMap(g.Env.GetUIDMapFullNameCacheSize()))
+	return nil
 }
 
 // AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
@@ -290,7 +301,7 @@ func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error 
 		return nil
 	}
 
-	protocols := []rpc.Protocol{client.NewLogUIProtocol()}
+	protocols := []rpc.Protocol{client.NewLogUIProtocol(g)}
 	if err := client.RegisterProtocolsWithContext(protocols, g); err != nil {
 		return err
 	}

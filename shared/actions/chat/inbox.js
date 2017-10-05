@@ -3,6 +3,8 @@ import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
+import * as EntityCreators from '../entities'
+import * as Shared from './shared'
 import {RPCTimeoutError} from '../../util/errors'
 import {List, Map} from 'immutable'
 import {
@@ -15,7 +17,6 @@ import {chatTab} from '../../constants/tabs'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
 import {navigateTo} from '../route-tree'
-import {parseFolderNameToUsers} from '../../util/kbfs'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
@@ -105,6 +106,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
           identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
           maxUnbox: 0,
           query: _getInboxQuery,
+          skipUnverified: false,
         },
       }
     )
@@ -132,25 +134,14 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield call(_updateFinalized, inbox)
 
     const author = yield select(usernameSelector)
-    const conversations: List<Constants.InboxState> = List(
-      (inbox.items || [])
-        .map(c => {
-          return new Constants.InboxStateRecord({
-            channelname: c.membersType === ChatTypes.CommonConversationMembersType.team ? '-' : undefined,
-            conversationIDKey: c.convID,
-            info: null,
-            membersType: c.membersType,
-            participants: List(parseFolderNameToUsers(author, c.name).map(ul => ul.username)),
-            status: Constants.ConversationStatusByEnum[c.status || 0],
-            teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
-            teamType: c.teamType,
-            time: c.time,
-            version: c.version,
-          })
-        })
-        .filter(Boolean)
-    )
+    const snippets = (inbox.items || []).reduce((map, c) => {
+      const snippet = c.localMetadata ? c.localMetadata.snippet : ''
+      map[c.convID] = new HiddenString(Constants.makeSnippet(snippet) || '')
+      return map
+    }, {})
 
+    const conversations: List<Constants.InboxState> = Shared.makeInboxStateRecords(author, inbox.items || [])
+    yield put(EntityCreators.replaceEntity(['convIDToSnippet'], snippets))
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 
@@ -370,7 +361,7 @@ const unboxConversationsSagaMap = {
 
 // Loads the trusted inbox segments
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
-  let {conversationIDKeys, force} = action.payload
+  let {conversationIDKeys, force, forInboxSync} = action.payload
   conversationIDKeys = yield select(
     (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
       const inbox = state.chat.get('inbox')
@@ -400,6 +391,7 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
     {
       param: {
         identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+        skipUnverified: forInboxSync,
         query: {
           ..._getInboxQuery,
           convIDs: conversationIDKeys.map(Constants.keyToConversationID),
@@ -417,6 +409,9 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
     } else {
       console.warn('Error in loadInboxRpc', error)
     }
+  }
+  if (forInboxSync) {
+    yield put(Creators.setInboxUntrustedState('loaded'))
   }
 }
 

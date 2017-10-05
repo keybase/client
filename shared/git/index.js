@@ -18,7 +18,7 @@ import {branch} from 'recompose'
 
 type Props = {
   expandedSet: I.Set<string>,
-  onShowDelete: (teamname: ?string, name: string) => void,
+  onShowDelete: (id: string) => void,
   onNewPersonalRepo: () => void,
   onNewTeamRepo: () => void,
   onToggleExpand: (id: string) => void,
@@ -47,8 +47,10 @@ class Git extends React.Component<Props, State> {
       title: 'New personal repository',
     },
     {
-      onClick: () => this.props.onNewTeamRepo(),
-      title: 'New team repository',
+      disabled: isMobile,
+      onClick: isMobile ? undefined : () => this.props.onNewTeamRepo(),
+      style: isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
+      title: `New team repository${isMobile ? ' (desktop only)' : ''}`,
     },
   ]
 
@@ -68,7 +70,7 @@ class Git extends React.Component<Props, State> {
         </ClickableBox>
         <ScrollView>
           <Box style={_sectionHeaderStyle}>
-            <Text type="BodySmallSemibold">Personal repositories</Text>
+            <Text type="BodySmallSemibold">Personal</Text>
             {this.props.loading &&
               <ProgressIndicator
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
@@ -76,7 +78,7 @@ class Git extends React.Component<Props, State> {
           </Box>
           {this.props.personals.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
           <Box style={_sectionHeaderStyle}>
-            <Text type="BodySmallSemibold">Team repositories</Text>
+            <Text type="BodySmallSemibold">Team</Text>
             {this.props.loading &&
               <ProgressIndicator
                 style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
@@ -96,6 +98,7 @@ const _sectionHeaderStyle = {
   alignItems: 'center',
   height: 24,
   paddingLeft: globalMargins.tiny,
+  marginTop: globalMargins.small,
   width: '100%',
 }
 

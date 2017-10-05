@@ -1,9 +1,10 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import {Map} from 'immutable'
+import {List, Map} from 'immutable'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
+import {parseFolderNameToUsers} from '../../util/kbfs'
 import {
   pendingToRealConversation,
   replaceConversation,
@@ -141,6 +142,36 @@ function* getPostingIdentifyBehavior(
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
+function makeInboxStateRecords(
+  author: string,
+  items: Array<ChatTypes.UnverifiedInboxUIItem>
+): List<Constants.InboxState> {
+  const conversations: List<Constants.InboxState> = List(
+    (items || [])
+      .map(c => {
+        const parts = c.localMetadata
+          ? List(c.localMetadata.writerNames || [])
+          : List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
+        return new Constants.InboxStateRecord({
+          channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
+            ? c.localMetadata.channelName
+            : undefined,
+          conversationIDKey: c.convID,
+          info: null,
+          membersType: c.membersType,
+          participants: parts,
+          status: Constants.ConversationStatusByEnum[c.status || 0],
+          teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+          teamType: c.teamType,
+          time: c.time,
+          version: c.version,
+        })
+      })
+      .filter(Boolean)
+  )
+  return conversations
+}
+
 export {
   alwaysShowSelector,
   conversationStateSelector,
@@ -150,6 +181,7 @@ export {
   followingSelector,
   getPostingIdentifyBehavior,
   inboxUntrustedStateSelector,
+  makeInboxStateRecords,
   messageOutboxIDSelector,
   metaDataSelector,
   routeSelector,

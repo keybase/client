@@ -40,9 +40,7 @@ func TestSecretKeys(t *testing.T) {
 	}
 
 	// Check the signing keypair's KID is in the user's KeyFamily.
-	testUser, err := libkb.LoadUser(libkb.LoadUserArg{
-		Name: u.Username,
-	})
+	testUser, err := libkb.LoadUser(libkb.NewLoadUserArg(tc.G).WithName(u.Username))
 	if err != nil {
 		t.Fatal(err)
 	}

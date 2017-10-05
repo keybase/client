@@ -121,7 +121,7 @@ class TeamAvatar extends PureComponent<{teamname: string}> {
   render() {
     return (
       <Box style={_avatarBoxStyle}>
-        <Avatar teamname={this.props.teamname} size={40} />
+        <Avatar teamname={this.props.teamname} size={isMobile ? 48 : 40} />
       </Box>
     )
   }

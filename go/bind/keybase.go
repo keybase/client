@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/fsrpc"
@@ -91,6 +92,9 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx = libkb.G
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
+
+	// 10k uid -> FullName cache entries allowed
+	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
 	usage := libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -167,7 +171,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 		config, ctx, log, true, nil, nil)
 	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
-		keybase1.KBFSGitProtocol(libgit.NewRPCHandler(config)),
+		keybase1.KBFSGitProtocol(libgit.NewRPCHandlerWithCtx(ctx, config)),
 	})
 	return keybaseService, nil
 }

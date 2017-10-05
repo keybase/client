@@ -17,11 +17,13 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -266,6 +268,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	}
 
 	g.GregorDismisser = &FakeGregorDismisser{}
+	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 
 	tc.PrevGlobal = G
 	G = g
@@ -444,7 +447,7 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
@@ -453,4 +456,30 @@ func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
 // Bypasses locks.
 func (g *GlobalContext) ResetLoginState() {
 	g.createLoginStateLocked()
+}
+
+type TestUIDMapper struct {
+	ul UPAKLoader
+}
+
+func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
+	return TestUIDMapper{
+		ul: ul,
+	}
+}
+
+func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
+	return true
+}
+
+func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error) {
+	var res []UsernamePackage
+	for _, uid := range uids {
+		name, err := t.ul.LookupUsernameUPAK(ctx, uid)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, UsernamePackage{NormalizedUsername: name})
+	}
+	return res, nil
 }

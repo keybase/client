@@ -1,7 +1,7 @@
 // @flow
 import Banner from './banner/container'
 import HeaderOrSearchHeader from './header-or-search-header'
-import SearchResultsList from '../../search/results-list'
+import SearchResultsList from '../../search/results-list/container'
 import Input from './input/container'
 import List from './list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
@@ -121,25 +121,16 @@ class Conversation extends Component<Props, State> {
           infoPanelOpen={this.state.infoPanelOpen}
           onToggleInfoPanel={this._onToggleInfoPanel}
           onBack={this.props.onBack}
-          onChangeSearchText={this.props.onChangeSearchText}
-          searchText={this.props.searchText}
+          onExitSearch={this.props.onExitSearch}
           selectedConversationIDKey={this.props.selectedConversationIDKey}
-          selectedSearchId={this.props.selectedSearchId}
-          onUpdateSelectedSearchResult={this.props.onUpdateSelectedSearchResult}
-          onAddNewParticipant={this.props.onAddNewParticipant}
-          addNewParticipant={this.props.addNewParticipant}
         />
         {this.props.inSearch && !this.props.showSearchResults && <Box style={styleSearchBottom} />}
         {this.props.showSearchPending
           ? <ProgressIndicator style={styleSpinner} />
           : this.props.showSearchResults
               ? <SearchResultsList
-                  items={this.props.searchResultIds}
-                  onClick={this.props.onClickSearchResult}
-                  onMouseOver={this.props.onMouseOverSearchResult}
+                  searchKey={'chatSearch'} /* todo move to constant */
                   onShowTracker={this.props.onShowTrackerInSearch}
-                  selectedId={this.props.selectedSearchId}
-                  showSearchSuggestions={this.props.showSearchSuggestions}
                   style={{...globalStyles.scrollable, flexGrow: 1}}
                 />
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>

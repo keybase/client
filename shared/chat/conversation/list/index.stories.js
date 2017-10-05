@@ -113,7 +113,6 @@ const storeFn = (messageMap: Object) => ({
     localMessageStates: I.Map(),
     inbox: I.List(),
     inboxFilter: '',
-    inboxSearch: I.List(),
     conversationStates: I.Map(),
     metaData: I.Map(),
     finalizedState: I.Map(),

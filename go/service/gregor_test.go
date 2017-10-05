@@ -114,6 +114,8 @@ func (n *nlistener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID
 func (n *nlistener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)    {}
 func (n *nlistener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {}
 func (n *nlistener) ChatInboxStale(uid keybase1.UID)                                    {}
+func (n *nlistener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)     {}
+func (n *nlistener) ChatInboxSyncStarted(uid keybase1.UID)                              {}
 func (n *nlistener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
 func (n *nlistener) TeamDeleted(teamID keybase1.TeamID) {}
@@ -312,6 +314,11 @@ func (m mockGregord) ConsumeMessage(ctx context.Context, msg gregor1.Message) er
 	_, err := m.sm.ConsumeMessage(ctx, msg)
 	return err
 }
+
+func (m mockGregord) ConsumeMessageMulti(ctx context.Context, arg gregor1.ConsumeMessageMultiArg) error {
+	return errors.New("unimplemented")
+}
+
 func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message) error {
 	return errors.New("unimplemented")
 }
