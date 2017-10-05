@@ -41,7 +41,7 @@ const passesParticipantFilter = (filter: string, participants: Array<string>, yo
   // don't filter you out if its just a convo with you!
   const justYou = participants.length === 1 && participants[0] === you
   const names = justYou ? participants : participants.filter(p => p !== you)
-  return names.some(n => passesStringFilter(filter, n))
+  return passesStringFilter(filter, names.join(','))
 }
 
 // Simple score for a filter. returns 1 for exact match. 0.75 for full name match
