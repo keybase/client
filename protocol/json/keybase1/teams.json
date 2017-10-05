@@ -138,6 +138,10 @@
         {
           "type": "Seqno",
           "name": "eldestSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "userEldestSeqno"
         }
       ]
     },
