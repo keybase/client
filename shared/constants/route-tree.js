@@ -43,7 +43,12 @@ export type NavigateActions =
   | SetRouteState
   | ResetRoute
 
-export const State = I.Record({
+type _State = {
+  routeDef: RouteDefNode,
+  routeState: RouteStateNode,
+}
+export type State = I.RecordOf<_State>
+export const makeState: I.RecordFactory<_State> = I.Record({
   routeDef: null,
   routeState: null,
 })

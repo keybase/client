@@ -14,7 +14,7 @@ type LeafTagsParams = {
   keepKeyboardOnLeave: boolean,
 }
 
-export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<LeafTagsParams> = I.Record({
+export const LeafTags: I.RecordFactory<LeafTagsParams> = I.Record({
   persistChildren: false,
   modal: false,
   layerOnTop: false,
@@ -24,15 +24,6 @@ export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<Leaf
   fullscreen: false,
   keepKeyboardOnLeave: false,
   root: false, // only used by the root shim to allow special padding logic as its the root container
-})
-
-const _RouteDefNode = I.Record({
-  defaultSelected: null,
-  component: null,
-  containerComponent: null,
-  tags: LeafTags(),
-  initialState: I.Map(),
-  children: I.Map(),
 })
 
 type RouteDefParamsCommon<P> = {
@@ -51,6 +42,15 @@ type RouteDefParams<P> = {
   containerComponent?: ?Component<P, any>,
   ...RouteDefParamsCommon<P>,
 }
+
+const _RouteDefNode: I.RecordFactory<RouteDefParams> = I.Record({
+  defaultSelected: null,
+  component: null,
+  containerComponent: null,
+  tags: LeafTags(),
+  initialState: I.Map(),
+  children: I.Map(),
+})
 
 export class RouteDefNode extends _RouteDefNode {
   constructor({
@@ -101,7 +101,7 @@ type RouteStateParams = {
   state?: I.Map<string, any>,
 }
 
-const _RouteStateNode = I.Record({
+const _RouteStateNode: I.RecordFactory<RouteStateParams> = I.Record({
   selected: null,
   props: I.Map(),
   state: I.Map(),

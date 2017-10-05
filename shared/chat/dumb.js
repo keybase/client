@@ -9,7 +9,7 @@ import HiddenString from '../util/hidden-string'
 import Inbox from './inbox/container'
 import ParticipantRekey from './conversation/rekey/participant-rekey'
 import YouRekey from './conversation/rekey/you-rekey'
-import {InboxStateRecord, MetaDataRecord, RekeyInfoRecord, StateRecord} from '../constants/chat'
+import * as Constants{InboxStateRecord, MetaDataRecord, RekeyInfoRecord, StateRecord} from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
 import {RouteStateNode} from '../route-tree'
@@ -82,10 +82,10 @@ const users = [
 ]
 
 const metaData = {
-  cjb: MetaDataRecord({fullname: 'Chris Ball', brokenTracker: true}),
-  chris: MetaDataRecord({fullname: 'Chris Coyne'}),
-  chrisnojima: MetaDataRecord({fullname: 'Chris Nojima'}),
-  oconnor663: MetaDataRecord({fullname: `Jack O'Connor`}),
+  cjb: Constants.makeMetaData({fullname: 'Chris Ball', brokenTracker: true}),
+  chris: Constants.makeMetaData({fullname: 'Chris Coyne'}),
+  chrisnojima: Constants.makeMetaData({fullname: 'Chris Nojima'}),
+  oconnor663: Constants.makeMetaData({fullname: `Jack O'Connor`}),
 }
 
 const followingMap = {
@@ -117,7 +117,7 @@ const emptyConvoProps = {
 }
 
 const inbox = [
-  new InboxStateRecord({
+  Constants.makeInboxState({
     info: null,
     participants: List(participants),
     conversationIDKey: 'convo1',
@@ -127,7 +127,7 @@ const inbox = [
     snippet: 'fiveTEMPTEMP',
     unreadCount: 3,
   }),
-  new InboxStateRecord({
+  Constants.makeInboxState({
     info: null,
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo2',
@@ -137,7 +137,7 @@ const inbox = [
     snippet: '3 hours ago',
     unreadCount: 0,
   }),
-  new InboxStateRecord({
+  Constants.makeInboxState({
     info: null,
     participants: List(participants.slice(0, 3)),
     conversationIDKey: 'convo3',
@@ -147,7 +147,7 @@ const inbox = [
     snippet: '3 days ago',
     unreadCount: 0,
   }),
-  new InboxStateRecord({
+  Constants.makeInboxState({
     info: null,
     participants: List(participants.slice(0, 4)),
     conversationIDKey: 'convo5',
@@ -157,7 +157,7 @@ const inbox = [
     snippet: 'long ago',
     unreadCount: 0,
   }),
-  new InboxStateRecord({
+  Constants.makeInboxState({
     info: null,
     participants: List(participants.slice(0, 2)),
     conversationIDKey: 'convo6',
@@ -167,7 +167,7 @@ const inbox = [
     snippet: '3 hours ago',
     unreadCount: 1,
   }),
-  new InboxStateRecord({
+  Constants.makeInboxState({
     info: null,
     participants: List(participants.slice(0, 1)),
     conversationIDKey: 'convo7',
@@ -190,7 +190,7 @@ const conversationUnreadCounts = {
 
 const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) => ({
   mockStore: {
-    chat: new StateRecord({
+    chat: Constants.makeState({
       conversationUnreadCounts: Map(conversationUnreadCounts),
       inbox: _inbox || List(inbox),
       nowOverride: now,
@@ -200,7 +200,7 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       selectedConversation: null,
       supersededByState: Map(),
     }),
-    entities: EntityConstants.StateRecord({
+    entities: EntityConstants.makeState({
       convIDToSnippet: Map(
         inbox.reduce((acc, m) => {
           acc[m.conversationIDKey] = m.snippet
@@ -277,11 +277,11 @@ const rekeyConvo = (convo, youCanRekey) => ({
   ...commonConversationsProps({
     selected: convo,
     rekeyInfos: Map({
-      convo1: new RekeyInfoRecord({
+      convo1: Constants.makeRekeyInfo({
         rekeyParticipants: List(youCanRekey ? [] : ['jzila']),
         youCanRekey,
       }),
-      convo3: new RekeyInfoRecord({
+      convo3: Constants.makeRekeyInfo({
         rekeyParticipants: List(
           youCanRekey
             ? []
@@ -426,7 +426,7 @@ const conversationsList = {
     LongTop: {
       ...commonConversationsProps({
         inbox: List([
-          new InboxStateRecord({
+          Constants.makeInboxState({
             conversationIDKey: 'convo1',
             info: null,
             status: 'unfiled',
@@ -453,7 +453,7 @@ const conversationsList = {
     LongBottom: {
       ...commonConversationsProps({
         inbox: List([
-          new InboxStateRecord({
+          Constants.makeInboxState({
             conversationIDKey: 'convo1',
             info: null,
             status: 'unfiled',

@@ -1,5 +1,5 @@
 // @flow
-import {Map, Record} from 'immutable'
+import * as I from 'immutable'
 import type {NoErrorTypedAction} from './types/flux'
 
 export type ErrorInRpc = NoErrorTypedAction<'engine:errorInRpc', {error: Error}>
@@ -7,10 +7,10 @@ export type WaitingForRpc = NoErrorTypedAction<'engine:waitingForRpc', {waiting:
 
 export type Actions = ErrorInRpc | WaitingForRpc
 
-export type State = Record<{
+type _State = {
   rpcWaitingStates: Map<string, boolean>,
-}>
-
-export const StateRecord = Record({
+}
+export type State = I.RecordOf<_State>
+export const makeState: I.RecordFactory<_State> = I.Record({
   rpcWaitingStates: Map(),
 })

@@ -18,11 +18,11 @@ export type DispatchProps = {
 
 export type OwnProps = RouteProps<{}, {}>
 
-export type Props = OwnProps & {
+export type Props = {
   appFocused: boolean,
   switchTab: (tab: Tab) => void,
   reachable: Reachable,
   hideNav?: boolean,
-}
+} & OwnProps
 
 export default class Nav extends React.Component<Props> {}

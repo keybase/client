@@ -81,12 +81,18 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
     const infos = []
     const types = ['admins', 'owners', 'readers', 'writers']
+    const typeMap: {[key: string]: Constants.MemberInfoTypes} = {
+      admins: 'admin',
+      owners: 'owner',
+      readers: 'reader',
+      writers: 'writer',
+    }
     types.forEach(type => {
       const details = results.members[type] || []
       details.forEach(({username}) => {
         infos.push(
-          Constants.MemberInfo({
-            type,
+          Constants.makeMemberInfo({
+            type: typeMap[type],
             username,
           })
         )
@@ -119,7 +125,7 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
   convs.forEach(conv => {
     const convID = ChatConstants.conversationIDToKey(conv.convID)
     convIDs.push(convID)
-    convIDToChannelInfo[convID] = Constants.ChannelInfo({
+    convIDToChannelInfo[convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
       participants: I.Set(conv.participants || []),

@@ -5,7 +5,7 @@ import * as Tabs from '../constants/tabs'
 import * as RPCTypes from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 
-const initialState: Constants.State = new Constants.StateRecord()
+const initialState: Constants.State = Constants.makeState()
 
 const _updateWidgetBadge = (s: Constants.State): Constants.State => {
   let widgetBadge = 'regular'

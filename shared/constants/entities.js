@@ -1,18 +1,16 @@
 // @flow
-import {Map, Record, List, Set} from 'immutable'
+import * as I from 'immutable'
 import * as SearchConstants from './search'
 import * as Teams from './teams'
 import * as Git from './git'
 import * as ChatConstants from './chat'
 import HiddenString from '../util/hidden-string'
 
-import type {KBRecord, KBOrderedSet} from './types/more'
 import type {NoErrorTypedAction} from './types/flux'
-import type {DeviceDetailRecord} from './devices'
+import type {DeviceDetail} from './devices'
 
 export type EntityType = any // TODO stronger typing?
 
-// Actions
 export type Delete = NoErrorTypedAction<'entity:delete', {keyPath: Array<string>, ids: Array<string>}>
 export type Merge = NoErrorTypedAction<
   'entity:merge',
@@ -25,46 +23,44 @@ export type Replace = NoErrorTypedAction<
 
 export type Actions = Delete | Merge | Replace
 
-// State
-export type State = KBRecord<{
-  devices: Map<string, DeviceDetailRecord>,
-  teams: Teams.TeamRecord,
-  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
-  searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
-  messages: Map<ChatConstants.MessageKey, ChatConstants.Message>,
-  conversationMessages: Map<ChatConstants.ConversationIDKey, KBOrderedSet<ChatConstants.MessageKey>>,
-  deletedIDs: Map<ChatConstants.ConversationIDKey, Set<ChatConstants.MessageID>>,
-  messageUpdates: Map<
+type _State = {
+  devices: I.Map<string, DeviceDetail>,
+  teams: Teams.State,
+  searchResults: I.Map<SearchConstants.SearchResultId, I.RecordOf<SearchConstants.SearchResult>>,
+  searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
+  messages: I.Map<ChatConstants.MessageKey, ChatConstants.Message>,
+  conversationMessages: I.Map<ChatConstants.ConversationIDKey, I.OrderedSet<ChatConstants.MessageKey>>,
+  deletedIDs: I.Map<ChatConstants.ConversationIDKey, I.Set<ChatConstants.MessageID>>,
+  messageUpdates: I.Map<
     ChatConstants.ConversationIDKey,
-    Map<ChatConstants.MessageID, KBOrderedSet<ChatConstants.MessageKey>>
+    I.Map<ChatConstants.MessageID, I.OrderedSet<ChatConstants.MessageKey>>
   >,
-  convIDToSnippet: Map<ChatConstants.ConversationIDKey, ?HiddenString>,
-  attachmentSavedPath: Map<ChatConstants.MessageKey, ?string>,
-  attachmentDownloadedPath: Map<ChatConstants.MessageKey, ?string>,
-  attachmentPreviewPath: Map<ChatConstants.MessageKey, ?string>,
-  attachmentPreviewProgress: Map<ChatConstants.MessageKey, ?number>,
-  attachmentDownloadProgress: Map<ChatConstants.MessageKey, ?number>,
-  attachmentUploadProgress: Map<ChatConstants.MessageKey, ?number>,
-  git: Git.GitRecord,
-}>
+  convIDToSnippet: I.Map<ChatConstants.ConversationIDKey, ?HiddenString>,
+  attachmentSavedPath: I.Map<ChatConstants.MessageKey, ?string>,
+  attachmentDownloadedPath: I.Map<ChatConstants.MessageKey, ?string>,
+  attachmentPreviewPath: I.Map<ChatConstants.MessageKey, ?string>,
+  attachmentPreviewProgress: I.Map<ChatConstants.MessageKey, ?number>,
+  attachmentDownloadProgress: I.Map<ChatConstants.MessageKey, ?number>,
+  attachmentUploadProgress: I.Map<ChatConstants.MessageKey, ?number>,
+  git: Git.State,
+}
 
-const StateRecord = Record({
-  devices: Map(),
-  git: new Git.Git(),
-  teams: new Teams.Team(),
-  searchResults: Map(),
-  searchQueryToResult: Map(),
-  messages: Map(),
-  conversationMessages: Map(),
-  deletedIDs: Map(),
-  messageUpdates: Map(),
-  convIDToSnippet: Map(),
-  attachmentSavedPath: Map(),
-  attachmentDownloadedPath: Map(),
-  attachmentPreviewPath: Map(),
-  attachmentPreviewProgress: Map(),
-  attachmentDownloadProgress: Map(),
-  attachmentUploadProgress: Map(),
+export type State = I.RecordOf<_State>
+export const makeState: I.RecordFactory<_State> = I.Record({
+  devices: I.Map(),
+  git: Git.makeState(),
+  teams: Teams.makeState(),
+  searchResults: I.Map(),
+  searchQueryToResult: I.Map(),
+  messages: I.Map(),
+  conversationMessages: I.Map(),
+  deletedIDs: I.Map(),
+  messageUpdates: I.Map(),
+  convIDToSnippet: I.Map(),
+  attachmentSavedPath: I.Map(),
+  attachmentDownloadedPath: I.Map(),
+  attachmentPreviewPath: I.Map(),
+  attachmentPreviewProgress: I.Map(),
+  attachmentDownloadProgress: I.Map(),
+  attachmentUploadProgress: I.Map(),
 })
-
-export {StateRecord}

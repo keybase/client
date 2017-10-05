@@ -291,9 +291,9 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    const nextPath = nextProps.routeStack.last().path
-    const curPath = this.props.routeStack.last().path
-    const curTags = this.props.routeStack.last().tags
+    const nextPath = nextProps.routeStack.last() && nextProps.routeStack.last().path
+    const curPath = this.props.routeStack.last() && this.props.routeStack.last().path
+    const curTags = this.props.routeStack.last() && this.props.routeStack.last().tags
     if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
       NativeKeyboard.dismiss()
     }

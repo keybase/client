@@ -41,7 +41,6 @@ import {
 import {maybeUpgradeSearchResultIdToKeybaseId} from '../../constants/search'
 
 import type {Action} from '../../constants/types/flux'
-import type {KBOrderedSet} from '../../constants/types/more'
 import type {ChangedFocus, ChangedActive} from '../../constants/app'
 import type {TLFIdentifyBehavior} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -856,7 +855,7 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
     usernames.forEach((username, idx) => {
       const record = parsed.them[idx]
       const fullname = (record && record.profile && record.profile.full_name) || ''
-      payload[username] = new Constants.MetaDataRecord({fullname})
+      payload[username] = new Constants.makeMetaData({fullname})
     })
 
     yield put(Creators.updatedMetadata(payload))
@@ -1047,7 +1046,7 @@ function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.Updat
 
 function _removeOutboxMessage(
   {payload: {conversationIDKey, outboxID}}: Constants.RemoveOutboxMessage,
-  msgKeys: KBOrderedSet<Constants.MessageKey>
+  msgKeys: OrderedSet<Constants.MessageKey>
 ) {
   const nextMessages = msgKeys.filter(k => {
     const {messageID} = Constants.splitMessageIDKey(k)
@@ -1103,7 +1102,7 @@ function* _findMessagesToDelete(action: Constants.AppendMessages | Constants.Pre
 function* _findMessageUpdates(action: Constants.AppendMessages | Constants.PrependMessages) {
   const newMessages = action.payload.messages
   type TargetMessageID = string
-  const updateIDs: {[key: TargetMessageID]: KBOrderedSet<Constants.MessageKey>} = {}
+  const updateIDs: {[key: TargetMessageID]: Set<Constants.MessageKey>} = {}
   const conversationIDKey = action.payload.conversationIDKey
   newMessages.forEach(message => {
     if (message.type === 'Edit' || message.type === 'UpdateAttachment') {
@@ -1112,7 +1111,7 @@ function* _findMessageUpdates(action: Constants.AppendMessages | Constants.Prepe
   })
 
   if (Object.keys(updateIDs).length) {
-    yield put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], Map(updateIDs)))
+    yield put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], updateIDs))
   }
 }
 

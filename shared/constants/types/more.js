@@ -1,9 +1,7 @@
 // @flow
-
 import {Component} from 'react' // eslint-disable-line
 import pickBy from 'lodash/pickBy'
-import type {Device as _Device, DeviceID, Time} from './flow-types'
-import * as Immutable from 'immutable'
+import * as RPCTypes from './flow-types'
 
 const ProvablePlatformsMap = {
   twitter: true,
@@ -45,14 +43,14 @@ export type Exact<X> = $Shape<X> & X
 
 export type Device = {
   name: string,
-  deviceID: DeviceID,
+  deviceID: RPCTypes.DeviceID,
   type: DeviceType,
-  created: Time,
+  created: RPCTypes.Time,
   currentDevice: boolean,
-  provisioner: ?_Device,
-  provisionedAt: ?Time,
-  revokedAt: ?Time,
-  lastUsed: ?Time,
+  provisioner: ?RPCTypes.Device,
+  provisionedAt: ?RPCTypes.Time,
+  revokedAt: ?RPCTypes.Time,
+  lastUsed: ?RPCTypes.Time,
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
@@ -86,18 +84,3 @@ export type DumbComponentMap<C: Component<*, *>> = {
     [key: string]: PropsOf<C> | {...$Exact<PropsOf<C>>, parentProps: Object},
   },
 }
-
-// TODO when ElementType<T, string> is added to flow type get/getin
-export type KBRecord<T> = T & {
-  get<A>(key: $Keys<T>, fallbackVal?: A): A,
-  set<A>(key: $Keys<T>, value: A): KBRecord<T>,
-  update<A>(key: $Keys<T>, updaterFn: (a: A) => A): KBRecord<T>,
-  getIn<A>(keys: Array<any>, fallbackVal?: A): A,
-  toObject(): T,
-}
-
-// Immutable's types for OrderedSets are kinda weird
-// Things return Sets instead of Ordered sets. They have the same methods
-// but different semantics. So this let's us keep our OrderedSet type and avoid
-// flow issues
-export type KBOrderedSet<T> = Immutable.OrderedSet<T> | Immutable.Set<T>

@@ -425,7 +425,7 @@ const msgs = [firstMsg, secondMsg, pendingMessage, failedMessage]
 
 const mockStore = {
   chat: mockState,
-  entities: EntityConstants.StateRecord({
+  entities: EntityConstants.makeState({
     messages: Map(
       msgs.reduce((acc, m) => {
         acc[m.key] = m

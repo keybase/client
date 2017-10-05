@@ -18,7 +18,7 @@ type _RenderRouteResultParams = {
 
 export const RenderRouteResult: (
   spec?: _RenderRouteResultParams
-) => _RenderRouteResultParams & I.Record<_RenderRouteResultParams> = I.Record({
+) => _RenderRouteResultParams & I.RecordOf<_RenderRouteResultParams> = I.Record({
   path: I.List(),
   tags: LeafTags(),
   component: null,

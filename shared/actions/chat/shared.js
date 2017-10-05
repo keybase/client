@@ -24,7 +24,7 @@ function metaDataSelector(state: TypedState) {
   return state.chat.get('metaData')
 }
 function routeSelector(state: TypedState) {
-  return state.routeTree.get('routeState').get('selected')
+  return state.routeTree.routeState ? state.routeTree.routeState.get('selected') : null
 }
 function focusedSelector(state: TypedState) {
   return state.config.appFocused

@@ -26,14 +26,13 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
 
     const idToInfo = (results || []).reduce((map, r) => {
       const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
-      map[r.globalUniqueID] = Constants.GitInfo({
+      map[r.globalUniqueID] = Constants.makeGitInfo({
         canDelete: r.canDelete,
         devicename: r.serverMetadata.lastModifyingDeviceName,
         id: r.globalUniqueID,
         lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
         lastEditUser: r.serverMetadata.lastModifyingUsername,
         name: r.localMetadata.repoName,
-        repoID: r.repoID,
         teamname,
         url: r.repoUrl,
       })

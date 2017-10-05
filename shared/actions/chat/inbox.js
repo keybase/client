@@ -145,16 +145,16 @@ function* onInboxStale(): SagaGenerator<any, any> {
           const parts = c.localMetadata
             ? List(c.localMetadata.writerNames || [])
             : List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
-          return new Constants.InboxStateRecord({
+          return Constants.makeInboxState({
             channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
               ? c.localMetadata.channelName
-              : undefined,
+              : null,
             conversationIDKey: c.convID,
             info: null,
             membersType: c.membersType,
             participants: parts,
             status: Constants.ConversationStatusByEnum[c.status || 0],
-            teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+            teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : null,
             teamType: c.teamType,
             time: c.time,
             version: c.version,
@@ -317,7 +317,7 @@ function* _chatInboxFailedSubSaga(params) {
   const conversationIDKey = Constants.conversationIDToKey(convID)
 
   // Valid inbox item for rekey errors only
-  const conversation = new Constants.InboxStateRecord({
+  const conversation = Constants.makeInboxState({
     conversationIDKey,
     participants: error.rekeyInfo
       ? List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
@@ -484,7 +484,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
 
   const notifications = c.notifications && parseNotifications(c.notifications)
 
-  return new Constants.InboxStateRecord({
+  return Constants.makeInboxState({
     channelname,
     conversationIDKey,
     isEmpty: c.isEmpty,
