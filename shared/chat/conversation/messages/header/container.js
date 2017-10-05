@@ -4,7 +4,6 @@ import Header from '.'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {CommonConversationMembersType} from '../../../../constants/types/flow-types-chat'
-import flags from '../../../../util/feature-flags'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -16,10 +15,7 @@ const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
   const showTeamOffer =
-    flags.teamChatEnabled &&
-    inbox &&
-    inbox.membersType !== CommonConversationMembersType.team &&
-    inbox.get('participants').count() > 2
+    inbox && inbox.membersType !== CommonConversationMembersType.team && inbox.get('participants').count() > 2
 
   return {
     moreToLoad,

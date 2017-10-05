@@ -12,8 +12,6 @@ import {showUserProfile} from '../../../actions/profile'
 
 import type {TypedState} from '../../../constants/reducer'
 
-import flags from '../../../util/feature-flags'
-
 const getParticipants = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
   (you, tlf, followingMap, metaDataMap) => {
@@ -43,14 +41,12 @@ const mapStateToProps = (state: TypedState) => {
   const inbox = Constants.getSelectedInbox(state)
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
-  const showTeamButton = flags.teamChatEnabled
 
   return {
     channelname,
     muted: Constants.getMuted(state),
     participants: getParticipants(state),
     selectedConversationIDKey,
-    showTeamButton,
     teamname,
   }
 }
