@@ -3,14 +3,11 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import {List} from 'immutable'
 import {ChannelHeader, UsernameHeader} from '.'
-import {branch, compose, renderComponent} from 'recompose'
-import {connect} from 'react-redux'
+import {branch, compose, renderComponent, connect, type TypedState} from 'recompose'
 import {createSelector} from 'reselect'
 import {showUserProfile} from '../../../actions/profile'
 import {chatTab} from '../../../constants/tabs'
-
-import type {TypedState} from '../../../constants/reducer'
-import type {OwnProps} from './container'
+import {type OwnProps} from './container'
 
 const getUsers = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],

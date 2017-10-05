@@ -1,14 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
-import {connect, type TypedState} from '../utils/container'
-import {
-  submitUsername,
-  cancelAddProof,
-  updateUsername,
-  submitBTCAddress,
-  submitZcashAddress,
-} from '../actions/profile'
+import {connect, type TypedState} from '../util/container'
+import * as Creators from '../actions/profile'
 
 type State = {
   username: ?string,
@@ -52,17 +46,17 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onContinue: (username: string, platform: ?string) => {
-    dispatch(updateUsername(username))
+    dispatch(Creators.updateUsername(username))
 
     if (platform === 'btc') {
-      dispatch(submitBTCAddress())
+      dispatch(Creators.submitBTCAddress())
     } else if (platform === 'zcash') {
-      dispatch(submitZcashAddress())
+      dispatch(Creators.submitZcashAddress())
     } else {
-      dispatch(submitUsername())
+      dispatch(Creators.submitUsername())
     }
   },
-  onCancel: () => dispatch(cancelAddProof()),
+  onCancel: () => dispatch(Creators.cancelAddProof()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

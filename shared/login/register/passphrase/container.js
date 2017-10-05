@@ -3,9 +3,7 @@ import * as Creators from '../../../actions/login/creators'
 import HiddenString from '../../../util/hidden-string'
 import Passphrase from '.'
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
-
-import type {TypedState} from '../../../constants/reducer'
+import {connect, type TypedState} from '../../../util/container'
 
 type State = {
   showTyping: boolean,

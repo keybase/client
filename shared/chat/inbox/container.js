@@ -3,20 +3,18 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/chat'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import Inbox from './index'
-import pausableConnect from '../../util/pausable-connect'
+import * as Creators from '../../actions/chat/creators'
 import {
-  loadInbox,
-  newChat,
-  untrustedInboxVisible,
-  setInboxFilter,
-  selectConversation,
-} from '../../actions/chat/creators'
-import {createSelector} from 'reselect'
-import {compose, lifecycle, withState, withHandlers} from 'recompose'
+  pausableConnect,
+  compose,
+  lifecycle,
+  withState,
+  withHandlers,
+  createSelector,
+  type TypedState,
+} from '../../util/container'
 import throttle from 'lodash/throttle'
 import flatten from 'lodash/flatten'
-
-import type {TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
 const getInbox = (state: TypedState) => state.chat.get('inbox')
@@ -267,22 +265,22 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
-  loadInbox: () => dispatch(loadInbox()),
+  loadInbox: () => dispatch(Creators.loadInbox()),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
-      dispatch(newChat())
+      dispatch(Creators.newChat())
     } else {
       focusFilter()
     }
   },
-  onNewChat: () => dispatch(newChat()),
+  onNewChat: () => dispatch(Creators.newChat()),
   onSelect: (conversationIDKey: ?Constants.ConversationIDKey) => {
-    dispatch(selectConversation(conversationIDKey, true))
+    dispatch(Creators.selectConversation(conversationIDKey, true))
   },
-  onSetFilter: (filter: string) => dispatch(setInboxFilter(filter)),
+  onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.smallTeamsExpanded}),
   onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
-    dispatch(untrustedInboxVisible(converationIDKey, rowsVisible)),
+    dispatch(Creators.untrustedInboxVisible(converationIDKey, rowsVisible)),
 })
 
 const findNextConvo = (rows: I.List<any>, selected, direction) => {

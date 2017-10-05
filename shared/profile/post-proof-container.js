@@ -1,9 +1,8 @@
 // @flow
 import PostProof from './post-proof'
 import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import {type ProvablePlatformsType} from '../constants/types/more'
-import {type TypedState} from '../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
   const profile = state.profile

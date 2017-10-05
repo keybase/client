@@ -1,11 +1,9 @@
 // @flow
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import * as Creators from '../../actions/teams/creators'
 import ReallyLeaveTeam from '.'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
-
-import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   name: routeProps.teamname,

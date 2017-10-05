@@ -1,12 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import PaperKey from '.'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../../util/container'
 import * as Creators from '../../../actions/login/creators'
 import HiddenString from '../../../util/hidden-string'
-
-import type {RouteProps} from '../../../route-tree/render-route'
-import type {TypedState} from '../../../constants/reducer'
+import {type RouteProps} from '../../../route-tree/render-route'
 
 export type Props = {
   onSubmit: (paperKey: string) => void,
@@ -62,5 +60,4 @@ const mapDispatchToProps = dispatch => ({
   onSubmit: paperkey => dispatch(Creators.submitPassphrase(new HiddenString(paperkey), false)),
 })
 
-// $FlowIssue
 export default connect(mapStateToProps, mapDispatchToProps)(_PaperKey)

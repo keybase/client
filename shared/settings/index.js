@@ -1,13 +1,10 @@
 // @flow
 import SettingsContainer from './render'
-import pausableConnect from '../util/pausable-connect'
-import {switchTo} from '../actions/route-tree'
-
+import {pausableConnect, type TypedState} from '../util/container'
 import {logout} from '../actions/login/creators'
-
-import type {Tab} from '../constants/settings'
-import type {TypedState} from '../constants/reducer'
-import type {RouteProps} from '../route-tree/render-route'
+import {switchTo} from '../actions/route-tree'
+import {type RouteProps} from '../route-tree/render-route'
+import {type Tab} from '../constants/settings'
 
 const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {compose, lifecycle, withState} from 'recompose'
 import {HeaderHoc} from '../../common-adapters'
 import * as Creators from '../../actions/teams/creators'
@@ -9,8 +9,6 @@ import * as I from 'immutable'
 import Team, {CustomComponent} from '.'
 import {openInKBFS} from '../../actions/kbfs'
 import {navigateAppend} from '../../actions/route-tree'
-
-import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,

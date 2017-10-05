@@ -5,15 +5,13 @@ import RenderRoute from '../route-tree/render-route'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
 import {bootstrap} from '../actions/config'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
 import {listenForNotifications} from '../actions/notifications'
 import {persistRouteState, loadRouteState} from '../actions/platform-specific.native'
 import {navigateUp, setRouteState} from '../actions/route-tree'
-
-import type {TypedState} from '../constants/reducer'
 
 type Props = {
   dumbFullscreen: boolean,

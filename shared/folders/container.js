@@ -1,16 +1,13 @@
 // @flow
 import Folders from '.'
-import pausableConnect from '../util/pausable-connect'
+import flags from '../util/feature-flags'
+import {pausableConnect, compose, lifecycle, withProps, type TypedState} from '../util/container'
 import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openTlfInChat} from '../actions/chat'
-import {compose, lifecycle, withProps} from 'recompose'
-import flags from '../util/feature-flags'
 import {settingsTab} from '../constants/tabs'
 import {switchTo, navigateAppend, navigateTo} from '../actions/route-tree'
-
-import type {RouteProps} from '../route-tree/render-route'
-import type {TypedState} from '../constants/reducer'
+import {type RouteProps} from '../route-tree/render-route'
 
 type FoldersRouteProps = RouteProps<{}, {showingIgnored: boolean}>
 type OwnProps = FoldersRouteProps & {showingPrivate: boolean}

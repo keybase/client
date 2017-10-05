@@ -5,7 +5,7 @@ import {HOCTimers} from '../../common-adapters'
 import {navigateUp} from '../../actions/route-tree'
 import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
 import {type TimerProps} from '../../common-adapters/hoc-timers'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 
 class DeleteConfirmContainer extends Component<Props & TimerProps> {
   componentWillMount() {

@@ -1,15 +1,11 @@
 // @flow
-import {clearSearchResults, showUserProfile} from '../actions/profile'
-import * as SearchCreators from '../actions/search/creators'
-import * as SearchConstants from '../constants/search'
-import {compose, withState, withHandlers, defaultProps} from 'recompose'
-import {connect} from 'react-redux'
-import {profileSearchResultArray} from '../constants/selectors'
-import Search from './search'
 import * as HocHelpers from '../search/helpers'
-
-import type {Props} from './search'
-import type {TypedState} from '../constants/reducer'
+import * as SearchConstants from '../constants/search'
+import * as SearchCreators from '../actions/search/creators'
+import Search, {type Props} from './search'
+import {clearSearchResults, showUserProfile} from '../actions/profile'
+import {compose, withState, withHandlers, defaultProps, connect, type TypedState} from '../util/container'
+import {profileSearchResultArray} from '../constants/selectors'
 
 type HocIntermediateProps = {
   _clearSearchResults: () => void,

@@ -8,5 +8,4 @@ const mapDispatchToProps = (dispatch, {routeProps: {error}}) => ({
   error: error,
 })
 
-// $FlowIssue
 export default connect(null, mapDispatchToProps)(RenderError)

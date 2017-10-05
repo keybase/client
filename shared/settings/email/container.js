@@ -2,7 +2,7 @@
 import UpdateEmail from './index'
 import {navigateUp} from '../../actions/route-tree'
 import {onChangeNewEmail, onSubmitNewEmail} from '../../actions/settings'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
   const {waitingForResponse} = state.settings

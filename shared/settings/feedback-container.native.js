@@ -1,20 +1,15 @@
 // @flow
 import React, {Component} from 'react'
-
 import RNFetchBlob from 'react-native-fetch-blob'
 import {HeaderHoc, HOCTimers} from '../common-adapters'
 import Feedback from './feedback'
 import logSend from '../native/log-send'
-import {connect} from 'react-redux'
-import {compose, withState, withHandlers} from 'recompose'
+import {compose, withState, withHandlers, connect, type TypedState} from '../util/container'
 import {isAndroid, appVersionName, appVersionCode, mobileOsVersion, version} from '../constants/platform'
 import {getLogger} from '../util/periodic-logger'
 import {writeStream, exists, cachesDirectoryPath} from '../util/file'
 import {serialPromises} from '../util/promise'
-
-import type {Dispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
-import type {TimerProps} from '../common-adapters/hoc-timers'
+import {type TimerProps} from '../common-adapters/hoc-timers'
 
 const FeedbackWrapped = compose(
   withState('sendLogs', 'onChangeSendLogs', true),

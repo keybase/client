@@ -4,7 +4,7 @@ import * as Creators from '../actions/unlock-folders'
 import HiddenString from '../util/hidden-string'
 import React, {Component} from 'react'
 import Render from './render'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 
 export type Props = {
   devices: ?Array<Constants.Device>,

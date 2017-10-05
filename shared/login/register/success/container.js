@@ -2,9 +2,7 @@
 import * as Creators from '../../../actions/login/creators'
 import HiddenString from '../../../util/hidden-string'
 import RenderSuccess from '../../signup/success/index.render'
-import {connect} from 'react-redux'
-
-import type {TypedState} from '../../../constants/reducer'
+import {connect, type TypedState} from '../../../util/container'
 
 type OwnProps = {
   routeProps: {
@@ -25,5 +23,4 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(Creators.onBack()),
 })
 
-// $FlowIssue
 export default connect(mapStateToProps, mapDispatchToProps)(RenderSuccess)

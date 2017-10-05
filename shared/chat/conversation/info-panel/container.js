@@ -3,15 +3,18 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
-import {compose, renderComponent, renderNothing, branch} from 'recompose'
-import {connect} from 'react-redux'
+import {
+  compose,
+  renderComponent,
+  renderNothing,
+  branch,
+  connect,
+  type TypedState,
+} from '../../../util/container'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
 import {showUserProfile} from '../../../actions/profile'
-
-import type {TypedState} from '../../../constants/reducer'
-
 import flags from '../../../util/feature-flags'
 
 const getParticipants = createSelector(

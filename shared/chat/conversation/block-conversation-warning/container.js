@@ -1,12 +1,10 @@
 // @flow
 import RenderBlockConversationWarning from './'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../../util/container'
 import {navigateTo, navigateUp} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
-
-import type {RouteProps} from '../../../route-tree/render-route'
-import type {TypedState} from '../../../constants/reducer'
-import type {BlockConversation, ConversationIDKey} from '../../../constants/chat'
+import {type RouteProps} from '../../../route-tree/render-route'
+import {type BlockConversation, type ConversationIDKey} from '../../../constants/chat'
 
 type RenderBlockConversationWarningRouteProps = RouteProps<
   {

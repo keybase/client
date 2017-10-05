@@ -1,23 +1,21 @@
 // @flow
-import * as SearchConstants from './search'
 import * as ChatTypes from './types/flow-types-chat'
-import {createShallowEqualSelector} from './selectors'
+import * as SearchConstants from './search'
 import HiddenString from '../util/hidden-string'
-import {Buffer} from 'buffer'
-import {Set, List, Map, OrderedSet, Record} from 'immutable'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
-import {getPath, getPathState} from '../route-tree'
+import {Buffer} from 'buffer'
+import {CommonTLFVisibility} from './types/flow-types'
+import {Set, List, Map, OrderedSet, Record} from 'immutable'
 import {chatTab} from './tabs'
 import {createSelector} from 'reselect'
+import {createShallowEqualSelector} from './selectors'
+import {getPath, getPathState, type Path} from '../route-tree'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
-
-import type {UserListItem} from '../common-adapters/usernames'
-import type {Path} from '../route-tree'
-import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import {CommonTLFVisibility} from './types/flow-types'
-import type {DeviceType, KBRecord, KBOrderedSet} from './types/more'
-import type {TypedState} from './reducer'
+import {type DeviceType, type KBRecord, type KBOrderedSet} from './types/more'
+import {type NoErrorTypedAction, type TypedAction} from './types/flux'
+import {type TypedState} from './reducer'
+import {type UserListItem} from '../common-adapters/usernames'
 
 export type Username = string
 export type MessageKey = string

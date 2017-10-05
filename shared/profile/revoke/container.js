@@ -1,7 +1,7 @@
 // @flow
 import Revoke from './index'
 import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   errorMessage: state.profile.revoke.error,

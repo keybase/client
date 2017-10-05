@@ -3,10 +3,8 @@
 import * as React from 'react'
 import {Box, Text, Button} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import * as Creators from '../actions/chat/creators'
-
-import type {TypedState} from '../constants/reducer'
 
 const _DummySearch = ({inboxSearch, setInboxFilter}) => {
   return (

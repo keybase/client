@@ -4,7 +4,7 @@ import Invites, {type Props, type PendingInvite} from '.'
 import {invitesReclaim, invitesRefresh, invitesSend} from '../../actions/settings'
 import {openURLWithHelper} from '../../util/open-url'
 import {navigateAppend} from '../../actions/route-tree'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 
 // TODO recompose this
 class InvitationsContainer extends Component<Props> {

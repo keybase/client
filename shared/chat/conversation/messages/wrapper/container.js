@@ -1,19 +1,15 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
-import Wrapper from '.'
-import {compose, withHandlers, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import Wrapper, {type Props} from '.'
+import {compose, withHandlers, lifecycle, connect, type TypedState} from '../../../../util/container'
 import {Map} from 'immutable'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {lookupMessageProps} from '../../../shared'
 import {showUserProfile} from '../../../../actions/profile'
 import {getProfile} from '../../../../actions/tracker'
 import {isMobile} from '../../../../constants/platform'
-
-import type {Props} from '.'
-import type {TypedState} from '../../../../constants/reducer'
-import type {OwnProps, StateProps, DispatchProps} from './container'
+import {type OwnProps, type StateProps, type DispatchProps} from './container'
 
 const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnProps): StateProps => {
   const _conversationState = Constants.getSelectedConversationStates(state)

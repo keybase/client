@@ -1,7 +1,15 @@
 // @flow
 import * as I from 'immutable'
 import HiddenString from '../util/hidden-string'
-import {DeviceDetailRecord} from '../constants/devices'
+import {
+  DeviceDetailRecord,
+  type Load,
+  type Loaded,
+  type Revoke,
+  type ShowRevokePage,
+  type PaperKeyMake,
+  type Waiting,
+} from '../constants/devices'
 import {call, put, select} from 'redux-saga/effects'
 import {
   deviceDeviceHistoryListRpcPromise,
@@ -9,6 +17,7 @@ import {
   loginPaperKeyRpcChannelMap,
   revokeRevokeDeviceRpcPromise,
   rekeyGetRevokeWarningRpcPromise,
+  type DeviceDetail,
 } from '../constants/types/flow-types'
 import {devicesTab, loginTab, settingsTab} from '../constants/tabs'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
@@ -18,11 +27,8 @@ import {navigateTo} from './route-tree'
 import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {setRevokedSelf} from './login/creators'
-
-import type {DeviceDetail} from '../constants/types/flow-types'
-import type {Load, Loaded, Revoke, ShowRevokePage, PaperKeyMake, Waiting} from '../constants/devices'
-import type {SagaGenerator} from '../constants/types/saga'
-import type {TypedState} from '../constants/reducer'
+import {type SagaGenerator} from '../constants/types/saga'
+import {type TypedState} from '../constants/reducer'
 
 isMobile &&
   module.hot &&

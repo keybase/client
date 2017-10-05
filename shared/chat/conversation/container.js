@@ -6,15 +6,21 @@ import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
-import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
+import {
+  pausableConnect,
+  withState,
+  withHandlers,
+  compose,
+  branch,
+  renderNothing,
+  renderComponent,
+  type TypedState,
+} from '../../util/container'
 import {selectedSearchIdHoc} from '../../search/helpers'
 import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
-
-import type {Props} from '.'
-import type {TypedState} from '../../constants/reducer'
+import {type Props} from '.'
 
 type StateProps = {|
   finalizeInfo: ?Constants.FinalizeInfo,

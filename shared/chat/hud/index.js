@@ -1,11 +1,18 @@
 // @flow
 import React from 'react'
-import {connect, type MapStateToProps} from 'react-redux'
-import {compose, withState, lifecycle, withPropsOnChange, branch, renderNothing} from 'recompose'
+import {
+  compose,
+  withState,
+  lifecycle,
+  withPropsOnChange,
+  branch,
+  renderNothing,
+  type TypedState,
+  connect,
+  type MapStateToProps,
+} from '../../util/container'
 import {Avatar, Box, ClickableBox, List, Text} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
-
-import type {TypedState} from '../../constants/reducer'
 
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,

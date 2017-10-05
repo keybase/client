@@ -1,10 +1,8 @@
 // @flow
-import {is, Map} from 'immutable'
+import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
-import {compose} from 'recompose'
-import {tabBarHeight} from './tab-bar/index.render.native'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -13,19 +11,17 @@ import {
   NativeAnimated,
   NativeStatusBar,
 } from '../common-adapters/index.native'
-import {NavigationActions} from 'react-navigation'
-import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
-import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
-import {connect} from 'react-redux'
+import {NavigationActions, type NavigationAction} from 'react-navigation'
+import {chatTab, loginTab, peopleTab, folderTab, settingsTab, type Tab} from '../constants/tabs'
+import {compose} from 'recompose'
+import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
+import {is, Map} from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
-
-import type {Props, OwnProps} from './nav'
-import type {TypedState} from '../constants/reducer'
-import type {Tab} from '../constants/tabs'
-import type {NavigationAction} from 'react-navigation'
-import type {RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
+import {tabBarHeight} from './tab-bar/index.render.native'
+import {type Props, type OwnProps} from './nav'
+import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
 
 type CardStackShimProps = {
   mode?: 'modal',

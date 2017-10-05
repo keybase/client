@@ -1,8 +1,6 @@
 // @flow
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import SearchResultsList from '.'
-
-import type {TypedState} from '../../constants/reducer'
 
 // TODO use entities
 const mapStateToProps = ({entities}: TypedState) => {

@@ -1,8 +1,7 @@
 // @flow
 import EditAvatar from './edit-avatar'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import {navigateUp} from '../actions/route-tree'
-import {type TypedState} from '../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
   const username = state.config.username

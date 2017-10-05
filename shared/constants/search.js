@@ -1,10 +1,9 @@
 // @flow
 import {List} from 'immutable'
 import {amIFollowing, usernameSelector} from './selectors'
-
-import type {NoErrorTypedAction} from '../constants/types/flux'
-import type {IconType} from '../common-adapters/icon'
-import type {TypedState} from './reducer'
+import {type NoErrorTypedAction} from '../constants/types/flux'
+import {type IconType} from '../common-adapters/icon'
+import {type TypedState} from './reducer'
 
 const services: {[service: string]: true} = {
   Facebook: true,

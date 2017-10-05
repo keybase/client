@@ -1,19 +1,15 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import HiddenString from '../../../util/hidden-string'
-import ListComponent from '.'
-import {List, is, Set} from 'immutable'
-import {compose} from 'recompose'
-import {connect} from 'react-redux'
-import {navigateAppend} from '../../../actions/route-tree'
-import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import * as Selectors from '../../../constants/selectors'
-
-import type {OpenInFileUI} from '../../../constants/kbfs'
-import type {OwnProps, StateProps, DispatchProps} from './container'
-import type {Props} from '.'
-import type {TypedState} from '../../../constants/reducer'
+import HiddenString from '../../../util/hidden-string'
+import ListComponent, {type Props} from '.'
+import {List, is, Set} from 'immutable'
+import {compose, connect, type TypedState} from '../../../util/container'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
+import {navigateAppend} from '../../../actions/route-tree'
+import {type OpenInFileUI} from '../../../constants/kbfs'
+import {type OwnProps, type StateProps, type DispatchProps} from './container'
 
 const getValidatedState = (state: TypedState) => {
   const inbox = Constants.getSelectedInbox(state)

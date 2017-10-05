@@ -1,10 +1,9 @@
 // @flow
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
-import type {KBRecord} from './types/more'
-import type {NoErrorTypedAction} from './types/flux'
-import type {ConversationIDKey} from './chat'
-import type {TypedState} from './reducer'
+import {type KBRecord} from './types/more'
+import {type NoErrorTypedAction} from './types/flux'
+import {type TypedState} from './reducer'
 
 export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
@@ -16,7 +15,7 @@ export type CreateNewTeam = NoErrorTypedAction<
 export type CreateNewTeamFromConversation = NoErrorTypedAction<
   'teams:createNewTeamFromConversation',
   {
-    conversationIDKey: ConversationIDKey,
+    conversationIDKey: ChatConstants.ConversationIDKey,
     name: string,
   }
 >
@@ -78,9 +77,9 @@ export const Team = I.Record({
 })
 
 export type TeamRecord = KBRecord<{
-  convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
+  convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
-  teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
+  teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamnames: I.Set<Teamname>,

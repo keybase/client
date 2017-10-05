@@ -1,9 +1,7 @@
 // @flow
-import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import isEqualWith from 'lodash/isEqualWith'
-
-import type {TypedState} from './reducer'
-import type {SearchQuery} from './search'
+import {createSelector, createSelectorCreator, defaultMemoize, type TypedState} from '../util/container'
+import {type SearchQuery} from './search'
 
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn

@@ -1,19 +1,15 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
-import Attachment from '.'
+import Attachment, {type Props} from '.'
 import shallowEqual from 'shallowequal'
 import {List} from 'immutable'
 import {chatTab} from '../../../../constants/tabs'
-import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, lifecycle, connect, type TypedState} from '../../../../util/container'
 import {getPath} from '../../../../route-tree'
 import {lookupMessageProps} from '../../../shared'
-
-import type {OpenInFileUI} from '../../../../constants/kbfs'
-import type {OwnProps} from './container'
-import type {Props} from '.'
-import type {TypedState} from '../../../../constants/reducer'
+import {type OpenInFileUI} from '../../../../constants/kbfs'
+import {type OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   return {

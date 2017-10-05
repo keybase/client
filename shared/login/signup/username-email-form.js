@@ -1,8 +1,7 @@
 // @flow
 import * as signupActions from '../../actions/signup'
 import React, {Component} from 'react'
-import Render from './username-email-form.render'
-import type {Props} from './username-email-form.render'
+import Render, {type Props} from './username-email-form.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 
@@ -41,7 +40,6 @@ class UsernameEmailForm extends Component<any, State> {
   }
 }
 
-// $FlowIssue type this connector
 export default connect(
   state => ({
     usernameErrorText: state.signup.usernameError && state.signup.usernameError.message,

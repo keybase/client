@@ -1,12 +1,9 @@
 // @flow
 import DeviceRevoke from './'
-import {compose, mapProps} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, mapProps, connect, type TypedState} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 import {navigateUp} from '../../actions/route-tree'
 import {revoke} from '../../actions/devices'
-
-import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   device: state.entities.getIn(['devices', routeProps.deviceID]),

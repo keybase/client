@@ -1,16 +1,18 @@
 // @flow
 import * as Constants from '../../../constants/chat'
-import ParticipantRekey from './participant-rekey'
-import YouRekey from './you-rekey'
-import {compose, branch, renderComponent, renderNothing} from 'recompose'
-import {connect} from 'react-redux'
+import ParticipantRekey, {type Props as ParticipantRekeyProps} from './participant-rekey'
+import YouRekey, {type Props as YouRekeyProps} from './you-rekey'
+import {
+  compose,
+  branch,
+  renderComponent,
+  renderNothing,
+  connect,
+  type TypedState,
+} from '../../../util/container'
 import {navigateAppend, navigateUp} from '../../../actions/route-tree'
 import {showUserProfile} from '../../../actions/profile'
 import {openDialog as openRekeyDialog} from '../../../actions/unlock-folders'
-
-import type {TypedState} from '../../../constants/reducer'
-import type {Props as ParticipantRekeyProps} from './participant-rekey'
-import type {Props as YouRekeyProps} from './you-rekey'
 
 type Props = ParticipantRekeyProps & YouRekeyProps
 

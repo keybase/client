@@ -1,19 +1,16 @@
 // @flow
+import * as Constants from '../../../constants/chat'
 import * as I from 'immutable'
-import pausableConnect from '../../../util/pausable-connect'
+import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
+import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
+import {compose, renderComponent, branch, renderNothing} from 'recompose'
 import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
-import * as Constants from '../../../constants/chat'
-import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
-import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
-import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
-import {compose, renderComponent, branch, renderNothing} from 'recompose'
-import {navigateAppend} from '../../../actions/route-tree'
 import {isMobile} from '../../../constants/platform'
-
-import type {TypedState} from '../../../constants/reducer'
-import type {ConversationIDKey} from '../../../constants/chat'
+import {navigateAppend} from '../../../actions/route-tree'
+import {pausableConnect, type TypedState} from '../../../util/container'
+import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 
 function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount: Constants.UnreadCounts, isError, isSelected) {
   // Derived props
@@ -133,7 +130,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channe
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onSelectConversation: (key: ConversationIDKey) => {
+  _onSelectConversation: (key: Constants.ConversationIDKey) => {
     dispatch(setInboxFilter(''))
     dispatch(selectConversation(key, true))
   },

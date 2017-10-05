@@ -2,12 +2,10 @@
 import React, {Component} from 'react'
 import {Box, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {openInKBFS, uninstallKBFS} from '../../actions/kbfs'
 import electron from 'electron'
 import {isWindows} from '../../constants/platform'
-
-import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   inProgress: boolean,

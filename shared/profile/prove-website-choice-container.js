@@ -1,7 +1,7 @@
 // @flow
 import ProveWebsiteChoice from './prove-website-choice'
 import {addProof, cancelAddProof} from '../actions/profile'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 
 const mapStateToProps = (state: TypedState) => ({})
 

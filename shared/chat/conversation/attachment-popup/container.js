@@ -1,19 +1,15 @@
 // @flow
-import {compose, withState, withProps} from 'recompose'
+import {compose, withState, withProps, connect, type TypedState} from '../../../util/container'
 import RenderAttachmentPopup from './'
-import {connect} from 'react-redux'
 import {deleteMessage} from '../../../actions/chat/creators'
 import * as Constants from '../../../constants/chat'
 import {lookupMessageProps} from '../../shared'
-
-import type {RouteProps} from '../../../route-tree/render-route'
-import type {TypedState} from '../../../constants/reducer'
-import type {SaveAttachment, AttachmentMessage, MessageKey} from '../../../constants/chat'
-import type {OpenInFileUI} from '../../../constants/kbfs'
+import {type RouteProps} from '../../../route-tree/render-route'
+import {type OpenInFileUI} from '../../../constants/kbfs'
 
 type AttachmentPopupRouteProps = RouteProps<
   {
-    messageKey: MessageKey,
+    messageKey: Constants.MessageKey,
   },
   {}
 >
@@ -48,7 +44,7 @@ export default compose(
         dispatch(navigateAppend([{props: {message}, selected: 'messageAction'}])),
       deleteMessage: message => dispatch(deleteMessage(message)),
       onClose: () => dispatch(navigateUp()),
-      onDownloadAttachment: (message: AttachmentMessage) => {
+      onDownloadAttachment: (message: Constants.AttachmentMessage) => {
         if (!message.messageID || !message.filename) {
           throw new Error('Cannot download attachment with missing messageID or filename')
         }
@@ -58,7 +54,7 @@ export default compose(
             payload: {
               messageKey: message.key,
             },
-          }: SaveAttachment)
+          }: Constants.SaveAttachment)
         )
       },
       onOpenInFileUI: (path: string) =>

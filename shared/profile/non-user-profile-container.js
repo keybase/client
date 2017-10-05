@@ -1,11 +1,9 @@
 // @flow
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import {openInKBFS} from '../actions/kbfs'
 import {privateFolderWithUsers} from '../constants/config'
 import {startConversation} from '../actions/chat'
 import NonUserProfile from './non-user-profile'
-
-import type {TypedState} from '../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps
