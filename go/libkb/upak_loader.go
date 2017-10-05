@@ -504,6 +504,10 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		}
 		ret = nil
 	}
+	if ret == nil {
+		return nil, nil, nil, NotFoundError{}
+	}
+
 	return ret, key, linkMap, nil
 }
 
