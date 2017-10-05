@@ -58,6 +58,10 @@ func (t *Team) IsOpen() bool {
 	return t.chain().IsOpen()
 }
 
+func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
+	return t.chain().inner.OpenTeamJoinAs
+}
+
 func (t *Team) SharedSecret(ctx context.Context) (ret keybase1.PerTeamKeySeed, err error) {
 	defer t.G().CTrace(ctx, "Team#SharedSecret", func() error { return err })()
 	gen := t.chain().GetLatestGeneration()
@@ -408,7 +412,7 @@ func (t *Team) getDowngradedUsers(ctx context.Context, ms *memberSet) (uids []ke
 	return uids, nil
 }
 
-func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
+func (t *Team) ChangeMembershipPermanent(ctx context.Context, req keybase1.TeamChangeReq, permanent bool) error {
 	// create the change membership section + secretBoxes
 	section, secretBoxes, implicitAdminBoxes, memberSet, err := t.changeMembershipSection(ctx, req)
 	if err != nil {
@@ -440,6 +444,10 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 		lease:              lease,
 	}
 
+	if permanent {
+		sigPayloadArgs.prePayload = libkb.JSONPayload{"permanent": true}
+	}
+
 	if err := t.postChangeItem(ctx, section, libkb.LinkTypeChangeMembership, merkleRoot, sigPayloadArgs); err != nil {
 		return err
 	}
@@ -448,6 +456,10 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 	changes := keybase1.TeamChangeSet{MembershipChanged: true, KeyRotated: t.rotated}
 	t.G().NotifyRouter.HandleTeamChanged(ctx, t.chain().GetID(), t.Name().String(), t.NextSeqno(), changes)
 	return nil
+}
+
+func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq) error {
+	return t.ChangeMembershipPermanent(ctx, req, false)
 }
 
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
@@ -1201,7 +1213,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) 
 	return subteams, nil
 }
 
-func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
+func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSettings) error {
 	if _, err := t.SharedSecret(ctx); err != nil {
 		return err
 	}
@@ -1211,7 +1223,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
 		return err
 	}
 
-	settings, err := CreateTeamSettings(open, keybase1.TeamRole_READER)
+	scSettings, err := CreateTeamSettings(settings.Open, settings.JoinAs)
 	if err != nil {
 		return err
 	}
@@ -1219,7 +1231,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, open bool) error {
 	section := SCTeamSection{
 		ID:       SCTeamID(t.ID),
 		Admin:    admin,
-		Settings: &settings,
+		Settings: &scSettings,
 	}
 
 	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})

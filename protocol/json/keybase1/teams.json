@@ -251,6 +251,10 @@
             "keys": "TeamInviteID"
           },
           "name": "annotatedActiveInvites"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "settings"
         }
       ]
     },
@@ -1374,6 +1378,10 @@
         {
           "name": "email",
           "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
         }
       ],
       "response": null
