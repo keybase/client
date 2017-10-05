@@ -172,8 +172,7 @@ class ConversationInput extends Component<InputProps, State> {
         e.preventDefault()
         this._triggerDownArrowCounter()
         return
-      } else if (e.key === 'Escape') {
-        e.preventDefault()
+      } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         this.props.setMentionPopupOpen(false)
         return
       }
