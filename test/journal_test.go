@@ -758,3 +758,54 @@ func TestJournalCoalescingNoChanges(t *testing.T) {
 		),
 	)
 }
+
+// bob creates a conflicting file while running the journal.
+func TestJournalDoubleCrRemovalAfterQR(t *testing.T) {
+	test(t, journal(),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkdir("b"),
+		),
+		as(bob,
+			enableJournal(),
+			pauseJournal(),
+			mkfile("a/c", "uh oh"),
+			// Don't flush yet.
+		),
+		as(bob,
+			rm("a/c"),
+			rmdir("a"),
+		),
+		as(alice,
+			mkfile("a/c", "hello"),
+		),
+		as(alice,
+			rm("a/c"),
+			rmdir("a"),
+			rmdir("b"),
+		),
+		as(bob, noSync(),
+			stallOnMDResolveBranch(),
+			resumeJournal(),
+			// Wait for CR to finish before alice does QR.
+			waitForStalledMDResolveBranch(),
+		),
+		as(alice,
+			// Quota reclamation.
+			addTime(2*time.Minute),
+			forceQuotaReclamation(),
+		),
+		as(bob, noSync(),
+			// Now resolve that conflict over the QR.
+			undoStallOnMDResolveBranch(),
+			flushJournal(),
+		),
+		as(bob,
+			lsdir("", m{}),
+		),
+		as(alice,
+			lsdir("", m{}),
+		),
+	)
+}

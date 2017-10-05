@@ -1195,6 +1195,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		// most recent block on a chain and haven't yet been involved
 		// in an update during this resolution.  Unreference any
 		// blocks that aren't the most recent blocks on their chains.
+		currMDPtr := md.data.Dir.BlockPointer
+		unmergedMDPtr :=
+			unmergedChains.mostRecentChainMDInfo.rootInfo.BlockPointer
 		for _, unmergedResOp := range unmergedChains.resOps {
 			// Updates go in the first one.
 			for _, update := range unmergedResOp.allUpdates() {
@@ -1211,6 +1214,18 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 					fup.log.CDebugf(ctx, "Including update from old resOp: "+
 						"%v -> %v", update.Unref, update.Ref)
 					resOp.AddUpdate(update.Unref, update.Ref)
+
+					if update.Unref == currMDPtr && update.Ref == unmergedMDPtr {
+						// If the root block pointer didn't get
+						// updated above, we may need to update it if
+						// we're pulling in an updated root pointer
+						// from a previous unmerged resolutionOp.
+						fup.log.CDebugf(ctx, "Setting root blockpointer from "+
+							"%v to %v based on unmerged update",
+							currMDPtr, unmergedMDPtr)
+						md.data.Dir.BlockInfo =
+							unmergedChains.mostRecentChainMDInfo.rootInfo
+					}
 				} else if !isMostRecent {
 					fup.log.CDebugf(ctx, "Unrefing an update from old resOp: "+
 						"%v (original=%v)", update.Ref, update.Unref)
