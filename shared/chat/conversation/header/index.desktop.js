@@ -37,6 +37,7 @@ const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, te
 )
 
 const UsernameHeader = ({
+  canOpenInfoPanel,
   infoPanelOpen,
   muted,
   onOpenFolder,
@@ -59,11 +60,12 @@ const UsernameHeader = ({
       {muted && <ShhIcon />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
-    <Icon
-      type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-      style={styleLeft}
-      onClick={onToggleInfoPanel}
-    />
+    {canOpenInfoPanel &&
+      <Icon
+        type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+        style={styleLeft}
+        onClick={onToggleInfoPanel}
+      />}
   </Box>
 )
 
