@@ -57,6 +57,9 @@ func main() {
 		g.Log.Errorf("SaferDLLLoading error: %v", err.Error())
 	}
 
+	// Set our panel of external services.
+	g.SetServices(externals.GetServices())
+
 	go HandleSignals(g)
 	err = mainInner(g)
 
@@ -162,8 +165,6 @@ func mainInner(g *libkb.GlobalContext) error {
 }
 
 func configOtherLibraries(g *libkb.GlobalContext) error {
-	// Set our panel of external services.
-	g.SetServices(externals.GetServices())
 	// Set our UID -> Username mapping service
 	g.SetUIDMapper(uidmap.NewUIDMap(g.Env.GetUIDMapFullNameCacheSize()))
 	return nil
