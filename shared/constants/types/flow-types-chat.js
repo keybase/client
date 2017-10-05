@@ -977,12 +977,14 @@ export type ConversationInfoLocal = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   existence: ConversationExistence,
   version: ConversationVers,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
+  resetNames?: ?Array<string>,
 }
 
 export type ConversationLocal = {
@@ -1029,6 +1031,7 @@ export type ConversationMetadata = {
   supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
   allList?: ?Array<gregor1.UID>,
+  resetList?: ?Array<gregor1.UID>,
 }
 
 export type ConversationNotificationInfo = {
@@ -1316,8 +1319,10 @@ export type InboxUIItem = {
   headline: string,
   visibility: keybase1.TLFVisibility,
   participants?: ?Array<string>,
+  resetParticipants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   time: gregor1.Time,
   notifications?: ?ConversationNotificationInfo,
@@ -2011,6 +2016,7 @@ export type UnverifiedInboxUIItem = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
@@ -2023,6 +2029,7 @@ export type UnverifiedInboxUIItemMetadata = {
   headline: string,
   snippet: string,
   writerNames?: ?Array<string>,
+  resetParticipants?: ?Array<string>,
 }
 
 export type UnverifiedInboxUIItems = {
@@ -2035,6 +2042,7 @@ export type UpdateConversationMembership = {
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
   removed?: ?Array<ConversationMember>,
+  reset?: ?Array<ConversationMember>,
   unreadUpdate?: ?UnreadUpdate,
 }
 

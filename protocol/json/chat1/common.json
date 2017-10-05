@@ -507,6 +507,13 @@
             "items": "gregor1.UID"
           },
           "name": "allList"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "resetList"
         }
       ]
     },

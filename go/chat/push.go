@@ -774,7 +774,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 
 		// Write out changes to local storage
 		updateRes, err := g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, update.Joined,
-			update.Removed)
+			update.Removed, update.Reset)
 		if err != nil {
 			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
 			return err

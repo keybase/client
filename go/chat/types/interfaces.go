@@ -91,7 +91,8 @@ type InboxSource interface {
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		joined []chat1.ConversationMember, removed []chat1.ConversationMember) (MembershipUpdateRes, error)
+		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
+		resets []chat1.ConversationMember) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
 

@@ -996,6 +996,10 @@
           "name": "membersType"
         },
         {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
+        },
+        {
           "type": "TeamType",
           "name": "teamType"
         },
@@ -1027,6 +1031,13 @@
             "ConversationFinalizeInfo"
           ],
           "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetNames"
         }
       ]
     },
