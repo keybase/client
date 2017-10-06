@@ -36,10 +36,7 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 }
 
 func (h *TeamsHandler) assertLoggedIn(ctx context.Context) error {
-	loggedIn, _, err := libkb.IsLoggedIn(h.G().ExternalG(), nil)
-	if err != nil {
-		return err
-	}
+	loggedIn := h.G().ExternalG().ActiveDevice.Valid()
 	if !loggedIn {
 		return libkb.LoginRequiredError{}
 	}
