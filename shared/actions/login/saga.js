@@ -14,6 +14,7 @@ import {bootstrap, clearRouteState, getExtendedStatus} from '../config'
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
+import type {InitialState} from '../../constants/config'
 import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
@@ -130,10 +131,10 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
     if (overrideLoggedInTab) {
       yield put(navigateTo([overrideLoggedInTab]))
     } else if (initialState) {
-      const {link, tab, conversation} = initialState
+      const {link, tab, conversation} = (initialState: InitialState)
       if (link) {
         yield put(appLink(link))
-      } else if (isValidInitialTab(tab)) {
+      } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
           yield put(selectConversation(conversation, false))
           yield put(navigateTo([chatTab], null, 'initial-restore'))
