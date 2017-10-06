@@ -27,7 +27,7 @@ export type AddToTeam = NoErrorTypedAction<
     name: string,
     email: string,
     username: string,
-    role: 0 | 1 | 2 | 3 | 4,
+    role: null | 'reader' | 'writer' | 'admin' | 'owner',
     sendChatNotification: boolean,
   }
 >

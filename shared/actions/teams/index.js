@@ -49,7 +49,7 @@ const _addToTeam = function*(action: Constants.AddToTeam) {
       name: name,
       email: email,
       username: username,
-      role: role,
+      role: role && RpcTypes.TeamsTeamRole[role],
       sendChatNotification: sendChatNotification,
     },
   })

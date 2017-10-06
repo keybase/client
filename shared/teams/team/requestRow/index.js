@@ -55,19 +55,14 @@ export const TeamRequestRow = (props: Props) => {
           marginTop: isMobile ? globalMargins.tiny : 0,
         }}
       >
-        <Button type="Secondary" label="Chat" onClick={() => onChat()} />
+        <Button type="Secondary" label="Chat" onClick={onChat} />
         <Button
           style={{marginLeft: globalMargins.xtiny}}
           type="Secondary"
           label="Ignore"
-          onClick={() => onIgnoreRequest()}
+          onClick={onIgnoreRequest}
         />
-        <Button
-          style={{marginLeft: globalMargins.xtiny}}
-          type="Primary"
-          label="Accept"
-          onClick={() => onAccept()}
-        />
+        <Button style={{marginLeft: globalMargins.xtiny}} type="Primary" label="Accept" onClick={onAccept} />
       </Box>
     </Box>
   )

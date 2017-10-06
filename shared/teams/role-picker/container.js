@@ -6,7 +6,6 @@ import RolePicker from '.'
 import * as Creators from '../../actions/teams/creators'
 import * as Constants from '../../constants/teams'
 
-import type {TeamRole} from '../../constants/types/flow-types'
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
@@ -23,12 +22,14 @@ const mapStateToProps = (state: TypedState, {routeProps: {username, teamname}}):
   you: state.config.username,
 })
 
+export type Role = null | 'reader' | 'writer' | 'admin' | 'owner'
+
 // TODO add stuff for edit membership options
 type DispatchProps = {
   _onAddMember: (
     teamname: Constants.Teamname,
     username: string,
-    role: TeamRole,
+    role: Role,
     sendNotification: boolean
   ) => void,
   onBack: () => void,
@@ -46,8 +47,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
-    allowOwner: yourInfo && yourInfo.type === 'owner',
-    onComplete: (role: TeamRole, sendNotification?: boolean) => {
+    allowOwner: yourInfo && yourInfo.type === 'owners',
+    onComplete: (role: Role, sendNotification?: boolean) => {
       dispatchProps._onAddMember(stateProps.teamname, stateProps.username, role, sendNotification || false)
       dispatchProps.onBack()
     },
@@ -55,7 +56,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
 }
 
 export default compose(
-  withState('selectedRole', 'setSelectedRole', 0),
+  withState('selectedRole', 'setSelectedRole', null),
   withState('sendNotification', 'setSendNotification', false),
   connect(mapStateToProps, mapDispatchToProps, mergeProps)
 )(RolePicker)

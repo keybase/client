@@ -4,7 +4,7 @@ import * as Constants from '../../constants/teams'
 import {Avatar, Box, Text, List, Tabs, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
-import TeamUserRow from './memberRow/container'
+import TeamMemberRow from './memberRow/container'
 import TeamRequestRow from './requestRow/container'
 
 export type MemberRowProps = {
@@ -73,7 +73,7 @@ const Help = isMobile
 type TeamTabsProps = {
   admin: boolean,
   members: Array<MemberRowProps>,
-  requests: string[],
+  requests: Array<RequestRowProps>,
   loading?: boolean,
   selectedTab?: string,
   setSelectedTab: (?Constants.TabKey) => void,
@@ -98,17 +98,15 @@ const TeamTabs = (props: TeamTabsProps) => {
     const requestsLabel = `REQUESTS (${requests.length})`
     // TODO Pending invite tab
     tabs.push(
-      ...[
-        <Text
-          key="requests"
-          type="BodySmallSemibold"
-          style={{
-            color: globalColors.black_75,
-          }}
-        >
-          {requestsLabel}
-        </Text>,
-      ]
+      <Text
+        key="requests"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {requestsLabel}
+      </Text>
     )
   }
   tabs.push(
@@ -142,7 +140,7 @@ class Team extends React.PureComponent<Props> {
     } = this.props
 
     const me = members.find(member => member.username === you)
-    const admin = me ? me.type === 'admins' || me.type === 'owners' : false
+    const admin = me && (me.type === 'admins' || me.type === 'owners')
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
@@ -156,7 +154,7 @@ class Team extends React.PureComponent<Props> {
           keyProperty="username"
           items={memberProps}
           fixedHeight={48}
-          renderItem={TeamUserRow}
+          renderItem={TeamMemberRow}
           style={{alignSelf: 'stretch'}}
         />
     } else if (selectedTab === 'requests') {
