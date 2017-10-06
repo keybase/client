@@ -40,11 +40,11 @@ export type UpdateFollowing = NoErrorTypedAction<
   {username: string, isTracking: boolean}
 >
 
-export type InitialState = {
+export type InitialState = {|
   conversation?: ConversationIDKey,
-  link?: string,
   tab?: Tab,
-}
+  url?: string,
+|}
 
 export type SetInitialState = NoErrorTypedAction<'config:setInitialState', InitialState>
 

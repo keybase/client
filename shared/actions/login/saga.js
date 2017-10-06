@@ -131,9 +131,9 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
     if (overrideLoggedInTab) {
       yield put(navigateTo([overrideLoggedInTab]))
     } else if (initialState) {
-      const {link, tab, conversation} = (initialState: InitialState)
-      if (link) {
-        yield put(appLink(link))
+      const {url, tab, conversation} = (initialState: InitialState)
+      if (url) {
+        yield put(appLink(url))
       } else if (tab && isValidInitialTab(tab)) {
         if (tab === chatTab && conversation) {
           yield put(selectConversation(conversation, false))
