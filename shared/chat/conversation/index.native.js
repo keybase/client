@@ -9,6 +9,7 @@ import Banner from './banner/container'
 import {withPropsOnChange, compose, branch} from 'recompose'
 import {Box, LoadingLine, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import CreateTeamHeader from './create-team-header/container'
 
 import type {Props} from './index'
 
@@ -57,6 +58,7 @@ const Conversation = (props: Props) => (
               onFocusInput={props.onFocusInput}
               editLastMessageCounter={props.editLastMessageCounter}
             />
+            {props.showTeamOffer && <CreateTeamHeader />}
           </Box>
           <Banner />
           {props.showLoader && <LoadingLine />}

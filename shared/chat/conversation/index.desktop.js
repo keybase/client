@@ -10,6 +10,7 @@ import InfoPanel from './info-panel/container'
 import {Box, Icon, LoadingLine, ProgressIndicator, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {readImageFromClipboard} from '../../util/clipboard.desktop'
+import CreateTeamHeader from './create-team-header/container'
 
 import type {Props} from '.'
 
@@ -133,6 +134,7 @@ class Conversation extends Component<Props, State> {
                   style={{...globalStyles.scrollable, flexGrow: 1}}
                 />
               : <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
+                  {this.props.showTeamOffer && <CreateTeamHeader />}
                   <List
                     focusInputCounter={this.props.focusInputCounter}
                     listScrollDownCounter={this.props.listScrollDownCounter}

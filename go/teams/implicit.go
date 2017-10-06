@@ -73,8 +73,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 		return teamID, teamName, impTeamName, conflicts, err
 	}
 
-	arg := libkb.NewRetryAPIArg("team/implicit")
-	arg.NetContext = ctx
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/implicit")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"display_name": libkb.S{Val: lookupNameWithoutConflict},

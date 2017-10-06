@@ -84,18 +84,31 @@ const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
   yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // _getDetails will unset loading
 }
 
+function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {
+  if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
+
+  return state.chat.pendingConversations.get(conversationIDKey)
+}
+
 const _createNewTeamFromConversation = function*(
   action: Constants.CreateNewTeamFromConversation
 ): SagaGenerator<any, any> {
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
+  let participants
+
   if (inbox) {
+    participants = inbox.get('participants')
+  } else {
+    participants = yield select(getPendingConvParticipants, conversationIDKey)
+  }
+
+  if (participants) {
     const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
     })
-    const participants = inbox.get('participants').toArray()
-    for (const username of participants) {
+    for (const username of participants.toArray()) {
       if (!createRes.creatorAdded || username !== me) {
         yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
           param: {

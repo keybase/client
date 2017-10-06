@@ -30,7 +30,35 @@ func (t *teamAPIHandler) handle(ctx context.Context, c Call, w io.Writer) error 
 	}
 }
 
+const (
+	addMembersMethod    = "add-members"
+	createTeamMethod    = "create-team"
+	editMemberMethod    = "edit-member"
+	leaveTeamMethod     = "leave-team"
+	listSelfMethod      = "list-self-memberships"
+	listTeamMethod      = "list-team-memberships"
+	listUserMethod      = "list-user-memberships"
+	removeMemberMethod  = "remove-member"
+	renameSubteamMethod = "rename-subteam"
+)
+
+var validMethodsV1 = map[string]bool{
+	addMembersMethod:    true,
+	createTeamMethod:    true,
+	editMemberMethod:    true,
+	leaveTeamMethod:     true,
+	listSelfMethod:      true,
+	listTeamMethod:      true,
+	listUserMethod:      true,
+	removeMemberMethod:  true,
+	renameSubteamMethod: true,
+}
+
 func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) error {
+	if !validMethodsV1[c.Method] {
+		return ErrInvalidMethod{name: c.Method, version: 1}
+	}
+
 	if err := t.requireOptionsV1(c); err != nil {
 		return err
 	}
@@ -42,23 +70,23 @@ func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) erro
 	t.cli = cli
 
 	switch c.Method {
-	case "add-members":
+	case addMembersMethod:
 		return t.addMembers(ctx, c, w)
-	case "create-team":
+	case createTeamMethod:
 		return t.createTeam(ctx, c, w)
-	case "edit-member":
+	case editMemberMethod:
 		return t.editMember(ctx, c, w)
-	case "leave-team":
+	case leaveTeamMethod:
 		return t.leaveTeam(ctx, c, w)
-	case "list-self-memberships":
+	case listSelfMethod:
 		return t.listSelfMemberships(ctx, c, w)
-	case "list-team-memberships":
+	case listTeamMethod:
 		return t.listTeamMemberships(ctx, c, w)
-	case "list-user-memberships":
+	case listUserMethod:
 		return t.listUserMemberships(ctx, c, w)
-	case "remove-member":
+	case removeMemberMethod:
 		return t.removeMember(ctx, c, w)
-	case "rename-subteam":
+	case renameSubteamMethod:
 		return t.renameSubteam(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}

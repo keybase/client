@@ -18,6 +18,8 @@ const installerState = new InstallerData('installer.json', {promptedForCLI: fals
 type CheckErrorsResult = {
   errors: Array<string>,
   hasCLIError: boolean,
+  hasFUSEError: boolean,
+  hasKBNMError: boolean,
 }
 
 // Install.
@@ -47,7 +49,12 @@ export default (callback: (err: any) => void): void => {
   const args = ['--debug', 'install-auto', '--format=json', '--timeout=' + timeout + 's']
 
   exec(keybaseBin, args, 'darwin', 'prod', true, (err, attempted, stdout, stderr) => {
-    let errorsResult: CheckErrorsResult = {errors: [], hasCLIError: false}
+    let errorsResult: CheckErrorsResult = {
+      errors: [],
+      hasCLIError: false,
+      hasFUSEError: false,
+      hasKBNMError: false,
+    }
     if (err) {
       errorsResult.errors = [`There was an error trying to run the install (${err.code}).`]
     } else if (stdout !== '') {
@@ -66,7 +73,7 @@ export default (callback: (err: any) => void): void => {
     }
 
     if (errorsResult.errors.length > 0) {
-      showError(errorsResult.errors, callback)
+      showError(errorsResult.errors, errorsResult.hasFUSEError || errorsResult.hasKBNMError, callback)
       return
     }
 
@@ -84,10 +91,13 @@ export default (callback: (err: any) => void): void => {
 function checkErrors(result: InstallResult): CheckErrorsResult {
   let errors = []
   let hasCLIError = false
+  let hasFUSEError = false
+  let hasKBNMError = false
   const crs = (result && result.componentResults) || []
   for (let cr of crs) {
     if (cr.status.code !== 0) {
       if (cr.name === 'fuse') {
+        hasFUSEError = true
         if (cr.exitCode === ExitCodeFuseKextError) {
           errors.push(
             `We were unable to load KBFS (Fuse kext). This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.`
@@ -100,18 +110,22 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
         hasCLIError = true
       } else {
         errors.push(`There was an error trying to install the ${cr.name}.`)
+        if (cr.name === 'kbnm') {
+          hasKBNMError = true
+          errors.push(`\n${cr.status.desc}`)
+        }
       }
     }
   }
-  return {errors, hasCLIError}
+  return {errors, hasCLIError, hasFUSEError, hasKBNMError}
 }
 
-function showError(errors: Array<string>, callback: (err: ?Error) => void) {
+function showError(errors: Array<string>, showOkay: boolean, callback: (err: ?Error) => void) {
   const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
   dialog.showMessageBox(
     {
-      buttons: ['Ignore', 'Quit'],
-      detail: detail,
+      buttons: showOkay ? ['Okay'] : ['Ignore', 'Quit'],
+      detail,
       message: 'Keybase Install Error',
     },
     resp => {
