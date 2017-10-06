@@ -18,8 +18,8 @@ const installerState = new InstallerData('installer.json', {promptedForCLI: fals
 type CheckErrorsResult = {
   errors: Array<string>,
   hasCLIError: boolean,
-  hasKBNMError: boolean,
   hasFUSEError: boolean,
+  hasKBNMError: boolean,
 }
 
 // Install.
