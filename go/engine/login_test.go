@@ -701,6 +701,8 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	// and start login process for web user.
 	CreateAndSignupFakeUser(tc, "alice")
 
+	Logout(tc)
+
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{Username: username},
@@ -2079,6 +2081,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	Logout(tc)
+
 	// provision user[1] on the same device, specifying username
 	ctx = &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
@@ -2098,6 +2102,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	Logout(tc)
+
 	// provision user[2] on the same device, specifying email
 	ctx = &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
@@ -2116,6 +2122,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	Logout(tc)
 
 	// when you specify an email address, you are forcing provisioning
 	// to happen, so make sure that it detects that the device is already
@@ -3145,6 +3153,30 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 	}
 
 	t.Fatalf("TestBootstrapAfterGPGSign failed %d times", attempts)
+}
+
+func TestLoginAlready(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+	u1.LoginOrBust(tc)
+
+	// Logging in again with same username should not return an error
+	if err := u1.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	// Logging in with a different username should returh LoggedInError
+	u1.Username = "x" + u1.Username
+	err := u1.Login(tc.G)
+	if err == nil {
+		t.Fatal("login with different username should return an error")
+	}
+	if _, ok := err.(libkb.LoggedInError); !ok {
+		t.Fatalf("err type: %T (%s), expected libkb.LoggedInError", err, err)
+	}
 }
 
 type testProvisionUI struct {
