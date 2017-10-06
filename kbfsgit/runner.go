@@ -1166,15 +1166,7 @@ func (r *runner) canPushAll(
 	if err != nil {
 		return false, false, err
 	}
-	// The worktree is not used for listing refs, but is required to
-	// be non-nil to open a non-bare repo.
-	fakeWorktree := osfs.New("/dev/null")
-	localRepo, err := gogit.Open(localStorer, fakeWorktree)
-	if err != nil {
-		return false, false, err
-	}
-
-	localRefs, err := localRepo.References()
+	localRefs, err := localStorer.IterReferences()
 	if err != nil {
 		return false, false, err
 	}
