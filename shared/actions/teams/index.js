@@ -59,6 +59,7 @@ const _leaveTeam = function(action: Constants.LeaveTeam) {
 
 const _addToTeam = function*(action: Constants.AddToTeam) {
   const {payload: {name, email, username, role, sendChatNotification}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
     param: {
       name: name,
@@ -68,18 +69,19 @@ const _addToTeam = function*(action: Constants.AddToTeam) {
       sendChatNotification: sendChatNotification,
     },
   })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name)))
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // _getDetails will unset loading
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
   const {payload: {name, username}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   yield call(RpcTypes.teamsTeamIgnoreRequestRpcPromise, {
     param: {
       name: name,
       username: username,
     },
   })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name)))
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // _getDetails will unset loading
 }
 
 const _createNewTeamFromConversation = function*(
