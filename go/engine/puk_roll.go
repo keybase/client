@@ -71,12 +71,12 @@ func (e *PerUserKeyRoll) inner(ctx *Context) error {
 	if me == nil {
 		e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyRoll load self")
 
-		loadArg := libkb.NewLoadUserArgBase(e.G()).
+		loadArg := libkb.NewLoadUserArg(e.G()).
 			WithNetContext(ctx.GetNetContext()).
 			WithUID(uid).
 			WithSelf(true).
 			WithPublicKeyOptional()
-		me, err = libkb.LoadUser(*loadArg)
+		me, err = libkb.LoadUser(loadArg)
 		if err != nil {
 			return err
 		}

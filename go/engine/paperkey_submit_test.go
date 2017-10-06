@@ -117,4 +117,6 @@ func (n *nlistener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUII
 func (n *nlistener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)      {}
 func (n *nlistener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
-func (n *nlistener) TeamDeleted(teamID keybase1.TeamID) {}
+func (n *nlistener) TeamDeleted(teamID keybase1.TeamID)                             {}
+func (n *nlistener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {}
+func (n *nlistener) ChatInboxSyncStarted(uid keybase1.UID)                          {}

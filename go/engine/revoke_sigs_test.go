@@ -25,9 +25,9 @@ func TestRevokeSig(t *testing.T) {
 	}
 
 	// Add another PGP key, so that we have a couple to revoke. That means that
-	// signatures #5 and #6 are the ones that delegate our PGP keys.
-	const FirstPGPSigSeqno = 5
-	const SecondPGPSigSeqno = 6
+	// signatures #6 and #7 are the ones that delegate our PGP keys.
+	const FirstPGPSigSeqno = 6
+	const SecondPGPSigSeqno = 7
 
 	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
@@ -35,6 +35,7 @@ func TestRevokeSig(t *testing.T) {
 			SubkeyBits:  768,
 		},
 		AllowMulti: true,
+		Ctx:        tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
 	pgpEngine := NewPGPKeyImportEngine(arg)

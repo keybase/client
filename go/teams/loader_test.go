@@ -132,7 +132,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
 	for i := 0; i < 3; i++ {
-		err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
+		err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, false)
 		require.NoError(t, err)
 
 		_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
@@ -232,7 +232,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
 
 	t.Logf("U0 bumps the sigchain (removemember) (5)")
-	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username)
+	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, false)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads with WantMembers=U2 and it hits the cache")
@@ -632,5 +632,58 @@ func TestLoaderCORE_6230(t *testing.T) {
 	})
 	// There was a bug where this would fail with:
 	//   proof error for proof 'became admin before team link': no linkID for seqno 3
+	require.NoError(t, err, "load team")
+}
+
+func TestLoaderCORE_6230_2(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to A")
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U1 loads and caches A")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+
+	t.Logf("U0 creates A.B")
+	subteamName, subteamID := createSubteam(tcs[0], rootName, "bbb")
+
+	t.Logf("U0 adds U1 to A.B")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U1 loads A.B")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subteamID,
+		ForceRepoll: true,
+	})
+	_ = err // ignore the error if there is one, not testing that part.
+
+	t.Logf("U1 loads A.B (again, in case there was a bug above)")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subteamID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "load team")
+
+	t.Logf("U0 adds a link to A")
+	_, err = AddMember(context.TODO(), tcs[0].G, rootName.String(), "foobar@rooter", keybase1.TeamRole_READER)
+
+	t.Logf("U0 does an admin action to A.B")
+	_, err = AddMember(context.TODO(), tcs[0].G, subteamName.String(), fus[0].Username, keybase1.TeamRole_READER)
+
+	t.Logf("U1 loads A.B")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subteamID,
+		ForceRepoll: true,
+	})
 	require.NoError(t, err, "load team")
 }

@@ -169,7 +169,7 @@ func TestMemberRemove(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -269,7 +269,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -398,6 +398,24 @@ func TestMemberAddNoKeys(t *testing.T) {
 
 	// existing invite should be untouched
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
+
+	// this is a keybase user, so they should show up in the member list
+	// even though they are technically only "invited"
+	details, err := Details(context.TODO(), tc.G, name, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, m := range details.Members.Readers {
+		if m.Username == username {
+			found = true
+			break
+		}
+		t.Logf("not a match: %s != %s", m.Username, username)
+	}
+	if !found {
+		t.Fatal("keybase invited user not in membership list")
+	}
 }
 
 func TestMemberAddEmail(t *testing.T) {
@@ -623,6 +641,24 @@ func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase
 	}
 }
 
+func assertNoInvite(tc libkb.TestContext, name, username, typ string) {
+	iname := keybase1.TeamInviteName(username)
+	itype, err := keybase1.TeamInviteTypeFromString(typ, true)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	invite, err := memberInvite(context.TODO(), tc.G, name, iname, itype)
+	if err == nil {
+		tc.T.Fatal("expected not found err, got nil")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		tc.T.Fatalf("expected libkb.NotFoundError, got %T", err)
+	}
+	if invite != nil {
+		tc.T.Fatal("invite found")
+	}
+
+}
 func TestImplicitAdminsKeyedForSubteam(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 3)
 	defer cleanup()
@@ -684,4 +720,85 @@ func TestImplicitAdminsKeyedForSubteamAfterUpgrade(t *testing.T) {
 	// U1 should be able to read subteam now.
 	_, err = tcs[1].G.GetTeamLoader().ImplicitAdmins(context.TODO(), *subteamID)
 	require.NoError(t, err)
+}
+
+// add user without keys to a team, should create invite link.
+// remove that user from the team should cancel the invite.
+func TestMemberCancelInviteNoKeys(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_ellen"
+	_, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
+	assertRole(tc, name, username, keybase1.TeamRole_NONE)
+
+	if err := RemoveMember(context.TODO(), tc.G, name, username, false); err != nil {
+		t.Fatal(err)
+	}
+
+	assertNoInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase")
+	assertRole(tc, name, username, keybase1.TeamRole_NONE)
+}
+
+func TestMemberCancelInviteSocial(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	tc.G.SetServices(externals.GetServices())
+
+	username := "not_on_kb_yet@twitter"
+	_, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
+
+	if err := RemoveMember(context.TODO(), tc.G, name, username, false); err != nil {
+		t.Fatal(err)
+	}
+
+	assertNoInvite(tc, name, "not_on_kb_yet", "twitter")
+}
+
+func TestMemberCancelInviteEmail(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	tc.G.SetServices(externals.GetServices())
+
+	address := "noone@keybase.io"
+
+	if err := InviteEmailMember(context.TODO(), tc.G, name, address, keybase1.TeamRole_READER); err != nil {
+		t.Fatal(err)
+	}
+	assertInvite(tc, name, address, "email", keybase1.TeamRole_READER)
+
+	if err := CancelEmailInvite(context.TODO(), tc.G, name, address); err != nil {
+		t.Fatal(err)
+	}
+
+	assertNoInvite(tc, name, address, "email")
+
+	// check error type for an email address with no invite
+	err := CancelEmailInvite(context.TODO(), tc.G, name, "nope@keybase.io")
+	if err == nil {
+		t.Fatal("expected error canceling email invite for unknown email address")
+	}
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Errorf("expected libkb.NotFoundError, got %T", err)
+	}
+
+	// check error type for unknown team
+	err = CancelEmailInvite(context.TODO(), tc.G, "notateam", address)
+	if err == nil {
+		t.Fatal("expected error canceling email invite for unknown team")
+	}
+	if _, ok := err.(TeamDoesNotExistError); !ok {
+		t.Errorf("expected teams.TeamDoesNotExistError, got %T", err)
+	}
 }

@@ -105,8 +105,7 @@ func getSigningKeyPairForTest(t *testing.T, tc *kbtest.ChatTestContext, u *kbtes
 }
 
 func getActiveDevicesAndKeys(tc *kbtest.ChatTestContext, u *kbtest.FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
-	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal(err)

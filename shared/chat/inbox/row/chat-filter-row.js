@@ -139,7 +139,7 @@ class _ChatFilterRow extends Component<Props, State> {
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading &&
-          <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
+          <Box style={{bottom: 0, left: 0, position: 'absolute', height: 1, right: 0}}>
             <LoadingLine />
           </Box>}
       </Box>

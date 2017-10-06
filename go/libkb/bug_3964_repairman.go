@@ -121,7 +121,7 @@ func (b *bug3964Repairman) fixLKSClientHalf(lctx LoginContext, lksec *LKSec, ppg
 	var encKey GenericKey
 	var ctext string
 
-	me, err = LoadMe(LoadUserArg{Contextified: NewContextified(b.G()), LoginContext: lctx})
+	me, err = LoadMe(NewLoadUserArg(b.G()).WithLoginContext(lctx))
 	if err != nil {
 		return err
 	}

@@ -37,7 +37,7 @@ func (c *CmdSearch) Run() (err error) {
 		return err
 	}
 
-	if err = RegisterProtocols(nil); err != nil {
+	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
 		return err
 	}
 

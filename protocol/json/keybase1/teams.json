@@ -190,6 +190,11 @@
         {
           "type": "boolean",
           "name": "active"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
         }
       ]
     },
@@ -246,6 +251,10 @@
             "keys": "TeamInviteID"
           },
           "name": "annotatedActiveInvites"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "settings"
         }
       ]
     },
@@ -505,6 +514,10 @@
         {
           "type": "TeamInviteName",
           "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "uv"
         },
         {
           "type": "UserVersion",
@@ -889,6 +902,10 @@
         {
           "type": "boolean",
           "name": "staleOK"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         }
       ]
     },
@@ -999,6 +1016,11 @@
             "ImplicitRole"
           ],
           "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
         }
       ]
     },
@@ -1176,6 +1198,24 @@
           "name": "time"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LookupImplicitTeamRes",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "ImplicitTeamDisplayName",
+          "name": "displayName"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1334,6 +1374,14 @@
         {
           "name": "username",
           "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
         }
       ],
       "response": null
@@ -1515,7 +1563,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "lookupOrCreateImplicitTeam": {
       "request": [
@@ -1528,7 +1576,7 @@
           "type": "boolean"
         }
       ],
-      "response": "TeamID"
+      "response": "LookupImplicitTeamRes"
     },
     "teamReAddMemberAfterReset": {
       "request": [

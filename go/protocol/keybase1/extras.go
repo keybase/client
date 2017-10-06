@@ -1507,6 +1507,10 @@ func (u UserVersion) TeamInviteName() TeamInviteName {
 	return TeamInviteName(u.PercentForm())
 }
 
+func (u UserVersion) IsNil() bool {
+	return u.Uid.IsNil()
+}
+
 type ByUserVersionID []UserVersion
 
 func (b ByUserVersionID) Len() int      { return len(b) }

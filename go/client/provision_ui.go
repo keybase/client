@@ -19,6 +19,7 @@ import (
 )
 
 type ProvisionUI struct {
+	libkb.Contextified
 	parent *UI
 	role   libkb.KexRole
 }
@@ -270,9 +271,9 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 
 func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
 	p.parent.Output("\n\n")
-	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
-	p.parent.Printf(ColorString("magenta", "* Name your new device!                                    *\n"))
-	p.parent.Printf(ColorString("magenta", "************************************************************\n"))
+	p.parent.Printf(ColorString(p.G(), "magenta", "************************************************************\n"))
+	p.parent.Printf(ColorString(p.G(), "magenta", "* Name your new device!                                    *\n"))
+	p.parent.Printf(ColorString(p.G(), "magenta", "************************************************************\n"))
 	p.parent.Output("\n\n\n")
 
 	for i := 0; i < 10; i++ {
@@ -301,14 +302,14 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 }
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {
-	p.parent.Printf("\n\n" + CHECK + " " + ColorString("bold", "Verification code received") + ".\n\n")
+	p.parent.Printf("\n\n" + CHECK + " " + ColorString(p.G(), "bold", "Verification code received") + ".\n\n")
 	return nil
 }
 
 func (p ProvisionUI) ProvisioneeSuccess(ctx context.Context, arg keybase1.ProvisioneeSuccessArg) error {
 	p.parent.Output("\n\n\n")
-	p.parent.Printf(CHECK + " Success! You provisioned your device " + ColorString("bold", arg.DeviceName) + ".\n\n")
-	p.parent.Printf("You are logged in as " + ColorString("bold", arg.Username) + "\n")
+	p.parent.Printf(CHECK + " Success! You provisioned your device " + ColorString(p.G(), "bold", arg.DeviceName) + ".\n\n")
+	p.parent.Printf("You are logged in as " + ColorString(p.G(), "bold", arg.Username) + "\n")
 	// turn on when kbfs active:
 	if false {
 		p.parent.Printf("  - your keybase public directory is available at /keybase/public/%s\n", arg.Username)
@@ -321,6 +322,6 @@ func (p ProvisionUI) ProvisioneeSuccess(ctx context.Context, arg keybase1.Provis
 
 func (p ProvisionUI) ProvisionerSuccess(ctx context.Context, arg keybase1.ProvisionerSuccessArg) error {
 	p.parent.Output("\n\n")
-	p.parent.Printf(CHECK + " Success! You added a new device named " + ColorString("bold", arg.DeviceName) + " to your account.\n\n")
+	p.parent.Printf(CHECK + " Success! You added a new device named " + ColorString(p.G(), "bold", arg.DeviceName) + " to your account.\n\n")
 	return nil
 }

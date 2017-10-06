@@ -186,7 +186,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			anMemberInfo, anInvites, retry, err := loadTeamForAMI(false)
 			if err != nil {
 				if retry {
-					anMemberInfo, anInvites, retry, err = loadTeamForAMI(false)
+					anMemberInfo, anInvites, retry, err = loadTeamForAMI(true)
 				}
 			}
 			if err != nil {
@@ -255,9 +255,11 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 		if err != nil {
 			return nil, err
 		}
+		var uv keybase1.UserVersion
 		if category == keybase1.TeamInviteCategory_KEYBASE {
 			// "keybase" invites (i.e. pukless users) have user version for name
-			uv, err := invite.KeybaseUserVersion()
+			var err error
+			uv, err = invite.KeybaseUserVersion()
 			if err != nil {
 				return nil, err
 			}
@@ -275,6 +277,7 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[ke
 			Id:              invite.Id,
 			Type:            invite.Type,
 			Name:            name,
+			Uv:              uv,
 			Inviter:         invite.Inviter,
 			InviterUsername: username.String(),
 			TeamName:        teamName,

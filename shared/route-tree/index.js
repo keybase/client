@@ -159,7 +159,10 @@ function _routeSet(
 ): RouteStateNode {
   const pathHead = pathSpec && pathSpec.first()
 
-  let newRouteState = routeState || new RouteStateNode({selected: routeDef.defaultSelected})
+  let newRouteState =
+    routeState ||
+    // Set the initial state off of the route def
+    new RouteStateNode({selected: routeDef.defaultSelected, state: I.Map(routeDef.initialState)})
   if (pathHead && pathHead.type === 'navigate') {
     newRouteState = newRouteState.set('selected', pathHead.next || routeDef.defaultSelected)
     if (pathHead.next === null && !routeDef.tags.persistChildren) {

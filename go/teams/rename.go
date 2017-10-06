@@ -142,6 +142,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.Us
 		sigJSON,
 		prevLinkID,
 		false, /* hasRevokes */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return nil, err
@@ -195,6 +196,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me *libkb
 		sigJSON,
 		prevLinkID,
 		false, /* hasRevokes */
+		keybase1.SeqType_SEMIPRIVATE,
 	)
 	if err != nil {
 		return nil, err

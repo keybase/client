@@ -21,8 +21,6 @@ func TestPassphraseChange(t *testing.T) {
 	tc := setupTest(t, "pp")
 	tc2 := cloneContext(tc)
 
-	libkb.G.LocalDb = nil
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)
@@ -112,7 +110,6 @@ func startNewService(tc *libkb.TestContext) (*serviceHandle, error) {
 // Tests recovering a passphrase on a second machine by logging in with paperkey.
 func TestPassphraseRecover(t *testing.T) {
 	t.Logf("Start")
-	libkb.G.LocalDb = nil
 
 	// Service contexts.
 	// Make a new context with cloneContext for each client session.

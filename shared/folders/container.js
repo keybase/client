@@ -17,7 +17,7 @@ type OwnProps = FoldersRouteProps & {showingPrivate: boolean}
 
 const mapStateToProps = (state: TypedState, {routeState, showingPrivate}: OwnProps) => ({
   ...((state.favorite && state.favorite.folderState) || {}),
-  showingIgnored: !!state.favorite && routeState.showingIgnored,
+  showingIgnored: !!state.favorite && routeState.get('showingIgnored'),
   showingPrivate: !!state.favorite && showingPrivate,
   username: state.config.username || '',
 })
@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
   onRekey: path => dispatch(navigateAppend([{props: {path}, selected: 'files'}])),
   onSwitchTab: showingPrivate =>
     dispatch(switchTo(routePath.pop().push(showingPrivate ? 'private' : 'public'))),
-  onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.showingIgnored}),
+  onToggleShowIgnored: () => setRouteState({showingIgnored: !routeState.get('showingIgnored')}),
   ...(flags.teamChatEnabled
     ? {
         onBack: () => dispatch(navigateTo([settingsTab], [])),

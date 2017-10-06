@@ -180,7 +180,13 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s,%s)", arg.Name, arg.Username),
 		func() error { return err })()
-	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+
+	if len(arg.Email) > 0 {
+		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.Name)
+		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
+	}
+	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
+	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Permanent)
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
@@ -236,7 +242,7 @@ func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteAr
 }
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
-	return fmt.Errorf("Not implemented")
+	return teams.ChangeTeamSettings(ctx, h.G().ExternalG(), arg.Name, arg.Settings)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
@@ -249,17 +255,19 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }
 
-func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.TeamID, err error) {
+func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-	teamID, _, err := teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
-	return teamID, err
+	res.TeamID, res.Name, res.DisplayName, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
+		arg.Public)
+	return res, err
 }
 
-func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.TeamID, err error) {
+func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%s)", arg.Name),
 		func() error { return err })()
-	teamID, _, err := teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
-	return teamID, err
+	res.TeamID, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
+		arg.Name, arg.Public)
+	return res, err
 }
 
 func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) error {

@@ -35,6 +35,21 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   }
 }
 
+const _joinTeam = function*(action: Constants.JoinTeam) {
+  const {payload: {teamname}} = action
+  yield all(put(Creators.setTeamJoinError('')), put(Creators.setTeamJoinSuccess(false)))
+  try {
+    yield call(RpcTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
+      param: {tokenOrName: teamname},
+    })
+
+    // Success
+    yield put(Creators.setTeamJoinSuccess(true))
+  } catch (error) {
+    yield put(Creators.setTeamJoinError(error.desc))
+  }
+}
+
 const _leaveTeam = function(action: Constants.LeaveTeam) {
   const {payload: {teamname}} = action
   return call(RpcTypes.teamsTeamLeaveRpcPromise, {
@@ -97,47 +112,49 @@ const _createNewTeamFromConversation = function*(
 const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, any> {
   const teamname = action.payload.teamname
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  const results: RpcTypes.TeamDetails = yield call(RpcTypes.teamsTeamGetRpcPromise, {
-    param: {
-      name: teamname,
-    },
-  })
-
-  const requests: RpcTypes.TeamJoinRequest[] = yield call(RpcTypes.teamsTeamListRequestsRpcPromise)
-  requests.sort((a, b) => a.username.localeCompare(b.username))
-
-  const requestMap = requests.reduce((reqMap, req) => {
-    if (!reqMap[req.name]) {
-      reqMap[req.name] = I.List()
-    }
-    reqMap[req.name] = reqMap[req.name].push({username: req.username})
-    return reqMap
-  }, {})
-
-  const infos = []
-  const types = ['admins', 'owners', 'readers', 'writers']
-  types.forEach(type => {
-    const details = results.members[type] || []
-    details.forEach(({username}) => {
-      infos.push(
-        Constants.MemberInfo({
-          type,
-          username,
-        })
-      )
+  try {
+    const results: RpcTypes.TeamDetails = yield call(RpcTypes.teamsTeamGetRpcPromise, {
+      param: {
+        name: teamname,
+      },
     })
-  })
+    const requests: RpcTypes.TeamJoinRequest[] = yield call(RpcTypes.teamsTeamListRequestsRpcPromise)
+    requests.sort((a, b) => a.username.localeCompare(b.username))
 
-  // if we have no requests for this team, make sure we don't hold on to any old ones
-  if (!requestMap[teamname]) {
-    yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
+    const requestMap = requests.reduce((reqMap, req) => {
+      if (!reqMap[req.name]) {
+        reqMap[req.name] = I.List()
+      }
+      reqMap[req.name] = reqMap[req.name].push({username: req.username})
+      return reqMap
+    }, {})
+
+    const infos = []
+    const types = ['admins', 'owners', 'readers', 'writers']
+    types.forEach(type => {
+      const details = results.members[type] || []
+      details.forEach(({username}) => {
+        infos.push(
+          Constants.MemberInfo({
+            type,
+            username,
+          })
+        )
+      })
+    })
+
+    // if we have no requests for this team, make sure we don't hold on to any old ones
+    if (!requestMap[teamname]) {
+      yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
+    }
+
+    yield all([
+      put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
+      put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
+    ])
+  } finally {
+    yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
   }
-
-  yield all([
-    put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
-    put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]]))),
-    put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
-  ])
 }
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
@@ -175,18 +192,20 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
 
 const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any> {
   const username = yield select(usernameSelector)
-  const results: AnnotatedTeamList = yield call(RpcTypes.teamsTeamListRpcPromise, {
-    param: {
-      userAssertion: username,
-    },
-  })
+  yield put(replaceEntity(['teams'], I.Map([['loaded', false]])))
+  try {
+    const results: AnnotatedTeamList = yield call(RpcTypes.teamsTeamListRpcPromise, {
+      param: {
+        userAssertion: username,
+      },
+    })
 
-  const teams = results.teams || []
-  const teamnames = teams.map(team => team.fqName)
-  yield all([
-    put(replaceEntity(['teams', 'teamnames'], I.Set(teamnames))),
-    put(replaceEntity(['teams'], I.Map([['loaded', true]]))),
-  ])
+    const teams = results.teams || []
+    const teamnames = teams.map(team => team.fqName)
+    yield put(replaceEntity(['teams'], {teamnames: I.Set(teamnames)}))
+  } finally {
+    yield put(replaceEntity(['teams'], I.Map([['loaded', true]])))
+  }
 }
 
 const _toggleChannelMembership = function*(
@@ -274,6 +293,7 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('teams:joinTeam', _joinTeam)
   yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)

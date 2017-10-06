@@ -32,6 +32,7 @@ type chatListener struct {
 	threadsStale   chan []chat1.ConversationStaleUpdate
 	bgConvLoads    chan chat1.ConversationID
 	typingUpdate   chan []chat1.ConvTypingUpdate
+	inboxSynced    chan chat1.ChatSyncResult
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -77,6 +78,16 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.Conver
 		panic("timeout on the threads stale channel")
 	}
 }
+
+func (n *chatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
+	select {
+	case n.inboxSynced <- syncRes:
+	case <-time.After(5 * time.Second):
+		panic("timeout on the threads stale channel")
+	}
+}
+
+func (n *chatListener) ChatInboxSyncStarted(uid keybase1.UID) {}
 
 func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 	select {
@@ -185,6 +196,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 		threadsStale:   make(chan []chat1.ConversationStaleUpdate, 1),
 		bgConvLoads:    make(chan chat1.ConversationID, 10),
 		typingUpdate:   make(chan []chat1.ConvTypingUpdate, 10),
+		inboxSynced:    make(chan chat1.ChatSyncResult, 10),
 	}
 	g.ConvSource = NewHybridConversationSource(g, boxer, storage.New(g), getRI)
 	g.InboxSource = NewHybridInboxSource(g, getRI)

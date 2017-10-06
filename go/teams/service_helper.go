@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -51,6 +52,39 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		return res, err
 	}
 	res.AnnotatedActiveInvites = annotatedInvites
+
+	// put any keybase invites in the members list
+	for invID, invite := range annotatedInvites {
+		cat, err := invite.Type.C()
+		if err != nil {
+			return res, err
+		}
+		if cat != keybase1.TeamInviteCategory_KEYBASE {
+			continue
+		}
+		details := keybase1.TeamMemberDetails{
+			Uv:       invite.Uv,
+			Username: string(invite.Name),
+			Active:   true,
+			NeedsPUK: true,
+		}
+		switch invite.Role {
+		case keybase1.TeamRole_OWNER:
+			res.Members.Owners = append(res.Members.Owners, details)
+		case keybase1.TeamRole_ADMIN:
+			res.Members.Admins = append(res.Members.Admins, details)
+		case keybase1.TeamRole_WRITER:
+			res.Members.Writers = append(res.Members.Writers, details)
+		case keybase1.TeamRole_READER:
+			res.Members.Readers = append(res.Members.Readers, details)
+		}
+
+		// and remove them from the invite list
+		delete(res.AnnotatedActiveInvites, invID)
+	}
+
+	res.Settings.Open = t.IsOpen()
+	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
 	return res, nil
 }
 
@@ -309,13 +343,17 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return t.MemberRole(ctx, uv)
 }
 
-func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, permanent bool) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
 	}
+
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
+		if err == errInviteRequired {
+			return removeMemberInvite(ctx, g, t, username, uv)
+		}
 		return err
 	}
 
@@ -333,7 +371,24 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		return Leave(ctx, g, teamname, false)
 	}
 	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
-	return t.ChangeMembership(ctx, req)
+
+	if permanent && !t.IsOpen() {
+		return fmt.Errorf("team %q is not open, cannot permanently remove member", teamname)
+	}
+	return t.ChangeMembershipPermanent(ctx, req, permanent)
+}
+
+func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+
+	if !libkb.CheckEmail.F(email) {
+		return errors.New("Invalid email address")
+	}
+
+	return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email")
 }
 
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
@@ -643,11 +698,81 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	return t.ChangeMembership(ctx, req)
 }
 
-func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, open bool) error {
-	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName string, settings keybase1.TeamSettings) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 	if err != nil {
 		return err
 	}
 
-	return t.PostTeamSettings(ctx, open)
+	if !settings.Open && !t.IsOpen() {
+		return libkb.NoOpError{Desc: "Team is already closed."}
+	}
+
+	if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
+		return libkb.NoOpError{
+			Desc: fmt.Sprintf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String())),
+		}
+	}
+
+	return t.PostTeamSettings(ctx, settings)
+}
+
+func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) error {
+	var lookingFor keybase1.TeamInviteName
+	var typ string
+	if !uv.IsNil() {
+		lookingFor = uv.TeamInviteName()
+		typ = "keybase"
+	} else {
+		ptyp, name, err := team.parseSocial(username)
+		if err != nil {
+			return err
+		}
+		lookingFor = keybase1.TeamInviteName(name)
+		typ = ptyp
+	}
+
+	return removeMemberInviteOfType(ctx, g, team, lookingFor, typ)
+}
+
+func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team *Team, inviteName keybase1.TeamInviteName, typ string) error {
+	g.Log.CDebugf(ctx, "looking for active invite in %s for %s/%s", team.Name(), typ, inviteName)
+
+	// make sure this is a valid invite type
+	itype, err := keybase1.TeamInviteTypeFromString(typ, g.Env.GetRunMode() == libkb.DevelRunMode)
+	if err != nil {
+		return err
+	}
+	validatedType, err := itype.String()
+	if err != nil {
+		return err
+	}
+
+	for _, inv := range team.chain().inner.ActiveInvites {
+		invTypeStr, err := inv.Type.String()
+		if err != nil {
+			return err
+		}
+		if invTypeStr != validatedType {
+			continue
+		}
+		if inv.Name != inviteName {
+			continue
+		}
+
+		g.Log.CDebugf(ctx, "found invite %s for %s/%s, removing it", inv.Id, validatedType, inviteName)
+		return removeInviteID(ctx, team, inv.Id)
+	}
+
+	g.Log.CDebugf(ctx, "no invites found to remove for %s/%s", validatedType, inviteName)
+
+	return libkb.NotFoundError{}
+}
+
+func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID) error {
+	cancelList := []SCTeamInviteID{SCTeamInviteID(invID)}
+	invites := SCTeamInvites{
+		Cancel: &cancelList,
+	}
+	return team.postTeamInvites(ctx, invites)
 }

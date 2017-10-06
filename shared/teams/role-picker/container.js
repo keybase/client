@@ -15,10 +15,10 @@ type StateProps = {
   teamname: string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps: {username, teamname}}): StateProps => ({
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
-  teamname: teamname,
-  username: username,
+const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
+  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
+  teamname: routeProps.get('teamname'),
+  username: routeProps.get('username'),
   you: state.config.username,
 })
 

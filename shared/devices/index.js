@@ -85,19 +85,17 @@ const DeviceRow = RowConnector(({isCurrentDevice, name, isRevoked, icon, showExi
 
 class Devices extends PureComponent<Props> {
   _renderRow = (index, item) => {
-    if (item.dummy) {
-      if (item.dummy === 'revokedHeader') {
-        return (
-          <RevokedHeader
-            key={index}
-            expanded={this.props.showingRevoked}
-            onToggleExpanded={this.props.onToggleShowRevoked}
-          />
-        )
-      }
+    if (item.type === 'revokedHeader') {
+      return (
+        <RevokedHeader
+          key="revokedHeader"
+          expanded={this.props.showingRevoked}
+          onToggleExpanded={this.props.onToggleShowRevoked}
+        />
+      )
     }
 
-    return <DeviceRow key={index} deviceID={item} />
+    return <DeviceRow key={item.id} deviceID={item.id} />
   }
 
   render() {
@@ -113,9 +111,11 @@ class Devices extends PureComponent<Props> {
         <DeviceHeader onAddNew={this.props.showMenu} />
         <List
           items={[
-            ...this.props.deviceIDs,
-            {dummy: 'revokedHeader'},
-            ...(this.props.showingRevoked ? this.props.revokedDeviceIDs : []),
+            ...this.props.deviceIDs.map(id => ({type: 'device', key: id, id})),
+            {type: 'revokedHeader', key: 'revokedHeader'},
+            ...(this.props.showingRevoked
+              ? this.props.revokedDeviceIDs.map(id => ({type: 'device', key: id, id}))
+              : []),
           ]}
           renderItem={this._renderRow}
         />

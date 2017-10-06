@@ -25,12 +25,12 @@ type StateProps = {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.teamname], I.Set()),
-  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.teamname], true),
-  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.teamname], I.Set()),
-  name: routeProps.teamname,
+  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
+  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
+  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
+  name: routeProps.get('teamname'),
   you: state.config.username,
-  selectedTab: routeState.selectedTab || 'members',
+  selectedTab: routeState.get('selectedTab') || 'members',
 })
 
 type DispatchProps = {

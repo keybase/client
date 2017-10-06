@@ -18,7 +18,7 @@ type OwnProps = RouteProps<
 
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
-    const selectedLevel = ownProps.routeProps.selectedLevel
+    const selectedLevel = ownProps.routeProps.get('selectedLevel')
     const availablePlan: ?AvailablePlan = state.planBilling.availablePlans
       ? state.planBilling.availablePlans.find(plan => plan.planLevel === selectedLevel)
       : null

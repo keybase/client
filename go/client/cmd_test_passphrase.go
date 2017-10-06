@@ -38,7 +38,7 @@ func (s *CmdTestPassphrase) Run() (err error) {
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(s.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
 

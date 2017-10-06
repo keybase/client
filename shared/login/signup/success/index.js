@@ -4,20 +4,22 @@ import {connect} from 'react-redux'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'
 
+import type {RouteProps} from '../../../route-tree/render-route'
 import type {TypedState} from '../../../constants/reducer'
 
-type OwnProps = {
-  routeProps: {
+type OwnProps = RouteProps<
+  {
     title?: ?string,
   },
-}
+  {}
+>
 
 // $FlowIssue with connect
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => ({
     paperkey: state.signup.paperkey,
     waiting: state.signup.waiting,
-    ...routeProps,
+    ...routeProps.toObject(),
   }),
   dispatch => ({
     onFinish: () => {

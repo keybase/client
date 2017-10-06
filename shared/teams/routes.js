@@ -2,6 +2,7 @@
 import TeamsContainer from './container'
 import {RouteDefNode} from '../route-tree'
 import NewTeamDialog from './new-team/container'
+import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
@@ -28,7 +29,14 @@ const routeTree = new RouteDefNode({
     showNewTeamDialog: {
       children: {},
       component: NewTeamDialog,
-      tags: {layerOnTop: true},
+      tags: {layerOnTop: !isMobile},
+    },
+    showJoinTeamDialog: {
+      children: {},
+      component: JoinTeamDialog,
+      tags: {
+        layerOnTop: !isMobile,
+      },
     },
     team: {
       children: {

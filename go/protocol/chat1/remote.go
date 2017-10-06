@@ -147,13 +147,15 @@ func (o GetInboxByTLFIDRemoteRes) DeepCopy() GetInboxByTLFIDRemoteRes {
 }
 
 type GetThreadRemoteRes struct {
-	Thread    ThreadViewBoxed `codec:"thread" json:"thread"`
-	RateLimit *RateLimit      `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Thread      ThreadViewBoxed         `codec:"thread" json:"thread"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	RateLimit   *RateLimit              `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetThreadRemoteRes) DeepCopy() GetThreadRemoteRes {
 	return GetThreadRemoteRes{
-		Thread: o.Thread.DeepCopy(),
+		Thread:      o.Thread.DeepCopy(),
+		MembersType: o.MembersType.DeepCopy(),
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil
@@ -381,35 +383,6 @@ func (o S3Params) DeepCopy() S3Params {
 		RegionEndpoint:       o.RegionEndpoint,
 		RegionBucketEndpoint: o.RegionBucketEndpoint,
 	}
-}
-
-type SyncInboxResType int
-
-const (
-	SyncInboxResType_CURRENT     SyncInboxResType = 0
-	SyncInboxResType_INCREMENTAL SyncInboxResType = 1
-	SyncInboxResType_CLEAR       SyncInboxResType = 2
-)
-
-func (o SyncInboxResType) DeepCopy() SyncInboxResType { return o }
-
-var SyncInboxResTypeMap = map[string]SyncInboxResType{
-	"CURRENT":     0,
-	"INCREMENTAL": 1,
-	"CLEAR":       2,
-}
-
-var SyncInboxResTypeRevMap = map[SyncInboxResType]string{
-	0: "CURRENT",
-	1: "INCREMENTAL",
-	2: "CLEAR",
-}
-
-func (e SyncInboxResType) String() string {
-	if v, ok := SyncInboxResTypeRevMap[e]; ok {
-		return v
-	}
-	return ""
 }
 
 type SyncIncrementalRes struct {

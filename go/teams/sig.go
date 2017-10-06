@@ -20,13 +20,17 @@ import (
 )
 
 func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
+	seqtype := libkb.SeqTypeSemiprivate
+	if teamSection.Public {
+		seqtype = libkb.SeqTypePublic
+	}
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeTeamRoot,
 		SigningKey: key,
 		Seqno:      1,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqtype,
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
