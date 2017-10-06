@@ -10,15 +10,17 @@ import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
+import {bootstrap, clearRouteState, getExtendedStatus} from '../config'
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
-import {loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
+import type {InitialState} from '../../constants/config'
+import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
+import {selectConversation} from '../chat/creators'
 import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
@@ -92,47 +94,60 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
-function* navBasedOnLoginState() {
+function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
   const selector = ({
-    config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
+    config: {loggedIn, registered, initialState},
     login: {justDeletedSelf, loginError},
+    routeTree: {loggedInUserNavigated},
   }: TypedState) => ({
     loggedIn,
     registered,
-    initialTab,
-    initialLink,
+    initialState,
     justDeletedSelf,
-    launchedViaPush,
     loginError,
+    loggedInUserNavigated,
   })
 
-  const {
-    loggedIn,
-    registered,
-    initialTab,
-    initialLink,
-    justDeletedSelf,
-    launchedViaPush,
-    loginError,
-  } = yield select(selector)
+  const args = yield select(selector)
 
+  console.log('[RouteState] navBasedOnLoginAndInitialState:', args)
+
+  const {loggedIn, registered, initialState, justDeletedSelf, loginError, loggedInUserNavigated} = args
+
+  // All branches except for when loggedIn is true,
+  // loggedInUserNavigated is false, and and initialState is null must
+  // finish by yielding an action which sets
+  // state.routeTree.loggedInUserNavigated to true; see
+  // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
   } else if (loggedIn) {
+    // If the user has already performed a navigation action, or if
+    // we've already applied the initialState, do nothing.
+    if (loggedInUserNavigated) {
+      return
+    }
+
     if (overrideLoggedInTab) {
-      console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
-    } else if (initialLink) {
-      yield put(setInitialLink(null))
-      yield put(appLink(initialLink))
-    } else if (initialTab && isValidInitialTab(initialTab)) {
-      // only do this once
-      yield put(setInitialTab(null))
-      if (!launchedViaPush) {
-        yield put(navigateTo([initialTab]))
+    } else if (initialState) {
+      const {url, tab, conversation} = (initialState: InitialState)
+      if (url) {
+        yield put(appLink(url))
+      } else if (tab && isValidInitialTab(tab)) {
+        if (tab === chatTab && conversation) {
+          yield put(selectConversation(conversation, false))
+          yield put(navigateTo([chatTab], null, 'initial-restore'))
+        } else {
+          yield put(navigateTo([tab], null, 'initial-restore'))
+        }
+      } else {
+        yield put(navigateTo([peopleTab], null, 'initial-restore'))
       }
     } else {
-      yield put(navigateTo([peopleTab]))
+      // If the initial state is not set yet, navigate to the people
+      // tab without setting state.routeTree.loggedInUserNavigated to true.
+      yield put(navigateTo([peopleTab], null, 'initial-default'))
     }
   } else if (registered) {
     // relogging in
@@ -459,7 +474,7 @@ function* loginFlowSaga(usernameOrEmail) {
         yield call(handleProvisioningError, error)
       } else {
         yield put(Creators.loginDone())
-        yield call(navBasedOnLoginState)
+        yield call(navBasedOnLoginAndInitialState)
       }
     } else if (result === EngineRpc.BailedEarly) {
       console.log('Bailed early')
@@ -621,12 +636,12 @@ function* openAccountResetPageSaga() {
 function* logoutDoneSaga() {
   yield put({payload: undefined, type: CommonConstants.resetStore})
 
-  yield call(navBasedOnLoginState)
+  yield call(navBasedOnLoginAndInitialState)
   yield put(bootstrap())
 }
 
 function* logoutSaga() {
-  yield call(deletePushTokenSaga)
+  yield all([call(deletePushTokenSaga), put(clearRouteState)])
 
   // Add waiting handler
   const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})
@@ -644,7 +659,7 @@ function* loginSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
   yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
   yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
-  yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
+  yield Saga.safeTakeLatest(Constants.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
   yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
   yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)

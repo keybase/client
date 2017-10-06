@@ -249,7 +249,11 @@ export function routeClear(routeState: ?RouteStateNode, path: Path): ?RouteState
 }
 
 // Traverse a routeState, making sure it matches the routeDef and ends on a leaf component.
-export function checkRouteState(routeDef: RouteDefNode, routeState: ?RouteStateNode): ?string {
+export function checkRouteState(
+  loggedInUserNavigated: boolean,
+  routeDef: RouteDefNode,
+  routeState: ?RouteStateNode
+): ?string {
   let path = []
   let curDef = routeDef
   let curState = routeState
