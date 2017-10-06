@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import * as I from 'immutable'
 import * as React from 'react'
 import {LeafTags, pathToString} from './'

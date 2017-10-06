@@ -1,4 +1,4 @@
-// @noflow
+// @flow
 import * as I from 'immutable'
 import type {Component} from 'react'
 import type {ConnectedComponent} from 'react-redux'
@@ -14,7 +14,8 @@ type LeafTagsParams = {
   keepKeyboardOnLeave: boolean,
 }
 
-export const LeafTags: I.RecordFactory<LeafTagsParams> = I.Record({
+export type LeafTags = I.RecordOf<LeafTagsParams>
+export const makeLeafTags: I.RecordFactory<LeafTagsParams> = I.Record({
   persistChildren: false,
   modal: false,
   layerOnTop: false,
@@ -28,7 +29,7 @@ export const LeafTags: I.RecordFactory<LeafTagsParams> = I.Record({
 
 type RouteDefParamsCommon<P> = {
   defaultSelected?: string,
-  tags?: LeafTags,
+  tags?: LeafTags | LeafTagParams,
   initialState?: {},
   children?: {[key: string]: RouteDefParams<P> | (() => RouteDefNode)} | ((name: string) => RouteDefNode),
 }
@@ -43,11 +44,11 @@ type RouteDefParams<P> = {
   ...RouteDefParamsCommon<P>,
 }
 
-const _RouteDefNode: I.RecordFactory<RouteDefParams> = I.Record({
+const _RouteDefNode: I.RecordFactory<RouteDefParams<*>> = I.Record({
   defaultSelected: null,
   component: null,
   containerComponent: null,
-  tags: LeafTags(),
+  tags: LeafTags,
   initialState: I.Map(),
   children: I.Map(),
 })
@@ -65,7 +66,7 @@ export class RouteDefNode extends _RouteDefNode {
       defaultSelected: defaultSelected || null,
       component,
       containerComponent,
-      tags: LeafTags(tags),
+      tags: makeLeafTags(tags),
       initialState: I.Map(initialState),
       props: I.Map(),
       state: I.Map(),
