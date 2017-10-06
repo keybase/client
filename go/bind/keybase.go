@@ -89,7 +89,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		fmt.Printf("Go: DNS Server: %s\n", srv)
 	}
 
-	kbCtx = libkb.G
+	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
 	kbCtx.SetServices(externals.GetServices())
 
@@ -171,7 +171,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 		config, ctx, log, true, nil, nil)
 	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
-		keybase1.KBFSGitProtocol(libgit.NewRPCHandlerWithCtx(ctx, config)),
+		keybase1.KBFSGitProtocol(libgit.NewRPCHandlerWithCtx(ctx, config, nil)),
 	})
 	return keybaseService, nil
 }

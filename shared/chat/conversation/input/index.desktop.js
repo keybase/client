@@ -7,7 +7,6 @@ import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {compose, withState, withHandlers} from 'recompose'
 import ConnectedMentionHud from '../../hud/mention-hud-container'
-import ff from '../../../util/feature-flags'
 
 import type {Props} from '.'
 
@@ -31,6 +30,15 @@ type State = {
   pickSelectedCounter: number,
 }
 
+const MentionCatcher = ({onClick}) => (
+  <Box
+    onClick={onClick}
+    style={{
+      ...globalStyles.fillAbsolute,
+      backgroundColor: globalColors.transparent,
+    }}
+  />
+)
 class ConversationInput extends Component<InputProps, State> {
   state: State
   _inputRef: ?any
@@ -123,19 +131,51 @@ class ConversationInput extends Component<InputProps, State> {
     this.props.emojiPickerToggle()
   }
 
+  _triggerUpArrowCounter = () => {
+    this.setState(({upArrowCounter}) => ({upArrowCounter: upArrowCounter + 1}))
+  }
+
+  _triggerDownArrowCounter = () => {
+    this.setState(({downArrowCounter}) => ({downArrowCounter: downArrowCounter + 1}))
+  }
+
+  _triggerPickSelectedCounter = () => {
+    this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
+  }
+
   _onKeyDown = (e: SyntheticKeyboardEvent<>) => {
     if (e.key === 'ArrowUp' && !this.props.text) {
       this.props.onEditLastMessage()
+      return
     }
 
-    if (e.key === 'ArrowUp' && this.props.mentionPopupOpen) {
-      e.preventDefault()
-      this.setState(({upArrowCounter}) => ({upArrowCounter: upArrowCounter + 1}))
-    }
-
-    if (e.key === 'ArrowDown' && this.props.mentionPopupOpen) {
-      e.preventDefault()
-      this.setState(({downArrowCounter}) => ({downArrowCounter: downArrowCounter + 1}))
+    if (this.props.mentionPopupOpen) {
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        // If you tab with a partial name typed, we pick the selected item
+        if (this.props.mentionFilter.length > 0) {
+          this._triggerPickSelectedCounter()
+          return
+        }
+        // else we move you up/down
+        if (e.shiftKey) {
+          this._triggerUpArrowCounter()
+        } else {
+          this._triggerDownArrowCounter()
+        }
+        return
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        this._triggerUpArrowCounter()
+        return
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        this._triggerDownArrowCounter()
+        return
+      } else if (['Escape', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        this.props.setMentionPopupOpen(false)
+        return
+      }
     }
 
     if (e.key === '@') {
@@ -151,6 +191,14 @@ class ConversationInput extends Component<InputProps, State> {
   }
 
   _onKeyUp = (e: SyntheticKeyboardEvent<*>) => {
+    // Ignore moving within the list
+    if (this.props.mentionPopupOpen) {
+      if (['ArrowUp', 'ArrowDown', 'Shift', 'Tab'].includes(e.key)) {
+        // handled above in _onKeyDown
+        return
+      }
+    }
+
     // Get the word typed so far
     if (this.props.mentionPopupOpen || e.key === 'Backspace') {
       const wordSoFar = this._getWordAtCursor(false)
@@ -200,7 +248,7 @@ class ConversationInput extends Component<InputProps, State> {
     e.preventDefault()
 
     if (this.props.mentionPopupOpen) {
-      this.setState(({pickSelectedCounter}) => ({pickSelectedCounter: pickSelectedCounter + 1}))
+      this._triggerPickSelectedCounter()
       return
     }
 
@@ -225,21 +273,36 @@ class ConversationInput extends Component<InputProps, State> {
     this._inputRef = r
   }
 
-  _insertMention = (u: string) => {
-    this.props.setMentionPopupOpen(false)
+  _insertMention = (u: string, options?: {notUser: boolean}) => {
     this._replaceWordAtCursor(`@${u} `)
+    this.props.setMentionPopupOpen(false)
+
+    // This happens if you type @notausername<enter>. We've essentially 'picked' nothing and really want to submit
+    // This is a little wonky cause this component doesn't directly know if the list is filtered all the way out
+    if (options && options.notUser) {
+      if (this.props.text) {
+        this.props.onPostMessage(this.props.text)
+        this.props.setText('')
+      }
+    }
+  }
+
+  _switchMention = (u: string) => {
+    this._replaceWordAtCursor(`@${u}`)
   }
 
   render() {
     return (
       <Box style={{...globalStyles.flexBoxColumn, borderTop: `solid 1px ${globalColors.black_05}`}}>
         {this.props.mentionPopupOpen &&
-          ff.mentionHud &&
+          <MentionCatcher onClick={() => this.props.setMentionPopupOpen(false)} />}
+        {this.props.mentionPopupOpen &&
           <MentionHud
             selectDownCounter={this.state.downArrowCounter}
             selectUpCounter={this.state.upArrowCounter}
             pickSelectedUserCounter={this.state.pickSelectedCounter}
             onPickUser={this._insertMention}
+            onSelectUser={this._switchMention}
             filter={this.props.mentionFilter}
           />}
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
@@ -316,12 +379,11 @@ const InputAccessory = Component => props => (
   <Box style={{position: 'relative', width: '100%'}}>
     <Box
       style={{
-        bottom: 0,
+        bottom: 1,
+        display: 'flex',
+        left: 0,
         position: 'absolute',
         right: 0,
-        left: 0,
-        backgroundColor: 'white',
-        display: 'flex',
       }}
     >
       <Component {...props} />
@@ -330,7 +392,17 @@ const InputAccessory = Component => props => (
 )
 
 const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud onSelectUser={u => {}} style={{flex: 1, height: 100}} {...props} />
+  <ConnectedMentionHud
+    style={{
+      borderRadius: 4,
+      boxShadow: '0 0 8px 0 rgba(0, 0, 0, 0.2)',
+      height: 220,
+      marginLeft: 20,
+      marginRight: 20,
+      width: '100%',
+    }}
+    {...props}
+  />
 ))
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (

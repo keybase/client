@@ -260,6 +260,7 @@ const (
 	SCAccountReset             = int(keybase1.StatusCode_SCAccountReset)
 	SCIdentifiesFailed         = int(keybase1.StatusCode_SCIdentifiesFailed)
 	SCTeamReadError            = int(keybase1.StatusCode_SCTeamReadError)
+	SCNoOp                     = int(keybase1.StatusCode_SCNoOp)
 	SCTeamNotFound             = int(keybase1.StatusCode_SCTeamNotFound)
 	SCTeamTarDuplicate         = int(keybase1.StatusCode_SCTeamTarDuplicate)
 	SCTeamTarNotFound          = int(keybase1.StatusCode_SCTeamTarNotFound)
@@ -272,6 +273,8 @@ const (
 	SCGitRepoAlreadyExists     = int(keybase1.StatusCode_SCGitRepoAlreadyExists)
 	SCGitInvalidRepoName       = int(keybase1.StatusCode_SCGitInvalidRepoName)
 	SCGitCannotDelete          = int(keybase1.StatusCode_SCGitCannotDelete)
+	SCTeamBanned               = int(keybase1.StatusCode_SCTeamBanned)
+	SCTeamInvalidBan           = int(keybase1.StatusCode_SCTeamInvalidBan)
 )
 
 const (

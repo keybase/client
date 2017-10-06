@@ -16,10 +16,11 @@ import (
 
 type CmdTeamRemoveMember struct {
 	libkb.Contextified
-	Team     string
-	Username string
-	Email    string
-	Force    bool
+	Team      string
+	Username  string
+	Email     string
+	Force     bool
+	Permanent bool
 }
 
 func NewCmdTeamRemoveMemberRunner(g *libkb.GlobalContext) *CmdTeamRemoveMember {
@@ -48,6 +49,10 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 				Name:  "f, force",
 				Usage: "bypass warnings",
 			},
+			cli.BoolFlag{
+				Name:  "p, permanent",
+				Usage: "prevent user from re-joining (open teams only)",
+			},
 		},
 	}
 }
@@ -62,6 +67,7 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 	c.Username = ctx.String("user")
 	c.Email = ctx.String("email")
 	c.Force = ctx.Bool("force")
+	c.Permanent = ctx.Bool("permanent")
 
 	if len(c.Username) > 0 && len(c.Email) > 0 {
 		return errors.New("You cannot specify --user and --email.  Please choose one.")
@@ -120,9 +126,10 @@ func (c *CmdTeamRemoveMember) Run() error {
 	}
 
 	arg := keybase1.TeamRemoveMemberArg{
-		Name:     c.Team,
-		Username: c.Username,
-		Email:    c.Email,
+		Name:      c.Team,
+		Username:  c.Username,
+		Email:     c.Email,
+		Permanent: c.Permanent,
 	}
 
 	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {

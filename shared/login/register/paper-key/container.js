@@ -52,9 +52,9 @@ type OwnProps = RouteProps<
   {}
 >
 
-const mapStateToProps = (state: TypedState, {routeProps: {error}}: OwnProps) => ({
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),
-  error,
+  error: routeProps.get('error'),
 })
 
 const mapDispatchToProps = dispatch => ({

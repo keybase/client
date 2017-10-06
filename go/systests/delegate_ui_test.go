@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/client"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -165,9 +164,6 @@ func TestDelegateUI(t *testing.T) {
 	tc := setupTest(t, "delegate_ui")
 	tc1 := cloneContext(tc)
 	tc2 := cloneContext(tc)
-
-	// Make sure we're not using G anywhere in our tests.
-	libkb.G.LocalDb = nil
 
 	defer tc.Cleanup()
 

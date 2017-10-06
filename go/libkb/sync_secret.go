@@ -178,7 +178,7 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 		return nil, nil
 	}
 	for _, key := range ss.keys.PrivateKeys {
-		if ret, _ = key.FindActiveKey(ckf); ret != nil {
+		if ret, _ = key.FindActiveKey(ss.G(), ckf); ret != nil {
 			return
 		}
 	}
@@ -189,7 +189,7 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 func (ss *SecretSyncer) AllActiveKeys(ckf *ComputedKeyFamily) []*SKB {
 	var res []*SKB
 	for _, key := range ss.keys.PrivateKeys {
-		if ret, _ := key.FindActiveKey(ckf); ret != nil {
+		if ret, _ := key.FindActiveKey(ss.G(), ckf); ret != nil {
 			res = append(res, ret)
 		}
 	}
@@ -201,7 +201,7 @@ func (ss *SecretSyncer) FindPrivateKey(kid string) (ServerPrivateKey, bool) {
 	return k, ok
 }
 
-func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+func (k *ServerPrivateKey) FindActiveKey(g *GlobalContext, ckf *ComputedKeyFamily) (ret *SKB, err error) {
 	kid := keybase1.KIDFromString(k.Kid)
 	if ckf.GetKeyRole(kid) != DLGSibkey {
 		return
@@ -210,7 +210,12 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 	if packet, err = DecodeArmoredPacket(k.Bundle); err != nil && packet == nil {
 		return
 	}
-	return packet.ToSKB()
+	ret, err = packet.ToSKB()
+	if err != nil {
+		return nil, err
+	}
+	ret.SetGlobalContext(g)
+	return ret, nil
 }
 
 func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {

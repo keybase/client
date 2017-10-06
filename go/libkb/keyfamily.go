@@ -237,6 +237,7 @@ func (cki *ComputedKeyInfos) PaperDevices() []*Device {
 // https://github.com/keybase/client/issues/414 .
 func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	ret := &ComputedKeyInfos{
+		Contextified:  NewContextified(cki.G()),
 		dirty:         cki.dirty,
 		Version:       cki.Version,
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo, len(cki.Infos)),

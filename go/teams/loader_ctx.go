@@ -50,8 +50,7 @@ func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, public bool, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
-	arg := libkb.NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"id":     libkb.S{Val: teamID.String()},
@@ -86,8 +85,7 @@ func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 	}
 	seqnoCommas := strings.Join(seqnoStrs, ",")
 
-	arg := libkb.NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"id":     libkb.S{Val: teamID.String()},
@@ -142,8 +140,7 @@ func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName 
 		return teamName.ToTeamID(), nil
 	}
 
-	arg := libkb.NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"name":        libkb.S{Val: teamName.String()},
@@ -231,6 +228,9 @@ func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid ke
 	user, pubKey, linkMap, err := l.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
 	if err != nil {
 		return
+	}
+	if user == nil {
+		return uv, pubKey, linkMap, libkb.NotFoundError{}
 	}
 
 	return user.ToUserVersion(), pubKey, linkMap, nil

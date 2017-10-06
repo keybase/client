@@ -15,7 +15,14 @@ import {isMobile} from '../../../constants/platform'
 import type {TypedState} from '../../../constants/reducer'
 import type {ConversationIDKey} from '../../../constants/chat'
 
-function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount: Constants.UnreadCounts, isError, isSelected) {
+function _rowDerivedProps(
+  rekeyInfo,
+  finalizeInfo,
+  unreadTotal: number,
+  unreadBadge: number,
+  isError,
+  isSelected
+) {
   // Derived props
 
   // If it's finalized we don't show the rekey as they can't solve it themselves
@@ -23,8 +30,8 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount: Constants.Unread
     !finalizeInfo && rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
   const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
 
-  const hasUnread = !participantNeedToRekey && !youNeedToRekey && (unreadCount && unreadCount.total > 0)
-  const hasBadge = hasUnread && unreadCount.badged > 0
+  const hasUnread = !participantNeedToRekey && !youNeedToRekey && unreadTotal > 0
+  const hasBadge = hasUnread && unreadBadge > 0
   const subColor = isError
     ? globalColors.red
     : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
@@ -35,13 +42,13 @@ function _rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount: Constants.Unread
 
   return {
     backgroundColor,
+    hasBadge,
     hasUnread,
     participantNeedToRekey,
     showBold,
     subColor,
     usernameColor,
     youNeedToRekey,
-    hasBadge,
   }
 }
 
@@ -54,8 +61,10 @@ const makeGetIsSelected = conversationIDKey => state =>
   Constants.newestConversationIDKey(Constants.getSelectedConversation(state), state.chat) ===
   conversationIDKey
 const makeGetRekeyInfo = conversationIDKey => state => state.chat.get('rekeyInfos').get(conversationIDKey)
-const makeGetUnreadCounts = conversationIDKey => state =>
-  state.chat.get('conversationUnreadCounts').get(conversationIDKey)
+const makeGetUnreadTotals = conversationIDKey => state =>
+  state.entities.getIn(['inboxUnreadCountTotal', conversationIDKey], 0)
+const makeGetUnreadBadges = conversationIDKey => state =>
+  state.entities.getIn(['inboxUnreadCountBadge', conversationIDKey], 0)
 const makeGetParticipants = conversationIDKey => state =>
   Constants.participantFilter(
     state.chat.get('pendingConversations').get(conversationIDKey) || I.List(),
@@ -67,7 +76,6 @@ const makeGetFinalizedInfo = conversationIDKey => state =>
 
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
-  const blankUnreadCounts: Constants.UnreadCounts = {total: 0, badged: 0}
   if (isPending) {
     return createImmutableEqualSelector(
       [makeGetIsSelected(conversationIDKey), makeGetParticipants(conversationIDKey), getNowOverride],
@@ -79,8 +87,9 @@ const makeSelector = conversationIDKey => {
         participants,
         rekeyInfo: null,
         timestamp: formatTimeForConversationList(Date.now(), nowOverride),
-        unreadCount: blankUnreadCounts,
-        ..._rowDerivedProps(null, null, blankUnreadCounts, false, isSelected),
+        unreadBadges: 0,
+        unreadTotal: 0,
+        ..._rowDerivedProps(null, null, 0, 0, false, isSelected),
       })
     )
   } else {
@@ -89,13 +98,24 @@ const makeSelector = conversationIDKey => {
         makeGetConversation(conversationIDKey),
         makeGetSnippet(conversationIDKey),
         makeGetIsSelected(conversationIDKey),
-        makeGetUnreadCounts(conversationIDKey),
+        makeGetUnreadTotals(conversationIDKey),
+        makeGetUnreadBadges(conversationIDKey),
         getYou,
         makeGetRekeyInfo(conversationIDKey),
         getNowOverride,
         makeGetFinalizedInfo(conversationIDKey),
       ],
-      (conversation, snippet, isSelected, unreadCount, you, rekeyInfo, nowOverride, finalizeInfo) => {
+      (
+        conversation,
+        snippet,
+        isSelected,
+        unreadTotal,
+        unreadBadge,
+        you,
+        rekeyInfo,
+        nowOverride,
+        finalizeInfo
+      ) => {
         const isError = conversation.get('state') === 'error'
         const isMuted = conversation.get('status') === 'muted'
         const participants = Constants.participantFilter(conversation.get('participants'), you)
@@ -113,8 +133,9 @@ const makeSelector = conversationIDKey => {
           snippet,
           teamname,
           timestamp,
-          unreadCount: unreadCount || blankUnreadCounts,
-          ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadCount, isError, isSelected),
+          unreadTotal,
+          unreadBadge,
+          ..._rowDerivedProps(rekeyInfo, finalizeInfo, unreadTotal, unreadBadge, isError, isSelected),
         }
       }
     )

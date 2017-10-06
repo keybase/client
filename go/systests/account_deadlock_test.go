@@ -20,8 +20,6 @@ func TestAccountDeadlock(t *testing.T) {
 	tc := setupTest(t, "deadlock")
 	tc2 := cloneContext(tc)
 
-	libkb.G.LocalDb = nil
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)

@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -82,6 +83,8 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 		delete(res.AnnotatedActiveInvites, invID)
 	}
 
+	res.Settings.Open = t.IsOpen()
+	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
 	return res, nil
 }
 
@@ -340,7 +343,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return t.MemberRole(ctx, uv)
 }
 
-func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, permanent bool) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
@@ -368,7 +371,11 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		return Leave(ctx, g, teamname, false)
 	}
 	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
-	return t.ChangeMembership(ctx, req)
+
+	if permanent && !t.IsOpen() {
+		return fmt.Errorf("team %q is not open, cannot permanently remove member", teamname)
+	}
+	return t.ChangeMembershipPermanent(ctx, req, permanent)
 }
 
 func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string) error {
@@ -691,13 +698,23 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 	return t.ChangeMembership(ctx, req)
 }
 
-func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, open bool) error {
-	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName string, settings keybase1.TeamSettings) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
 	if err != nil {
 		return err
 	}
 
-	return t.PostTeamSettings(ctx, open)
+	if !settings.Open && !t.IsOpen() {
+		return libkb.NoOpError{Desc: "Team is already closed."}
+	}
+
+	if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
+		return libkb.NoOpError{
+			Desc: fmt.Sprintf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String())),
+		}
+	}
+
+	return t.PostTeamSettings(ctx, settings)
 }
 
 func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) error {

@@ -9,7 +9,11 @@ export function selector(username: string): (store: Object) => ?Object {
         },
         tracker: {
           trackers: {
-            [username]: store.tracker.trackers[username],
+            [username]: {
+              ...store.tracker.trackers[username],
+              trackers: [],
+              tracking: [],
+            },
           },
         },
       }

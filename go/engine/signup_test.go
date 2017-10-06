@@ -161,7 +161,7 @@ func TestLocalKeySecurity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lks := libkb.NewLKSec(s.ppStream, s.uid, nil)
+	lks := libkb.NewLKSec(s.ppStream, s.uid, tc.G)
 	if err := lks.Load(nil); err != nil {
 		t.Fatal(err)
 	}
@@ -243,6 +243,7 @@ func TestIssue280(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{

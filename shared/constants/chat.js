@@ -362,9 +362,7 @@ export const StateRecord: KBRecord<T> = Record({
   finalizedState: Map(),
   supersedesState: Map(),
   supersededByState: Map(),
-  conversationUnreadCounts: Map(),
   rekeyInfos: Map(),
-  alwaysShow: Set(),
   pendingConversations: Map(),
   nowOverride: null,
   editingMessage: null,
@@ -378,14 +376,11 @@ export const StateRecord: KBRecord<T> = Record({
   tempPendingConversations: Map(),
   searchResultTerm: '',
   teamCreationError: '',
+  teamJoinError: '',
+  teamJoinSuccess: false,
 })
 
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
-
-export type UnreadCounts = {
-  total: number,
-  badged: number,
-}
 
 export type State = KBRecord<{
   // TODO  move to entities
@@ -398,9 +393,7 @@ export type State = KBRecord<{
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
   metaData: MetaDataMap,
-  conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>,
   rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
-  alwaysShow: Set<ConversationIDKey>,
   pendingConversations: Map<ConversationIDKey, Participants>,
   tempPendingConversations: Map<ConversationIDKey, boolean>,
   nowOverride: ?Date,
@@ -414,6 +407,8 @@ export type State = KBRecord<{
   inSearch: boolean,
   searchResultTerm: string,
   teamCreationError: string,
+  teamJoinError: string,
+  teamJoinSuccess: boolean,
 }>
 
 export const maxAttachmentPreviewSize = 320
@@ -453,6 +448,10 @@ export type BlockConversation = NoErrorTypedAction<
     conversationIDKey: ConversationIDKey,
     reportUser: boolean,
   }
+>
+export type InboxFilterSelectNext = NoErrorTypedAction<
+  'chat:inboxFilterSelectNext',
+  {rows: any, direction: 1 | -1}
 >
 export type ClearMessages = NoErrorTypedAction<'chat:clearMessages', {conversationIDKey: ConversationIDKey}>
 export type ClearRekey = NoErrorTypedAction<'chat:clearRekey', {conversationIDKey: ConversationIDKey}>
@@ -582,10 +581,6 @@ export type UntrustedInboxVisible = NoErrorTypedAction<
   {conversationIDKey: ConversationIDKey, rowsVisible: number}
 >
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
-export type UpdateConversationUnreadCounts = NoErrorTypedAction<
-  'chat:updateConversationUnreadCounts',
-  {conversationUnreadCounts: Map<ConversationIDKey, UnreadCounts>}
->
 export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',
   {finalizedState: FinalizedState}

@@ -10,8 +10,10 @@ import (
 )
 
 func parse(t *testing.T, kr string) *GpgKeyIndex {
+	tc := SetupTest(t, "parse", 2)
+	defer tc.Cleanup()
 	buf := bytes.NewBufferString(kr)
-	i, w, e := ParseGpgIndexStream(G, buf)
+	i, w, e := ParseGpgIndexStream(tc.G, buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
 	}
@@ -145,7 +147,7 @@ pub:u:4096:1:63847B4B83930F0C:1380929487:1607159887::u:::escaESCA:
 fpr:::::::::4475293306243408FA5958DC63847B4B83930F0C:
 uid:u::::1387217771::759D5C7C38AD60551D46D2E6F34BA03640FE4379::Maxwell Krohn <themax@gmail.com>:
 uid:u::::1380929487::14BC0C35326061518657E0B8F71A23E0CA537034::Max Krohn <themax@gmail.com>:
-sub:u:4096:1:2FE01C454348DA39:1380929487:1507159887:::::esa:
+sub:u:4096:1:2FE01C454348DA39:1380929487:1607159887:::::esa:
 fpr:::::::::C4EE7BCBCE2F0953DCF9E8902FE01C454348DA39:
 pub:u:2048:1:2EE0695E30C55BEF:1392816673:1708176673::u:::scESC:
 fpr:::::::::F1DEFAA6B3DB297FB824CB512EE0695E30C55BEF:

@@ -640,7 +640,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return e
-
+	case SCNoOp:
+		return NoOpError{Desc: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2128,5 +2129,12 @@ func (e RepoAlreadyExistsError) ToStatus() (s keybase1.Status) {
 		{Key: "ExistingName", Value: e.ExistingName},
 		{Key: "ExistingID", Value: e.ExistingID},
 	}
+	return
+}
+
+func (e NoOpError) ToStatus() (s keybase1.Status) {
+	s.Code = SCNoOp
+	s.Name = "SC_NO_OP"
+	s.Desc = e.Desc
 	return
 }

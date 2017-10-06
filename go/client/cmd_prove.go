@@ -68,7 +68,7 @@ func (p *CmdProve) Run() error {
 		}
 		proveUIProtocol = keybase1.ProveUiProtocol(ui)
 	} else {
-		proveUI := ProveUI{parent: GlobUI}
+		proveUI := ProveUI{Contextified: libkb.NewContextified(p.G()), parent: GlobUI}
 		p.installOutputHook(&proveUI)
 		proveUIProtocol = keybase1.ProveUiProtocol(proveUI)
 	}

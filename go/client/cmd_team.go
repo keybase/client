@@ -29,6 +29,7 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			newCmdTeamLeave(cl, g),
 			newCmdTeamDelete(cl, g),
 			newCmdTeamAPI(cl, g),
+			newCmdTeamSettings(cl, g),
 		},
 	}
 }
