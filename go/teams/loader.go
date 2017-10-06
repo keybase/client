@@ -238,6 +238,7 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (*load
 		if _, ok := err.(ProofError); ok && !arg.forceRepoll {
 			l.G().Log.CDebugf(ctx, "Got proof error (%s); trying again with forceRepoll=true", err.Error())
 			arg.forceRepoll = true
+			arg.forceFullReload = true
 			res, err = l.load2InnerLockedRetry(ctx, arg)
 		}
 	}
