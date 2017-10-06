@@ -56,7 +56,6 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   let threadLoadedOffline = false
   let conversationIsError = false
   let conversationErrorText = ''
-  let showTeamOffer = false
   const defaultChatText =
     (routeState && routeState.get('inputText', new HiddenString('')).stringValue()) || ''
 
@@ -85,7 +84,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
   const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
-  showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
+  const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
 
   return {
     showSearchResults: !!searchResults,

@@ -42,7 +42,7 @@ const _leaveTeam = function(action: Constants.LeaveTeam) {
   })
 }
 
-function getPendingConvParticpants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {
+function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {
   if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
 
   return state.chat.pendingConversations.get(conversationIDKey)
@@ -54,19 +54,19 @@ const _createNewTeamFromConversation = function*(
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
-  var participants
+  let participants
 
   if (inbox) {
-    participants = inbox.get('participants').toArray()
+    participants = inbox.get('participants')
   } else {
-    participants = yield select(getPendingConvParticpants, conversationIDKey)
+    participants = yield select(getPendingConvParticipants, conversationIDKey)
   }
 
   if (participants) {
     const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
     })
-    for (const username of participants) {
+    for (const username of participants.toArray()) {
       if (!createRes.creatorAdded || username !== me) {
         yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
           param: {
