@@ -185,7 +185,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       let metaData = state.get('metaData')
 
       Object.keys(userToBroken).forEach(user => {
-        metaData = metaData.update(user, new Constants.MetaDataRecord(), old =>
+        metaData = metaData.update(user, Constants.makeMetaData(), old =>
           old.set('brokenTracker', userToBroken[user])
         )
       })
@@ -337,9 +337,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:setNotifications': {
       const {payload: {conversationIDKey, deviceType, notifyType}} = action
       const inbox = state.get('inbox')
-      const [index, conv] = state
-        .get('inbox')
-        .findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
       const notifications = conv && conv.get('notifications')
       const nextNotifications = {[deviceType]: {}}
       // This is the flip-side of the logic in the notifications container.
@@ -367,8 +365,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:toggleChannelWideNotifications': {
       const {payload: {conversationIDKey}} = action
       const inbox = state.get('inbox')
-      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
-      const notifications = conv && conv.get('notifications')
+      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
+      if (!conv) {
+        return state
+      }
+      const notifications = conv.get('notifications') || {channelWide: false}
       const nextNotifications = {channelWide: !notifications.channelWide}
       return state.set(
         'inbox',
@@ -379,7 +380,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       // We received an updated inbox.notifications from the server
       const {payload: {conversationIDKey, notifications}} = action
       const inbox = state.get('inbox')
-      const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
+      if (!index) {
+        return state
+      }
       return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
     }
     case 'teams:setTeamCreationError': {

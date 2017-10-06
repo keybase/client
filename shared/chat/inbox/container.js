@@ -116,6 +116,9 @@ const getBigRows = createSelector([getInbox, getFilter], (inbox, filter) => {
   const bigTeamToChannels = inbox
     .filter(i => i.teamType === ChatTypes.CommonTeamType.complex)
     .reduce((map, i) => {
+      if (!i.teamname) {
+        return map
+      }
       if (!map[i.teamname]) {
         map[i.teamname] = {}
       }

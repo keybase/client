@@ -8,9 +8,9 @@ export type WaitingForRpc = NoErrorTypedAction<'engine:waitingForRpc', {waiting:
 export type Actions = ErrorInRpc | WaitingForRpc
 
 type _State = {
-  rpcWaitingStates: Map<string, boolean>,
+  rpcWaitingStates: I.Map<string, boolean>,
 }
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
-  rpcWaitingStates: Map(),
+  rpcWaitingStates: I.Map(),
 })

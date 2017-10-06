@@ -1,5 +1,6 @@
 [ignore]
 .*/node_modules/@storybook.*
+.*/node_modules/podda.*
 .*/node_modules/accessibility-developer-tools.*
 .*/node_modules/acorn.*
 .*/node_modules/ajv.*

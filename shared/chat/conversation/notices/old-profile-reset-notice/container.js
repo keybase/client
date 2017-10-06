@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState) => {
 
   const inbox = state.chat.inbox
   const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
-  const _participants = (selected && selected.participants) || List()
+  const _participants = selected ? selected.participants : List()
 
   return {
     _participants,

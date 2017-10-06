@@ -946,9 +946,7 @@ function usernamesToUserListItem(
 }
 
 function getBrokenUsers(participants: Array<string>, you: string, metaDataMap: MetaDataMap): Array<string> {
-  return participants.filter(
-    user => user !== you && metaDataMap.get(user, I.Map()).get('brokenTracker', false)
-  )
+  return participants.filter(user => user !== you && metaDataMap.getIn([user, 'brokenTracker'], false))
 }
 
 function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
@@ -1026,15 +1024,15 @@ function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
 }
 
 function convSupersedesInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
-  return chat.get('supersedesState').get(conversationID)
+  return chat.getIn(['supersedesState', conversationID])
 }
 
 function convSupersededByInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
-  return chat.get('supersededByState').get(conversationID)
+  return chat.getIn(['supersededByState', conversationID])
 }
 
 function newestConversationIDKey(conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
-  const supersededBy = chat.get('supersededByState').get(conversationIDKey)
+  const supersededBy = chat.getIn(['supersededByState', conversationIDKey])
   if (!supersededBy) {
     return conversationIDKey
   }
