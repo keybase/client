@@ -9,8 +9,7 @@ import throttle from 'lodash/throttle'
 import {compose, lifecycle, withState, withHandlers} from 'recompose'
 import {createSelector} from 'reselect'
 import {scoreFilter, passesStringFilter} from './filtering'
-
-import type {TypedState} from '../../constants/reducer'
+import {type TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
 const getAlwaysShow = (state: TypedState) => state.entities.get('inboxAlwaysShow')
@@ -222,6 +221,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     filter: stateProps.filter,
+    isActiveRoute: stateProps.isActiveRoute,
     loadInbox: dispatchProps.loadInbox,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
