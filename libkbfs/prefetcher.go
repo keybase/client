@@ -44,11 +44,14 @@ type prefetchRequest struct {
 	isDeepSync     bool
 }
 
-type ctxPrefetchTagKey int
+type ctxPrefetcherTagKey int
 
 const (
-	ctxPrefetchIDKey ctxPrefetchTagKey = iota
-	ctxPrefetchID                      = "PREID"
+	ctxPrefetcherIDKey ctxPrefetcherTagKey = iota
+	ctxPrefetchIDKey
+
+	ctxPrefetcherID = "PREID"
+	ctxPrefetchID   = "PFID"
 )
 
 type prefetch struct {
@@ -65,6 +68,7 @@ func (p *prefetch) Close() {
 }
 
 type blockPrefetcher struct {
+	ctx    context.Context
 	config prefetcherConfig
 	log    logger.Logger
 	// blockRetriever to retrieve blocks from the server
@@ -109,6 +113,8 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	} else {
 		p.log = logger.NewNull()
 	}
+	p.ctx = CtxWithRandomIDReplayable(context.Background(), ctxPrefetcherIDKey,
+		ctxPrefetcherID, p.log)
 	if retriever == nil {
 		// If we pass in a nil retriever, this prefetcher shouldn't do
 		// anything. Treat it as already shut down.
@@ -123,7 +129,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 
 func (p *blockPrefetcher) newPrefetch(count int, triggered bool,
 	req *prefetchRequest) *prefetch {
-	ctx, cancel := context.WithTimeout(context.Background(), prefetchTimeout)
+	ctx, cancel := context.WithTimeout(p.ctx, prefetchTimeout)
 	ctx = CtxWithRandomIDReplayable(
 		ctx, ctxPrefetchIDKey, ctxPrefetchID, p.log)
 	return &prefetch{
