@@ -10,6 +10,7 @@ import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
 import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
 import ConversationError from './error/conversation-error'
+import flags from '../../util/feature-flags'
 
 import type {Props} from '.'
 import type {TypedState} from '../../constants/reducer'
@@ -26,6 +27,7 @@ type StateProps = {|
   conversationIsError: boolean,
   conversationErrorText: string,
   defaultChatText: string,
+  showTeamOffer: boolean,
   inboxFilter: ?string,
   showSearchResults: boolean,
 |}
@@ -79,6 +81,11 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
 
   const {inSearch, inboxFilter} = state.chat
   const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
+  const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+
+  // If it's a multi-user chat that isn't a team, offer to make a new team.
+  const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
+
   return {
     showSearchResults: !!searchResults,
     conversationErrorText,
@@ -93,6 +100,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     threadLoadedOffline,
     inSearch,
     defaultChatText,
+    showTeamOffer,
   }
 }
 
