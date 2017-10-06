@@ -18,7 +18,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func makeBRMDForTest(t *testing.T, codec kbfscodec.Codec, crypto cryptoPure,
+func makeBRMDForTest(t *testing.T, codec kbfscodec.Codec,
 	id tlf.ID, h tlf.Handle, revision kbfsmd.Revision, uid keybase1.UID,
 	prevRoot kbfsmd.ID) *BareRootMetadataV2 {
 	var md BareRootMetadataV2
@@ -75,7 +75,7 @@ func TestMDServerBasics(t *testing.T) {
 	prevRoot := kbfsmd.ID{}
 	middleRoot := kbfsmd.ID{}
 	for i := kbfsmd.Revision(1); i <= 10; i++ {
-		brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, config.Codec(), id, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 		// MDv3 TODO: pass actual key bundles
 		err = mdServer.Put(ctx, rmds, nil, nil, keybase1.MDPriorityNormal)
@@ -88,7 +88,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (3) trigger a conflict
-	brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, 10, uid, prevRoot)
+	brmd := makeBRMDForTest(t, config.Codec(), id, h, 10, uid, prevRoot)
 	rmds = signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)
 	// MDv3 TODO: pass actual key bundles
 	err = mdServer.Put(ctx, rmds, nil, nil, keybase1.MDPriorityNormal)
@@ -100,7 +100,7 @@ func TestMDServerBasics(t *testing.T) {
 	bid, err := config.Crypto().MakeRandomBranchID()
 	require.NoError(t, err)
 	for i := kbfsmd.Revision(6); i < 41; i++ {
-		brmd := makeBRMDForTest(t, config.Codec(), config.Crypto(), id, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, config.Codec(), id, h, i, uid, prevRoot)
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
 		rmds := signRMDSForTest(t, config.Codec(), config.Crypto(), brmd)

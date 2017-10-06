@@ -162,6 +162,106 @@ func (wmef writerMetadataExtraV2Future) toCurrent() WriterMetadataExtraV2 {
 	return wmef.WriterMetadataExtraV2
 }
 
+// TODO: Remove the below once we move this file to kbfsmd.
+
+type tlfCryptKeyInfoFuture struct {
+	kbfsmd.TLFCryptKeyInfo
+	kbfscodec.Extra
+}
+
+func (cki tlfCryptKeyInfoFuture) toCurrent() kbfsmd.TLFCryptKeyInfo {
+	return cki.TLFCryptKeyInfo
+}
+
+func (cki tlfCryptKeyInfoFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
+	return cki.toCurrent()
+}
+
+func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
+	id, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(
+		keybase1.MakeTestUID(1),
+		kbfscrypto.MakeFakeCryptPublicKeyOrBust("fake"),
+		kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x3}))
+	require.NoError(t, err)
+	cki := TLFCryptKeyInfo{
+		ClientHalf: kbfscrypto.MakeEncryptedTLFCryptKeyClientHalfForTest(
+			kbfscrypto.EncryptionSecretbox,
+			[]byte("fake encrypted data"),
+			[]byte("fake nonce")),
+		ServerHalfID:           id,
+		EPubKeyIndex:           5,
+		UnknownFieldSetHandler: codec.UnknownFieldSetHandler{},
+	}
+	return tlfCryptKeyInfoFuture{
+		cki,
+		kbfscodec.MakeExtraOrBust("TLFCryptKeyInfo", t),
+	}
+}
+
+type deviceKeyInfoMapV2Future map[keybase1.KID]tlfCryptKeyInfoFuture
+
+func (dkimf deviceKeyInfoMapV2Future) toCurrent() kbfsmd.DeviceKeyInfoMapV2 {
+	dkim := make(DeviceKeyInfoMapV2, len(dkimf))
+	for k, kif := range dkimf {
+		ki := kif.toCurrent()
+		dkim[k] = TLFCryptKeyInfo(ki)
+	}
+	return dkim
+}
+
+func makeFakeDeviceKeyInfoMapV2Future(t *testing.T) userDeviceKeyInfoMapV2Future {
+	return userDeviceKeyInfoMapV2Future{
+		"fake uid": deviceKeyInfoMapV2Future{
+			"fake kid": makeFakeTLFCryptKeyInfoFuture(t),
+		},
+	}
+}
+
+type userDeviceKeyInfoMapV2Future map[keybase1.UID]deviceKeyInfoMapV2Future
+
+func (udkimf userDeviceKeyInfoMapV2Future) toCurrent() kbfsmd.UserDeviceKeyInfoMapV2 {
+	udkim := make(UserDeviceKeyInfoMapV2)
+	for u, dkimf := range udkimf {
+		dkim := dkimf.toCurrent()
+		udkim[u] = dkim
+	}
+	return udkim
+}
+
+type tlfWriterKeyBundleV2Future struct {
+	TLFWriterKeyBundleV2
+	// Override TLFWriterKeyBundleV2.WKeys.
+	WKeys userDeviceKeyInfoMapV2Future
+	kbfscodec.Extra
+}
+
+func (wkbf tlfWriterKeyBundleV2Future) toCurrent() TLFWriterKeyBundleV2 {
+	wkb := wkbf.TLFWriterKeyBundleV2
+	wkb.WKeys = wkbf.WKeys.toCurrent()
+	return wkb
+}
+
+func (wkbf tlfWriterKeyBundleV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
+	return wkbf.toCurrent()
+}
+
+func makeFakeTLFWriterKeyBundleV2Future(
+	t *testing.T) tlfWriterKeyBundleV2Future {
+	wkb := TLFWriterKeyBundleV2{
+		WKeys:        nil,
+		TLFPublicKey: kbfscrypto.MakeTLFPublicKey([32]byte{0xa}),
+		TLFEphemeralPublicKeys: kbfscrypto.TLFEphemeralPublicKeys{
+			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xb}),
+		},
+		UnknownFieldSetHandler: codec.UnknownFieldSetHandler{},
+	}
+	return tlfWriterKeyBundleV2Future{
+		wkb,
+		makeFakeDeviceKeyInfoMapV2Future(t),
+		kbfscodec.MakeExtraOrBust("TLFWriterKeyBundleV2", t),
+	}
+}
+
 type tlfWriterKeyGenerationsV2Future []*tlfWriterKeyBundleV2Future
 
 func (wkgf tlfWriterKeyGenerationsV2Future) toCurrent() TLFWriterKeyGenerationsV2 {
@@ -231,6 +331,39 @@ func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
 
 func TestWriterMetadataV2UnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeWriterMetadataV2Future(t))
+}
+
+type tlfReaderKeyBundleV2Future struct {
+	TLFReaderKeyBundleV2
+	// Override TLFReaderKeyBundleV2.RKeys.
+	RKeys userDeviceKeyInfoMapV2Future
+	kbfscodec.Extra
+}
+
+func (rkbf tlfReaderKeyBundleV2Future) toCurrent() TLFReaderKeyBundleV2 {
+	rkb := rkbf.TLFReaderKeyBundleV2
+	rkb.RKeys = rkbf.RKeys.toCurrent()
+	return rkb
+}
+
+func (rkbf tlfReaderKeyBundleV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
+	return rkbf.toCurrent()
+}
+
+func makeFakeTLFReaderKeyBundleV2Future(
+	t *testing.T) tlfReaderKeyBundleV2Future {
+	rkb := TLFReaderKeyBundleV2{
+		RKeys: nil,
+		TLFReaderEphemeralPublicKeys: kbfscrypto.TLFEphemeralPublicKeys{
+			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xc}),
+		},
+		UnknownFieldSetHandler: codec.UnknownFieldSetHandler{},
+	}
+	return tlfReaderKeyBundleV2Future{
+		rkb,
+		makeFakeDeviceKeyInfoMapV2Future(t),
+		kbfscodec.MakeExtraOrBust("TLFReaderKeyBundleV2", t),
+	}
 }
 
 type tlfReaderKeyGenerationsV2Future []*tlfReaderKeyBundleV2Future
@@ -384,19 +517,17 @@ func TestRevokeRemovedDevicesV2(t *testing.T) {
 	half3a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x5})
 	half3b := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x6})
 
-	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
-	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1, half1a)
+	id1a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1, half1a)
 	require.NoError(t, err)
-	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1, half1b)
+	id1b, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1, half1b)
 	require.NoError(t, err)
-	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2a)
+	id2a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2, half2a)
 	require.NoError(t, err)
-	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2b)
+	id2b, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2, half2b)
 	require.NoError(t, err)
-	id3a, err := crypto.GetTLFCryptKeyServerHalfID(uid3, key3, half3a)
+	id3a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid3, key3, half3a)
 	require.NoError(t, err)
-	id3b, err := crypto.GetTLFCryptKeyServerHalfID(uid3, key3, half3b)
+	id3b, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid3, key3, half3b)
 	require.NoError(t, err)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
@@ -478,9 +609,9 @@ func TestRevokeRemovedDevicesV2(t *testing.T) {
 		updatedWriterKeys, updatedReaderKeys, nil)
 	require.NoError(t, err)
 	require.Equal(t, ServerHalfRemovalInfo{
-		uid2: userServerHalfRemovalInfo{
-			userRemoved: true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+		uid2: UserServerHalfRemovalInfo{
+			UserRemoved: true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
 				key2: []TLFCryptKeyServerHalfID{id2a, id2b},
 			},
 		},
@@ -550,11 +681,9 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 	half1 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
 	half2 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
 
-	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
-	id1, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1, half1)
+	id1, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1, half1)
 	require.NoError(t, err)
-	id2, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2)
+	id2, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2, half2)
 	require.NoError(t, err)
 
 	tlfID := tlf.FakeID(1, tlf.Private)
@@ -607,20 +736,20 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 		updatedWriterKeys, updatedReaderKeys, nil)
 	require.NoError(t, err)
 	require.Equal(t, ServerHalfRemovalInfo{
-		uid1: userServerHalfRemovalInfo{
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+		uid1: UserServerHalfRemovalInfo{
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
 				key1: []TLFCryptKeyServerHalfID{id1},
 			},
 		},
-		uid2: userServerHalfRemovalInfo{
-			userRemoved: true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
+		uid2: UserServerHalfRemovalInfo{
+			UserRemoved: true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
 				key2: []TLFCryptKeyServerHalfID{id2},
 			},
 		},
-		uid4: userServerHalfRemovalInfo{
-			userRemoved:         true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{},
+		uid4: UserServerHalfRemovalInfo{
+			UserRemoved:         true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{},
 		},
 	}, removalInfo)
 
@@ -766,7 +895,7 @@ func checkGetTLFCryptKeyV2(t *testing.T, keyGen KeyGen,
 			info, ok := rkb.RKeys[uid][pubKey.KID()]
 			require.True(t, ok)
 
-			_, _, ePubKey, err := getEphemeralPublicKeyInfoV2(
+			_, _, ePubKey, err := kbfsmd.GetEphemeralPublicKeyInfoV2(
 				info, *wkb, *rkb)
 			require.NoError(t, err)
 
@@ -910,7 +1039,7 @@ func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 				expected.readerPrivKeys.toPublicKeys())
 			userPubKeys := userDeviceServerHalvesToPublicKeys(
 				expected.serverHalves[keyGen-FirstValidKeyGen])
-			require.Equal(t, expectedUserPubKeys.removeKeylessUsersForTest(), userPubKeys)
+			require.Equal(t, expectedUserPubKeys.RemoveKeylessUsersForTest(), userPubKeys)
 			checkGetTLFCryptKeyV2(t, keyGen, expected,
 				expectedTLFCryptKeys[keyGen-FirstValidKeyGen],
 				wkb, rkb)
@@ -969,7 +1098,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 		// generations, even though that can't happen in
 		// practice.
 		_, serverHalves1Gen, err := rmd.AddKeyGeneration(codec,
-			crypto, nil, updatedWriterKeys, updatedReaderKeys,
+			nil, updatedWriterKeys, updatedReaderKeys,
 			ePubKey1, ePrivKey1,
 			pubKey, kbfscrypto.TLFCryptKey{}, tlfCryptKey)
 		require.NoError(t, err)
@@ -997,7 +1126,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 
 	// Do update to check idempotency.
 
-	serverHalves1b, err := rmd.UpdateKeyBundles(crypto, nil,
+	serverHalves1b, err := rmd.UpdateKeyBundles(codec, nil,
 		updatedWriterKeys, updatedReaderKeys,
 		ePubKey1, ePrivKey1, tlfCryptKeys)
 	require.NoError(t, err)
@@ -1021,7 +1150,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	ePubKey2, ePrivKey2, err := crypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
-	serverHalves2, err := rmd.UpdateKeyBundles(crypto, nil,
+	serverHalves2, err := rmd.UpdateKeyBundles(codec, nil,
 		updatedWriterKeys, updatedReaderKeys,
 		ePubKey2, ePrivKey2, tlfCryptKeys)
 	require.NoError(t, err)
@@ -1044,7 +1173,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 
 	// Do again to check idempotency.
 
-	serverHalves2b, err := rmd.UpdateKeyBundles(crypto, nil,
+	serverHalves2b, err := rmd.UpdateKeyBundles(codec, nil,
 		updatedWriterKeys, updatedReaderKeys,
 		ePubKey2, ePrivKey2, tlfCryptKeys)
 	require.NoError(t, err)
@@ -1065,7 +1194,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	ePubKey3, ePrivKey3, err := crypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
-	serverHalves3, err := rmd.UpdateKeyBundles(crypto, nil,
+	serverHalves3, err := rmd.UpdateKeyBundles(codec, nil,
 		updatedWriterKeys, updatedReaderKeys,
 		ePubKey3, ePrivKey3, tlfCryptKeys)
 	require.NoError(t, err)
@@ -1086,7 +1215,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 
 	// Do again to check idempotency.
 
-	serverHalves3b, err := rmd.UpdateKeyBundles(crypto, nil,
+	serverHalves3b, err := rmd.UpdateKeyBundles(codec, nil,
 		updatedWriterKeys, updatedReaderKeys,
 		ePubKey3, ePrivKey3, tlfCryptKeys)
 	require.NoError(t, err)
@@ -1112,7 +1241,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	filteredReaderKeys := UserDevicePublicKeys{
 		uid3: updatedReaderKeys[uid3],
 	}
-	serverHalves4, err := rmd.UpdateKeyBundles(crypto, nil,
+	serverHalves4, err := rmd.UpdateKeyBundles(codec, nil,
 		nil, filteredReaderKeys, ePubKey4, ePrivKey4, tlfCryptKeys)
 	require.NoError(t, err)
 
@@ -1130,7 +1259,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 
 	// Do again to check idempotency.
 
-	serverHalves4b, err := rmd.UpdateKeyBundles(crypto, nil,
+	serverHalves4b, err := rmd.UpdateKeyBundles(codec, nil,
 		nil, filteredReaderKeys, ePubKey4, ePrivKey4, tlfCryptKeys)
 	require.NoError(t, err)
 
@@ -1184,7 +1313,7 @@ func TestBareRootMetadataV2AddKeyGenerationKeylessUsers(t *testing.T) {
 	tlfCryptKey := kbfscrypto.MakeTLFCryptKey(fakeKeyData)
 
 	_, serverHalves1Gen, err := rmd.AddKeyGeneration(codec,
-		crypto, nil, updatedWriterKeys, updatedReaderKeys,
+		nil, updatedWriterKeys, updatedReaderKeys,
 		ePubKey1, ePrivKey1,
 		pubKey, kbfscrypto.TLFCryptKey{}, tlfCryptKey)
 	require.NoError(t, err)

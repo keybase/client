@@ -499,8 +499,7 @@ func (md *BareRootMetadataV3) DeepCopy(
 
 // MakeSuccessorCopy implements the ImmutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) MakeSuccessorCopy(
-	codec kbfscodec.Codec, crypto cryptoPure,
-	extra ExtraMetadata, _ MetadataVer,
+	codec kbfscodec.Codec, extra ExtraMetadata, _ MetadataVer,
 	_ func() ([]kbfscrypto.TLFCryptKey, error), isReadableAndWriter bool) (
 	MutableBareRootMetadata, ExtraMetadata, error) {
 	var extraCopy ExtraMetadata
@@ -734,9 +733,9 @@ func (md *BareRootMetadataV3) RevokeRemovedDevices(
 		return nil, err
 	}
 
-	wRemovalInfo := wkb.Keys.removeDevicesNotIn(updatedWriterKeys)
-	rRemovalInfo := rkb.Keys.removeDevicesNotIn(updatedReaderKeys)
-	return wRemovalInfo.mergeUsers(rRemovalInfo)
+	wRemovalInfo := wkb.Keys.RemoveDevicesNotIn(updatedWriterKeys)
+	rRemovalInfo := rkb.Keys.RemoveDevicesNotIn(updatedReaderKeys)
+	return wRemovalInfo.MergeUsers(rRemovalInfo)
 }
 
 // GetUserDevicePublicKeys implements the BareRootMetadata interface
@@ -753,7 +752,7 @@ func (md *BareRootMetadataV3) GetUserDevicePublicKeys(extra ExtraMetadata) (
 		return nil, nil, err
 	}
 
-	return wkb.Keys.toPublicKeys(), rkb.Keys.toPublicKeys(), nil
+	return wkb.Keys.ToPublicKeys(), rkb.Keys.ToPublicKeys(), nil
 }
 
 // GetTLFCryptKeyParams implements the BareRootMetadata interface for BareRootMetadataV3.
@@ -813,9 +812,9 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 	return publicKeys[index], info.ClientHalf, info.ServerHalfID, true, nil
 }
 
-func checkWKBID(crypto cryptoPure,
+func checkWKBID(codec kbfscodec.Codec,
 	wkbID TLFWriterKeyBundleID, wkb TLFWriterKeyBundleV3) error {
-	computedWKBID, err := crypto.MakeTLFWriterKeyBundleID(wkb)
+	computedWKBID, err := kbfsmd.MakeTLFWriterKeyBundleID(codec, wkb)
 	if err != nil {
 		return err
 	}
@@ -828,9 +827,9 @@ func checkWKBID(crypto cryptoPure,
 	return nil
 }
 
-func checkRKBID(crypto cryptoPure,
+func checkRKBID(codec kbfscodec.Codec,
 	rkbID TLFReaderKeyBundleID, rkb TLFReaderKeyBundleV3) error {
-	computedRKBID, err := crypto.MakeTLFReaderKeyBundleID(rkb)
+	computedRKBID, err := kbfsmd.MakeTLFReaderKeyBundleID(codec, rkb)
 	if err != nil {
 		return err
 	}
@@ -845,7 +844,7 @@ func checkRKBID(crypto cryptoPure,
 
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) IsValidAndSigned(
-	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
+	ctx context.Context, codec kbfscodec.Codec,
 	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
 	writerVerifyingKey kbfscrypto.VerifyingKey) error {
 	if md.TlfID().Type() == tlf.Private {
@@ -854,12 +853,12 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 			return err
 		}
 
-		err = checkWKBID(crypto, md.GetTLFWriterKeyBundleID(), *wkb)
+		err = checkWKBID(codec, md.GetTLFWriterKeyBundleID(), *wkb)
 		if err != nil {
 			return err
 		}
 
-		err = checkRKBID(crypto, md.GetTLFReaderKeyBundleID(), *rkb)
+		err = checkRKBID(codec, md.GetTLFReaderKeyBundleID(), *rkb)
 		if err != nil {
 			return err
 		}
@@ -1173,7 +1172,7 @@ func (md *BareRootMetadataV3) SetMerkleRoot(root keybase1.MerkleRootV2) {
 	md.KBMerkleRoot = &root
 }
 
-func (md *BareRootMetadataV3) updateKeyBundles(crypto cryptoPure,
+func (md *BareRootMetadataV3) updateKeyBundles(codec kbfscodec.Codec,
 	extra ExtraMetadata,
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
@@ -1195,8 +1194,8 @@ func (md *BareRootMetadataV3) updateKeyBundles(crypto cryptoPure,
 	if len(updatedWriterKeys) > 0 {
 		newWriterIndex = len(wkb.TLFEphemeralPublicKeys)
 	}
-	wServerHalves, err := wkb.Keys.fillInUserInfos(
-		crypto, newWriterIndex, updatedWriterKeys,
+	wServerHalves, err := wkb.Keys.FillInUserInfos(
+		newWriterIndex, updatedWriterKeys,
 		ePrivKey, tlfCryptKey)
 	if err != nil {
 		return nil, err
@@ -1212,8 +1211,8 @@ func (md *BareRootMetadataV3) updateKeyBundles(crypto cryptoPure,
 	if len(updatedReaderKeys) > 0 {
 		newReaderIndex = len(rkb.TLFEphemeralPublicKeys)
 	}
-	rServerHalves, err := rkb.Keys.fillInUserInfos(
-		crypto, newReaderIndex, updatedReaderKeys,
+	rServerHalves, err := rkb.Keys.FillInUserInfos(
+		newReaderIndex, updatedReaderKeys,
 		ePrivKey, tlfCryptKey)
 	if err != nil {
 		return nil, err
@@ -1225,13 +1224,13 @@ func (md *BareRootMetadataV3) updateKeyBundles(crypto cryptoPure,
 			append(rkb.TLFEphemeralPublicKeys, ePubKey)
 	}
 
-	return wServerHalves.mergeUsers(rServerHalves)
+	return wServerHalves.MergeUsers(rServerHalves)
 }
 
 // AddKeyGeneration implements the MutableBareRootMetadata interface
 // for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
-	crypto cryptoPure, currExtra ExtraMetadata,
+func (md *BareRootMetadataV3) AddKeyGeneration(
+	codec kbfscodec.Codec, currExtra ExtraMetadata,
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
@@ -1267,14 +1266,14 @@ func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
 			return nil, nil, errors.New("Invalid curr extra metadata")
 		}
 
-		existingWriterKeys := currExtraV3.wkb.Keys.toPublicKeys()
+		existingWriterKeys := currExtraV3.wkb.Keys.ToPublicKeys()
 		if !existingWriterKeys.Equals(updatedWriterKeys) {
 			return nil, nil, fmt.Errorf(
 				"existingWriterKeys=%+v != updatedWriterKeys=%+v",
 				existingWriterKeys, updatedWriterKeys)
 		}
 
-		existingReaderKeys := currExtraV3.rkb.Keys.toPublicKeys()
+		existingReaderKeys := currExtraV3.rkb.Keys.ToPublicKeys()
 		if !existingReaderKeys.Equals(updatedReaderKeys) {
 			return nil, nil, fmt.Errorf(
 				"existingReaderKeys=%+v != updatedReaderKeys=%+v",
@@ -1288,7 +1287,8 @@ func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
 		var historicKeys []kbfscrypto.TLFCryptKey
 		if latestKeyGen > FirstValidKeyGen {
 			var err error
-			historicKeys, err = crypto.DecryptTLFCryptKeys(
+			historicKeys, err = kbfscrypto.DecryptTLFCryptKeys(
+				codec,
 				currExtraV3.wkb.EncryptedHistoricTLFCryptKeys,
 				currCryptKey)
 			if err != nil {
@@ -1305,8 +1305,8 @@ func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
 		}
 		historicKeys = append(historicKeys, currCryptKey)
 		var err error
-		encryptedHistoricKeys, err = crypto.EncryptTLFCryptKeys(
-			historicKeys, nextCryptKey)
+		encryptedHistoricKeys, err = kbfscrypto.EncryptTLFCryptKeys(
+			codec, historicKeys, nextCryptKey)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1323,7 +1323,7 @@ func (md *BareRootMetadataV3) AddKeyGeneration(codec kbfscodec.Codec,
 	md.WriterMetadata.LatestKeyGen++
 	nextExtra = NewExtraMetadataV3(newWriterKeys, newReaderKeys, true, true)
 
-	serverHalves, err = md.updateKeyBundles(crypto, nextExtra,
+	serverHalves, err = md.updateKeyBundles(codec, nextExtra,
 		updatedWriterKeys, updatedReaderKeys,
 		ePubKey, ePrivKey, nextCryptKey)
 	if err != nil {
@@ -1408,7 +1408,7 @@ func (md *BareRootMetadataV3) GetUnresolvedParticipants() []keybase1.SocialAsser
 
 // UpdateKeyBundles implements the MutableBareRootMetadata interface
 // for BareRootMetadataV3.
-func (md *BareRootMetadataV3) UpdateKeyBundles(crypto cryptoPure,
+func (md *BareRootMetadataV3) UpdateKeyBundles(codec kbfscodec.Codec,
 	extra ExtraMetadata,
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
@@ -1421,7 +1421,7 @@ func (md *BareRootMetadataV3) UpdateKeyBundles(crypto cryptoPure,
 			len(tlfCryptKeys))
 	}
 
-	serverHalves, err := md.updateKeyBundles(crypto, extra,
+	serverHalves, err := md.updateKeyBundles(codec, extra,
 		updatedWriterKeys, updatedReaderKeys,
 		ePubKey, ePrivKey, tlfCryptKeys[0])
 	if err != nil {
@@ -1443,7 +1443,7 @@ func (md *BareRootMetadataV3) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
 
 // FinalizeRekey implements the MutableBareRootMetadata interface for BareRootMetadataV3.
 func (md *BareRootMetadataV3) FinalizeRekey(
-	crypto cryptoPure, extra ExtraMetadata) error {
+	codec kbfscodec.Codec, extra ExtraMetadata) error {
 	extraV3, ok := extra.(*ExtraMetadataV3)
 	if !ok {
 		return errors.New("Invalid extra metadata")
@@ -1451,11 +1451,11 @@ func (md *BareRootMetadataV3) FinalizeRekey(
 	oldWKBID := md.WriterMetadata.WKeyBundleID
 	oldRKBID := md.RKeyBundleID
 
-	newWKBID, err := crypto.MakeTLFWriterKeyBundleID(extraV3.wkb)
+	newWKBID, err := kbfsmd.MakeTLFWriterKeyBundleID(codec, extraV3.wkb)
 	if err != nil {
 		return err
 	}
-	newRKBID, err := crypto.MakeTLFReaderKeyBundleID(extraV3.rkb)
+	newRKBID, err := kbfsmd.MakeTLFReaderKeyBundleID(codec, extraV3.rkb)
 	if err != nil {
 		return err
 	}
@@ -1474,7 +1474,7 @@ func (md *BareRootMetadataV3) StoresHistoricTLFCryptKeys() bool {
 }
 
 // GetHistoricTLFCryptKey implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(crypto cryptoPure,
+func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(codec kbfscodec.Codec,
 	keyGen KeyGen, currentKey kbfscrypto.TLFCryptKey, extra ExtraMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
 	extraV3, ok := extra.(*ExtraMetadataV3)
@@ -1486,8 +1486,8 @@ func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(crypto cryptoPure,
 		return kbfscrypto.TLFCryptKey{}, errors.Errorf(
 			"Invalid key generation %d", keyGen)
 	}
-	oldKeys, err := crypto.DecryptTLFCryptKeys(
-		extraV3.wkb.EncryptedHistoricTLFCryptKeys, currentKey)
+	oldKeys, err := kbfscrypto.DecryptTLFCryptKeys(
+		codec, extraV3.wkb.EncryptedHistoricTLFCryptKeys, currentKey)
 	if err != nil {
 		return kbfscrypto.TLFCryptKey{}, err
 	}

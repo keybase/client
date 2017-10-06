@@ -426,7 +426,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}
 
 	err = rmds.IsValidAndSigned(
-		ctx, md.config.Codec(), md.config.cryptoPure(),
+		ctx, md.config.Codec(),
 		md.config.teamMembershipChecker(), extra)
 	if err != nil {
 		return kbfsmd.ServerErrorBadRequest{Reason: err.Error()}
@@ -926,7 +926,7 @@ func (md *MDServerMemory) getKeyBundlesRLocked(tlfID tlf.ID,
 				"Could not find WKB for ID %s", wkbID)
 		}
 
-		err := checkWKBID(md.config.cryptoPure(), wkbID, foundWKB)
+		err := checkWKBID(md.config.Codec(), wkbID, foundWKB)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -942,7 +942,7 @@ func (md *MDServerMemory) getKeyBundlesRLocked(tlfID tlf.ID,
 				"Could not find RKB for ID %s", rkbID)
 		}
 
-		err := checkRKBID(md.config.cryptoPure(), rkbID, foundRKB)
+		err := checkRKBID(md.config.Codec(), rkbID, foundRKB)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -128,10 +128,9 @@ func putMDRangeHelper(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 	require.NoError(t, err)
 	mds = append(mds, md)
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 	prevRoot := mdID
 	for i := 1; i < mdCount; i++ {
-		md, err = md.MakeSuccessor(ctx, ver, codec, crypto,
+		md, err = md.MakeSuccessor(ctx, ver, codec,
 			nil, constMerkleRootGetter{}, nil, prevRoot, true)
 		require.NoError(t, err)
 		mdID, err := putMD(ctx, md)
@@ -154,7 +153,7 @@ func putMDRange(t testing.TB, ver MetadataVer, tlfID tlf.ID,
 }
 
 func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
-	codec kbfscodec.Codec, crypto cryptoPure, brmd BareRootMetadata,
+	codec kbfscodec.Codec, brmd BareRootMetadata,
 	extra ExtraMetadata, expectedRevision kbfsmd.Revision,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus MergeStatus,
 	expectedBranchID BranchID) {
@@ -162,7 +161,7 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 	require.Equal(t, expectedPrevRoot, brmd.GetPrevRoot())
 	require.Equal(t, expectedMergeStatus, brmd.MergedStatus())
 	err := brmd.IsValidAndSigned(
-		context.Background(), codec, crypto, nil, extra, key)
+		context.Background(), codec, nil, extra, key)
 	require.NoError(t, err)
 	err = brmd.IsLastModifiedBy(uid, key)
 	require.NoError(t, err)
@@ -173,15 +172,15 @@ func checkBRMD(t *testing.T, uid keybase1.UID, key kbfscrypto.VerifyingKey,
 }
 
 func checkIBRMDRange(t *testing.T, uid keybase1.UID,
-	key kbfscrypto.VerifyingKey, codec kbfscodec.Codec, crypto cryptoPure,
+	key kbfscrypto.VerifyingKey, codec kbfscodec.Codec,
 	ibrmds []ImmutableBareRootMetadata, firstRevision kbfsmd.Revision,
 	firstPrevRoot kbfsmd.ID, mStatus MergeStatus, bid BranchID) {
-	checkBRMD(t, uid, key, codec, crypto, ibrmds[0], ibrmds[0].extra,
+	checkBRMD(t, uid, key, codec, ibrmds[0], ibrmds[0].extra,
 		firstRevision, firstPrevRoot, mStatus, bid)
 
 	for i := 1; i < len(ibrmds); i++ {
 		prevID := ibrmds[i-1].mdID
-		checkBRMD(t, uid, key, codec, crypto, ibrmds[i],
+		checkBRMD(t, uid, key, codec, ibrmds[i],
 			ibrmds[i].extra, firstRevision+kbfsmd.Revision(i),
 			prevID, mStatus, bid)
 		err := ibrmds[i-1].CheckValidSuccessor(prevID, ibrmds[i])
@@ -234,7 +233,7 @@ func benchmarkMDJournalBasic(b *testing.B, ver MetadataVer) {
 }
 
 func testMDJournalBasic(t *testing.T, ver MetadataVer) {
-	codec, crypto, id, signer, ekg, bsplit, tempdir, j :=
+	codec, _, id, signer, ekg, bsplit, tempdir, j :=
 		setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
@@ -263,7 +262,7 @@ func testMDJournalBasic(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	checkIBRMDRange(t, j.uid, j.key, codec, crypto,
+	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, Merged, NullBranchID)
 
 	head, err = j.getHead(ctx, NullBranchID)
@@ -610,7 +609,7 @@ func testMDJournalFlushAll(t *testing.T, ver MetadataVer) {
 }
 
 func testMDJournalBranchConversion(t *testing.T, ver MetadataVer) {
-	codec, crypto, id, signer, ekg, bsplit, tempdir, j :=
+	codec, _, id, signer, ekg, bsplit, tempdir, j :=
 		setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
@@ -648,7 +647,7 @@ func testMDJournalBranchConversion(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	checkIBRMDRange(t, j.uid, j.key, codec, crypto,
+	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, Unmerged, ibrmds[0].BID())
 
 	require.Equal(t, uint64(10), j.length())
@@ -754,7 +753,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	// version doesn't actually do any signing.
 	ver := InitialExtraMetadataVer
 
-	codec, crypto, id, signer, ekg, bsplit, tempdir, j :=
+	codec, _, id, signer, ekg, bsplit, tempdir, j :=
 		setupMDJournalTest(t, ver)
 	defer teardownMDJournalTest(t, tempdir)
 
@@ -781,7 +780,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	checkIBRMDRange(t, j.uid, j.key, codec, crypto,
+	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, Merged, NullBranchID)
 
 	require.Equal(t, uint64(10), j.length())
@@ -1005,7 +1004,7 @@ func testMDJournalRestart(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	checkIBRMDRange(t, j.uid, j.key, codec, crypto,
+	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, Merged, NullBranchID)
 
 	flushAllMDs(t, context.Background(), signer, j)
@@ -1047,7 +1046,7 @@ func testMDJournalRestartAfterBranchConversion(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	checkIBRMDRange(t, j.uid, j.key, codec, crypto,
+	checkIBRMDRange(t, j.uid, j.key, codec,
 		ibrmds, firstRevision, firstPrevRoot, Unmerged, ibrmds[0].BID())
 
 	flushAllMDs(t, ctx, signer, j)

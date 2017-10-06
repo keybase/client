@@ -270,7 +270,7 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
 	require.NoError(t, err)
 
 	rmd.SetFinalBit()
-	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil, nil,
+	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil,
 		nil, kbfsmd.FakeID(1), true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
@@ -392,7 +392,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
-		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.MetadataVersion(), config.Codec(),
 		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
 		true)
 	require.NoError(t, err)
@@ -450,7 +450,7 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, aliceKeys, charlieKeys)
 
 	// Rekeying again shouldn't change wkbNew/rkbNew.
-	err = rmd2.finalizeRekey(config.Crypto())
+	err = rmd2.finalizeRekey(config.Codec())
 	require.NoError(t, err)
 	extra, ok = rmd2.extra.(*ExtraMetadataV3)
 	require.True(t, ok)
@@ -484,7 +484,7 @@ func TestRootMetadataUpconversionPublic(t *testing.T) {
 
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
-		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.MetadataVersion(), config.Codec(),
 		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
 		true)
 	require.NoError(t, err)
@@ -554,7 +554,7 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 
 	// create an MDv3 successor
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
-		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.MetadataVersion(), config.Codec(),
 		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
 		true)
 	require.NoError(t, err)
@@ -673,7 +673,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	configReader.metadataVersion = SegregatedKeyBundlesVer
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
 		configReader.MetadataVersion(), configReader.Codec(),
-		configReader.Crypto(), configReader.KeyManager(), configReader.KBPKI(),
+		configReader.KeyManager(), configReader.KBPKI(),
 		configReader.KBPKI(), kbfsmd.FakeID(1), false)
 	require.NoError(t, err)
 	require.Equal(t, KeyGen(1), rmd2.LatestKeyGeneration())
@@ -698,7 +698,7 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 		rmd2.bareMd, configReader.Clock().Now())
 	require.NoError(t, err)
 	err = rmds.IsValidAndSigned(
-		ctx, configReader.Codec(), configReader.Crypto(), nil, rmd2.extra)
+		ctx, configReader.Codec(), nil, rmd2.extra)
 	require.NoError(t, err)
 }
 
@@ -813,7 +813,7 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 	require.Equal(t, FirstValidKeyGen, firstKeyGen)
 
 	rmd2, err := rmd.MakeSuccessor(context.Background(),
-		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.MetadataVersion(), config.Codec(),
 		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(1),
 		true)
 	require.NoError(t, err)
@@ -825,7 +825,7 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 	AddTeamKeyForTestOrBust(t, config, tid)
 
 	rmd3, err := rmd2.MakeSuccessor(context.Background(),
-		config.MetadataVersion(), config.Codec(), config.Crypto(),
+		config.MetadataVersion(), config.Codec(),
 		config.KeyManager(), config.KBPKI(), config.KBPKI(), kbfsmd.FakeID(2),
 		true)
 	require.NoError(t, err)

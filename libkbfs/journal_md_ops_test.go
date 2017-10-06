@@ -380,7 +380,7 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 	// Put several MDs after a local squash
 	for i := 0; i < mdCount; i++ {
 		rmd, err = rmd.MakeSuccessor(ctx, config.MetadataVersion(),
-			config.Codec(), config.Crypto(), config.KeyManager(),
+			config.Codec(), config.KeyManager(),
 			config.KBPKI(), config.KBPKI(), mdID, true)
 		require.NoError(t, err)
 		mdID, err = j.put(ctx, config.Crypto(), config.KeyManager(),

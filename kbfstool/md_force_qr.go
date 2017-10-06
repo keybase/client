@@ -19,7 +19,7 @@ func mdForceQROne(
 	}
 
 	rmdNext, err := irmd.MakeSuccessor(ctx, config.MetadataVersion(),
-		config.Codec(), config.Crypto(), config.KeyManager(),
+		config.Codec(), config.KeyManager(),
 		config.KBPKI(), config.KBPKI(), irmd.MdID(), true)
 	if err != nil {
 		return err

@@ -43,16 +43,6 @@ func (c shimCrypto) Verify(
 	return kbfscrypto.Verify(msg, sigInfo)
 }
 
-func (c shimCrypto) MakeTLFWriterKeyBundleID(
-	wkb TLFWriterKeyBundleV3) (TLFWriterKeyBundleID, error) {
-	return c.pure.MakeTLFWriterKeyBundleID(wkb)
-}
-
-func (c shimCrypto) MakeTLFReaderKeyBundleID(
-	rkb TLFReaderKeyBundleV3) (TLFReaderKeyBundleID, error) {
-	return c.pure.MakeTLFReaderKeyBundleID(rkb)
-}
-
 func injectShimCrypto(config Config) {
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("test key")
 	crypto := shimCrypto{
@@ -88,8 +78,7 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 }
 
 func addFakeRMDData(t *testing.T,
-	codec kbfscodec.Codec, crypto cryptoPure, rmd *RootMetadata,
-	h *TlfHandle) {
+	codec kbfscodec.Codec, rmd *RootMetadata, h *TlfHandle) {
 	rmd.SetRevision(kbfsmd.Revision(1))
 	pmd := PrivateMetadata{}
 	// TODO: Will have to change this for private folders if we
@@ -111,7 +100,7 @@ func newRMDS(t *testing.T, config Config, h *TlfHandle) (
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
 
-	addFakeRMDData(t, config.Codec(), config.Crypto(), rmd, h)
+	addFakeRMDData(t, config.Codec(), rmd, h)
 	ctx := context.Background()
 
 	// Encode and sign writer metadata.
@@ -547,7 +536,7 @@ func makeRMDSRange(t *testing.T, config Config,
 			t.Fatal(err)
 		}
 
-		addFakeRMDData(t, config.Codec(), config.Crypto(), rmd, h)
+		addFakeRMDData(t, config.Codec(), rmd, h)
 		rmd.SetPrevRoot(prevID)
 		rmd.SetRevision(start + kbfsmd.Revision(i))
 
@@ -814,7 +803,7 @@ func testMDOpsPutPrivateSuccess(t *testing.T, ver MetadataVer) {
 	h := parseTlfHandleOrBust(t, config, "alice,bob", tlf.Private)
 	rmd, err := makeInitialRootMetadata(config.MetadataVersion(), id, h)
 	require.NoError(t, err)
-	addFakeRMDData(t, config.Codec(), config.Crypto(), rmd, h)
+	addFakeRMDData(t, config.Codec(), rmd, h)
 
 	putMDForPrivate(config, rmd)
 

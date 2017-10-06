@@ -39,8 +39,8 @@ func (c CryptoLocal) prepareTLFCryptKeyClientHalf(
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 	nonce [24]byte, err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
-		return [24]byte{}, errors.WithStack(UnknownEncryptionVer{
-			encryptedClientHalf.Version})
+		return [24]byte{}, errors.WithStack(kbfscrypto.UnknownEncryptionVer{
+			Ver: encryptedClientHalf.Version})
 	}
 
 	// This check isn't strictly needed, but parallels the
@@ -54,8 +54,8 @@ func (c CryptoLocal) prepareTLFCryptKeyClientHalf(
 	}
 
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
-		return [24]byte{}, errors.WithStack(InvalidNonceError{
-			encryptedClientHalf.Nonce})
+		return [24]byte{}, errors.WithStack(kbfscrypto.InvalidNonceError{
+			Nonce: encryptedClientHalf.Nonce})
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 	return nonce, nil

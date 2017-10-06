@@ -183,7 +183,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		}
 		// get the historic key we want
 		tlfCryptKey, err =
-			kmd.GetHistoricTLFCryptKey(km.config.Crypto(), keyGen, latestKey)
+			kmd.GetHistoricTLFCryptKey(km.config.Codec(), keyGen, latestKey)
 		if err != nil {
 			return kbfscrypto.TLFCryptKey{}, err
 		}
@@ -347,8 +347,8 @@ func (km *KeyManagerStandard) updateKeyBundles(ctx context.Context,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKeys []kbfscrypto.TLFCryptKey) error {
 
-	serverHalves, err := md.updateKeyBundles(km.config.Crypto(),
-		updatedWriterKeys, updatedReaderKeys,
+	serverHalves, err := md.updateKeyBundles(
+		km.config.Codec(), updatedWriterKeys, updatedReaderKeys,
 		ePubKey, ePrivKey, tlfCryptKeys)
 	if err != nil {
 		return err
@@ -755,7 +755,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 			if mdChanged {
 				finalizeErr := md.finalizeRekey(
-					km.config.Crypto())
+					km.config.Codec())
 				if finalizeErr != nil {
 					mdChanged = false
 					cryptKey = nil
@@ -808,11 +808,11 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 		kops := km.config.KeyOps()
 		for uid, userRemovalInfo := range allRemovalInfo {
-			if userRemovalInfo.userRemoved {
+			if userRemovalInfo.UserRemoved {
 				km.log.CInfof(ctx, "Rekey %s: removed user %s entirely",
 					md.TlfID(), uid)
 			}
-			for key, serverHalfIDs := range userRemovalInfo.deviceServerHalfIDs {
+			for key, serverHalfIDs := range userRemovalInfo.DeviceServerHalfIDs {
 				km.log.CInfof(ctx, "Rekey %s: removing %d server key halves "+
 					" for device %s of user %s", md.TlfID(),
 					len(serverHalfIDs), key, uid)
@@ -850,7 +850,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 	}
 	serverHalves, err := md.AddKeyGeneration(km.config.Codec(),
-		km.config.Crypto(), updatedWriterKeys, updatedReaderKeys,
+		updatedWriterKeys, updatedReaderKeys,
 		ePubKey, ePrivKey, pubKey, privKey,
 		currTLFCryptKey, tlfCryptKey)
 	if err != nil {

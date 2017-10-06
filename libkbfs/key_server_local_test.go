@@ -76,25 +76,25 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	}
 
 	serverHalfID1, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf1)
+		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	serverHalfID2, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf2)
+		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	serverHalfID3, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf3)
+		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf3)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	serverHalfID4, err :=
-		config1.Crypto().GetTLFCryptKeyServerHalfID(uid2, publicKey2, serverHalf4)
+		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, publicKey2, serverHalf4)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf4, half4)
 	}
 
-	serverHalfIDNope, err := config1.Crypto().GetTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf4)
+	serverHalfIDNope, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, publicKey1, serverHalf4)
 	if err != nil {
 		t.Error(err)
 	}

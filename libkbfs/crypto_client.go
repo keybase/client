@@ -129,8 +129,8 @@ func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
 	err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
 		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
-			errors.WithStack(UnknownEncryptionVer{
-				encryptedClientHalf.Version})
+			errors.WithStack(kbfscrypto.UnknownEncryptionVer{
+				Ver: encryptedClientHalf.Version})
 	}
 
 	if len(encryptedClientHalf.EncryptedData) != len(encryptedData) {
@@ -143,8 +143,8 @@ func (c *CryptoClient) prepareTLFCryptKeyClientHalf(
 
 	if len(encryptedClientHalf.Nonce) != len(nonce) {
 		return keybase1.EncryptedBytes32{}, keybase1.BoxNonce{},
-			errors.WithStack(InvalidNonceError{
-				encryptedClientHalf.Nonce})
+			errors.WithStack(kbfscrypto.InvalidNonceError{
+				Nonce: encryptedClientHalf.Nonce})
 	}
 	copy(nonce[:], encryptedClientHalf.Nonce)
 	return encryptedData, nonce, nil

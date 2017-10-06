@@ -77,12 +77,11 @@ type mdServerTlfStorage struct {
 }
 
 func makeMDServerTlfStorage(tlfID tlf.ID, codec kbfscodec.Codec,
-	crypto cryptoPure, clock Clock, teamMemChecker TeamMembershipChecker,
+	clock Clock, teamMemChecker TeamMembershipChecker,
 	mdVer MetadataVer, dir string) *mdServerTlfStorage {
 	journal := &mdServerTlfStorage{
 		tlfID:          tlfID,
 		codec:          codec,
-		crypto:         crypto,
 		clock:          clock,
 		teamMemChecker: teamMemChecker,
 		mdVer:          mdVer,
@@ -410,7 +409,7 @@ func (s *mdServerTlfStorage) put(ctx context.Context,
 		return false, err
 	}
 
-	err = rmds.IsValidAndSigned(ctx, s.codec, s.crypto, s.teamMemChecker, extra)
+	err = rmds.IsValidAndSigned(ctx, s.codec, s.teamMemChecker, extra)
 	if err != nil {
 		return false, kbfsmd.ServerErrorBadRequest{Reason: err.Error()}
 	}
@@ -517,13 +516,13 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(tlfID tlf.ID,
 
 	var wkb *TLFWriterKeyBundleV3
 	if wkbID != (TLFWriterKeyBundleID{}) {
-		foundWKB, err := DeserializeTLFWriterKeyBundleV3(
+		foundWKB, err := kbfsmd.DeserializeTLFWriterKeyBundleV3(
 			s.codec, s.writerKeyBundleV3Path(wkbID))
 		if err != nil {
 			return nil, nil, err
 		}
 
-		err = checkWKBID(s.crypto, wkbID, foundWKB)
+		err = checkWKBID(s.codec, wkbID, foundWKB)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -532,13 +531,13 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(tlfID tlf.ID,
 
 	var rkb *TLFReaderKeyBundleV3
 	if rkbID != (TLFReaderKeyBundleID{}) {
-		foundRKB, err := DeserializeTLFReaderKeyBundleV3(
+		foundRKB, err := kbfsmd.DeserializeTLFReaderKeyBundleV3(
 			s.codec, s.readerKeyBundleV3Path(rkbID))
 		if err != nil {
 			return nil, nil, err
 		}
 
-		err = checkRKBID(s.crypto, rkbID, foundRKB)
+		err = checkRKBID(s.codec, rkbID, foundRKB)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -241,7 +241,7 @@ func (md *RootMetadata) deepCopy(codec kbfscodec.Codec) (*RootMetadata, error) {
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(
 	ctx context.Context, latestMDVer MetadataVer, codec kbfscodec.Codec,
-	crypto cryptoPure, keyManager KeyManager, merkleGetter merkleRootGetter,
+	keyManager KeyManager, merkleGetter merkleRootGetter,
 	teamKeyer teamKeysGetter, mdID kbfsmd.ID, isWriter bool) (
 	*RootMetadata, error) {
 	if mdID == (kbfsmd.ID{}) {
@@ -254,7 +254,7 @@ func (md *RootMetadata) MakeSuccessor(
 	isReadableAndWriter := md.IsReadable() && isWriter
 
 	brmdCopy, extraCopy, err := md.bareMd.MakeSuccessorCopy(
-		codec, crypto, md.extra, latestMDVer,
+		codec, md.extra, latestMDVer,
 		func() ([]kbfscrypto.TLFCryptKey, error) {
 			return keyManager.GetTLFCryptKeyOfAllGenerations(ctx, md)
 		}, isReadableAndWriter)
@@ -793,7 +793,7 @@ func (md *RootMetadata) GetBareRootMetadata() BareRootMetadata {
 
 // AddKeyGeneration adds a new key generation to this revision of metadata.
 func (md *RootMetadata) AddKeyGeneration(codec kbfscodec.Codec,
-	crypto cryptoPure, wKeys, rKeys UserDevicePublicKeys,
+	wKeys, rKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	pubKey kbfscrypto.TLFPublicKey,
@@ -801,7 +801,7 @@ func (md *RootMetadata) AddKeyGeneration(codec kbfscodec.Codec,
 	currCryptKey, nextCryptKey kbfscrypto.TLFCryptKey) (
 	serverHalves UserDeviceKeyServerHalves, err error) {
 	nextExtra, serverHalves, err := md.bareMd.AddKeyGeneration(
-		codec, crypto, md.extra, wKeys, rKeys, ePubKey, ePrivKey,
+		codec, md.extra, wKeys, rKeys, ePubKey, ePrivKey,
 		pubKey, currCryptKey, nextCryptKey)
 	if err != nil {
 		return nil, err
@@ -822,18 +822,18 @@ func (md *RootMetadata) revokeRemovedDevices(
 	return md.bareMd.RevokeRemovedDevices(wKeys, rKeys, md.extra)
 }
 
-func (md *RootMetadata) updateKeyBundles(crypto cryptoPure,
-	wKeys, rKeys UserDevicePublicKeys,
+func (md *RootMetadata) updateKeyBundles(
+	codec kbfscodec.Codec, wKeys, rKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKeys []kbfscrypto.TLFCryptKey) (
 	[]UserDeviceKeyServerHalves, error) {
-	return md.bareMd.UpdateKeyBundles(crypto, md.extra,
+	return md.bareMd.UpdateKeyBundles(codec, md.extra,
 		wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKeys)
 }
 
-func (md *RootMetadata) finalizeRekey(crypto cryptoPure) error {
-	return md.bareMd.FinalizeRekey(crypto, md.extra)
+func (md *RootMetadata) finalizeRekey(codec kbfscodec.Codec) error {
+	return md.bareMd.FinalizeRekey(codec, md.extra)
 }
 
 func (md *RootMetadata) getUserDevicePublicKeys() (
@@ -862,10 +862,10 @@ func (md *RootMetadata) StoresHistoricTLFCryptKeys() bool {
 
 // GetHistoricTLFCryptKey implements the KeyMetadata interface for RootMetadata.
 func (md *RootMetadata) GetHistoricTLFCryptKey(
-	crypto cryptoPure, keyGen KeyGen,
+	codec kbfscodec.Codec, keyGen KeyGen,
 	currentKey kbfscrypto.TLFCryptKey) (kbfscrypto.TLFCryptKey, error) {
 	return md.bareMd.GetHistoricTLFCryptKey(
-		crypto, keyGen, currentKey, md.extra)
+		codec, keyGen, currentKey, md.extra)
 }
 
 // IsWriter checks that the given user is a valid writer of the TLF
@@ -1166,7 +1166,7 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(
 // validated, either by comparing to the current device key (using
 // IsLastModifiedBy), or by checking with KBPKI.
 func (rmds *RootMetadataSigned) IsValidAndSigned(
-	ctx context.Context, codec kbfscodec.Codec, crypto cryptoPure,
+	ctx context.Context, codec kbfscodec.Codec,
 	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
 	// Optimization -- if the RootMetadata signature is nil, it
 	// will fail verification.
@@ -1180,7 +1180,7 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 	}
 
 	err := rmds.MD.IsValidAndSigned(
-		ctx, codec, crypto, teamMemChecker, extra,
+		ctx, codec, teamMemChecker, extra,
 		rmds.WriterSigInfo.VerifyingKey)
 	if err != nil {
 		return err

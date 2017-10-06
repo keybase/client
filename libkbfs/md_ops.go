@@ -223,7 +223,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// would have rejected an update from a former team member that is
 	// still using an old key.  TODO(KBFS-2229): remove this.
 	err := rmds.IsValidAndSigned(
-		ctx, md.config.Codec(), md.config.Crypto(),
+		ctx, md.config.Codec(),
 		everyoneOnEveryTeamChecker{}, extra)
 	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{

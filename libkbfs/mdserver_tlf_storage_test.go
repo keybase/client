@@ -28,7 +28,6 @@ func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid BranchID) int {
 // single mdServerTlfStorage.
 func TestMDServerTlfStorageBasic(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 	signingKey := kbfscrypto.MakeFakeSigningKeyOrBust("test key")
 	verifyingKey := kbfscrypto.MakeFakeVerifyingKeyOrBust("test key")
 	signer := kbfscrypto.SigningKeySigner{Key: signingKey}
@@ -41,7 +40,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	}()
 
 	tlfID := tlf.FakeID(1, tlf.Private)
-	s := makeMDServerTlfStorage(tlfID, codec, crypto, wallClock{}, nil,
+	s := makeMDServerTlfStorage(tlfID, codec, wallClock{}, nil,
 		defaultClientMetadataVer, tempdir)
 	defer s.shutdown()
 
@@ -66,7 +65,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot := kbfsmd.ID{}
 	middleRoot := kbfsmd.ID{}
 	for i := kbfsmd.Revision(1); i <= 10; i++ {
-		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, codec, tlfID, h, i, uid, prevRoot)
 		rmds := signRMDSForTest(t, codec, signer, brmd)
 		// MDv3 TODO: pass extra metadata
 		recordBranchID, err := s.put(ctx, uid, verifyingKey, rmds, nil)
@@ -83,7 +82,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (3) Trigger a conflict.
 
-	brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, 10, uid, prevRoot)
+	brmd := makeBRMDForTest(t, codec, tlfID, h, 10, uid, prevRoot)
 	rmds := signRMDSForTest(t, codec, signer, brmd)
 	// MDv3 TODO: pass extra metadata
 	_, err = s.put(ctx, uid, verifyingKey, rmds, nil)
@@ -97,7 +96,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot = middleRoot
 	bid := FakeBranchID(1)
 	for i := kbfsmd.Revision(6); i < 41; i++ {
-		brmd := makeBRMDForTest(t, codec, crypto, tlfID, h, i, uid, prevRoot)
+		brmd := makeBRMDForTest(t, codec, tlfID, h, i, uid, prevRoot)
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
 		rmds := signRMDSForTest(t, codec, signer, brmd)

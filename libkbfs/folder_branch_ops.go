@@ -1260,7 +1260,7 @@ func (fbo *folderBranchOps) getSuccessorMDForWriteLockedForFilename(
 	// writes.  The caller must pass this into `finalizeMDWriteLocked`
 	// or the changes will be lost.
 	return md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
-		fbo.config.Codec(), fbo.config.Crypto(),
+		fbo.config.Codec(),
 		fbo.config.KeyManager(), fbo.config.KBPKI(), fbo.config.KBPKI(),
 		md.mdID, true)
 }
@@ -1299,7 +1299,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	}
 
 	newMd, err := md.MakeSuccessor(ctx, fbo.config.MetadataVersion(),
-		fbo.config.Codec(), fbo.config.Crypto(),
+		fbo.config.Codec(),
 		fbo.config.KeyManager(), fbo.config.KBPKI(), fbo.config.KBPKI(),
 		md.mdID, handle.IsWriter(session.UID))
 	if err != nil {

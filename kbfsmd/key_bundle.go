@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"fmt"
@@ -10,24 +10,13 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfshash"
 )
-
-// TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
-type TLFCryptKeyServerHalfID struct {
-	ID kbfshash.HMAC // Exported for serialization.
-}
-
-// String implements the Stringer interface for TLFCryptKeyServerHalfID.
-func (id TLFCryptKeyServerHalfID) String() string {
-	return id.ID.String()
-}
 
 // TLFCryptKeyInfo is a per-device key half entry in the
 // TLF{Writer,Reader}KeyBundleV{2,3}.
 type TLFCryptKeyInfo struct {
-	ClientHalf   EncryptedTLFCryptKeyClientHalf
-	ServerHalfID TLFCryptKeyServerHalfID
+	ClientHalf   kbfscrypto.EncryptedTLFCryptKeyClientHalf
+	ServerHalfID kbfscrypto.TLFCryptKeyServerHalfID
 	EPubKeyIndex int `codec:"i,omitempty"`
 
 	codec.UnknownFieldSetHandler
@@ -55,9 +44,9 @@ func (dpk DevicePublicKeys) Equals(other DevicePublicKeys) bool {
 // UserDevicePublicKeys is a map from users to that user's set of devices.
 type UserDevicePublicKeys map[keybase1.UID]DevicePublicKeys
 
-// removeKeylessUsersForTest returns a new UserDevicePublicKeys objects with
+// RemoveKeylessUsersForTest returns a new UserDevicePublicKeys objects with
 // all the users with an empty DevicePublicKeys removed.
-func (udpk UserDevicePublicKeys) removeKeylessUsersForTest() UserDevicePublicKeys {
+func (udpk UserDevicePublicKeys) RemoveKeylessUsersForTest() UserDevicePublicKeys {
 	udpkRemoved := make(UserDevicePublicKeys)
 	for u, dpk := range udpk {
 		if len(dpk) > 0 {
@@ -92,10 +81,10 @@ type DeviceKeyServerHalves map[kbfscrypto.CryptPublicKey]kbfscrypto.TLFCryptKeyS
 // DeviceServerHalves map.
 type UserDeviceKeyServerHalves map[keybase1.UID]DeviceKeyServerHalves
 
-// mergeUsers returns a UserDeviceKeyServerHalves that contains all
+// MergeUsers returns a UserDeviceKeyServerHalves that contains all
 // the users in serverHalves and other, which must be disjoint. This
 // isn't a deep copy.
-func (serverHalves UserDeviceKeyServerHalves) mergeUsers(
+func (serverHalves UserDeviceKeyServerHalves) MergeUsers(
 	other UserDeviceKeyServerHalves) (UserDeviceKeyServerHalves, error) {
 	merged := make(UserDeviceKeyServerHalves,
 		len(serverHalves)+len(other))
@@ -116,7 +105,7 @@ func (serverHalves UserDeviceKeyServerHalves) mergeUsers(
 // splitTLFCryptKey splits the given TLFCryptKey into two parts -- the
 // client-side part (which is encrypted with the given keys), and the
 // server-side part, which will be uploaded to the server.
-func splitTLFCryptKey(crypto cryptoPure, uid keybase1.UID,
+func splitTLFCryptKey(uid keybase1.UID,
 	tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
 	pubKey kbfscrypto.CryptPublicKey) (
@@ -125,23 +114,23 @@ func splitTLFCryptKey(crypto cryptoPure, uid keybase1.UID,
 	//    * mask it with the key to get the client half
 	//    * encrypt the client half
 	var serverHalf kbfscrypto.TLFCryptKeyServerHalf
-	serverHalf, err := crypto.MakeRandomTLFCryptKeyServerHalf()
+	serverHalf, err := kbfscrypto.MakeRandomTLFCryptKeyServerHalf()
 	if err != nil {
 		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
 
 	clientHalf := kbfscrypto.MaskTLFCryptKey(serverHalf, tlfCryptKey)
 
-	var encryptedClientHalf EncryptedTLFCryptKeyClientHalf
+	var encryptedClientHalf kbfscrypto.EncryptedTLFCryptKeyClientHalf
 	encryptedClientHalf, err =
-		crypto.EncryptTLFCryptKeyClientHalf(ePrivKey, pubKey, clientHalf)
+		kbfscrypto.EncryptTLFCryptKeyClientHalf(ePrivKey, pubKey, clientHalf)
 	if err != nil {
 		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
 
-	var serverHalfID TLFCryptKeyServerHalfID
+	var serverHalfID kbfscrypto.TLFCryptKeyServerHalfID
 	serverHalfID, err =
-		crypto.GetTLFCryptKeyServerHalfID(uid, pubKey, serverHalf)
+		kbfscrypto.MakeTLFCryptKeyServerHalfID(uid, pubKey, serverHalf)
 	if err != nil {
 		return TLFCryptKeyInfo{}, kbfscrypto.TLFCryptKeyServerHalf{}, err
 	}
@@ -154,42 +143,44 @@ func splitTLFCryptKey(crypto cryptoPure, uid keybase1.UID,
 	return clientInfo, serverHalf, nil
 }
 
-type deviceServerHalfRemovalInfo map[kbfscrypto.CryptPublicKey][]TLFCryptKeyServerHalfID
+// DeviceServerHalfRemovalInfo is a map from a device's crypt public
+// key to a list of server halves to remove.
+type DeviceServerHalfRemovalInfo map[kbfscrypto.CryptPublicKey][]kbfscrypto.TLFCryptKeyServerHalfID
 
-// userServerHalfRemovalInfo contains a map from devices (identified
+// UserServerHalfRemovalInfo contains a map from devices (identified
 // by its crypt public key) to a list of IDs for key server halves to
 // remove (one per key generation). For logging purposes, it also
 // contains a bool indicating whether all of the user's devices were
 // removed.
-type userServerHalfRemovalInfo struct {
-	userRemoved         bool
-	deviceServerHalfIDs deviceServerHalfRemovalInfo
+type UserServerHalfRemovalInfo struct {
+	UserRemoved         bool
+	DeviceServerHalfIDs DeviceServerHalfRemovalInfo
 }
 
 // addGeneration merges the keys in genInfo (which must be one per
-// device) into ri. genInfo must have the same userRemoved value and
+// device) into ri. genInfo must have the same UserRemoved value and
 // keys as ri.
-func (ri userServerHalfRemovalInfo) addGeneration(
-	uid keybase1.UID, genInfo userServerHalfRemovalInfo) error {
-	if ri.userRemoved != genInfo.userRemoved {
+func (ri UserServerHalfRemovalInfo) addGeneration(
+	uid keybase1.UID, genInfo UserServerHalfRemovalInfo) error {
+	if ri.UserRemoved != genInfo.UserRemoved {
 		return fmt.Errorf(
-			"userRemoved=%t != generation userRemoved=%t for user %s",
-			ri.userRemoved, genInfo.userRemoved, uid)
+			"UserRemoved=%t != generation UserRemoved=%t for user %s",
+			ri.UserRemoved, genInfo.UserRemoved, uid)
 	}
 
-	if len(ri.deviceServerHalfIDs) != len(genInfo.deviceServerHalfIDs) {
+	if len(ri.DeviceServerHalfIDs) != len(genInfo.DeviceServerHalfIDs) {
 		return fmt.Errorf(
 			"device count=%d != generation device count=%d for user %s",
-			len(ri.deviceServerHalfIDs),
-			len(genInfo.deviceServerHalfIDs), uid)
+			len(ri.DeviceServerHalfIDs),
+			len(genInfo.DeviceServerHalfIDs), uid)
 	}
 
 	idCount := -1
-	for key, serverHalfIDs := range genInfo.deviceServerHalfIDs {
+	for key, serverHalfIDs := range genInfo.DeviceServerHalfIDs {
 		if idCount == -1 {
-			idCount = len(ri.deviceServerHalfIDs[key])
+			idCount = len(ri.DeviceServerHalfIDs[key])
 		} else {
-			localIDCount := len(ri.deviceServerHalfIDs[key])
+			localIDCount := len(ri.DeviceServerHalfIDs[key])
 			if localIDCount != idCount {
 				return fmt.Errorf(
 					"expected %d keys, got %d for user %s and device %s",
@@ -202,13 +193,13 @@ func (ri userServerHalfRemovalInfo) addGeneration(
 				"expected exactly one key, got %d for user %s and device %s",
 				len(serverHalfIDs), uid, key)
 		}
-		if _, ok := ri.deviceServerHalfIDs[key]; !ok {
+		if _, ok := ri.DeviceServerHalfIDs[key]; !ok {
 			return fmt.Errorf(
 				"no generation info for user %s and device %s",
 				uid, key)
 		}
-		ri.deviceServerHalfIDs[key] = append(
-			ri.deviceServerHalfIDs[key], serverHalfIDs[0])
+		ri.DeviceServerHalfIDs[key] = append(
+			ri.DeviceServerHalfIDs[key], serverHalfIDs[0])
 	}
 
 	return nil
@@ -216,11 +207,11 @@ func (ri userServerHalfRemovalInfo) addGeneration(
 
 // ServerHalfRemovalInfo is a map from users and devices to a list of
 // server half IDs to remove from the server.
-type ServerHalfRemovalInfo map[keybase1.UID]userServerHalfRemovalInfo
+type ServerHalfRemovalInfo map[keybase1.UID]UserServerHalfRemovalInfo
 
-// addGeneration merges the keys in genInfo (which must be one per
+// AddGeneration merges the keys in genInfo (which must be one per
 // device) into info. genInfo must have the same users as info.
-func (info ServerHalfRemovalInfo) addGeneration(
+func (info ServerHalfRemovalInfo) AddGeneration(
 	genInfo ServerHalfRemovalInfo) error {
 	if len(info) != len(genInfo) {
 		return fmt.Errorf(
@@ -240,10 +231,10 @@ func (info ServerHalfRemovalInfo) addGeneration(
 	return nil
 }
 
-// mergeUsers returns a ServerHalfRemovalInfo that contains all the
+// MergeUsers returns a ServerHalfRemovalInfo that contains all the
 // users in info and other, which must be disjoint. This isn't a deep
 // copy.
-func (info ServerHalfRemovalInfo) mergeUsers(
+func (info ServerHalfRemovalInfo) MergeUsers(
 	other ServerHalfRemovalInfo) (ServerHalfRemovalInfo, error) {
 	merged := make(ServerHalfRemovalInfo, len(info)+len(other))
 	for uid, removalInfo := range info {

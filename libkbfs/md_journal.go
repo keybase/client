@@ -334,24 +334,24 @@ func (j mdJournal) getExtraMetadata(
 		return nil, nil
 	}
 
-	wkb, err := DeserializeTLFWriterKeyBundleV3(
+	wkb, err := kbfsmd.DeserializeTLFWriterKeyBundleV3(
 		j.codec, j.writerKeyBundleV3Path(wkbID))
 	if err != nil {
 		return nil, err
 	}
 
-	err = checkWKBID(j.crypto, wkbID, wkb)
+	err = checkWKBID(j.codec, wkbID, wkb)
 	if err != nil {
 		return nil, err
 	}
 
-	rkb, err := DeserializeTLFReaderKeyBundleV3(
+	rkb, err := kbfsmd.DeserializeTLFReaderKeyBundleV3(
 		j.codec, j.readerKeyBundleV3Path(rkbID))
 	if err != nil {
 		return nil, err
 	}
 
-	err = checkRKBID(j.crypto, rkbID, rkb)
+	err = checkRKBID(j.codec, rkbID, rkb)
 	if err != nil {
 		return nil, err
 	}
@@ -391,12 +391,12 @@ func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
 	// it as part of the mdInfo, so we don't needlessly send it
 	// while flushing.
 
-	err = checkWKBID(j.crypto, wkbID, extraV3.wkb)
+	err = checkWKBID(j.codec, wkbID, extraV3.wkb)
 	if err != nil {
 		return false, false, err
 	}
 
-	err = checkRKBID(j.crypto, rkbID, extraV3.rkb)
+	err = checkRKBID(j.codec, rkbID, extraV3.rkb)
 	if err != nil {
 		return false, false, err
 	}
@@ -475,7 +475,7 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 	}
 
 	err = rmd.IsValidAndSigned(
-		ctx, j.codec, j.crypto, j.teamMemChecker, extra, j.key)
+		ctx, j.codec, j.teamMemChecker, extra, j.key)
 	if err != nil {
 		return nil, nil, time.Time{}, err
 	}
@@ -1341,7 +1341,7 @@ func (j *mdJournal) put(
 	}
 
 	err = rmd.bareMd.IsValidAndSigned(
-		ctx, j.codec, j.crypto, j.teamMemChecker, rmd.extra, j.key)
+		ctx, j.codec, j.teamMemChecker, rmd.extra, j.key)
 	if err != nil {
 		return kbfsmd.ID{}, err
 	}

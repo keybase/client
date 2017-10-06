@@ -39,3 +39,23 @@ type UnknownSigVer struct {
 func (e UnknownSigVer) Error() string {
 	return fmt.Sprintf("Unknown signature version %d", int(e.Ver))
 }
+
+// UnknownEncryptionVer indicates that we can't decrypt an
+// encryptedData object because it has an unknown version.
+type UnknownEncryptionVer struct {
+	Ver EncryptionVer
+}
+
+func (e UnknownEncryptionVer) Error() string {
+	return fmt.Sprintf("Unknown encryption version %d", int(e.Ver))
+}
+
+// InvalidNonceError indicates that an invalid cryptographic nonce was
+// detected.
+type InvalidNonceError struct {
+	Nonce []byte
+}
+
+func (e InvalidNonceError) Error() string {
+	return fmt.Sprintf("Invalid nonce %v", e.Nonce)
+}

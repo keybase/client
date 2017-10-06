@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"reflect"
@@ -37,19 +37,17 @@ func TestRemoveDevicesNotInV2(t *testing.T) {
 	half2c := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x5})
 	half3a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x6})
 
-	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
-	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1a, half1a)
+	id1a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1a, half1a)
 	require.NoError(t, err)
-	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1b, half1b)
+	id1b, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1b, half1b)
 	require.NoError(t, err)
-	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2a, half2a)
+	id2a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2a, half2a)
 	require.NoError(t, err)
-	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2b, half2b)
+	id2b, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2b, half2b)
 	require.NoError(t, err)
-	id2c, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2c, half2c)
+	id2c, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2c, half2c)
 	require.NoError(t, err)
-	id3a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key3a, half3a)
+	id3a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key3a, half3a)
 	require.NoError(t, err)
 
 	udkimV2 := UserDeviceKeyInfoMapV2{
@@ -85,7 +83,7 @@ func TestRemoveDevicesNotInV2(t *testing.T) {
 		},
 	}
 
-	removalInfo := udkimV2.removeDevicesNotIn(UserDevicePublicKeys{
+	removalInfo := udkimV2.RemoveDevicesNotIn(UserDevicePublicKeys{
 		uid2: {key2a: true, key2c: true},
 		uid3: {key3a: true},
 	})
@@ -110,17 +108,17 @@ func TestRemoveDevicesNotInV2(t *testing.T) {
 	}, udkimV2)
 
 	require.Equal(t, ServerHalfRemovalInfo{
-		uid1: userServerHalfRemovalInfo{
-			userRemoved: true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key1a: []TLFCryptKeyServerHalfID{id1a},
-				key1b: []TLFCryptKeyServerHalfID{id1b},
+		uid1: UserServerHalfRemovalInfo{
+			UserRemoved: true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key1a: []kbfscrypto.TLFCryptKeyServerHalfID{id1a},
+				key1b: []kbfscrypto.TLFCryptKeyServerHalfID{id1b},
 			},
 		},
-		uid2: userServerHalfRemovalInfo{
-			userRemoved: false,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key2b: []TLFCryptKeyServerHalfID{id2b},
+		uid2: UserServerHalfRemovalInfo{
+			UserRemoved: false,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key2b: []kbfscrypto.TLFCryptKeyServerHalfID{id2b},
 			},
 		},
 	}, removalInfo)
@@ -143,11 +141,9 @@ func TestRemoveLastDeviceV2(t *testing.T) {
 	half1 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
 	half2 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
 
-	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
-	id1, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1, half1)
+	id1, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1, half1)
 	require.NoError(t, err)
-	id2, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2)
+	id2, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2, half2)
 	require.NoError(t, err)
 
 	udkimV2 := UserDeviceKeyInfoMapV2{
@@ -167,7 +163,7 @@ func TestRemoveLastDeviceV2(t *testing.T) {
 		uid4: DeviceKeyInfoMapV2{},
 	}
 
-	removalInfo := udkimV2.removeDevicesNotIn(UserDevicePublicKeys{
+	removalInfo := udkimV2.RemoveDevicesNotIn(UserDevicePublicKeys{
 		uid1: {},
 		uid3: {},
 	})
@@ -178,21 +174,21 @@ func TestRemoveLastDeviceV2(t *testing.T) {
 	}, udkimV2)
 
 	require.Equal(t, ServerHalfRemovalInfo{
-		uid1: userServerHalfRemovalInfo{
-			userRemoved: false,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key1: []TLFCryptKeyServerHalfID{id1},
+		uid1: UserServerHalfRemovalInfo{
+			UserRemoved: false,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key1: []kbfscrypto.TLFCryptKeyServerHalfID{id1},
 			},
 		},
-		uid2: userServerHalfRemovalInfo{
-			userRemoved: true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key2: []TLFCryptKeyServerHalfID{id2},
+		uid2: UserServerHalfRemovalInfo{
+			UserRemoved: true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key2: []kbfscrypto.TLFCryptKeyServerHalfID{id2},
 			},
 		},
-		uid4: userServerHalfRemovalInfo{
-			userRemoved:         true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{},
+		uid4: UserServerHalfRemovalInfo{
+			UserRemoved:         true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{},
 		},
 	}, removalInfo)
 }
@@ -243,7 +239,6 @@ func TestToTLFWriterKeyBundleV3(t *testing.T) {
 	wkg := TLFWriterKeyGenerationsV2{TLFWriterKeyBundleV2{}, wkbV2}
 
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 	tlfCryptKey1 := kbfscrypto.MakeTLFCryptKey([32]byte{0x1})
 	tlfCryptKey2 := kbfscrypto.MakeTLFCryptKey([32]byte{0x2})
 	tlfCryptKeyGetter := func() ([]kbfscrypto.TLFCryptKey, error) {
@@ -279,14 +274,14 @@ func TestToTLFWriterKeyBundleV3(t *testing.T) {
 	}
 
 	retrievedWKBV2, wkbV3, err := wkg.ToTLFWriterKeyBundleV3(
-		codec, crypto, tlfCryptKeyGetter)
+		codec, tlfCryptKeyGetter)
 	require.NoError(t, err)
 	require.Equal(t, wkbV2, retrievedWKBV2)
 	encryptedOldKeys := wkbV3.EncryptedHistoricTLFCryptKeys
-	wkbV3.EncryptedHistoricTLFCryptKeys = EncryptedTLFCryptKeys{}
+	wkbV3.EncryptedHistoricTLFCryptKeys = kbfscrypto.EncryptedTLFCryptKeys{}
 	require.Equal(t, expectedWKBV3, wkbV3)
 	oldKeys, err :=
-		crypto.DecryptTLFCryptKeys(encryptedOldKeys, tlfCryptKey2)
+		kbfscrypto.DecryptTLFCryptKeys(codec, encryptedOldKeys, tlfCryptKey2)
 	require.NoError(t, err)
 	require.Equal(t, oldKeys, []kbfscrypto.TLFCryptKey{tlfCryptKey1})
 }
@@ -336,7 +331,7 @@ func TestToTLFReaderKeyBundleV3(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
 	_, err := rkg.ToTLFReaderKeyBundleV3(codec, TLFWriterKeyBundleV2{})
 	require.Error(t, err)
-	require.True(t, strings.HasPrefix(err.Error(), "Invalid key in writerEPubKeys with index "),
+	require.True(t, strings.HasPrefix(err.Error(), "Invalid key in WriterEPubKeys with index "),
 		"err: %v", err)
 
 	wEPubKey1 := kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0x3})

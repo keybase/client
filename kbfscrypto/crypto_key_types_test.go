@@ -250,6 +250,20 @@ func TestTLFCryptKeyEncodeDecode(t *testing.T) {
 	testByte32ContainerEncodeDecode(t, tlfCryptKeyType{})
 }
 
+// Test (very superficially) that MakeRandomTLFCryptKeyServerHalf()
+// returns non-zero values that aren't equal.
+func TestRandomTLFCryptKeyServerHalf(t *testing.T) {
+	k1, err := MakeRandomTLFCryptKeyServerHalf()
+	require.NoError(t, err)
+	require.NotEqual(t, TLFCryptKeyServerHalf{}, k1)
+
+	k2, err := MakeRandomTLFCryptKeyServerHalf()
+	require.NoError(t, err)
+	require.NotEqual(t, TLFCryptKeyServerHalf{}, k2)
+
+	require.NotEqual(t, k1, k2)
+}
+
 type blockCryptKeyServerHalfType struct{}
 
 func (blockCryptKeyServerHalfType) makeZero() interface{} {

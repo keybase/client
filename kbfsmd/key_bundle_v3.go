@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"encoding"
@@ -48,14 +48,14 @@ func (dkimV3 DeviceKeyInfoMapV3) Size() int {
 		// We are not using v.ClientHalf.encryptedData here since that would
 		// include the size of struct itself which is already counted in
 		// cache.StaticSizeOfMapWithSize.
-		contentSize += len(v.ClientHalf.encryptedData.EncryptedData) +
-			len(v.ClientHalf.encryptedData.Nonce)
+		contentSize += len(v.ClientHalf.EncryptedData) +
+			len(v.ClientHalf.Nonce)
 	}
 
 	return mapSize + contentSize
 }
 
-func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfos(crypto cryptoPure,
+func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfos(
 	uid keybase1.UID, tlfCryptKey kbfscrypto.TLFCryptKey,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey, ePubIndex int,
 	updatedDeviceKeys DevicePublicKeys) (
@@ -69,7 +69,7 @@ func (dkimV3 DeviceKeyInfoMapV3) fillInDeviceInfos(crypto cryptoPure,
 		}
 
 		clientInfo, serverHalf, err := splitTLFCryptKey(
-			crypto, uid, tlfCryptKey, ePrivKey, ePubIndex, k)
+			uid, tlfCryptKey, ePrivKey, ePubIndex, k)
 		if err != nil {
 			return nil, err
 		}
@@ -108,7 +108,8 @@ func (udkimV3 UserDeviceKeyInfoMapV3) Size() int {
 	return mapSize + contentSize
 }
 
-func (udkimV3 UserDeviceKeyInfoMapV3) toPublicKeys() UserDevicePublicKeys {
+// ToPublicKeys converts this object to a UserDevicePublicKeys object.
+func (udkimV3 UserDeviceKeyInfoMapV3) ToPublicKeys() UserDevicePublicKeys {
 	publicKeys := make(UserDevicePublicKeys, len(udkimV3))
 	for u, dkimV3 := range udkimV3 {
 		publicKeys[u] = dkimV3.toPublicKeys()
@@ -148,14 +149,14 @@ func writerUDKIMV2ToV3(codec kbfscodec.Codec, udkimV2 UserDeviceKeyInfoMapV2,
 	return udkimV3, nil
 }
 
-// removeDevicesNotIn removes any info for any device that is not
+// RemoveDevicesNotIn removes any info for any device that is not
 // contained in the given map of users and devices.
-func (udkimV3 UserDeviceKeyInfoMapV3) removeDevicesNotIn(
+func (udkimV3 UserDeviceKeyInfoMapV3) RemoveDevicesNotIn(
 	updatedUserKeys UserDevicePublicKeys) ServerHalfRemovalInfo {
 	removalInfo := make(ServerHalfRemovalInfo)
 	for uid, dkim := range udkimV3 {
 		userRemoved := false
-		deviceServerHalfIDs := make(deviceServerHalfRemovalInfo)
+		deviceServerHalfIDs := make(DeviceServerHalfRemovalInfo)
 		if deviceKeys, ok := updatedUserKeys[uid]; ok {
 			for key, info := range dkim {
 				if !deviceKeys[key] {
@@ -183,17 +184,18 @@ func (udkimV3 UserDeviceKeyInfoMapV3) removeDevicesNotIn(
 			delete(udkimV3, uid)
 		}
 
-		removalInfo[uid] = userServerHalfRemovalInfo{
-			userRemoved:         userRemoved,
-			deviceServerHalfIDs: deviceServerHalfIDs,
+		removalInfo[uid] = UserServerHalfRemovalInfo{
+			UserRemoved:         userRemoved,
+			DeviceServerHalfIDs: deviceServerHalfIDs,
 		}
 	}
 
 	return removalInfo
 }
 
-func (udkimV3 UserDeviceKeyInfoMapV3) fillInUserInfos(
-	crypto cryptoPure, newIndex int, updatedUserKeys UserDevicePublicKeys,
+// FillInUserInfos fills in this map from the given info.
+func (udkimV3 UserDeviceKeyInfoMapV3) FillInUserInfos(
+	newIndex int, updatedUserKeys UserDevicePublicKeys,
 	ePrivKey kbfscrypto.TLFEphemeralPrivateKey,
 	tlfCryptKey kbfscrypto.TLFCryptKey) (
 	serverHalves UserDeviceKeyServerHalves, err error) {
@@ -204,7 +206,7 @@ func (udkimV3 UserDeviceKeyInfoMapV3) fillInUserInfos(
 		}
 
 		deviceServerHalves, err := udkimV3[u].fillInDeviceInfos(
-			crypto, u, tlfCryptKey, ePrivKey, newIndex,
+			u, tlfCryptKey, ePrivKey, newIndex,
 			updatedDeviceKeys)
 		if err != nil {
 			return nil, err
@@ -238,7 +240,7 @@ type TLFWriterKeyBundleV3 struct {
 
 	// This is a time-ordered encrypted list of historic key generations.
 	// It is encrypted with the latest generation of the TLF crypt key.
-	EncryptedHistoricTLFCryptKeys EncryptedTLFCryptKeys `codec:"oldKeys"`
+	EncryptedHistoricTLFCryptKeys kbfscrypto.EncryptedTLFCryptKeys `codec:"oldKeys"`
 
 	codec.UnknownFieldSetHandler
 }
@@ -270,7 +272,7 @@ func (wkb TLFWriterKeyBundleV3) Size() (bytes int) {
 	bytes += wkb.TLFEphemeralPublicKeys.Size()
 
 	// EncryptedHistoricTLFCryptKeys
-	bytes += wkb.EncryptedHistoricTLFCryptKeys.encryptedData.Size()
+	bytes += wkb.EncryptedHistoricTLFCryptKeys.Size()
 
 	// For codec.UnknownFieldSetHandler. It has a private map field which we
 	// can't inspect unless extending the codec package. Just assume it's empty
@@ -358,6 +360,24 @@ func (h *TLFWriterKeyBundleID) UnmarshalBinary(data []byte) error {
 // IsNil returns true if the ID is unset.
 func (h TLFWriterKeyBundleID) IsNil() bool {
 	return h == TLFWriterKeyBundleID{}
+}
+
+// MakeTLFWriterKeyBundleID hashes a TLFWriterKeyBundleV3 to create an ID.
+func MakeTLFWriterKeyBundleID(codec kbfscodec.Codec, wkb TLFWriterKeyBundleV3) (
+	TLFWriterKeyBundleID, error) {
+	if len(wkb.Keys) == 0 {
+		return TLFWriterKeyBundleID{}, errors.New(
+			"Writer key bundle with no keys (MakeTLFWriterKeyBundleID)")
+	}
+	buf, err := codec.Encode(wkb)
+	if err != nil {
+		return TLFWriterKeyBundleID{}, err
+	}
+	h, err := kbfshash.DefaultHash(buf)
+	if err != nil {
+		return TLFWriterKeyBundleID{}, err
+	}
+	return TLFWriterKeyBundleID{h}, nil
 }
 
 // TLFReaderKeyBundleV3 stores all the reader keys with reader
@@ -484,4 +504,18 @@ func (h *TLFReaderKeyBundleID) UnmarshalBinary(data []byte) error {
 // IsNil returns true if the ID is unset.
 func (h TLFReaderKeyBundleID) IsNil() bool {
 	return h == TLFReaderKeyBundleID{}
+}
+
+// MakeTLFReaderKeyBundleID hashes a TLFReaderKeyBundleV3 to create an ID.
+func MakeTLFReaderKeyBundleID(codec kbfscodec.Codec, rkb TLFReaderKeyBundleV3) (
+	TLFReaderKeyBundleID, error) {
+	buf, err := codec.Encode(rkb)
+	if err != nil {
+		return TLFReaderKeyBundleID{}, err
+	}
+	h, err := kbfshash.DefaultHash(buf)
+	if err != nil {
+		return TLFReaderKeyBundleID{}, err
+	}
+	return TLFReaderKeyBundleID{h}, nil
 }

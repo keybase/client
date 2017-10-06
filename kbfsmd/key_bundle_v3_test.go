@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"testing"
@@ -17,18 +17,17 @@ import (
 // Make sure creating an WKB ID for a WKB with no keys fails.
 func TestWKBID(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 
 	var wkb TLFWriterKeyBundleV3
 
-	_, err := crypto.MakeTLFWriterKeyBundleID(wkb)
+	_, err := MakeTLFWriterKeyBundleID(codec, wkb)
 	require.Error(t, err)
 
 	wkb.Keys = UserDeviceKeyInfoMapV3{
 		keybase1.UID(0): nil,
 	}
 
-	_, err = crypto.MakeTLFWriterKeyBundleID(wkb)
+	_, err = MakeTLFWriterKeyBundleID(codec, wkb)
 	require.NoError(t, err)
 }
 
@@ -36,15 +35,14 @@ func TestWKBID(t *testing.T) {
 // same ID.
 func TestRKBID(t *testing.T) {
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 
 	var wkb1, wkb2 TLFReaderKeyBundleV3
 	wkb2.Keys = make(UserDeviceKeyInfoMapV3)
 
-	id1, err := crypto.MakeTLFReaderKeyBundleID(wkb1)
+	id1, err := MakeTLFReaderKeyBundleID(codec, wkb1)
 	require.NoError(t, err)
 
-	id2, err := crypto.MakeTLFReaderKeyBundleID(wkb2)
+	id2, err := MakeTLFReaderKeyBundleID(codec, wkb2)
 	require.NoError(t, err)
 
 	require.Equal(t, id1, id2)
@@ -71,19 +69,17 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 	half2c := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x5})
 	half3a := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x6})
 
-	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
-	id1a, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1a, half1a)
+	id1a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1a, half1a)
 	require.NoError(t, err)
-	id1b, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1b, half1b)
+	id1b, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1b, half1b)
 	require.NoError(t, err)
-	id2a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2a, half2a)
+	id2a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2a, half2a)
 	require.NoError(t, err)
-	id2b, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2b, half2b)
+	id2b, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2b, half2b)
 	require.NoError(t, err)
-	id2c, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2c, half2c)
+	id2c, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2c, half2c)
 	require.NoError(t, err)
-	id3a, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key3a, half3a)
+	id3a, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key3a, half3a)
 	require.NoError(t, err)
 
 	udkimV3 := UserDeviceKeyInfoMapV3{
@@ -119,7 +115,7 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 		},
 	}
 
-	removalInfo := udkimV3.removeDevicesNotIn(UserDevicePublicKeys{
+	removalInfo := udkimV3.RemoveDevicesNotIn(UserDevicePublicKeys{
 		uid2: {key2a: true, key2c: true},
 		uid3: {key3a: true},
 	})
@@ -144,17 +140,17 @@ func TestRemoveDevicesNotInV3(t *testing.T) {
 	}, udkimV3)
 
 	require.Equal(t, ServerHalfRemovalInfo{
-		uid1: userServerHalfRemovalInfo{
-			userRemoved: true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key1a: []TLFCryptKeyServerHalfID{id1a},
-				key1b: []TLFCryptKeyServerHalfID{id1b},
+		uid1: UserServerHalfRemovalInfo{
+			UserRemoved: true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key1a: []kbfscrypto.TLFCryptKeyServerHalfID{id1a},
+				key1b: []kbfscrypto.TLFCryptKeyServerHalfID{id1b},
 			},
 		},
-		uid2: userServerHalfRemovalInfo{
-			userRemoved: false,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key2b: []TLFCryptKeyServerHalfID{id2b},
+		uid2: UserServerHalfRemovalInfo{
+			UserRemoved: false,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key2b: []kbfscrypto.TLFCryptKeyServerHalfID{id2b},
 			},
 		},
 	}, removalInfo)
@@ -177,11 +173,9 @@ func TestRemoveLastDeviceV3(t *testing.T) {
 	half1 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x1})
 	half2 := kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x2})
 
-	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
-	id1, err := crypto.GetTLFCryptKeyServerHalfID(uid1, key1, half1)
+	id1, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid1, key1, half1)
 	require.NoError(t, err)
-	id2, err := crypto.GetTLFCryptKeyServerHalfID(uid2, key2, half2)
+	id2, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(uid2, key2, half2)
 	require.NoError(t, err)
 
 	udkimV3 := UserDeviceKeyInfoMapV3{
@@ -201,7 +195,7 @@ func TestRemoveLastDeviceV3(t *testing.T) {
 		uid4: DeviceKeyInfoMapV3{},
 	}
 
-	removalInfo := udkimV3.removeDevicesNotIn(UserDevicePublicKeys{
+	removalInfo := udkimV3.RemoveDevicesNotIn(UserDevicePublicKeys{
 		uid1: {},
 		uid3: {},
 	})
@@ -212,21 +206,21 @@ func TestRemoveLastDeviceV3(t *testing.T) {
 	}, udkimV3)
 
 	require.Equal(t, ServerHalfRemovalInfo{
-		uid1: userServerHalfRemovalInfo{
-			userRemoved: false,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key1: []TLFCryptKeyServerHalfID{id1},
+		uid1: UserServerHalfRemovalInfo{
+			UserRemoved: false,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key1: []kbfscrypto.TLFCryptKeyServerHalfID{id1},
 			},
 		},
-		uid2: userServerHalfRemovalInfo{
-			userRemoved: true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{
-				key2: []TLFCryptKeyServerHalfID{id2},
+		uid2: UserServerHalfRemovalInfo{
+			UserRemoved: true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
+				key2: []kbfscrypto.TLFCryptKeyServerHalfID{id2},
 			},
 		},
-		uid4: userServerHalfRemovalInfo{
-			userRemoved:         true,
-			deviceServerHalfIDs: deviceServerHalfRemovalInfo{},
+		uid4: UserServerHalfRemovalInfo{
+			UserRemoved:         true,
+			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{},
 		},
 	}, removalInfo)
 }
@@ -285,7 +279,7 @@ func makeFakeTLFWriterKeyBundleV3Future(t *testing.T) tlfWriterKeyBundleV3Future
 		kbfscrypto.TLFEphemeralPublicKeys{
 			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xb}),
 		},
-		EncryptedTLFCryptKeys{},
+		kbfscrypto.EncryptedTLFCryptKeys{},
 		codec.UnknownFieldSetHandler{},
 	}
 	return tlfWriterKeyBundleV3Future{

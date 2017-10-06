@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfshash"
 	"github.com/pkg/errors"
 )
 
@@ -244,6 +245,21 @@ func MakeTLFEphemeralPrivateKey(data [32]byte) TLFEphemeralPrivateKey {
 	return TLFEphemeralPrivateKey{privateByte32Container{data}}
 }
 
+// MakeRandomTLFEphemeralKeys generates ephemeral keys using a CSPRNG
+// for a TLF. These keys can then be used to key/rekey the TLF.
+func MakeRandomTLFEphemeralKeys() (
+	TLFEphemeralPublicKey, TLFEphemeralPrivateKey, error) {
+	keyPair, err := libkb.GenerateNaclDHKeyPair()
+	if err != nil {
+		return TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{},
+			errors.WithStack(err)
+	}
+
+	ePubKey := MakeTLFEphemeralPublicKey(keyPair.Public)
+	ePrivKey := MakeTLFEphemeralPrivateKey(*keyPair.Private)
+	return ePubKey, ePrivKey, nil
+}
+
 // CryptPrivateKey is a private key for encryption/decryption.
 type CryptPrivateKey struct {
 	kp libkb.NaclDHKeyPair
@@ -360,6 +376,49 @@ func MakeRandomTLFCryptKeyServerHalf() (
 	}
 	serverHalf = MakeTLFCryptKeyServerHalf(data)
 	return serverHalf, nil
+}
+
+// TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
+type TLFCryptKeyServerHalfID struct {
+	ID kbfshash.HMAC // Exported for serialization.
+}
+
+// String implements the Stringer interface for TLFCryptKeyServerHalfID.
+func (id TLFCryptKeyServerHalfID) String() string {
+	return id.ID.String()
+}
+
+// MakeTLFCryptKeyServerHalfID creates a unique ID for this particular
+// TLFCryptKeyServerHalf.
+func MakeTLFCryptKeyServerHalfID(
+	user keybase1.UID, devicePubKey CryptPublicKey,
+	serverHalf TLFCryptKeyServerHalf) (
+	TLFCryptKeyServerHalfID, error) {
+	key, err := serverHalf.MarshalBinary()
+	if err != nil {
+		return TLFCryptKeyServerHalfID{}, err
+	}
+	data := append(user.ToBytes(), devicePubKey.KID().ToBytes()...)
+	hmac, err := kbfshash.DefaultHMAC(key, data)
+	if err != nil {
+		return TLFCryptKeyServerHalfID{}, err
+	}
+	return TLFCryptKeyServerHalfID{
+		ID: hmac,
+	}, nil
+}
+
+// VerifyTLFCryptKeyServerHalfID verifies the ID is the proper HMAC result.
+func VerifyTLFCryptKeyServerHalfID(
+	serverHalfID TLFCryptKeyServerHalfID,
+	user keybase1.UID, devicePubKey CryptPublicKey,
+	serverHalf TLFCryptKeyServerHalf) error {
+	key, err := serverHalf.MarshalBinary()
+	if err != nil {
+		return err
+	}
+	data := append(user.ToBytes(), devicePubKey.KID().ToBytes()...)
+	return serverHalfID.ID.Verify(key, data)
 }
 
 // TLFCryptKeyClientHalf (t_u^{f,k,i} for a user u, a folder f, a key

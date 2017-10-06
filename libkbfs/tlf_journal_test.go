@@ -177,11 +177,11 @@ func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	expectedPrevRoot kbfsmd.ID, expectedMergeStatus MergeStatus,
 	expectedBranchID BranchID) {
 	verifyingKey := c.crypto.SigningKeySigner.Key.GetVerifyingKey()
-	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(), c.Crypto(),
+	checkBRMD(c.t, c.uid, verifyingKey, c.Codec(),
 		rmds.MD, extra, expectedRevision, expectedPrevRoot,
 		expectedMergeStatus, expectedBranchID)
 	err := rmds.IsValidAndSigned(
-		context.Background(), c.Codec(), c.Crypto(), nil, extra)
+		context.Background(), c.Codec(), nil, extra)
 	require.NoError(c.t, err)
 	err = rmds.IsLastModifiedBy(c.uid, verifyingKey)
 	require.NoError(c.t, err)

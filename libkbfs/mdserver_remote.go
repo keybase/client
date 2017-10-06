@@ -1148,7 +1148,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 			return nil, nil, err
 		}
 		// Verify it's what we expect.
-		bundleID, err := md.config.Crypto().MakeTLFWriterKeyBundleID(*wkb)
+		bundleID, err := kbfsmd.MakeTLFWriterKeyBundleID(md.config.Codec(), *wkb)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -1171,7 +1171,7 @@ func (md *MDServerRemote) GetKeyBundles(ctx context.Context,
 			return nil, nil, err
 		}
 		// Verify it's what we expect.
-		bundleID, err := md.config.Crypto().MakeTLFReaderKeyBundleID(*rkb)
+		bundleID, err := kbfsmd.MakeTLFReaderKeyBundleID(md.config.Codec(), *rkb)
 		if err != nil {
 			return nil, nil, err
 		}
