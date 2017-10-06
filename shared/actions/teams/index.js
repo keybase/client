@@ -118,6 +118,8 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
         name: teamname,
       },
     })
+
+    // Get requests to join
     const requests: RpcTypes.TeamJoinRequest[] = yield call(RpcTypes.teamsTeamListRequestsRpcPromise)
     requests.sort((a, b) => a.username.localeCompare(b.username))
 
