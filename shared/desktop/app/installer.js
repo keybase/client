@@ -49,7 +49,12 @@ export default (callback: (err: any) => void): void => {
   const args = ['--debug', 'install-auto', '--format=json', '--timeout=' + timeout + 's']
 
   exec(keybaseBin, args, 'darwin', 'prod', true, (err, attempted, stdout, stderr) => {
-    let errorsResult: CheckErrorsResult = {errors: [], hasCLIError: false, hasFUSEError: false, hasKBNMError: false}
+    let errorsResult: CheckErrorsResult = {
+      errors: [],
+      hasCLIError: false,
+      hasFUSEError: false,
+      hasKBNMError: false,
+    }
     if (err) {
       errorsResult.errors = [`There was an error trying to run the install (${err.code}).`]
     } else if (stdout !== '') {
@@ -68,7 +73,7 @@ export default (callback: (err: any) => void): void => {
     }
 
     if (errorsResult.errors.length > 0) {
-      showError(errorsResult.errors, (errorsResult.hasFUSEError || errorsResult.hasKBNMError), callback)
+      showError(errorsResult.errors, errorsResult.hasFUSEError || errorsResult.hasKBNMError, callback)
       return
     }
 
@@ -92,7 +97,7 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
   for (let cr of crs) {
     if (cr.status.code !== 0) {
       if (cr.name === 'fuse') {
-        let hasFUSEError = true
+        hasFUSEError = true
         if (cr.exitCode === ExitCodeFuseKextError) {
           errors.push(
             `We were unable to load KBFS (Fuse kext). This may be due to a limitation in MacOS where there aren't any device slots available. Device slots can be taken up by apps such as VMWare, VirtualBox, anti-virus programs, VPN programs and Intel HAXM.`
@@ -106,8 +111,8 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
       } else {
         errors.push(`There was an error trying to install the ${cr.name}.`)
         if (cr.name === 'kbnm') {
-         hasKBNMError = true
-         errors.push(`\n${cr.status.desc}`)
+          hasKBNMError = true
+          errors.push(`\n${cr.status.desc}`)
         }
       }
     }
