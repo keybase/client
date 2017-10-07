@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
+import {Avatar, Box, Button, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -15,6 +15,7 @@ export type Props = {
   members: Array<RowProps>,
   loading: boolean,
   setShowMenu: (s: boolean) => void,
+  onAddPeople: () => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
 }
@@ -111,7 +112,7 @@ class Team extends React.PureComponent<Props> {
   }
 
   render() {
-    const {name, members, setShowMenu, onLeaveTeam, loading, onManageChat} = this.props
+    const {name, members, setShowMenu, onAddPeople, onLeaveTeam, loading, onManageChat} = this.props
     const tabs = [
       <Text
         key="members"
@@ -126,6 +127,7 @@ class Team extends React.PureComponent<Props> {
     // TODO admin lets us have multiple tabs
     const selectedTab = tabs[0]
 
+    console.warn('onAddPeople is', onAddPeople)
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
         <Avatar isTeam={true} teamname={name} size={64} />
@@ -133,6 +135,7 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
+        <Button type="Primary" label="Add people" onClick={onAddPeople} style={{marginTop: globalMargins.small}}/>
         <Help name={name} />
         {loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />}
         {!loading && <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />}

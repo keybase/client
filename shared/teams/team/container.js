@@ -36,6 +36,8 @@ type DispatchProps = {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
+  _onAddPeople: (teamname: Constants.Teamname) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onManageChat: (teamname: Constants.Teamname) =>
@@ -45,6 +47,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
   const onOpenFolder = () => dispatchProps._onOpenFolder(stateProps.name)
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
@@ -63,6 +66,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     members: stateProps._memberInfo.toJS().sort((a, b) => a.username.localeCompare(b.username)),
+    onAddPeople,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
