@@ -374,8 +374,6 @@ def testGo(prefix) {
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
-        shell "go get \"github.com/stretchr/testify/require\""
-        shell "go get \"github.com/stretchr/testify/assert\""
         def parallelTests = []
         def tests = [:]
         def specialTests = [:]
