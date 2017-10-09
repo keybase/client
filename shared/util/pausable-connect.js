@@ -10,7 +10,7 @@ function selectorFactory(dispatch, factoryOptions) {
   let cachedResult
   const pausableSelector = function(state, ownProps) {
     // we want to explicitly get isActiveRoute passed in always and not invisibly be paused if
-    // we forget to pass it down cause thats' very confusing
+    // we forget to pass it down because that's very confusing
     if (__DEV__) {
       if (ownProps.isActiveRoute === undefined) {
         console.error(
