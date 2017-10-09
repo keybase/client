@@ -307,9 +307,11 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 
 	var fetchLinksAndOrSecrets bool
 	if ret == nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: no cache")
 		// We have no cache
 		fetchLinksAndOrSecrets = true
 	} else if ret.Chain.LastSeqno < lastSeqno {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: chain update")
 		// The cache is definitely behind
 		fetchLinksAndOrSecrets = true
 	} else if !l.hasSyncedSecrets(ret) {
@@ -317,6 +319,12 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 		// We may need to hit the server for secrets, even though there are no new links.
 
 		if arg.needAdmin {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedAdmin")
+			// Admins should always have up-to-date secrets
+			fetchLinksAndOrSecrets = true
+		}
+		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
 			fetchLinksAndOrSecrets = true
 		}
 		if arg.readSubteamID == nil {
@@ -327,6 +335,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 				myCachedRole = keybase1.TeamRole_NONE
 			}
 			if myCachedRole.IsReaderOrAbove() {
+				l.G().Log.CDebugf(ctx, "TeamLoader fetching: role: %v", myCachedRole)
 				fetchLinksAndOrSecrets = true
 			}
 		}
@@ -802,7 +811,7 @@ func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.T
 	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
 	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
 	if onChainGen != offChainGen {
-		l.G().Log.CDebugf(ctx, "TeamLoader unsynced secrets chain:%v != local:%v", onChainGen, offChainGen)
+		l.G().Log.CDebugf(ctx, "TeamLoader unsynced secrets local:%v != chain:%v ", offChainGen, onChainGen)
 	}
 }
 
