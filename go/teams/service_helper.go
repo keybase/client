@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"golang.org/x/net/context"
 
@@ -301,6 +302,56 @@ func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	}
 
 	return t.InviteEmailMember(ctx, email, role)
+}
+
+func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+
+	emailList := splitBulk(emails)
+	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(emailList))
+
+	var invites []SCTeamInvite
+	for _, e := range splitBulk(emails) {
+		name := keybase1.TeamInviteName(e)
+		existing, err := t.HasActiveInvite(name, "email")
+		if err != nil {
+			return err
+		}
+		if existing {
+			g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list", teamname, e)
+			continue
+		}
+		inv := SCTeamInvite{
+			Type: "email",
+			Name: name,
+			ID:   NewInviteID(),
+		}
+		invites = append(invites, inv)
+	}
+	if len(invites) == 0 {
+		g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
+		return nil
+	}
+
+	var teamInvites SCTeamInvites
+	switch role {
+	case keybase1.TeamRole_ADMIN:
+		teamInvites.Admins = &invites
+	case keybase1.TeamRole_WRITER:
+		teamInvites.Writers = &invites
+	case keybase1.TeamRole_READER:
+		teamInvites.Readers = &invites
+	case keybase1.TeamRole_OWNER:
+		teamInvites.Owners = &invites
+	default:
+		return fmt.Errorf("unknown team role: %s", role)
+	}
+
+	g.Log.CDebugf(ctx, "team %s: after exisitng filter, inviting %d emails as %s", teamname, len(invites), role)
+	return t.postTeamInvites(ctx, teamInvites)
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
@@ -775,4 +826,12 @@ func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID
 		Cancel: &cancelList,
 	}
 	return team.postTeamInvites(ctx, invites)
+}
+
+// splitBulk splits on whitespace or comma.
+func splitBulk(s string) []string {
+	f := func(c rune) bool {
+		return unicode.IsSpace(c) || c == ','
+	}
+	return strings.FieldsFunc(s, f)
 }
