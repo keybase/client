@@ -336,3 +336,10 @@ func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybas
 	}
 	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), arg.Id, arg.Username)
 }
+
+func (h *TeamsHandler) TeamAddEmailsBulk(ctx context.Context, arg keybase1.TeamAddEmailsBulkArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddEmailsBulk(%s)", arg.Name), func() error { return err })()
+
+	// return teams.Delete(ctx, h.G().ExternalG(), arg.Name)
+	return nil
+}

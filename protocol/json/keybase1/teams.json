@@ -1552,6 +1552,27 @@
       ],
       "response": null
     },
+    "teamAddEmailsBulk": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "emails",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        }
+      ],
+      "response": null
+    },
     "lookupImplicitTeam": {
       "request": [
         {
