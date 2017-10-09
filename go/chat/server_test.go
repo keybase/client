@@ -3069,7 +3069,7 @@ func TestChatSrvUserReset(t *testing.T) {
 
 		// Only run this test for teams
 		switch mt {
-		case chat1.ConversationMembersType_TEAM:
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
 		default:
 			return
 		}
@@ -3147,6 +3147,8 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, teams.ReAddMemberAfterReset(ctx, ctc.as(t, users[0]).h.G().ExternalG(),
 			teamID, users[1].Username))
+		consumeMembersUpdate(t, listener0)
+		consumeJoinConv(t, listener1)
 
 		iboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{})
@@ -3164,5 +3166,20 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, iboxRes.Conversations[0].Info.MemberStatus)
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "Hello",
+				}),
+			},
+		})
+		require.NoError(t, err)
 	})
 }
