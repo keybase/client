@@ -9,6 +9,15 @@ function selectorFactory(dispatch, factoryOptions) {
   let wasActiveRoute = false
   let cachedResult
   const pausableSelector = function(state, ownProps) {
+    // we want to explicitly get isActiveRoute passed in always and not invisibly be paused if
+    // we forget to pass it down because that's very confusing
+    if (__DEV__) {
+      if (ownProps.isActiveRoute === undefined) {
+        console.error(
+          "Error: pausableConnect didn't get isActiveRoute passed down. Did you forget to plumb it?"
+        )
+      }
+    }
     // We run the selector the first time the HoC is mounted, even if not
     // active. Some connected components have expectations of the structure of
     // their props, so we can't render them until we have data from the
