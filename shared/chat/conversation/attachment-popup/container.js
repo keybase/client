@@ -31,7 +31,7 @@ export default compose(
   })),
   connect(
     (state: TypedState, {routeProps, ...ownProps}: OwnProps) => {
-      const {messageKey} = routeProps
+      const messageKey = routeProps.get('messageKey')
 
       return {
         ...lookupMessageProps(state, messageKey),

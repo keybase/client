@@ -21,7 +21,7 @@ const getRepos = createSelector([Constants.getIdToGit], git => {
 const mapStateToProps = (state: TypedState, {routeState}) => {
   return {
     ...getRepos(state),
-    expandedSet: routeState.expandedSet,
+    expandedSet: routeState.get('expandedSet'),
     loading: state.entities.getIn(['git', 'loading']),
   }
 }
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
     dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}]))
   },
   onToggleExpand: (id: string) => {
-    const old = routeState.expandedSet
+    const old = routeState.get('expandedSet')
     // TODO use unique id
     setRouteState({expandedSet: old.has(id) ? old.delete(id) : old.add(id)})
   },

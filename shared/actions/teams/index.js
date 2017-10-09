@@ -35,11 +35,32 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   }
 }
 
+const _joinTeam = function*(action: Constants.JoinTeam) {
+  const {payload: {teamname}} = action
+  yield all(put(Creators.setTeamJoinError('')), put(Creators.setTeamJoinSuccess(false)))
+  try {
+    yield call(RpcTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
+      param: {tokenOrName: teamname},
+    })
+
+    // Success
+    yield put(Creators.setTeamJoinSuccess(true))
+  } catch (error) {
+    yield put(Creators.setTeamJoinError(error.desc))
+  }
+}
+
 const _leaveTeam = function(action: Constants.LeaveTeam) {
   const {payload: {teamname}} = action
   return call(RpcTypes.teamsTeamLeaveRpcPromise, {
     param: {name: teamname},
   })
+}
+
+function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {
+  if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
+
+  return state.chat.pendingConversations.get(conversationIDKey)
 }
 
 const _createNewTeamFromConversation = function*(
@@ -48,12 +69,19 @@ const _createNewTeamFromConversation = function*(
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
   const inbox = yield select(selectedInboxSelector, conversationIDKey)
+  let participants
+
   if (inbox) {
+    participants = inbox.get('participants')
+  } else {
+    participants = yield select(getPendingConvParticipants, conversationIDKey)
+  }
+
+  if (participants) {
     const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
     })
-    const participants = inbox.get('participants').toArray()
-    for (const username of participants) {
+    for (const username of participants.toArray()) {
       if (!createRes.creatorAdded || username !== me) {
         yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
           param: {
@@ -235,6 +263,7 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('teams:joinTeam', _joinTeam)
   yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
   yield Saga.safeTakeEvery('teams:getChannels', _getChannels)

@@ -1,37 +1,82 @@
 // @flow
 import * as Constants from '../../constants/search'
 
-function search<T>(
-  term: string,
-  pendingActionTypeToFire: T,
-  finishedActionTypeToFire: T,
-  service: Constants.Service = 'Keybase'
-): Constants.Search<T> {
+function search(term: string, searchKey: string, service: Constants.Service = 'Keybase'): Constants.Search {
   return {
     type: 'search:search',
-    payload: {finishedActionTypeToFire, pendingActionTypeToFire, service, term},
+    payload: {service, term, searchKey},
   }
 }
 
-function searchSuggestions<T>(actionTypeToFire: T, maxUsers?: number = 50): Constants.SearchSuggestions<T> {
-  return {type: 'search:searchSuggestions', payload: {actionTypeToFire, maxUsers}}
+function searchSuggestions(searchKey: string, maxUsers?: number = 50): Constants.SearchSuggestions {
+  return {type: 'search:searchSuggestions', payload: {maxUsers, searchKey}}
 }
 
-function pendingSearch<T>(actionTypeToFire: T, pending: boolean): Constants.PendingSearch<T> {
-  return {type: actionTypeToFire, payload: {pending}}
-}
-
-function finishedSearch<T>(
-  actionTypeToFire: T,
+function finishedSearch(
+  searchKey: string,
   searchResults: Array<Constants.SearchResultId>,
   searchResultTerm: string,
   service: Constants.Service = 'Keybase',
   searchShowingSuggestions: boolean = false
-): Constants.FinishedSearch<T> {
+): Constants.FinishedSearch {
   return {
-    type: actionTypeToFire,
-    payload: {searchResultTerm, searchResults, service, searchShowingSuggestions},
+    type: 'search:finishedSearch',
+    payload: {searchKey, searchResultTerm, searchResults, service, searchShowingSuggestions},
   }
 }
 
-export {finishedSearch, pendingSearch, search, searchSuggestions}
+function addResultsToUserInput(
+  searchKey: string,
+  searchResults: Array<Constants.SearchResultId>
+): Constants.AddResultsToUserInput {
+  return {type: 'search:addResultsToUserInput', payload: {searchKey, searchResults}}
+}
+
+function removeResultsToUserInput(
+  searchKey: string,
+  searchResults: Array<Constants.SearchResultId>
+): Constants.RemoveResultsToUserInput {
+  return {type: 'search:removeResultsToUserInput', payload: {searchKey, searchResults}}
+}
+
+function setUserInputItems(
+  searchKey: string,
+  searchResults: Array<Constants.SearchResultId>
+): Constants.SetUserInputItems {
+  return {type: 'search:setUserInputItems', payload: {searchKey, searchResults}}
+}
+
+function userInputItemsUpdated(
+  searchKey: string,
+  ids: Array<Constants.SearchResultId>
+): Constants.UserInputItemsUpdated {
+  return {type: 'search:userInputItemsUpdated', payload: {searchKey, userInputItemIds: ids}}
+}
+
+function addClickedFromUserInput(searchKey: string): Constants.AddClickedFromUserInput {
+  return {type: 'search:addClickedFromUserInput', payload: {searchKey}}
+}
+
+function clearSearchResults(searchKey: string): Constants.ClearSearchResults {
+  return {type: 'search:clearSearchResults', payload: {searchKey}}
+}
+
+function updateSelectedSearchResult(
+  searchKey: string,
+  id: ?Constants.SearchResultId
+): Constants.UpdateSelectedSearchResult {
+  return {type: 'search:updateSelectedSearchResult', payload: {searchKey, id}}
+}
+
+export {
+  addClickedFromUserInput,
+  addResultsToUserInput,
+  clearSearchResults,
+  finishedSearch,
+  removeResultsToUserInput,
+  search,
+  searchSuggestions,
+  setUserInputItems,
+  updateSelectedSearchResult,
+  userInputItemsUpdated,
+}

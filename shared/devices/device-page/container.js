@@ -34,12 +34,12 @@ const buildTimeline = (device: DeviceDetail) => {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: state.entities.getIn(['devices', routeProps.deviceID]),
+  device: state.entities.getIn(['devices', routeProps.get('deviceID')]),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
-  showRevokeDevicePage: () => dispatch(showRevokePage(routeProps.deviceID)),
+  showRevokeDevicePage: () => dispatch(showRevokePage(routeProps.get('deviceID'))),
 })
 
 const bannerColor = props =>

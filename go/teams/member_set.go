@@ -102,11 +102,11 @@ func (m *memberSet) loadGroup(ctx context.Context, g *libkb.GlobalContext, group
 func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, forcePoll bool) (ret *keybase1.UserPlusKeysV2AllIncarnations, err error) {
 	defer g.CTrace(ctx, fmt.Sprintf("loadUPAK2(%s)", uid), func() error { return err })()
 
-	arg := libkb.NewLoadUserArgBase(g).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional()
+	arg := libkb.NewLoadUserArg(g).WithNetContext(ctx).WithUID(uid).WithPublicKeyOptional()
 	if forcePoll {
-		arg = arg.WithForcePoll()
+		arg = arg.WithForcePoll(true)
 	}
-	upak, _, err := g.GetUPAKLoader().LoadV2(*arg)
+	upak, _, err := g.GetUPAKLoader().LoadV2(arg)
 	return upak, err
 }
 

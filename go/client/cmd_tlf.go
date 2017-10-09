@@ -47,7 +47,7 @@ func (c *cmdTlfCryptKeys) Run() error {
 		return err
 	}
 
-	if err = RegisterProtocolsWithContext(nil, G); err != nil {
+	if err = RegisterProtocolsWithContext(nil, c.G()); err != nil {
 		return err
 	}
 

@@ -144,14 +144,16 @@ func (b *basicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinali
 }
 
 type publicUnboxConversationInfo struct {
-	convID chat1.ConversationID
+	convID      chat1.ConversationID
+	membersType chat1.ConversationMembersType
 }
 
 var _ unboxConversationInfo = (*publicUnboxConversationInfo)(nil)
 
-func newPublicUnboxConverstionInfo(convID chat1.ConversationID) *publicUnboxConversationInfo {
+func newPublicUnboxConverstionInfo(convID chat1.ConversationID, membersType chat1.ConversationMembersType) *publicUnboxConversationInfo {
 	return &publicUnboxConversationInfo{
-		convID: convID,
+		convID:      convID,
+		membersType: membersType,
 	}
 }
 
@@ -160,9 +162,7 @@ func (p *publicUnboxConversationInfo) GetConvID() chat1.ConversationID {
 }
 
 func (p *publicUnboxConversationInfo) GetMembersType() chat1.ConversationMembersType {
-	// This won't matter for a public conversation, since we don't really encrypt them,
-	// we use a known key in KeyFinder
-	return chat1.ConversationMembersType_KBFS
+	return p.membersType
 }
 
 func (p *publicUnboxConversationInfo) GetFinalizeInfo() *chat1.ConversationFinalizeInfo {

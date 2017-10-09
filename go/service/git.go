@@ -54,7 +54,7 @@ func isRoleAtLeast(ctx context.Context, g *libkb.GlobalContext, teamName string,
 	if err != nil {
 		return false, err
 	}
-	self, _, err := g.GetUPAKLoader().LoadV2(libkb.LoadUserArg{UID: g.GetMyUID()})
+	self, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserSelfAndUIDArg(g))
 	if err != nil {
 		return false, err
 	}

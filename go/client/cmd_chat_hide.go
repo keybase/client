@@ -67,13 +67,7 @@ func (c *CmdChatHide) ParseArgv(ctx *cli.Context) error {
 func (c *CmdChatHide) Run() error {
 	ctx := context.TODO()
 
-	chatClient, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return err
-	}
-
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(c.G())
+	resolver, err := newChatConversationResolver(c.G())
 	if err != nil {
 		return err
 	}
@@ -93,7 +87,7 @@ func (c *CmdChatHide) Run() error {
 		Status:         c.status,
 	}
 
-	_, err = chatClient.SetConversationStatusLocal(ctx, setStatusArg)
+	_, err = resolver.ChatClient.SetConversationStatusLocal(ctx, setStatusArg)
 	if err != nil {
 		return err
 	}

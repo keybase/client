@@ -5,17 +5,16 @@ import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
 import {type AttachmentInput, type SelectAttachment} from '../../../constants/chat'
 
-type AttachmentInputRouteProps = RouteProps<
+type OwnProps = RouteProps<
   {
     inputs: Array<AttachmentInput>,
   },
   {}
 >
-type OwnProps = AttachmentInputRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
-    const {inputs} = routeProps
+    const inputs = routeProps.get('inputs')
     return {
       inputs,
     }

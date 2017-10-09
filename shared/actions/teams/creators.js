@@ -30,12 +30,24 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
+function joinTeam(teamname: string): Constants.JoinTeam {
+  return {payload: {teamname}, type: 'teams:joinTeam'}
+}
+
 function leaveTeam(teamname: string): Constants.LeaveTeam {
   return {payload: {teamname}, type: 'teams:leaveTeam'}
 }
 
 function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreationError {
   return {payload: {teamCreationError}, type: 'teams:setTeamCreationError'}
+}
+
+function setTeamJoinError(teamJoinError: string): Constants.SetTeamJoinError {
+  return {payload: {teamJoinError}, type: 'teams:setTeamJoinError'}
+}
+
+function setTeamJoinSuccess(teamJoinSuccess: boolean): Constants.SetTeamJoinSuccess {
+  return {payload: {teamJoinSuccess}, type: 'teams:setTeamJoinSuccess'}
 }
 
 function setupTeamHandlers(): Constants.SetupTeamHandlers {
@@ -49,8 +61,11 @@ export {
   getChannels,
   getDetails,
   getTeams,
+  joinTeam,
   leaveTeam,
   setTeamCreationError,
+  setTeamJoinError,
+  setTeamJoinSuccess,
   setupTeamHandlers,
   toggleChannelMembership,
 }

@@ -566,7 +566,7 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 	}
 
 	var me *User
-	if me, err = LoadUser(LoadUserArg{Name: username, LoginContext: lctx, Contextified: NewContextified(s.G())}); err != nil {
+	if me, err = LoadUser(NewLoadUserByNameArg(s.G(), username).WithLoginContext(lctx)); err != nil {
 		return
 	}
 

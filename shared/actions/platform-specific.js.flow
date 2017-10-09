@@ -1,4 +1,5 @@
 // @flow
+
 import type {AsyncAction} from '../constants/types/flux'
 
 declare function setNoPushPermissions(): Promise<*>

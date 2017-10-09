@@ -13,10 +13,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onCancel: () => dispatch(finishRevoking()),
   onRevoke: () => {
-    if (routeProps.platform === 'pgp') {
-      dispatch(dropPgp(routeProps.proofId))
+    if (routeProps.get('platform') === 'pgp') {
+      dispatch(dropPgp(routeProps.get('proofId')))
     } else {
-      dispatch(submitRevokeProof(routeProps.proofId))
+      dispatch(submitRevokeProof(routeProps.get('proofId')))
     }
   },
 })

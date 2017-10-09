@@ -437,7 +437,7 @@ function restartSignup() {
         payload: {},
         type: Constants.restartSignup,
       })
-      dispatch(Creators.navBasedOnLoginState())
+      dispatch(Creators.navBasedOnLoginAndInitialState())
       resolve()
     })
     return p

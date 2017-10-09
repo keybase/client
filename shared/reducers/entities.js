@@ -21,6 +21,11 @@ export default function(state: State = initialState, action: Actions): State {
       const {keyPath, entities} = action.payload
       return state.mergeIn(keyPath, entities)
     }
+    case 'entity:subtract': {
+      const {keyPath, entities} = action.payload
+      // $FlowIssue doesn't understand this API
+      return state.updateIn(keyPath, set => set.subtract(entities))
+    }
     default:
       break
   }

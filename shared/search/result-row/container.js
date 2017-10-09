@@ -13,8 +13,7 @@ const mapStateToProps: MapStateToProps<*, *, *> = (
     onShowTracker,
   }: {id: SearchResultId, onClick: () => void, onMouseOver?: () => void, onShowTracker?: () => void}
 ) => {
-  const result: any = state.entities.getIn(['searchResults', id], Map()).toObject()
-
+  const result: any = state.entities.getIn(['search', 'searchResults', id], Map()).toObject()
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
 

@@ -194,6 +194,8 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
           return acc
         }, {})
       ),
+      inboxUnreadCountBadge: Map(conversationUnreadCounts),
+      inboxUnreadCountTotal: Map(conversationUnreadCounts),
     }),
     config: {
       username: 'chris',

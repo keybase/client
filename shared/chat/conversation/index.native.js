@@ -2,13 +2,14 @@
 import Input from './input/container'
 import List from './list/container'
 import HeaderOrSearchHeader from './header-or-search-header'
-import SearchResultsList from '../../search/results-list'
+import SearchResultsList from '../../search/results-list/container'
 import OldProfileResetNotice from './notices/old-profile-reset-notice/container'
 import * as React from 'react'
 import Banner from './banner/container'
 import {withPropsOnChange, compose, branch} from 'recompose'
-import {Box, LoadingLine, ProgressIndicator, Text, HeaderHoc} from '../../common-adapters'
+import {Box, LoadingLine, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
+import CreateTeamHeader from './create-team-header/container'
 
 import type {Props} from './index'
 
@@ -36,52 +37,39 @@ const Conversation = (props: Props) => (
       onToggleInfoPanel={props.onOpenInfoPanelMobile}
       infoPanelOpen={false} // unused on mobile
       onBack={props.onBack}
-      onChangeSearchText={props.onChangeSearchText}
-      searchText={props.searchText}
-      selectedSearchId={props.selectedSearchId}
+      onExitSearch={props.onExitSearch}
       selectedConversationIDKey={props.selectedConversationIDKey}
-      onUpdateSelectedSearchResult={props.onUpdateSelectedSearchResult}
-      onAddNewParticipant={props.onAddNewParticipant}
-      addNewParticipant={props.addNewParticipant}
     />
-    {props.showSearchPending
-      ? <ProgressIndicator style={{width: globalMargins.xlarge}} />
-      : props.showSearchResults
-          ? <SearchResultsList
-              items={props.searchResultIds}
-              onClick={props.onClickSearchResult}
-              onShowTracker={props.onShowTrackerInSearch}
-              selectedId={props.selectedSearchId}
-              showSearchSuggestions={props.showSearchSuggestions}
-              style={{flex: 1}}
+    {props.showSearchResults
+      ? <SearchResultsList searchKey={'chatSearch'} onShowTracker={props.onShowTrackerInSearch} />
+      : <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            ...globalStyles.flexGrow,
+            position: 'relative',
+          }}
+        >
+          <Box style={globalStyles.flexGrow}>
+            <List
+              focusInputCounter={props.focusInputCounter}
+              listScrollDownCounter={props.listScrollDownCounter}
+              onEditLastMessage={props.onEditLastMessage}
+              onScrollDown={props.onScrollDown}
+              onFocusInput={props.onFocusInput}
+              editLastMessageCounter={props.editLastMessageCounter}
             />
-          : <Box
-              style={{
-                ...globalStyles.flexBoxColumn,
-                ...globalStyles.flexGrow,
-                position: 'relative',
-              }}
-            >
-              <Box style={globalStyles.flexGrow}>
-                <List
-                  focusInputCounter={props.focusInputCounter}
-                  listScrollDownCounter={props.listScrollDownCounter}
-                  onEditLastMessage={props.onEditLastMessage}
-                  onScrollDown={props.onScrollDown}
-                  onFocusInput={props.onFocusInput}
-                  editLastMessageCounter={props.editLastMessageCounter}
-                />
-              </Box>
-              <Banner />
-              {props.showLoader && <LoadingLine />}
-              {props.finalizeInfo
-                ? <OldProfileResetNotice />
-                : <Input
-                    focusInputCounter={props.focusInputCounter}
-                    onEditLastMessage={props.onEditLastMessage}
-                    onScrollDown={props.onScrollDown}
-                  />}
-            </Box>}
+            {props.showTeamOffer && <CreateTeamHeader />}
+          </Box>
+          <Banner />
+          {props.showLoader && <LoadingLine />}
+          {props.finalizeInfo
+            ? <OldProfileResetNotice />
+            : <Input
+                focusInputCounter={props.focusInputCounter}
+                onEditLastMessage={props.onEditLastMessage}
+                onScrollDown={props.onScrollDown}
+              />}
+        </Box>}
   </Box>
 )
 

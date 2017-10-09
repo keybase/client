@@ -119,7 +119,7 @@ export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 export const openAccountResetPage = 'login:openAccountResetPage'
-export const navBasedOnLoginState = 'login:navBasedOnLoginState'
+export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
 
 // It's the b64 encoded value used to render the image
 type QRCode = HiddenString

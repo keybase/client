@@ -19,6 +19,7 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
   }
 >
 
+export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
 
@@ -67,6 +68,9 @@ export type SetTeamCreationError = NoErrorTypedAction<
   'teams:setTeamCreationError',
   {teamCreationError: string}
 >
+
+export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
+export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,

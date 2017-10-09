@@ -243,6 +243,7 @@ export const ConstantsStatusCode = {
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
+  scnoop: 2638,
   scteamtarduplicate: 2663,
   scteamtarnotfound: 2664,
   scteammemberexists: 2665,
@@ -268,6 +269,8 @@ export const ConstantsStatusCode = {
   scteamimplicitbadadd: 2685,
   scteamimplicitbadremove: 2686,
   scteamkeymasknotfound: 2697,
+  scteambanned: 2702,
+  scteaminvalidban: 2703,
 }
 
 export const CtlDbType = {
@@ -2815,6 +2818,7 @@ export type AnnotatedMemberInfo = {
   isImplicitTeam: boolean,
   role: TeamRole,
   implicit?: ?ImplicitRole,
+  needsPUK: boolean,
 }
 
 export type AnnotatedTeamInvite = {
@@ -2822,6 +2826,7 @@ export type AnnotatedTeamInvite = {
   id: TeamInviteID,
   type: TeamInviteType,
   name: TeamInviteName,
+  uv: UserVersion,
   inviter: UserVersion,
   inviterUsername: string,
   teamName: string,
@@ -3646,6 +3651,7 @@ export type LoadTeamArg = {
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
+  public: boolean,
 }
 
 export type LockContext = {
@@ -3664,6 +3670,12 @@ export type LogLevel =
   | 5 // ERROR_5
   | 6 // CRITICAL_6
   | 7 // FATAL_7
+
+export type LookupImplicitTeamRes = {
+  teamID: TeamID,
+  name: TeamName,
+  displayName: ImplicitTeamDisplayName,
+}
 
 export type MDBlock = {
   version: int,
@@ -4660,6 +4672,7 @@ export type StatusCode =
   | 2614 // SCTeamNotFound_2614
   | 2619 // SCTeamExists_2619
   | 2623 // SCTeamReadError_2623
+  | 2638 // SCNoOp_2638
   | 2663 // SCTeamTarDuplicate_2663
   | 2664 // SCTeamTarNotFound_2664
   | 2665 // SCTeamMemberExists_2665
@@ -4685,6 +4698,8 @@ export type StatusCode =
   | 2685 // SCTeamImplicitBadAdd_2685
   | 2686 // SCTeamImplicitBadRemove_2686
   | 2697 // SCTeamKeyMaskNotFound_2697
+  | 2702 // SCTeamBanned_2702
+  | 2703 // SCTeamInvalidBan_2703
 
 export type Stream = {
   fd: int,
@@ -4809,6 +4824,7 @@ export type TeamDetails = {
   members: TeamMembersDetails,
   keyGeneration: PerTeamKeyGeneration,
   annotatedActiveInvites: {[key: string]: AnnotatedTeamInvite},
+  settings: TeamSettings,
 }
 
 export type TeamExitRow = {
@@ -4879,6 +4895,7 @@ export type TeamMemberDetails = {
   uv: UserVersion,
   username: string,
   active: boolean,
+  needsPUK: boolean,
 }
 
 export type TeamMembers = {
@@ -6248,7 +6265,9 @@ export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
 
 export type teamsTeamRemoveMemberRpcParam = Exact<{
   name: string,
-  username: string
+  username: string,
+  email: string,
+  permanent: boolean
 }>
 
 export type teamsTeamRenameRpcParam = Exact<{
@@ -6529,8 +6548,8 @@ type streamUiReadResult = bytes
 type streamUiWriteResult = int
 type teamsGetTeamRootIDResult = TeamID
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
-type teamsLookupImplicitTeamResult = TeamID
-type teamsLookupOrCreateImplicitTeamResult = TeamID
+type teamsLookupImplicitTeamResult = LookupImplicitTeamRes
+type teamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
 type teamsTeamCreateWithSettingsResult = TeamCreateResult

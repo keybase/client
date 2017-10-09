@@ -103,6 +103,15 @@
     },
     {
       "type": "enum",
+      "name": "SyncInboxResType",
+      "symbols": [
+        "CURRENT_0",
+        "INCREMENTAL_1",
+        "CLEAR_2"
+      ]
+    },
+    {
+      "type": "enum",
       "name": "MessageType",
       "symbols": [
         "NONE_0",

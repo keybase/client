@@ -22,12 +22,12 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-func NewCmdStress(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdStress(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "stress",
 		Usage: "Run some stressful commands on the service (devel only)",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdStress{}, "stress", c)
+			cl.ChooseCommand(&CmdStress{Contextified: libkb.NewContextified(g)}, "stress", c)
 		},
 		Flags: []cli.Flag{
 			cli.IntFlag{
@@ -41,23 +41,24 @@ func NewCmdStress(cl *libcmdline.CommandLine) cli.Command {
 // CmdStress is used for testing concurrency in the daemon.
 // Build the daemon with `-race`, then run this command.
 type CmdStress struct {
+	libkb.Contextified
 	numUsers   int
 	passphrase string
 }
 
 func (c *CmdStress) rpcClient() (*rpc.Client, error) {
-	cli, _, err := GetRPCClient()
+	cli, _, err := GetRPCClientWithContext(c.G())
 	if err != nil {
 		return nil, err
 	}
 	protocols := []rpc.Protocol{
-		NewStreamUIProtocol(G),
+		NewStreamUIProtocol(c.G()),
 		c.secretUIProtocol(),
-		NewIdentifyUIProtocol(G),
+		NewIdentifyUIProtocol(c.G()),
 		c.gpgUIProtocol(),
-		NewLoginUIProtocol(G),
+		NewLoginUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return nil, err
 	}
 	return cli, nil
@@ -116,7 +117,7 @@ func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err er
 	}
 	c.passphrase = hex.EncodeToString(buf)
 
-	G.Log.Info("username: %q, email: %q, passphrase: %q", username, email, c.passphrase)
+	c.G().Log.Info("username: %q, email: %q, passphrase: %q", username, email, c.passphrase)
 
 	scli := keybase1.SignupClient{Cli: cli}
 	res, err := scli.Signup(context.TODO(), keybase1.SignupArg{
@@ -129,7 +130,7 @@ func (c *CmdStress) signup(cli *rpc.Client) (username, passphrase string, err er
 	if err != nil {
 		return "", "", err
 	}
-	G.Log.Info("signup res: %+v", res)
+	c.G().Log.Info("signup res: %+v", res)
 	return
 }
 
@@ -159,33 +160,33 @@ func (c *CmdStress) simulate(username, passphrase string) {
 func (c *CmdStress) idSelf() {
 	cli, err := c.rpcClient()
 	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
+		c.G().Log.Warning("rpcClient error: %s", err)
 		return
 	}
 	icli := keybase1.IdentifyClient{Cli: cli}
 	_, err = icli.Identify2(context.TODO(), keybase1.Identify2Arg{})
 	if err != nil {
-		G.Log.Warning("id self error: %s", err)
+		c.G().Log.Warning("id self error: %s", err)
 	}
 }
 
 func (c *CmdStress) idAlice() {
 	cli, err := c.rpcClient()
 	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
+		c.G().Log.Warning("rpcClient error: %s", err)
 		return
 	}
 	icli := keybase1.IdentifyClient{Cli: cli}
 	_, err = icli.Identify2(context.TODO(), keybase1.Identify2Arg{UserAssertion: "t_alice"})
 	if err != nil {
-		G.Log.Warning("id t_alice error: %s", err)
+		c.G().Log.Warning("id t_alice error: %s", err)
 	}
 }
 
 func (c *CmdStress) trackSomeone() {
 	cli, err := c.rpcClient()
 	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
+		c.G().Log.Warning("rpcClient error: %s", err)
 		return
 	}
 
@@ -196,7 +197,7 @@ func (c *CmdStress) trackSomeone() {
 	options := keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}
 	_, err = tcli.Track(context.TODO(), keybase1.TrackArg{UserAssertion: username, Options: options})
 	if err != nil {
-		G.Log.Warning("follow %s error: %s", username, err)
+		c.G().Log.Warning("follow %s error: %s", username, err)
 
 	}
 	if libkb.RandIntn(2) == 0 {
@@ -204,63 +205,63 @@ func (c *CmdStress) trackSomeone() {
 	}
 	err = tcli.Untrack(context.TODO(), keybase1.UntrackArg{Username: username})
 	if err != nil {
-		G.Log.Warning("unfollow %s error: %s", username, err)
+		c.G().Log.Warning("unfollow %s error: %s", username, err)
 	}
 }
 
 func (c *CmdStress) listTrackers() {
 	cli, err := c.rpcClient()
 	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
+		c.G().Log.Warning("rpcClient error: %s", err)
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
 	_, err = ucli.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{})
 	if err != nil {
-		G.Log.Warning("list followers error: %s", err)
+		c.G().Log.Warning("list followers error: %s", err)
 	}
 }
 
 func (c *CmdStress) listTracking() {
 	cli, err := c.rpcClient()
 	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
+		c.G().Log.Warning("rpcClient error: %s", err)
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
 	_, err = ucli.ListTracking(context.TODO(), keybase1.ListTrackingArg{})
 	if err != nil {
-		G.Log.Warning("list following error: %s", err)
+		c.G().Log.Warning("list following error: %s", err)
 	}
 }
 
 func (c *CmdStress) deviceList() {
 	cli, err := c.rpcClient()
 	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
+		c.G().Log.Warning("rpcClient error: %s", err)
 		return
 	}
 	dcli := keybase1.DeviceClient{Cli: cli}
 	_, err = dcli.DeviceList(context.TODO(), 0)
 	if err != nil {
-		G.Log.Warning("device list error: %s", err)
+		c.G().Log.Warning("device list error: %s", err)
 	}
 }
 
 func (c *CmdStress) status() {
 	cli, err := c.rpcClient()
 	if err != nil {
-		G.Log.Warning("rpcClient error: %s", err)
+		c.G().Log.Warning("rpcClient error: %s", err)
 		return
 	}
 	ccli := keybase1.ConfigClient{Cli: cli}
 	currentStatus, err := ccli.GetCurrentStatus(context.TODO(), 0)
 	if err != nil {
-		G.Log.Warning("status error: %s", err)
+		c.G().Log.Warning("status error: %s", err)
 		return
 	}
 	if !currentStatus.LoggedIn {
-		G.Log.Warning("Not logged in.")
+		c.G().Log.Warning("Not logged in.")
 		return
 	}
 	myUID := currentStatus.User.Uid
@@ -268,19 +269,19 @@ func (c *CmdStress) status() {
 	ucli := keybase1.UserClient{Cli: cli}
 	_, err = ucli.LoadUser(context.TODO(), keybase1.LoadUserArg{Uid: myUID})
 	if err != nil {
-		G.Log.Warning("load user error: %s", err)
+		c.G().Log.Warning("load user error: %s", err)
 	}
 }
 
 func (c *CmdStress) logout() {
-	cli, err := GetLoginClient(G)
+	cli, err := GetLoginClient(c.G())
 	if err != nil {
-		G.Log.Warning("GetLoginClient error: %s", err)
+		c.G().Log.Warning("GetLoginClient error: %s", err)
 		return
 	}
 	err = cli.Logout(context.TODO(), 0)
 	if err != nil {
-		G.Log.Warning("Logout error: %s", err)
+		c.G().Log.Warning("Logout error: %s", err)
 		return
 	}
 }

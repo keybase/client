@@ -17,10 +17,9 @@ import {
   renderComponent,
   type TypedState,
 } from '../../util/container'
-import {selectedSearchIdHoc} from '../../search/helpers'
-import {chatSearchResultArray} from '../../constants/selectors'
 import ConversationError from './error/conversation-error'
 import {type Props} from '.'
+import flags from '../../util/feature-flags'
 
 type StateProps = {|
   finalizeInfo: ?Constants.FinalizeInfo,
@@ -31,14 +30,12 @@ type StateProps = {|
   supersedes: ?Constants.SupersedeInfo,
   threadLoadedOffline: boolean,
   inSearch: boolean,
-  searchResultIds: Array<SearchConstants.SearchResultId>,
-  showSearchResults: boolean,
-  showSearchPending: boolean,
-  showSearchSuggestions: boolean,
   conversationIsError: boolean,
   conversationErrorText: string,
   defaultChatText: string,
+  showTeamOffer: boolean,
   inboxFilter: ?string,
+  showSearchResults: boolean,
 |}
 
 type DispatchProps = {|
@@ -49,8 +46,6 @@ type DispatchProps = {|
   onOpenInfoPanelMobile: () => void,
   onExitSearch: () => void,
   onBack: () => void,
-  _clearSearchResults: () => void,
-  _onClickSearchResult: (id: string) => void,
   _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) => void,
   onShowTrackerInSearch: (id: string) => void,
 |}
@@ -90,8 +85,15 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     }
   }
 
-  const {inSearch, searchPending, searchResults, searchShowingSuggestions, inboxFilter} = state.chat
+  const {inSearch, inboxFilter} = state.chat
+  const searchResults = SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
+  const userInputItemIds = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
+
+  // If it's a multi-user chat that isn't a team, offer to make a new team.
+  const showTeamOffer = flags.teamChatEnabled && inSearch && userInputItemIds && userInputItemIds.length > 1
+
   return {
+    showSearchResults: !!searchResults,
     conversationErrorText,
     conversationIsError,
     finalizeInfo,
@@ -103,11 +105,8 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     supersedes,
     threadLoadedOffline,
     inSearch,
-    searchResultIds: chatSearchResultArray(state),
-    showSearchPending: searchPending,
-    showSearchResults: !!searchResults,
-    showSearchSuggestions: searchShowingSuggestions,
     defaultChatText,
+    showTeamOffer,
   }
 }
 
@@ -125,10 +124,6 @@ const mapDispatchToProps = (
   },
   onOpenInfoPanelMobile: () => dispatch(navigateAppend(['infoPanel'])),
   onBack: () => dispatch(navigateUp()),
-  _clearSearchResults: () => dispatch(Creators.clearSearchResults()),
-  _onClickSearchResult: id => {
-    dispatch(Creators.stageUserForSearch(id))
-  },
   onShowTrackerInSearch: id => dispatch(getProfile(id, false, true)),
   _onStoreInputText: (selectedConversation: Constants.ConversationIDKey, inputText: string) =>
     dispatch(Creators.setSelectedRouteState(selectedConversation, {inputText: new HiddenString(inputText)})),
@@ -164,21 +159,10 @@ export default compose(
   withState('focusInputCounter', 'setFocusInputCounter', 0),
   withState('editLastMessageCounter', 'setEditLastMessageCounter', 0),
   withState('listScrollDownCounter', 'setListScrollDownCounter', 0),
-  withState('searchText', 'onChangeSearchText', ''),
-  withState('addNewParticipant', 'onAddNewParticipant', false),
-  selectedSearchIdHoc,
   withHandlers({
     onAddNewParticipant: props => () => props.onAddNewParticipant(true),
     onEditLastMessage: props => () => props.setEditLastMessageCounter(props.editLastMessageCounter + 1),
     onFocusInput: props => () => props.setFocusInputCounter(props.focusInputCounter + 1),
     onScrollDown: props => () => props.setListScrollDownCounter(props.listScrollDownCounter + 1),
-    onClickSearchResult: props => id => {
-      props.onChangeSearchText('')
-      props._onClickSearchResult(id)
-      props._clearSearchResults()
-    },
-    onMouseOverSearchResult: props => id => {
-      props.onUpdateSelectedSearchResult(id)
-    },
   })
 )(Conversation)

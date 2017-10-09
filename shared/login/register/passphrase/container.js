@@ -70,7 +70,7 @@ const mapDispatchToProps = (dispatch: any) => ({
 const mergeProps = (stateProps, dispatchProps, {routeProps}) => ({
   ...stateProps,
   ...dispatchProps,
-  ...routeProps,
+  ...routeProps.toObject(),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(_Passphrase)

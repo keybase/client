@@ -22,6 +22,7 @@ const getUsers = createSelector(
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen}: OwnProps) => ({
   badgeNumber: state.notifications.get('navBadges').get(chatTab),
+  canOpenInfoPanel: !Constants.isPendingConversationIDKey(Constants.getSelectedConversation(state) || ''),
   channelName: Constants.getChannelName(state),
   muted: Constants.getMuted(state),
   infoPanelOpen,

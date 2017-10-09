@@ -75,6 +75,9 @@ export function unsafeUnwrap<T>(t: ?T): T {
   return t
 }
 
+type _ReturnValue<A, X, Fn: (...args: A) => X> = X // eslint-disable-line
+export type ReturnValue<F> = _ReturnValue<*, *, F>
+
 export type _PropsOf<Props, C: Component<Props, *>> = Props // eslint-disable-line
 export type PropsOf<C> = _PropsOf<*, C>
 

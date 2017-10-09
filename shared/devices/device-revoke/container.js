@@ -6,13 +6,13 @@ import {navigateUp} from '../../actions/route-tree'
 import {revoke} from '../../actions/devices'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: state.entities.getIn(['devices', routeProps.deviceID]),
-  endangeredTLFs: routeProps.endangeredTLFs,
+  device: state.entities.getIn(['devices', routeProps.get('deviceID')]),
+  endangeredTLFs: routeProps.get('endangeredTLFs'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
-  onSubmit: () => dispatch(revoke(routeProps.deviceID)),
+  onSubmit: () => dispatch(revoke(routeProps.get('deviceID'))),
 })
 
 const icon = props =>

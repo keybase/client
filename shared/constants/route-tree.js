@@ -10,8 +10,13 @@ export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef:
 export const switchTo = 'routeTree:switchTo'
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
+export type NavigationSource = 'initial-default' | 'initial-restore' | 'user'
+
 export const navigateTo = 'routeTree:navigateTo'
-export type NavigateTo = NoErrorTypedAction<'routeTree:navigateTo', {path: PropsPath<*>, parentPath: ?Path}>
+export type NavigateTo = NoErrorTypedAction<
+  'routeTree:navigateTo',
+  {path: PropsPath<*>, parentPath: ?Path, navigationSource: NavigationSource}
+>
 
 export const navigateAppend = 'routeTree:navigateAppend'
 export type NavigateAppend = NoErrorTypedAction<
@@ -44,11 +49,13 @@ export type NavigateActions =
   | ResetRoute
 
 type _State = {
+  loggedInUserNavigated: boolean,
   routeDef: ?RouteDefNode,
   routeState: ?RouteStateNode,
 }
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
+  loggedInUserNavigated: false,
   routeDef: null,
   routeState: null,
 })
