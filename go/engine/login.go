@@ -62,6 +62,16 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Login) Run(ctx *Context) error {
+	// check to see if already logged in
+	loggedInOK, err := e.checkLoggedIn(ctx)
+	if err != nil {
+		return err
+	}
+	if loggedInOK {
+		return nil
+	}
+	e.G().Log.Debug("Login: not currently logged in")
+
 	if len(e.usernameOrEmail) > 0 && libkb.CheckEmail.F(e.usernameOrEmail) {
 		// If e.usernameOrEmail is provided and it is an email address, then
 		// loginProvisionedDevice is pointless.  It would return an error,
@@ -152,4 +162,31 @@ func (e *Login) perUserKeyUpgradeSoft(ctx *Context) error {
 		e.G().Log.CWarningf(ctx.GetNetContext(), "loginProvision PerUserKeyUpgrade failed: %v", err)
 	}
 	return err
+}
+
+func (e *Login) checkLoggedIn(ctx *Context) (bool, error) {
+	if !e.G().ActiveDevice.Valid() {
+		return false, nil
+	}
+
+	if len(e.usernameOrEmail) == 0 {
+		e.G().Log.Debug("Login: already logged in, no username or email provided, so returning without error")
+		return true, nil
+	}
+	if libkb.CheckEmail.F(e.usernameOrEmail) {
+		e.G().Log.Debug("Login: already logged in, but %q email address provided.  Can't determine if that is current user without further work, so just returning LoggedInError")
+		return true, libkb.LoggedInError{}
+	}
+	username, err := e.G().GetUPAKLoader().LookupUsername(ctx.NetContext, e.G().ActiveDevice.UID())
+	if err != nil {
+		return true, err
+	}
+	if username.Eq(libkb.NewNormalizedUsername(e.usernameOrEmail)) {
+		e.G().Log.Debug("Login: already logged in as %q, returning without error", e.usernameOrEmail)
+		return true, nil
+	}
+
+	e.G().Log.Debug("Login: logged in already as %q (%q requested), returning LoggedInError", username, e.usernameOrEmail)
+	return true, libkb.LoggedInError{}
+
 }

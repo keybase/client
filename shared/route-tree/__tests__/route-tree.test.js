@@ -391,7 +391,7 @@ describe('routeClear', () => {
 describe('checkRouteState', () => {
   it('returns nothing for a valid state', () => {
     const routeState = routeNavigate(demoRouteDef, null, (['foo', 'bar']: PropsPath<*>))
-    expect(checkRouteState(demoRouteDef, routeState)).toBeUndefined()
+    expect(checkRouteState(false, demoRouteDef, routeState)).toBeUndefined()
   })
 
   it('returns an error for a selected route missing a definition', () => {
@@ -399,17 +399,17 @@ describe('checkRouteState', () => {
       'foo',
       n => n && n.set('selected', 'nonexistent')
     )
-    expect(checkRouteState(demoRouteDef, routeState)).toEqual('Route missing def: /foo/nonexistent')
+    expect(checkRouteState(false, demoRouteDef, routeState)).toEqual('Route missing def: /foo/nonexistent')
   })
 
   it('returns an error for a selected route with null state', () => {
     const routeState = new RouteStateNode({selected: 'foo'})
-    expect(checkRouteState(demoRouteDef, routeState)).toEqual('Route missing state: /foo')
+    expect(checkRouteState(false, demoRouteDef, routeState)).toEqual('Route missing state: /foo')
   })
 
   it('returns an error for a selected route missing a component', () => {
     const routeState = new RouteStateNode({selected: null})
-    expect(checkRouteState(demoRouteDef, routeState)).toEqual('Route missing component: /')
+    expect(checkRouteState(false, demoRouteDef, routeState)).toEqual('Route missing component: /')
   })
 })
 

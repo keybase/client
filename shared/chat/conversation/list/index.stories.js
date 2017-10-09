@@ -125,7 +125,6 @@ const storeFn = (messageMap: Object) => ({
     pendingConversations: I.Map(),
     nowOverride: null,
     editingMessage: null,
-    initialConversation: null,
     inboxUntrustedState: 'unloaded',
     previousConversation: null,
     searchPending: false,
