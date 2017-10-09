@@ -1808,6 +1808,10 @@ func TestChatSrvFindConversations(t *testing.T) {
 		if mt == chat1.ConversationMembersType_TEAM {
 			return
 		}
+		if mt == chat1.ConversationMembersType_IMPTEAM {
+			// CORE-6322 public implicit teams don't work ye.
+			return
+		}
 		ctc := makeChatTestContext(t, "FindConversations", 3)
 		defer ctc.cleanup()
 		users := ctc.users()
