@@ -4352,7 +4352,7 @@ func (fbo *folderBranchOps) getUnlinkPathBeforeUpdatingPointers(
 	// inspect it to look for the *real* original pointer for this
 	// node.  Though only do that if the op we're processing is
 	// actually a part of this MD object; if it's the latest cached
-	// dirOp, then the resOp we're looking at belong to a previous
+	// dirOp, then the resOp we're looking at belongs to a previous
 	// revision.
 	if resOp, ok := md.data.Changes.Ops[0].(*resolutionOp); ok &&
 		(len(fbo.dirOps) == 0 || op != fbo.dirOps[len(fbo.dirOps)-1].dirOp) {
