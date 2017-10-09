@@ -53,6 +53,7 @@ type NotifyListener interface {
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
 	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
+	ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -785,6 +786,35 @@ func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keyba
 		n.listener.ChatLeftConversation(uid, convID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatLeftConversation notification")
+}
+
+func (n *NotifyRouter) HandleChatResetConversation(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatResetConversation notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatResetConversation(context.Background(), chat1.ChatResetConversationArg{
+					Uid:    uid,
+					ConvID: convID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatResetConversation(uid, convID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatResetConversation notification")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached

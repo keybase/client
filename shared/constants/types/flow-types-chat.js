@@ -1397,7 +1397,7 @@ export type MarkAsReadRes = {
 export type MembersUpdateInfo = {
   convID: ConversationID,
   member: string,
-  joined: boolean,
+  status: ConversationMemberStatus,
 }
 
 export type MerkleRoot = {
@@ -1654,6 +1654,11 @@ export type NotifyChatChatJoinedConversationRpcParam = Exact<{
 }>
 
 export type NotifyChatChatLeftConversationRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID
+}>
+
+export type NotifyChatChatResetConversationRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID
 }>
@@ -2718,6 +2723,14 @@ export type incomingCallMapType = Exact<{
     */
   ) => void,
   'keybase.1.NotifyChat.ChatLeftConversation'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatResetConversation'?: (
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID

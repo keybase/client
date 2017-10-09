@@ -69,6 +69,8 @@ func (e *PerUserKeyUpgrade) inner(ctx *Context) error {
 		return libkb.NoUIDError{}
 	}
 
+	e.G().Log.CDebugf(ctx.GetNetContext(), "PerUserKeyUpgrade upgrading: %d", uid)
+
 	loadArg := libkb.NewLoadUserArg(e.G()).
 		WithNetContext(ctx.GetNetContext()).
 		WithUID(uid).

@@ -1156,7 +1156,22 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	}
 	for _, oj := range othersJoined {
 		if cp, ok := convMap[oj.ConvID.String()]; ok {
-			cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+			// Check reset list for this UID, if we find it remove it instead of adding to all list
+			isReset := false
+			var resetIndex int
+			var r gregor1.UID
+			for resetIndex, r = range cp.Conv.Metadata.ResetList {
+				if r.Eq(oj.Uid) {
+					isReset = true
+					break
+				}
+			}
+			if isReset {
+				cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList[:resetIndex],
+					cp.Conv.Metadata.ResetList[resetIndex+1:]...)
+			} else {
+				cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+			}
 			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
 	}
