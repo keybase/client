@@ -719,6 +719,13 @@ func (j *tlfJournal) pauseBackgroundWork() {
 func (j *tlfJournal) resume(pauseType tlfJournalPauseType) {
 	j.pauseLock.Lock()
 	defer j.pauseLock.Unlock()
+	if j.pauseType == 0 {
+		// Nothing has paused us yet (possibly because we are still
+		// flushing blocks after we ran branch conversion -- see
+		// KBFS-2501), so no need to resume.
+		return
+	}
+
 	j.pauseType &= ^pauseType
 
 	if j.pauseType != 0 {
