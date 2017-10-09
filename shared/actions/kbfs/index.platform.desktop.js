@@ -184,10 +184,10 @@ function findKeybaseInstallerString(): Promise<string> {
       regedit.list(keybaseRegPath).on('data', function(entry) {
         console.log('findKeybaseInstallerString on data')
         if (entry.data.values && entry.data.values.BUNDLEFILE) {
-          if (fs.existsSync(entry.data.values.BUNDLEFILE)) {
-            resolve(entry.data.values.BUNDLEFILE)
+          if (fs.existsSync(entry.data.values.BUNDLEFILE.value)) {
+            resolve(entry.data.values.BUNDLEFILE.value)
           } else {
-            reject(new Error(`no BUNDLEFILE at` + entry.data.values.BUNDLEFILE))
+            reject(new Error(`no BUNDLEFILE at` + entry.data.values.BUNDLEFILE.value))
           }
         } else {
           reject(new Error(`BUNDLEFILE not found at` + keybaseRegPath))

@@ -16,7 +16,13 @@
                       Name="PendingFileRenameOperations"
                       Type="raw" />
     </Property>
-    
+    <Property Id="REG_BUNDLEFILE">
+      <RegistrySearch Id="BundlePath"
+                      Root="HKCU"
+                      Key="Software\Keybase\Keybase"
+                      Name="BUNDLEFILE"
+                      Type="raw" />
+    </Property>    
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
@@ -34,6 +40,7 @@
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="ParseBundlePath" After="CostFinalize">NOT REMOVE AND BUNDLEFILE</Custom>
+      <Custom Action="RemoveBundle"  Before="InstallValidate"><![CDATA[Installed AND REG_BUNDLEFILE]]></Custom>
       <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
       <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
@@ -45,7 +52,7 @@
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
-      <Custom Action="CopyBundle" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="CopyBundle" Before="InstallFinalize"><![CDATA[BUNDLEFILE AND NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
 
 
@@ -341,6 +348,13 @@
     <CustomAction Id="CopyBundle"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [SystemFolder]cmd.exe /C copy /Y &quot;[BUNDLEFILE]&quot; [INSTALLERFOLDER]"
+              Execute="commit"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveBundle"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [SystemFolder]cmd.exe /C del &quot;[REG_BUNDLEFILE]&quot;"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
@@ -348,7 +362,7 @@
     <CustomAction Id="ParseBundlePath" Script="vbscript">
       <![CDATA[         
         Set fso = CreateObject("Scripting.FileSystemObject") 
-        Session.Property("BUNDLENAME") = fso.GetBaseName(Session.Property("BUNDLEFILE"))     
+        Session.Property("BUNDLENAME") = fso.GetFileName(Session.Property("BUNDLEFILE"))     
       ]]>
     </CustomAction>
   </Fragment>
