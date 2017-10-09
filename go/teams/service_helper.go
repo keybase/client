@@ -314,7 +314,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(emailList))
 
 	var invites []SCTeamInvite
-	for _, e := range splitBulk(emails) {
+	for _, e := range emailList {
 		name := keybase1.TeamInviteName(e)
 		existing, err := t.HasActiveInvite(name, "email")
 		if err != nil {
