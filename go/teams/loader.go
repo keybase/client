@@ -450,6 +450,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 		ret.Name = newName
 	}
 
+	l.logIfUnsyncedSecrets(ctx, ret)
+
 	// Cache the validated result
 	// Mutating this field is safe because only TeamLoader
 	// while holding the single-flight lock reads or writes this field.
@@ -791,9 +793,17 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 
 // Whether the teams secrets are synced to the same point as its sigchain
 func (l *TeamLoader) hasSyncedSecrets(state *keybase1.TeamData) bool {
-	onChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
 	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
 	return onChainGen == offChainGen
+}
+
+func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.TeamData) {
+	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
+	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	if onChainGen != offChainGen {
+		l.G().Log.CDebugf(ctx, "TeamLoader unsynced secrets chain:%v != local:%v", onChainGen, offChainGen)
+	}
 }
 
 func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLinksLows {
