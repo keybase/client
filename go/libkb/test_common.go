@@ -384,6 +384,20 @@ func (t *TestCancelSecretUI) GetPassphrase(_ keybase1.GUIEntryArg, _ *keybase1.S
 	return keybase1.GetPassphraseRes{}, InputCanceledError{}
 }
 
+type TestCountSecretUI struct {
+	Passphrase  string
+	StoreSecret bool
+	CallCount   int
+}
+
+func (t *TestCountSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	t.CallCount++
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrase,
+		StoreSecret: t.StoreSecret,
+	}, nil
+}
+
 type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool

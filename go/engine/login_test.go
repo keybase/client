@@ -2125,9 +2125,7 @@ func TestProvisionMultipleUsers(t *testing.T) {
 
 	Logout(tc)
 
-	// when you specify an email address, you are forcing provisioning
-	// to happen, so make sure that it detects that the device is already
-	// registered for this user.
+	// login via email works now (CORE-6284):
 	ctx = &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
@@ -2136,10 +2134,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err == nil {
-		t.Fatal("login provision via email successful for already provisioned device/user combo")
-	} else if _, ok := err.(libkb.DeviceAlreadyProvisionedError); !ok {
-		t.Fatalf("err: %T, expected libkb.DeviceAlreadyProvisionedError", err)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -3176,6 +3172,36 @@ func TestLoginAlready(t *testing.T) {
 	}
 	if _, ok := err.(libkb.LoggedInError); !ok {
 		t.Fatalf("err type: %T (%s), expected libkb.LoggedInError", err, err)
+	}
+}
+
+func TestLoginEmailOnProvisionedDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+
+	secui := u1.NewCountSecretUI()
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, u1.Email, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatalf("login with email should work now, got error: %s (%T)", err, err)
+	}
+
+	assertPassphraseStreamCache(tc)
+	assertDeviceKeysCached(tc)
+	assertSecretStored(tc, u1.Username)
+
+	// make sure they only had to enter passphrase once:
+	if secui.CallCount != 1 {
+		t.Errorf("login with email, passphrase prompts: %d, expected 1", secui.CallCount)
 	}
 }
 
