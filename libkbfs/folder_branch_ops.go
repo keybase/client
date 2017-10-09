@@ -4307,6 +4307,7 @@ func (fbo *folderBranchOps) searchForNode(ctx context.Context,
 func (fbo *folderBranchOps) getUnlinkPathBeforeUpdatingPointers(
 	ctx context.Context, lState *lockState, md ReadOnlyRootMetadata, op op) (
 	unlinkPath path, unlinkDe DirEntry, toUnlink bool, err error) {
+	fbo.mdWriterLock.AssertLocked(lState)
 	if len(md.data.Changes.Ops) == 0 {
 		return path{}, DirEntry{}, false, errors.New("md needs at least one op")
 	}
@@ -4349,8 +4350,12 @@ func (fbo *folderBranchOps) getUnlinkPathBeforeUpdatingPointers(
 
 	// If the first op in this MD update is a resolutionOp, we need to
 	// inspect it to look for the *real* original pointer for this
-	// node.
-	if resOp, ok := md.data.Changes.Ops[0].(*resolutionOp); ok {
+	// node.  Though only do that if the op we're processing is
+	// actually a part of this MD object; if it's the latest cached
+	// dirOp, then the resOp we're looking at belong to a previous
+	// revision.
+	if resOp, ok := md.data.Changes.Ops[0].(*resolutionOp); ok &&
+		(len(fbo.dirOps) == 0 || op != fbo.dirOps[len(fbo.dirOps)-1].dirOp) {
 		for _, update := range resOp.allUpdates() {
 			if update.Ref == p.tailPointer() {
 				fbo.log.CDebugf(ctx,
@@ -4405,7 +4410,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	// We need to get unlinkPath before calling UpdatePointers so that
 	// nodeCache.Unlink can properly update cachedPath.
 	unlinkPath, unlinkDe, toUnlink, err :=
-		fbo.getUnlinkPathBeforeUpdatingPointers(ctx, lState, md.ReadOnly(), op)
+		fbo.getUnlinkPathBeforeUpdatingPointers(ctx, lState, md, op)
 	if err != nil {
 		return err
 	}
