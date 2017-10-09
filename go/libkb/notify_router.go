@@ -59,6 +59,8 @@ type NotifyListener interface {
 	ReachabilityChanged(r keybase1.Reachability)
 	TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
 	TeamDeleted(teamID keybase1.TeamID)
+	RepoChanged(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string)
+	RepoDeleted(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string)
 }
 
 type NoopNotifyListener struct{}
@@ -100,6 +102,10 @@ func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)       
 func (n *NoopNotifyListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
 }
 func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID) {}
+func (n *NoopNotifyListener) RepoChanged(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
+}
+func (n *NoopNotifyListener) RepoDeleted(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
+}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1073,4 +1079,66 @@ func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.Te
 		n.listener.TeamDeleted(teamID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamDeleted notification")
+}
+
+func (n *NotifyRouter) HandleRepoChanged(ctx context.Context, folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending RepoChanged notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Git {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyGitClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RepoChanged(context.Background(), keybase1.RepoChangedArg{
+					Folder:         folder,
+					TeamID:         teamID,
+					RepoID:         repoID,
+					GlobalUniqueID: globalUniqueID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.RepoChanged(folder, teamID, repoID, globalUniqueID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent RepoChanged notification")
+}
+
+func (n *NotifyRouter) HandleRepoDeleted(ctx context.Context, folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending RepoDeleted notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Git {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyGitClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RepoDeleted(context.Background(), keybase1.RepoDeletedArg{
+					Folder:         folder,
+					TeamID:         teamID,
+					RepoID:         repoID,
+					GlobalUniqueID: globalUniqueID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.RepoDeleted(folder, teamID, repoID, globalUniqueID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent RepoDeleted notification")
 }
