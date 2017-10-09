@@ -113,6 +113,7 @@ func TestImplicitTeamRotateOnRevokePrivate(t *testing.T) {
 }
 
 func TestImplicitTeamRotateOnRevokePublic(t *testing.T) {
+	t.Skip("Test skipped until CORE-6322: public team support")
 	testImplicitTeamRotateOnRevoke(t, true)
 }
 

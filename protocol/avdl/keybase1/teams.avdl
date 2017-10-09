@@ -125,9 +125,10 @@ protocol teams {
   }
 
   // Snapshot of a loaded team.
-  // If this is changed in incompatible way, bump teams/storage.go:diskStorageVersion
+  // If this is changed in incompatible way, increment teams/storage.go:diskStorageVersion
   record TeamData {
     // Whether this snapshot is entirely missing secrets.
+    // Not used. Might as well get rid of this field next time the cache is busted.
     boolean secretless;
 
     // Name of the team. This is tricky.

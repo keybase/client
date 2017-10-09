@@ -167,17 +167,6 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		}
 	}
 
-	// @@@@
-	// @@@@ DO NOT MERGE THIS
-	// @@@@
-	// @@@@
-	l.G().Log.CDebugf(ctx, "@@@ return team: seqno:%v nsecrets:%v",
-		ret.team.Chain.LastSeqno, len(ret.team.PerTeamKeySeeds))
-	// @@@@
-	// @@@@
-	// @@@@
-	// @@@@
-
 	return &ret.team, nil
 }
 
@@ -316,13 +305,36 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 		}
 	}
 
+	var fetchLinksAndOrSecrets bool
+	if ret == nil {
+		// We have no cache
+		fetchLinksAndOrSecrets = true
+	} else if ret.Chain.LastSeqno < lastSeqno {
+		// The cache is definitely behind
+		fetchLinksAndOrSecrets = true
+	} else if !l.hasSyncedSecrets(ret) {
+		// The cached secrets are behind the cached chain.
+		// We may need to hit the server for secrets, even though there are no new links.
+
+		if arg.needAdmin {
+			fetchLinksAndOrSecrets = true
+		}
+		if arg.readSubteamID == nil {
+			// This is not a recursive load.
+			// If we are in the team, we should have the keys.
+			myCachedRole, err := TeamSigChainState{ret.Chain}.GetUserRole(arg.me)
+			if err != nil {
+				myCachedRole = keybase1.TeamRole_NONE
+			}
+			if myCachedRole.IsReaderOrAbove() {
+				fetchLinksAndOrSecrets = true
+			}
+		}
+	}
+
 	// Pull new links from the server
 	var teamUpdate *rawTeam
-	// @@@ TODO: we must fetch an update even if the chain has not IF we do not have secrets
-	// and we are loading without subteam reader and we are not synced. Is that only true
-	// if we are not an admin? But we don't want to do it all the time because it's a second round trip.
-	// This is so complicated, add a test.
-	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
+	if fetchLinksAndOrSecrets {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
 		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, arg.public, lows, arg.readSubteamID)
@@ -466,9 +478,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 }
 
 // Decide whether to repoll merkle based on load arg.
-// Returns (discardCache, repoll, forceSecretFetch)
+// Returns (discardCache, repoll)
 // If discardCache is true, the caller should throw out their cached copy and repoll.
-// If forceSecretFetch is true, the caller should hit up the server for secrets even if the cached chain is up to date.
 // Considers:
 // - NeedAdmin
 // - NeedKeyGeneration

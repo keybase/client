@@ -59,6 +59,8 @@ func TestRotate(t *testing.T) {
 }
 
 func TestHandleRotateRequestOldGeneration(t *testing.T) {
+	// CORE-6322 run these tests with both publicnesses
+	public := false
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
@@ -86,7 +88,7 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
 	// this shouldn't do anything
-	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, 1); err != nil {
+	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, public, 1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -107,6 +109,8 @@ func TestHandleRotateRequestOldGeneration(t *testing.T) {
 }
 
 func TestHandleRotateRequest(t *testing.T) {
+	// CORE-6322 run these tests with both publicnesses
+	public := false
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
@@ -123,7 +127,7 @@ func TestHandleRotateRequest(t *testing.T) {
 	}
 	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
-	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation()); err != nil {
+	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, public, team.Generation()); err != nil {
 		t.Fatal(err)
 	}
 
@@ -144,6 +148,8 @@ func TestHandleRotateRequest(t *testing.T) {
 }
 
 func TestImplicitAdminAfterRotateRequest(t *testing.T) {
+	// CORE-6322 run these tests with both publicnesses
+	public := false
 	tc, owner, otherA, otherB, root, sub := memberSetupSubteam(t)
 	defer tc.Cleanup()
 
@@ -156,7 +162,7 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	}
 	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
-	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation()); err != nil {
+	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, public, team.Generation()); err != nil {
 		t.Fatal(err)
 	}
 
