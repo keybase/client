@@ -248,8 +248,6 @@ def runNixTest(prefix) {
         sh 'test -z $(gofmt -l $(go list ./... 2>/dev/null | grep -v /vendor/ | sed -e s/github.com.keybase.kbfs.// ))'
     }
     tests[prefix+'vet'] = {
-        sh 'go get -u github.com/golang/lint/golint'
-        sh 'go install github.com/golang/lint/golint'
         sh '''
             lint=$(make -s lint);
             echo 2>&1 "$lint";
@@ -260,7 +258,6 @@ def runNixTest(prefix) {
     tests[prefix+'gen_mocks'] = {
         dir('libkbfs') {
             // Make sure our mock library is up to date.
-            sh 'go get -u github.com/golang/mock/gomock github.com/golang/mock/mockgen'
             sh './gen_mocks.sh'
             sh 'git diff --exit-code'
         }
