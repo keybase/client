@@ -4779,6 +4779,7 @@ export type TeamApplicationKey = {
 
 export type TeamCLKRMsg = {
   teamID: TeamID,
+  public: boolean,
   generation: PerTeamKeyGeneration,
   score: int,
 }
@@ -4794,6 +4795,7 @@ export type TeamChangeReq = {
 
 export type TeamChangeRow = {
   id: TeamID,
+  public: boolean,
   name: string,
   keyRotated: boolean,
   membershipChanged: boolean,
@@ -4829,6 +4831,7 @@ export type TeamDetails = {
 
 export type TeamExitRow = {
   id: TeamID,
+  public: boolean,
 }
 
 export type TeamID = string
@@ -4925,6 +4928,7 @@ export type TeamNamePart = string
 
 export type TeamOpenReqMsg = {
   teamID: TeamID,
+  public: boolean,
   tars?: ?Array<TeamAccessRequest>,
 }
 
@@ -4954,6 +4958,7 @@ export type TeamRole =
 
 export type TeamSBSMsg = {
   teamID: TeamID,
+  public: boolean,
   score: int,
   invitees?: ?Array<TeamInvitee>,
 }

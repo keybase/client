@@ -921,6 +921,7 @@ func (o TeamName) DeepCopy() TeamName {
 
 type TeamCLKRMsg struct {
 	TeamID     TeamID               `codec:"teamID" json:"team_id"`
+	Public     bool                 `codec:"public" json:"public"`
 	Generation PerTeamKeyGeneration `codec:"generation" json:"generation"`
 	Score      int                  `codec:"score" json:"score"`
 }
@@ -928,6 +929,7 @@ type TeamCLKRMsg struct {
 func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 	return TeamCLKRMsg{
 		TeamID:     o.TeamID.DeepCopy(),
+		Public:     o.Public,
 		Generation: o.Generation.DeepCopy(),
 		Score:      o.Score,
 	}
@@ -935,6 +937,7 @@ func (o TeamCLKRMsg) DeepCopy() TeamCLKRMsg {
 
 type TeamChangeRow struct {
 	Id                TeamID `codec:"id" json:"id"`
+	Public            bool   `codec:"public" json:"public"`
 	Name              string `codec:"name" json:"name"`
 	KeyRotated        bool   `codec:"keyRotated" json:"key_rotated"`
 	MembershipChanged bool   `codec:"membershipChanged" json:"membership_changed"`
@@ -944,6 +947,7 @@ type TeamChangeRow struct {
 func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 	return TeamChangeRow{
 		Id:                o.Id.DeepCopy(),
+		Public:            o.Public,
 		Name:              o.Name,
 		KeyRotated:        o.KeyRotated,
 		MembershipChanged: o.MembershipChanged,
@@ -952,12 +956,14 @@ func (o TeamChangeRow) DeepCopy() TeamChangeRow {
 }
 
 type TeamExitRow struct {
-	Id TeamID `codec:"id" json:"id"`
+	Id     TeamID `codec:"id" json:"id"`
+	Public bool   `codec:"public" json:"public"`
 }
 
 func (o TeamExitRow) DeepCopy() TeamExitRow {
 	return TeamExitRow{
-		Id: o.Id.DeepCopy(),
+		Id:     o.Id.DeepCopy(),
+		Public: o.Public,
 	}
 }
 
@@ -979,6 +985,7 @@ func (o TeamInvitee) DeepCopy() TeamInvitee {
 
 type TeamSBSMsg struct {
 	TeamID   TeamID        `codec:"teamID" json:"team_id"`
+	Public   bool          `codec:"public" json:"public"`
 	Score    int           `codec:"score" json:"score"`
 	Invitees []TeamInvitee `codec:"invitees" json:"invitees"`
 }
@@ -986,6 +993,7 @@ type TeamSBSMsg struct {
 func (o TeamSBSMsg) DeepCopy() TeamSBSMsg {
 	return TeamSBSMsg{
 		TeamID: o.TeamID.DeepCopy(),
+		Public: o.Public,
 		Score:  o.Score,
 		Invitees: (func(x []TeamInvitee) []TeamInvitee {
 			if x == nil {
@@ -1015,12 +1023,14 @@ func (o TeamAccessRequest) DeepCopy() TeamAccessRequest {
 
 type TeamOpenReqMsg struct {
 	TeamID TeamID              `codec:"teamID" json:"team_id"`
+	Public bool                `codec:"public" json:"public"`
 	Tars   []TeamAccessRequest `codec:"tars" json:"tars"`
 }
 
 func (o TeamOpenReqMsg) DeepCopy() TeamOpenReqMsg {
 	return TeamOpenReqMsg{
 		TeamID: o.TeamID.DeepCopy(),
+		Public: o.Public,
 		Tars: (func(x []TeamAccessRequest) []TeamAccessRequest {
 			if x == nil {
 				return nil
