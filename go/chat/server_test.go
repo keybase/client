@@ -1553,6 +1553,7 @@ func TestChatSrvGap(t *testing.T) {
 }
 
 type serverChatListener struct {
+	libkb.NoopNotifyListener
 	newMessage              chan chat1.IncomingMessage
 	threadsStale            chan []chat1.ConversationStaleUpdate
 	inboxStale              chan struct{}
@@ -1566,32 +1567,8 @@ type serverChatListener struct {
 	inboxSynced             chan chat1.ChatSyncResult
 }
 
-func (n *serverChatListener) Logout()                                                             {}
-func (n *serverChatListener) Login(username string)                                               {}
-func (n *serverChatListener) ClientOutOfDate(to, uri, msg string)                                 {}
-func (n *serverChatListener) UserChanged(uid keybase1.UID)                                        {}
-func (n *serverChatListener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
-func (n *serverChatListener) FSActivity(activity keybase1.FSNotification)                         {}
-func (n *serverChatListener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
-func (n *serverChatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
-func (n *serverChatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                   {}
-func (n *serverChatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                           {}
-func (n *serverChatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
-func (n *serverChatListener) FavoritesChanged(uid keybase1.UID)                                   {}
-func (n *serverChatListener) KeyfamilyChanged(uid keybase1.UID)                                   {}
-func (n *serverChatListener) PGPKeyInSecretStoreFile()                                            {}
-func (n *serverChatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
-func (n *serverChatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
-func (n *serverChatListener) ChatInboxSyncStarted(u keybase1.UID)                                 {}
 func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
-}
-func (n *serverChatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
-}
-func (n *serverChatListener) TeamDeleted(teamID keybase1.TeamID) {}
-func (n *serverChatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
-}
-func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
 func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 	n.inboxStale <- struct{}{}
@@ -1599,11 +1576,9 @@ func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
-
 func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
 	n.inboxSynced <- syncRes
 }
-
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()
 	switch typ {
@@ -1616,8 +1591,6 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 	case chat1.ChatActivityType_TEAMTYPE:
 		n.teamType <- activity.Teamtype()
 	}
-}
-func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem) {
 	n.joinedConv <- conv

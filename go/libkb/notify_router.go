@@ -61,6 +61,46 @@ type NotifyListener interface {
 	TeamDeleted(teamID keybase1.TeamID)
 }
 
+type NoopNotifyListener struct{}
+
+func (n *NoopNotifyListener) Logout()                                                       {}
+func (n *NoopNotifyListener) Login(username string)                                         {}
+func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)                           {}
+func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                  {}
+func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername) {}
+func (n *NoopNotifyListener) FSActivity(activity keybase1.FSNotification)                   {}
+func (n *NoopNotifyListener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
+func (n *NoopNotifyListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
+func (n *NoopNotifyListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
+func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)              {}
+func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                             {}
+func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
+}
+func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID)                                  {}
+func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)      {}
+func (n *NoopNotifyListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *NoopNotifyListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
+	finalizeInfo chat1.ConversationFinalizeInfo) {
+}
+func (n *NoopNotifyListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
+	resolveInfo chat1.ConversationResolveInfo) {
+}
+func (n *NoopNotifyListener) ChatInboxStale(uid keybase1.UID) {}
+func (n *NoopNotifyListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
+}
+func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)      {}
+func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)                               {}
+func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate)                           {}
+func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)     {}
+func (n *NoopNotifyListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)  {}
+func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {}
+func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                                            {}
+func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)                           {}
+func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)                         {}
+func (n *NoopNotifyListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+}
+func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID) {}
+
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
 type NotifyRouter struct {
