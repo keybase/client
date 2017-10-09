@@ -20,7 +20,7 @@ import type {
 } from '../constants/route-tree'
 
 const pathActionTransformer = (action, oldState) => {
-  const prevPath = getPath(oldState.routeTree.routeState)
+  const prevPath = oldState.routeTree ? getPath(oldState.routeTree.routeState) : I.List()
   const path = Array.from(action.payload.path.map(p => (typeof p === 'string' ? p : p.selected)))
   const parentPath = action.payload.parentPath && Array.from(action.payload.parentPath)
   return {

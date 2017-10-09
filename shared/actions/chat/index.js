@@ -1081,7 +1081,7 @@ function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.Updat
 
 function _removeOutboxMessage(
   {payload: {conversationIDKey, outboxID}}: Constants.RemoveOutboxMessage,
-  msgKeys: OrderedSet<Constants.MessageKey>
+  msgKeys: I.OrderedSet<Constants.MessageKey>
 ) {
   const nextMessages = msgKeys.filter(k => {
     const {messageID} = Constants.splitMessageIDKey(k)
@@ -1136,7 +1136,7 @@ function* _findMessagesToDelete(action: Constants.AppendMessages | Constants.Pre
 function* _findMessageUpdates(action: Constants.AppendMessages | Constants.PrependMessages) {
   const newMessages = action.payload.messages
   type TargetMessageID = string
-  const updateIDs: {[key: TargetMessageID]: Set<Constants.MessageKey>} = {}
+  const updateIDs: {[key: TargetMessageID]: I.OrderedSet<Constants.MessageKey>} = {}
   const conversationIDKey = action.payload.conversationIDKey
   newMessages.forEach(message => {
     if (message.type === 'Edit' || message.type === 'UpdateAttachment') {

@@ -3,9 +3,9 @@ import * as I from 'immutable'
 import MainPage from './container.js'
 import NewRepo from './new-repo/container'
 import DeleteRepo from './delete-repo/container'
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   children: {
     deleteRepo: {
       component: DeleteRepo,

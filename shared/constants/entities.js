@@ -6,6 +6,7 @@ import * as Git from './git'
 import * as ChatConstants from './chat'
 import HiddenString from '../util/hidden-string'
 import {type NoErrorTypedAction} from './types/flux'
+import {type DeviceDetail} from './devices'
 
 export type EntityType = any // TODO stronger typing?
 
@@ -26,62 +27,62 @@ export type Subtract = NoErrorTypedAction<
 export type Actions = Delete | Merge | Replace | Subtract
 
 type _SearchSubState = {
-  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
-  searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
-  searchKeyToResults: Map<string, ?List<SearchConstants.SearchResultId>>,
-  searchKeyToPending: Map<string, boolean>,
-  searchKeyToSelectedId: Map<string, ?SearchConstants.SearchResultId>,
-  searchKeyToShowSearchSuggestion: Map<string, boolean>,
-  searchKeyToUserInputItemIds: Map<string, OrderedSet<SearchConstants.SearchResultId>>,
-  searchKeyToSearchResultQuery: Map<string, ?{text: string, service: SearchConstants.Service}>,
-  searchKeyToClearSearchTextInput: Map<string, number>,
+  searchResults: I.Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
+  searchKeyToResults: I.Map<string, ?I.List<SearchConstants.SearchResultId>>,
+  searchKeyToPending: I.Map<string, boolean>,
+  searchKeyToSelectedId: I.Map<string, ?SearchConstants.SearchResultId>,
+  searchKeyToShowSearchSuggestion: I.Map<string, boolean>,
+  searchKeyToUserInputItemIds: I.Map<string, I.OrderedSet<SearchConstants.SearchResultId>>,
+  searchKeyToSearchResultQuery: I.Map<string, ?{text: string, service: SearchConstants.Service}>,
+  searchKeyToClearSearchTextInput: I.Map<string, number>,
 }
 type SearchSubState = I.RecordOf<_SearchSubState>
 
 const makeSearchSubState: I.RecordFactory<_SearchSubState> = I.Record({
-  searchResults: Map(),
-  searchQueryToResult: Map(),
-  searchKeyToResults: Map(),
-  searchKeyToPending: Map(),
-  searchKeyToSelectedId: Map(),
-  searchKeyToShowSearchSuggestion: Map(),
-  searchKeyToUserInputItemIds: Map(),
-  searchKeyToSearchResultQuery: Map(),
-  searchKeyToClearSearchTextInput: Map(),
+  searchResults: I.Map(),
+  searchQueryToResult: I.Map(),
+  searchKeyToResults: I.Map(),
+  searchKeyToPending: I.Map(),
+  searchKeyToSelectedId: I.Map(),
+  searchKeyToShowSearchSuggestion: I.Map(),
+  searchKeyToUserInputItemIds: I.Map(),
+  searchKeyToSearchResultQuery: I.Map(),
+  searchKeyToClearSearchTextInput: I.Map(),
 })
 
 // State
 type _State = {
-  attachmentDownloadProgress: Map<ChatConstants.MessageKey, ?number>,
-  attachmentDownloadedPath: Map<ChatConstants.MessageKey, ?string>,
-  attachmentPreviewPath: Map<ChatConstants.MessageKey, ?string>,
-  attachmentPreviewProgress: Map<ChatConstants.MessageKey, ?number>,
-  attachmentSavedPath: Map<ChatConstants.MessageKey, ?string>,
-  attachmentUploadProgress: Map<ChatConstants.MessageKey, ?number>,
-  convIDToSnippet: Map<ChatConstants.ConversationIDKey, ?HiddenString>,
-  conversationMessages: Map<ChatConstants.ConversationIDKey, KBOrderedSet<ChatConstants.MessageKey>>,
-  deletedIDs: Map<ChatConstants.ConversationIDKey, Set<ChatConstants.MessageID>>,
-  devices: Map<string, DeviceDetailRecord>,
-  git: Git.GitRecord,
-  inbox: Map<ChatConstants.ConversationIDKey, ChatConstants.InboxState>,
-  inboxAlwaysShow: Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxBigChannels: Map<ChatConstants.ConversationIDKey, string>,
-  inboxBigChannelsToTeam: Map<ChatConstants.ConversationIDKey, string>,
-  inboxIsEmpty: Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxSmallTimestamps: Map<ChatConstants.ConversationIDKey, string>,
-  inboxSupersededBy: Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxUnreadCountBadge: Map<ChatConstants.ConversationIDKey, number>,
-  inboxUnreadCountTotal: Map<ChatConstants.ConversationIDKey, number>,
-  inboxVersion: Map<ChatConstants.ConversationIDKey, number>,
-  messageUpdates: Map<
+  attachmentDownloadProgress: I.Map<ChatConstants.MessageKey, ?number>,
+  attachmentDownloadedPath: I.Map<ChatConstants.MessageKey, ?string>,
+  attachmentPreviewPath: I.Map<ChatConstants.MessageKey, ?string>,
+  attachmentPreviewProgress: I.Map<ChatConstants.MessageKey, ?number>,
+  attachmentSavedPath: I.Map<ChatConstants.MessageKey, ?string>,
+  attachmentUploadProgress: I.Map<ChatConstants.MessageKey, ?number>,
+  convIDToSnippet: I.Map<ChatConstants.ConversationIDKey, ?HiddenString>,
+  conversationMessages: I.Map<ChatConstants.ConversationIDKey, I.OrderedSet<ChatConstants.MessageKey>>,
+  deletedIDs: I.Map<ChatConstants.ConversationIDKey, I.Set<ChatConstants.MessageID>>,
+  devices: I.Map<string, DeviceDetail>,
+  git: Git.State,
+  inbox: I.Map<ChatConstants.ConversationIDKey, ChatConstants.InboxState>,
+  inboxAlwaysShow: I.Map<ChatConstants.ConversationIDKey, boolean>,
+  inboxBigChannels: I.Map<ChatConstants.ConversationIDKey, string>,
+  inboxBigChannelsToTeam: I.Map<ChatConstants.ConversationIDKey, string>,
+  inboxIsEmpty: I.Map<ChatConstants.ConversationIDKey, boolean>,
+  inboxSmallTimestamps: I.Map<ChatConstants.ConversationIDKey, string>,
+  inboxSupersededBy: I.Map<ChatConstants.ConversationIDKey, boolean>,
+  inboxUnreadCountBadge: I.Map<ChatConstants.ConversationIDKey, number>,
+  inboxUnreadCountTotal: I.Map<ChatConstants.ConversationIDKey, number>,
+  inboxVersion: I.Map<ChatConstants.ConversationIDKey, number>,
+  messageUpdates: I.Map<
     ChatConstants.ConversationIDKey,
     I.Map<ChatConstants.MessageID, I.OrderedSet<ChatConstants.MessageKey>>
   >,
-  messages: Map<ChatConstants.MessageKey, ChatConstants.Message>,
+  messages: I.Map<ChatConstants.MessageKey, ChatConstants.Message>,
   search: SearchSubState,
-  searchQueryToResult: Map<SearchConstants.SearchQuery, List<SearchConstants.SearchResultId>>,
-  searchResults: Map<SearchConstants.SearchResultId, KBRecord<SearchConstants.SearchResult>>,
-  teams: Teams.TeamRecord,
+  searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
+  searchResults: I.Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  teams: Teams.State,
 }
 
 export type State = I.RecordOf<_State>
@@ -97,16 +98,16 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   deletedIDs: I.Map(),
   devices: I.Map(),
   git: Git.makeState(),
-  inbox: Map(),
-  inboxAlwaysShow: Map(),
-  inboxBigChannels: Map(),
-  inboxBigChannelsToTeam: Map(),
-  inboxIsEmpty: Map(), // maps and not sets as we don't have good helpers for that in entities yet
-  inboxSmallTimestamps: Map(),
-  inboxSupersededBy: Map(),
-  inboxUnreadCountBadge: Map(),
-  inboxUnreadCountTotal: Map(),
-  inboxVersion: Map(),
+  inbox: I.Map(),
+  inboxAlwaysShow: I.Map(),
+  inboxBigChannels: I.Map(),
+  inboxBigChannelsToTeam: I.Map(),
+  inboxIsEmpty: I.Map(), // maps and not sets as we don't have good helpers for that in entities yet
+  inboxSmallTimestamps: I.Map(),
+  inboxSupersededBy: I.Map(),
+  inboxUnreadCountBadge: I.Map(),
+  inboxUnreadCountTotal: I.Map(),
+  inboxVersion: I.Map(),
   messageUpdates: I.Map(),
   messages: I.Map(),
   search: makeSearchSubState(),

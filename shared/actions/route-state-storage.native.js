@@ -99,7 +99,12 @@ class RouteStateStorage {
 
   store = async (dispatch: Dispatch, getState: GetState): Promise<void> => {
     const state = getState()
-    if (!state.routeTree.loggedInUserNavigated) {
+    const routeTree = state.routeTree
+    if (!routeTree) {
+      console.log('[RouteState] No routetree')
+      return
+    }
+    if (!routeTree.loggedInUserNavigated) {
       console.log('[RouteState] Ignoring store before route changed')
       return
     }
@@ -109,10 +114,15 @@ class RouteStateStorage {
       delete this._getAndClearPromise
     }
 
-    const routeState = state.routeTree.routeState
+    const routeState = routeTree.routeState
+    if (!routeState) {
+      console.log('RouteState] No route state')
+      return
+    }
     const item = {}
 
     const selectedTab = routeState.selected
+    // $FlowIssue doesn't like sending a string as a tab, which is correct
     if (isValidInitialTab(selectedTab)) {
       item.tab = selectedTab
       if (selectedTab === chatTab) {

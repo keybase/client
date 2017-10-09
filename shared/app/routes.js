@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import chatRoutes from '../chat/routes'
 import loginRoutes from '../login/routes'
 import devicesRoutes from '../devices/routes'
@@ -22,7 +22,7 @@ import {
   gitTab,
 } from '../constants/tabs'
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   children: {
     [chatTab]: chatRoutes,
     [folderTab]: foldersRoutes,

@@ -4,9 +4,9 @@ import DevicePage from './device-page/container'
 import Devices from './container'
 import GenPaperKey from './gen-paper-key/container'
 import RevokeDevice from './device-revoke/container'
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   component: Devices,
   initialState: {showingRevoked: false},
   tags: {title: 'Devices'},

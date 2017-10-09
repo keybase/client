@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import Conversation from './conversation/container'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
@@ -10,7 +10,7 @@ import CreateChannel from './create-channel/container'
 import {nothingSelected} from '../constants/chat'
 import Render from './render.desktop'
 
-const conversationRoute = new RouteDefNode({
+const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: {
     attachment: {
@@ -46,7 +46,7 @@ const conversationRoute = new RouteDefNode({
   },
 })
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   containerComponent: Render,
   defaultSelected: nothingSelected,
   children: () => conversationRoute,

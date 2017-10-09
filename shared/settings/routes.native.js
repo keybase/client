@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import TestPopup from '../dev/test-popup.native'
 import Settings from './'
 import InvitationsContainer from './invites/container'
@@ -29,7 +29,7 @@ const DumbWrapper = () => {
   return <DumbSheet />
 }
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   component: Settings,
   children: {
     [Constants.aboutTab]: {

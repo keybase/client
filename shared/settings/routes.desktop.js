@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import {
   landingTab,
   updatePaymentTab,
@@ -23,7 +23,7 @@ import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
 import PlanDetails from './plan-details/container'
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   defaultSelected: landingTab,
   containerComponent: Settings,
   children: {

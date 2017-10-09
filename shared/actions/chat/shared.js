@@ -152,7 +152,7 @@ function makeInboxStateRecords(
         const parts = c.localMetadata
           ? List(c.localMetadata.writerNames || [])
           : List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
-        return new Constants.InboxStateRecord({
+        return Constants.makeInboxState({
           channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
             ? c.localMetadata.channelName
             : undefined,

@@ -13,7 +13,7 @@ import YouRekey from './conversation/rekey/you-rekey'
 import * as Constants from '../constants/chat'
 import {List, Map} from 'immutable'
 import {globalStyles} from '../styles'
-import {RouteStateNode} from '../route-tree'
+import {makeRouteStateNode} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import * as EntityConstants from '../constants/entities'
 import * as ChatTypes from '../constants/types/flow-types-chat'
@@ -201,10 +201,10 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
       username: 'chris',
     },
     routeTree: {
-      routeState: new RouteStateNode({
+      routeState: makeRouteStateNode({
         selected: 'tabs:chatTab',
         children: Map({
-          'tabs:chatTab': new RouteStateNode({
+          'tabs:chatTab': makeRouteStateNode({
             selected,
             children: Map({}),
           }),

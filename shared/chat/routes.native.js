@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import ConvListOrSearch from './conversation-list-or-search.native'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
@@ -12,7 +12,7 @@ import NewTeamDialog from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
 import CreateChannel from './create-channel/container'
 
-const conversationRoute = new RouteDefNode({
+const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: {
     attachment: {
@@ -60,19 +60,19 @@ const conversationRoute = new RouteDefNode({
   },
 })
 
-const manageChannelsRoute = new RouteDefNode({
+const manageChannelsRoute = makeRouteDefNode({
   component: ManageChannels,
   children: {},
   tags: {hideStatusBar: true},
 })
 
-const createChannelRoute = new RouteDefNode({
+const createChannelRoute = makeRouteDefNode({
   component: CreateChannel,
   tags: {hideStatusBar: true},
   children: {},
 })
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   component: ConvListOrSearch,
   children: key => {
     if (key === 'manageChannels') {

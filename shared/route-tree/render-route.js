@@ -1,29 +1,26 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {LeafTags, pathToString, makeLeafTags} from './'
+import {type Path, type LeafTags, pathToString, makeLeafTags, type RouteStateNode, type RouteDefNode} from '.'
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 import Box from '../common-adapters/box'
 
 import type {Action} from '../constants/types/flux'
 import type {Tab} from '../constants/tabs'
-import type {RouteDefNode, RouteStateNode, Path} from './'
-import type {KBRecord} from '../constants/types/more'
 
-type _RenderRouteResultParams = {
+type _RenderRouteResult = {
   path: I.List<string>,
   tags: LeafTags,
   component: ({isActiveRoute: boolean, shouldRender: boolean}) => React.Node,
   leafComponent: ({isActiveRoute: boolean, shouldRender: boolean}) => React.Node,
 }
 
-export const RenderRouteResult: (
-  spec?: _RenderRouteResultParams
-) => I.RecordFactory<_RenderRouteResultParams> = I.Record({
+export type RenderRouteResult = I.RecordOf<_RenderRouteResult>
+export const makeRenderRouteResult: I.RecordFactory<_RenderRouteResult> = I.Record({
   path: I.List(),
   tags: makeLeafTags(),
-  component: null,
-  leafComponent: null,
+  component: () => null,
+  leafComponent: () => null,
 })
 
 export type RouteRenderStack = I.Stack<RenderRouteResult>
@@ -93,7 +90,10 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
       stack,
       children,
     } = this.props
-    const RouteComponent = isContainer ? routeDef.containerComponent : routeDef.component
+    const RouteComponent: any = isContainer ? routeDef.containerComponent : routeDef.component
+    if (!RouteComponent) {
+      throw new Error('Missing RouteComponent')
+    }
     return (
       <RouteComponent
         isActiveRoute={isActiveRoute}
@@ -137,7 +137,7 @@ function renderRouteStack({
 
   let stack
   const selected = routeState.selected
-  if (selected === null) {
+  if (!selected) {
     // If this is the current selected (bottom) view, initialize an empty
     // stack. We'll add our view component to it as the first entry below.
     if (!routeDef.component) {
@@ -200,7 +200,7 @@ function renderRouteStack({
             setRouteState={setRouteState}
           />
         : <Box />
-    const result = new RenderRouteResult({
+    const result = makeRenderRouteResult({
       path,
       component: routeComponent,
       leafComponent: routeComponent,
@@ -226,7 +226,7 @@ export default class RenderRoute extends React.PureComponent<RenderRouteProps<*>
     // renderRouteStack gives us a stack of all views down the current route path.
     // This component renders the bottom (currently visible) one.
     const viewStack = renderRouteStack({...this.props, path: I.List()})
-    const last = viewStack.last()
-    return last ? last.component({isActiveRoute: true}) : null
+    const last: ?RenderRouteResult = viewStack.last()
+    return last ? last.component({isActiveRoute: true, shouldRender: false}) : null
   }
 }

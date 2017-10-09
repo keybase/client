@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import pgpRoutes from './pgp/routes'
 import Profile from './container'
 import EditProfile from './edit-profile'
@@ -13,7 +13,7 @@ import SearchPopup from './search-container'
 import {isMobile} from '../constants/platform'
 import NonUserProfile from './non-user-profile-container'
 
-const proveEnterUsername = new RouteDefNode({
+const proveEnterUsername = makeRouteDefNode({
   component: ProveEnterUsername,
   children: {
     postProof: {
@@ -30,7 +30,7 @@ const proveEnterUsername = new RouteDefNode({
   },
 })
 
-export const profileRoute = new RouteDefNode({
+export const profileRoute = makeRouteDefNode({
   component: Profile,
   title: 'Profile',
   initialState: {currentFriendshipsTab: 'Followers'},

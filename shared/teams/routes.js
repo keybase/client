@@ -1,6 +1,6 @@
 // @flow
 import TeamsContainer from './container'
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
@@ -22,7 +22,7 @@ const makeManageChannels = () => ({
   },
 })
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels(),
     showNewTeamDialog: {
