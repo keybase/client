@@ -480,13 +480,21 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		return nil, nil, nil, NoUIDError{}
 	}
 
-	arg := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
+	argBase := NewLoadUserArg(u.G()).WithUID(uid).WithPublicKeyOptional().WithNetContext(ctx)
 
-	forcePollValues := []bool{false, true}
+	// Make the retry mechanism increasingly aggresive. See CORE-8851.
+	// It should be that a ForcePoll is good enough, but in some rare cases,
+	// people have cached values for previous pre-reset user incarnations that
+	// were incorrect. So clobber over that if it comes to it.
+	attempts := []LoadUserArg{
+		argBase,
+		argBase.WithForcePoll(true),
+		argBase.WithForceReload(),
+	}
 
-	for _, fp := range forcePollValues {
+	for _, arg := range attempts {
 
-		arg = arg.WithForcePoll(fp)
+		u.G().VDL.CLogf(ctx, VLog0, "| reloading with arg: %s", arg.String())
 
 		upak, _, err := u.LoadV2(arg)
 		if err != nil {
