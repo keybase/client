@@ -37,13 +37,12 @@ func newCmdChatLeaveChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 }
 
 func (c *CmdChatLeaveChannel) Run() error {
-	chatClient, err := GetChatLocalClient(c.G())
+	resolver, err := newChatConversationResolver(c.G())
 	if err != nil {
 		return err
 	}
 
 	ctx := context.Background()
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
 	conv, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		MustNotExist:      false,
@@ -54,7 +53,7 @@ func (c *CmdChatLeaveChannel) Run() error {
 		return err
 	}
 
-	_, err = chatClient.LeaveConversationLocal(ctx, conv.GetConvID())
+	_, err = resolver.ChatClient.LeaveConversationLocal(ctx, conv.GetConvID())
 	if err != nil {
 		return err
 	}

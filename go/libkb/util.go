@@ -451,6 +451,15 @@ func RandStringB64(numTriads int) string {
 	return base64.URLEncoding.EncodeToString(buf)
 }
 
+func RandHexString(prefix string, numbytes int) (string, error) {
+	buf, err := RandBytes(numbytes)
+	if err != nil {
+		return "", err
+	}
+	str := hex.EncodeToString(buf)
+	return prefix + str, nil
+}
+
 func Trace(log logger.Logger, msg string, f func() error) func() {
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }

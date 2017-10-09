@@ -4,6 +4,7 @@ import SetPublicName, {type State} from '.'
 import {connect, type TypedState} from '../../../util/container'
 import * as Creators from '../../../actions/login/creators'
 import {clearDeviceNameError} from '../../../actions/signup'
+import {type RouteProps} from '../../../route-tree/render-route'
 
 const trimDeviceName = (s: ?string): string => {
   if (!s) return ''
@@ -73,16 +74,17 @@ class _SetPublicName extends Component<ContainerProps, State> {
   }
 }
 
-type OwnProps = {
-  routeProps: {
+type OwnProps = RouteProps<
+  {
     existingDevices?: ?Array<string>,
   },
-}
+  {}
+>
 
-const mapStateToProps = (state: TypedState, {routeProps: {existingDevices}}: OwnProps) => ({
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   deviceNameError: state.signup.deviceNameError,
-  existingDevices,
-  existingDevicesTrimmed: trimDeviceNames(existingDevices),
+  existingDevices: routeProps.get('existingDevices'),
+  existingDevicesTrimmed: trimDeviceNames(routeProps.get('existingDevices')),
   waiting: state.engine.get('rpcWaitingStates').get('loginRpc'),
 })
 

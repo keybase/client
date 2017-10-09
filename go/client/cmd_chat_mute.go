@@ -60,17 +60,10 @@ func (c *CmdChatMute) ParseArgv(ctx *cli.Context) error {
 func (c *CmdChatMute) Run() error {
 	ctx := context.TODO()
 
-	chatClient, err := GetChatLocalClient(c.G())
+	resolver, err := newChatConversationResolver(c.G())
 	if err != nil {
 		return err
 	}
-
-	resolver := &chatConversationResolver{G: c.G(), ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(c.G())
-	if err != nil {
-		return err
-	}
-
 	conversation, _, err := resolver.Resolve(ctx, c.resolvingRequest, chatConversationResolvingBehavior{
 		CreateIfNotExists: false,
 		MustNotExist:      false,
@@ -86,7 +79,7 @@ func (c *CmdChatMute) Run() error {
 		Status:         c.status,
 	}
 
-	_, err = chatClient.SetConversationStatusLocal(ctx, setStatusArg)
+	_, err = resolver.ChatClient.SetConversationStatusLocal(ctx, setStatusArg)
 	if err != nil {
 		return err
 	}

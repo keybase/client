@@ -5,23 +5,23 @@ import {
   withState,
   lifecycle,
   withPropsOnChange,
-  branch,
-  renderNothing,
   type TypedState,
   connect,
   type MapStateToProps,
 } from '../../util/container'
-import {Avatar, Box, ClickableBox, List, Text} from '../../common-adapters/index'
+import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
   data: Array<D>,
   style: Object,
+  selectedIndex: number,
 }
 
 type MentionDatum = {
-  avatar: React$Element<*>,
+  following: {[username: string]: boolean},
+  you: string,
   username: string,
   fullName: string,
   selected: boolean,
@@ -29,33 +29,50 @@ type MentionDatum = {
   onHover: () => void,
 }
 
-const MentionRowRenderer = ({avatar, username, fullName, selected, onClick, onHover}: MentionDatum) => (
+const MentionRowRenderer = ({
+  username,
+  fullName,
+  selected,
+  onClick,
+  onHover,
+  following,
+  you,
+}: MentionDatum) => (
   <ClickableBox
     style={{
       ...globalStyles.flexBoxRow,
-      height: 24,
+      height: 40,
       alignItems: 'center',
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.small,
+      paddingLeft: globalMargins.tiny,
+      paddingRight: globalMargins.tiny,
       backgroundColor: selected ? globalColors.blue4 : undefined,
     }}
     onClick={onClick}
     onMouseOver={onHover}
   >
-    {avatar}
-    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>{username}</Text>
+    <Avatar username={username} size={32} />
+    <Usernames
+      type="Body"
+      colorFollowing={true}
+      users={[{you: you === username, username, following: following[username]}]}
+      style={{marginLeft: globalMargins.small}}
+    />
     <Text type="Body" style={{marginLeft: globalMargins.tiny}}>{fullName}</Text>
   </ClickableBox>
 )
 
-const Hud = ({style, data, rowRenderer}: Props<*>) => (
-  <Box style={{...hudStyle, ...style}}>
-    <List items={data} renderItem={rowRenderer} />
-  </Box>
-)
+// We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
+// This is important if you type a filter that gives you no results and you press enter for instance
+const Hud = ({style, data, rowRenderer, selectedIndex}: Props<*>) =>
+  data.length
+    ? <Box style={{...hudStyle, ...style}}>
+        <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+      </Box>
+    : null
 
 const hudStyle = {
   ...globalStyles.flexBoxRow,
+  backgroundColor: globalColors.white,
 }
 
 type MentionHudProps = {
@@ -71,9 +88,10 @@ type MentionHudProps = {
 
 // TODO figure typing out
 const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {userIds, selectedIndex, filter}) => ({
+  following: state.config.following,
+  you: state.config.username || '',
   data: userIds
     .map((u, i) => ({
-      avatar: <Avatar username={u} size={16} />,
       username: u,
       fullName: '', // TODO
       key: u,
@@ -84,7 +102,6 @@ const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {userIds, 
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
   connect(mapStateToProps),
-  branch(props => !props.data.length, renderNothing),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
       if (nextProps.data.length === 0) {
@@ -95,13 +112,30 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
       }
 
       if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
-        nextProps.setSelectedIndex(n => Math.max(n - 1, 0))
+        nextProps.setSelectedIndex(n => {
+          const next = n - 1
+          if (next < 0) {
+            return Math.max(nextProps.data.length - 1, 0)
+          }
+          return next
+        })
       } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        nextProps.setSelectedIndex(n => Math.min(n + 1, nextProps.data.length - 1))
+        nextProps.setSelectedIndex(n => {
+          const next = n + 1
+          if (next >= nextProps.data.length) {
+            return 0
+          }
+          return next
+        })
       }
 
       if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {
-        nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
+        if (nextProps.data.length) {
+          nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
+        } else {
+          // Just exit
+          nextProps.onPickUser(nextProps.filter, {notUser: true})
+        }
       }
 
       if (nextProps.selectedIndex !== this.props.selectedIndex) {
@@ -116,6 +150,8 @@ const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
           key={props.key}
           onClick={() => ownerProps.onPickUser(props.username)}
           onHover={() => ownerProps.setSelectedIndex(index)}
+          following={ownerProps.following}
+          you={ownerProps.you}
           {...props}
         />
       )

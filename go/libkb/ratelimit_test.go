@@ -9,7 +9,9 @@ import (
 )
 
 func TestRateLimit(t *testing.T) {
-	limits := NewRateLimits(G)
+	tc := SetupTest(t, "rateLimit", 0)
+	defer tc.Cleanup()
+	limits := NewRateLimits(tc.G)
 	if !limits.GetPermission(TestEventRateLimit, 1*time.Minute) {
 		t.Fatal("expected to get permission")
 	}

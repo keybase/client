@@ -45,7 +45,7 @@ func (c *CmdListTrackers) Run() error {
 	if err != nil {
 		return err
 	}
-	if err := RegisterProtocols(nil); err != nil {
+	if err := RegisterProtocolsWithContext(nil, c.G()); err != nil {
 		return err
 	}
 

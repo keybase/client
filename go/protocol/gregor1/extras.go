@@ -19,6 +19,7 @@ func (u UID) String() string { return hex.EncodeToString(u) }
 func (u UID) Eq(other UID) bool {
 	return bytes.Equal(u.Bytes(), other.Bytes())
 }
+
 func (d DeviceID) Bytes() []byte  { return []byte(d) }
 func (d DeviceID) String() string { return hex.EncodeToString(d) }
 func (d DeviceID) Eq(other DeviceID) bool {

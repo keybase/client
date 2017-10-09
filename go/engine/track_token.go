@@ -182,8 +182,7 @@ func (e *TrackToken) loadMe() error {
 
 func (e *TrackToken) loadThem(username libkb.NormalizedUsername) error {
 
-	arg := libkb.NewLoadUserByNameArg(e.G(), username.String())
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserByNameArg(e.G(), username.String()).WithPublicKeyOptional()
 	them, err := libkb.LoadUser(arg)
 	if err != nil {
 		return err

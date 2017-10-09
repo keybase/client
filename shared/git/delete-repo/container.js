@@ -7,7 +7,7 @@ import {compose, renderNothing, branch, connect, type TypedState} from '../../ut
 const missingGit = {error: 'NoGit', loading: false, name: '', teamname: ''}
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const git = Constants.getIdToGit(state).get(routeProps.id)
+  const git = Constants.getIdToGit(state).get(routeProps.get('id'))
 
   return git
     ? {
@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     : missingGit
 }
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   _onDelete: (teamname: ?string, name: string, notifyTeam: boolean) => {
     const deleteAction = teamname
       ? Creators.deleteTeamRepo(teamname, name, notifyTeam)

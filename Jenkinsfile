@@ -175,7 +175,11 @@ helpers.rootLinuxNode(env, {
                                 )
                             },
                             test_kbfs: {
-                                if (hasGoChanges) {
+                                // Only build KBFS on master builds. This means
+                                // that we can have master breaks, but it
+                                // strikes a good balance between velocity and
+                                // test coverage.
+                                if (env.BRANCH_NAME == "master") {
                                     build([
                                         job: "/kbfs/master",
                                         parameters: [
@@ -370,8 +374,6 @@ def testGo(prefix) {
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
-        shell "go get \"github.com/stretchr/testify/require\""
-        shell "go get \"github.com/stretchr/testify/assert\""
         def parallelTests = []
         def tests = [:]
         def specialTests = [:]

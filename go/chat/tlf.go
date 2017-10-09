@@ -107,12 +107,9 @@ func (t *KBFSNameInfoSource) CryptKeys(ctx context.Context, tlfName string) (res
 	if runIdentify {
 		t.Debug(ectx, "CryptKeys: running identify")
 		group.Go(func() error {
-			query := keybase1.TLFQuery{
-				TlfName:          tlfName,
-				IdentifyBehavior: identBehavior,
-			}
 			var err error
-			ib, err = t.Identify(ectx, query, true)
+			names := utils.SplitTLFName(tlfName)
+			ib, err = t.Identify(ectx, names, true, identBehavior)
 			return err
 		})
 	}
@@ -172,13 +169,9 @@ func (t *KBFSNameInfoSource) PublicCanonicalTLFNameAndID(ctx context.Context, tl
 	var ib []keybase1.TLFIdentifyFailure
 	if identBehavior != keybase1.TLFIdentifyBehavior_CHAT_SKIP {
 		group.Go(func() error {
-			query := keybase1.TLFQuery{
-				TlfName:          tlfName,
-				IdentifyBehavior: identBehavior,
-			}
-
 			var err error
-			ib, err = t.Identify(ectx, query, false)
+			names := utils.SplitTLFName(tlfName)
+			ib, err = t.Identify(ectx, names, false, identBehavior)
 			return err
 		})
 

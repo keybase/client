@@ -431,16 +431,16 @@ func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
 func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public bool) smuImplicitTeam {
 	cli := u.getTeamsClient()
 	var err error
-	var teamID keybase1.TeamID
+	var res keybase1.LookupImplicitTeamRes
 	if create {
-		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
 	} else {
-		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
 	if err != nil {
 		u.ctx.t.Fatal(err)
 	}
-	return smuImplicitTeam{ID: teamID}
+	return smuImplicitTeam{ID: res.TeamID}
 }
 
 func (u *smuUser) addWriter(team smuTeam, w *smuUser) {

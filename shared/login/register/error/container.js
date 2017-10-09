@@ -3,9 +3,9 @@ import RenderError from '.'
 import * as Creators from '../../../actions/login/creators'
 import {connect} from 'react-redux'
 
-const mapDispatchToProps = (dispatch, {routeProps: {error}}) => ({
+const mapDispatchToProps = (dispatch, {routeProps}) => ({
   onBack: () => dispatch(Creators.onBack()),
-  error: error,
+  error: routeProps.get('error'),
 })
 
 export default connect(null, mapDispatchToProps)(RenderError)

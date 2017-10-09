@@ -23,10 +23,8 @@ const initialState: Constants.State = {
   followers: {},
   following: {},
   globalError: null,
-  initialTab: null,
-  initialLink: null,
+  initialState: null,
   kbfsPath: Constants.defaultKBFSPath,
-  launchedViaPush: false,
   loggedIn: false,
   registered: false,
   readyForBootstrap,
@@ -133,13 +131,6 @@ export default function(state: Constants.State = initialState, action: Action): 
       }
     }
 
-    case Constants.setLaunchedViaPush: {
-      return {
-        ...state,
-        launchedViaPush: action.payload,
-      }
-    }
-
     case Constants.updateFollowing: {
       const {username, isTracking} = action.payload
       return {
@@ -178,17 +169,10 @@ export default function(state: Constants.State = initialState, action: Action): 
       }
     }
 
-    case 'config:setInitialTab': {
+    case 'config:setInitialState': {
       return {
         ...state,
-        initialTab: action.payload.tab,
-      }
-    }
-
-    case 'config:setInitialLink': {
-      return {
-        ...state,
-        initialLink: action.payload.url,
+        initialState: action.payload,
       }
     }
 

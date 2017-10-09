@@ -421,6 +421,7 @@ class PopupEnabledList extends BaseList {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
+  contain: 'strict',
   flex: 1,
   position: 'relative',
 }

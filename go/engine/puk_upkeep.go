@@ -71,12 +71,12 @@ func (e *PerUserKeyUpkeep) inner(ctx *Context) error {
 		return libkb.NoUIDError{}
 	}
 
-	loadArg := libkb.NewLoadUserArgBase(e.G()).
+	loadArg := libkb.NewLoadUserArg(e.G()).
 		WithNetContext(ctx.GetNetContext()).
 		WithUID(uid).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	upak, me, err := e.G().GetUPAKLoader().LoadV2(*loadArg)
+	upak, me, err := e.G().GetUPAKLoader().LoadV2(loadArg)
 	if err != nil {
 		return err
 	}

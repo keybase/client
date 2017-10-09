@@ -122,7 +122,7 @@ type OwnProps = MessagePopupRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
-    const {message} = routeProps
+    const message = routeProps.get('message')
     const you = state.config.username
     return {
       message,
@@ -134,7 +134,7 @@ export default connect(
       dispatch(deleteMessage(message))
     },
     onHidden: () => dispatch(navigateUp()),
-    onShowEditor: () => dispatch(showEditor(routeProps.message)),
+    onShowEditor: () => dispatch(showEditor(routeProps.get('message'))),
     onSaveAttachment: message =>
       dispatch(
         ({

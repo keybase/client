@@ -373,8 +373,7 @@ func (r *Resolver) resolveTeamViaServerLookup(ctx context.Context, au AssertionU
 		return res
 	}
 
-	arg := NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
+	arg := NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = APISessionTypeREQUIRED
 	arg.Args = make(HTTPArgs)
 	arg.Args[key] = S{Val: val}

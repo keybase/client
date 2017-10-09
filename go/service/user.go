@@ -99,8 +99,7 @@ func (h *UserHandler) ListTrackingJSON(_ context.Context, arg keybase1.ListTrack
 }
 
 func (h *UserHandler) LoadUser(ctx context.Context, arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	loadUserArg := libkb.NewLoadUserByUIDArg(ctx, h.G(), arg.Uid)
-	loadUserArg.PublicKeyOptional = true
+	loadUserArg := libkb.NewLoadUserByUIDArg(ctx, h.G(), arg.Uid).WithPublicKeyOptional()
 	u, err := libkb.LoadUser(loadUserArg)
 	if err != nil {
 		return
@@ -111,8 +110,7 @@ func (h *UserHandler) LoadUser(ctx context.Context, arg keybase1.LoadUserArg) (u
 }
 
 func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByNameArg) (user keybase1.User, err error) {
-	loadUserArg := libkb.NewLoadUserByNameArg(h.G(), arg.Username)
-	loadUserArg.PublicKeyOptional = true
+	loadUserArg := libkb.NewLoadUserByNameArg(h.G(), arg.Username).WithPublicKeyOptional()
 	u, err := libkb.LoadUser(loadUserArg)
 	if err != nil {
 		return
@@ -173,12 +171,12 @@ func (h *UserHandler) LoadMySettings(ctx context.Context, sessionID int) (us key
 }
 
 func (h *UserHandler) LoadPublicKeys(ctx context.Context, arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
-	larg := libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(h.G())}
+	larg := libkb.NewLoadUserArg(h.G()).WithUID(arg.Uid)
 	return h.loadPublicKeys(ctx, larg)
 }
 
 func (h *UserHandler) LoadMyPublicKeys(ctx context.Context, sessionID int) (keys []keybase1.PublicKey, err error) {
-	larg := libkb.LoadUserArg{Self: true, Contextified: libkb.NewContextified(h.G())}
+	larg := libkb.NewLoadUserArg(h.G()).WithSelf(true)
 	return h.loadPublicKeys(ctx, larg)
 }
 
@@ -260,10 +258,7 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 }
 
 func (h *UserHandler) loadUsername(ctx context.Context, uid keybase1.UID) (string, error) {
-	arg := libkb.NewLoadUserByUIDArg(ctx, h.G(), uid)
-	arg.PublicKeyOptional = true
-	arg.StaleOK = true
-	arg.CachedOnly = true
+	arg := libkb.NewLoadUserByUIDArg(ctx, h.G(), uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
 	upak, _, err := h.G().GetUPAKLoader().Load(arg)
 	if err != nil {
 		return "", err

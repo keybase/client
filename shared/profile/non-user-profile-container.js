@@ -6,7 +6,7 @@ import {startConversation} from '../actions/chat'
 import NonUserProfile from './non-user-profile'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps
+  const {avatar, fullname, fullUsername, profileUrl, serviceName, username} = routeProps.toObject()
   const myUsername = state.config.username
   const title = routeProps.username
   return {avatar, fullname, fullUsername, myUsername, profileUrl, serviceName, title, username}

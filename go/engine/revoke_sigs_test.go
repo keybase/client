@@ -35,6 +35,7 @@ func TestRevokeSig(t *testing.T) {
 			SubkeyBits:  768,
 		},
 		AllowMulti: true,
+		Ctx:        tc.G,
 	}
 	arg.Gen.MakeAllIds(tc.G)
 	pgpEngine := NewPGPKeyImportEngine(arg)

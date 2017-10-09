@@ -6,13 +6,13 @@ import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  name: routeProps.teamname,
+  name: routeProps.get('teamname'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onLeave: () => {
-    dispatch(Creators.leaveTeam(routeProps.teamname))
+    dispatch(Creators.leaveTeam(routeProps.get('teamname')))
     dispatch(navigateTo([teamsTab]))
     dispatch(Creators.getTeams())
   },

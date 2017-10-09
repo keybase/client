@@ -2,18 +2,19 @@
 import isEqualWith from 'lodash/isEqualWith'
 import {createSelector, createSelectorCreator, defaultMemoize, type TypedState} from '../util/container'
 import {type SearchQuery} from './search'
+import * as I from 'immutable'
 
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 
-const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, searchQuery: SearchQuery) =>
-  searchQueryToResult.get(searchQuery)
+const cachedSearchResults = (
+  {entities: {search: {searchQueryToResult}}}: TypedState,
+  searchQuery: SearchQuery
+) => searchQueryToResult.get(searchQuery)
 
-const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) => {
+const searchResultSelector = ({entities: {search: {searchResults}}}: TypedState, username: string) => {
   return searchResults.get(username)
 }
-
-const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 
 const previousConversationSelector = ({chat: {previousConversation}}: TypedState) => previousConversation
 
@@ -21,44 +22,24 @@ const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => f
 const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
 
 const searchResultMapSelector = createSelector(
-  ({entities: {searchResults}}: TypedState) => searchResults,
+  ({entities: {search: {searchResults}}}: TypedState) => searchResults,
   searchResults => searchResults
-)
-
-const chatSearchPending = ({chat: {searchPending}}: TypedState) => searchPending
-
-const chatSearchResultArray = createSelector(
-  ({chat: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : [])
-)
-
-const chatSearchShowingSuggestions = ({chat: {searchShowingSuggestions}}: TypedState) =>
-  searchShowingSuggestions
-
-const chatSearchResultTerm = ({chat: {searchResultTerm}}: TypedState) => searchResultTerm
-
-const profileSearchResultArray = createSelector(
-  ({profile: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : null)
 )
 
 const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
   isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
 )
 
+const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
+
 export {
   amIBeingFollowed,
   amIFollowing,
   cachedSearchResults,
-  chatSearchPending,
-  chatSearchShowingSuggestions,
-  chatSearchResultTerm,
-  chatSearchResultArray,
   createShallowEqualSelector,
-  inboxSearchSelector,
+  createImmutableEqualSelector,
   loggedInSelector,
   previousConversationSelector,
-  profileSearchResultArray,
   searchResultMapSelector,
   searchResultSelector,
   usernameSelector,

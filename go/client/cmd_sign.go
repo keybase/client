@@ -70,7 +70,7 @@ func (s *CmdSign) ParseArgv(ctx *cli.Context) error {
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
 
-	return s.FilterInit(msg, infile, outfile)
+	return s.FilterInit(s.G(), msg, infile, outfile)
 }
 
 func (s *CmdSign) Run() (err error) {

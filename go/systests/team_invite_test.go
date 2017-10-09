@@ -7,7 +7,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -235,7 +234,6 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 
 	t.Logf("Trying to get a PUK")
 
-	libkb.G = bob.getPrimaryGlobalContext()
 	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
 
 	err := bob.perUserKeyUpgrade()
@@ -354,11 +352,7 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	require.NotEqual(t, team1, team2)
 
-	// proveRooter has a problem where some code path relies on global
-	// libkb.G context, so we need to change it before for each user.
-	libkb.G = bob.tc.G
 	bob.proveRooter()
-	libkb.G = charlie.tc.G
 	charlie.proveRooter()
 
 	alice.kickTeamRekeyd()

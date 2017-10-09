@@ -16,7 +16,7 @@ type ConnectedMentionHudProps = {
 
 const mapStateToProps: MapStateToProps<*, *, *> = state => {
   const inbox = getSelectedInbox(state)
-  const participants = inbox ? inbox.get('participants').toArray() : ['trex']
+  const participants = inbox ? inbox.get('participants').toArray() : []
   return {
     userIds: participants,
   }
