@@ -315,6 +315,10 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 
 	var invites []SCTeamInvite
 	for _, e := range emailList {
+		if !libkb.CheckEmail.F(e) {
+			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q", teamname, e)
+			continue
+		}
 		name := keybase1.TeamInviteName(e)
 		existing, err := t.HasActiveInvite(name, "email")
 		if err != nil {
