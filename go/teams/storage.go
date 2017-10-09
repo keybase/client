@@ -43,17 +43,17 @@ func (s *Storage) Put(ctx context.Context, state *keybase1.TeamData) {
 }
 
 // Can return nil.
-func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID) *keybase1.TeamData {
+func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) *keybase1.TeamData {
 	s.Lock()
 	defer s.Unlock()
 
-	item := s.mem.Get(ctx, teamID)
+	item := s.mem.Get(ctx, teamID, public)
 	if item != nil {
 		// Mem hit
 		return item
 	}
 
-	res, found, err := s.disk.Get(ctx, teamID)
+	res, found, err := s.disk.Get(ctx, teamID, public)
 	if found && err == nil {
 		// Disk hit
 		s.mem.Put(ctx, res)
@@ -66,12 +66,12 @@ func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID) *keybase1.Tea
 	return nil
 }
 
-func (s *Storage) Delete(ctx context.Context, teamID keybase1.TeamID) error {
+func (s *Storage) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) error {
 	s.Lock()
 	defer s.Unlock()
 
-	s.mem.Delete(ctx, teamID)
-	return s.disk.Delete(ctx, teamID)
+	s.mem.Delete(ctx, teamID, public)
+	return s.disk.Delete(ctx, teamID, public)
 }
 
 func (s *Storage) onLogout() {
@@ -112,7 +112,7 @@ func (s *DiskStorage) Put(ctx context.Context, state *keybase1.TeamData) error {
 	s.Lock()
 	defer s.Unlock()
 
-	key := s.dbKey(ctx, state.Chain.Id)
+	key := s.dbKey(ctx, state.Chain.Id, state.Chain.Public)
 	item := DiskStorageItem{
 		Version: diskStorageVersion,
 		State:   state,
@@ -126,11 +126,11 @@ func (s *DiskStorage) Put(ctx context.Context, state *keybase1.TeamData) error {
 }
 
 // Res is valid if (found && err == nil)
-func (s *DiskStorage) Get(ctx context.Context, teamID keybase1.TeamID) (res *keybase1.TeamData, found bool, err error) {
+func (s *DiskStorage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) (res *keybase1.TeamData, found bool, err error) {
 	s.Lock()
 	defer s.Unlock()
 
-	key := s.dbKey(ctx, teamID)
+	key := s.dbKey(ctx, teamID, public)
 	var item DiskStorageItem
 	found, err = s.encryptedDB.Get(ctx, key, &item)
 	if (err != nil) || !found {
@@ -149,28 +149,35 @@ func (s *DiskStorage) Get(ctx context.Context, teamID keybase1.TeamID) (res *key
 	if !item.State.Chain.Id.Eq(teamID) {
 		return res, false, fmt.Errorf("decode from disk had wrong team id %v != %v", item.State.Chain.Id, teamID)
 	}
+	if item.State.Chain.Public != public {
+		return res, false, fmt.Errorf("decode from disk had wrong publicness %v != %v (%v)", item.State.Chain.Public, public, teamID)
+	}
 
 	return item.State, true, nil
 }
 
-func (s *DiskStorage) Delete(ctx context.Context, teamID keybase1.TeamID) error {
+func (s *DiskStorage) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) error {
 	s.Lock()
 	defer s.Unlock()
 
-	key := s.dbKey(ctx, teamID)
+	key := s.dbKey(ctx, teamID, public)
 	return s.encryptedDB.Delete(ctx, key)
 }
 
-func (s *DiskStorage) dbKey(ctx context.Context, teamID keybase1.TeamID) libkb.DbKey {
+func (s *DiskStorage) dbKey(ctx context.Context, teamID keybase1.TeamID, public bool) libkb.DbKey {
+	key := fmt.Sprintf("tid:%s", teamID)
+	if public {
+		key = fmt.Sprintf("tid:%s|pub", teamID)
+	}
 	return libkb.DbKey{
 		Typ: libkb.DBChatInbox,
-		Key: fmt.Sprintf("tid:%s", teamID),
+		Key: key,
 	}
 }
 
 // --------------------------------------------------
 
-const MemCacheLRUSize = 50
+const MemCacheLRUSize = 200
 
 // Store some TeamSigChainState's in memory. Threadsafe.
 type MemoryStorage struct {
@@ -191,12 +198,12 @@ func NewMemoryStorage(g *libkb.GlobalContext) *MemoryStorage {
 }
 
 func (s *MemoryStorage) Put(ctx context.Context, state *keybase1.TeamData) {
-	s.lru.Add(state.Chain.Id, state)
+	s.lru.Add(s.key(state.Chain.Id, state.Chain.Public), state)
 }
 
 // Can return nil.
-func (s *MemoryStorage) Get(ctx context.Context, teamID keybase1.TeamID) *keybase1.TeamData {
-	untyped, ok := s.lru.Get(teamID)
+func (s *MemoryStorage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) *keybase1.TeamData {
+	untyped, ok := s.lru.Get(s.key(teamID, public))
 	if !ok {
 		return nil
 	}
@@ -208,12 +215,20 @@ func (s *MemoryStorage) Get(ctx context.Context, teamID keybase1.TeamID) *keybas
 	return state
 }
 
-func (s *MemoryStorage) Delete(ctx context.Context, teamID keybase1.TeamID) {
-	s.lru.Remove(teamID)
+func (s *MemoryStorage) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) {
+	s.lru.Remove(s.key(teamID, public))
 }
 
 func (s *MemoryStorage) onLogout() {
 	s.lru.Purge()
+}
+
+func (s *MemoryStorage) key(teamID keybase1.TeamID, public bool) (key string) {
+	key = fmt.Sprintf("tid:%s", teamID)
+	if public {
+		key = fmt.Sprintf("tid:%s|pub", teamID)
+	}
+	return key
 }
 
 // --------------------------------------------------

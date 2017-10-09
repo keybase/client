@@ -83,7 +83,8 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	if err = g.API.GetDecode(arg, &imp); err != nil {
 		if aerr, ok := err.(libkb.AppStatusError); ok &&
 			keybase1.StatusCode(aerr.Code) == keybase1.StatusCode_SCTeamReadError {
-			return teamID, teamName, impTeamName, conflicts, NewTeamDoesNotExistError(preResolveDisplayName)
+			return teamID, teamName, impTeamName, conflicts, NewTeamDoesNotExistError(
+				impTeamName.IsPublic, preResolveDisplayName)
 		}
 		return teamID, teamName, impTeamName, conflicts, err
 	}
@@ -111,7 +112,8 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 	}
 	if impTeamName.ConflictInfo != nil && !foundSelectedConflict {
 		// We got the team but didn't find the specific conflict requested.
-		return teamID, teamName, impTeamName, conflicts, NewTeamDoesNotExistError("could not find team with suffix: %v", preResolveDisplayName)
+		return teamID, teamName, impTeamName, conflicts, NewTeamDoesNotExistError(
+			impTeamName.IsPublic, "could not find team with suffix: %v", preResolveDisplayName)
 	}
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          imp.TeamID,

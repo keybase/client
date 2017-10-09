@@ -9,13 +9,15 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.PerTeamKeyGeneration) (err error) {
+func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, public bool, generation keybase1.PerTeamKeyGeneration) (err error) {
 
 	ctx = libkb.WithLogTag(ctx, "CLKR")
-	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", teamID, generation), func() error { return err })()
+	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%v,%d)", teamID, public, generation), func() error { return err })()
 
+	// CORE-6322 this load needs to know if it's public
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
+		Public:      public,
 		ForceRepoll: true,
 	})
 	if err != nil {
@@ -27,17 +29,18 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 		return nil
 	}
 
-	g.Log.CDebugf(ctx, "rotating team %s (%s)", team.Name(), teamID)
+	g.Log.CDebugf(ctx, "rotating team %s (%s, public:%v)", team.Name(), teamID, public)
 	if err := team.Rotate(ctx); err != nil {
-		g.Log.CDebugf(ctx, "rotating team %s (%s) error: %s", team.Name(), teamID, err)
+		g.Log.CDebugf(ctx, "rotating team %s (%s, public:%v) error: %s", team.Name(), teamID, public, err)
 		return err
 	}
 
-	g.Log.CDebugf(ctx, "sucess rotating team %s (%s)", team.Name(), teamID)
+	g.Log.CDebugf(ctx, "sucess rotating team %s (%s, public:%v)", team.Name(), teamID, public)
 	return nil
 }
 
 func reloadLocal(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
+	// CORE-6322 this load needs to know if it's public
 	if change.Renamed {
 		// This force reloads the team as a side effect
 		return g.GetTeamLoader().NotifyTeamRename(ctx, row.Id, row.Name)
@@ -56,6 +59,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
+	// CORE-6322 this load needs to know if it's public
 	if err = reloadLocal(ctx, g, row, change); err != nil {
 		return err
 	}
@@ -79,7 +83,8 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleDeleteNotification: (%+v)", row)
-		err := g.GetTeamLoader().Delete(ctx, row.Id)
+		// We don't know whether this is about a public or private team, so delete and notify both.
+		err := g.GetTeamLoader().DeleteBoth(ctx, row.Id)
 		if err != nil {
 			g.Log.CDebugf(ctx, "team.HandleDeleteNotification: error deleting team cache: %v", err)
 		}
@@ -93,7 +98,8 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleExitNotification: (%+v)", row)
-		err := g.GetTeamLoader().Delete(ctx, row.Id)
+		// We don't know whether this is about a public or private team, so delete and notify both.
+		err := g.GetTeamLoader().DeleteBoth(ctx, row.Id)
 		if err != nil {
 			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
 		}
@@ -104,6 +110,7 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 func HandleSBSRequest(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSBSMsg) (err error) {
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleSBSRequest", func() error { return err })()
+	// CORE-6322 this load needs to know if it's public
 	for _, invitee := range msg.Invitees {
 		if err := handleSBSSingle(ctx, g, msg.TeamID, invitee); err != nil {
 			return err
@@ -204,6 +211,7 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, "HandleOpenTeamAccessRequest", func() error { return err })()
 
+	// CORE-6322 this load needs to know if it's public
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          msg.TeamID,
 		ForceRepoll: true,
