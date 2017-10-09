@@ -4,7 +4,6 @@ import {Avatar, Box, ClickableBox, Text, Icon, Usernames} from '../../../common-
 import {globalStyles, globalMargins, globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
-// For use in list RowRenderer prop
 export type Props = {
   username: string,
   following: boolean,
@@ -14,14 +13,21 @@ export type Props = {
   onOpenProfile: (u: string) => void,
 }
 
-const typeToLabel = {
+type TypeMap = {
+  admins: string | boolean,
+  owners: string | boolean,
+  readers: string | boolean,
+  writers: string | boolean,
+}
+
+const typeToLabel: TypeMap = {
   admins: 'Admin',
   owners: 'Owner',
   readers: 'Reader',
   writers: 'Writer',
 }
 
-const showCrown = {
+const showCrown: TypeMap = {
   admins: true,
   owners: true,
   readers: false,

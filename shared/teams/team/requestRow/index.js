@@ -4,7 +4,6 @@ import {Avatar, Box, Button, ClickableBox, Usernames} from '../../../common-adap
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
-// For use in list RowRenderer prop
 export type Props = {
   username: string,
   following: boolean,

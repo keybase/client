@@ -22,14 +22,12 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
   you: state.config.username,
 })
 
-export type Role = null | 'reader' | 'writer' | 'admin' | 'owner'
-
 // TODO add stuff for edit membership options
 type DispatchProps = {
   _onAddMember: (
     teamname: Constants.Teamname,
     username: string,
-    role: Role,
+    role: Constants.TeamRoleType,
     sendNotification: boolean
   ) => void,
   onBack: () => void,
@@ -48,7 +46,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...dispatchProps,
     ...ownProps,
     allowOwner: yourInfo && yourInfo.type === 'owners',
-    onComplete: (role: Role, sendNotification?: boolean) => {
+    onComplete: (role: Constants.TeamRoleType, sendNotification?: boolean) => {
       dispatchProps._onAddMember(stateProps.teamname, stateProps.username, role, sendNotification || false)
       dispatchProps.onBack()
     },

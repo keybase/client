@@ -12,18 +12,17 @@ import {
   Checkbox,
 } from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
+import {type TeamRoleType} from '../../constants/teams'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
-
-import type {Role} from './container'
 
 export type RolePickerProps = {
   username: string,
-  selectedRole: Role,
+  selectedRole: TeamRoleType,
   allowOwner: boolean,
   sendNotification: boolean,
-  setSelectedRole: (r: Role) => void,
+  setSelectedRole: (r: TeamRoleType) => void,
   setSendNotification: (send: boolean) => void,
-  onComplete: (r: Role, showNotification: boolean) => void,
+  onComplete: (r: TeamRoleType, showNotification: boolean) => void,
   onBack: () => void,
 }
 
@@ -42,7 +41,7 @@ const roleIconMap = {
   owner: 'iconfont-crown',
 }
 
-const makeRoleOption = (role: Role, selected: Role, setSelected: Role => void) => (
+const makeRoleOption = (role: TeamRoleType, selected: TeamRoleType, setSelected: TeamRoleType => void) => (
   <ClickableBox
     hoverColor={globalColors.black_05}
     style={{

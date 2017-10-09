@@ -69,7 +69,7 @@ const _addToTeam = function*(action: Constants.AddToTeam) {
       sendChatNotification: sendChatNotification,
     },
   })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // _getDetails will unset loading
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
@@ -81,7 +81,7 @@ const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
       username: username,
     },
   })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // _getDetails will unset loading
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
 }
 
 function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {

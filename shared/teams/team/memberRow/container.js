@@ -50,7 +50,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...ownProps,
     ...dispatchProps,
     ...stateProps,
-    type: type,
+    type,
   }
 }
 

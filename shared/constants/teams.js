@@ -64,8 +64,10 @@ export const ChannelInfo = I.Record({
   participants: I.Set(),
 })
 
+export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+
 export type MemberInfoRecord = KBRecord<{
-  type: null | 'reader' | 'writer' | 'admin' | 'owner',
+  type: TeamRoleType,
   username: string,
 }>
 
