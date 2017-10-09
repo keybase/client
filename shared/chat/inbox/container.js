@@ -196,6 +196,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     ...rowMetadata,
     filter,
     isActiveRoute,
+    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
   }
 }
 
@@ -224,6 +225,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     filter: stateProps.filter,
     isActiveRoute: stateProps.isActiveRoute,
+    isLoading: stateProps.isLoading,
     loadInbox: dispatchProps.loadInbox,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
