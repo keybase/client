@@ -42,7 +42,7 @@ function addToTeam(
   name: string,
   email: string,
   username: string,
-  role: null | 'admin' | 'owner' | 'reader' | 'writer',
+  role: Constants.TeamRoleType,
   sendChatNotification: boolean
 ): Constants.AddToTeam {
   return {payload: {name, email, username, role, sendChatNotification}, type: 'teams:addToTeam'}
