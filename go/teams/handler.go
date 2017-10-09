@@ -14,6 +14,7 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 	ctx = libkb.WithLogTag(ctx, "CLKR")
 	defer g.CTrace(ctx, fmt.Sprintf("HandleRotateRequest(%s,%d)", teamID, generation), func() error { return err })()
 
+	// TODO YOU ARE HERE. All these loads need to know whether the team is public.
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          teamID,
 		ForceRepoll: true,
@@ -79,7 +80,8 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleDeleteNotification: (%+v)", row)
-		err := g.GetTeamLoader().Delete(ctx, row.Id)
+		// We don't know whether this is about a public or private team, so delete and notify both.
+		err := g.GetTeamLoader().DeleteBoth(ctx, row.Id)
 		if err != nil {
 			g.Log.CDebugf(ctx, "team.HandleDeleteNotification: error deleting team cache: %v", err)
 		}
@@ -93,7 +95,8 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleExitNotification: (%+v)", row)
-		err := g.GetTeamLoader().Delete(ctx, row.Id)
+		// We don't know whether this is about a public or private team, so delete and notify both.
+		err := g.GetTeamLoader().DeleteBoth(ctx, row.Id)
 		if err != nil {
 			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
 		}

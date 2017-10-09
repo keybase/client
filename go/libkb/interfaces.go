@@ -596,7 +596,9 @@ type TeamLoader interface {
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
-	Delete(context.Context, keybase1.TeamID) error
+	Delete(ctx context.Context, teamID keybase1.TeamID, public bool) error
+	// Delete the cache entry for both the public and private team.
+	DeleteBoth(ctx context.Context, teamID keybase1.TeamID) error
 	OnLogout()
 }
 

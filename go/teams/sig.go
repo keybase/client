@@ -20,17 +20,13 @@ import (
 )
 
 func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
-	seqtype := libkb.SeqTypeSemiprivate
-	if teamSection.Public {
-		seqtype = libkb.SeqTypePublic
-	}
 	ret, err := libkb.ProofMetadata{
 		Me:         me,
 		LinkType:   libkb.LinkTypeTeamRoot,
 		SigningKey: key,
 		Seqno:      1,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    seqtype,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -82,7 +78,7 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 		LinkType:   libkb.LinkTypeNewSubteam,
 		SigningKey: key,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
 		Seqno:      parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID: prevLinkID,
 	}.ToJSON(me.G())
@@ -120,7 +116,7 @@ func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCT
 		SigningKey: key,
 		Seqno:      1,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(subteamTeamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -152,7 +148,7 @@ func RenameSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigC
 		Seqno:      parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID: prev,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -181,7 +177,7 @@ func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigCh
 		Seqno:      subteam.GetLatestSeqno() + 1,
 		PrevLinkID: prev,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -215,7 +211,8 @@ func NewInviteID() SCTeamInviteID {
 	return SCTeamInviteID(hex.EncodeToString(b))
 }
 
-func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
+func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection,
+	linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")
@@ -229,7 +226,7 @@ func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libk
 		Seqno:      seqno,
 		PrevLinkID: prev,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 		MerkleRoot: merkleRoot,
 	}.ToJSON(me.G())
 	if err != nil {
@@ -253,4 +250,11 @@ func makeSCTeamEntropy() (SCTeamEntropy, error) {
 		return SCTeamEntropy(""), err
 	}
 	return SCTeamEntropy(base64.StdEncoding.EncodeToString(rb)), nil
+}
+
+func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
+	if public {
+		return keybase1.SeqType_PUBLIC
+	}
+	return keybase1.SeqType_SEMIPRIVATE
 }

@@ -45,7 +45,18 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 		ForceRepoll: true,
 		NeedAdmin:   needAdmin,
 	})
-	return team, fixupTeamGetError(ctx, g, err, name)
+
+	// @@@@
+	// @@@@ DO NOT MERGE THIS
+	// @@@@
+	// @@@@
+	public := false
+	// @@@@
+	// @@@@
+	// @@@@
+	// @@@@
+
+	return team, fixupTeamGetError(ctx, g, err, name, public)
 }
 
 func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, needAdmin bool) (*Team, error) {
@@ -59,13 +70,24 @@ func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, i
 // Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't
 // know whether you are an admin. This always causes roundtrips. Doesn't work for implicit admins.
 func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
+
+	// @@@@
+	// @@@@ DO NOT MERGE THIS
+	// @@@@
+	// @@@@
+	public := false
+	// @@@@
+	// @@@@
+	// @@@@
+	// @@@@
+
 	// Find out our up-to-date role.
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
 		ForceRepoll: true,
 	})
 	if err != nil {
-		return nil, fixupTeamGetError(ctx, g, err, name)
+		return nil, fixupTeamGetError(ctx, g, err, name, public)
 	}
 	me, err := loadUserVersionByUID(ctx, g, g.Env.GetUID())
 	if err != nil {

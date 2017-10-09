@@ -125,20 +125,26 @@ protocol teams {
   }
 
   // Snapshot of a loaded team.
+  // If this is changed in incompatible way, bump teams/storage.go:diskStorageVersion
   record TeamData {
     // Whether this snapshot is entirely missing secrets.
     boolean secretless;
 
     // Name of the team. This is tricky.
-    // The root ancestor and the depth are always correct.
+    // The root ancestor, final part, and the depth are always correct.
     // But the middle parts (b in a.b.c) do not track the sigchain.
     // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
     TeamName name;
     TeamSigChainState chain;
+
+    // These secrets may be behind or missing if this is a public team.
     // generation -> seed
+    // generations _must_ start from 1 with no gaps
     map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
     // application -> generation -> mask
+    // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
+
     // Should only be used by TeamLoader
     // because it is the only mutated field, and thus is not threadsafe to read.
     Time cachedAt;

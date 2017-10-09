@@ -637,7 +637,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		Parent: &SCTeamParent{
 			ID:      SCTeamID(parentTeam.ID),
 			Seqno:   parentTeam.chain().GetLatestSeqno() + 1, // the seqno of the *new* parent link
-			SeqType: keybase1.SeqType_SEMIPRIVATE,
+			SeqType: seqTypeForTeamPublicness(parentTeam.IsPublic()),
 		},
 		Public: t.IsPublic(),
 		Admin:  admin,
@@ -950,6 +950,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
+
 	sig, err := ChangeSig(me, latestLinkID, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -979,6 +980,8 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		}
 	}
 
+	seqType := seqTypeForTeamPublicness(t.IsPublic())
+
 	sigJSON, err := sig.Marshal()
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -990,7 +993,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		sigJSON,
 		latestLinkID,
 		false, /* hasRevokes */
-		keybase1.SeqType_SEMIPRIVATE,
+		seqType,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -1000,6 +1003,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		Sig:        v2Sig,
 		SigningKID: deviceSigningKey.GetKID(),
 		Type:       string(linkType),
+		SeqType:    seqType,
 		SigInner:   string(sigJSON),
 		TeamID:     t.chain().GetID(),
 	}

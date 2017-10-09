@@ -87,9 +87,9 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 type getLinksLows struct {
 	// Latest seqno on file
 	Seqno keybase1.Seqno
-	// Latest PTK generation on file
+	// Latest PTK generation secret we have
 	PerTeamKey keybase1.PerTeamKeyGeneration
-	// Latest RKM generation on file
+	// Latest RKM semi-secret we have
 	ReaderKeyMask keybase1.PerTeamKeyGeneration
 }
 
