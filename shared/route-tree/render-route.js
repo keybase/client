@@ -1,9 +1,9 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {LeafTags, pathToString} from './'
+import {LeafTags, pathToString, makeLeafTags} from './'
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
-import {Box} from '../common-adapters'
+import Box from '../common-adapters/box'
 
 import type {Action} from '../constants/types/flux'
 import type {Tab} from '../constants/tabs'
@@ -18,9 +18,9 @@ type _RenderRouteResultParams = {
 
 export const RenderRouteResult: (
   spec?: _RenderRouteResultParams
-) => _RenderRouteResultParams & I.RecordOf<_RenderRouteResultParams> = I.Record({
+) => I.RecordFactory<_RenderRouteResultParams> = I.Record({
   path: I.List(),
-  tags: LeafTags(),
+  tags: makeLeafTags(),
   component: null,
   leafComponent: null,
 })
@@ -34,10 +34,10 @@ export type RouteProps<P, S> = {
   shouldRender: boolean,
 
   // Route props (query params)
-  routeProps: P,
+  routeProps: I.RecordOf<P>,
 
   // Route state (state associated with this path. can change, see below)
-  routeState: S,
+  routeState: I.RecordOf<S>,
 
   // The name of the selected child route (useful for navs)
   routeSelected: Tab,
@@ -52,7 +52,7 @@ export type RouteProps<P, S> = {
   routeStack: RouteRenderStack,
 
   // Call to update the state of the route node that rendered this component.
-  setRouteState: (partialState: $Shape<S>) => void,
+  setRouteState: (partialState: any) => void,
 
   // Navigation if your path hasn't changed underneath you
   navigateUp: () => Action,
@@ -100,7 +100,7 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<*>, *> {
         navigateUp={() => putActionIfOnPath(path, navigateUp())}
         navigateAppend={(...args) => putActionIfOnPath(path, navigateAppend(...args))}
         routePath={path}
-        routeLeafTags={leafTags || LeafTags()}
+        routeLeafTags={leafTags || makeLeafTags()}
         routeStack={stack || I.Stack()}
         setRouteState={partialState => setRouteState(path, partialState)}
       >

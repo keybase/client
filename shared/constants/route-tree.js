@@ -44,8 +44,8 @@ export type NavigateActions =
   | ResetRoute
 
 type _State = {
-  routeDef: RouteDefNode,
-  routeState: RouteStateNode,
+  routeDef: ?RouteDefNode,
+  routeState: ?RouteStateNode,
 }
 export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({

@@ -16,7 +16,7 @@ import {chatTab, loginTab, peopleTab, folderTab, settingsTab, type Tab} from '..
 import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
-import {is, Map} from 'immutable'
+import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
 import {tabBarHeight} from './tab-bar/index.render.native'
@@ -57,7 +57,7 @@ class CardStackShim extends Component<CardStackShimProps, *> {
       this.props.mode !== nextProps.mode ||
       this.props.renderRoute !== nextProps.renderRoute ||
       this.props.onNavigateBack !== nextProps.onNavigateBack ||
-      !is(this.props.stack, nextProps.stack)
+      !I.is(this.props.stack, nextProps.stack)
     )
   }
 
@@ -154,7 +154,7 @@ const tabIsCached = {
 
 class MainNavStack extends Component<any, any> {
   state = {
-    stackCache: Map(),
+    stackCache: I.Map(),
   }
 
   componentWillReceiveProps() {
@@ -291,8 +291,8 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    const nextPath = nextProps.routeStack.last() && nextProps.routeStack.last().path
-    const curPath = this.props.routeStack.last() && this.props.routeStack.last().path
+    const nextPath = (nextProps.routeStack.last() && nextProps.routeStack.last().path) || I.List()
+    const curPath = (this.props.routeStack.last() && this.props.routeStack.last().path) || I.List()
     const curTags = this.props.routeStack.last() && this.props.routeStack.last().tags
     if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
       NativeKeyboard.dismiss()

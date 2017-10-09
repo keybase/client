@@ -54,6 +54,17 @@ const _RouteDefNode: I.RecordFactory<RouteDefParams<*>> = I.Record({
 })
 
 export class RouteDefNode extends _RouteDefNode {
+  // Flow doesn't understand extending a record
+  defaultSelected: string
+  tags: LeafTags | LeafTagParams
+  initialState: {}
+  children: I.Map<*, *>
+  component: ?(
+    | Component<*, any>
+    | $Supertype<Component<*, any>>
+    | Class<ConnectedComponent<*, any, any, any>>)
+  containerComponent: ?Component<*, any>
+
   constructor({
     defaultSelected,
     component,
@@ -100,6 +111,7 @@ type RouteStateParams = {
   selected: string | null,
   props?: I.Map<string, any>,
   state?: I.Map<string, any>,
+  children?: I.Map<string, *>,
 }
 
 const _RouteStateNode: I.RecordFactory<RouteStateParams> = I.Record({
@@ -110,6 +122,12 @@ const _RouteStateNode: I.RecordFactory<RouteStateParams> = I.Record({
 })
 
 export class RouteStateNode extends _RouteStateNode {
+  // Flow doesn't understand extending records
+  selected: string | null
+  props: I.Map<string, any>
+  state: I.Map<string, any>
+  children: I.Map<string, RouteStateNode>
+
   // eslint-disable-next-line no-useless-constructor
   constructor(data: RouteStateParams) {
     super(data)

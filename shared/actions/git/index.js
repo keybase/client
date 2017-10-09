@@ -129,9 +129,9 @@ const _badgeAppForGit = (action: Constants.BadgeAppForGit) =>
 let _wasOnGitTab = false
 const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   // on the git tab?
-  const root =
-    (action.payload.path.first && action.payload.path.first()) ||
-    (action.payload.path.length && action.payload.path[0])
+  const list = I.List(action.payload.path)
+  const root = list.first()
+
   if (root === Tabs.gitTab) {
     _wasOnGitTab = true
   } else if (_wasOnGitTab) {
