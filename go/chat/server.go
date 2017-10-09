@@ -202,34 +202,45 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 
 	// Wait for inbox to get sent to us
 	var lres NonblockInboxResult
-	select {
-	case lres = <-localizeCb:
-		if lres.InboxRes == nil {
-			return res, fmt.Errorf("invalid conversation localize callback received")
+	if arg.SkipUnverified {
+		select {
+		case lres = <-localizeCb:
+			h.Debug(ctx, "GetInboxNonblockLocal: received unverified inbox, skipping send")
+		case <-time.After(15 * time.Second):
+			return res, fmt.Errorf("timeout waiting for inbox result")
+		case <-ctx.Done():
+			return res, ctx.Err()
 		}
-		uires, err := h.presentUnverifiedInbox(ctx, lres.InboxRes.ConvsUnverified,
-			lres.InboxRes.Pagination, h.G().InboxSource.IsOffline(ctx))
-		if err != nil {
-			h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
-			return res, err
+	} else {
+		select {
+		case lres = <-localizeCb:
+			if lres.InboxRes == nil {
+				return res, fmt.Errorf("invalid conversation localize callback received")
+			}
+			uires, err := h.presentUnverifiedInbox(ctx, lres.InboxRes.ConvsUnverified,
+				lres.InboxRes.Pagination, h.G().InboxSource.IsOffline(ctx))
+			if err != nil {
+				h.Debug(ctx, "GetInboxNonblockLocal: failed to present untrusted inbox, failing: %s", err.Error())
+				return res, err
+			}
+			jbody, err := json.Marshal(uires)
+			if err != nil {
+				h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON up unverified inbox: %s", err.Error())
+				return res, err
+			}
+			start := time.Now()
+			h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
+				len(lres.InboxRes.ConvsUnverified))
+			chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
+				SessionID: arg.SessionID,
+				Inbox:     string(jbody),
+			})
+			h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v", time.Now().Sub(start))
+		case <-time.After(15 * time.Second):
+			return res, fmt.Errorf("timeout waiting for inbox result")
+		case <-ctx.Done():
+			return res, ctx.Err()
 		}
-		jbody, err := json.Marshal(uires)
-		if err != nil {
-			h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON up unverified inbox: %s", err.Error())
-			return res, err
-		}
-		start := time.Now()
-		h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
-			len(lres.InboxRes.ConvsUnverified))
-		chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
-			SessionID: arg.SessionID,
-			Inbox:     string(jbody),
-		})
-		h.Debug(ctx, "GetInboxNonblockLocal: sent unverified inbox successfully: %v", time.Now().Sub(start))
-	case <-time.After(15 * time.Second):
-		return res, fmt.Errorf("timeout waiting for inbox result")
-	case <-ctx.Done():
-		return res, ctx.Err()
 	}
 
 	// Consume localize callbacks and send out to UI.

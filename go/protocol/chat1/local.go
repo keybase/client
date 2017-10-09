@@ -3313,6 +3313,7 @@ func (o GetInboxAndUnboxLocalArg) DeepCopy() GetInboxAndUnboxLocalArg {
 type GetInboxNonblockLocalArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	MaxUnbox         *int                         `codec:"maxUnbox,omitempty" json:"maxUnbox,omitempty"`
+	SkipUnverified   bool                         `codec:"skipUnverified" json:"skipUnverified"`
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
@@ -3328,6 +3329,7 @@ func (o GetInboxNonblockLocalArg) DeepCopy() GetInboxNonblockLocalArg {
 			tmp := (*x)
 			return &tmp
 		})(o.MaxUnbox),
+		SkipUnverified: o.SkipUnverified,
 		Query: (func(x *GetInboxLocalQuery) *GetInboxLocalQuery {
 			if x == nil {
 				return nil

@@ -13,7 +13,13 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
     const {onBack, onCancel, headerStyle, title, customComponent, theme = 'light'} = props
     return (
       <Box style={_containerStyle}>
-        <Box style={{..._headerStyle, ..._headerStyleThemed[theme], ...headerStyle}}>
+        <Box
+          style={{
+            ..._headerStyle,
+            ..._headerStyleThemed[theme],
+            ...headerStyle,
+          }}
+        >
           {customComponent}
           {!!title &&
             <Box style={_titleStyle}>

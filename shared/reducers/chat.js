@@ -37,10 +37,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         conversationStates.set(conversationIDKey, clearedConversationState)
       )
     }
-    case 'chat:clearSearchResults': {
-      return state.set('searchResults', initialState.searchResults)
-    }
-
     case 'chat:setLoaded': {
       const {conversationIDKey, isLoaded} = action.payload
       const newConversationStates = state
@@ -106,6 +102,18 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         })
       )
     }
+    case 'chat:inboxSynced': {
+      const {convs} = action.payload
+      const convIDs = convs.map(u => u.convID)
+      return state.update('conversationStates', conversationStates =>
+        conversationStates.map((conversationState, conversationIDKey) => {
+          if (convIDs.length === 0 || convIDs.includes(conversationIDKey)) {
+            return conversationState.set('isStale', true)
+          }
+          return conversationState
+        })
+      )
+    }
     case 'chat:updateLatestMessage':
       // Clear new messages id of conversation
       const newConversationStates = state
@@ -115,11 +123,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         )
       state = state.set('conversationStates', newConversationStates)
       return state
-    case 'chat:selectConversation': {
-      //  ensure selected converations are visible if they exist
-      const {conversationIDKey} = action.payload
-      return state.set('alwaysShow', state.get('alwaysShow').add(conversationIDKey))
-    }
     case 'chat:loadingMessages': {
       const {isRequesting, conversationIDKey} = action.payload
       const newConversationStates = state
@@ -190,8 +193,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       })
 
       return state.set('metaData', metaData)
-    case 'chat:updateConversationUnreadCounts':
-      return state.set('conversationUnreadCounts', action.payload.conversationUnreadCounts)
     case 'chat:clearRekey': {
       const {conversationIDKey} = action.payload
       return state.set('rekeyInfos', state.get('rekeyInfos').delete(conversationIDKey))
@@ -271,18 +272,8 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:showEditor': {
       return state.set('editingMessage', action.payload.message)
     }
-    case 'chat:setInitialConversation': {
-      return state.set('initialConversation', action.payload.conversationIDKey)
-    }
     case 'chat:setPreviousConversation': {
       return state.set('previousConversation', action.payload.conversationIDKey)
-    }
-    case 'chat:stageUserForSearch': {
-      const {payload: {user}} = action
-      if (state.selectedUsersInSearch.includes(user)) {
-        return state
-      }
-      return state.update('selectedUsersInSearch', l => l.push(user))
     }
     case 'chat:threadLoadedOffline': {
       const {conversationIDKey} = action.payload
@@ -309,29 +300,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:inboxFilter': {
       return state.set('inboxFilter', action.payload.filter)
     }
-    case 'chat:inboxSearch': {
-      return state.set('inboxSearch', List(action.payload.search))
-    }
-    case 'chat:updateSearchResults': {
-      const {payload: {searchResultTerm, searchResults, searchShowingSuggestions}} = action
-      return state
-        .set('searchResults', List(searchResults))
-        .set('searchShowingSuggestions', searchShowingSuggestions)
-        .set('searchResultTerm', searchResultTerm)
-    }
-    case 'chat:unstageUserForSearch': {
-      const {payload: {user}} = action
-      return state.update('selectedUsersInSearch', l => l.filterNot(u => u === user))
-    }
     case 'chat:newChat': {
       return state.set('inSearch', true)
     }
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
-    }
-    case 'chat:pendingSearchResults': {
-      const {payload: {pending}} = action
-      return state.set('searchPending', pending)
     }
     case 'chat:setNotifications': {
       const {payload: {conversationIDKey, deviceType, notifyType}} = action
@@ -384,6 +357,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'teams:setTeamCreationError': {
       const {payload: {teamCreationError}} = action
       return state.set('teamCreationError', teamCreationError)
+    }
+    case 'teams:setTeamJoinError': {
+      const {payload: {teamJoinError}} = action
+      return state.set('teamJoinError', teamJoinError)
+    }
+    case 'teams:setTeamJoinSuccess': {
+      const {payload: {teamJoinSuccess}} = action
+      return state.set('teamJoinSuccess', teamJoinSuccess)
     }
   }
 

@@ -35,17 +35,33 @@ func NewTeamsHandler(xp rpc.Transporter, id libkb.ConnectionID, g *globals.Conte
 	}
 }
 
+func (h *TeamsHandler) assertLoggedIn(ctx context.Context) error {
+	loggedIn := h.G().ExternalG().ActiveDevice.Valid()
+	if !loggedIn {
+		return libkb.LoginRequiredError{}
+	}
+	return nil
+}
+
 func (h *TeamsHandler) TeamCreate(ctx context.Context, arg keybase1.TeamCreateArg) (res keybase1.TeamCreateResult, err error) {
 	arg2 := keybase1.TeamCreateWithSettingsArg{
 		SessionID:            arg.SessionID,
 		Name:                 arg.Name,
 		SendChatNotification: arg.SendChatNotification,
 	}
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
 	return h.TeamCreateWithSettings(ctx, arg2)
 }
 
 func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.TeamCreateWithSettingsArg) (res keybase1.TeamCreateResult, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamCreate(%s)", arg.Name), func() error { return err })()
+
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+
 	teamName, err := keybase1.TeamNameFromString(arg.Name)
 	if err != nil {
 		return res, err
@@ -95,6 +111,9 @@ func (h *TeamsHandler) TeamListSubteamsRecursive(ctx context.Context, arg keybas
 }
 
 func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.TeamChangeMembershipArg) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }
 
@@ -155,6 +174,11 @@ func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, use
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,%s)", arg.Name, arg.Username),
 		func() error { return err })()
+
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+
 	if arg.Email != "" {
 		if err := teams.InviteEmailMember(ctx, h.G().ExternalG(), arg.Name, arg.Email, arg.Role); err != nil {
 			return keybase1.TeamAddMemberResult{}, err
@@ -180,47 +204,80 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRemoveMemberArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRemoveMember(%s,%s)", arg.Name, arg.Username),
 		func() error { return err })()
-	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
+
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	if len(arg.Email) > 0 {
+		h.G().Log.CDebugf(ctx, "TeamRemoveMember: received email address, using CancelEmailInvite for %q in team %q", arg.Email, arg.Name)
+		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
+	}
+	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
+	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Permanent)
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamEditMember(%s,%s)", arg.Name, arg.Username),
 		func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.EditMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Role)
 }
 
 func (h *TeamsHandler) TeamLeave(ctx context.Context, arg keybase1.TeamLeaveArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamLeave(%s)", arg.Name), func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.Leave(ctx, h.G().ExternalG(), arg.Name, arg.Permanent)
 }
 
 func (h *TeamsHandler) TeamRename(ctx context.Context, arg keybase1.TeamRenameArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamRename(%s)", arg.PrevName), func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.RenameSubteam(ctx, h.G().ExternalG(), arg.PrevName, arg.NewName)
 }
 
 func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAcceptInviteArg) (err error) {
 	defer h.G().CTraceTimed(ctx, "TeamAcceptInvite", func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
 func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) (err error) {
 	h.G().CTraceTimed(ctx, "TeamRequestAccess", func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
 }
 
 func (h *TeamsHandler) TeamAcceptInviteOrRequestAccess(ctx context.Context, arg keybase1.TeamAcceptInviteOrRequestAccessArg) (err error) {
 	defer h.G().CTraceTimed(ctx, "TeamAcceptInviteOrRequestAccess", func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.TeamAcceptInviteOrRequestAccess(ctx, h.G().ExternalG(), arg.TokenOrName)
 }
 
 func (h *TeamsHandler) TeamListRequests(ctx context.Context, sessionID int) (res []keybase1.TeamJoinRequest, err error) {
 	defer h.G().CTraceTimed(ctx, "TeamListRequests", func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return nil, err
+	}
 	return teams.ListRequests(ctx, h.G().ExternalG())
 }
 
 func (h *TeamsHandler) TeamIgnoreRequest(ctx context.Context, arg keybase1.TeamIgnoreRequestArg) (err error) {
 	defer h.G().CTraceTimed(ctx, "TeamIgnoreRequest", func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.IgnoreRequest(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
 
@@ -231,12 +288,18 @@ func (h *TeamsHandler) TeamTree(ctx context.Context, arg keybase1.TeamTreeArg) (
 
 func (h *TeamsHandler) TeamDelete(ctx context.Context, arg keybase1.TeamDeleteArg) (err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamDelete(%s)", arg.Name), func() error { return err })()
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	ui := h.getTeamsUI(arg.SessionID)
 	return teams.Delete(ctx, h.G().ExternalG(), ui, arg.Name)
 }
 
 func (h *TeamsHandler) TeamSetSettings(ctx context.Context, arg keybase1.TeamSetSettingsArg) (err error) {
-	return fmt.Errorf("Not implemented")
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
+	return teams.ChangeTeamSettings(ctx, h.G().ExternalG(), arg.Name, arg.Settings)
 }
 
 func (h *TeamsHandler) LoadTeamPlusApplicationKeys(netCtx context.Context, arg keybase1.LoadTeamPlusApplicationKeysArg) (keybase1.TeamPlusApplicationKeys, error) {
@@ -249,19 +312,27 @@ func (h *TeamsHandler) GetTeamRootID(ctx context.Context, id keybase1.TeamID) (k
 	return teams.GetRootID(ctx, h.G().ExternalG(), id)
 }
 
-func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.TeamID, err error) {
+func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.LookupImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupImplicitTeam(%s)", arg.Name), func() error { return err })()
-	teamID, _, err := teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
-	return teamID, err
+	res.TeamID, res.Name, res.DisplayName, err = teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name,
+		arg.Public)
+	return res, err
 }
 
-func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.TeamID, err error) {
+func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keybase1.LookupOrCreateImplicitTeamArg) (res keybase1.LookupImplicitTeamRes, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("LookupOrCreateImplicitTeam(%s)", arg.Name),
 		func() error { return err })()
-	teamID, _, err := teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
-	return teamID, err
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return res, err
+	}
+	res.TeamID, res.Name, res.DisplayName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G().ExternalG(),
+		arg.Name, arg.Public)
+	return res, err
 }
 
 func (h *TeamsHandler) TeamReAddMemberAfterReset(ctx context.Context, arg keybase1.TeamReAddMemberAfterResetArg) error {
+	if err := h.assertLoggedIn(ctx); err != nil {
+		return err
+	}
 	return teams.ReAddMemberAfterReset(ctx, h.G().ExternalG(), arg.Id, arg.Username)
 }

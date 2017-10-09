@@ -4,13 +4,12 @@ import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import loadPerf from '../util/load-perf'
 import hello from '../util/hello'
-import {bootstrap} from '../actions/config'
+import {bootstrap, persistRouteState} from '../actions/config'
 import {connect} from 'react-redux'
 import debounce from 'lodash/debounce'
 import {getUserImageMap, loadUserImageMap, getTeamImageMap, loadTeamImageMap} from '../util/pictures'
 import {initAvatarLookup, initAvatarLoad} from '../common-adapters/index.native'
 import {listenForNotifications} from '../actions/notifications'
-import {persistRouteState, loadRouteState} from '../actions/platform-specific.native'
 import {navigateUp, setRouteState} from '../actions/route-tree'
 
 import type {TypedState} from '../constants/reducer'
@@ -25,7 +24,6 @@ type Props = {
   bootstrap: () => void,
   hello: () => void,
   listenForNotifications: () => void,
-  loadRouteState: () => void,
   persistRouteState: () => void,
   setRouteState: (path: any, partialState: any) => void,
   navigateUp: () => void,
@@ -45,7 +43,6 @@ class Main extends Component<any> {
       initAvatarLookup(getUserImageMap, getTeamImageMap)
       initAvatarLoad(loadUserImageMap, loadTeamImageMap)
 
-      this.props.loadRouteState()
       this.props.bootstrap()
       this.props.listenForNotifications()
       this.props.hello()
@@ -96,11 +93,10 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   bootstrap: () => dispatch(bootstrap()),
   hello: () => hello(0, ownProps.platform, [], ownProps.version, true), // TODO real version
   listenForNotifications: () => dispatch(listenForNotifications()),
-  loadRouteState: () => dispatch(loadRouteState()),
   navigateUp: () => {
     dispatch(navigateUp())
   },
-  persistRouteState: () => dispatch(persistRouteState()),
+  persistRouteState: () => dispatch(persistRouteState),
   setRouteState: (path, partialState) => {
     dispatch(setRouteState(path, partialState))
   },

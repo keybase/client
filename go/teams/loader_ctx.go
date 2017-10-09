@@ -13,7 +13,7 @@ import (
 type LoaderContext interface {
 	// Get new links from the server.
 	getNewLinksFromServer(ctx context.Context,
-		teamID keybase1.TeamID, lows getLinksLows,
+		teamID keybase1.TeamID, public bool, lows getLinksLows,
 		readSubteamID *keybase1.TeamID) (*rawTeam, error)
 	// Get full links from the server.
 	// Does not guarantee that the server returned the correct links, nor that they are unstubbed.
@@ -23,10 +23,10 @@ type LoaderContext interface {
 	getMe(context.Context) (keybase1.UserVersion, error)
 	// Lookup the eldest seqno of a user. Can use the cache.
 	lookupEldestSeqno(context.Context, keybase1.UID) (keybase1.Seqno, error)
-	resolveNameToIDUntrusted(context.Context, keybase1.TeamName) (keybase1.TeamID, error)
+	resolveNameToIDUntrusted(context.Context, keybase1.TeamName, bool) (keybase1.TeamID, error)
 	// Get the current user's per-user-key's derived encryption key (full).
 	perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error)
-	merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
+	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
 	merkleLookupTripleAtHashMeta(ctx context.Context, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
 	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
@@ -47,15 +47,15 @@ func NewLoaderContextFromG(g *libkb.GlobalContext) LoaderContext {
 
 // Get new links from the server.
 func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, lows getLinksLows,
+	teamID keybase1.TeamID, public bool, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
-	arg := libkb.NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
-		"id":  libkb.S{Val: teamID.String()},
-		"low": libkb.I{Val: int(lows.Seqno)},
+		"id":     libkb.S{Val: teamID.String()},
+		"low":    libkb.I{Val: int(lows.Seqno)},
+		"public": libkb.B{Val: public},
 		// These don't really work yet on the client or server.
 		// "per_team_key_low":    libkb.I{Val: int(lows.PerTeamKey)},
 		// "reader_key_mask_low": libkb.I{Val: int(lows.PerTeamKey)},
@@ -85,8 +85,7 @@ func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 	}
 	seqnoCommas := strings.Join(seqnoStrs, ",")
 
-	arg := libkb.NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"id":     libkb.S{Val: teamID.String()},
@@ -110,12 +109,12 @@ func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 }
 
 func (l *LoaderContextG) getMe(ctx context.Context) (res keybase1.UserVersion, err error) {
-	loadMeArg := libkb.NewLoadUserArgBase(l.G()).
+	loadMeArg := libkb.NewLoadUserArg(l.G()).
 		WithNetContext(ctx).
 		WithUID(l.G().Env.GetUID()).
 		WithSelf(true).
 		WithPublicKeyOptional()
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(*loadMeArg)
+	upak, _, err := l.G().GetUPAKLoader().LoadV2(loadMeArg)
 	if err != nil {
 		return keybase1.UserVersion{}, err
 	}
@@ -134,18 +133,19 @@ func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID
 
 // Resolve a team name to a team ID.
 // Will always hit the server for subteams. The server can lie in this return value.
-func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName) (id keybase1.TeamID, err error) {
+func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName,
+	public bool) (id keybase1.TeamID, err error) {
 	// For root team names, just hash.
 	if teamName.IsRootTeam() {
 		return teamName.ToTeamID(), nil
 	}
 
-	arg := libkb.NewRetryAPIArg("team/get")
-	arg.NetContext = ctx
+	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
 	arg.Args = libkb.HTTPArgs{
 		"name":        libkb.S{Val: teamName.String()},
 		"lookup_only": libkb.B{Val: true},
+		"public":      libkb.B{Val: public},
 	}
 
 	var rt rawTeam
@@ -176,13 +176,21 @@ func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno key
 	return encKey, err
 }
 
-func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
+func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
 	leaf, err := l.G().GetMerkleClient().LookupTeam(ctx, teamID)
 	if err != nil {
 		return r1, r2, err
 	}
 	if !leaf.TeamID.Eq(teamID) {
 		return r1, r2, fmt.Errorf("merkle returned wrong leaf: %v != %v", leaf.TeamID.String(), teamID.String())
+	}
+
+	if public {
+		if leaf.Public == nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
+			return r1, r2, NewTeamDoesNotExistError(teamID.String())
+		}
+		return leaf.Public.Seqno, leaf.Public.LinkID.Export(), nil
 	}
 	if leaf.Private == nil {
 		l.G().Log.CDebugf(ctx, "TeamLoader hidden error: merkle returned nil leaf")
@@ -205,8 +213,8 @@ func (l *LoaderContextG) merkleLookupTripleAtHashMeta(ctx context.Context, leafI
 }
 
 func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error) {
-	arg := libkb.NewLoadUserArgBase(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll()
-	upak, _, err := l.G().GetUPAKLoader().LoadV2(*arg)
+	arg := libkb.NewLoadUserArg(l.G()).WithNetContext(ctx).WithUID(uid).WithForcePoll(true)
+	upak, _, err := l.G().GetUPAKLoader().LoadV2(arg)
 	if err != nil {
 		return nil, err
 	}
@@ -220,6 +228,9 @@ func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid ke
 	user, pubKey, linkMap, err := l.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
 	if err != nil {
 		return
+	}
+	if user == nil {
+		return uv, pubKey, linkMap, libkb.NotFoundError{}
 	}
 
 	return user.ToUserVersion(), pubKey, linkMap, nil

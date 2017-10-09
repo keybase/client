@@ -1,6 +1,4 @@
 // @flow
-import * as SearchConstants from './search'
-import {List} from 'immutable'
 import type {PlatformsExpandedType} from './types/more'
 import type {ProofStatus, SigID, KID} from './types/flow-types'
 import type {TypedAction, NoErrorTypedAction} from './types/flux'
@@ -37,8 +35,6 @@ export type State = {
   username: string,
   usernameValid: boolean,
   waiting: boolean,
-  searchPending: boolean,
-  searchResults: ?List<SearchConstants.SearchResultId>,
   searchShowingSuggestions: boolean,
 }
 
@@ -48,7 +44,6 @@ export const cancelAddProof = 'profile:cancelAddProof'
 export const cancelPgpGen = 'profile:cancelPgpGen'
 export const checkProof = 'profile:checkProof'
 export const cleanupUsername = 'profile:cleanupUsername'
-export const clearSearchResults = 'profile:clearSearchResults'
 export const dropPgp = 'profile:dropPgp'
 export const editProfile = 'profile:editProfile'
 export const finishRevokeProof = 'profile:revoke:finish'
@@ -81,7 +76,6 @@ export type CancelAddProof = NoErrorTypedAction<'profile:cancelAddProof', void>
 export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
 export type CheckProof = NoErrorTypedAction<'profile:checkProof', void>
 export type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
-export type ClearSearchResults = NoErrorTypedAction<'profile:clearSearchResults', void>
 export type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
 export type EditProfile = NoErrorTypedAction<
   'profile:editProfile',
@@ -131,13 +125,9 @@ export type UpdateUsername = TypedAction<'profile:updateUsername', {username: st
 export type Waiting = TypedAction<'profile:waiting', {waiting: boolean}, void>
 export type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
 
-export type PendingSearch = SearchConstants.PendingSearchGeneric<'profile:searchPending'>
-export type UpdateSearchResults = SearchConstants.UpdateSearchResultsGeneric<'profile:updateSearchResults'>
-
 export type Actions =
   | CleanupUsername
   | FinishRevokeProof
-  | PendingSearch
   | UpdateErrorText
   | UpdatePlatform
   | UpdateProofStatus
@@ -146,4 +136,3 @@ export type Actions =
   | UpdateUsername
   | Waiting
   | WaitingRevokeProof
-  | UpdateSearchResults

@@ -191,7 +191,6 @@ const conversationUnreadCounts = {
 const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) => ({
   mockStore: {
     chat: new StateRecord({
-      conversationUnreadCounts: Map(conversationUnreadCounts),
       inbox: _inbox || List(inbox),
       nowOverride: now,
       pending: List(),
@@ -207,6 +206,8 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
           return acc
         }, {})
       ),
+      inboxUnreadCountBadge: Map(conversationUnreadCounts),
+      inboxUnreadCountTotal: Map(conversationUnreadCounts),
     }),
     config: {
       username: 'chris',

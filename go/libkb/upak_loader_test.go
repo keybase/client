@@ -22,9 +22,7 @@ func TestCachedUserLoad(t *testing.T) {
 	tc.G.SetClock(fakeClock)
 
 	// Load t_alice a few different ways
-	arg := LoadUserArg{
-		UID: keybase1.UID("295a7eea607af32040647123732bc819"),
-	}
+	arg := NewLoadUserArg(tc.G).WithUID(keybase1.UID("295a7eea607af32040647123732bc819"))
 	var info CachedUserLoadInfo
 	_, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &info, nil, true)
 	if err != nil {
@@ -113,8 +111,7 @@ func TestCacheFallbacks(t *testing.T) {
 	test := func() *CachedUserLoadInfo {
 		var ret CachedUserLoadInfo
 		uid := keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
-		var arg LoadUserArg
-		arg.UID = uid
+		arg := NewLoadUserArg(tc.G).WithUID(uid)
 		upk, _, err := tc.G.GetUPAKLoader().(*CachedUPAKLoader).loadWithInfo(arg, &ret, nil, false)
 		require.NoError(t, err)
 		require.Equal(t, upk.Current.Username, "t_tracy", "tracy was right")

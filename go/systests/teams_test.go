@@ -445,14 +445,14 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
 	cli := u.teamsClient
 	var err error
-	var teamID keybase1.TeamID
+	var res keybase1.LookupImplicitTeamRes
 	if create {
-		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
 	} else {
-		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
 
-	return teamID, err
+	return res.TeamID, err
 }
 
 func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
@@ -623,10 +623,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 	t.Logf("bob updates cache of alice's info")
 	{
-		arg := libkb.NewLoadUserArg(bob.tc.G)
-		arg.UID = alice.uid
-		arg.PublicKeyOptional = true
-		arg.ForcePoll = true
+		arg := libkb.NewLoadUserArg(bob.tc.G).WithUID(alice.uid).WithPublicKeyOptional().WithForcePoll(true)
 		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
 		require.NoError(t, err)
 	}
@@ -707,10 +704,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 
 	t.Logf("bob updates cache of alice's info")
 	{
-		arg := libkb.NewLoadUserArg(bob.tc.G)
-		arg.UID = alice.uid
-		arg.PublicKeyOptional = true
-		arg.ForcePoll = true
+		arg := libkb.NewLoadUserArg(bob.tc.G).WithUID(alice.uid).WithPublicKeyOptional().WithForcePoll(true)
 		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
 		require.NoError(t, err)
 	}

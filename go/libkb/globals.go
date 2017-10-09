@@ -191,10 +191,7 @@ func (g *GlobalContext) CloneWithNetContext(netCtx context.Context) *GlobalConte
 	return &tmp
 }
 
-var G *GlobalContext
-
 func init() {
-	G = NewGlobalContext()
 }
 
 func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
@@ -673,10 +670,7 @@ type Contextified struct {
 }
 
 func (c Contextified) G() *GlobalContext {
-	if c.g != nil {
-		return c.g
-	}
-	return G
+	return c.g
 }
 
 func (c Contextified) GStrict() *GlobalContext {
@@ -907,8 +901,7 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 }
 
 func (g *GlobalContext) LoadUserByUID(uid keybase1.UID) (*User, error) {
-	arg := NewLoadUserByUIDArg(nil, g, uid)
-	arg.PublicKeyOptional = true
+	arg := NewLoadUserByUIDArg(nil, g, uid).WithPublicKeyOptional()
 	return LoadUser(arg)
 }
 

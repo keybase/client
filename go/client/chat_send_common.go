@@ -27,12 +27,7 @@ type ChatSendArg struct {
 }
 
 func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error {
-	chatClient, err := GetChatLocalClient(g)
-	if err != nil {
-		return err
-	}
-	resolver := &chatConversationResolver{G: g, ChatClient: chatClient}
-	resolver.TlfClient, err = GetTlfClient(g)
+	resolver, err := newChatConversationResolver(g)
 	if err != nil {
 		return err
 	}
@@ -107,11 +102,11 @@ func chatSend(ctx context.Context, g *libkb.GlobalContext, c ChatSendArg) error 
 		nbarg.ConversationID = args.ConversationID
 		nbarg.Msg = args.Msg
 		nbarg.IdentifyBehavior = args.IdentifyBehavior
-		if _, err = chatClient.PostLocalNonblock(ctx, nbarg); err != nil {
+		if _, err = resolver.ChatClient.PostLocalNonblock(ctx, nbarg); err != nil {
 			return err
 		}
 	} else {
-		if _, err = chatClient.PostLocal(ctx, args); err != nil {
+		if _, err = resolver.ChatClient.PostLocal(ctx, args); err != nil {
 			return err
 		}
 	}

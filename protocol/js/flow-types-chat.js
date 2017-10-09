@@ -120,6 +120,12 @@ export const CommonNotificationKind = {
   atmention: 1,
 }
 
+export const CommonSyncInboxResType = {
+  current: 0,
+  incremental: 1,
+  clear: 2,
+}
+
 export const CommonTeamType = {
   none: 0,
   simple: 1,
@@ -231,12 +237,6 @@ export const RemoteMessageBoxedVersion = {
 export const RemoteSyncAllNotificationType = {
   state: 0,
   incremental: 1,
-}
-
-export const RemoteSyncInboxResType = {
-  current: 0,
-  incremental: 1,
-  clear: 2,
 }
 
 export function localCancelPostRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}): EngineChannel {
@@ -881,6 +881,15 @@ export type ChatActivityType =
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
 
+export type ChatSyncIncrementalInfo = {
+  items?: ?Array<UnverifiedInboxUIItem>,
+}
+
+export type ChatSyncResult =
+    { syncType: 0 }
+  | { syncType: 2 }
+  | { syncType: 1, incremental: ?ChatSyncIncrementalInfo }
+
 export type ConvTypingUpdate = {
   convID: ConversationID,
   typers?: ?Array<TyperInfo>,
@@ -1230,6 +1239,7 @@ export type GetThreadQuery = {
 
 export type GetThreadRemoteRes = {
   thread: ThreadViewBoxed,
+  membersType: ConversationMembersType,
   rateLimit?: ?RateLimit,
 }
 
@@ -1620,6 +1630,15 @@ export type NotifyChatChatIdentifyUpdateRpcParam = Exact<{
 
 export type NotifyChatChatInboxStaleRpcParam = Exact<{
   uid: keybase1.UID
+}>
+
+export type NotifyChatChatInboxSyncStartedRpcParam = Exact<{
+  uid: keybase1.UID
+}>
+
+export type NotifyChatChatInboxSyncedRpcParam = Exact<{
+  uid: keybase1.UID,
+  syncRes: ChatSyncResult
 }>
 
 export type NotifyChatChatJoinedConversationRpcParam = Exact<{
@@ -2119,6 +2138,7 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
 
 export type localGetInboxNonblockLocalRpcParam = Exact<{
   maxUnbox?: ?int,
+  skipUnverified: boolean,
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -2691,6 +2711,21 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatInboxSyncStarted'?: (
+    params: Exact<{
+      uid: keybase1.UID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatInboxSynced'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      syncRes: ChatSyncResult
     }> /* ,
     response: {} // Notify call
     */

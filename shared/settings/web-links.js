@@ -6,9 +6,9 @@ import {compose, defaultProps} from 'recompose'
 import type {Dispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
-const mapStateToProps = (state: TypedState, {routeProps: {title, source}}) => ({
-  source,
-  title,
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  source: routeProps.get('source'),
+  title: routeProps.get('title'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({

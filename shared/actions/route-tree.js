@@ -14,6 +14,7 @@ import type {
   NavigateTo,
   NavigateAppend,
   NavigateUp,
+  NavigationSource,
   SetRouteState,
   ResetRoute,
 } from '../constants/route-tree'
@@ -77,10 +78,14 @@ export function switchTo(path: Path, parentPath?: Path): SwitchTo {
 //
 // If parentPath is provided, the path will be navigated to relative to
 // parentPath without navigating to it.
-export function navigateTo(path: PropsPath<*>, parentPath?: ?Path): NavigateTo {
+export function navigateTo(
+  path: PropsPath<*>,
+  parentPath?: ?Path,
+  navigationSource: NavigationSource = 'user'
+): NavigateTo {
   return {
     type: Constants.navigateTo,
-    payload: {path, parentPath},
+    payload: {path, parentPath, navigationSource},
     logTransformer: pathActionTransformer,
   }
 }

@@ -11,10 +11,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-func GetRPCClient() (ret *rpc.Client, xp rpc.Transporter, err error) {
-	return GetRPCClientWithContext(G)
-}
-
 func getSocketWithRetry(g *libkb.GlobalContext) (xp rpc.Transporter, err error) {
 	return getSocket(g, true)
 }
@@ -94,7 +90,7 @@ func RegisterProtocolsWithContext(prots []rpc.Protocol, g *libkb.GlobalContext) 
 	if srv, _, err = GetRPCServer(g); err != nil {
 		return
 	}
-	prots = append(prots, NewLogUIProtocol())
+	prots = append(prots, NewLogUIProtocol(g))
 	for _, p := range prots {
 		if err = srv.Register(p); err != nil {
 			if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
@@ -104,10 +100,6 @@ func RegisterProtocolsWithContext(prots []rpc.Protocol, g *libkb.GlobalContext) 
 		}
 	}
 	return
-}
-
-func RegisterProtocols(prots []rpc.Protocol) (err error) {
-	return RegisterProtocolsWithContext(prots, G)
 }
 
 func GetIdentifyClient(g *libkb.GlobalContext) (cli keybase1.IdentifyClient, err error) {
@@ -207,9 +199,9 @@ func GetAccountClient(g *libkb.GlobalContext) (cli keybase1.AccountClient, err e
 	return
 }
 
-func GetFavoriteClient() (cli keybase1.FavoriteClient, err error) {
+func GetFavoriteClient(g *libkb.GlobalContext) (cli keybase1.FavoriteClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.FavoriteClient{Cli: rcli}
 	}
 	return

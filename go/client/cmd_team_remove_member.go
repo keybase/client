@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -15,9 +16,11 @@ import (
 
 type CmdTeamRemoveMember struct {
 	libkb.Contextified
-	Team     string
-	Username string
-	Force    bool
+	Team      string
+	Username  string
+	Email     string
+	Force     bool
+	Permanent bool
 }
 
 func NewCmdTeamRemoveMemberRunner(g *libkb.GlobalContext) *CmdTeamRemoveMember {
@@ -38,9 +41,17 @@ func newCmdTeamRemoveMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 				Name:  "u, user",
 				Usage: "username",
 			},
+			cli.StringFlag{
+				Name:  "email",
+				Usage: "cancel pending email invite address",
+			},
 			cli.BoolFlag{
 				Name:  "f, force",
 				Usage: "bypass warnings",
+			},
+			cli.BoolFlag{
+				Name:  "p, permanent",
+				Usage: "prevent user from re-joining (open teams only)",
 			},
 		},
 	}
@@ -53,12 +64,30 @@ func (c *CmdTeamRemoveMember) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 
-	c.Username, err = ParseUser(ctx)
-	if err != nil {
-		return err
+	c.Username = ctx.String("user")
+	c.Email = ctx.String("email")
+	c.Force = ctx.Bool("force")
+	c.Permanent = ctx.Bool("permanent")
+
+	if len(c.Username) > 0 && len(c.Email) > 0 {
+		return errors.New("You cannot specify --user and --email.  Please choose one.")
 	}
 
-	c.Force = ctx.Bool("force")
+	if len(c.Username) == 0 && len(c.Email) == 0 {
+		return errors.New("Username or email required.  Use --user or --email flag.")
+	}
+
+	if len(c.Username) > 0 {
+		if libkb.CheckEmail.F(c.Username) {
+			return errors.New("If you'd like to cancel a pending invite by email address, please use `--email` instead of `--user`. If you'd like to remove an existing member from your team, please use their keybase username.")
+		}
+	}
+
+	if len(c.Email) > 0 {
+		if !libkb.CheckEmail.F(c.Email) {
+			return fmt.Errorf("Invalid email address %q. If you'd like to remove an existing member for your team, please use their keybase username and the `--user` flag instead of `--email`.", c.Email)
+		}
+	}
 
 	return nil
 }
@@ -97,15 +126,30 @@ func (c *CmdTeamRemoveMember) Run() error {
 	}
 
 	arg := keybase1.TeamRemoveMemberArg{
-		Name:     c.Team,
-		Username: c.Username,
+		Name:      c.Team,
+		Username:  c.Username,
+		Email:     c.Email,
+		Permanent: c.Permanent,
 	}
 
 	if err = cli.TeamRemoveMember(context.Background(), arg); err != nil {
+		switch err.(type) {
+		case libkb.NotFoundError:
+			if len(c.Email) > 0 {
+				ui.Printf("Error: there is currently no pending invitation for %s.\nIf that person is already on your team, please remove them with their keybase username.\n\n", c.Email)
+				return nil
+			}
+			ui.Printf("Error: there is currently no user %s on team %s.\n\n", c.Username, c.Team)
+			return nil
+		}
 		return err
 	}
 
-	ui.Printf("Success! %s removed from team %s.\n", c.Username, c.Team)
+	if len(c.Email) > 0 {
+		ui.Printf("Success! %s invitation canceled for team %s.\n", c.Email, c.Team)
+	} else {
+		ui.Printf("Success! %s removed from team %s.\n", c.Username, c.Team)
+	}
 
 	return nil
 }

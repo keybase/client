@@ -20,9 +20,6 @@ func TestSecretUI(t *testing.T) {
 	tc1 := cloneContext(tc)
 	tc2 := cloneContext(tc)
 
-	// Make sure we're not using G anywhere in our tests.
-	libkb.G.LocalDb = nil
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)

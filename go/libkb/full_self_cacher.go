@@ -23,13 +23,7 @@ type UncachedFullSelf struct {
 var _ FullSelfer = (*UncachedFullSelf)(nil)
 
 func (n *UncachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) error {
-	arg := LoadUserArg{
-		Contextified:      NewContextified(n.G()),
-		PublicKeyOptional: true,
-		Self:              true,
-		NetContext:        ctx,
-	}
-
+	arg := NewLoadUserArg(n.G()).WithPublicKeyOptional().WithSelf(true).WithNetContext(ctx)
 	return n.WithUser(arg, f)
 }
 
@@ -72,13 +66,13 @@ func NewCachedFullSelf(g *GlobalContext) *CachedFullSelf {
 }
 
 func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
-	if arg.Self {
+	if arg.self {
 		return true
 	}
-	if arg.Name != "" && NewNormalizedUsername(arg.Name).Eq(m.me.GetNormalizedName()) {
+	if arg.name != "" && NewNormalizedUsername(arg.name).Eq(m.me.GetNormalizedName()) {
 		return true
 	}
-	if arg.UID.Exists() && arg.UID.Equal(m.me.GetUID()) {
+	if arg.uid.Exists() && arg.uid.Equal(m.me.GetUID()) {
 		return true
 	}
 	return false
@@ -89,12 +83,7 @@ func (m *CachedFullSelf) isSelfLoad(arg LoadUserArg) bool {
 // but we should be sure the user never escapes this closure. If the user
 // is fresh-loaded, then it is stored in memory.
 func (m *CachedFullSelf) WithSelf(ctx context.Context, f func(u *User) error) error {
-	arg := LoadUserArg{
-		Contextified:      NewContextified(m.G()),
-		PublicKeyOptional: true,
-		Self:              true,
-		NetContext:        ctx,
-	}
+	arg := NewLoadUserArg(m.G()).WithPublicKeyOptional().WithSelf(true).WithNetContext(ctx)
 	return m.WithUser(arg, f)
 }
 
@@ -112,14 +101,14 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 	var sigHints *SigHints
 	var leaf *MerkleUserLeaf
 
-	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, m.G(), arg.UID, true)
+	sigHints, leaf, err = lookupSigHintsAndMerkleLeaf(ctx, m.G(), arg.uid, true)
 	if err != nil {
 		m.me = nil
 		return err
 	}
 
-	arg.SigHints = sigHints
-	arg.MerkleLeaf = leaf
+	arg.sigHints = sigHints
+	arg.merkleLeaf = leaf
 
 	var idVersion int64
 
@@ -145,7 +134,7 @@ func (m *CachedFullSelf) maybeClearCache(ctx context.Context, arg *LoadUserArg) 
 // operation for the user or someone else.
 func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err error) {
 
-	ctx := arg.NetContext
+	ctx := arg.netContext
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -179,7 +168,7 @@ func (m *CachedFullSelf) WithUser(arg LoadUserArg, f func(u *User) error) (err e
 		// WARNING! You can't call m.G().GetMyUID() if this function is called from
 		// within the Account/LoginState inner loop. Because m.G().GetMyUID() calls
 		// back into Account, it will deadlock.
-		if arg.Self || u.GetUID().Equal(m.G().GetMyUID()) {
+		if arg.self || u.GetUID().Equal(m.G().GetMyUID()) {
 			m.G().Log.CDebugf(ctx, "| CachedFullSelf#WithUser: cache populate")
 			m.cacheMe(u)
 			if ldr := m.G().GetUPAKLoader(); ldr != nil {
