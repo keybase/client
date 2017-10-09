@@ -128,16 +128,18 @@ const getFilteredSmallRowItems = createSelector(
     return smallTimestamps
       .keySeq()
       .toArray()
-      .filter(convID => {
-        const i = inbox.get(convID)
-        if (!i) {
-          return false
-        }
-        const passesFilter =
-          scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou) > 0
-        return passesFilter
+      .map(conversationIDKey => {
+        const i = inbox.get(conversationIDKey)
+        return i
+          ? {
+              conversationIDKey,
+              filterScore: scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou),
+            }
+          : null
       })
-      .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+      .filter(obj => obj && obj.filterScore > 0)
+      .sort((a, b) => b.filterScore - a.filterScore)
+      .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
   }
 )
 
