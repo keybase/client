@@ -217,7 +217,7 @@ func (e *Login) loginProvisionedDevice(ctx *Context, username string) (bool, err
 		return false, err
 	}
 
-	e.G().Log.Debug("loginProvisionedDevice error: %s (can continue to provision this device)", err)
+	e.G().Log.Debug("loginProvisionedDevice error: %s (not fatal, can continue to provision this device)", err)
 
 	return false, nil
 }
