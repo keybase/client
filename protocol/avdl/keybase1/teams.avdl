@@ -277,12 +277,14 @@ protocol teams {
   record TeamCLKRMsg {
     @jsonkey("team_id")
     TeamID teamID;
+    boolean public; // whether the team is public
     PerTeamKeyGeneration generation;
     int score;
   }
 
   record TeamChangeRow {
     TeamID id;
+    boolean public; // whether the team is public
     string name;
     @jsonkey("key_rotated")
     boolean keyRotated;
@@ -294,6 +296,7 @@ protocol teams {
 
   record TeamExitRow {
     TeamID id;
+    boolean public; // whether the team is public
   }
 
   record TeamInvitee {
@@ -310,6 +313,7 @@ protocol teams {
   record TeamSBSMsg {
     @jsonkey("team_id")
     TeamID teamID;
+    boolean public; // whether the team is public
     int score;
     array<TeamInvitee> invitees;
   }
@@ -324,6 +328,7 @@ protocol teams {
   record TeamOpenReqMsg {
     @jsonkey("team_id")
     TeamID teamID;
+    boolean public; // whether the team is public
     array<TeamAccessRequest> tars;
   }
 

@@ -718,6 +718,10 @@
           "jsonkey": "team_id"
         },
         {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
           "type": "PerTeamKeyGeneration",
           "name": "generation"
         },
@@ -735,6 +739,10 @@
         {
           "type": "TeamID",
           "name": "id"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         },
         {
           "type": "string",
@@ -764,6 +772,10 @@
         {
           "type": "TeamID",
           "name": "id"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         }
       ]
     },
@@ -799,6 +811,10 @@
           "type": "TeamID",
           "name": "teamID",
           "jsonkey": "team_id"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         },
         {
           "type": "int",
@@ -837,6 +853,10 @@
           "type": "TeamID",
           "name": "teamID",
           "jsonkey": "team_id"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
         },
         {
           "type": {
