@@ -27,24 +27,36 @@ type Props = {
 
 const AddPeople = (props: Props) => (
   <MaybePopup onClose={props.onClose}>
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
-      <UserInput
-        autoFocus={true}
-        searchKey={'addToTeamSearch'}
-        placeholder="Search Keybase"
-        onExitSearch={props.onExitSearch}
-      />
-      {props.showSearchPending
-        ? <ProgressIndicator style={{width: globalMargins.large}} />
-        : <SearchResultsList
-            onShowTracker={props.onShowTrackerInSearch}
-            searchKey={'addToTeamSearch'}
-            style={{flex: 1}}
-          />}
+    <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <UserInput
+          autoFocus={true}
+          searchKey={'addToTeamSearch'}
+          onExitSearch={props.onExitSearch}
+        />
+      </Box>
+      <Box style={{...globalStyles.scrollable, height: 500, flex: 1}}>
+        {props.showSearchPending
+          ? <ProgressIndicator style={{width: globalMargins.large}} />
+          : <SearchResultsList
+              onShowTracker={props.onShowTrackerInSearch}
+              searchKey={'addToTeamSearch'}
+              style={{flexGrow: 1, height: 500}}
+            />}
+      </Box>
+      <Box style={{...globalStyles.flexBoxRow, borderBottom: `1px solid ${globalColors.black_10}`, boxShadow: `0 2px 5px 0 ${globalColors.black_20}`}} />
       <Box
         style={{
           ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-          flex: 1,
+          margin: globalMargins.medium,
+        }}
+      >
+        <Text type="Body">Add these team members as:</Text>
+      </Box>
+      <Box
+        style={{
+          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
+          margin: globalMargins.medium,
         }}
       >
         <Button type="Primary" onClick={props.onInvite} label="Invite" />
@@ -61,5 +73,14 @@ const _styleCover = {
 
 const _styleContainer = {
   height: '100%',
+  ...globalStyles.flexBoxColumn,
+  alignSelf: 'center',
+  backgroundColor: globalColors.white,
+  borderRadius: 5,
+  boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
+  minWidth: 800,
+  position: 'relative',
+  top: 10,
 }
+
 export default AddPeople
