@@ -117,7 +117,7 @@ export const RolePicker = (props: RolePickerProps) => {
             label="Confirm"
             type="Primary"
             onClick={() => onComplete(selectedRole, sendNotification)}
-            disabled={selectedRole === 0}
+            disabled={!selectedRole}
           />
         </Box>
       </Box>
