@@ -79,31 +79,25 @@ func (e *Login) Run(ctx *Context) error {
 		e.G().Log.Debug("skipping loginProvisionedDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
 	} else {
 		// First see if this device is already provisioned and it is possible to log in.
-		eng := NewLoginProvisionedDevice(e.G(), e.usernameOrEmail)
-		err := RunEngine(eng, ctx)
-		if err == nil {
-			// login successful
-			e.G().Log.Debug("LoginProvisionedDevice.Run() was successful")
-			// Note:  LoginProvisionedDevice Run() will send login notifications, no need to
-			// send here.
+		loggedInOK, err := e.loginProvisionedDevice(ctx, e.usernameOrEmail)
+		if err != nil {
+			e.G().Log.Debug("loginProvisionedDevice error: %s", err)
+			return err
+		}
+		if loggedInOK {
+			e.G().Log.Debug("loginProvisionedDevice success")
 			return nil
 		}
 
-		// if this device has been provisioned already and there was an error, then
-		// return that error.  Otherwise, ignore it and keep going.
-		if !e.notProvisionedErr(err) {
-			return err
-		}
-
-		e.G().Log.Debug("loginProvisionedDevice error: %s (continuing with device provisioning...)", err)
+		e.G().Log.Debug("loginProvisionedDevice failed, continuing with device provisioning")
 	}
 
-	e.G().Log.Debug("attempting device provisioning")
-
 	// clear out any existing session:
+	e.G().Log.Debug("clearing any exising login session with Logout before loading user for login")
 	e.G().Logout()
 
 	// run the LoginLoadUser sub-engine to load a user
+	e.G().Log.Debug("loading login user for %q", e.usernameOrEmail)
 	ueng := newLoginLoadUser(e.G(), e.usernameOrEmail)
 	if err := RunEngine(ueng, ctx); err != nil {
 		return err
@@ -113,8 +107,23 @@ func (e *Login) Run(ctx *Context) error {
 	// get here if usernameOrEmail is an email address
 	// for an already provisioned on this device user).
 	if ueng.User().HasCurrentDeviceInCurrentInstall() {
+		e.G().Log.Debug("user %q (%s) has previously provisioned this device, trying to login on it", e.usernameOrEmail, ueng.User().GetName())
+		loggedInOK, err := e.loginProvisionedDevice(ctx, ueng.User().GetName())
+		if err != nil {
+			e.G().Log.Debug("loginProvisionedDevice after loginLoadUser error: %s", err)
+			return err
+		}
+		if loggedInOK {
+			e.G().Log.Debug("loginProvisionedDevice after loginLoadUser success")
+			return nil
+		}
+
+		// this shouldn't happen:
+		e.G().Log.Debug("loginProvisionedDevice after loginLoadUser (and user had current deivce in current install), failed to login [unexpected]")
 		return libkb.DeviceAlreadyProvisionedError{}
 	}
+
+	e.G().Log.Debug("attempting device provisioning")
 
 	darg := &loginProvisionArg{
 		DeviceType: e.deviceType,
@@ -189,4 +198,26 @@ func (e *Login) checkLoggedIn(ctx *Context) (bool, error) {
 	e.G().Log.Debug("Login: logged in already as %q (%q requested), returning LoggedInError", username, e.usernameOrEmail)
 	return true, libkb.LoggedInError{}
 
+}
+
+func (e *Login) loginProvisionedDevice(ctx *Context, username string) (bool, error) {
+	eng := NewLoginProvisionedDevice(e.G(), username)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		// login successful
+		e.G().Log.Debug("LoginProvisionedDevice.Run() was successful")
+		// Note:  LoginProvisionedDevice Run() will send login notifications, no need to
+		// send here.
+		return true, nil
+	}
+
+	// if this device has been provisioned already and there was an error, then
+	// return that error.  Otherwise, ignore it and keep going.
+	if !e.notProvisionedErr(err) {
+		return false, err
+	}
+
+	e.G().Log.Debug("loginProvisionedDevice error: %s (continuing with device provisioning...)", err)
+
+	return false, nil
 }
