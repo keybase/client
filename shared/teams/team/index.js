@@ -4,8 +4,8 @@ import * as Constants from '../../constants/teams'
 import {Avatar, Box, Text, List, Tabs, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
-import TeamMemberRow from './memberRow/container'
-import TeamRequestRow from './requestRow/container'
+import TeamMemberRow from './member-row/container'
+import TeamRequestRow from './request-row/container'
 
 export type MemberRowProps = {
   ...Constants.MemberInfo,
@@ -117,7 +117,13 @@ const TeamTabs = (props: TeamTabsProps) => {
 
   const onSelect = (tab: any) => {
     const key = tab && tab.key
-    key ? key !== 'loadingIndicator' && setSelectedTab(key) : setSelectedTab('members')
+    if (key) {
+      if (key !== 'loadingIndicator') {
+        setSelectedTab(key)
+      } else {
+        setSelectedTab('members')
+      }
+    }
   }
 
   const selected = tabs.find(tab => tab.key === selectedTab)
