@@ -366,7 +366,8 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 
 		// Member status check
 		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW:
+		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET:
 			// only let these states through
 		default:
 			ok = false
