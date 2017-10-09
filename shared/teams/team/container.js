@@ -9,21 +9,28 @@ import * as I from 'immutable'
 import Team, {CustomComponent} from '.'
 import {openInKBFS} from '../../actions/kbfs'
 import {navigateAppend} from '../../actions/route-tree'
+import {showUserProfile} from '../../actions/profile'
+import {getProfile} from '../../actions/tracker'
+import {isMobile} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   loading: boolean,
+  _requests: I.Set<Constants.RequestInfo>,
   name: Constants.Teamname,
   you: ?string,
+  selectedTab: string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
+const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
-  name: routeProps.get('teamname'),
+  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
   loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
+  name: routeProps.get('teamname'),
   you: state.config.username,
+  selectedTab: routeState.get('selectedTab') || 'members',
 })
 
 type DispatchProps = {
@@ -31,16 +38,21 @@ type DispatchProps = {
   _onOpenFolder: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
+  setSelectedTab: (tab: string) => void,
   onBack: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState}): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onManageChat: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Constants.Teamname) => dispatch(openInKBFS(`/keybase/team/${teamname}`)),
+  onUsernameClick: (username: string) => {
+    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+  },
+  setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),
 })
 
@@ -63,6 +75,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     customComponent,
     headerStyle: {borderBottomWidth: 0},
     members: stateProps._memberInfo.toJS().sort((a, b) => a.username.localeCompare(b.username)),
+    requests: stateProps._requests.toJS(),
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
