@@ -4191,6 +4191,18 @@ func (fbo *folderBranchOps) syncAllUnlocked(
 	ctx context.Context, lState *lockState) error {
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
+
+	select {
+	case <-ctx.Done():
+		// We've already been canceled, possibly because we're a CR
+		// and a write just called cr.ForceCancel.  Don't allow the
+		// SyncAll to complete, because if no other writes happen
+		// we'll get stuck forever (see KBFS-2505).  Instead, wait for
+		// the next `SyncAll` to trigger.
+		return ctx.Err()
+	default:
+	}
+
 	return fbo.syncAllLocked(ctx, lState, NoExcl)
 }
 
