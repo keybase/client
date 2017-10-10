@@ -148,6 +148,10 @@ export const RoleConfirm = ({
   const article = selectedRole === 'owner' || selectedRole === 'admin' ? 'an' : 'a'
   const prompt = `Make ${username} ${article} ${selectedRole} of ${teamname}?`
 
+  // Setup icon sizing
+  const avatarSize = isMobile ? 64 : 48
+  const iconSize = isMobile ? 28 : 20
+
   return (
     <Box
       style={{
@@ -168,12 +172,12 @@ export const RoleConfirm = ({
         <Avatar
           style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
           username={username}
-          size={isMobile ? 64 : 48}
+          size={avatarSize}
         />
         <Icon
           type={roleIconMap[selectedRole] || 'iconfont-close'}
           style={{
-            fontSize: isMobile ? 28 : 20,
+            fontSize: iconSize,
             margin: globalMargins.tiny,
             alignSelf: 'center',
           }}
@@ -182,7 +186,7 @@ export const RoleConfirm = ({
           style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
           isTeam={true}
           teamname={teamname}
-          size={isMobile ? 64 : 48}
+          size={avatarSize}
         />
       </Box>
       <Box
