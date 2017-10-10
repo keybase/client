@@ -245,7 +245,9 @@ func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
 
 // Test that you can rotate the key on an implicit team.
 func TestImplicitTeamRotate(t *testing.T) {
-	for _, public := range []bool{false, true} {
+	// CORE-6355 re-enable
+	// for _, public := range []bool{false, true} {
+	for _, public := range []bool{false} {
 		t.Logf("public:%v", public)
 		fus, tcs, cleanup := setupNTests(t, 3)
 		defer cleanup()
