@@ -87,6 +87,16 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		return err
 	}
 
+	err = precheckLinkToPost(ctx, g, *renameSubteamSig, parent.chain(), me.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck rename subteam): %v", err)
+	}
+
+	err = precheckLinkToPost(ctx, g, *renameUpPointerSig, subteam.chain(), me.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck rename up): %v", err)
+	}
+
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{renameSubteamSig, renameUpPointerSig}
 

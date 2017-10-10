@@ -2,6 +2,7 @@ package teams
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -233,6 +234,11 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		},
 	}
 
+	err = precheckLinkToPost(ctx, g, sigMultiItem, nil, me.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck): %v", err)
+	}
+
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam post sigs")
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
@@ -347,6 +353,16 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin, allParentAdmins)
 	if err != nil {
 		return nil, err
+	}
+
+	err = precheckLinkToPost(ctx, g, *newSubteamSig, parentTeam.chain(), me.ToUserVersion())
+	if err != nil {
+		return nil, fmt.Errorf("cannot post link (precheck new subteam): %v", err)
+	}
+
+	err = precheckLinkToPost(ctx, g, *subteamHeadSig, nil, me.ToUserVersion())
+	if err != nil {
+		return nil, fmt.Errorf("cannot post link (precheck subteam head): %v", err)
 	}
 
 	payload := make(libkb.JSONPayload)

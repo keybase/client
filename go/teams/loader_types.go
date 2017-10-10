@@ -45,7 +45,7 @@ type chainLinkUnpacked struct {
 func unpackChainLink(link *SCChainLink) (*chainLinkUnpacked, error) {
 	outerLink, err := libkb.DecodeOuterLinkV2(link.Sig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unpack outer: %v", err)
 	}
 	err = outerLink.AssertSomeFields(link.Version, link.Seqno)
 	if err != nil {

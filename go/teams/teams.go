@@ -383,7 +383,7 @@ func (t *Team) isAdminOrOwner(m keybase1.UserVersion) (res bool, err error) {
 	if err != nil {
 		return false, err
 	}
-	if role == keybase1.TeamRole_OWNER || role == keybase1.TeamRole_ADMIN {
+	if role.IsAdminOrAbove() {
 		res = true
 	}
 	return res, nil
@@ -901,6 +901,11 @@ func (t *Team) postChangeItem(ctx context.Context, section SCTeamSection, linkTy
 		return err
 	}
 
+	err = t.precheckLinkToPost(ctx, sigMultiItem)
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck): %v", err)
+	}
+
 	// make the payload
 	payload := t.sigPayload(sigMultiItem, sigPayloadArgs)
 
@@ -1280,4 +1285,12 @@ func (t *Team) parseSocial(username string) (typ string, name string, err error)
 	typ, name = assertion.ToKeyValuePair()
 
 	return typ, name, nil
+}
+
+func (t *Team) precheckLinkToPost(ctx context.Context, sigMultiItem libkb.SigMultiItem) (err error) {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return err
+	}
+	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), me.ToUserVersion())
 }
