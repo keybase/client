@@ -17,7 +17,7 @@ func (a *PGPKeyImportEngineArg) Export() (ret keybase1.PGPKeyGenArg) {
 	return
 }
 
-func ImportPGPKeyImportEngineArg(a keybase1.PGPKeyGenArg) (ret PGPKeyImportEngineArg) {
+func ImportPGPKeyImportEngineArg(g *libkb.GlobalContext, a keybase1.PGPKeyGenArg) (ret PGPKeyImportEngineArg) {
 	ga := libkb.ImportKeyGenArg(a)
 	ret = PGPKeyImportEngineArg{
 		AllowMulti:      a.AllowMulti,
@@ -25,6 +25,7 @@ func ImportPGPKeyImportEngineArg(a keybase1.PGPKeyGenArg) (ret PGPKeyImportEngin
 		ExportEncrypted: a.ExportEncrypted,
 		PushSecret:      a.PushSecret,
 		Gen:             &ga,
+		Ctx:             g,
 	}
 	return ret
 }

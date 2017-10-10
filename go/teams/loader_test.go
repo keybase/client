@@ -50,12 +50,15 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
 
+	public := false
+
 	t.Logf("create a team")
 	teamName, teamID := createTeam2(tc)
 
 	t.Logf("load the team")
 	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID: teamID,
+		ID:     teamID,
+		Public: public,
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
@@ -63,7 +66,7 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 
 	t.Logf("make the cache look old")
 	st := getStorageFromG(tc.G)
-	team = st.Get(context.TODO(), teamID)
+	team = st.Get(context.TODO(), teamID, public)
 	require.NotNil(t, team)
 	t.Logf("cache  pre-set cachedAt:%v", team.CachedAt.Time())
 	team.CachedAt = keybase1.ToTime(tc.G.Clock().Now().Add(freshnessLimit * -2))
@@ -72,11 +75,13 @@ func TestLoaderStaleNoUpdates(t *testing.T) {
 
 	t.Logf("load the team again")
 	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID: teamID,
+		ID:     teamID,
+		Public: public,
 	})
 	require.NoError(t, err)
 	require.Equal(t, teamID, team.Chain.Id)
 	require.True(t, teamName.Eq(team.Name))
+	require.Equal(t, public, team.Chain.Public)
 }
 
 // Test loading a root team by name.

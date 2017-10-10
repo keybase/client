@@ -10,7 +10,7 @@ const _passesParticipantFilter = (lcFilter: string, lcParticipants: Array<string
   // don't filter you out if its just a convo with you!
   const justYou = lcParticipants.length === 1 && lcParticipants[0] === you
   const names = justYou ? lcParticipants : lcParticipants.filter(p => p !== you)
-  return names.some(n => passesStringFilter(lcFilter, n))
+  return passesStringFilter(lcFilter, names.join(','))
 }
 
 // // Simple score for a filter. returns 1 for exact match. 0.75 for full name match

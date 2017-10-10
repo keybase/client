@@ -242,7 +242,7 @@ type ProofMetadata struct {
 	ExpireIn       int
 	IncludePGPHash bool
 	SigVersion     SigVersion
-	SeqType        int
+	SeqType        keybase1.SeqType
 	MerkleRoot     *MerkleRoot
 }
 
@@ -343,7 +343,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 	ret.SetKey("client", clientInfo(g))
 
 	if arg.SeqType != 0 {
-		ret.SetKey("seq_type", jsonw.NewInt(arg.SeqType))
+		ret.SetKey("seq_type", jsonw.NewInt(int(arg.SeqType)))
 	}
 
 	return

@@ -4,34 +4,30 @@ import * as Constants from '../../constants/teams'
 import {Avatar, Box, Button, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
+import TeamMemberRow from './member-row/container'
+import TeamRequestRow from './request-row/container'
 
-export type RowProps = {
+export type MemberRowProps = {
   ...Constants.MemberInfo,
+}
+
+type RequestRowProps = {
+  ...Constants.RequestInfo,
 }
 
 export type Props = {
   you: string,
   name: Constants.Teamname,
-  members: Array<RowProps>,
+  members: Array<MemberRowProps>,
+  requests: Array<RequestRowProps>,
   loading: boolean,
+  showMenu: boolean,
+  selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
   onAddPeople: () => void,
+  setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
-}
-
-const typeToLabel = {
-  admins: 'Admin',
-  owners: 'Owner',
-  readers: 'Reader',
-  writers: 'Writer',
-}
-
-const showCrown = {
-  admins: true,
-  owners: true,
-  readers: false,
-  writer: false,
 }
 
 const Help = isMobile
@@ -75,57 +71,122 @@ const Help = isMobile
       </Box>
     )
 
-class Team extends React.PureComponent<Props> {
-  _renderItem = (index: number, item: RowProps) => {
-    return (
-      <Box
-        key={item.username}
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flexShrink: 0,
-          height: isMobile ? 56 : 48,
-          padding: globalMargins.tiny,
-          width: '100%',
-        }}
-      >
-        <Avatar username={item.username} size={isMobile ? 48 : 32} />
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Text type={this.props.you === item.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
-            {item.username}
-          </Text>
-          <Box style={globalStyles.flexBoxRow}>
-            {!!showCrown[item.type] &&
-              <Icon
-                type="iconfont-crown"
-                style={{
-                  color: globalColors.black_40,
-                  fontSize: isMobile ? 16 : 12,
-                  marginRight: globalMargins.xtiny,
-                }}
-              />}
-            <Text type="BodySmall">{typeToLabel[item.type]}</Text>
-          </Box>
-        </Box>
-      </Box>
-    )
-  }
+type TeamTabsProps = {
+  admin: boolean,
+  members: Array<MemberRowProps>,
+  requests: Array<RequestRowProps>,
+  loading?: boolean,
+  selectedTab?: string,
+  setSelectedTab: (?Constants.TabKey) => void,
+}
 
-  render() {
-    const {name, members, setShowMenu, onAddPeople, onLeaveTeam, loading, onManageChat} = this.props
-    const tabs = [
+const TeamTabs = (props: TeamTabsProps) => {
+  const {admin, members, requests, loading = false, selectedTab, setSelectedTab} = props
+  let membersLabel = 'MEMBERS'
+  membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
+  const tabs = [
+    <Text
+      key="members"
+      type="BodySmallSemibold"
+      style={{
+        color: globalColors.black_75,
+      }}
+    >
+      {membersLabel}
+    </Text>,
+  ]
+  if (admin) {
+    const requestsLabel = `REQUESTS (${requests.length})`
+    // TODO Pending invite tab
+    tabs.push(
       <Text
-        key="members"
+        key="requests"
         type="BodySmallSemibold"
         style={{
           color: globalColors.black_75,
         }}
       >
-        MEMBERS ({members.length})
-      </Text>,
-    ]
-    // TODO admin lets us have multiple tabs
-    const selectedTab = tabs[0]
+        {requestsLabel}
+      </Text>
+    )
+  }
+  tabs.push(
+    <Text key="loadingIndicator" style={{cursor: 'default'}} type="BodySmallSemibold">
+      {loading && <ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />}
+    </Text>
+  )
+
+  const onSelect = (tab: any) => {
+    const key = tab && tab.key
+    if (key) {
+      if (key !== 'loadingIndicator') {
+        setSelectedTab(key)
+      } else {
+        setSelectedTab('members')
+      }
+    }
+  }
+
+  const selected = tabs.find(tab => tab.key === selectedTab)
+  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} />
+}
+
+class Team extends React.PureComponent<Props> {
+  render() {
+    const {
+      name,
+      members,
+      requests,
+      showMenu,
+      setShowMenu,
+      onAddPeople,
+      onLeaveTeam,
+      selectedTab,
+      loading,
+      onManageChat,
+      you,
+    } = this.props
+
+    const me = members.find(member => member.username === you)
+    const admin = me && (me.type === 'admins' || me.type === 'owners')
+
+    // massage data for rowrenderers
+    const memberProps = members.map(member => ({username: member.username, teamname: name}))
+    const requestProps = requests.map(req => ({username: req.username, teamname: name}))
+
+    let contents
+    if (selectedTab === 'members') {
+      contents =
+        (members.length !== 0 || !loading) &&
+        <List
+          keyProperty="username"
+          items={memberProps}
+          fixedHeight={48}
+          renderItem={TeamMemberRow}
+          style={{alignSelf: 'stretch'}}
+        />
+    } else if (selectedTab === 'requests') {
+      if (requests.length === 0) {
+        contents = (
+          <Text
+            type="BodySmall"
+            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+          >
+            This team has no pending requests.
+          </Text>
+        )
+      } else {
+        contents = (
+          <List
+            keyProperty="username"
+            items={requestProps}
+            fixedHeight={48}
+            renderItem={TeamRequestRow}
+            style={{alignSelf: 'stretch'}}
+          />
+        )
+      }
+    }
 
     console.warn('onAddPeople is', onAddPeople)
     return (
@@ -137,17 +198,9 @@ class Team extends React.PureComponent<Props> {
         <Text type="BodySmall">TEAM</Text>
         <Button type="Primary" label="Add people" onClick={onAddPeople} style={{marginTop: globalMargins.small}}/>
         <Help name={name} />
-        {loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />}
-        {!loading && <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />}
-        {!loading &&
-          <List
-            keyProperty="username"
-            items={members}
-            fixedHeight={48}
-            renderItem={this._renderItem}
-            style={{alignSelf: 'stretch'}}
-          />}
-        {this.props.showMenu &&
+        <TeamTabs {...this.props} admin={admin} />
+        {contents}
+        {showMenu &&
           <PopupMenu
             items={[
               {onClick: onManageChat, title: 'Manage chat channels'},

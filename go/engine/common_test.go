@@ -241,6 +241,10 @@ func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
 	return &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 }
 
+func (fu *FakeUser) NewCountSecretUI() *libkb.TestCountSecretUI {
+	return &libkb.TestCountSecretUI{Passphrase: fu.Passphrase}
+}
+
 func AssertProvisioned(tc libkb.TestContext) error {
 	prov, err := tc.G.LoginState().LoggedInProvisionedCheck()
 	if err != nil {

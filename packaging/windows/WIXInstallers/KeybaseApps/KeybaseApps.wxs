@@ -16,7 +16,13 @@
                       Name="PendingFileRenameOperations"
                       Type="raw" />
     </Property>
-    
+    <Property Id="REG_BUNDLEFILE">
+      <RegistrySearch Id="BundlePath"
+                      Root="HKCU"
+                      Key="Software\Keybase\Keybase"
+                      Name="BUNDLEFILE"
+                      Type="raw" />
+    </Property>    
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
@@ -27,11 +33,14 @@
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
+      <ComponentGroupRef Id="installerFolderGroup" />
     </Feature>
 
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+      <Custom Action="ParseBundlePath" After="CostFinalize">NOT REMOVE AND BUNDLEFILE</Custom>
+      <Custom Action="RemoveBundle"  Before="InstallValidate"><![CDATA[Installed AND REG_BUNDLEFILE]]></Custom>
       <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
       <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
@@ -43,6 +52,7 @@
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="CopyBundle" Before="InstallFinalize"><![CDATA[BUNDLEFILE AND NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
 
 
@@ -63,6 +73,7 @@
 			<Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
           <Directory Id="PROMPTERFOLDER" Name="prompter"/>
+          <Directory Id="INSTALLERFOLDER" Name="install"/>
         </Directory>
       </Directory>
       <Directory Id="ProgramMenuFolder">
@@ -136,7 +147,7 @@
               Action="createAndRemoveOnUninstall">
           <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
           <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
-	  <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
+	        <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
         </RegistryKey>
       </Component>
     </ComponentGroup>
@@ -249,6 +260,18 @@
 
     </ComponentGroup>
   </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="installerFolderGroup" Directory="INSTALLERFOLDER">
+      <Component Id="installerFolderId" Guid="{DD3552AD-520F-4766-B717-151316F781E4}">
+        <CreateFolder />
+        <RemoveFolder Id='INSTALLERFOLDERRemove' Directory='INSTALLERFOLDER' On='uninstall' />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Type="string" Name="BUNDLEFILE" Value="[INSTALLERFOLDER][BUNDLENAME]" KeyPath="yes"/>
+        </RegistryKey>        
+      </Component>
+    </ComponentGroup>
+  </Fragment>
   <Fragment>
     <!-- This has to be run so the repairman can finish moving files before upd.exe is run by watchdog2 -->
     <CustomAction Id="RunMainAppDummyForRepair"
@@ -320,5 +343,27 @@
               ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; uninstall"
               Execute="immediate"
               Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="CopyBundle"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [SystemFolder]cmd.exe /C copy /Y &quot;[BUNDLEFILE]&quot; [INSTALLERFOLDER]"
+              Execute="commit"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RemoveBundle"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [SystemFolder]cmd.exe /C del &quot;[REG_BUNDLEFILE]&quot;"
+              Execute="immediate"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="ParseBundlePath" Script="vbscript">
+      <![CDATA[         
+        Set fso = CreateObject("Scripting.FileSystemObject") 
+        Session.Property("BUNDLENAME") = fso.GetFileName(Session.Property("BUNDLEFILE"))     
+      ]]>
+    </CustomAction>
   </Fragment>
 </Wix>

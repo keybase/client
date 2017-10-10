@@ -38,6 +38,20 @@ function leaveTeam(teamname: string): Constants.LeaveTeam {
   return {payload: {teamname}, type: 'teams:leaveTeam'}
 }
 
+function addToTeam(
+  name: string,
+  email: string,
+  username: string,
+  role: Constants.TeamRoleType,
+  sendChatNotification: boolean
+): Constants.AddToTeam {
+  return {payload: {name, email, username, role, sendChatNotification}, type: 'teams:addToTeam'}
+}
+
+function ignoreRequest(name: string, username: string): Constants.IgnoreRequest {
+  return {payload: {name, username}, type: 'teams:ignoreRequest'}
+}
+
 function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreationError {
   return {payload: {teamCreationError}, type: 'teams:setTeamCreationError'}
 }
@@ -55,12 +69,14 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
 }
 
 export {
+  addToTeam,
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,
   getChannels,
   getDetails,
   getTeams,
+  ignoreRequest,
   joinTeam,
   leaveTeam,
   setTeamCreationError,

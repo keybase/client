@@ -344,8 +344,15 @@ func (t *Team) Rotate(ctx context.Context) error {
 		return err
 	}
 
+	section := SCTeamSection{
+		ID:       SCTeamID(t.ID),
+		Admin:    admin,
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
+	}
+
 	// create the team section of the signature
-	section, err := memSet.Section(t.chain().GetID(), admin)
+	section.Members, err = memSet.Section()
 	if err != nil {
 		return err
 	}
@@ -499,10 +506,12 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		}
 	}
 
-	section, err := newMemberSet().Section(t.chain().GetID(), nil)
-	if err != nil {
-		return err
+	section := SCTeamSection{
+		ID:       SCTeamID(t.ID),
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
 	}
+
 	sigPayloadArgs := sigPayloadArgs{
 		prePayload: libkb.JSONPayload{"permanent": permanent},
 	}
@@ -538,7 +547,9 @@ func (t *Team) deleteRoot(ctx context.Context, ui keybase1.TeamsUiInterface) err
 	}
 
 	teamSection := SCTeamSection{
-		ID: SCTeamID(t.ID),
+		ID:       SCTeamID(t.ID),
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
@@ -563,6 +574,10 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 	// subteam delete consists of two links:
 	// 1. delete_subteam in parent chain
 	// 2. delete_up_pointer in subteam chain
+
+	if t.IsImplicit() {
+		return fmt.Errorf("unsupported delete of implicit subteam")
+	}
 
 	parentID := t.chain().GetParentID()
 	parentTeam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
@@ -599,6 +614,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 			Name: subteamName, // weird this is required
 		},
 		Admin:   admin,
+		Public:  t.IsPublic(),
 		Entropy: entropy,
 	}
 
@@ -621,9 +637,10 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		Parent: &SCTeamParent{
 			ID:      SCTeamID(parentTeam.ID),
 			Seqno:   parentTeam.chain().GetLatestSeqno() + 1, // the seqno of the *new* parent link
-			SeqType: keybase1.SeqType_SEMIPRIVATE,
+			SeqType: seqTypeForTeamPublicness(parentTeam.IsPublic()),
 		},
-		Admin: admin,
+		Public: t.IsPublic(),
+		Admin:  admin,
 	}
 	sigSub, err := t.sigTeamItem(ctx, subSection, libkb.LinkTypeDeleteUpPointer, mr)
 	if err != nil {
@@ -758,10 +775,12 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	}
 
 	teamSection := SCTeamSection{
-		ID:      SCTeamID(t.ID),
-		Admin:   admin,
-		Invites: &invites,
-		Entropy: entropy,
+		ID:       SCTeamID(t.ID),
+		Admin:    admin,
+		Invites:  &invites,
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
+		Entropy:  entropy,
 	}
 
 	mr, err := t.G().MerkleClient.FetchRootFromServer(ctx, libkb.TeamMerkleFreshnessForAdmin)
@@ -850,8 +869,14 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		return SCTeamSection{}, nil, nil, nil, err
 	}
 
-	// create the team section of the signature
-	section, err := memSet.Section(t.chain().GetID(), admin)
+	section := SCTeamSection{
+		ID:       SCTeamID(t.ID),
+		Admin:    admin,
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
+	}
+
+	section.Members, err = memSet.Section()
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, err
 	}
@@ -864,7 +889,8 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 	section.PerTeamKey = perTeamKeySection
 
 	section.CompletedInvites = req.CompletedInvites
-	section.Implicit = t.chain().IsImplicit()
+	section.Implicit = t.IsImplicit()
+	section.Public = t.IsPublic()
 	return section, secretBoxes, implicitAdminBoxes, memSet, nil
 }
 
@@ -924,6 +950,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 	if err != nil {
 		return libkb.SigMultiItem{}, err
 	}
+
 	sig, err := ChangeSig(me, latestLinkID, t.NextSeqno(), deviceSigningKey, section, linkType, merkleRoot)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -953,6 +980,8 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		}
 	}
 
+	seqType := seqTypeForTeamPublicness(t.IsPublic())
+
 	sigJSON, err := sig.Marshal()
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -964,7 +993,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		sigJSON,
 		latestLinkID,
 		false, /* hasRevokes */
-		keybase1.SeqType_SEMIPRIVATE,
+		seqType,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, err
@@ -974,6 +1003,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 		Sig:        v2Sig,
 		SigningKID: deviceSigningKey.GetKID(),
 		Type:       string(linkType),
+		SeqType:    seqType,
 		SigInner:   string(sigJSON),
 		TeamID:     t.chain().GetID(),
 	}
@@ -1232,6 +1262,8 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		ID:       SCTeamID(t.ID),
 		Admin:    admin,
 		Settings: &scSettings,
+		Implicit: t.IsImplicit(),
+		Public:   t.IsPublic(),
 	}
 
 	return t.postChangeItem(ctx, section, libkb.LinkTypeSettings, nil, sigPayloadArgs{})
