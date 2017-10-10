@@ -1,10 +1,6 @@
 {
   // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
   // Note: We aren't trying to be 100% perfect here, just getting something that works pretty good and pretty quickly
-  function goodLink (link) {
-    return !link.match(dotDotExp) // disallow 'a...b', but allow /../
-  }
-
   function flatten (input) {
     const result = []
     let strs = []
@@ -51,7 +47,7 @@ TextBlock
  = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 InlineStart
- = InlineCode / Italic / Bold / Mention / Strike / Link / InlineCont
+ = InlineCode / Italic / Bold / Link / Mention / Strike / InlineCont
 
 InlineCont
  = !CodeBlock (Text / Emoji / EscapedChar / NativeEmoji / SpecialChar)
@@ -149,7 +145,7 @@ Link
      }
      const match = matches[0]
      url._match = match  // save the match via expando property (used below)
-     return goodLink(match)
+     return match
    }
  {
    const match = url._match
