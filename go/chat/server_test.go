@@ -2338,7 +2338,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, ncres.Conv.GetConvID())
-			require.Equal(t, chat1.ConversationExistence_ACTIVE, act.Status)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
 			require.Equal(t, users[1].Username, act.Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
