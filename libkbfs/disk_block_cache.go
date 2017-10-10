@@ -24,6 +24,7 @@ import (
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"golang.org/x/net/context"
@@ -32,6 +33,7 @@ import (
 const (
 	// 10 GB maximum storage by default
 	defaultDiskBlockCacheMaxBytes uint64 = 10 * (1 << 30)
+	defaultBlockCacheTableSize    int    = 50 * opt.MiB
 	evictionConsiderationFactor   int    = 3
 	defaultNumBlocksToEvict       int    = 10
 	maxEvictionsPerPut            int    = 4
@@ -139,7 +141,9 @@ func newDiskBlockCacheStandardFromStorage(
 			closer()
 		}
 	}()
-	blockDb, err := openLevelDB(blockStorage)
+	blockDbOptions := *leveldbOptions
+	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
+	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
 	if err != nil {
 		return nil, err
 	}
