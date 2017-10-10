@@ -1,5 +1,5 @@
 // @flow
-import {makeRouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import ConvListOrSearch from './conversation-list-or-search.native'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
@@ -17,17 +17,17 @@ const conversationRoute = makeRouteDefNode({
   children: {
     attachment: {
       component: AttachmentPopup,
-      tags: {hideStatusBar: true, fullscreen: true},
+      tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
       children: {
         messageAction: {
           component: MessagePopup,
-          tags: {layerOnTop: true},
+          tags: makeLeafTags({layerOnTop: true}),
         },
       },
     },
     attachmentInput: {
       component: AttachmentInputPopup,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
     infoPanel: {
@@ -35,12 +35,12 @@ const conversationRoute = makeRouteDefNode({
       children: {
         showBlockConversationDialog: {
           component: BlockConversationWarning,
-          tags: {hideStatusBar: true},
+          tags: makeLeafTags({hideStatusBar: true}),
           children: {},
         },
         showNewTeamDialog: {
           component: NewTeamDialog,
-          tags: {layerOnTop: true},
+          tags: makeLeafTags({layerOnTop: true}),
           children: {},
         },
       },
@@ -50,11 +50,11 @@ const conversationRoute = makeRouteDefNode({
     },
     messageAction: {
       component: MessagePopup,
-      tags: {keepKeyboardOnLeave: true, layerOnTop: true},
+      tags: makeLeafTags({keepKeyboardOnLeave: true, layerOnTop: true}),
     },
     showNewTeamDialog: {
       component: NewTeamDialog,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
   },
@@ -63,12 +63,12 @@ const conversationRoute = makeRouteDefNode({
 const manageChannelsRoute = makeRouteDefNode({
   component: ManageChannels,
   children: {},
-  tags: {hideStatusBar: true},
+  tags: makeLeafTags({hideStatusBar: true}),
 })
 
 const createChannelRoute = makeRouteDefNode({
   component: CreateChannel,
-  tags: {hideStatusBar: true},
+  tags: makeLeafTags({hideStatusBar: true}),
   children: {},
 })
 
@@ -83,7 +83,7 @@ const routeTree = makeRouteDefNode({
 
     return conversationRoute
   },
-  tags: {persistChildren: true},
+  tags: makeLeafTags({persistChildren: true}),
 })
 
 export default routeTree

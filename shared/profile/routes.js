@@ -1,5 +1,5 @@
 // @flow
-import {makeRouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import pgpRoutes from './pgp/routes'
 import Profile from './container'
 import EditProfile from './edit-profile'
@@ -32,9 +32,8 @@ const proveEnterUsername = makeRouteDefNode({
 
 export const profileRoute = makeRouteDefNode({
   component: Profile,
-  title: 'Profile',
   initialState: {currentFriendshipsTab: 'Followers'},
-  tags: {underStatusBar: true},
+  tags: makeLeafTags({underStatusBar: true, title: 'Profile'}),
   children: {
     profile: () => profileRoute,
     editProfile: {
@@ -60,7 +59,7 @@ export const profileRoute = makeRouteDefNode({
     search: {
       children: {},
       component: SearchPopup,
-      tags: {layerOnTop: !isMobile},
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },
 })

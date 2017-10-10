@@ -5,7 +5,7 @@ import {getPath} from '../route-tree'
 import {put, select} from 'redux-saga/effects'
 import {safeTakeEvery} from '../util/saga'
 
-import type {RouteDefNode, Path, PropsPath} from '../route-tree'
+import type {RouteDefParams, Path, PropsPath} from '../route-tree'
 import type {TypedAction} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 import type {
@@ -39,7 +39,7 @@ export function pathSelector(state: TypedState, parentPath?: Path): I.List<strin
 
 // Set (or update) the tree of route definitions. Dispatched at initialization
 // time and when route definitions update through HMR.
-export function setRouteDef(routeDef: RouteDefNode): SetRouteDef {
+export function setRouteDef(routeDef: RouteDefParams): SetRouteDef {
   return {
     type: Constants.setRouteDef,
     payload: {routeDef},

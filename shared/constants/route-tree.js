@@ -2,10 +2,10 @@
 import * as I from 'immutable'
 
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
-import type {RouteDefNode, Path, PropsPath, RouteStateNode} from '../route-tree'
+import type {RouteDefNode, RouteDefParams, Path, PropsPath, RouteStateNode} from '../route-tree'
 
 export const setRouteDef = 'routeTree:setRouteDef'
-export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef: RouteDefNode}>
+export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef: RouteDefParams}>
 
 export const switchTo = 'routeTree:switchTo'
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>

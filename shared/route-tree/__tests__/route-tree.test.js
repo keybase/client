@@ -13,6 +13,7 @@ import {
   routeClear,
   checkRouteState,
   getPath,
+  makeLeafTags,
 } from '../'
 
 import type {PropsPath} from '../'
@@ -111,7 +112,7 @@ const demoRouteDef = makeRouteDefNode({
       children: {
         child: emptyRouteDef,
       },
-      tags: {persistChildren: true},
+      tags: makeLeafTags({persistChildren: true}),
     },
   },
 })

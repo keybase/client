@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {makeRouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import TestPopup from '../dev/test-popup.native'
 import Settings from './'
 import InvitationsContainer from './invites/container'
@@ -74,7 +74,7 @@ const routeTree = makeRouteDefNode({
         },
         testPopup: {
           component: TestPopup,
-          tags: {layerOnTop: true},
+          tags: makeLeafTags({layerOnTop: true}),
         },
       },
     },

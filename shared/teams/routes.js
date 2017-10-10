@@ -1,6 +1,6 @@
 // @flow
 import TeamsContainer from './container'
-import {makeRouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
@@ -9,48 +9,46 @@ import ReallyLeaveTeam from './really-leave-team/container'
 import Team from './team/container'
 import {isMobile} from '../constants/platform'
 
-const makeManageChannels = () => ({
+const makeManageChannels = {
   manageChannels: {
     children: {},
     component: ManageChannels,
-    tags: {hideStatusBar: true, layerOnTop: !isMobile},
+    tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
   },
   createChannel: {
     children: {},
     component: CreateChannel,
-    tags: {hideStatusBar: true, layerOnTop: !isMobile},
+    tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
   },
-})
+}
 
 const routeTree = makeRouteDefNode({
   children: {
-    ...makeManageChannels(),
+    ...makeManageChannels,
     showNewTeamDialog: {
       children: {},
       component: NewTeamDialog,
-      tags: {layerOnTop: !isMobile},
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     showJoinTeamDialog: {
       children: {},
       component: JoinTeamDialog,
-      tags: {
-        layerOnTop: !isMobile,
-      },
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     team: {
       children: {
-        ...makeManageChannels(),
+        ...makeManageChannels,
         reallyLeaveTeam: {
           children: {},
           component: ReallyLeaveTeam,
-          tags: {layerOnTop: !isMobile},
+          tags: makeLeafTags({layerOnTop: !isMobile}),
         },
       },
       component: Team,
     },
   },
   component: TeamsContainer,
-  tags: {title: 'Teams'},
+  tags: makeLeafTags({title: 'Teams'}),
 })
 
 export default routeTree

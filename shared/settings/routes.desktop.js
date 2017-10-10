@@ -1,5 +1,5 @@
 // @flow
-import {makeRouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {
   landingTab,
   updatePaymentTab,
@@ -60,11 +60,11 @@ const routeTree = makeRouteDefNode({
       children: {
         deleteConfirm: {
           component: DeleteConfirm,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
         removeDevice: {
           component: RemoveDevice,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
       },
     },
@@ -73,7 +73,7 @@ const routeTree = makeRouteDefNode({
       children: {
         dumbSheet: {
           component: DumbSheet,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
       },
     },

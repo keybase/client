@@ -1,5 +1,5 @@
 // @flow
-import {makeRouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import Conversation from './conversation/container'
 import AttachmentPopup from './conversation/attachment-popup/container'
 import AttachmentInputPopup from './conversation/attachment-input/container'
@@ -15,32 +15,32 @@ const conversationRoute = makeRouteDefNode({
   children: {
     attachment: {
       component: AttachmentPopup,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
     attachmentInput: {
       component: AttachmentInputPopup,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
     showBlockConversationDialog: {
       component: BlockConversationWarning,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
     showNewTeamDialog: {
       component: NewTeamDialog,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
     manageChannels: {
       component: ManageChannels,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
     createChannel: {
       component: CreateChannel,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
   },
@@ -49,8 +49,8 @@ const conversationRoute = makeRouteDefNode({
 const routeTree = makeRouteDefNode({
   containerComponent: Render,
   defaultSelected: nothingSelected,
-  children: () => conversationRoute,
-  tags: {persistChildren: true},
+  children: conversationRoute,
+  tags: makeLeafTags({persistChildren: true}),
   initialState: {smallTeamsExpanded: false},
 })
 

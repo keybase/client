@@ -1,9 +1,9 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
-import type {Component} from 'react'
-import type {ConnectedComponent} from 'react-redux'
+// import type {ConnectedComponent} from 'react-redux'
 
-type LeafTagsParams = {
+type _LeafTags = {
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
   modal: boolean,
   layerOnTop: boolean,
@@ -12,10 +12,12 @@ type LeafTagsParams = {
   hideStatusBar: boolean, // mobile only
   fullscreen: boolean,
   keepKeyboardOnLeave: boolean,
+  root: boolean,
+  title: ?string,
 }
 
-export type LeafTags = I.RecordOf<LeafTagsParams>
-export const makeLeafTags: I.RecordFactory<LeafTagsParams> = I.Record({
+export type LeafTags = I.RecordOf<_LeafTags>
+export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
   persistChildren: false,
   modal: false,
   layerOnTop: false,
@@ -25,50 +27,48 @@ export const makeLeafTags: I.RecordFactory<LeafTagsParams> = I.Record({
   fullscreen: false,
   keepKeyboardOnLeave: false,
   root: false, // only used by the root shim to allow special padding logic as its the root container
+  title: null,
 })
 
 // TODO type this properly. component and container component are mutually exclusive
-type RouteDefParams = {
-  component: ?(Component<any> | $Supertype<Component<any>> | Class<ConnectedComponent<any>>),
-  containerComponent: ?Component<any>,
-  defaultSelected: ?string,
-  tags: LeafTags,
-  initialState: {},
+export type RouteDefParams = {
+  component?: ?React.ComponentType<*>,
+  containerComponent?: ?React.ComponentType<*>,
+  defaultSelected?: ?string,
+  tags?: ?LeafTags,
+  initialState?: ?Object,
   // Returning any but really a RouteDefNode
-  children: {[key: string]: RouteDefParams | (() => any)} | ((name: string) => any),
-  // props: I.Map<any, any>,
-  // state: I.Map<any, any>,
+  children?: {[key: string]: RouteDefParams | (() => RouteDefParams)} | ((name: string) => RouteDefParams),
 }
 
-export type RouteDefNode = I.RecordOf<RouteDefParams> //& {
-// getChild: (name: string) => ?RouteDefNode,
-// }
+type _RouteDefNode = {
+  component: ?React.ComponentType<*>,
+  containerComponent: ?React.ComponentType<*>,
+  defaultSelected: ?string,
+  tags: LeafTags,
+  initialState: ?I.Map<any, any>,
+  children: I.Map<string, RouteDefParams | (() => RouteDefParams)> | ((name: string) => RouteDefParams),
+}
 
-const _makeRouteDefNode: I.RecordFactory<RouteDefParams> = I.Record({
+export type RouteDefNode = I.RecordOf<_RouteDefNode>
+
+const _makeRouteDefNode: I.RecordFactory<_RouteDefNode> = I.Record({
   defaultSelected: null,
   component: null,
   containerComponent: null,
   tags: makeLeafTags(),
   initialState: I.Map(),
   children: I.Map(),
-  props: I.Map(),
-  state: I.Map(),
 })
 
 class makeRouteDefNodeClass extends _makeRouteDefNode {
-  constructor({
-    defaultSelected,
-    component,
-    containerComponent,
-    tags,
-    initialState,
-    children,
-  }: RouteDefParams) {
+  constructor({defaultSelected, component, containerComponent, tags, initialState, children}) {
+    // $FlowIssue
     super({
       defaultSelected: defaultSelected || null,
       component,
       containerComponent,
-      tags: makeLeafTags(tags),
+      tags,
       initialState: I.Map(initialState),
       props: I.Map(),
       state: I.Map(),
@@ -131,6 +131,7 @@ const _makeRouteStateNode: I.RecordFactory<
       op: (node: ?I.RecordOf<RouteStateNode>) => ?I.RecordOf<RouteStateNode>
     ) => ?I.RecordOf<RouteStateNode>,
   }
+  // $FlowIssue
 > = I.Record({
   selected: null,
   props: I.Map(),
@@ -139,8 +140,10 @@ const _makeRouteStateNode: I.RecordFactory<
 })
 
 export class makeRouteStateNode extends _makeRouteStateNode {
+  children: I.Map<string, *>
+
   // eslint-disable-next-line no-useless-constructor
-  constructor(data: RouteStateParams) {
+  constructor(data: _RouteState) {
     super(data)
   }
 
@@ -159,6 +162,7 @@ export function dataToRouteState(data: Object): RouteStateNode {
   const root: RouteStateNode = makeRouteStateNode(params)
   const parsedChildren = Object.keys(children).map(k => ({name: k, op: () => dataToRouteState(children[k])}))
   return parsedChildren.reduce(
+    // $FlowIssue
     (acc: RouteStateNode, {name, op}): RouteStateNode => acc.updateChild(name, op),
     root
   )

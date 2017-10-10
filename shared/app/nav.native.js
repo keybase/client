@@ -22,6 +22,7 @@ import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
 import {tabBarHeight} from './tab-bar/index.render.native'
 import {type Props, type OwnProps} from './nav'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
+import {makeLeafTags} from '../route-tree'
 
 type CardStackShimProps = {
   mode?: 'modal',
@@ -320,7 +321,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
           routeStack={mainScreens}
         />
       ),
-      tags: {root: true}, // special case to avoid padding else we'll double pad
+      tags: makeLeafTags({root: true}), // special case to avoid padding else we'll double pad
     })
 
     const shim = (
