@@ -146,6 +146,7 @@ function renderRouteStack({
     stack = I.Stack()
   } else {
     // Otherwise, if this is a parent route, recurse to obtain the child stack.
+    // $FlowIssue
     let childDef = routeDef.getChild(selected)
     const childState = routeState.children.get(selected)
     const childPath = path.push(selected)

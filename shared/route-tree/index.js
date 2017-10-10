@@ -99,6 +99,7 @@ class makeRouteDefNodeClass extends _makeRouteDefNode {
   }
 }
 
+// $FlowIssue
 export const makeRouteDefNode: I.RecordFactory<RouteDefParams> = makeRouteDefNodeClass
 // export const makeRouteDefNode: I.RecordFactory<RouteDefParams[> & {props: any, state: any}<]> //& {
 // getChild: (name: string) => ?RouteDefNode,
@@ -194,6 +195,7 @@ function _routeSet(
   let newRouteState =
     routeState ||
     // Set the initial state off of the route def
+    // $FlowIssue
     makeRouteStateNode({selected: routeDef.defaultSelected, state: I.Map(routeDef.initialState)})
   if (pathHead && pathHead.type === 'navigate') {
     newRouteState = newRouteState.set('selected', pathHead.next || routeDef.defaultSelected)
@@ -204,8 +206,10 @@ function _routeSet(
     }
   }
 
+  // $FlowIssue
   const childName = pathHead && pathHead.type === 'traverse' ? pathHead.next : newRouteState.selected
   if (childName !== null) {
+    // $FlowIssue
     const childDef = routeDef.getChild(childName)
     if (!childDef) {
       throw new InvalidRouteError(`Invalid route child: ${childName}`)
@@ -214,6 +218,7 @@ function _routeSet(
     newRouteState = newRouteState.updateChild(childName, childState => {
       let newChild = _routeSet(childDef, childState, pathSpec.skip(1))
       if (pathHead && pathHead.hasOwnProperty('props')) {
+        // $FlowIssue
         newChild = newChild.set('props', I.Map(pathHead.props))
       }
       return newChild
@@ -240,6 +245,7 @@ export function routeSetProps(
   const parentPathSeq = I.Seq(parentPath || []).map(item => {
     return {type: 'traverse', next: item}
   })
+  // $FlowIssue
   return _routeSet(routeDef, routeState, parentPathSeq.concat(pathSeq))
 }
 
@@ -261,6 +267,7 @@ export function routeSetState(
   const pathSeq = I.Seq(path)
   const name = pathSeq.first()
   if (!name) {
+    // $FlowIssue
     return routeState.update('state', state => state.merge(partialState))
   }
   // $FlowIssue
@@ -296,6 +303,7 @@ export function checkRouteState(
   while (curDef && curState && curState.selected) {
     const selected = curState.selected
     path.push(selected)
+    // $FlowIssue
     curDef = curDef.getChild(selected)
     curState = curState.getChild(selected)
   }

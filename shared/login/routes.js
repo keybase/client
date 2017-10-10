@@ -12,6 +12,7 @@ const routeTree = makeRouteDefNode({
       component: Feedback,
       tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
     },
+    // $FlowIssue
     login: loginRoutes,
     signup: signupRoutes,
   },
