@@ -732,7 +732,7 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 		return keybase1.TeamID(""), err
 	}
 
-	return team.Name.RootAncestorName().ToTeamID(), nil
+	return team.Name.RootAncestorName().ToTeamID(id.IsPublic()), nil
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {

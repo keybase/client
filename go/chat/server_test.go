@@ -1789,11 +1789,6 @@ func TestChatSrvFindConversations(t *testing.T) {
 			return
 		}
 
-		// CORE-6335 remove this
-		if mt == chat1.ConversationMembersType_IMPTEAM {
-			return
-		}
-
 		ctc := makeChatTestContext(t, "FindConversations", 3)
 		defer ctc.cleanup()
 		users := ctc.users()

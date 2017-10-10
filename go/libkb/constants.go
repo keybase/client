@@ -631,9 +631,7 @@ func CurrentSaltpackVersion() saltpack.Version {
 }
 
 const (
-	RootTeamIDTag byte = 0x24
-	SubteamIDTag       = 0x25
-	InviteIDTag        = 0x27
+	InviteIDTag = 0x27
 )
 
 const CurrentGitMetadataEncryptionVersion = 1
