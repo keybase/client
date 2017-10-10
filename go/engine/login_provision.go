@@ -354,11 +354,13 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 		uid, err := e.uidByKID(kp.sigKey.GetKID())
 		if err != nil {
 			e.G().Log.Debug("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
-			if _, ok := err.(libkb.NotFoundError); ok {
+			if nf, ok := err.(libkb.NotFoundError); ok {
 				// make Msg a little friendlier (instead of KID Not Found)
-				err.Msg = ("paper key not found, most likely due to a typo in one of the words in the phrase")
+				nf.Msg = ("paper key not found, most likely due to a typo in one of the words in the phrase")
+				lastErr = nf
+			} else {
+				lastErr = err
 			}
-			lastErr = err
 			continue
 		}
 
