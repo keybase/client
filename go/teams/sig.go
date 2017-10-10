@@ -14,6 +14,8 @@ import (
 	"fmt"
 	"strings"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -257,4 +259,52 @@ func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
 		return keybase1.SeqType_PUBLIC
 	}
 	return keybase1.SeqType_SEMIPRIVATE
+}
+
+func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
+	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+
+	defer g.CTraceTimed(ctx, "precheckLinkToPost", func() error { return err })()
+
+	outerLink, err := libkb.DecodeOuterLinkV2(sigMultiItem.Sig)
+	if err != nil {
+		return fmt.Errorf("unpack outer: %v", err)
+	}
+
+	link1 := SCChainLink{
+		Seqno:   outerLink.Seqno,
+		Sig:     sigMultiItem.Sig,
+		Payload: sigMultiItem.SigInner,
+		UID:     me.Uid,
+		Version: 2,
+	}
+	link2, err := unpackChainLink(&link1)
+	if err != nil {
+		return fmt.Errorf("unpack link: %v", err)
+	}
+
+	if link2.isStubbed() {
+		return fmt.Errorf("link missing inner")
+	}
+	isAdmin := true
+	if state != nil {
+		role, err := state.GetUserRole(me)
+		if err != nil {
+			role = keybase1.TeamRole_NONE
+		}
+		isAdmin = role.IsAdminOrAbove()
+	}
+
+	var player *TeamSigChainPlayer
+	if state == nil {
+		player = NewTeamSigChainPlayer(g, me)
+	} else {
+		player = NewTeamSigChainPlayerWithState(g, me, *state)
+	}
+
+	signer := signerX{
+		signer:        me,
+		implicitAdmin: !isAdmin,
+	}
+	return player.AppendChainLink(ctx, link2, &signer)
 }

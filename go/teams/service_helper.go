@@ -37,16 +37,22 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
+	tracer := g.CTimeTracer(ctx, "TeamDetails")
+	defer tracer.Finish()
+
+	tracer.Stage("load team")
 	t, err := GetMaybeAdminByStringName(ctx, g, name)
 	if err != nil {
 		return res, err
 	}
 	res.KeyGeneration = t.Generation()
+	tracer.Stage("members")
 	res.Members, err = members(ctx, g, t, forceRepoll)
 	if err != nil {
 		return res, err
 	}
 
+	tracer.Stage("annotate")
 	activeInvites := t.chain().inner.ActiveInvites
 	annotatedInvites, err := AnnotateInvites(ctx, g, activeInvites, t.Name().String())
 	if err != nil {
@@ -54,6 +60,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	}
 	res.AnnotatedActiveInvites = annotatedInvites
 
+	tracer.Stage("invites")
 	// put any keybase invites in the members list
 	for invID, invite := range annotatedInvites {
 		cat, err := invite.Type.C()

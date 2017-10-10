@@ -465,7 +465,7 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 	for {
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
-		connErr := c.waitForConnection(ctx)
+		connErr := c.waitForConnection(ctx, false)
 		if connErr != nil {
 			return connErr
 		}
@@ -503,12 +503,13 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 }
 
 // Blocks until a connnection is ready for use or the context is canceled.
-func (c *Connection) waitForConnection(ctx context.Context) error {
+func (c *Connection) waitForConnection(
+	ctx context.Context, forceReconnect bool) error {
 	reconnectChan, disconnectStatus, reconnectErrPtr, wait :=
 		func() (chan struct{}, DisconnectStatus, *error, bool) {
 			c.mutex.Lock()
 			defer c.mutex.Unlock()
-			if c.isConnectedLocked() {
+			if !forceReconnect && c.isConnectedLocked() {
 				// already connected
 				return nil, UsingExistingConnection, nil, false
 			}
@@ -531,6 +532,10 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 		// shut down the connection, this will be non-nil.
 		return *reconnectErrPtr
 	}
+}
+
+func (c *Connection) ForceReconnect(ctx context.Context) error {
+	return c.waitForConnection(ctx, true)
 }
 
 // Returns true if the error indicates we should retry the command.
