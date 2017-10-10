@@ -148,9 +148,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch((props: Props) => !props.selectedConversationIDKey && !props.inSearch, renderNothing),
   branch(
-    (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
+    (props: Props) =>
+      (props.selectedConversationIDKey === Constants.nothingSelected || !props.selectedConversationIDKey) &&
+      !props.inSearch,
     renderComponent(NoConversation)
   ),
   // Ordering of branch() is important here -- rekey should come before error.
