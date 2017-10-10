@@ -507,7 +507,7 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		linkMap = upak.SeqnoLinkIDs
 		ret, key = upak.FindKID(kid)
 		if key != nil {
-			u.G().VDL.CLogf(ctx, VLog0, "- found kid in UPAK: %v", *ret)
+			u.G().VDL.CLogf(ctx, VLog0, "- found kid in UPAK: %v", ret.Uid)
 			return ret, key, linkMap, nil
 		}
 		ret = nil
