@@ -471,8 +471,7 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 		return err
 	}
 	// Assume this is for the private team
-	public := false
-	err = g.GetTeamLoader().Delete(ctx, t.ID, public)
+	err = g.GetTeamLoader().Delete(ctx, t.ID)
 	if err != nil {
 		g.Log.CDebugf(ctx, "team.Leave: error deleting team cache: %v", err)
 	}

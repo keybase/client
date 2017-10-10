@@ -65,27 +65,14 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	return l.load1(ctx, me, lArg)
 }
 
-func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) (err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v,public:%v)", teamID, public), func() error { return err })()
-
-	// Single-flight lock by team ID.
-	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
-	defer lock.Release(ctx)
-
-	return l.storage.Delete(ctx, teamID, public)
-}
-
-func (l *TeamLoader) DeleteBoth(ctx context.Context, teamID keybase1.TeamID) (err error) {
+func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err error) {
 	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v)", teamID), func() error { return err })()
 
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 
-	return libkb.PickFirstError(
-		l.storage.Delete(ctx, teamID, true),
-		l.storage.Delete(ctx, teamID, false),
-	)
+	return l.storage.Delete(ctx, teamID, teamID.IsPublic())
 }
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.

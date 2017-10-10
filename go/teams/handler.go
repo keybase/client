@@ -81,8 +81,7 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleDeleteNotification: (%+v)", row)
-		// We don't know whether this is about a public or private team, so delete and notify both.
-		err := g.GetTeamLoader().DeleteBoth(ctx, row.Id)
+		err := g.GetTeamLoader().Delete(ctx, row.Id)
 		if err != nil {
 			g.Log.CDebugf(ctx, "team.HandleDeleteNotification: error deleting team cache: %v", err)
 		}
@@ -96,8 +95,7 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleExitNotification: (%+v)", row)
-		// We don't know whether this is about a public or private team, so delete and notify both.
-		err := g.GetTeamLoader().DeleteBoth(ctx, row.Id)
+		err := g.GetTeamLoader().Delete(ctx, row.Id)
 		if err != nil {
 			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
 		}
