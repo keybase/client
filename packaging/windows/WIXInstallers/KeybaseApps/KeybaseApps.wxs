@@ -28,7 +28,6 @@
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="GuiComponents" />
-      <ComponentGroupRef Id="PrompterComponents" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
@@ -72,7 +71,6 @@
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
-          <Directory Id="PROMPTERFOLDER" Name="prompter"/>
           <Directory Id="INSTALLERFOLDER" Name="install"/>
         </Directory>
       </Directory>
@@ -99,6 +97,7 @@
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
         <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
+        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -140,6 +139,14 @@
         </RegistryKey>
         <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
       </Component>
+      <Component Id="prompter.exe" Guid="{238016CC-6D9B-4B88-8618-EC1203F89CBF}">
+        <CreateFolder />
+        <RemoveFolder Id="RemovePrompterExe" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="prompterexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
+      </Component>
       <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
       <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
         <RegistryKey Root="HKCU"
@@ -149,34 +156,6 @@
           <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
 	        <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
         </RegistryKey>
-      </Component>
-    </ComponentGroup>
-  </Fragment>
-  <Fragment>
-    <ComponentGroup Id="PrompterComponents" Directory="PROMPTERFOLDER">
-      <Component Id="prompter.hta" Guid="{424BA879-35A2-4853-8F3D-6D8112655FF6}">
-        <CreateFolder />
-        <RemoveFolder Id="RemovePrompterHta" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="prompterhta" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="prompter.hta" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\prompter.hta" Checksum="yes"/>
-      </Component>
-      <Component Id="keybase.ico" Guid="{747ACACB-5F0E-4979-AFA8-6C6401481C19}">
-        <CreateFolder />
-        <RemoveFolder Id="RemovePrompterKeybaseIco" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="prompterkbicon" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="keybase.ico" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\keybase.ico" Checksum="yes"/>
-      </Component>
-      <Component Id="keybase.png" Guid="{FC444587-2B9D-4E7D-A926-F0BC5A239F42}">
-        <CreateFolder />
-        <RemoveFolder Id="RemovePrompterKeybasePng" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="prompterkbpng" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="icon_128x128.png" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\icon_128x128.png" Checksum="yes"/>
       </Component>
     </ComponentGroup>
   </Fragment>
