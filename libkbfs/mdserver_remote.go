@@ -158,6 +158,24 @@ func (md *MDServerRemote) initNewConnection() {
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
 
+const reconnectTimeout = 30 * time.Second
+
+func (md *MDServerRemote) reconnect() error {
+	md.connMu.Lock()
+	defer md.connMu.Unlock()
+
+	if md.conn != nil {
+		ctx, cancel := context.WithTimeout(
+			context.Background(), reconnectTimeout)
+		defer cancel()
+		return md.conn.ForceReconnect(ctx)
+	}
+
+	md.initNewConnection()
+	return nil
+
+}
+
 // RemoteAddress returns the remote mdserver this client is talking to
 func (md *MDServerRemote) RemoteAddress() string {
 	return md.mdSrvAddr
@@ -319,7 +337,9 @@ func (md *MDServerRemote) pingOnce(ctx context.Context) {
 	if err == context.DeadlineExceeded {
 		if md.getIsAuthenticated() {
 			md.log.CDebugf(ctx, "Ping timeout -- reinitializing connection")
-			md.initNewConnection()
+			if err = md.reconnect(); err != nil {
+				md.log.CDebugf(ctx, "reconnect error: %v", err)
+			}
 		} else {
 			md.log.CDebugf(ctx, "Ping timeout but not reinitializing")
 		}
@@ -429,7 +449,9 @@ func (md *MDServerRemote) CheckReachability(ctx context.Context) {
 		if md.getIsAuthenticated() {
 			md.log.CDebugf(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect, reconnecting: %s", err.Error())
-			md.initNewConnection()
+			if err = md.reconnect(); err != nil {
+				md.log.CDebugf(ctx, "reconnect error: %v", err)
+			}
 		} else {
 			md.log.CDebugf(ctx, "MDServerRemote: CheckReachability(): "+
 				"failed to connect (%s), but not reconnecting", err.Error())
