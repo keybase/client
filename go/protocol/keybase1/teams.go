@@ -166,16 +166,18 @@ func (o PerTeamKeySeedItem) DeepCopy() PerTeamKeySeedItem {
 }
 
 type TeamMember struct {
-	Uid         UID      `codec:"uid" json:"uid"`
-	Role        TeamRole `codec:"role" json:"role"`
-	EldestSeqno Seqno    `codec:"eldestSeqno" json:"eldestSeqno"`
+	Uid             UID      `codec:"uid" json:"uid"`
+	Role            TeamRole `codec:"role" json:"role"`
+	EldestSeqno     Seqno    `codec:"eldestSeqno" json:"eldestSeqno"`
+	UserEldestSeqno Seqno    `codec:"userEldestSeqno" json:"userEldestSeqno"`
 }
 
 func (o TeamMember) DeepCopy() TeamMember {
 	return TeamMember{
-		Uid:         o.Uid.DeepCopy(),
-		Role:        o.Role.DeepCopy(),
-		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Uid:             o.Uid.DeepCopy(),
+		Role:            o.Role.DeepCopy(),
+		EldestSeqno:     o.EldestSeqno.DeepCopy(),
+		UserEldestSeqno: o.UserEldestSeqno.DeepCopy(),
 	}
 }
 
@@ -1298,6 +1300,50 @@ func (o TeamSettings) DeepCopy() TeamSettings {
 	}
 }
 
+type BulkRes struct {
+	Invited        []string `codec:"invited" json:"invited"`
+	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
+	Malformed      []string `codec:"malformed" json:"malformed"`
+}
+
+func (o BulkRes) DeepCopy() BulkRes {
+	return BulkRes{
+		Invited: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Invited),
+		AlreadyInvited: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AlreadyInvited),
+		Malformed: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Malformed),
+	}
+}
+
 type ImplicitTeamUserSet struct {
 	KeybaseUsers    []string          `codec:"keybaseUsers" json:"keybaseUsers"`
 	UnresolvedUsers []SocialAssertion `codec:"unresolvedUsers" json:"unresolvedUsers"`
@@ -1647,6 +1693,22 @@ func (o TeamSetSettingsArg) DeepCopy() TeamSetSettingsArg {
 	}
 }
 
+type TeamAddEmailsBulkArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Name      string   `codec:"name" json:"name"`
+	Emails    string   `codec:"emails" json:"emails"`
+	Role      TeamRole `codec:"role" json:"role"`
+}
+
+func (o TeamAddEmailsBulkArg) DeepCopy() TeamAddEmailsBulkArg {
+	return TeamAddEmailsBulkArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Emails:    o.Emails,
+		Role:      o.Role.DeepCopy(),
+	}
+}
+
 type LookupImplicitTeamArg struct {
 	Name   string `codec:"name" json:"name"`
 	Public bool   `codec:"public" json:"public"`
@@ -1731,6 +1793,7 @@ type TeamsInterface interface {
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
+	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
 	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
@@ -2049,6 +2112,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamAddEmailsBulk": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamAddEmailsBulkArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamAddEmailsBulkArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamAddEmailsBulkArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamAddEmailsBulk(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"lookupImplicitTeam": {
 				MakeArg: func() interface{} {
 					ret := make([]LookupImplicitTeamArg, 1)
@@ -2230,6 +2309,11 @@ func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err e
 
 func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamAddEmailsBulk(ctx context.Context, __arg TeamAddEmailsBulkArg) (res BulkRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []interface{}{__arg}, &res)
 	return
 }
 

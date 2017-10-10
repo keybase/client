@@ -57,6 +57,13 @@
             "items": "string"
           },
           "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
         }
       ]
     },
@@ -83,6 +90,10 @@
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
         },
         {
           "type": "TeamType",
@@ -176,12 +187,23 @@
           "name": "participants"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
+        },
+        {
           "type": "ConversationStatus",
           "name": "status"
         },
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
         },
         {
           "type": "TeamType",

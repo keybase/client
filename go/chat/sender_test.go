@@ -24,6 +24,7 @@ import (
 
 type chatListener struct {
 	sync.Mutex
+	libkb.NoopNotifyListener
 	obids          []chat1.OutboxID
 	incoming       chan int
 	failing        chan []chat1.OutboxRecord
@@ -37,31 +38,8 @@ type chatListener struct {
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
 
-func (n *chatListener) Logout()                                                             {}
-func (n *chatListener) Login(username string)                                               {}
-func (n *chatListener) ClientOutOfDate(to, uri, msg string)                                 {}
-func (n *chatListener) UserChanged(uid keybase1.UID)                                        {}
-func (n *chatListener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
-func (n *chatListener) FSActivity(activity keybase1.FSNotification)                         {}
-func (n *chatListener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
-func (n *chatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
-func (n *chatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                   {}
-func (n *chatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                           {}
-func (n *chatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
-func (n *chatListener) FavoritesChanged(uid keybase1.UID)                                   {}
-func (n *chatListener) KeyfamilyChanged(uid keybase1.UID)                                   {}
-func (n *chatListener) PGPKeyInSecretStoreFile()                                            {}
-func (n *chatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
-func (n *chatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
-func (n *chatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
-}
-func (n *chatListener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *chatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
-}
-func (n *chatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
-}
-func (n *chatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
 func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
 	select {
@@ -70,7 +48,6 @@ func (n *chatListener) ChatInboxStale(uid keybase1.UID) {
 		panic("timeout on the inbox stale channel")
 	}
 }
-
 func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadsStale <- updates:
@@ -78,7 +55,6 @@ func (n *chatListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.Conver
 		panic("timeout on the threads stale channel")
 	}
 }
-
 func (n *chatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
 	select {
 	case n.inboxSynced <- syncRes:
@@ -86,9 +62,6 @@ func (n *chatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncR
 		panic("timeout on the threads stale channel")
 	}
 }
-
-func (n *chatListener) ChatInboxSyncStarted(uid keybase1.UID) {}
-
 func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 	select {
 	case n.typingUpdate <- updates:
@@ -96,7 +69,6 @@ func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 		panic("timeout on typing update")
 	}
 }
-
 func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	n.Lock()
 	defer n.Unlock()
@@ -126,9 +98,6 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 		}
 	}
 }
-
-func (n *chatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)    {}
-func (n *chatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {}
 
 func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, username string) chat1.ConversationIDTriple {
 	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username,

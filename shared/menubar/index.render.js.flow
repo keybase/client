@@ -13,7 +13,6 @@ export type Props = {
   onFolderClick: (path: string) => void,
   onRekey: (path: string) => void,
   openApp: () => void,
-  openShell: () => void,
   openToPrivate?: boolean,
   openWithMenuShowing?: boolean,
   quit: () => void,

@@ -52,7 +52,7 @@ protocol NotifyChat {
   record MembersUpdateInfo {
     ConversationID convID;
     string member;
-    boolean joined;
+    ConversationMemberStatus status;
   }
 
   record TeamTypeInfo {
@@ -141,6 +141,10 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatLeftConversation(keybase1.UID uid, ConversationID convID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatResetConversation(keybase1.UID uid, ConversationID convID);
 
   @notify("")
   @lint("ignore")

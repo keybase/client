@@ -20,6 +20,19 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
   }
 >
 
+export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
+
+export type AddToTeam = NoErrorTypedAction<
+  'teams:addToTeam',
+  {
+    name: string,
+    email: string,
+    username: string,
+    role: ?TeamRoleType,
+    sendChatNotification: boolean,
+  }
+>
+export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: string, username: string}>
 export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
@@ -53,7 +66,7 @@ export const ChannelInfo = I.Record({
 })
 
 export type MemberInfoRecord = KBRecord<{
-  type: null | 'reader' | 'writer' | 'admin' | 'owner',
+  type: TeamRoleType,
   username: string,
 }>
 
@@ -61,6 +74,12 @@ export const MemberInfo = I.Record({
   type: null,
   username: '',
 })
+
+export const RequestInfo = I.Record({
+  username: '',
+})
+
+export type TabKey = 'members' | 'requests' | 'pending'
 
 export type SetTeamCreationError = NoErrorTypedAction<
   'teams:setTeamCreationError',
@@ -76,6 +95,7 @@ export const Team = I.Record({
   teamNameToConvIDs: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToLoading: I.Map(),
+  teamNameToRequests: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })
@@ -86,6 +106,7 @@ export type TeamRecord = KBRecord<{
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
+  teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamnames: I.Set<Teamname>,
   loaded: boolean,
 }>
@@ -95,5 +116,7 @@ const getConversationIDKeyFromChannelName = (state: TypedState, channelname: str
 
 const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
+
+export const getFollowingMap = ChatConstants.getFollowingMap
 
 export {getConversationIDKeyFromChannelName, getParticipants}

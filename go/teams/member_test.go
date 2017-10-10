@@ -471,6 +471,33 @@ func TestMemberAddEmail(t *testing.T) {
 	}
 }
 
+func TestMemberAddEmailBulk(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	blob := "u1@keybase.io u2@keybase.io\nu3@keybase.io,u4@keybase.io\tu5@keybase.io,u6@keybase.io, u7@keybase.io\n\n\n"
+
+	res, err := AddEmailsBulk(context.TODO(), tc.G, name, blob, keybase1.TeamRole_WRITER)
+	if err != nil {
+		t.Fatal(err)
+	}
+	emails := []string{"u1@keybase.io", "u2@keybase.io", "u3@keybase.io", "u4@keybase.io", "u5@keybase.io", "u6@keybase.io", "u7@keybase.io"}
+
+	if len(res.Invited) != len(emails) {
+		t.Errorf("num invited: %d, expected %d", len(res.Invited), len(emails))
+	}
+	if len(res.AlreadyInvited) != 0 {
+		t.Errorf("num already invited: %d, expected 0", len(res.AlreadyInvited))
+	}
+	if len(res.Malformed) != 0 {
+		t.Errorf("num malformed: %d, expected 0", len(res.Malformed))
+	}
+
+	for _, e := range emails {
+		assertInvite(tc, name, e, "email", keybase1.TeamRole_WRITER)
+	}
+}
+
 func TestMemberListInviteUsername(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
@@ -624,6 +651,7 @@ func assertRole(tc libkb.TestContext, name, username string, expected keybase1.T
 }
 
 func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
+	tc.T.Logf("looking for invite for %s/%s w/ role %s in team %s", username, typ, role, name)
 	iname := keybase1.TeamInviteName(username)
 	itype, err := keybase1.TeamInviteTypeFromString(typ, true)
 	if err != nil {

@@ -106,11 +106,12 @@ const getRowsAndMetadata = createSelector(
   [getVisibleSmallIDs, _smallTeamsPassThrough, getBigRowItems],
   (smallIDs, smallTeamsExpanded, bigRows) => {
     const smallTeamsRowsToHideCount = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
-    const smallIDsToShow = smallTeamsExpanded ? smallIDs : smallIDs.slice(0, smallTeamsCollapsedMaxShown)
-    const smallToShow = smallIDsToShow.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
-    const smallIDsHidden = smallTeamsExpanded ? [] : smallIDs.slice(smallTeamsCollapsedMaxShown)
-
     const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount)
+    const truncate = showSmallTeamsExpandDivider && !smallTeamsExpanded
+    const smallIDsToShow = truncate ? smallIDs.slice(0, smallTeamsCollapsedMaxShown) : smallIDs
+    const smallToShow = smallIDsToShow.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+    const smallIDsHidden = truncate ? smallIDs.slice(smallTeamsCollapsedMaxShown) : []
+
     const divider = showSmallTeamsExpandDivider ? [{type: 'divider'}] : []
     const rows = smallToShow.concat(divider, bigRows)
 
@@ -133,16 +134,18 @@ const getFilteredSmallRowItems = createSelector(
     return smallTimestamps
       .keySeq()
       .toArray()
-      .filter(convID => {
-        const i = inbox.get(convID)
-        if (!i) {
-          return false
+      .map(conversationIDKey => {
+        const i = inbox.get(conversationIDKey)
+        return {
+          conversationIDKey,
+          filterScore: i
+            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou)
+            : 0,
         }
-        const passesFilter =
-          scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou) > 0
-        return passesFilter
       })
-      .map(conversationIDKey => ({conversationIDKey, type: 'small'}))
+      .filter(obj => obj.filterScore > 0)
+      .sort((a, b) => b.filterScore - a.filterScore)
+      .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
   }
 )
 
@@ -199,6 +202,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     ...rowMetadata,
     filter,
     isActiveRoute,
+    isLoading: state.chat.get('inboxUntrustedState') === 'loading',
   }
 }
 
@@ -227,6 +231,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     filter: stateProps.filter,
     isActiveRoute: stateProps.isActiveRoute,
+    isLoading: stateProps.isLoading,
     loadInbox: dispatchProps.loadInbox,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,

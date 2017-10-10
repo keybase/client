@@ -239,7 +239,8 @@
         "ACTIVE_0",
         "REMOVED_1",
         "LEFT_2",
-        "PREVIEW_3"
+        "PREVIEW_3",
+        "RESET_4"
       ]
     },
     {
@@ -506,6 +507,13 @@
             "items": "gregor1.UID"
           },
           "name": "allList"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "gregor1.UID"
+          },
+          "name": "resetList"
         }
       ]
     },

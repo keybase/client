@@ -45,7 +45,11 @@ func (n nullTeamLoader) Load(context.Context, keybase1.LoadTeamArg) (*keybase1.T
 	return nil, fmt.Errorf("null team loader")
 }
 
-func (n nullTeamLoader) Delete(context.Context, keybase1.TeamID) error {
+func (n nullTeamLoader) Delete(context.Context, keybase1.TeamID, bool) error {
+	return nil
+}
+
+func (n nullTeamLoader) DeleteBoth(context.Context, keybase1.TeamID) error {
 	return nil
 }
 

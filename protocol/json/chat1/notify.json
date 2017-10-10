@@ -147,8 +147,8 @@
           "name": "member"
         },
         {
-          "type": "boolean",
-          "name": "joined"
+          "type": "ConversationMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -480,6 +480,21 @@
       "lint": "ignore"
     },
     "ChatLeftConversation": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatResetConversation": {
       "request": [
         {
           "name": "uid",
