@@ -87,6 +87,16 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 		return err
 	}
 
+	err = precheckLinkToPost(ctx, g, *renameSubteamSig, parent.chain(), me.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck rename subteam): %v", err)
+	}
+
+	err = precheckLinkToPost(ctx, g, *renameUpPointerSig, subteam.chain(), me.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck rename up): %v", err)
+	}
+
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{renameSubteamSig, renameUpPointerSig}
 
@@ -135,6 +145,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.Us
 	if err != nil {
 		return nil, err
 	}
+	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
 	v2Sig, err := makeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeRenameSubteam,
@@ -142,7 +153,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.Us
 		sigJSON,
 		prevLinkID,
 		false, /* hasRevokes */
-		keybase1.SeqType_SEMIPRIVATE,
+		seqType,
 	)
 	if err != nil {
 		return nil, err
@@ -152,6 +163,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.Us
 		Sig:        v2Sig,
 		SigningKID: signingKey.GetKID(),
 		Type:       string(libkb.LinkTypeRenameSubteam),
+		SeqType:    seqType,
 		SigInner:   string(sigJSON),
 		TeamID:     parentTeam.GetID(),
 	}
@@ -172,7 +184,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me *libkb
 		Parent: &SCTeamParent{
 			ID:      SCTeamID(teams.parent.GetID()),
 			Seqno:   teams.parent.GetLatestSeqno() + 1, // the seqno of the *new* parent link
-			SeqType: keybase1.SeqType_SEMIPRIVATE,
+			SeqType: seqTypeForTeamPublicness(teams.parent.IsPublic()),
 		},
 	}
 
@@ -189,6 +201,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me *libkb
 	if err != nil {
 		return nil, err
 	}
+	seqType := seqTypeForTeamPublicness(teams.subteam.IsPublic())
 	v2Sig, err := makeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeRenameUpPointer,
@@ -196,7 +209,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me *libkb
 		sigJSON,
 		prevLinkID,
 		false, /* hasRevokes */
-		keybase1.SeqType_SEMIPRIVATE,
+		seqType,
 	)
 	if err != nil {
 		return nil, err
@@ -206,6 +219,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me *libkb
 		Sig:        v2Sig,
 		SigningKID: signingKey.GetKID(),
 		Type:       string(libkb.LinkTypeRenameUpPointer),
+		SeqType:    seqType,
 		SigInner:   string(sigJSON),
 		TeamID:     teams.subteam.GetID(),
 	}

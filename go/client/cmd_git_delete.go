@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -15,6 +16,7 @@ type CmdGitDelete struct {
 	libkb.Contextified
 	repoName keybase1.GitRepoName
 	teamName keybase1.TeamName
+	force    bool
 }
 
 func newCmdGitDelete(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -31,6 +33,10 @@ func newCmdGitDelete(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			cli.StringFlag{
 				Name:  "team",
 				Usage: "keybase team name (optional)",
+			},
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "skip confirmation",
 			},
 		},
 	}
@@ -52,11 +58,22 @@ func (c *CmdGitDelete) ParseArgv(ctx *cli.Context) error {
 		}
 		c.teamName = teamName
 	}
+	c.force = ctx.Bool("force")
 
 	return nil
 }
 
 func (c *CmdGitDelete) Run() error {
+	if !c.force {
+		ui := c.G().UI.GetTerminalUI()
+		err := ui.PromptForConfirmation(fmt.Sprintf(
+			"Deletion is permanent. Are you sure you want to delete \"%s\"?",
+			c.repoName))
+		if err != nil {
+			return err
+		}
+	}
+
 	cli, err := GetGitClient(c.G())
 	if err != nil {
 		return err

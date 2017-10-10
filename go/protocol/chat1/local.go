@@ -2003,26 +2003,29 @@ type ConversationInfoLocal struct {
 	Visibility   keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus        `codec:"status" json:"status"`
 	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
+	MemberStatus ConversationMemberStatus  `codec:"memberStatus" json:"memberStatus"`
 	TeamType     TeamType                  `codec:"teamType" json:"teamType"`
 	Existence    ConversationExistence     `codec:"existence" json:"existence"`
 	Version      ConversationVers          `codec:"version" json:"version"`
 	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
 	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
 	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ResetNames   []string                  `codec:"resetNames" json:"resetNames"`
 }
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 	return ConversationInfoLocal{
-		Id:          o.Id.DeepCopy(),
-		Triple:      o.Triple.DeepCopy(),
-		TlfName:     o.TlfName,
-		TopicName:   o.TopicName,
-		Visibility:  o.Visibility.DeepCopy(),
-		Status:      o.Status.DeepCopy(),
-		MembersType: o.MembersType.DeepCopy(),
-		TeamType:    o.TeamType.DeepCopy(),
-		Existence:   o.Existence.DeepCopy(),
-		Version:     o.Version.DeepCopy(),
+		Id:           o.Id.DeepCopy(),
+		Triple:       o.Triple.DeepCopy(),
+		TlfName:      o.TlfName,
+		TopicName:    o.TopicName,
+		Visibility:   o.Visibility.DeepCopy(),
+		Status:       o.Status.DeepCopy(),
+		MembersType:  o.MembersType.DeepCopy(),
+		MemberStatus: o.MemberStatus.DeepCopy(),
+		TeamType:     o.TeamType.DeepCopy(),
+		Existence:    o.Existence.DeepCopy(),
+		Version:      o.Version.DeepCopy(),
 		WriterNames: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -2052,6 +2055,17 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.FinalizeInfo),
+		ResetNames: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ResetNames),
 	}
 }
 

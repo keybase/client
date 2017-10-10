@@ -1553,11 +1553,13 @@ func TestChatSrvGap(t *testing.T) {
 }
 
 type serverChatListener struct {
+	libkb.NoopNotifyListener
 	newMessage              chan chat1.IncomingMessage
 	threadsStale            chan []chat1.ConversationStaleUpdate
 	inboxStale              chan struct{}
 	joinedConv              chan chat1.InboxUIItem
 	leftConv                chan chat1.ConversationID
+	resetConv               chan chat1.ConversationID
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	identifyUpdate          chan keybase1.CanonicalTLFNameAndIDWithBreaks
@@ -1565,32 +1567,8 @@ type serverChatListener struct {
 	inboxSynced             chan chat1.ChatSyncResult
 }
 
-func (n *serverChatListener) Logout()                                                             {}
-func (n *serverChatListener) Login(username string)                                               {}
-func (n *serverChatListener) ClientOutOfDate(to, uri, msg string)                                 {}
-func (n *serverChatListener) UserChanged(uid keybase1.UID)                                        {}
-func (n *serverChatListener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
-func (n *serverChatListener) FSActivity(activity keybase1.FSNotification)                         {}
-func (n *serverChatListener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
-func (n *serverChatListener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
-func (n *serverChatListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                   {}
-func (n *serverChatListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                           {}
-func (n *serverChatListener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
-func (n *serverChatListener) FavoritesChanged(uid keybase1.UID)                                   {}
-func (n *serverChatListener) KeyfamilyChanged(uid keybase1.UID)                                   {}
-func (n *serverChatListener) PGPKeyInSecretStoreFile()                                            {}
-func (n *serverChatListener) BadgeState(badgeState keybase1.BadgeState)                           {}
-func (n *serverChatListener) ReachabilityChanged(r keybase1.Reachability)                         {}
-func (n *serverChatListener) ChatInboxSyncStarted(u keybase1.UID)                                 {}
 func (n *serverChatListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {
 	n.identifyUpdate <- update
-}
-func (n *serverChatListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
-}
-func (n *serverChatListener) TeamDeleted(teamID keybase1.TeamID) {}
-func (n *serverChatListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
-}
-func (n *serverChatListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
 }
 func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 	n.inboxStale <- struct{}{}
@@ -1598,11 +1576,9 @@ func (n *serverChatListener) ChatInboxStale(uid keybase1.UID) {
 func (n *serverChatListener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	n.threadsStale <- cids
 }
-
 func (n *serverChatListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult) {
 	n.inboxSynced <- syncRes
 }
-
 func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
 	typ, _ := activity.ActivityType()
 	switch typ {
@@ -1616,13 +1592,14 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.teamType <- activity.Teamtype()
 	}
 }
-func (n *serverChatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
-}
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem) {
 	n.joinedConv <- conv
 }
 func (n *serverChatListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {
 	n.leftConv <- convID
+}
+func (n *serverChatListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {
+	n.resetConv <- convID
 }
 
 func newServerChatListener() *serverChatListener {
@@ -1632,6 +1609,7 @@ func newServerChatListener() *serverChatListener {
 		inboxStale:              make(chan struct{}, 100),
 		joinedConv:              make(chan chat1.InboxUIItem, 100),
 		leftConv:                make(chan chat1.ConversationID, 100),
+		resetConv:               make(chan chat1.ConversationID, 100),
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, 100),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, 100),
 		identifyUpdate:          make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 100),
@@ -1808,6 +1786,12 @@ func TestChatSrvFindConversations(t *testing.T) {
 		if mt == chat1.ConversationMembersType_TEAM {
 			return
 		}
+
+		// CORE-6335 remove this
+		if mt == chat1.ConversationMembersType_IMPTEAM {
+			return
+		}
+
 		ctc := makeChatTestContext(t, "FindConversations", 3)
 		defer ctc.cleanup()
 		users := ctc.users()
@@ -2333,7 +2317,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, ncres.Conv.GetConvID())
-			require.True(t, act.Joined)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
 			require.Equal(t, users[1].Username, act.Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
@@ -2397,7 +2381,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.True(t, act.Joined)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
 			require.Equal(t, users[1].Username, act.Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
@@ -2427,7 +2411,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.False(t, act.Joined)
+			require.Equal(t, chat1.ConversationMemberStatus_REMOVED, act.Status)
 			require.Equal(t, users[1].Username, act.Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
@@ -2449,7 +2433,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		select {
 		case act := <-listener0.membersUpdate:
 			require.Equal(t, act.ConvID, getTLFRes.Convs[1].GetConvID())
-			require.True(t, act.Joined)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, act.Status)
 			require.Equal(t, users[2].Username, act.Member)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to get members update")
@@ -3053,5 +3037,128 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+	})
+}
+
+func TestChatSrvUserReset(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvUserReset", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ctx1 := ctc.as(t, users[1]).startCtx
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().SetService()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+		default:
+		}
+
+		require.NoError(t, ctc.as(t, users[1]).h.G().LoginState().ResetAccount(users[1].Username))
+		select {
+		case act := <-listener0.membersUpdate:
+			require.Equal(t, act.ConvID, conv.Id)
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, act.Status)
+			require.Equal(t, users[1].Username, act.Member)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+		select {
+		case convID := <-listener1.resetConv:
+			require.Equal(t, convID, conv.Id)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to get members update")
+		}
+
+		iboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(iboxRes.Conversations))
+		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
+		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
+
+		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx1,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(iboxRes.Conversations))
+		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+		require.Equal(t, chat1.ConversationMemberStatus_RESET, iboxRes.Conversations[0].Info.MemberStatus)
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "Hello",
+				}),
+			},
+		})
+		require.Error(t, err)
+
+		g1 := ctc.as(t, users[1]).h.G().ExternalG()
+		require.NoError(t, g1.Logout())
+		require.NoError(t, users[1].Login(g1))
+
+		teamID, err := tlfIDToTeamdID(conv.Triple.Tlfid)
+		require.NoError(t, err)
+		require.NoError(t, teams.ReAddMemberAfterReset(ctx, ctc.as(t, users[0]).h.G().ExternalG(),
+			teamID, users[1].Username))
+		consumeMembersUpdate(t, listener0)
+		consumeJoinConv(t, listener1)
+
+		iboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(iboxRes.Conversations))
+		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
+
+		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
+			chat1.GetInboxAndUnboxLocalArg{})
+		require.NoError(t, err)
+		require.Equal(t, 1, len(iboxRes.Conversations))
+		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
+		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, iboxRes.Conversations[0].Info.MemberStatus)
+
+		_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
+			ConversationID: conv.Id,
+			Msg: chat1.MessagePlaintext{
+				ClientHeader: chat1.MessageClientHeader{
+					Conv:        conv.Triple,
+					MessageType: chat1.MessageType_TEXT,
+					TlfName:     conv.TlfName,
+				},
+				MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "Hello",
+				}),
+			},
+		})
+		require.NoError(t, err)
 	})
 }

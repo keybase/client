@@ -54,5 +54,11 @@ func PutMetadata(ctx context.Context, g *libkb.GlobalContext, arg keybase1.PutGi
 		},
 	}
 	_, err = g.GetAPI().Post(apiArg)
-	return err
+	if err != nil {
+		return err
+	}
+
+	g.NotifyRouter.HandleRepoChanged(ctx, arg.Folder, teamIDVis.TeamID, arg.RepoID, formatUniqueRepoID(teamIDVis.TeamID, arg.RepoID))
+
+	return nil
 }

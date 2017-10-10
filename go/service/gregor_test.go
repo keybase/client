@@ -70,6 +70,7 @@ func TestGregorHandler(t *testing.T) {
 }
 
 type nlistener struct {
+	libkb.NoopNotifyListener
 	t                *testing.T
 	favoritesChanged []keybase1.UID
 	badgeState       chan keybase1.BadgeState
@@ -88,45 +89,15 @@ func newNlistener(t *testing.T) *nlistener {
 	}
 }
 
-func (n *nlistener) Logout()                                                             {}
-func (n *nlistener) Login(username string)                                               {}
-func (n *nlistener) ClientOutOfDate(to, uri, msg string)                                 {}
-func (n *nlistener) UserChanged(uid keybase1.UID)                                        {}
-func (n *nlistener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
-func (n *nlistener) FSActivity(activity keybase1.FSNotification)                         {}
-func (n *nlistener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
-func (n *nlistener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
-func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
 func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
 }
-func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)      {}
-func (n *nlistener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
-func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                                  {}
-func (n *nlistener) PGPKeyInSecretStoreFile()                                           {}
-func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                  {}
-func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                          {}
-func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                        {}
-func (n *nlistener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
-}
-func (n *nlistener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
-}
-func (n *nlistener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)    {}
-func (n *nlistener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {}
-func (n *nlistener) ChatInboxStale(uid keybase1.UID)                                    {}
-func (n *nlistener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)     {}
-func (n *nlistener) ChatInboxSyncStarted(uid keybase1.UID)                              {}
-func (n *nlistener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
-}
-func (n *nlistener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadStale <- cids:
 	case <-time.After(n.testChanTimeout):
 		require.Fail(n.t, "thread send timeout")
 	}
-}
-func (n *nlistener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {

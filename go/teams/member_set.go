@@ -208,38 +208,34 @@ func (m *memberSet) nameSeqList(members []member) (*[]SCTeamMember, error) {
 	return &res, nil
 }
 
-func (m *memberSet) Section(teamID keybase1.TeamID, admin *SCTeamAdmin) (SCTeamSection, error) {
-	teamSection := SCTeamSection{
-		ID:    SCTeamID(teamID),
-		Admin: admin,
-	}
+// can return nil
+func (m *memberSet) Section() (res *SCTeamMembers, err error) {
 	if m.empty() {
-		return teamSection, nil
+		return nil, nil
 	}
 
-	teamSection.Members = new(SCTeamMembers)
-	var err error
-	teamSection.Members.Owners, err = m.nameSeqList(m.Owners)
+	res = &SCTeamMembers{}
+	res.Owners, err = m.nameSeqList(m.Owners)
 	if err != nil {
-		return SCTeamSection{}, err
+		return nil, err
 	}
-	teamSection.Members.Admins, err = m.nameSeqList(m.Admins)
+	res.Admins, err = m.nameSeqList(m.Admins)
 	if err != nil {
-		return SCTeamSection{}, err
+		return nil, err
 	}
-	teamSection.Members.Writers, err = m.nameSeqList(m.Writers)
+	res.Writers, err = m.nameSeqList(m.Writers)
 	if err != nil {
-		return SCTeamSection{}, err
+		return nil, err
 	}
-	teamSection.Members.Readers, err = m.nameSeqList(m.Readers)
+	res.Readers, err = m.nameSeqList(m.Readers)
 	if err != nil {
-		return SCTeamSection{}, err
+		return nil, err
 	}
-	teamSection.Members.None, err = m.nameSeqList(m.None)
+	res.None, err = m.nameSeqList(m.None)
 	if err != nil {
-		return SCTeamSection{}, err
+		return nil, err
 	}
-	return teamSection, nil
+	return res, nil
 }
 
 func (m *memberSet) HasRemoval() bool {

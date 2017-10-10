@@ -183,14 +183,21 @@ func NewResolveError(name keybase1.TeamName, id keybase1.TeamID) ResolveError {
 
 type TeamDoesNotExistError struct {
 	descriptor string
+	public     bool // Whether this is about the public version of the team
 }
 
 func (e TeamDoesNotExistError) Error() string {
+	if e.public {
+		return fmt.Sprintf("Team %q (public) does not exist", e.descriptor)
+	}
 	return fmt.Sprintf("Team %q does not exist", e.descriptor)
 }
 
-func NewTeamDoesNotExistError(format string, args ...interface{}) error {
-	return TeamDoesNotExistError{descriptor: fmt.Sprintf(format, args...)}
+func NewTeamDoesNotExistError(public bool, format string, args ...interface{}) error {
+	return TeamDoesNotExistError{
+		descriptor: fmt.Sprintf(format, args...),
+		public:     public,
+	}
 }
 
 type ImplicitTeamOperationError struct {
@@ -205,7 +212,7 @@ func NewImplicitTeamOperationError(format string, args ...interface{}) error {
 	return &ImplicitTeamOperationError{msg: fmt.Sprintf(format, args...)}
 }
 
-func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n string) error {
+func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
 	if e == nil {
 		return nil
 	}
@@ -213,9 +220,10 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n s
 	case libkb.AppStatusError:
 		switch keybase1.StatusCode(e.Code) {
 		case keybase1.StatusCode_SCTeamReadError:
-			e.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", n, n)
+			g.Log.CDebugf(ctx, "replacing error: %v", e)
+			e.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", teamDescriptor, teamDescriptor)
 		case keybase1.StatusCode_SCTeamNotFound:
-			return NewTeamDoesNotExistError(n)
+			return NewTeamDoesNotExistError(publicTeam, teamDescriptor)
 		default:
 		}
 	case TeamDoesNotExistError:
@@ -224,7 +232,7 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, n s
 		// but it's better to have this undertandable error message that's accurate
 		// most of the time than one with an ID that's always accurate.
 		g.Log.CDebugf(ctx, "replacing error: %v", e)
-		return NewTeamDoesNotExistError(n)
+		return NewTeamDoesNotExistError(publicTeam, teamDescriptor)
 	}
 	return e
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"golang.org/x/net/context"
 
@@ -36,16 +37,22 @@ func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keyba
 }
 
 func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepoll bool) (res keybase1.TeamDetails, err error) {
+	tracer := g.CTimeTracer(ctx, "TeamDetails")
+	defer tracer.Finish()
+
+	tracer.Stage("load team")
 	t, err := GetMaybeAdminByStringName(ctx, g, name)
 	if err != nil {
 		return res, err
 	}
 	res.KeyGeneration = t.Generation()
+	tracer.Stage("members")
 	res.Members, err = members(ctx, g, t, forceRepoll)
 	if err != nil {
 		return res, err
 	}
 
+	tracer.Stage("annotate")
 	activeInvites := t.chain().inner.ActiveInvites
 	annotatedInvites, err := AnnotateInvites(ctx, g, activeInvites, t.Name().String())
 	if err != nil {
@@ -53,6 +60,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	}
 	res.AnnotatedActiveInvites = annotatedInvites
 
+	tracer.Stage("invites")
 	// put any keybase invites in the members list
 	for invID, invite := range annotatedInvites {
 		cat, err := invite.Type.C()
@@ -303,6 +311,68 @@ func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	return t.InviteEmailMember(ctx, email, role)
 }
 
+func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (keybase1.BulkRes, error) {
+	var res keybase1.BulkRes
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return keybase1.BulkRes{}, err
+	}
+
+	emailList := splitBulk(emails)
+	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(emailList))
+
+	var invites []SCTeamInvite
+	for _, e := range emailList {
+		if !libkb.CheckEmail.F(e) {
+			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q", teamname, e)
+			res.Malformed = append(res.Malformed, e)
+			continue
+		}
+		name := keybase1.TeamInviteName(e)
+		existing, err := t.HasActiveInvite(name, "email")
+		if err != nil {
+			return keybase1.BulkRes{}, err
+		}
+		if existing {
+			g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list", teamname, e)
+			res.AlreadyInvited = append(res.AlreadyInvited, e)
+			continue
+		}
+		inv := SCTeamInvite{
+			Type: "email",
+			Name: name,
+			ID:   NewInviteID(),
+		}
+		invites = append(invites, inv)
+		res.Invited = append(res.Invited, e)
+	}
+	if len(invites) == 0 {
+		g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
+		return res, nil
+	}
+
+	var teamInvites SCTeamInvites
+	switch role {
+	case keybase1.TeamRole_ADMIN:
+		teamInvites.Admins = &invites
+	case keybase1.TeamRole_WRITER:
+		teamInvites.Writers = &invites
+	case keybase1.TeamRole_READER:
+		teamInvites.Readers = &invites
+	case keybase1.TeamRole_OWNER:
+		teamInvites.Owners = &invites
+	default:
+		return keybase1.BulkRes{}, fmt.Errorf("unknown team role: %s", role)
+	}
+
+	g.Log.CDebugf(ctx, "team %s: after exisitng filter, inviting %d emails as %s", teamname, len(invites), role)
+	err = t.postTeamInvites(ctx, teamInvites)
+	if err != nil {
+		return keybase1.BulkRes{}, err
+	}
+	return res, nil
+}
+
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
@@ -400,7 +470,9 @@ func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permane
 	if err != nil {
 		return err
 	}
-	err = g.GetTeamLoader().Delete(ctx, t.ID)
+	// Assume this is for the private team
+	public := false
+	err = g.GetTeamLoader().Delete(ctx, t.ID, public)
 	if err != nil {
 		g.Log.CDebugf(ctx, "team.Leave: error deleting team cache: %v", err)
 	}
@@ -775,4 +847,12 @@ func removeInviteID(ctx context.Context, team *Team, invID keybase1.TeamInviteID
 		Cancel: &cancelList,
 	}
 	return team.postTeamInvites(ctx, invites)
+}
+
+// splitBulk splits on whitespace or comma.
+func splitBulk(s string) []string {
+	f := func(c rune) bool {
+		return unicode.IsSpace(c) || c == ','
+	}
+	return strings.FieldsFunc(s, f)
 }

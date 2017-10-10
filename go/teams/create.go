@@ -2,6 +2,7 @@ package teams
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -170,10 +171,6 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	if err != nil {
 		return err
 	}
-	seqType := keybase1.SeqType_SEMIPRIVATE
-	if public {
-		seqType = keybase1.SeqType_PUBLIC
-	}
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam make sigs")
 	teamSection, err := makeRootTeamSection(name, teamID, members, invites, perTeamSigningKey.GetKID(),
@@ -210,6 +207,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	if err != nil {
 		return err
 	}
+	seqType := seqTypeForTeamPublicness(public)
 	v2Sig, err := makeSigchainV2OuterSig(
 		deviceSigningKey,
 		libkb.LinkTypeTeamRoot,
@@ -234,6 +232,11 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 			Encryption: perTeamEncryptionKey.GetKID(),
 			Signing:    perTeamSigningKey.GetKID(),
 		},
+	}
+
+	err = precheckLinkToPost(ctx, g, sigMultiItem, nil, me.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck): %v", err)
 	}
 
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam post sigs")
@@ -352,6 +355,16 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
+	err = precheckLinkToPost(ctx, g, *newSubteamSig, parentTeam.chain(), me.ToUserVersion())
+	if err != nil {
+		return nil, fmt.Errorf("cannot post link (precheck new subteam): %v", err)
+	}
+
+	err = precheckLinkToPost(ctx, g, *subteamHeadSig, nil, me.ToUserVersion())
+	if err != nil {
+		return nil, fmt.Errorf("cannot post link (precheck subteam head): %v", err)
+	}
+
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{newSubteamSig, subteamHeadSig}
 	payload["per_team_key"] = secretboxes
@@ -449,6 +462,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 	if err != nil {
 		return nil, err
 	}
+	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
 	v2Sig, err := makeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeNewSubteam,
@@ -456,7 +470,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		newSubteamSigJSON,
 		prevLinkID,
 		false, /* hasRevokes */
-		keybase1.SeqType_SEMIPRIVATE,
+		seqType,
 	)
 	if err != nil {
 		return nil, err
@@ -466,6 +480,7 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me *libkb.User,
 		Sig:        v2Sig,
 		SigningKID: signingKey.GetKID(),
 		Type:       string(libkb.LinkTypeNewSubteam),
+		SeqType:    seqType,
 		SigInner:   string(newSubteamSigJSON),
 		TeamID:     parentTeam.GetID(),
 	}
@@ -536,6 +551,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		return
 	}
 
+	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
 	v2Sig, err := makeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeSubteamHead,
@@ -543,7 +559,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		subteamHeadSigJSON,
 		nil,   /* prevLinkID */
 		false, /* hasRevokes */
-		keybase1.SeqType_SEMIPRIVATE,
+		seqTypeForTeamPublicness(parentTeam.IsPublic()),
 	)
 	if err != nil {
 		return
@@ -553,6 +569,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		Sig:        v2Sig,
 		SigningKID: signingKey.GetKID(),
 		Type:       string(libkb.LinkTypeSubteamHead),
+		SeqType:    seqType,
 		SigInner:   string(subteamHeadSigJSON),
 		TeamID:     subteamID,
 		PublicKeys: &libkb.SigMultiItemPublicKeys{
@@ -572,7 +589,7 @@ func makeSubteamTeamSection(subteamName keybase1.TeamName, subteamID keybase1.Te
 		Parent: &SCTeamParent{
 			ID:      SCTeamID(parentTeam.GetID()),
 			Seqno:   parentTeam.GetLatestSeqno() + 1, // the seqno of the *new* parent link
-			SeqType: keybase1.SeqType_SEMIPRIVATE,
+			SeqType: seqTypeForTeamPublicness(parentTeam.IsPublic()),
 		},
 		PerTeamKey: &SCPerTeamKey{
 			Generation: 1,

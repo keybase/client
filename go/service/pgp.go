@@ -224,7 +224,7 @@ func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) err
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
-	earg := engine.ImportPGPKeyImportEngineArg(arg)
+	earg := engine.ImportPGPKeyImportEngineArg(h.G(), arg)
 	eng := engine.NewPGPKeyImportEngine(earg)
 	return engine.RunEngine(eng, ctx)
 }
