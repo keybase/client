@@ -90,6 +90,8 @@ export type SetTeamCreationError = NoErrorTypedAction<
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
 export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
+export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role: string, teamname: string}>
+
 export const Team = I.Record({
   convIDToChannelInfo: I.Map(),
   sawChatBanner: false,

@@ -15,7 +15,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onAddPeople: (role: string) => {
     console.warn('in onAddPeople', role)
-    // dispatch(Creators.leaveTeam(routeProps.get('teamname')))
+    dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
     dispatch(navigateTo([teamsTab]))
     dispatch(Creators.getTeams())
   },
