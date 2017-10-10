@@ -8,14 +8,18 @@ import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
 import {Buffer} from 'buffer'
 import {chatTab} from './tabs'
-import {createSelector} from 'reselect'
-import {createShallowEqualSelector} from './selectors'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
+import isEqualWith from 'lodash/isEqualWith'
 import {getPath, getPathState, type Path} from '../route-tree'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
 import {type DeviceType} from './types/more'
 import {type NoErrorTypedAction, type TypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 import {type UserListItem} from '../common-adapters/usernames'
+
+const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
+  isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
+)
 
 export type Username = string
 export type MessageKey = string

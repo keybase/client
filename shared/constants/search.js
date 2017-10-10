@@ -3,7 +3,8 @@ import {OrderedSet} from 'immutable'
 import {amIFollowing, usernameSelector} from './selectors'
 import {type NoErrorTypedAction} from '../constants/types/flux'
 import {type IconType} from '../common-adapters/icon'
-import {type TypedState, createSelector} from '../util/container'
+import {createSelector} from 'reselect'
+import {type TypedState} from './reducer'
 
 const services: {[service: string]: true} = {
   Facebook: true,

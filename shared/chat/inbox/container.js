@@ -10,9 +10,9 @@ import {
   withState,
   withHandlers,
   createSelector,
+  createImmutableEqualSelector,
   type TypedState,
 } from '../../util/container'
-import createImmutableEqualSelector from '../../util/create-immutable-equal-selector'
 import throttle from 'lodash/throttle'
 import {scoreFilter, passesStringFilter} from './filtering'
 
