@@ -10,8 +10,9 @@ import {showAllTrackers} from '../local-debug'
 import {isMobile} from '../constants/platform'
 import {type Action, type AsyncAction} from '../constants/types/flux'
 import {type State as ConfigState} from '../constants/config'
-import {type FriendshipUserInfo} from '../profile/friendships'
 import {type TypedState} from '../constants/reducer'
+
+import type {FriendshipUserInfo} from '../profile/friendships'
 
 const {bufferToNiceHexString, cachedIdentifyGoodUntil} = Constants
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
