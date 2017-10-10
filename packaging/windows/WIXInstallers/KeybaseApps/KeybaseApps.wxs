@@ -236,17 +236,6 @@
 
   <Fragment>
     <ComponentGroup Id="ApplicationShortcuts" Directory="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="E05F8D29-F530-4791-AE6B-B89DAE1F6D5C">
-          <Shortcut Id="ApplicationStartMenuShortcut"
-              Name="Keybase Shell"
-              Description="Open command console with keybase in the local path"
-              Target="[SystemFolder]cmd.exe"
-              Arguments="/K"
-              WorkingDirectory="INSTALLFOLDER"      
-              Icon="ProductIcon"/>
-          <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-          <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
-      </Component>
       <Component Id="GUIShortCutComponent" Guid="{034E2E25-3676-4101-87F5-F6E081CA446A}">
         <Shortcut Id="GUIShortCut"
                   Name="Keybase"
@@ -257,7 +246,6 @@
           <RegistryValue Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
-
     </ComponentGroup>
   </Fragment>
 
