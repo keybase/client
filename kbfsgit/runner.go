@@ -491,6 +491,13 @@ func (r *runner) printJournalStatus(
 }
 
 func (r *runner) waitForJournal(ctx context.Context) error {
+	// See if there are any deleted repos to clean up before we flush
+	// the journal.
+	err := libgit.CleanOldDeletedReposTimeLimited(ctx, r.config, r.h)
+	if err != nil {
+		return err
+	}
+
 	rootNode, _, err := r.config.KBFSOps().GetOrCreateRootNode(
 		ctx, r.h, libkbfs.MasterBranch)
 	if err != nil {

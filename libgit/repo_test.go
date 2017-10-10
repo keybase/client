@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
@@ -162,6 +163,9 @@ func TestDeleteRepo(t *testing.T) {
 	ctx, config, tempdir := initConfig(t)
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	clock := &libkbfs.TestClock{}
+	clock.Set(time.Now())
+	config.SetClock(clock)
 
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
@@ -185,6 +189,28 @@ func TestDeleteRepo(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, children, 1)
 	require.Contains(t, children, kbfsDeletedReposDir)
+
+	deletedReposNode, _, err := config.KBFSOps().Lookup(
+		ctx, gitNode, kbfsDeletedReposDir)
+	require.NoError(t, err)
+	children, err = config.KBFSOps().GetDirChildren(ctx, deletedReposNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+
+	// If cleanup happens too soon, it shouldn't clean the repo.
+	err = CleanOldDeletedRepos(ctx, config, h)
+	require.NoError(t, err)
+	children, err = config.KBFSOps().GetDirChildren(ctx, deletedReposNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+
+	// After a long time, cleanup should succeed.
+	clock.Add(minDeletedAgeForCleaning)
+	err = CleanOldDeletedRepos(ctx, config, h)
+	require.NoError(t, err)
+	children, err = config.KBFSOps().GetDirChildren(ctx, deletedReposNode)
+	require.NoError(t, err)
+	require.Len(t, children, 0)
 
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)

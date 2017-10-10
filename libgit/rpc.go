@@ -6,6 +6,7 @@ package libgit
 
 import (
 	"os"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -47,6 +48,11 @@ var _ keybase1.KBFSGitInterface = (*RPCHandler)(nil)
 func (rh *RPCHandler) waitForJournal(
 	ctx context.Context, gitConfig libkbfs.Config,
 	h *libkbfs.TlfHandle) error {
+	err := CleanOldDeletedReposTimeLimited(ctx, gitConfig, h)
+	if err != nil {
+		return err
+	}
+
 	rootNode, _, err := gitConfig.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	if err != nil {
@@ -185,6 +191,46 @@ func (rh *RPCHandler) CreateRepo(
 	return keybase1.RepoID(gitID.String()), nil
 }
 
+func (rh *RPCHandler) scheduleCleaning(folder keybase1.Folder) {
+	// TODO: cancel outstanding timers on shutdown, if we ever utilize
+	// the DeleteRepo RPC handler in a test.
+	time.AfterFunc(minDeletedAgeForCleaning+1*time.Second, func() {
+		log := rh.config.MakeLogger("")
+
+		ctx, gitConfig, tlfHandle, tempDir, err := rh.getHandleAndConfig(
+			context.Background(), folder)
+		if err != nil {
+			log.CDebugf(nil, "Couldn't init for scheduled cleaning of %s: %+v",
+				folder.Name, err)
+			return
+		}
+		defer func() {
+			rmErr := os.RemoveAll(tempDir)
+			if rmErr != nil {
+				rh.log.CDebugf(
+					ctx, "Error cleaning storage dir %s: %+v\n", tempDir, rmErr)
+			}
+		}()
+		defer gitConfig.Shutdown(ctx)
+
+		log.CDebugf(ctx, "Starting a scheduled repo clean for folder %s",
+			tlfHandle.GetCanonicalPath())
+		err = CleanOldDeletedRepos(ctx, gitConfig, tlfHandle)
+		if err != nil {
+			log.CDebugf(ctx, "Couldn't clean folder %s: %+v",
+				tlfHandle.GetCanonicalPath(), err)
+			return
+		}
+
+		err = rh.waitForJournal(ctx, gitConfig, tlfHandle)
+		if err != nil {
+			log.CDebugf(ctx, "Error waiting for journal after cleaning "+
+				"folder %s: %+v", tlfHandle.GetCanonicalPath(), err)
+			return
+		}
+	})
+}
+
 // DeleteRepo implements keybase1.KBFSGitInterface for KeybaseServiceBase.
 func (rh *RPCHandler) DeleteRepo(
 	ctx context.Context, arg keybase1.DeleteRepoArg) (err error) {
@@ -218,5 +264,6 @@ func (rh *RPCHandler) DeleteRepo(
 		return err
 	}
 
+	rh.scheduleCleaning(arg.Folder)
 	return nil
 }

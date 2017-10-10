@@ -11,7 +11,9 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -21,11 +23,12 @@ import (
 )
 
 const (
-	kbfsRepoDir         = ".kbfs_git"
-	kbfsConfigName      = "kbfs_config"
-	kbfsConfigNameTemp  = "._kbfs_config"
-	gitSuffixToIgnore   = ".git"
-	kbfsDeletedReposDir = ".kbfs_deleted_repos"
+	kbfsRepoDir              = ".kbfs_git"
+	kbfsConfigName           = "kbfs_config"
+	kbfsConfigNameTemp       = "._kbfs_config"
+	gitSuffixToIgnore        = ".git"
+	kbfsDeletedReposDir      = ".kbfs_deleted_repos"
+	minDeletedAgeForCleaning = 1 * time.Hour
 )
 
 // This character set is what Github supports in repo names.  It's
@@ -42,6 +45,115 @@ func checkValidRepoName(repoName string, config libkbfs.Config) bool {
 		uint32(len(repoName)) <= config.MaxNameBytes() &&
 		(os.Getenv("KBFS_GIT_REPONAME_SKIP_CHECK") != "" ||
 			repoNameRE.MatchString(repoName))
+}
+
+func recursiveDelete(
+	ctx context.Context, fs *libfs.FS, fi os.FileInfo) error {
+	if !fi.IsDir() {
+		// Delete regular files and symlinks directly.
+		return fs.Remove(fi.Name())
+	}
+
+	subdirFS, err := fs.Chroot(fi.Name())
+	if err != nil {
+		return err
+	}
+
+	children, err := subdirFS.ReadDir("/")
+	if err != nil {
+		return err
+	}
+	for _, childFI := range children {
+		err := recursiveDelete(ctx, subdirFS.(*libfs.FS), childFI)
+		if err != nil {
+			return err
+		}
+	}
+
+	return fs.Remove(fi.Name())
+}
+
+// CleanOldDeletedRepos completely removes any "deleted" repos that
+// have been deleted for longer than `minDeletedAgeForCleaning`.  The
+// caller is responsible for syncing any data to disk, if desired.
+func CleanOldDeletedRepos(
+	ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle) (err error) {
+	fs, err := libfs.NewFS(
+		ctx, config, tlfHandle, path.Join(kbfsRepoDir, kbfsDeletedReposDir),
+		"" /* uniq ID isn't used for removals */)
+	switch errors.Cause(err).(type) {
+	case libkbfs.NoSuchNameError:
+		// Nothing to clean.
+		return nil
+	case nil:
+	default:
+		return err
+	}
+
+	deletedRepos, err := fs.ReadDir("/")
+	if err != nil {
+		return err
+	}
+
+	if len(deletedRepos) == 0 {
+		return nil
+	}
+
+	log := config.MakeLogger("")
+	now := config.Clock().Now()
+
+	log.CDebugf(ctx, "Checking %d deleted repos for cleaning in %s",
+		len(deletedRepos), tlfHandle.GetCanonicalPath())
+	defer func() {
+		log.CDebugf(ctx, "Done checking deleted repos: %+v", err)
+	}()
+	for _, fi := range deletedRepos {
+		parts := strings.Split(fi.Name(), "-")
+		if len(parts) < 2 {
+			log.CDebugf(ctx,
+				"Ignoring deleted repo name with wrong format: %s", fi.Name())
+			continue
+		}
+
+		deletedTimeUnixNano, err := strconv.ParseInt(
+			parts[len(parts)-1], 10, 64)
+		if err != nil {
+			log.CDebugf(ctx,
+				"Ignoring deleted repo name with wrong format: %s: %+v",
+				fi.Name(), err)
+			continue
+		}
+
+		deletedTime := time.Unix(0, deletedTimeUnixNano)
+		if deletedTime.Add(minDeletedAgeForCleaning).After(now) {
+			// Repo was deleted too recently.
+			continue
+		}
+
+		log.CDebugf(ctx, "Cleaning deleted repo %s", fi.Name())
+		err = recursiveDelete(ctx, fs, fi)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// CleanOldDeletedReposTimeLimited is the same as
+// `CleanOldDeletedRepos`, except it limits the time spent on
+// cleaning, deleting as much data as possible within the given time
+// limit (without returning an error).
+func CleanOldDeletedReposTimeLimited(
+	ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle) error {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	err := CleanOldDeletedRepos(ctx, config, tlfHandle)
+	if errors.Cause(err) == context.DeadlineExceeded {
+		return nil
+	}
+	return err
 }
 
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
