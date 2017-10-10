@@ -203,12 +203,12 @@ const commonConversationsProps = ({selected, inbox: _inbox, rekeyInfos}: any) =>
     routeTree: {
       routeState: makeRouteStateNode({
         selected: 'tabs:chatTab',
-        children: Map({
+        children: {
           'tabs:chatTab': makeRouteStateNode({
             selected,
-            children: Map({}),
+            children: {},
           }),
-        }),
+        },
       }),
     },
   },

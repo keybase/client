@@ -15,7 +15,7 @@ import * as Saga from '../../util/saga'
 import {serviceIdToIcon, serviceIdToLogo24} from '../../util/platforms'
 import {onIdlePromise} from '../../util/idle-callback'
 import {SearchError} from '../../util/errors'
-import {OrderedSet, Map} from 'immutable'
+import * as I from 'immutable'
 
 import type {ServiceId} from '../../util/platforms'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -205,7 +205,7 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
     yield put(EntityAction.mergeEntity(['search', 'searchQueryToResult'], {[searchQuery]: ids}))
     yield put(Creators.finishedSearch(searchKey, ids, term, service))
     yield all([
-      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: ids})),
+      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: I.List(ids)})),
       put(EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], {[searchKey]: false})),
     ])
   } catch (error) {
@@ -255,7 +255,7 @@ function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants
   )
   yield put.resolve(
     EntityAction.mergeEntity(['search', 'searchKeyToUserInputItemIds'], {
-      [searchKey]: OrderedSet(maybeUpgradedUsers),
+      [searchKey]: I.OrderedSet(maybeUpgradedUsers),
     })
   )
   const ids = yield select(Constants.getUserInputItemIds, {searchKey})
@@ -282,7 +282,7 @@ function* setUserInputItems({payload: {searchKey, searchResults}}: Constants.Set
   if (!_.isEqual(ids, searchResults)) {
     yield put.resolve(
       EntityAction.replaceEntity(['search', 'searchKeyToUserInputItemIds'], {
-        [searchKey]: OrderedSet(searchResults),
+        [searchKey]: I.OrderedSet(searchResults),
       })
     )
     yield put(Creators.userInputItemsUpdated(searchKey, searchResults))
@@ -294,7 +294,7 @@ function* clearSearchResults({payload: {searchKey}}: Constants.ClearSearchResult
   yield put(
     EntityAction.replaceEntity(
       ['search', 'searchKeyToSearchResultQuery'],
-      Map({
+      I.Map({
         [searchKey]: null,
       })
     )
@@ -305,7 +305,7 @@ function* finishedSearch({payload: {searchKey, searchResultTerm, service}}) {
   yield put(
     EntityAction.replaceEntity(
       ['search', 'searchKeyToSearchResultQuery'],
-      Map({
+      I.Map({
         [searchKey]: {text: searchResultTerm, service},
       })
     )

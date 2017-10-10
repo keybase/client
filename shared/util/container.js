@@ -1,5 +1,4 @@
 // @flow
-export {TypedState} from '../constants/reducer'
 export {connect, MapStateToProps} from 'react-redux'
 export {
   branch,
@@ -16,3 +15,4 @@ export {
 } from 'recompose'
 export {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 export {default as pausableConnect} from './pausable-connect'
+export {TypedState} from '../constants/reducer'

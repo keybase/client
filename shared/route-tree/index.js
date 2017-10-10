@@ -62,7 +62,7 @@ const _makeRouteDefNode: I.RecordFactory<_RouteDefNode> = I.Record({
   children: I.Map(),
 })
 
-class makeRouteDefNodeClass extends _makeRouteDefNode {
+class MakeRouteDefNodeClass extends _makeRouteDefNode {
   constructor({defaultSelected, component, containerComponent, tags, initialState, children}) {
     // $FlowIssue
     super({
@@ -78,7 +78,7 @@ class makeRouteDefNodeClass extends _makeRouteDefNode {
         : I.Seq(children)
             .map(
               params =>
-                params instanceof makeRouteDefNode || typeof params === 'function'
+                params instanceof MakeRouteDefNodeClass || typeof params === 'function'
                   ? params
                   : makeRouteDefNode(params)
             )
@@ -101,10 +101,7 @@ class makeRouteDefNodeClass extends _makeRouteDefNode {
 }
 
 // $FlowIssue
-export const makeRouteDefNode: I.RecordFactory<RouteDefParams> = makeRouteDefNodeClass
-// export const makeRouteDefNode: I.RecordFactory<RouteDefParams[> & {props: any, state: any}<]> //& {
-// getChild: (name: string) => ?RouteDefNode,
-// } = makeRouteDefNodeClass
+export const makeRouteDefNode: I.RecordFactory<RouteDefParams> = params => new MakeRouteDefNodeClass(params)
 
 type _RouteState = {
   selected: ?string,
@@ -141,7 +138,7 @@ const _makeRouteStateNode: I.RecordFactory<
   children: I.Map(),
 })
 
-export class makeRouteStateNode extends _makeRouteStateNode {
+class MakeRouteStateNode extends _makeRouteStateNode {
   children: I.Map<string, *>
 
   // eslint-disable-next-line no-useless-constructor
@@ -157,6 +154,8 @@ export class makeRouteStateNode extends _makeRouteStateNode {
     return this.updateIn(['children', name], op)
   }
 }
+
+export const makeRouteStateNode = params => new MakeRouteStateNode(params)
 
 // Converts plain old objects into route state nodes. Useful for testing
 export function dataToRouteState(data: Object): RouteStateNode {
