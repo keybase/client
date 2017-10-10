@@ -17,6 +17,7 @@ protocol chatUi {
     string headline;
     string snippet;
     array<string> writerNames;
+    array<string> resetParticipants;
   }
 
   record UnverifiedInboxUIItem {
@@ -25,6 +26,7 @@ protocol chatUi {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
     TeamType teamType;
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
@@ -47,15 +49,17 @@ protocol chatUi {
     string headline;
     keybase1.TLFVisibility visibility;
     array<string> participants;
+    array<string> resetParticipants;
     ConversationStatus status;
     ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
     TeamType teamType;
     gregor1.Time time;
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
 
-    // Finalized convo stuff
+    // Finalized convo stuff (KBFS only)
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;

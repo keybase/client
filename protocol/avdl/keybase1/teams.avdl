@@ -61,7 +61,8 @@ protocol teams {
   record TeamMember {
     UID uid;
     TeamRole role;
-    Seqno eldestSeqno;
+    Seqno eldestSeqno;     // eldest seqno of the team member record
+    Seqno userEldestSeqno; // actual eldest seqno of the user
   }
 
   record TeamMembers {
@@ -125,20 +126,27 @@ protocol teams {
   }
 
   // Snapshot of a loaded team.
+  // If this is changed in incompatible way, increment teams/storage.go:diskStorageVersion
   record TeamData {
     // Whether this snapshot is entirely missing secrets.
+    // Not used. Might as well get rid of this field next time the cache is busted.
     boolean secretless;
 
     // Name of the team. This is tricky.
-    // The root ancestor and the depth are always correct.
+    // The root ancestor, final part, and the depth are always correct.
     // But the middle parts (b in a.b.c) do not track the sigchain.
     // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
     TeamName name;
     TeamSigChainState chain;
+
+    // These secrets may be behind or missing if this is a public team.
     // generation -> seed
+    // generations _must_ start from 1 with no gaps
     map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
     // application -> generation -> mask
+    // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
+
     // Should only be used by TeamLoader
     // because it is the only mutated field, and thus is not threadsafe to read.
     Time cachedAt;
@@ -468,6 +476,17 @@ protocol teams {
   TeamTreeResult teamTree(int sessionID, TeamName name);
   void teamDelete(int sessionID, string name);
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
+
+  record BulkRes {
+    array<string> invited;
+    array<string> alreadyInvited;
+    array<string> malformed;
+  }
+
+  // emails is a list of email addresses separated by whitespace or commas.
+  // returns a list of emails that were not invited, most likely because of
+  // malformed email addresses.
+  BulkRes teamAddEmailsBulk(int sessionID, string name, string emails, TeamRole role);
 
   record ImplicitTeamUserSet {
     array<string> keybaseUsers;

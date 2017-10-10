@@ -138,6 +138,10 @@
         {
           "type": "Seqno",
           "name": "eldestSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "userEldestSeqno"
         }
       ]
     },
@@ -1141,6 +1145,33 @@
     },
     {
       "type": "record",
+      "name": "BulkRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "invited"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "alreadyInvited"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "malformed"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ImplicitTeamUserSet",
       "fields": [
         {
@@ -1551,6 +1582,27 @@
         }
       ],
       "response": null
+    },
+    "teamAddEmailsBulk": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "emails",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        }
+      ],
+      "response": "BulkRes"
     },
     "lookupImplicitTeam": {
       "request": [

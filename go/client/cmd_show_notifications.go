@@ -38,12 +38,14 @@ func (c *CmdShowNotifications) Run() error {
 		keybase1.NotifyUsersProtocol(display),
 		keybase1.NotifyFSProtocol(display),
 		keybase1.NotifyTrackingProtocol(display),
+		keybase1.NotifyGitProtocol(display),
 	}
 	channels := keybase1.NotificationChannels{
 		Session:  true,
 		Users:    true,
 		Kbfs:     true,
 		Tracking: true,
+		Git:      true,
 	}
 
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
@@ -140,4 +142,12 @@ func (d *notificationDisplay) FSSyncStatusResponse(
 
 func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
+}
+
+func (d *notificationDisplay) RepoChanged(_ context.Context, arg keybase1.RepoChangedArg) error {
+	return d.printf("Git repo changed: %#v\n", arg)
+}
+
+func (d *notificationDisplay) RepoDeleted(_ context.Context, arg keybase1.RepoDeletedArg) error {
+	return d.printf("Git repo deleted: %#v\n", arg)
 }

@@ -36,6 +36,10 @@ export type Tab =
   | GitTab
 
 function isValidInitialTab(tab: ?Tab) {
+  return isValidInitialTabString(tab)
+}
+
+function isValidInitialTabString(tab: ?string) {
   // Keep this in left-to-right (for mobile) or top-to-bottom (for
   // desktop) order in the app.
   if (isMobile) {
@@ -51,6 +55,7 @@ export {
   folderTab,
   gitTab,
   isValidInitialTab,
+  isValidInitialTabString,
   loginTab,
   peopleTab,
   profileTab,

@@ -347,6 +347,7 @@ protocol local {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
@@ -355,7 +356,10 @@ protocol local {
     array<string> writerNames;
     array<string> readerNames;
 
+    // Only ever set for KBFS conversations
     union { null, ConversationFinalizeInfo } finalizeInfo;
+    // Only ever set for TEAM and IMPTEAM conversations
+    array<string> resetNames;
   }
 
   enum ConversationErrorType {

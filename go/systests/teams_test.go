@@ -108,6 +108,51 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	}
 }
 
+func TestImplicitTeamRotateOnRevokePrivate(t *testing.T) {
+	testImplicitTeamRotateOnRevoke(t, false)
+}
+
+func TestImplicitTeamRotateOnRevokePublic(t *testing.T) {
+	t.Skip("Test skipped until CORE-6322: public team support")
+	testImplicitTeamRotateOnRevoke(t, true)
+}
+
+func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
+	t.Logf("public: %v", public)
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+
+	tt.addUser("bob")
+	bob := tt.users[1]
+
+	iTeamName := strings.Join([]string{alice.username, bob.username}, ",")
+
+	t.Logf("make an implicit team")
+	team, err := alice.lookupImplicitTeam(true /*create*/, iTeamName, public)
+	require.NoError(t, err)
+
+	// get the before state of the team
+	before, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), before.Generation())
+	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+
+	bob.revokePaperKey()
+	alice.waitForRotateByID(team, keybase1.Seqno(2))
+
+	// check that key was rotated for team
+	after, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "generation after rotate")
+
+	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
+		t.Fatal("team secret did not change when rotated")
+	}
+}
+
 type teamTester struct {
 	t     *testing.T
 	users []*userPlusDevice
@@ -361,7 +406,7 @@ func (u *userPlusDevice) waitForTeamIDChangedGregor(teamID keybase1.TeamID, toSe
 		case <-time.After(1 * time.Second):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID.String())
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
 func (u *userPlusDevice) drainGregor() {
@@ -377,7 +422,10 @@ func (u *userPlusDevice) drainGregor() {
 	}
 }
 
+// TODO this should use ID instead
 func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
+	u.tc.T.Logf("waiting for team rotate %s", team)
+
 	// jump start the clkr queue processing loop
 	u.kickTeamRekeyd()
 
@@ -395,6 +443,28 @@ func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
+func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
+	u.tc.T.Logf("waiting for team rotate %s", teamID)
+
+	// jump start the clkr queue processing loop
+	u.kickTeamRekeyd()
+
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.rotateCh:
+			u.tc.T.Logf("rotate received: %+v", arg)
+			if arg.TeamID.Eq(teamID) && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("rotate matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring rotate message")
+		case <-time.After(1 * time.Second):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
 func (u *userPlusDevice) waitForTeamChangedAndRotated(team string, toSeqno keybase1.Seqno) {
@@ -525,6 +595,14 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 func GetTeamForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*teams.Team, error) {
 	return teams.Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
+		ForceRepoll: true,
+	})
+}
+
+func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, public bool) (*teams.Team, error) {
+	return teams.Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		Public:      public,
 		ForceRepoll: true,
 	})
 }

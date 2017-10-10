@@ -631,12 +631,6 @@ func CurrentSaltpackVersion() saltpack.Version {
 }
 
 const (
-	SeqTypePublic      int = 1
-	SeqTypePrivate         = 2
-	SeqTypeSemiprivate     = 3
-)
-
-const (
 	RootTeamIDTag byte = 0x24
 	SubteamIDTag       = 0x25
 	InviteIDTag        = 0x27

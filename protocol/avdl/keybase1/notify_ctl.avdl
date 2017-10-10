@@ -20,6 +20,7 @@ protocol notifyCtl {
     boolean badges;
     boolean reachability;
     boolean team;
+    boolean git;
   }
 
   void setNotifications(NotificationChannels channels);

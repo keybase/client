@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+protocol NotifyGit {
+  import idl "common.avdl";
+
+  void repoChanged(Folder folder, TeamID teamID, RepoID repoID, string globalUniqueID) oneway;
+  void repoDeleted(Folder folder, TeamID teamID, RepoID repoID, string globalUniqueID) oneway;
+}

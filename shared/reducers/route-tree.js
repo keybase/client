@@ -12,31 +12,34 @@ import {
   routeClear,
   checkRouteState,
 } from '../route-tree'
-import {isValidInitialTab} from '../constants/tabs'
+import {isValidInitialTabString} from '../constants/tabs'
 
 const initialState = Constants.makeState()
 
-function loggedInUserNavigatedReducer(loggedInUserNavigated, action) {
+function computeLoggedInUserNavigated(navigationSource: Constants.NavigationSource, newSelectedTab: ?string) {
+  const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
+  if (!validNavigationSource) {
+    return false
+  }
+  return isValidInitialTabString(newSelectedTab)
+}
+
+function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, action) {
   const newLoggedInUserNavigated = (function() {
     switch (action.type) {
       case CommonConstants.resetStore:
         return false
 
-      case Constants.switchTo:
-        return true
-
       case Constants.navigateTo:
-        const payload = action.payload
-        const navigationSource: Constants.NavigationSource = payload.navigationSource
-        const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
-        const validTab = !payload.parentPath && payload.path.length >= 1 && isValidInitialTab(payload.path[0])
-        return loggedInUserNavigated || (validNavigationSource && validTab)
+        return (
+          loggedInUserNavigated ||
+          computeLoggedInUserNavigated(action.payload.navigationSource, newSelectedTab)
+        )
 
+      case Constants.switchTo:
       case Constants.navigateAppend:
-        return true
-
       case Constants.navigateUp:
-        return true
+        return loggedInUserNavigated || computeLoggedInUserNavigated('user', newSelectedTab)
 
       default:
         return loggedInUserNavigated
@@ -49,7 +52,9 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, action) {
       'to',
       newLoggedInUserNavigated,
       '; action: ',
-      action
+      action,
+      ', selected tab:',
+      newSelectedTab
     )
   }
   return newLoggedInUserNavigated
@@ -120,9 +125,13 @@ export default function routeTreeReducer(
   let newRouteDef
   let newRouteState
   try {
-    newLoggedInUserNavigated = loggedInUserNavigatedReducer(loggedInUserNavigated, action)
     newRouteDef = routeDefReducer(routeDef, action)
     newRouteState = routeStateReducer(routeDef, routeState, action)
+    newLoggedInUserNavigated = loggedInUserNavigatedReducer(
+      loggedInUserNavigated,
+      newRouteState && newRouteState.selected,
+      action
+    )
   } catch (err) {
     if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
       console.warn(

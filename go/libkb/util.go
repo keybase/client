@@ -703,6 +703,7 @@ type TimeTracer struct {
 
 func NewTimeTracer(ctx context.Context, log logger.Logger, clock clockwork.Clock, label string) *TimeTracer {
 	now := clock.Now()
+	log.CDebugf(ctx, "+ %s", label)
 	return &TimeTracer{
 		ctx:    ctx,
 		log:    log,

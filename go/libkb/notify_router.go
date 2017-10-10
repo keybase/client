@@ -53,11 +53,58 @@ type NotifyListener interface {
 	ChatTypingUpdate([]chat1.ConvTypingUpdate)
 	ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)
 	ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)
+	ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
 	TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet)
 	TeamDeleted(teamID keybase1.TeamID)
+	RepoChanged(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string)
+	RepoDeleted(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string)
+}
+
+type NoopNotifyListener struct{}
+
+func (n *NoopNotifyListener) Logout()                                                       {}
+func (n *NoopNotifyListener) Login(username string)                                         {}
+func (n *NoopNotifyListener) ClientOutOfDate(to, uri, msg string)                           {}
+func (n *NoopNotifyListener) UserChanged(uid keybase1.UID)                                  {}
+func (n *NoopNotifyListener) TrackingChanged(uid keybase1.UID, username NormalizedUsername) {}
+func (n *NoopNotifyListener) FSActivity(activity keybase1.FSNotification)                   {}
+func (n *NoopNotifyListener) FSEditListResponse(arg keybase1.FSEditListArg)                 {}
+func (n *NoopNotifyListener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)             {}
+func (n *NoopNotifyListener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                     {}
+func (n *NoopNotifyListener) FSEditListRequest(arg keybase1.FSEditListRequest)              {}
+func (n *NoopNotifyListener) FavoritesChanged(uid keybase1.UID)                             {}
+func (n *NoopNotifyListener) PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
+}
+func (n *NoopNotifyListener) KeyfamilyChanged(uid keybase1.UID)                                  {}
+func (n *NoopNotifyListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)      {}
+func (n *NoopNotifyListener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
+func (n *NoopNotifyListener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID,
+	finalizeInfo chat1.ConversationFinalizeInfo) {
+}
+func (n *NoopNotifyListener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID,
+	resolveInfo chat1.ConversationResolveInfo) {
+}
+func (n *NoopNotifyListener) ChatInboxStale(uid keybase1.UID) {}
+func (n *NoopNotifyListener) ChatThreadsStale(uid keybase1.UID, updates []chat1.ConversationStaleUpdate) {
+}
+func (n *NoopNotifyListener) ChatInboxSynced(uid keybase1.UID, syncRes chat1.ChatSyncResult)      {}
+func (n *NoopNotifyListener) ChatInboxSyncStarted(uid keybase1.UID)                               {}
+func (n *NoopNotifyListener) ChatTypingUpdate([]chat1.ConvTypingUpdate)                           {}
+func (n *NoopNotifyListener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)     {}
+func (n *NoopNotifyListener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID)  {}
+func (n *NoopNotifyListener) ChatResetConversation(uid keybase1.UID, convID chat1.ConversationID) {}
+func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                                            {}
+func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)                           {}
+func (n *NoopNotifyListener) ReachabilityChanged(r keybase1.Reachability)                         {}
+func (n *NoopNotifyListener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
+}
+func (n *NoopNotifyListener) TeamDeleted(teamID keybase1.TeamID) {}
+func (n *NoopNotifyListener) RepoChanged(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
+}
+func (n *NoopNotifyListener) RepoDeleted(folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -787,6 +834,35 @@ func (n *NotifyRouter) HandleChatLeftConversation(ctx context.Context, uid keyba
 	n.G().Log.CDebugf(ctx, "- Sent ChatLeftConversation notification")
 }
 
+func (n *NotifyRouter) HandleChatResetConversation(ctx context.Context, uid keybase1.UID,
+	convID chat1.ConversationID) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatResetConversation notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Chat {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatResetConversation(context.Background(), chat1.ChatResetConversationArg{
+					Uid:    uid,
+					ConvID: convID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatResetConversation(uid, convID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatResetConversation notification")
+}
+
 // HandlePaperKeyCached is called whenever a paper key is cached
 // in response to a rekey harassment.
 func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
@@ -1003,4 +1079,66 @@ func (n *NotifyRouter) HandleTeamDeleted(ctx context.Context, teamID keybase1.Te
 		n.listener.TeamDeleted(teamID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent TeamDeleted notification")
+}
+
+func (n *NotifyRouter) HandleRepoChanged(ctx context.Context, folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending RepoChanged notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Git {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyGitClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RepoChanged(context.Background(), keybase1.RepoChangedArg{
+					Folder:         folder,
+					TeamID:         teamID,
+					RepoID:         repoID,
+					GlobalUniqueID: globalUniqueID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.RepoChanged(folder, teamID, repoID, globalUniqueID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent RepoChanged notification")
+}
+
+func (n *NotifyRouter) HandleRepoDeleted(ctx context.Context, folder keybase1.Folder, teamID keybase1.TeamID, repoID keybase1.RepoID, globalUniqueID string) {
+	if n == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending RepoDeleted notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Git {
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyGitClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RepoDeleted(context.Background(), keybase1.RepoDeletedArg{
+					Folder:         folder,
+					TeamID:         teamID,
+					RepoID:         repoID,
+					GlobalUniqueID: globalUniqueID,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.RepoDeleted(folder, teamID, repoID, globalUniqueID)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent RepoDeleted notification")
 }

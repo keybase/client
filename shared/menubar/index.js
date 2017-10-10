@@ -7,8 +7,6 @@ import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
-import {exec} from 'child_process'
-import {isWindows} from '../constants/platform'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
@@ -147,18 +145,6 @@ class Menubar extends Component<Props> {
     this._closeMenubar()
   }
 
-  _openShell() {
-    if (isWindows) {
-      let shellCmd =
-        'start "Keybase Shell" "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Keybase\\Keybase Shell.lnk"'
-      exec(shellCmd, err => {
-        if (err) {
-          console.log('Error starting Keybase Shell:', err)
-        }
-      })
-    }
-  }
-
   _quit() {
     executeActionsForContext('quitButton')
   }
@@ -183,7 +169,6 @@ class Menubar extends Component<Props> {
           this._showMain()
           tab && this.props.switchTab(tab)
         }}
-        openShell={() => this._openShell()}
         showBug={() => this._showBug()}
         username={this.props.username}
         kbfsStatus={this.props.kbfsStatus}

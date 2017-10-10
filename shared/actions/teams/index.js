@@ -57,6 +57,33 @@ const _leaveTeam = function(action: Constants.LeaveTeam) {
   })
 }
 
+const _addToTeam = function*(action: Constants.AddToTeam) {
+  const {payload: {name, email, username, role, sendChatNotification}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
+  yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+    param: {
+      name: name,
+      email: email,
+      username: username,
+      role: role && RpcTypes.TeamsTeamRole[role],
+      sendChatNotification: sendChatNotification,
+    },
+  })
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+}
+
+const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
+  const {payload: {name, username}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
+  yield call(RpcTypes.teamsTeamIgnoreRequestRpcPromise, {
+    param: {
+      name: name,
+      username: username,
+    },
+  })
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+}
+
 function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {
   if (!ChatConstants.isPendingConversationIDKey(conversationIDKey)) return null
 
@@ -107,6 +134,18 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       },
     })
 
+    // Get requests to join
+    const requests: RpcTypes.TeamJoinRequest[] = yield call(RpcTypes.teamsTeamListRequestsRpcPromise)
+    requests.sort((a, b) => a.username.localeCompare(b.username))
+
+    const requestMap = requests.reduce((reqMap, req) => {
+      if (!reqMap[req.name]) {
+        reqMap[req.name] = I.List()
+      }
+      reqMap[req.name] = reqMap[req.name].push({username: req.username})
+      return reqMap
+    }, {})
+
     const infos = []
     const types = ['admins', 'owners', 'readers', 'writers']
     types.forEach(type => {
@@ -121,7 +160,15 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
-    yield put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]])))
+    // if we have no requests for this team, make sure we don't hold on to any old ones
+    if (!requestMap[teamname]) {
+      yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
+    }
+
+    yield all([
+      put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
+      put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
+    ])
   } finally {
     yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
   }
@@ -271,6 +318,8 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:toggleChannelMembership', _toggleChannelMembership)
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
+  yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)
+  yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
 }
 
 export default teamsSaga

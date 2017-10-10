@@ -34,6 +34,7 @@ type TeamLoader struct {
 	world   LoaderContext
 	storage *Storage
 	// Single-flight locks per team ID.
+	// (Private and public loads of the same ID will block each other, should be fine)
 	locktab libkb.LockTable
 }
 
@@ -64,14 +65,27 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	return l.load1(ctx, me, lArg)
 }
 
-func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err error) {
+func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) (err error) {
+	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v,public:%v)", teamID, public), func() error { return err })()
+
+	// Single-flight lock by team ID.
+	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
+	defer lock.Release(ctx)
+
+	return l.storage.Delete(ctx, teamID, public)
+}
+
+func (l *TeamLoader) DeleteBoth(ctx context.Context, teamID keybase1.TeamID) (err error) {
 	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v)", teamID), func() error { return err })()
 
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 
-	return l.storage.Delete(ctx, teamID)
+	return libkb.PickFirstError(
+		l.storage.Delete(ctx, teamID, true),
+		l.storage.Delete(ctx, teamID, false),
+	)
 }
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
@@ -136,11 +150,11 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		return nil, fmt.Errorf("team loader fault: got nil from load2")
 	}
 
-	// Sanity check that secretless teams never escape.
-	// They are meant only to be returned by recursively called load2's
-	// and used internally by ImplicitAdmins.
-	if ret.team.Secretless {
-		return nil, fmt.Errorf("team loader fault: got secretless team")
+	// Only public teams are allowed to be behind on secrets.
+	// This is allowed because you can load a public team you're not in.
+	if !l.hasSyncedSecrets(&ret.team) && !ret.team.Chain.Public {
+		// this should not happen
+		return nil, fmt.Errorf("team is missing secrets")
 	}
 
 	// Check team name on the way out
@@ -209,7 +223,7 @@ type load2ResT struct {
 // It is `playchain` described in the pseudocode in teamplayer.txt
 func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, err error) {
 	ctx = libkb.WithLogTag(ctx, "LT") // Load Team
-	traceLabel := fmt.Sprintf("TeamLoader#load2(%v)", arg.teamID)
+	traceLabel := fmt.Sprintf("TeamLoader#load2(%v, public:%v)", arg.teamID, arg.public)
 	if len(arg.reason) > 0 {
 		traceLabel = traceLabel + " '" + arg.reason + "'"
 	}
@@ -230,7 +244,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 	var ret *keybase1.TeamData
 	if !arg.forceFullReload {
 		// Load from cache
-		ret = l.storage.Get(ctx, arg.teamID)
+		ret = l.storage.Get(ctx, arg.teamID, arg.public)
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -244,12 +258,6 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 	var cachedName *keybase1.TeamName
 	if ret != nil && !ret.Name.IsNil() {
 		cachedName = &ret.Name
-	}
-
-	// Throw out the cache result if it is secretless and this is not a recursive load
-	if ret != nil && arg.readSubteamID == nil && ret.Secretless {
-		l.G().Log.CDebugf(ctx, "TeamLoader discarding secretless snapshot")
-		ret = nil
 	}
 
 	// Determine whether to repoll merkle.
@@ -297,9 +305,45 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 		}
 	}
 
+	var fetchLinksAndOrSecrets bool
+	if ret == nil {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: no cache")
+		// We have no cache
+		fetchLinksAndOrSecrets = true
+	} else if ret.Chain.LastSeqno < lastSeqno {
+		l.G().Log.CDebugf(ctx, "TeamLoader fetching: chain update")
+		// The cache is definitely behind
+		fetchLinksAndOrSecrets = true
+	} else if !l.hasSyncedSecrets(ret) {
+		// The cached secrets are behind the cached chain.
+		// We may need to hit the server for secrets, even though there are no new links.
+
+		if arg.needAdmin {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedAdmin")
+			// Admins should always have up-to-date secrets
+			fetchLinksAndOrSecrets = true
+		}
+		if err := l.satisfiesNeedKeyGeneration(ctx, arg.needKeyGeneration, ret); err != nil {
+			l.G().Log.CDebugf(ctx, "TeamLoader fetching: NeedKeyGeneration: %v", err)
+			fetchLinksAndOrSecrets = true
+		}
+		if arg.readSubteamID == nil {
+			// This is not a recursive load.
+			// If we are in the team, we should have the keys.
+			myCachedRole, err := TeamSigChainState{ret.Chain}.GetUserRole(arg.me)
+			if err != nil {
+				myCachedRole = keybase1.TeamRole_NONE
+			}
+			if myCachedRole.IsReaderOrAbove() {
+				l.G().Log.CDebugf(ctx, "TeamLoader fetching: role: %v", myCachedRole)
+				fetchLinksAndOrSecrets = true
+			}
+		}
+	}
+
 	// Pull new links from the server
 	var teamUpdate *rawTeam
-	if ret == nil || ret.Chain.LastSeqno < lastSeqno {
+	if fetchLinksAndOrSecrets {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
 		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, arg.public, lows, arg.readSubteamID)
@@ -379,12 +423,10 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 			if arg.readSubteamID == nil {
 				return nil, fmt.Errorf("unexpected subteam reader result")
 			}
-			// This is now a secretless team. This TeamData will never again contain up to date secrets.
-			// A full reload is required to get secrets back into sync.
-			ret.Secretless = true
 		} else {
-			// Add the secrets unless this is a secretless team.
-			if !ret.Secretless && !ret.Chain.Public {
+			// Add the secrets.
+			// If it's a public team, there might not be secrets. (If we're not in the team)
+			if !ret.Chain.Public || (teamUpdate.Box != nil) {
 				ret, err = l.addSecrets(ctx, ret, arg.me, teamUpdate.Box, teamUpdate.Prevs, teamUpdate.ReaderKeyMasks)
 				if err != nil {
 					return nil, fmt.Errorf("loading team secrets: %v", err)
@@ -404,7 +446,7 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 	}
 
 	// Recalculate the team name.
-	// This must always run to pick up changes in chain and off-chain with ancestor renames.
+	// This must always run to pick up changes on chain and off-chain with ancestor renames.
 	// Also because without this a subteam could claim any parent in its name.
 	newName, err := l.calculateName(ctx, ret, arg.me, readSubteamID, arg.staleOK)
 	if err != nil {
@@ -416,6 +458,8 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 		ret = &copy
 		ret.Name = newName
 	}
+
+	l.logIfUnsyncedSecrets(ctx, ret)
 
 	// Cache the validated result
 	// Mutating this field is safe because only TeamLoader
@@ -546,9 +590,15 @@ func (l *TeamLoader) load2CheckReturn(ctx context.Context, arg load2ArgT, res *k
 	return nil
 }
 
-// Whether the user is an admin at the snapshot and there are no stubbed links.
+// Whether the user is an admin at the snapshot, and there are no stubbed links, and keys are up to date.
 func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVersion, teamData *keybase1.TeamData) bool {
 	if teamData == nil {
+		return false
+	}
+	if (TeamSigChainState{inner: teamData.Chain}.HasAnyStubbedLinks()) {
+		return false
+	}
+	if !l.hasSyncedSecrets(teamData) {
 		return false
 	}
 	state := TeamSigChainState{inner: teamData.Chain}
@@ -569,9 +619,6 @@ func (l *TeamLoader) satisfiesNeedAdmin(ctx context.Context, me keybase1.UserVer
 		if !yes {
 			return false
 		}
-	}
-	if (TeamSigChainState{inner: teamData.Chain}.HasAnyStubbedLinks()) {
-		return false
 	}
 	return true
 }
@@ -653,7 +700,7 @@ func (l *TeamLoader) isImplicitAdminOf(ctx context.Context, teamID keybase1.Team
 	return false, nil
 }
 
-// Whether the snapshot has loaded at least up to the key generation.
+// Whether the snapshot has loaded at least up to the key generation and has the secret.
 func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGeneration keybase1.PerTeamKeyGeneration, state *keybase1.TeamData) error {
 	if needKeyGeneration == 0 {
 		return nil
@@ -667,6 +714,10 @@ func (l *TeamLoader) satisfiesNeedKeyGeneration(ctx context.Context, needKeyGene
 	}
 	if needKeyGeneration > key.Gen {
 		return fmt.Errorf("team key generation too low: %v < %v", key.Gen, needKeyGeneration)
+	}
+	_, ok := state.PerTeamKeySeeds[needKeyGeneration]
+	if !ok {
+		return fmt.Errorf("team key secret missing for generation: %v", needKeyGeneration)
 	}
 	return nil
 }
@@ -749,12 +800,27 @@ func (l *TeamLoader) isFresh(ctx context.Context, cachedAt keybase1.Time) bool {
 	return fresh
 }
 
+// Whether the teams secrets are synced to the same point as its sigchain
+func (l *TeamLoader) hasSyncedSecrets(state *keybase1.TeamData) bool {
+	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
+	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	return onChainGen == offChainGen
+}
+
+func (l *TeamLoader) logIfUnsyncedSecrets(ctx context.Context, state *keybase1.TeamData) {
+	onChainGen := keybase1.PerTeamKeyGeneration(len(state.Chain.PerTeamKeys))
+	offChainGen := keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
+	if onChainGen != offChainGen {
+		l.G().Log.CDebugf(ctx, "TeamLoader unsynced secrets local:%v != chain:%v ", offChainGen, onChainGen)
+	}
+}
+
 func (l *TeamLoader) lows(ctx context.Context, state *keybase1.TeamData) getLinksLows {
 	var lows getLinksLows
 	if state != nil {
 		chain := TeamSigChainState{inner: state.Chain}
 		lows.Seqno = chain.GetLatestSeqno()
-		lows.PerTeamKey = chain.GetLatestGeneration()
+		lows.PerTeamKey = keybase1.PerTeamKeyGeneration(len(state.PerTeamKeySeeds))
 		// Use an arbitrary application to get the number of known RKMs.
 		rkms, ok := state.ReaderKeyMasks[keybase1.TeamApplication_CHAT]
 		if ok {
