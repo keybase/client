@@ -270,7 +270,7 @@ func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
 			FirstValidKeyGen)
 		localTeams[i] = TeamInfo{
 			Name: teams[i],
-			TID:  keybase1.MakeTestTeamID(uint32(i + 1)),
+			TID:  keybase1.MakeTestTeamID(uint32(i+1), false),
 			CryptKeys: map[KeyGen]kbfscrypto.TLFCryptKey{
 				FirstValidKeyGen: cryptKey,
 			},

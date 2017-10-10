@@ -105,8 +105,8 @@ func TestMakeHandleFailures(t *testing.T) {
 
 	// Any handle with a team must be a single-team handle.
 	w = []keybase1.UserOrTeamID{
-		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
-		keybase1.MakeTestTeamID(4).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(3, false).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(4, false).AsUserOrTeam(),
 	}
 	r = []keybase1.UserOrTeamID{}
 	_, err = MakeHandle(w, r, nil, nil, nil)
@@ -114,14 +114,14 @@ func TestMakeHandleFailures(t *testing.T) {
 
 	w = []keybase1.UserOrTeamID{
 		keybase1.MakeTestUID(4).AsUserOrTeam(),
-		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(3, false).AsUserOrTeam(),
 	}
 	r = []keybase1.UserOrTeamID{}
 	_, err = MakeHandle(w, r, nil, nil, nil)
 	assert.Equal(t, errInvalidWriter, err)
 
 	w = []keybase1.UserOrTeamID{
-		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(3, false).AsUserOrTeam(),
 		keybase1.MakeTestUID(4).AsUserOrTeam(),
 	}
 	r = []keybase1.UserOrTeamID{}
@@ -129,7 +129,7 @@ func TestMakeHandleFailures(t *testing.T) {
 	assert.Equal(t, errInvalidWriter, err)
 
 	w = []keybase1.UserOrTeamID{
-		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(3, false).AsUserOrTeam(),
 	}
 	r = []keybase1.UserOrTeamID{
 		keybase1.MakeTestUID(4).AsUserOrTeam(),
@@ -142,7 +142,7 @@ func TestMakeHandleFailures(t *testing.T) {
 		keybase1.MakeTestUID(5).AsUserOrTeam(),
 	}
 	r = []keybase1.UserOrTeamID{
-		keybase1.MakeTestTeamID(3).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(3, false).AsUserOrTeam(),
 	}
 	_, err = MakeHandle(w, r, nil, nil, nil)
 	assert.Equal(t, errInvalidReader, err)
@@ -287,7 +287,7 @@ func TestHandleAccessorsPublic(t *testing.T) {
 
 func TestHandleAccessorsSingleTeam(t *testing.T) {
 	w := []keybase1.UserOrTeamID{
-		keybase1.MakeTestTeamID(4).AsUserOrTeam(),
+		keybase1.MakeTestTeamID(4, false).AsUserOrTeam(),
 	}
 
 	h, err := MakeHandle(
