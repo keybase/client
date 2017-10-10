@@ -83,13 +83,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 	}
 
 	if arg.SendChatNotification {
-		teamDetails, err := teams.Details(ctx, h.G().ExternalG(), teamName.String(), true)
-		if err != nil {
-			h.G().Log.CDebugf(ctx, "failed to get team details for welcome message: %s", err)
-			// Just bail with no error here
-			return res, nil
-		}
-		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), teamDetails,
+		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(),
 			teamName.String(), h.G().Env.GetUsername().String())
 	}
 	return res, nil
@@ -147,14 +141,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return result, nil
 	}
 
-	teamDetails, err := teams.Details(ctx, h.G().ExternalG(), arg.Name, true)
-	if err != nil {
-		h.G().Log.CDebugf(ctx, "failed to get team details for welcome message: %s", err)
-		// Just bail with no error here
-		return result, nil
-	}
-
-	result.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), teamDetails, arg.Name,
+	result.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), arg.Name,
 		result.User.Username)
 	return result, nil
 }

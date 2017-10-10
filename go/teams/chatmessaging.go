@@ -11,14 +11,19 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, teamDetails keybase1.TeamDetails,
-	team, user string) (res bool) {
+func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team, user string) (res bool) {
 	var err error
 	defer func() {
 		if err != nil {
 			g.Log.CWarningf(ctx, "failed to send team welcome message: %s", err.Error())
 		}
 	}()
+
+	teamDetails, err := Details(ctx, g, team, true)
+	if err != nil {
+		g.Log.CDebugf(ctx, "failed to get team details for welcome message: %s", err)
+		return false
+	}
 
 	var ownerNames, adminNames, writerNames, readerNames []string
 	for _, owner := range teamDetails.Members.Owners {
