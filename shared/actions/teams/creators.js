@@ -73,6 +73,7 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
 }
 
 export {
+  addPeopleToTeam,
   addToTeam,
   createChannel,
   createNewTeam,
