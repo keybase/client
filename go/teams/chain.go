@@ -675,6 +675,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, err
 	}
 
+	if teamID.IsPublic() != team.Public {
+		return res, fmt.Errorf("link specified public:%v but ID is public:%v",
+			team.Public, teamID.IsPublic())
+	}
+
 	if prevState != nil && !prevState.inner.Id.Equal(teamID) {
 		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.inner.Id.String())
 	}
@@ -783,7 +788,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// Check the team ID
 		// assert that team_name = hash(team_id)
 		// this is only true for root teams
-		if !teamID.Equal(teamName.ToTeamID()) {
+		if !teamID.Equal(teamName.ToTeamID(team.Public)) {
 			return res, fmt.Errorf("team id:%s does not match team name:%s", teamID, teamName)
 		}
 		if teamID.IsSubTeam() {

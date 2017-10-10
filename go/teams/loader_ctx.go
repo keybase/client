@@ -137,7 +137,7 @@ func (l *LoaderContextG) resolveNameToIDUntrusted(ctx context.Context, teamName 
 	public bool) (id keybase1.TeamID, err error) {
 	// For root team names, just hash.
 	if teamName.IsRootTeam() {
-		return teamName.ToTeamID(), nil
+		return teamName.ToTeamID(public), nil
 	}
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
