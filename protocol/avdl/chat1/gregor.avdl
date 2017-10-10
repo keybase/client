@@ -93,6 +93,7 @@ protocol gregor {
         InboxVers inboxVers;
         array<ConversationMember> joined;
         array<ConversationMember> removed;
+        array<ConversationMember> reset;
         union { null, UnreadUpdate } unreadUpdate;
     }
 }

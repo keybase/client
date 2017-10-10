@@ -303,6 +303,13 @@
           "name": "removed"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "ConversationMember"
+          },
+          "name": "reset"
+        },
+        {
           "type": [
             null,
             "UnreadUpdate"

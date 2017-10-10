@@ -274,7 +274,7 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 	}
 	conv := ib.ConvsUnverified[0]
 	switch conv.Conv.ReaderInfo.Status {
-	case chat1.ConversationMemberStatus_ACTIVE:
+	case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_RESET:
 		return true, rl, nil
 	default:
 		return false, rl, nil
@@ -404,7 +404,7 @@ func (s *RemoteInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joined []chat1.ConversationMember, removed []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
+	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
 	return res, err
 }
 
@@ -711,7 +711,7 @@ func (s *HybridInboxSource) TlfFinalize(ctx context.Context, uid gregor1.UID, ve
 }
 
 func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	joined []chat1.ConversationMember, removed []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
+	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember) (res types.MembershipUpdateRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 
 	// Separate into joins and removed on uid, and then on other users
@@ -747,9 +747,17 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 		res.UserJoinedConvs = ibox.Convs
 	}
 
+	for _, r := range resets {
+		if r.Uid.Eq(uid) {
+			res.UserResetConvs = append(res.UserResetConvs, r.ConvID)
+		} else {
+			res.OthersResetConvs = append(res.OthersResetConvs, r)
+		}
+	}
+
 	ib := storage.NewInbox(s.G(), uid)
 	if cerr := ib.MembershipUpdate(ctx, vers, userJoinedConvs, res.UserRemovedConvs,
-		res.OthersJoinedConvs, res.OthersRemovedConvs); cerr != nil {
+		res.OthersJoinedConvs, res.OthersRemovedConvs, res.UserResetConvs, res.OthersResetConvs); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return res, err
 	}
@@ -896,6 +904,27 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 	return foundMsgs, chat1.ConversationErrorType_NONE, nil
 }
 
+func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper libkb.UIDMapper,
+	conv chat1.Conversation) (res []string) {
+	if len(conv.Metadata.ResetList) == 0 {
+		return res
+	}
+
+	var kuids []keybase1.UID
+	for _, uid := range conv.Metadata.ResetList {
+		kuids = append(kuids, keybase1.UID(uid.String()))
+	}
+	rows, err := uidMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
+	if err != nil {
+		s.Debug(ctx, "getResetUserNames: failed to run uid mapper: %s", err)
+		return res
+	}
+	for _, row := range rows {
+		res = append(res, row.NormalizedUsername.String())
+	}
+	return res
+}
+
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
 
@@ -913,13 +942,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationRemote.GetConvID(), s.offline, conversationRemote.Metadata.Visibility)
 
 	conversationLocal.Info = chat1.ConversationInfoLocal{
-		Id:          conversationRemote.Metadata.ConversationID,
-		Visibility:  conversationRemote.Metadata.Visibility,
-		Triple:      conversationRemote.Metadata.IdTriple,
-		Status:      conversationRemote.Metadata.Status,
-		MembersType: conversationRemote.Metadata.MembersType,
-		TeamType:    conversationRemote.Metadata.TeamType,
-		Version:     conversationRemote.Metadata.Version,
+		Id:           conversationRemote.Metadata.ConversationID,
+		Visibility:   conversationRemote.Metadata.Visibility,
+		Triple:       conversationRemote.Metadata.IdTriple,
+		Status:       conversationRemote.Metadata.Status,
+		MembersType:  conversationRemote.Metadata.MembersType,
+		MemberStatus: conversationRemote.ReaderInfo.Status,
+		TeamType:     conversationRemote.Metadata.TeamType,
+		Version:      conversationRemote.Metadata.Version,
 	}
 	conversationLocal.Info.FinalizeInfo = conversationRemote.Metadata.FinalizeInfo
 	for _, super := range conversationRemote.Metadata.Supersedes {
@@ -1110,6 +1140,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 		if ok {
+			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
 			conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
 				ctx,
 				uloader,
@@ -1129,6 +1160,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
 
+		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
 		rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
 		unames := make([]libkb.NormalizedUsername, len(rows), len(rows))
 		for i, row := range rows {

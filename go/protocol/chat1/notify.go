@@ -170,16 +170,16 @@ func (o FailedMessageInfo) DeepCopy() FailedMessageInfo {
 }
 
 type MembersUpdateInfo struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	Member string         `codec:"member" json:"member"`
-	Joined bool           `codec:"joined" json:"joined"`
+	ConvID ConversationID           `codec:"convID" json:"convID"`
+	Member string                   `codec:"member" json:"member"`
+	Status ConversationMemberStatus `codec:"status" json:"status"`
 }
 
 func (o MembersUpdateInfo) DeepCopy() MembersUpdateInfo {
 	return MembersUpdateInfo{
 		ConvID: o.ConvID.DeepCopy(),
 		Member: o.Member,
-		Joined: o.Joined,
+		Status: o.Status.DeepCopy(),
 	}
 }
 
@@ -749,6 +749,18 @@ func (o ChatLeftConversationArg) DeepCopy() ChatLeftConversationArg {
 	}
 }
 
+type ChatResetConversationArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+}
+
+func (o ChatResetConversationArg) DeepCopy() ChatResetConversationArg {
+	return ChatResetConversationArg{
+		Uid:    o.Uid.DeepCopy(),
+		ConvID: o.ConvID.DeepCopy(),
+	}
+}
+
 type ChatInboxSyncStartedArg struct {
 	Uid keybase1.UID `codec:"uid" json:"uid"`
 }
@@ -781,6 +793,7 @@ type NotifyChatInterface interface {
 	ChatTypingUpdate(context.Context, []ConvTypingUpdate) error
 	ChatJoinedConversation(context.Context, ChatJoinedConversationArg) error
 	ChatLeftConversation(context.Context, ChatLeftConversationArg) error
+	ChatResetConversation(context.Context, ChatResetConversationArg) error
 	ChatInboxSyncStarted(context.Context, keybase1.UID) error
 	ChatInboxSynced(context.Context, ChatInboxSyncedArg) error
 }
@@ -933,6 +946,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatResetConversation": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatResetConversationArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatResetConversationArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatResetConversationArg)(nil), args)
+						return
+					}
+					err = i.ChatResetConversation(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 			"ChatInboxSyncStarted": {
 				MakeArg: func() interface{} {
 					ret := make([]ChatInboxSyncStartedArg, 1)
@@ -1018,6 +1047,11 @@ func (c NotifyChatClient) ChatJoinedConversation(ctx context.Context, __arg Chat
 
 func (c NotifyChatClient) ChatLeftConversation(ctx context.Context, __arg ChatLeftConversationArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatLeftConversation", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatResetConversation(ctx context.Context, __arg ChatResetConversationArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatResetConversation", []interface{}{__arg})
 	return
 }
 

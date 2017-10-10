@@ -61,7 +61,8 @@ protocol teams {
   record TeamMember {
     UID uid;
     TeamRole role;
-    Seqno eldestSeqno;
+    Seqno eldestSeqno;     // eldest seqno of the team member record
+    Seqno userEldestSeqno; // actual eldest seqno of the user
   }
 
   record TeamMembers {
