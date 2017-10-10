@@ -16,7 +16,11 @@ import {isValidInitialTabString} from '../constants/tabs'
 
 const initialState = Constants.State()
 
-function onValidTab(newRouteState) {
+function computeLoggedInUserNavigated(navigationSource: Constants.NavigationSource, newRouteState) {
+  const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
+  if (!validNavigationSource) {
+    return false
+  }
   if (!newRouteState) {
     return false
   }
@@ -30,17 +34,16 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, newRouteState, acti
       case CommonConstants.resetStore:
         return false
 
-      case Constants.navigateTo: {
-        const payload = action.payload
-        const navigationSource: Constants.NavigationSource = payload.navigationSource
-        const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
-        return loggedInUserNavigated || (validNavigationSource && onValidTab(newRouteState))
-      }
+      case Constants.navigateTo:
+        return (
+          loggedInUserNavigated ||
+          computeLoggedInUserNavigated(action.payload.navigationSource, newRouteState)
+        )
 
       case Constants.switchTo:
       case Constants.navigateAppend:
       case Constants.navigateUp:
-        return loggedInUserNavigated || onValidTab(newRouteState)
+        return loggedInUserNavigated || computeLoggedInUserNavigated('user', newRouteState)
 
       default:
         return loggedInUserNavigated
