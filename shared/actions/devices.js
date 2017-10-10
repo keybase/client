@@ -92,7 +92,7 @@ function* _deviceListSaga(): SagaGenerator<any, any> {
     )
 
     const deviceIDs = records.sort(_sortRecords).map(r => r.deviceID)
-    const entities = keyBy(records, 'deviceID')
+    const entities = I.fromJS(keyBy(records, 'deviceID'))
 
     yield put(replaceEntity(['devices'], entities))
     yield put(loaded(deviceIDs))

@@ -198,14 +198,14 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
       leftUsername: r.rightUsername,
       leftIcon: null,
     }))
-    yield put(EntityAction.mergeEntity(['search', 'searchResults'], keyBy(rows, 'id')))
-    yield put(EntityAction.mergeEntity(['search', 'searchResults'], keyBy(kbRows, 'id')))
+    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(rows, 'id'))))
+    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(kbRows, 'id'))))
 
     const ids = rows.map(r => r.id)
-    yield put(EntityAction.mergeEntity(['search', 'searchQueryToResult'], {[searchQuery]: ids}))
+    yield put(EntityAction.mergeEntity(['search', 'searchQueryToResult'], {[searchQuery]: I.List(ids)}))
     yield put(Creators.finishedSearch(searchKey, ids, term, service))
     yield all([
-      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: ids})),
+      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: I.List(ids)})),
       put(EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], {[searchKey]: false})),
     ])
   } catch (error) {
@@ -228,9 +228,9 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSu
   const rows = suggestions.map(person => _parseSuggestion(person.username))
   const ids = rows.map(r => r.id)
 
-  yield put(EntityAction.mergeEntity(['search', 'searchResults'], keyBy(rows, 'id')))
+  yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(rows, 'id'))))
   yield all([
-    put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: ids})),
+    put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: I.List(ids)})),
     put(EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], {[searchKey]: true})),
   ])
   yield put(Creators.finishedSearch(searchKey, ids, '', 'Keybase', true))
