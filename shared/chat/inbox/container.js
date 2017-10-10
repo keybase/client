@@ -130,14 +130,14 @@ const getFilteredSmallRowItems = createSelector(
       .toArray()
       .map(conversationIDKey => {
         const i = inbox.get(conversationIDKey)
-        return i
-          ? {
-              conversationIDKey,
-              filterScore: scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou),
-            }
-          : null
+        return {
+          conversationIDKey,
+          filterScore: i
+            ? scoreFilter(lcFilter, i.teamname || '', i.get('participants').toArray(), lcYou)
+            : 0,
+        }
       })
-      .filter(obj => obj && obj.filterScore > 0)
+      .filter(obj => obj.filterScore > 0)
       .sort((a, b) => b.filterScore - a.filterScore)
       .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
   }
