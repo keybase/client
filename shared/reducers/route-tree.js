@@ -16,19 +16,15 @@ import {isValidInitialTabString} from '../constants/tabs'
 
 const initialState = Constants.State()
 
-function computeLoggedInUserNavigated(navigationSource: Constants.NavigationSource, newRouteState) {
+function computeLoggedInUserNavigated(navigationSource: Constants.NavigationSource, newSelectedTab: ?string) {
   const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
   if (!validNavigationSource) {
     return false
   }
-  if (!newRouteState) {
-    return false
-  }
-  const path = getPath(newRouteState)
-  return isValidInitialTabString(path.first())
+  return isValidInitialTabString(newSelectedTab)
 }
 
-function loggedInUserNavigatedReducer(loggedInUserNavigated, newRouteState, action) {
+function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, action) {
   const newLoggedInUserNavigated = (function() {
     switch (action.type) {
       case CommonConstants.resetStore:
@@ -37,13 +33,13 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, newRouteState, acti
       case Constants.navigateTo:
         return (
           loggedInUserNavigated ||
-          computeLoggedInUserNavigated(action.payload.navigationSource, newRouteState)
+          computeLoggedInUserNavigated(action.payload.navigationSource, newSelectedTab)
         )
 
       case Constants.switchTo:
       case Constants.navigateAppend:
       case Constants.navigateUp:
-        return loggedInUserNavigated || computeLoggedInUserNavigated('user', newRouteState)
+        return loggedInUserNavigated || computeLoggedInUserNavigated('user', newSelectedTab)
 
       default:
         return loggedInUserNavigated
@@ -129,7 +125,11 @@ export default function routeTreeReducer(
   try {
     newRouteDef = routeDefReducer(routeDef, action)
     newRouteState = routeStateReducer(routeDef, routeState, action)
-    newLoggedInUserNavigated = loggedInUserNavigatedReducer(loggedInUserNavigated, newRouteState, action)
+    newLoggedInUserNavigated = loggedInUserNavigatedReducer(
+      loggedInUserNavigated,
+      newRouteState && newRouteState.selected,
+      action
+    )
   } catch (err) {
     if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
       console.warn(
