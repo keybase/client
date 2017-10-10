@@ -137,12 +137,10 @@ export const RoleConfirm = ({
   const permissions = permissionMap[selectedRole]
 
   // Hard-code lists to make height sizing simpler
-  const cans =
-    permissions.can &&
-    permissions.can.map((perm, idx) => <PermissionRow key={idx} can={true} permission={perm} />)
-  const cannots =
-    permissions.cannot &&
-    permissions.cannot.map((perm, idx) => <PermissionRow key={idx} can={false} permission={perm} />)
+  const cans = (permissions.can || [])
+    .map((perm, idx) => <PermissionRow key={idx} can={true} permission={perm} />)
+  const cannots = (permissions.cannot || [])
+    .map((perm, idx) => <PermissionRow key={idx} can={false} permission={perm} />)
 
   // Handle a / an
   const article = selectedRole === 'owner' || selectedRole === 'admin' ? 'an' : 'a'
@@ -202,11 +200,11 @@ export const RoleConfirm = ({
         <Text type="BodySemibold">{introText}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cans}</Box>
-      {cannots &&
+      {cannots.length > 0 &&
         <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
           <Text type="BodySemibold">They won't be able to:</Text>
         </Box>}
-      {cannots && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
+      {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
       <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.small}}>
         <Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
         <Button
