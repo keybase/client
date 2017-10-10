@@ -47,7 +47,7 @@ const routeTree = makeRouteDefNode({
         rolePicker: {
           children: {},
           component: RolePicker,
-          tags: {layerOnTop: !isMobile},
+          tags: makeLeafTags({layerOnTop: !isMobile}),
         },
       },
       component: Team,

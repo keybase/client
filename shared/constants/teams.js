@@ -66,7 +66,7 @@ export const makeChannelInfo: I.RecordFactory<_ChannelInfo> = I.Record({
 })
 
 type _MemberInfo = {
-  type: TeamRoleType,
+  type: ?TeamRoleType,
   username: string,
 }
 
@@ -76,7 +76,11 @@ export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
   username: '',
 })
 
-export const RequestInfo = I.Record({
+type _RequestInfo = {
+  username: string,
+}
+export type RequestInfo = I.RecordOf<_RequestInfo>
+export const makeRequestInfo: I.RecordFactory<_RequestInfo> = I.Record({
   username: '',
 })
 
