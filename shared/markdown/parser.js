@@ -2592,26 +2592,23 @@ function peg$parse(input, options) {
       s3 = peg$FAILED;
     }
     if (s3 !== peg$FAILED) {
-      s4 = peg$parseInlineDelimiter();
+      s4 = peg$parseLineTerminatorSequence();
       if (s4 === peg$FAILED) {
-        s4 = peg$parseLineTerminatorSequence();
-        if (s4 === peg$FAILED) {
-          s4 = peg$currPos;
-          peg$silentFails++;
-          if (input.length > peg$currPos) {
-            s5 = input.charAt(peg$currPos);
-            peg$currPos++;
-          } else {
-            s5 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c2); }
-          }
-          peg$silentFails--;
-          if (s5 === peg$FAILED) {
-            s4 = void 0;
-          } else {
-            peg$currPos = s4;
-            s4 = peg$FAILED;
-          }
+        s4 = peg$currPos;
+        peg$silentFails++;
+        if (input.length > peg$currPos) {
+          s5 = input.charAt(peg$currPos);
+          peg$currPos++;
+        } else {
+          s5 = peg$FAILED;
+          if (peg$silentFails === 0) { peg$fail(peg$c2); }
+        }
+        peg$silentFails--;
+        if (s5 === peg$FAILED) {
+          s4 = void 0;
+        } else {
+          peg$currPos = s4;
+          s4 = peg$FAILED;
         }
       }
       if (s4 !== peg$FAILED) {

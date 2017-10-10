@@ -135,7 +135,7 @@ NativeEmoji
  }
 
 LinkChar
- = !(SpecialChar+ (InlineDelimiter / LineTerminatorSequence / !.)) char:NonBlank { return char }
+ = !(SpecialChar+ (LineTerminatorSequence / !.)) char:NonBlank { return char }
 
 Link
  = proto:("http"i "s"i? ":")? url:(LinkChar+) & {
