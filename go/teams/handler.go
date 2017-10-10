@@ -183,7 +183,11 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 
 	g.Log.CDebugf(ctx, "checks passed, proceeding with team.ChangeMembership, req = %+v", req)
 
-	return team.ChangeMembership(ctx, req)
+	if err = team.ChangeMembership(ctx, req); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func assertCanAcceptKeybaseInvite(ctx context.Context, g *libkb.GlobalContext, untrustedInviteeFromGregor keybase1.TeamInvitee, chainInvite keybase1.TeamInvite) error {

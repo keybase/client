@@ -5,12 +5,9 @@ package service
 
 import (
 	"fmt"
-	"strings"
 
-	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -86,7 +83,14 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 	}
 
 	if arg.SendChatNotification {
-		res.ChatSent = h.sendTeamChatWelcomeMessage(ctx, teamName.String(), h.G().Env.GetUsername().String())
+		teamDetails, err := teams.Details(ctx, h.G().ExternalG(), teamName.String(), true)
+		if err != nil {
+			h.G().Log.CDebugf(ctx, "failed to get team details for welcome message: %s", err)
+			// Just bail with no error here
+			return res, nil
+		}
+		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G(), teamDetails,
+			teamName.String(), h.G().Env.GetUsername().String())
 	}
 	return res, nil
 }
@@ -117,60 +121,6 @@ func (h *TeamsHandler) TeamChangeMembership(ctx context.Context, arg keybase1.Te
 	return teams.ChangeRoles(ctx, h.G().ExternalG(), arg.Name, arg.Req)
 }
 
-func (h *TeamsHandler) sendTeamChatWelcomeMessage(ctx context.Context, team, user string) (res bool) {
-	var err error
-	defer func() {
-		if err != nil {
-			h.G().Log.CWarningf(ctx, "failed to send team welcome message: %s", err.Error())
-		}
-	}()
-	teamDetails, err := teams.Details(ctx, h.G().ExternalG(), team, true)
-	if err != nil {
-		return false
-	}
-
-	var ownerNames, adminNames, writerNames, readerNames []string
-	for _, owner := range teamDetails.Members.Owners {
-		ownerNames = append(ownerNames, owner.Username)
-	}
-	for _, admin := range teamDetails.Members.Admins {
-		adminNames = append(adminNames, admin.Username)
-	}
-	for _, writer := range teamDetails.Members.Writers {
-		writerNames = append(writerNames, writer.Username)
-	}
-	for _, reader := range teamDetails.Members.Readers {
-		readerNames = append(readerNames, reader.Username)
-	}
-	var lines []string
-	if len(ownerNames) > 0 {
-		lines = append(lines, fmt.Sprintf("  owners: %s", strings.Join(ownerNames, ",")))
-	}
-	if len(adminNames) > 0 {
-		lines = append(lines, fmt.Sprintf("  admins: %s", strings.Join(adminNames, ",")))
-	}
-	if len(writerNames) > 0 {
-		lines = append(lines, fmt.Sprintf("  writers: %s", strings.Join(writerNames, ",")))
-	}
-	if len(readerNames) > 0 {
-		lines = append(lines, fmt.Sprintf("  readers: %s", strings.Join(readerNames, ",")))
-	}
-	memberBody := strings.Join(lines, "\n")
-	body := fmt.Sprintf("Hello! I've just added @%s to this team. Current members:\n\n```​%s```\n\n_More info on teams:_ keybase.io/blog/introducing-keybase-teams\n_To leave this team, visit the team tab or run `keybase team leave %s`_",
-		user, memberBody, team)
-
-	// Ensure we have chat available, since TeamAddMember may also be
-	// coming from a standalone launch.
-	h.G().ExternalG().StartStandaloneChat()
-
-	if err = chat.SendTextByName(ctx, h.G(), team, &chat.DefaultTeamTopic, chat1.ConversationMembersType_TEAM,
-		keybase1.TLFIdentifyBehavior_CHAT_CLI, body, h.gregor.GetClient); err != nil {
-		return false
-	}
-
-	return true
-}
-
 func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMemberArg) (res keybase1.TeamAddMemberResult, err error) {
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("TeamAddMember(%s,%s)", arg.Name, arg.Username),
 		func() error { return err })()
@@ -197,7 +147,15 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return result, nil
 	}
 
-	result.ChatSent = h.sendTeamChatWelcomeMessage(ctx, arg.Name, result.User.Username)
+	teamDetails, err := teams.Details(ctx, h.G().ExternalG(), arg.Name, true)
+	if err != nil {
+		h.G().Log.CDebugf(ctx, "failed to get team details for welcome message: %s", err)
+		// Just bail with no error here
+		return result, nil
+	}
+
+	result.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G(), teamDetails, arg.Name,
+		result.User.Username)
 	return result, nil
 }
 
