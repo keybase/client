@@ -78,16 +78,17 @@ func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, t
 	}
 	switch category {
 	case keybase1.TeamInviteCategory_KEYBASE:
-		msg = fmt.Sprintf("I just auto-added %s to this team, whom %s invited previously, but who was missing a new-enough version of the Keybase app. (This is an automated message; my app responded first.)",
+		msg = fmt.Sprintf("I just auto-added @%s to this team, whom @%s invited previously, but who was missing a new-enough version of the Keybase app. (This is an automated message; my app responded first.)",
 			inviteeName, inviterName)
 	case keybase1.TeamInviteCategory_EMAIL:
-		msg = fmt.Sprintf("I just auto-added %s to this team, whom %s invited over email. (This is an automated message; my app responded first.)", inviteeName, inviterName)
+		msg = fmt.Sprintf("I just auto-added @%s to this team, whom @%s invited over email. (This is an automated message; my app responded first.)", inviteeName, inviterName)
 	case keybase1.TeamInviteCategory_SBS:
-		msg = fmt.Sprintf("I just auto-added %s to this team, whom %s invited with a social assertion. (This is an automated message; my app responded first.)", inviteeName, inviterName)
+		msg = fmt.Sprintf("I just auto-added @%s to this team, whom @%s invited with a social assertion. (This is an automated message; my app responded first.)", inviteeName, inviterName)
 	}
 
 	if err = g.ChatHelper.SendTextByName(ctx, team, &globals.DefaultTeamTopic,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, msg); err != nil {
+		g.Log.CDebugf(ctx, "sendChatInviteWelcomeMessage: failed to send message: %s", err)
 		return false
 	}
 
