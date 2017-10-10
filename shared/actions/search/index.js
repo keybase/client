@@ -205,7 +205,7 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
     yield put(EntityAction.mergeEntity(['search', 'searchQueryToResult'], {[searchQuery]: ids}))
     yield put(Creators.finishedSearch(searchKey, ids, term, service))
     yield all([
-      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: I.List(ids)})),
+      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: ids})),
       put(EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], {[searchKey]: false})),
     ])
   } catch (error) {
