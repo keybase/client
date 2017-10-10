@@ -193,6 +193,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(world.Fc)
 	g.PushHandler = pushHandler
+	g.ChatHelper = NewHelper(g, getRI)
 
 	return ctx, world, ri, sender, baseSender, &listener
 }

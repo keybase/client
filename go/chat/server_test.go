@@ -313,6 +313,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
 
+	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
+
 	tuc := &chatTestUserContext{
 		h:        h,
 		u:        user,
