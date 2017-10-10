@@ -101,12 +101,11 @@ const getRowsAndMetadata = createSelector(
   [getVisibleSmallIDs, _smallTeamsPassThrough, getBigRowItems],
   (smallIDs, smallTeamsExpanded, bigRows) => {
     const smallTeamsRowsToHideCount = Math.max(0, smallIDs.length - smallTeamsCollapsedMaxShown)
-    const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount && !smallTeamsExpanded)
-    const smallIDsToShow = showSmallTeamsExpandDivider
-      ? smallIDs.slice(0, smallTeamsCollapsedMaxShown)
-      : smallIDs
+    const showSmallTeamsExpandDivider = !!(bigRows.length && smallTeamsRowsToHideCount)
+    const truncate = showSmallTeamsExpandDivider && !smallTeamsExpanded
+    const smallIDsToShow = truncate ? smallIDs.slice(0, smallTeamsCollapsedMaxShown) : smallIDs
     const smallToShow = smallIDsToShow.map(conversationIDKey => ({conversationIDKey, type: 'small'}))
-    const smallIDsHidden = smallTeamsExpanded ? [] : smallIDs.slice(smallTeamsCollapsedMaxShown)
+    const smallIDsHidden = truncate ? smallIDs.slice(smallTeamsCollapsedMaxShown) : []
 
     const divider = showSmallTeamsExpandDivider ? [{type: 'divider'}] : []
     const rows = smallToShow.concat(divider, bigRows)
