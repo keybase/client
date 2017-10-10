@@ -2350,7 +2350,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 3, len(getTLFRes.Convs))
-		require.Equal(t, DefaultTeamTopic, getTLFRes.Convs[0].Channel)
+		require.Equal(t, globals.DefaultTeamTopic, getTLFRes.Convs[0].Channel)
 		require.Equal(t, topicName, getTLFRes.Convs[1].Channel)
 		creatorInfo := getTLFRes.Convs[2].CreatorInfo
 		require.NotNil(t, creatorInfo)

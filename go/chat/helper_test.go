@@ -81,13 +81,14 @@ func TestSendTextByName(t *testing.T) {
 		}
 
 		getRi := func() chat1.RemoteInterface { return ri2 }
-		require.NoError(t, SendTextByName(ctx, tc.Context(), name, nil,
-			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", getRi))
+		helper := NewHelper(tc.Context(), getRi)
+		require.NoError(t, helper.SendTextByName(ctx, name, nil,
+			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
 		inbox, _, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
-		require.NoError(t, SendTextByName(ctx, tc.Context(), name, nil,
-			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", getRi))
+		require.NoError(t, helper.SendTextByName(ctx, name, nil,
+			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI"))
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(inbox.Convs))
@@ -99,8 +100,8 @@ func TestSendTextByName(t *testing.T) {
 
 		t.Logf("sending into new topic name")
 		topicName := "MIKE"
-		err = SendTextByName(ctx, tc.Context(), name, &topicName,
-			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI", getRi)
+		err = helper.SendTextByName(ctx, name, &topicName,
+			mt, keybase1.TLFIdentifyBehavior_CHAT_CLI, "HI")
 		require.NoError(t, err)
 		inbox, _, err = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 		require.NoError(t, err)
