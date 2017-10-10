@@ -12,31 +12,35 @@ import {
   routeClear,
   checkRouteState,
 } from '../route-tree'
-import {isValidInitialTab} from '../constants/tabs'
+import {isValidInitialTabString} from '../constants/tabs'
 
 const initialState = Constants.State()
 
-function loggedInUserNavigatedReducer(loggedInUserNavigated, action) {
+function onValidTab(newRouteState) {
+  if (!newRouteState) {
+    return false
+  }
+  const path = getPath(newRouteState)
+  return isValidInitialTabString(path.first())
+}
+
+function loggedInUserNavigatedReducer(loggedInUserNavigated, newRouteState, action) {
   const newLoggedInUserNavigated = (function() {
     switch (action.type) {
       case CommonConstants.resetStore:
         return false
 
-      case Constants.switchTo:
-        return true
-
-      case Constants.navigateTo:
+      case Constants.navigateTo: {
         const payload = action.payload
         const navigationSource: Constants.NavigationSource = payload.navigationSource
         const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
-        const validTab = !payload.parentPath && payload.path.length >= 1 && isValidInitialTab(payload.path[0])
-        return loggedInUserNavigated || (validNavigationSource && validTab)
+        return loggedInUserNavigated || (validNavigationSource && onValidTab(newRouteState))
+      }
 
+      case Constants.switchTo:
       case Constants.navigateAppend:
-        return true
-
       case Constants.navigateUp:
-        return true
+        return loggedInUserNavigated || onValidTab(newRouteState)
 
       default:
         return loggedInUserNavigated
@@ -120,9 +124,9 @@ export default function routeTreeReducer(
   let newRouteDef
   let newRouteState
   try {
-    newLoggedInUserNavigated = loggedInUserNavigatedReducer(loggedInUserNavigated, action)
     newRouteDef = routeDefReducer(routeDef, action)
     newRouteState = routeStateReducer(routeDef, routeState, action)
+    newLoggedInUserNavigated = loggedInUserNavigatedReducer(loggedInUserNavigated, newRouteState, action)
   } catch (err) {
     if (action.type === Constants.setRouteDef && err instanceof InvalidRouteError) {
       console.warn(
