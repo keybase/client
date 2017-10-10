@@ -36,13 +36,13 @@ type RouteDefParams = {
   initialState: {},
   // Returning any but really a RouteDefNode
   children: {[key: string]: RouteDefParams | (() => any)} | ((name: string) => any),
-  props: I.Map<any, any>,
-  state: I.Map<any, any>,
+  // props: I.Map<any, any>,
+  // state: I.Map<any, any>,
 }
 
-export type RouteDefNode = I.RecordOf<RouteDefParams> & {
-  getChild: (name: string) => ?RouteDefNode,
-}
+export type RouteDefNode = I.RecordOf<RouteDefParams> //& {
+// getChild: (name: string) => ?RouteDefNode,
+// }
 
 const _makeRouteDefNode: I.RecordFactory<RouteDefParams> = I.Record({
   defaultSelected: null,
@@ -99,9 +99,10 @@ class makeRouteDefNodeClass extends _makeRouteDefNode {
   }
 }
 
-export const makeRouteDefNode: I.RecordFactory<RouteDefParams & {props: any, state: any}> & {
-  getChild: (name: string) => ?RouteDefNode,
-} = makeRouteDefNodeClass
+export const makeRouteDefNode: I.RecordFactory<RouteDefParams> = makeRouteDefNodeClass
+// export const makeRouteDefNode: I.RecordFactory<RouteDefParams[> & {props: any, state: any}<]> //& {
+// getChild: (name: string) => ?RouteDefNode,
+// } = makeRouteDefNodeClass
 
 type _RouteState = {
   selected: ?string,
