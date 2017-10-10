@@ -1027,6 +1027,11 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 		// that begins just after mostRecent.  We will fill this in
 		// later with the searchFromNodes result.
 		mergedPaths[p.tailPointer()] = mergedPath
+		if !mergedPath.isValid() {
+			// Temporary debugging for KBFS-2507.
+			cr.log.CDebugf(ctx, "Adding invalid merged path for %v "+
+				"(may be temporary)", p.tailPointer())
+		}
 
 		if mostRecent.IsInitialized() {
 			// Remember to fill in the corresponding mergedPath once we
@@ -1072,6 +1077,12 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 		for _, unmergedMostRecent := range chainsToSearchFor[ptr] {
 			// Prepend the found path to the existing path
 			mergedPath := mergedPaths[unmergedMostRecent]
+			if !mergedPath.isValid() {
+				// Temporary debugging for KBFS-2507.
+				cr.log.CDebugf(ctx, "Populating merged path for %v with %v",
+					unmergedMostRecent, p.path)
+			}
+
 			newPath := make([]pathNode, len(p.path)+len(mergedPath.path))
 			copy(newPath[:len(p.path)], p.path)
 			copy(newPath[len(p.path):], mergedPath.path)
@@ -1615,6 +1626,11 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 				copy(p.path[mergedLen:],
 					unmergedPath.path[unmergedStart:])
 				mergedPaths[unmergedPath.tailPointer()] = p
+				if !p.isValid() {
+					// Temporary debugging for KBFS-2507.
+					cr.log.CDebugf(ctx, "Added invalid unmerged path for %v",
+						unmergedPath.tailPointer())
+				}
 			}
 
 			removeRenames = append(removeRenames, ptr)
@@ -1932,6 +1948,11 @@ func (cr *ConflictResolver) getActionsToMerge(
 			// This most likely means that the file was created or
 			// deleted in the unmerged branch and thus has no
 			// corresponding merged path yet.
+			continue
+		}
+		if !mergedPath.isValid() {
+			cr.log.CWarningf(ctx, "Ignoring invalid merged path for %v "+
+				"(original=%v)", unmergedMostRecent, original)
 			continue
 		}
 
