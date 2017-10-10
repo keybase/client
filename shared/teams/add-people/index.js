@@ -72,6 +72,7 @@ class AddPeople extends React.Component<Props, State> {
               : <SearchResultsList
                   onShowTracker={this.props.onShowTrackerInSearch}
                   searchKey={'addToTeamSearch'}
+                  disableIfInTeamName={this.props.name}
                   style={{flexGrow: 1, height: 500}}
                 />}
           </Box>
@@ -83,7 +84,7 @@ class AddPeople extends React.Component<Props, State> {
               alignItems: 'center',
             }}
           >
-            <Text style={{paddingRight: globalMargins.small}} type="Body">Add these team members as:</Text>
+            <Text style={{paddingRight: globalMargins.small}} type="Body">Add these team members to {this.props.name} as:</Text>
             <Dropdown items={this._makeDropdownItems()} selected={this._makeDropdownItem(this.state.selectedRole)} onChanged={this._dropdownChanged} />
 
           </Box>

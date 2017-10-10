@@ -15,9 +15,10 @@ type OwnProps = {
   onShowTracker: (id: string) => void,
   onClick?: (id: string) => void,
   disableListBuilding: boolean,
+  disableIfInTeamName: ?string,
 }
 
-const mapStateToProps = ({entities}: TypedState, {searchKey}: OwnProps) => {
+const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey}: OwnProps) => {
   const searchResultIds = entities.getIn(['search', 'searchKeyToResults', searchKey])
   const pending = entities.getIn(['search', 'searchKeyToPending', searchKey], false)
   const showSearchSuggestions = entities.getIn(
@@ -26,6 +27,7 @@ const mapStateToProps = ({entities}: TypedState, {searchKey}: OwnProps) => {
   )
   const selectedId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
   return {
+    disableIfInTeamName,
     items: searchResultIds && searchResultIds.toArray(),
     showSearchSuggestions,
     selectedId,
