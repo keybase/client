@@ -887,7 +887,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
 
   // Always show this in the inbox
   if (conversationIDKey) {
-    yield put(EntityCreators.mergeEntity(['inboxAlwaysShow'], {[conversationIDKey]: true}))
+    yield put(EntityCreators.mergeEntity(['inboxAlwaysShow'], I.Map({[conversationIDKey]: true})))
   }
 
   if (fromUser) {
@@ -1036,27 +1036,33 @@ function* _badgeAppForChat(action: Constants.BadgeAppForChat): SagaGenerator<any
   const oldBadge = yield select(s => s.entities.inboxUnreadCountBadge)
   const oldTotal = yield select(s => s.entities.inboxUnreadCountTotal)
   if (!I.is(oldBadge, badges)) {
-    yield put(EntityCreators.replaceEntity([], {inboxUnreadCountBadge: badges}))
+    yield put(EntityCreators.replaceEntity([], I.Map({inboxUnreadCountBadge: badges})))
   }
   if (!I.is(oldTotal, totals)) {
-    yield put(EntityCreators.replaceEntity([], {inboxUnreadCountTotal: totals}))
+    yield put(EntityCreators.replaceEntity([], I.Map({inboxUnreadCountTotal: totals})))
   }
 }
 
 function* _appendMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
   const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
   const nextMessages = currentMessages.concat(messages.map(m => m.key))
-  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+  yield put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+  )
 }
 
 function* _prependMessagesToConversation({payload: {conversationIDKey, messages}}: Constants.AppendMessages) {
   const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
   const nextMessages = I.OrderedSet(messages.map(m => m.key)).concat(currentMessages)
-  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+  yield put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+  )
 }
 
 function* _clearConversationMessages({payload: {conversationIDKey}}: Constants.ClearMessages) {
-  yield put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: I.OrderedSet()}))
+  yield put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: I.OrderedSet()}))
+  )
 }
 
 function* _storeMessageToEntity(action: Constants.AppendMessages | Constants.PrependMessages) {
@@ -1076,7 +1082,7 @@ function _updateMessageEntity(action: Constants.UpdateTempMessage) {
 }
 
 function _updateSnippet({payload: {snippet, conversationIDKey}}: Constants.UpdateSnippet) {
-  return put(EntityCreators.replaceEntity(['convIDToSnippet'], {[conversationIDKey]: snippet}))
+  return put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map({[conversationIDKey]: snippet})))
 }
 
 function _removeOutboxMessage(
@@ -1091,7 +1097,9 @@ function _removeOutboxMessage(
   if (nextMessages.equals(msgKeys)) {
     return
   }
-  return put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages}))
+  return put(
+    EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))
+  )
 }
 
 function* _updateOutboxMessageToReal({
@@ -1102,7 +1110,7 @@ function* _updateOutboxMessageToReal({
   const currentMessages = yield select(Constants.getConversationMessages, conversationIDKey)
   const nextMessages = currentMessages.map(k => (k === oldMessageKey ? newMessageKey : k))
   yield all([
-    put(EntityCreators.replaceEntity(['conversationMessages'], {[conversationIDKey]: nextMessages})),
+    put(EntityCreators.replaceEntity(['conversationMessages'], I.Map({[conversationIDKey]: nextMessages}))),
     put(
       EntityCreators.mergeEntity(
         [],
@@ -1145,7 +1153,7 @@ function* _findMessageUpdates(action: Constants.AppendMessages | Constants.Prepe
   })
 
   if (Object.keys(updateIDs).length) {
-    yield put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], updateIDs))
+    yield put(EntityCreators.mergeEntity(['messageUpdates', conversationIDKey], I.Map(updateIDs)))
   }
 }
 
@@ -1343,11 +1351,11 @@ function updateProgress(action: Constants.DownloadProgress | Constants.UploadPro
   const {type, payload: {progress, messageKey}} = action
   if (type === 'chat:downloadProgress') {
     if (action.payload.isPreview) {
-      return put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], {[messageKey]: progress}))
+      return put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: progress})))
     }
-    return put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], {[messageKey]: progress}))
+    return put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: progress})))
   }
-  return put(EntityCreators.replaceEntity(['attachmentUploadProgress'], {[messageKey]: progress}))
+  return put(EntityCreators.replaceEntity(['attachmentUploadProgress'], I.Map({[messageKey]: progress})))
 }
 
 function updateAttachmentSavePath(
@@ -1357,10 +1365,10 @@ function updateAttachmentSavePath(
   switch (action.type) {
     case 'chat:attachmentSaveFailed':
     case 'chat:attachmentSaveStart':
-      return put(EntityCreators.replaceEntity(['attachmentSavedPath'], {[messageKey]: null}))
+      return put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: null})))
     case 'chat:attachmentSaved':
       const {path} = action.payload
-      return put(EntityCreators.replaceEntity(['attachmentSavedPath'], {[messageKey]: path}))
+      return put(EntityCreators.replaceEntity(['attachmentSavedPath'], I.Map({[messageKey]: path})))
   }
 }
 
@@ -1368,13 +1376,13 @@ function attachmentLoaded(action: Constants.AttachmentLoaded) {
   const {payload: {messageKey, path, isPreview}} = action
   if (isPreview) {
     return all([
-      put(EntityCreators.replaceEntity(['attachmentPreviewPath'], {[messageKey]: path})),
-      put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], {[messageKey]: null})),
+      put(EntityCreators.replaceEntity(['attachmentPreviewPath'], I.Map({[messageKey]: path}))),
+      put(EntityCreators.replaceEntity(['attachmentPreviewProgress'], I.Map({[messageKey]: null}))),
     ])
   }
   return all([
-    put(EntityCreators.replaceEntity(['attachmentDownloadedPath'], {[messageKey]: path})),
-    put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], {[messageKey]: null})),
+    put(EntityCreators.replaceEntity(['attachmentDownloadedPath'], I.Map({[messageKey]: path}))),
+    put(EntityCreators.replaceEntity(['attachmentDownloadProgress'], I.Map({[messageKey]: null}))),
   ])
 }
 

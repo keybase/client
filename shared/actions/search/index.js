@@ -176,11 +176,13 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
   const cachedResults = yield select(Selectors.cachedSearchResults, searchQuery)
   if (cachedResults) {
     yield put(Creators.finishedSearch(searchKey, cachedResults, term, service))
-    yield put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: cachedResults}))
+    yield put(
+      EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: cachedResults}))
+    )
     return
   }
 
-  yield put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], {[searchKey]: true}))
+  yield put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], I.Map({[searchKey]: true})))
 
   try {
     yield call(onIdlePromise, 1e3)
@@ -198,20 +200,26 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
       leftUsername: r.rightUsername,
       leftIcon: null,
     }))
+    // $FlowIssue
     yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(rows, 'id'))))
+    // $FlowIssue
     yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(kbRows, 'id'))))
 
     const ids = rows.map(r => r.id)
-    yield put(EntityAction.mergeEntity(['search', 'searchQueryToResult'], {[searchQuery]: I.List(ids)}))
+    yield put(
+      EntityAction.mergeEntity(['search', 'searchQueryToResult'], I.Map({[searchQuery]: I.List(ids)}))
+    )
     yield put(Creators.finishedSearch(searchKey, ids, term, service))
     yield all([
-      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: I.List(ids)})),
-      put(EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], {[searchKey]: false})),
+      put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))),
+      put(
+        EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], I.Map({[searchKey]: false}))
+      ),
     ])
   } catch (error) {
     console.warn('error in searching', error)
   } finally {
-    yield put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], {[searchKey]: false}))
+    yield put(EntityAction.replaceEntity(['search', 'searchKeyToPending'], I.Map({[searchKey]: false})))
   }
 }
 
@@ -228,16 +236,19 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSu
   const rows = suggestions.map(person => _parseSuggestion(person.username))
   const ids = rows.map(r => r.id)
 
-  yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(rows, 'id'))))
+  // $FlowIssue
+  yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(I.fromJS(keyBy(rows, 'id')))))
   yield all([
-    put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: I.List(ids)})),
-    put(EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], {[searchKey]: true})),
+    put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))),
+    put(
+      EntityAction.replaceEntity(['search', 'searchKeyToShowSearchSuggestion'], I.Map({[searchKey]: true}))
+    ),
   ])
   yield put(Creators.finishedSearch(searchKey, ids, '', 'Keybase', true))
 }
 
 function* updateSelectedSearchResult({payload: {searchKey, id}}: Constants.UpdateSelectedSearchResult) {
-  yield put(EntityAction.replaceEntity(['search', 'searchKeyToSelectedId'], {[searchKey]: id}))
+  yield put(EntityAction.replaceEntity(['search', 'searchKeyToSelectedId'], I.Map({[searchKey]: id})))
 }
 
 function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants.AddResultsToUserInput) {
@@ -254,9 +265,12 @@ function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )
   yield put.resolve(
-    EntityAction.mergeEntity(['search', 'searchKeyToUserInputItemIds'], {
-      [searchKey]: I.OrderedSet(maybeUpgradedUsers),
-    })
+    EntityAction.mergeEntity(
+      ['search', 'searchKeyToUserInputItemIds'],
+      I.Map({
+        [searchKey]: I.OrderedSet(maybeUpgradedUsers),
+      })
+    )
   )
   const ids = yield select(Constants.getUserInputItemIds, {searchKey})
   if (!_.isEqual(oldIds, ids)) {
@@ -269,7 +283,7 @@ function* removeResultsToUserInput({
 }: Constants.RemoveResultsToUserInput) {
   const oldIds = yield select(Constants.getUserInputItemIds, {searchKey})
   yield put.resolve(
-    EntityAction.subtractEntity(['search', 'searchKeyToUserInputItemIds', searchKey], searchResults)
+    EntityAction.subtractEntity(['search', 'searchKeyToUserInputItemIds', searchKey], I.List(searchResults))
   )
   const ids = yield select(Constants.getUserInputItemIds, {searchKey})
   if (!_.isEqual(oldIds, ids)) {
@@ -281,16 +295,19 @@ function* setUserInputItems({payload: {searchKey, searchResults}}: Constants.Set
   const ids = yield select(Constants.getUserInputItemIds, {searchKey})
   if (!_.isEqual(ids, searchResults)) {
     yield put.resolve(
-      EntityAction.replaceEntity(['search', 'searchKeyToUserInputItemIds'], {
-        [searchKey]: I.OrderedSet(searchResults),
-      })
+      EntityAction.replaceEntity(
+        ['search', 'searchKeyToUserInputItemIds'],
+        I.Map({
+          [searchKey]: I.OrderedSet(searchResults),
+        })
+      )
     )
     yield put(Creators.userInputItemsUpdated(searchKey, searchResults))
   }
 }
 
 function* clearSearchResults({payload: {searchKey}}: Constants.ClearSearchResults) {
-  yield put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], {[searchKey]: null}))
+  yield put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: null})))
   yield put(
     EntityAction.replaceEntity(
       ['search', 'searchKeyToSearchResultQuery'],
@@ -315,9 +332,12 @@ function* finishedSearch({payload: {searchKey, searchResultTerm, service}}) {
 function* clearSearchTextInput({payload: {searchKey}}: Constants.UserInputItemsUpdated) {
   const clearSearchTextInput = yield select(Constants.getClearSearchTextInput, {searchKey})
   yield put(
-    EntityAction.replaceEntity(['search', 'searchKeyToClearSearchTextInput'], {
-      [searchKey]: clearSearchTextInput + 1,
-    })
+    EntityAction.replaceEntity(
+      ['search', 'searchKeyToClearSearchTextInput'],
+      I.Map({
+        [searchKey]: clearSearchTextInput + 1,
+      })
+    )
   )
 }
 

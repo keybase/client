@@ -10,18 +10,18 @@ import {type DeviceDetail} from './devices'
 
 export type EntityType = any // TODO stronger typing?
 
-export type Delete = NoErrorTypedAction<'entity:delete', {keyPath: Array<string>, ids: Array<string>}>
+export type Delete = NoErrorTypedAction<'entity:delete', {keyPath: Array<string>, ids: I.List<string>}>
 export type Merge = NoErrorTypedAction<
   'entity:merge',
-  {keyPath: Array<string>, entities: {[id: string]: EntityType} | Array<EntityType>}
+  {keyPath: Array<string>, entities: I.Map<any, EntityType> | I.List<EntityType>}
 >
 export type Replace = NoErrorTypedAction<
   'entity:replace',
-  {keyPath: Array<string>, entities: {[id: string]: EntityType}}
+  {keyPath: Array<string>, entities: I.Map<any, EntityType>}
 >
 export type Subtract = NoErrorTypedAction<
   'entity:subtract',
-  {keyPath: Array<string>, entities: Array<EntityType>}
+  {keyPath: Array<string>, entities: I.List<EntityType>}
 >
 
 export type Actions = Delete | Merge | Replace | Subtract

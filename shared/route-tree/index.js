@@ -100,7 +100,6 @@ class MakeRouteDefNodeClass extends _makeRouteDefNode {
   }
 }
 
-// $FlowIssue
 export const makeRouteDefNode: I.RecordFactory<RouteDefParams> = params => new MakeRouteDefNodeClass(params)
 
 type _RouteState = {
@@ -111,6 +110,7 @@ type _RouteState = {
 }
 
 export type RouteStateNode = I.RecordOf<
+  // $FlowIssue
   _RouteState & {
     // Not part of the record really but here cause flow gets confused about extending from the record
     getChild: (name: string) => ?I.RecordOf<RouteStateNode>,
@@ -141,7 +141,7 @@ const _makeRouteStateNode: I.RecordFactory<
 class MakeRouteStateNode extends _makeRouteStateNode {
   children: I.Map<string, *>
 
-  // eslint-disable-next-line no-useless-constructor
+  // eslint-disable-next-line no-useless-constructor $FlowIssue
   constructor(data: _RouteState) {
     super(data)
   }
@@ -155,7 +155,7 @@ class MakeRouteStateNode extends _makeRouteStateNode {
   }
 }
 
-export const makeRouteStateNode = params => new MakeRouteStateNode(params)
+export const makeRouteStateNode = (params: RouteDefParams) => new MakeRouteStateNode(params)
 
 // Converts plain old objects into route state nodes. Useful for testing
 export function dataToRouteState(data: Object): RouteStateNode {
@@ -163,7 +163,6 @@ export function dataToRouteState(data: Object): RouteStateNode {
   const root: RouteStateNode = makeRouteStateNode(params)
   const parsedChildren = Object.keys(children).map(k => ({name: k, op: () => dataToRouteState(children[k])}))
   return parsedChildren.reduce(
-    // $FlowIssue
     (acc: RouteStateNode, {name, op}): RouteStateNode => acc.updateChild(name, op),
     root
   )

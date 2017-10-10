@@ -92,9 +92,9 @@ function* _deviceListSaga(): SagaGenerator<any, any> {
     )
 
     const deviceIDs = records.sort(_sortRecords).map(r => r.deviceID)
-    const entities = I.fromJS(keyBy(records, 'deviceID'))
+    const entities = keyBy(records, 'deviceID')
 
-    yield put(replaceEntity(['devices'], entities))
+    yield put(replaceEntity(['devices'], I.Map(entities)))
     yield put(loaded(deviceIDs))
   } catch (e) {
     throw new Error("Can't load devices")
