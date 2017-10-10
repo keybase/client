@@ -107,6 +107,24 @@ export const RoleOptions = ({
 )
 
 // 2. Confirm screen with role permissions details
+// Permission renderer
+const PermissionRow = (props: {can: boolean, permission: string}) => (
+  <Box
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      height: isMobile ? 32 : 24,
+      padding: globalMargins.tiny,
+    }}
+  >
+    <Icon
+      type={props.can ? 'iconfont-check' : 'iconfont-close'}
+      style={{color: props.can ? globalColors.green : globalColors.red, alignSelf: 'center'}}
+    />
+    <Text type="BodySemibold" style={{marginLeft: globalMargins.tiny}}>{props.permission}</Text>
+  </Box>
+)
+
 export const RoleConfirm = ({
   username,
   onComplete,
@@ -118,34 +136,17 @@ export const RoleConfirm = ({
   const introText = selectedRole === 'owner' ? "They'll have full power on the team:" : "They'll be able to:"
   const permissions = permissionMap[selectedRole]
 
-  // List item renderer
-  const renderer = (can?: boolean) => (permission: string) => (
-    <Box
-      style={{
-        ...globalStyles.flexBoxRow,
-        alignItems: 'center',
-        height: isMobile ? 32 : 24,
-        padding: globalMargins.tiny,
-      }}
-    >
-      <Icon
-        type={can ? 'iconfont-check' : 'iconfont-close'}
-        style={{color: can ? globalColors.green : globalColors.red, alignSelf: 'center'}}
-      />
-      <Text type="BodySemibold" style={{marginLeft: globalMargins.tiny}}>{permission}</Text>
-    </Box>
-  )
-
   // Hard-code lists to make height sizing simpler
-  const cans = []
-  const cannots = []
-  permissions.can.forEach(perm => {
-    cans.push(renderer(true)(perm))
-  })
-  permissions.cannot &&
-    permissions.cannot.forEach(perm => {
-      cannots.push(renderer(false)(perm))
-    })
+  const cans =
+    permissions.can &&
+    permissions.can.map((perm, idx) => <PermissionRow key={idx} can={true} permission={perm} />)
+  const cannots =
+    permissions.cannot &&
+    permissions.cannot.map((perm, idx) => <PermissionRow key={idx} can={false} permission={perm} />)
+
+  // Handle a / an
+  const article = selectedRole === 'owner' || selectedRole === 'admin' ? 'an' : 'a'
+  const prompt = `Make ${username} ${article} ${selectedRole} of ${teamname}?`
 
   return (
     <Box
@@ -191,17 +192,17 @@ export const RoleConfirm = ({
           marginRight: globalMargins.small,
         }}
       >
-        <Text type="BodyBig">Make {username} a {selectedRole} of {teamname}?</Text>
+        <Text type="BodyBig">{prompt}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
         <Text type="BodySemibold">{introText}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cans}</Box>
-      {cannots.length > 0 &&
+      {cannots &&
         <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
           <Text type="BodySemibold">They won't be able to:</Text>
         </Box>}
-      {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
+      {cannots && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
       <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.small}}>
         <Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
         <Button
