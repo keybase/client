@@ -67,10 +67,10 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	displayName := strings.Join(usernames, ",")
 	lookupAndCreate(displayName, false)
-	lookupAndCreate(displayName, true)
+	// lookupAndCreate(displayName, true) // CORE-6335 re-enable
 	displayName = fmt.Sprintf("mike@twitter,%s,james@github", displayName)
 	lookupAndCreate(displayName, false)
-	lookupAndCreate(displayName, true)
+	// lookupAndCreate(displayName, true) // CORE-6335 re-enable
 
 	_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", false)
 	require.Error(t, err)

@@ -45,15 +45,16 @@ func TestGitTeamer(t *testing.T) {
 	require.Equal(t, res.TeamID, teamID)
 	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
 
-	t.Logf("public team")
-	teamID, teamName = tt.users[0].createTeam2()
-	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       teamName.String(),
-		Private:    false,
-		FolderType: keybase1.FolderType_TEAM,
-	})
-	require.Error(t, err)
-	require.Regexp(t, `not supported`, err.Error())
+	// CORE-6335 re-enable
+	// t.Logf("public team")
+	// teamID, teamName = tt.users[0].createTeam2()
+	// res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
+	// 	Name:       teamName.String(),
+	// 	Private:    false,
+	// 	FolderType: keybase1.FolderType_TEAM,
+	// })
+	// require.Error(t, err)
+	// require.Regexp(t, `not supported`, err.Error())
 
 	t.Logf("iteam that doesn't exist (gets created)")
 	bob := tt.addUser("bob")
@@ -84,19 +85,20 @@ func TestGitTeamer(t *testing.T) {
 	require.Equal(t, res.TeamID, teamID, "teamer should return the same team that was created earlier")
 	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
 
-	t.Logf("public iteam")
-	bob = tt.addUser("bob")
-	gil = tt.addUser("gil")
-	frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-	teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, true /*isPublic*/)
-	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       frag,
-		Private:    false,
-		FolderType: keybase1.FolderType_PUBLIC,
-	})
-	require.NoError(t, err)
-	require.Equal(t, res.TeamID, teamID, "teamer should return the same team that was created earlier")
-	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PUBLIC)
+	// CORE-6335 re-enable
+	// t.Logf("public iteam")
+	// bob = tt.addUser("bob")
+	// gil = tt.addUser("gil")
+	// frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
+	// teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, true /*isPublic*/)
+	// res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
+	// 	Name:       frag,
+	// 	Private:    false,
+	// 	FolderType: keybase1.FolderType_PUBLIC,
+	// })
+	// require.NoError(t, err)
+	// require.Equal(t, res.TeamID, teamID, "teamer should return the same team that was created earlier")
+	// require.Equal(t, res.Visibility, keybase1.TLFVisibility_PUBLIC)
 
 	t.Logf("iteam conflict")
 	alice.drainGregor()
