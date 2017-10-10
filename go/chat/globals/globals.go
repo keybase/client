@@ -59,3 +59,5 @@ func NewChatContextified(gc *ChatContext) ChatContextified {
 func (c ChatContextified) ChatG() *ChatContext {
 	return c.gc
 }
+
+var DefaultTeamTopic = "general"

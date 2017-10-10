@@ -313,6 +313,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
 
+	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
+
 	tuc := &chatTestUserContext{
 		h:        h,
 		u:        user,
@@ -2350,7 +2352,7 @@ func TestChatSrvTeamChannels(t *testing.T) {
 			})
 		require.NoError(t, err)
 		require.Equal(t, 3, len(getTLFRes.Convs))
-		require.Equal(t, DefaultTeamTopic, getTLFRes.Convs[0].Channel)
+		require.Equal(t, globals.DefaultTeamTopic, getTLFRes.Convs[0].Channel)
 		require.Equal(t, topicName, getTLFRes.Convs[1].Channel)
 		creatorInfo := getTLFRes.Convs[2].CreatorInfo
 		require.NotNil(t, creatorInfo)
