@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-// import type {ConnectedComponent} from 'react-redux'
+
+// I put a lot of FlowIssues here so i could get this checked in. The typing of this isn't perfect, but its getting closer
 
 type _LeafTags = {
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
