@@ -121,7 +121,7 @@ func TestBareRootMetadataPublicVersionV3(t *testing.T) {
 func TestBareRootMetadataSingleTeamVersionV3(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
 
-	tid := keybase1.MakeTestTeamID(1)
+	tid := keybase1.MakeTestTeamID(1, false)
 	bh, err := tlf.MakeHandle(
 		[]keybase1.UserOrTeamID{tid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
