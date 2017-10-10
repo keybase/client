@@ -52,7 +52,9 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, act
       'to',
       newLoggedInUserNavigated,
       '; action: ',
-      action
+      action,
+      ', selected tab:',
+      newSelectedTab
     )
   }
   return newLoggedInUserNavigated
