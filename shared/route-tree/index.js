@@ -194,7 +194,7 @@ function _routeSet(
     makeRouteStateNode({selected: routeDef.defaultSelected, state: I.Map(routeDef.initialState)})
   if (pathHead && pathHead.type === 'navigate') {
     newRouteState = newRouteState.set('selected', pathHead.next || routeDef.defaultSelected)
-    if (pathHead.next === null && !routeDef.tags.persistChildren) {
+    if (pathHead.next === null && (!routeDef.tags || !routeDef.tags.persistChildren)) {
       // Navigating to a route clears out the state of any children that may
       // have previously been displayed.
       newRouteState = newRouteState.delete('children')

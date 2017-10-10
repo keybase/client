@@ -123,13 +123,15 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
 }
 
 function renderStackRoute(route, isActiveRoute, shouldRender) {
-  const {underStatusBar, hideStatusBar, showStatusBarDarkContent, root} = route.tags
+  const {underStatusBar, hideStatusBar, showStatusBarDarkContent, root} = route.tags || {}
 
   let style
   if (root) {
     style = sceneWrapStyleNoStatusBarPadding
   } else {
-    style = route.tags.underStatusBar ? sceneWrapStyleNoStatusBarPadding : sceneWrapStyleWithStatusBarPadding
+    style = route.tags && route.tags.underStatusBar
+      ? sceneWrapStyleNoStatusBarPadding
+      : sceneWrapStyleWithStatusBarPadding
   }
 
   return (
@@ -299,18 +301,18 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const curLastPath = RS ? RS.last() : null
     const curPath = curLastPath ? curLastPath.path : I.List()
     const curTags = curLastPath ? curLastPath.tags : {}
-    if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
+    if (!nextPath.equals(curPath) && (!curTags || !curTags.keepKeyboardOnLeave)) {
       NativeKeyboard.dismiss()
     }
   }
 
   render() {
-    const baseScreens = this.props.routeStack.filter(r => !r.tags.layerOnTop)
+    const baseScreens = this.props.routeStack.filter(r => !r.tags || !r.tags.layerOnTop)
     if (!baseScreens.size) {
       throw new Error('no route component to render without layerOnTop tag')
     }
 
-    const fullscreenPred = r => r.tags.fullscreen
+    const fullscreenPred = r => r.tags && r.tags.fullscreen
     const mainScreens = baseScreens.takeUntil(fullscreenPred)
     const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
       path: ['main'],
@@ -332,7 +334,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
         mode="modal"
       />
     )
-    const layerScreens = this.props.routeStack.filter(r => r.tags.layerOnTop)
+    const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
     const layers = layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))
 
     // If we have layers, lets add an extra box, else lets just pass through
