@@ -141,11 +141,6 @@ const _makeRouteStateNode: I.RecordFactory<
 class MakeRouteStateNode extends _makeRouteStateNode {
   children: I.Map<string, *>
 
-  // eslint-disable-next-line no-useless-constructor $FlowIssue
-  constructor(data: _RouteState) {
-    super(data)
-  }
-
   getChild(name: string): ?RouteStateNode {
     return this.children.get(name)
   }
@@ -155,6 +150,7 @@ class MakeRouteStateNode extends _makeRouteStateNode {
   }
 }
 
+// $FlowIssue
 export const makeRouteStateNode = (params: RouteDefParams) => new MakeRouteStateNode(params)
 
 // Converts plain old objects into route state nodes. Useful for testing
@@ -217,7 +213,6 @@ function _routeSet(
     newRouteState = newRouteState.updateChild(childName, childState => {
       let newChild = _routeSet(childDef, childState, pathSpec.skip(1))
       if (pathHead && pathHead.hasOwnProperty('props')) {
-        // $FlowIssue
         newChild = newChild.set('props', I.Map(pathHead.props))
       }
       return newChild

@@ -1,7 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import {List, Map} from 'immutable'
+import * as I from 'immutable'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -145,13 +145,13 @@ function* getPostingIdentifyBehavior(
 function makeInboxStateRecords(
   author: string,
   items: Array<ChatTypes.UnverifiedInboxUIItem>
-): List<Constants.InboxState> {
-  const conversations: List<Constants.InboxState> = List(
+): I.List<Constants.InboxState> {
+  const conversations: I.List<Constants.InboxState> = I.List(
     (items || [])
       .map(c => {
         const parts = c.localMetadata
-          ? List(c.localMetadata.writerNames || [])
-          : List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
+          ? I.List(c.localMetadata.writerNames || [])
+          : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
         return Constants.makeInboxState({
           channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
             ? c.localMetadata.channelName

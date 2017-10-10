@@ -869,7 +869,7 @@ function* _updateMetadata(action: Constants.UpdateMetadata): SagaGenerator<any, 
     usernames.forEach((username, idx) => {
       const record = parsed.them[idx]
       const fullname = (record && record.profile && record.profile.full_name) || ''
-      payload[username] = new Constants.makeMetaData({fullname})
+      payload[username] = Constants.makeMetaData({fullname})
     })
 
     yield put(Creators.updatedMetadata(payload))

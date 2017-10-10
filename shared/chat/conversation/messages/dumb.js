@@ -137,7 +137,7 @@ const mocks = followStates.reduce(
               you: 'cecileb',
               followingMap,
               metaDataMap: I.Map({
-                other: new ChatConstants.makeMetaData({
+                other: ChatConstants.makeMetaData({
                   fullname: 'other person',
                   brokenTracker: true,
                 }),
