@@ -187,6 +187,10 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 		return err
 	}
 
+	// Send chat welcome message
+	SendChatInviteWelcomeMessage(ctx, g, team.Name().String(), category, invite.Inviter.Uid,
+		untrustedInviteeFromGregor.Uid)
+
 	return nil
 }
 

@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func SendTeamChatWelcomeMessage(ctx context.Context, g *globals.Context, teamDetails keybase1.TeamDetails,
+func SendTeamChatWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, teamDetails keybase1.TeamDetails,
 	team, user string) (res bool) {
 	var err error
 	defer func() {
@@ -61,7 +62,7 @@ func SendTeamChatWelcomeMessage(ctx context.Context, g *globals.Context, teamDet
 	return true
 }
 
-func SendChatInviteWelcomeMessage(ctx context.Context, g *globals.Context, team string,
+func SendChatInviteWelcomeMessage(ctx context.Context, g *libkb.GlobalContext, team string,
 	category keybase1.TeamInviteCategory, inviter, invitee keybase1.UID) (res bool) {
 	var msg string
 

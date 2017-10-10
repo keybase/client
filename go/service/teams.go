@@ -89,7 +89,7 @@ func (h *TeamsHandler) TeamCreateWithSettings(ctx context.Context, arg keybase1.
 			// Just bail with no error here
 			return res, nil
 		}
-		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G(), teamDetails,
+		res.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), teamDetails,
 			teamName.String(), h.G().Env.GetUsername().String())
 	}
 	return res, nil
@@ -154,7 +154,7 @@ func (h *TeamsHandler) TeamAddMember(ctx context.Context, arg keybase1.TeamAddMe
 		return result, nil
 	}
 
-	result.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G(), teamDetails, arg.Name,
+	result.ChatSent = teams.SendTeamChatWelcomeMessage(ctx, h.G().ExternalG(), teamDetails, arg.Name,
 		result.User.Username)
 	return result, nil
 }
