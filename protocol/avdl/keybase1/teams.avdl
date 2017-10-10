@@ -469,7 +469,16 @@ protocol teams {
   void teamDelete(int sessionID, string name);
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
 
-  void teamAddEmailsBulk(int sessionID, string name, string emails, TeamRole role);
+  record BulkRes {
+    array<string> invited;
+    array<string> alreadyInvited;
+    array<string> malformed;
+  }
+
+  // emails is a list of email addresses separated by whitespace or commas.
+  // returns a list of emails that were not invited, most likely because of
+  // malformed email addresses.
+  BulkRes teamAddEmailsBulk(int sessionID, string name, string emails, TeamRole role);
 
   record ImplicitTeamUserSet {
     array<string> keybaseUsers;

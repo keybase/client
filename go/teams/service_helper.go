@@ -304,10 +304,11 @@ func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, em
 	return t.InviteEmailMember(ctx, email, role)
 }
 
-func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) error {
+func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (keybase1.BulkRes, error) {
+	var res keybase1.BulkRes
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
-		return err
+		return keybase1.BulkRes{}, err
 	}
 
 	emailList := splitBulk(emails)
@@ -317,15 +318,17 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	for _, e := range emailList {
 		if !libkb.CheckEmail.F(e) {
 			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q", teamname, e)
+			res.Malformed = append(res.Malformed, e)
 			continue
 		}
 		name := keybase1.TeamInviteName(e)
 		existing, err := t.HasActiveInvite(name, "email")
 		if err != nil {
-			return err
+			return keybase1.BulkRes{}, err
 		}
 		if existing {
 			g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list", teamname, e)
+			res.AlreadyInvited = append(res.AlreadyInvited, e)
 			continue
 		}
 		inv := SCTeamInvite{
@@ -334,10 +337,11 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 			ID:   NewInviteID(),
 		}
 		invites = append(invites, inv)
+		res.Invited = append(res.Invited, e)
 	}
 	if len(invites) == 0 {
 		g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
-		return nil
+		return res, nil
 	}
 
 	var teamInvites SCTeamInvites
@@ -351,11 +355,15 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 	case keybase1.TeamRole_OWNER:
 		teamInvites.Owners = &invites
 	default:
-		return fmt.Errorf("unknown team role: %s", role)
+		return keybase1.BulkRes{}, fmt.Errorf("unknown team role: %s", role)
 	}
 
 	g.Log.CDebugf(ctx, "team %s: after exisitng filter, inviting %d emails as %s", teamname, len(invites), role)
-	return t.postTeamInvites(ctx, teamInvites)
+	err = t.postTeamInvites(ctx, teamInvites)
+	if err != nil {
+		return keybase1.BulkRes{}, err
+	}
+	return res, nil
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {

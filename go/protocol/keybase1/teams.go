@@ -1298,6 +1298,50 @@ func (o TeamSettings) DeepCopy() TeamSettings {
 	}
 }
 
+type BulkRes struct {
+	Invited        []string `codec:"invited" json:"invited"`
+	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
+	Malformed      []string `codec:"malformed" json:"malformed"`
+}
+
+func (o BulkRes) DeepCopy() BulkRes {
+	return BulkRes{
+		Invited: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Invited),
+		AlreadyInvited: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.AlreadyInvited),
+		Malformed: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Malformed),
+	}
+}
+
 type ImplicitTeamUserSet struct {
 	KeybaseUsers    []string          `codec:"keybaseUsers" json:"keybaseUsers"`
 	UnresolvedUsers []SocialAssertion `codec:"unresolvedUsers" json:"unresolvedUsers"`
@@ -1747,7 +1791,7 @@ type TeamsInterface interface {
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
-	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) error
+	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
 	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
@@ -2077,7 +2121,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamAddEmailsBulkArg)(nil), args)
 						return
 					}
-					err = i.TeamAddEmailsBulk(ctx, (*typedArgs)[0])
+					ret, err = i.TeamAddEmailsBulk(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2266,8 +2310,8 @@ func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsA
 	return
 }
 
-func (c TeamsClient) TeamAddEmailsBulk(ctx context.Context, __arg TeamAddEmailsBulkArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamAddEmailsBulk(ctx context.Context, __arg TeamAddEmailsBulkArg) (res BulkRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamAddEmailsBulk", []interface{}{__arg}, &res)
 	return
 }
 

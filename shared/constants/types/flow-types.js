@@ -2394,11 +2394,11 @@ export function teamsTeamAcceptInviteRpcPromise (request: (requestCommon & reque
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAcceptInvite', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamAddEmailsBulkRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamAddEmailsBulkRpcParam}): EngineChannel {
+export function teamsTeamAddEmailsBulkRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddEmailsBulkResult) => void} & {param: teamsTeamAddEmailsBulkRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamAddEmailsBulk', request)
 }
 
-export function teamsTeamAddEmailsBulkRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamAddEmailsBulkRpcParam})): Promise<void> {
+export function teamsTeamAddEmailsBulkRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamAddEmailsBulkResult) => void} & {param: teamsTeamAddEmailsBulkRpcParam})): Promise<teamsTeamAddEmailsBulkResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamAddEmailsBulk', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -2922,6 +2922,12 @@ export type BootstrapStatus = {
 export type BoxNonce = any
 
 export type BoxPublicKey = any
+
+export type BulkRes = {
+  invited?: ?Array<string>,
+  alreadyInvited?: ?Array<string>,
+  malformed?: ?Array<string>,
+}
 
 export type Bytes32 = any
 
@@ -6564,6 +6570,7 @@ type teamsGetTeamRootIDResult = TeamID
 type teamsLoadTeamPlusApplicationKeysResult = TeamPlusApplicationKeys
 type teamsLookupImplicitTeamResult = LookupImplicitTeamRes
 type teamsLookupOrCreateImplicitTeamResult = LookupImplicitTeamRes
+type teamsTeamAddEmailsBulkResult = BulkRes
 type teamsTeamAddMemberResult = TeamAddMemberResult
 type teamsTeamCreateResult = TeamCreateResult
 type teamsTeamCreateWithSettingsResult = TeamCreateResult
