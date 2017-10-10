@@ -60,9 +60,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 	}
 	r.G().Log.Debug("team.clkr unmarshaled: %+v", msg)
 
-	// CORE-6322 find out whether this is for a public team
-	public := false
-	if err := teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, public, keybase1.PerTeamKeyGeneration(msg.Generation)); err != nil {
+	if err := teams.HandleRotateRequest(ctx, r.G(), msg.TeamID, keybase1.PerTeamKeyGeneration(msg.Generation)); err != nil {
 		return err
 	}
 

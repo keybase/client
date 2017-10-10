@@ -650,6 +650,25 @@ func assertRole(tc libkb.TestContext, name, username string, expected keybase1.T
 	}
 }
 
+func assertRole2(tc libkb.TestContext, teamID keybase1.TeamID, username string, expected keybase1.TeamRole) {
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		ForceRepoll: true,
+	})
+	require.NoError(tc.T, err)
+
+	uv, err := loadUserVersionByUsername(context.TODO(), tc.G, username)
+	require.NoError(tc.T, err)
+
+	role, err := team.MemberRole(context.TODO(), uv)
+	require.NoError(tc.T, err)
+
+	if role != expected {
+		tc.T.Fatalf("role: %s, expected %s", role, expected)
+	}
+}
+
 func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
 	tc.T.Logf("looking for invite for %s/%s w/ role %s in team %s", username, typ, role, name)
 	iname := keybase1.TeamInviteName(username)
