@@ -275,7 +275,7 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
             I.Map({[conversationIDKey]: inboxState.teamname})
           )
         ),
-        put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], [conversationIDKey])),
+        put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([conversationIDKey]))),
       ])
     } else {
       yield all([
@@ -285,8 +285,8 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
             I.Map({[conversationIDKey]: inboxState.time})
           )
         ),
-        put(EntityCreators.deleteEntity(['inboxBigChannels'], [conversationIDKey])),
-        put(EntityCreators.deleteEntity(['inboxBigChannelsToTeam'], [conversationIDKey])),
+        put(EntityCreators.deleteEntity(['inboxBigChannels'], I.List([conversationIDKey]))),
+        put(EntityCreators.deleteEntity(['inboxBigChannelsToTeam'], I.List([conversationIDKey]))),
       ])
     }
   }
