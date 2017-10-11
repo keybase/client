@@ -148,7 +148,12 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 	}
 	err = client.DeleteRepo(ctx, darg)
 	if err != nil {
-		return err
+		switch err.(type) {
+		case libkb.RepoDoesntExistError:
+			h.G().Log.Warning("Git repo doesn't exist. Deleting metadata anyway.")
+		default:
+			return err
+		}
 	}
 
 	// Delete the repo metadata from the Keybase server.
