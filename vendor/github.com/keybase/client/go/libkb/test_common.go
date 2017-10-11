@@ -40,29 +40,6 @@ func MakeThinGlobalContextForTesting(t *testing.T) *GlobalContext {
 	return g
 }
 
-func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
-	G.Log = logger.NewTestLogger(t)
-	G.Init()
-
-	var f *os.File
-	var err error
-	if f, err = ioutil.TempFile(os.TempDir(), "testconfig"); err != nil {
-		t.Fatalf("couldn't create temp file: %s", err)
-	}
-	c.configFileName = f.Name()
-	if _, err = f.WriteString(initConfig); err != nil {
-		t.Fatalf("couldn't write config file: %s", err)
-	}
-	f.Close()
-
-	// XXX: The global G prevents us from running tests in parallel
-	G.Env.Test.ConfigFilename = c.configFileName
-
-	if err = G.ConfigureConfig(); err != nil {
-		t.Fatalf("couldn't configure the config: %s", err)
-	}
-}
-
 func makeLogGetter(t *testing.T) func() logger.Logger {
 	return func() logger.Logger { return logger.NewTestLogger(t) }
 }
@@ -245,7 +222,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	}
 
 	// use stub engine for external api
-	g.XAPI = NewStubAPIEngine()
+	g.XAPI = NewStubAPIEngine(g)
 
 	if err = g.ConfigureConfig(); err != nil {
 		return
@@ -269,14 +246,11 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 
 	g.GregorDismisser = &FakeGregorDismisser{}
 	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
-
-	tc.PrevGlobal = G
-	G = g
 	tc.G = g
 	tc.T = tb
 
-	if G.SecretStoreAll == nil {
-		G.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(G, G)}
+	if g.SecretStoreAll == nil {
+		g.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(g, g)}
 	}
 
 	return
@@ -408,6 +382,20 @@ type TestCancelSecretUI struct {
 func (t *TestCancelSecretUI) GetPassphrase(_ keybase1.GUIEntryArg, _ *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
 	t.CallCount++
 	return keybase1.GetPassphraseRes{}, InputCanceledError{}
+}
+
+type TestCountSecretUI struct {
+	Passphrase  string
+	StoreSecret bool
+	CallCount   int
+}
+
+func (t *TestCountSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	t.CallCount++
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrase,
+		StoreSecret: t.StoreSecret,
+	}, nil
 }
 
 type TestLoginUI struct {

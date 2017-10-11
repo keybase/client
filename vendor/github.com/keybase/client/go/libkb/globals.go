@@ -62,6 +62,7 @@ type GlobalContext struct {
 	Output           io.Writer            // where 'Stdout'-style output goes
 	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	AppState         *AppState            // The state of focus for the currently running instance of the app
+	ChatHelper       ChatHelper           // conveniently send chat messages
 
 	cacheMu        *sync.RWMutex   // protects all caches
 	ProofCache     *ProofCache     // where to cache proof results
@@ -191,10 +192,7 @@ func (g *GlobalContext) CloneWithNetContext(netCtx context.Context) *GlobalConte
 	return &tmp
 }
 
-var G *GlobalContext
-
 func init() {
-	G = NewGlobalContext()
 }
 
 func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(cmd) }
@@ -673,10 +671,7 @@ type Contextified struct {
 }
 
 func (c Contextified) G() *GlobalContext {
-	if c.g != nil {
-		return c.g
-	}
-	return G
+	return c.g
 }
 
 func (c Contextified) GStrict() *GlobalContext {

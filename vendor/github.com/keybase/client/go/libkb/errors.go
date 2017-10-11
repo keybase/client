@@ -2163,3 +2163,26 @@ func (e RepoAlreadyExistsError) Error() string {
 		"A repo named %s (id=%s) already existed when trying to create "+
 			"a repo named %s", e.ExistingName, e.ExistingID, e.DesiredName)
 }
+
+//=============================================================================
+
+// RepoDoesntExistError is returned when trying to delete a repo that doesn't exist.
+type RepoDoesntExistError struct {
+	Name string
+}
+
+func (e RepoDoesntExistError) Error() string {
+	return fmt.Sprintf("There is no repo named %q.", e.Name)
+}
+
+//=============================================================================
+
+// NoOpError is returned when an RPC call is issued but it would
+// result in no change, so the call is dropped.
+type NoOpError struct {
+	Desc string
+}
+
+func (e NoOpError) Error() string {
+	return e.Desc
+}

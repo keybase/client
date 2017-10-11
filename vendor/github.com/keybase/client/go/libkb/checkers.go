@@ -33,7 +33,7 @@ var CheckEmailOrUsername = Checker{
 	F: func(s string) bool {
 		return CheckEmail.F(s) || CheckUsername.F(s)
 	},
-	Hint: "valid usernames are 2-12 letters long",
+	Hint: "valid usernames are 2-16 letters long",
 }
 
 var CheckPassphraseSimple = Checker{
