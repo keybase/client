@@ -307,16 +307,6 @@ const (
 	getOnly
 )
 
-// NoSuchRepoError indicates that a repo doesn't yet exist, and it
-// will not be created.
-type NoSuchRepoError struct {
-	name string
-}
-
-func (nsre NoSuchRepoError) Error() string {
-	return fmt.Sprintf("A repo named %s hasn't been created yet", nsre.name)
-}
-
 func getOrCreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, uniqID string, op repoOpType) (
@@ -338,7 +328,7 @@ func getOrCreateRepoAndID(
 	defer func() {
 		_, isWriteAccessErr := errors.Cause(err).(libkbfs.WriteAccessError)
 		if !repoExists && isWriteAccessErr {
-			err = NoSuchRepoError{repoName}
+			err = libkb.RepoDoesntExistError{Name: repoName}
 		}
 	}()
 
@@ -350,7 +340,7 @@ func getOrCreateRepoAndID(
 		_, _, err = config.KBFSOps().Lookup(ctx, repoDir, normalizedRepoName)
 		switch errors.Cause(err).(type) {
 		case libkbfs.NoSuchNameError:
-			return nil, NullID, errors.WithStack(NoSuchRepoError{repoName})
+			return nil, NullID, errors.WithStack(libkb.RepoDoesntExistError{Name: repoName})
 		case nil:
 		default:
 			return nil, NullID, err
@@ -375,7 +365,7 @@ func getOrCreateRepoAndID(
 		return nil, NullID, err
 	} else if os.IsNotExist(err) {
 		if op == getOnly {
-			return nil, NullID, errors.WithStack(NoSuchRepoError{repoName})
+			return nil, NullID, errors.WithStack(libkb.RepoDoesntExistError{Name: repoName})
 		}
 
 		// Create a new repo ID.

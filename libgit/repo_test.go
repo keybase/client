@@ -137,7 +137,7 @@ func TestGetRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 
 	_, _, err = GetRepoAndID(ctx, config, h, "Repo1", "")
-	require.IsType(t, NoSuchRepoError{}, errors.Cause(err))
+	require.IsType(t, libkb.RepoDoesntExistError{}, errors.Cause(err))
 
 	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")
 	require.NoError(t, err)
