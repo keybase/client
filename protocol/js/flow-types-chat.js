@@ -1001,7 +1001,7 @@ export type ConversationLocal = {
 
 export type ConversationLocalParticipant = {
   username: string,
-  fullname: string,
+  fullname?: ?string,
 }
 
 export type ConversationMember = {
@@ -1322,7 +1322,8 @@ export type InboxUIItem = {
   channel: string,
   headline: string,
   visibility: keybase1.TLFVisibility,
-  participants?: ?Array<ConversationLocalParticipant>,
+  participants?: ?Array<string>,
+  fullNames: {[key: string]: string},
   resetParticipants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
@@ -2037,7 +2038,7 @@ export type UnverifiedInboxUIItemMetadata = {
   channelName: string,
   headline: string,
   snippet: string,
-  participants?: ?Array<ConversationLocalParticipant>,
+  writerNames?: ?Array<string>,
   resetParticipants?: ?Array<string>,
 }
 

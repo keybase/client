@@ -16,7 +16,7 @@ protocol chatUi {
     string channelName;
     string headline;
     string snippet;
-    array<ConversationLocalParticipant> participants;
+    array<string> writerNames;
     array<string> resetParticipants;
   }
 
@@ -48,7 +48,8 @@ protocol chatUi {
     string channel;
     string headline;
     keybase1.TLFVisibility visibility;
-    array<ConversationLocalParticipant> participants;
+    array<string> participants;
+    map<string, string> fullNames;
     array<string> resetParticipants;
     ConversationStatus status;
     ConversationMembersType membersType;

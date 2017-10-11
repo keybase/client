@@ -340,7 +340,7 @@ protocol local {
 
   record ConversationLocalParticipant {
     string username;
-    string fullname;
+    union { null, string } fullname;
   }
 
   record ConversationInfoLocal {

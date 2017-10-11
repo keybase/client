@@ -1996,14 +1996,20 @@ func (o UnreadFirstNumLimit) DeepCopy() UnreadFirstNumLimit {
 }
 
 type ConversationLocalParticipant struct {
-	Username string `codec:"username" json:"username"`
-	Fullname string `codec:"fullname" json:"fullname"`
+	Username string  `codec:"username" json:"username"`
+	Fullname *string `codec:"fullname,omitempty" json:"fullname,omitempty"`
 }
 
 func (o ConversationLocalParticipant) DeepCopy() ConversationLocalParticipant {
 	return ConversationLocalParticipant{
 		Username: o.Username,
-		Fullname: o.Fullname,
+		Fullname: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Fullname),
 	}
 }
 

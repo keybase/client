@@ -131,7 +131,6 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, tuloader
 			activeMap[activeKuids[i].String()] = UsernamePackageToParticipant(packages[i])
 		}
 	}
-
 	allowedWriters := make(map[string]bool)
 
 	// Allow all writers from tlfname.
@@ -613,7 +612,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			ChannelName:       rc.LocalMetadata.TopicName,
 			Headline:          rc.LocalMetadata.Headline,
 			Snippet:           rc.LocalMetadata.Snippet,
-			Participants:      rc.LocalMetadata.Participants,
+			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
 		}
 	}
@@ -628,12 +627,21 @@ func PresentRemoteConversations(rcs []types.RemoteConversation) (res []chat1.Unv
 }
 
 func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
+	var writerNames []string
+	fullNames := make(map[string]string)
+	for _, p := range rawConv.Info.Participants {
+		writerNames = append(writerNames, p.Username)
+		if p.Fullname != nil {
+			fullNames[p.Username] = *p.Fullname
+		}
+	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.Name = rawConv.Info.TlfName
 	res.Snippet = GetConvSnippet(rawConv)
 	res.Channel = GetTopicName(rawConv)
 	res.Headline = GetHeadline(rawConv)
-	res.Participants = rawConv.Info.Participants
+	res.Participants = writerNames
+	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
@@ -860,9 +868,10 @@ func SplitTLFName(tlfName string) []string {
 }
 
 func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLocalParticipant {
-	fullName := "Unknown"
+	var fullName *string
 	if p.FullName != nil {
-		fullName = string(p.FullName.FullName)
+		s := string(p.FullName.FullName)
+		fullName = &s
 	}
 	return chat1.ConversationLocalParticipant{
 		Username: p.NormalizedUsername.String(),

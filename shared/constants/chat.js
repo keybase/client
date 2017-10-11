@@ -1134,6 +1134,18 @@ const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (sele
   return ''
 })
 
+const getParticipantsWithFullNames = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selected) => {
+    if (selected && isPendingConversationIDKey(selected)) {
+      return []
+    } else if (selected !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.join(',')
+    }
+    return ''
+  }
+)
+
 const getMuted = createSelector(
   [getSelectedInbox],
   selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'

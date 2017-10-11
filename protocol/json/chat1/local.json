@@ -972,7 +972,10 @@
           "name": "username"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "fullname"
         }
       ]
