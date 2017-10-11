@@ -24,42 +24,50 @@ const roleIconMap = {
 }
 
 export const TeamMember = (props: Props) => {
-  const {admin, user, teamname, you, onOpenProfile, onChat, onEditMembership} = props
+  const {admin, user, teamname, onOpenProfile, onChat, onEditMembership} = props
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          margin: globalMargins.small,
-        }}
-      >
-        <Avatar
-          style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
-          username={user.username}
-          size={isMobile ? 64 : 48}
-        />
-        <Icon
-          type={roleIconMap[user.type] || 'iconfont-close'}
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: globalMargins.large}}>
+        <Box
           style={{
-            fontSize: isMobile ? 28 : 20,
-            margin: globalMargins.tiny,
-            alignSelf: 'center',
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
+            margin: globalMargins.small,
           }}
-        />
-        <Avatar
-          style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
-          isTeam={true}
-          teamname={teamname}
-          size={isMobile ? 64 : 48}
+        >
+          <Avatar
+            style={{marginRight: globalMargins.tiny, alignSelf: 'center'}}
+            username={user.username}
+            size={64}
+          />
+          <Icon
+            type={roleIconMap[user.type] || 'iconfont-close'}
+            style={{
+              fontSize: isMobile ? 28 : 28,
+              margin: globalMargins.tiny,
+              alignSelf: 'center',
+            }}
+          />
+          <Avatar
+            style={{marginLeft: globalMargins.tiny, alignSelf: 'center'}}
+            isTeam={true}
+            teamname={teamname}
+            size={64}
+          />
+        </Box>
+        <Text type="Header">{user.username}</Text>
+        <Text type="BodySmall">{user.type} in {teamname}</Text>
+      </Box>
+      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+        {admin && <Button type="Secondary" label="Edit" onClick={onEditMembership} />}
+        <Button type="Primary" style={{marginLeft: globalMargins.tiny}} label="Chat" onClick={onChat} />
+        <Button
+          type="Secondary"
+          style={{marginLeft: globalMargins.tiny}}
+          label="View"
+          onClick={onOpenProfile}
         />
       </Box>
-      <Text type="Header">{user.username}</Text>
-      <Text type="BodySmall">{user.type} in {teamname}</Text>
-      <Text type="Header">you: {you && you.username}</Text>
-      {admin && <Button type="Primary" label="Edit" onClick={onEditMembership} />}
-      <Button type="Primary" label="Chat" onClick={onChat} />
-      <Button type="Primary" label="Open" onClick={onOpenProfile} />
     </Box>
   )
 }
