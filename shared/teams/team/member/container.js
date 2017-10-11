@@ -65,7 +65,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     username: stateProps._username,
     type: userInfo && userInfo.type.substring(0, userInfo.type.length - 1), // De-pluralize type
   }
-  const admin = (you.type === 'admin' && !user.type === 'owner') || you.type === 'owner'
+  // If they're an owner, you need to be an owner to edit them
+  // otherwise you just need to be an admin
+  const admin = user.type === 'owner' ? you.type === 'owner' : you.type === 'owner' || you.type === 'admin'
   return {
     ...stateProps,
     ...dispatchProps,
