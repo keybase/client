@@ -85,7 +85,7 @@ Text
 
 // TODO: should coalesce multiple line quotes
 QuoteBlock
- = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)+ LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
+ = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)* LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
 Bold
  = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }

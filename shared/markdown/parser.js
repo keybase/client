@@ -1244,16 +1244,12 @@ function peg$parse(input, options) {
         if (s4 === peg$FAILED) {
           s4 = peg$parseTextBlock();
         }
-        if (s4 !== peg$FAILED) {
-          while (s4 !== peg$FAILED) {
-            s3.push(s4);
-            s4 = peg$parseCodeBlock();
-            if (s4 === peg$FAILED) {
-              s4 = peg$parseTextBlock();
-            }
+        while (s4 !== peg$FAILED) {
+          s3.push(s4);
+          s4 = peg$parseCodeBlock();
+          if (s4 === peg$FAILED) {
+            s4 = peg$parseTextBlock();
           }
-        } else {
-          s3 = peg$FAILED;
         }
         if (s3 !== peg$FAILED) {
           s4 = peg$parseLineTerminatorSequence();
