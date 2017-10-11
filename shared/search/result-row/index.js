@@ -120,7 +120,7 @@ const SearchResultRow = (props: Constants.RowProps) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected).toString()]}
     underlayColor={globalColors.blue4}
-    onClick={!props.userIsInTeam && props.onClick}
+    onClick={!props.userIsInTeam ? props.onClick : null}
     onMouseOver={props.onMouseOver}
   >
     <Box style={_rowStyle}>

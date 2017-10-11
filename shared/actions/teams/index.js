@@ -63,7 +63,6 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
   const ids = yield select(SearchConstants.getUserInputItemIds, {searchKey: 'addToTeamSearch'})
   for (const id of ids) {
-    console.warn(id)
     yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
       param: {
         name: teamname,

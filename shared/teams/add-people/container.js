@@ -1,6 +1,7 @@
 // @flow
 import {connect} from 'react-redux'
 import * as Creators from '../../actions/teams/creators'
+import * as SearchCreators from '../../actions/search/creators'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {branch, compose, withPropsOnChange} from 'recompose'
@@ -33,6 +34,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
     dispatch(navigateUp()),
     dispatch(Creators.getTeams())
+    dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
+    dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
 })
 
@@ -40,7 +43,7 @@ export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
     withPropsOnChange(['onExitSearch'], props => ({
-      onCancel: () => props.onExitSearch(),
+      onCancel: () => props.onClose(),
       title: 'Add people',
     })),
     HeaderHoc

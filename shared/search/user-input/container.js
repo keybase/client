@@ -23,7 +23,6 @@ type OwnProps = {|
 |}
 
 const UserInputWithServiceFilter = props => {
-  console.warn('in userinput', props.placeholder)
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.medium}}>
       <UserInput

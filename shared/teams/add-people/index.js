@@ -67,6 +67,32 @@ class AddPeople extends React.Component<Props, State> {
     return (
       <MaybePopup onClose={this.props.onClose}>
         <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box
+            style={{
+              ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
+              margin: globalMargins.small,
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{margin: globalMargins.tiny}} type="Body">
+              Add these team members to {this.props.name} as:
+            </Text>
+            <Dropdown
+              items={this._makeDropdownItems()}
+              selected={this._makeDropdownItem(this.state.selectedRole)}
+              onChanged={this._dropdownChanged}
+            />
+            <Button type="Primary" onClick={this._onSubmit} label="Invite" style={{margin: globalMargins.tiny}} />
+          </Box>
+
+          {!isMobile && <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              borderBottom: `1px solid ${globalColors.black_10}`,
+              boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
+            }}
+          />}
+
           <Box style={{...globalStyles.flexBoxColumn}}>
             <UserInput
               autoFocus={true}
@@ -93,38 +119,6 @@ class AddPeople extends React.Component<Props, State> {
                   disableIfInTeamName={this.props.name}
                   style={{flexGrow: 1, height: 500}}
                 />}
-          </Box>
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              borderBottom: `1px solid ${globalColors.black_10}`,
-              boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-            }}
-          />
-          <Box
-            style={{
-              ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-              margin: globalMargins.medium,
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{paddingRight: globalMargins.small}} type="Body">
-              Add these team members to {this.props.name} as:
-            </Text>
-            <Dropdown
-              items={this._makeDropdownItems()}
-              selected={this._makeDropdownItem(this.state.selectedRole)}
-              onChanged={this._dropdownChanged}
-            />
-
-          </Box>
-          <Box
-            style={{
-              ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-              margin: globalMargins.medium,
-            }}
-          >
-            <Button type="Primary" onClick={this._onSubmit} label="Invite" />
           </Box>
         </Box>
       </MaybePopup>

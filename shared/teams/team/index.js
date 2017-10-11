@@ -198,7 +198,6 @@ class Team extends React.PureComponent<Props> {
       }
     }
 
-    console.warn('onAddPeople is', onAddPeople)
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
         <Avatar isTeam={true} teamname={name} size={64} />
