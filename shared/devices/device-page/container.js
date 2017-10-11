@@ -24,9 +24,10 @@ const buildTimeline = (device: DeviceDetail) => {
     },
   ]
 
+  const provisioner = device.get('provisioner')
   const added = {
     desc: `Added ${moment(device.get('created')).format('MMM D, YYYY')}`,
-    subDesc: device.getIn(['provisioner', 'name'], ''),
+    subDesc: (provisioner && provisioner.name) || '',
     type: 'Added',
   }
 

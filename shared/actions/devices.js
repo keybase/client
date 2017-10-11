@@ -85,6 +85,7 @@ function* _deviceListSaga(): SagaGenerator<any, any> {
         lastUsed: r.device.lastUsedTime,
         name: r.device.name,
         provisionedAt: r.provisionedAt,
+        provisioner: r.provisioner,
         revokedAt: r.revokedAt,
         revokedByName: r.revokedByDevice ? r.revokedByDevice.name : null,
         type: r.device.type,
