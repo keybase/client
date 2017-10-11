@@ -181,6 +181,18 @@ func (o PutGitMetadataArg) DeepCopy() PutGitMetadataArg {
 	}
 }
 
+type DeleteGitMetadataArg struct {
+	Folder   Folder      `codec:"folder" json:"folder"`
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+func (o DeleteGitMetadataArg) DeepCopy() DeleteGitMetadataArg {
+	return DeleteGitMetadataArg{
+		Folder:   o.Folder.DeepCopy(),
+		RepoName: o.RepoName.DeepCopy(),
+	}
+}
+
 type GetGitMetadataArg struct {
 	Folder Folder `codec:"folder" json:"folder"`
 }
@@ -248,6 +260,7 @@ func (o DeleteTeamRepoArg) DeepCopy() DeleteTeamRepoArg {
 
 type GitInterface interface {
 	PutGitMetadata(context.Context, PutGitMetadataArg) error
+	DeleteGitMetadata(context.Context, DeleteGitMetadataArg) error
 	GetGitMetadata(context.Context, Folder) ([]GitRepoResult, error)
 	GetAllGitMetadata(context.Context) ([]GitRepoResult, error)
 	CreatePersonalRepo(context.Context, GitRepoName) (RepoID, error)
@@ -272,6 +285,22 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 						return
 					}
 					err = i.PutGitMetadata(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"deleteGitMetadata": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteGitMetadataArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteGitMetadataArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteGitMetadataArg)(nil), args)
+						return
+					}
+					err = i.DeleteGitMetadata(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -377,6 +406,11 @@ type GitClient struct {
 
 func (c GitClient) PutGitMetadata(ctx context.Context, __arg PutGitMetadataArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.git.putGitMetadata", []interface{}{__arg}, nil)
+	return
+}
+
+func (c GitClient) DeleteGitMetadata(ctx context.Context, __arg DeleteGitMetadataArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.deleteGitMetadata", []interface{}{__arg}, nil)
 	return
 }
 
