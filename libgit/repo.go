@@ -48,6 +48,18 @@ func checkValidRepoName(repoName string, config libkbfs.Config) bool {
 			repoNameRE.MatchString(repoName))
 }
 
+// For the common "repo doesn't exist" case, use the error type that the client can recognize.
+func castNoSuchNameError(err error, repoName string) error {
+	switch errors.Cause(err).(type) {
+	case libkbfs.NoSuchNameError:
+		return libkb.RepoDoesntExistError{
+			Name: repoName,
+		}
+	default:
+		return err
+	}
+}
+
 func recursiveDelete(
 	ctx context.Context, fs *libfs.FS, fi os.FileInfo) error {
 	if !fi.IsDir() {
@@ -478,21 +490,12 @@ func DeleteRepo(
 
 	repoNode, _, err := kbfsOps.Lookup(ctx, rootNode, kbfsRepoDir)
 	if err != nil {
-		return err
+		return castNoSuchNameError(err, repoName)
 	}
 
 	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedRepoName)
 	if err != nil {
-		// For the common "repo doesn't exist" case, use an error type that the
-		// client can recognize.
-		switch errors.Cause(err).(type) {
-		case libkbfs.NoSuchNameError:
-			return libkb.RepoDoesntExistError{
-				Name: repoName,
-			}
-		default:
-			return err
-		}
+		return castNoSuchNameError(err, repoName)
 	}
 
 	deletedReposNode, err := lookupOrCreateDir(
