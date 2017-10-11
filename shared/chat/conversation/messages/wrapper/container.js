@@ -3,7 +3,6 @@ import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import Wrapper, {type Props} from '.'
 import {compose, withHandlers, lifecycle, connect, type TypedState} from '../../../../util/container'
-import {Map} from 'immutable'
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {lookupMessageProps} from '../../../shared'
 import {showUserProfile} from '../../../../actions/profile'
@@ -22,7 +21,7 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
   const author = message.author
   const isYou = Constants.getYou(state) === author
   const isFollowing = !!Constants.getFollowingMap(state)[author]
-  const isBroken = Constants.getMetaDataMap(state).get(author, Map()).get('brokenTracker', false)
+  const isBroken = Constants.getMetaDataMap(state).getIn([author, 'brokenTracker'], false)
 
   const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)
   const isEditing = message === Constants.getEditingMessage(state)

@@ -1,8 +1,8 @@
 // @flow
-import isEqualWith from 'lodash/isEqualWith'
-import {createSelector, createSelectorCreator, defaultMemoize, type TypedState} from '../util/container'
+// Not use util/container as we have import loops otherwise
+import {createSelector} from 'reselect'
+import {type TypedState} from './reducer'
 import {type SearchQuery} from './search'
-import * as I from 'immutable'
 
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
@@ -26,18 +26,10 @@ const searchResultMapSelector = createSelector(
   searchResults => searchResults
 )
 
-const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
-  isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
-)
-
-const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
-
 export {
   amIBeingFollowed,
   amIFollowing,
   cachedSearchResults,
-  createShallowEqualSelector,
-  createImmutableEqualSelector,
   loggedInSelector,
   previousConversationSelector,
   searchResultMapSelector,

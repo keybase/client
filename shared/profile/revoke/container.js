@@ -6,8 +6,8 @@ import {connect, type TypedState} from '../../util/container'
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   errorMessage: state.profile.revoke.error,
   isWaiting: state.profile.revoke.waiting,
-  platform: routeProps.platform,
-  platformHandle: routeProps.platformHandle,
+  platform: routeProps.get('platform'),
+  platformHandle: routeProps.get('platformHandle'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({

@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   const channels = convIDs
     .map(convID => {
-      const info: Constants.ChannelInfoRecord = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
+      const info: ?Constants.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
 
       return info && info.channelname
         ? {

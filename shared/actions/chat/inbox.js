@@ -149,7 +149,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       author,
       inbox.items || []
     )
-    yield put(EntityCreators.replaceEntity(['convIDToSnippet'], snippets))
+    yield put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map(snippets)))
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 
@@ -258,14 +258,17 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   const inboxState = _conversationLocalToInboxState(c)
 
   if (inboxState) {
-    yield put(EntityCreators.replaceEntity(['inboxVersion'], {[conversationIDKey]: c.version}))
+    yield put(EntityCreators.replaceEntity(['inboxVersion'], I.Map({[conversationIDKey]: c.version})))
     if (isBigTeam) {
       yield put(
-        EntityCreators.replaceEntity(['inboxBigChannels'], {[conversationIDKey]: inboxState.channelname})
+        EntityCreators.replaceEntity(
+          ['inboxBigChannels'],
+          I.Map({[conversationIDKey]: inboxState.channelname})
+        )
       )
     } else {
       yield put(
-        EntityCreators.replaceEntity(['inboxSmallTimestamps'], {[conversationIDKey]: inboxState.time})
+        EntityCreators.replaceEntity(['inboxSmallTimestamps'], I.Map({[conversationIDKey]: inboxState.time}))
       )
     }
   }
@@ -347,7 +350,7 @@ function* _chatInboxFailedSubSaga(params) {
   const conversationIDKey = Constants.conversationIDToKey(convID)
 
   // Valid inbox item for rekey errors only
-  const conversation = new Constants.InboxStateRecord({
+  const conversation = Constants.makeInboxState({
     conversationIDKey,
     participants: error.rekeyInfo
       ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
@@ -518,7 +521,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
 
   const notifications = c.notifications && parseNotifications(c.notifications)
 
-  return new Constants.InboxStateRecord({
+  return Constants.makeInboxState({
     channelname,
     conversationIDKey,
     isEmpty: c.isEmpty,

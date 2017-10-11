@@ -11,7 +11,7 @@ import {type OwnProps} from './container'
 
 const conversationStateSelector = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  return state.chat.get('conversationStates').get(selectedConversationIDKey)
+  return state.chat.getIn(['conversationStates', selectedConversationIDKey])
 }
 
 const editingMessageSelector = (state: TypedState) => state.chat.get('editingMessage')

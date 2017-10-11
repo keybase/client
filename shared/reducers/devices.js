@@ -1,15 +1,13 @@
 // @flow
 import {List} from 'immutable'
-import {StateRecord} from '../constants/devices'
+import {makeState, type State, type Actions} from '../constants/devices'
 
-import type {State, Actions} from '../constants/devices'
-
-const initialState: State = new StateRecord()
+const initialState: State = makeState()
 
 export default function(state: State = initialState, action: Actions) {
   switch (action.type) {
     case 'common:resetStore':
-      return new StateRecord()
+      return initialState
     case 'devices:waiting':
       const {waiting} = action.payload
       return state.set('waitingForServer', waiting)

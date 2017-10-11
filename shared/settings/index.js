@@ -17,12 +17,16 @@ type StateProps = {
 const mapStateToProps = (
   state: TypedState,
   {routeLeafTags, routeSelected}: RouteProps<{}, {}>
-): StateProps => ({
-  badgeNumbers: getNavBadges(state).toObject(),
-  isModal: routeLeafTags.modal,
-  // TODO: Is there a way to validate that routeSelected is a Tab?
-  selectedTab: (routeSelected: any),
-})
+): StateProps => {
+  // $FlowIssue
+  const badgeNumbers: {[key: Tab]: number} = getNavBadges(state).toObject()
+  return {
+    badgeNumbers,
+    isModal: routeLeafTags.modal,
+    // TODO: Is there a way to validate that routeSelected is a Tab?
+    selectedTab: (routeSelected: any),
+  }
+}
 
 type DispatchProps = {
   onLogout: () => void,

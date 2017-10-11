@@ -4,12 +4,11 @@ import * as I from 'immutable'
 import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {compose, renderComponent, branch, renderNothing} from 'recompose'
-import {createSelectorCreator, defaultMemoize} from 'reselect'
 import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 import {navigateAppend} from '../../../actions/route-tree'
-import {pausableConnect, type TypedState} from '../../../util/container'
+import {pausableConnect, createImmutableEqualSelector, type TypedState} from '../../../util/container'
 import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 
 function _rowDerivedProps(
@@ -49,7 +48,6 @@ function _rowDerivedProps(
   }
 }
 
-const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 const getYou = state => state.config.username || ''
 const makeGetConversation = conversationIDKey => state =>
   state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
@@ -67,9 +65,9 @@ const makeGetParticipants = conversationIDKey => state =>
     state.chat.get('pendingConversations').get(conversationIDKey) || I.List(),
     state.config.username || ''
   )
-const getNowOverride = state => state.chat.get('nowOverride')
+const getNowOverride = state => state.chat.nowOverride
 const makeGetFinalizedInfo = conversationIDKey => state =>
-  state.chat.get('finalizedState').get(conversationIDKey)
+  state.chat.getIn(['finalizedState', conversationIDKey])
 
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)

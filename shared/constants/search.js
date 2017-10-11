@@ -3,8 +3,8 @@ import {OrderedSet} from 'immutable'
 import {amIFollowing, usernameSelector} from './selectors'
 import {type NoErrorTypedAction} from '../constants/types/flux'
 import {type IconType} from '../common-adapters/icon'
-import {type TypedState} from './reducer'
 import {createSelector} from 'reselect'
+import {type TypedState} from './reducer'
 
 const services: {[service: string]: true} = {
   Facebook: true,
@@ -157,7 +157,6 @@ function maybeUpgradeSearchResultIdToKeybaseId(
   id: SearchResultId
 ): SearchResultId {
   if (!searchResultMap.get(id)) {
-    console.warn('search result id not found in entities.', id)
     return id
   }
 

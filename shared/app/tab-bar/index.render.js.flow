@@ -6,7 +6,7 @@ export type Props = {
   onTabClick: (tab: Tab) => void,
   selectedTab: Tab,
   username?: string,
-  badgeNumbers: {[key: Tab]: number},
+  badgeNumbers: {[key: string]: number},
 }
 
 export default class TabBar extends Component<Props> {}

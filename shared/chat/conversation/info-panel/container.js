@@ -25,8 +25,8 @@ const getParticipants = createSelector(
     return users.map(username => {
       const following = !!followingMap[username]
       const meta = metaDataMap.get(username, Map({}))
-      const fullname = meta.get('fullname', 'Unknown')
-      const broken = meta.get('brokenTracker', false)
+      const fullname = meta.get('fullname') || 'Unknown'
+      const broken = meta.get('brokenTracker') || false
       return {
         broken,
         following,

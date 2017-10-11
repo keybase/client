@@ -30,7 +30,15 @@ const mapStateToProps = (state: TypedState) => {
     return {}
   }
   const inbox = Constants.getSelectedInbox(state)
+  if (!inbox) {
+    console.warn('no selected inbox')
+    return {}
+  }
   const notifications = inbox.get('notifications')
+  if (!notifications) {
+    console.warn('no notifications')
+    return {}
+  }
   const desktop = serverStateToProps(notifications, 'desktop')
   const mobile = serverStateToProps(notifications, 'mobile')
   const {channelWide} = notifications
