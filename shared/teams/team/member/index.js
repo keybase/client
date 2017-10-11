@@ -6,6 +6,7 @@ import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 export type Props = {
+  admin: boolean,
   user: Constants.MemberInfo,
   teamname: string,
   you: ?Constants.MemberInfo,
@@ -23,7 +24,7 @@ const roleIconMap = {
 }
 
 export const TeamMember = (props: Props) => {
-  const {user, teamname, you, onOpenProfile, onChat, onEditMembership} = props
+  const {admin, user, teamname, you, onOpenProfile, onChat, onEditMembership} = props
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       <Box
@@ -56,7 +57,7 @@ export const TeamMember = (props: Props) => {
       <Text type="Header">{user.username}</Text>
       <Text type="BodySmall">{user.type} in {teamname}</Text>
       <Text type="Header">you: {you && you.username}</Text>
-      <Button type="Primary" label="Edit" onClick={onEditMembership} />
+      {admin && <Button type="Primary" label="Edit" onClick={onEditMembership} />}
       <Button type="Primary" label="Chat" onClick={onChat} />
       <Button type="Primary" label="Open" onClick={onOpenProfile} />
     </Box>

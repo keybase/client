@@ -65,11 +65,13 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     username: stateProps._username,
     type: userInfo && userInfo.type.substring(0, userInfo.type.length - 1), // De-pluralize type
   }
+  const admin = (you.type === 'admin' && !user.type === 'owner') || you.type === 'owner'
   return {
     ...stateProps,
     ...dispatchProps,
-    you,
+    admin,
     user,
+    you,
     onChat: () => dispatchProps._onChat(stateProps._username, stateProps._you),
     onEditMembership: () => dispatchProps._onEditMembership(stateProps.teamname, stateProps._username),
   }
