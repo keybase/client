@@ -196,7 +196,7 @@ func createTeam2(tc libkb.TestContext) (keybase1.TeamName, keybase1.TeamID) {
 	teamNameS := createTeam(tc)
 	teamName, err := keybase1.TeamNameFromString(teamNameS)
 	require.NoError(tc.T, err)
-	return teamName, teamName.ToTeamID()
+	return teamName, teamName.ToPrivateTeamID()
 }
 
 func createSubteam(tc *libkb.TestContext, parent keybase1.TeamName, subteamNamePart string) (keybase1.TeamName, keybase1.TeamID) {

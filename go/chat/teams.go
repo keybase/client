@@ -155,16 +155,17 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 }
 
 func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, vis keybase1.TLFVisibility) (res types.NameInfo, err error) {
+	public := vis != keybase1.TLFVisibility_PRIVATE
 	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
 		return res, err
 	}
-	res.ID, err = teamIDToTLFID(teamName.ToTeamID())
+	res.ID, err = teamIDToTLFID(teamName.ToTeamID(public))
 	if err != nil {
 		return res, err
 	}
 	res.CanonicalName = name
-	if vis == keybase1.TLFVisibility_PRIVATE {
+	if public {
 		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 			Name: name,
 		})

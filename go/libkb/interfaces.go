@@ -596,11 +596,7 @@ type TeamLoader interface {
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
 	// Delete the cache entry. Does not error if there is no cache entry.
-	Delete(ctx context.Context, teamID keybase1.TeamID, public bool) error
-	// Delete the cache entry for both the public and private team.
-	// CORE-6322 Anywhere this method is used is a place where it would be _much_ better to use Delete.
-	//           This method should be deleted after that works.
-	DeleteBoth(ctx context.Context, teamID keybase1.TeamID) error
+	Delete(ctx context.Context, teamID keybase1.TeamID) error
 	OnLogout()
 }
 
@@ -650,4 +646,25 @@ type UIDMapper interface {
 	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
 	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
 	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+}
+
+type ChatHelper interface {
+	SendTextByID(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, text string) error
+	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, text string) error
+	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+	SendTextByName(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+	SendMsgByName(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+		msgType chat1.MessageType) error
+	SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+		msgType chat1.MessageType) error
 }

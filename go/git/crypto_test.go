@@ -27,7 +27,7 @@ func createRootTeam(tc libkb.TestContext) keybase1.TeamID {
 	require.NoError(tc.T, err)
 	err = teams.CreateRootTeam(context.Background(), tc.G, teamName.String(), keybase1.TeamSettings{})
 	require.NoError(tc.T, err)
-	return teams.RootTeamIDFromName(teamName)
+	return teamName.ToPrivateTeamID()
 }
 
 func setupBox(t *testing.T) (libkb.TestContext, *Crypto, keybase1.TeamIDWithVisibility, *keybase1.EncryptedGitMetadata) {

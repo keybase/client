@@ -65,27 +65,14 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	return l.load1(ctx, me, lArg)
 }
 
-func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) (err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v,public:%v)", teamID, public), func() error { return err })()
-
-	// Single-flight lock by team ID.
-	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
-	defer lock.Release(ctx)
-
-	return l.storage.Delete(ctx, teamID, public)
-}
-
-func (l *TeamLoader) DeleteBoth(ctx context.Context, teamID keybase1.TeamID) (err error) {
+func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err error) {
 	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v)", teamID), func() error { return err })()
 
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 
-	return libkb.PickFirstError(
-		l.storage.Delete(ctx, teamID, true),
-		l.storage.Delete(ctx, teamID, false),
-	)
+	return l.storage.Delete(ctx, teamID, teamID.IsPublic())
 }
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
@@ -174,9 +161,12 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 	hasID := lArg.ID.Exists()
 	hasName := len(lArg.Name) > 0
 	if hasID {
-		_, err := keybase1.TeamIDFromString(lArg.ID.String())
+		id, err := keybase1.TeamIDFromString(lArg.ID.String())
 		if err != nil {
 			return fmt.Errorf("team load arg has invalid ID: %v", lArg.ID)
+		}
+		if id.IsPublic() != lArg.Public {
+			return fmt.Errorf("team load arg has public:%v but teamID is public:%v", lArg.Public, id.IsPublic())
 		}
 	}
 	if !hasID && !hasName {
@@ -437,7 +427,10 @@ func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT,
 
 	// Make sure public works out
 	if ret.Chain.Public != arg.public {
-		return nil, fmt.Errorf("team public mismatch: %v != %v", ret.Chain.Public, arg.public)
+		return nil, fmt.Errorf("team public mismatch: chain:%v != arg:%v", ret.Chain.Public, arg.public)
+	}
+	if ret.Chain.Id.IsPublic() != ret.Chain.Public {
+		return nil, fmt.Errorf("team public mismatch: id:%v != chain:%v", ret.Chain.Id.IsPublic(), ret.Chain.Public)
 	}
 
 	// Sanity check the id
@@ -836,7 +829,7 @@ func (l *TeamLoader) OnLogout() {
 
 func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, name keybase1.TeamName) error {
 	if name.IsRootTeam() {
-		if !name.ToTeamID().Eq(id) {
+		if !name.ToTeamID(id.IsPublic()).Eq(id) {
 			return NewResolveError(name, id)
 		}
 		return nil

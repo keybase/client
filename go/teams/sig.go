@@ -7,12 +7,12 @@
 package teams
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -42,21 +42,6 @@ func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection
 	body.SetKey("team", teamSectionJSON)
 
 	return ret, nil
-}
-
-func RootTeamIDFromName(n keybase1.TeamName) keybase1.TeamID {
-	if !n.IsRootTeam() {
-		panic("can't get a team ID from a subteam")
-	}
-	return RootTeamIDFromNameString(n.String())
-}
-
-// the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
-func RootTeamIDFromNameString(name string) keybase1.TeamID {
-	sum := sha256.Sum256([]byte(strings.ToLower(name)))
-	idBytes := sum[0:16]
-	idBytes[15] = libkb.RootTeamIDTag
-	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
 func NewImplicitTeamName() (res keybase1.TeamName, err error) {
@@ -195,8 +180,12 @@ func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigCh
 }
 
 // 15 random bytes, followed by the byte 0x25, encoded as hex
-func NewSubteamID() keybase1.TeamID {
-	idBytes, err := libkb.RandBytesWithSuffix(16, libkb.SubteamIDTag)
+func NewSubteamID(public bool) keybase1.TeamID {
+	var useSuffix byte = keybase1.SUB_TEAMID_PRIVATE_SUFFIX
+	if public {
+		useSuffix = keybase1.SUB_TEAMID_PUBLIC_SUFFIX
+	}
+	idBytes, err := libkb.RandBytesWithSuffix(16, useSuffix)
 	if err != nil {
 		panic("RandBytes failed: " + err.Error())
 	}
@@ -257,4 +246,52 @@ func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
 		return keybase1.SeqType_PUBLIC
 	}
 	return keybase1.SeqType_SEMIPRIVATE
+}
+
+func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
+	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+
+	defer g.CTraceTimed(ctx, "precheckLinkToPost", func() error { return err })()
+
+	outerLink, err := libkb.DecodeOuterLinkV2(sigMultiItem.Sig)
+	if err != nil {
+		return fmt.Errorf("unpack outer: %v", err)
+	}
+
+	link1 := SCChainLink{
+		Seqno:   outerLink.Seqno,
+		Sig:     sigMultiItem.Sig,
+		Payload: sigMultiItem.SigInner,
+		UID:     me.Uid,
+		Version: 2,
+	}
+	link2, err := unpackChainLink(&link1)
+	if err != nil {
+		return fmt.Errorf("unpack link: %v", err)
+	}
+
+	if link2.isStubbed() {
+		return fmt.Errorf("link missing inner")
+	}
+	isAdmin := true
+	if state != nil {
+		role, err := state.GetUserRole(me)
+		if err != nil {
+			role = keybase1.TeamRole_NONE
+		}
+		isAdmin = role.IsAdminOrAbove()
+	}
+
+	var player *TeamSigChainPlayer
+	if state == nil {
+		player = NewTeamSigChainPlayer(g, me)
+	} else {
+		player = NewTeamSigChainPlayerWithState(g, me, *state)
+	}
+
+	signer := signerX{
+		signer:        me,
+		implicitAdmin: !isAdmin,
+	}
+	return player.AppendChainLink(ctx, link2, &signer)
 }

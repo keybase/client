@@ -113,7 +113,6 @@ func TestImplicitTeamRotateOnRevokePrivate(t *testing.T) {
 }
 
 func TestImplicitTeamRotateOnRevokePublic(t *testing.T) {
-	t.Skip("Test skipped until CORE-6322: public team support")
 	testImplicitTeamRotateOnRevoke(t, true)
 }
 
@@ -636,7 +635,7 @@ func TestGetTeamRootID(t *testing.T) {
 	parentName, err := keybase1.TeamNameFromString(tt.users[0].createTeam())
 	require.NoError(t, err)
 
-	parentID := parentName.ToTeamID()
+	parentID := parentName.ToPrivateTeamID()
 
 	t.Logf("create a subteam")
 	subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "mysubteam", parentName)

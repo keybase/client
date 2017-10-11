@@ -2,6 +2,7 @@ package teams
 
 import (
 	"errors"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -18,7 +19,7 @@ func CreateImplicitTeam(ctx context.Context, g *libkb.GlobalContext, impTeam key
 	if err != nil {
 		return res, teamName, err
 	}
-	teamID := RootTeamIDFromNameString(teamName.String())
+	teamID := teamName.ToTeamID(impTeam.IsPublic)
 
 	perUserKeyUpgradeSoft(ctx, g, "create-implicit-team")
 
@@ -233,6 +234,11 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 		},
 	}
 
+	err = precheckLinkToPost(ctx, g, sigMultiItem, nil, me.ToUserVersion())
+	if err != nil {
+		return fmt.Errorf("cannot post link (precheck): %v", err)
+	}
+
 	g.Log.CDebugf(ctx, "makeSigAndPostRootTeam post sigs")
 	payload := make(libkb.JSONPayload)
 	payload["sigs"] = []interface{}{sigMultiItem}
@@ -250,10 +256,18 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me *lib
 	return nil
 }
 
-func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string, settings keybase1.TeamSettings) (err error) {
+func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, nameString string, settings keybase1.TeamSettings) (err error) {
 	defer g.CTrace(ctx, "CreateRootTeam", func() error { return err })()
 
 	perUserKeyUpgradeSoft(ctx, g, "create-root-team")
+
+	name, err := keybase1.TeamNameFromString(nameString)
+	if err != nil {
+		return err
+	}
+	if !name.IsRootTeam() {
+		return fmt.Errorf("cannot create root team with subteam name: %v", nameString)
+	}
 
 	g.Log.CDebugf(ctx, "CreateRootTeam load me")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
@@ -285,8 +299,10 @@ func CreateRootTeam(ctx context.Context, g *libkb.GlobalContext, name string, se
 		scSettings = &settingsTemp
 	}
 
+	teamID := name.ToPrivateTeamID()
+
 	return makeSigAndPostRootTeam(ctx, g, me, members, nil,
-		secretboxRecipients, name, RootTeamIDFromNameString(name), false, false, scSettings)
+		secretboxRecipients, name.String(), teamID, false, false, scSettings)
 }
 
 func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename string, parentName keybase1.TeamName) (ret *keybase1.TeamID, err error) {
@@ -297,7 +313,9 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
-	subteamID := NewSubteamID()
+	// Assume private
+	public := false
+	subteamID := NewSubteamID(public)
 
 	perUserKeyUpgradeSoft(ctx, g, "create-subteam")
 
@@ -347,6 +365,16 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	subteamHeadSig, secretboxes, err := generateHeadSigForSubteamChain(ctx, g, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin, allParentAdmins)
 	if err != nil {
 		return nil, err
+	}
+
+	err = precheckLinkToPost(ctx, g, *newSubteamSig, parentTeam.chain(), me.ToUserVersion())
+	if err != nil {
+		return nil, fmt.Errorf("cannot post link (precheck new subteam): %v", err)
+	}
+
+	err = precheckLinkToPost(ctx, g, *subteamHeadSig, nil, me.ToUserVersion())
+	if err != nil {
+		return nil, fmt.Errorf("cannot post link (precheck subteam head): %v", err)
 	}
 
 	payload := make(libkb.JSONPayload)

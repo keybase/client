@@ -99,6 +99,7 @@
         <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
         <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
         <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
+        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
