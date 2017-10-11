@@ -22,12 +22,16 @@
                       Key="Software\Keybase\Keybase"
                       Name="BUNDLEFILE"
                       Type="raw" />
-    </Property>    
+    </Property>
+    <SetProperty Id="QtExecCopyBundle" Value="&quot;[SystemFolder]cmd.exe&quot; /C copy /Y &quot;[BUNDLEFILE]&quot; &quot;[INSTALLERFOLDER]&quot;"
+            Before="QtExecCopyBundle" Sequence='execute'/>
+    <SetProperty Id="QtExecRemoveBundle" Value="&quot;[SystemFolder]cmd.exe&quot; /C del &quot;[REG_BUNDLEFILE]&quot;"
+        Before="QtExecCopyBundle" Sequence='execute'/>
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
     <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
-      <ComponentGroupRef Id="GuiComponents" />
+      <ComponentGroupRef Id="GuiComps" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
@@ -39,7 +43,7 @@
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="ParseBundlePath" After="CostFinalize">NOT REMOVE AND BUNDLEFILE</Custom>
-      <Custom Action="RemoveBundle"  Before="InstallValidate"><![CDATA[Installed AND REG_BUNDLEFILE]]></Custom>
+      <Custom Action="QtExecRemoveBundle"  Before="InstallValidate"><![CDATA[Installed AND REG_BUNDLEFILE]]></Custom>
       <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
       <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
@@ -51,7 +55,7 @@
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
-      <Custom Action="CopyBundle" Before="InstallFinalize"><![CDATA[BUNDLEFILE AND NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="QtExecCopyBundle" Before="InstallFinalize"><![CDATA[BUNDLEFILE AND NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
 
 
@@ -312,26 +316,19 @@
               Return="ignore"/>
   </Fragment>
   <Fragment>
-      <CustomAction Id="CopyBundle" Script="vbscript">
-      <![CDATA[
-        Set fso = CreateObject("Scripting.FileSystemObject")
-        fso.CopyFile(Session.Property("BUNDLEFILE"), Session.Property("INSTALLERFOLDER"), true)
-      ]]>
-    </CustomAction>
-  </Fragment>
-  <Fragment>
-    <CustomAction Id="RemoveBundle"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [SystemFolder]cmd.exe /C del &quot;[REG_BUNDLEFILE]&quot;"
-              Execute="immediate"
-              Return="ignore"/>
-  </Fragment>
-  <Fragment>
     <CustomAction Id="ParseBundlePath" Script="vbscript">
       <![CDATA[
-        Set fso = CreateObject("Scripting.FileSystemObject")
-        Session.Property("BUNDLENAME") = fso.GetFileName(Session.Property("BUNDLEFILE"))     
-      ]]>
-    </CustomAction>
+         Set fso = CreateObject("Scripting.FileSystemObject")
+         Session.Property("BUNDLENAME") = fso.GetFileName(Session.Property("BUNDLEFILE"))
+       ]]>
+    </CustomAction>  
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="QtExecRemoveBundle" BinaryKey="WixCA" DllEntry="WixQuietExec"
+                Execute="deferred" Return="check" Impersonate="no"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="QtExecCopyBundle" BinaryKey="WixCA" DllEntry="WixQuietExec"
+                Execute="deferred" Return="check" Impersonate="no"/>
   </Fragment>
 </Wix>
