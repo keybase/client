@@ -1252,7 +1252,6 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	parts, err := utils.ReorderParticipants(
 		ctx,
 		s.G(),
-		s.G().GetUPAKLoader(),
 		s.G().UIDMapper,
 		rekeyInfo.TlfName,
 		conversationRemote.Metadata.ActiveList)

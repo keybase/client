@@ -360,13 +360,6 @@ func (c ConversationInfoLocal) TLFNameExpandedSummary() string {
 	return c.TlfName + " " + c.FinalizeInfo.BeforeSummary()
 }
 
-func (c ConversationInfoLocal) WriterNames() (res []string) {
-	for _, p := range c.Participants {
-		res = append(res, p.Username)
-	}
-	return res
-}
-
 // TLFNameExpanded returns a TLF name with a reset suffix if it exists.
 // This version can be used in requests to lookup the TLF.
 func (h MessageClientHeader) TLFNameExpanded(finalizeInfo *ConversationFinalizeInfo) string {
