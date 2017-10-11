@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
+	billy "gopkg.in/src-d/go-billy.v3"
 )
 
 const (
@@ -174,7 +175,7 @@ func CleanOldDeletedReposTimeLimited(
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
 // been updated.
 func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, fs *libfs.FS) error {
+	tlfHandle *libkbfs.TlfHandle, fs billy.Filesystem) error {
 	folder := tlfHandle.ToFavorite().ToKBFolder(false)
 
 	// Get the user-formatted repo name.
@@ -251,6 +252,33 @@ func takeConfigLock(
 	return f, nil
 }
 
+func makeExistingRepoError(
+	ctx context.Context, config libkbfs.Config, repoFS billy.Filesystem,
+	repoName string) error {
+	// The config file already exists, so someone else already
+	// initialized the repo.
+	config.MakeLogger("").CDebugf(
+		ctx, "Config file for repo %s already exists", repoName)
+	f, err := repoFS.Open(kbfsConfigName)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+	existingConfig, err := configFromBytes(buf)
+	if err != nil {
+		return err
+	}
+	return errors.WithStack(libkb.RepoAlreadyExistsError{
+		DesiredName:  repoName,
+		ExistingName: existingConfig.Name,
+		ExistingID:   existingConfig.ID.String(),
+	})
+}
+
 func createNewRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, fs *libfs.FS) (ID, error) {
@@ -274,28 +302,7 @@ func createNewRepoAndID(
 	if err != nil && !os.IsExist(err) {
 		return NullID, err
 	} else if os.IsExist(err) {
-		// The config file already exists, so someone else already
-		// initialized the repo.
-		config.MakeLogger("").CDebugf(
-			ctx, "Config file for repo %s already exists", repoName)
-		f, err := fs.Open(kbfsConfigName)
-		if err != nil {
-			return NullID, err
-		}
-		defer f.Close()
-		buf, err := ioutil.ReadAll(f)
-		if err != nil {
-			return NullID, err
-		}
-		existingConfig, err := configFromBytes(buf)
-		if err != nil {
-			return NullID, err
-		}
-		return NullID, errors.WithStack(libkb.RepoAlreadyExistsError{
-			DesiredName:  repoName,
-			ExistingName: existingConfig.Name,
-			ExistingID:   existingConfig.ID.String(),
-		})
+		return NullID, makeExistingRepoError(ctx, config, fs, repoName)
 	}
 	defer f.Close()
 
@@ -379,21 +386,38 @@ func getOrCreateRepoAndID(
 	if err != nil {
 		return nil, NullID, err
 	}
-	if op == getOnly {
-		_, _, err = config.KBFSOps().Lookup(ctx, repoDir, normalizedRepoName)
-		switch errors.Cause(err).(type) {
-		case libkbfs.NoSuchNameError:
-			return nil, NullID, errors.WithStack(libkb.RepoDoesntExistError{Name: repoName})
-		case nil:
-		default:
-			return nil, NullID, err
+
+	_, repoEI, err := config.KBFSOps().Lookup(ctx, repoDir, normalizedRepoName)
+	switch errors.Cause(err).(type) {
+	case libkbfs.NoSuchNameError:
+		if op == getOnly {
+			return nil, NullID,
+				errors.WithStack(libkb.RepoDoesntExistError{Name: repoName})
 		}
-	} else {
 		_, err = lookupOrCreateDir(ctx, config, repoDir, normalizedRepoName)
 		if err != nil {
 			return nil, NullID, err
 		}
+	case nil:
+		// If the repo was renamed to something else, we should
+		// override it with a new repo if we're in create-only mode.
+		if op == createOnly && repoEI.Type == libkbfs.Sym {
+			config.MakeLogger("").CDebugf(
+				ctx, "Overwriting symlink for repo %s with a new repo",
+				normalizedRepoName)
+			err = config.KBFSOps().RemoveEntry(ctx, repoDir, normalizedRepoName)
+			if err != nil {
+				return nil, NullID, err
+			}
+			_, err = lookupOrCreateDir(ctx, config, repoDir, normalizedRepoName)
+			if err != nil {
+				return nil, NullID, err
+			}
+		}
+	default:
+		return nil, NullID, err
 	}
+
 	repoExists = true
 
 	fs, err = libfs.NewFS(
@@ -469,10 +493,12 @@ func GetRepoAndID(
 
 // CreateRepoAndID returns a new stable repo ID for the provided
 // repoName in the given TLF.  If the repo has already been created,
-// it returns a `RepoAlreadyExistsError`.  The caller is responsible
-// for syncing the FS and flushing the journal, if desired.  It
-// expects the `config` object to be unique during the lifetime of
-// this call.
+// it returns a `RepoAlreadyExistsError`.  If `repoName` already
+// exists, but is a symlink to another renamed directory, the symlink
+// will be removed in favor of the new repo.  The caller is
+// responsible for syncing the FS and flushing the journal, if
+// desired.  It expects the `config` object to be unique during the
+// lifetime of this call.
 func CreateRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string) (ID, error) {
@@ -544,4 +570,168 @@ func DeleteRepo(
 	return kbfsOps.Rename(
 		ctx, repoNode, normalizedRepoName, deletedReposNode,
 		normalizedRepoName+dirSuffix)
+}
+
+func renameRepoInConfigFile(
+	ctx context.Context, repoFS billy.Filesystem, newRepoName string) error {
+	// Assume lock file is already taken for both the old repo and the
+	// new one.
+	f, err := repoFS.OpenFile(kbfsConfigName, os.O_RDWR, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	buf, err := ioutil.ReadAll(f)
+	if err != nil {
+		return err
+	}
+	c, err := configFromBytes(buf)
+	if err != nil {
+		return err
+	}
+	c.Name = newRepoName
+	buf, err = c.toBytes()
+	if err != nil {
+		return err
+	}
+	_, err = f.Seek(0, io.SeekStart)
+	if err != nil {
+		return err
+	}
+	err = f.Truncate(0)
+	if err != nil {
+		return err
+	}
+	_, err = f.Write(buf)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// RenameRepo renames the repo from an old name to a new name.  It
+// leaves a symlink behind so that old remotes will continue to work.
+// The caller is responsible for syncing the FS and flushing the
+// journal, if desired.
+func RenameRepo(
+	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
+	oldRepoName, newRepoName string) error {
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(
+		ctx, tlfHandle, libkbfs.MasterBranch)
+	if err != nil {
+		return err
+	}
+	normalizedOldRepoName := normalizeRepoName(oldRepoName)
+	normalizedNewRepoName := normalizeRepoName(newRepoName)
+
+	repoNode, _, err := kbfsOps.Lookup(ctx, rootNode, kbfsRepoDir)
+	if err != nil {
+		return err
+	}
+
+	// Does the old repo definitely exist?
+	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedOldRepoName)
+	if err != nil {
+		return err
+	}
+
+	if oldRepoName == newRepoName {
+		// The names are the same, nothing else to do.
+		return nil
+	}
+
+	fs, err := libfs.NewFS(ctx, config, tlfHandle, path.Join(kbfsRepoDir), "")
+	if err != nil {
+		return err
+	}
+
+	oldRepoFS, err := fs.Chroot(normalizedOldRepoName)
+	if err != nil {
+		return err
+	}
+
+	// Take locks in both repos during rename (same lock that's taken
+	// for new repo creation).
+	oldLockFile, err := takeConfigLock(
+		oldRepoFS.(*libfs.FS), tlfHandle, oldRepoName)
+	if err != nil {
+		return err
+	}
+	defer oldLockFile.Close()
+
+	if normalizedOldRepoName == normalizedNewRepoName {
+		// All we need to do is update the name in the config file,
+		// and the MD.
+		err = renameRepoInConfigFile(ctx, oldRepoFS, newRepoName)
+		if err != nil {
+			return err
+		}
+		return UpdateRepoMD(ctx, config, tlfHandle, oldRepoFS)
+	}
+
+	// Does the new repo not exist yet?
+	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedNewRepoName)
+	switch errors.Cause(err).(type) {
+	case libkbfs.NoSuchNameError:
+		// The happy path.
+	case nil:
+		newRepoFS, err := fs.Chroot(normalizedNewRepoName)
+		if err != nil {
+			return err
+		}
+		return makeExistingRepoError(ctx, config, newRepoFS, newRepoName)
+	default:
+		return err
+	}
+
+	// Make the new repo subdir just so we can take the lock inside
+	// the new repo.  (We'll delete the new dir after the rename.)
+	err = fs.MkdirAll(normalizedNewRepoName, 0777)
+	if err != nil {
+		return err
+	}
+	newRepoFS, err := fs.Chroot(normalizedNewRepoName)
+	if err != nil {
+		return err
+	}
+	newLockFile, err := takeConfigLock(
+		newRepoFS.(*libfs.FS), tlfHandle, newRepoName)
+	if err != nil {
+		return err
+	}
+	defer newLockFile.Close()
+
+	// Rename this new dir out of the way before we rename.
+	fi, err := fs.Stat(normalizedNewRepoName)
+	if err != nil {
+		return err
+	}
+	err = recursiveDelete(ctx, fs, fi)
+	if err != nil {
+		return err
+	}
+
+	// Now update the old config file and rename, and leave a symlink
+	// behind.  TODO: if any of the modifying steps below fail, we
+	// should technically clean up any modifications before return, so
+	// they don't get flushed.  However, with journaling on these are
+	// all local operations and all very unlikely to fail.
+	err = renameRepoInConfigFile(ctx, oldRepoFS, newRepoName)
+	if err != nil {
+		return err
+	}
+	err = fs.Rename(normalizedOldRepoName, normalizedNewRepoName)
+	if err != nil {
+		return err
+	}
+	err = fs.Symlink(normalizedNewRepoName, normalizedOldRepoName)
+	if err != nil {
+		return err
+	}
+	newRepoFS, err = fs.Chroot(normalizedNewRepoName)
+	if err != nil {
+		return err
+	}
+	return UpdateRepoMD(ctx, config, tlfHandle, newRepoFS)
 }

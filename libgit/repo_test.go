@@ -215,3 +215,45 @@ func TestDeleteRepo(t *testing.T) {
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
 	require.NoError(t, err)
 }
+
+func TestRepoRename(t *testing.T) {
+	ctx, config, tempdir := initConfig(t)
+	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+
+	id1, err := CreateRepoAndID(ctx, config, h, "Repo1")
+	require.NoError(t, err)
+
+	err = RenameRepo(ctx, config, h, "Repo1", "Repo2")
+	require.NoError(t, err)
+
+	_, id2, err := GetRepoAndID(ctx, config, h, "Repo2", "")
+	require.NoError(t, err)
+	require.Equal(t, id1, id2)
+
+	_, id3, err := GetRepoAndID(ctx, config, h, "Repo1", "")
+	require.NoError(t, err)
+	require.Equal(t, id1, id3)
+
+	// Test a same-name repo rename.
+	err = RenameRepo(ctx, config, h, "Repo2", "repo2")
+	require.NoError(t, err)
+
+	_, id4, err := GetRepoAndID(ctx, config, h, "repo2", "")
+	require.NoError(t, err)
+	require.Equal(t, id1, id4)
+
+	// Can't rename onto existing repo.
+	_, err = CreateRepoAndID(ctx, config, h, "Repo3")
+	require.NoError(t, err)
+	err = RenameRepo(ctx, config, h, "Repo2", "repo3")
+	require.IsType(t, libkb.RepoAlreadyExistsError{}, errors.Cause(err))
+
+	// Can create a new repo over the old symlink.
+	id5, err := CreateRepoAndID(ctx, config, h, "Repo1")
+	require.NoError(t, err)
+	require.NotEqual(t, id1, id5)
+}

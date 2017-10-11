@@ -76,6 +76,20 @@ const (
 	maxSymlinkLevels = 40 // same as Linux
 )
 
+func followSymlink(parentPath, link string) (newPath string, err error) {
+	if path.IsAbs(link) {
+		return "", errors.Errorf("Can't follow absolute link: %s", link)
+	}
+
+	newPath = path.Clean(path.Join(parentPath, link))
+	if strings.HasPrefix(newPath, "..") {
+		return "", errors.Errorf(
+			"Cannot follow symlink out of chroot: %s", newPath)
+	}
+
+	return newPath, nil
+}
+
 // NewFS returns a new FS instance, chroot'd to the given TLF and
 // subdir within that TLF.  `subdir` must exist, and point to a
 // directory, before this function is called.  `uniqID` needs to
@@ -96,15 +110,41 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	if len(subdir) > 0 {
 		parts = strings.Split(subdir, "/")
 	}
-	for i, p := range parts {
-		n, ei, err = config.KBFSOps().Lookup(ctx, n, p)
-		if err != nil {
-			return nil, err
+	// Loop while we follow symlinks.
+outer:
+	for {
+		for i, p := range parts {
+			n, ei, err = config.KBFSOps().Lookup(ctx, n, p)
+			if err != nil {
+				return nil, err
+			}
+			switch ei.Type {
+			case libkbfs.Dir:
+				continue
+			case libkbfs.Sym:
+				parentParts := parts[:i]
+				newPath, err := followSymlink(
+					path.Join(parentParts...), ei.SymPath)
+				if err != nil {
+					return nil, err
+				}
+				newParts := strings.Split(newPath, "/")
+				newParts = append(newParts, parts[i+1:]...)
+				// Fix subdir so we'll get the correct default lock namespace.
+				oldSubdir := subdir
+				subdir = path.Join(newParts...)
+				config.MakeLogger("").CDebugf(ctx, "Expanding symlink: %s->%s",
+					oldSubdir, subdir)
+				parts = newParts
+				n = rootNode
+				continue outer
+			default:
+				return nil, errors.Errorf("%s is not a directory",
+					path.Join(parts[:i]...))
+			}
 		}
-		if ei.Type != libkbfs.Dir {
-			return nil, errors.Errorf("%s is not a directory",
-				path.Join(parts[:i]...))
-		}
+		// Successfully looked up all directories.
+		break
 	}
 
 	log := config.MakeLogger("")
@@ -181,20 +221,6 @@ func (fs *FS) lookupOrCreateEntryNoFollow(
 	default:
 		return nil, libkbfs.EntryInfo{}, err
 	}
-}
-
-func followSymlink(parentPath, link string) (newPath string, err error) {
-	if path.IsAbs(link) {
-		return "", errors.Errorf("Can't follow absolute link: %s", link)
-	}
-
-	newPath = path.Clean(path.Join(parentPath, link))
-	if strings.HasPrefix(newPath, "..") {
-		return "", errors.Errorf(
-			"Cannot follow symlink out of chroot: %s", newPath)
-	}
-
-	return newPath, nil
 }
 
 // lookupParentWithDepth looks up the parent node of the given
