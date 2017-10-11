@@ -74,50 +74,50 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '80': 'icon-team-placeholder-avatar-80',
 }
 
-const followStateToType = I.fromJS({
-  '112': {
+const followStateToType = I.Map({
+  '112': I.fromJS({
     theyNo: {youYes: 'icon-following-28'},
     theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'},
-  },
-  '176': {
+  }),
+  '176': I.fromJS({
     theyNo: {youYes: 'icon-following-32'},
     theyYes: {youNo: 'icon-follow-me-32', youYes: 'icon-mutual-follow-32'},
-  },
-  '48': {
+  }),
+  '48': I.fromJS({
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  },
-  '64': {
+  }),
+  '64': I.fromJS({
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  },
-  '80': {
+  }),
+  '80': I.fromJS({
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  },
+  }),
 })
 
-const followStateToSize = I.fromJS({
-  '112': {
+const followStateToSize = I.Map({
+  '112': I.fromJS({
     theyNo: {youYes: 28},
     theyYes: {youNo: 28, youYes: 28},
-  },
-  '176': {
+  }),
+  '176': I.fromJS({
     theyNo: {youYes: 32},
     theyYes: {youNo: 32, youYes: 32},
-  },
-  '48': {
+  }),
+  '48': I.fromJS({
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  },
-  '64': {
+  }),
+  '64': I.fromJS({
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  },
-  '80': {
+  }),
+  '80': I.fromJS({
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  },
+  }),
 })
 
 const followSizeToStyle = {

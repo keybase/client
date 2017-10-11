@@ -1,11 +1,9 @@
 // @flow
 import RenderSuccess from './index.render'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../../util/container'
 import {sawPaperKey} from '../../../actions/signup'
 import {navigateUp} from '../../../actions/route-tree'
-
-import type {RouteProps} from '../../../route-tree/render-route'
-import type {TypedState} from '../../../constants/reducer'
+import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<
   {
@@ -14,7 +12,6 @@ type OwnProps = RouteProps<
   {}
 >
 
-// $FlowIssue with connect
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => ({
     paperkey: state.signup.paperkey,
@@ -22,11 +19,7 @@ export default connect(
     ...routeProps.toObject(),
   }),
   dispatch => ({
-    onFinish: () => {
-      dispatch(sawPaperKey())
-    },
-    onBack: () => {
-      dispatch(navigateUp())
-    },
+    onFinish: () => dispatch(sawPaperKey()),
+    onBack: () => dispatch(navigateUp()),
   })
 )(RenderSuccess)

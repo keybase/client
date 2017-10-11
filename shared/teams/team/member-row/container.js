@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {
   const user =
     stateProps._members && stateProps._members.find(member => member.username === ownProps.username)
-  const type = user && user.type
+  const type = user ? user.type : null
   return {
     ...ownProps,
     ...dispatchProps,

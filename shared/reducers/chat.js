@@ -4,8 +4,8 @@ import * as Constants from '../constants/chat'
 import {Set, List, Map} from 'immutable'
 import {ReachabilityReachable} from '../constants/types/flow-types'
 
-const initialState: Constants.State = new Constants.StateRecord()
-const initialConversation: Constants.ConversationState = new Constants.ConversationStateRecord()
+const initialState: Constants.State = Constants.makeState()
+const initialConversation: Constants.ConversationState = Constants.makeConversationState()
 
 type ConversationsStates = Map<Constants.ConversationIDKey, Constants.ConversationState>
 type ConversationUpdateFn = (c: Constants.ConversationState) => Constants.ConversationState
@@ -20,7 +20,7 @@ function updateConversation(
 function reducer(state: Constants.State = initialState, action: Constants.Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return new Constants.StateRecord()
+      return Constants.makeState()
     case 'chat:clearMessages': {
       const {conversationIDKey} = action.payload
       const origConversationState = state.get('conversationStates').get(conversationIDKey)
@@ -29,7 +29,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         return state
       }
 
-      // $FlowIssue
       const clearedConversationState = initialConversation.merge({
         firstNewMessageID: origConversationState.get('firstNewMessageID'),
       })
@@ -187,7 +186,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       let metaData = state.get('metaData')
 
       Object.keys(userToBroken).forEach(user => {
-        metaData = metaData.update(user, new Constants.MetaDataRecord(), old =>
+        metaData = metaData.update(user, Constants.makeMetaData(), old =>
           old.set('brokenTracker', userToBroken[user])
         )
       })
@@ -203,14 +202,14 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         'rekeyInfos',
         state
           .get('rekeyInfos')
-          .set(conversationIDKey, new Constants.RekeyInfoRecord({rekeyParticipants: List(rekeyers)}))
+          .set(conversationIDKey, Constants.makeRekeyInfo({rekeyParticipants: List(rekeyers)}))
       )
     }
     case 'chat:updateInboxRekeySelf': {
       const {conversationIDKey} = action.payload
       return state.set(
         'rekeyInfos',
-        state.get('rekeyInfos').set(conversationIDKey, new Constants.RekeyInfoRecord({youCanRekey: true}))
+        state.get('rekeyInfos').set(conversationIDKey, Constants.makeRekeyInfo({youCanRekey: true}))
       )
     }
     case 'chat:addPendingConversation': {
@@ -309,9 +308,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:setNotifications': {
       const {payload: {conversationIDKey, deviceType, notifyType}} = action
       const inbox = state.get('inbox')
-      const [index, conv] = state
-        .get('inbox')
-        .findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
       const notifications = conv && conv.get('notifications')
       const nextNotifications = {[deviceType]: {}}
       // This is the flip-side of the logic in the notifications container.
@@ -339,8 +336,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:toggleChannelWideNotifications': {
       const {payload: {conversationIDKey}} = action
       const inbox = state.get('inbox')
-      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
-      const notifications = conv && conv.get('notifications')
+      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
+      if (!conv) {
+        return state
+      }
+      const notifications = conv.get('notifications') || {channelWide: false}
       const nextNotifications = {channelWide: !notifications.channelWide}
       return state.set(
         'inbox',
@@ -351,7 +351,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       // We received an updated inbox.notifications from the server
       const {payload: {conversationIDKey, notifications}} = action
       const inbox = state.get('inbox')
-      const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey)
+      const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
+      if (!index) {
+        return state
+      }
       return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
     }
     case 'teams:setTeamCreationError': {

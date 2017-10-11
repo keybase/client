@@ -1,14 +1,11 @@
 // @flow
 import DevicePage from '.'
 import moment from 'moment'
-import {compose, mapProps} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, mapProps, connect, type TypedState} from '../../util/container'
 import {globalColors} from '../../styles'
 import {navigateUp} from '../../actions/route-tree'
 import {showRevokePage} from '../../actions/devices'
-
-import type {DeviceDetail} from '../../constants/devices'
-import type {TypedState} from '../../constants/reducer'
+import {type DeviceDetail} from '../../constants/devices'
 
 const buildTimeline = (device: DeviceDetail) => {
   const revoked = device.get('revokedAt') && [
@@ -27,9 +24,10 @@ const buildTimeline = (device: DeviceDetail) => {
     },
   ]
 
+  const provisioner = device.get('provisioner')
   const added = {
     desc: `Added ${moment(device.get('created')).format('MMM D, YYYY')}`,
-    subDesc: device.getIn(['provisioner', 'name'], ''),
+    subDesc: (provisioner && provisioner.name) || '',
     type: 'Added',
   }
 

@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../../route-tree'
+import {makeRouteDefNode} from '../../route-tree'
 import InviteCode from './invite-code'
 import RequestInvite from './request-invite'
 import RequestInviteSuccess from './request-invite-success'
@@ -9,12 +9,12 @@ import DeviceName from './device-name'
 import Success from './success'
 import SignupError from './error'
 
-const signupError = new RouteDefNode({
+const signupError = makeRouteDefNode({
   component: SignupError,
   children: {},
 })
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   component: InviteCode,
   children: {
     signupError,

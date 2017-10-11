@@ -1,7 +1,7 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
-import {List, Map} from 'immutable'
+import * as I from 'immutable'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -25,7 +25,7 @@ function metaDataSelector(state: TypedState) {
   return state.chat.get('metaData')
 }
 function routeSelector(state: TypedState) {
-  return state.routeTree.get('routeState').get('selected')
+  return state.routeTree.routeState ? state.routeTree.routeState.get('selected') : null
 }
 function focusedSelector(state: TypedState) {
   return state.config.appFocused
@@ -34,7 +34,7 @@ function activeSelector(state: TypedState) {
   return state.config.userActive
 }
 function conversationStateSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
-  return state.chat.get('conversationStates', Map()).get(conversationIDKey)
+  return state.chat.getIn(['conversationStates', conversationIDKey])
 }
 
 function messageOutboxIDSelector(
@@ -135,24 +135,21 @@ function* getPostingIdentifyBehavior(
     return brokenUsers.length ? TlfKeysTLFIdentifyBehavior.chatGui : TlfKeysTLFIdentifyBehavior.chatGuiStrict
   }
 
-  // Shouldn't happen but fallback to strict mode
-  if (__DEV__) {
-    console.warn('Missing inbox or you when posting')
-  }
+  // This happens if you start a chat w/o having loaded the inbox state at all
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
 function makeInboxStateRecords(
   author: string,
   items: Array<ChatTypes.UnverifiedInboxUIItem>
-): List<Constants.InboxState> {
-  const conversations: List<Constants.InboxState> = List(
+): I.List<Constants.InboxState> {
+  const conversations: I.List<Constants.InboxState> = I.List(
     (items || [])
       .map(c => {
         const parts = c.localMetadata
-          ? List(c.localMetadata.writerNames || [])
-          : List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
-        return new Constants.InboxStateRecord({
+          ? I.List(c.localMetadata.writerNames || [])
+          : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
+        return Constants.makeInboxState({
           channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
             ? c.localMetadata.channelName
             : undefined,

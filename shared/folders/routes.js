@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 import {PrivateFolders, PublicFolders} from './container'
 import Files from './files'
 import PaperKey from './files/paperkey'
@@ -15,7 +15,7 @@ const filesSubTree = (darkStatusBarContent = false) => ({
   },
 })
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   defaultSelected: 'private',
   children: {
     private: {

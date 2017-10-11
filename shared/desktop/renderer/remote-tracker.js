@@ -1,12 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {onClose, startTimer, stopTimer, getProfile} from '../../actions/tracker'
-
-import type {TypedState} from '../../constants/reducer'
-import type {TrackerOrNonUserState} from '../../constants/tracker'
-import type {Action} from '../../constants/types/flux'
+import {type TrackerOrNonUserState} from '../../constants/tracker'
+import {type Action} from '../../constants/types/flux'
 
 type Props = {
   onClose: (username: string) => void,

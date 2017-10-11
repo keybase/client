@@ -13,9 +13,8 @@ import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/file'
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
-
-import type {TypedState} from '../../constants/reducer'
-import type {SagaGenerator} from '../../constants/types/saga'
+import {type TypedState} from '../../constants/reducer'
+import {type SagaGenerator} from '../../constants/types/saga'
 
 function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
   const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))

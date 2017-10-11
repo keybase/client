@@ -3,7 +3,7 @@
 
 import routeTreeReducer from '../route-tree'
 import {State} from '../../constants/route-tree'
-import {RouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
+import {makeRouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 
 import type {PropsPath} from '../../route-tree'
@@ -12,7 +12,7 @@ jest.unmock('immutable')
 jest.unmock('../../route-tree')
 jest.unmock('../../actions/route-tree')
 
-const demoRouteDef = new RouteDefNode({
+const demoRouteDef = makeRouteDefNode({
   component: () => {},
   children: {
     foo: {

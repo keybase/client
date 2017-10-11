@@ -1,12 +1,11 @@
 // @flow
-import {TypedConnector} from '../../util/typed-connect'
 import {navigateAppend} from '../../actions/route-tree'
 import Delete from './index'
+import {connect} from 'react-redux'
 
-const connector = new TypedConnector()
+const mapStateToProps = () => ({})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onDelete: () => dispatch(navigateAppend(['deleteConfirm'])),
+})
 
-export default connector.connect((state, dispatch, ownProps) => ({
-  onDelete: () => {
-    dispatch(navigateAppend(['deleteConfirm']))
-  },
-}))(Delete)
+export default connect(mapStateToProps, mapDispatchToProps)(Delete)

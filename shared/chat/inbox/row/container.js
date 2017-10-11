@@ -1,19 +1,15 @@
 // @flow
+import * as Constants from '../../../constants/chat'
 import * as I from 'immutable'
-import pausableConnect from '../../../util/pausable-connect'
-import {createSelectorCreator, defaultMemoize} from 'reselect'
+import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
+import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
+import {compose, renderComponent, branch, renderNothing} from 'recompose'
 import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
-import * as Constants from '../../../constants/chat'
-import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
-import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
-import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
-import {compose, renderComponent, branch, renderNothing} from 'recompose'
-import {navigateAppend} from '../../../actions/route-tree'
 import {isMobile} from '../../../constants/platform'
-
-import type {TypedState} from '../../../constants/reducer'
-import type {ConversationIDKey} from '../../../constants/chat'
+import {navigateAppend} from '../../../actions/route-tree'
+import {pausableConnect, createImmutableEqualSelector, type TypedState} from '../../../util/container'
+import {selectConversation, setInboxFilter} from '../../../actions/chat/creators'
 
 function _rowDerivedProps(
   rekeyInfo,
@@ -52,7 +48,6 @@ function _rowDerivedProps(
   }
 }
 
-const createImmutableEqualSelector = createSelectorCreator(defaultMemoize, I.is)
 const getYou = state => state.config.username || ''
 const makeGetConversation = conversationIDKey => state =>
   state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
@@ -70,9 +65,9 @@ const makeGetParticipants = conversationIDKey => state =>
     state.chat.get('pendingConversations').get(conversationIDKey) || I.List(),
     state.config.username || ''
   )
-const getNowOverride = state => state.chat.get('nowOverride')
+const getNowOverride = state => state.chat.nowOverride
 const makeGetFinalizedInfo = conversationIDKey => state =>
-  state.chat.get('finalizedState').get(conversationIDKey)
+  state.chat.getIn(['finalizedState', conversationIDKey])
 
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
@@ -149,12 +144,12 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channe
     const selector = makeSelector(conversationIDKey)
     return (state: TypedState) => selector(state)
   } else {
-    return {teamname}
+    return {teamname, conversationIDKey}
   }
 }
 
 const mapDispatchToProps = dispatch => ({
-  _onSelectConversation: (key: ConversationIDKey) => {
+  _onSelectConversation: (key: Constants.ConversationIDKey) => {
     dispatch(setInboxFilter(''))
     dispatch(selectConversation(key, true))
   },
@@ -170,7 +165,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const ConnectedRow = compose(
-  // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   branch(
     ({participants, type}) => isSmallOrBig(type) && (!participants || participants.isEmpty() === 0),

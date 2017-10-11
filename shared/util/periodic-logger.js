@@ -1,5 +1,5 @@
 // @flow
-import {Iterable} from 'immutable'
+import * as I from 'immutable'
 
 // Keeps a ring buffer of things to log
 // Can periodically log out the last thing written
@@ -150,7 +150,7 @@ const immutableToJS = ([prefix, timestamp, state]: ImmutableToJSType) => {
   var newState = {}
 
   Object.keys(state).forEach(i => {
-    if (Iterable.isIterable(state[i])) {
+    if (I.isCollection(state[i])) {
       newState[i] = state[i].toJS()
     } else {
       newState[i] = state[i]

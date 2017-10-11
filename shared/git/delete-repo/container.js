@@ -2,10 +2,7 @@
 import * as Creators from '../../actions/git/creators'
 import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
-import {compose, renderNothing, branch} from 'recompose'
-import {connect} from 'react-redux'
-
-import type {TypedState} from '../../constants/reducer'
+import {compose, renderNothing, branch, connect, type TypedState} from '../../util/container'
 
 const missingGit = {error: 'NoGit', loading: false, name: '', teamname: ''}
 

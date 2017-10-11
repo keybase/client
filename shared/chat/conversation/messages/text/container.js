@@ -1,14 +1,10 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
-import TextMessage from '.'
+import TextMessage, {type Props} from '.'
 import createCachedSelector from 're-reselect'
 import {Set} from 'immutable'
-import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
-
-import type {Props} from '.'
-import type {TypedState} from '../../../../constants/reducer'
-import type {OwnProps} from './container'
+import {compose, lifecycle, connect, type TypedState} from '../../../../util/container'
+import {type OwnProps} from './container'
 
 const getProps = createCachedSelector(
   [Constants.getMessageFromMessageKey, Constants.getEditingMessage],
