@@ -60,28 +60,48 @@ const _leaveTeam = function(action: Constants.LeaveTeam) {
 const _addToTeam = function*(action: Constants.AddToTeam) {
   const {payload: {name, email, username, role, sendChatNotification}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
-  yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
-    param: {
-      name: name,
-      email: email,
-      username: username,
-      role: role && RpcTypes.TeamsTeamRole[role],
-      sendChatNotification: sendChatNotification,
-    },
-  })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  try {
+    yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+      param: {
+        name,
+        email,
+        username,
+        role: role && RpcTypes.TeamsTeamRole[role],
+        sendChatNotification,
+      },
+    })
+  } finally {
+    // TODO handle error, but for now make sure loading is unset
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
+}
+
+const _editMembership = function*(action: Constants.EditMembership) {
+  const {payload: {name, username, role}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
+  try {
+    yield call(RpcTypes.teamsTeamEditMemberRpcPromise, {
+      param: {name, username, role: RpcTypes.TeamsTeamRole[role]},
+    })
+  } finally {
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
   const {payload: {name, username}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
-  yield call(RpcTypes.teamsTeamIgnoreRequestRpcPromise, {
-    param: {
-      name: name,
-      username: username,
-    },
-  })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  try {
+    yield call(RpcTypes.teamsTeamIgnoreRequestRpcPromise, {
+      param: {
+        name,
+        username,
+      },
+    })
+  } finally {
+    // TODO handle error, but for now make sure loading is unset
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
 }
 
 function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {
@@ -320,6 +340,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
   yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
+  yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
 }
 
 export default teamsSaga

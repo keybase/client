@@ -48,6 +48,14 @@ function addToTeam(
   return {payload: {name, email, username, role, sendChatNotification}, type: 'teams:addToTeam'}
 }
 
+function editMembership(
+  name: string,
+  username: string,
+  role: Constants.TeamRoleType
+): Constants.EditMembership {
+  return {payload: {name, username, role}, type: 'teams:editMembership'}
+}
+
 function ignoreRequest(name: string, username: string): Constants.IgnoreRequest {
   return {payload: {name, username}, type: 'teams:ignoreRequest'}
 }
@@ -73,6 +81,7 @@ export {
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,
+  editMembership,
   getChannels,
   getDetails,
   getTeams,
