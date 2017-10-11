@@ -116,6 +116,9 @@ const makeSelector = conversationIDKey => {
         nowOverride,
         finalizeInfo
       ) => {
+        if (!conversation) {
+          return {type: 'Invalid row'}
+        }
         const isError = conversation.get('state') === 'error'
         const isMuted = conversation.get('status') === 'muted'
         const participants = Constants.participantFilter(conversation.get('participants'), you)
@@ -172,6 +175,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 const ConnectedRow = compose(
   // $FlowIssue
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  branch(props => props.type === 'Invalid row', renderNothing),
   branch(
     ({participants, type}) => isSmallOrBig(type) && (!participants || participants.isEmpty() === 0),
     renderNothing
