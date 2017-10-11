@@ -105,7 +105,7 @@ const TeamTabs = (props: TeamTabsProps) => {
     )
   }
   tabs.push(
-    <Text key="loadingIndicator" style={{cursor: 'default'}} type="BodySmallSemibold">
+    <Text key="loadingIndicator" type="BodySmallSemibold">
       {loading && <ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />}
     </Text>
   )
