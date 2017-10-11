@@ -124,7 +124,8 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, tuloader
 	for _, a := range activeList {
 		activeKuids = append(activeKuids, keybase1.UID(a.String()))
 	}
-	packages, err := umapper.MapUIDsToUsernamePackages(ctx, g, activeKuids, 0, 0, false)
+	packages, err := umapper.MapUIDsToUsernamePackages(ctx, g, activeKuids, time.Hour*24, 10*time.Second,
+		true)
 	activeMap := make(map[string]chat1.ConversationLocalParticipant)
 	if err == nil {
 		for i := 0; i < len(activeKuids); i++ {

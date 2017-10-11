@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -1165,7 +1166,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 
 		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
-		rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
+		rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+			10*time.Second, true)
 		if err != nil {
 			s.Debug(ctx, "localizeConversation: UIDMapper returned an error: %s", err)
 		}
