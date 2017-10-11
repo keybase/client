@@ -312,11 +312,12 @@
               Return="ignore"/>
   </Fragment>
   <Fragment>
-    <CustomAction Id="CopyBundle"
-              Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait [SystemFolder]cmd.exe /C copy /Y &quot;[BUNDLEFILE]&quot; [INSTALLERFOLDER]"
-              Execute="commit"
-              Return="ignore"/>
+      <CustomAction Id="CopyBundle" Script="vbscript">
+      <![CDATA[
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        fso.CopyFile(Session.Property("BUNDLEFILE"), Session.Property("INSTALLERFOLDER"), true)
+      ]]>
+    </CustomAction>
   </Fragment>
   <Fragment>
     <CustomAction Id="RemoveBundle"
@@ -327,8 +328,8 @@
   </Fragment>
   <Fragment>
     <CustomAction Id="ParseBundlePath" Script="vbscript">
-      <![CDATA[         
-        Set fso = CreateObject("Scripting.FileSystemObject") 
+      <![CDATA[
+        Set fso = CreateObject("Scripting.FileSystemObject")
         Session.Property("BUNDLENAME") = fso.GetFileName(Session.Property("BUNDLEFILE"))     
       ]]>
     </CustomAction>
