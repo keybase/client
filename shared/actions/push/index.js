@@ -50,6 +50,13 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
+      if (payload.x && payload.x > 0) {
+        const ageMS = Date.now() - payload.x * 1000
+        if (ageMS > 10000) {
+          console.info('Push notification: silent notification is stale:', ageMS)
+          return
+        }
+      }
       try {
         const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           param: {

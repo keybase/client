@@ -18,6 +18,7 @@ export type PushNotification = {
     p?: Array<string>,
     t?: number,
     d?: number,
+    x?: number,
     type?: string,
     userInteraction: boolean,
     username?: string,
