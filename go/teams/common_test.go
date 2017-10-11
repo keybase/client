@@ -36,6 +36,14 @@ func GetForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name st
 	})
 }
 
+func GetForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (*Team, error) {
+	return Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		Public:      id.IsPublic(),
+		ForceRepoll: true,
+	})
+}
+
 func createTeamName(t *testing.T, root string, parts ...string) keybase1.TeamName {
 	name, err := keybase1.TeamNameFromString(root)
 	require.NoError(t, err)
@@ -79,4 +87,17 @@ func setupNTestsWithPukless(t *testing.T, n, nPukless int) ([]*kbtest.FakeUser, 
 		t.Logf("U%d: %v %v", i, fu.Username, fu.GetUserVersion())
 	}
 	return fus, tcs, cleanup
+}
+
+func runMany(t *testing.T, f func(implicit, public bool)) {
+	for _, implicit := range []bool{false, true} {
+		for _, public := range []bool{false, true} {
+			if !implicit && public {
+				// public teams not supported
+				continue
+			}
+			t.Logf("running test with implicit:%v public:%v", implicit, public)
+			f(implicit, public)
+		}
+	}
 }

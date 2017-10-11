@@ -2,8 +2,10 @@ package teams
 
 import (
 	"context"
+	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -58,98 +60,117 @@ func TestRotate(t *testing.T) {
 	require.Equal(t, keys1[0].Key, keys2[0].Key)
 }
 
+func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestContext, owner, other *kbtest.FakeUser, teamID keybase1.TeamID, teamName keybase1.TeamName) {
+	tc = SetupTest(t, "team", 1)
+
+	var usernames []string
+
+	other, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	usernames = append(usernames, other.Username)
+	tc.G.Logout()
+
+	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+	usernames = append(usernames, owner.Username)
+
+	if implicit {
+		t.Logf("creating implicit team")
+		displayName := strings.Join(usernames, ",")
+		teamID, teamName, _, err = LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName, public)
+		require.NoError(t, err)
+
+		return tc, owner, other, teamID, teamName
+	}
+	if public {
+		t.Fatalf("public teams not supported")
+	}
+
+	t.Logf("creating team")
+	teamName, teamID = createTeam2(tc)
+
+	t.Logf("adding writer")
+	err = SetRoleWriter(context.TODO(), tc.G, teamName.String(), other.Username)
+	require.NoError(t, err)
+
+	return tc, owner, other, teamID, teamName
+}
+
 func TestHandleRotateRequestOldGeneration(t *testing.T) {
-	// CORE-6322 run these tests with both publicnesses
-	public := false
-	tc, owner, other, _, name := memberSetupMultiple(t)
-	defer tc.Cleanup()
+	runMany(t, func(implicit, public bool) {
+		tc, owner, other, teamID, _ := setupRotateTest(t, implicit, public)
+		defer tc.Cleanup()
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
-		t.Fatal(err)
-	}
+		team, err := GetForTestByID(context.TODO(), tc.G, teamID)
+		require.NoError(t, err)
 
-	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
+		// rotate to bump the generation
+		err = team.Rotate(context.TODO())
+		require.NoError(t, err)
 
-	// rotate to bump the generation
-	if err := team.Rotate(context.TODO()); err != nil {
-		t.Fatal(err)
-	}
+		team, err = GetForTestByID(context.TODO(), tc.G, teamID)
+		require.NoError(t, err)
+		if team.Generation() != 2 {
+			t.Fatalf("team generation: %d, expected 2", team.Generation())
+		}
+		secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
-	team, err = GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if team.Generation() != 2 {
-		t.Fatalf("team generation: %d, expected 2", team.Generation())
-	}
-	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
+		// this shouldn't do anything
+		err = HandleRotateRequest(context.TODO(), tc.G, team.ID, 1)
+		require.NoError(t, err)
 
-	// this shouldn't do anything
-	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, public, 1); err != nil {
-		t.Fatal(err)
-	}
+		after, err := GetForTestByID(context.TODO(), tc.G, teamID)
+		require.NoError(t, err)
+		if after.Generation() != 2 {
+			t.Fatalf("HandleRotateRequest with old generation changed team generation: %d, expected 2", after.Generation())
+		}
+		secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+		require.True(t, libkb.SecureByteArrayEq(secretAfter, secretBefore), "team secret changed after HandleRotateRequest with old generation")
 
-	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if after.Generation() != 2 {
-		t.Fatalf("HandleRotateRequest with old generation changed team generation: %d, expected 2", after.Generation())
-	}
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
-	if !libkb.SecureByteArrayEq(secretAfter, secretBefore) {
-		t.Fatal("team secret changed after HandleRotateRequest with old generation")
-	}
-
-	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
-	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+		if implicit {
+			assertRole2(tc, teamID, owner.Username, keybase1.TeamRole_OWNER)
+			assertRole2(tc, teamID, other.Username, keybase1.TeamRole_OWNER)
+		} else {
+			assertRole2(tc, teamID, owner.Username, keybase1.TeamRole_OWNER)
+			assertRole2(tc, teamID, other.Username, keybase1.TeamRole_WRITER)
+		}
+	})
 }
 
 func TestHandleRotateRequest(t *testing.T) {
-	// CORE-6322 run these tests with both publicnesses
-	public := false
-	tc, owner, other, _, name := memberSetupMultiple(t)
-	defer tc.Cleanup()
+	runMany(t, func(implicit, public bool) {
+		tc, owner, other, teamID, _ := setupRotateTest(t, implicit, public)
+		defer tc.Cleanup()
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
-		t.Fatal(err)
-	}
+		team, err := GetForTestByID(context.TODO(), tc.G, teamID)
+		require.NoError(t, err)
+		if team.Generation() != 1 {
+			t.Fatalf("initial team generation: %d, expected 1", team.Generation())
+		}
+		secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
-	team, err := GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if team.Generation() != 1 {
-		t.Fatalf("initial team generation: %d, expected 1", team.Generation())
-	}
-	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
+		err = HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation())
+		require.NoError(t, err)
 
-	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, public, team.Generation()); err != nil {
-		t.Fatal(err)
-	}
+		after, err := GetForTestByID(context.TODO(), tc.G, teamID)
+		require.NoError(t, err)
+		if after.Generation() != 2 {
+			t.Fatalf("rotated team generation: %d, expected 2", after.Generation())
+		}
+		secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+		require.False(t, libkb.SecureByteArrayEq(secretAfter, secretBefore), "team secret should change when rotated")
 
-	after, err := GetForTestByStringName(context.TODO(), tc.G, name)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if after.Generation() != 2 {
-		t.Fatalf("rotated team generation: %d, expected 2", after.Generation())
-	}
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
-	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
-		t.Fatal("team secret did not change when rotated")
-	}
-
-	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
-	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
+		if implicit {
+			assertRole2(tc, teamID, owner.Username, keybase1.TeamRole_OWNER)
+			assertRole2(tc, teamID, other.Username, keybase1.TeamRole_OWNER)
+		} else {
+			assertRole2(tc, teamID, owner.Username, keybase1.TeamRole_OWNER)
+			assertRole2(tc, teamID, other.Username, keybase1.TeamRole_WRITER)
+		}
+	})
 }
 
 func TestImplicitAdminAfterRotateRequest(t *testing.T) {
-	// CORE-6322 run these tests with both publicnesses
-	public := false
 	tc, owner, otherA, otherB, root, sub := memberSetupSubteam(t)
 	defer tc.Cleanup()
 
@@ -162,7 +183,7 @@ func TestImplicitAdminAfterRotateRequest(t *testing.T) {
 	}
 	secretBefore := team.Data.PerTeamKeySeeds[team.Generation()].Seed.ToBytes()
 
-	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, public, team.Generation()); err != nil {
+	if err := HandleRotateRequest(context.TODO(), tc.G, team.ID, team.Generation()); err != nil {
 		t.Fatal(err)
 	}
 
