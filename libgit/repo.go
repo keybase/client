@@ -29,6 +29,7 @@ const (
 	gitSuffixToIgnore        = ".git"
 	kbfsDeletedReposDir      = ".kbfs_deleted_repos"
 	minDeletedAgeForCleaning = 1 * time.Hour
+	cleaningTimeLimit        = 2 * time.Second
 )
 
 // This character set is what Github supports in repo names.  It's
@@ -147,7 +148,7 @@ func CleanOldDeletedRepos(
 func CleanOldDeletedReposTimeLimited(
 	ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle) error {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, cleaningTimeLimit)
 	defer cancel()
 	err := CleanOldDeletedRepos(ctx, config, tlfHandle)
 	if errors.Cause(err) == context.DeadlineExceeded {
