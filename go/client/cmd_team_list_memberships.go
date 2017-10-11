@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"text/tabwriter"
 
@@ -150,6 +151,13 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	if err != nil {
 		return err
 	}
+
+	sort.Slice(list.Teams, func(i, j int) bool {
+		if list.Teams[i].FqName == list.Teams[j].FqName {
+			return list.Teams[i].Username < list.Teams[j].Username
+		}
+		return list.Teams[i].FqName < list.Teams[j].FqName
+	})
 
 	if c.json {
 		b, err := json.MarshalIndent(list, "", "    ")
