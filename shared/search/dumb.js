@@ -240,6 +240,7 @@ const servicesResultsListMapCommon = {
   },
   selectedId: null,
   showSearchSuggestions: false,
+  disableIfInTeamName: '',
 }
 
 const servicesResultsListMap: DumbComponentMap<ResultsList> = {

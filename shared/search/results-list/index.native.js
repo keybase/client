@@ -23,7 +23,7 @@ class SearchResultsList extends Component<Props> {
   }
 
   render() {
-    const {disableIfInTeamName, showSearchSuggestions, style, items} = this.props
+    const {showSearchSuggestions, style, items} = this.props
     if (items == null) {
       return <Box />
     } else if (!items.length) {

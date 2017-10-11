@@ -7,6 +7,7 @@ import type {KBRecord} from './types/more'
 import type {NoErrorTypedAction} from './types/flux'
 import type {ConversationIDKey} from './chat'
 import type {TypedState} from './reducer'
+import type {Service} from './search'
 
 export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',

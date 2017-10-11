@@ -36,6 +36,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
 type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
   _onOpenFolder: (teamname: Constants.Teamname) => void,
+  _onAddPeople: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
   setSelectedTab: (tab: string) => void,

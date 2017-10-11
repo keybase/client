@@ -21,13 +21,14 @@ const MaybePopup = isMobile
     )
 
 type Props = {
+  onAddPeople: (role: string) => void,
   onClose: () => void,
   onLeave: () => void,
   name: string,
 }
 
 type State = {
-  selectedRole: ?string,
+  selectedRole: string,
 }
 
 class AddPeople extends React.Component<Props, State> {
@@ -67,7 +68,7 @@ class AddPeople extends React.Component<Props, State> {
     return (
       <MaybePopup onClose={this.props.onClose}>
         <Box style={{...globalStyles.flexBoxColumn}}>
-        <Box
+          <Box
             style={{
               ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
               margin: globalMargins.small,
@@ -82,22 +83,29 @@ class AddPeople extends React.Component<Props, State> {
               selected={this._makeDropdownItem(this.state.selectedRole)}
               onChanged={this._dropdownChanged}
             />
-            <Button type="Primary" onClick={this._onSubmit} label="Invite" style={{margin: globalMargins.tiny}} />
+            <Button
+              label="Invite"
+              onClick={this._onSubmit}
+              style={{margin: globalMargins.tiny}}
+              type="Primary"
+            />
           </Box>
 
-          {!isMobile && <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              borderBottom: `1px solid ${globalColors.black_10}`,
-              boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-            }}
-          />}
+          {!isMobile &&
+            <Box
+              style={{
+                ...globalStyles.flexBoxRow,
+                borderBottom: `1px solid ${globalColors.black_10}`,
+                boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
+              }}
+            />}
 
           <Box style={{...globalStyles.flexBoxColumn}}>
             <UserInput
               autoFocus={true}
-              searchKey={'addToTeamSearch'}
               onExitSearch={this.props.onClose}
+              placeholder="Add people"
+              searchKey={'addToTeamSearch'}
             />
           </Box>
           {this.props.tooManyUsers &&
@@ -114,7 +122,6 @@ class AddPeople extends React.Component<Props, State> {
             {this.props.showSearchPending
               ? <ProgressIndicator style={{width: globalMargins.large}} />
               : <SearchResultsList
-                  onShowTracker={this.props.onShowTrackerInSearch}
                   searchKey={'addToTeamSearch'}
                   disableIfInTeamName={this.props.name}
                   style={{flexGrow: 1, height: 500}}

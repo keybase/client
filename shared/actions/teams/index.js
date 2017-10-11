@@ -186,7 +186,6 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
     }
 
-    console.warn({memberNames})
     yield all([
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
