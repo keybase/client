@@ -135,11 +135,13 @@ NativeEmoji
  }
 
 LinkChar
- = !(SpecialChar+ (LineTerminatorSequence / !.)) char:NonBlank { return char }
+ = !(SpecialChar+ (LineTerminatorSequence)) char:NonBlank { return char }
 
 Link
  = proto:("http"i "s"i? ":")? url:(LinkChar+) & {
-     const matches = url.join('').match(linkExp)
+     const Url = url.join('')
+     const fullUrl = proto ? proto.join('') + Url : Url
+     const matches = linkExp.exec(fullUrl)
      if (!matches) {
        return false
      }
@@ -152,8 +154,8 @@ Link
    delete url._match
    const urlText = url.join('')
    const protoText = proto ? proto.join('') : ''
-   const href = (protoText || 'http://') + match
-   const text = protoText + match
+   const href = protoText ? match : 'http://' + match
+   const text = match
    return [
      {type: 'link', href, children: [text]},
      urlText.substring(match.length, urlText.length),
