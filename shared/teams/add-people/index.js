@@ -71,7 +71,7 @@ class AddPeople extends React.Component<Props, State> {
             <UserInput
               autoFocus={true}
               searchKey={'addToTeamSearch'}
-              onExitSearch={this.props.onExitSearch}
+              onExitSearch={this.props.onClose}
             />
           </Box>
           {this.props.tooManyUsers &&

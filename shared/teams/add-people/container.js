@@ -2,8 +2,11 @@
 import {connect} from 'react-redux'
 import * as Creators from '../../actions/teams/creators'
 import AddPeople from '.'
+import {HeaderHoc} from '../../common-adapters'
+import {branch, compose, withPropsOnChange} from 'recompose'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
+import {isMobile} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -28,9 +31,18 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onAddPeople: (role: string) => {
     dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
-    dispatch(navigateTo([teamsTab]))
+    dispatch(navigateUp()),
     dispatch(Creators.getTeams())
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(AddPeople)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  compose(
+    withPropsOnChange(['onExitSearch'], props => ({
+      onCancel: () => props.onExitSearch(),
+      title: 'Add people',
+    })),
+    HeaderHoc
+  ),
+)(AddPeople)
