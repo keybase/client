@@ -651,3 +651,24 @@ type UIDMapper interface {
 	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
 	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
 }
+
+type ChatHelper interface {
+	SendTextByID(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, text string) error
+	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, text string) error
+	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+	SendTextByName(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+	SendMsgByName(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+		msgType chat1.MessageType) error
+	SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+		msgType chat1.MessageType) error
+}

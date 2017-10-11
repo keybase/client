@@ -6,10 +6,10 @@
 package logger
 
 import (
-       "os"
-       "syscall"
+	"os"
+	"syscall"
 )
 
 func tryRedirectStderrTo(f *os.File) error {
-       return syscall.Dup3(int(f.Fd()), 2, 0)
+	return syscall.Dup3(int(f.Fd()), 2, 0)
 }

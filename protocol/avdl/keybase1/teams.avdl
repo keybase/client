@@ -61,7 +61,8 @@ protocol teams {
   record TeamMember {
     UID uid;
     TeamRole role;
-    Seqno eldestSeqno;
+    Seqno eldestSeqno;     // eldest seqno of the team member record
+    Seqno userEldestSeqno; // actual eldest seqno of the user
   }
 
   record TeamMembers {
@@ -475,6 +476,17 @@ protocol teams {
   TeamTreeResult teamTree(int sessionID, TeamName name);
   void teamDelete(int sessionID, string name);
   void teamSetSettings(int sessionID, string name, TeamSettings settings);
+
+  record BulkRes {
+    array<string> invited;
+    array<string> alreadyInvited;
+    array<string> malformed;
+  }
+
+  // emails is a list of email addresses separated by whitespace or commas.
+  // returns a list of emails that were not invited, most likely because of
+  // malformed email addresses.
+  BulkRes teamAddEmailsBulk(int sessionID, string name, string emails, TeamRole role);
 
   record ImplicitTeamUserSet {
     array<string> keybaseUsers;

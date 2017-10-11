@@ -73,6 +73,7 @@ export const CommonConversationMemberStatus = {
   removed: 1,
   left: 2,
   preview: 3,
+  reset: 4,
 }
 
 export const CommonConversationMembersType = {
@@ -976,12 +977,14 @@ export type ConversationInfoLocal = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   existence: ConversationExistence,
   version: ConversationVers,
   writerNames?: ?Array<string>,
   readerNames?: ?Array<string>,
   finalizeInfo?: ?ConversationFinalizeInfo,
+  resetNames?: ?Array<string>,
 }
 
 export type ConversationLocal = {
@@ -1007,6 +1010,7 @@ export type ConversationMemberStatus =
   | 1 // REMOVED_1
   | 2 // LEFT_2
   | 3 // PREVIEW_3
+  | 4 // RESET_4
 
 export type ConversationMembersType =
     0 // KBFS_0
@@ -1027,6 +1031,7 @@ export type ConversationMetadata = {
   supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
   allList?: ?Array<gregor1.UID>,
+  resetList?: ?Array<gregor1.UID>,
 }
 
 export type ConversationNotificationInfo = {
@@ -1314,8 +1319,10 @@ export type InboxUIItem = {
   headline: string,
   visibility: keybase1.TLFVisibility,
   participants?: ?Array<string>,
+  resetParticipants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   time: gregor1.Time,
   notifications?: ?ConversationNotificationInfo,
@@ -1390,7 +1397,7 @@ export type MarkAsReadRes = {
 export type MembersUpdateInfo = {
   convID: ConversationID,
   member: string,
-  joined: boolean,
+  status: ConversationMemberStatus,
 }
 
 export type MerkleRoot = {
@@ -1647,6 +1654,11 @@ export type NotifyChatChatJoinedConversationRpcParam = Exact<{
 }>
 
 export type NotifyChatChatLeftConversationRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID
+}>
+
+export type NotifyChatChatResetConversationRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID
 }>
@@ -2009,6 +2021,7 @@ export type UnverifiedInboxUIItem = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
@@ -2021,6 +2034,7 @@ export type UnverifiedInboxUIItemMetadata = {
   headline: string,
   snippet: string,
   writerNames?: ?Array<string>,
+  resetParticipants?: ?Array<string>,
 }
 
 export type UnverifiedInboxUIItems = {
@@ -2033,6 +2047,7 @@ export type UpdateConversationMembership = {
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
   removed?: ?Array<ConversationMember>,
+  reset?: ?Array<ConversationMember>,
   unreadUpdate?: ?UnreadUpdate,
 }
 
@@ -2708,6 +2723,14 @@ export type incomingCallMapType = Exact<{
     */
   ) => void,
   'keybase.1.NotifyChat.ChatLeftConversation'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatResetConversation'?: (
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID

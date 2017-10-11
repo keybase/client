@@ -42,5 +42,11 @@ func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1
 		},
 	}
 	_, err = g.GetAPI().Post(apiArg)
-	return err
+	if err != nil {
+		return err
+	}
+
+	g.NotifyRouter.HandleRepoDeleted(ctx, folder, teamIDVis.TeamID, repoID, formatUniqueRepoID(teamIDVis.TeamID, repoID))
+
+	return nil
 }

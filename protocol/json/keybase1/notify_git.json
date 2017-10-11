@@ -1,0 +1,57 @@
+{
+  "protocol": "NotifyGit",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "repoChanged": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        },
+        {
+          "name": "globalUniqueID",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "repoDeleted": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        },
+        {
+          "name": "globalUniqueID",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

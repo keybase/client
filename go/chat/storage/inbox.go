@@ -262,10 +262,11 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 	for index, rc := range ibox.Conversations {
 		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
 			ibox.Conversations[index].LocalMetadata = &types.RemoteConversationMetadata{
-				TopicName:   utils.GetTopicName(convLocal),
-				Headline:    utils.GetHeadline(convLocal),
-				Snippet:     utils.GetConvSnippet(convLocal),
-				WriterNames: convLocal.Info.WriterNames,
+				TopicName:         utils.GetTopicName(convLocal),
+				Headline:          utils.GetHeadline(convLocal),
+				Snippet:           utils.GetConvSnippet(convLocal),
+				WriterNames:       convLocal.Info.WriterNames,
+				ResetParticipants: convLocal.Info.ResetNames,
 			}
 		}
 	}
@@ -365,7 +366,8 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 
 		// Member status check
 		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW:
+		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW,
+			chat1.ConversationMemberStatus_RESET:
 			// only let these states through
 		default:
 			ok = false
@@ -1093,7 +1095,8 @@ func (i *Inbox) Sync(ctx context.Context, vers chat1.InboxVers, convs []chat1.Co
 
 func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	userJoined []chat1.Conversation, userRemoved []chat1.ConversationID,
-	othersJoined []chat1.ConversationMember, othersRemoved []chat1.ConversationMember) (err Error) {
+	othersJoined []chat1.ConversationMember, othersRemoved []chat1.ConversationMember,
+	userReset []chat1.ConversationID, othersReset []chat1.ConversationMember) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
@@ -1128,10 +1131,18 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 		i.Debug(ctx, "MembershipUpdate: removing user from: %s", r)
 		removedMap[r.String()] = true
 	}
+	resetMap := make(map[string]bool)
+	for _, r := range userReset {
+		i.Debug(ctx, "MembershipUpdate: user reset in: %s", r)
+		resetMap[r.String()] = true
+	}
 	ibox.Conversations = nil
 	for _, conv := range convs {
 		if removedMap[conv.GetConvID().String()] {
 			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
+			conv.Conv.Metadata.Version = vers.ToConvVers()
+		} else if resetMap[conv.GetConvID().String()] {
+			conv.Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
 			conv.Conv.Metadata.Version = vers.ToConvVers()
 		}
 		ibox.Conversations = append(ibox.Conversations, conv)
@@ -1145,7 +1156,22 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 	}
 	for _, oj := range othersJoined {
 		if cp, ok := convMap[oj.ConvID.String()]; ok {
-			cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+			// Check reset list for this UID, if we find it remove it instead of adding to all list
+			isReset := false
+			var resetIndex int
+			var r gregor1.UID
+			for resetIndex, r = range cp.Conv.Metadata.ResetList {
+				if r.Eq(oj.Uid) {
+					isReset = true
+					break
+				}
+			}
+			if isReset {
+				cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList[:resetIndex],
+					cp.Conv.Metadata.ResetList[resetIndex+1:]...)
+			} else {
+				cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+			}
 			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
 	}
@@ -1158,6 +1184,12 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, vers chat1.InboxVers,
 				}
 			}
 			cp.Conv.Metadata.AllList = newAllList
+			cp.Conv.Metadata.Version = vers.ToConvVers()
+		}
+	}
+	for _, or := range othersReset {
+		if cp, ok := convMap[or.ConvID.String()]; ok {
+			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
 			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
 	}

@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -179,7 +179,7 @@ func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResol
 
 	// Set the default topic name to #general if none is specified
 	if req.MembersType == chat1.ConversationMembersType_TEAM && len(req.TopicName) == 0 {
-		req.TopicName = chat.DefaultTeamTopic
+		req.TopicName = globals.DefaultTeamTopic
 	}
 
 	return nil

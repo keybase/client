@@ -22,7 +22,7 @@ func TestStorageMem(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, public := range []bool{false, true} {
-		teamID := NewSubteamID()
+		teamID := NewSubteamID(false /*public*/)
 		st := getStorageFromG(tc.G)
 		obj := keybase1.TeamData{
 			Chain: keybase1.TeamSigChainState{
@@ -47,7 +47,7 @@ func TestStorageDisk(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, public := range []bool{false, true} {
-		teamID := NewSubteamID()
+		teamID := NewSubteamID(false /*public*/)
 		st := getStorageFromG(tc.G)
 		obj := keybase1.TeamData{
 			Chain: keybase1.TeamSigChainState{
@@ -76,7 +76,7 @@ func TestStorageLogout(t *testing.T) {
 	require.NoError(t, err)
 
 	for _, public := range []bool{false, true} {
-		teamID := NewSubteamID()
+		teamID := NewSubteamID(false /*public*/)
 		st := getStorageFromG(tc.G)
 		obj := keybase1.TeamData{
 			Chain: keybase1.TeamSigChainState{
@@ -114,7 +114,7 @@ func TestStorageUpdate(t *testing.T) {
 		_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 		require.NoError(t, err)
 
-		teamID := NewSubteamID()
+		teamID := NewSubteamID(false /*public*/)
 		st := getStorageFromG(tc.G)
 
 		t.Logf("store 1")
@@ -155,7 +155,7 @@ func TestStorageDelete(t *testing.T) {
 		_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
 		require.NoError(t, err)
 
-		teamID := NewSubteamID()
+		teamID := NewSubteamID(false /*public*/)
 		st := getStorageFromG(tc.G)
 
 		t.Logf("store 1")

@@ -348,6 +348,8 @@ func (d *Service) createChatModules() {
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
 	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g))
+
+	g.ChatHelper = chat.NewHelper(g, ri)
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {

@@ -24,17 +24,21 @@ import (
 )
 
 const (
-	UID_LEN               = 16
-	UID_SUFFIX            = 0x00
-	UID_SUFFIX_2          = 0x19
-	UID_SUFFIX_HEX        = "00"
-	UID_SUFFIX_2_HEX      = "19"
-	TEAMID_LEN            = 16
-	TEAMID_SUFFIX         = 0x24
-	TEAMID_SUFFIX_HEX     = "24"
-	SUB_TEAMID_SUFFIX     = 0x25
-	SUB_TEAMID_SUFFIX_HEX = "25"
-	PUBLIC_UID            = "ffffffffffffffffffffffffffffff00"
+	UID_LEN                       = 16
+	UID_SUFFIX                    = 0x00
+	UID_SUFFIX_2                  = 0x19
+	UID_SUFFIX_HEX                = "00"
+	UID_SUFFIX_2_HEX              = "19"
+	TEAMID_LEN                    = 16
+	TEAMID_PRIVATE_SUFFIX         = 0x24
+	TEAMID_PRIVATE_SUFFIX_HEX     = "24"
+	TEAMID_PUBLIC_SUFFIX          = 0x2e
+	TEAMID_PUBLIC_SUFFIX_HEX      = "2e"
+	SUB_TEAMID_PRIVATE_SUFFIX     = 0x25
+	SUB_TEAMID_PRIVATE_SUFFIX_HEX = "25"
+	SUB_TEAMID_PUBLIC_SUFFIX      = 0x2f
+	SUB_TEAMID_PUBLIC_SUFFIX_HEX  = "2f"
+	PUBLIC_UID                    = "ffffffffffffffffffffffffffffff00"
 )
 
 // UID for the special "public" user.
@@ -403,19 +407,26 @@ func TeamIDFromString(s string) (TeamID, error) {
 		return "", fmt.Errorf("Bad TeamID '%s'; must be %d bytes long", s, TEAMID_LEN)
 	}
 	suffix := s[len(s)-2:]
-	if suffix != TEAMID_SUFFIX_HEX && suffix != SUB_TEAMID_SUFFIX_HEX {
-		return "", fmt.Errorf("Bad TeamID '%s': must end in 0x%x or 0x%x", s, TEAMID_SUFFIX, SUB_TEAMID_SUFFIX)
+	switch suffix {
+	case TEAMID_PRIVATE_SUFFIX_HEX, TEAMID_PUBLIC_SUFFIX_HEX,
+		SUB_TEAMID_PRIVATE_SUFFIX_HEX, SUB_TEAMID_PUBLIC_SUFFIX_HEX:
+		return TeamID(s), nil
 	}
-	return TeamID(s), nil
+	return "", fmt.Errorf("Bad TeamID '%s': must end in one of [0x%x, 0x%x, 0x%x, 0x%x]",
+		s, TEAMID_PRIVATE_SUFFIX_HEX, TEAMID_PUBLIC_SUFFIX_HEX, SUB_TEAMID_PRIVATE_SUFFIX, SUB_TEAMID_PUBLIC_SUFFIX)
 }
 
 // Used by unit tests.
-func MakeTestTeamID(n uint32) TeamID {
+func MakeTestTeamID(n uint32, public bool) TeamID {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint32(b, n)
 	s := hex.EncodeToString(b)
-	c := 2*TEAMID_LEN - len(TEAMID_SUFFIX_HEX) - len(s)
-	s += strings.Repeat("0", c) + TEAMID_SUFFIX_HEX
+	useSuffix := TEAMID_PRIVATE_SUFFIX_HEX
+	if public {
+		useSuffix = TEAMID_PUBLIC_SUFFIX_HEX
+	}
+	c := 2*TEAMID_LEN - len(useSuffix) - len(s)
+	s += strings.Repeat("0", c) + useSuffix
 	tid, err := TeamIDFromString(s)
 	if err != nil {
 		panic(err)
@@ -424,12 +435,16 @@ func MakeTestTeamID(n uint32) TeamID {
 }
 
 // Used by unit tests.
-func MakeTestSubTeamID(n uint32) TeamID {
+func MakeTestSubTeamID(n uint32, public bool) TeamID {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint32(b, n)
 	s := hex.EncodeToString(b)
-	c := 2*TEAMID_LEN - len(SUB_TEAMID_SUFFIX_HEX) - len(s)
-	s += strings.Repeat("0", c) + SUB_TEAMID_SUFFIX_HEX
+	useSuffix := SUB_TEAMID_PRIVATE_SUFFIX_HEX
+	if public {
+		useSuffix = SUB_TEAMID_PUBLIC_SUFFIX_HEX
+	}
+	c := 2*TEAMID_LEN - len(useSuffix) - len(s)
+	s += strings.Repeat("0", c) + useSuffix
 	tid, err := TeamIDFromString(s)
 	if err != nil {
 		panic(err)
@@ -440,12 +455,24 @@ func MakeTestSubTeamID(n uint32) TeamID {
 // Can panic if invalid
 func (t TeamID) IsSubTeam() bool {
 	suffix := t[len(t)-2:]
-	return suffix == SUB_TEAMID_SUFFIX_HEX
+	switch suffix {
+	case SUB_TEAMID_PRIVATE_SUFFIX_HEX, SUB_TEAMID_PUBLIC_SUFFIX_HEX:
+		return true
+	}
+	return false
 }
 
 func (t TeamID) IsRootTeam() bool {
+	return !t.IsSubTeam()
+}
+
+func (t TeamID) IsPublic() bool {
 	suffix := t[len(t)-2:]
-	return suffix == TEAMID_SUFFIX_HEX
+	switch suffix {
+	case TEAMID_PUBLIC_SUFFIX_HEX, SUB_TEAMID_PUBLIC_SUFFIX_HEX:
+		return true
+	}
+	return false
 }
 
 func (t TeamID) String() string {
@@ -1324,7 +1351,7 @@ func (ut UserOrTeamID) IsUser() bool {
 func (ut UserOrTeamID) IsTeam() bool {
 	i := idSchema{
 		length:        TEAMID_LEN,
-		magicSuffixes: map[byte]bool{TEAMID_SUFFIX: true},
+		magicSuffixes: map[byte]bool{TEAMID_PRIVATE_SUFFIX: true, TEAMID_PUBLIC_SUFFIX: true},
 		typeHint:      "team id",
 	}
 	return i.check(string(ut)) == nil
@@ -1333,7 +1360,7 @@ func (ut UserOrTeamID) IsTeam() bool {
 func (ut UserOrTeamID) IsSubteam() bool {
 	i := idSchema{
 		length:        TEAMID_LEN,
-		magicSuffixes: map[byte]bool{SUB_TEAMID_SUFFIX: true},
+		magicSuffixes: map[byte]bool{SUB_TEAMID_PRIVATE_SUFFIX: true, SUB_TEAMID_PUBLIC_SUFFIX: true},
 		typeHint:      "subteam id",
 	}
 	return i.check(string(ut)) == nil
@@ -1577,6 +1604,10 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 	return all
 }
 
+func (t TeamMember) IsReset() bool {
+	return t.EldestSeqno != t.UserEldestSeqno
+}
+
 func (t TeamName) IsNil() bool {
 	return len(t.Parts) == 0
 }
@@ -1636,12 +1667,26 @@ func (t TeamName) IsRootTeam() bool {
 	return len(t.Parts) == 1
 }
 
+func (t TeamName) ToPrivateTeamID() TeamID {
+	return t.ToTeamID(false)
+}
+
+func (t TeamName) ToPublicTeamID() TeamID {
+	return t.ToTeamID(true)
+}
+
 // Get the top level team id for this team name.
 // Only makes sense for non-sub teams.
-func (t TeamName) ToTeamID() TeamID {
+// The first 15 bytes of the sha256 of the lowercase team name,
+// followed by the byte 0x24, encoded as hex.
+func (t TeamName) ToTeamID(public bool) TeamID {
 	low := strings.ToLower(t.String())
 	sum := sha256.Sum256([]byte(low))
-	bs := append(sum[:15], TEAMID_SUFFIX)
+	var useSuffix byte = TEAMID_PRIVATE_SUFFIX
+	if public {
+		useSuffix = TEAMID_PUBLIC_SUFFIX
+	}
+	bs := append(sum[:15], useSuffix)
 	res, err := TeamIDFromString(hex.EncodeToString(bs))
 	if err != nil {
 		panic(err)

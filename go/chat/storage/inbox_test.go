@@ -740,14 +740,18 @@ func TestMembershipUpdate(t *testing.T) {
 	require.NoError(t, err)
 	uid3 := gregor1.UID(u3.User.GetUID().ToBytes())
 
-	t.Logf("uid: %s uid2: %s uid3: %s", uid, uid2, uid3)
+	u4, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
+	require.NoError(t, err)
+	uid4 := gregor1.UID(u4.User.GetUID().ToBytes())
+
+	t.Logf("uid: %s uid2: %s uid3: %s uid4: %s", uid, uid2, uid3, uid4)
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
 	var convs []types.RemoteConversation
 	for i := numConvs - 1; i >= 0; i-- {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
-		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3}
+		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3, uid4}
 		convs = append(convs, conv)
 	}
 
@@ -756,7 +760,7 @@ func TestMembershipUpdate(t *testing.T) {
 	numJoinedConvs := 5
 	for i := 0; i < numJoinedConvs; i++ {
 		conv := makeConvo(gregor1.Time(i), 1, 1)
-		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3}
+		conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid3, uid4}
 		joinedConvs = append(joinedConvs, conv)
 	}
 
@@ -770,8 +774,14 @@ func TestMembershipUpdate(t *testing.T) {
 		Uid:    uid3,
 		ConvID: otherRemovedConvID,
 	}}
+	otherResetConvID := convs[2].GetConvID()
+	otherResetConvs := []chat1.ConversationMember{chat1.ConversationMember{
+		Uid:    uid4,
+		ConvID: otherResetConvID,
+	}}
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), 2, utils.PluckConvs(joinedConvs),
-		[]chat1.ConversationID{convs[5].GetConvID()}, otherJoinedConvs, otherRemovedConvs))
+		[]chat1.ConversationID{convs[5].GetConvID()}, otherJoinedConvs, otherRemovedConvs,
+		[]chat1.ConversationID{convs[6].GetConvID()}, otherResetConvs))
 
 	vers, res, err := inbox.ReadAll(context.TODO())
 	require.NoError(t, err)
@@ -782,6 +792,11 @@ func TestMembershipUpdate(t *testing.T) {
 			convs[5].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_LEFT
 			convs[5].Conv.Metadata.Version = chat1.ConversationVers(2)
 		}
+		if c.GetConvID().Eq(convs[6].GetConvID()) {
+			require.Equal(t, chat1.ConversationMemberStatus_RESET, c.Conv.ReaderInfo.Status)
+			convs[6].Conv.ReaderInfo.Status = chat1.ConversationMemberStatus_RESET
+			convs[6].Conv.Metadata.Version = chat1.ConversationVers(2)
+		}
 	}
 	expected := append(convs, joinedConvs...)
 	sort.Sort(utils.RemoteConvByConvID(expected))
@@ -791,14 +806,22 @@ func TestMembershipUpdate(t *testing.T) {
 		sort.Sort(chat1.ByUID(res[i].Conv.Metadata.AllList))
 		sort.Sort(chat1.ByUID(expected[i].Conv.Metadata.AllList))
 		if res[i].GetConvID().Eq(otherJoinConvID) {
-			allUsers := []gregor1.UID{uid, uid2, uid3}
+			allUsers := []gregor1.UID{uid, uid2, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
 		} else if res[i].GetConvID().Eq(otherRemovedConvID) {
-			allUsers := []gregor1.UID{uid}
+			allUsers := []gregor1.UID{uid, uid4}
+			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
+		} else if res[i].GetConvID().Eq(otherResetConvID) {
+			allUsers := []gregor1.UID{uid, uid3, uid4}
+			sort.Sort(chat1.ByUID(allUsers))
+			resetUsers := []gregor1.UID{uid4}
+			require.Len(t, res[i].Conv.Metadata.AllList, len(allUsers))
+			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
+			require.Equal(t, resetUsers, res[i].Conv.Metadata.ResetList)
 		} else {
-			allUsers := []gregor1.UID{uid, uid3}
+			allUsers := []gregor1.UID{uid, uid3, uid4}
 			sort.Sort(chat1.ByUID(allUsers))
 			require.Equal(t, allUsers, res[i].Conv.Metadata.AllList)
 			require.Equal(t, expected[i], res[i])
