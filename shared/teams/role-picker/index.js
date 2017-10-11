@@ -100,10 +100,10 @@ export const RoleOptions = ({
     {makeRoleOption('admin', selectedRole, setSelectedRole)}
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
     {showSendNotification &&
-      <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
+      <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
         <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
       </Box>}
-    <Box style={{marginBottom: globalMargins.small}}>
+    <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
       <Button label="Continue" type="Primary" onClick={() => setConfirm(true)} disabled={!selectedRole} />
     </Box>
   </Box>
