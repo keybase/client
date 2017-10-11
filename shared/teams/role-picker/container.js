@@ -52,7 +52,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     }
     dispatchProps.onBack()
   }
-  const showSendNotification = !!theirInfo
+  const showSendNotification = !theirInfo
   return {
     ...stateProps,
     ...dispatchProps,
