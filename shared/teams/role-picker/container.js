@@ -30,26 +30,36 @@ type DispatchProps = {
     role: Constants.TeamRoleType,
     sendNotification: boolean
   ) => void,
+  _onEditMember: (teamname: Constants.Teamname, username: string, role: Constants.TeamRoleType) => void,
   onBack: () => void,
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
     dispatch(Creators.addToTeam(teamname, '', username, role, sendNotification)),
+  _onEditMember: (teamname, username, role) => dispatch(Creators.editMembership(teamname, username, role)),
   onBack: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
   const yourInfo = stateProps._memberInfo.find(member => member.username === stateProps.you)
+  const theirInfo = stateProps._memberInfo.find(member => member.username === stateProps.username)
+  const onComplete = (role: Constants.TeamRoleType, sendNotification?: boolean) => {
+    if (theirInfo) {
+      dispatchProps._onEditMember(stateProps.teamname, stateProps.username, role)
+    } else {
+      dispatchProps._onAddMember(stateProps.teamname, stateProps.username, role, sendNotification || false)
+    }
+    dispatchProps.onBack()
+  }
+  const showSendNotification = !!theirInfo
   return {
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
     allowOwner: yourInfo && yourInfo.type === 'owners',
-    onComplete: (role: Constants.TeamRoleType, sendNotification?: boolean) => {
-      dispatchProps._onAddMember(stateProps.teamname, stateProps.username, role, sendNotification || false)
-      dispatchProps.onBack()
-    },
+    onComplete,
+    showSendNotification,
   }
 }
 

@@ -24,6 +24,7 @@ export type RolePickerProps = {
   allowOwner: boolean,
   sendNotification: boolean,
   teamname: string,
+  showSendNotification: boolean,
   setConfirm: (confirm: boolean) => void,
   setSelectedRole: (r: TeamRoleType) => void,
   setSendNotification: (send: boolean) => void,
@@ -81,6 +82,7 @@ export const RoleOptions = ({
   setSendNotification,
   sendNotification,
   setConfirm,
+  showSendNotification,
 }: RolePickerProps) => (
   <Box
     style={{
@@ -97,9 +99,10 @@ export const RoleOptions = ({
     {makeRoleOption('writer', selectedRole, setSelectedRole)}
     {makeRoleOption('admin', selectedRole, setSelectedRole)}
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
-    <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
-      <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
-    </Box>
+    {showSendNotification &&
+      <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
+        <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
+      </Box>}
     <Box style={{marginBottom: globalMargins.small}}>
       <Button label="Continue" type="Primary" onClick={() => setConfirm(true)} disabled={!selectedRole} />
     </Box>
