@@ -493,7 +493,16 @@ func DeleteRepo(
 
 	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedRepoName)
 	if err != nil {
-		return err
+		// For the common "repo doesn't exist" case, use an error type that the
+		// client can recognize.
+		switch errors.Cause(err).(type) {
+		case libkbfs.NoSuchNameError:
+			return libkb.RepoDoesntExistError{
+				Name: repoName,
+			}
+		default:
+			return err
+		}
 	}
 
 	deletedReposNode, err := lookupOrCreateDir(
