@@ -145,7 +145,15 @@ Link
      if (!matches) {
        return false
      }
-     const match = matches[0]
+     let match
+     const firstMatch = matches[0]
+     const firstChar = firstMatch.substring(0,1)
+     const alphasExp = /^[a-z]$/i
+     if (!alphasExp.exec(firstChar)) {
+       match = matches[3]
+     } else {
+       match = matches[0]
+     }
      url._match = match  // save the match via expando property (used below)
      return match
    }
@@ -155,10 +163,14 @@ Link
    const urlText = url.join('')
    const protoText = proto ? proto.join('') : ''
    const href = protoText ? match : 'http://' + match
-   const text = match
+   let text = protoText + urlText
+   let delims = urlText.split(match)
+   delims = delims.length > 1 ? delims : ["", ""] // Detect if the substring op failed
+   text = delims.length > 1 ? match : text
    return [
+     delims[0],
      {type: 'link', href, children: [text]},
-     urlText.substring(match.length, urlText.length),
+     delims[1],
    ]
  }
 
