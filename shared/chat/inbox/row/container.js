@@ -116,6 +116,9 @@ const makeSelector = conversationIDKey => {
         nowOverride,
         finalizeInfo
       ) => {
+        if (!conversation) {
+          return
+        }
         const isError = conversation.get('state') === 'error'
         const isMuted = conversation.get('status') === 'muted'
         const participants = Constants.participantFilter(conversation.get('participants'), you)
