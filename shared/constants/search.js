@@ -157,7 +157,6 @@ function maybeUpgradeSearchResultIdToKeybaseId(
   id: SearchResultId
 ): SearchResultId {
   if (!searchResultMap.get(id)) {
-    console.warn('search result id not found in entities.', id)
     return id
   }
 
