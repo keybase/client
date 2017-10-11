@@ -219,6 +219,7 @@ export const ConstantsStatusCode = {
   scgitrepoalreadyexists: 2301,
   scgitinvalidreponame: 2302,
   scgitcannotdelete: 2303,
+  scgitrepodoesntexist: 2304,
   scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
@@ -4677,6 +4678,7 @@ export type StatusCode =
   | 2301 // SCGitRepoAlreadyExists_2301
   | 2302 // SCGitInvalidRepoName_2302
   | 2303 // SCGitCannotDelete_2303
+  | 2304 // SCGitRepoDoesntExist_2304
   | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
