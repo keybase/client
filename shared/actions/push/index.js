@@ -51,7 +51,8 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
     if (payload.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
       if (payload.x && payload.x > 0) {
-        const ageMS = Date.now() - payload.x * 1000
+        const num = payload.x
+        const ageMS = Date.now() - num * 1000
         if (ageMS > 10000) {
           console.info('Push notification: silent notification is stale:', ageMS)
           return
