@@ -12,6 +12,18 @@ import (
 	"github.com/keybase/client/go/teams"
 )
 
+// publicCryptKey is a zero key used for public repos
+var publicCryptKey keybase1.TeamApplicationKey
+
+func init() {
+	var zero [libkb.NaclDHKeySecretSize]byte
+	publicCryptKey = keybase1.TeamApplicationKey{
+		Application:   keybase1.TeamApplication_GIT_METADATA,
+		KeyGeneration: 1,
+		Key:           keybase1.Bytes32(zero),
+	}
+}
+
 // Crypto implements Cryptoer interface.
 type Crypto struct {
 	libkb.Contextified
@@ -34,9 +46,14 @@ func (c *Crypto) Box(ctx context.Context, plaintext []byte, teamSpec keybase1.Te
 		return nil, err
 	}
 
-	key, err := team.GitMetadataKey(ctx)
-	if err != nil {
-		return nil, err
+	public := teamSpec.Visibility == keybase1.TLFVisibility_PUBLIC
+
+	key := publicCryptKey
+	if !public {
+		key, err = team.GitMetadataKey(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var nonce keybase1.BoxNonce
@@ -65,13 +82,23 @@ func (c *Crypto) Unbox(ctx context.Context, teamSpec keybase1.TeamIDWithVisibili
 		return nil, fmt.Errorf("invalid EncryptedGitMetadata version: %d", metadata.V)
 	}
 
-	team, err := c.loadTeam(ctx, teamSpec, metadata.Gen)
+	public := teamSpec.Visibility == keybase1.TLFVisibility_PUBLIC
+
+	var needKeyGeneration keybase1.PerTeamKeyGeneration
+	if !public {
+		needKeyGeneration = metadata.Gen
+	}
+	team, err := c.loadTeam(ctx, teamSpec, needKeyGeneration)
 	if err != nil {
 		return nil, err
 	}
-	key, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
-	if err != nil {
-		return nil, err
+
+	key := publicCryptKey
+	if !public {
+		key, err = team.ApplicationKeyAtGeneration(keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var encKey [libkb.NaclSecretBoxKeySize]byte = key.Key
