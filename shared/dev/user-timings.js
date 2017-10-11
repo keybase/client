@@ -81,7 +81,9 @@ const _getLabel = obj => {
   let label
   try {
     // Try and extract a userful name from saga events
-    if (obj.effect.saga) {
+    if (!obj.effect) {
+      label = obj.effectId
+    } else if (obj.effect.saga) {
       label = obj.effect && obj.effect.saga && obj.effect.saga.name
     } else if (Array.isArray(obj.effect)) {
       label = obj.effect.map(effect => _getLabel({effect})).join(':')

@@ -58,7 +58,7 @@ export default function(state: State, action: any): State {
     const nextState = reducer(state, action)
     Object.keys(nextState).forEach(
       k =>
-        nextState[k] !== initialState &&
+        nextState[k] !== initialState[k] &&
         nextState[k] === state[k] &&
         console.warn('Key %s did not change after resetStore action', k)
     )
