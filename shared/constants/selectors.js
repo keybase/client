@@ -23,6 +23,10 @@ const previousConversationSelector = ({chat: {previousConversation}}: TypedState
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
 const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
 
+const userIsInTeam = ({entities: {teams: {teamNameToMemberUsernames}}}: TypedState, teamname: string, username: string) => {
+  return teamNameToMemberUsernames.getIn([teamname, username])
+}
+
 const searchResultMapSelector = createSelector(
   ({entities: {search: {searchResults}}}: TypedState) => searchResults,
   searchResults => searchResults
@@ -44,5 +48,6 @@ export {
   previousConversationSelector,
   searchResultMapSelector,
   searchResultSelector,
+  userIsInTeam,
   usernameSelector,
 }

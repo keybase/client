@@ -3,6 +3,7 @@ import {Map} from 'immutable'
 import {connect} from 'react-redux'
 import SearchResultRow from '.'
 import {followStateHelper} from '../../constants/search'
+import {userIsInTeamHelper} from '../../constants/teams'
 
 import type {TypedState} from '../../constants/reducer'
 import type {SearchResultId} from '../../constants/search'
@@ -20,15 +21,8 @@ const mapStateToProps = (
   const result = state.entities.getIn(['search', 'searchResults', id], Map()).toObject()
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
-  //const leftIsInTeam = disableIfInTeamName ? teamMemberStateHelper(state, result.leftUsername, result.leftService, disableIfInTeamName) : false
-  //const rightIsInTeam = disableIfInTeamName ? teamMemberStateHelper(state, result.rightUsername, result.rightService, disableIfInTeam) : false
-  console.warn('disableIfInTeamName is', disableIfInTeamName)
-  //const teamMembers = disableIfInTeamName && entities.getIn(['teams', 'teamNameToMembers', disableIfInTeamName])
-  /*  const items = searchResultIds &&
-  (disableIfInTeamName ? searchResultIds.toArray().map(item => {
-    return [item, teamMembers.filter(elem => elem.username === item).length > 0]
-  }) : searchResultIds.toArray().map(item => [item, false]))
-  */
+  const leftIsInTeam = disableIfInTeamName ? userIsInTeamHelper(state, result.leftUsername, result.leftService, disableIfInTeamName) : false
+  const rightIsInTeam = disableIfInTeamName ? userIsInTeamHelper(state, result.rightUsername, result.rightService, disableIfInTeamName) : false
   return {
     ...result,
     onClick,
@@ -37,7 +31,7 @@ const mapStateToProps = (
     showTrackerButton: !!onShowTracker,
     leftFollowingState,
     rightFollowingState,
-    isInTeam: false,//: leftIsInTeam || rightIsInTeam,
+    userIsInTeam: leftIsInTeam || rightIsInTeam,
   }
 }
 
