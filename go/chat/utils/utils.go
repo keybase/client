@@ -610,18 +610,11 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Version = rawConv.Metadata.Version
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
-<<<<<<< HEAD
 			ChannelName:       rc.LocalMetadata.TopicName,
 			Headline:          rc.LocalMetadata.Headline,
 			Snippet:           rc.LocalMetadata.Snippet,
-			WriterNames:       rc.LocalMetadata.WriterNames,
+			Participants:      rc.LocalMetadata.Participants,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
-=======
-			ChannelName:  rc.LocalMetadata.TopicName,
-			Headline:     rc.LocalMetadata.Headline,
-			Snippet:      rc.LocalMetadata.Snippet,
-			Participants: rc.LocalMetadata.Participants,
->>>>>>> wip
 		}
 	}
 	return res
@@ -640,12 +633,8 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.Snippet = GetConvSnippet(rawConv)
 	res.Channel = GetTopicName(rawConv)
 	res.Headline = GetHeadline(rawConv)
-<<<<<<< HEAD
-	res.Participants = rawConv.Info.WriterNames
-	res.ResetParticipants = rawConv.Info.ResetNames
-=======
 	res.Participants = rawConv.Info.Participants
->>>>>>> wip
+	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
 	res.Visibility = rawConv.Info.Visibility

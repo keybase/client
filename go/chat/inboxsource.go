@@ -4,9 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-
-	"github.com/keybase/client/go/teams"
-
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -1146,9 +1143,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		}
 		if ok {
 			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
-			conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+			conversationLocal.Info.Participants, err = utils.ReorderParticipants(
 				ctx,
+				s.G(),
 				uloader,
+				umapper,
 				iteamName,
 				conversationRemote.Metadata.ActiveList)
 			if err != nil {
