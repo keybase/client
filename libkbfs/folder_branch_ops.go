@@ -3382,6 +3382,26 @@ func (fbo *folderBranchOps) renameLocked(
 		if err != nil {
 			return err
 		}
+	} else {
+		// If the entry doesn't exist yet, see if the new name will
+		// make the new parent directory too big.  If the entry is
+		// remaining in the same directory, only check the size
+		// difference.
+		checkName := newName
+		if oldParent == newParent {
+			if extra := len(newName) - len(oldName); extra <= 0 {
+				checkName = ""
+			} else {
+				checkName = newName[:extra]
+			}
+		}
+		if len(checkName) > 0 {
+			if err := fbo.checkNewDirSize(
+				ctx, lState, md.ReadOnly(), newParentPath,
+				checkName); err != nil {
+				return err
+			}
+		}
 	}
 
 	// Only the ctime changes on the directory entry itself.

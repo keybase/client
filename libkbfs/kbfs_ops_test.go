@@ -1262,6 +1262,40 @@ func TestCreateLinkFailDirTooBig(t *testing.T) {
 	testCreateEntryFailDirTooBig(t, false)
 }
 
+func TestRenameEntryFailDirTooBig(t *testing.T) {
+	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
+	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
+
+	u, id, rmd := injectNewRMD(t, config)
+
+	rootID := kbfsblock.FakeID(42)
+	rootBlock := NewDirBlock().(*DirBlock)
+	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
+	ops := getOps(config, id)
+	n := nodeFromPath(t, ops, p)
+	rmd.data.Dir.Size = 10
+	aID := kbfsblock.FakeID(43)
+	rootBlock.Children["a"] = DirEntry{
+		BlockInfo: makeBIFromID(aID, u),
+		EntryInfo: EntryInfo{
+			Type: File,
+		},
+	}
+
+	config.maxDirBytes = 12
+	name := "aaaa"
+
+	testPutBlockInCache(t, config, node.BlockPointer, id, rootBlock)
+
+	err := config.KBFSOps().Rename(ctx, n, "a", n, name)
+	if err == nil {
+		t.Errorf("Got no expected error on rename")
+	} else if _, ok := err.(DirTooBigError); !ok {
+		t.Errorf("Got unexpected error on rename: %+v", err)
+	}
+}
+
 func testCreateEntryFailKBFSPrefix(t *testing.T, et EntryType) {
 	mockCtrl, config, ctx, cancel := kbfsOpsInit(t)
 	defer kbfsTestShutdown(mockCtrl, config, ctx, cancel)
