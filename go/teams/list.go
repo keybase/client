@@ -45,10 +45,211 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 	return list.Teams, nil
 }
 
+type teamLocalCacheEntry struct {
+	TeamID    keybase1.TeamID
+	Team      *Team
+	Reloaded  bool
+	NeedAdmin bool
+}
+
+type TeamListRunner struct {
+	Teams   map[keybase1.TeamID]*teamLocalCacheEntry
+	meUID   keybase1.UID
+	G       *libkb.GlobalContext
+	Members []keybase1.MemberInfo
+	locktab libkb.LockTable
+}
+
+func memberNeedAdmin(member keybase1.MemberInfo, meUID keybase1.UID) bool {
+	return member.UserID == meUID &&
+		(member.Role.IsAdminOrAbove() || (member.Implicit != nil && member.Implicit.Role.IsAdminOrAbove()))
+}
+
+func verifyMemberRoleInTeam(ctx context.Context, member keybase1.MemberInfo, team *Team) (expected bool, err error) {
+	if member.Role == keybase1.TeamRole_NONE {
+		return true, nil
+	}
+
+	memberUV, err := team.chain().GetLatestUVWithUID(member.UserID)
+	if err != nil {
+		return false, err
+	}
+	role, err := team.chain().GetUserRole(memberUV)
+	if err != nil {
+		return false, err
+	}
+	if role != member.Role {
+		return false, fmt.Errorf("unexpected member role: got %v but actual role is %v", member.Role, role)
+	}
+	return true, nil
+}
+
+// getTeamForMember tries to load team in a recent enough state to
+// contain member with correct role as set in MemberInfo. It might
+// trigger a reload with ForceRepoll if cached state does not match.
+func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybase1.MemberInfo, needAdmin bool) (*Team, error) {
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          member.TeamID,
+		NeedAdmin:   needAdmin,
+		ForceRepoll: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	expectedRole, _ := verifyMemberRoleInTeam(ctx, member, team)
+	if !expectedRole {
+		team, err = Load(ctx, g, keybase1.LoadTeamArg{
+			ID:          member.TeamID,
+			NeedAdmin:   needAdmin,
+			ForceRepoll: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		_, err := verifyMemberRoleInTeam(ctx, member, team)
+		if err != nil {
+			return nil, fmt.Errorf("server was wrong about role in team : %v", err)
+		}
+	}
+
+	return team, nil
+}
+
+func ListForUser(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	tracer := g.CTimeTracer(ctx, "TeamList")
+	defer tracer.Finish()
+
+	var memberUID keybase1.UID
+
+	meUID := g.ActiveDevice.UID()
+
+	var queryUID keybase1.UID
+	if arg.UserAssertion != "" {
+		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
+		if res.GetError() != nil {
+			return nil, res.GetError()
+		}
+		queryUID = res.GetUID()
+
+		memberUID = queryUID
+	} else {
+		memberUID = meUID
+	}
+
+	tracer.Stage("Server")
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &keybase1.AnnotatedTeamList{
+		Teams: nil,
+		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
+	}
+
+	if len(teams) == 0 {
+		return res, nil
+	}
+
+	tracer.Stage("LookupUsername")
+	username, err := g.GetUPAKLoader().LookupUsername(context.Background(), memberUID)
+	if err != nil {
+		return nil, err
+	}
+	fullName, err := engine.GetFullName(context.Background(), g, memberUID)
+	if err != nil {
+		return nil, err
+	}
+
+	tracer.Stage("Loads")
+
+	// Process all the teams in parallel. Limit to 15 in parallel so
+	// we don't crush the server. errgroup collects errors and returns
+	// the first non-nil. subctx is canceled when the group finishes.
+	var resLock sync.Mutex
+	const parallelLimit int64 = 15
+	sem := semaphore.NewWeighted(parallelLimit)
+	group, subctx := errgroup.WithContext(ctx)
+	for _, memberInfo := range teams {
+		memberInfo := memberInfo
+
+		// Skip implicit teams unless --include-implicit-teams was passed from above.
+		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
+			g.Log.CDebugf(subctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			continue
+		}
+
+		group.Go(func() error {
+			// Grab one of the parallelLimit slots
+			err := sem.Acquire(subctx, 1)
+			if err != nil {
+				return err
+			}
+			defer sem.Release(1)
+			g.Log.CDebugf(subctx, "| TeamList entry: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+
+			if memberInfo.UserID != memberUID {
+				return fmt.Errorf("server gave us memberInfo for UID %q but we asked for %q", memberInfo.UserID.String(), memberUID.String())
+			}
+
+			serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
+			team, err := getTeamForMember(subctx, g, memberInfo, serverSaysNeedAdmin)
+			if err != nil {
+				return err
+			}
+
+			type AnnotatedTeamInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
+			var anMemberInfo *keybase1.AnnotatedMemberInfo
+			var anInvites AnnotatedTeamInviteMap
+
+			anMemberInfo = &keybase1.AnnotatedMemberInfo{
+				TeamID:         team.ID,
+				FqName:         team.Name().String(),
+				UserID:         memberInfo.UserID,
+				Role:           memberInfo.Role, // memberInfo.Role has been verified during getTeamForMember
+				IsImplicitTeam: team.IsImplicit(),
+				Implicit:       memberInfo.Implicit, // This part is still server trust
+				Username:       username.String(),
+				FullName:       fullName,
+			}
+
+			anInvites = make(AnnotatedTeamInviteMap)
+			if serverSaysNeedAdmin {
+				anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())
+				if err != nil {
+					return err
+				}
+			}
+
+			// After this lock it is safe to write out results
+			resLock.Lock()
+			defer resLock.Unlock()
+
+			res.Teams = append(res.Teams, *anMemberInfo)
+			for teamInviteID, annotatedTeamInvite := range anInvites {
+				res.AnnotatedActiveInvites[teamInviteID] = annotatedTeamInvite
+			}
+
+			return nil
+		})
+	}
+
+	err = group.Wait()
+	return res, err
+}
+
 // List info about teams
 // If an error is encountered while loading some teams, the team is skipped and no error is returned.
 // If an error occurs loading all the info, an error is returned.
 func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg) (*keybase1.AnnotatedTeamList, error) {
+	if !arg.All {
+		// Run optimized version that assumes multiple teams for one
+		// user.
+		return ListForUser(ctx, g, arg)
+	}
+
 	tracer := g.CTimeTracer(ctx, "TeamList")
 	defer tracer.Finish()
 
@@ -63,25 +264,29 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 	meUID := g.ActiveDevice.UID()
 
-	tracer.Stage("server")
+	tracer.Stage("Server")
 	teams, err := getTeamsListFromServer(ctx, g, queryUID, arg.All)
 	if err != nil {
 		return nil, err
 	}
 
-	tracer.Stage("loads")
-
-	var resLock sync.Mutex
 	res := &keybase1.AnnotatedTeamList{
 		Teams: nil,
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
+	if len(teams) == 0 {
+		return res, nil
+	}
+
+	tracer.Stage("Loads")
+
 	expectEmptyList := true
 
-	// Process all the teams in parallel. Limit to 15 in parallel so we don't crush the server.
-	// errgroup collects errors and returns the first non-nil.
-	// subctx is canceled when the group finishes.
+	// Process all the teams in parallel. Limit to 15 in parallel so
+	// we don't crush the server. errgroup collects errors and returns
+	// the first non-nil. subctx is canceled when the group finishes.
+	var resLock sync.Mutex
 	const parallelLimit int64 = 15
 	sem := semaphore.NewWeighted(parallelLimit)
 	group, subctx := errgroup.WithContext(ctx)
@@ -105,13 +310,6 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			defer sem.Release(1)
 			g.Log.CDebugf(subctx, "| TeamList entry: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 
-			var isAdminSaysServer bool
-			if memberInfo.UserID == meUID &&
-				(memberInfo.Role.IsAdminOrAbove() || (memberInfo.Implicit != nil && memberInfo.Implicit.Role.IsAdminOrAbove())) {
-
-				isAdminSaysServer = true
-			}
-
 			memberUID := memberInfo.UserID
 
 			username, err := g.GetUPAKLoader().LookupUsername(context.Background(), memberUID)
@@ -123,75 +321,34 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 				return err
 			}
 
-			type AnnotatedTeamInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
-
-			loadTeamForAMI := func(force bool) (anMemberInfo *keybase1.AnnotatedMemberInfo, anInvites AnnotatedTeamInviteMap,
-				retry bool, err error) {
-
-				g.Log.CDebugf(subctx, "TeamList loading(%v, force=%v)", memberInfo.TeamID, force)
-
-				team, err := Load(subctx, g, keybase1.LoadTeamArg{
-					ID:          memberInfo.TeamID,
-					NeedAdmin:   isAdminSaysServer,
-					ForceRepoll: force,
-				})
-				if err != nil {
-					return nil, nil, false, err
-				}
-
-				role := keybase1.TeamRole_NONE
-				if memberInfo.Role != keybase1.TeamRole_NONE {
-					memberUV, err := team.chain().GetLatestUVWithUID(memberUID)
-					if err != nil {
-						// retryable because the role of this member might have changed since cache hit
-						return nil, nil, true, fmt.Errorf("did not find %v (for role %v)", username, memberInfo.Role)
-					}
-					role, err = team.chain().GetUserRole(memberUV)
-					if err != nil {
-						return nil, nil, false, err
-					}
-				}
-				if role != memberInfo.Role {
-					return nil, nil, true, fmt.Errorf("got unexpected role: %v", role.String())
-				}
-
-				anMemberInfo = &keybase1.AnnotatedMemberInfo{
-					TeamID:         team.ID,
-					FqName:         team.Name().String(),
-					UserID:         memberUID,
-					Role:           role,
-					IsImplicitTeam: team.IsImplicit(),
-					Implicit:       memberInfo.Implicit, // This part is still server trust
-					Username:       username.String(),
-					FullName:       fullName,
-				}
-
-				anInvites = make(AnnotatedTeamInviteMap)
-				if isAdminSaysServer {
-					anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())
-					if err != nil {
-						return nil, nil, false, err
-					}
-				}
-
-				return anMemberInfo, anInvites, false, nil
+			serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
+			team, err := getTeamForMember(subctx, g, memberInfo, serverSaysNeedAdmin)
+			if err != nil {
+				g.Log.CDebugf(subctx, "| Error in getTeamForMember: %v", err)
+				return err
 			}
 
+			type AnnotatedTeamInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
 			var anMemberInfo *keybase1.AnnotatedMemberInfo
 			var anInvites AnnotatedTeamInviteMap
 
-			// Load the team in order to use local data instead of server-trust for fields.
-			// Try once without ForceRepoll and then once with. In case the cache is stale.
-			// This could be simpler and faster if the server returned the latest seqno as a hint.
-			anMemberInfo, anInvites, retry, err := loadTeamForAMI(false)
-			if err != nil {
-				if retry {
-					anMemberInfo, anInvites, retry, err = loadTeamForAMI(true)
-				}
+			anMemberInfo = &keybase1.AnnotatedMemberInfo{
+				TeamID:         team.ID,
+				FqName:         team.Name().String(),
+				UserID:         memberInfo.UserID,
+				Role:           memberInfo.Role,
+				IsImplicitTeam: team.IsImplicit(),
+				Implicit:       memberInfo.Implicit, // This part is still server trust
+				Username:       username.String(),
+				FullName:       fullName,
 			}
-			if err != nil {
-				g.Log.Warning("Error while getting team (%s): %v", memberInfo.FqName, err)
-				return nil
+
+			anInvites = make(AnnotatedTeamInviteMap)
+			if serverSaysNeedAdmin {
+				anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())
+				if err != nil {
+					return err
+				}
 			}
 
 			// After this lock it is safe to write out results
