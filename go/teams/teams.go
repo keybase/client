@@ -500,7 +500,11 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		return err
 	}
 	if needsReload {
-		t, err = Load(ctx, t.G(), keybase1.LoadTeamArg{ID: t.ID, ForceRepoll: true})
+		t, err = Load(ctx, t.G(), keybase1.LoadTeamArg{
+			ID:          t.ID,
+			Public:      t.IsPublic(),
+			ForceRepoll: true,
+		})
 		if err != nil {
 			return err
 		}
@@ -582,6 +586,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 	parentID := t.chain().GetParentID()
 	parentTeam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
 		ID:          *parentID,
+		Public:      t.IsPublic(),
 		ForceRepoll: true,
 	})
 	if err != nil {
@@ -812,7 +817,8 @@ func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool
 			return nil, nil
 		}
 		targetTeam, err = Load(ctx, t.G(), keybase1.LoadTeamArg{
-			ID: *parentID,
+			ID:     *parentID,
+			Public: parentID.IsPublic(),
 			// This is in a cold path anyway, so might as well trade reliability
 			// at the expense of speed.
 			ForceRepoll: true,
@@ -1204,6 +1210,7 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:         id,
+		Public:     id.IsPublic(), // infer publicness from id
 		Refreshers: refreshers,
 	})
 	if err != nil {
@@ -1222,6 +1229,7 @@ func (t *Team) loadAllTransitiveSubteams(ctx context.Context, forceRepoll bool) 
 		// Load each subteam...
 		subteam, err := Load(ctx, t.G(), keybase1.LoadTeamArg{
 			ID:          idAndName.Id,
+			Public:      t.IsPublic(),
 			NeedAdmin:   true,
 			ForceRepoll: true,
 		})

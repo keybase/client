@@ -31,6 +31,7 @@ func (t *TeamsNameInfoSource) Lookup(ctx context.Context, name string, vis keyba
 
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		Name:        name, // Loading by name is a last resort and will always cause an extra roundtrip.
+		Public:      vis == keybase1.TLFVisibility_PUBLIC,
 		ForceRepoll: true,
 	})
 	if err != nil {
@@ -102,7 +103,10 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		return res, err
 	}
 	if vis == keybase1.TLFVisibility_PRIVATE {
-		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
+		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
+			ID:     teamID,
+			Public: false,
+		})
 		if err != nil {
 			return res, err
 		}
@@ -167,7 +171,8 @@ func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, na
 	res.CanonicalName = name
 	if public {
 		team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-			Name: name,
+			Name:   name,
+			Public: public,
 		})
 		if err != nil {
 			return res, err

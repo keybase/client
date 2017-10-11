@@ -835,7 +835,8 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 		return nil
 	}
 	teamData, err := l.Load(ctx, keybase1.LoadTeamArg{
-		ID: id,
+		ID:     id,
+		Public: id.IsPublic(),
 	})
 	if err != nil {
 		return err
@@ -860,6 +861,7 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 	// Load the argument team
 	team, err := l.load1(ctx, me, keybase1.LoadTeamArg{
 		ID:      teamID,
+		Public:  teamID.IsPublic(),
 		StaleOK: true, // We only use immutable fields.
 	})
 	if err != nil {

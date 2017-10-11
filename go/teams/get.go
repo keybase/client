@@ -45,37 +45,31 @@ func GetForTeamManagementByStringName(ctx context.Context, g *libkb.GlobalContex
 
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
+		Public:      public,
 		ForceRepoll: true,
 		NeedAdmin:   needAdmin,
-		Public:      public,
 	})
 
 	return team, fixupTeamGetError(ctx, g, err, name, public)
 }
 
 func GetForTeamManagementByTeamID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, needAdmin bool) (*Team, error) {
-	// CORE-6322 find out if this is for a public team
-	public := false
-
 	return Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          id,
+		Public:      id.IsPublic(), // infer publicness from team id
 		ForceRepoll: true,
 		NeedAdmin:   needAdmin,
-		Public:      public,
 	})
 }
 
 // Get a team with no stubbed links if we are an admin. Use this instead of NeedAdmin when you don't
 // know whether you are an admin. This always causes roundtrips. Doesn't work for implicit admins.
-func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*Team, error) {
-	// CORE-6322 find out if this is for a public team
-	public := false
-
+func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name string, public bool) (*Team, error) {
 	// Find out our up-to-date role.
 	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
-		ForceRepoll: true,
 		Public:      public,
+		ForceRepoll: true,
 	})
 	if err != nil {
 		return nil, fixupTeamGetError(ctx, g, err, name, public)
@@ -93,6 +87,7 @@ func GetMaybeAdminByStringName(ctx context.Context, g *libkb.GlobalContext, name
 		// and are now an admin.
 		team, err = Load(ctx, g, keybase1.LoadTeamArg{
 			Name:      name,
+			Public:    public,
 			NeedAdmin: true,
 		})
 		if err != nil {

@@ -53,6 +53,7 @@ func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.Folder) (re
 	}
 	team, err := teams.Load(ctx, t.G(), keybase1.LoadTeamArg{
 		Name:        folder.Name,
+		Public:      !folder.Private,
 		ForceRepoll: false, // if subteams get renamed in a racy way, just let this fail
 	})
 	if err != nil {
