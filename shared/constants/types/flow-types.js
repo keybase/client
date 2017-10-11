@@ -3773,7 +3773,6 @@ export type NotificationChannels = {
   badges: boolean,
   reachability: boolean,
   team: boolean,
-  git: boolean,
 }
 
 export type NotifyBadgesBadgeStateRpcParam = Exact<{
@@ -3808,20 +3807,6 @@ export type NotifyFSRequestFSSyncStatusRequestRpcParam = Exact<{
 
 export type NotifyFavoritesFavoritesChangedRpcParam = Exact<{
   uid: UID
-}>
-
-export type NotifyGitRepoChangedRpcParam = Exact<{
-  folder: Folder,
-  teamID: TeamID,
-  repoID: RepoID,
-  globalUniqueID: string
-}>
-
-export type NotifyGitRepoDeletedRpcParam = Exact<{
-  folder: Folder,
-  teamID: TeamID,
-  repoID: RepoID,
-  globalUniqueID: string
 }>
 
 export type NotifyKeyfamilyKeyfamilyChangedRpcParam = Exact<{
@@ -6906,24 +6891,6 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       status: FSSyncStatus,
       requestID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.NotifyGit.repoChanged'?: (
-    params: Exact<{
-      folder: Folder,
-      teamID: TeamID,
-      repoID: RepoID,
-      globalUniqueID: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.NotifyGit.repoDeleted'?: (
-    params: Exact<{
-      folder: Folder,
-      teamID: TeamID,
-      repoID: RepoID,
-      globalUniqueID: string
     }>,
     response: CommonResponseHandler
   ) => void,
