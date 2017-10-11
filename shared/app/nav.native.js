@@ -173,7 +173,8 @@ class MainNavStack extends Component<any, any> {
 
     const stacks = stackCache
       .set(props.routeSelected, props.routeStack)
-      .map((stack, key) => (
+      .toArray()
+      .map(([key, stack]) => (
         <CardStackShim
           key={key}
           hidden={key !== props.routeSelected}
@@ -182,7 +183,6 @@ class MainNavStack extends Component<any, any> {
           onNavigateBack={props.navigateUp}
         />
       ))
-      .toArray()
 
     const content = (
       <Box style={globalStyles.flexGrow}>
