@@ -119,6 +119,41 @@ func getUserAndFullName(ctx context.Context, g *libkb.GlobalContext, uid keybase
 	return username, fullName, err
 }
 
+func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.AnnotatedTeamList) error {
+	var userList []keybase1.UID
+	userSet := map[keybase1.UID]int{}
+
+	for _, member := range res.Teams {
+		_, ok := userSet[member.UserID]
+		if ok {
+			continue
+		}
+
+		userSet[member.UserID] = len(userList)
+		userList = append(userList, member.UserID)
+	}
+
+	namePkgs, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, userList, 0, 0, false)
+	if err != nil {
+		return err
+	}
+
+	for id := range res.Teams {
+		member := &res.Teams[id]
+		num := userSet[member.UserID]
+		pkg := namePkgs[num]
+
+		member.Username = pkg.NormalizedUsername.String()
+		if fullName := pkg.FullName; fullName != nil {
+			member.FullName = string(fullName.FullName)
+		}
+
+		fmt.Printf("Full Name %+v\n", pkg)
+	}
+
+	return nil
+}
+
 // List info about teams
 // If an error is encountered while loading some teams, the team is skipped and no error is returned.
 // If an error occurs loading all the info, an error is returned.
@@ -198,11 +233,6 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			var fullName string
 			if memberUID == queryUID {
 				username, fullName = queryUsername, queryFullName
-			} else {
-				username, fullName, err = getUserAndFullName(context.Background(), g, memberUID)
-				if err != nil {
-					return err
-				}
 			}
 
 			serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
@@ -249,6 +279,13 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	}
 
 	err = group.Wait()
+
+	if arg.All {
+		err := fillUsernames(ctx, g, res)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	if len(res.Teams) == 0 && !expectEmptyList {
 		return res, fmt.Errorf("multiple errors while loading team list")
