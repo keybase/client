@@ -21,20 +21,24 @@ function Nav(props: Props) {
   }
   const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
   return (
-    <Box style={stylesTabsContainer}>
-      {props.routeSelected !== loginTab &&
-        <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />}
-      <ErrorBoundary>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
-          {layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))}
-        </Box>
-      </ErrorBoundary>
-      <div id="popupContainer" />
-      {![chatTab, loginTab].includes(props.routeSelected) &&
-        <Offline reachable={props.reachable} appFocused={props.appFocused} />}
-      <GlobalError />
-    </Box>
+    <ErrorBoundary>
+      <Box style={stylesTabsContainer}>
+        {props.routeSelected !== loginTab &&
+          <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />}
+        <ErrorBoundary>
+          <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+            {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
+            {layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))}
+          </Box>
+        </ErrorBoundary>
+        <ErrorBoundary>
+          <div id="popupContainer" />
+        </ErrorBoundary>
+        {![chatTab, loginTab].includes(props.routeSelected) &&
+          <Offline reachable={props.reachable} appFocused={props.appFocused} />}
+        <GlobalError />
+      </Box>
+    </ErrorBoundary>
   )
 }
 
