@@ -5,6 +5,7 @@
 package libgit
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -20,6 +21,7 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
+	billy "gopkg.in/src-d/go-billy.v3"
 )
 
 const (
@@ -203,6 +205,52 @@ func UpdateRepoMD(ctx context.Context, config libkbfs.Config,
 	return nil
 }
 
+func normalizeRepoName(repoName string) string {
+	return strings.TrimSuffix(strings.ToLower(repoName), gitSuffixToIgnore)
+}
+
+func takeConfigLock(
+	fs *libfs.FS, tlfHandle *libkbfs.TlfHandle, repoName string) (
+	f billy.File, err error) {
+	// Double-check that the namespace of the FS matches the
+	// normalized repo name, so that we're locking only the config
+	// file within the actual repo we care about.  This is appended to
+	// the default locknamespace for a libfs.FS instance.
+	normalizedRepoName := normalizeRepoName(repoName)
+	nsPath := path.Join(
+		"/keybase", tlfHandle.Type().String(), kbfsRepoDir, normalizedRepoName)
+	expectedNamespace := make([]byte, len(nsPath))
+	copy(expectedNamespace, nsPath)
+	if !bytes.Equal(expectedNamespace, fs.GetLockNamespace()) {
+		return nil, errors.Errorf("Unexpected FS namespace for repo %s: %s",
+			repoName, string(fs.GetLockNamespace()))
+	}
+
+	// Lock a temp file to avoid a duplicate create of the actual
+	// file.  TODO: clean up this file at some point?
+	f, err = fs.Create(kbfsConfigNameTemp)
+	if err != nil && !os.IsExist(err) {
+		return nil, err
+	} else if os.IsExist(err) {
+		f, err = fs.Open(kbfsConfigNameTemp)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			f.Close()
+		}
+	}()
+
+	// Take the lock
+	err = f.Lock()
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
 func createNewRepoAndID(
 	ctx context.Context, config libkbfs.Config, tlfHandle *libkbfs.TlfHandle,
 	repoName string, fs *libfs.FS) (ID, error) {
@@ -216,24 +264,11 @@ func createNewRepoAndID(
 		"Creating a new repo %s in %s: repoID=%s",
 		repoName, tlfHandle.GetCanonicalPath(), repoID)
 
-	// Lock a temp file to avoid a duplicate create of the actual
-	// file.  TODO: clean up this file at some point?
-	lockFile, err := fs.Create(kbfsConfigNameTemp)
-	if err != nil && !os.IsExist(err) {
-		return NullID, err
-	} else if os.IsExist(err) {
-		lockFile, err = fs.Open(kbfsConfigNameTemp)
-	}
+	lockFile, err := takeConfigLock(fs, tlfHandle, repoName)
 	if err != nil {
 		return NullID, err
 	}
 	defer lockFile.Close()
-
-	// Take a lock during creation.
-	err = lockFile.Lock()
-	if err != nil {
-		return NullID, err
-	}
 
 	f, err := fs.Create(kbfsConfigName)
 	if err != nil && !os.IsExist(err) {
@@ -289,10 +324,6 @@ func createNewRepoAndID(
 	}
 
 	return repoID, nil
-}
-
-func normalizeRepoName(repoName string) string {
-	return strings.TrimSuffix(strings.ToLower(repoName), gitSuffixToIgnore)
 }
 
 func lookupOrCreateDir(ctx context.Context, config libkbfs.Config,
@@ -385,6 +416,7 @@ func getOrCreateRepoAndID(
 		if err != nil {
 			return nil, NullID, err
 		}
+		fs.SetLockNamespace(repoID.Bytes())
 		return fs, repoID, nil
 	}
 	defer f.Close()
