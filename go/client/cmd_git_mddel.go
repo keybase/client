@@ -43,22 +43,10 @@ func (c *CmdGitMddel) Run() error {
 		return err
 	}
 
-	switch folder.FolderType {
-	case keybase1.FolderType_PRIVATE:
-		return cli.DeletePersonalRepo(context.Background(), keybase1.GitRepoName(c.repoName))
-
-	case keybase1.FolderType_TEAM:
-		teamName, err := keybase1.TeamNameFromString(folder.Name)
-		if err != nil {
-			return err
-		}
-		return cli.DeleteTeamRepo(context.Background(), keybase1.DeleteTeamRepoArg{
-			RepoName: keybase1.GitRepoName(c.repoName),
-			TeamName: teamName,
-		})
-	default:
-		return fmt.Errorf("unrecognized folder type for delete: %#v", folder.FolderType)
-	}
+	return cli.DeleteGitMetadata(context.Background(), keybase1.DeleteGitMetadataArg{
+		Folder:   folder,
+		RepoName: keybase1.GitRepoName(c.repoName),
+	})
 }
 
 // ParseArgv gets the secret phrase from the command args.

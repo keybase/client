@@ -57,7 +57,6 @@ function* _listenSaga(): SagaGenerator<any, any> {
     tracking: true,
     team: true,
     users: true,
-    git: true,
   }
 
   const engineInst: Engine = yield call(engine)

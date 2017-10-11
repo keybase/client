@@ -7,12 +7,10 @@
 package teams
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 
 	"golang.org/x/net/context"
 
@@ -44,21 +42,6 @@ func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection
 	body.SetKey("team", teamSectionJSON)
 
 	return ret, nil
-}
-
-func RootTeamIDFromName(n keybase1.TeamName) keybase1.TeamID {
-	if !n.IsRootTeam() {
-		panic("can't get a team ID from a subteam")
-	}
-	return RootTeamIDFromNameString(n.String())
-}
-
-// the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
-func RootTeamIDFromNameString(name string) keybase1.TeamID {
-	sum := sha256.Sum256([]byte(strings.ToLower(name)))
-	idBytes := sum[0:16]
-	idBytes[15] = libkb.RootTeamIDTag
-	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
 func NewImplicitTeamName() (res keybase1.TeamName, err error) {
@@ -197,8 +180,12 @@ func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigCh
 }
 
 // 15 random bytes, followed by the byte 0x25, encoded as hex
-func NewSubteamID() keybase1.TeamID {
-	idBytes, err := libkb.RandBytesWithSuffix(16, libkb.SubteamIDTag)
+func NewSubteamID(public bool) keybase1.TeamID {
+	var useSuffix byte = keybase1.SUB_TEAMID_PRIVATE_SUFFIX
+	if public {
+		useSuffix = keybase1.SUB_TEAMID_PUBLIC_SUFFIX
+	}
+	idBytes, err := libkb.RandBytesWithSuffix(16, useSuffix)
 	if err != nil {
 		panic("RandBytes failed: " + err.Error())
 	}

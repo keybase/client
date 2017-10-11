@@ -146,7 +146,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 
 	t.Logf("U1 loads R")
 	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          parentName.ToTeamID(),
+		ID:          parentName.ToPrivateTeamID(),
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
@@ -170,7 +170,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 
 	t.Logf("U1 loads R")
 	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          parentName.ToTeamID(),
+		ID:          parentName.ToPrivateTeamID(),
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)

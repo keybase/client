@@ -67,10 +67,10 @@ func TestLookupImplicitTeams(t *testing.T) {
 
 	displayName := strings.Join(usernames, ",")
 	lookupAndCreate(displayName, false)
-	// lookupAndCreate(displayName, true) // CORE-6335 re-enable
+	lookupAndCreate(displayName, true)
 	displayName = fmt.Sprintf("mike@twitter,%s,james@github", displayName)
 	lookupAndCreate(displayName, false)
-	// lookupAndCreate(displayName, true) // CORE-6335 re-enable
+	lookupAndCreate(displayName, true)
 
 	_, _, _, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, "dksjdskjs/sxs?", false)
 	require.Error(t, err)
@@ -245,9 +245,7 @@ func TestLookupImplicitTeamResolvedSocialAssertion(t *testing.T) {
 
 // Test that you can rotate the key on an implicit team.
 func TestImplicitTeamRotate(t *testing.T) {
-	// CORE-6355 re-enable
-	// for _, public := range []bool{false, true} {
-	for _, public := range []bool{false} {
+	for _, public := range []bool{false, true} {
 		t.Logf("public:%v", public)
 		fus, tcs, cleanup := setupNTests(t, 3)
 		defer cleanup()

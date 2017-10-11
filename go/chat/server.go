@@ -32,8 +32,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-var DefaultTeamTopic = "general"
-
 type ServerConnection interface {
 	Reconnect(context.Context) (bool, error)
 	GetClient() chat1.RemoteInterface
