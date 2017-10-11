@@ -71,10 +71,9 @@ class CardStackShim extends Component<CardStackShimProps, *> {
         routes: stack
           .map((route, index) => {
             const routeName = route.path.join('/')
-            // Immutable.Stack indexes go from N-1(top/front)...0(bottom/back)
             // The bottom/back item of the stack is our top (active) screen
-            const isActiveRoute = !this.props.hidden && index === 0
-            const shouldRender = !this.props.hidden && (index === 0 || index === 1)
+            const isActiveRoute = !this.props.hidden && index === stack.size - 1
+            const shouldRender = !this.props.hidden && (index === stack.size - 1 || index === stack.size - 2)
             return {key: routeName, routeName, params: {route, isActiveRoute, shouldRender}}
           })
           .toArray(),
