@@ -260,13 +260,23 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   if (inboxState) {
     yield put(EntityCreators.replaceEntity(['inboxVersion'], {[conversationIDKey]: c.version}))
     if (isBigTeam) {
-      yield put(
-        EntityCreators.replaceEntity(['inboxBigChannels'], {[conversationIDKey]: inboxState.channelname})
-      )
+      // There's a bug where the untrusted inbox state for the channel is incorrect so we
+      // instead make sure that the small team maps and the big team maps don't allow duplicates
+      yield all([
+        put(
+          EntityCreators.replaceEntity(['inboxBigChannels'], {[conversationIDKey]: inboxState.channelname})
+        ),
+        put(
+          EntityCreators.replaceEntity(['inboxBigChannelsToTeam'], {[conversationIDKey]: inboxState.teamname})
+        ),
+        put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], [conversationIDKey])),
+      ])
     } else {
-      yield put(
-        EntityCreators.replaceEntity(['inboxSmallTimestamps'], {[conversationIDKey]: inboxState.time})
-      )
+      yield all([
+        put(EntityCreators.replaceEntity(['inboxSmallTimestamps'], {[conversationIDKey]: inboxState.time})),
+        put(EntityCreators.deleteEntity(['inboxBigChannels'], [conversationIDKey])),
+        put(EntityCreators.deleteEntity(['inboxBigChannelsToTeam'], [conversationIDKey])),
+      ])
     }
   }
 
