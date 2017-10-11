@@ -504,8 +504,7 @@ func DeleteRepo(
 
 	// For now, just rename the repo out of the way, using the device
 	// ID and the current time in nanoseconds to make uniqueness
-	// probable.  TODO(KBFS-2442): periodically delete old-enough
-	// repos from `kbfsDeletedReposDir`.
+	// probable.
 	dirSuffix := fmt.Sprintf(
 		"%s-%d", session.VerifyingKey.String(), config.Clock().Now().UnixNano())
 	return kbfsOps.Rename(
