@@ -8,8 +8,15 @@ import {teamsTab} from '../../constants/tabs'
 import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const selectedUsersToAdd = state.entities.getIn(['search', 'searchKeyToUserInputItemIds', 'addToTeamSearch'], [])
-  const usersAlreadyInTeam = state.entities.getIn(['teams', 'teamNameToMemberUsernames', routeProps.get('teamname')])
+  const selectedUsersToAdd = state.entities.getIn(
+    ['search', 'searchKeyToUserInputItemIds', 'addToTeamSearch'],
+    []
+  )
+  const usersAlreadyInTeam = state.entities.getIn([
+    'teams',
+    'teamNameToMemberUsernames',
+    routeProps.get('teamname'),
+  ])
   const tooManyUsers = selectedUsersToAdd.size + usersAlreadyInTeam.size >= 20
   return {
     name: routeProps.get('teamname'),

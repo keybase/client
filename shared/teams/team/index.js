@@ -1,7 +1,17 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Button, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  Text,
+  Tabs,
+  List,
+  Icon,
+  PopupMenu,
+  ProgressIndicator,
+} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import TeamMemberRow from './member-row/container'
@@ -196,7 +206,12 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
-        <Button type="Primary" label="Add people" onClick={onAddPeople} style={{marginTop: globalMargins.small}}/>
+        <Button
+          type="Primary"
+          label="Add people"
+          onClick={onAddPeople}
+          style={{marginTop: globalMargins.small}}
+        />
         <Help name={name} />
         <TeamTabs {...this.props} admin={admin} />
         {contents}
