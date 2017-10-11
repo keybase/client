@@ -53,7 +53,7 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
       if (payload.x && payload.x > 0) {
         const num = payload.x
         const ageMS = Date.now() - num * 1000
-        if (ageMS > 10000) {
+        if (ageMS > 15000) {
           console.info('Push notification: silent notification is stale:', ageMS)
           return
         }
