@@ -50,14 +50,6 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {
       console.info('Push notification: silent notification received')
-      if (payload.x && payload.x > 0) {
-        const num = payload.x
-        const ageMS = Date.now() - num * 1000
-        if (ageMS > 15000) {
-          console.info('Push notification: silent notification is stale:', ageMS)
-          return
-        }
-      }
       try {
         const unboxRes = yield call(ChatTypes.localUnboxMobilePushNotificationRpcPromise, {
           param: {
@@ -67,6 +59,14 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
             pushIDs: payload.p,
           },
         })
+        if (payload.x && payload.x > 0) {
+          const num = payload.x
+          const ageMS = Date.now() - num * 1000
+          if (ageMS > 15000) {
+            console.info('Push notification: silent notification is stale:', ageMS)
+            return
+          }
+        }
         yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
       } catch (err) {
         console.info('failed to unbox silent notification', err)
