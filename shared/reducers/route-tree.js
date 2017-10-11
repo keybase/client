@@ -80,6 +80,7 @@ function routeDefReducer(routeDef, action) {
 function routeStateReducer(routeDef, routeState, action) {
   switch (action.type) {
     case CommonConstants.resetStore:
+      // $FlowIssue
       return routeSetProps(routeDef, null, [])
 
     case Constants.setRouteDef: {
@@ -87,9 +88,11 @@ function routeStateReducer(routeDef, routeState, action) {
     }
 
     case Constants.switchTo:
+      // $FlowIssue
       return routeSetProps(routeDef, routeState, action.payload.path, action.payload.parentPath)
 
     case Constants.navigateTo:
+      // $FlowIssue
       return routeNavigate(routeDef, routeState, action.payload.path, action.payload.parentPath)
 
     case Constants.navigateAppend: {
@@ -103,15 +106,18 @@ function routeStateReducer(routeDef, routeState, action) {
         // parentPath. If so, just use parentPath.
         basePath = parentPath
       }
+      // $FlowIssue
       return routeNavigate(routeDef, routeState, action.payload.path, basePath)
     }
 
     case Constants.navigateUp: {
       const path = getPath(routeState)
+      // $FlowIssue
       return routeNavigate(routeDef, routeState, path.skipLast(1))
     }
 
     case Constants.setRouteState:
+      // $FlowIssue
       return routeSetState(routeDef, routeState, action.payload.path, action.payload.partialState)
 
     case Constants.resetRoute:
@@ -129,6 +135,7 @@ export default function routeTreeReducer(
   let {loggedInUserNavigated, routeDef, routeState} = state
   if (action.type === CommonConstants.resetStore) {
     routeDef = firstRouteDef || initialState
+    // $FlowIssue
     routeState = routeSetProps(routeDef, null, [])
   }
 
@@ -162,6 +169,7 @@ export default function routeTreeReducer(
     !I.is(routeState, newRouteState)
   ) {
     // If we changed something, sanity check new state for errors.
+    // $FlowIssue
     const routeError = checkRouteState(newLoggedInUserNavigated, newRouteDef, newRouteState)
     if (routeError) {
       console.error(
@@ -173,6 +181,7 @@ export default function routeTreeReducer(
 
   return state.merge({
     loggedInUserNavigated: newLoggedInUserNavigated,
+    // $FlowIssue
     routeDef: newRouteDef,
     routeState: newRouteState,
   })

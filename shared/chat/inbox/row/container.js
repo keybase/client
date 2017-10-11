@@ -163,7 +163,9 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
   ...stateProps,
+  // $FlowIssue doesn't understand stateProps
   onSelectConversation: () => dispatchProps._onSelectConversation(stateProps.conversationIDKey),
+  // $FlowIssue doesn't understand stateProps
   onShowMenu: () => dispatchProps._onShowMenu(stateProps.teamname),
 })
 

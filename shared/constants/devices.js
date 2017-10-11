@@ -1,7 +1,6 @@
 // @flow
 import * as I from 'immutable'
 
-import type {Device} from './types/more'
 import type {DeviceRole} from './login.js'
 import type {NoErrorTypedAction} from './types/flux'
 
@@ -25,7 +24,7 @@ type _DeviceDetail = {
   lastUsed: number,
   name: string,
   provisionedAt: ?number,
-  provisioner: ?Device,
+  provisionerName: ?string,
   revokedAt: ?number,
   revokedByName: ?string,
   type: string,
@@ -38,7 +37,7 @@ const makeDeviceDetail: I.RecordFactory<_DeviceDetail> = I.Record({
   lastUsed: 0,
   name: '',
   provisionedAt: 0,
-  provisioner: null,
+  provisionerName: null,
   revokedAt: null,
   revokedByName: null,
   type: '',

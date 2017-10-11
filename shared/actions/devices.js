@@ -77,20 +77,20 @@ function* _deviceListSaga(): SagaGenerator<any, any> {
 
   try {
     const result = yield call(RPCTypes.deviceDeviceHistoryListRpcPromise)
-    const records = result.map((r: RPCTypes.DeviceDetail) =>
-      Constants.makeDeviceDetail({
+    const records = result.map((r: RPCTypes.DeviceDetail) => {
+      return Constants.makeDeviceDetail({
         created: r.device.cTime,
         currentDevice: r.currentDevice,
         deviceID: r.device.deviceID,
         lastUsed: r.device.lastUsedTime,
         name: r.device.name,
         provisionedAt: r.provisionedAt,
-        provisioner: r.provisioner,
+        provisionerName: r.provisioner ? r.provisioner.name : '',
         revokedAt: r.revokedAt,
         revokedByName: r.revokedByDevice ? r.revokedByDevice.name : null,
         type: r.device.type,
       })
-    )
+    })
 
     const deviceIDs = records.sort(_sortRecords).map(r => r.deviceID)
     const entities = keyBy(records, 'deviceID')

@@ -11,7 +11,7 @@ const dev1 = makeDeviceDetail({
   lastUsed: 1444423192001,
   name: 'Paper Key (lorem ipsum...)',
   provisionedAt: 1444423192000,
-  provisioner: null,
+  provisionerName: null,
   revokedAt: null,
   type: 'backup',
 })
@@ -23,7 +23,7 @@ const dev2 = makeDeviceDetail({
   lastUsed: 1444423193001,
   name: 'My Desktop',
   provisionedAt: 1444423193000,
-  provisioner: null,
+  provisionerName: null,
   revokedAt: null,
   type: 'desktop',
 })
@@ -35,7 +35,7 @@ const dev3 = makeDeviceDetail({
   lastUsed: 1450305567000,
   name: 'My Phone',
   provisionedAt: 1450305567000,
-  provisioner: null,
+  provisionerName: null,
   revokedAt: null,
   type: 'mobile',
 })
