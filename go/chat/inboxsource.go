@@ -872,13 +872,6 @@ func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string
 	return tlfName
 }
 
-type nullUsernameSource struct {
-}
-
-func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
-	return "", errors.New("null username loader always fails")
-}
-
 func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageSummary, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
 
@@ -930,13 +923,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 	// Pick a source of usernames based on offline status, if we are offline then just use a
 	// type that just returns errors all the time (this will just use TLF name as the ordering)
-	var uloader utils.ReorderUsernameSource
 	var umapper libkb.UIDMapper
 	if s.offline {
-		uloader = nullUsernameSource{}
 		umapper = &uidmap.OfflineUIDMap{}
 	} else {
-		uloader = s.G().GetUPAKLoader()
 		umapper = s.G().UIDMapper
 	}
 
@@ -970,12 +960,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 	conversationLocal.Notifications = conversationRemote.Notifications
 	if conversationRemote.CreatorInfo != nil {
-		nname, err := uloader.LookupUsername(ctx, keybase1.UID(conversationRemote.CreatorInfo.Uid.String()))
-		if err != nil {
+		packages, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(),
+			[]keybase1.UID{keybase1.UID(conversationRemote.CreatorInfo.Uid.String())}, 0, 0, false)
+		if err != nil || len(packages) == 0 {
 			s.Debug(ctx, "localizeConversation: failed to load creator username: %s", err)
 		} else {
 			conversationLocal.CreatorInfo = &chat1.ConversationCreatorInfoLocal{
-				Username: nname.String(),
+				Username: packages[0].NormalizedUsername.String(),
 				Ctime:    conversationRemote.CreatorInfo.Ctime,
 			}
 		}
@@ -1143,11 +1134,10 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 		if ok {
-			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
+			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
 			conversationLocal.Info.Participants, err = utils.ReorderParticipants(
 				ctx,
 				s.G(),
-				uloader,
 				umapper,
 				iteamName,
 				conversationRemote.Metadata.ActiveList)
@@ -1165,8 +1155,8 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
 
-		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
-		rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
+		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
 			10*time.Second, true)
 		if err != nil {
 			s.Debug(ctx, "localizeConversation: UIDMapper returned an error: %s", err)
@@ -1186,7 +1176,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(
 			ctx,
 			s.G(),
-			uloader,
 			umapper,
 			conversationLocal.Info.TlfName,
 			conversationRemote.Metadata.ActiveList)

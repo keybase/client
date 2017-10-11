@@ -107,15 +107,11 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 	return res
 }
 
-type ReorderUsernameSource interface {
-	LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
-}
-
 // ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, tuloader ReorderUsernameSource,
-	umapper libkb.UIDMapper, tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
+func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
+	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
 	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
 		return writerNames, err
