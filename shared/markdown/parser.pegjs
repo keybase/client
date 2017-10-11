@@ -88,13 +88,13 @@ QuoteBlock
  = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)* LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
 Bold
- = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
+ = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker { return {type: 'bold', children: flatten(children)} }
 
 Italic
- = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
+ = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker { return {type: 'italic', children: flatten(children)} }
 
 Strike
- = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
+ = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker { return {type: 'strike', children: flatten(children)} }
 
 Mention
  = MentionMarker !WhiteSpace children:__INLINE_MACRO__<!ClosingMentionMarker> MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
