@@ -135,10 +135,7 @@ function* getPostingIdentifyBehavior(
     return brokenUsers.length ? TlfKeysTLFIdentifyBehavior.chatGui : TlfKeysTLFIdentifyBehavior.chatGuiStrict
   }
 
-  // Shouldn't happen but fallback to strict mode
-  if (__DEV__) {
-    console.warn('Missing inbox or you when posting')
-  }
+  // This happens if you start a chat w/o having loaded the inbox state at all
   return TlfKeysTLFIdentifyBehavior.chatGuiStrict
 }
 
