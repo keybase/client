@@ -37,15 +37,43 @@ func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *l
 	}
 }
 
+type baseLocalizer struct {
+	globals.Contextified
+	utils.DebugLabeler
+}
+
+func newBaseLocalizer(g *globals.Context) *baseLocalizer {
+	return &baseLocalizer{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseLocalizer", false),
+	}
+}
+
+func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inbox) (res types.Inbox) {
+	username := b.G().Env.GetUsername().String()
+	res = inbox
+	res.ConvsUnverified = nil
+	for _, conv := range inbox.ConvsUnverified {
+		if conv.Conv.GetFinalizeInfo() != nil && conv.Conv.GetFinalizeInfo().ResetUser == username {
+			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
+			continue
+		}
+		res.ConvsUnverified = append(res.ConvsUnverified, conv)
+	}
+	return res
+}
+
 type BlockingLocalizer struct {
 	globals.Contextified
+	*baseLocalizer
 	pipeline *localizerPipeline
 }
 
 func NewBlockingLocalizer(g *globals.Context) *BlockingLocalizer {
 	return &BlockingLocalizer{
-		Contextified: globals.NewContextified(g),
-		pipeline:     newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
+		Contextified:  globals.NewContextified(g),
+		baseLocalizer: newBaseLocalizer(g),
+		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
 	}
 }
 
@@ -54,6 +82,7 @@ func (b *BlockingLocalizer) SetOffline() {
 }
 
 func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
+	inbox = b.filterSelfFinalized(ctx, inbox)
 	res, err = b.pipeline.localizeConversationsPipeline(ctx, uid, utils.PluckConvs(inbox.ConvsUnverified),
 		nil, nil)
 	if err != nil {
@@ -77,6 +106,7 @@ type NonblockInboxResult struct {
 type NonblockingLocalizer struct {
 	globals.Contextified
 	utils.DebugLabeler
+	*baseLocalizer
 
 	pipeline   *localizerPipeline
 	localizeCb chan NonblockInboxResult
@@ -86,11 +116,12 @@ type NonblockingLocalizer struct {
 func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxResult,
 	maxUnbox *int) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
-		pipeline:     newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
-		localizeCb:   localizeCb,
-		maxUnbox:     maxUnbox,
+		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
+		baseLocalizer: newBaseLocalizer(g),
+		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
+		localizeCb:    localizeCb,
+		maxUnbox:      maxUnbox,
 	}
 }
 
@@ -123,6 +154,7 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
+	inbox = b.filterSelfFinalized(ctx, inbox)
 	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
 
 	// Send inbox over localize channel
