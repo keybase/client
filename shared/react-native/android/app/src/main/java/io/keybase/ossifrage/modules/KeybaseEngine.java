@@ -1,5 +1,7 @@
 package io.keybase.ossifrage.modules;
 
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.util.Log;
 
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -100,12 +102,21 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public Map<String, Object> getConstants() {
         String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
         String versionName = BuildConfig.VERSION_NAME;
+        boolean isDeviceSecure = false;
+
+        try {
+            final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
+            isDeviceSecure = keyguardManager.isKeyguardSecure();
+        } catch (Exception e) {
+            Log.w(NAME, "Error reading keyguard secure state", e);
+        }
 
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
         constants.put("version", version());
+        constants.put("isDeviceSecure", isDeviceSecure);
         return constants;
     }
 

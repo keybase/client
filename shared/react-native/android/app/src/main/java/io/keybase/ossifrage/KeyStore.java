@@ -25,7 +25,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import keybase.Keybase;
 import keybase.UnsafeExternalKeyStore;
 import io.keybase.ossifrage.keystore.KeyStoreHelper;
 
@@ -82,12 +81,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @Override
     public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
         final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
-        Entry entry;
-        try {
-            entry = ks.getEntry(keyStoreAlias(serviceName), null);
-        } catch (Exception e) {
-            throw new KeyStoreException("Failed to get the RSA keys from the keystore");
-        }
+        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
         if (entry == null){
             throw new KeyStoreException("No RSA keys in the keystore");
@@ -115,12 +109,10 @@ public class KeyStore implements UnsafeExternalKeyStore {
         try {
             final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
             if (entry == null) {
-                throw new NullPointerException("Null Entry");
+                ks.deleteEntry(keyStoreAlias(serviceName));
+                KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
             }
-        } catch (Exception e) {
-            ks.deleteEntry(keyStoreAlias(serviceName));
-            KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
-        } finally {
+         } finally {
           // Reload the keystore
           ks = java.security.KeyStore.getInstance("AndroidKeyStore");
           ks.load(null);
@@ -129,13 +121,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
     @Override
     public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
-        Entry entry = null;
-
-        try {
-            entry = ks.getEntry(keyStoreAlias(serviceName), null);
-        } catch (Exception e) {
-            throw new KeyStoreException("Failed to get the RSA keys from the keystore");
-        }
+        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
         if (entry == null) {
             throw new KeyStoreException("No RSA keys in the keystore");
