@@ -25,7 +25,7 @@ function DBNuke(props: Props) {
       <Button
         style={{marginTop: globalMargins.small}}
         type="Danger"
-        label="Clear cache"
+        label="DB Nuke"
         onClick={props.onDBNuke}
       />
       <Box style={{flex: 1}} />
