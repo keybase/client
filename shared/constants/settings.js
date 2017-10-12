@@ -158,6 +158,8 @@ type InvitationsTab = 'settingsTabs:invitationsTab'
 export const invitationsTab = 'settingsTabs:invitationsTab'
 type NotificationsTab = 'settingsTabs:notificationsTab'
 export const notificationsTab = 'settingsTabs:notificationsTab'
+type AdvancedTab = 'settingsTabs:advancedTab'
+export const advancedTab = 'settingsTabs:advancedTab'
 type DeleteMeTab = 'settingsTabs:deleteMeTab'
 export const deleteMeTab = 'settingsTabs:deleteMeTab'
 type DevMenuTab = 'settingsTabs:devMenuTab'
@@ -182,6 +184,7 @@ export type Tab =
   | UpdatePaymentTab
   | InvitationsTab
   | NotificationsTab
+  | AdvancedTab
   | DeleteMeTab
   | DevMenuTab
   | FeedbackTab
