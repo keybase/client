@@ -57,7 +57,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     ...stateProps,
     ...dispatchProps,
     ...ownProps,
-    allowOwner: yourInfo && yourInfo.type === 'owners',
+    allowOwner: yourInfo && yourInfo.type === 'owner',
     onComplete,
     showSendNotification,
     currentType: user && user.type,
