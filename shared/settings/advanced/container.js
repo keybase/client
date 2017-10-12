@@ -7,7 +7,7 @@ import {connect} from 'react-redux'
 const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onClearCache: () => {
-    dispatch(clearCache)
+    dispatch(clearCache())
   },
 })
 
