@@ -23,14 +23,13 @@ const makeManageChannels = {
     tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
   },
 }
-const makeRolePicker = () => ({
+const makeRolePicker = {
   rolePicker: {
     children: {},
     component: RolePicker,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
-})
-
+}
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
@@ -46,15 +45,15 @@ const routeTree = makeRouteDefNode({
     },
     team: {
       children: {
-        ...makeManageChannels(),
-        ...makeRolePicker(),
+        ...makeManageChannels,
+        ...makeRolePicker,
         reallyLeaveTeam: {
           children: {},
           component: ReallyLeaveTeam,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
         member: {
-          children: makeRolePicker(),
+          children: makeRolePicker,
           component: Member,
         },
       },

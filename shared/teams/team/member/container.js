@@ -61,11 +61,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   const userInfo = stateProps._memberInfo.find(member => member.username === stateProps._username)
   const you = {
     username: stateProps._you,
-    type: yourInfo && yourInfo.type.substring(0, yourInfo.type.length - 1), // De-pluralize type
+    type: yourInfo && yourInfo.type,
   }
   const user = {
     username: stateProps._username,
-    type: userInfo && userInfo.type.substring(0, userInfo.type.length - 1), // De-pluralize type
+    type: userInfo && userInfo.type,
   }
   // If they're an owner, you need to be an owner to edit them
   // otherwise you just need to be an admin

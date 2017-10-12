@@ -17,7 +17,7 @@ export type Props = {
   onBack: () => void,
 }
 
-const roleIconMap = {
+const roleIconMap: any = {
   reader: 'iconfont-search',
   writer: 'iconfont-edit',
   admin: 'iconfont-crown',
