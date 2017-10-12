@@ -1,12 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {registerPinentryListener, onCancel, onSubmit} from '../../actions/pinentry'
-
-import type {TypedState} from '../../constants/reducer'
-import type {PinentryState} from '../../constants/pinentry'
-import type {GUIEntryFeatures} from '../../constants/types/flow-types'
+import {type PinentryState} from '../../constants/pinentry'
+import {type GUIEntryFeatures} from '../../constants/types/flow-types'
 
 type Props = {
   registerPinentryListener: () => void,

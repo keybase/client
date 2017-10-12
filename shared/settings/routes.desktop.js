@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {
   landingTab,
   updatePaymentTab,
@@ -23,7 +23,7 @@ import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
 import PlanDetails from './plan-details/container'
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   defaultSelected: landingTab,
   containerComponent: Settings,
   children: {
@@ -60,11 +60,11 @@ const routeTree = new RouteDefNode({
       children: {
         deleteConfirm: {
           component: DeleteConfirm,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
         removeDevice: {
           component: RemoveDevice,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
       },
     },
@@ -73,7 +73,7 @@ const routeTree = new RouteDefNode({
       children: {
         dumbSheet: {
           component: DumbSheet,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
       },
     },

@@ -4,12 +4,9 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 import React, {Component} from 'react'
-import CodePage from '.'
+import CodePage, {type Props} from '.'
 import * as Creators from '../../../actions/login/creators'
-import {connect} from 'react-redux'
-
-import type {Props} from '.'
-import type {TypedState} from '../../../constants/reducer'
+import {connect, type TypedState} from '../../../util/container'
 
 // TODO remove this class
 class _CodePage extends Component<Props, {enterText: string}> {
@@ -74,5 +71,4 @@ const mapDispatchToProps = dispatch => ({
   textEntered: text => dispatch(Creators.provisionTextCodeEntered(text)),
 })
 
-// $FlowIssue
 export default connect(mapStateToProps, mapDispatchToProps)(_CodePage)

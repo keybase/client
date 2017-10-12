@@ -2,7 +2,6 @@
 import * as CommonConstants from '../constants/common'
 import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/login'
-import {fromJS} from 'immutable'
 
 const initialState: Constants.State = {
   codePage: {
@@ -37,8 +36,6 @@ const initialState: Constants.State = {
 }
 
 export default function(state: Constants.State = initialState, action: any): Constants.State {
-  let toMerge = null
-
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
@@ -49,88 +46,119 @@ export default function(state: Constants.State = initialState, action: any): Con
       }
       break
     case Constants.setMyDeviceCodeState:
-      toMerge = {codePage: {myDeviceRole: action.payload}}
-      break
-    case Constants.setOtherDeviceCodeState:
-      toMerge = {codePage: {otherDeviceRole: action.payload}}
-      break
-    case Constants.setCodeMode:
-      toMerge = {codePage: {mode: action.payload}}
-      break
-    case Constants.setTextCode:
-      toMerge = {
-        codePage: {enterCodeErrorText: action.payload.enterCodeErrorText, textCode: action.payload.textCode},
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          myDeviceRole: action.payload,
+        },
       }
-      break
+    case Constants.setOtherDeviceCodeState:
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          otherDeviceRole: action.payload,
+        },
+      }
+    case Constants.setCodeMode:
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          mode: action.payload,
+        },
+      }
+    case Constants.setTextCode:
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          enterCodeErrorText: action.payload.enterCodeErrorText,
+          textCode: action.payload.textCode,
+        },
+      }
     case Constants.setQRCode:
-      toMerge = {codePage: {qrCode: action.payload.qrCode}}
-      break
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          qrCode: action.payload.qrCode,
+        },
+      }
     case Constants.clearQRCode:
-      toMerge = {codePage: {qrCode: null}}
-      break
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          qrCode: null,
+        },
+      }
     case Constants.qrScanned:
-      toMerge = {codePage: {qrCodeScanned: true, qrScanned: action.payload}}
-      break
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          qrCodeScanned: true,
+          qrScanned: action.payload,
+        },
+      }
     case Constants.actionUpdateForgotPasswordEmailAddress:
-      toMerge = {
-        forgotPasswordEmailAddress: action.error ? null : action.payload,
+      return {
+        ...state,
+        forgotPasswordEmailAddress: action.error ? '' : action.payload,
         forgotPasswordError: action.error ? action.payload : null,
         forgotPasswordSuccess: false,
       }
-      break
     case Constants.actionSetForgotPasswordSubmitting:
-      toMerge = {
+      return {
+        ...state,
         forgotPasswordError: null,
         forgotPasswordSubmitting: true,
         forgotPasswordSuccess: false,
       }
-      break
     case Constants.actionForgotPasswordDone:
-      toMerge = {
+      return {
+        ...state,
         forgotPasswordError: action.error,
         forgotPasswordSubmitting: false,
         forgotPasswordSuccess: !action.error,
       }
-      break
     case Constants.cameraBrokenMode:
-      toMerge = {codePage: {cameraBrokenMode: action.payload}}
-      break
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          cameraBrokenMode: action.payload,
+        },
+      }
     case Constants.configuredAccounts:
       if (action.payload.error) {
-        toMerge = {configuredAccounts: []}
+        return {...state, configuredAccounts: []}
       } else {
-        toMerge = {configuredAccounts: action.payload.accounts}
+        return {...state, configuredAccounts: action.payload.accounts}
       }
-      break
     case Constants.waitingForResponse:
-      toMerge = {waitingForResponse: action.payload}
-      break
+      return {...state, waitingForResponse: action.payload}
     case Constants.loginDone:
       if (action.error) {
-        toMerge = {loginError: action.payload && action.payload.message}
+        return {...state, loginError: action.payload && action.payload.message}
       } else {
         return state
       }
-      break
     case Constants.provisioningError:
-      toMerge = {codePage: {qrCodeScanned: false}}
-      break
+      return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
     case Constants.resetQRCodeScanned:
-      toMerge = {codePage: {qrCodeScanned: false}}
-      break
+      return {...state, codePage: {...state.codePage, qrCodeScanned: false}}
     case Constants.setRevokedSelf:
-      toMerge = {justRevokedSelf: action.payload}
-      break
+      return {...state, justRevokedSelf: action.payload}
     case Constants.setDeletedSelf:
-      toMerge = {justDeletedSelf: action.payload}
-      break
+      return {...state, justDeletedSelf: action.payload}
     case Constants.setLoginFromRevokedDevice:
-      toMerge = {justLoginFromRevokedDevice: action.payload}
-      break
+      return {...state, justLoginFromRevokedDevice: action.payload}
     default:
       return state
   }
 
-  const s = fromJS(state)
-  return s.mergeDeep(toMerge).toJS()
+  return state
 }

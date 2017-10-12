@@ -31,7 +31,6 @@ function DevMenu(props) {
   )
 }
 
-// $FlowIssue
 export default connect(
   state => ({}),
   dispatch => ({

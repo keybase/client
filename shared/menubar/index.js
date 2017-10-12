@@ -7,15 +7,13 @@ import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
-import {loginTab} from '../constants/tabs'
+import {loginTab, type Tab} from '../constants/tabs'
+import {navigateTo, switchTo} from '../actions/route-tree'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {openInKBFS} from '../actions/kbfs'
 import {shell, ipcRenderer} from 'electron'
-import {navigateTo, switchTo} from '../actions/route-tree'
-
-import type {KBFSStatus} from '../constants/favorite'
-import type {Props as FolderProps} from '../folders'
-import type {Tab} from '../constants/tabs'
+import {type KBFSStatus} from '../constants/favorite'
+import {type Props as FolderProps} from '../folders'
 
 export type Props = $Shape<{
   username: ?string,
@@ -184,7 +182,6 @@ class Menubar extends Component<Props> {
   }
 }
 
-// $FlowIssue type this connector
 export default connect(
   state => ({
     username: state.config && state.config.username,

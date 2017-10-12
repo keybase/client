@@ -1,11 +1,8 @@
 // @flow
 import * as Creators from '../../actions/login/creators'
 import Login from '.'
-import {compose, withState, withHandlers} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, withState, withHandlers, connect, type TypedState} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
-
-import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
   const users = (state.login.configuredAccounts && state.login.configuredAccounts.map(c => c.username)) || []
