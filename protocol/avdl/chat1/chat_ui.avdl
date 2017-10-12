@@ -49,6 +49,7 @@ protocol chatUi {
     string headline;
     keybase1.TLFVisibility visibility;
     array<string> participants;
+    map<string, string> fullNames;
     array<string> resetParticipants;
     ConversationStatus status;
     ConversationMembersType membersType;

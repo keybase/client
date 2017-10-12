@@ -3,13 +3,14 @@ package uidmap
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"sync"
+	"time"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"strings"
-	"sync"
-	"time"
 )
 
 type UIDMap struct {
@@ -360,3 +361,15 @@ func (u *UIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUs
 }
 
 var _ libkb.UIDMapper = (*UIDMap)(nil)
+
+type OfflineUIDMap struct{}
+
+func (o *OfflineUIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUsername) bool {
+	return true
+}
+
+func (o *OfflineUIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]libkb.UsernamePackage, error) {
+	return nil, errors.New("offline uid map always fails")
+}
+
+var _ libkb.UIDMapper = (*OfflineUIDMap)(nil)

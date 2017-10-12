@@ -188,6 +188,14 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "fullNames"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "string"
           },

@@ -3089,7 +3089,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
 		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
 
@@ -3131,7 +3131,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -3139,7 +3139,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, iboxRes.Conversations[0].Info.MemberStatus)
 

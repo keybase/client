@@ -1995,22 +1995,39 @@ func (o UnreadFirstNumLimit) DeepCopy() UnreadFirstNumLimit {
 	}
 }
 
+type ConversationLocalParticipant struct {
+	Username string  `codec:"username" json:"username"`
+	Fullname *string `codec:"fullname,omitempty" json:"fullname,omitempty"`
+}
+
+func (o ConversationLocalParticipant) DeepCopy() ConversationLocalParticipant {
+	return ConversationLocalParticipant{
+		Username: o.Username,
+		Fullname: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Fullname),
+	}
+}
+
 type ConversationInfoLocal struct {
-	Id           ConversationID            `codec:"id" json:"id"`
-	Triple       ConversationIDTriple      `codec:"triple" json:"triple"`
-	TlfName      string                    `codec:"tlfName" json:"tlfName"`
-	TopicName    string                    `codec:"topicName" json:"topicName"`
-	Visibility   keybase1.TLFVisibility    `codec:"visibility" json:"visibility"`
-	Status       ConversationStatus        `codec:"status" json:"status"`
-	MembersType  ConversationMembersType   `codec:"membersType" json:"membersType"`
-	MemberStatus ConversationMemberStatus  `codec:"memberStatus" json:"memberStatus"`
-	TeamType     TeamType                  `codec:"teamType" json:"teamType"`
-	Existence    ConversationExistence     `codec:"existence" json:"existence"`
-	Version      ConversationVers          `codec:"version" json:"version"`
-	WriterNames  []string                  `codec:"writerNames" json:"writerNames"`
-	ReaderNames  []string                  `codec:"readerNames" json:"readerNames"`
-	FinalizeInfo *ConversationFinalizeInfo `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	ResetNames   []string                  `codec:"resetNames" json:"resetNames"`
+	Id           ConversationID                 `codec:"id" json:"id"`
+	Triple       ConversationIDTriple           `codec:"triple" json:"triple"`
+	TlfName      string                         `codec:"tlfName" json:"tlfName"`
+	TopicName    string                         `codec:"topicName" json:"topicName"`
+	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	Status       ConversationStatus             `codec:"status" json:"status"`
+	MembersType  ConversationMembersType        `codec:"membersType" json:"membersType"`
+	MemberStatus ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
+	TeamType     TeamType                       `codec:"teamType" json:"teamType"`
+	Existence    ConversationExistence          `codec:"existence" json:"existence"`
+	Version      ConversationVers               `codec:"version" json:"version"`
+	Participants []ConversationLocalParticipant `codec:"participants" json:"participants"`
+	FinalizeInfo *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	ResetNames   []string                       `codec:"resetNames" json:"resetNames"`
 }
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
@@ -2026,28 +2043,17 @@ func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 		TeamType:     o.TeamType.DeepCopy(),
 		Existence:    o.Existence.DeepCopy(),
 		Version:      o.Version.DeepCopy(),
-		WriterNames: (func(x []string) []string {
+		Participants: (func(x []ConversationLocalParticipant) []ConversationLocalParticipant {
 			if x == nil {
 				return nil
 			}
-			var ret []string
+			var ret []ConversationLocalParticipant
 			for _, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret = append(ret, vCopy)
 			}
 			return ret
-		})(o.WriterNames),
-		ReaderNames: (func(x []string) []string {
-			if x == nil {
-				return nil
-			}
-			var ret []string
-			for _, v := range x {
-				vCopy := v
-				ret = append(ret, vCopy)
-			}
-			return ret
-		})(o.ReaderNames),
+		})(o.Participants),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

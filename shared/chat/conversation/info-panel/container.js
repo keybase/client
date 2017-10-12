@@ -18,14 +18,18 @@ import {showUserProfile} from '../../../actions/profile'
 import flags from '../../../util/feature-flags'
 
 const getParticipants = createSelector(
-  [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
-  (you, tlf, followingMap, metaDataMap) => {
-    const users = tlf.split(',')
-
-    return users.map(username => {
+  [
+    Constants.getYou,
+    Constants.getParticipantsWithFullNames,
+    Constants.getFollowingMap,
+    Constants.getMetaDataMap,
+  ],
+  (you, users, followingMap, metaDataMap) => {
+    return users.map(user => {
+      const username = user.username
       const following = !!followingMap[username]
       const meta = metaDataMap.get(username, Map({}))
-      const fullname = meta.get('fullname') || 'Unknown'
+      const fullname = user.fullname ? user.fullname : meta.get('fullname') || 'Unknown'
       const broken = meta.get('brokenTracker') || false
       return {
         broken,
