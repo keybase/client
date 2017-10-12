@@ -34,6 +34,10 @@ function setQRCode(code: string): Constants.SetQRCode {
   return {type: Constants.setQRCode, payload: {qrCode: new HiddenString(qrGenerate(code))}}
 }
 
+function clearQRCode(): Constants.ClearQRCode {
+  return {type: Constants.clearQRCode, payload: {}}
+}
+
 function submitPassphrase(
   passphrase: HiddenString,
   storeSecret: boolean = false
@@ -163,6 +167,7 @@ export {
   addNewDevice,
   addNewPhone,
   chooseGPGMethod,
+  clearQRCode,
   loginDone,
   logout,
   logoutDone,

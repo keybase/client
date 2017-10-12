@@ -65,6 +65,9 @@ export default function(state: Constants.State = initialState, action: any): Con
     case Constants.setQRCode:
       toMerge = {codePage: {qrCode: action.payload.qrCode}}
       break
+    case Constants.clearQRCode:
+      toMerge = {codePage: {qrCode: null}}
+      break
     case Constants.qrScanned:
       toMerge = {codePage: {qrCodeScanned: true, qrScanned: action.payload}}
       break
