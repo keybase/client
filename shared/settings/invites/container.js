@@ -1,14 +1,12 @@
 // @flow
 import React, {Component} from 'react'
-import Invites from './index'
+import Invites, {type Props, type PendingInvite} from '.'
 import {invitesReclaim, invitesRefresh, invitesSend} from '../../actions/settings'
 import {openURLWithHelper} from '../../util/open-url'
-
 import {navigateAppend} from '../../actions/route-tree'
+import {connect, type TypedState} from '../../util/container'
 
-import type {Props, PendingInvite} from './index'
-import {TypedConnector} from '../../util/typed-connect'
-
+// TODO recompose this
 class InvitationsContainer extends Component<Props> {
   componentWillMount() {
     this.props.onRefresh()
@@ -19,42 +17,22 @@ class InvitationsContainer extends Component<Props> {
   }
 }
 
-const connector = new TypedConnector()
+const mapStateToProps = (state: TypedState) => ({
+  ...state.settings.invites,
+  inviteEmail: '',
+  inviteMessage: '',
+  showMessageField: false,
+  waitingForResponse: state.settings.waitingForResponse,
+})
 
-export default connector.connect((state, dispatch, ownProps) => {
-  return {
-    ...state.settings.invites,
-    inviteEmail: '',
-    inviteMessage: '',
-    showMessageField: false,
-    waitingForResponse: state.settings.waitingForResponse,
-    onGenerateInvitation: (email: string, message: string) => {
-      dispatch(invitesSend(email, message))
-    },
-    onClearError: () => {
-      dispatch({type: 'invites:clearError'})
-    },
-    onRefresh: () => {
-      dispatch(invitesRefresh())
-    },
-    onReclaimInvitation: (inviteId: string) => {
-      dispatch(invitesReclaim(inviteId))
-    },
-    onSelectUser: (username: string) => {
-      openURLWithHelper('user', {username})
-    },
-    onSelectPendingInvite: (invite: PendingInvite) => {
-      dispatch(
-        navigateAppend([
-          {
-            selected: 'inviteSent',
-            props: {
-              email: invite.email,
-              link: invite.url,
-            },
-          },
-        ])
-      )
-    },
-  }
-})(InvitationsContainer)
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onClearError: () => dispatch({type: 'invites:clearError'}),
+  onGenerateInvitation: (email: string, message: string) => dispatch(invitesSend(email, message)),
+  onReclaimInvitation: (inviteId: string) => dispatch(invitesReclaim(inviteId)),
+  onRefresh: () => dispatch(invitesRefresh()),
+  onSelectPendingInvite: (invite: PendingInvite) =>
+    dispatch(navigateAppend([{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}])),
+  onSelectUser: (username: string) => openURLWithHelper('user', {username}),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(InvitationsContainer)

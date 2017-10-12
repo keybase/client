@@ -1,14 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import SetPublicName from '.'
-import {connect} from 'react-redux'
+import SetPublicName, {type State} from '.'
+import {connect, type TypedState} from '../../../util/container'
 import * as Creators from '../../../actions/login/creators'
 import {clearDeviceNameError} from '../../../actions/signup'
-
-import type {RouteProps} from '../../../route-tree/render-route'
-import type {Dispatch} from 'redux'
-import type {TypedState} from '../../../constants/reducer'
-import type {State} from '.'
+import {type RouteProps} from '../../../route-tree/render-route'
 
 const trimDeviceName = (s: ?string): string => {
   if (!s) return ''

@@ -1,7 +1,6 @@
 // @flow
-import {List, Record} from 'immutable'
+import * as I from 'immutable'
 
-import type {Device, KBRecord} from './types/more'
 import type {DeviceRole} from './login.js'
 import type {NoErrorTypedAction} from './types/flux'
 
@@ -17,40 +16,41 @@ export type Actions = Load | Loaded | PaperKeyMake | Revoke | ShowRevokePage | W
 
 // TODO could potentially use entities for devices provisioned by other devices but we still have
 // to support pgp
-const DeviceDetailRecord = Record({
+
+type _DeviceDetail = {
+  created: number,
+  currentDevice: boolean,
+  deviceID: string,
+  lastUsed: number,
+  name: string,
+  provisionedAt: ?number,
+  provisionerName: ?string,
+  revokedAt: ?number,
+  revokedByName: ?string,
+  type: string,
+}
+export type DeviceDetail = I.RecordOf<_DeviceDetail>
+const makeDeviceDetail: I.RecordFactory<_DeviceDetail> = I.Record({
   created: 0,
   currentDevice: false,
   deviceID: '',
   lastUsed: 0,
   name: '',
   provisionedAt: 0,
-  provisioner: null,
+  provisionerName: null,
   revokedAt: null,
-  revokedBy: null,
+  revokedByName: null,
   type: '',
 })
 
-export type DeviceDetail = KBRecord<{
-  created: number,
-  currentDevice: boolean,
-  deviceID: string,
-  lastUsed: number,
-  name: string,
-  provisionedAt: number,
-  provisioner: ?Device,
-  revokedAt: ?number,
-  revokedBy: ?Device,
-  type: string,
-}>
-
-const StateRecord = Record({
-  deviceIDs: List(),
+type _State = {
+  deviceIDs: I.List<string>,
+  waitingForServer: boolean,
+}
+export type State = I.RecordOf<_State>
+const makeState: I.RecordFactory<_State> = I.Record({
+  deviceIDs: I.List(),
   waitingForServer: false,
 })
 
-export type State = KBRecord<{
-  deviceIDs: List<string>,
-  waitingForServer: boolean,
-}>
-
-export {DeviceDetailRecord, StateRecord}
+export {makeState, makeDeviceDetail}

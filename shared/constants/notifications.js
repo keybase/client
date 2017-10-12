@@ -1,5 +1,5 @@
 // @flow
-import {Map, Record} from 'immutable'
+import * as I from 'immutable'
 
 import type {LogLevel, BadgeState} from '../constants/types/flow-types'
 import type {Tab} from './tabs'
@@ -22,18 +22,19 @@ export type ListenForKBFSNotifications = NoErrorTypedAction<'notifications:liste
 
 export type Actions = LogAction | BadgeAppAction | ListenForNotifications | ReceivedBadgeState
 
-export type State = Record<{
+type _State = {
   desktopAppBadgeCount: number,
-  keyState: Map<NotificationKeys, boolean>,
+  keyState: I.Map<NotificationKeys, boolean>,
   mobileAppBadgeCount: number,
-  navBadges: Map<Tab, number>,
+  navBadges: I.Map<Tab, number>,
   widgetBadge: BadgeType,
-}>
+}
+export type State = I.RecordOf<_State>
 
-export const StateRecord = Record({
+export const makeState: I.RecordFactory<_State> = I.Record({
   desktopAppBadgeCount: 0,
-  keyState: Map(),
+  keyState: I.Map(),
   mobileAppBadgeCount: 0,
-  navBadges: Map(),
+  navBadges: I.Map(),
   widgetBadge: 'regular',
 })

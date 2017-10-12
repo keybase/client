@@ -347,7 +347,9 @@ const chooseDeviceSaga = onBackSaga =>
           desktop: Constants.codePageDeviceRoleExistingComputer,
           mobile: Constants.codePageDeviceRoleExistingPhone,
         }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
-        yield call(setCodePageOtherDeviceRole, role)
+        if (role) {
+          yield call(setCodePageOtherDeviceRole, role)
+        }
         return EngineRpc.rpcResult(deviceID)
       }
     }

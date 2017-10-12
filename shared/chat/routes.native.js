@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import ConvListOrSearch from './conversation-list-or-search.native'
 import Conversation from './conversation/container'
 import EnterPaperkey from './conversation/rekey/enter-paper-key'
@@ -12,22 +12,22 @@ import NewTeamDialog from './new-team-dialog-container.js'
 import ManageChannels from './manage-channels/container'
 import CreateChannel from './create-channel/container'
 
-const conversationRoute = new RouteDefNode({
+const conversationRoute = makeRouteDefNode({
   component: Conversation,
   children: {
     attachment: {
       component: AttachmentPopup,
-      tags: {hideStatusBar: true, fullscreen: true},
+      tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
       children: {
         messageAction: {
           component: MessagePopup,
-          tags: {layerOnTop: true},
+          tags: makeLeafTags({layerOnTop: true}),
         },
       },
     },
     attachmentInput: {
       component: AttachmentInputPopup,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
     infoPanel: {
@@ -35,12 +35,12 @@ const conversationRoute = new RouteDefNode({
       children: {
         showBlockConversationDialog: {
           component: BlockConversationWarning,
-          tags: {hideStatusBar: true},
+          tags: makeLeafTags({hideStatusBar: true}),
           children: {},
         },
         showNewTeamDialog: {
           component: NewTeamDialog,
-          tags: {layerOnTop: true},
+          tags: makeLeafTags({layerOnTop: true}),
           children: {},
         },
       },
@@ -50,29 +50,29 @@ const conversationRoute = new RouteDefNode({
     },
     messageAction: {
       component: MessagePopup,
-      tags: {keepKeyboardOnLeave: true, layerOnTop: true},
+      tags: makeLeafTags({keepKeyboardOnLeave: true, layerOnTop: true}),
     },
     showNewTeamDialog: {
       component: NewTeamDialog,
-      tags: {layerOnTop: true},
+      tags: makeLeafTags({layerOnTop: true}),
       children: {},
     },
   },
 })
 
-const manageChannelsRoute = new RouteDefNode({
+const manageChannelsRoute = makeRouteDefNode({
   component: ManageChannels,
   children: {},
-  tags: {hideStatusBar: true},
+  tags: makeLeafTags({hideStatusBar: true}),
 })
 
-const createChannelRoute = new RouteDefNode({
+const createChannelRoute = makeRouteDefNode({
   component: CreateChannel,
-  tags: {hideStatusBar: true},
+  tags: makeLeafTags({hideStatusBar: true}),
   children: {},
 })
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   component: ConvListOrSearch,
   children: key => {
     if (key === 'manageChannels') {
@@ -83,7 +83,7 @@ const routeTree = new RouteDefNode({
 
     return conversationRoute
   },
-  tags: {persistChildren: true},
+  tags: makeLeafTags({persistChildren: true}),
 })
 
 export default routeTree

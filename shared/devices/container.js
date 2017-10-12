@@ -16,7 +16,7 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
   [getAllDevicesSelector, getDeviceEntitiesSelector],
   (allDevices, deviceEntities) => {
     const split = allDevices.groupBy(
-      id => (deviceEntities.get(id).revokedAt ? 'revokedDeviceIDs' : 'deviceIDs')
+      id => (deviceEntities.getIn([id, 'revokedAt']) ? 'revokedDeviceIDs' : 'deviceIDs')
     )
     const deviceIDs = split.get('deviceIDs', List())
     const revokedDeviceIDs = split.get('revokedDeviceIDs', List())

@@ -1,9 +1,7 @@
 // @flow
-import {connect} from 'react-redux'
-import {createSelector} from 'reselect'
+import {createSelector, connect, type TypedState} from '../../util/container'
 import {usernameSelector} from '../../constants/selectors'
 import TabBarRender from './index.render'
-import type {TypedState} from '../../constants/reducer'
 
 const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 

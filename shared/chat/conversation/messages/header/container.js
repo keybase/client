@@ -1,13 +1,10 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import Header from '.'
-import {compose} from 'recompose'
-import {connect} from 'react-redux'
+import {connect, compose, type TypedState} from '../../../../util/container'
 import {CommonConversationMembersType} from '../../../../constants/types/flow-types-chat'
 import flags from '../../../../util/feature-flags'
-
-import type {TypedState} from '../../../../constants/reducer'
-import type {OwnProps} from './container'
+import {type OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
   const conversationState = Constants.getSelectedConversationStates(state)

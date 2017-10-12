@@ -3,18 +3,15 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import HiddenString from '../../../util/hidden-string'
 import Input from '.'
-import {compose, withHandlers, withState, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, withHandlers, withState, lifecycle, connect, type TypedState} from '../../../util/container'
 import {navigateAppend} from '../../../actions/route-tree'
 import throttle from 'lodash/throttle'
 import {createSelector} from 'reselect'
-
-import type {TypedState} from '../../../constants/reducer'
-import type {OwnProps} from './container'
+import {type OwnProps} from './container'
 
 const conversationStateSelector = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  return state.chat.get('conversationStates').get(selectedConversationIDKey)
+  return state.chat.getIn(['conversationStates', selectedConversationIDKey])
 }
 
 const editingMessageSelector = (state: TypedState) => state.chat.get('editingMessage')

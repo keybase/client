@@ -1,10 +1,8 @@
 // @flow
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
-import type {KBRecord} from './types/more'
-import type {NoErrorTypedAction} from './types/flux'
-import type {ConversationIDKey} from './chat'
-import type {TypedState} from './reducer'
+import {type NoErrorTypedAction} from './types/flux'
+import {type TypedState} from './reducer'
 
 export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
@@ -16,7 +14,7 @@ export type CreateNewTeam = NoErrorTypedAction<
 export type CreateNewTeamFromConversation = NoErrorTypedAction<
   'teams:createNewTeamFromConversation',
   {
-    conversationIDKey: ConversationIDKey,
+    conversationIDKey: ChatConstants.ConversationIDKey,
     name: string,
   }
 >
@@ -58,29 +56,35 @@ export type CreateChannel = NoErrorTypedAction<
 
 export type Teamname = string
 
-export type ChannelInfoRecord = KBRecord<{
+type _ChannelInfo = {
   channelname: ?string,
   description: ?string,
   participants: I.Set<string>,
-}>
+}
 
-export const ChannelInfo = I.Record({
+export type ChannelInfo = I.RecordOf<_ChannelInfo>
+export const makeChannelInfo: I.RecordFactory<_ChannelInfo> = I.Record({
   channelname: null,
   description: null,
   participants: I.Set(),
 })
 
-export type MemberInfoRecord = KBRecord<{
-  type: TeamRoleType,
+type _MemberInfo = {
+  type: ?TeamRoleType,
   username: string,
-}>
+}
 
-export const MemberInfo = I.Record({
+export type MemberInfo = I.RecordOf<_MemberInfo>
+export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
   type: null,
   username: '',
 })
 
-export const RequestInfo = I.Record({
+type _RequestInfo = {
+  username: string,
+}
+export type RequestInfo = I.RecordOf<_RequestInfo>
+export const makeRequestInfo: I.RecordFactory<_RequestInfo> = I.Record({
   username: '',
 })
 
@@ -94,7 +98,18 @@ export type SetTeamCreationError = NoErrorTypedAction<
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
 export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
-export const Team = I.Record({
+type _State = {
+  convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
+  sawChatBanner: boolean,
+  teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
+  teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
+  teamNameToLoading: I.Map<Teamname, boolean>,
+  teamNameToRequests: I.Map<Teamname, I.List<string>>,
+  teamnames: I.Set<Teamname>,
+  loaded: boolean,
+}
+export type State = I.RecordOf<_State>
+export const makeState: I.RecordFactory<_State> = I.Record({
   convIDToChannelInfo: I.Map(),
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
@@ -104,17 +119,6 @@ export const Team = I.Record({
   teamnames: I.Set(),
   loaded: false,
 })
-
-export type TeamRecord = KBRecord<{
-  convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
-  sawChatBanner: boolean,
-  teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
-  teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
-  teamNameToLoading: I.Map<Teamname, boolean>,
-  teamNameToRequests: I.Map<Teamname, I.List<string>>,
-  teamnames: I.Set<Teamname>,
-  loaded: boolean,
-}>
 
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map()).findKey(i => i.channelname === channelname)

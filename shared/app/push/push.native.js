@@ -1,11 +1,9 @@
 // @flow
 import * as React from 'react'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {Box, Button, Text, NativeScrollView, NativeImage} from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {permissionsRequest, permissionsNo} from '../../actions/push/creators'
-
-import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   permissionsRequesting: boolean,
