@@ -19,6 +19,7 @@ import {roleIconMap, roleDescMap, permissionMap} from './index.meta'
 
 export type RolePickerProps = {
   confirm: boolean,
+  currentType: ?TeamRoleType,
   username: string,
   selectedRole: TeamRoleType,
   allowOwner: boolean,
@@ -33,7 +34,12 @@ export type RolePickerProps = {
 }
 
 // create row in rolepicker screen
-const makeRoleOption = (role: TeamRoleType, selected: TeamRoleType, setSelected: TeamRoleType => void) => (
+const makeRoleOption = (
+  role: TeamRoleType,
+  selected: TeamRoleType,
+  setSelected: TeamRoleType => void,
+  disabled?: boolean = false
+) => (
   <ClickableBox
     hoverColor={globalColors.black_05}
     style={{
@@ -75,6 +81,7 @@ const makeRoleOption = (role: TeamRoleType, selected: TeamRoleType, setSelected:
 
 // 1. Display roles for user to pick from
 export const RoleOptions = ({
+  currentType,
   username,
   selectedRole,
   setSelectedRole,
@@ -104,7 +111,12 @@ export const RoleOptions = ({
         <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
       </Box>}
     <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
-      <Button label="Continue" type="Primary" onClick={() => setConfirm(true)} disabled={!selectedRole} />
+      <Button
+        label="Continue"
+        type="Primary"
+        onClick={() => setConfirm(true)}
+        disabled={selectedRole === currentType}
+      />
     </Box>
   </Box>
 )

@@ -43,16 +43,16 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => 
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
   const yourInfo = stateProps._memberInfo.find(member => member.username === stateProps.you)
-  const theirInfo = stateProps._memberInfo.find(member => member.username === stateProps.username)
+  const user = stateProps._memberInfo.find(member => member.username === stateProps.username)
   const onComplete = (role: Constants.TeamRoleType, sendNotification?: boolean) => {
-    if (theirInfo) {
+    if (user) {
       dispatchProps._onEditMember(stateProps.teamname, stateProps.username, role)
     } else {
       dispatchProps._onAddMember(stateProps.teamname, stateProps.username, role, sendNotification || false)
     }
     dispatchProps.onBack()
   }
-  const showSendNotification = !theirInfo
+  const showSendNotification = !user
   return {
     ...stateProps,
     ...dispatchProps,
@@ -60,12 +60,13 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     allowOwner: yourInfo && yourInfo.type === 'owners',
     onComplete,
     showSendNotification,
+    currentType: user && user.type && user.type.substring(0, user.type.length - 1), // de-pluralize
   }
 }
 
 export default compose(
-  withState('selectedRole', 'setSelectedRole', null),
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  withState('selectedRole', 'setSelectedRole', props => props.currentType),
   withState('sendNotification', 'setSendNotification', false),
-  withState('confirm', 'setConfirm', false),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
+  withState('confirm', 'setConfirm', false)
 )(RolePicker)

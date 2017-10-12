@@ -15,6 +15,7 @@ const commonProps = {
   sendNotification: false,
   selectedRole: 'writer',
   showSendNotification: true,
+  currentType: null,
 }
 
 const roleOptionsProps = {
