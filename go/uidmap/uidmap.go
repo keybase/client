@@ -70,7 +70,7 @@ func (u *UIDMap) findUsernamePackageLocally(ctx context.Context, g libkb.UIDMapp
 	return &libkb.UsernamePackage{NormalizedUsername: nun, FullName: fullName}, fullNameStatus
 }
 
-const CurrentFullNamePackageVersion = keybase1.FullNamePackageVersion_V0
+const CurrentFullNamePackageVersion = keybase1.FullNamePackageVersion_V1
 
 func isStale(g libkb.UIDMapperContext, m keybase1.FullNamePackage, dur time.Duration) (time.Duration, bool) {
 	if dur == time.Duration(0) {
@@ -163,8 +163,9 @@ func (u *UIDMap) findUsernameLocally(ctx context.Context, g libkb.UIDMapperConte
 }
 
 type apiRow struct {
-	Username string `json:"username"`
-	FullName string `json:"full_name,omitempty"`
+	Username    string         `json:"username"`
+	FullName    string         `json:"full_name,omitempty"`
+	EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
 }
 
 type apiReply struct {
@@ -211,9 +212,10 @@ func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperCon
 				ret[i] = libkb.UsernamePackage{
 					NormalizedUsername: nun,
 					FullName: &keybase1.FullNamePackage{
-						Version:  CurrentFullNamePackageVersion,
-						FullName: keybase1.FullName(row.FullName),
-						CachedAt: cachedAt,
+						Version:     CurrentFullNamePackageVersion,
+						FullName:    keybase1.FullName(row.FullName),
+						EldestSeqno: row.EldestSeqno,
+						CachedAt:    cachedAt,
 					},
 				}
 			}
