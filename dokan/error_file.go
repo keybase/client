@@ -5,11 +5,11 @@
 package dokan
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/keybase/kbfs/dokan/winacl"
-	"golang.org/x/net/context"
 )
 
 type errorFile struct {

@@ -5,11 +5,11 @@
 package dokan
 
 import (
+	"context"
 	"strconv"
 	"time"
 
 	"github.com/keybase/kbfs/dokan/winacl"
-	"golang.org/x/net/context"
 )
 
 // Config is the configuration used for a mount.
