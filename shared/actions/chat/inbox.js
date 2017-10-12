@@ -395,7 +395,11 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   const untrustedState = yield select(state => state.entities.inboxUntrustedState)
 
   conversationIDKeys = conversationIDKeys.filter(c => {
-    return !Constants.isPendingConversationIDKey(c) && untrustedState.get(c) === 'untrusted'
+    return (
+      force ||
+      (!Constants.isPendingConversationIDKey(c) &&
+        (!untrustedState.get(c) || untrustedState.get(c) === 'untrusted'))
+    )
   })
 
   if (!conversationIDKeys.length) {
