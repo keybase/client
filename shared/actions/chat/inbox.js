@@ -18,6 +18,7 @@ import {globalError} from '../../constants/config'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
 import HiddenString from '../../util/hidden-string'
+import {isMobile} from '../../constants/platform'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
@@ -406,6 +407,14 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
       )
     )
   )
+
+  // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
+  if (!isMobile) {
+    const selected = yield select(Constants.getSelectedConversation)
+    if (!selected) {
+      yield put(Creators.selectConversation(conversationIDKeys[0], false))
+    }
+  }
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     unboxConversationsSagaMap,

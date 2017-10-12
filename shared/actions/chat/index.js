@@ -294,38 +294,6 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
 
 const inboxSelector = (state: TypedState) => state.entities.get('inbox')
 
-function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
-  // Mobile doesn't auto select a conversation
-  if (isMobile && !forceSelectOnMobile) {
-    return
-  }
-
-  const inbox = yield select(inboxSelector)
-  if (inbox.count()) {
-    const conversationIDKey = yield select(Constants.getSelectedConversation)
-
-    if (onlyIfNoSelection && conversationIDKey) {
-      return
-    }
-
-    const alwaysShow = yield select(Shared.alwaysShowSelector)
-
-    const current = inbox.get(conversationIDKey)
-    // current is good
-    if (current && (!current.get('isEmpty') || alwaysShow.has(conversationIDKey))) {
-      return
-    }
-
-    const firstGood = inbox.find(i => !i.get('isEmpty') || alwaysShow.has(i.get('conversationIDKey')))
-    if (firstGood && !isMobile) {
-      const conversationIDKey = firstGood.get('conversationIDKey')
-      yield put(Creators.selectConversation(conversationIDKey, false))
-    } else {
-      yield put(Creators.selectConversation(null, false))
-    }
-  }
-}
-
 function* _updateThread({
   payload: {yourName, thread, yourDeviceName, conversationIDKey},
 }: Constants.UpdateThread) {
@@ -1407,7 +1375,6 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
-  yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
   yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
   yield Saga.safeTakeEvery('chat:inboxSynced', _inboxSynced)
   yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
@@ -1431,7 +1398,6 @@ function* chatSaga(): SagaGenerator<any, any> {
     (state: TypedState, {payload: {conversationIDKey}}: Constants.UpdateBadging) =>
       Constants.lastMessageID(state, conversationIDKey)
   )
-  yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
   yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
   yield Saga.safeTakeEvery('chat:updateThread', _updateThread)

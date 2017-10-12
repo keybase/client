@@ -489,7 +489,6 @@ export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
   {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
 >
-export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: I.List<InboxState>}>
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
   {conversationIDKey: ConversationIDKey, isRequesting: boolean}
@@ -779,7 +778,6 @@ export type Actions =
   | ShowEditor
   | LoadInbox
   | LoadMoreMessages
-  | LoadedInbox
   | NewChat
   | OpenFolder
   | PendingToRealConversation
