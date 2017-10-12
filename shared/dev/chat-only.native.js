@@ -41,7 +41,7 @@ const mockMetaData = (authorSeeds: Array<number>) => {
   return Immutable.Map(
     authorSeeds.map(s => [
       nameGen(s),
-      ChatConstants.MetaDataRecord({
+      ChatConstants.makeMetaData({
         fullname: nameGen(s),
         brokenTracker: false,
       }),

@@ -1,9 +1,7 @@
 // @flow
 import InviteCode from './invite-code.render'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {restartSignup, checkInviteCode, startRequestInvite} from '../../actions/signup'
-
-import type {TypedState} from '../../constants/reducer'
 
 export default connect(
   (state: TypedState) => ({

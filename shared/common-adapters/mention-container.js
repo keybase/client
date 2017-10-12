@@ -1,14 +1,11 @@
 // @flow
-import React from 'react'
-import {connect} from 'react-redux'
 import * as Selectors from '../constants/selectors'
-import Mention from './mention'
-import {showUserProfile} from '../actions/profile'
+import Mention, {type Props as MentionProps} from './mention'
+import React from 'react'
+import {connect, type TypedState} from '../util/container'
 import {getProfile} from '../actions/tracker'
 import {isMobile} from '../constants/platform'
-
-import type {TypedState} from '../constants/reducer'
-import type {Props as MentionProps} from './mention'
+import {showUserProfile} from '../actions/profile'
 
 type OwnProps = {username: string, service: string}
 

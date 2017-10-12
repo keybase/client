@@ -219,6 +219,7 @@ export const ConstantsStatusCode = {
   scgitrepoalreadyexists: 2301,
   scgitinvalidreponame: 2302,
   scgitcannotdelete: 2303,
+  scgitrepodoesntexist: 2304,
   scloginstatetimeout: 2400,
   scchatinternal: 2500,
   scchatratelimit: 2501,
@@ -1448,6 +1449,14 @@ export function gitCreateTeamRepoRpcChannelMap (configKeys: Array<string>, reque
 
 export function gitCreateTeamRepoRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: gitCreateTeamRepoResult) => void} & {param: gitCreateTeamRepoRpcParam})): Promise<gitCreateTeamRepoResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.createTeamRepo', request, (error, result) => error ? reject(error) : resolve(result)))
+}
+
+export function gitDeleteGitMetadataRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeleteGitMetadataRpcParam}): EngineChannel {
+  return engine()._channelMapRpcHelper(configKeys, 'keybase.1.git.deleteGitMetadata', request)
+}
+
+export function gitDeleteGitMetadataRpcPromise (request: (requestCommon & requestErrorCallback & {param: gitDeleteGitMetadataRpcParam})): Promise<void> {
+  return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.git.deleteGitMetadata', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
 export function gitDeletePersonalRepoRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: gitDeletePersonalRepoRpcParam}): EngineChannel {
@@ -3772,7 +3781,6 @@ export type NotificationChannels = {
   badges: boolean,
   reachability: boolean,
   team: boolean,
-  git: boolean,
 }
 
 export type NotifyBadgesBadgeStateRpcParam = Exact<{
@@ -3807,20 +3815,6 @@ export type NotifyFSRequestFSSyncStatusRequestRpcParam = Exact<{
 
 export type NotifyFavoritesFavoritesChangedRpcParam = Exact<{
   uid: UID
-}>
-
-export type NotifyGitRepoChangedRpcParam = Exact<{
-  folder: Folder,
-  teamID: TeamID,
-  repoID: RepoID,
-  globalUniqueID: string
-}>
-
-export type NotifyGitRepoDeletedRpcParam = Exact<{
-  folder: Folder,
-  teamID: TeamID,
-  repoID: RepoID,
-  globalUniqueID: string
 }>
 
 export type NotifyKeyfamilyKeyfamilyChangedRpcParam = Exact<{
@@ -4677,6 +4671,7 @@ export type StatusCode =
   | 2301 // SCGitRepoAlreadyExists_2301
   | 2302 // SCGitInvalidRepoName_2302
   | 2303 // SCGitCannotDelete_2303
+  | 2304 // SCGitRepoDoesntExist_2304
   | 2400 // SCLoginStateTimeout_2400
   | 2500 // SCChatInternal_2500
   | 2501 // SCChatRateLimit_2501
@@ -5493,6 +5488,11 @@ export type gitCreateTeamRepoRpcParam = Exact<{
   repoName: GitRepoName,
   teamName: TeamName,
   notifyTeam: boolean
+}>
+
+export type gitDeleteGitMetadataRpcParam = Exact<{
+  folder: Folder,
+  repoName: GitRepoName
 }>
 
 export type gitDeletePersonalRepoRpcParam = Exact<{
@@ -6904,24 +6904,6 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       status: FSSyncStatus,
       requestID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.NotifyGit.repoChanged'?: (
-    params: Exact<{
-      folder: Folder,
-      teamID: TeamID,
-      repoID: RepoID,
-      globalUniqueID: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.NotifyGit.repoDeleted'?: (
-    params: Exact<{
-      folder: Folder,
-      teamID: TeamID,
-      repoID: RepoID,
-      globalUniqueID: string
     }>,
     response: CommonResponseHandler
   ) => void,

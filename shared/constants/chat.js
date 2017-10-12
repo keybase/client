@@ -1,23 +1,25 @@
 // @flow
-import * as SearchConstants from './search'
+import * as I from 'immutable'
 import * as ChatTypes from './types/flow-types-chat'
-import {createShallowEqualSelector} from './selectors'
+import * as SearchConstants from './search'
+import * as RPCTypes from './types/flow-types'
 import HiddenString from '../util/hidden-string'
-import {Buffer} from 'buffer'
-import {Set, List, Map, OrderedSet, Record} from 'immutable'
 import clamp from 'lodash/clamp'
 import invert from 'lodash/invert'
-import {getPath, getPathState} from '../route-tree'
+import {Buffer} from 'buffer'
 import {chatTab} from './tabs'
-import {createSelector} from 'reselect'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
+import isEqualWith from 'lodash/isEqualWith'
+import {getPath, getPathState, type Path} from '../route-tree'
 import {parseUserId, serviceIdToIcon} from '../util/platforms'
+import {type DeviceType} from './types/more'
+import {type NoErrorTypedAction, type TypedAction} from './types/flux'
+import {type TypedState} from './reducer'
+import {type UserListItem} from '../common-adapters/usernames'
 
-import type {UserListItem} from '../common-adapters/usernames'
-import type {Path} from '../route-tree'
-import type {NoErrorTypedAction, TypedAction} from './types/flux'
-import {CommonTLFVisibility} from './types/flow-types'
-import type {DeviceType, KBRecord, KBOrderedSet} from './types/more'
-import type {TypedState} from './reducer'
+const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
+  isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
+)
 
 export type Username = string
 export type MessageKey = string
@@ -56,7 +58,7 @@ export type OutboxIDKey = string
 export type MessageID = string
 
 export type NotifyType = 'atmention' | 'generic' | 'never'
-export type Mentions = Set<string>
+export type Mentions = I.Set<string>
 export type ChannelMention = 'None' | 'All' | 'Here'
 
 export type TextMessage = {
@@ -222,8 +224,18 @@ export type Message = any // ClientMessage | ServerMessage
 export type MaybeTimestamp = TimestampMessage | null
 
 export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
-
-export const ConversationStateRecord = Record({
+type _ConversationState = {
+  moreToLoad: ?boolean,
+  isRequesting: boolean,
+  isStale: boolean,
+  loadedOffline: boolean,
+  paginationNext: ?Buffer,
+  paginationPrevious: ?Buffer,
+  firstNewMessageID: ?MessageID,
+  typing: I.Set<Username>,
+}
+export type ConversationState = I.RecordOf<_ConversationState>
+export const makeConversationState: I.RecordFactory<_ConversationState> = I.Record({
   moreToLoad: undefined,
   isLoaded: false,
   isRequesting: false,
@@ -232,27 +244,16 @@ export const ConversationStateRecord = Record({
   paginationNext: undefined,
   paginationPrevious: undefined,
   firstNewMessageID: undefined,
-  typing: Set(),
+  typing: I.Set(),
 })
 
-export type ConversationState = KBRecord<{
-  moreToLoad: ?boolean,
-  isRequesting: boolean,
-  isStale: boolean,
-  loadedOffline: boolean,
-  paginationNext: ?Buffer,
-  paginationPrevious: ?Buffer,
-  firstNewMessageID: ?MessageID,
-  typing: Set<Username>,
-}>
-
-export type ConversationBadgeState = KBRecord<{
+type _ConversationBadgeState = {
   convID: ConversationID,
   unreadMessages: number,
   badgeCounts: {[key: string]: number},
-}>
-
-export const ConversationBadgeStateRecord = Record({
+}
+export type ConversationBadgeState = I.RecordOf<_ConversationBadgeState>
+export const ConversationBadgeStateRecord: I.RecordFactory<_ConversationBadgeState> = I.Record({
   convID: undefined,
   unreadMessages: 0,
   badgeCounts: {},
@@ -271,7 +272,26 @@ export type NotificationsState = {
   mobile: NotificationsKindState,
 }
 
-export const InboxStateRecord = Record({
+type _InboxState = {
+  conversationIDKey: ConversationIDKey,
+  info: ?ChatTypes.ConversationInfoLocal,
+  isEmpty: boolean,
+  teamname: ?string,
+  channelname: ?string,
+  name: ?string,
+  membersType: ChatTypes.ConversationMembersType,
+  notifications: ?NotificationsState,
+  participants: I.List<string>,
+  state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
+  status: ConversationStateEnum,
+  time: number,
+  teamType: ChatTypes.TeamType,
+  version: ChatTypes.ConversationVers,
+  visibility: RPCTypes.TLFVisibility,
+}
+
+export type InboxState = I.RecordOf<_InboxState>
+export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   conversationIDKey: '',
   info: null,
   isEmpty: false,
@@ -279,32 +299,15 @@ export const InboxStateRecord = Record({
   channelname: null,
   membersType: 0,
   notifications: null,
-  participants: List(),
+  participants: I.List(),
   state: 'untrusted',
   status: 'unfiled',
   time: 0,
   name: '',
-  visibility: CommonTLFVisibility.private,
+  visibility: RPCTypes.CommonTLFVisibility.private,
   teamType: ChatTypes.CommonTeamType.none,
   version: 0,
 })
-
-export type InboxState = KBRecord<{
-  conversationIDKey: ConversationIDKey,
-  info: ChatTypes.ConversationInfoLocal,
-  isEmpty: boolean,
-  teamname: ?string,
-  channelname: ?string,
-  name: ?string,
-  membersType: ChatTypes.ConversationMembersType,
-  notifications: NotificationsState,
-  participants: List<string>,
-  state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
-  status: ConversationStateEnum,
-  time: number,
-  teamType: ChatTypes.TeamType,
-  version: ChatTypes.ConversationVers,
-}>
 
 export type SupersedeInfo = {
   conversationIDKey: ConversationID,
@@ -313,34 +316,35 @@ export type SupersedeInfo = {
 
 export type FinalizeInfo = ChatTypes.ConversationFinalizeInfo
 
-export type FinalizedState = Map<ConversationIDKey, ChatTypes.ConversationFinalizeInfo>
+export type FinalizedState = I.Map<ConversationIDKey, ChatTypes.ConversationFinalizeInfo>
 
-export type SupersedesState = Map<ConversationIDKey, SupersedeInfo>
-export type SupersededByState = Map<ConversationIDKey, SupersedeInfo>
+export type SupersedesState = I.Map<ConversationIDKey, SupersedeInfo>
+export type SupersededByState = I.Map<ConversationIDKey, SupersedeInfo>
 
-export type MetaData = KBRecord<{
+export type _MetaData = {
   fullname: string,
   brokenTracker: boolean,
-}>
+}
+export type MetaData = I.RecordOf<_MetaData>
+export type MetaDataMap = I.Map<string, MetaData>
 
-export type MetaDataMap = Map<string, MetaData>
-
-export const MetaDataRecord = Record({
+export const makeMetaData: I.RecordFactory<_MetaData> = I.Record({
   fullname: 'Unknown',
   brokenTracker: false,
 })
 
-export type Participants = List<string>
+export type Participants = I.List<string>
 
-export const RekeyInfoRecord = Record({
-  rekeyParticipants: List(),
-  youCanRekey: false,
-})
-
-export type RekeyInfo = KBRecord<{
+export type _RekeyInfo = {
   rekeyParticipants: Participants,
   youCanRekey: boolean,
-}>
+}
+
+export type RekeyInfo = I.RecordOf<_RekeyInfo>
+export const makeRekeyInfo: I.RecordFactory<_RekeyInfo> = I.Record({
+  rekeyParticipants: I.List(),
+  youCanRekey: false,
+})
 
 export type LocalMessageState = {
   previewProgress: number | null /* between 0 - 1 */,
@@ -351,63 +355,78 @@ export type LocalMessageState = {
   savedPath: string | null | false,
 }
 
-// $FlowIssue with cast
-export const StateRecord: KBRecord<T> = Record({
-  messageMap: Map(),
-  localMessageStates: Map(),
-  inbox: List(),
-  inboxFilter: '',
-  conversationStates: Map(),
-  metaData: Map(),
-  finalizedState: Map(),
-  supersedesState: Map(),
-  supersededByState: Map(),
-  rekeyInfos: Map(),
-  pendingConversations: Map(),
-  nowOverride: null,
-  editingMessage: null,
-  inboxUntrustedState: 'unloaded',
-  previousConversation: null,
-  searchPending: false,
-  searchShowingSuggestions: false,
-  selectedUsersInSearch: List(),
-  inSearch: false,
-  tempPendingConversations: Map(),
-  searchResultTerm: '',
-  teamCreationError: '',
-  teamJoinError: '',
-  teamJoinSuccess: false,
-})
-
 export type UntrustedState = 'unloaded' | 'loaded' | 'loading'
 
-export type State = KBRecord<{
+export type UnreadCounts = {
+  total: number,
+  badged: number,
+}
+
+type _State = {
   // TODO  move to entities
-  messageMap: Map<MessageKey, Message>,
-  localMessageStates: Map<MessageKey, LocalMessageState>,
-  inbox: List<InboxState>,
+  messageMap: I.Map<MessageKey, Message>,
+  localMessageStates: I.Map<MessageKey, LocalMessageState>,
+  inbox: I.List<InboxState>,
   inboxFilter: string,
-  conversationStates: Map<ConversationIDKey, ConversationState>,
+  inboxSearch: I.List<string>,
+  conversationStates: I.Map<ConversationIDKey, ConversationState>,
   finalizedState: FinalizedState,
   supersedesState: SupersedesState,
   supersededByState: SupersededByState,
   metaData: MetaDataMap,
-  rekeyInfos: Map<ConversationIDKey, RekeyInfo>,
-  pendingConversations: Map<ConversationIDKey, Participants>,
-  tempPendingConversations: Map<ConversationIDKey, boolean>,
+  conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>,
+  rekeyInfos: I.Map<ConversationIDKey, RekeyInfo>,
+  alwaysShow: I.Set<ConversationIDKey>,
+  pendingConversations: I.Map<ConversationIDKey, Participants>,
+  tempPendingConversations: I.Map<ConversationIDKey, boolean>,
   nowOverride: ?Date,
   editingMessage: ?Message,
+  initialConversation: ?ConversationIDKey,
   inboxUntrustedState: UntrustedState,
   previousConversation: ?ConversationIDKey,
   searchPending: boolean,
+  searchResults: ?I.List<SearchConstants.SearchResultId>,
   searchShowingSuggestions: boolean,
-  selectedUsersInSearch: List<SearchConstants.SearchResultId>,
+  selectedUsersInSearch: I.List<SearchConstants.SearchResultId>,
   inSearch: boolean,
   searchResultTerm: string,
   teamCreationError: string,
   teamJoinError: string,
   teamJoinSuccess: boolean,
-}>
+}
+
+export type State = I.RecordOf<_State>
+export const makeState: I.RecordFactory<_State> = I.Record({
+  messageMap: I.Map(),
+  localMessageStates: I.Map(),
+  inbox: I.List(),
+  inboxFilter: '',
+  inboxSearch: I.List(),
+  conversationStates: I.Map(),
+  metaData: I.Map(),
+  finalizedState: I.Map(),
+  supersedesState: I.Map(),
+  supersededByState: I.Map(),
+  conversationUnreadCounts: I.Map(),
+  rekeyInfos: I.Map(),
+  alwaysShow: I.Set(),
+  pendingConversations: I.Map(),
+  nowOverride: null,
+  editingMessage: null,
+  initialConversation: null,
+  inboxUntrustedState: 'unloaded',
+  previousConversation: null,
+  searchPending: false,
+  searchResults: null,
+  searchShowingSuggestions: false,
+  selectedUsersInSearch: I.List(),
+  inSearch: false,
+  tempPendingConversations: I.Map(),
+  searchResultTerm: '',
+  teamCreationError: '',
+  teamJoinError: '',
+  teamJoinSuccess: false,
+})
 
 export const maxAttachmentPreviewSize = 320
 
@@ -438,7 +457,7 @@ export type AppendMessages = NoErrorTypedAction<
     svcShouldDisplayNotification: boolean,
   }
 >
-export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', List<ConversationBadgeState>>
+export type BadgeAppForChat = NoErrorTypedAction<'chat:badgeAppForChat', I.List<ConversationBadgeState>>
 export type BlockConversation = NoErrorTypedAction<
   'chat:blockConversation',
   {
@@ -472,7 +491,7 @@ export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
   {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
 >
-export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: List<InboxState>}>
+export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: I.List<InboxState>}>
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
   {conversationIDKey: ConversationIDKey, isRequesting: boolean}
@@ -575,6 +594,11 @@ export type UntrustedInboxVisible = NoErrorTypedAction<
   {conversationIDKey: ConversationIDKey, rowsVisible: number}
 >
 export type UpdateBadging = NoErrorTypedAction<'chat:updateBadging', {conversationIDKey: ConversationIDKey}>
+
+export type UpdateConversationUnreadCounts = NoErrorTypedAction<
+  'chat:updateConversationUnreadCounts',
+  {conversationUnreadCounts: I.Map<ConversationIDKey, UnreadCounts>}
+>
 export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',
   {finalizedState: FinalizedState}
@@ -890,7 +914,7 @@ function textSnippet(message: ?string = '', max: number) {
 }
 
 // Filters out myself from most of our views of the list, unless the list is just me
-function participantFilter(participants: List<string>, you: string): List<string> {
+function participantFilter(participants: I.List<string>, you: string): I.List<string> {
   const withoutYou = participants.filter(p => p !== you)
   if (withoutYou.count() === 0) {
     return participants
@@ -915,14 +939,14 @@ function usernamesToUserListItem(
 ): Array<UserListItem> {
   return usernames.map(username => ({
     username,
-    broken: metaDataMap.get(username, Map()).get('brokenTracker', false),
+    broken: metaDataMap.getIn([username, 'brokenTracker'], false),
     you: username === you,
     following: !!followingMap[username],
   }))
 }
 
 function getBrokenUsers(participants: Array<string>, you: string, metaDataMap: MetaDataMap): Array<string> {
-  return participants.filter(user => user !== you && metaDataMap.get(user, Map()).get('brokenTracker', false))
+  return participants.filter(user => user !== you && metaDataMap.getIn([user, 'brokenTracker'], false))
 }
 
 function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
@@ -1000,15 +1024,15 @@ function pendingConversationIDKeyToTlfName(conversationIDKey: string) {
 }
 
 function convSupersedesInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
-  return chat.get('supersedesState').get(conversationID)
+  return chat.getIn(['supersedesState', conversationID])
 }
 
 function convSupersededByInfo(conversationID: ConversationIDKey, chat: State): ?SupersedeInfo {
-  return chat.get('supersededByState').get(conversationID)
+  return chat.getIn(['supersededByState', conversationID])
 }
 
 function newestConversationIDKey(conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
-  const supersededBy = chat.get('supersededByState').get(conversationIDKey)
+  const supersededBy = chat.getIn(['supersededByState', conversationIDKey])
   if (!supersededBy) {
     return conversationIDKey
   }
@@ -1169,20 +1193,23 @@ const getUserItems = createShallowEqualSelector(
 )
 
 // Selectors for entities
-function getConversationMessages(state: TypedState, convIDKey: ConversationIDKey): KBOrderedSet<MessageKey> {
-  return state.entities.conversationMessages.get(convIDKey, OrderedSet())
+function getConversationMessages(state: TypedState, convIDKey: ConversationIDKey): I.OrderedSet<MessageKey> {
+  return state.entities.conversationMessages.get(convIDKey, I.OrderedSet())
 }
 
-function getDeletedMessageIDs(state: TypedState, convIDKey: ConversationIDKey): Set<MessageID> {
-  return state.entities.deletedIDs.get(convIDKey, Set())
+function getDeletedMessageIDs(state: TypedState, convIDKey: ConversationIDKey): I.Set<MessageID> {
+  return state.entities.deletedIDs.get(convIDKey, I.Set())
 }
 
 function getMessageUpdates(
   state: TypedState,
   messageKey: MessageKey
-): KBOrderedSet<EditingMessage | UpdatingAttachment> {
+): I.OrderedSet<EditingMessage | UpdatingAttachment> {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  const updateKeys = state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], OrderedSet())
+  const updateKeys = state.entities.messageUpdates.getIn(
+    [conversationIDKey, String(messageID)],
+    I.OrderedSet()
+  )
   return updateKeys.map(k => state.entities.messages.get(k))
 }
 
@@ -1270,7 +1297,7 @@ function getSnippet(state: TypedState, conversationIDKey: ConversationIDKey): st
   return snippet ? snippet.stringValue() : ''
 }
 
-function applyMessageUpdates(message: Message, updates: KBOrderedSet<EditingMessage | UpdatingAttachment>) {
+function applyMessageUpdates(message: Message, updates: I.OrderedSet<EditingMessage | UpdatingAttachment>) {
   if (updates.isEmpty()) {
     return message
   }

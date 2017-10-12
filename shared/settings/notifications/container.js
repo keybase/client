@@ -1,11 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import Notifications from './index'
 import {navigateUp} from '../../actions/route-tree'
 import {notificationsRefresh, notificationsToggle} from '../../actions/settings'
-
-import type {TypedState} from '../../constants/reducer'
 
 class NotificationsContainer extends Component<any> {
   componentWillMount() {

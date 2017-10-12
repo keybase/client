@@ -1,16 +1,13 @@
 // @flow
 import * as I from 'immutable'
 import Teams from './main'
-import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 import {getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
-import {compose, lifecycle} from 'recompose'
+import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
 import {openInKBFS} from '../actions/kbfs'
 import {injectItem} from '../actions/gregor'
-
-import type {TypedState} from '../constants/reducer'
-import type {Teamname} from '../constants/teams'
+import {type Teamname} from '../constants/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,

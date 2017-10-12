@@ -1,9 +1,7 @@
 // @flow
 import GlobalError from './index'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {globalErrorDismiss} from '../../constants/config'
-
-import type {TypedState} from '../../constants/reducer'
 
 export default connect(
   (state: TypedState) => ({
