@@ -212,17 +212,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       }
       break
     }
-    // TODO
-    // case 'chat:replaceConversation': {
-    // const {oldKey} = action.payload
-    // const oldInbox = state.get('inbox')
-    // const idx = oldInbox.findIndex(i => i.get('conversationIDKey') === oldKey)
-    // if (idx !== -1) {
-    // return state.set('inbox', oldInbox.delete(idx))
-    // }
-    // console.warn("couldn't find conversation to upgrade", oldKey)
-    // break
-    // }
     case 'chat:updateFinalizedState': {
       const fs = action.payload.finalizedState
       return state.update('finalizedState', finalizedState => finalizedState.merge(fs))

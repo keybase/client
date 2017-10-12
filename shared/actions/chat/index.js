@@ -1243,25 +1243,7 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
 function* _openConversation({
   payload: {conversationIDKey},
 }: Constants.OpenConversation): SagaGenerator<any, any> {
-  const untrustedState = yield select(state => state.entities.inboxUntrustedState)
-  if (untrustedState.get(conversationIDKey) !== 'unboxed') {
-    // TODO nojima select broken here
-    yield put(Creators.getInboxAndUnbox([conversationIDKey]))
-    const raceResult: {[key: string]: any} = yield race({
-      updateInbox: take(
-        a =>
-          a.type === 'chat:updateInbox' &&
-          a.payload.conversation &&
-          a.payload.conversation.conversationIDKey === conversationIDKey
-      ),
-      timeout: call(delay, 10e3),
-    })
-    if (raceResult.updateInbox) {
-      yield put(Creators.selectConversation(conversationIDKey, false))
-    }
-  } else {
-    yield put(Creators.selectConversation(conversationIDKey, false))
-  }
+  yield put(Creators.selectConversation(conversationIDKey, false))
 }
 
 function* _updateTyping({
