@@ -15,6 +15,7 @@ import InvitationsContainer from './invites/container'
 import NotificationsContainer from './notifications/container'
 import DeleteContainer from './delete/container'
 import DeleteConfirm from './delete-confirm/container'
+import AdvancedContainer from './advanced/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import InviteGenerated from './invite-generated'
 import DevMenu from '../dev/dev-menu'
@@ -54,6 +55,10 @@ const routeTree = makeRouteDefNode({
     },
     [notificationsTab]: {
       component: NotificationsContainer,
+    },
+    [deleteMeTab]: {
+      component: AdvancedContainer,
+      children: {},
     },
     [deleteMeTab]: {
       component: DeleteContainer,
