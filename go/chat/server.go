@@ -227,8 +227,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				return res, err
 			}
 			start := time.Now()
-			h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
-				len(lres.InboxRes.ConvsUnverified))
+			h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: num convs: %d bytes: %d",
+				len(lres.InboxRes.ConvsUnverified), len(jbody))
 			chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 				SessionID: arg.SessionID,
 				Inbox:     string(jbody),
@@ -263,14 +263,14 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
 			} else if convRes.ConvRes != nil {
-				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
-					convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded())
 				pconv := utils.PresentConversationLocal(*convRes.ConvRes)
 				jbody, err := json.Marshal(pconv)
 				if err != nil {
 					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
 						err.Error())
 				} else {
+					h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s bytes: %d",
+						convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded(), len(jbody))
 					chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
 						SessionID: arg.SessionID,
 						Conv:      string(jbody),
