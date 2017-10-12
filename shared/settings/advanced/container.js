@@ -1,12 +1,11 @@
 // @flow
-import {TypedConnector} from '../../util/typed-connect'
 import {navigateAppend} from '../../actions/route-tree'
 import ClearCache from './index'
+import {connect} from 'react-redux'
 
-const connector = new TypedConnector()
+const mapStateToProps = () => ({})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onDelete: () => dispatch(navigateAppend(['clearCacheConfirm'])),
+})
 
-export default connector.connect((state, dispatch, ownProps) => ({
-  onClearCache: () => {
-    dispatch(navigateAppend(['clearCacheConfirm']))
-  },
-}))(ClearCache)
+export default connect(mapStateToProps, mapDispatchToProps)(ClearCache)

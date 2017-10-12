@@ -3,9 +3,9 @@ import * as ChatTypes from '../constants/types/flow-types-chat'
 import * as Constants from '../constants/settings'
 import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
+import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import mapValues from 'lodash/mapValues'
 import trim from 'lodash/trim'
-import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
@@ -67,6 +67,10 @@ function notificationsToggle(group: string, name?: string): Constants.Notificati
 
 function setAllowDeleteAccount(allow: boolean): Constants.SetAllowDeleteAccount {
   return {type: Constants.setAllowDeleteAccount, payload: allow}
+}
+
+function clearCache(): Constants.ClearCache {
+  return {type: Constants.clearCache, payload: undefined}
 }
 
 function deleteAccountForever(): Constants.DeleteAccountForever {
@@ -409,6 +413,10 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   })
 }
 
+function* clearCacheSaga(): SagaGenerator<any, any> {
+  yield call(RPCTypes.ctlDbNukeRpcPromise)
+}
+
 function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
   const username = yield select(state => state.config.username)
   const allowDeleteAccount = yield select(state => state.settings.allowDeleteAccount)
@@ -436,6 +444,7 @@ function* settingsSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.invitesSend, sendInviteSaga)
   yield safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga)
   yield safeTakeLatest(Constants.notificationsToggle, toggleNotificationsSaga)
+  yield safeTakeLatest(Constants.clearCache, clearCacheSaga)
   yield safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga)
   yield safeTakeLatest(Constants.loadSettings, loadSettingsSaga)
   yield safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail)
@@ -444,6 +453,7 @@ function* settingsSaga(): SagaGenerator<any, any> {
 }
 
 export {
+  clearCache,
   deleteAccountForever,
   invitesReclaim,
   invitesRefresh,

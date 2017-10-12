@@ -104,6 +104,9 @@ export type NotificationsToggle = NoErrorTypedAction<
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteAccount', boolean>
 
+export const clearCache = 'settings:clearCache'
+export type ClearCache = NoErrorTypedAction<'settings:clearCache', void>
+
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
