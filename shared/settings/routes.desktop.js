@@ -5,7 +5,6 @@ import {
   updatePaymentTab,
   invitationsTab,
   notificationsTab,
-  advancedTab,
   deleteMeTab,
   devMenuTab,
 } from '../constants/settings'
@@ -14,10 +13,8 @@ import LandingContainer from './landing/container'
 import UpdatePayment from './payment/container'
 import InvitationsContainer from './invites/container'
 import NotificationsContainer from './notifications/container'
-import DBNukeConfirm from './db-nuke-confirm/container'
 import DeleteContainer from './delete/container'
 import DeleteConfirm from './delete-confirm/container'
-import AdvancedContainer from './advanced/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import InviteGenerated from './invite-generated'
 import DevMenu from '../dev/dev-menu'
@@ -57,15 +54,6 @@ const routeTree = makeRouteDefNode({
     },
     [notificationsTab]: {
       component: NotificationsContainer,
-    },
-    [advancedTab]: {
-      component: AdvancedContainer,
-      children: {
-        dbNukeConfirm: {
-          component: DBNukeConfirm,
-          tags: {modal: true},
-        },
-      },
     },
     [deleteMeTab]: {
       component: DeleteContainer,
