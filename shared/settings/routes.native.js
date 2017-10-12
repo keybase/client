@@ -62,7 +62,7 @@ const routeTree = makeRouteDefNode({
     [Constants.advancedTab]: {
       component: AdvancedContainer,
       children: {
-        clearCacheConfirm: {
+        dbNukeConfirm: {
           component: DBNukeConfirm,
           tags: {modal: true},
         },
