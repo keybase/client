@@ -21,24 +21,6 @@ const updateTempMessageTransformer = ({
   type,
 })
 
-const loadedInboxActionTransformer = action => ({
-  payload: {
-    inbox: action.payload.inbox.map(i => {
-      const {conversationIDKey, muted, time, validated, participants, info} = i
-
-      return {
-        conversationIDKey,
-        info: {status: info && info.status},
-        muted,
-        participantsCount: participants.count(),
-        time,
-        validated,
-      }
-    }),
-  },
-  type: action.type,
-})
-
 const safeServerMessageMap = (m: any) => ({
   key: m.key,
   messageID: m.messageID,
@@ -116,14 +98,6 @@ function exitSearch(skipSelectPreviousConversation: boolean): Constants.ExitSear
   return {
     payload: {skipSelectPreviousConversation},
     type: 'chat:exitSearch',
-  }
-}
-
-function loadedInbox(conversations: List<Constants.InboxState>): Constants.LoadedInbox {
-  return {
-    logTransformer: loadedInboxActionTransformer,
-    payload: {inbox: conversations},
-    type: 'chat:loadedInbox',
   }
 }
 
@@ -702,7 +676,6 @@ export {
   loadAttachmentPreview,
   loadInbox,
   loadMoreMessages,
-  loadedInbox,
   loadingMessages,
   markSeenMessage,
   markThreadsStale,

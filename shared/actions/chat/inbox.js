@@ -101,13 +101,21 @@ function* onInboxStale(): SagaGenerator<any, any> {
       return map
     }, {})
 
-    const conversations: I.List<Constants.InboxState> = Shared.makeInboxStateRecords(
-      author,
-      inbox.items || []
-    )
+    const oldInbox = yield select(s => s.entities.get('inbox'))
+    const conversations = Shared.makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map(snippets)))
     yield put(Creators.setInboxUntrustedState('loaded'))
-    yield put(Creators.loadedInbox(conversations))
+    yield put(
+      EntityCreators.replaceEntity(
+        ['inbox'],
+        I.Map(
+          conversations.reduce((map, c) => {
+            map[c.conversationIDKey] = c
+            return map
+          }, {})
+        )
+      )
+    )
 
     const inboxSmallTimestamps = I.Map(
       conversations.reduce((map, c) => {
@@ -158,10 +166,11 @@ function* onInboxStale(): SagaGenerator<any, any> {
     // Load the first visible simple and teams so we can get the channel names
     const toUnbox = conversations
       .filter(c => !c.teamname)
-      .take(20)
+      .slice(0, 20)
       .concat(conversations.filter(c => c.teamname))
+      .map(c => c.conversationIDKey)
 
-    yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
+    yield put(Creators.unboxConversations(toUnbox))
   } finally {
     if (yield cancelled()) {
       yield put(Creators.setInboxUntrustedState('unloaded'))

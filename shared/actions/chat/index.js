@@ -1208,9 +1208,9 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
 function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   const {convs} = action.payload
   const author = yield select(usernameSelector)
-  const items: I.List<Constants.InboxState> = Shared.makeInboxStateRecords(author, convs)
+  const items = Shared.makeInboxStateRecords(author, convs, I.Map())
 
-  const convIDs = items.map(item => item.conversationIDKey).toArray()
+  const convIDs = items.map(item => item.conversationIDKey)
   const updateActions = items.map(item => put(Creators.updateInbox(item)))
   yield all(updateActions)
   yield put(Creators.unboxConversations(convIDs, true, true))

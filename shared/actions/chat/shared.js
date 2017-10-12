@@ -137,32 +137,34 @@ function* getPostingIdentifyBehavior(
 
 function makeInboxStateRecords(
   author: string,
-  items: Array<ChatTypes.UnverifiedInboxUIItem>
-): I.List<Constants.InboxState> {
-  const conversations: I.List<Constants.InboxState> = I.List(
-    (items || [])
-      .map(c => {
-        const parts = c.localMetadata
-          ? I.List(c.localMetadata.writerNames || [])
-          : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
-        return Constants.makeInboxState({
-          channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
-            ? c.localMetadata.channelName
-            : undefined,
-          conversationIDKey: c.convID,
-          info: null,
-          membersType: c.membersType,
-          participants: parts,
-          status: Constants.ConversationStatusByEnum[c.status || 0],
-          teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
-          teamType: c.teamType,
-          time: c.time,
-          version: c.version,
-        })
+  items: Array<ChatTypes.UnverifiedInboxUIItem>,
+  oldInbox: I.Map<Constants.ConversationIDKey, Constants.InboxState>
+): Array<Constants.InboxState> {
+  return (items || [])
+    .map(c => {
+      // We already know about this version? Skip it
+      if (oldInbox.getIn([c.convID, 'version']) === c.version) {
+        return null
+      }
+      const parts = c.localMetadata
+        ? I.List(c.localMetadata.writerNames || [])
+        : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
+      return Constants.makeInboxState({
+        channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
+          ? c.localMetadata.channelName
+          : undefined,
+        conversationIDKey: c.convID,
+        info: null,
+        membersType: c.membersType,
+        participants: parts,
+        status: Constants.ConversationStatusByEnum[c.status || 0],
+        teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+        teamType: c.teamType,
+        time: c.time,
+        version: c.version,
       })
-      .filter(Boolean)
-  )
-  return conversations
+    })
+    .filter(Boolean)
 }
 
 export {
