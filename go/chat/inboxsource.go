@@ -832,7 +832,9 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		}
 		return nil
 	})
-	for i := 0; i < 10; i++ {
+	nthreads := s.G().Env.GetInboxSourceLocalizeThreads()
+	s.Debug(ctx, "pipeline: using %d threads", nthreads)
+	for i := 0; i < nthreads; i++ {
 		eg.Go(func() error {
 			for conv := range convCh {
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)

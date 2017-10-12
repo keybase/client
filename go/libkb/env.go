@@ -1006,6 +1006,13 @@ func (e *Env) GetInboxSourceType() string {
 	)
 }
 
+func (e *Env) GetInboxSourceLocalizeThreads() int {
+	return e.GetInt(
+		10,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_INBOX_SOURCE_LOCALIZE_THREADS") },
+	)
+}
+
 // GetChatMemberType returns the default member type for new conversations.
 // Currently defaults to `kbfs`, but `impteam` will be default in future.
 func (e *Env) GetChatMemberType() string {
