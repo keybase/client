@@ -1,6 +1,5 @@
 // @flow
 import {navigateAppend} from '../../actions/route-tree'
-import {dbNuke} from '../../actions/settings'
 import DBNuke from './index'
 import {connect} from 'react-redux'
 
