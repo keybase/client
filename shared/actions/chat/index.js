@@ -385,9 +385,9 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       return
     }
 
-    const inboxConvo = yield select(Constants.getInbox, conversationIDKey)
+    const untrustedState = yield select(state => state.entities.inboxUntrustedState.get(conversationIDKey))
 
-    if (inboxConvo && inboxConvo.state !== 'unboxed') {
+    if (untrustedState !== 'unboxed') {
       console.log('Bailing on not yet unboxed conversation')
       return
     }
@@ -1234,9 +1234,8 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
 function* _openConversation({
   payload: {conversationIDKey},
 }: Constants.OpenConversation): SagaGenerator<any, any> {
-  const inbox = yield select(inboxSelector)
-  const validInbox = inbox.get(conversationIDKey)
-  if (!validInbox || validInbox.get('state') !== 'unboxed') {
+  const untrustedState = yield select(state => state.entities.inboxUntrustedState)
+  if (untrustedState.get(conversationIDKey) !== 'unboxed') {
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
     const raceResult: {[key: string]: any} = yield race({
       updateInbox: take(

@@ -71,13 +71,14 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
     supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
 
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
+    const untrustedState = state.entities.inboxUntrustedState.get(selectedConversationIDKey)
     if (conversationState) {
       const selected = Constants.getInbox(state, selectedConversationIDKey)
-      if (selected && selected.state === 'error') {
+      if (selected && untrustedState === 'error') {
         conversationIsError = true
         conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)
       }
-      showLoader = !(selected && selected.state === 'unboxed') || conversationState.isRequesting
+      showLoader = !(selected && untrustedState === 'unboxed') || conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
     }
   }

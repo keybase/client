@@ -272,6 +272,8 @@ export type NotificationsState = {
   mobile: NotificationsKindState,
 }
 
+export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'unboxing'
+
 type _InboxState = {
   conversationIDKey: ConversationIDKey,
   info: ?ChatTypes.ConversationInfoLocal,
@@ -282,7 +284,6 @@ type _InboxState = {
   membersType: ChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
   participants: I.List<string>,
-  state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
   time: number,
   teamType: ChatTypes.TeamType,
@@ -300,7 +301,6 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   membersType: 0,
   notifications: null,
   participants: I.List(),
-  state: 'untrusted',
   status: 'unfiled',
   time: 0,
   name: '',
@@ -567,11 +567,6 @@ export type SetLoaded = NoErrorTypedAction<
 export type SetNotifications = NoErrorTypedAction<
   'chat:setNotifications',
   {conversationIDKey: ConversationIDKey, deviceType: DeviceType, notifyType: NotifyType}
->
-export type SetUnboxing = TypedAction<
-  'chat:setUnboxing',
-  {conversationIDKeys: Array<ConversationIDKey>},
-  {conversationIDKeys: Array<ConversationIDKey>}
 >
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>

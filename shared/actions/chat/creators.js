@@ -516,21 +516,6 @@ function outboxMessageBecameReal(
   }
 }
 
-function setUnboxing(
-  conversationIDKeys: Array<Constants.ConversationIDKey>,
-  errored: boolean
-): Constants.SetUnboxing {
-  // Just to make flow happy
-  if (errored) {
-    return {
-      error: true,
-      payload: {conversationIDKeys},
-      type: 'chat:setUnboxing',
-    }
-  }
-  return {payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
-}
-
 function clearRekey(conversationIDKey: Constants.ConversationIDKey): Constants.ClearRekey {
   return {payload: {conversationIDKey}, type: 'chat:clearRekey'}
 }
@@ -705,7 +690,6 @@ export {
   setPreviousConversation,
   setSelectedRouteState,
   setTypers,
-  setUnboxing,
   setupChatHandlers,
   showEditor,
   startConversation,

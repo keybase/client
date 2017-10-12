@@ -147,31 +147,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:updatedMetadata':
       return state.set('metaData', state.get('metaData').merge(action.payload.updated))
-    // TODO
-    // case 'chat:loadedInbox':
-    // // Don't overwrite existing verified inbox data
-    // const existingRows = state.get('inbox')
-    // const newInbox = action.payload.inbox.map(newRow => {
-    // const id = newRow.get('conversationIDKey')
-    // const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
-    // return existingRow ? (existingRow.version !== newRow.version ? newRow : existingRow) : newRow
-    // })
-
-    // return state.set('inbox', newInbox).set('rekeyInfos', Map())
-    // // TODO
-    // case 'chat:setUnboxing':
-    // const {conversationIDKeys} = action.payload
-    // return state.set(
-    // 'inbox',
-    // state
-    // .get('inbox')
-    // .map(
-    // i =>
-    // conversationIDKeys.includes(i.conversationIDKey)
-    // ? i.set('state', action.error ? 'untrusted' : 'unboxing')
-    // : i
-    // )
-    // )
     // // TODO
     // case 'chat:updateInbox':
     // const convo: Constants.InboxState = action.payload.conversation

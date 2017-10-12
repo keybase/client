@@ -116,6 +116,17 @@ function* onInboxStale(): SagaGenerator<any, any> {
         )
       )
     )
+    yield put(
+      EntityCreators.replaceEntity(
+        ['inboxUntrustedState'],
+        I.Map(
+          conversations.reduce((map, c) => {
+            map[c.conversationIDKey] = 'untrusted'
+            return map
+          }, {})
+        )
+      )
+    )
 
     const inboxSmallTimestamps = I.Map(
       conversations.reduce((map, c) => {
@@ -223,6 +234,8 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   const inboxState = _conversationLocalToInboxState(c)
 
   if (inboxState) {
+    yield put(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'unboxed'})))
+
     yield put(EntityCreators.replaceEntity(['inboxVersion'], I.Map({[conversationIDKey]: c.version})))
     if (isBigTeam) {
       // There's a bug where the untrusted inbox state for the channel is incorrect so we
@@ -315,11 +328,11 @@ function* _chatInboxFailedSubSaga(params) {
     participants: error.rekeyInfo
       ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
       : I.List(error.unverifiedTLFName.split(',')),
-    state: 'error',
     status: 'unfiled',
     time: error.remoteConv.readerInfo.mtime,
   })
 
+  yield put(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'error'})))
   yield put(Creators.updateSnippet(conversationIDKey, new HiddenString(error.message)))
   yield put(Creators.updateInbox(conversation))
 
@@ -378,17 +391,28 @@ const unboxConversationsSagaMap = {
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
   let {conversationIDKeys, force, forInboxSync} = action.payload
 
-  const inbox = yield select(state => state.entities.get('inbox'))
+  // const inbox = yield select(state => state.entities.inbox)
+  const untrustedState = yield select(state => state.entities.inboxUntrustedState)
 
   conversationIDKeys = conversationIDKeys.filter(c => {
-    return !Constants.isPendingConversationIDKey(c) && inbox.getIn([c, 'state']) === 'untrusted'
+    return !Constants.isPendingConversationIDKey(c) && untrustedState.get(c) === 'untrusted'
   })
 
   if (!conversationIDKeys.length) {
     return
   }
 
-  yield put.resolve(Creators.setUnboxing(conversationIDKeys, false))
+  yield put.resolve(
+    EntityCreators.replaceEntity(
+      ['inboxUntrustedState'],
+      I.Map(
+        conversationIDKeys.reduce((map, c) => {
+          map[c] = 'unboxing'
+          return map
+        }, {})
+      )
+    )
+  )
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     unboxConversationsSagaMap,
@@ -411,7 +435,17 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   } catch (error) {
     if (error instanceof RPCTimeoutError) {
       console.warn('timed out request for unboxConversations, bailing')
-      yield put.resolve(Creators.setUnboxing(conversationIDKeys, true))
+      yield put.resolve(
+        EntityCreators.replaceEntity(
+          ['inboxUntrustedState'],
+          I.Map(
+            conversationIDKeys.reduce((map, c) => {
+              map[c] = 'untrusted'
+              return map
+            }, {})
+          )
+        )
+      )
     } else {
       console.warn('Error in loadInboxRpc', error)
     }
@@ -480,7 +514,6 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     name: c.name,
     notifications,
     participants: parts,
-    state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
     teamType: c.teamType,
     teamname,

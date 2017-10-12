@@ -69,6 +69,7 @@ const makeGetParticipants = conversationIDKey => state =>
 const getNowOverride = state => state.chat.nowOverride
 const makeGetFinalizedInfo = conversationIDKey => state =>
   state.chat.getIn(['finalizedState', conversationIDKey])
+const getUntrustedState = state => state.entities.inboxUntrustedState
 
 const makeSelector = conversationIDKey => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey)
@@ -100,6 +101,7 @@ const makeSelector = conversationIDKey => {
         makeGetRekeyInfo(conversationIDKey),
         getNowOverride,
         makeGetFinalizedInfo(conversationIDKey),
+        getUntrustedState,
       ],
       (
         conversation,
@@ -110,12 +112,13 @@ const makeSelector = conversationIDKey => {
         you,
         rekeyInfo,
         nowOverride,
-        finalizeInfo
+        finalizeInfo,
+        untrustedState
       ) => {
         if (!conversation) {
           return {type: 'Invalid row'}
         }
-        const isError = conversation.get('state') === 'error'
+        const isError = untrustedState.get(conversationIDKey) === 'error'
         const isMuted = conversation.get('status') === 'muted'
         const participants = Constants.participantFilter(conversation.get('participants'), you)
         const timestamp = formatTimeForConversationList(conversation.get('time'), nowOverride)
