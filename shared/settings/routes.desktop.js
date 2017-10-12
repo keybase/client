@@ -5,6 +5,7 @@ import {
   updatePaymentTab,
   invitationsTab,
   notificationsTab,
+  advancedTab,
   deleteMeTab,
   devMenuTab,
 } from '../constants/settings'
@@ -56,7 +57,7 @@ const routeTree = makeRouteDefNode({
     [notificationsTab]: {
       component: NotificationsContainer,
     },
-    [deleteMeTab]: {
+    [advancedTab]: {
       component: AdvancedContainer,
       children: {},
     },
