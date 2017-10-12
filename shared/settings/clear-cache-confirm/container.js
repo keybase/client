@@ -10,6 +10,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateUp())
   },
   onClearCache: () => {
+    dispatch(navigateUp())
     dispatch(clearCache())
   },
 })
