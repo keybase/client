@@ -1,14 +1,14 @@
 // @flow
 import {navigateAppend} from '../../actions/route-tree'
-import {clearCache} from '../../actions/settings'
-import ClearCache from './index'
+import {dbNuke} from '../../actions/settings'
+import DBNuke from './index'
 import {connect} from 'react-redux'
 
 const mapStateToProps = () => ({})
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onClearCache: () => {
-    dispatch(navigateAppend(['clearCacheConfirm']))
+  onDBNuke: () => {
+    dispatch(navigateAppend(['dbNukeConfirm']))
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(ClearCache)
+export default connect(mapStateToProps, mapDispatchToProps)(DBNuke)

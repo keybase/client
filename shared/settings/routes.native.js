@@ -15,7 +15,7 @@ import Passphrase from './passphrase/container'
 
 import About from './about-container'
 import NotificationsContainer from './notifications/container'
-import ClearCacheConfirm from './clear-cache-confirm/container'
+import DBNukeConfirm from './db-nuke-confirm/container'
 import DeleteContainer from './delete/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import DeleteConfirm from './delete-confirm/container'
@@ -63,7 +63,7 @@ const routeTree = makeRouteDefNode({
       component: AdvancedContainer,
       children: {
         clearCacheConfirm: {
-          component: ClearCacheConfirm,
+          component: DBNukeConfirm,
           tags: {modal: true},
         },
       },

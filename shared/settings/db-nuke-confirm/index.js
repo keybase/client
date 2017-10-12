@@ -5,10 +5,10 @@ import {Box, Button, Text} from '../../common-adapters'
 
 export type Props = {
   onCancel: () => void,
-  onClearCache: () => void,
+  onDBNuke: () => void,
 }
 
-function ClearCacheConfirm(props: Props) {
+function DBNukeConfirm(props: Props) {
   return (
     <Box
       style={{
@@ -28,11 +28,11 @@ function ClearCacheConfirm(props: Props) {
           style={{margin: 0, marginLeft: globalMargins.tiny}}
           type="Danger"
           label="Yes, blow it away"
-          onClick={props.onClearCache}
+          onClick={props.onDBNuke}
         />
       </Box>
     </Box>
   )
 }
 
-export default ClearCacheConfirm
+export default DBNukeConfirm

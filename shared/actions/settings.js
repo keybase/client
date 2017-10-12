@@ -69,8 +69,8 @@ function setAllowDeleteAccount(allow: boolean): Constants.SetAllowDeleteAccount 
   return {type: Constants.setAllowDeleteAccount, payload: allow}
 }
 
-function clearCache(): Constants.ClearCache {
-  return {type: Constants.clearCache, payload: undefined}
+function dbNuke(): Constants.DBNuke {
+  return {type: Constants.dbNuke, payload: undefined}
 }
 
 function deleteAccountForever(): Constants.DeleteAccountForever {
@@ -413,7 +413,7 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   })
 }
 
-function* clearCacheSaga(): SagaGenerator<any, any> {
+function* dbNukeSaga(): SagaGenerator<any, any> {
   yield call(RPCTypes.ctlDbNukeRpcPromise)
 }
 
@@ -444,7 +444,7 @@ function* settingsSaga(): SagaGenerator<any, any> {
   yield safeTakeEvery(Constants.invitesSend, sendInviteSaga)
   yield safeTakeLatest(Constants.notificationsRefresh, refreshNotificationsSaga)
   yield safeTakeLatest(Constants.notificationsToggle, toggleNotificationsSaga)
-  yield safeTakeLatest(Constants.clearCache, clearCacheSaga)
+  yield safeTakeLatest(Constants.dbNuke, dbNukeSaga)
   yield safeTakeLatest(Constants.deleteAccountForever, deleteAccountForeverSaga)
   yield safeTakeLatest(Constants.loadSettings, loadSettingsSaga)
   yield safeTakeEvery(Constants.onSubmitNewEmail, _onSubmitNewEmail)
@@ -453,7 +453,7 @@ function* settingsSaga(): SagaGenerator<any, any> {
 }
 
 export {
-  clearCache,
+  dbNuke,
   deleteAccountForever,
   invitesReclaim,
   invitesRefresh,

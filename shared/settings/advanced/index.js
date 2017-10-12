@@ -4,10 +4,10 @@ import {globalStyles, globalMargins} from '../../styles'
 import {Box, Button, Text} from '../../common-adapters'
 
 type Props = {
-  onClearCache: () => void,
+  onDBNuke: () => void,
 }
 
-function ClearCache(props: Props) {
+function DBNuke(props: Props) {
   return (
     <Box
       style={{
@@ -26,11 +26,11 @@ function ClearCache(props: Props) {
         style={{marginTop: globalMargins.small}}
         type="Danger"
         label="Clear cache"
-        onClick={props.onClearCache}
+        onClick={props.onDBNuke}
       />
       <Box style={{flex: 1}} />
     </Box>
   )
 }
 
-export default ClearCache
+export default DBNuke
