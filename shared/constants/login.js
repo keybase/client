@@ -69,6 +69,9 @@ export type SetTextCode = NoErrorTypedAction<'login:setTextCode', {textCode: Hid
 export const setQRCode = 'login:setQRCode'
 export type SetQRCode = NoErrorTypedAction<'login:setQRCode', {qrCode: HiddenString}>
 
+export const clearQRCode = 'login:clearQRCode'
+export type ClearQRCode = NoErrorTypedAction<'login:clearQRCode', {}>
+
 export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
 export type SetOtherDeviceCodeState = NoErrorTypedAction<'login:setOtherDeviceCodeState', DeviceRole>
 
