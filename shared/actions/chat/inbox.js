@@ -107,17 +107,6 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(
       EntityCreators.replaceEntity(
-        ['inbox'],
-        I.Map(
-          conversations.reduce((map, c) => {
-            map[c.conversationIDKey] = c
-            return map
-          }, {})
-        )
-      )
-    )
-    yield put(
-      EntityCreators.replaceEntity(
         ['inboxUntrustedState'],
         I.Map(
           conversations.reduce((map, c) => {
@@ -277,16 +266,16 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   }
 
   if (inboxState) {
-    yield put(Creators.updateInbox(inboxState))
+    yield put(EntityCreators.replaceEntity(['inbox'], I.Map({[inboxState.conversationIDKey]: inboxState})))
 
     if (!isBigTeam) {
       // inbox loaded so rekeyInfo is now clear
-      yield put(Creators.clearRekey(inboxState.get('conversationIDKey')))
+      yield put(Creators.clearRekey(inboxState.conversationIDKey))
     }
 
     // Try and load messages if the updated item is the selected one
     const selectedConversation = yield select(Constants.getSelectedConversation)
-    if (selectedConversation === inboxState.get('conversationIDKey')) {
+    if (selectedConversation === inboxState.conversationIDKey) {
       // load validated selected
       yield put(Creators.loadMoreMessages(selectedConversation, true))
     }
@@ -334,7 +323,7 @@ function* _chatInboxFailedSubSaga(params) {
 
   yield put(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'error'})))
   yield put(Creators.updateSnippet(conversationIDKey, new HiddenString(error.message)))
-  yield put(Creators.updateInbox(conversation))
+  yield put(EntityCreators.replaceEntity(['inbox'], I.Map({[conversationIDKey]: conversation})))
 
   // Mark the conversation as read, to avoid a state where there's a
   // badged conversation that can't be unbadged by clicking on it.

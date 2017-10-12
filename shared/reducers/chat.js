@@ -147,18 +147,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:updatedMetadata':
       return state.set('metaData', state.get('metaData').merge(action.payload.updated))
-    // // TODO
-    // case 'chat:updateInbox':
-    // const convo: Constants.InboxState = action.payload.conversation
-    // const toFind = convo.get('conversationIDKey')
-    // const oldInbox = state.get('inbox')
-    // const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
-    // let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
-    // If the convo's just been blocked, delete it from the inbox.
-    // if (existing && ['blocked', 'reported'].includes(convo.get('status'))) {
-    // updatedInbox = updatedInbox.delete(existing[0])
-    // }
-    // return state.set('inbox', updatedInbox)
     case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')

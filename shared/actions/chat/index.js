@@ -1210,9 +1210,18 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   const items = Shared.makeInboxStateRecords(author, convs, I.Map())
 
+  yield put(
+    EntityCreators.replaceEntity(
+      ['inbox'],
+      I.Map(
+        items.reduce((map, c) => {
+          map[c.conversationIDKey] = c
+          return map
+        }, {})
+      )
+    )
+  )
   const convIDs = items.map(item => item.conversationIDKey)
-  const updateActions = items.map(item => put(Creators.updateInbox(item)))
-  yield all(updateActions)
   yield put(Creators.unboxConversations(convIDs, true, true))
 
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -1236,6 +1245,7 @@ function* _openConversation({
 }: Constants.OpenConversation): SagaGenerator<any, any> {
   const untrustedState = yield select(state => state.entities.inboxUntrustedState)
   if (untrustedState.get(conversationIDKey) !== 'unboxed') {
+    // TODO nojima select broken here
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
     const raceResult: {[key: string]: any} = yield race({
       updateInbox: take(

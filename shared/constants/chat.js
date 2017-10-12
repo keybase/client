@@ -596,7 +596,6 @@ export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',
   {finalizedState: FinalizedState}
 >
-export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInboxRekeyOthers = NoErrorTypedAction<
   'chat:updateInboxRekeyOthers',
@@ -790,7 +789,6 @@ export type Actions =
   | StartConversation
   | UpdateBadging
   | UpdateBrokenTracker
-  | UpdateInbox
   | UpdateInboxComplete
   | UpdateLatestMessage
   | UpdateMetadata

@@ -265,10 +265,6 @@ function updateSupersededByState(
   }
 }
 
-function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox {
-  return {payload: {conversation}, type: 'chat:updateInbox'}
-}
-
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
   paginationNext: string
@@ -700,7 +696,6 @@ export {
   updateBadging,
   updateBrokenTracker,
   updateFinalizedState,
-  updateInbox,
   updateInboxComplete,
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
