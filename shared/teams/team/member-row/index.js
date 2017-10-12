@@ -14,24 +14,24 @@ export type Props = {
 }
 
 type TypeMap = {
-  admins: string | boolean,
-  owners: string | boolean,
-  readers: string | boolean,
-  writers: string | boolean,
+  admin: string | boolean,
+  owner: string | boolean,
+  reader: string | boolean,
+  writer: string | boolean,
 }
 
 const typeToLabel: TypeMap = {
-  admins: 'Admin',
-  owners: 'Owner',
-  readers: 'Reader',
-  writers: 'Writer',
+  admin: 'Admin',
+  owner: 'Owner',
+  reader: 'Reader',
+  writer: 'Writer',
 }
 
 const showCrown: TypeMap = {
-  admins: true,
-  owners: true,
-  readers: false,
-  writers: false,
+  admin: true,
+  owner: true,
+  reader: false,
+  writer: false,
 }
 
 export const TeamMemberRow = (props: Props) => {

@@ -141,7 +141,7 @@ class Team extends React.PureComponent<Props> {
     } = this.props
 
     const me = members.find(member => member.username === you)
-    const admin = me ? me.type === 'admins' || me.type === 'owners' : false
+    const admin = me ? me.type === 'admin' || me.type === 'owner' : false
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
