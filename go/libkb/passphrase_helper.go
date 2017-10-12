@@ -4,23 +4,38 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(g)
-	arg.WindowTitle = "Keybase passphrase"
-	arg.Type = keybase1.PassphraseType_PASS_PHRASE
-	arg.Username = username
-	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
-	arg.RetryLabel = retryMsg
-	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
-	if err != nil {
-		return res, err
+	resCh := make(chan keybase1.GetPassphraseRes)
+	errCh := make(chan error)
+	go func() {
+		arg := DefaultPassphraseArg(g)
+		arg.WindowTitle = "Keybase passphrase"
+		arg.Type = keybase1.PassphraseType_PASS_PHRASE
+		arg.Username = username
+		arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (%d+ characters)", username, MinPassphraseLength)
+		arg.RetryLabel = retryMsg
+		res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+		if err != nil {
+			errCh <- err
+			return
+		}
+		res.StoreSecret = true
+		resCh <- res
+	}()
+
+	select {
+	case res := <-resCh:
+		return res, nil
+	case err := <-errCh:
+		return keybase1.GetPassphraseRes{}, err
+	case <-time.After(3 * time.Minute):
+		return keybase1.GetPassphraseRes{}, TimeoutError{}
 	}
-	res.StoreSecret = true
-	return res, nil
 }
 
 func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
