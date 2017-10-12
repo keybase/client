@@ -36,9 +36,11 @@ type DispatchProps = {
   // TODO remove member
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {username, navigateAppend, navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
   onOpenProfile: () => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+    isMobile
+      ? dispatch(showUserProfile(routeProps.get('username')))
+      : dispatch(getProfile(routeProps.get('username'), true, true))
   },
   _onEditMembership: (name: string, username: string) =>
     dispatch(
