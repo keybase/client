@@ -2,7 +2,7 @@
 /* eslint-env jest */
 
 import routeTreeReducer from '../route-tree'
-import {State} from '../../constants/route-tree'
+import {makeState} from '../../constants/route-tree'
 import {makeRouteDefNode, routeSetProps, routeNavigate} from '../../route-tree'
 import {navigateAppend, navigateUp} from '../../actions/route-tree'
 
@@ -43,7 +43,7 @@ describe('routeTree reducer', () => {
       const routeState = routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>))
 
       const action = navigateUp()
-      const newState = routeTreeReducer(new State({routeDef, routeState}), action)
+      const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo']: Array<string>)))
     })
@@ -55,7 +55,7 @@ describe('routeTree reducer', () => {
       const routeState = routeSetProps(routeDef, null, (['foo']: Array<string>))
 
       const action = navigateAppend(['bar'])
-      const newState = routeTreeReducer(new State({routeDef, routeState}), action)
+      const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(routeSetProps(routeDef, null, (['foo', 'bar']: PropsPath<*>)))
     })
@@ -66,7 +66,7 @@ describe('routeTree reducer', () => {
       const routeState = routeNavigate(routeDef, routeStatePre, (['etc']: Array<string>))
 
       const action = navigateAppend(['baz'], ['foo'])
-      const newState = routeTreeReducer(new State({routeDef, routeState}), action)
+      const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       const expectedStatePre = routeSetProps(routeDef, null, (['foo', 'bar', 'baz']: PropsPath<*>))
       const expectedState = routeNavigate(routeDef, expectedStatePre, (['etc']: Array<string>))
@@ -92,7 +92,7 @@ describe('routeTree reducer', () => {
       const routeState = routeSetProps(routeDef, null, [])
 
       const action = navigateAppend(['baz'], ['foo', 'bar'])
-      const newState = routeTreeReducer(new State({routeDef, routeState}), action)
+      const newState = routeTreeReducer(makeState({routeDef, routeState}), action)
       expect(newState.routeDef).toBe(routeDef)
       expect(newState.routeState).toEqual(
         routeSetProps(routeDef, null, (['baz']: Array<string>), ['foo', 'bar'])
