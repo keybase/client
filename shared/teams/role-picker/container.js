@@ -60,7 +60,7 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
     allowOwner: yourInfo && yourInfo.type === 'owners',
     onComplete,
     showSendNotification,
-    currentType: user && user.type && user.type.substring(0, user.type.length - 1), // de-pluralize
+    currentType: user && user.type,
   }
 }
 
