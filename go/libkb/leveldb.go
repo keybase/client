@@ -162,7 +162,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 	// we should at least try instead of auto returning LevelDBOpenClosederror.
 	if err != nil {
 		l.Lock()
-		if l.db != nil {
+		if l.db == nil {
 			l.G().Log.Debug("LevelDb: doWhileOpenAndNukeIfCorrupted: resetting sync one: %s", err)
 			l.dbOpenerOnce = new(sync.Once)
 		}
