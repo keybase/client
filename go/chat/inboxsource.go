@@ -51,9 +51,8 @@ func newBaseLocalizer(g *globals.Context) *baseLocalizer {
 
 func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inbox) (res types.Inbox) {
 	username := b.G().Env.GetUsername().String()
-	res.Convs = inbox.Convs
-	res.Pagination = inbox.Pagination
-	res.Version = inbox.Version
+	res = inbox
+	res.ConvsUnverified = nil
 	for _, conv := range inbox.ConvsUnverified {
 		if conv.Conv.GetFinalizeInfo() != nil && conv.Conv.GetFinalizeInfo().ResetUser == username {
 			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
