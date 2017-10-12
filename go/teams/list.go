@@ -278,7 +278,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 	err = group.Wait()
 
-	if arg.All {
+	if arg.All && len(res.Teams) != 0 {
 		tracer.Stage("FillUsernames")
 
 		err := fillUsernames(ctx, g, res)
