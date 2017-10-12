@@ -26,7 +26,7 @@ func NewCmdChatListChannelsRunner(g *libkb.GlobalContext) *CmdChatListChannels {
 func newCmdChatListChannels(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list-channels",
-		Usage:        "List on channels on a team",
+		Usage:        "List of channels on a team",
 		ArgumentHelp: "<team name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatListChannelsRunner(g), "list-channels", c)
