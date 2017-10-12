@@ -123,7 +123,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			l.db, err = leveldb.OpenFile(fn, l.Opts())
 			if err != nil {
 				if _, ok := err.(*errors.ErrCorrupted); ok {
-					l.G().Log.Debug("| LevelDB was corrupted; attempting recovery (%v)", err)
+					l.G().Log.Debug("| LevelDb was corrupted; attempting recovery (%v)", err)
 					l.db, err = leveldb.RecoverFile(fn, nil)
 					if err != nil {
 						l.G().Log.Debug("| Recovery failed: %v", err)
@@ -158,7 +158,14 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 	// without resetting `dbOpenerOcce` (i.e. next call into LevelDb would result
 	// in a LevelDBOpenClosedError), because if DB open fails, retrying it
 	// wouldn't help. We should find the root cause and deal with it.
-
+	// MM: 10/12/2017: I am changing the above policy. I am not so sure retrying it won't help,
+	// we should at least try instead of auto returning LevelDBOpenClosederror. See above.
+	if err != nil {
+		l.Lock()
+		l.G().Log.Debug("LevelDb: doWhileOpenAndNukeIfCorrupted: resetting sync one: %s", err)
+		l.dbOpenerOnce = new(sync.Once)
+		l.Unlock()
+	}
 	return err
 }
 
