@@ -671,14 +671,14 @@ func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 }
 
 type ChatInboxConversationArg struct {
-	SessionID int         `codec:"sessionID" json:"sessionID"`
-	Conv      InboxUIItem `codec:"conv" json:"conv"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Conv      string `codec:"conv" json:"conv"`
 }
 
 func (o ChatInboxConversationArg) DeepCopy() ChatInboxConversationArg {
 	return ChatInboxConversationArg{
 		SessionID: o.SessionID,
-		Conv:      o.Conv.DeepCopy(),
+		Conv:      o.Conv,
 	}
 }
 

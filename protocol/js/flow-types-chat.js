@@ -2084,7 +2084,7 @@ export type chatUiChatConfirmChannelDeleteRpcParam = Exact<{
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
-  conv: InboxUIItem
+  conv: string
 }>
 
 export type chatUiChatInboxFailedRpcParam = Exact<{
@@ -2627,7 +2627,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatInboxConversation'?: (
     params: Exact<{
       sessionID: int,
-      conv: InboxUIItem
+      conv: string
     }>,
     response: CommonResponseHandler
   ) => void,

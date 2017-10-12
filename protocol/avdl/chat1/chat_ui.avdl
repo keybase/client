@@ -126,7 +126,7 @@ protocol chatUi {
   void chatAttachmentDownloadDone(int sessionID);
 
   void chatInboxUnverified(int sessionID, string inbox);
-  void chatInboxConversation(int sessionID, InboxUIItem conv);
+  void chatInboxConversation(int sessionID, string conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;

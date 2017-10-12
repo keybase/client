@@ -341,7 +341,8 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
 const _chatInboxToProcess = []
 
 function* _chatInboxConversationSubSaga({conv}) {
-  _chatInboxToProcess.push(conv)
+  const pconv = JSON.parse(conv)
+  _chatInboxToProcess.push(pconv)
   yield put(Creators.unboxMore())
   return EngineRpc.rpcResult()
 }

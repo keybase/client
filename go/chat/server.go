@@ -265,10 +265,17 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 			} else if convRes.ConvRes != nil {
 				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
 					convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded())
-				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
-					SessionID: arg.SessionID,
-					Conv:      utils.PresentConversationLocal(*convRes.ConvRes),
-				})
+				pconv := utils.PresentConversationLocal(*convRes.ConvRes)
+				jbody, err := json.Marshal(pconv)
+				if err != nil {
+					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
+						err.Error())
+				} else {
+					chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
+						SessionID: arg.SessionID,
+						Conv:      string(jbody),
+					})
+				}
 				convLocalsCh <- *convRes.ConvRes
 
 				// Send a note to the retrier that we actually loaded this guy successfully
