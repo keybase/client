@@ -108,13 +108,6 @@ function pendingToRealConversation(
   return {payload: {newKey, oldKey}, type: 'chat:pendingToRealConversation'}
 }
 
-function replaceConversation(
-  oldKey: Constants.ConversationIDKey,
-  newKey: Constants.ConversationIDKey
-): Constants.ReplaceConversation {
-  return {payload: {newKey, oldKey}, type: 'chat:replaceConversation'}
-}
-
 function updateBadging(conversationIDKey: Constants.ConversationIDKey): Constants.UpdateBadging {
   return {payload: {conversationIDKey}, type: 'chat:updateBadging'}
 }
@@ -672,7 +665,6 @@ export {
   prependMessages,
   removeOutboxMessage,
   removeTempPendingConversations,
-  replaceConversation,
   retryAttachment,
   retryMessage,
   saveAttachment,

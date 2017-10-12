@@ -1,16 +1,12 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as Creators from './creators'
+import * as EntityCreators from '../entities'
 import * as I from 'immutable'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
-import {
-  pendingToRealConversation,
-  replaceConversation,
-  selectConversation,
-  unboxConversations,
-} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
@@ -103,18 +99,19 @@ function* startNewConversation(
 
   // Replace any existing convo
   if (pendingTlfName) {
-    yield put(pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
+    yield put(Creators.pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
   } else if (oldConversationIDKey !== newConversationIDKey) {
-    yield put(replaceConversation(oldConversationIDKey, newConversationIDKey))
+    yield put(EntityCreators.deleteEntity(['inbox'], I.List([oldConversationIDKey])))
+    yield put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([oldConversationIDKey])))
   }
 
   // Select the new version if the old one was selected
   const selectedConversation = yield select(Constants.getSelectedConversation)
   if (selectedConversation === oldConversationIDKey) {
-    yield put(selectConversation(newConversationIDKey, false))
+    yield put(Creators.selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield put(unboxConversations([newConversationIDKey]))
+  yield put(Creators.unboxConversations([newConversationIDKey]))
   return [newConversationIDKey, tlfName]
 }
 

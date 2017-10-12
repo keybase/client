@@ -78,7 +78,9 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
         conversationIsError = true
         conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)
       }
-      showLoader = !(selected && untrustedState === 'unboxed') || conversationState.isRequesting
+      showLoader =
+        (!Constants.isPendingConversationIDKey(selectedConversationIDKey) && untrustedState !== 'unboxed') ||
+        conversationState.isRequesting
       threadLoadedOffline = conversationState.loadedOffline
     }
   }
