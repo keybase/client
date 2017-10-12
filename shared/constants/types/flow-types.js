@@ -83,6 +83,7 @@ export const CommonDeviceType = {
 
 export const CommonFullNamePackageVersion = {
   v0: 0,
+  v1: 1,
 }
 
 export const CommonLogLevel = {
@@ -3321,11 +3322,13 @@ export type FullName = string
 export type FullNamePackage = {
   version: FullNamePackageVersion,
   fullName: FullName,
+  eldestSeqno: Seqno,
   cachedAt: Time,
 }
 
 export type FullNamePackageVersion =
     0 // V0_0
+  | 1 // V1_1
 
 export type FuseMountInfo = {
   path: string,
