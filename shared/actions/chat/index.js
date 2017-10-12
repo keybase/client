@@ -1266,8 +1266,40 @@ function _exitSearch(
 }
 
 const _setNotifications = function*(action: Constants.SetNotifications) {
-  const {payload: {conversationIDKey}} = action
-  // Send the new post-reducer setNotifications structure to the service.
+  const {payload: {conversationIDKey, deviceType, notifyType}} = action
+
+  // update the one in the store
+  const old = yield select(s => s.entities.inbox.get(conversationIDKey))
+  if (old) {
+    const nextNotifications = {[deviceType]: {}}
+    // This is the flip-side of the logic in the notifications container.
+    if (old.notifications && old.notifications[deviceType]) {
+      switch (notifyType) {
+        case 'generic':
+          nextNotifications[deviceType].generic = true
+          nextNotifications[deviceType].atmention = true
+          break
+        case 'atmention':
+          nextNotifications[deviceType].generic = false
+          nextNotifications[deviceType].atmention = true
+          break
+        case 'never':
+          nextNotifications[deviceType].generic = false
+          nextNotifications[deviceType].atmention = false
+          break
+      }
+    }
+    yield put(
+      EntityCreators.replaceEntity(
+        ['inbox', conversationIDKey],
+        old.set('notifications', {
+          ...old.notifications,
+          ...nextNotifications,
+        })
+      )
+    )
+  }
+
   const inbox = yield select(Constants.getInbox, conversationIDKey)
   if (inbox && inbox.notifications) {
     const {notifications} = inbox
