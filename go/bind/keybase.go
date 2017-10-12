@@ -105,13 +105,14 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		return err
 	}
 	config := libkb.AppConfig{
-		HomeDir:                     homeDir,
-		LogFile:                     logFile,
-		RunMode:                     runMode,
-		Debug:                       true,
-		LocalRPCDebug:               "",
-		VDebugSetting:               "mobile", // use empty string for same logging as desktop default
-		SecurityAccessGroupOverride: accessGroupOverride,
+		HomeDir:                        homeDir,
+		LogFile:                        logFile,
+		RunMode:                        runMode,
+		Debug:                          true,
+		LocalRPCDebug:                  "",
+		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
+		SecurityAccessGroupOverride:    accessGroupOverride,
+		ChatInboxSourceLocalizeThreads: 1,
 	}
 	err = kbCtx.Configure(config, usage)
 	if err != nil {

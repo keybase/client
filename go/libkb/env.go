@@ -88,7 +88,7 @@ func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)               
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                                { return 0, false }
-
+func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)                 { return 1, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -1006,10 +1006,12 @@ func (e *Env) GetInboxSourceType() string {
 	)
 }
 
-func (e *Env) GetInboxSourceLocalizeThreads() int {
+func (e *Env) GetChatInboxSourceLocalizeThreads() int {
 	return e.GetInt(
 		10,
+		e.cmd.GetChatInboxSourceLocalizeThreads,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_INBOX_SOURCE_LOCALIZE_THREADS") },
+		e.config.GetChatInboxSourceLocalizeThreads,
 	)
 }
 
@@ -1120,14 +1122,15 @@ func (e *Env) GetStoredSecretServiceName() string {
 
 type AppConfig struct {
 	NullConfiguration
-	HomeDir                     string
-	LogFile                     string
-	RunMode                     RunMode
-	Debug                       bool
-	LocalRPCDebug               string
-	ServerURI                   string
-	VDebugSetting               string
-	SecurityAccessGroupOverride bool
+	HomeDir                        string
+	LogFile                        string
+	RunMode                        RunMode
+	Debug                          bool
+	LocalRPCDebug                  string
+	ServerURI                      string
+	VDebugSetting                  string
+	SecurityAccessGroupOverride    bool
+	ChatInboxSourceLocalizeThreads int
 }
 
 var _ CommandLine = AppConfig{}
@@ -1166,6 +1169,10 @@ func (c AppConfig) GetAppType() AppType {
 
 func (c AppConfig) GetVDebugSetting() string {
 	return c.VDebugSetting
+}
+
+func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
+	return c.ChatInboxSourceLocalizeThreads, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

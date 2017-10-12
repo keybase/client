@@ -83,11 +83,6 @@
             value = "disable"
             isEnabled = "YES">
          </EnvironmentVariable>
-         <EnvironmentVariable
-            key = "KEYBASE_INBOX_SOURCE_LOCALIZE_THREADS"
-            value = "1"
-            isEnabled = "YES">
-         </EnvironmentVariable>
       </EnvironmentVariables>
       <AdditionalOptions>
       </AdditionalOptions>

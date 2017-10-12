@@ -832,7 +832,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		}
 		return nil
 	})
-	nthreads := s.G().Env.GetInboxSourceLocalizeThreads()
+	nthreads := s.G().Env.GetChatInboxSourceLocalizeThreads()
 	s.Debug(ctx, "pipeline: using %d threads", nthreads)
 	for i := 0; i < nthreads; i++ {
 		eg.Go(func() error {
