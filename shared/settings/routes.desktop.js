@@ -14,6 +14,7 @@ import LandingContainer from './landing/container'
 import UpdatePayment from './payment/container'
 import InvitationsContainer from './invites/container'
 import NotificationsContainer from './notifications/container'
+import ClearCacheConfirm from './clear-cache-confirm/container'
 import DeleteContainer from './delete/container'
 import DeleteConfirm from './delete-confirm/container'
 import AdvancedContainer from './advanced/container'
@@ -59,7 +60,12 @@ const routeTree = makeRouteDefNode({
     },
     [advancedTab]: {
       component: AdvancedContainer,
-      children: {},
+      children: {
+        clearCacheConfirm: {
+          component: ClearCacheConfirm,
+          tags: {modal: true},
+        },
+      },
     },
     [deleteMeTab]: {
       component: DeleteContainer,
