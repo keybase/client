@@ -160,9 +160,9 @@ class Inbox extends PureComponent<Props, State> {
 
     const [first, end] = this._list.getVisibleRange()
     if (typeof first === 'number') {
-      const rows = this.props.rows.slice(first, end).filter(r => r.type === 'small' && r.conversationIDKey)
+      const toUnbox = this.props.rows.slice(first, end).filter(r => r.type === 'small' && r.conversationIDKey)
       // $FlowIssue doesn't understand that we filtered out the nulls
-      this.props.onUntrustedInboxVisible(rows.map(r => r.conversationIDKey))
+      this.props.onUntrustedInboxVisible(toUnbox.map(r => r.conversationIDKey))
     }
   }, 200)
 

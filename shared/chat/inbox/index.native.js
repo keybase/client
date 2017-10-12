@@ -14,7 +14,7 @@ import ChatFilterRow from './row/chat-filter-row'
 import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
 import debounce from 'lodash/debounce'
 
-import type {Props} from './'
+import type {Props, RowItem} from './'
 
 const NoChats = () => (
   <Box
@@ -97,11 +97,10 @@ class Inbox extends React.PureComponent<Props, State> {
     }
   }
 
-  _askForUnboxing = (row: any, count: number) => {
-    const {conversationIDKey} = row
-    if (conversationIDKey) {
-      this.props.onUntrustedInboxVisible(conversationIDKey, count)
-    }
+  _askForUnboxing = (rows: Array<RowItem>) => {
+    const toUnbox = rows.filter(r => r.type === 'small' && r.conversationIDKey)
+    // $FlowIssue doesn't understand that we filtered out the nulls
+    this.props.onUntrustedInboxVisible(toUnbox.map(r => r.conversationIDKey))
   }
 
   _onViewChanged = data => {
@@ -138,13 +137,13 @@ class Inbox extends React.PureComponent<Props, State> {
     const {viewableItems} = data
     const item = viewableItems && viewableItems[0]
     if (item && item.index) {
-      this._askForUnboxing(item.item, viewableItems.length)
+      this._askForUnboxing(viewableItems)
     }
   }, 1000)
 
   componentDidMount() {
     if (this.props.rows.length) {
-      this._askForUnboxing(this.props.rows[0], 30)
+      this._askForUnboxing(this.props.rows.slice(0, 30))
     }
   }
 
