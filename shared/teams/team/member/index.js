@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../../constants/teams'
-import {Avatar, Box, Text, Button, Icon} from '../../../common-adapters'
+import {Avatar, Box, ProgressIndicator, Text, Button, Icon} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
 
 export type Props = {
   admin: boolean,
+  loading: boolean,
   user: Constants.MemberInfo,
   teamname: string,
   you: ?Constants.MemberInfo,
@@ -24,7 +25,7 @@ const roleIconMap = {
 }
 
 export const TeamMember = (props: Props) => {
-  const {admin, user, teamname, onOpenProfile, onChat, onEditMembership} = props
+  const {admin, loading, user, teamname, onOpenProfile, onChat, onEditMembership} = props
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginBottom: globalMargins.large}}>
@@ -55,10 +56,15 @@ export const TeamMember = (props: Props) => {
             size={64}
           />
         </Box>
+        <Box
+          style={{...globalStyles.flexBoxRow, alignItems: 'center', margin: globalMargins.small, height: 20}}
+        >
+          {loading && <ProgressIndicator style={{alignSelf: 'center', width: 20, height: 20}} />}
+        </Box>
         <Text type="Header">{user.username}</Text>
         <Text type="BodySmall">{user.type} in {teamname}</Text>
       </Box>
-      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.large}}>
         {admin && <Button type="Secondary" label="Edit" onClick={onEditMembership} />}
         <Button type="Primary" style={{marginLeft: globalMargins.tiny}} label="Chat" onClick={onChat} />
         <Button

@@ -17,10 +17,12 @@ type StateProps = {
   _you: ?string,
   _username: string,
   _memberInfo: I.Set<Constants.MemberInfo>,
+  loading: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
   teamname: routeProps.get('teamname'),
+  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
   _username: routeProps.get('username'),
   _you: state.config.username,
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
