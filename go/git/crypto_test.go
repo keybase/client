@@ -126,7 +126,7 @@ func TestCryptoKeyGen(t *testing.T) {
 	boxed.Gen = 2
 	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
 	require.Error(tc.T, err)
-	require.IsType(tc.T, libkb.NotFoundError{}, err)
+	require.Equal(tc.T, "team key generation too low: 1 < 2", err.Error())
 	require.Nil(tc.T, unboxed)
 }
 
