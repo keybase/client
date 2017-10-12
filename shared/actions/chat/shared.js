@@ -157,7 +157,7 @@ function makeInboxStateRecords(
           info: null,
           membersType: c.membersType,
           participants: parts,
-          fullNames: Map(),
+          fullNames: new I.Map(),
           status: Constants.ConversationStatusByEnum[c.status || 0],
           teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
           teamType: c.teamType,
