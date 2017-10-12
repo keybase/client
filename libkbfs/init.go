@@ -557,7 +557,7 @@ func doInit(
 			lg.Configure("", true, "")
 		}
 		return lg
-	}, params.StorageRoot)
+	}, params.StorageRoot, params.EnableDiskCache)
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(

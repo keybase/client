@@ -102,10 +102,11 @@ type ConfigLocal struct {
 	syncedTlfs       map[tlf.ID]bool
 	defaultBlockType keybase1.BlockType
 
-	maxNameBytes uint32
-	maxDirBytes  uint64
-	rekeyQueue   RekeyQueue
-	storageRoot  string
+	maxNameBytes    uint32
+	maxDirBytes     uint64
+	rekeyQueue      RekeyQueue
+	storageRoot     string
+	enableDiskCache bool
 
 	traceLock    sync.RWMutex
 	traceEnabled bool
@@ -314,13 +315,16 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
 func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
-	storageRoot string) *ConfigLocal {
+	storageRoot string, enableDiskCache bool) *ConfigLocal {
 	config := &ConfigLocal{
-		loggerFn:    loggerFn,
-		storageRoot: storageRoot,
-		mode:        mode,
+		loggerFn:        loggerFn,
+		storageRoot:     storageRoot,
+		mode:            mode,
+		enableDiskCache: enableDiskCache,
 	}
-	config.loadSyncedTlfsLocked()
+	if enableDiskCache {
+		config.loadSyncedTlfsLocked()
+	}
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
@@ -1254,7 +1258,7 @@ func (c *ConfigLocal) resetDiskBlockCacheLocked() error {
 func (c *ConfigLocal) MakeDiskBlockCacheIfNotExists() error {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	if c.diskBlockCache != nil {
+	if !c.enableDiskCache || c.diskBlockCache != nil {
 		return nil
 	}
 	return c.resetDiskBlockCacheLocked()
