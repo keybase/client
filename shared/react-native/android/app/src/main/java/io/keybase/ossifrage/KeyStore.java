@@ -3,7 +3,10 @@ package io.keybase.ossifrage;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.util.Base64;
+import android.util.Log;
 
 import org.msgpack.MessagePack;
 
@@ -91,7 +94,17 @@ public class KeyStore implements UnsafeExternalKeyStore {
             throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
         }
 
-        return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+        try {
+            return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+        } catch (InvalidKeyException e) {
+            // Invalid key, this can happen when a user changes their lock screen from something to nothing
+            // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
+                Log.d("KBKeyStore", "Key no longer valid. Deleting entry", e);
+                ks.deleteEntry((keyStoreAlias(serviceName)));
+            }
+            throw e;
+        }
     }
 
     @Override
