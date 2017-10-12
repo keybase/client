@@ -1,14 +1,12 @@
 // @flow
+import {connect, type TypedState} from '../../util/container'
 import React from 'react'
-import {connect} from 'react-redux'
 import {isMobile} from '../../constants/platform'
 import {ProgressIndicator} from '../../common-adapters'
 import SearchResultsList from '.'
 import * as Creators from '../../actions/search/creators'
 import {branch, compose, renderComponent} from 'recompose'
 import {globalMargins} from '../../styles'
-
-import type {TypedState} from '../../constants/reducer'
 
 type OwnProps = {
   searchKey: string,

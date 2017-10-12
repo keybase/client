@@ -2,9 +2,7 @@
 import * as Constants from '../../constants/pgp'
 import React, {Component} from 'react'
 import RemoteComponent from './remote-component'
-import {connect} from 'react-redux'
-
-import type {TypedState} from '../../constants/reducer'
+import {connect, type TypedState} from '../../util/container'
 
 type Props = {
   onClose: () => void,

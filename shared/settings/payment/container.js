@@ -1,14 +1,11 @@
 // @flow
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
+import * as actions from '../../actions/plan-billing'
 import Bootstrapable from '../../util/bootstrapable'
 import HiddenString from '../../util/hidden-string'
-
-import * as actions from '../../actions/plan-billing'
 import Payment from './index'
+import React, {Component} from 'react'
+import {connect, type TypedState} from '../../util/container'
 import {parseExpiration} from '../../constants/plan-billing'
-
-import type {TypedState} from '../../constants/reducer'
 
 type OwnProps = {}
 

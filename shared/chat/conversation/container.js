@@ -6,14 +6,19 @@ import HiddenString from '../../util/hidden-string'
 import Conversation from './index'
 import NoConversation from './no-conversation'
 import Rekey from './rekey/container'
-import pausableConnect from '../../util/pausable-connect'
 import {getProfile} from '../../actions/tracker'
-import {withState, withHandlers, compose, branch, renderNothing, renderComponent} from 'recompose'
+import {
+  pausableConnect,
+  withState,
+  withHandlers,
+  compose,
+  branch,
+  renderComponent,
+  type TypedState,
+} from '../../util/container'
 import ConversationError from './error/conversation-error'
+import {type Props} from '.'
 import flags from '../../util/feature-flags'
-
-import type {Props} from '.'
-import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {|
   finalizeInfo: ?Constants.FinalizeInfo,
@@ -142,9 +147,10 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
 export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  branch((props: Props) => !props.selectedConversationIDKey && !props.inSearch, renderNothing),
   branch(
-    (props: Props) => props.selectedConversationIDKey === Constants.nothingSelected && !props.inSearch,
+    (props: Props) =>
+      (props.selectedConversationIDKey === Constants.nothingSelected || !props.selectedConversationIDKey) &&
+      !props.inSearch,
     renderComponent(NoConversation)
   ),
   // Ordering of branch() is important here -- rekey should come before error.

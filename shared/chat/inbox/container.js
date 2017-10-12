@@ -1,15 +1,20 @@
 // @flow
 import * as Constants from '../../constants/chat'
+import * as Inbox from '.'
 import * as Creators from '../../actions/chat/creators'
 import * as I from 'immutable'
-import * as Inbox from '.'
-import createImmutableEqualSelector from '../../util/create-immutable-equal-selector'
-import pausableConnect from '../../util/pausable-connect'
+import {
+  pausableConnect,
+  compose,
+  lifecycle,
+  withState,
+  withHandlers,
+  createSelector,
+  createImmutableEqualSelector,
+  type TypedState,
+} from '../../util/container'
 import throttle from 'lodash/throttle'
-import {compose, lifecycle, withState, withHandlers} from 'recompose'
-import {createSelector} from 'reselect'
 import {scoreFilter, passesStringFilter} from './filtering'
-import {type TypedState} from '../../constants/reducer'
 
 const smallTeamsCollapsedMaxShown = 5
 const getAlwaysShow = (state: TypedState) => state.entities.get('inboxAlwaysShow')
@@ -202,8 +207,8 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRouteState}) => ({
-  _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
   loadInbox: () => dispatch(Creators.loadInbox()),
+  _onSelectNext: (rows, direction) => dispatch(Creators.selectNext(rows, direction)),
   onHotkey: cmd => {
     if (cmd.endsWith('+n')) {
       dispatch(Creators.newChat())

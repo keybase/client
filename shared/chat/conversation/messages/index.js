@@ -64,7 +64,7 @@ const factory = (
       return null
   }
 
-  return <Box data-messageKey={messageKey} />
+  return <Box data-message-key={messageKey} />
 }
 
 export default factory

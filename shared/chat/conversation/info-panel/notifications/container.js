@@ -2,12 +2,9 @@
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import Notifications from '.'
-import {connect} from 'react-redux'
-import {compose, branch, renderNothing} from 'recompose'
-
-import type {DeviceType} from '../../../../constants/types/more'
-import type {TypedState} from '../../../../constants/reducer'
-import type {StateProps, DispatchProps} from './container'
+import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
+import {type DeviceType} from '../../../../constants/types/more'
+import {type StateProps, type DispatchProps} from './container'
 
 const serverStateToProps = (notifications: Constants.NotificationsState, type: 'desktop' | 'mobile') => {
   // The server state has independent bool values for atmention/generic,
@@ -33,7 +30,15 @@ const mapStateToProps = (state: TypedState) => {
     return {}
   }
   const inbox = Constants.getSelectedInbox(state)
+  if (!inbox) {
+    console.warn('no selected inbox')
+    return {}
+  }
   const notifications = inbox.get('notifications')
+  if (!notifications) {
+    console.warn('no notifications')
+    return {}
+  }
   const desktop = serverStateToProps(notifications, 'desktop')
   const mobile = serverStateToProps(notifications, 'mobile')
   const {channelWide} = notifications

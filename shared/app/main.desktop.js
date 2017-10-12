@@ -1,12 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import RenderRoute from '../route-tree/render-route'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import {ipcRenderer} from 'electron'
 import {navigateUp, setRouteState} from '../actions/route-tree'
-
-import type {RouteDefNode, RouteStateNode, Path} from '../route-tree'
-import type {TypedState} from '../constants/reducer'
+import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
 
 type Props = {
   widgetBadge: boolean,

@@ -7,13 +7,8 @@ import {isMobile} from '../../constants/platform'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
 
-export type MemberRowProps = {
-  ...Constants.MemberInfo,
-}
-
-type RequestRowProps = {
-  ...Constants.RequestInfo,
-}
+export type MemberRowProps = Constants.MemberInfo
+type RequestRowProps = Constants.RequestInfo
 
 export type Props = {
   you: string,
@@ -146,7 +141,7 @@ class Team extends React.PureComponent<Props> {
     } = this.props
 
     const me = members.find(member => member.username === you)
-    const admin = me && (me.type === 'admins' || me.type === 'owners')
+    const admin = me ? me.type === 'admins' || me.type === 'owners' : false
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))

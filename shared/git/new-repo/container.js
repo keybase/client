@@ -3,13 +3,10 @@ import * as Creators from '../../actions/git/creators'
 import * as Constants from '../../constants/git'
 import * as I from 'immutable'
 import NewRepo from '.'
-import {compose, lifecycle, mapProps} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, lifecycle, mapProps, connect, type TypedState} from '../../util/container'
 import {getTeams} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
 import {teamsTab} from '../../constants/tabs'
-
-import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   _teams: state.entities.getIn(['teams', 'teamnames'], I.Set()),

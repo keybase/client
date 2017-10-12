@@ -81,7 +81,7 @@ class BaseList extends React.Component<Props, State> {
     if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
       if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
         const toFind = this.props.messageKeys.get(this._lastRowIdx)
-        this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
+        this._keepIdxVisible = toFind ? nextProps.messageKeys.indexOf(toFind) : -1
       }
       // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has

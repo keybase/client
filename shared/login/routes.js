@@ -1,17 +1,18 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import loginRoutes from './login/routes'
 import signupRoutes from './signup/routes'
 import Intro from './forms/intro'
 import Feedback from '../settings/feedback-container'
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   component: Intro,
   children: {
     feedback: {
       component: Feedback,
-      tags: {hideStatusBar: true, fullscreen: true},
+      tags: makeLeafTags({hideStatusBar: true, fullscreen: true}),
     },
+    // $FlowIssue
     login: loginRoutes,
     signup: signupRoutes,
   },

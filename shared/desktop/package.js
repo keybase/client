@@ -26,15 +26,19 @@ const copySync = (src, target, options) => {
   fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
 }
 
-const argv = minimist(process.argv.slice(2))
+const argv = minimist(process.argv.slice(2), {string: ['appVersion']})
 
 const appName = 'Keybase'
 const shouldUseAsar = argv.asar || argv.a || false
 const shouldBuildAll = argv.all || false
-const shouldBuildAnArch = argv.arch || false
-const appVersion = argv.appVersion || '0.0.0'
-const comment = argv.comment || ''
-const outDir = argv.outDir || ''
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const shouldBuildAnArch: ?string = argv.arch
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const appVersion: string = argv.appVersion || '0.0.0'
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const comment: string = argv.comment || ''
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const outDir: string = argv.outDir || ''
 const appCopyright = 'Copyright (c) 2015, Keybase'
 const companyName = 'Keybase, Inc.'
 

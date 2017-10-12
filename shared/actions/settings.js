@@ -1,116 +1,85 @@
 // @flow
-import * as Constants from '../constants/settings'
 import * as ChatTypes from '../constants/types/flow-types-chat'
+import * as Constants from '../constants/settings'
+import * as RPCTypes from '../constants/types/flow-types'
 import HiddenString from '../util/hidden-string'
-import {
-  apiserverGetWithSessionRpcPromise,
-  apiserverPostRpcPromise,
-  apiserverPostJSONRpcPromise,
-  loginAccountDeleteRpcPromise,
-  accountEmailChangeRpcPromise,
-  accountPassphraseChangeRpcPromise,
-  accountHasServerKeysRpcPromise,
-  userLoadMySettingsRpcPromise,
-} from '../constants/types/flow-types'
-import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import mapValues from 'lodash/mapValues'
 import trim from 'lodash/trim'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {setDeletedSelf} from '../actions/login/creators'
+import {all, call, put, select, fork, cancel} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
+import {navigateAppend, navigateUp} from '../actions/route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
+import {setDeletedSelf} from '../actions/login/creators'
+import {type SagaGenerator} from '../constants/types/saga'
+import {type TypedState} from '../constants/reducer'
 
-import type {
-  DeleteAccountForever,
-  Invitation,
-  InvitesReclaim,
-  InvitesReclaimed,
-  InvitesRefresh,
-  InvitesSend,
-  InvitesSent,
-  LoadSettings,
-  NotificationsRefresh,
-  NotificationsToggle,
-  OnChangeNewEmail,
-  OnChangeNewPassphrase,
-  OnChangeNewPassphraseConfirm,
-  OnChangeShowPassphrase,
-  OnSubmitNewEmail,
-  OnSubmitNewPassphrase,
-  OnUpdatePGPSettings,
-  OnUpdatedPGPSettings,
-  SetAllowDeleteAccount,
-} from '../constants/settings'
-import type {SagaGenerator} from '../constants/types/saga'
-import type {TypedState} from '../constants/reducer'
-
-function onChangeNewPassphrase(passphrase: HiddenString): OnChangeNewPassphrase {
+function onChangeNewPassphrase(passphrase: HiddenString): Constants.OnChangeNewPassphrase {
   return {type: Constants.onChangeNewPassphrase, payload: {passphrase}}
 }
 
-function onChangeNewPassphraseConfirm(passphrase: HiddenString): OnChangeNewPassphraseConfirm {
+function onChangeNewPassphraseConfirm(passphrase: HiddenString): Constants.OnChangeNewPassphraseConfirm {
   return {type: Constants.onChangeNewPassphraseConfirm, payload: {passphrase}}
 }
 
-function onChangeShowPassphrase(): OnChangeShowPassphrase {
+function onChangeShowPassphrase(): Constants.OnChangeShowPassphrase {
   return {type: Constants.onChangeShowPassphrase, payload: undefined}
 }
 
-function onSubmitNewPassphrase(): OnSubmitNewPassphrase {
+function onSubmitNewPassphrase(): Constants.OnSubmitNewPassphrase {
   return {type: Constants.onSubmitNewPassphrase, payload: undefined}
 }
 
-function onChangeNewEmail(email: string): OnChangeNewEmail {
+function onChangeNewEmail(email: string): Constants.OnChangeNewEmail {
   return {type: Constants.onChangeNewEmail, payload: {email}}
 }
 
-function onSubmitNewEmail(): OnSubmitNewEmail {
+function onSubmitNewEmail(): Constants.OnSubmitNewEmail {
   return {type: Constants.onSubmitNewEmail, payload: undefined}
 }
 
-function onUpdatePGPSettings(): OnUpdatePGPSettings {
+function onUpdatePGPSettings(): Constants.OnUpdatePGPSettings {
   return {type: Constants.onUpdatePGPSettings, payload: undefined}
 }
 
-function _onUpdatedPGPSettings(hasKeys: boolean): OnUpdatedPGPSettings {
+function _onUpdatedPGPSettings(hasKeys: boolean): Constants.OnUpdatedPGPSettings {
   return {type: Constants.onUpdatedPGPSettings, payload: {hasKeys}}
 }
 
-function invitesReclaim(inviteId: string): InvitesReclaim {
+function invitesReclaim(inviteId: string): Constants.InvitesReclaim {
   return {type: Constants.invitesReclaim, payload: {inviteId}}
 }
 
-function invitesRefresh(): InvitesRefresh {
+function invitesRefresh(): Constants.InvitesRefresh {
   return {type: Constants.invitesRefresh, payload: undefined}
 }
 
-function invitesSend(email: string, message: ?string): InvitesSend {
+function invitesSend(email: string, message: ?string): Constants.InvitesSend {
   return {type: Constants.invitesSend, payload: {email, message}}
 }
 
-function notificationsRefresh(): NotificationsRefresh {
+function notificationsRefresh(): Constants.NotificationsRefresh {
   return {type: Constants.notificationsRefresh, payload: undefined}
 }
 
-function notificationsToggle(group: string, name?: string): NotificationsToggle {
+function notificationsToggle(group: string, name?: string): Constants.NotificationsToggle {
   return {type: Constants.notificationsToggle, payload: {group, name}}
 }
 
-function setAllowDeleteAccount(allow: boolean): SetAllowDeleteAccount {
+function setAllowDeleteAccount(allow: boolean): Constants.SetAllowDeleteAccount {
   return {type: Constants.setAllowDeleteAccount, payload: allow}
 }
 
-function deleteAccountForever(): DeleteAccountForever {
+function deleteAccountForever(): Constants.DeleteAccountForever {
   return {type: Constants.deleteAccountForever, payload: undefined}
 }
 
-function loadSettings(): LoadSettings {
+function loadSettings(): Constants.LoadSettings {
   return {type: Constants.loadSettings, payload: undefined}
 }
 
 function* _onUpdatePGPSettings(): SagaGenerator<any, any> {
   try {
-    const {hasServerKeys} = yield call(accountHasServerKeysRpcPromise)
+    const {hasServerKeys} = yield call(RPCTypes.accountHasServerKeysRpcPromise)
     yield put(_onUpdatedPGPSettings(hasServerKeys))
   } catch (error) {
     yield put({type: Constants.onUpdatePassphraseError, payload: {error}})
@@ -123,7 +92,7 @@ function* _onSubmitNewEmail(): SagaGenerator<any, any> {
 
     const newEmailSelector = ({settings: {email: {newEmail}}}: TypedState) => newEmail
     const newEmail: string = (yield select(newEmailSelector): any)
-    yield call(accountEmailChangeRpcPromise, {
+    yield call(RPCTypes.accountEmailChangeRpcPromise, {
       param: {
         newEmail,
       },
@@ -147,7 +116,7 @@ function* _onSubmitNewPassphrase(): SagaGenerator<any, any> {
       yield put({type: Constants.onUpdatePassphraseError, payload: {error: "Passphrases don't match"}})
       return
     }
-    yield call(accountPassphraseChangeRpcPromise, {
+    yield call(RPCTypes.accountPassphraseChangeRpcPromise, {
       param: {
         oldPassphrase: '',
         passphrase: newPassphrase.stringValue(),
@@ -197,7 +166,7 @@ function* toggleNotificationsSaga(): SagaGenerator<any, any> {
     }
 
     const [result] = yield all([
-      call(apiserverPostJSONRpcPromise, {
+      call(RPCTypes.apiserverPostJSONRpcPromise, {
         param: {
           endpoint: 'account/subscribe',
           args: [],
@@ -225,10 +194,10 @@ function* toggleNotificationsSaga(): SagaGenerator<any, any> {
   }
 }
 
-function* reclaimInviteSaga(invitesReclaimAction: InvitesReclaim): SagaGenerator<any, any> {
+function* reclaimInviteSaga(invitesReclaimAction: Constants.InvitesReclaim): SagaGenerator<any, any> {
   const {inviteId} = invitesReclaimAction.payload
   try {
-    yield call(apiserverPostRpcPromise, {
+    yield call(RPCTypes.apiserverPostRpcPromise, {
       param: {
         endpoint: 'cancel_invitation',
         args: [{key: 'invitation_id', value: inviteId}],
@@ -238,7 +207,7 @@ function* reclaimInviteSaga(invitesReclaimAction: InvitesReclaim): SagaGenerator
       ({
         type: Constants.invitesReclaimed,
         payload: undefined,
-      }: InvitesReclaimed)
+      }: Constants.InvitesReclaimed)
     )
   } catch (e) {
     console.warn('Error reclaiming an invite:', e)
@@ -247,14 +216,14 @@ function* reclaimInviteSaga(invitesReclaimAction: InvitesReclaim): SagaGenerator
         type: Constants.invitesReclaimed,
         payload: {errorText: e.desc + e.name, errorObj: e},
         error: true,
-      }: InvitesReclaimed)
+      }: Constants.InvitesReclaimed)
     )
   }
   yield put(invitesRefresh())
 }
 
 function* refreshInvitesSaga(): SagaGenerator<any, any> {
-  const json: ?{body: string} = yield call(apiserverGetWithSessionRpcPromise, {
+  const json: ?{body: string} = yield call(RPCTypes.apiserverGetWithSessionRpcPromise, {
     param: {
       endpoint: 'invitations_sent',
       args: [],
@@ -278,7 +247,7 @@ function* refreshInvitesSaga(): SagaGenerator<any, any> {
   const pendingInvites = []
 
   results.invitations.forEach(i => {
-    const invite: Invitation = {
+    const invite: Constants.Invitation = {
       created: i.ctime,
       email: i.email,
       id: i.invitation_id,
@@ -310,7 +279,7 @@ function* refreshInvitesSaga(): SagaGenerator<any, any> {
   })
 }
 
-function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any> {
+function* sendInviteSaga(invitesSendAction: Constants.InvitesSend): SagaGenerator<any, any> {
   try {
     yield put(Constants.waiting(true))
 
@@ -320,7 +289,7 @@ function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any
       args.push({key: 'invitation_message', value: message})
     }
 
-    const response: ?{body: string} = yield call(apiserverPostRpcPromise, {
+    const response: ?{body: string} = yield call(RPCTypes.apiserverPostRpcPromise, {
       param: {
         endpoint: 'send_invitation',
         args,
@@ -334,7 +303,7 @@ function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any
         ({
           type: Constants.invitesSent,
           payload: {email, invitationId},
-        }: InvitesSent)
+        }: Constants.InvitesSent)
       )
       // TODO: if the user changes their route while working, this may lead to an invalid route
       yield put(
@@ -356,7 +325,7 @@ function* sendInviteSaga(invitesSendAction: InvitesSend): SagaGenerator<any, any
         type: Constants.invitesSent,
         payload: {error: e},
         error: true,
-      }: InvitesSent)
+      }: Constants.InvitesSent)
     )
   } finally {
     yield put(Constants.waiting(false))
@@ -377,7 +346,7 @@ function* refreshNotificationsSaga(): SagaGenerator<any, any> {
   })
 
   const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield all([
-    call(apiserverGetWithSessionRpcPromise, {
+    call(RPCTypes.apiserverGetWithSessionRpcPromise, {
       param: {
         endpoint: 'account/subscriptions',
         args: [],
@@ -452,12 +421,12 @@ function* deleteAccountForeverSaga(): SagaGenerator<any, any> {
     throw new Error('Account deletion failsafe was not disengaged. This is a bug!')
   }
 
-  yield call(loginAccountDeleteRpcPromise)
+  yield call(RPCTypes.loginAccountDeleteRpcPromise)
   yield put(setDeletedSelf(username))
 }
 
 function* loadSettingsSaga(): SagaGenerator<any, any> {
-  const userSettings = yield call(userLoadMySettingsRpcPromise)
+  const userSettings = yield call(RPCTypes.userLoadMySettingsRpcPromise)
   yield put({type: Constants.loadedSettings, payload: userSettings})
 }
 

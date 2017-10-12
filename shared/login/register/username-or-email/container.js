@@ -1,9 +1,7 @@
 // @flow
 import UsernameOrEmail from '.'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../../util/container'
 import * as Creators from '../../../actions/login/creators'
-
-import type {TypedState} from '../../../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => ({
   waitingForResponse: state.engine.get('rpcWaitingStates').get('loginRpc'),

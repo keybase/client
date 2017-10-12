@@ -1,11 +1,9 @@
 // @flow
 import * as Constants from '../../../../constants/chat'
 import CreateTeamNotice from '.'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../../../util/container'
 import {navigateAppend} from '../../../../actions/route-tree'
-
-import type {TypedState} from '../../../../constants/reducer'
-import type {StateProps, DispatchProps} from './container'
+import {type StateProps, type DispatchProps} from './container'
 
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)

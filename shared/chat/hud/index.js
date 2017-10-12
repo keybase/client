@@ -1,11 +1,16 @@
 // @flow
 import React from 'react'
-import {connect} from 'react-redux'
-import {compose, withState, lifecycle, withPropsOnChange} from 'recompose'
+import {
+  compose,
+  withState,
+  lifecycle,
+  withPropsOnChange,
+  type TypedState,
+  connect,
+  type MapStateToProps,
+} from '../../util/container'
 import {Avatar, Box, ClickableBox, List, Text, Usernames} from '../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
-
-import type {TypedState} from '../../constants/reducer'
 
 type Props<D: {key: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<*>,
@@ -82,20 +87,21 @@ type MentionHudProps = {
 }
 
 // TODO figure typing out
+const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {userIds, selectedIndex, filter}) => ({
+  following: state.config.following,
+  you: state.config.username || '',
+  data: userIds
+    .map((u, i) => ({
+      username: u,
+      fullName: '', // TODO
+      key: u,
+    }))
+    .filter(u => u.username.indexOf(filter) >= 0)
+    .map((u, i) => ({...u, selected: i === selectedIndex})),
+})
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
   withState('selectedIndex', 'setSelectedIndex', 0),
-  connect((state: TypedState, {userIds, selectedIndex, filter}) => ({
-    following: state.config.following,
-    you: state.config.username || '',
-    data: userIds
-      .map((u, i) => ({
-        username: u,
-        fullName: '', // TODO
-        key: u,
-      }))
-      .filter(u => u.username.indexOf(filter) >= 0)
-      .map((u, i) => ({...u, selected: i === selectedIndex})),
-  })),
+  connect(mapStateToProps),
   lifecycle({
     componentWillReceiveProps: function(nextProps) {
       if (nextProps.data.length === 0) {
