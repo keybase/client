@@ -635,6 +635,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	var queryBase chat1.GetInboxLocalQuery
 	queryBase.ComputeActiveList = true
 	queryBase.OneChatTypePerTLF = new(bool)
+	*queryBase.OneChatTypePerTLF = true
 	if !after.IsZero() {
 		gafter := gregor1.ToTime(after)
 		queryBase.After = &gafter
