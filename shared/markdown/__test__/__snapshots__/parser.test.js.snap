@@ -1,5 +1,26 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Markdown parser allows partially styled words correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "not*bolded* ",
+        Object {
+          "children": Array [
+            "also",
+          ],
+          "type": "bold",
+        },
+        "notbolded",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
 exports[`Markdown parser eats multiple empty lines at end 1`] = `
 Object {
   "children": Array [
@@ -217,12 +238,18 @@ Object {
 }
 `;
 
-exports[`Markdown parser parses invalid bold correctly 1`] = `
+exports[`Markdown parser parses inline bold correctly 1`] = `
 Object {
   "children": Array [
     Object {
       "children": Array [
-        "*not bold**",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+        "*",
       ],
       "type": "text-block",
     },
@@ -655,20 +682,6 @@ code in quote
 }
 `;
 
-exports[`Markdown parser parses special characters within words correctly 1`] = `
-Object {
-  "children": Array [
-    Object {
-      "children": Array [
-        "not*bolded* *also*notbolded",
-      ],
-      "type": "text-block",
-    },
-  ],
-  "type": "markup",
-}
-`;
-
 exports[`Markdown parser parses urls correctly 1`] = `
 Object {
   "children": Array [
@@ -699,6 +712,12 @@ Object {
     Object {
       "children": Array [
         "    mailto:blah@blah.com",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    nytimes.json",
       ],
       "type": "text-block",
     },
@@ -876,6 +895,45 @@ Object {
         "    ",
         Object {
           "children": Array [
+            "http://t.co",
+          ],
+          "href": "http://t.co",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "t.co",
+          ],
+          "href": "http://t.co",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "10.0.0.24",
+          ],
+          "href": "http://10.0.0.24",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
             "google.com",
           ],
           "href": "http://google.com",
@@ -944,6 +1002,19 @@ Object {
             "http://keybase.io/blah/../up-one/index.html",
           ],
           "href": "http://keybase.io/blah/../up-one/index.html",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/)(,)?=56,78,910@123",
+          ],
+          "href": "http://keybase.io/)(,)?=56,78,910@123",
           "type": "link",
         },
       ],
