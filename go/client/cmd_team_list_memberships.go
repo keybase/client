@@ -244,10 +244,23 @@ func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.Team
 	}
 }
 
+func (c *CmdTeamListMemberships) formatInviteName(invite keybase1.AnnotatedTeamInvite) (res string) {
+	res = string(invite.Name)
+	category, err := invite.Type.C()
+	if err == nil {
+		switch category {
+		case keybase1.TeamInviteCategory_SBS:
+			res = fmt.Sprintf("%s@%s", invite.Name, string(invite.Type.Sbs()))
+		}
+	}
+	return res
+}
+
 func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
 	for _, invite := range invites {
 		fmtstring := "%s\t%s*\t%s\t(* added by %s; awaiting acceptance)\n"
-		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()), invite.Name, invite.InviterUsername)
+		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()),
+			c.formatInviteName(invite), invite.InviterUsername)
 	}
 }
 
