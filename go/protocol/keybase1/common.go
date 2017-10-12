@@ -836,16 +836,19 @@ type FullNamePackageVersion int
 
 const (
 	FullNamePackageVersion_V0 FullNamePackageVersion = 0
+	FullNamePackageVersion_V1 FullNamePackageVersion = 1
 )
 
 func (o FullNamePackageVersion) DeepCopy() FullNamePackageVersion { return o }
 
 var FullNamePackageVersionMap = map[string]FullNamePackageVersion{
 	"V0": 0,
+	"V1": 1,
 }
 
 var FullNamePackageVersionRevMap = map[FullNamePackageVersion]string{
 	0: "V0",
+	1: "V1",
 }
 
 func (e FullNamePackageVersion) String() string {
@@ -856,16 +859,18 @@ func (e FullNamePackageVersion) String() string {
 }
 
 type FullNamePackage struct {
-	Version  FullNamePackageVersion `codec:"version" json:"version"`
-	FullName FullName               `codec:"fullName" json:"fullName"`
-	CachedAt Time                   `codec:"cachedAt" json:"cachedAt"`
+	Version     FullNamePackageVersion `codec:"version" json:"version"`
+	FullName    FullName               `codec:"fullName" json:"fullName"`
+	EldestSeqno Seqno                  `codec:"eldestSeqno" json:"eldestSeqno"`
+	CachedAt    Time                   `codec:"cachedAt" json:"cachedAt"`
 }
 
 func (o FullNamePackage) DeepCopy() FullNamePackage {
 	return FullNamePackage{
-		Version:  o.Version.DeepCopy(),
-		FullName: o.FullName.DeepCopy(),
-		CachedAt: o.CachedAt.DeepCopy(),
+		Version:     o.Version.DeepCopy(),
+		FullName:    o.FullName.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		CachedAt:    o.CachedAt.DeepCopy(),
 	}
 }
 
