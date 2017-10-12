@@ -133,7 +133,7 @@ func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.An
 		userList = append(userList, member.UserID)
 	}
 
-	namePkgs, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, userList, 0, 0, false)
+	namePkgs, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, userList, 0, 0, true)
 	if err != nil {
 		return err
 	}
@@ -147,8 +147,6 @@ func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.An
 		if fullName := pkg.FullName; fullName != nil {
 			member.FullName = string(fullName.FullName)
 		}
-
-		fmt.Printf("Full Name %+v\n", pkg)
 	}
 
 	return nil
@@ -281,6 +279,8 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	err = group.Wait()
 
 	if arg.All {
+		tracer.Stage("FillUsernames")
+
 		err := fillUsernames(ctx, g, res)
 		if err != nil {
 			return nil, err

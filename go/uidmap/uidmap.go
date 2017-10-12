@@ -299,7 +299,7 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 		//
 		// Thus, if you provide forceNetworkForFullName=false, and fullNameFreshness=0, you can avoid
 		// the network trip as long as all of your username lookups hit the cache or are hardcoded.
-		if up == nil || (status == notFound && forceNetworkForFullNames) || (status == stale) {
+		if up == nil || ((status == notFound || up.FullName == nil) && forceNetworkForFullNames) || (status == stale) {
 			apiLookupIndex[len(uidsToLookup)] = i
 			uidsToLookup = append(uidsToLookup, uid)
 		}
