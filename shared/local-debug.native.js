@@ -70,10 +70,12 @@ if (PERF) {
   window.console._log = window.console.log
   window.console._warn = window.console.warn
   window.console._error = window.console.error
+  window.console._info = window.console.info
 
   window.console.log = noop
   window.console.warn = noop
   window.console.error = noop
+  window.console.info = noop
 
   config = {
     actionStatFrequency: 0,
@@ -100,7 +102,7 @@ if (PERF) {
     reduxSagaLoggerMasked: false,
     redirectOnLogout: false,
     showAllTrackers: false,
-    userTimings: false,
+    userTimings: true,
   }
 }
 
