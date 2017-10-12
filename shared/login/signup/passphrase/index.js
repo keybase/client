@@ -1,7 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import Render from './index.render'
-import type {Props} from './index.render'
+import Render, {type Props} from './index.render'
 import {bindActionCreators} from 'redux'
 import {checkPassphrase, restartSignup} from '../../../actions/signup'
 import {connect} from 'react-redux'
@@ -44,7 +43,6 @@ class PassphraseForm extends Component<ContainerProps, State> {
   }
 }
 
-// $FlowIssue type this connector
 export default connect(
   state => ({
     passphraseError: state.signup.passphraseError,

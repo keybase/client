@@ -1,76 +1,58 @@
 // @flow
-import ProvePgpChoice from './prove-pgp-choice'
-import ImportPgp from './prove-pgp-import'
-import GeneratePgp from './generating-pgp'
-import Finished from './finished-generating-pgp'
-import PgpInfo from './add'
-import {TypedConnector} from '../../util/typed-connect'
-import {updatePgpInfo, generatePgp} from '../../actions/profile'
-import {navigateUp, navigateAppend} from '../../actions/route-tree'
 import * as Constants from '../../constants/profile'
+import Finished from './finished-generating-pgp'
+import GeneratePgp from './generating-pgp'
+import ImportPgp from './prove-pgp-import'
+import PgpInfo from './add'
+import ProvePgpChoice, {type Options as ProvePgpChoiceOptions} from './prove-pgp-choice'
+import {navigateUp, navigateAppend} from '../../actions/route-tree'
+import {updatePgpInfo, generatePgp} from '../../actions/profile'
+import {connect} from 'react-redux'
 
-import type {Options as ProvePgpChoiceOptions} from './prove-pgp-choice'
+const ConnectedChoice = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onCancel: () => dispatch(navigateUp()),
+    onOptionClick: (type: ProvePgpChoiceOptions) => dispatch(navigateAppend([type])),
+  })
+)(ProvePgpChoice)
 
-const choiceConnector = new TypedConnector()
-export const ConnectedChoice = choiceConnector.connect((state, dispatch, ownProps) => ({
-  onCancel: () => {
-    dispatch(navigateUp())
-  },
-  onOptionClick: (type: ProvePgpChoiceOptions) => {
-    dispatch(navigateAppend([type]))
-  },
-}))(ProvePgpChoice)
+const ConnectedImport = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onCancel: () => dispatch(navigateUp()),
+  })
+)(ImportPgp)
 
-const importConnector = new TypedConnector()
-export const ConnectedImport = importConnector.connect((state, dispatch, ownProps) => ({
-  onCancel: () => {
-    dispatch(navigateUp())
-  },
-}))(ImportPgp)
-
-const pgpInfoConnector = new TypedConnector()
-export const ConnectedPgpInfo = pgpInfoConnector.connect((state, dispatch, ownProps) => {
-  const {profile: {pgpInfo}} = state
-  return {
+const ConnectedPgpInfo = connect(
+  ({profile: {pgpInfo}}) => ({
     ...pgpInfo,
-    onChangeFullName: next => {
-      dispatch(updatePgpInfo({fullName: next}))
-    },
-    onChangeEmail1: next => {
-      dispatch(updatePgpInfo({email1: next}))
-    },
-    onChangeEmail2: next => {
-      dispatch(updatePgpInfo({email2: next}))
-    },
-    onChangeEmail3: next => {
-      dispatch(updatePgpInfo({email3: next}))
-    },
-    onCancel: () => {
-      dispatch(navigateUp())
-    },
-    onNext: () => {
-      dispatch(generatePgp())
-    },
-  }
-})(PgpInfo)
+  }),
+  (dispatch: Dispatch) => ({
+    onCancel: () => dispatch(navigateUp()),
+    onChangeEmail1: email1 => dispatch(updatePgpInfo({email1})),
+    onChangeEmail2: email2 => dispatch(updatePgpInfo({email2})),
+    onChangeEmail3: email3 => dispatch(updatePgpInfo({email3})),
+    onChangeFullName: fullName => dispatch(updatePgpInfo({fullName})),
+    onNext: () => dispatch(generatePgp()),
+  })
+)(PgpInfo)
 
-const generatePgpConnector = new TypedConnector()
-export const ConnectedGeneratePgp = generatePgpConnector.connect((state, dispatch, ownProps) => ({
-  onCancel: () => {
-    dispatch({type: Constants.cancelPgpGen, payload: {}})
-  },
-}))(GeneratePgp)
+const ConnectedGeneratePgp = connect(
+  () => ({}),
+  (dispatch: Dispatch) => ({
+    onCancel: () => dispatch({payload: {}, type: Constants.cancelPgpGen}),
+  })
+)(GeneratePgp)
 
-const finishedConnector = new TypedConnector()
-export const ConnectedFinished = finishedConnector.connect((state, dispatch, ownProps) => {
-  const {profile: {pgpPublicKey}} = state
-  return {
+const ConnectedFinished = connect(
+  ({profile: {pgpPublicKey}}) => ({
     pgpKeyString: pgpPublicKey || 'Error getting public key...',
-    onDone: shouldStoreKeyOnServer => {
-      dispatch({
-        type: Constants.finishedWithKeyGen,
-        payload: {shouldStoreKeyOnServer},
-      })
-    },
-  }
-})(Finished)
+  }),
+  (dispatch: Dispatch) => ({
+    onDone: shouldStoreKeyOnServer =>
+      dispatch({payload: {shouldStoreKeyOnServer}, type: Constants.finishedWithKeyGen}),
+  })
+)(Finished)
+
+export {ConnectedChoice, ConnectedImport, ConnectedPgpInfo, ConnectedGeneratePgp, ConnectedFinished}

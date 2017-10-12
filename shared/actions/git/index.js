@@ -26,21 +26,20 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
 
     const idToInfo = (results || []).reduce((map, r) => {
       const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
-      map[r.globalUniqueID] = Constants.GitInfo({
+      map[r.globalUniqueID] = Constants.makeGitInfo({
         canDelete: r.canDelete,
         devicename: r.serverMetadata.lastModifyingDeviceName,
         id: r.globalUniqueID,
         lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
         lastEditUser: r.serverMetadata.lastModifyingUsername,
         name: r.localMetadata.repoName,
-        repoID: r.repoID,
         teamname,
         url: r.repoUrl,
       })
       return map
     }, {})
 
-    yield put(Entities.replaceEntity(['git'], {idToInfo: I.Map(idToInfo)}))
+    yield put(Entities.replaceEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
   } finally {
     yield put(Creators.setLoading(false))
   }
@@ -130,11 +129,9 @@ const _badgeAppForGit = (action: Constants.BadgeAppForGit) =>
 let _wasOnGitTab = false
 const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   // on the git tab?
-  const root =
-    // $FlowIssue action allows array or list or iterable, for some reason
-    (action.payload.path.first && action.payload.path.first()) ||
-    // $FlowIssue action allows array or list or iterable, for some reason
-    (action.payload.path.length && action.payload.path[0])
+  const list = I.List(action.payload.path)
+  const root = list.first()
+
   if (root === Tabs.gitTab) {
     _wasOnGitTab = true
   } else if (_wasOnGitTab) {

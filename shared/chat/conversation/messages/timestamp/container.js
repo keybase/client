@@ -2,12 +2,9 @@
 import * as Constants from '../../../../constants/chat'
 import Timestamp from '.'
 import createCachedSelector from 're-reselect'
-import {compose} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, connect, type TypedState} from '../../../../util/container'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-
-import type {TypedState} from '../../../../constants/reducer'
-import type {OwnProps} from './container'
+import {type OwnProps} from './container'
 
 const getTimestampString = createCachedSelector(
   [Constants.getMessageFromMessageKey],

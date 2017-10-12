@@ -2,15 +2,19 @@
 import * as Constants from '../../../constants/chat'
 import {BrokenTrackerBanner, InviteBanner} from '.'
 import {List} from 'immutable'
-import {compose, branch, renderNothing, renderComponent} from 'recompose'
-import {connect} from 'react-redux'
+import {
+  compose,
+  branch,
+  renderNothing,
+  renderComponent,
+  connect,
+  type TypedState,
+} from '../../../util/container'
 import {createSelector} from 'reselect'
 import {getProfile} from '../../../actions/tracker'
 import {isMobile} from '../../../constants/platform'
 import {showUserProfile} from '../../../actions/profile'
 import {Box} from '../../../common-adapters'
-
-import type {TypedState} from '../../../constants/reducer'
 
 const getBannerMessage = createSelector(
   [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],

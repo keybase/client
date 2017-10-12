@@ -149,7 +149,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       author,
       inbox.items || []
     )
-    yield put(EntityCreators.replaceEntity(['convIDToSnippet'], snippets))
+    yield put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map(snippets)))
     yield put(Creators.setInboxUntrustedState('loaded'))
     yield put(Creators.loadedInbox(conversations))
 
@@ -258,15 +258,36 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   const inboxState = _conversationLocalToInboxState(c)
 
   if (inboxState) {
-    yield put(EntityCreators.replaceEntity(['inboxVersion'], {[conversationIDKey]: c.version}))
+    yield put(EntityCreators.replaceEntity(['inboxVersion'], I.Map({[conversationIDKey]: c.version})))
     if (isBigTeam) {
-      yield put(
-        EntityCreators.replaceEntity(['inboxBigChannels'], {[conversationIDKey]: inboxState.channelname})
-      )
+      // There's a bug where the untrusted inbox state for the channel is incorrect so we
+      // instead make sure that the small team maps and the big team maps don't allow duplicates
+      yield all([
+        put(
+          EntityCreators.replaceEntity(
+            ['inboxBigChannels'],
+            I.Map({[conversationIDKey]: inboxState.channelname})
+          )
+        ),
+        put(
+          EntityCreators.replaceEntity(
+            ['inboxBigChannelsToTeam'],
+            I.Map({[conversationIDKey]: inboxState.teamname})
+          )
+        ),
+        put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([conversationIDKey]))),
+      ])
     } else {
-      yield put(
-        EntityCreators.replaceEntity(['inboxSmallTimestamps'], {[conversationIDKey]: inboxState.time})
-      )
+      yield all([
+        put(
+          EntityCreators.replaceEntity(
+            ['inboxSmallTimestamps'],
+            I.Map({[conversationIDKey]: inboxState.time})
+          )
+        ),
+        put(EntityCreators.deleteEntity(['inboxBigChannels'], I.List([conversationIDKey]))),
+        put(EntityCreators.deleteEntity(['inboxBigChannelsToTeam'], I.List([conversationIDKey]))),
+      ])
     }
   }
 
@@ -320,7 +341,8 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
 const _chatInboxToProcess = []
 
 function* _chatInboxConversationSubSaga({conv}) {
-  _chatInboxToProcess.push(conv)
+  const pconv = JSON.parse(conv)
+  _chatInboxToProcess.push(pconv)
   yield put(Creators.unboxMore())
   return EngineRpc.rpcResult()
 }
@@ -347,7 +369,7 @@ function* _chatInboxFailedSubSaga(params) {
   const conversationIDKey = Constants.conversationIDToKey(convID)
 
   // Valid inbox item for rekey errors only
-  const conversation = new Constants.InboxStateRecord({
+  const conversation = Constants.makeInboxState({
     conversationIDKey,
     participants: error.rekeyInfo
       ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
@@ -508,6 +530,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
   const conversationIDKey = c.convID
 
   let parts = I.List(c.participants || [])
+  let fullNames = I.Map(c.fullNames || {})
   let teamname = null
   let channelname = null
 
@@ -518,7 +541,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
 
   const notifications = c.notifications && parseNotifications(c.notifications)
 
-  return new Constants.InboxStateRecord({
+  return Constants.makeInboxState({
     channelname,
     conversationIDKey,
     isEmpty: c.isEmpty,
@@ -526,6 +549,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     name: c.name,
     notifications,
     participants: parts,
+    fullNames: fullNames,
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
     teamType: c.teamType,

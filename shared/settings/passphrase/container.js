@@ -1,16 +1,7 @@
 // @flow
 import UpdatePassphrase from '.'
-import {
-  onChangeNewPassphrase,
-  onChangeNewPassphraseConfirm,
-  onChangeShowPassphrase,
-  onSubmitNewPassphrase,
-  onUpdatePGPSettings,
-} from '../../actions/settings'
-import {connect} from 'react-redux'
-import {compose, lifecycle} from 'recompose'
-
-import type {TypedState} from '../../constants/reducer'
+import * as Creators from '../../actions/settings'
+import {compose, lifecycle, connect, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   error: state.settings.passphrase.error,
@@ -26,13 +17,13 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
-  onChangeShowPassphrase: () => dispatch(onChangeShowPassphrase()),
+  onChangeShowPassphrase: () => dispatch(Creators.onChangeShowPassphrase()),
   onSave: (passphrase, passphraseConfirm) => {
-    dispatch(onChangeNewPassphrase(passphrase))
-    dispatch(onChangeNewPassphraseConfirm(passphraseConfirm))
-    dispatch(onSubmitNewPassphrase())
+    dispatch(Creators.onChangeNewPassphrase(passphrase))
+    dispatch(Creators.onChangeNewPassphraseConfirm(passphraseConfirm))
+    dispatch(Creators.onSubmitNewPassphrase())
   },
-  onUpdatePGPSettings: () => dispatch(onUpdatePGPSettings()),
+  onUpdatePGPSettings: () => dispatch(Creators.onUpdatePGPSettings()),
 })
 
 export default compose(

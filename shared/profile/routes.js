@@ -1,5 +1,5 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import pgpRoutes from './pgp/routes'
 import Profile from './container'
 import EditProfile from './edit-profile'
@@ -13,7 +13,7 @@ import SearchPopup from './search-container'
 import {isMobile} from '../constants/platform'
 import NonUserProfile from './non-user-profile-container'
 
-const proveEnterUsername = new RouteDefNode({
+const proveEnterUsername = makeRouteDefNode({
   component: ProveEnterUsername,
   children: {
     postProof: {
@@ -30,11 +30,10 @@ const proveEnterUsername = new RouteDefNode({
   },
 })
 
-export const profileRoute = new RouteDefNode({
+export const profileRoute = makeRouteDefNode({
   component: Profile,
-  title: 'Profile',
   initialState: {currentFriendshipsTab: 'Followers'},
-  tags: {underStatusBar: true},
+  tags: makeLeafTags({underStatusBar: true, title: 'Profile'}),
   children: {
     profile: () => profileRoute,
     editProfile: {
@@ -60,7 +59,7 @@ export const profileRoute = new RouteDefNode({
     search: {
       children: {},
       component: SearchPopup,
-      tags: {layerOnTop: !isMobile},
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },
 })

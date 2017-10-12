@@ -671,7 +671,8 @@
       "type": "enum",
       "name": "FullNamePackageVersion",
       "symbols": [
-        "V0_0"
+        "V0_0",
+        "V1_1"
       ]
     },
     {
@@ -685,6 +686,10 @@
         {
           "type": "FullName",
           "name": "fullName"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
         },
         {
           "type": "Time",

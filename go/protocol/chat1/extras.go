@@ -449,6 +449,13 @@ func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error
 	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
 }
 
+func (c ConversationLocal) Names() (res []string) {
+	for _, p := range c.Info.Participants {
+		res = append(res, p.Username)
+	}
+	return res
+}
+
 func (c Conversation) GetMtime() gregor1.Time {
 	return c.ReaderInfo.Mtime
 }

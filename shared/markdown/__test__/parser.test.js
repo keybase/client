@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 /* eslint-env jest */
 import parser, {isPlainText} from '../parser'
 

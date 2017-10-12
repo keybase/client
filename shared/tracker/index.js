@@ -1,17 +1,13 @@
 // @flow
 import * as trackerActions from '../actions/tracker'
 import React, {Component} from 'react'
-import Render from './render'
+import Render, {type RenderPropsUnshaped} from './render'
 import {bindActionCreators} from 'redux'
-import {connect} from 'react-redux'
-import {isLoading} from '../constants/tracker'
-import {startConversation} from '../actions/chat'
+import {connect, type TypedState} from '../util/container'
+import {isLoading, type Proof, type SimpleProofState, type UserInfo} from '../constants/tracker'
 import {onClickAvatar, onClickFollowers, onClickFollowing} from '../actions/profile'
-
-import type {ErrorProps} from './error'
-import type {Proof, SimpleProofState, UserInfo} from '../constants/tracker'
-import type {RenderPropsUnshaped} from './render'
-import type {TypedState} from '../constants/reducer'
+import {startConversation} from '../actions/chat'
+import {type ErrorProps} from './error'
 
 export type TrackerProps = {
   actionBarReady: boolean,

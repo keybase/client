@@ -148,12 +148,18 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
     const infos = []
     const types = ['admins', 'owners', 'readers', 'writers']
+    const typeMap = {
+      admins: 'admin',
+      owners: 'owner',
+      readers: 'reader',
+      writers: 'writer',
+    }
     types.forEach(type => {
       const details = results.members[type] || []
       details.forEach(({username}) => {
         infos.push(
-          Constants.MemberInfo({
-            type,
+          Constants.makeMemberInfo({
+            type: typeMap[type],
             username,
           })
         )
@@ -194,7 +200,7 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
   convs.forEach(conv => {
     const convID = ChatConstants.conversationIDToKey(conv.convID)
     convIDs.push(convID)
-    convIDToChannelInfo[convID] = Constants.ChannelInfo({
+    convIDToChannelInfo[convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
       participants: I.Set(conv.participants || []),
@@ -219,7 +225,7 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
 
     const teams = results.teams || []
     const teamnames = teams.map(team => team.fqName)
-    yield put(replaceEntity(['teams'], {teamnames: I.Set(teamnames)}))
+    yield put(replaceEntity(['teams'], I.Map({teamnames: I.Set(teamnames)})))
   } finally {
     yield put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }

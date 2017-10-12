@@ -1,18 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box, ErrorBoundary} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import TabBar from './tab-bar/container'
-import {chatTab, loginTab, peopleTab, profileTab} from '../constants/tabs'
-import {connect} from 'react-redux'
+import {Box, ErrorBoundary} from '../common-adapters'
+import {chatTab, loginTab, peopleTab, profileTab, type Tab} from '../constants/tabs'
+import {connect, type TypedState} from '../util/container'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import {showUserProfile} from '../actions/profile'
-
-import type {Tab} from '../constants/tabs'
-import type {Props, StateProps, DispatchProps, OwnProps} from './nav'
-import type {TypedState} from '../constants/reducer'
+import {type Props, type StateProps, type DispatchProps, type OwnProps} from './nav'
 
 function Nav(props: Props) {
   const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
@@ -81,7 +78,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 
     // otherwise, back out to the default route of the tab.
     const action = ownProps.routeSelected === tab ? navigateTo : switchTo
-    // $FlowIssue TODO
     dispatch(action(ownProps.routePath.push(tab)))
   },
 })

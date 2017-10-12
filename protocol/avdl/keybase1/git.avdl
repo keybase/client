@@ -48,8 +48,9 @@ protocol git {
     string lastModifyingDeviceName;
   }
 
-  // This RPC is only exposed for testing. Public commands won't call it directly.
+  // These RPCs are only exposed for testing. Public commands won't call it directly.
   void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata, boolean notifyTeam);
+  void deleteGitMetadata(Folder folder, GitRepoName repoName);
 
   record GitRepoResult {
     Folder folder;

@@ -2,11 +2,9 @@
 import React, {Component} from 'react'
 import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {fuseStatus, installFuse} from '../../actions/kbfs'
 import {fileUIName} from '../../constants/platform'
-
-import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   getFuseStatus: () => void,

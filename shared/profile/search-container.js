@@ -1,10 +1,7 @@
 // @flow
+import Search, {type Props} from './search'
 import {showUserProfile} from '../actions/profile'
-import {compose, defaultProps} from 'recompose'
-import {connect} from 'react-redux'
-import Search from './search'
-
-import type {Props} from './search'
+import {compose, defaultProps, connect} from '../util/container'
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInfoPanel}: Props) => ({
   onClick: username => {

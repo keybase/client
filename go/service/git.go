@@ -32,6 +32,10 @@ func (h *GitHandler) PutGitMetadata(ctx context.Context, arg keybase1.PutGitMeta
 	return git.PutMetadata(ctx, h.G(), arg)
 }
 
+func (h *GitHandler) DeleteGitMetadata(ctx context.Context, arg keybase1.DeleteGitMetadataArg) error {
+	return git.DeleteMetadata(ctx, h.G(), arg.Folder, arg.RepoName)
+}
+
 func (h *GitHandler) GetGitMetadata(ctx context.Context, folder keybase1.Folder) ([]keybase1.GitRepoResult, error) {
 	return git.GetMetadata(ctx, h.G(), folder)
 }
@@ -144,7 +148,12 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 	}
 	err = client.DeleteRepo(ctx, darg)
 	if err != nil {
-		return err
+		switch err.(type) {
+		case libkb.RepoDoesntExistError:
+			h.G().Log.Warning("Git repo doesn't exist. Deleting metadata anyway.")
+		default:
+			return err
+		}
 	}
 
 	// Delete the repo metadata from the Keybase server.

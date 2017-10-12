@@ -1,11 +1,9 @@
 // @flow
-import SelectOtherDevice from '.'
 import * as Creators from '../../../actions/login/creators'
-import {connect} from 'react-redux'
-
-import type {RouteProps} from '../../../route-tree/render-route'
-import type {TypedState} from '../../../constants/reducer'
-import type {Device} from '../../../constants/types/more'
+import SelectOtherDevice from '.'
+import {connect, type TypedState} from '../../../util/container'
+import {type Device} from '../../../constants/types/more'
+import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<
   {
@@ -25,5 +23,4 @@ const mapDispatchToProps = dispatch => ({
   onSelect: deviceId => dispatch(Creators.selectDeviceId(deviceId)),
 })
 
-// $FlowIssue
 export default connect(mapStateToProps, mapDispatchToProps)(SelectOtherDevice)

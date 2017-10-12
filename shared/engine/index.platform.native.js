@@ -5,6 +5,7 @@ import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
 import {printBridgeB64} from '../local-debug'
+import {measureStart, measureStop} from '../dev/user-timings'
 
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
@@ -72,12 +73,19 @@ function createClient(
 
   nativeBridge.start()
 
+  let packetizeCount = 0
   // This is how the RN side writes back to us
   RNEmitter.addListener(nativeBridge.eventName, payload => {
     if (printBridgeB64) {
       console.log(`PRINTBridge: JS got payload ${payload}`)
     }
-    return client.transport.packetize_data(toBuffer(toByteArray(payload)))
+
+    const buffer = toBuffer(toByteArray(payload))
+    const measureName = `packetize${packetizeCount++}:${buffer.length}`
+    measureStart(measureName)
+    const ret = client.transport.packetize_data(buffer)
+    measureStop(measureName)
+    return ret
   })
 
   return client

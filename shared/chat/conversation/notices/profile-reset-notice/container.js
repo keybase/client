@@ -2,10 +2,8 @@
 import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import ProfileResetNotice from '.'
-import {connect} from 'react-redux'
-
-import type {TypedState} from '../../../../constants/reducer'
-import type {StateProps, DispatchProps} from './container'
+import {connect, type TypedState} from '../../../../util/container'
+import {type StateProps, type DispatchProps} from './container'
 
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
