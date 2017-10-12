@@ -12,16 +12,14 @@ import {
   CommonTLFVisibility,
   TlfKeysTLFIdentifyBehavior,
 } from '../../constants/types/flow-types'
-import {call, put, select, cancelled, take, spawn, all} from 'redux-saga/effects'
+import {call, put, select, cancelled, spawn, all} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
-import {isMobile} from '../../constants/platform'
 import HiddenString from '../../util/hidden-string'
 
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {TypedState} from '../../constants/reducer'
 
 // Common props for getting the inbox
 const _getInboxQuery = {
@@ -33,48 +31,6 @@ const _getInboxQuery = {
   tlfVisibility: CommonTLFVisibility.private,
   topicType: ChatTypes.CommonTopicType.chat,
   unreadOnly: false,
-}
-
-let _backgroundLoopTask
-
-// Load the inbox if we haven't yet, mostly done by the UI
-function* onInitialInboxLoad(): SagaGenerator<any, any> {
-  try {
-    yield put(Creators.inboxStale())
-
-    if (!isMobile) {
-      // Only allow one loop at a time
-      if (!_backgroundLoopTask) {
-        yield take('chat:loadedInbox')
-        // Use spawn so this is never cancelled if this is
-        _backgroundLoopTask = yield spawn(_backgroundUnboxLoop)
-      }
-    }
-  } finally {
-  }
-}
-
-// On desktop we passively unbox inbox items
-const _backgroundUnboxLoop = function*() {
-  try {
-    while (true) {
-      yield call(delay, 10 * 1000)
-      const inboxes = yield select(state => state.chat.get('inbox'))
-      const conversationIDKeys = inboxes
-        .filter(i => i.state === 'untrusted')
-        .take(10)
-        .map(i => i.conversationIDKey)
-        .toArray()
-
-      if (conversationIDKeys.length) {
-        yield put(Creators.unboxConversations(conversationIDKeys))
-      } else {
-        break
-      }
-    }
-  } finally {
-    console.log('Background unboxing loop done')
-  }
 }
 
 // Update inboxes that have been reset
@@ -315,29 +271,6 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   }
 }
 
-// Gui is showing boxed content, find some rows to unbox
-function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
-  const {conversationIDKey, rowsVisible} = action.payload
-  const inboxes = yield select(state => state.chat.get('inbox'))
-
-  const idx = inboxes.findIndex(inbox => inbox.conversationIDKey === conversationIDKey)
-  if (idx === -1) {
-    return
-  }
-
-  // Collect items to unbox, sanity max at 40
-  const total = Math.max(rowsVisible + 2, 40)
-  const conversationIDKeys = inboxes
-    .slice(idx, idx + total)
-    .map(i => (i.state === 'untrusted' ? i.conversationIDKey : null))
-    .filter(Boolean)
-    .toArray()
-
-  if (conversationIDKeys.length) {
-    yield put(Creators.unboxConversations(conversationIDKeys))
-  }
-}
-
 const _chatInboxToProcess = []
 
 function* _chatInboxConversationSubSaga({conv}) {
@@ -435,21 +368,12 @@ const unboxConversationsSagaMap = {
 // Loads the trusted inbox segments
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
   let {conversationIDKeys, force, forInboxSync} = action.payload
-  conversationIDKeys = yield select(
-    (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
-      const inbox = state.chat.get('inbox')
 
-      return conversationIDKeys.filter(c => {
-        if (Constants.isPendingConversationIDKey(c)) {
-          return false
-        }
+  const inbox = yield select(state => state.entities.get('inbox'))
 
-        const state = inbox.find(i => i.get('conversationIDKey') === c)
-        return force || !state || state.state === 'untrusted'
-      })
-    },
-    conversationIDKeys
-  )
+  conversationIDKeys = conversationIDKeys.filter(c => {
+    return !Constants.isPendingConversationIDKey(c) && inbox.getIn([c, 'state']) === 'untrusted'
+  })
 
   if (!conversationIDKeys.length) {
     return
@@ -578,12 +502,10 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
 
 export {
   filterSelectNext,
-  onInitialInboxLoad,
   onInboxStale,
   onGetInboxAndUnbox,
   parseNotifications,
   unboxConversations,
   processConversation,
-  untrustedInboxVisible,
   unboxMore,
 }

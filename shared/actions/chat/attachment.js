@@ -322,7 +322,7 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
     },
   })
 
-  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inboxConvo = yield select(Constants.getInbox, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,

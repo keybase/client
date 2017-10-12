@@ -72,9 +72,7 @@ const mapStateToProps = (state: TypedState, {routePath}): StateProps => {
 
     const conversationState = state.chat.get('conversationStates').get(selectedConversationIDKey)
     if (conversationState) {
-      const inbox = state.chat.get('inbox')
-      const selected =
-        inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
+      const selected = Constants.getInbox(state, selectedConversationIDKey)
       if (selected && selected.state === 'error') {
         conversationIsError = true
         conversationErrorText = Constants.getSnippet(state, selectedConversationIDKey)

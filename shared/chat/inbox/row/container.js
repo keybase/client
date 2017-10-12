@@ -49,8 +49,9 @@ function _rowDerivedProps(
 }
 
 const getYou = state => state.config.username || ''
-const makeGetConversation = conversationIDKey => state =>
-  state.chat.get('inbox').find(i => i.get('conversationIDKey') === conversationIDKey)
+// TODO use rereselect instead
+// TODO analyze the reselect tree
+const makeGetConversation = conversationIDKey => state => Constants.getInbox(state, conversationIDKey)
 const makeGetSnippet = conversationIDKey => state => Constants.getSnippet(state, conversationIDKey)
 const makeGetIsSelected = conversationIDKey => state =>
   Constants.newestConversationIDKey(Constants.getSelectedConversation(state), state.chat) ===

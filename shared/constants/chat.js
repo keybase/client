@@ -366,7 +366,6 @@ type _State = {
   // TODO  move to entities
   messageMap: I.Map<MessageKey, Message>,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
-  inbox: I.List<InboxState>,
   inboxFilter: string,
   inboxSearch: I.List<string>,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
@@ -399,7 +398,6 @@ export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
   messageMap: I.Map(),
   localMessageStates: I.Map(),
-  inbox: I.List(),
   inboxFilter: '',
   inboxSearch: I.List(),
   conversationStates: I.Map(),
@@ -439,7 +437,7 @@ export const blankChat = 'chat:blankChat'
 export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
-  {conversationIDKeys: Array<ConversationIDKey>, force: boolean, forInboxSync: boolean}
+  {conversationIDKeys: Array<ConversationIDKey>, force?: boolean, forInboxSync?: boolean}
 >
 
 export type AddPendingConversation = NoErrorTypedAction<
@@ -1119,10 +1117,9 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
 const getYou = (state: TypedState) => state.config.username || ''
 const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
-const getSelectedInbox = (state: TypedState) => {
-  const selected = getSelectedConversation(state)
-  return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
-}
+const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
+  conversationIDKey ? state.entities.getIn(['inbox', conversationIDKey]) : null
+const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
 const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
@@ -1329,6 +1326,7 @@ export {
   getDeletedMessageIDs,
   getChannelName,
   getEditingMessage,
+  getInbox,
   getMessageFromMessageKey,
   getMessageUpdates,
   getSelectedConversation,

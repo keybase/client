@@ -49,10 +49,6 @@ function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
 
-function selectedInboxSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
-  return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-}
-
 function inboxUntrustedStateSelector(state: TypedState) {
   return state.chat.get('inboxUntrustedState')
 }
@@ -79,7 +75,7 @@ function* startNewConversation(
   if (pendingTlfName) {
     tlfName = pendingTlfName
   } else {
-    const existing = yield select(selectedInboxSelector, oldConversationIDKey)
+    const existing = yield select(Constants.getInbox, oldConversationIDKey)
     if (existing) {
       tlfName = existing.get('participants').join(',')
     }
@@ -127,7 +123,7 @@ function* getPostingIdentifyBehavior(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, any, any> {
   const metaData = (yield select(metaDataSelector): any)
-  const inbox = yield select(selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(Constants.getInbox, conversationIDKey)
   const you = yield select(usernameSelector)
 
   if (inbox && you) {
@@ -182,7 +178,6 @@ export {
   messageOutboxIDSelector,
   metaDataSelector,
   routeSelector,
-  selectedInboxSelector,
   startNewConversation,
   tmpFileName,
 }

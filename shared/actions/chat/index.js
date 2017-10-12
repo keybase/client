@@ -292,7 +292,7 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () => Creators.inboxStale())
 }
 
-const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
+const inboxSelector = (state: TypedState) => state.entities.get('inbox')
 
 function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
   // Mobile doesn't auto select a conversation
@@ -310,7 +310,7 @@ function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobi
 
     const alwaysShow = yield select(Shared.alwaysShowSelector)
 
-    const current = inbox.find(c => c.get('conversationIDKey') === conversationIDKey)
+    const current = inbox.get(conversationIDKey)
     // current is good
     if (current && (!current.get('isEmpty') || alwaysShow.has(conversationIDKey))) {
       return
@@ -385,7 +385,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       return
     }
 
-    const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
+    const inboxConvo = yield select(Constants.getInbox, conversationIDKey)
 
     if (inboxConvo && inboxConvo.state !== 'unboxed') {
       console.log('Bailing on not yet unboxed conversation')
@@ -790,17 +790,14 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
     console.warn('Attempted to start a chat without the current user')
   }
 
-  const inboxSelector = (state: TypedState, tlfName: string) => {
-    return state.chat
-      .get('inbox')
-      .find(
-        convo =>
-          convo.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs &&
-          convo.get('participants').sort().join(',') === tlfName
-      )
-  }
+  // not effecient but only happens when you start a new convo and not over and over
   const tlfName = users.sort().join(',')
-  const existing = yield select(inboxSelector, tlfName)
+  const inbox = yield select(inboxSelector)
+  const existing = inbox.find(
+    state =>
+      state.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs &&
+      state.get('participants').sort().join(',') === tlfName
+  )
 
   if (forceImmediate && existing) {
     const newID = yield call(Shared.startNewConversation, existing.get('conversationIDKey'))
@@ -821,7 +818,7 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
 function* _openFolder(): SagaGenerator<any, any> {
   const conversationIDKey = yield select(Constants.getSelectedConversation)
 
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(Constants.getInbox, conversationIDKey)
   if (inbox) {
     const helper = inbox.visibility === CommonTLFVisibility.public
       ? publicFolderWithUsers
@@ -904,7 +901,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(Constants.getInbox, conversationIDKey)
   const inSearch = yield select(inSearchSelector)
   if (inbox && !inbox.teamname) {
     const participants = inbox.get('participants').toArray()
@@ -1176,7 +1173,7 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
     const me = yield select(usernameSelector)
     const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
     // Is this message part of a muted conversation? If so don't notify.
-    const convo = yield select(Shared.selectedInboxSelector, action.payload.conversationIDKey)
+    const convo = yield select(Constants.getInbox, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
         console.log('Sending Chat notification')
@@ -1238,10 +1235,8 @@ function* _openConversation({
   payload: {conversationIDKey},
 }: Constants.OpenConversation): SagaGenerator<any, any> {
   const inbox = yield select(inboxSelector)
-  const validInbox = inbox.find(
-    c => c.get('conversationIDKey') === conversationIDKey && c.get('state') === 'unboxed'
-  )
-  if (!validInbox) {
+  const validInbox = inbox.get(conversationIDKey)
+  if (!validInbox || validInbox.get('state') !== 'unboxed') {
     yield put(Creators.getInboxAndUnbox([conversationIDKey]))
     const raceResult: {[key: string]: any} = yield race({
       updateInbox: take(
@@ -1314,7 +1309,7 @@ function _exitSearch(
 const _setNotifications = function*(action: Constants.SetNotifications) {
   const {payload: {conversationIDKey}} = action
   // Send the new post-reducer setNotifications structure to the service.
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(Constants.getInbox, conversationIDKey)
   if (inbox && inbox.notifications) {
     const {notifications} = inbox
     const param = {
@@ -1439,7 +1434,6 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers)
   yield Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment)
   yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
-  yield Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible)
   yield Saga.safeTakeEveryPure(
     'chat:updateBadging',
     _updateBadging,
@@ -1452,7 +1446,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateThread', _updateThread)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
   yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
-  yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
+  yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
   yield Saga.safeTakeLatest(
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
@@ -1471,10 +1465,4 @@ function* chatSaga(): SagaGenerator<any, any> {
 
 export default chatSaga
 
-export {
-  badgeAppForChat,
-  openTlfInChat,
-  setupChatHandlers,
-  startConversation,
-  untrustedInboxVisible,
-} from './creators'
+export {badgeAppForChat, openTlfInChat, setupChatHandlers, startConversation} from './creators'

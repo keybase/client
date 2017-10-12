@@ -8,7 +8,6 @@ import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
 import engine from '../../engine'
-import {selectedInboxSelector} from '../chat/shared'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
@@ -95,7 +94,7 @@ const _createNewTeamFromConversation = function*(
 ): SagaGenerator<any, any> {
   const {payload: {conversationIDKey, name}} = action
   const me = yield select(usernameSelector)
-  const inbox = yield select(selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(ChatConstants.getInbox, conversationIDKey)
   let participants
 
   if (inbox) {

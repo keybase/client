@@ -542,16 +542,6 @@ function outboxMessageBecameReal(
   }
 }
 
-function untrustedInboxVisible(
-  conversationIDKey: Constants.ConversationIDKey,
-  rowsVisible: number
-): Constants.UntrustedInboxVisible {
-  return {
-    payload: {conversationIDKey, rowsVisible},
-    type: 'chat:untrustedInboxVisible',
-  }
-}
-
 function setUnboxing(
   conversationIDKeys: Array<Constants.ConversationIDKey>,
   errored: boolean
@@ -750,7 +740,6 @@ export {
   toggleChannelWideNotifications,
   unboxConversations,
   unboxMore,
-  untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,
   updateFinalizedState,

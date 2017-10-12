@@ -147,40 +147,43 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     }
     case 'chat:updatedMetadata':
       return state.set('metaData', state.get('metaData').merge(action.payload.updated))
-    case 'chat:loadedInbox':
-      // Don't overwrite existing verified inbox data
-      const existingRows = state.get('inbox')
-      const newInbox = action.payload.inbox.map(newRow => {
-        const id = newRow.get('conversationIDKey')
-        const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
-        return existingRow ? (existingRow.version !== newRow.version ? newRow : existingRow) : newRow
-      })
+    // TODO
+    // case 'chat:loadedInbox':
+    // // Don't overwrite existing verified inbox data
+    // const existingRows = state.get('inbox')
+    // const newInbox = action.payload.inbox.map(newRow => {
+    // const id = newRow.get('conversationIDKey')
+    // const existingRow = existingRows.find(existingRow => existingRow.get('conversationIDKey') === id)
+    // return existingRow ? (existingRow.version !== newRow.version ? newRow : existingRow) : newRow
+    // })
 
-      return state.set('inbox', newInbox).set('rekeyInfos', Map())
-    case 'chat:setUnboxing':
-      const {conversationIDKeys} = action.payload
-      return state.set(
-        'inbox',
-        state
-          .get('inbox')
-          .map(
-            i =>
-              conversationIDKeys.includes(i.conversationIDKey)
-                ? i.set('state', action.error ? 'untrusted' : 'unboxing')
-                : i
-          )
-      )
-    case 'chat:updateInbox':
-      const convo: Constants.InboxState = action.payload.conversation
-      const toFind = convo.get('conversationIDKey')
-      const oldInbox = state.get('inbox')
-      const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
-      let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
-      // If the convo's just been blocked, delete it from the inbox.
-      if (existing && ['blocked', 'reported'].includes(convo.get('status'))) {
-        updatedInbox = updatedInbox.delete(existing[0])
-      }
-      return state.set('inbox', updatedInbox)
+    // return state.set('inbox', newInbox).set('rekeyInfos', Map())
+    // // TODO
+    // case 'chat:setUnboxing':
+    // const {conversationIDKeys} = action.payload
+    // return state.set(
+    // 'inbox',
+    // state
+    // .get('inbox')
+    // .map(
+    // i =>
+    // conversationIDKeys.includes(i.conversationIDKey)
+    // ? i.set('state', action.error ? 'untrusted' : 'unboxing')
+    // : i
+    // )
+    // )
+    // // TODO
+    // case 'chat:updateInbox':
+    // const convo: Constants.InboxState = action.payload.conversation
+    // const toFind = convo.get('conversationIDKey')
+    // const oldInbox = state.get('inbox')
+    // const existing = oldInbox.findEntry(i => i.get('conversationIDKey') === toFind)
+    // let updatedInbox = existing ? oldInbox.set(existing[0], convo) : oldInbox.push(convo)
+    // If the convo's just been blocked, delete it from the inbox.
+    // if (existing && ['blocked', 'reported'].includes(convo.get('status'))) {
+    // updatedInbox = updatedInbox.delete(existing[0])
+    // }
+    // return state.set('inbox', updatedInbox)
     case 'chat:updateBrokenTracker':
       const userToBroken = action.payload.userToBroken
       let metaData = state.get('metaData')
@@ -246,16 +249,17 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       }
       break
     }
-    case 'chat:replaceConversation': {
-      const {oldKey} = action.payload
-      const oldInbox = state.get('inbox')
-      const idx = oldInbox.findIndex(i => i.get('conversationIDKey') === oldKey)
-      if (idx !== -1) {
-        return state.set('inbox', oldInbox.delete(idx))
-      }
-      console.warn("couldn't find conversation to upgrade", oldKey)
-      break
-    }
+    // TODO
+    // case 'chat:replaceConversation': {
+    // const {oldKey} = action.payload
+    // const oldInbox = state.get('inbox')
+    // const idx = oldInbox.findIndex(i => i.get('conversationIDKey') === oldKey)
+    // if (idx !== -1) {
+    // return state.set('inbox', oldInbox.delete(idx))
+    // }
+    // console.warn("couldn't find conversation to upgrade", oldKey)
+    // break
+    // }
     case 'chat:updateFinalizedState': {
       const fs = action.payload.finalizedState
       return state.update('finalizedState', finalizedState => finalizedState.merge(fs))
@@ -305,58 +309,61 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
     }
-    case 'chat:setNotifications': {
-      const {payload: {conversationIDKey, deviceType, notifyType}} = action
-      const inbox = state.get('inbox')
-      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
-      const notifications = conv && conv.get('notifications')
-      const nextNotifications = {[deviceType]: {}}
-      // This is the flip-side of the logic in the notifications container.
-      if (notifications && notifications[deviceType]) {
-        switch (notifyType) {
-          case 'generic':
-            nextNotifications[deviceType].generic = true
-            nextNotifications[deviceType].atmention = true
-            break
-          case 'atmention':
-            nextNotifications[deviceType].generic = false
-            nextNotifications[deviceType].atmention = true
-            break
-          case 'never':
-            nextNotifications[deviceType].generic = false
-            nextNotifications[deviceType].atmention = false
-            break
-        }
-      }
-      return state.set(
-        'inbox',
-        inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))
-      )
-    }
-    case 'chat:toggleChannelWideNotifications': {
-      const {payload: {conversationIDKey}} = action
-      const inbox = state.get('inbox')
-      const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
-      if (!conv) {
-        return state
-      }
-      const notifications = conv.get('notifications') || {channelWide: false}
-      const nextNotifications = {channelWide: !notifications.channelWide}
-      return state.set(
-        'inbox',
-        inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))
-      )
-    }
-    case 'chat:updatedNotifications': {
-      // We received an updated inbox.notifications from the server
-      const {payload: {conversationIDKey, notifications}} = action
-      const inbox = state.get('inbox')
-      const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
-      if (!index) {
-        return state
-      }
-      return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
-    }
+    // TODO
+    // case 'chat:setNotifications': {
+    // const {payload: {conversationIDKey, deviceType, notifyType}} = action
+    // const inbox = state.get('inbox')
+    // const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
+    // const notifications = conv && conv.get('notifications')
+    // const nextNotifications = {[deviceType]: {}}
+    // // This is the flip-side of the logic in the notifications container.
+    // if (notifications && notifications[deviceType]) {
+    // switch (notifyType) {
+    // case 'generic':
+    // nextNotifications[deviceType].generic = true
+    // nextNotifications[deviceType].atmention = true
+    // break
+    // case 'atmention':
+    // nextNotifications[deviceType].generic = false
+    // nextNotifications[deviceType].atmention = true
+    // break
+    // case 'never':
+    // nextNotifications[deviceType].generic = false
+    // nextNotifications[deviceType].atmention = false
+    // break
+    // }
+    // }
+    // return state.set(
+    // 'inbox',
+    // inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))
+    // )
+    // }
+    // // TODO
+    // case 'chat:toggleChannelWideNotifications': {
+    // const {payload: {conversationIDKey}} = action
+    // const inbox = state.get('inbox')
+    // const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
+    // if (!conv) {
+    // return state
+    // }
+    // const notifications = conv.get('notifications') || {channelWide: false}
+    // const nextNotifications = {channelWide: !notifications.channelWide}
+    // return state.set(
+    // 'inbox',
+    // inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))
+    // )
+    // }
+    // TODO
+    // case 'chat:updatedNotifications': {
+    // // We received an updated inbox.notifications from the server
+    // const {payload: {conversationIDKey, notifications}} = action
+    // const inbox = state.get('inbox')
+    // const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
+    // if (!index) {
+    // return state
+    // }
+    // return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
+    // }
     case 'teams:setTeamCreationError': {
       const {payload: {teamCreationError}} = action
       return state.set('teamCreationError', teamCreationError)
