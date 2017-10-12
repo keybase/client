@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"context"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -18,6 +17,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"golang.org/x/net/context"
 )
 
 type Helper struct {

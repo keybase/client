@@ -13,8 +13,16 @@ export default function(state: State = initialState, action: Actions): State {
     }
     case 'entity:delete': {
       const {keyPath, ids} = action.payload
+      // works in immutable 4
+      // return state.updateIn(keyPath, map => map.deleteAll(ids))
       // $FlowIssue doesn't understand this API
-      return state.updateIn(keyPath, map => map.deleteAll(ids))
+      return state.updateIn(keyPath, map =>
+        map.withMutations(map => {
+          ids.forEach(id => {
+            map = map.delete(id)
+          })
+        })
+      )
     }
     case 'entity:merge': {
       const {keyPath, entities} = action.payload
