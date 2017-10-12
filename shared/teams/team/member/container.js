@@ -9,11 +9,22 @@ import {getProfile} from '../../../actions/tracker'
 import {startConversation} from '../../../actions/chat'
 import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
+import {type TypedState} from '../../../constants/reducer'
 
-import type {TypedState} from '../../../constants/reducer'
+const getFollowing = (state, username: string) => {
+  const followingMap = Constants.getFollowingMap(state)
+  return !!followingMap[username]
+}
+
+const getFollower = (state, username: string) => {
+  const followerMap = Constants.getFollowerMap(state)
+  return !!followerMap[username]
+}
 
 type StateProps = {
   teamname: string,
+  following: boolean,
+  follower: boolean,
   _you: ?string,
   _username: string,
   _memberInfo: I.Set<Constants.MemberInfo>,
@@ -23,6 +34,8 @@ type StateProps = {
 const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
   teamname: routeProps.get('teamname'),
   loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
+  following: getFollowing(state, routeProps.get('username')),
+  follower: getFollower(state, routeProps.get('username')),
   _username: routeProps.get('username'),
   _you: state.config.username,
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),

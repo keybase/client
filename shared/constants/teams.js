@@ -127,5 +127,6 @@ const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.Con
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
 export const getFollowingMap = ChatConstants.getFollowingMap
+export const getFollowerMap = (state: TypedState) => state.config.followers
 
 export {getConversationIDKeyFromChannelName, getParticipants}
