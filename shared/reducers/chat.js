@@ -261,33 +261,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
     case 'chat:exitSearch': {
       return state.set('inSearch', false)
     }
-    // }
-    // // TODO
-    // case 'chat:toggleChannelWideNotifications': {
-    // const {payload: {conversationIDKey}} = action
-    // const inbox = state.get('inbox')
-    // const [index, conv] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
-    // if (!conv) {
-    // return state
-    // }
-    // const notifications = conv.get('notifications') || {channelWide: false}
-    // const nextNotifications = {channelWide: !notifications.channelWide}
-    // return state.set(
-    // 'inbox',
-    // inbox.update(index, conv => conv.set('notifications', {...notifications, ...nextNotifications}))
-    // )
-    // }
-    // TODO
-    // case 'chat:updatedNotifications': {
-    // // We received an updated inbox.notifications from the server
-    // const {payload: {conversationIDKey, notifications}} = action
-    // const inbox = state.get('inbox')
-    // const [index] = inbox.findEntry(i => i.get('conversationIDKey') === conversationIDKey) || []
-    // if (!index) {
-    // return state
-    // }
-    // return state.set('inbox', inbox.update(index, conv => conv.set('notifications', notifications)))
-    // }
     case 'teams:setTeamCreationError': {
       const {payload: {teamCreationError}} = action
       return state.set('teamCreationError', teamCreationError)

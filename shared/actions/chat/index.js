@@ -22,8 +22,7 @@ import {
   CommonTLFVisibility,
   ConstantsStatusCode,
 } from '../../constants/types/flow-types'
-import {call, put, all, take, select, race} from 'redux-saga/effects'
-import {delay} from 'redux-saga'
+import {call, put, all, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
 import {openInKBFS} from '../kbfs'
@@ -50,7 +49,6 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
         yield call(Inbox.processConversation, setStatus.conv)
-        yield call(_ensureValidSelectedChat, false, true)
       }
       return
     case ChatTypes.NotifyChatChatActivityType.failedMessage:
@@ -1265,31 +1263,47 @@ function _exitSearch(
   ])
 }
 
-const _setNotifications = function*(action: Constants.SetNotifications) {
-  const {payload: {conversationIDKey, deviceType, notifyType}} = action
+const _setNotifications = function*(
+  action:
+    | Constants.SetNotifications
+    | Constants.ToggleChannelWideNotifications
+    | Constants.UpdatedNotifications
+) {
+  const {payload: {conversationIDKey}} = action
 
   // update the one in the store
   const old = yield select(s => s.entities.inbox.get(conversationIDKey))
   if (old) {
-    const nextNotifications = {[deviceType]: {}}
-    // This is the flip-side of the logic in the notifications container.
-    if (old.notifications && old.notifications[deviceType]) {
-      switch (notifyType) {
-        case 'generic':
-          nextNotifications[deviceType].generic = true
-          nextNotifications[deviceType].atmention = true
-          break
-        case 'atmention':
-          nextNotifications[deviceType].generic = false
-          nextNotifications[deviceType].atmention = true
-          break
-        case 'never':
-          nextNotifications[deviceType].generic = false
-          nextNotifications[deviceType].atmention = false
-          break
+    let nextNotifications = {}
+
+    if (action.type === 'chat:setNotifications') {
+      const {payload: {deviceType, notifyType}} = action
+
+      // This is the flip-side of the logic in the notifications container.
+      if (old.notifications && old.notifications[deviceType]) {
+        nextNotifications = {[deviceType]: {}}
+        switch (notifyType) {
+          case 'generic':
+            nextNotifications[deviceType].generic = true
+            nextNotifications[deviceType].atmention = true
+            break
+          case 'atmention':
+            nextNotifications[deviceType].generic = false
+            nextNotifications[deviceType].atmention = true
+            break
+          case 'never':
+            nextNotifications[deviceType].generic = false
+            nextNotifications[deviceType].atmention = false
+            break
+        }
       }
+    } else if (action.type === 'chat:toggleChannelWideNotifications') {
+      nextNotifications = {channelWide: !old.notifications.channelWide}
+    } else if (action.type === 'chat:updatedNotifications') {
+      nextNotifications = action.payload.notifications
     }
-    yield put(
+
+    yield put.resolve(
       EntityCreators.replaceEntity(
         ['inbox', conversationIDKey],
         old.set('notifications', {
@@ -1300,36 +1314,39 @@ const _setNotifications = function*(action: Constants.SetNotifications) {
     )
   }
 
-  const inbox = yield select(Constants.getInbox, conversationIDKey)
-  if (inbox && inbox.notifications) {
-    const {notifications} = inbox
-    const param = {
-      convID: Constants.keyToConversationID(conversationIDKey),
-      channelWide: notifications.channelWide,
-      settings: [
-        {
-          deviceType: CommonDeviceType.desktop,
-          kind: ChatTypes.CommonNotificationKind.atmention,
-          enabled: notifications.desktop.atmention,
-        },
-        {
-          deviceType: CommonDeviceType.desktop,
-          kind: ChatTypes.CommonNotificationKind.generic,
-          enabled: notifications.desktop.generic,
-        },
-        {
-          deviceType: CommonDeviceType.mobile,
-          kind: ChatTypes.CommonNotificationKind.atmention,
-          enabled: notifications.mobile.atmention,
-        },
-        {
-          deviceType: CommonDeviceType.mobile,
-          kind: ChatTypes.CommonNotificationKind.generic,
-          enabled: notifications.mobile.generic,
-        },
-      ],
+  // Send out the update if we made it
+  if (action.type !== 'chat:updatedNotifications') {
+    const inbox = yield select(Constants.getInbox, conversationIDKey)
+    if (inbox && inbox.notifications) {
+      const {notifications} = inbox
+      const param = {
+        convID: Constants.keyToConversationID(conversationIDKey),
+        channelWide: notifications.channelWide,
+        settings: [
+          {
+            deviceType: CommonDeviceType.desktop,
+            kind: ChatTypes.CommonNotificationKind.atmention,
+            enabled: notifications.desktop.atmention,
+          },
+          {
+            deviceType: CommonDeviceType.desktop,
+            kind: ChatTypes.CommonNotificationKind.generic,
+            enabled: notifications.desktop.generic,
+          },
+          {
+            deviceType: CommonDeviceType.mobile,
+            kind: ChatTypes.CommonNotificationKind.atmention,
+            enabled: notifications.mobile.atmention,
+          },
+          {
+            deviceType: CommonDeviceType.mobile,
+            kind: ChatTypes.CommonNotificationKind.generic,
+            enabled: notifications.mobile.generic,
+          },
+        ],
+      }
+      yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
     }
-    yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
   }
 }
 
@@ -1434,8 +1451,7 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
   yield Saga.safeTakeEvery('chat:updateThread', _updateThread)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
-  yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
-  yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInboxStale)
+  yield Saga.safeTakeLatest(['chat:inboxStale', 'chat:loadInbox'], Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
   yield Saga.safeTakeLatest(
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
@@ -1445,8 +1461,10 @@ function* chatSaga(): SagaGenerator<any, any> {
     SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}),
     previousConversationSelector(s),
   ])
-  yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
-  yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
+  yield Saga.safeTakeEvery(
+    ['chat:setNotifications', 'chat:updatedNotifications', 'chat:toggleChannelWideNotifications'],
+    _setNotifications
+  )
   yield Saga.safeTakeSerially('chat:unboxConversations', Inbox.unboxConversations)
   yield Saga.safeTakeLatest('chat:unboxMore', Inbox.unboxMore)
   yield Saga.safeTakeEvery('chat:inboxFilterSelectNext', Inbox.filterSelectNext)
