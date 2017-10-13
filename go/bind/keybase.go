@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/trace"
 	"sync"
 	"time"
@@ -81,6 +82,9 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
 
+	// Set to one OS thread on mobile so we don't have too much contention with JS thread
+	fmt.Printf("Go: setting GOMAXPROCS to 1: previous: %d\n", runtime.GOMAXPROCS(1))
+
 	startTrace(logFile)
 
 	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
@@ -105,13 +109,14 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		return err
 	}
 	config := libkb.AppConfig{
-		HomeDir:                     homeDir,
-		LogFile:                     logFile,
-		RunMode:                     runMode,
-		Debug:                       true,
-		LocalRPCDebug:               "",
-		VDebugSetting:               "mobile", // use empty string for same logging as desktop default
-		SecurityAccessGroupOverride: accessGroupOverride,
+		HomeDir:                        homeDir,
+		LogFile:                        logFile,
+		RunMode:                        runMode,
+		Debug:                          true,
+		LocalRPCDebug:                  "",
+		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
+		SecurityAccessGroupOverride:    accessGroupOverride,
+		ChatInboxSourceLocalizeThreads: 5,
 	}
 	err = kbCtx.Configure(config, usage)
 	if err != nil {

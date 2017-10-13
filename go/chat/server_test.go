@@ -677,11 +677,14 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
 			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
-				require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
-				require.Equal(t, 2, len(conv.LocalMetadata.WriterNames))
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
+					require.Zero(t, len(conv.LocalMetadata.Snippet))
+					require.Zero(t, len(conv.LocalMetadata.WriterNames))
+				default:
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
+					require.Equal(t, 2, len(conv.LocalMetadata.WriterNames))
 				}
 			}
 		case <-time.After(20 * time.Second):
