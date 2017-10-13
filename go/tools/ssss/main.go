@@ -11,6 +11,16 @@ import (
 	"os"
 )
 
+// ssss = "simple standalone saltpack signer"
+//
+// Provide these environment variables:
+//
+//    PASSPHRASE: a saltpack passphrase
+//    SECRET_KEY: a hex-encoded triplesec'ed encryption of the secret signing key, using the passphrase above
+//    PUBLIC_KEY: the corresponding EdDSA public signing key
+//
+// Provide a file to sign via the first argument. It will output to stdout the signature.
+//
 func main() {
 	err := mainInner()
 	if err != nil {
