@@ -21,7 +21,6 @@ import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation
 import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
 import {selectConversation} from '../chat/creators'
-import {configurePush} from '../push/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -162,7 +161,7 @@ function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
   }
 }
 
-const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => ({
+const kex2Sagas = (onBackSaga, provisionerSuccessSaga, getPassphraseSaga = defaultGetPassphraseSaga) => ({
   'keybase.1.gpgUi.selectKey': selectKeySaga,
   'keybase.1.loginUi.displayPrimaryPaperKey': displayPrimaryPaperKeySaga(onBackSaga),
   'keybase.1.loginUi.getEmailOrUsername': getEmailOrUsernameSaga(onBackSaga),
@@ -377,7 +376,7 @@ const chooseGPGMethodSaga = onBackSaga =>
     }
   }
 
-const getPassphraseSaga = onBackSaga =>
+const defaultGetPassphraseSaga = onBackSaga =>
   function*({pinentry: {type, prompt, username, retryLabel}}) {
     switch (type) {
       case Types.PassphraseCommonPassphraseType.paperKey:
@@ -454,8 +453,13 @@ function* handleProvisioningError(error) {
   yield call(cancelLogin)
 }
 
-function* loginFlowSaga(usernameOrEmail) {
-  const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga)
+function* loginFlowSaga(usernameOrEmail, passphrase) {
+  // If there is passphrase, use that.
+  const passphraseSaga = passphrase
+    ? onBackSaga => () => EngineRpc.rpcResult({passphrase: passphrase.stringValue(), storeSecret: false})
+    : defaultGetPassphraseSaga
+
+  const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga, passphraseSaga)
 
   const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc', {
     param: {
@@ -532,6 +536,15 @@ function* startLoginSaga() {
   }
 }
 
+function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
+  yield put(Creators.setLoginFromRevokedDevice(''))
+  yield put(Creators.setRevokedSelf(''))
+  yield put(Creators.setDeletedSelf(''))
+
+  yield call(initalizeMyCodeStateForLogin)
+  yield call(loginFlowSaga, usernameOrEmail, passphrase)
+}
+
 function* cameraBrokenModeSaga({payload: {broken}}) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
@@ -550,13 +563,6 @@ function* cameraBrokenModeSaga({payload: {broken}}) {
     return
   }
   yield put(Creators.setCodePageMode(mode))
-}
-
-function* loginSuccess() {
-  yield put(Creators.loginDone())
-  yield put(configurePush())
-  yield put(loadDevices())
-  yield put(bootstrap())
 }
 
 const _deviceTypeMap: {[key: string]: any} = {
@@ -609,34 +615,6 @@ function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
 
   yield call(onBackSaga)
   yield put(setDevicesWaiting(false))
-}
-
-function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
-  const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
-    ['keybase.1.secretUi.getPassphrase', 'finished'],
-    {param: {noPassphrasePrompt: false, username: usernameOrEmail}}
-  )
-
-  while (true) {
-    const incoming = yield chanMap.race()
-    if (incoming['keybase.1.secretUi.getPassphrase']) {
-      const {response} = (incoming['keybase.1.secretUi.getPassphrase']: any)
-      response.result({passphrase: passphrase.stringValue(), storeSecret: true})
-    } else if (incoming.finished) {
-      const {error} = (incoming.finished: any)
-      if (error) {
-        const message = error.toString()
-        yield put(Creators.loginDone({message}))
-        if (error.desc === 'No device provisioned locally for this user') {
-          yield put(Creators.setLoginFromRevokedDevice(message))
-          yield put(navigateTo([loginTab]))
-        }
-      } else {
-        yield call(loginSuccess)
-      }
-      break
-    }
-  }
 }
 
 function* openAccountResetPageSaga() {
