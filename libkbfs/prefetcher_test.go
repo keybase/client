@@ -983,7 +983,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 }
 
 func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
-	t.Log("Test synced TLF prefetching in a more complex fetch order.")
+	t.Log("Test synced TLF prefetching with the disk cache.")
 	cache, dbcConfig := initDiskBlockCacheTest(t)
 	q, bg, config := initPrefetcherTestWithDiskCache(t, cache)
 	defer shutdownPrefetcherTest(q)
