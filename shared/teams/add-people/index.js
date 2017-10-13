@@ -141,13 +141,4 @@ const _styleContainer = {
   top: 10,
 }
 
-const _styleBanner = {
-  ...globalStyles.flexBoxCenter,
-  ...(isMobile ? {} : {cursor: 'default'}),
-  minHeight: 40,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  borderTopLeftRadius: isMobile ? 0 : 4,
-  borderTopRightRadius: isMobile ? 0 : 4,
-}
 export default AddPeople

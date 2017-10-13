@@ -2,7 +2,6 @@
 import {connect} from 'react-redux'
 import * as Creators from '../../actions/teams/creators'
 import * as SearchCreators from '../../actions/search/creators'
-import * as I from 'immutable'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {compose, withPropsOnChange} from 'recompose'
