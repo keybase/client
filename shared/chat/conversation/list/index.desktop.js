@@ -269,27 +269,39 @@ class PopupEnabledList extends BaseList {
       return !!(m && m.type === 'Text' && m.author === this.props.you)
     })
 
-    if (entry) {
-      const idx: number = entry[0]
-      const messageKey: Constants.MessageKey = entry[1]
-      // $ForceType
-      const message: Constants.TextMessage = this.props.getMessageFromMessageKey(messageKey)
-
-      this._keepIdxVisible = idx
-      this.setState({listRerender: this.state.listRerender + 1})
-
-      const listNode = ReactDOM.findDOMNode(this._list)
-      if (listNode) {
-        // $FlowIssue
-        const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
-        if (messageNodes) {
-          const messageNode = messageNodes[0]
-          if (messageNode) {
-            this._showEditor(message, this._domNodeToRect(messageNode))
-          }
-        }
-      }
+    if (!entry) {
+      return
     }
+
+    const idx: number = entry[0]
+    const messageKey: Constants.MessageKey = entry[1]
+    // $ForceType
+    const message: Constants.TextMessage = this.props.getMessageFromMessageKey(messageKey)
+
+    if (message.messageState !== 'sent') {
+      return
+    }
+
+    this._keepIdxVisible = idx
+    this.setState({listRerender: this.state.listRerender + 1})
+
+    const listNode = ReactDOM.findDOMNode(this._list)
+    if (!listNode) {
+      return
+    }
+
+    // $FlowIssue
+    const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
+    if (!messageNodes) {
+      return
+    }
+
+    const messageNode = messageNodes[0]
+    if (!messageNode) {
+      return
+    }
+
+    this._showEditor(message, this._domNodeToRect(messageNode))
   }
 
   _renderPopup(
