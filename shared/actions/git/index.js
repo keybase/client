@@ -150,12 +150,10 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
 function* _handleIncomingGregor(action: Constants.HandleIncomingGregor): SagaGenerator<any, any> {
   const msgs = action.payload.messages.map(msg => JSON.parse(msg.body))
   for (let body of msgs) {
-    switch (body.action) {
-      case 'delete': // fallthrough
-      case 'create': // fallthrough
-      case 'update': // Reload git info on actions
-        yield put(Creators.loadGit())
-        break
+    const needsLoad = ['delete', 'create', 'update'].includes(body.action)
+    if (needsLoad) {
+      yield put(Creators.loadGit())
+      return // Note: remove (or replace with `continue`) if any other actions may need dispatching
     }
   }
 }

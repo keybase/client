@@ -206,7 +206,7 @@ function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
     // Filter first so we don't dispatch unnecessary actions
     const gitMessages = messages.filter(i => i.system === 'git')
     if (gitMessages.length > 0) {
-      yield put(gitHandleIncomingGregor(messages.filter(i => i.system === 'git')))
+      yield put(gitHandleIncomingGregor(gitMessages))
     }
 
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
