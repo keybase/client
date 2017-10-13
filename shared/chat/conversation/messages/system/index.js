@@ -10,12 +10,15 @@ type Props = {
   message: TextMessage,
 }
 
-const SystemNotice = ({message}: Props) => (
+const SystemNotice = ({channelname, message}: Props) => {
+  console.warn({channelname, message})
+  return (
   <UserNotice username={message.author} bgColor={globalColors.blue4}>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-      {message.message.stringValue()}
+      {message.message.stringValue()} {channelname}
     </Text>
   </UserNotice>
 )
+}
 
 export default SystemNotice

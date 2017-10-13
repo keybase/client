@@ -10,13 +10,20 @@ import type {OwnProps} from './container'
 
 const getMessage = createCachedSelector(
   [Constants.getMessageFromMessageKey],
-  (message: Constants.TextMessage) => message
+  [Constants.getChannelName],
+  (message: Constants.TextMessage, channelname: string) => {
+    console.warn('channelname is', channelname)
+    return {
+      channelname,
+      message,
+    }
+  }
 )((state, messageKey) => messageKey)
 
-const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
-  return {
-    message: getMessage(state, messageKey),
-  }
-}
+const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => getMessage(state, messageKey)
 
-export default compose(connect(mapStateToProps, () => ({})))(System)
+const mergeProps = (stateProps) => {
+  console.warn('stateProps are', stateProps)
+  return stateProps
+}
+export default compose(connect(mapStateToProps, () => ({}), mergeProps))(System)
