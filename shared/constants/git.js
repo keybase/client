@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
+import {type OutOfBandMessage} from './types/flow-types-gregor'
 
 export type LoadGit = NoErrorTypedAction<'git:loadGit', void>
 export type CreateTeamRepo = NoErrorTypedAction<
@@ -17,7 +18,10 @@ export type DeletePersonalRepo = NoErrorTypedAction<'git:deletePersonalRepo', {n
 export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}>
 export type SetError = NoErrorTypedAction<'git:setError', {gitError: ?Error}>
 export type BadgeAppForGit = NoErrorTypedAction<'git:badgeAppForGit', {ids: Array<string>}>
-export type HandleIncomingGregor = NoErrorTypedAction<'git:handleIncomingGregor', void>
+export type HandleIncomingGregor = NoErrorTypedAction<
+  'git:handleIncomingGregor',
+  {messages: Array<OutOfBandMessage>}
+>
 
 type _GitInfo = {
   canDelete: boolean,

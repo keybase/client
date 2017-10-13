@@ -147,6 +147,19 @@ const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
   return null
 }
 
+function* _handleIncomingGregor(action: Constants.HandleIncomingGregor): SagaGenerator<any, any> {
+  const msgs = action.payload.messages.map(msg => JSON.parse(msg.body))
+  for (let body of msgs) {
+    switch (body.action) {
+      case 'delete': // fallthrough
+      case 'create': // fallthrough
+      case 'update': // Reload git info on actions
+        yield put(Creators.loadGit())
+        break
+    }
+  }
+}
+
 function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('git:loadGit', _loadGit)
   yield Saga.safeTakeEvery('git:createPersonalRepo', _createPersonalRepo)
@@ -156,6 +169,7 @@ function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('git:setLoading', _setLoading)
   yield Saga.safeTakeLatest('git:setError', _setError)
   yield Saga.safeTakeEveryPure('git:badgeAppForGit', _badgeAppForGit)
+  yield Saga.safeTakeEvery('git:handleIncomingGregor', _handleIncomingGregor)
   yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
 }
 

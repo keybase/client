@@ -28,6 +28,7 @@ import {
 } from '../constants/types/flow-types-gregor'
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
+import {handleIncomingGregor as gitHandleIncomingGregor} from './git/creators'
 
 function pushState(state: GregorState, reason: PushReason): Constants.PushState {
   return {type: Constants.pushState, payload: {state, reason}}
@@ -201,6 +202,13 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
 function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
+
+    // Filter first so we don't dispatch unnecessary actions
+    const gitMessages = messages.filter(i => i.system === 'git')
+    if (gitMessages.length > 0) {
+      yield put(gitHandleIncomingGregor(messages.filter(i => i.system === 'git')))
+    }
+
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
   } else {
     console.log('Error in gregor oobm', pushOOBM.payload)
