@@ -61,15 +61,4 @@ public class KeyStoreHelper {
         kpg.initialize(spec);
         KeyPair kp = kpg.generateKeyPair();
     }
-
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
-    public static boolean isOnHardware(PrivateKey privateKey) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeySpecException {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            SecretKeyFactory factory = SecretKeyFactory.getInstance(privateKey.getAlgorithm(), "AndroidKeyStore");
-            final KeyInfo keyInfo = (KeyInfo) factory.getKeySpec((SecretKey) privateKey, KeyInfo.class);
-            return keyInfo.isInsideSecureHardware();
-        }
-        return KeyChain.isBoundKeyAlgorithm("RSA");
-
-    }
 }
