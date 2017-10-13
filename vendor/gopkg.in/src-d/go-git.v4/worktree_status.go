@@ -243,7 +243,7 @@ func diffTreeIsEquals(a, b noder.Hasher) bool {
 }
 
 // Add adds the file contents of a file in the worktree to the index. if the
-// file is already stagged in the index no error is returned.
+// file is already staged in the index no error is returned.
 func (w *Worktree) Add(path string) (plumbing.Hash, error) {
 	s, err := w.Status()
 	if err != nil {

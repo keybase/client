@@ -410,7 +410,8 @@ func (d *DotGit) RemoveRef(name plumbing.ReferenceName) error {
 	path := d.fs.Join(".", name.String())
 	_, err := d.fs.Stat(path)
 	if err == nil {
-		return d.fs.Remove(path)
+		err = d.fs.Remove(path)
+		// Drop down to remove it from the packed refs file, too.
 	}
 
 	if err != nil && !os.IsNotExist(err) {
@@ -444,6 +445,17 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 
 		return err
 	}
+	doCloseF := true
+	defer func() {
+		if doCloseF {
+			ioutil.CheckClose(f, &err)
+		}
+	}()
+
+	err = f.Lock()
+	if err != nil {
+		return err
+	}
 
 	// Creating the temp file in the same directory as the target file
 	// improves our chances for rename operation to be atomic.
@@ -451,6 +463,12 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 	if err != nil {
 		return err
 	}
+	doCloseTmp := true
+	defer func() {
+		if doCloseTmp {
+			ioutil.CheckClose(tmp, &err)
+		}
+	}()
 
 	s := bufio.NewScanner(f)
 	found := false
@@ -476,14 +494,21 @@ func (d *DotGit) rewritePackedRefsWithoutRef(name plumbing.ReferenceName) (err e
 	}
 
 	if !found {
-		return nil
+		doCloseTmp = false
+		ioutil.CheckClose(tmp, &err)
+		if err != nil {
+			return err
+		}
+		// Delete the temp file if nothing needed to be removed.
+		return d.fs.Remove(tmp.Name())
 	}
 
+	doCloseF = false
 	if err := f.Close(); err != nil {
-		ioutil.CheckClose(tmp, &err)
 		return err
 	}
 
+	doCloseTmp = false
 	if err := tmp.Close(); err != nil {
 		return err
 	}

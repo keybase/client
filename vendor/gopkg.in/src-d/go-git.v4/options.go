@@ -362,3 +362,9 @@ func (o *CommitOptions) Validate(r *Repository) error {
 
 	return nil
 }
+
+// ListOptions describes how a remote list should be performed.
+type ListOptions struct {
+	// Auth credentials, if required, to use with the remote repository.
+	Auth transport.AuthMethod
+}

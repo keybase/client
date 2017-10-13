@@ -138,6 +138,9 @@ func (dw *deltaSelector) objectsToPack(
 		return objectsToPack, nil
 	}
 
+	if packWindow == 0 {
+		return objectsToPack, nil
+	}
 	if err := dw.fixAndBreakChains(objectsToPack, statusChan); err != nil {
 		return nil, err
 	}

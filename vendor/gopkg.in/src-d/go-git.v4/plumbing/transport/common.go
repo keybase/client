@@ -187,6 +187,7 @@ func (e urlEndpoint) Path() string {
 type scpEndpoint struct {
 	user string
 	host string
+	port string
 	path string
 }
 
@@ -194,8 +195,14 @@ func (e *scpEndpoint) Protocol() string { return "ssh" }
 func (e *scpEndpoint) User() string     { return e.user }
 func (e *scpEndpoint) Password() string { return "" }
 func (e *scpEndpoint) Host() string     { return e.host }
-func (e *scpEndpoint) Port() int        { return 22 }
 func (e *scpEndpoint) Path() string     { return e.path }
+func (e *scpEndpoint) Port() int {
+	i, err := strconv.Atoi(e.port)
+	if err != nil {
+		return 22
+	}
+	return i
+}
 
 func (e *scpEndpoint) String() string {
 	var user string
@@ -220,7 +227,7 @@ func (e *fileEndpoint) String() string   { return e.path }
 
 var (
 	isSchemeRegExp   = regexp.MustCompile(`^[^:]+://`)
-	scpLikeUrlRegExp = regexp.MustCompile(`^(?:(?P<user>[^@]+)@)?(?P<host>[^:\s]+):(?P<path>[^\\].*)$`)
+	scpLikeUrlRegExp = regexp.MustCompile(`^(?:(?P<user>[^@]+)@)?(?P<host>[^:\s]+):(?:(?P<port>[0-9]{1,5})/)?(?P<path>[^\\].*)$`)
 )
 
 func parseSCPLike(endpoint string) (Endpoint, bool) {
@@ -232,7 +239,8 @@ func parseSCPLike(endpoint string) (Endpoint, bool) {
 	return &scpEndpoint{
 		user: m[1],
 		host: m[2],
-		path: m[3],
+		port: m[3],
+		path: m[4],
 	}, true
 }
 
