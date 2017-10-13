@@ -42,8 +42,7 @@ def publish(bucket, excluded, source) {
 
 def doBuild() {
     stage('Check Driver Signing') {
-        // TODO: still need the right driver packages from SF
-        if (UpdateChannel == "SmokeCI"){
+        if (UpdateChannel != "None"){
             // Check both the built .sys files and the msi package.
             bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v ${DOKAN_PATH}\\x64\\Win10Release\\dokan1.sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
             bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v ${DOKAN_PATH}\\Win32\\Win10Release\\dokan1.sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
