@@ -44,6 +44,8 @@ const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
 type DispatchProps = {
   onOpenProfile: () => void,
   _onEditMembership: (name: string, username: string) => void,
+  _onRemoveMember: (name: string, username: string) => void,
+  _onLeaveTeam: (teamname: string) => void,
   _onChat: (string, ?string) => void,
   onBack: () => void,
   // TODO remove member
@@ -64,6 +66,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, nav
         },
       ])
     ),
+  _onRemoveMember: (teamname: string, username: string) => {
+    dispatch(navigateAppend([{props: {teamname, username}, selected: 'reallyRemoveMember'}]))
+  },
+  _onLeaveTeam: (teamname: string) => {
+    dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
+  },
   _onChat: (username, myUsername) => {
     username && myUsername && dispatch(startConversation([username, myUsername]))
   },
@@ -93,6 +101,13 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     you,
     onChat: () => dispatchProps._onChat(stateProps._username, stateProps._you),
     onEditMembership: () => dispatchProps._onEditMembership(stateProps.teamname, stateProps._username),
+    onRemoveMember: () => {
+      if (stateProps._username === stateProps._you) {
+        dispatchProps._onLeaveTeam(stateProps.teamname)
+      } else {
+        dispatchProps._onRemoveMember(stateProps.teamname, stateProps._username)
+      }
+    },
   }
 }
 

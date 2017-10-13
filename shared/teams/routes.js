@@ -8,6 +8,7 @@ import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
 import RolePicker from './role-picker/container'
 import Member from './team/member/container'
+import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
 import {isMobile} from '../constants/platform'
 
@@ -30,6 +31,13 @@ const makeRolePicker = {
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
 }
+const makeReallyLeaveTeam = {
+  reallyLeaveTeam: {
+    children: {},
+    component: ReallyLeaveTeam,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+}
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
@@ -47,13 +55,18 @@ const routeTree = makeRouteDefNode({
       children: {
         ...makeManageChannels,
         ...makeRolePicker,
-        reallyLeaveTeam: {
-          children: {},
-          component: ReallyLeaveTeam,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
+        ...makeReallyLeaveTeam,
         member: {
-          children: makeRolePicker,
+          children: {
+            ...makeRolePicker,
+            ...makeReallyLeaveTeam,
+
+            reallyRemoveMember: {
+              children: {},
+              component: ReallyRemoveMember,
+              tags: makeLeafTags({layerOnTop: !isMobile}),
+            },
+          },
           component: Member,
         },
       },

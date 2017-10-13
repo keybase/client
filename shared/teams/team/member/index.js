@@ -16,6 +16,7 @@ export type Props = {
   onOpenProfile: () => void,
   onChat: () => void,
   onEditMembership: () => void,
+  onRemoveMember: () => void,
   onBack: () => void,
 }
 
@@ -37,10 +38,11 @@ export const TeamMember = (props: Props) => {
     onOpenProfile,
     onChat,
     onEditMembership,
+    onRemoveMember,
     you,
   } = props
   const buttonContainerStyle = isMobile ? {width: '90%', justifyContent: 'space-around'} : {}
-  const buttonStyle = isMobile ? {width: '45%'} : {marginLeft: admin ? globalMargins.tiny : 0}
+  const buttonStyle = isMobile ? {marginTop: globalMargins.tiny} : {marginLeft: globalMargins.tiny}
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
       <Box
@@ -95,13 +97,21 @@ export const TeamMember = (props: Props) => {
       </Box>
       <Box
         style={{
-          ...globalStyles.flexBoxRow,
+          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
           marginTop: globalMargins.large,
           ...buttonContainerStyle,
         }}
       >
-        {admin && <Button style={buttonStyle} type="Secondary" label="Edit" onClick={onEditMembership} />}
-        <Button type="Primary" style={buttonStyle} label="Chat" onClick={onChat} />
+        <Button type="Primary" label="Chat" onClick={onChat} />
+        {admin &&
+          <Button style={buttonStyle} type="Secondary" label="Edit role" onClick={onEditMembership} />}
+        {admin &&
+          <Button
+            style={buttonStyle}
+            type="Danger"
+            label={you && you.username === user.username ? 'Leave team' : 'Remove'}
+            onClick={onRemoveMember}
+          />}
       </Box>
     </Box>
   )
