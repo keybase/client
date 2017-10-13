@@ -141,14 +141,19 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-:: Run keybase sign to get signature of update
-set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
-set SigFile=sig.txt
-%KeybaseBin% sign -d --saltpack-version=1 -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+:: Run ssss to get signature of update
+pushd %GOPATH%\src\github.com\keybase\client\go\tools\ssss
+go build
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-
+popd
+set SigningBin="%GOPATH%\src\github.com\keybase\client\go\tools\ssss\sss.exe"
+set SigFile=sig.txt
+%SigningBin% %KEYBASE_INSTALLER_NAME% > %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 
 :: UpdateChannel is a Jenkins select parameter, one of: Smoke, Test, None
 echo UpdateChannel: %UpdateChannel%
