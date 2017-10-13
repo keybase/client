@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -21,7 +22,6 @@ import (
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/pkg/errors"
-	billy "gopkg.in/src-d/go-billy.v3"
 )
 
 const (
@@ -211,7 +211,7 @@ func normalizeRepoName(repoName string) string {
 
 func takeConfigLock(
 	fs *libfs.FS, tlfHandle *libkbfs.TlfHandle, repoName string) (
-	f billy.File, err error) {
+	closer io.Closer, err error) {
 	// Double-check that the namespace of the FS matches the
 	// normalized repo name, so that we're locking only the config
 	// file within the actual repo we care about.  This is appended to
@@ -228,7 +228,7 @@ func takeConfigLock(
 
 	// Lock a temp file to avoid a duplicate create of the actual
 	// file.  TODO: clean up this file at some point?
-	f, err = fs.Create(kbfsConfigNameTemp)
+	f, err := fs.Create(kbfsConfigNameTemp)
 	if err != nil && !os.IsExist(err) {
 		return nil, err
 	} else if os.IsExist(err) {
