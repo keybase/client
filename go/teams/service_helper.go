@@ -670,7 +670,7 @@ func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string)
 
 	ret := keybase1.TeamRequestAccessResult{}
 	if apiRes != nil && apiRes.Body != nil {
-		// "open" key may not be included in result payload and it's
+		// "is_open" key may not be included in result payload and it's
 		// not an error.
 		ret.Open, _ = apiRes.Body.AtKey("is_open").GetBool()
 	}
