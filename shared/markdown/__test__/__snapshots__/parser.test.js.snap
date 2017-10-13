@@ -5,14 +5,14 @@ Object {
   "children": Array [
     Object {
       "children": Array [
-        "not*bolded* ",
+        "is*bolded* ",
         Object {
           "children": Array [
             "also",
           ],
           "type": "bold",
         },
-        "notbolded",
+        "isbolded",
       ],
       "type": "text-block",
     },
