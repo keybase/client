@@ -13,7 +13,13 @@ const mapStateToProps: MapStateToProps<*, *, *> = (
     onClick,
     onMouseOver,
     onShowTracker,
-  }: {disableIfInTeamName: ?string, id: SearchResultId, onClick: () => void, onMouseOver?: () => void, onShowTracker?: () => void}
+  }: {
+    disableIfInTeamName: ?string,
+    id: SearchResultId,
+    onClick: () => void,
+    onMouseOver?: () => void,
+    onShowTracker?: () => void,
+  }
 ) => {
   const result: any = state.entities.getIn(['search', 'searchResults', id], Map()).toObject()
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
