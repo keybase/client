@@ -2,6 +2,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as I from 'immutable'
+import getenv from 'getenv'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
@@ -90,12 +91,16 @@ function* startNewConversation(
     return [null, null]
   }
 
+  const membersType = getenv('KEYBASE_CHAT_MEMBER_TYPE', 'kbfs') === 'impteam'
+    ? ChatTypes.CommonConversationMembersType.impteam
+    : ChatTypes.CommonConversationMembersType.kbfs
   const result = yield call(ChatTypes.localNewConversationLocalRpcPromise, {
     param: {
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       tlfName,
       tlfVisibility: CommonTLFVisibility.private,
       topicType: ChatTypes.CommonTopicType.chat,
+      membersType,
     },
   })
 

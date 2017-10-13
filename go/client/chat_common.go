@@ -20,7 +20,7 @@ func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name strin
 	var req chatConversationResolvingRequest
 	req.ctx = new(chatConversationResolvingRequestContext)
 	var tlfError error
-	if tlfError = resolver.completeAndCanonicalizeTLFName(ctx, name, req); tlfError != nil {
+	if tlfError = resolver.completeAndCanonicalizeTLFName(ctx, name, req); tlfError == nil {
 		ret := keybase1.UserOrTeamResult_USER
 		return &ret, nil
 	}
