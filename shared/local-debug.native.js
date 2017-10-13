@@ -35,6 +35,7 @@ let config: {[key: string]: any} = {
   printRPC: false,
   printBridgeB64: false, // raw b64 going over the wire
   printRoutes: false,
+  maskStrings: false, // makes hidden strings random so avoid seeing stuff while debugging
   filterActionLogs: null,
   reactPerf: false,
   reduxSagaLogger: false,
@@ -119,6 +120,7 @@ export const {
   isTesting,
   immediateStateLogging,
   logStatFrequency,
+  maskStrings,
   overrideLoggedInTab,
   printOutstandingRPCs,
   printRPC,
