@@ -3,6 +3,7 @@ package git
 import (
 	"testing"
 
+	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/externals"
@@ -30,6 +31,14 @@ func createRootTeam(tc libkb.TestContext) keybase1.TeamID {
 	return teamName.ToPrivateTeamID()
 }
 
+func createImplicitTeam(tc libkb.TestContext, public bool) keybase1.TeamID {
+	u, err := kbtest.CreateAndSignupFakeUser("c", tc.G)
+	teamID, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc.G, u.Username, public)
+	require.NoError(tc.T, err)
+	require.Equal(tc.T, public, teamID.IsPublic())
+	return teamID
+}
+
 func setupBox(t *testing.T) (libkb.TestContext, *Crypto, keybase1.TeamIDWithVisibility, *keybase1.EncryptedGitMetadata) {
 	tc := setupTest(t, "crypto")
 
@@ -54,29 +63,85 @@ func setupBox(t *testing.T) (libkb.TestContext, *Crypto, keybase1.TeamIDWithVisi
 }
 
 func TestCryptoUnbox(t *testing.T) {
+	testCryptoUnbox(t, false, false)
+	testCryptoUnbox(t, true, false)
+	testCryptoUnbox(t, true, true)
+}
+
+func testCryptoUnbox(t *testing.T, implicit, public bool) {
+	t.Logf("running with implicit:%v public:%v", implicit, public)
+
+	visibility := keybase1.TLFVisibility_PRIVATE
+	if public {
+		visibility = keybase1.TLFVisibility_PUBLIC
+	}
+
 	tc := setupTest(t, "crypto")
 	defer tc.Cleanup()
+	var teamID keybase1.TeamID
+	if implicit {
+		teamID = createImplicitTeam(tc, public)
+	} else {
+		if public {
+			t.Fatalf("public teams not supported")
+		}
+		teamID = createRootTeam(tc)
+	}
+	require.Equal(t, public, teamID.IsPublic())
 
-	teamID := createRootTeam(tc)
 	teamSpec := keybase1.TeamIDWithVisibility{
 		TeamID:     teamID,
-		Visibility: keybase1.TLFVisibility_PRIVATE,
+		Visibility: visibility,
 	}
 	plaintext, err := libkb.RandBytes(80)
 	require.NoError(tc.T, err)
 
-	c := NewCrypto(tc.G)
-	boxed, err := c.Box(context.Background(), plaintext, teamSpec)
-	require.NoError(tc.T, err)
-	require.NotNil(tc.T, boxed)
-	require.EqualValues(tc.T, boxed.Gen, 1)
-	require.Len(tc.T, boxed.N, libkb.NaclDHNonceSize)
-	require.NotEmpty(tc.T, boxed.E)
+	loadTeam := func() *teams.Team {
+		team, err := teams.Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+			ID:          teamID,
+			Public:      public,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+		return team
+	}
 
-	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
-	require.NoError(tc.T, err)
-	require.NotNil(tc.T, unboxed)
-	require.Equal(tc.T, plaintext, unboxed)
+	c := NewCrypto(tc.G)
+
+	for i := 1; i <= 3; i++ {
+		t.Logf("rotation:%v", i)
+
+		boxed, err := c.Box(context.Background(), plaintext, teamSpec)
+		require.NoError(tc.T, err)
+		require.NotNil(tc.T, boxed)
+		if public {
+			// public always uses generation 1 for publicCryptKey
+			require.EqualValues(tc.T, 1, boxed.Gen)
+		} else {
+			require.EqualValues(tc.T, i, boxed.Gen)
+		}
+		require.Len(tc.T, boxed.N, libkb.NaclDHNonceSize)
+		require.NotEmpty(tc.T, boxed.E)
+
+		unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
+		require.NoError(tc.T, err)
+		require.NotNil(tc.T, unboxed)
+		require.Equal(tc.T, plaintext, unboxed)
+
+		canOpenWithPublicKey := false
+		{
+			var encKey [libkb.NaclSecretBoxKeySize]byte = publicCryptKey.Key
+			var naclNonce [libkb.NaclDHNonceSize]byte = boxed.N
+			decrypted, ok := secretbox.Open(nil, boxed.E, &naclNonce, &encKey)
+			canOpenWithPublicKey = ok && libkb.SecureByteArrayEq(plaintext, decrypted)
+		}
+		require.Equal(t, public, canOpenWithPublicKey, "should only be able to open with public key if public")
+
+		team := loadTeam()
+		err = team.Rotate(context.TODO())
+		require.NoError(t, err)
+		loadTeam() // load again to get the new key
+	}
 }
 
 func TestCryptoVisibility(t *testing.T) {
@@ -126,7 +191,7 @@ func TestCryptoKeyGen(t *testing.T) {
 	boxed.Gen = 2
 	unboxed, err := c.Unbox(context.Background(), teamSpec, boxed)
 	require.Error(tc.T, err)
-	require.IsType(tc.T, libkb.NotFoundError{}, err)
+	require.Equal(tc.T, "team key generation too low: 1 < 2", err.Error())
 	require.Nil(tc.T, unboxed)
 }
 

@@ -45,7 +45,7 @@ function* permissionsRequestSaga(): SagaGenerator<any, any> {
 }
 
 function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
-  console.warn('Push notification:', notification)
+  console.log('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {

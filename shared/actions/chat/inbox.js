@@ -341,7 +341,8 @@ function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGe
 const _chatInboxToProcess = []
 
 function* _chatInboxConversationSubSaga({conv}) {
-  _chatInboxToProcess.push(conv)
+  const pconv = JSON.parse(conv)
+  _chatInboxToProcess.push(pconv)
   yield put(Creators.unboxMore())
   return EngineRpc.rpcResult()
 }
@@ -529,6 +530,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
   const conversationIDKey = c.convID
 
   let parts = I.List(c.participants || [])
+  let fullNames = I.Map(c.fullNames || {})
   let teamname = null
   let channelname = null
 
@@ -547,6 +549,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     name: c.name,
     notifications,
     participants: parts,
+    fullNames: fullNames,
     state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
     teamType: c.teamType,

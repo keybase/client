@@ -9,6 +9,8 @@ const isLargeScreen = true
 const isSimulator = false
 const isStoryBook = false
 const isIPhoneX = false
+const isDeviceSecureAndroid: boolean = false
+const isAndroidNewerThanM: boolean = false
 
 const isElectron = true
 const isDarwin = process.platform === 'darwin'
@@ -159,7 +161,9 @@ export {
   dataRoot,
   fileUIName,
   isAndroid,
+  isAndroidNewerThanM,
   isDarwin,
+  isDeviceSecureAndroid,
   isElectron,
   isIOS,
   isIPhoneX,

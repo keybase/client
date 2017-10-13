@@ -79,18 +79,14 @@ func (v conversationListView) convNameTeam(g *libkb.GlobalContext, conv chat1.Co
 func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	var name string
 	if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
-		name = publicConvNamePrefix + strings.Join(conv.Info.WriterNames, ",")
+		name = publicConvNamePrefix + strings.Join(conv.Names(), ",")
 	} else {
-		name = strings.Join(v.without(g, conv.Info.WriterNames, myUsername), ",")
-		if len(conv.Info.WriterNames) == 1 && conv.Info.WriterNames[0] == myUsername {
+		name = strings.Join(v.without(g, conv.Names(), myUsername), ",")
+		if len(conv.Names()) == 1 && conv.Names()[0] == myUsername {
 			// The user is the only writer.
 			name = myUsername
 		}
 	}
-	if len(conv.Info.ReaderNames) > 0 {
-		name += "#" + strings.Join(conv.Info.ReaderNames, ",")
-	}
-
 	if conv.Info.FinalizeInfo != nil {
 		name += " " + conv.Info.FinalizeInfo.BeforeSummary()
 	}

@@ -86,6 +86,14 @@ export default function(state: Constants.State = initialState, action: any): Con
           qrCode: action.payload.qrCode,
         },
       }
+    case Constants.clearQRCode:
+      return {
+        ...state,
+        codePage: {
+          ...state.codePage,
+          qrCode: null,
+        },
+      }
     case Constants.qrScanned:
       return {
         ...state,

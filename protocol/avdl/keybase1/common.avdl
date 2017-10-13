@@ -297,12 +297,14 @@ protocol Common {
   record FullName {}
 
   enum FullNamePackageVersion {
-    V0_0
+    V0_0,
+    V1_1
   }
 
   record FullNamePackage {
     FullNamePackageVersion version;
     FullName fullName;
+    Seqno eldestSeqno;
     Time cachedAt;
   }
 

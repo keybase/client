@@ -50,7 +50,8 @@ func formatUniqueRepoID(teamID keybase1.TeamID, repoID keybase1.RepoID) string {
 // display name. Regular teams become a regular team folder.
 func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.Folder, error) {
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
-		ID: teamID,
+		ID:     teamID,
+		Public: teamID.IsPublic(),
 	})
 	if err != nil {
 		return keybase1.Folder{}, err
@@ -124,9 +125,11 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 			}
 
 			// Currently we want to pretend that multi-user personal repos
-			// (/keybase/private/chris,max/...) don't exist. Short circuit here
+			// (/keybase/{private,public}/chris,max/...) don't exist. Short circuit here
 			// to keep those out of the results list.
-			if repoFolder.FolderType == keybase1.FolderType_PRIVATE && repoFolder.Name != g.Env.GetUsername().String() {
+			if repoFolder.Name != g.Env.GetUsername().String() &&
+				(repoFolder.FolderType == keybase1.FolderType_PRIVATE || repoFolder.FolderType == keybase1.FolderType_PUBLIC) {
+
 				continue
 			}
 		}
@@ -208,7 +211,8 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 
 		// Load the team to get the current user's role, for canDelete.
 		team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
-			ID: responseRepo.TeamID,
+			ID:     responseRepo.TeamID,
+			Public: !repoFolder.Private,
 		})
 		if err != nil {
 			return nil, err

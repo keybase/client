@@ -621,6 +621,10 @@ func (f JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
 	return f.GetIntAtPath("leveldb.num_files")
 }
 
+func (f JSONConfigFile) GetChatInboxSourceLocalizeThreads() (int, bool) {
+	return f.GetIntAtPath("chat.inboxsource.localizethreads")
+}
+
 func (f JSONConfigFile) getStringArray(v *jsonw.Wrapper) []string {
 	n, err := v.Len()
 	if err != nil {

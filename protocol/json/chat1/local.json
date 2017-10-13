@@ -965,6 +965,23 @@
     },
     {
       "type": "record",
+      "name": "ConversationLocalParticipant",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "fullname"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationInfoLocal",
       "fields": [
         {
@@ -1014,16 +1031,9 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "ConversationLocalParticipant"
           },
-          "name": "writerNames"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "readerNames"
+          "name": "participants"
         },
         {
           "type": [

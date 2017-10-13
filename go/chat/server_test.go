@@ -677,11 +677,14 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 			require.Equal(t, numconvs, len(ibox.InboxRes.Items))
 			for index, conv := range ibox.InboxRes.Items {
 				require.NotNil(t, conv.LocalMetadata)
-				require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
-				require.Equal(t, 2, len(conv.LocalMetadata.WriterNames))
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
+					require.Zero(t, len(conv.LocalMetadata.Snippet))
+					require.Zero(t, len(conv.LocalMetadata.WriterNames))
+				default:
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
+					require.Equal(t, 2, len(conv.LocalMetadata.WriterNames))
 				}
 			}
 		case <-time.After(20 * time.Second):
@@ -3089,7 +3092,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
 		require.Equal(t, 1, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, users[1].Username, iboxRes.Conversations[0].Info.ResetNames[0])
 
@@ -3131,7 +3134,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 
 		iboxRes, err = ctc.as(t, users[1]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
@@ -3139,7 +3142,7 @@ func TestChatSrvUserReset(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, len(iboxRes.Conversations))
 		require.Equal(t, conv.Id, iboxRes.Conversations[0].GetConvID())
-		require.Equal(t, 2, len(iboxRes.Conversations[0].Info.WriterNames))
+		require.Equal(t, 2, len(iboxRes.Conversations[0].Names()))
 		require.Zero(t, len(iboxRes.Conversations[0].Info.ResetNames))
 		require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, iboxRes.Conversations[0].Info.MemberStatus)
 

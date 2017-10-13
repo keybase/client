@@ -227,8 +227,8 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				return res, err
 			}
 			start := time.Now()
-			h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: %d convs",
-				len(lres.InboxRes.ConvsUnverified))
+			h.Debug(ctx, "GetInboxNonblockLocal: sending unverified inbox: num convs: %d bytes: %d",
+				len(lres.InboxRes.ConvsUnverified), len(jbody))
 			chatUI.ChatInboxUnverified(ctx, chat1.ChatInboxUnverifiedArg{
 				SessionID: arg.SessionID,
 				Inbox:     string(jbody),
@@ -263,12 +263,19 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 							&convRes.Conv.Metadata.IdTriple.Tlfid, InboxLoad))
 				}
 			} else if convRes.ConvRes != nil {
-				h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s",
-					convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded())
-				chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
-					SessionID: arg.SessionID,
-					Conv:      utils.PresentConversationLocal(*convRes.ConvRes),
-				})
+				pconv := utils.PresentConversationLocal(*convRes.ConvRes)
+				jbody, err := json.Marshal(pconv)
+				if err != nil {
+					h.Debug(ctx, "GetInboxNonblockLocal: failed to JSON conversation, skipping: %s",
+						err.Error())
+				} else {
+					h.Debug(ctx, "GetInboxNonblockLocal: verified conv: id: %s tlf: %s bytes: %d",
+						convRes.Conv.GetConvID(), convRes.ConvRes.Info.TLFNameExpanded(), len(jbody))
+					chatUI.ChatInboxConversation(ctx, chat1.ChatInboxConversationArg{
+						SessionID: arg.SessionID,
+						Conv:      string(jbody),
+					})
+				}
 				convLocalsCh <- *convRes.ConvRes
 
 				// Send a note to the retrier that we actually loaded this guy successfully
@@ -635,6 +642,7 @@ func (h *Server) GetInboxSummaryForCLILocal(ctx context.Context, arg chat1.GetIn
 	var queryBase chat1.GetInboxLocalQuery
 	queryBase.ComputeActiveList = true
 	queryBase.OneChatTypePerTLF = new(bool)
+	*queryBase.OneChatTypePerTLF = true
 	if !after.IsZero() {
 		gafter := gregor1.ToTime(after)
 		queryBase.After = &gafter

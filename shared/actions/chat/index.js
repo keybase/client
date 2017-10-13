@@ -217,6 +217,16 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       // Just reload everything if we get one of these
       yield put(Creators.inboxStale())
       break
+    case ChatTypes.NotifyChatChatActivityType.newConversation:
+      const newConv: ?ChatTypes.NewConversationInfo = action.payload.activity.newConversation
+      if (newConv && newConv.conv) {
+        yield call(Inbox.processConversation, newConv.conv)
+        break
+      }
+      // Just reload everything if we get this with no InboxUIItem
+      console.log('newConversation with no InboxUIItem')
+      yield put(Creators.inboxStale())
+      break
     default:
       console.warn(
         'Unsupported incoming message type for Chat of type:',
