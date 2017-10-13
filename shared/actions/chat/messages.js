@@ -158,6 +158,12 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     select(Constants.lastMessageID, conversationIDKey),
   ])
 
+  if (!inboxConvo.name) {
+    console.warn('Editing message for non-existent TLF:', message)
+    return
+  }
+  const tlfName: string = inboxConvo.name
+
   // Not editing anymore
   yield put(Creators.showEditor(null))
 
@@ -169,18 +175,17 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   }
 
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-  yield call(ChatTypes.localPostEditNonblockRpcPromise, {
-    param: {
-      body: newMessageText,
-      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
-      conversationID: Constants.keyToConversationID(conversationIDKey),
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      outboxID,
-      supersedes: messageID,
-      tlfName: inboxConvo.name,
-      tlfPublic: false,
-    },
-  })
+  const param: ChatTypes.localPostEditNonblockRpcParam = {
+    body: newMessageText,
+    clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+    conversationID: Constants.keyToConversationID(conversationIDKey),
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    outboxID,
+    supersedes: messageID,
+    tlfName,
+    tlfPublic: false,
+  }
+  yield call(ChatTypes.localPostEditNonblockRpcPromise, {param})
 }
 
 function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {
