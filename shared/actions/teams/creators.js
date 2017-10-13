@@ -56,6 +56,14 @@ function editMembership(
   return {payload: {name, username, role}, type: 'teams:editMembership'}
 }
 
+function removeMember(name: string, username: string): Constants.RemoveMemberOrPendingInvite {
+  return {payload: {name, username, email: ''}, type: 'teams:removeMemberOrPendingInvite'}
+}
+
+function removePendingInvite(name: string, email: string): Constants.RemoveMemberOrPendingInvite {
+  return {payload: {name, email, username: ''}, type: 'teams:removeMemberOrPendingInvite'}
+}
+
 function ignoreRequest(name: string, username: string): Constants.IgnoreRequest {
   return {payload: {name, username}, type: 'teams:ignoreRequest'}
 }
@@ -88,6 +96,8 @@ export {
   ignoreRequest,
   joinTeam,
   leaveTeam,
+  removeMember,
+  removePendingInvite,
   setTeamCreationError,
   setTeamJoinError,
   setTeamJoinSuccess,
