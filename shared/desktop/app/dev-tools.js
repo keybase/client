@@ -4,12 +4,10 @@ import {showDevTools} from '../../local-debug.desktop'
 import flags from '../../util/feature-flags'
 
 function setupDevToolsExtensions() {
-  if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-    if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
-      process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
-        BrowserWindow.addDevToolsExtension(p)
-      })
-    }
+  if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
+    process.env.KEYBASE_DEV_TOOL_EXTENSIONS.split(',').forEach(p => {
+      BrowserWindow.addDevToolsExtension(p)
+    })
   }
 }
 

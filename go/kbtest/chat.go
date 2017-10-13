@@ -802,9 +802,13 @@ func (c *ChatUI) ChatAttachmentDownloadDone(context.Context) error {
 }
 
 func (c *ChatUI) ChatInboxConversation(ctx context.Context, arg chat1.ChatInboxConversationArg) error {
+	var inboxItem chat1.InboxUIItem
+	if err := json.Unmarshal([]byte(arg.Conv), &inboxItem); err != nil {
+		return err
+	}
 	c.inboxCb <- NonblockInboxResult{
-		ConvRes: &arg.Conv,
-		ConvID:  arg.Conv.GetConvID(),
+		ConvRes: &inboxItem,
+		ConvID:  inboxItem.GetConvID(),
 	}
 	return nil
 }

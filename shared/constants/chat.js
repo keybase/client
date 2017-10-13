@@ -282,6 +282,7 @@ type _InboxState = {
   membersType: ChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
   participants: I.List<string>,
+  fullNames: I.Map<string, string>,
   state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
   time: number,
@@ -300,6 +301,7 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   membersType: 0,
   notifications: null,
   participants: I.List(),
+  fullNames: I.Map(),
   state: 'untrusted',
   status: 'unfiled',
   time: 0,
@@ -1134,6 +1136,20 @@ const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (sele
   return ''
 })
 
+const getParticipantsWithFullNames = createSelector(
+  [getSelectedInbox, getSelectedConversation],
+  (selectedInbox, selected) => {
+    if (selected && isPendingConversationIDKey(selected)) {
+      return []
+    } else if (selected !== nothingSelected && selectedInbox) {
+      return selectedInbox.participants.map(username => {
+        return {username: username, fullname: selectedInbox.fullNames.get(username)}
+      })
+    }
+    return []
+  }
+)
+
 const getMuted = createSelector(
   [getSelectedInbox],
   selectedInbox => selectedInbox && selectedInbox.get('status') === 'muted'
@@ -1369,6 +1385,7 @@ export {
   getYou,
   getFollowingMap,
   getMetaDataMap,
+  getParticipantsWithFullNames,
   getSelectedInbox,
   getTLF,
   getMuted,

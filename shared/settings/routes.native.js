@@ -15,9 +15,11 @@ import Passphrase from './passphrase/container'
 
 import About from './about-container'
 import NotificationsContainer from './notifications/container'
+import DBNukeConfirm from './db-nuke-confirm/container'
 import DeleteContainer from './delete/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import DeleteConfirm from './delete-confirm/container'
+import AdvancedContainer from './advanced/container'
 import DevMenu from '../dev/dev-menu'
 import Screenprotector from './screenprotector-container.native'
 
@@ -57,6 +59,15 @@ const routeTree = makeRouteDefNode({
     [Constants.devicesTab]: DevicesRoute,
     [Constants.gitTab]: GitRoute,
     [Constants.notificationsTab]: {component: NotificationsContainer},
+    [Constants.advancedTab]: {
+      component: AdvancedContainer,
+      children: {
+        dbNukeConfirm: {
+          component: DBNukeConfirm,
+          tags: {modal: true},
+        },
+      },
+    },
     [Constants.deleteMeTab]: {
       component: DeleteContainer,
       children: {
