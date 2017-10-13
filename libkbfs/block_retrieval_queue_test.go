@@ -20,7 +20,7 @@ type testBlockRetrievalConfig struct {
 	logMaker
 	testCache BlockCache
 	bg        blockGetter
-	diskBlockCacheGetter
+	*testDiskBlockCacheGetter
 	*testSyncedTlfGetterSetter
 	initModeGetter
 }

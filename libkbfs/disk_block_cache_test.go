@@ -123,14 +123,21 @@ func shutdownDiskBlockCacheTest(cache DiskBlockCache) {
 	cache.Shutdown(context.Background())
 }
 
-func setupBlockForDiskCache(t *testing.T, config diskBlockCacheConfig) (
-	BlockPointer, Block, []byte, kbfscrypto.BlockCryptKeyServerHalf) {
-	ptr := makeRandomBlockPointer(t)
-	block := makeFakeFileBlock(t, true)
+func setupRealBlockForDiskCache(t *testing.T, ptr BlockPointer, block Block,
+	config diskBlockCacheConfig) ([]byte, kbfscrypto.BlockCryptKeyServerHalf) {
 	blockEncoded, err := config.Codec().Encode(block)
 	require.NoError(t, err)
 	serverHalf, err := kbfscrypto.MakeRandomBlockCryptKeyServerHalf()
 	require.NoError(t, err)
+	return blockEncoded, serverHalf
+}
+
+func setupBlockForDiskCache(t *testing.T, config diskBlockCacheConfig) (
+	BlockPointer, Block, []byte, kbfscrypto.BlockCryptKeyServerHalf) {
+	ptr := makeRandomBlockPointer(t)
+	block := makeFakeFileBlock(t, true)
+	blockEncoded, serverHalf :=
+		setupRealBlockForDiskCache(t, ptr, block, config)
 	return ptr, block, blockEncoded, serverHalf
 }
 
