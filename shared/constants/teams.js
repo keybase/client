@@ -5,7 +5,6 @@ import {userIsInTeam} from './selectors'
 
 import type {Service} from './search'
 import type {ConversationIDKey} from './chat'
-import type {KBRecord} from './types/more'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
@@ -110,6 +109,7 @@ type _State = {
   sawChatBanner: boolean,
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
+  teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamnames: I.Set<Teamname>,
