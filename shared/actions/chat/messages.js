@@ -149,9 +149,16 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   }
 
   if (!messageID) {
-    console.warn('Editing message of type:', message)
+    console.warn('Editing message with unknown message type:', message)
+    return
+  } else if (messageID.type === 'invalid') {
+    console.warn('Editing message with invalid message ID type:', message)
+    return
+  } else if (typeof messageID.msgID !== 'number') {
+    console.warn('Editing message with non-numeric message ID type:', message)
     return
   }
+  let supersedes: number = messageID.msgID
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
     select(Constants.getInbox, conversationIDKey),
@@ -181,7 +188,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     outboxID,
-    supersedes: messageID.msgID,
+    supersedes,
     tlfName,
     tlfPublic: false,
   }
