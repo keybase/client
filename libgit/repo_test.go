@@ -247,13 +247,22 @@ func TestRepoRename(t *testing.T) {
 	require.Equal(t, id1, id4)
 
 	// Can't rename onto existing repo.
-	_, err = CreateRepoAndID(ctx, config, h, "Repo3")
+	id5, err := CreateRepoAndID(ctx, config, h, "Repo3")
 	require.NoError(t, err)
 	err = RenameRepo(ctx, config, h, "Repo2", "repo3")
 	require.IsType(t, libkb.RepoAlreadyExistsError{}, errors.Cause(err))
 
 	// Can create a new repo over the old symlink.
-	id5, err := CreateRepoAndID(ctx, config, h, "Repo1")
+	id6, err := CreateRepoAndID(ctx, config, h, "Repo1")
 	require.NoError(t, err)
-	require.NotEqual(t, id1, id5)
+	require.NotEqual(t, id1, id6)
+
+	// Can rename onto a symlink.
+	err = RenameRepo(ctx, config, h, "repo2", "repo4")
+	require.NoError(t, err)
+	err = RenameRepo(ctx, config, h, "repo3", "repo2")
+	require.NoError(t, err)
+	_, id7, err := GetRepoAndID(ctx, config, h, "repo2", "")
+	require.NoError(t, err)
+	require.Equal(t, id5, id7)
 }

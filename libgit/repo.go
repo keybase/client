@@ -255,8 +255,6 @@ func takeConfigLock(
 func makeExistingRepoError(
 	ctx context.Context, config libkbfs.Config, repoFS billy.Filesystem,
 	repoName string) error {
-	// The config file already exists, so someone else already
-	// initialized the repo.
 	config.MakeLogger("").CDebugf(
 		ctx, "Config file for repo %s already exists", repoName)
 	f, err := repoFS.Open(kbfsConfigName)
@@ -302,6 +300,8 @@ func createNewRepoAndID(
 	if err != nil && !os.IsExist(err) {
 		return NullID, err
 	} else if os.IsExist(err) {
+		// The config file already exists, so someone else already
+		// initialized the repo.
 		return NullID, makeExistingRepoError(ctx, config, fs, repoName)
 	}
 	defer f.Close()
@@ -671,22 +671,34 @@ func RenameRepo(
 	}
 
 	// Does the new repo not exist yet?
-	_, _, err = kbfsOps.Lookup(ctx, repoNode, normalizedNewRepoName)
+	_, ei, err := kbfsOps.Lookup(ctx, repoNode, normalizedNewRepoName)
 	switch errors.Cause(err).(type) {
 	case libkbfs.NoSuchNameError:
 		// The happy path.
 	case nil:
-		newRepoFS, err := fs.Chroot(normalizedNewRepoName)
-		if err != nil {
-			return err
+		if ei.Type == libkbfs.Sym {
+			config.MakeLogger("").CDebugf(
+				ctx, "Overwriting symlink for repo %s with a new repo",
+				normalizedNewRepoName)
+			err = config.KBFSOps().RemoveEntry(
+				ctx, repoNode, normalizedNewRepoName)
+			if err != nil {
+				return err
+			}
+		} else {
+			newRepoFS, err := fs.Chroot(normalizedNewRepoName)
+			if err != nil {
+				return err
+			}
+			// Someone else already created and initialized the repo.
+			return makeExistingRepoError(ctx, config, newRepoFS, newRepoName)
 		}
-		return makeExistingRepoError(ctx, config, newRepoFS, newRepoName)
 	default:
 		return err
 	}
 
 	// Make the new repo subdir just so we can take the lock inside
-	// the new repo.  (We'll delete the new dir after the rename.)
+	// the new repo.  (We'll delete the new dir before the rename.)
 	err = fs.MkdirAll(normalizedNewRepoName, 0777)
 	if err != nil {
 		return err
