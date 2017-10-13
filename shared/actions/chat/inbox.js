@@ -88,12 +88,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
     const inbox: ChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield call(_updateFinalized, inbox)
 
-    const idToVersion = I.Map(
-      (inbox.items || []).reduce((map, c) => {
-        map[c.convID] = c.version
-        return map
-      }, {})
-    )
+    const idToVersion = I.Map((inbox.items || []).map(c => [c.convID, c.version]))
 
     const author = yield select(usernameSelector)
     const snippets = (inbox.items || []).reduce((map, c) => {
@@ -109,51 +104,38 @@ function* onInboxStale(): SagaGenerator<any, any> {
     yield put(
       EntityCreators.replaceEntity(
         ['inboxUntrustedState'],
-        I.Map(
-          conversations.reduce((map, c) => {
-            map[c.conversationIDKey] = 'untrusted'
-            return map
-          }, {})
-        )
+        I.Map(conversations.map(c => [c.conversationIDKey, 'untrusted']))
       )
     )
 
     const inboxSmallTimestamps = I.Map(
-      conversations.reduce((map, c) => {
-        if (c.teamType !== ChatTypes.CommonTeamType.complex) {
-          map[c.conversationIDKey] = c.time
-        }
-        return map
-      }, {})
+      conversations
+        .map(c => (c.teamType !== ChatTypes.CommonTeamType.complex ? [c.conversationIDKey, c.time] : null))
+        .filter(Boolean)
     )
+
     const inboxBigChannelsToTeam = I.Map(
-      conversations.reduce((map, c) => {
-        if (c.teamType === ChatTypes.CommonTeamType.complex) {
-          map[c.conversationIDKey] = c.teamname
-        }
-        return map
-      }, {})
+      conversations
+        .map(
+          c => (c.teamType === ChatTypes.CommonTeamType.complex ? [c.conversationIDKey, c.teamname] : null)
+        )
+        .filter(Boolean)
     )
+
     const inboxBigChannels = I.Map(
-      conversations.reduce((map, c) => {
-        if (c.teamType === ChatTypes.CommonTeamType.complex && c.channelname) {
-          map[c.conversationIDKey] = c.channelname
-        }
-        return map
-      }, {})
+      conversations
+        .map(
+          c =>
+            c.teamType === ChatTypes.CommonTeamType.complex && c.channelname
+              ? [c.conversationIDKey, c.channelname]
+              : null
+        )
+        .filter(Boolean)
     )
-    const inboxMap = I.Map(
-      conversations.reduce((map, c) => {
-        map[c.conversationIDKey] = c
-        return map
-      }, {})
-    )
-    const inboxIsEmpty = I.Map(
-      conversations.reduce((map, c) => {
-        map[c.conversationIDKey] = c.isEmpty
-        return map
-      }, {})
-    )
+
+    const inboxMap = I.Map(conversations.map(c => [c.conversationIDKey, c]))
+
+    const inboxIsEmpty = I.Map(conversations.map(c => [c.conversationIDKey, c.isEmpty]))
 
     yield all([
       put(EntityCreators.replaceEntity(['inboxVersion'], idToVersion)),
@@ -404,15 +386,7 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   }
 
   yield put.resolve(
-    EntityCreators.replaceEntity(
-      ['inboxUntrustedState'],
-      I.Map(
-        conversationIDKeys.reduce((map, c) => {
-          map[c] = 'unboxing'
-          return map
-        }, {})
-      )
-    )
+    EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(conversationIDKeys.map(c => [c, 'unboxing'])))
   )
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
@@ -447,12 +421,7 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
       yield put.resolve(
         EntityCreators.replaceEntity(
           ['inboxUntrustedState'],
-          I.Map(
-            conversationIDKeys.reduce((map, c) => {
-              map[c] = 'untrusted'
-              return map
-            }, {})
-          )
+          I.Map(conversationIDKeys.map(c => [c, 'untrusted']))
         )
       )
     } else {
