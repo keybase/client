@@ -31,6 +31,10 @@ export type AddToTeam = NoErrorTypedAction<
     sendChatNotification: boolean,
   }
 >
+export type EditMembership = NoErrorTypedAction<
+  'teams:editMembership',
+  {name: string, username: string, role: TeamRoleType}
+>
 export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: string, username: string}>
 export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
