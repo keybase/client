@@ -17,6 +17,7 @@ export type DeletePersonalRepo = NoErrorTypedAction<'git:deletePersonalRepo', {n
 export type SetLoading = NoErrorTypedAction<'git:setLoading', {loading: boolean}>
 export type SetError = NoErrorTypedAction<'git:setError', {gitError: ?Error}>
 export type BadgeAppForGit = NoErrorTypedAction<'git:badgeAppForGit', {ids: Array<string>}>
+export type HandleIncomingGregor = NoErrorTypedAction<'git:handleIncomingGregor', void>
 
 type _GitInfo = {
   canDelete: boolean,

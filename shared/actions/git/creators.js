@@ -49,6 +49,11 @@ const badgeAppForGit = (ids: ?Array<string>): Constants.BadgeAppForGit => ({
   type: 'git:badgeAppForGit',
 })
 
+const handleIncomingGregor = (): Constants.HandleIncomingGregor => ({
+  payload: undefined,
+  type: 'git:handleIncomingGregor',
+})
+
 export {
   loadGit,
   createTeamRepo,
@@ -57,5 +62,6 @@ export {
   deleteTeamRepo,
   deletePersonalRepo,
   setError,
+  handleIncomingGregor,
   badgeAppForGit,
 }
