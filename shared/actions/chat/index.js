@@ -685,7 +685,7 @@ function _unboxedToMessage(
           }
         }
         case ChatTypes.CommonMessageType.join: {
-          const message = new HiddenString(`${common.author} has joined the channel`)
+          const message = new HiddenString('joined')
           return {
             type: 'System',
             ...common,
@@ -696,7 +696,7 @@ function _unboxedToMessage(
           }
         }
         case ChatTypes.CommonMessageType.leave: {
-          const message = new HiddenString(`${common.author} has left the channel`)
+          const message = new HiddenString('left')
           return {
             type: 'System',
             ...common,
