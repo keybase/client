@@ -267,7 +267,13 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   }
 
   if (inboxState) {
-    yield put(EntityCreators.replaceEntity(['inbox'], I.Map({[inboxState.conversationIDKey]: inboxState})))
+    // We blocked it
+    if (['blocked', 'reported'].includes(inboxState.status)) {
+      yield put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([inboxState.conversationIDKey])))
+      yield put(EntityCreators.deleteEntity(['inbox'], I.List([inboxState.conversationIDKey])))
+    } else {
+      yield put(EntityCreators.replaceEntity(['inbox'], I.Map({[inboxState.conversationIDKey]: inboxState})))
+    }
 
     if (!isBigTeam) {
       // inbox loaded so rekeyInfo is now clear
