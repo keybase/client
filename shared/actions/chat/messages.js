@@ -137,19 +137,19 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let messageID
+  let messageID: ?Constants.ParsedMessageID
   let conversationIDKey: Constants.ConversationIDKey = ''
   switch (message.type) {
     case 'Text':
     case 'Attachment': // fallthrough
       const attrs = Constants.splitMessageIDKey(message.key)
-      messageID = Constants.parseMessageID(attrs.messageID).msgID
+      messageID = Constants.parseMessageID(attrs.messageID)
       conversationIDKey = attrs.conversationIDKey
       break
   }
 
   if (!messageID) {
-    console.warn('Editing unknown message type', message)
+    console.warn('Editing message of type:', message)
     return
   }
 
@@ -181,7 +181,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     outboxID,
-    supersedes: messageID,
+    supersedes: messageID.msgID,
     tlfName,
     tlfPublic: false,
   }

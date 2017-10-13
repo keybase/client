@@ -840,7 +840,7 @@ function messageIDToSelfInventedID(msgID: MessageID) {
   return parseInt(msgID.substring(_selfInventedID.length), 16)
 }
 
-type ParsedMessageID =
+export type ParsedMessageID =
   | {
       type: 'rpcMessageID',
       msgID: ChatTypes.MessageID,
