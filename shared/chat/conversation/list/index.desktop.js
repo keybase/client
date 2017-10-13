@@ -278,7 +278,7 @@ class PopupEnabledList extends BaseList {
       return
     }
 
-    let [idx, messageKey, message] = tuple
+    const [idx, messageKey, message] = tuple
     if (message.messageState !== 'sent') {
       // For now, disallow editing of non-sent messages. In the
       // future, we may want to do something more intelligent.
