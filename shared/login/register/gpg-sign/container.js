@@ -7,5 +7,5 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(Creators.onBack()),
   onSubmit: exportKey => dispatch(Creators.chooseGPGMethod(exportKey)),
 })
-// $FlowIssue
+
 export default connect(null, mapDispatchToProps)(GPGSign)

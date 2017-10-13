@@ -1,13 +1,11 @@
 // @flow
 import React from 'react'
 import Row from '.'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {copyToClipboard} from '../../util/clipboard'
 import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
-
-import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState, {id, expanded}) => {
   const git = state.entities.getIn(['git', 'idToInfo', id]).toObject()

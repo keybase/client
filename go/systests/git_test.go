@@ -55,72 +55,76 @@ func TestGitTeamer(t *testing.T) {
 	require.Error(t, err)
 	require.Regexp(t, `not supported`, err.Error())
 
-	t.Logf("iteam that doesn't exist (gets created)")
-	bob := tt.addUser("bob")
-	gil := tt.addUser("gil")
-	frag := fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       frag,
-		Private:    true,
-		FolderType: keybase1.FolderType_PRIVATE,
-	})
-	require.NoError(t, err)
-	expectedTeamID, _, _, err := teams.LookupImplicitTeam(context.Background(), g, frag, false /*isPublic*/)
-	require.NoError(t, err)
-	require.Equal(t, expectedTeamID, res.TeamID, "teamer should have created a team that was then looked up")
-	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
+	for _, public := range []bool{false, true} {
+		t.Logf("public:%v", public)
 
-	t.Logf("iteam that already exists")
-	bob = tt.addUser("bob")
-	gil = tt.addUser("gil")
-	frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-	teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, false /*isPublic*/)
-	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       frag,
-		Private:    true,
-		FolderType: keybase1.FolderType_PRIVATE,
-	})
-	require.NoError(t, err)
-	require.Equal(t, res.TeamID, teamID, "teamer should return the same team that was created earlier")
-	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
+		visibility := keybase1.TLFVisibility_PRIVATE
+		if public {
+			visibility = keybase1.TLFVisibility_PUBLIC
+		}
 
-	t.Logf("public iteam")
-	bob = tt.addUser("bob")
-	gil = tt.addUser("gil")
-	frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
-	teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, true /*isPublic*/)
-	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       frag,
-		Private:    false,
-		FolderType: keybase1.FolderType_PUBLIC,
-	})
-	require.NoError(t, err)
-	require.Equal(t, res.TeamID, teamID, "teamer should return the same team that was created earlier")
-	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PUBLIC)
+		folderType := keybase1.FolderType_PRIVATE
+		if public {
+			folderType = keybase1.FolderType_PUBLIC
+		}
 
-	t.Logf("iteam conflict")
-	alice.drainGregor()
-	bob = tt.addUser("bob")
-	iTeamNameCreate1 := strings.Join([]string{alice.username, bob.username}, ",")
-	iTeamNameCreate2 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",")
-	_, _, _, err = teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
-	require.NoError(t, err)
-	iTeamID2, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, false /*isPublic*/)
-	require.NoError(t, err)
-	t.Logf("prove to create the conflict")
-	bob.proveRooter()
-	alice.waitForTeamIDChangedGregor(iTeamID2, alice.getTeamSeqno(iTeamID2)+1)
-	t.Logf("find out the conflict suffix")
-	_, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
-	require.NoError(t, err)
-	require.Len(t, conflicts, 1)
-	t.Logf("check")
-	res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
-		Name:       iTeamNameCreate1 + " " + libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
-		Private:    true,
-		FolderType: keybase1.FolderType_PRIVATE,
-	})
-	require.NoError(t, err)
-	require.Equal(t, res.TeamID, iTeamID2, "teamer should return the old conflicted team")
-	require.Equal(t, res.Visibility, keybase1.TLFVisibility_PRIVATE)
+		t.Logf("iteam that doesn't exist (gets created)")
+		bob := tt.addUser("bob")
+		gil := tt.addUser("gil")
+		frag := fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
+		res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
+			Name:       frag,
+			Private:    !public,
+			FolderType: folderType,
+		})
+		require.NoError(t, err)
+		expectedTeamID, _, _, err := teams.LookupImplicitTeam(context.Background(), g, frag, public)
+		require.NoError(t, err)
+		require.Equal(t, public, expectedTeamID.IsPublic())
+		require.Equal(t, expectedTeamID, res.TeamID, "teamer should have created a team that was then looked up")
+		require.Equal(t, visibility, res.Visibility)
+
+		t.Logf("iteam that already exists")
+		bob = tt.addUser("bob")
+		gil = tt.addUser("gil")
+		frag = fmt.Sprintf("%v,%v#%v", alice.username, bob.username, gil.username)
+		teamID, _, _, err = teams.LookupOrCreateImplicitTeam(context.Background(), g, frag, public)
+		require.NoError(t, err)
+		require.Equal(t, public, teamID.IsPublic())
+		res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
+			Name:       frag,
+			Private:    !public,
+			FolderType: folderType,
+		})
+		require.NoError(t, err)
+		require.Equal(t, res.TeamID, teamID, "teamer should return the same team that was created earlier")
+		require.Equal(t, visibility, res.Visibility)
+
+		t.Logf("iteam conflict")
+		alice.drainGregor()
+		bob = tt.addUser("bob")
+		iTeamNameCreate1 := strings.Join([]string{alice.username, bob.username}, ",")
+		iTeamNameCreate2 := strings.Join([]string{alice.username, bob.username + "@rooter"}, ",")
+		_, _, _, err = teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate1, public)
+		require.NoError(t, err)
+		iTeamID2, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), g, iTeamNameCreate2, public)
+		require.NoError(t, err)
+		require.Equal(t, public, iTeamID2.IsPublic())
+		t.Logf("prove to create the conflict")
+		bob.proveRooter()
+		alice.waitForTeamIDChangedGregor(iTeamID2, alice.getTeamSeqno(iTeamID2)+1)
+		t.Logf("find out the conflict suffix")
+		_, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, public)
+		require.NoError(t, err)
+		require.Len(t, conflicts, 1)
+		t.Logf("check")
+		res, err = teamer.LookupOrCreate(context.Background(), keybase1.Folder{
+			Name:       iTeamNameCreate1 + " " + libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
+			Private:    !public,
+			FolderType: folderType,
+		})
+		require.NoError(t, err)
+		require.Equal(t, res.TeamID, iTeamID2, "teamer should return the old conflicted team")
+		require.Equal(t, visibility, res.Visibility)
+	}
 }

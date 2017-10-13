@@ -4,10 +4,8 @@ import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
 import PaperKey from '../../login/register/paper-key'
 import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
-
-import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   error: string,

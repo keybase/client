@@ -65,27 +65,14 @@ func (l *TeamLoader) Load(ctx context.Context, lArg keybase1.LoadTeamArg) (res *
 	return l.load1(ctx, me, lArg)
 }
 
-func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID, public bool) (err error) {
-	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v,public:%v)", teamID, public), func() error { return err })()
-
-	// Single-flight lock by team ID.
-	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
-	defer lock.Release(ctx)
-
-	return l.storage.Delete(ctx, teamID, public)
-}
-
-func (l *TeamLoader) DeleteBoth(ctx context.Context, teamID keybase1.TeamID) (err error) {
+func (l *TeamLoader) Delete(ctx context.Context, teamID keybase1.TeamID) (err error) {
 	defer l.G().CTraceTimed(ctx, fmt.Sprintf("TeamLoader#Delete(%v)", teamID), func() error { return err })()
 
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), teamID.String())
 	defer lock.Release(ctx)
 
-	return libkb.PickFirstError(
-		l.storage.Delete(ctx, teamID, true),
-		l.storage.Delete(ctx, teamID, false),
-	)
+	return l.storage.Delete(ctx, teamID, teamID.IsPublic())
 }
 
 // Load1 unpacks the loadArg, calls load2, and does some final checks.
@@ -179,7 +166,7 @@ func (l *TeamLoader) checkArg(ctx context.Context, lArg keybase1.LoadTeamArg) er
 			return fmt.Errorf("team load arg has invalid ID: %v", lArg.ID)
 		}
 		if id.IsPublic() != lArg.Public {
-			return fmt.Errorf("team load arg has public:%v but teamID is public:%v", lArg.Public, id.IsPublic())
+			return libkb.NewTeamVisibilityError(lArg.Public, id.IsPublic())
 		}
 	}
 	if !hasID && !hasName {
@@ -236,12 +223,36 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 }
 
 func (l *TeamLoader) load2Inner(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
-	var err error
-	var didRepoll bool
 
 	// Single-flight lock by team ID.
 	lock := l.locktab.AcquireOnName(ctx, l.G(), arg.teamID.String())
 	defer lock.Release(ctx)
+
+	return l.load2InnerLocked(ctx, arg)
+}
+
+func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
+
+	res, err := l.load2InnerLockedRetry(ctx, arg)
+	if err != nil {
+		if _, ok := err.(ProofError); ok && !arg.forceRepoll {
+			l.G().Log.CDebugf(ctx, "Got proof error (%s); trying again with forceRepoll=true", err.Error())
+			arg.forceRepoll = true
+			arg.forceFullReload = true
+			origErr := err
+			res, err = l.load2InnerLockedRetry(ctx, arg)
+			if err == nil {
+				l.G().Log.CDebugf(ctx, "Found an unexpected TeamLoader case in which busting the cache saved the day (original error was: %s)", origErr.Error())
+			}
+		}
+	}
+	return res, err
+}
+
+func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (*load2ResT, error) {
+
+	var err error
+	var didRepoll bool
 
 	// Fetch from cache
 	var ret *keybase1.TeamData
@@ -848,7 +859,8 @@ func (l *TeamLoader) VerifyTeamName(ctx context.Context, id keybase1.TeamID, nam
 		return nil
 	}
 	teamData, err := l.Load(ctx, keybase1.LoadTeamArg{
-		ID: id,
+		ID:     id,
+		Public: id.IsPublic(),
 	})
 	if err != nil {
 		return err
@@ -873,6 +885,7 @@ func (l *TeamLoader) ImplicitAdmins(ctx context.Context, teamID keybase1.TeamID)
 	// Load the argument team
 	team, err := l.load1(ctx, me, keybase1.LoadTeamArg{
 		ID:      teamID,
+		Public:  teamID.IsPublic(),
 		StaleOK: true, // We only use immutable fields.
 	})
 	if err != nil {

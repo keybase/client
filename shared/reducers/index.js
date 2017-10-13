@@ -53,9 +53,14 @@ const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers
 export default function(state: State, action: any): State {
   // Warn if any keys did not change after a resetStore action
   if (__DEV__ && action.type === resetStore) {
+    // Don't give a false warning if the state is the same cause its the initial state
+    const initialState = reducer(undefined, action)
     const nextState = reducer(state, action)
     Object.keys(nextState).forEach(
-      k => nextState[k] === state[k] && console.warn('Key %s did not change after resetStore action', k)
+      k =>
+        nextState[k] !== initialState[k] &&
+        nextState[k] === state[k] &&
+        console.warn('Key %s did not change after resetStore action', k)
     )
     return nextState
   }

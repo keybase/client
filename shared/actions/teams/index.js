@@ -79,28 +79,48 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
 const _addToTeam = function*(action: Constants.AddToTeam) {
   const {payload: {name, email, username, role, sendChatNotification}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
-  yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
-    param: {
-      name,
-      email,
-      username,
-      role: role && RpcTypes.TeamsTeamRole[role],
-      sendChatNotification,
-    },
-  })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  try {
+    yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+      param: {
+        name,
+        email,
+        username,
+        role: role && RpcTypes.TeamsTeamRole[role],
+        sendChatNotification,
+      },
+    })
+  } finally {
+    // TODO handle error, but for now make sure loading is unset
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
+}
+
+const _editMembership = function*(action: Constants.EditMembership) {
+  const {payload: {name, username, role}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
+  try {
+    yield call(RpcTypes.teamsTeamEditMemberRpcPromise, {
+      param: {name, username, role: RpcTypes.TeamsTeamRole[role]},
+    })
+  } finally {
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
   const {payload: {name, username}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
-  yield call(RpcTypes.teamsTeamIgnoreRequestRpcPromise, {
-    param: {
-      name,
-      username,
-    },
-  })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  try {
+    yield call(RpcTypes.teamsTeamIgnoreRequestRpcPromise, {
+      param: {
+        name,
+        username,
+      },
+    })
+  } finally {
+    // TODO handle error, but for now make sure loading is unset
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
 }
 
 function getPendingConvParticipants(state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) {
@@ -168,12 +188,18 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     const infos = []
     let memberNames = I.Set()
     const types = ['admins', 'owners', 'readers', 'writers']
+    const typeMap = {
+      admins: 'admin',
+      owners: 'owner',
+      readers: 'reader',
+      writers: 'writer',
+    }
     types.forEach(type => {
       const details = results.members[type] || []
       details.forEach(({username}) => {
         infos.push(
-          Constants.MemberInfo({
-            type,
+          Constants.makeMemberInfo({
+            type: typeMap[type],
             username,
           })
         )
@@ -216,7 +242,7 @@ const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any
   convs.forEach(conv => {
     const convID = ChatConstants.conversationIDToKey(conv.convID)
     convIDs.push(convID)
-    convIDToChannelInfo[convID] = Constants.ChannelInfo({
+    convIDToChannelInfo[convID] = Constants.makeChannelInfo({
       channelname: conv.channel,
       description: conv.headline,
       participants: I.Set(conv.participants || []),
@@ -241,7 +267,7 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
 
     const teams = results.teams || []
     const teamnames = teams.map(team => team.fqName)
-    yield put(replaceEntity(['teams'], {teamnames: I.Set(teamnames)}))
+    yield put(replaceEntity(['teams'], I.Map({teamnames: I.Set(teamnames)})))
   } finally {
     yield put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }
@@ -343,6 +369,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)
   yield Saga.safeTakeEvery('teams:addPeopleToTeam', _addPeopleToTeam)
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
+  yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
 }
 
 export default teamsSaga

@@ -146,6 +146,7 @@ type InboxUIItem struct {
 	Headline          string                        `codec:"headline" json:"headline"`
 	Visibility        keybase1.TLFVisibility        `codec:"visibility" json:"visibility"`
 	Participants      []string                      `codec:"participants" json:"participants"`
+	FullNames         map[string]string             `codec:"fullNames" json:"fullNames"`
 	ResetParticipants []string                      `codec:"resetParticipants" json:"resetParticipants"`
 	Status            ConversationStatus            `codec:"status" json:"status"`
 	MembersType       ConversationMembersType       `codec:"membersType" json:"membersType"`
@@ -180,6 +181,18 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			}
 			return ret
 		})(o.Participants),
+		FullNames: (func(x map[string]string) map[string]string {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]string)
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.FullNames),
 		ResetParticipants: (func(x []string) []string {
 			if x == nil {
 				return nil
@@ -658,14 +671,14 @@ func (o ChatInboxUnverifiedArg) DeepCopy() ChatInboxUnverifiedArg {
 }
 
 type ChatInboxConversationArg struct {
-	SessionID int         `codec:"sessionID" json:"sessionID"`
-	Conv      InboxUIItem `codec:"conv" json:"conv"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Conv      string `codec:"conv" json:"conv"`
 }
 
 func (o ChatInboxConversationArg) DeepCopy() ChatInboxConversationArg {
 	return ChatInboxConversationArg{
 		SessionID: o.SessionID,
-		Conv:      o.Conv.DeepCopy(),
+		Conv:      o.Conv,
 	}
 }
 

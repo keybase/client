@@ -9,8 +9,8 @@ import {
   apiserverPostRpcPromise,
 } from '../constants/types/flow-types'
 
-import type {SagaGenerator} from '../constants/types/saga'
-import type {TypedState} from '../constants/reducer'
+import {type SagaGenerator} from '../constants/types/saga'
+import {type TypedState} from '../constants/reducer'
 
 function updateBilling(updateBillingArgs: Constants.UpdateBillingArgs): Constants.UpdateBilling {
   return {

@@ -2,13 +2,10 @@
 import Git from '.'
 import * as Creators from '../actions/git/creators'
 import * as Constants from '../constants/git'
-import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, lifecycle, connect, type TypedState} from '../util/container'
 import {createSelector} from 'reselect'
 import partition from 'lodash/partition'
 import sortBy from 'lodash/sortBy'
-
-import type {TypedState} from '../constants/reducer'
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 

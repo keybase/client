@@ -1,10 +1,8 @@
 // @flow
-import {is, Map} from 'immutable'
+import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import React, {Component} from 'react'
-import {compose} from 'recompose'
-import {tabBarHeight} from './tab-bar/index.render.native'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -13,19 +11,18 @@ import {
   NativeAnimated,
   NativeStatusBar,
 } from '../common-adapters/index.native'
-import {NavigationActions} from 'react-navigation'
-import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
-import {chatTab, loginTab, peopleTab, folderTab, settingsTab} from '../constants/tabs'
-import {connect} from 'react-redux'
+import {NavigationActions, type NavigationAction} from 'react-navigation'
+import {chatTab, loginTab, peopleTab, folderTab, settingsTab, type Tab} from '../constants/tabs'
+import {compose} from 'recompose'
+import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight} from '../styles/index.native'
+import * as I from 'immutable'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {navigateTo, navigateUp, switchTo} from '../actions/route-tree'
-
-import type {Props, OwnProps} from './nav'
-import type {TypedState} from '../constants/reducer'
-import type {Tab} from '../constants/tabs'
-import type {NavigationAction} from 'react-navigation'
-import type {RouteRenderStack, RenderRouteResult} from '../route-tree/render-route'
+import {tabBarHeight} from './tab-bar/index.render.native'
+import {type Props, type OwnProps} from './nav'
+import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
+import {makeLeafTags} from '../route-tree'
 
 type CardStackShimProps = {
   mode?: 'modal',
@@ -61,7 +58,7 @@ class CardStackShim extends Component<CardStackShimProps, *> {
       this.props.mode !== nextProps.mode ||
       this.props.renderRoute !== nextProps.renderRoute ||
       this.props.onNavigateBack !== nextProps.onNavigateBack ||
-      !is(this.props.stack, nextProps.stack)
+      !I.is(this.props.stack, nextProps.stack)
     )
   }
 
@@ -74,10 +71,9 @@ class CardStackShim extends Component<CardStackShimProps, *> {
         routes: stack
           .map((route, index) => {
             const routeName = route.path.join('/')
-            // Immutable.Stack indexes go from N-1(top/front)...0(bottom/back)
             // The bottom/back item of the stack is our top (active) screen
-            const isActiveRoute = !this.props.hidden && index === 0
-            const shouldRender = !this.props.hidden && (index === 0 || index === 1)
+            const isActiveRoute = !this.props.hidden && index === stack.size - 1
+            const shouldRender = !this.props.hidden && (index === stack.size - 1 || index === stack.size - 2)
             return {key: routeName, routeName, params: {route, isActiveRoute, shouldRender}}
           })
           .toArray(),
@@ -126,13 +122,15 @@ const barStyle = (showStatusBarDarkContent, underStatusBar) => {
 }
 
 function renderStackRoute(route, isActiveRoute, shouldRender) {
-  const {underStatusBar, hideStatusBar, showStatusBarDarkContent, root} = route.tags
+  const {underStatusBar, hideStatusBar, showStatusBarDarkContent, root} = route.tags || {}
 
   let style
   if (root) {
     style = sceneWrapStyleNoStatusBarPadding
   } else {
-    style = route.tags.underStatusBar ? sceneWrapStyleNoStatusBarPadding : sceneWrapStyleWithStatusBarPadding
+    style = route.tags && route.tags.underStatusBar
+      ? sceneWrapStyleNoStatusBarPadding
+      : sceneWrapStyleWithStatusBarPadding
   }
 
   return (
@@ -158,7 +156,7 @@ const tabIsCached = {
 
 class MainNavStack extends Component<any, any> {
   state = {
-    stackCache: Map(),
+    stackCache: I.Map(),
   }
 
   componentWillReceiveProps() {
@@ -174,7 +172,8 @@ class MainNavStack extends Component<any, any> {
 
     const stacks = stackCache
       .set(props.routeSelected, props.routeStack)
-      .map((stack, key) => (
+      .toArray()
+      .map(([key, stack]) => (
         <CardStackShim
           key={key}
           hidden={key !== props.routeSelected}
@@ -183,7 +182,6 @@ class MainNavStack extends Component<any, any> {
           onNavigateBack={props.navigateUp}
         />
       ))
-      .toArray()
 
     const content = (
       <Box style={globalStyles.flexGrow}>
@@ -295,21 +293,25 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
   }
 
   componentWillReceiveProps(nextProps: Props) {
-    const nextPath = nextProps.routeStack.last().path
-    const curPath = this.props.routeStack.last().path
-    const curTags = this.props.routeStack.last().tags
-    if (!nextPath.equals(curPath) && !curTags.keepKeyboardOnLeave) {
+    const nextRS = nextProps.routeStack
+    const nextLastPath = nextRS ? nextRS.last() : null
+    const nextPath = nextLastPath ? nextLastPath.path : I.List()
+    const RS = this.props.routeStack
+    const curLastPath = RS ? RS.last() : null
+    const curPath = curLastPath ? curLastPath.path : I.List()
+    const curTags = curLastPath ? curLastPath.tags : {}
+    if (!nextPath.equals(curPath) && (!curTags || !curTags.keepKeyboardOnLeave)) {
       NativeKeyboard.dismiss()
     }
   }
 
   render() {
-    const baseScreens = this.props.routeStack.filter(r => !r.tags.layerOnTop)
+    const baseScreens = this.props.routeStack.filter(r => !r.tags || !r.tags.layerOnTop)
     if (!baseScreens.size) {
       throw new Error('no route component to render without layerOnTop tag')
     }
 
-    const fullscreenPred = r => r.tags.fullscreen
+    const fullscreenPred = r => r.tags && r.tags.fullscreen
     const mainScreens = baseScreens.takeUntil(fullscreenPred)
     const fullScreens = baseScreens.skipUntil(fullscreenPred).unshift({
       path: ['main'],
@@ -320,7 +322,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
           routeStack={mainScreens}
         />
       ),
-      tags: {root: true}, // special case to avoid padding else we'll double pad
+      tags: makeLeafTags({root: true}), // special case to avoid padding else we'll double pad
     })
 
     const shim = (
@@ -331,7 +333,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
         mode="modal"
       />
     )
-    const layerScreens = this.props.routeStack.filter(r => r.tags.layerOnTop)
+    const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
     const layers = layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))
 
     // If we have layers, lets add an extra box, else lets just pass through
@@ -385,7 +387,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     }
 
     const action = ownProps.routeSelected === tab ? navigateTo : switchTo
-    // $FlowIssue TODO fix this
     dispatch(action(ownProps.routePath.push(tab)))
   },
 })

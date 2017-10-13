@@ -3,10 +3,8 @@ import React, {Component} from 'react'
 import {BackButton, Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles'
 import {shell} from 'electron'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {clearFuseInstall, fuseStatus} from '../../actions/kbfs'
-
-import type {TypedState} from '../../constants/reducer'
 
 type Props = {
   appFocusedCount: number,

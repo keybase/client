@@ -1,13 +1,10 @@
 // @flow
 import * as Constants from '../../constants/config'
-import {Splash, Intro, Failure} from '.'
-import {connect} from 'react-redux'
-import {retryBootstrap} from '../../actions/config'
 import * as Creators from '../../actions/login/creators'
+import {Splash, Intro, Failure} from '.'
+import {connect, type TypedState, compose, branch, renderComponent} from '../../util/container'
 import {requestAutoInvite} from '../../actions/signup'
-import {compose, branch, renderComponent} from 'recompose'
-
-import type {TypedState} from '../../constants/reducer'
+import {retryBootstrap} from '../../actions/config'
 
 const mapStateToProps = (state: TypedState) => ({
   bootStatus: state.config.bootStatus,

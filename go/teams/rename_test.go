@@ -152,7 +152,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("U0 removes U1 from R.B (1)")
-	err = RemoveMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username, false)
+	err = RemoveMember(context.TODO(), tcs[0].G, subteamNameB.String(), fus[1].Username)
 	require.NoError(t, err)
 
 	t.Logf("U0 renames R.B (1) to R.C")

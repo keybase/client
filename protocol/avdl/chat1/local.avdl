@@ -338,6 +338,11 @@ protocol local {
     int AtMost;
   }
 
+  record ConversationLocalParticipant {
+    string username;
+    union { null, string } fullname;
+  }
+
   record ConversationInfoLocal {
     ConversationID id;
     ConversationIDTriple triple;
@@ -353,8 +358,7 @@ protocol local {
     ConversationVers version;
 
     // Lists of usernames, always complete, optionally sorted by activity.
-    array<string> writerNames;
-    array<string> readerNames;
+    array<ConversationLocalParticipant> participants;
 
     // Only ever set for KBFS conversations
     union { null, ConversationFinalizeInfo } finalizeInfo;

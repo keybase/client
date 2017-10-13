@@ -24,7 +24,7 @@ func NewTeamer(g *libkb.GlobalContext) Teamer {
 }
 
 func (t *TeamerImpl) LookupOrCreate(ctx context.Context, folder keybase1.Folder) (res keybase1.TeamIDWithVisibility, err error) {
-	defer t.G().CTrace(ctx, fmt.Sprintf("Teamer#LookupOrCreate(%s, vis:%v)", folder.Name, folder.FolderType), func() error { return err })()
+	defer t.G().CTrace(ctx, fmt.Sprintf("git.Teamer#LookupOrCreate(%s, ftyp:%v)", folder.Name, folder.FolderType), func() error { return err })()
 
 	switch folder.FolderType {
 	case keybase1.FolderType_PRIVATE:
@@ -53,6 +53,7 @@ func (t *TeamerImpl) lookupTeam(ctx context.Context, folder keybase1.Folder) (re
 	}
 	team, err := teams.Load(ctx, t.G(), keybase1.LoadTeamArg{
 		Name:        folder.Name,
+		Public:      !folder.Private,
 		ForceRepoll: false, // if subteams get renamed in a racy way, just let this fail
 	})
 	if err != nil {

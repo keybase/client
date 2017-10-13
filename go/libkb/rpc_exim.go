@@ -640,6 +640,15 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return e
+	case SCGitRepoDoesntExist:
+		e := RepoDoesntExistError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Name":
+				e.Name = field.Value
+			}
+		}
+		return e
 	case SCNoOp:
 		return NoOpError{Desc: s.Desc}
 	default:
@@ -2128,6 +2137,16 @@ func (e RepoAlreadyExistsError) ToStatus() (s keybase1.Status) {
 		{Key: "DesiredName", Value: e.DesiredName},
 		{Key: "ExistingName", Value: e.ExistingName},
 		{Key: "ExistingID", Value: e.ExistingID},
+	}
+	return
+}
+
+func (e RepoDoesntExistError) ToStatus() (s keybase1.Status) {
+	s.Code = int(keybase1.StatusCode_SCGitRepoDoesntExist)
+	s.Name = "GIT_REPO_DOESNT_EXIST"
+	s.Desc = e.Error()
+	s.Fields = []keybase1.StringKVPair{
+		{Key: "Name", Value: e.Name},
 	}
 	return
 }

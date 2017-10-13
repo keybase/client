@@ -347,7 +347,9 @@ const chooseDeviceSaga = onBackSaga =>
           desktop: Constants.codePageDeviceRoleExistingComputer,
           mobile: Constants.codePageDeviceRoleExistingPhone,
         }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
-        yield call(setCodePageOtherDeviceRole, role)
+        if (role) {
+          yield call(setCodePageOtherDeviceRole, role)
+        }
         return EngineRpc.rpcResult(deviceID)
       }
     }
@@ -562,6 +564,13 @@ const _deviceTypeMap: {[key: string]: any} = {
   [Constants.codePageDeviceRoleNewPhone]: Types.CommonDeviceType.mobile,
 }
 
+function secretExchangedSaga() {
+  return function*() {
+    yield put(Creators.clearQRCode())
+    return EngineRpc.rpcResult()
+  }
+}
+
 function chooseDeviceTypeSaga(role) {
   return function*() {
     const deviceType = _deviceTypeMap[role]
@@ -582,6 +591,7 @@ function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
   const addDeviceSagas = {
     ...kex2Sagas(onBackSaga, onBackSaga),
     'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga(role),
+    'keybase.1.provisionUi.DisplaySecretExchanged': secretExchangedSaga(),
   }
 
   const addDeviceRpc = new EngineRpc.EngineRpcCall(

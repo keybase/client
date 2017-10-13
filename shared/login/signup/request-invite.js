@@ -4,8 +4,6 @@ import React, {Component} from 'react'
 import Render from './request-invite.render'
 import {connect} from 'react-redux'
 
-import type {Dispatch} from 'redux'
-
 type ContainerProps = {
   restartSignup: () => void,
   requestInvite: (email: string, name: string) => void,
@@ -57,9 +55,7 @@ export default connect(
     waiting: state.signup.waiting,
   }),
   (dispatch: Dispatch<*>) => ({
-    // $FlowIssue with thunks - `Dispatch` expects an object, not a fn like in the thunk case
     requestInvite: (email, name) => dispatch(requestInvite(email, name)),
-    // $FlowIssue with thunks
     restartSignup: () => dispatch(restartSignup()),
   })
 )(RequestInvite)

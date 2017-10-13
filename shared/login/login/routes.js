@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {RouteDefNode} from '../../route-tree'
+import {makeRouteDefNode} from '../../route-tree'
 import Login from './container'
 import UsernameOrEmail from '../register/username-or-email/container'
 import SelectOtherDevice from '../register/select-other-device/container'
@@ -48,12 +48,11 @@ const recursiveLazyRoutes = I.Seq({
     component: Success,
   },
 })
-  .map(
-    routeData =>
-      new RouteDefNode({
-        ...routeData,
-        children: name => recursiveLazyRoutes.get(name),
-      })
+  .map(routeData =>
+    makeRouteDefNode({
+      ...routeData,
+      children: name => recursiveLazyRoutes.get(name),
+    })
   )
   .toMap()
 

@@ -1,12 +1,13 @@
-// @flow
+// @noflow
+import * as I from 'immutable'
 import * as React from 'react'
+import * as Constants from '../constants/search'
 import ResultRow from './result-row'
 import ResultsList from './results-list'
 import ServicesFilter from './services-filter'
 import UserInput from './user-input'
 import {Box, Text} from '../common-adapters'
-import {Map} from 'immutable'
-import {StateRecord as EntitiesStateRecord} from '../constants/entities'
+import {makeState as makeEntitiesState} from '../constants/entities'
 import {compose, withHandlers, withState} from 'recompose'
 import {isMobile} from '../constants/platform'
 import {storiesOf, action} from '../stories/storybook'
@@ -276,7 +277,7 @@ const load = () => {
         showSearchSuggestions: false,
         disableIfInTeamName: null,
       }
-      const servicesResultsListMapCommonRows = {
+      const servicesResultsListMapCommonRows: {[key: string]: Constants.SearchResult} = {
         chris: {
           ...kbRow,
           leftFollowingState: 'Following',
@@ -316,15 +317,16 @@ const load = () => {
       })
 
       Object.keys(servicesResultsListMapCommonRows).forEach(name => {
-        servicesResultsListMapCommonRows[name] = Map(servicesResultsListMapCommonRows[name])
+        // $FlowIssue gets confused
+        servicesResultsListMapCommonRows[name] = I.Record(servicesResultsListMapCommonRows[name])
       })
       const store = {
         config: {
           following: {},
           username: 'tester',
         },
-        entities: new EntitiesStateRecord({
-          searchResults: Map(servicesResultsListMapCommonRows),
+        entities: makeEntitiesState({
+          searchResults: I.Map(servicesResultsListMapCommonRows),
         }),
       }
       return (

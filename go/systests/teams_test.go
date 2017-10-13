@@ -113,7 +113,6 @@ func TestImplicitTeamRotateOnRevokePrivate(t *testing.T) {
 }
 
 func TestImplicitTeamRotateOnRevokePublic(t *testing.T) {
-	t.Skip("Test skipped until CORE-6322: public team support")
 	testImplicitTeamRotateOnRevoke(t, true)
 }
 
@@ -502,6 +501,7 @@ func (u *userPlusDevice) track(username string) {
 func (u *userPlusDevice) getTeamSeqno(teamID keybase1.TeamID) keybase1.Seqno {
 	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
 		ID:          teamID,
+		Public:      teamID.IsPublic(),
 		ForceRepoll: true,
 	})
 	require.NoError(u.tc.T, err)

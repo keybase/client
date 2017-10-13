@@ -104,6 +104,9 @@ export type NotificationsToggle = NoErrorTypedAction<
 export const setAllowDeleteAccount = 'settings:setAllowDeleteAccount'
 export type SetAllowDeleteAccount = NoErrorTypedAction<'settings:setAllowDeleteAccount', boolean>
 
+export const dbNuke = 'settings:dbNuke'
+export type DBNuke = NoErrorTypedAction<'settings:dbNuke', void>
+
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export type DeleteAccountForever = NoErrorTypedAction<'settings:deleteAccountForever', void>
 
@@ -158,6 +161,8 @@ type InvitationsTab = 'settingsTabs:invitationsTab'
 export const invitationsTab = 'settingsTabs:invitationsTab'
 type NotificationsTab = 'settingsTabs:notificationsTab'
 export const notificationsTab = 'settingsTabs:notificationsTab'
+type AdvancedTab = 'settingsTabs:advancedTab'
+export const advancedTab = 'settingsTabs:advancedTab'
 type DeleteMeTab = 'settingsTabs:deleteMeTab'
 export const deleteMeTab = 'settingsTabs:deleteMeTab'
 type DevMenuTab = 'settingsTabs:devMenuTab'
@@ -182,6 +187,7 @@ export type Tab =
   | UpdatePaymentTab
   | InvitationsTab
   | NotificationsTab
+  | AdvancedTab
   | DeleteMeTab
   | DevMenuTab
   | FeedbackTab

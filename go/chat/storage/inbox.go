@@ -19,7 +19,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 15
+const inboxVersion = 17
 
 type queryHash []byte
 
@@ -261,13 +261,19 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 	}
 	for index, rc := range ibox.Conversations {
 		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
-			ibox.Conversations[index].LocalMetadata = &types.RemoteConversationMetadata{
-				TopicName:         utils.GetTopicName(convLocal),
-				Headline:          utils.GetHeadline(convLocal),
-				Snippet:           utils.GetConvSnippet(convLocal),
-				WriterNames:       convLocal.Info.WriterNames,
-				ResetParticipants: convLocal.Info.ResetNames,
+			rcm := &types.RemoteConversationMetadata{
+				TopicName: utils.GetTopicName(convLocal),
+				Headline:  utils.GetHeadline(convLocal),
 			}
+			switch convLocal.GetMembersType() {
+			case chat1.ConversationMembersType_TEAM:
+				// don't fill out things that don't get shown in inbox for team chats
+			default:
+				rcm.Snippet = utils.GetConvSnippet(convLocal)
+				rcm.WriterNames = convLocal.Names()
+				rcm.ResetParticipants = convLocal.Info.ResetNames
+			}
+			ibox.Conversations[index].LocalMetadata = rcm
 		}
 	}
 

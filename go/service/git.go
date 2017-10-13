@@ -32,6 +32,10 @@ func (h *GitHandler) PutGitMetadata(ctx context.Context, arg keybase1.PutGitMeta
 	return git.PutMetadata(ctx, h.G(), arg)
 }
 
+func (h *GitHandler) DeleteGitMetadata(ctx context.Context, arg keybase1.DeleteGitMetadataArg) error {
+	return git.DeleteMetadata(ctx, h.G(), arg.Folder, arg.RepoName)
+}
+
 func (h *GitHandler) GetGitMetadata(ctx context.Context, folder keybase1.Folder) ([]keybase1.GitRepoResult, error) {
 	return git.GetMetadata(ctx, h.G(), folder)
 }
@@ -46,9 +50,10 @@ func (h *GitHandler) GetAllGitMetadata(ctx context.Context) ([]keybase1.GitRepoR
 // clear errors.
 //
 // Note that the minimumRole here does *not* respect implicit adminship.
-func isRoleAtLeast(ctx context.Context, g *libkb.GlobalContext, teamName string, minimumRole keybase1.TeamRole) (bool, error) {
+func isRoleAtLeast(ctx context.Context, g *libkb.GlobalContext, teamName string, public bool, minimumRole keybase1.TeamRole) (bool, error) {
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        teamName,
+		Public:      public,
 		ForceRepoll: true,
 	})
 	if err != nil {
@@ -110,8 +115,11 @@ func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.G
 }
 
 func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (keybase1.RepoID, error) {
+	// Only support private teams
+	public := false
+
 	// This prevents implicit admins from getting a confusing error message.
-	isWriter, err := isRoleAtLeast(ctx, h.G(), arg.TeamName.String(), keybase1.TeamRole_WRITER)
+	isWriter, err := isRoleAtLeast(ctx, h.G(), arg.TeamName.String(), public, keybase1.TeamRole_WRITER)
 	if err != nil {
 		return "", err
 	}
@@ -122,8 +130,7 @@ func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeam
 	folder := keybase1.Folder{
 		Name:       arg.TeamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
-		// TODO: Support public teams.
-		Private: true,
+		Private:    !public,
 	}
 	return h.createRepo(ctx, folder, arg.RepoName, arg.NotifyTeam)
 }
@@ -144,7 +151,12 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 	}
 	err = client.DeleteRepo(ctx, darg)
 	if err != nil {
-		return err
+		switch err.(type) {
+		case libkb.RepoDoesntExistError:
+			h.G().Log.Warning("Git repo doesn't exist. Deleting metadata anyway.")
+		default:
+			return err
+		}
 	}
 
 	// Delete the repo metadata from the Keybase server.
@@ -153,11 +165,14 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 }
 
 func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) error {
+	// Only support private teams
+	public := false
+
 	// First make sure the user is an admin of the team. KBFS doesn't directly
 	// enforce this requirement, so a non-admin could get around it by hacking
 	// up their own client, but they could already wreak a lot of abuse by
 	// pushing garbage to the repo, so we don't consider this a big deal.
-	isAdmin, err := isRoleAtLeast(ctx, h.G(), arg.TeamName.String(), keybase1.TeamRole_ADMIN)
+	isAdmin, err := isRoleAtLeast(ctx, h.G(), arg.TeamName.String(), public, keybase1.TeamRole_ADMIN)
 	if err != nil {
 		return err
 	}
@@ -172,7 +187,7 @@ func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeam
 	folder := keybase1.Folder{
 		Name:       arg.TeamName.String(),
 		FolderType: keybase1.FolderType_TEAM,
-		Private:    true,
+		Private:    !public,
 	}
 	darg := keybase1.DeleteRepoArg{
 		Folder: folder,

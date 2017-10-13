@@ -44,6 +44,16 @@ IF %DOKANVER%=="" (
   EXIT /B 1
 )
 
+
+:: prompter
+pushd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
+msbuild WpfPrompter.sln /t:Clean
+msbuild WpfPrompter.sln /p:Configuration=Release /t:Build
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+popd
+
 call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
@@ -52,6 +62,8 @@ call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanc
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 :: Browser Extension
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
+:: prompter
+call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 
 if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.bat
 
@@ -87,6 +99,12 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that browser extension is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that the prompter exe is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

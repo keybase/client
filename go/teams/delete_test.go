@@ -21,7 +21,7 @@ func TestDeleteRoot(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := GetForTeamManagementByStringName(context.Background(), tc.G, teamname, false)
+	_, err := GetTeamByNameForTest(context.Background(), t, tc.G, teamname, false, false)
 	require.Error(t, err, "no error getting deleted team")
 	require.IsType(t, TeamDoesNotExistError{}, err)
 }
@@ -50,7 +50,7 @@ func TestDeleteSubteamAdmin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = GetForTeamManagementByStringName(context.Background(), tc.G, sub, false)
+	_, err = GetTeamByNameForTest(context.Background(), t, tc.G, sub, false, false)
 	if err == nil {
 		t.Fatal("no error getting deleted team")
 	}
@@ -82,7 +82,7 @@ func TestDeleteSubteamImpliedAdmin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := GetForTeamManagementByStringName(context.Background(), tc.G, sub, false)
+	_, err := GetTeamByNameForTest(context.Background(), t, tc.G, sub, false, false)
 	if err == nil {
 		t.Fatal("no error getting deleted team")
 	}

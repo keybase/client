@@ -66,10 +66,10 @@ class ErrorBoundary extends React.PureComponent<any, {error: ?Error, info: ?Erro
   }
 
   unstable_handleError(error: Error, info: ErrorInfo): void {
-    this.componentDidError(error, info)
+    this.componentDidCatch(error, info)
   }
 
-  componentDidError(error: Error, info: ErrorInfo): void {
+  componentDidCatch(error: Error, info: ErrorInfo): void {
     console.log('Got boundary error!')
     console.log(error)
     console.log(info)

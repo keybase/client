@@ -77,7 +77,6 @@ func (c *CmdGitCreate) Run() error {
 	}
 
 	if err != nil {
-		fmt.Printf("%#v\n", err)
 		return err
 	}
 

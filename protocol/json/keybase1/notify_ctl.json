@@ -70,10 +70,6 @@
         {
           "type": "boolean",
           "name": "team"
-        },
-        {
-          "type": "boolean",
-          "name": "git"
         }
       ]
     }

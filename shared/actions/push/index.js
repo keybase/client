@@ -45,7 +45,7 @@ function* permissionsRequestSaga(): SagaGenerator<any, any> {
 }
 
 function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
-  console.warn('Push notification:', notification)
+  console.log('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {
@@ -59,6 +59,14 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
             pushIDs: payload.p,
           },
         })
+        if (payload.x && payload.x > 0) {
+          const num = payload.x
+          const ageMS = Date.now() - num * 1000
+          if (ageMS > 15000) {
+            console.info('Push notification: silent notification is stale:', ageMS)
+            return
+          }
+        }
         yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
       } catch (err) {
         console.info('failed to unbox silent notification', err)

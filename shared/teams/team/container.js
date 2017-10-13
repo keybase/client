@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {compose, lifecycle, withState} from 'recompose'
 import {HeaderHoc} from '../../common-adapters'
 import * as Creators from '../../actions/teams/creators'
@@ -12,8 +12,6 @@ import {navigateAppend} from '../../actions/route-tree'
 import {showUserProfile} from '../../actions/profile'
 import {getProfile} from '../../actions/tracker'
 import {isMobile} from '../../constants/platform'
-
-import type {TypedState} from '../../constants/reducer'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
@@ -78,9 +76,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
     customComponent,
     headerStyle: {borderBottomWidth: 0},
-    members: stateProps._memberInfo.toJS().sort((a, b) => a.username.localeCompare(b.username)),
-    onAddPeople,
+    members: stateProps._memberInfo
+      .toArray()
+      .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     requests: stateProps._requests.toJS(),
+    onAddPeople,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,

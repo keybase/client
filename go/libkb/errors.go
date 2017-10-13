@@ -2099,10 +2099,23 @@ func NewImplicitTeamDisplayNameError(format string, args ...interface{}) Implici
 	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
 }
 
-type TeamVisibilityError struct{}
+type TeamVisibilityError struct {
+	wantedPublic bool
+	gotPublic    bool
+}
 
 func (e TeamVisibilityError) Error() string {
-	return "loaded team doesn't match specified visibility"
+	pps := func(public bool) string {
+		if public {
+			return "public"
+		}
+		return "private"
+	}
+	return fmt.Sprintf("loaded for %v team but got %v team", pps(e.wantedPublic), pps(e.gotPublic))
+}
+
+func NewTeamVisibilityError(wantedPublic, gotPublic bool) TeamVisibilityError {
+	return TeamVisibilityError{wantedPublic: wantedPublic, gotPublic: gotPublic}
 }
 
 type KeyMaskNotFoundError struct {
@@ -2162,6 +2175,17 @@ func (e RepoAlreadyExistsError) Error() string {
 	return fmt.Sprintf(
 		"A repo named %s (id=%s) already existed when trying to create "+
 			"a repo named %s", e.ExistingName, e.ExistingID, e.DesiredName)
+}
+
+//=============================================================================
+
+// RepoDoesntExistError is returned when trying to delete a repo that doesn't exist.
+type RepoDoesntExistError struct {
+	Name string
+}
+
+func (e RepoDoesntExistError) Error() string {
+	return fmt.Sprintf("There is no repo named %q.", e.Name)
 }
 
 //=============================================================================

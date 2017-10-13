@@ -1,19 +1,15 @@
 // @flow
 import ProveWebsiteChoice from './prove-website-choice'
-import {TypedConnector} from '../util/typed-connect'
 import {addProof, cancelAddProof} from '../actions/profile'
+import {connect, type TypedState} from '../util/container'
 
-const connector = new TypedConnector()
+const mapStateToProps = (state: TypedState) => ({})
 
-export default connector.connect((state, dispatch) => {
-  return {
-    // Pass https to addProof because addProof doesn't actually care if it's http/https, it will try
-    // both with a preference for https
-    onOptionClick: choice => {
-      dispatch(addProof(choice === 'file' ? 'https' : 'dns'))
-    },
-    onCancel: () => {
-      dispatch(cancelAddProof())
-    },
-  }
-})(ProveWebsiteChoice)
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  // Pass https to addProof because addProof doesn't actually care if it's http/https, it will try
+  // both with a preference for https
+  onCancel: () => dispatch(cancelAddProof()),
+  onOptionClick: choice => dispatch(addProof(choice === 'file' ? 'https' : 'dns')),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(ProveWebsiteChoice)

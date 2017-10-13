@@ -169,7 +169,7 @@ func TestMemberRemove(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -269,7 +269,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -650,6 +650,25 @@ func assertRole(tc libkb.TestContext, name, username string, expected keybase1.T
 	}
 }
 
+func assertRole2(tc libkb.TestContext, teamID keybase1.TeamID, username string, expected keybase1.TeamRole) {
+	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      teamID.IsPublic(),
+		ForceRepoll: true,
+	})
+	require.NoError(tc.T, err)
+
+	uv, err := loadUserVersionByUsername(context.TODO(), tc.G, username)
+	require.NoError(tc.T, err)
+
+	role, err := team.MemberRole(context.TODO(), uv)
+	require.NoError(tc.T, err)
+
+	if role != expected {
+		tc.T.Fatalf("role: %s, expected %s", role, expected)
+	}
+}
+
 func assertInvite(tc libkb.TestContext, name, username, typ string, role keybase1.TeamRole) {
 	tc.T.Logf("looking for invite for %s/%s w/ role %s in team %s", username, typ, role, name)
 	iname := keybase1.TeamInviteName(username)
@@ -765,7 +784,7 @@ func TestMemberCancelInviteNoKeys(t *testing.T) {
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
 	assertRole(tc, name, username, keybase1.TeamRole_NONE)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -786,7 +805,7 @@ func TestMemberCancelInviteSocial(t *testing.T) {
 	}
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, username); err != nil {
 		t.Fatal(err)
 	}
 
