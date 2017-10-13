@@ -633,3 +633,58 @@ func TestRunnerReaderClone(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 }
+
+func TestRunnerDeletePackedRef(t *testing.T) {
+	ctx, config, tempdir := initConfigForRunner(t)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	defer os.RemoveAll(tempdir)
+
+	git1, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
+	require.NoError(t, err)
+	defer os.RemoveAll(git1)
+	dotgit1 := filepath.Join(git1, ".git")
+
+	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "b")
+
+	// Add a different file to master.
+	cmd := exec.Command(
+		"git", "--git-dir", dotgit1, "--work-tree", git1,
+		"checkout", "-b", "master")
+	err = cmd.Run()
+	require.NoError(t, err)
+	addOneFileToRepo(t, git1, "foo2", "hello2")
+
+	cmd = exec.Command(
+		"git", "--git-dir", dotgit1, "--work-tree", git1, "pack-refs", "--all")
+	err = cmd.Run()
+	require.NoError(t, err)
+
+	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
+	require.NoError(t, err)
+	_, err = libgit.CreateRepoAndID(ctx, config, h, "test")
+	require.NoError(t, err)
+
+	testPushWithTemplate(
+		t, ctx, config, git1, []string{
+			"refs/heads/master:refs/heads/master",
+			"refs/heads/b:refs/heads/b",
+		},
+		"ok %s\nok %s\n\n", "user1")
+
+	testListAndGetHeadsWithName(t, ctx, config, git1,
+		[]string{"refs/heads/master", "refs/heads/b", "HEAD"}, "user1")
+
+	// Add a new file to the branch and push, to create a loose ref.
+	cmd = exec.Command(
+		"git", "--git-dir", dotgit1, "--work-tree", git1,
+		"checkout", "b")
+	err = cmd.Run()
+	require.NoError(t, err)
+	addOneFileToRepo(t, git1, "foo3", "hello3")
+	testPush(t, ctx, config, git1, "refs/heads/b:refs/heads/b")
+
+	// Now delete.
+	testPush(t, ctx, config, git1, ":refs/heads/b")
+	testListAndGetHeadsWithName(t, ctx, config, git1,
+		[]string{"refs/heads/master", "HEAD"}, "user1")
+}
