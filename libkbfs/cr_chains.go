@@ -315,14 +315,10 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 	}
 
 	if !found {
-		// Give up nicely if the node has been deleted, since quota
-		// reclamation has probably already happened and there won't
-		// be any conflicts to resolve anyway.
-		if chains.isDeleted(cc.original) {
-			return nil
-		}
-
-		return fmt.Errorf("Couldn't find directory entry for %v", cc.mostRecent)
+		// If the node can't be found, then the entry has been removed
+		// already, and there won't be any conflicts to resolve
+		// anyway.  Mark it as deleted and return gracefully.
+		chains.deletedOriginals[cc.original] = true
 	}
 	return nil
 }
