@@ -288,11 +288,10 @@ class PopupEnabledList extends BaseList {
     this.setState({listRerender: this.state.listRerender + 1})
 
     const listNode = ReactDOM.findDOMNode(this._list)
-    if (!listNode) {
+    if (!(listNode instanceof 'Element')) {
       return
     }
 
-    // $FlowIssue
     const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
     if (!messageNodes) {
       return
