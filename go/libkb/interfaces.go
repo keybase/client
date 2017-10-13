@@ -80,6 +80,7 @@ type configGetter interface {
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
+	GetChatInboxSourceLocalizeThreads() (int, bool)
 }
 
 type CommandLine interface {

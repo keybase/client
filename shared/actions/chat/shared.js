@@ -151,12 +151,13 @@ function makeInboxStateRecords(
           ? c.localMetadata.channelName
           : undefined,
         conversationIDKey: c.convID,
+        fullNames: I.Map(),
         info: null,
         membersType: c.membersType,
         participants: parts,
         status: Constants.ConversationStatusByEnum[c.status || 0],
-        teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
         teamType: c.teamType,
+        teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
         time: c.time,
         version: c.version,
       })

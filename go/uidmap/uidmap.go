@@ -3,13 +3,14 @@ package uidmap
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"sync"
+	"time"
+
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"strings"
-	"sync"
-	"time"
 )
 
 type UIDMap struct {
@@ -69,7 +70,7 @@ func (u *UIDMap) findUsernamePackageLocally(ctx context.Context, g libkb.UIDMapp
 	return &libkb.UsernamePackage{NormalizedUsername: nun, FullName: fullName}, fullNameStatus
 }
 
-const CurrentFullNamePackageVersion = keybase1.FullNamePackageVersion_V0
+const CurrentFullNamePackageVersion = keybase1.FullNamePackageVersion_V1
 
 func isStale(g libkb.UIDMapperContext, m keybase1.FullNamePackage, dur time.Duration) (time.Duration, bool) {
 	if dur == time.Duration(0) {
@@ -162,8 +163,9 @@ func (u *UIDMap) findUsernameLocally(ctx context.Context, g libkb.UIDMapperConte
 }
 
 type apiRow struct {
-	Username string `json:"username"`
-	FullName string `json:"full_name,omitempty"`
+	Username    string         `json:"username"`
+	FullName    string         `json:"full_name,omitempty"`
+	EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
 }
 
 type apiReply struct {
@@ -210,9 +212,10 @@ func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperCon
 				ret[i] = libkb.UsernamePackage{
 					NormalizedUsername: nun,
 					FullName: &keybase1.FullNamePackage{
-						Version:  CurrentFullNamePackageVersion,
-						FullName: keybase1.FullName(row.FullName),
-						CachedAt: cachedAt,
+						Version:     CurrentFullNamePackageVersion,
+						FullName:    keybase1.FullName(row.FullName),
+						EldestSeqno: row.EldestSeqno,
+						CachedAt:    cachedAt,
 					},
 				}
 			}
@@ -360,3 +363,15 @@ func (u *UIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUs
 }
 
 var _ libkb.UIDMapper = (*UIDMap)(nil)
+
+type OfflineUIDMap struct{}
+
+func (o *OfflineUIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.NormalizedUsername) bool {
+	return true
+}
+
+func (o *OfflineUIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]libkb.UsernamePackage, error) {
+	return nil, errors.New("offline uid map always fails")
+}
+
+var _ libkb.UIDMapper = (*OfflineUIDMap)(nil)

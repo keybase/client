@@ -122,12 +122,28 @@ func userVersionToDetails(ctx context.Context, g *libkb.GlobalContext, uv keybas
 }
 
 func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion, forceRepoll bool) (ret []keybase1.TeamMemberDetails, err error) {
-	for _, uv := range uvs {
-		det, err := userVersionToDetails(ctx, g, uv, forceRepoll)
-		if err != nil {
-			return nil, err
+	uids := make([]keybase1.UID, len(uvs), len(uvs))
+	for i, uv := range uvs {
+		uids[i] = uv.Uid
+	}
+	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids, 10*time.Minute, 0, true)
+	if err != nil {
+		return nil, err
+	}
+
+	ret = make([]keybase1.TeamMemberDetails, len(uvs), len(uvs))
+
+	for i, uv := range uvs {
+		pkg := packages[i]
+		active := true
+		if pkg.FullName != nil && pkg.FullName.EldestSeqno > uv.EldestSeqno {
+			active = false
 		}
-		ret = append(ret, det)
+		ret[i] = keybase1.TeamMemberDetails{
+			Uv:       uvs[i],
+			Username: pkg.NormalizedUsername.String(),
+			Active:   active,
+		}
 	}
 	return ret, nil
 }
@@ -413,7 +429,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 	return t.MemberRole(ctx, uv)
 }
 
-func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, permanent bool) error {
+func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 	if err != nil {
 		return err
@@ -442,9 +458,8 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	}
 	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 
-	if permanent && !t.IsOpen() {
-		return fmt.Errorf("team %q is not open, cannot permanently remove member", teamname)
-	}
+	// Ban for open teams only.
+	permanent := t.IsOpen()
 	return t.ChangeMembershipPermanent(ctx, req, permanent)
 }
 

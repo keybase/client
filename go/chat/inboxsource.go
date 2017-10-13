@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"sort"
-
-	"github.com/keybase/client/go/teams"
-
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -17,6 +15,8 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/uidmap"
 	context "golang.org/x/net/context"
 	"golang.org/x/sync/errgroup"
 )
@@ -37,15 +37,43 @@ func newLocalizerPipeline(g *globals.Context, superXform supersedesTransform) *l
 	}
 }
 
+type baseLocalizer struct {
+	globals.Contextified
+	utils.DebugLabeler
+}
+
+func newBaseLocalizer(g *globals.Context) *baseLocalizer {
+	return &baseLocalizer{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "baseLocalizer", false),
+	}
+}
+
+func (b *baseLocalizer) filterSelfFinalized(ctx context.Context, inbox types.Inbox) (res types.Inbox) {
+	username := b.G().Env.GetUsername().String()
+	res = inbox
+	res.ConvsUnverified = nil
+	for _, conv := range inbox.ConvsUnverified {
+		if conv.Conv.GetFinalizeInfo() != nil && conv.Conv.GetFinalizeInfo().ResetUser == username {
+			b.Debug(ctx, "baseLocalizer: skipping own finalized convo: %s name: %s", conv.GetConvID())
+			continue
+		}
+		res.ConvsUnverified = append(res.ConvsUnverified, conv)
+	}
+	return res
+}
+
 type BlockingLocalizer struct {
 	globals.Contextified
+	*baseLocalizer
 	pipeline *localizerPipeline
 }
 
 func NewBlockingLocalizer(g *globals.Context) *BlockingLocalizer {
 	return &BlockingLocalizer{
-		Contextified: globals.NewContextified(g),
-		pipeline:     newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
+		Contextified:  globals.NewContextified(g),
+		baseLocalizer: newBaseLocalizer(g),
+		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
 	}
 }
 
@@ -54,6 +82,7 @@ func (b *BlockingLocalizer) SetOffline() {
 }
 
 func (b *BlockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, inbox types.Inbox) (res []chat1.ConversationLocal, err error) {
+	inbox = b.filterSelfFinalized(ctx, inbox)
 	res, err = b.pipeline.localizeConversationsPipeline(ctx, uid, utils.PluckConvs(inbox.ConvsUnverified),
 		nil, nil)
 	if err != nil {
@@ -77,6 +106,7 @@ type NonblockInboxResult struct {
 type NonblockingLocalizer struct {
 	globals.Contextified
 	utils.DebugLabeler
+	*baseLocalizer
 
 	pipeline   *localizerPipeline
 	localizeCb chan NonblockInboxResult
@@ -86,11 +116,12 @@ type NonblockingLocalizer struct {
 func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxResult,
 	maxUnbox *int) *NonblockingLocalizer {
 	return &NonblockingLocalizer{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
-		pipeline:     newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
-		localizeCb:   localizeCb,
-		maxUnbox:     maxUnbox,
+		Contextified:  globals.NewContextified(g),
+		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
+		baseLocalizer: newBaseLocalizer(g),
+		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
+		localizeCb:    localizeCb,
+		maxUnbox:      maxUnbox,
 	}
 }
 
@@ -123,6 +154,7 @@ func (b *NonblockingLocalizer) Localize(ctx context.Context, uid gregor1.UID, in
 	defer b.Trace(ctx, func() error { return err }, "Localize")()
 
 	// Run some easy filters for empty messages and known errors to optimize UI drawing behavior
+	inbox = b.filterSelfFinalized(ctx, inbox)
 	filteredInbox := b.filterInboxRes(ctx, inbox, uid)
 
 	// Send inbox over localize channel
@@ -800,7 +832,9 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 		}
 		return nil
 	})
-	for i := 0; i < 10; i++ {
+	nthreads := s.G().Env.GetChatInboxSourceLocalizeThreads()
+	s.Debug(ctx, "pipeline: using %d threads", nthreads)
+	for i := 0; i < nthreads; i++ {
 		eg.Go(func() error {
 			for conv := range convCh {
 				convLocal := s.localizeConversation(ctx, uid, conv.conv)
@@ -872,13 +906,6 @@ func getUnverifiedTlfNameForErrors(conversationRemote chat1.Conversation) string
 	return tlfName
 }
 
-type nullUsernameSource struct {
-}
-
-func (n nullUsernameSource) LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
-	return "", errors.New("null username loader always fails")
-}
-
 func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgs []chat1.MessageSummary, finalizeInfo *chat1.ConversationFinalizeInfo) ([]chat1.MessageUnboxed, chat1.ConversationErrorType, error) {
 
@@ -930,11 +957,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 
 	// Pick a source of usernames based on offline status, if we are offline then just use a
 	// type that just returns errors all the time (this will just use TLF name as the ordering)
-	var uloader utils.ReorderUsernameSource
+	var umapper libkb.UIDMapper
 	if s.offline {
-		uloader = nullUsernameSource{}
+		umapper = &uidmap.OfflineUIDMap{}
 	} else {
-		uloader = s.G().GetUPAKLoader()
+		umapper = s.G().UIDMapper
 	}
 
 	unverifiedTLFName := getUnverifiedTlfNameForErrors(conversationRemote)
@@ -967,12 +994,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.ReaderInfo = *conversationRemote.ReaderInfo
 	conversationLocal.Notifications = conversationRemote.Notifications
 	if conversationRemote.CreatorInfo != nil {
-		nname, err := uloader.LookupUsername(ctx, keybase1.UID(conversationRemote.CreatorInfo.Uid.String()))
-		if err != nil {
+		packages, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(),
+			[]keybase1.UID{keybase1.UID(conversationRemote.CreatorInfo.Uid.String())}, 0, 0, false)
+		if err != nil || len(packages) == 0 {
 			s.Debug(ctx, "localizeConversation: failed to load creator username: %s", err)
 		} else {
 			conversationLocal.CreatorInfo = &chat1.ConversationCreatorInfoLocal{
-				Username: nname.String(),
+				Username: packages[0].NormalizedUsername.String(),
 				Ctime:    conversationRemote.CreatorInfo.Ctime,
 			}
 		}
@@ -1140,10 +1168,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 		if ok {
-			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
-			conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+			conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
+			conversationLocal.Info.Participants, err = utils.ReorderParticipants(
 				ctx,
-				uloader,
+				s.G(),
+				umapper,
 				iteamName,
 				conversationRemote.Metadata.ActiveList)
 			if err != nil {
@@ -1160,31 +1189,28 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			kuids = append(kuids, keybase1.UID(uid.String()))
 		}
 
-		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, s.G().UIDMapper, conversationRemote)
-		rows, err := s.G().UIDMapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, 0, 0, false)
-		unames := make([]libkb.NormalizedUsername, len(rows), len(rows))
-		for i, row := range rows {
-			unames[i] = row.NormalizedUsername
+		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
+		rows, err := umapper.MapUIDsToUsernamePackages(ctx, s.G(), kuids, time.Hour*24,
+			10*time.Second, true)
+		if err != nil {
+			s.Debug(ctx, "localizeConversation: UIDMapper returned an error: %s", err)
 		}
+		for _, row := range rows {
+			conversationLocal.Info.Participants = append(conversationLocal.Info.Participants,
+				utils.UsernamePackageToParticipant(row))
+		}
+		// Sort alphabetically
+		sort.Slice(conversationLocal.Info.Participants, func(i, j int) bool {
+			return conversationLocal.Info.Participants[i].Username <
+				conversationLocal.Info.Participants[j].Username
+		})
 
-		if err == nil {
-			for _, uname := range unames {
-				conversationLocal.Info.WriterNames = append(conversationLocal.Info.WriterNames,
-					uname.String())
-			}
-			// Sort alphabetically
-			sort.Slice(conversationLocal.Info.WriterNames, func(i, j int) bool {
-				return conversationLocal.Info.WriterNames[i] < conversationLocal.Info.WriterNames[j]
-			})
-		} else {
-			// If we are offline, we just won't know who is in the channel
-			s.Debug(ctx, "localizeConversation: failed to get team channel usernames: %s", err)
-		}
 	case chat1.ConversationMembersType_KBFS:
 		var err error
-		conversationLocal.Info.WriterNames, conversationLocal.Info.ReaderNames, err = utils.ReorderParticipants(
+		conversationLocal.Info.Participants, err = utils.ReorderParticipants(
 			ctx,
-			uloader,
+			s.G(),
+			umapper,
 			conversationLocal.Info.TlfName,
 			conversationRemote.Metadata.ActiveList)
 		if err != nil {
@@ -1257,16 +1283,20 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 	rekeyInfo.TlfPublic = conversationRemote.MaxMsgSummaries[0].TlfPublic
 
 	// Fill readers and writers
-	writerNames, readerNames, err := utils.ReorderParticipants(
+	parts, err := utils.ReorderParticipants(
 		ctx,
-		s.G().GetUPAKLoader(),
+		s.G(),
+		s.G().UIDMapper,
 		rekeyInfo.TlfName,
 		conversationRemote.Metadata.ActiveList)
 	if err != nil {
 		return nil, err
 	}
+	var writerNames []string
+	for _, p := range parts {
+		writerNames = append(writerNames, p.Username)
+	}
 	rekeyInfo.WriterNames = writerNames
-	rekeyInfo.ReaderNames = readerNames
 
 	// Fill rekeyers list
 	myUsername := string(s.G().Env.GetUsername())

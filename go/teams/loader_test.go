@@ -137,7 +137,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	t.Logf("rotate the key a bunch of times")
 	// Rotate the key by removing and adding B from the team
 	for i := 0; i < 3; i++ {
-		err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, false)
+		err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
 		require.NoError(t, err)
 
 		_, err = AddMember(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
@@ -237,7 +237,7 @@ func TestLoaderWantMembers(t *testing.T) {
 	require.Equal(t, keybase1.TeamRole_WRITER, role)
 
 	t.Logf("U0 bumps the sigchain (removemember) (5)")
-	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username, false)
+	err = RemoveMember(context.TODO(), tcs[0].G, teamName.String(), fus[3].Username)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads with WantMembers=U2 and it hits the cache")

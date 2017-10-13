@@ -128,7 +128,8 @@ func LoadSigHints(ctx context.Context, uid keybase1.UID, g *GlobalContext) (sh *
 	var jw *jsonw.Wrapper
 	jw, err = g.LocalDb.Get(DbKeyUID(DBSigHints, uid))
 	if err != nil {
-		return
+		jw = nil
+		g.Log.CDebugf(ctx, "| SigHints failed to access local storage: %s", err)
 	}
 	// jw might be nil here, but that's allowed.
 	sh, err = NewSigHints(jw, uid, false, g)
