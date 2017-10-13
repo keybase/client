@@ -30,6 +30,10 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
+function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToTeam {
+  return {payload: {role, teamname}, type: 'teams:addPeopleToTeam'}
+}
+
 function joinTeam(teamname: string): Constants.JoinTeam {
   return {payload: {teamname}, type: 'teams:joinTeam'}
 }
@@ -77,6 +81,7 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
 }
 
 export {
+  addPeopleToTeam,
   addToTeam,
   createChannel,
   createNewTeam,

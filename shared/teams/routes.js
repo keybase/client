@@ -1,5 +1,6 @@
 // @flow
 import TeamsContainer from './container'
+import AddPeopleDialog from './add-people/container'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
@@ -39,6 +40,11 @@ const routeTree = makeRouteDefNode({
     team: {
       children: {
         ...makeManageChannels,
+        addPeople: {
+          children: {},
+          component: AddPeopleDialog,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
         reallyLeaveTeam: {
           children: {},
           component: ReallyLeaveTeam,

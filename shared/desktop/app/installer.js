@@ -110,9 +110,9 @@ function checkErrors(result: InstallResult): CheckErrorsResult {
         hasCLIError = true
       } else {
         errors.push(`There was an error trying to install the ${cr.name}.`)
+        errors.push(`\n${cr.status.desc}`)
         if (cr.name === 'kbnm') {
           hasKBNMError = true
-          errors.push(`\n${cr.status.desc}`)
         }
       }
     }

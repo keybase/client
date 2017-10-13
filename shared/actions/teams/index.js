@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as ChatConstants from '../../constants/chat'
+import * as SearchConstants from '../../constants/search'
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RpcTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
@@ -55,6 +56,24 @@ const _leaveTeam = function(action: Constants.LeaveTeam) {
   return call(RpcTypes.teamsTeamLeaveRpcPromise, {
     param: {name: teamname},
   })
+}
+
+const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
+  const {payload: {role, teamname}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  const ids = yield select(SearchConstants.getUserInputItemIds, {searchKey: 'addToTeamSearch'})
+  for (const id of ids) {
+    yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+      param: {
+        name: teamname,
+        email: '',
+        username: id,
+        role: role && RpcTypes.TeamsTeamRole[role],
+        sendChatNotification: true,
+      },
+    })
+  }
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname))) // getDetails will unset loading
 }
 
 const _addToTeam = function*(action: Constants.AddToTeam) {
@@ -167,6 +186,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
     }, {})
 
     const infos = []
+    let memberNames = I.Set()
     const types = ['admins', 'owners', 'readers', 'writers']
     const typeMap = {
       admins: 'admin',
@@ -183,6 +203,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
             username,
           })
         )
+        memberNames = memberNames.add(username)
       })
     })
 
@@ -193,6 +214,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
     yield all([
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
+      put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
     ])
   } finally {
@@ -345,6 +367,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:createChannel', _createChannel)
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
   yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)
+  yield Saga.safeTakeEvery('teams:addPeopleToTeam', _addPeopleToTeam)
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
 }
