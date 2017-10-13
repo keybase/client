@@ -279,6 +279,8 @@ class PopupEnabledList extends BaseList {
     const message: Constants.TextMessage = this.props.getMessageFromMessageKey(messageKey)
 
     if (message.messageState !== 'sent') {
+      // For now, disallow editing of non-sent messages. In the
+      // future, we may want to do something more intelligent.
       return
     }
 
