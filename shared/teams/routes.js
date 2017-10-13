@@ -39,16 +39,12 @@ const routeTree = makeRouteDefNode({
     },
     team: {
       children: {
-<<<<<<< HEAD
-        ...makeManageChannels(),
+        ...makeManageChannels,
         addPeople: {
           children: {},
           component: AddPeopleDialog,
-          tags: {layerOnTop: !isMobile},
+          tags: makeLeafTags({layerOnTop: !isMobile}),
         },
-=======
-        ...makeManageChannels,
->>>>>>> caa0d28b6f7a8ffc9999d584f88c113b3a436236
         reallyLeaveTeam: {
           children: {},
           component: ReallyLeaveTeam,

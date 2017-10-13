@@ -4,7 +4,7 @@ import * as ChatConstants from './chat'
 import {userIsInTeam} from './selectors'
 
 import type {Service} from './search'
-import type {ConversationIDKey} from './chat
+import type {ConversationIDKey} from './chat'
 import type {KBRecord} from './types/more'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
@@ -128,24 +128,9 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   loaded: false,
 })
 
-<<<<<<< HEAD
-export type TeamRecord = KBRecord<{
-  convIDToChannelInfo: I.Map<ConversationIDKey, ChannelInfo>,
-  sawChatBanner: boolean,
-  teamNameToConvIDs: I.Map<Teamname, ConversationIDKey>,
-  teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
-  teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
-  teamNameToLoading: I.Map<Teamname, boolean>,
-  teamNameToRequests: I.Map<Teamname, I.List<string>>,
-  teamnames: I.Set<Teamname>,
-  loaded: boolean,
-}>
-
 const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
-  service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
+service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
-=======
->>>>>>> caa0d28b6f7a8ffc9999d584f88c113b3a436236
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map()).findKey(i => i.channelname === channelname)
 
