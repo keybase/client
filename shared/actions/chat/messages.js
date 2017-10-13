@@ -165,6 +165,21 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     select(Constants.lastMessageID, conversationIDKey),
   ])
 
+  let clientPrev: number
+  if (lastMessageID) {
+    const clientPrevMessageID = Constants.parseMessageID(lastMessageID)
+    if (clientPrevMessageID.type === 'invalid') {
+      console.warn('Editing message with invalid last message ID:', message, lastMessageID)
+      return
+    } else if (typeof clientPrevMessageID.msgID !== 'number') {
+      console.warn('Editing message with non-numeric last message ID:', message, lastMessageID)
+      return
+    }
+    clientPrev = clientPrevMessageID.msgID
+  } else {
+    clientPrev = 0
+  }
+
   if (!inboxConvo.name) {
     console.warn('Editing message for non-existent TLF:', message)
     return
@@ -184,7 +199,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
   const param: ChatTypes.localPostEditNonblockRpcParam = {
     body: newMessageText,
-    clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+    clientPrev,
     conversationID: Constants.keyToConversationID(conversationIDKey),
     identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
     outboxID,
