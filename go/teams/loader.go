@@ -239,7 +239,11 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (*load
 			l.G().Log.CDebugf(ctx, "Got proof error (%s); trying again with forceRepoll=true", err.Error())
 			arg.forceRepoll = true
 			arg.forceFullReload = true
+			origErr := err
 			res, err = l.load2InnerLockedRetry(ctx, arg)
+			if err == nil {
+				l.G().Log.CDebugf(ctx, "Found an unexpected TeamLoader case in which busting the cache saved the day (original error was: %s)", origErr.Error())
+			}
 		}
 	}
 	return res, err
