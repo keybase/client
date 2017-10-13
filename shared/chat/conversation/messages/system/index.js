@@ -26,7 +26,7 @@ const SystemNotice = ({channelname, message, onManageChannels, you}: Props) => (
         style={{color: globalColors.blue}}
         type="BodySmallPrimaryLink"
       >
-        Manage your channel subscriptions.
+        Manage channel subscriptions.
       </Text>}
   </UserNotice>
 )
