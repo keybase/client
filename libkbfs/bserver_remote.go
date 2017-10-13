@@ -77,10 +77,11 @@ func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 
 	constBackoff := backoff.NewConstantBackOff(RPCReconnectInterval)
 	b.connOpts = rpc.ConnectionOpts{
-		DontConnectNow:   true, // connect only on-demand
-		WrapErrorFunc:    libkb.WrapError,
-		TagsFunc:         libkb.LogTagsFromContext,
-		ReconnectBackoff: func() backoff.BackOff { return constBackoff },
+		DontConnectNow:                true, // connect only on-demand
+		WrapErrorFunc:                 libkb.WrapError,
+		TagsFunc:                      libkb.LogTagsFromContext,
+		ReconnectBackoff:              func() backoff.BackOff { return constBackoff },
+		InitialReconnectBackoffWindow: bserverReconnectBackoffWindow,
 	}
 	b.initNewConnection()
 	return b
@@ -409,6 +410,7 @@ func makeBlockReference(id kbfsblock.ID, context kbfsblock.Context) keybase1.Blo
 func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context) (
 	buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	size := -1
 	b.log.LazyTrace(ctx, "BServer: Get %s", id)
 	defer func() {
@@ -453,6 +455,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bContext kbfsblock.Context, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
 		dbc.Put(ctx, tlfID, id, buf, serverHalf)
@@ -488,6 +491,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 // PutAgain implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bContext kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	dbc := b.config.DiskBlockCache()
 	if dbc != nil {
 		dbc.Put(ctx, tlfID, id, buf, serverHalf)
@@ -521,6 +525,7 @@ func (b *BlockServerRemote) PutAgain(ctx context.Context, tlfID tlf.ID, id kbfsb
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 	id kbfsblock.ID, context kbfsblock.Context) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: AddRef %s", id)
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: AddRef %s done (err=%v)", id, err)
@@ -546,6 +551,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 // BlockServerRemote
 func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (liveCounts map[kbfsblock.ID]int, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	// TODO: Define a more compact printout of contexts.
 	b.log.LazyTrace(ctx, "BServer: RemRef %v", contexts)
 	defer func() {
@@ -573,6 +579,7 @@ func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	tlfID tlf.ID, contexts kbfsblock.ContextMap) (err error) {
+	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: ArchiveRef %v", contexts)
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: ArchiveRef %v done (err=%v)", contexts, err)
@@ -696,6 +703,7 @@ func (b *BlockServerRemote) getNotDone(all kbfsblock.ContextMap, doneRefs map[kb
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
 func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblock.QuotaInfo, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo")
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetUserQuotaInfo done (err=%v)", err)
@@ -711,6 +719,7 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *kbfsblo
 func (b *BlockServerRemote) GetTeamQuotaInfo(
 	ctx context.Context, tid keybase1.TeamID) (
 	info *kbfsblock.QuotaInfo, err error) {
+	ctx = rpc.WithFireNow(ctx)
 	b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo")
 	defer func() {
 		b.log.LazyTrace(ctx, "BServer: GetTeamQuotaInfo done (err=%v)", err)

@@ -18,8 +18,11 @@ const rekeyInitialTTL = 4
 
 // mdserverReconnectBackoffWindow is a backoff window within which we try to
 // wait randomly for before reconnecting to MD server.
-// TODO: 1 hr.
 const mdserverReconnectBackoffWindow = time.Hour
+
+// bserverReconnectBackoffWindow is a backoff window within which we try to
+// wait randomly for before reconnecting to bserver.
+const bserverReconnectBackoffWindow = time.Hour
 
 // registerForUpdatesFireNowThreshold is the maximum length of time that
 // KBFS can be idle for, in order to trigger FireNow from RegisterForUpdate.
