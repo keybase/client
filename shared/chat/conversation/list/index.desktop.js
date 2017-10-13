@@ -265,7 +265,7 @@ class PopupEnabledList extends BaseList {
   // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
   _onEditLastMessage = () => {
     let tuple: ?[number, Constants.MessageKey, Constants.TextMessage]
-    this.props.messageKeys.findLastKey((v, k) => {
+    this.props.messageKeys.findLastEntry((v, k) => {
       const m = this.props.getMessageFromMessageKey(v)
       if (m && m.type === 'Text' && m.author === this.props.you) {
         tuple = [k, v, m]
