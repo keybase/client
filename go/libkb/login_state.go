@@ -172,6 +172,7 @@ func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI 
 }
 
 func (s *LoginState) LoginWithStoredSecret(username string, after afterFn) (err error) {
+	debug.PrintStack()
 	s.G().Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
@@ -1303,6 +1304,14 @@ func (s *LoginState) APIServerSession(force bool) (*APIServerSessionStatus, erro
 		// pubkey login to refresh session
 		username := s.G().Env.GetUsername()
 		if err := s.LoginWithStoredSecret(username.String(), nil); err != nil {
+			if _, ok := err.(NoKeyError); ok {
+				s.G().Log.Debug("APIServerSession: ActiveDevice is valid, but no key in LoginWithStoredSecret (reset or revoked): Logging out")
+				if logoutErr := s.G().Logout(); logoutErr != nil {
+					return nil, logoutErr
+				}
+				return nil, err
+
+			}
 			return nil, err
 		}
 	}
