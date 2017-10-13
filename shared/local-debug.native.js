@@ -44,7 +44,6 @@ let config: {[key: string]: any} = {
   userTimings: false,
 }
 
-config.isDevApplePushToken = true
 if (__DEV__ && true) {
   config.clickableVisible = false
   config.dumbChatOnly = false
@@ -53,6 +52,7 @@ if (__DEV__ && true) {
   config.enableStoreLogging = false
   config.forwardLogs = false
   config.immediateStateLogging = false
+  config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printRPC = true
   config.printRoutes = true
