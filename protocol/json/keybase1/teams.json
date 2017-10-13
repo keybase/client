@@ -1145,6 +1145,16 @@
     },
     {
       "type": "record",
+      "name": "TeamRequestAccessResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "open"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BulkRes",
       "fields": [
         {
@@ -1492,7 +1502,7 @@
           "type": "string"
         }
       ],
-      "response": null
+      "response": "TeamRequestAccessResult"
     },
     "teamAcceptInviteOrRequestAccess": {
       "request": [

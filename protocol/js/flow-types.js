@@ -2532,11 +2532,11 @@ export function teamsTeamRenameRpcPromise (request: (requestCommon & requestErro
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRename', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam}): EngineChannel {
+export function teamsTeamRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamRequestAccessResult) => void} & {param: teamsTeamRequestAccessRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRequestAccess', request)
 }
 
-export function teamsTeamRequestAccessRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam})): Promise<void> {
+export function teamsTeamRequestAccessRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamRequestAccessResult) => void} & {param: teamsTeamRequestAccessRpcParam})): Promise<teamsTeamRequestAccessResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -4973,6 +4973,10 @@ export type TeamRefreshers = {
   wantMembersRole: TeamRole,
 }
 
+export type TeamRequestAccessResult = {
+  open: boolean,
+}
+
 export type TeamRole =
     0 // NONE_0
   | 1 // READER_1
@@ -6596,6 +6600,7 @@ type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
+type teamsTeamRequestAccessResult = TeamRequestAccessResult
 type teamsTeamTreeResult = TeamTreeResult
 type teamsUiConfirmRootTeamDeleteResult = boolean
 type teamsUiConfirmSubteamDeleteResult = boolean
