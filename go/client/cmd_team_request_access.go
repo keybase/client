@@ -49,13 +49,17 @@ func (c *CmdTeamRequestAccess) Run() error {
 		Name: c.Team,
 	}
 
-	err = cli.TeamRequestAccess(context.Background(), arg)
+	ret, err := cli.TeamRequestAccess(context.Background(), arg)
 	if err != nil {
 		return err
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("If %q exists, an email has been sent to its admins, notifying of your request for access.\n", c.Team)
+	if ret.Open {
+		dui.Printf("You have joined %q! Even though %q is an open team, it's still end-to-end encrypted - you'll have to wait till admin's device keys you in.\n", c.Team, c.Team)
+	} else {
+		dui.Printf("If %q exists, an email has been sent to its admins, notifying of your request for access.\n", c.Team)
+	}
 
 	return nil
 }

@@ -663,11 +663,18 @@ func memberInvite(ctx context.Context, g *libkb.GlobalContext, teamname string, 
 	return t.chain().FindActiveInvite(iname, itype)
 }
 
-func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) error {
+func RequestAccess(ctx context.Context, g *libkb.GlobalContext, teamname string) (keybase1.TeamRequestAccessResult, error) {
 	arg := apiArg(ctx, "team/request_access")
 	arg.Args.Add("team", libkb.S{Val: teamname})
-	_, err := g.API.Post(arg)
-	return err
+	apiRes, err := g.API.Post(arg)
+
+	ret := keybase1.TeamRequestAccessResult{}
+	if apiRes != nil && apiRes.Body != nil {
+		// "open" key may not be included in result payload and it's
+		// not an error.
+		ret.Open, _ = apiRes.Body.AtKey("is_open").GetBool()
+	}
+	return ret, err
 }
 
 func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext, tokenOrName string) error {
@@ -675,7 +682,7 @@ func TeamAcceptInviteOrRequestAccess(ctx context.Context, g *libkb.GlobalContext
 	err := AcceptInvite(ctx, g, tokenOrName)
 	if err != nil {
 		// Failing that, request access as a team name
-		err = RequestAccess(ctx, g, tokenOrName)
+		_, err = RequestAccess(ctx, g, tokenOrName)
 	}
 	return err
 }
