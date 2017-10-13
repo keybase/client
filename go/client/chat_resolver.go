@@ -100,7 +100,7 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 		req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
 	case chat1.ConversationMembersType_IMPTEAM:
 		// Add our name out front
-		if req.Visibility == keybase1.TLFVisibility_PRIVATE {
+		if req.Visibility != keybase1.TLFVisibility_PUBLIC {
 			username := r.G.Env.GetUsername()
 			if len(username) == 0 {
 				return libkb.LoginRequiredError{}

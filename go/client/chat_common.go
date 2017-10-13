@@ -13,17 +13,16 @@ import (
 )
 
 func CheckUserOrTeamName(ctx context.Context, g *libkb.GlobalContext, name string) (*keybase1.UserOrTeamResult, error) {
-	tlfCli, tlfError := GetTlfClient(g)
-	if tlfError == nil {
-		tlfQuery := keybase1.TLFQuery{
-			TlfName:          name,
-			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-		}
-		_, tlfError = tlfCli.CompleteAndCanonicalizePrivateTlfName(ctx, tlfQuery)
-		if tlfError == nil {
-			ret := keybase1.UserOrTeamResult_USER
-			return &ret, nil
-		}
+	resolver, err := newChatConversationResolver(g)
+	if err != nil {
+		return nil, err
+	}
+	var req chatConversationResolvingRequest
+	req.ctx = new(chatConversationResolvingRequestContext)
+	var tlfError error
+	if tlfError = resolver.completeAndCanonicalizeTLFName(ctx, name, req); tlfError != nil {
+		ret := keybase1.UserOrTeamResult_USER
+		return &ret, nil
 	}
 
 	cli, teamError := GetTeamsClient(g)
