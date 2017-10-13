@@ -148,7 +148,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 popd
-set SigningBin="%GOPATH%\src\github.com\keybase\client\go\tools\ssss\sss.exe"
+set SigningBin="%GOPATH%\src\github.com\keybase\client\go\tools\ssss\ssss.exe"
 set SigFile=sig.txt
 %SigningBin% %KEYBASE_INSTALLER_NAME% > %SigFile%
 IF %ERRORLEVEL% NEQ 0 (
