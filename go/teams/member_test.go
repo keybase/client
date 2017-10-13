@@ -169,7 +169,7 @@ func TestMemberRemove(t *testing.T) {
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -269,7 +269,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := RemoveMember(context.TODO(), tc.G, name, other.Username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -784,7 +784,7 @@ func TestMemberCancelInviteNoKeys(t *testing.T) {
 	assertInvite(tc, name, "561247eb1cc3b0f5dc9d9bf299da5e19%0", "keybase", keybase1.TeamRole_READER)
 	assertRole(tc, name, username, keybase1.TeamRole_NONE)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -805,7 +805,7 @@ func TestMemberCancelInviteSocial(t *testing.T) {
 	}
 	assertInvite(tc, name, "not_on_kb_yet", "twitter", keybase1.TeamRole_READER)
 
-	if err := RemoveMember(context.TODO(), tc.G, name, username, false); err != nil {
+	if err := RemoveMember(context.TODO(), tc.G, name, username); err != nil {
 		t.Fatal(err)
 	}
 

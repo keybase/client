@@ -158,7 +158,7 @@ func (h *TeamsHandler) TeamRemoveMember(ctx context.Context, arg keybase1.TeamRe
 		return teams.CancelEmailInvite(ctx, h.G().ExternalG(), arg.Name, arg.Email)
 	}
 	h.G().Log.CDebugf(ctx, "TeamRemoveMember: using RemoveMember for %q in team %q", arg.Username, arg.Name)
-	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username, arg.Permanent)
+	return teams.RemoveMember(ctx, h.G().ExternalG(), arg.Name, arg.Username)
 }
 
 func (h *TeamsHandler) TeamEditMember(ctx context.Context, arg keybase1.TeamEditMemberArg) (err error) {

@@ -6305,8 +6305,7 @@ export type teamsTeamReAddMemberAfterResetRpcParam = Exact<{
 export type teamsTeamRemoveMemberRpcParam = Exact<{
   name: string,
   username: string,
-  email: string,
-  permanent: boolean
+  email: string
 }>
 
 export type teamsTeamRenameRpcParam = Exact<{
