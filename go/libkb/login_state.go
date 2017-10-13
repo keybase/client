@@ -172,7 +172,6 @@ func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI 
 }
 
 func (s *LoginState) LoginWithStoredSecret(username string, after afterFn) (err error) {
-	debug.PrintStack()
 	s.G().Log.Debug("+ LoginWithStoredSecret(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithStoredSecret -> %s", ErrToOk(err)) }()
 
