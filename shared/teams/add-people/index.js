@@ -108,16 +108,6 @@ class AddPeople extends React.Component<Props, State> {
               searchKey={'addToTeamSearch'}
             />
           </Box>
-          {this.props.tooManyUsers &&
-            <Box style={{..._styleBanner, backgroundColor: globalColors.blue}}>
-              <Text
-                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
-                type="BodySemibold"
-                backgroundMode="Announcements"
-              >
-                Teams are currently limited to 20 members (19 + you) but soon, Keybase will offer bigger teams as a pay feature. Email chris@keybase.io or chat with chris to learn more.
-              </Text>
-            </Box>}
           <Box style={{...globalStyles.scrollable, height: 500, flex: 1}}>
             {this.props.showSearchPending
               ? <ProgressIndicator style={{width: globalMargins.large}} />

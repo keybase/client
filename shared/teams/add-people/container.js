@@ -9,22 +9,9 @@ import {compose, withPropsOnChange} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const selectedUsersToAdd = state.entities.getIn(
-    ['search', 'searchKeyToUserInputItemIds', 'addToTeamSearch'],
-    I.List()
-  )
-  const usersAlreadyInTeam = state.entities.getIn([
-    'teams',
-    'teamNameToMemberUsernames',
-    routeProps.get('teamname'),
-  ])
-  const tooManyUsers = selectedUsersToAdd.count() + usersAlreadyInTeam.count() >= 20
-  return {
-    name: routeProps.get('teamname'),
-    tooManyUsers,
-  }
-}
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  name: routeProps.get('teamname'),
+})
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
