@@ -289,7 +289,7 @@ class PopupEnabledList extends BaseList {
     this.setState({listRerender: this.state.listRerender + 1})
 
     const listNode = ReactDOM.findDOMNode(this._list)
-    if (!(listNode instanceof 'Element')) {
+    if (!(listNode instanceof window.Element)) {
       return
     }
 
