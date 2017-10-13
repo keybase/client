@@ -359,6 +359,17 @@ func (k *KeybaseDaemonRPC) ShouldRetryOnConnect(err error) bool {
 	return !inputCanceled
 }
 
+func (k *KeybaseDaemonRPC) sendPing(ctx context.Context) {
+	const sessionID = 0
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+	defer cancel()
+	err := k.sessionClient.SessionPing(ctx)
+	if err != nil {
+		k.log.CWarningf(
+			ctx, "Background keep alive hit an error: %v", err)
+	}
+}
+
 func (k *KeybaseDaemonRPC) keepAliveLoop(ctx context.Context) {
 	// If the connection is dropped, we need to re-connect and send
 	// another HelloIAm message. However, we can't actually detect
@@ -377,12 +388,7 @@ func (k *KeybaseDaemonRPC) keepAliveLoop(ctx context.Context) {
 				// Clients haven't been filled yet.
 				continue
 			}
-			const sessionID = 0
-			err := k.sessionClient.SessionPing(ctx)
-			if err != nil {
-				k.log.CWarningf(
-					ctx, "Background keep alive hit an error: %v", err)
-			}
+			k.sendPing(ctx)
 		}
 	}
 }
