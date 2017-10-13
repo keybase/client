@@ -18,52 +18,52 @@ func NewSingleContextLogger(ctx context.Context, l Logger) *SingleContextLogger 
 var _ Logger = (*SingleContextLogger)(nil)
 
 func (s *SingleContextLogger) Debug(format string, args ...interface{}) {
-	s.logger.CDebugf(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CDebugf(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) CDebugf(ctx context.Context, format string, args ...interface{}) {
-	s.logger.CDebugf(ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CDebugf(ctx, format, args...)
 }
 func (s *SingleContextLogger) Info(format string, args ...interface{}) {
-	s.logger.CInfof(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CInfof(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) CInfof(ctx context.Context, format string, args ...interface{}) {
-	s.logger.CInfof(ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CInfof(ctx, format, args...)
 }
 func (s *SingleContextLogger) Notice(format string, args ...interface{}) {
-	s.logger.CNoticef(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CNoticef(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) CNoticef(ctx context.Context, format string, args ...interface{}) {
-	s.logger.CNoticef(ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CNoticef(ctx, format, args...)
 }
 func (s *SingleContextLogger) Warning(format string, args ...interface{}) {
-	s.logger.CWarningf(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CWarningf(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) CWarningf(ctx context.Context, format string, args ...interface{}) {
-	s.logger.CWarningf(ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CWarningf(ctx, format, args...)
 }
 func (s *SingleContextLogger) Error(format string, args ...interface{}) {
-	s.logger.CErrorf(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CErrorf(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) Errorf(format string, args ...interface{}) {
-	s.logger.CErrorf(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CErrorf(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) CErrorf(ctx context.Context, format string, args ...interface{}) {
-	s.logger.CErrorf(ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CErrorf(ctx, format, args...)
 }
 func (s *SingleContextLogger) Critical(format string, args ...interface{}) {
-	s.logger.CCriticalf(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CCriticalf(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) CCriticalf(ctx context.Context, format string, args ...interface{}) {
-	s.logger.CCriticalf(ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CCriticalf(ctx, format, args...)
 }
 func (s *SingleContextLogger) Fatalf(format string, args ...interface{}) {
-	s.logger.CFatalf(s.ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CFatalf(s.ctx, format, args...)
 }
 func (s *SingleContextLogger) CFatalf(ctx context.Context, format string, args ...interface{}) {
-	s.logger.CFatalf(ctx, format, args...)
+	s.logger.CloneWithAddedDepth(1).CFatalf(ctx, format, args...)
 }
 func (s *SingleContextLogger) Profile(fmts string, arg ...interface{}) {
-	s.logger.Profile(fmts, arg...)
+	s.logger.CloneWithAddedDepth(1).Profile(fmts, arg...)
 }
 func (s *SingleContextLogger) Configure(style string, debug bool, filename string) {
 	s.logger.Configure(style, debug, filename)
