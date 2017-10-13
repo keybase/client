@@ -685,25 +685,25 @@ function _unboxedToMessage(
           }
         }
         case ChatTypes.CommonMessageType.join: {
-          const message = new HiddenString('_*has joined the channel*_')
+          const message = new HiddenString(`${common.author} has joined the channel`)
           return {
-            type: 'Text',
+            type: 'System',
             ...common,
             editedCount: 0,
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
         case ChatTypes.CommonMessageType.leave: {
-          const message = new HiddenString('_*has left the channel*_')
+          const message = new HiddenString(`${common.author} has left the channel`)
           return {
-            type: 'Text',
+            type: 'System',
             ...common,
             editedCount: 0,
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
         default:

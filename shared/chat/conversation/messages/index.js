@@ -3,6 +3,7 @@ import * as Constants from '../../../constants/chat'
 import Attachment from './attachment/container'
 import ErrorMessage from './error/container'
 import Header from './header/container'
+import System from './system/container'
 import ProfileResetNotice from '../notices/profile-reset-notice/container'
 import * as React from 'react'
 import TextMessage from './text/container'
@@ -24,6 +25,8 @@ const factory = (
 ) => {
   const kind = Constants.messageKeyKind(messageKey)
   switch (kind) {
+    case 'system':
+      return <System messageKey={messageKey} />
     case 'header':
       return <Header messageKey={messageKey} />
     case 'outboxIDAttachment': // fallthrough
