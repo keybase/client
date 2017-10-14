@@ -15,10 +15,12 @@ const stylePopup = {
 export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
   let items = []
   if (message.author === you) {
+    const disabled = message.messageState !== 'sent'
     items = [
-      {onClick: () => onShowEditor(message), title: 'Edit'},
+      {disabled, onClick: () => onShowEditor(message), title: 'Edit'},
       {
         danger: true,
+        disabled,
         onClick: () => onDeleteMessage(message),
         subTitle: 'Deletes for everyone',
         title: 'Delete',
