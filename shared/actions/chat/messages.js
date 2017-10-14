@@ -140,7 +140,6 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   let tuple: ?[Constants.ParsedMessageID, Constants.ConversationIDKey]
   switch (message.type) {
     case 'Text':
-    case 'Attachment': // fallthrough
       const attrs = Constants.splitMessageIDKey(message.key)
       tuple = [Constants.parseMessageID(attrs.messageID), attrs.conversationIDKey]
       break
