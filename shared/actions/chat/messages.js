@@ -16,24 +16,15 @@ import type {SagaGenerator} from '../../constants/types/saga'
 
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let tuple: ?[Constants.ParsedMessageID, Constants.ConversationIDKey]
-  switch (message.type) {
-    case 'Text':
-    case 'Attachment': // fallthrough
-      const attrs = Constants.splitMessageIDKey(message.key)
-      tuple = [Constants.parseMessageID(attrs.messageID), attrs.conversationIDKey]
-      break
-  }
-
-  if (!tuple) {
-    console.warn('Editing message with unknown message type:', message)
+  if (message.type !== 'Text' && message.type !== 'Attachment') {
+    console.warn('Editing non-text non-attachment message:', message)
     return
   }
 
-  const [messageID, conversationIDKey] = tuple
-  if (messageID.type === 'invalid') {
-    console.warn('Deleting message with invalid message ID type:', message)
-  } else if (messageID.type === 'sent') {
+  const attrs = Constants.splitMessageIDKey(message.key)
+  const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
+  const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  if (messageID.type === 'rpcMessageID') {
     // Deleting a server message.
     const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
       select(Constants.getInbox, conversationIDKey),
@@ -58,7 +49,7 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
       tlfPublic: false,
     }
     yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {param})
-  } else {
+  } else if (messageID.type === 'outboxID') {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
     if (!outboxID) throw new Error('No outboxID for pending message delete')
@@ -69,6 +60,8 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     // It's deleted, but we don't get notified that the conversation now has
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
     yield put(Creators.removeOutboxMessage(conversationIDKey, outboxID))
+  } else {
+    console.warn('Deleting message without RPC or outbox message ID:', message, messageID)
   }
 }
 
