@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import {PopupMenu} from '../../../common-adapters'
+import {textMessageEditable} from '../../../constants/chat'
 import {fileUIName} from '../../../constants/platform'
 
 import MessagePopupHeader from './popup-header'
@@ -15,19 +16,22 @@ const stylePopup = {
 export const TextPopupMenu = ({message, onShowEditor, onDeleteMessage, onHidden, style, you}: TextProps) => {
   let items = []
   if (message.author === you) {
-    items = [
-      {disabled: message.messageState !== 'sent', onClick: () => onShowEditor(message), title: 'Edit'},
-      {
-        danger: true,
-        onClick: () => onDeleteMessage(message),
-        subTitle: 'Deletes for everyone',
-        title: 'Delete',
-      },
-    ]
-
     if (!message.senderDeviceRevokedAt) {
-      items.unshift('Divider')
+      items.push('Divider')
     }
+
+    if (textMessageEditable(message)) {
+      items.push({onClick: () => onShowEditor(message), title: 'Edit'})
+    } else {
+      items.push({disabled: true, title: 'Edit'})
+    }
+
+    items.push({
+      danger: true,
+      onClick: () => onDeleteMessage(message),
+      subTitle: 'Deletes for everyone',
+      title: 'Delete',
+    })
   }
   const header = {
     title: 'header',
