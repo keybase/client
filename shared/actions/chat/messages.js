@@ -16,20 +16,24 @@ import type {SagaGenerator} from '../../constants/types/saga'
 
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let messageID
-  let conversationIDKey: ?Constants.ConversationIDKey
+  let tuple: ?[Constants.ParsedMessageID, Constants.ConversationIDKey]
   switch (message.type) {
     case 'Text':
-    case 'Attachment':
+    case 'Attachment': // fallthrough
       const attrs = Constants.splitMessageIDKey(message.key)
-      messageID = Constants.parseMessageID(attrs.messageID).msgID
-      conversationIDKey = attrs.conversationIDKey
+      tuple = [Constants.parseMessageID(attrs.messageID), attrs.conversationIDKey]
       break
   }
 
-  if (!conversationIDKey) throw new Error('No conversation for message delete')
+  if (!tuple) {
+    console.warn('Editing message with unknown message type:', message)
+    return
+  }
 
-  if (messageID) {
+  const [messageID, conversationIDKey] = tuple
+  if (messageID.type === 'invalid') {
+    console.warn('Deleting message with invalid message ID type:', message)
+  } else if (messageID.type === 'sent') {
     // Deleting a server message.
     const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
       select(Constants.getInbox, conversationIDKey),
@@ -49,7 +53,7 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
       conversationID: Constants.keyToConversationID(conversationIDKey),
       identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
       outboxID,
-      supersedes: messageID,
+      supersedes: messageID.msgID,
       tlfName,
       tlfPublic: false,
     }
