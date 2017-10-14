@@ -2,6 +2,7 @@
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
 import * as Creators from './creators'
+import * as I from 'immutable'
 import * as Shared from './shared'
 import HiddenString from '../../util/hidden-string'
 import {TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
@@ -96,12 +97,14 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
   const message: Constants.Message = {
     author,
-    conversationIDKey: conversationIDKey,
+    channelMention: 'None',
+    conversationIDKey,
     deviceName: '',
     deviceType: isMobile ? 'mobile' : 'desktop',
     editedCount: 0,
     failureDescription: '',
     key: Constants.messageKey(conversationIDKey, 'outboxIDText', outboxIDKey),
+    mentions: I.Set(),
     message: new HiddenString(action.payload.text.stringValue()),
     messageState: 'pending',
     outboxID: outboxIDKey,

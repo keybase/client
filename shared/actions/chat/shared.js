@@ -38,7 +38,7 @@ function messageOutboxIDSelector(
   state: TypedState,
   conversationIDKey: Constants.ConversationIDKey,
   outboxID: Constants.OutboxIDKey
-): Constants.Message {
+): ?Constants.Message {
   return Constants.getMessageFromConvKeyMessageID(state, conversationIDKey, outboxID)
 }
 

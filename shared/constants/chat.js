@@ -166,6 +166,26 @@ export type ChatSecuredHeaderMessage = {
   key: MessageKey,
 }
 
+export type SystemMessage = {
+  type: 'System',
+  message: HiddenString,
+  author: string,
+  deviceName: string,
+  deviceType: DeviceType,
+  timestamp: number,
+  conversationIDKey: ConversationIDKey,
+  messageID?: MessageID,
+  you: string,
+  messageState: MessageState,
+  failureDescription: ?string,
+  outboxID?: ?OutboxIDKey,
+  senderDeviceRevokedAt: ?number,
+  key: MessageKey,
+  editedCount: number, // increase as we edit it
+  mentions: Mentions,
+  channelMention: ChannelMention,
+}
+
 export type SupersedesMessage = {
   type: 'Supersedes',
   username: string,
@@ -216,6 +236,7 @@ export type ClientMessage =
   | SupersedesMessage
   | LoadingMoreMessage
   | ChatSecuredHeaderMessage
+  | SystemMessage
 export type ServerMessage =
   | TextMessage
   | ErrorMessage
@@ -226,8 +247,7 @@ export type ServerMessage =
   | UpdatingAttachment
   | InvisibleErrorMessage
 
-// TODO (mm) fix this
-export type Message = any // ClientMessage | ServerMessage
+export type Message = ClientMessage | ServerMessage
 
 export type MaybeTimestamp = TimestampMessage | null
 
@@ -1272,7 +1292,7 @@ function getMessageFromConvKeyMessageID(
   state: TypedState,
   conversationIDKey: ConversationIDKey,
   messageID: MessageID
-) {
+): ?Message {
   const key = getMessageKeyFromConvKeyMessageID(state, conversationIDKey, messageID)
   return key ? getMessageFromMessageKey(state, key) : null
 }
@@ -1341,12 +1361,16 @@ function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDK
   return state.entities.pagination.prev.get(conversationIDKey, null)
 }
 
-function applyMessageUpdates(message: Message, updates: I.OrderedSet<EditingMessage | UpdatingAttachment>) {
+function applyMessageUpdates(
+  message: Message,
+  updates: I.OrderedSet<EditingMessage | UpdatingAttachment>
+): Message {
   if (updates.isEmpty()) {
     return message
   }
 
-  return updates.reduce((message, update) => {
+  // $FlowIssue
+  return updates.reduce((message: Message, update): Message => {
     if (!update) {
       return message
     } else if (update.type === 'Edit') {

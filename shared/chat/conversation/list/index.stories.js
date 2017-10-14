@@ -74,6 +74,8 @@ function makeMessage(
     senderDeviceRevokedAt: null,
     key,
     editedCount: 0,
+    mentions: I.Set(),
+    channelMention: 'None',
   }
 }
 
