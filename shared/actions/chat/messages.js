@@ -37,18 +37,23 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     ])
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
+    if (!inboxConvo.name) {
+      console.warn('Deleting message for non-existent TLF:', message)
+      return
+    }
+    const tlfName: string = inboxConvo.name
+
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
-      param: {
-        clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        outboxID,
-        supersedes: messageID,
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-      },
-    })
+    const param: ChatTypes.localPostDeleteNonblockRpcParam = {
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID,
+      supersedes: messageID,
+      tlfName,
+      tlfPublic: false,
+    }
+    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {param})
   } else {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
