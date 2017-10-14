@@ -3,7 +3,7 @@ import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {Text, Icon, Box, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import Row from './row/container'
+import {makeRow} from './row'
 import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
@@ -112,22 +112,14 @@ class Inbox extends PureComponent<Props, State> {
       )
     }
 
-    const key =
-      (row.type === 'small' && row.conversationIDKey) ||
-      (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
-      'missingkey'
-    return (
-      <Row
-        conversationIDKey={row.conversationIDKey}
-        key={key}
-        filtered={!!this.props.filter}
-        isActiveRoute={true}
-        teamname={row.teamname}
-        channelname={row.channelname}
-        type={row.type}
-      />
-    )
+    return makeRow({
+      channelname: row.channelname,
+      conversationIDKey: row.conversationIDKey,
+      filtered: !!this.props.filter,
+      isActiveRoute: true,
+      teamname: row.teamname,
+      type: row.type,
+    })
   }
 
   _updateShowFloating = () => {

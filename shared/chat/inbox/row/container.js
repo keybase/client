@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as I from 'immutable'
-import {BigTeamHeaderRow, BigTeamChannelRow, BigTeamChannelFilteredRow} from './big-team-rows'
+import {BigTeamChannelFilteredRow} from './big-team-rows'
 import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
 import {compose, renderComponent, branch, renderNothing} from 'recompose'
 import {formatTimeForConversationList} from '../../../util/timestamp'
@@ -147,12 +147,13 @@ const makeSelector = conversationIDKey => {
 const isSmallOrBig = type => ['small', 'big'].includes(type)
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, teamname, channelname, type}) => {
-  if (isSmallOrBig(type)) {
-    const selector = makeSelector(conversationIDKey)
-    return (state: TypedState) => selector(state)
-  } else {
-    return {teamname, conversationIDKey}
-  }
+  return {type: 'Invalid row'}
+  // if (isSmallOrBig(type)) {
+  // const selector = makeSelector(conversationIDKey)
+  // return (state: TypedState) => selector(state)
+  // } else {
+  // return {teamname, conversationIDKey}
+  // }
 }
 
 const mapDispatchToProps = dispatch => ({
@@ -181,9 +182,7 @@ const ConnectedRow = compose(
     renderNothing
   ),
   branch(props => props.filtered && props.type === 'small', renderComponent(SmallTeamFilteredRow)),
-  branch(props => props.filtered && props.type === 'big', renderComponent(BigTeamChannelFilteredRow)),
-  branch(props => props.type === 'bigHeader', renderComponent(BigTeamHeaderRow)),
-  branch(props => props.type === 'big', renderComponent(BigTeamChannelRow))
+  branch(props => props.filtered && props.type === 'big', renderComponent(BigTeamChannelFilteredRow))
 )(SmallTeamRow)
 
 export default ConnectedRow

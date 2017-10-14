@@ -29,6 +29,7 @@ type SimpleProps = {
 
 class SmallTeamRow extends PureComponent<SimpleProps> {
   render() {
+    return 'TEMP'
     const props = this.props
     return (
       <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
