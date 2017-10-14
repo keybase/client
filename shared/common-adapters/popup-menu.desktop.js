@@ -141,7 +141,6 @@ const stylesMenu = {
 }
 
 const stylesMenuText = {
-  ...globalStyles.clickable,
   color: undefined,
 }
 
