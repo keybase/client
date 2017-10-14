@@ -2,6 +2,7 @@
 import React from 'react'
 import BigTeamHeader from './big-team-header/container'
 import BigTeamChannelRow from './big-team-channel/container'
+import FilterBigTeamChannelRow from './filter-big-team-channel/container'
 import * as Constants from '../../../constants/chat'
 
 type MakeRowOptions = {
@@ -18,25 +19,39 @@ const makeRow = (options: MakeRowOptions) => {
   // (row.type === 'bigHeader' && row.teamname) ||
   // (row.type === 'big' && ``) ||
   // 'missingkey'
-
-  switch (options.type) {
-    case 'bigHeader':
-      return (
-        <BigTeamHeader
-          key={options.teamname}
-          teamname={options.teamname}
-          isActiveRoute={options.isActiveRoute}
-        />
-      )
-    case 'big':
-      return (
-        <BigTeamChannelRow
-          key={`${options.teamname || ''}:${options.channelname || ''}`}
-          conversationIDKey={options.conversationIDKey}
-          channelname={options.channelname}
-          isActiveRoute={options.isActiveRoute}
-        />
-      )
+  if (options.filtered) {
+    switch (options.type) {
+      case 'big':
+        return (
+          <FilterBigTeamChannelRow
+            key={`${options.teamname || ''}:${options.channelname || ''}`}
+            conversationIDKey={options.conversationIDKey}
+            channelname={options.channelname}
+            isActiveRoute={options.isActiveRoute}
+            teamname={options.teamname}
+          />
+        )
+    }
+  } else {
+    switch (options.type) {
+      case 'bigHeader':
+        return (
+          <BigTeamHeader
+            key={options.teamname}
+            teamname={options.teamname}
+            isActiveRoute={options.isActiveRoute}
+          />
+        )
+      case 'big':
+        return (
+          <BigTeamChannelRow
+            key={`${options.teamname || ''}:${options.channelname || ''}`}
+            conversationIDKey={options.conversationIDKey}
+            channelname={options.channelname}
+            isActiveRoute={options.isActiveRoute}
+          />
+        )
+    }
   }
   return null
 }
