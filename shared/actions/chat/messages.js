@@ -146,7 +146,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
   const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
   if (messageID.type !== 'rpcMessageID') {
-    console.warn('Editing message with invalid message ID type:', message, messageID)
+    console.warn('Editing message without RPC message ID:', message, messageID)
     return
   }
   let supersedes: ChatTypes.MessageID = messageID.msgID
@@ -156,16 +156,14 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     select(Constants.lastMessageID, conversationIDKey),
   ])
 
-  let clientPrev: number
+  let clientPrev: ChatTypes.MessageID
   if (lastMessageID) {
     const clientPrevMessageID = Constants.parseMessageID(lastMessageID)
-    if (clientPrevMessageID.type === 'invalid') {
-      console.warn('Editing message with invalid last message ID:', message, lastMessageID)
-      return
-    } else if (typeof clientPrevMessageID.msgID !== 'number') {
-      console.warn('Editing message with non-numeric last message ID:', message, lastMessageID)
+    if (clientPrevMessageID.type !== 'rpcMessageID') {
+      console.warn('Editing message without RPC last message ID:', message, clientPrevMessageID)
       return
     }
+
     clientPrev = clientPrevMessageID.msgID
   } else {
     clientPrev = 0
