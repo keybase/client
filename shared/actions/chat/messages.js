@@ -141,10 +141,10 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
     console.warn('Editing non-text message:', message)
     return
   }
-
-  const attrs = Constants.splitMessageIDKey(message.key)
-  const conversationIDKey = attrs.conversationIDKey
-  const messageID = Constants.parseMessageID(attrs.messageID)
+  const textMessage = (message: Constants.TextMessage)
+  const attrs = Constants.splitMessageIDKey(textMessage.key)
+  const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
+  const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
   if (messageID.type === 'invalid') {
     console.warn('Editing message with invalid message ID type:', message)
     return
@@ -184,7 +184,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   yield put(Creators.showEditor(null))
 
   // if message post-edit is the same as message pre-edit, skip call and marking message as 'EDITED'
-  const prevMessageText = message.message.stringValue()
+  const prevMessageText = textMessage.message.stringValue()
   const newMessageText = action.payload.text.stringValue()
   if (prevMessageText === newMessageText) {
     return
