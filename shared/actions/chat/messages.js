@@ -137,20 +137,14 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let tuple: ?[Constants.ParsedMessageID, Constants.ConversationIDKey]
-  switch (message.type) {
-    case 'Text':
-      const attrs = Constants.splitMessageIDKey(message.key)
-      tuple = [Constants.parseMessageID(attrs.messageID), attrs.conversationIDKey]
-      break
-  }
-
-  if (!tuple) {
-    console.warn('Editing message with unknown message type:', message)
+  if (message.type !== 'Text') {
+    console.warn('Editing non-text message:', message)
     return
   }
 
-  const [messageID, conversationIDKey] = tuple
+  const attrs = Constants.splitMessageIDKey(message.key)
+  const conversationIDKey = attrs.conversationIDKey
+  const messageID = Constants.parseMessageID(attrs.messageID)
   if (messageID.type === 'invalid') {
     console.warn('Editing message with invalid message ID type:', message)
     return
