@@ -1369,8 +1369,7 @@ function applyMessageUpdates(
     return message
   }
 
-  // $FlowIssue
-  return updates.reduce((message: Message, update): Message => {
+  return updates.reduce((message: Message, update: EditingMessage | UpdatingAttachment): Message => {
     if (!update) {
       return message
     } else if (update.type === 'Edit') {
