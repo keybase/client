@@ -145,14 +145,11 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const attrs = Constants.splitMessageIDKey(textMessage.key)
   const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
   const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
-  if (messageID.type === 'invalid') {
-    console.warn('Editing message with invalid message ID type:', message)
-    return
-  } else if (typeof messageID.msgID !== 'number') {
-    console.warn('Editing message with non-numeric message ID type:', message)
+  if (messageID.type !== 'rpcMessageID') {
+    console.warn('Editing message with invalid message ID type:', message, messageID)
     return
   }
-  let supersedes: number = messageID.msgID
+  let supersedes: ChatTypes.MessageID = messageID.msgID
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
     select(Constants.getInbox, conversationIDKey),
