@@ -115,7 +115,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
         const yourName = yield select(usernameSelector)
         const yourDeviceName = yield select(Shared.devicenameSelector)
-        const message: Constants.Message = _unboxedToMessage(
+        const message: Constants.ServerMessage = _unboxedToMessage(
           messageUnboxed,
           yourName,
           yourDeviceName,
@@ -308,7 +308,12 @@ function* _updateThread({
   let newMessages = []
   const newUnboxeds = (thread && thread.messages) || []
   for (const unboxed of newUnboxeds) {
-    const message = _unboxedToMessage(unboxed, yourName, yourDeviceName, conversationIDKey)
+    const message: Constants.ServerMessage = _unboxedToMessage(
+      unboxed,
+      yourName,
+      yourDeviceName,
+      conversationIDKey
+    )
     const messageFromYou =
       message.deviceName === yourDeviceName && message.author && yourName === message.author
 
