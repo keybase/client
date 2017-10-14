@@ -521,7 +521,7 @@ function _unboxedToMessage(
   yourName,
   yourDeviceName,
   conversationIDKey: Constants.ConversationIDKey
-): Constants.Message {
+): Constants.ServerMessage {
   if (message && message.state === ChatTypes.ChatUiMessageUnboxedState.outbox && message.outbox) {
     // Outbox messages are always text, not attachments.
     const payload: ChatTypes.UIMessageOutbox = message.outbox

@@ -68,7 +68,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
           if (!conversation.get('firstNewMessageID') && !inConversationFocused && firstMessage) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
-            // $FlowIssue TODO ServerMessage -> Message change
             conversation = conversation.set('firstNewMessageID', firstMessage.messageID)
           } else if (inConversationFocused) {
             // Clear new message if we received a new message while in

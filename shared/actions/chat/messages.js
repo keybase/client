@@ -95,7 +95,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   const author = yield select(usernameSelector)
   const outboxIDKey = Constants.outboxIDToKey(outboxID)
 
-  const message: Constants.Message = {
+  const message: Constants.TextMessage = {
     author,
     channelMention: 'None',
     conversationIDKey,

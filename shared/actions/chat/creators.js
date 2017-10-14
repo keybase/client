@@ -293,7 +293,7 @@ function appendMessages(
   conversationIDKey: Constants.ConversationIDKey,
   isSelected: boolean,
   isAppFocused: boolean,
-  messages: Array<Constants.Message>,
+  messages: Array<Constants.ServerMessage>,
   svcShouldDisplayNotification: boolean
 ): Constants.AppendMessages {
   return {
@@ -347,7 +347,7 @@ function setLoaded(conversationIDKey: Constants.ConversationIDKey, isLoaded: boo
 
 function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
-  messages: Array<Constants.Message>,
+  messages: Array<Constants.ServerMessage>,
   moreToLoad: boolean
 ): Constants.PrependMessages {
   return {
