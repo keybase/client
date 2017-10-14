@@ -137,21 +137,22 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let messageID: ?Constants.ParsedMessageID
-  let conversationIDKey: Constants.ConversationIDKey = ''
+  let tuple: ?[Constants.ParsedMessageID, Constants.ConversationIDKey]
   switch (message.type) {
     case 'Text':
     case 'Attachment': // fallthrough
       const attrs = Constants.splitMessageIDKey(message.key)
-      messageID = Constants.parseMessageID(attrs.messageID)
-      conversationIDKey = attrs.conversationIDKey
+      tuple = [Constants.parseMessageID(attrs.messageID), attrs.conversationIDKey]
       break
   }
 
-  if (!messageID) {
+  if (!tuple) {
     console.warn('Editing message with unknown message type:', message)
     return
-  } else if (messageID.type === 'invalid') {
+  }
+
+  const [messageID, conversationIDKey] = tuple
+  if (messageID.type === 'invalid') {
     console.warn('Editing message with invalid message ID type:', message)
     return
   } else if (typeof messageID.msgID !== 'number') {
