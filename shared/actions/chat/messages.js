@@ -17,7 +17,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
   if (message.type !== 'Text' && message.type !== 'Attachment') {
-    console.warn('Editing non-text non-attachment message:', message)
+    console.warn('Deleting non-text non-attachment message:', message)
     return
   }
 
