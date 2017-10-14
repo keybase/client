@@ -646,6 +646,17 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		if err != nil {
 			return
 		}
+		dbc := p.config.DiskBlockCache()
+		if isDeepSync && dbc != nil {
+			wrappedCache := dbc.(*diskBlockCacheWrapped)
+			if !wrappedCache.DoesSyncCacheHaveSpace(ctx) {
+				// If the sync cache is close to full, cancel prefetches.
+				p.log.CDebugf(ctx, "canceling prefetch for block %s due to "+
+					"full sync cache.", ptr.ID)
+				p.CancelPrefetch(ptr.ID)
+				return
+			}
+		}
 	}
 	p.triggerPrefetch(req)
 }

@@ -1072,6 +1072,7 @@ type backpressureDiskLimiterStatus struct {
 
 	JournalTrackerStatus journalTrackerStatus
 	DiskCacheByteStatus  backpressureTrackerStatus
+	SyncCacheByteStatus  backpressureTrackerStatus
 }
 
 func (bdl *backpressureDiskLimiter) getStatus(
@@ -1097,5 +1098,6 @@ func (bdl *backpressureDiskLimiter) getStatus(
 
 		JournalTrackerStatus: jStatus,
 		DiskCacheByteStatus:  bdl.diskCacheByteTracker.getStatus(),
+		SyncCacheByteStatus:  bdl.syncCacheByteTracker.getStatus(),
 	}
 }

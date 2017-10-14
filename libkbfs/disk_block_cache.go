@@ -933,11 +933,16 @@ func (cache *DiskBlockCacheStandard) evictLocked(ctx context.Context,
 func (cache *DiskBlockCacheStandard) Status(
 	ctx context.Context) map[string]DiskBlockCacheStatus {
 	var name string
+	var maxLimit uint64
+	limiterStatus := cache.config.DiskLimiter().getStatus(
+		ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
 	switch cache.cacheType {
 	case syncCacheLimitTrackerType:
 		name = syncCacheName
+		maxLimit = uint64(limiterStatus.SyncCacheByteStatus.Max)
 	case workingSetCacheLimitTrackerType:
 		name = workingSetCacheName
+		maxLimit = uint64(limiterStatus.DiskCacheByteStatus.Max)
 	}
 	select {
 	case <-cache.startedCh:
@@ -948,14 +953,11 @@ func (cache *DiskBlockCacheStandard) Status(
 	defer cache.lock.RUnlock()
 	// The disk cache status doesn't depend on the chargedTo ID, and
 	// we don't have easy access to the UID here, so pass in a dummy.
-	limiterStatus :=
-		cache.config.DiskLimiter().getStatus(
-			ctx, keybase1.UserOrTeamID("")).(backpressureDiskLimiterStatus)
 	return map[string]DiskBlockCacheStatus{
 		name: {
 			NumBlocks:       uint64(cache.numBlocks),
 			BlockBytes:      cache.currBytes,
-			CurrByteLimit:   uint64(limiterStatus.DiskCacheByteStatus.Max),
+			CurrByteLimit:   maxLimit,
 			Hits:            rateMeterToStatus(cache.hitMeter),
 			Misses:          rateMeterToStatus(cache.missMeter),
 			Puts:            rateMeterToStatus(cache.putMeter),
