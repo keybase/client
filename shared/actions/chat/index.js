@@ -138,10 +138,8 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
           conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected && userActive
-
         if (message.messageID && conversationIsFocused) {
-          const messageID = (message.messageID: Constants.MessageID)
-          const {type: msgIDType} = Constants.parseMessageID(messageID)
+          const {type: msgIDType} = Constants.parseMessageID(message.messageID)
           if (msgIDType === 'rpcMessageID') {
             yield call(_markAsRead, conversationIDKey, messageID)
           }
