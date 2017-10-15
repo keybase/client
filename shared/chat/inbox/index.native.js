@@ -11,7 +11,9 @@ import {
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
-import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
+import FloatingDivider from './row/floating-divider/container'
+import {BigTeamsLabel} from './row/big-teams-label'
+import Divider from './row/divider/container'
 import debounce from 'lodash/debounce'
 
 import type {Props, RowItem} from './'
