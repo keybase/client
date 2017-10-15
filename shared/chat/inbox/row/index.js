@@ -1,8 +1,10 @@
 // @flow
 import React from 'react'
 import BigTeamHeader from './big-team-header/container'
-import BigTeamChannelRow from './big-team-channel/container'
-import FilterBigTeamChannelRow from './filter-big-team-channel/container'
+import BigTeamChannel from './big-team-channel/container'
+import FilterBigTeamChannel from './filter-big-team-channel/container'
+import FilterSmallTeamChannel from './filter-small-team/container'
+import SmallTeam from './small-team/container'
 import * as Constants from '../../../constants/chat'
 
 type MakeRowOptions = {
@@ -14,17 +16,22 @@ type MakeRowOptions = {
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big' | 'divider',
 }
 const makeRow = (options: MakeRowOptions) => {
-  // const key =
-  // (row.type === 'small' && row.conversationIDKey) ||
-  // (row.type === 'bigHeader' && row.teamname) ||
-  // (row.type === 'big' && ``) ||
-  // 'missingkey'
   if (options.filtered) {
     switch (options.type) {
       case 'big':
         return (
-          <FilterBigTeamChannelRow
+          <FilterBigTeamChannel
             key={`${options.teamname || ''}:${options.channelname || ''}`}
+            conversationIDKey={options.conversationIDKey}
+            channelname={options.channelname}
+            isActiveRoute={options.isActiveRoute}
+            teamname={options.teamname}
+          />
+        )
+      case 'small':
+        return (
+          <FilterSmallTeamChannel
+            key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
             isActiveRoute={options.isActiveRoute}
@@ -44,11 +51,21 @@ const makeRow = (options: MakeRowOptions) => {
         )
       case 'big':
         return (
-          <BigTeamChannelRow
+          <BigTeamChannel
             key={`${options.teamname || ''}:${options.channelname || ''}`}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
             isActiveRoute={options.isActiveRoute}
+          />
+        )
+      case 'small':
+        return (
+          <SmallTeam
+            key={options.conversationIDKey}
+            conversationIDKey={options.conversationIDKey}
+            channelname={options.channelname}
+            isActiveRoute={options.isActiveRoute}
+            teamname={options.teamname}
           />
         )
     }

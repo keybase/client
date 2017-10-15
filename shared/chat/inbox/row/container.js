@@ -1,8 +1,7 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as I from 'immutable'
-import {SmallTeamRow, SmallTeamFilteredRow} from './small-team-rows'
-import {compose, renderComponent, branch, renderNothing} from 'recompose'
+import {compose, branch, renderNothing} from 'recompose'
 import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -179,8 +178,7 @@ const ConnectedRow = compose(
   branch(
     ({participants, type}) => isSmallOrBig(type) && (!participants || participants.isEmpty() === 0),
     renderNothing
-  ),
-  branch(props => props.filtered && props.type === 'small', renderComponent(SmallTeamFilteredRow))
+  )
 )(SmallTeamRow)
 
 export default ConnectedRow
