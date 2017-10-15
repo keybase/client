@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/chat'
+import * as I from 'immutable'
 import {createCachedSelector, type TypedState} from '../../../util/container'
 import {formatTimeForConversationList} from '../../../util/timestamp'
 import {globalColors} from '../../../styles'
@@ -21,6 +22,43 @@ const getUnreadBadges = (state: TypedState, conversationIDKey: Constants.Convers
 const getYou = (state: TypedState) => state.config.username || ''
 const getNowOverride = (state: TypedState) => state.chat.nowOverride
 const getUntrustedState = (state: TypedState) => state.entities.inboxUntrustedState
+const getPendingParticipants = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
+  state.chat.get('pendingConversations').get(conversationIDKey) || I.List()
+
+function _commonDerivedProps(
+  rekeyInfo,
+  finalizeInfo,
+  unreadTotal: number,
+  unreadBadge: number,
+  isError,
+  isSelected
+) {
+  // If it's finalized we don't show the rekey as they can't solve it themselves
+  const youNeedToRekey =
+    !finalizeInfo && rekeyInfo && !rekeyInfo.get('rekeyParticipants').count() && rekeyInfo.get('youCanRekey')
+  const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
+
+  const hasUnread = !participantNeedToRekey && !youNeedToRekey && unreadTotal > 0
+  const hasBadge = hasUnread && unreadBadge > 0
+  const subColor = isError
+    ? globalColors.red
+    : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
+  const showBold = !isSelected && hasUnread
+  const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
+  const backgroundColor = isSelected ? globalColors.blue : bgPlatform
+  const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
+
+  return {
+    backgroundColor,
+    hasBadge,
+    hasUnread,
+    participantNeedToRekey,
+    showBold,
+    subColor,
+    usernameColor,
+    youNeedToRekey,
+  }
+}
 
 // Used by rows that show snippets
 const snippetRowSelector = createCachedSelector(
@@ -48,40 +86,52 @@ const snippetRowSelector = createCachedSelector(
     nowOverride,
     untrustedState
   ) => {
-    const participantNeedToRekey = !finalizeInfo && rekeyInfo && !!rekeyInfo.get('rekeyParticipants').count()
-    const youNeedToRekey =
-      !finalizeInfo &&
-      rekeyInfo &&
-      !rekeyInfo.get('rekeyParticipants').count() &&
-      rekeyInfo.get('youCanRekey')
-    const hasUnread = !participantNeedToRekey && !youNeedToRekey && unreadTotal > 0
     const isSelected = selected === conversationIDKey
-    const showBold = !isSelected && hasUnread
-    const hasBadge = hasUnread && unreadBadge > 0
     const isMuted = inbox.get('status') === 'muted'
-    const bgPlatform = isMobile ? globalColors.white : globalColors.blue5
-    const backgroundColor = isSelected ? globalColors.blue : bgPlatform
-    const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
     const isError = untrustedState.get(conversationIDKey) === 'error'
-    const subColor = isError
-      ? globalColors.red
-      : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
     const participants = Constants.participantFilter(inbox.get('participants'), you)
     const timestamp = formatTimeForConversationList(inbox.get('time'), nowOverride)
+    const d = _commonDerivedProps(rekeyInfo, finalizeInfo, unreadTotal, unreadBadge, isError, isSelected)
 
     return {
-      backgroundColor,
-      hasBadge,
-      hasUnread,
+      backgroundColor: d.backgroundColor,
+      hasBadge: d.hasBadge,
+      hasUnread: d.hasUnread,
       isMuted,
       isSelected,
-      participantNeedToRekey,
+      participantNeedToRekey: d.participantNeedToRekey,
       participants,
-      showBold,
-      subColor,
+      showBold: d.showBold,
+      subColor: d.subColor,
       timestamp,
-      usernameColor,
-      youNeedToRekey,
+      usernameColor: d.usernameColor,
+      youNeedToRekey: d.youNeedToRekey,
+    }
+  }
+)(passConversationIDKey)
+
+const pendingSnippetRowSelector = createCachedSelector(
+  [getSelected, getPendingParticipants, getNowOverride, passConversationIDKey],
+  (selected, participants, nowOverride, conversationIDKey) => {
+    const isSelected = selected === conversationIDKey
+    const isMuted = false
+    const isError = false
+    const timestamp = formatTimeForConversationList(Date.now(), nowOverride)
+    const d = _commonDerivedProps(null, null, 0, 0, isError, isSelected)
+
+    return {
+      backgroundColor: d.backgroundColor,
+      hasBadge: d.hasBadge,
+      hasUnread: d.hasUnread,
+      isMuted,
+      isSelected,
+      participantNeedToRekey: d.participantNeedToRekey,
+      participants,
+      showBold: d.showBold,
+      subColor: d.subColor,
+      timestamp,
+      usernameColor: d.usernameColor,
+      youNeedToRekey: d.youNeedToRekey,
     }
   }
 )(passConversationIDKey)
@@ -94,5 +144,6 @@ export {
   getRekeyInfo,
   getUnreadTotals,
   getUnreadBadges,
+  pendingSnippetRowSelector,
   snippetRowSelector,
 }

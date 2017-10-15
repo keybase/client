@@ -9,7 +9,10 @@ const getSnippet = (state: TypedState, conversationIDKey: Constants.Conversation
   Constants.getSnippet(state, conversationIDKey)
 
 const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, teamname, isActiveRoute}) => {
-  const p = Selectors.snippetRowSelector(state, conversationIDKey)
+  const isPending = Constants.isPendingConversationIDKey(conversationIDKey || '')
+  const p = isPending
+    ? Selectors.pendingSnippetRowSelector(state, conversationIDKey)
+    : Selectors.snippetRowSelector(state, conversationIDKey)
 
   return {
     backgroundColor: p.backgroundColor,
