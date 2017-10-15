@@ -514,6 +514,25 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		if err != nil {
 			return err
 		}
+
+		if len(op.Unrefs()) == 0 {
+			// This might be an rmOp of a file that was created and
+			// removed within a single batch.  If it's been renamed,
+			// we should also mark it as deleted to avoid confusing
+			// the CR code.
+			chain, ok := ccs.byMostRecent[realOp.Dir.Ref]
+			if !ok {
+				return fmt.Errorf("No chain for rmOp dir %v", realOp.Dir.Ref)
+			}
+			for original, ri := range ccs.renamedOriginals {
+				if ri.originalNewParent == chain.original &&
+					ri.newName == realOp.OldName {
+					ccs.deletedOriginals[original] = true
+					break
+				}
+			}
+		}
+
 	case *renameOp:
 		// split rename op into two separate operations, one for
 		// remove and one for create

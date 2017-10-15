@@ -973,7 +973,6 @@ func TestCrJournalCreateDirRenameFileRemoveUnmerged(t *testing.T) {
 			mkdir("c"),
 			mkfile("c/d", ""),
 			pwriteBSSync("c/d", []byte("test"), 0, false),
-			setmtime("c/d", time.Now()),
 			rename("c/d", "c/e"),
 			rm("c/e"),
 		),
