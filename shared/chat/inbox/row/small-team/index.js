@@ -4,8 +4,8 @@ import {Box, ClickableBox} from '../../../../common-adapters'
 import {globalStyles} from '../../../../styles'
 import {List} from 'immutable'
 
-import {SimpleTopLine} from '../top-line'
-import BottomLine from '../bottom-line'
+import {SimpleTopLine} from './top-line'
+import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '.././avatars'
 import {isMobile} from '../../../../constants/platform'
 
