@@ -9,7 +9,7 @@ import {
   ErrorBoundary,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import Row from './row/container'
+import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
 import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
 import debounce from 'lodash/debounce'
@@ -64,16 +64,14 @@ class Inbox extends React.PureComponent<Props, State> {
       )
     }
 
-    return (
-      <Row
-        conversationIDKey={item.conversationIDKey}
-        filtered={!!this.props.filter}
-        isActiveRoute={this.props.isActiveRoute}
-        teamname={item.teamname}
-        channelname={item.channelname}
-        type={row.type}
-      />
-    )
+    return makeRow({
+      channelname: row.channelname,
+      conversationIDKey: row.conversationIDKey,
+      filtered: !!this.props.filter,
+      isActiveRoute: true,
+      teamname: row.teamname,
+      type: row.type,
+    })
   }
 
   _keyExtractor = (item, index) => {

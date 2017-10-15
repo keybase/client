@@ -66,10 +66,8 @@ const snippetRowSelector = createCachedSelector(
     const subColor = isError
       ? globalColors.red
       : isSelected ? globalColors.white : hasUnread ? globalColors.black_75 : globalColors.black_40
-    // TODO avoid doing this filtering here cuase it makes a new one eaach time
     const participants = Constants.participantFilter(inbox.get('participants'), you)
     const timestamp = formatTimeForConversationList(inbox.get('time'), nowOverride)
-    // TODO some stuff only for small team
 
     return {
       backgroundColor,

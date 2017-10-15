@@ -22,7 +22,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, tea
     participantNeedToRekey: p.participantNeedToRekey,
     participants: p.participants,
     showBold: p.showBold,
-    snippet: getSnippet(state, conversationIDKey),
+    snippet: getSnippet(state, conversationIDKey || ''),
     subColor: p.subColor,
     teamname,
     timestamp: p.timestamp,

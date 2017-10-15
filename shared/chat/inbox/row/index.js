@@ -8,11 +8,11 @@ import SmallTeam from './small-team/container'
 import * as Constants from '../../../constants/chat'
 
 type MakeRowOptions = {
-  channelname: ?string,
+  channelname: string,
   conversationIDKey: ?Constants.ConversationIDKey,
   filtered: boolean,
   isActiveRoute: boolean,
-  teamname: ?string,
+  teamname: string,
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big' | 'divider',
 }
 const makeRow = (options: MakeRowOptions) => {
@@ -21,7 +21,7 @@ const makeRow = (options: MakeRowOptions) => {
       case 'big':
         return (
           <FilterBigTeamChannel
-            key={`${options.teamname || ''}:${options.channelname || ''}`}
+            key={`${options.teamname}:${options.channelname}`}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
             isActiveRoute={options.isActiveRoute}
@@ -52,7 +52,7 @@ const makeRow = (options: MakeRowOptions) => {
       case 'big':
         return (
           <BigTeamChannel
-            key={`${options.teamname || ''}:${options.channelname || ''}`}
+            key={`${options.teamname}:${options.channelname}`}
             conversationIDKey={options.conversationIDKey}
             channelname={options.channelname}
             isActiveRoute={options.isActiveRoute}

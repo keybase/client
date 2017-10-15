@@ -1,6 +1,6 @@
 // @flow
 import {pausableConnect, type TypedState} from '../../../../util/container'
-import BigTeamHeader from '.'
+import {BigTeamHeader} from '.'
 
 const mapStateToProps = (state: TypedState, {teamname}) => {
   return {teamname}

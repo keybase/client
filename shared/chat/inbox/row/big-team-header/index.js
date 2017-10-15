@@ -9,7 +9,7 @@ type Props = {
   onShowMenu: () => void,
 }
 
-class BigTeamHeaderRow extends PureComponent<Props> {
+class BigTeamHeader extends PureComponent<Props> {
   render() {
     return (
       <HeaderBox>
@@ -59,4 +59,4 @@ const teamStyle = {
   marginRight: globalMargins.tiny,
 }
 
-export default BigTeamHeaderRow
+export {BigTeamHeader}
