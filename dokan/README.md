@@ -7,7 +7,7 @@ This library provides a thin binding to the library for Go programs.
 
 https://godoc.org/github.com/keybase/dokan-go
 
-# Licencing
+# Licensing
 
 The go binding itself is BSD3 licensed as featured in the LICENSE.
 
