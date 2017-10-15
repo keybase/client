@@ -3,8 +3,9 @@ import {FilterBigTeamChannel} from '.'
 import * as Creators from '../../../../actions/chat/creators'
 import {pausableConnect} from '../../../../util/container'
 
-const mapStateToProps = (_, {teamname, channelname}) => ({
+const mapStateToProps = (_, {teamname, channelname, isActiveRoute}) => ({
   channelname,
+  isActiveRoute,
   teamname,
 })
 
@@ -17,6 +18,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps.channelname || '',
+  isActiveRoute: stateProps.isActiveRoute,
   onSelectConversation: dispatchProps.onSelectConversation,
   teamname: stateProps.teamname || '',
 })

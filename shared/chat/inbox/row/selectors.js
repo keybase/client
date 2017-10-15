@@ -87,10 +87,10 @@ const snippetRowSelector = createCachedSelector(
     untrustedState
   ) => {
     const isSelected = selected === conversationIDKey
-    const isMuted = inbox.get('status') === 'muted'
+    const isMuted = inbox && inbox.get('status') === 'muted'
     const isError = untrustedState.get(conversationIDKey) === 'error'
-    const participants = Constants.participantFilter(inbox.get('participants'), you)
-    const timestamp = formatTimeForConversationList(inbox.get('time'), nowOverride)
+    const participants = inbox ? Constants.participantFilter(inbox.get('participants'), you) : I.List()
+    const timestamp = inbox ? formatTimeForConversationList(inbox.get('time'), nowOverride) : ''
     const d = _commonDerivedProps(rekeyInfo, finalizeInfo, unreadTotal, unreadBadge, isError, isSelected)
 
     return {

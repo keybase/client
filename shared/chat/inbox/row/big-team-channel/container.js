@@ -4,12 +4,13 @@ import * as Creators from '../../../../actions/chat/creators'
 import {BigTeamChannel} from '.'
 import {pausableConnect, type TypedState} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, channelname}) => {
+const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, isActiveRoute}) => {
   const p = Selectors.snippetRowSelector(state, conversationIDKey)
   return {
     channelname,
     hasBadge: p.hasBadge,
     hasUnread: p.hasUnread,
+    isActiveRoute,
     isMuted: p.isMuted,
     isSelected: p.isSelected,
     showBold: p.showBold,
@@ -27,7 +28,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps.channelname,
   hasBadge: stateProps.hasBadge,
   hasUnread: stateProps.hasUnread,
-  isActiveRoute: ownProps.isActiveRoute,
+  isActiveRoute: stateProps.isActiveRoute,
   isMuted: stateProps.isMuted,
   isSelected: stateProps.isSelected,
   onSelectConversation: dispatchProps.onSelectConversation,
