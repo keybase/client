@@ -576,6 +576,11 @@ func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID)
 	if len(namePkgs) == 0 {
 		return empty, UserNotFoundError{UID: uid, Msg: "in CachedUPAKLoader"}
 	}
+
+	if u.TestDeadlocker != nil {
+		u.TestDeadlocker()
+	}
+
 	return namePkgs[0].NormalizedUsername, nil
 }
 
