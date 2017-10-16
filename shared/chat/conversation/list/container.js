@@ -12,15 +12,18 @@ import {type OpenInFileUI} from '../../../constants/kbfs'
 import {type OwnProps, type StateProps, type DispatchProps} from './container'
 
 const getValidatedState = (state: TypedState) => {
-  const inbox = Constants.getSelectedInbox(state)
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  if (!selectedConversationIDKey) {
+    return false
+  }
+  const untrustedState = state.entities.inboxUntrustedState.get(selectedConversationIDKey)
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
     if (Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)) {
       // If it's as pending conversation with a tlfname, let's call it valid
       return true
     }
   }
-  return (inbox && inbox.state === 'unboxed') || false
+  return untrustedState === 'unboxed'
 }
 
 const supersedesIfNoMoreToLoadSelector = createSelector(

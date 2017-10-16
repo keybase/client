@@ -1,17 +1,13 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as Constants from '../../constants/chat'
+import * as Creators from './creators'
+import * as EntityCreators from '../entities'
 import * as I from 'immutable'
 import getenv from 'getenv'
 import {CommonTLFVisibility, TlfKeysTLFIdentifyBehavior} from '../../constants/types/flow-types'
 import {call, put, select} from 'redux-saga/effects'
 import {parseFolderNameToUsers} from '../../util/kbfs'
-import {
-  pendingToRealConversation,
-  replaceConversation,
-  selectConversation,
-  unboxConversations,
-} from './creators'
 import {usernameSelector} from '../../constants/selectors'
 
 import type {TypedState} from '../../constants/reducer'
@@ -50,10 +46,6 @@ function devicenameSelector(state: TypedState) {
   return state.config && state.config.deviceName
 }
 
-function selectedInboxSelector(state: TypedState, conversationIDKey: Constants.ConversationIDKey) {
-  return state.chat.get('inbox').find(convo => convo.get('conversationIDKey') === conversationIDKey)
-}
-
 function inboxUntrustedStateSelector(state: TypedState) {
   return state.chat.get('inboxUntrustedState')
 }
@@ -80,7 +72,7 @@ function* startNewConversation(
   if (pendingTlfName) {
     tlfName = pendingTlfName
   } else {
-    const existing = yield select(selectedInboxSelector, oldConversationIDKey)
+    const existing = yield select(Constants.getInbox, oldConversationIDKey)
     if (existing) {
       tlfName = existing.get('participants').join(',')
     }
@@ -112,18 +104,19 @@ function* startNewConversation(
 
   // Replace any existing convo
   if (pendingTlfName) {
-    yield put(pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
+    yield put(Creators.pendingToRealConversation(oldConversationIDKey, newConversationIDKey))
   } else if (oldConversationIDKey !== newConversationIDKey) {
-    yield put(replaceConversation(oldConversationIDKey, newConversationIDKey))
+    yield put(EntityCreators.deleteEntity(['inbox'], I.List([oldConversationIDKey])))
+    yield put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([oldConversationIDKey])))
   }
 
   // Select the new version if the old one was selected
   const selectedConversation = yield select(Constants.getSelectedConversation)
   if (selectedConversation === oldConversationIDKey) {
-    yield put(selectConversation(newConversationIDKey, false))
+    yield put(Creators.selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield put(unboxConversations([newConversationIDKey]))
+  yield put(Creators.unboxConversations([newConversationIDKey]))
   return [newConversationIDKey, tlfName]
 }
 
@@ -132,7 +125,7 @@ function* getPostingIdentifyBehavior(
   conversationIDKey: Constants.ConversationIDKey
 ): Generator<any, any, any> {
   const metaData = (yield select(metaDataSelector): any)
-  const inbox = yield select(selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(Constants.getInbox, conversationIDKey)
   const you = yield select(usernameSelector)
 
   if (inbox && you) {
@@ -146,33 +139,35 @@ function* getPostingIdentifyBehavior(
 
 function makeInboxStateRecords(
   author: string,
-  items: Array<ChatTypes.UnverifiedInboxUIItem>
-): I.List<Constants.InboxState> {
-  const conversations: I.List<Constants.InboxState> = I.List(
-    (items || [])
-      .map(c => {
-        const parts = c.localMetadata
-          ? I.List(c.localMetadata.writerNames || [])
-          : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
-        return Constants.makeInboxState({
-          channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
-            ? c.localMetadata.channelName
-            : undefined,
-          conversationIDKey: c.convID,
-          info: null,
-          membersType: c.membersType,
-          participants: parts,
-          fullNames: new I.Map(),
-          status: Constants.ConversationStatusByEnum[c.status || 0],
-          teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
-          teamType: c.teamType,
-          time: c.time,
-          version: c.version,
-        })
+  items: Array<ChatTypes.UnverifiedInboxUIItem>,
+  oldInbox: I.Map<Constants.ConversationIDKey, Constants.InboxState>
+): Array<Constants.InboxState> {
+  return (items || [])
+    .map(c => {
+      // We already know about this version? Skip it
+      if (oldInbox.getIn([c.convID, 'version']) === c.version) {
+        return null
+      }
+      const parts = c.localMetadata
+        ? I.List(c.localMetadata.writerNames || [])
+        : I.List(parseFolderNameToUsers(author, c.name).map(ul => ul.username))
+      return Constants.makeInboxState({
+        channelname: c.membersType === ChatTypes.CommonConversationMembersType.team && c.localMetadata
+          ? c.localMetadata.channelName
+          : undefined,
+        conversationIDKey: c.convID,
+        fullNames: I.Map(),
+        info: null,
+        membersType: c.membersType,
+        participants: parts,
+        status: Constants.ConversationStatusByEnum[c.status || 0],
+        teamType: c.teamType,
+        teamname: c.membersType === ChatTypes.CommonConversationMembersType.team ? c.name : undefined,
+        time: c.time,
+        version: c.version,
       })
-      .filter(Boolean)
-  )
-  return conversations
+    })
+    .filter(Boolean)
 }
 
 export {
@@ -188,7 +183,6 @@ export {
   messageOutboxIDSelector,
   metaDataSelector,
   routeSelector,
-  selectedInboxSelector,
   startNewConversation,
   tmpFileName,
 }

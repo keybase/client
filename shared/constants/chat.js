@@ -273,6 +273,8 @@ export type NotificationsState = {
   mobile: NotificationsKindState,
 }
 
+export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'unboxing'
+
 type _InboxState = {
   conversationIDKey: ConversationIDKey,
   info: ?ChatTypes.ConversationInfoLocal,
@@ -284,7 +286,6 @@ type _InboxState = {
   notifications: ?NotificationsState,
   participants: I.List<string>,
   fullNames: I.Map<string, string>,
-  state: 'untrusted' | 'unboxed' | 'error' | 'unboxing',
   status: ConversationStateEnum,
   time: number,
   teamType: ChatTypes.TeamType,
@@ -303,7 +304,6 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   notifications: null,
   participants: I.List(),
   fullNames: I.Map(),
-  state: 'untrusted',
   status: 'unfiled',
   time: 0,
   name: '',
@@ -369,7 +369,6 @@ type _State = {
   // TODO  move to entities
   messageMap: I.Map<MessageKey, Message>,
   localMessageStates: I.Map<MessageKey, LocalMessageState>,
-  inbox: I.List<InboxState>,
   inboxFilter: string,
   inboxSearch: I.List<string>,
   conversationStates: I.Map<ConversationIDKey, ConversationState>,
@@ -402,7 +401,6 @@ export type State = I.RecordOf<_State>
 export const makeState: I.RecordFactory<_State> = I.Record({
   messageMap: I.Map(),
   localMessageStates: I.Map(),
-  inbox: I.List(),
   inboxFilter: '',
   inboxSearch: I.List(),
   conversationStates: I.Map(),
@@ -442,7 +440,7 @@ export const blankChat = 'chat:blankChat'
 export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
-  {conversationIDKeys: Array<ConversationIDKey>, force: boolean, forInboxSync: boolean}
+  {conversationIDKeys: Array<ConversationIDKey>, force?: boolean, forInboxSync?: boolean}
 >
 
 export type AddPendingConversation = NoErrorTypedAction<
@@ -494,7 +492,6 @@ export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
   {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
 >
-export type LoadedInbox = NoErrorTypedAction<'chat:loadedInbox', {inbox: I.List<InboxState>}>
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
   {conversationIDKey: ConversationIDKey, isRequesting: boolean}
@@ -573,11 +570,6 @@ export type SetNotifications = NoErrorTypedAction<
   'chat:setNotifications',
   {conversationIDKey: ConversationIDKey, deviceType: DeviceType, notifyType: NotifyType}
 >
-export type SetUnboxing = TypedAction<
-  'chat:setUnboxing',
-  {conversationIDKeys: Array<ConversationIDKey>},
-  {conversationIDKeys: Array<ConversationIDKey>}
->
 export type SetupChatHandlers = NoErrorTypedAction<'chat:setupChatHandlers', void>
 export type ShowEditor = NoErrorTypedAction<'chat:showEditor', {message: ?Message}>
 export type StartConversation = NoErrorTypedAction<
@@ -606,7 +598,6 @@ export type UpdateFinalizedState = NoErrorTypedAction<
   'chat:updateFinalizedState',
   {finalizedState: FinalizedState}
 >
-export type UpdateInbox = NoErrorTypedAction<'chat:updateInbox', {conversation: InboxState}>
 export type UpdateInboxComplete = NoErrorTypedAction<'chat:updateInboxComplete', void>
 export type UpdateInboxRekeyOthers = NoErrorTypedAction<
   'chat:updateInboxRekeyOthers',
@@ -790,7 +781,6 @@ export type Actions =
   | ShowEditor
   | LoadInbox
   | LoadMoreMessages
-  | LoadedInbox
   | NewChat
   | OpenFolder
   | PendingToRealConversation
@@ -800,7 +790,6 @@ export type Actions =
   | StartConversation
   | UpdateBadging
   | UpdateBrokenTracker
-  | UpdateInbox
   | UpdateInboxComplete
   | UpdateLatestMessage
   | UpdateMetadata
@@ -1124,10 +1113,9 @@ function messageKeyKind(key: MessageKey): MessageKeyKind {
 const getYou = (state: TypedState) => state.config.username || ''
 const getFollowingMap = (state: TypedState) => state.config.following
 const getMetaDataMap = (state: TypedState) => state.chat.get('metaData')
-const getSelectedInbox = (state: TypedState) => {
-  const selected = getSelectedConversation(state)
-  return state.chat.get('inbox').find(inbox => inbox.get('conversationIDKey') === selected)
-}
+const getInbox = (state: TypedState, conversationIDKey: ?ConversationIDKey) =>
+  conversationIDKey ? state.entities.getIn(['inbox', conversationIDKey]) : null
+const getSelectedInbox = (state: TypedState) => getInbox(state, getSelectedConversation(state))
 const getEditingMessage = (state: TypedState) => state.chat.get('editingMessage')
 
 const getTLF = createSelector([getSelectedInbox, getSelectedConversation], (selectedInbox, selected) => {
@@ -1145,8 +1133,9 @@ const getParticipantsWithFullNames = createSelector(
     if (selected && isPendingConversationIDKey(selected)) {
       return []
     } else if (selected !== nothingSelected && selectedInbox) {
-      return selectedInbox.participants.map(username => {
-        return {username: username, fullname: selectedInbox.fullNames.get(username)}
+      const s = selectedInbox
+      return s.participants.map(username => {
+        return {username: username, fullname: s.fullNames.get(username)}
       })
     }
     return []
@@ -1348,6 +1337,7 @@ export {
   getDeletedMessageIDs,
   getChannelName,
   getEditingMessage,
+  getInbox,
   getMessageFromMessageKey,
   getMessageUpdates,
   getSelectedConversation,

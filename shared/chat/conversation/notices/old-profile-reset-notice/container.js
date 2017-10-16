@@ -14,9 +14,7 @@ const mapStateToProps = (state: TypedState) => {
   }
   const finalizeInfo = state.chat.finalizedState.get(selectedConversationIDKey)
   const _supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
-
-  const inbox = state.chat.inbox
-  const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
+  const selected = Constants.getInbox(state, selectedConversationIDKey)
   const _participants = selected ? selected.participants : List()
 
   return {

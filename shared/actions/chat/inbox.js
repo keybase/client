@@ -12,16 +12,15 @@ import {
   CommonTLFVisibility,
   TlfKeysTLFIdentifyBehavior,
 } from '../../constants/types/flow-types'
-import {call, put, select, cancelled, take, spawn, all} from 'redux-saga/effects'
+import {call, put, select, cancelled, spawn, all} from 'redux-saga/effects'
 import {delay} from 'redux-saga'
 import {globalError} from '../../constants/config'
 import {unsafeUnwrap} from '../../constants/types/more'
 import {usernameSelector} from '../../constants/selectors'
-import {isMobile} from '../../constants/platform'
 import HiddenString from '../../util/hidden-string'
+import {isMobile} from '../../constants/platform'
 
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {TypedState} from '../../constants/reducer'
 
 // Common props for getting the inbox
 const _getInboxQuery = {
@@ -33,48 +32,6 @@ const _getInboxQuery = {
   tlfVisibility: CommonTLFVisibility.private,
   topicType: ChatTypes.CommonTopicType.chat,
   unreadOnly: false,
-}
-
-let _backgroundLoopTask
-
-// Load the inbox if we haven't yet, mostly done by the UI
-function* onInitialInboxLoad(): SagaGenerator<any, any> {
-  try {
-    yield put(Creators.inboxStale())
-
-    if (!isMobile) {
-      // Only allow one loop at a time
-      if (!_backgroundLoopTask) {
-        yield take('chat:loadedInbox')
-        // Use spawn so this is never cancelled if this is
-        _backgroundLoopTask = yield spawn(_backgroundUnboxLoop)
-      }
-    }
-  } finally {
-  }
-}
-
-// On desktop we passively unbox inbox items
-const _backgroundUnboxLoop = function*() {
-  try {
-    while (true) {
-      yield call(delay, 10 * 1000)
-      const inboxes = yield select(state => state.chat.get('inbox'))
-      const conversationIDKeys = inboxes
-        .filter(i => i.state === 'untrusted')
-        .take(10)
-        .map(i => i.conversationIDKey)
-        .toArray()
-
-      if (conversationIDKeys.length) {
-        yield put(Creators.unboxConversations(conversationIDKeys))
-      } else {
-        break
-      }
-    }
-  } finally {
-    console.log('Background unboxing loop done')
-  }
 }
 
 // Update inboxes that have been reset
@@ -131,12 +88,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
     const inbox: ChatTypes.UnverifiedInboxUIItems = JSON.parse(jsonInbox)
     yield call(_updateFinalized, inbox)
 
-    const idToVersion = I.Map(
-      (inbox.items || []).reduce((map, c) => {
-        map[c.convID] = c.version
-        return map
-      }, {})
-    )
+    const idToVersion = I.Map((inbox.items || []).map(c => [c.convID, c.version]))
 
     const author = yield select(usernameSelector)
     const snippets = (inbox.items || []).reduce((map, c) => {
@@ -145,50 +97,45 @@ function* onInboxStale(): SagaGenerator<any, any> {
       return map
     }, {})
 
-    const conversations: I.List<Constants.InboxState> = Shared.makeInboxStateRecords(
-      author,
-      inbox.items || []
-    )
+    const oldInbox = yield select(s => s.entities.get('inbox'))
+    const conversations = Shared.makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map(snippets)))
     yield put(Creators.setInboxUntrustedState('loaded'))
-    yield put(Creators.loadedInbox(conversations))
+    yield put(
+      EntityCreators.replaceEntity(
+        ['inboxUntrustedState'],
+        I.Map(conversations.map(c => [c.conversationIDKey, 'untrusted']))
+      )
+    )
 
     const inboxSmallTimestamps = I.Map(
-      conversations.reduce((map, c) => {
-        if (c.teamType !== ChatTypes.CommonTeamType.complex) {
-          map[c.conversationIDKey] = c.time
-        }
-        return map
-      }, {})
+      conversations
+        .map(c => (c.teamType !== ChatTypes.CommonTeamType.complex ? [c.conversationIDKey, c.time] : null))
+        .filter(Boolean)
     )
+
     const inboxBigChannelsToTeam = I.Map(
-      conversations.reduce((map, c) => {
-        if (c.teamType === ChatTypes.CommonTeamType.complex) {
-          map[c.conversationIDKey] = c.teamname
-        }
-        return map
-      }, {})
+      conversations
+        .map(
+          c => (c.teamType === ChatTypes.CommonTeamType.complex ? [c.conversationIDKey, c.teamname] : null)
+        )
+        .filter(Boolean)
     )
+
     const inboxBigChannels = I.Map(
-      conversations.reduce((map, c) => {
-        if (c.teamType === ChatTypes.CommonTeamType.complex && c.channelname) {
-          map[c.conversationIDKey] = c.channelname
-        }
-        return map
-      }, {})
+      conversations
+        .map(
+          c =>
+            c.teamType === ChatTypes.CommonTeamType.complex && c.channelname
+              ? [c.conversationIDKey, c.channelname]
+              : null
+        )
+        .filter(Boolean)
     )
-    const inboxMap = I.Map(
-      conversations.reduce((map, c) => {
-        map[c.conversationIDKey] = c
-        return map
-      }, {})
-    )
-    const inboxIsEmpty = I.Map(
-      conversations.reduce((map, c) => {
-        map[c.conversationIDKey] = c.isEmpty
-        return map
-      }, {})
-    )
+
+    const inboxMap = I.Map(conversations.map(c => [c.conversationIDKey, c]))
+
+    const inboxIsEmpty = I.Map(conversations.map(c => [c.conversationIDKey, c.isEmpty]))
 
     yield all([
       put(EntityCreators.replaceEntity(['inboxVersion'], idToVersion)),
@@ -202,10 +149,11 @@ function* onInboxStale(): SagaGenerator<any, any> {
     // Load the first visible simple and teams so we can get the channel names
     const toUnbox = conversations
       .filter(c => !c.teamname)
-      .take(20)
+      .slice(0, 20)
       .concat(conversations.filter(c => c.teamname))
+      .map(c => c.conversationIDKey)
 
-    yield put(Creators.unboxConversations(toUnbox.map(c => c.conversationIDKey).toArray()))
+    yield put(Creators.unboxConversations(toUnbox))
   } finally {
     if (yield cancelled()) {
       yield put(Creators.setInboxUntrustedState('unloaded'))
@@ -258,6 +206,8 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   const inboxState = _conversationLocalToInboxState(c)
 
   if (inboxState) {
+    yield put(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'unboxed'})))
+
     yield put(EntityCreators.replaceEntity(['inboxVersion'], I.Map({[conversationIDKey]: c.version})))
     if (isBigTeam) {
       // There's a bug where the untrusted inbox state for the channel is incorrect so we
@@ -299,42 +249,25 @@ function* processConversation(c: ChatTypes.InboxUIItem): SagaGenerator<any, any>
   }
 
   if (inboxState) {
-    yield put(Creators.updateInbox(inboxState))
+    // We blocked it
+    if (['blocked', 'reported'].includes(inboxState.status)) {
+      yield put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], I.List([inboxState.conversationIDKey])))
+      yield put(EntityCreators.deleteEntity(['inbox'], I.List([inboxState.conversationIDKey])))
+    } else {
+      yield put(EntityCreators.replaceEntity(['inbox'], I.Map({[inboxState.conversationIDKey]: inboxState})))
+    }
 
     if (!isBigTeam) {
       // inbox loaded so rekeyInfo is now clear
-      yield put(Creators.clearRekey(inboxState.get('conversationIDKey')))
+      yield put(Creators.clearRekey(inboxState.conversationIDKey))
     }
 
     // Try and load messages if the updated item is the selected one
     const selectedConversation = yield select(Constants.getSelectedConversation)
-    if (selectedConversation === inboxState.get('conversationIDKey')) {
+    if (selectedConversation === inboxState.conversationIDKey) {
       // load validated selected
       yield put(Creators.loadMoreMessages(selectedConversation, true))
     }
-  }
-}
-
-// Gui is showing boxed content, find some rows to unbox
-function* untrustedInboxVisible(action: Constants.UntrustedInboxVisible): SagaGenerator<any, any> {
-  const {conversationIDKey, rowsVisible} = action.payload
-  const inboxes = yield select(state => state.chat.get('inbox'))
-
-  const idx = inboxes.findIndex(inbox => inbox.conversationIDKey === conversationIDKey)
-  if (idx === -1) {
-    return
-  }
-
-  // Collect items to unbox, sanity max at 40
-  const total = Math.max(rowsVisible + 2, 40)
-  const conversationIDKeys = inboxes
-    .slice(idx, idx + total)
-    .map(i => (i.state === 'untrusted' ? i.conversationIDKey : null))
-    .filter(Boolean)
-    .toArray()
-
-  if (conversationIDKeys.length) {
-    yield put(Creators.unboxConversations(conversationIDKeys))
   }
 }
 
@@ -374,13 +307,13 @@ function* _chatInboxFailedSubSaga(params) {
     participants: error.rekeyInfo
       ? I.List([].concat(error.rekeyInfo.writerNames, error.rekeyInfo.readerNames).filter(Boolean))
       : I.List(error.unverifiedTLFName.split(',')),
-    state: 'error',
     status: 'unfiled',
     time: error.remoteConv.readerInfo.mtime,
   })
 
+  yield put(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map({[conversationIDKey]: 'error'})))
   yield put(Creators.updateSnippet(conversationIDKey, new HiddenString(error.message)))
-  yield put(Creators.updateInbox(conversation))
+  yield put(EntityCreators.replaceEntity(['inbox'], I.Map({[conversationIDKey]: conversation})))
 
   // Mark the conversation as read, to avoid a state where there's a
   // badged conversation that can't be unbadged by clicking on it.
@@ -436,27 +369,33 @@ const unboxConversationsSagaMap = {
 // Loads the trusted inbox segments
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
   let {conversationIDKeys, force, forInboxSync} = action.payload
-  conversationIDKeys = yield select(
-    (state: TypedState, conversationIDKeys: Array<Constants.ConversationIDKey>) => {
-      const inbox = state.chat.get('inbox')
 
-      return conversationIDKeys.filter(c => {
-        if (Constants.isPendingConversationIDKey(c)) {
-          return false
-        }
+  // const inbox = yield select(state => state.entities.inbox)
+  const untrustedState = yield select(state => state.entities.inboxUntrustedState)
 
-        const state = inbox.find(i => i.get('conversationIDKey') === c)
-        return force || !state || state.state === 'untrusted'
-      })
-    },
-    conversationIDKeys
-  )
+  conversationIDKeys = conversationIDKeys.filter(c => {
+    return (
+      force ||
+      (!Constants.isPendingConversationIDKey(c) &&
+        (!untrustedState.get(c) || untrustedState.get(c) === 'untrusted'))
+    )
+  })
 
   if (!conversationIDKeys.length) {
     return
   }
 
-  yield put.resolve(Creators.setUnboxing(conversationIDKeys, false))
+  yield put.resolve(
+    EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(conversationIDKeys.map(c => [c, 'unboxing'])))
+  )
+
+  // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
+  if (!isMobile) {
+    const selected = yield select(Constants.getSelectedConversation)
+    if (!selected) {
+      yield put(Creators.selectConversation(conversationIDKeys[0], false))
+    }
+  }
 
   const loadInboxRpc = new EngineRpc.EngineRpcCall(
     unboxConversationsSagaMap,
@@ -479,7 +418,12 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   } catch (error) {
     if (error instanceof RPCTimeoutError) {
       console.warn('timed out request for unboxConversations, bailing')
-      yield put.resolve(Creators.setUnboxing(conversationIDKeys, true))
+      yield put.resolve(
+        EntityCreators.replaceEntity(
+          ['inboxUntrustedState'],
+          I.Map(conversationIDKeys.map(c => [c, 'untrusted']))
+        )
+      )
     } else {
       console.warn('Error in loadInboxRpc', error)
     }
@@ -550,7 +494,6 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     notifications,
     participants: parts,
     fullNames: fullNames,
-    state: 'unboxed',
     status: Constants.ConversationStatusByEnum[c.status],
     teamType: c.teamType,
     teamname,
@@ -581,12 +524,10 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
 
 export {
   filterSelectNext,
-  onInitialInboxLoad,
   onInboxStale,
   onGetInboxAndUnbox,
   parseNotifications,
   unboxConversations,
   processConversation,
-  untrustedInboxVisible,
   unboxMore,
 }

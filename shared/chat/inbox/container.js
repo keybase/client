@@ -221,8 +221,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter, routeState, setRou
     dispatch(Creators.selectConversation(conversationIDKey, true))
   },
   onSetFilter: (filter: string) => dispatch(Creators.setInboxFilter(filter)),
-  onUntrustedInboxVisible: (converationIDKey, rowsVisible) =>
-    dispatch(Creators.untrustedInboxVisible(converationIDKey, rowsVisible)),
+  onUntrustedInboxVisible: converationIDKeys => dispatch(Creators.unboxConversations(converationIDKeys)),
   toggleSmallTeamsExpanded: () => setRouteState({smallTeamsExpanded: !routeState.get('smallTeamsExpanded')}),
 })
 
