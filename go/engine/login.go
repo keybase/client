@@ -185,7 +185,7 @@ func (e *Login) checkLoggedInAndNotRevoked(ctx *Context) (bool, error) {
 
 	e.G().Log.Debug("user is logged in, checking if on a revoked device")
 	validDevice := false
-	err = e.G().GetFullSelfer().WithSelf(ctx.GetNetContext(), func(me *libkb.User) error {
+	err = e.G().GetFullSelfer().WithSelfForcePoll(ctx.GetNetContext(), func(me *libkb.User) error {
 		validDevice = me.HasCurrentDeviceInCurrentInstall()
 		return nil
 	})
