@@ -587,7 +587,7 @@ func (u *CachedUPAKLoader) LookupUsername(ctx context.Context, uid keybase1.UID)
 // LookupUsernameUPAK uses the upak loader to find a username for uid.
 func (u *CachedUPAKLoader) LookupUsernameUPAK(ctx context.Context, uid keybase1.UID) (NormalizedUsername, error) {
 	var info CachedUserLoadInfo
-	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithStaleOK(true)
+	arg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithStaleOK(true).WithPublicKeyOptional()
 	var ret NormalizedUsername
 	_, _, err := u.loadWithInfo(arg, &info, func(upak *keybase1.UserPlusKeysV2AllIncarnations) error {
 		if upak == nil {

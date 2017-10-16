@@ -1201,6 +1201,9 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 		g.G().Log.Debug("gregorHandler APIServerSessionStatus error: %s (returning loggedInMaybe)", err)
 		return uid, token, loggedInMaybe
 	}
+	if status == nil {
+		return uid, token, loggedInNo
+	}
 
 	return status.UID, status.SessionToken, loggedInYes
 }
