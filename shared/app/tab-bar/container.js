@@ -5,22 +5,16 @@ import TabBarRender from './index.render'
 
 const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 
-const mapStateToProps = createSelector([getNavBadges, usernameSelector], (badgeNumbers, username) => {
-  console.log('aaa mapst', badgeNumbers, username)
-  return {
-    badgeNumbers: badgeNumbers.toObject(),
-    username,
-  }
-})
+const mapStateToProps = createSelector([getNavBadges, usernameSelector], (badgeNumbers, username) => ({
+  badgeNumbers: badgeNumbers.toObject(),
+  username,
+}))
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  console.log('aaa merge', stateProps, ownProps)
-  return {
-    badgeNumbers: stateProps.badgeNumbers,
-    onTabClick: ownProps.onTabClick,
-    selectedTab: ownProps.selectedTab,
-    username: stateProps.username || '',
-  }
-}
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  badgeNumbers: stateProps.badgeNumbers,
+  onTabClick: ownProps.onTabClick,
+  selectedTab: ownProps.selectedTab,
+  username: stateProps.username || '',
+})
 
 export default connect(mapStateToProps, null, mergeProps)(TabBarRender)
