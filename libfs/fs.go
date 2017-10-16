@@ -103,6 +103,9 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	if err != nil {
 		return nil, err
 	}
+	if subdir != "" {
+		subdir = path.Clean(subdir)
+	}
 
 	// Look up the subdir's root.
 	n := rootNode
