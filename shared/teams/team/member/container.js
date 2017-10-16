@@ -11,16 +11,6 @@ import {isMobile} from '../../../constants/platform'
 import {TeamMember} from '.'
 import {type TypedState} from '../../../constants/reducer'
 
-const getFollowing = (state, username: string) => {
-  const followingMap = Constants.getFollowingMap(state)
-  return !!followingMap[username]
-}
-
-const getFollower = (state, username: string) => {
-  const followerMap = Constants.getFollowerMap(state)
-  return !!followerMap[username]
-}
-
 type StateProps = {
   teamname: string,
   following: boolean,
@@ -31,15 +21,20 @@ type StateProps = {
   loading: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
-  teamname: routeProps.get('teamname'),
-  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
-  following: getFollowing(state, routeProps.get('username')),
-  follower: getFollower(state, routeProps.get('username')),
-  _username: routeProps.get('username'),
-  _you: state.config.username,
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
-})
+const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
+  const username = routeProps.get('username')
+  const teamname = routeProps.get('teamname')
+
+  return {
+    teamname: teamname,
+    loading: state.entities.getIn(['teams', 'teamNameToLoading', teamname], true),
+    following: !!Constants.getFollowingMap(state)[username],
+    follower: !!Constants.getFollowerMap(state)[username],
+    _username: username,
+    _you: state.config.username,
+    _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', teamname], I.Set()),
+  }
+}
 
 type DispatchProps = {
   onOpenProfile: () => void,

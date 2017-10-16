@@ -15,7 +15,6 @@ import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 import {navigateTo} from '../route-tree'
 import {chatTab, teamsTab} from '../../constants/tabs'
-import {globalError} from '../../constants/config'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -113,9 +112,8 @@ const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrP
   // disallow call with both username & email
   if (!!username && !!email) {
     const errMsg = 'Supplied both email and username to removeMemberOrPendingInvite'
-    yield put({payload: new Error(errMsg), type: globalError})
     console.error(errMsg)
-    return
+    throw new Error(errMsg)
   }
 
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
