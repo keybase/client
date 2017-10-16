@@ -177,6 +177,7 @@ func TestRanOutOfTime(t *testing.T) {
 
 	// now success for user t_kb, who has a non-hardcoded username and a fullname on the
 	// server
+	t.Logf("tKB: %s", tKB)
 	uids = []keybase1.UID{tKB}
 	hit = false
 	results, err = uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, 0, true)
@@ -184,7 +185,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.True(t, hit)
 	require.Equal(t, results[0].NormalizedUsername, libkb.NewNormalizedUsername("t_kb"))
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
-	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
+	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(0))
 	cachedAt = fakeClock.Now()
 
 	// Now we're going to simulate that the fullname resolution became expired, and there
@@ -198,7 +199,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.True(t, hit)
 	require.Equal(t, results[0].NormalizedUsername, libkb.NewNormalizedUsername("t_kb"))
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
-	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
+	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(0))
 	require.Equal(t, results[0].FullName.CachedAt, keybase1.ToTime(cachedAt))
 
 	// Same as above, but give enough time to refresh the name from the server
@@ -209,7 +210,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.True(t, hit)
 	require.Equal(t, results[0].NormalizedUsername, libkb.NewNormalizedUsername("t_kb"))
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
-	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
+	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(0))
 	require.Equal(t, results[0].FullName.CachedAt, keybase1.ToTime(cachedAt))
 
 	// In this case, there's not enough time to make any fetches, but it doesn't matter, since our
@@ -222,7 +223,7 @@ func TestRanOutOfTime(t *testing.T) {
 	require.False(t, hit)
 	require.Equal(t, results[0].NormalizedUsername, libkb.NewNormalizedUsername("t_kb"))
 	require.Equal(t, results[0].FullName.FullName, keybase1.FullName("Joe Keybaser"))
-	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(1))
+	require.Equal(t, results[0].FullName.EldestSeqno, keybase1.Seqno(0))
 	require.Equal(t, results[0].FullName.CachedAt, keybase1.ToTime(cachedAt))
 
 	// Do a happy path for several users:
@@ -239,6 +240,6 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Nil(t, results[0].FullName)
 	require.Equal(t, results[1].FullName.FullName, keybase1.FullName("Joe Keybaser"))
 	require.Equal(t, results[1].FullName.CachedAt, keybase1.ToTime(cachedAt))
-	require.Equal(t, results[1].FullName.EldestSeqno, keybase1.Seqno(1))
+	require.Equal(t, results[1].FullName.EldestSeqno, keybase1.Seqno(0))
 	require.Nil(t, results[2].FullName)
 }
