@@ -51,7 +51,7 @@ class MenubarRender extends Component<Props, State> {
           <Icon
             style={menuStyle}
             type="iconfont-hamburger"
-            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
+            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -162,7 +162,7 @@ class MenubarRender extends Component<Props, State> {
               marginLeft: 8,
             }}
             type="iconfont-hamburger"
-            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
+            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
         </Box>
         <Folders {...mergedProps} />
