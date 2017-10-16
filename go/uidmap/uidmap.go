@@ -294,7 +294,6 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 	var uidsToLookup []keybase1.UID
 	for i, uid := range uids {
 		up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness, forceNetworkForFullNames)
-		g.GetLog().CDebugf(ctx, "| findUsernamePackageLocally(%s): %v", uid, status)
 		// If we successfully looked up some of the user, set the return slot here.
 		if up != nil {
 			res[i] = *up
