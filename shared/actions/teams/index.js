@@ -161,21 +161,27 @@ const _createNewTeamFromConversation = function*(
   }
 
   if (participants) {
-    const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
-      param: {name, sendChatNotification: true},
-    })
-    for (const username of participants.toArray()) {
-      if (!createRes.creatorAdded || username !== me) {
-        yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
-          param: {
-            email: '',
-            name,
-            role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
-            sendChatNotification: true,
-            username,
-          },
-        })
+    yield put(Creators.setTeamCreationError(''))
+    try {
+      const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
+        param: {name, sendChatNotification: true},
+      })
+      for (const username of participants.toArray()) {
+        if (!createRes.creatorAdded || username !== me) {
+          yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+            param: {
+              email: '',
+              name,
+              role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
+              sendChatNotification: true,
+              username,
+            },
+          })
+        }
       }
+      yield put(ChatCreators.selectConversation(null, false))
+    } catch (error) {
+      yield put(Creators.setTeamCreationError(error.desc))
     }
   }
 }
