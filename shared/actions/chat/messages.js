@@ -16,20 +16,15 @@ import type {SagaGenerator} from '../../constants/types/saga'
 
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let messageID
-  let conversationIDKey: ?Constants.ConversationIDKey
-  switch (message.type) {
-    case 'Text':
-    case 'Attachment':
-      const attrs = Constants.splitMessageIDKey(message.key)
-      messageID = Constants.parseMessageID(attrs.messageID).msgID
-      conversationIDKey = attrs.conversationIDKey
-      break
+  if (message.type !== 'Text' && message.type !== 'Attachment') {
+    console.warn('Deleting non-text non-attachment message:', message)
+    return
   }
 
-  if (!conversationIDKey) throw new Error('No conversation for message delete')
-
-  if (messageID) {
+  const attrs = Constants.splitMessageIDKey(message.key)
+  const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
+  const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  if (messageID.type === 'rpcMessageID') {
     // Deleting a server message.
     const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
       select(Constants.getInbox, conversationIDKey),
@@ -37,19 +32,24 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     ])
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
+    if (!inboxConvo.name) {
+      console.warn('Deleting message for non-existent TLF:', message)
+      return
+    }
+    const tlfName: string = inboxConvo.name
+
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
-      param: {
-        clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        outboxID,
-        supersedes: messageID,
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-      },
-    })
-  } else {
+    const param: ChatTypes.localPostDeleteNonblockRpcParam = {
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID,
+      supersedes: messageID.msgID,
+      tlfName,
+      tlfPublic: false,
+    }
+    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {param})
+  } else if (messageID.type === 'outboxID') {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
     if (!outboxID) throw new Error('No outboxID for pending message delete')
@@ -60,6 +60,8 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     // It's deleted, but we don't get notified that the conversation now has
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
     yield put(Creators.removeOutboxMessage(conversationIDKey, outboxID))
+  } else {
+    console.warn('Deleting message without RPC or outbox message ID:', message, messageID)
   }
 }
 
