@@ -2013,7 +2013,7 @@ func (bps *blockPutState) removeOtherBps(other *blockPutState) {
 	// Assume that `other` is a subset of `bps` when initializing the
 	// slice length.
 	newLen := len(bps.blockStates) - len(other.blockStates)
-	if newLen <= 0 {
+	if newLen < 0 {
 		newLen = 0
 	}
 
