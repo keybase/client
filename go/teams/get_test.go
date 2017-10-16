@@ -157,7 +157,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "still doesn't know about any subteams")
 
 	t.Logf("U1 loads and realizes they're an admin")
-	team, err = GetMaybeAdminByStringName(context.TODO(), tcs[1].G, teamName.String())
+	team, err = GetMaybeAdminByStringName(context.TODO(), tcs[1].G, teamName.String(), false /*isPublic*/)
 	require.NoError(t, err)
 	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)

@@ -90,6 +90,19 @@ const Right = ({showTrackerButton, onShowTracker}) => {
     : null
 }
 
+const RightEdge = ({showCheckmark}) => {
+  return showCheckmark
+    ? <Icon
+        type="iconfont-check"
+        style={{
+          color: globalColors.blue,
+          marginLeft: globalMargins.small,
+          marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
+        }}
+      />
+    : null
+}
+
 const Line = () => (
   <Box
     style={{
@@ -107,7 +120,7 @@ const SearchResultRow = (props: Constants.RowProps) => (
   <ClickableBox
     style={_clickableBoxStyle[(!!props.selected).toString()]}
     underlayColor={globalColors.blue4}
-    onClick={props.onClick}
+    onClick={!props.userIsInTeam ? props.onClick : null}
     onMouseOver={props.onMouseOver}
   >
     <Box style={_rowStyle}>
@@ -125,6 +138,7 @@ const SearchResultRow = (props: Constants.RowProps) => (
         rightUsername={props.rightUsername}
       />
       <Right showTrackerButton={props.showTrackerButton} onShowTracker={props.onShowTracker} />
+      <RightEdge showCheckmark={props.userIsInTeam} />
       <Line />
     </Box>
   </ClickableBox>

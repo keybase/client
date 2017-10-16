@@ -8,7 +8,7 @@ import {
   FormWithCheckbox,
   NativeScrollView,
 } from '../../common-adapters/index.native'
-import {isDeviceSecureAndroid, isAndroidNewerThanM} from '../../constants/platform'
+import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform'
 import Dropdown from './dropdown.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
@@ -39,7 +39,8 @@ class LoginRender extends Component<Props> {
     return (
       <NativeScrollView>
         <Box style={styles.container}>
-          {!isDeviceSecureAndroid &&
+          {isAndroid &&
+            !isDeviceSecureAndroid &&
             !isAndroidNewerThanM &&
             <Box style={deviceNotSecureStyle}>
               <Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>

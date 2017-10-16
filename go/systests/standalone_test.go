@@ -78,7 +78,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if adding worked
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), g, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, g, team, false, true)
 	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
@@ -106,7 +106,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check if removal worked
-	t0, err = teams.GetForTeamManagementByStringName(context.TODO(), g, team, true)
+	t0, err = teams.GetTeamByNameForTest(context.TODO(), t, g, team, false, true)
 	require.NoError(t, err)
 	writers, err = t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)

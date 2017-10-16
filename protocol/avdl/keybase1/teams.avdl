@@ -356,11 +356,14 @@ protocol teams {
 
   record LoadTeamArg {
     // One of these must be specified.
-    // ID is preferred. Name will always hit the server.
+    // ID is preferred. Name will always hit the server for subteams.
     // If both are specified ID will be used and Name will be checked.
     @lint("ignore")
     TeamID ID;
     string name;
+
+    // Whether to load a public or private team.
+    boolean public;
 
     // Whether we need to be an admin.
     // Will fail unless we are an admin in the returned Team.
@@ -373,7 +376,6 @@ protocol teams {
     boolean forceFullReload;      // Ignore local data and fetch from the server.
     boolean forceRepoll;          // Force a sync with merkle.
     boolean staleOK;              // If a very stale cache hit is OK.
-    boolean public;               // For public teams.
   }
 
   record ImplicitRole {
