@@ -72,7 +72,10 @@ func (s *SingleContextLogger) RotateLogFile() error {
 	return s.logger.RotateLogFile()
 }
 func (s *SingleContextLogger) CloneWithAddedDepth(depth int) Logger {
-	return s.logger.CloneWithAddedDepth(depth)
+	return &SingleContextLogger{
+		ctx:    s.ctx,
+		logger: s.logger.CloneWithAddedDepth(depth),
+	}
 }
 func (s *SingleContextLogger) SetExternalHandler(handler ExternalHandler) {
 	s.logger.SetExternalHandler(handler)

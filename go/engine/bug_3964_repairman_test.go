@@ -3,23 +3,36 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"strings"
-	"testing"
 )
 
 type auditLog struct {
 	l     logger.Logger
-	lines []string
+	lines *[]string
+}
+
+func newAuditLog(l logger.Logger) *auditLog {
+	return &auditLog{l: l, lines: &[]string{}}
+}
+
+func (a *auditLog) GetLines() []string {
+	return *a.lines
+}
+
+func (a *auditLog) ClearLines() {
+	a.lines = &[]string{}
 }
 
 func (a *auditLog) Debug(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
 	a.l.Debug(s)
-	a.lines = append(a.lines, s)
+	*a.lines = append(*a.lines, s)
 }
 func (a *auditLog) CDebugf(ctx context.Context, format string, args ...interface{}) {
 	a.l.CDebugf(ctx, format, args...)
@@ -73,7 +86,13 @@ func (a *auditLog) RotateLogFile() error {
 	return a.l.RotateLogFile()
 }
 func (a *auditLog) CloneWithAddedDepth(depth int) logger.Logger {
-	return a.l.CloneWithAddedDepth(depth)
+	// Keep the same list of strings. This is important, because the tests here
+	// read the list at the end, and expect all the log lines to be there, even
+	// though some of the loggin calls in the middle call CloneWithAddedDepth.
+	return &auditLog{
+		l:     a.l.CloneWithAddedDepth(depth),
+		lines: a.lines,
+	}
 }
 func (a *auditLog) SetExternalHandler(handler logger.ExternalHandler) {
 	a.l.SetExternalHandler(handler)
@@ -298,7 +317,7 @@ func TestBug3964Repairman(t *testing.T) {
 	var log *auditLog
 
 	user, dev1, dev2, cleanup := SetupTwoDevicesWithHook(t, "bug", func(tc *libkb.TestContext) {
-		log = &auditLog{l: tc.G.Log}
+		log = newAuditLog(tc.G.Log)
 		tc.G.Log = log
 	})
 	defer cleanup()
@@ -310,17 +329,17 @@ func TestBug3964Repairman(t *testing.T) {
 
 	dev2.G.TestOptions.NoBug3964Repair = true
 	logoutLogin(t, user, dev2)
-	checkAuditLogForBug3964Recovery(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
+	checkAuditLogForBug3964Recovery(t, log.GetLines(), dev1.G.Env.GetDeviceID(), dev1Key)
 	dev2.G.TestOptions.NoBug3964Repair = false
 
-	log.lines = nil
+	log.ClearLines()
 	logoutLogin(t, user, dev2)
-	checkAuditLogForBug3964Repair(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
+	checkAuditLogForBug3964Repair(t, log.GetLines(), dev1.G.Env.GetDeviceID(), dev1Key)
 
-	log.lines = nil
+	log.ClearLines()
 	logoutLogin(t, user, dev2)
-	checkAuditLogCleanLogin(t, log.lines)
-	checkAuditLogForRepairmanShortCircuit(t, log.lines)
+	checkAuditLogCleanLogin(t, log.GetLines())
+	checkAuditLogForRepairmanShortCircuit(t, log.GetLines())
 
 	checkLKSWorked(t, dev2, user)
 }
