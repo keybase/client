@@ -2014,7 +2014,7 @@ func (bps *blockPutState) removeOtherBps(other *blockPutState) {
 	// slice length.
 	newLen := len(bps.blockStates) - len(other.blockStates)
 	if newLen <= 0 {
-		newLen = 1
+		newLen = 0
 	}
 
 	// Remove any blocks that appear in `other`.
