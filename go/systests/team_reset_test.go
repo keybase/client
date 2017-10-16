@@ -160,13 +160,19 @@ func TestTeamReset(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
-	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
-	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
 	cam := ctx.installKeybaseForUser("cam", 10)
 	cam.signup()
-	divDebug(ctx, "Signed up cam (%s)", cam.username)
+	divDebug(ctx, "Signed up cam (%s, %s)", cam.username, cam.uid())
+	users := []*smuUser{ann, bob, cam}
+	for _, user := range users {
+		for _, device := range user.devices {
+			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
+		}
+	}
 
 	team := ann.createTeam([]*smuUser{bob, cam})
 	divDebug(ctx, "team created (%s)", team.name)
@@ -181,6 +187,7 @@ func TestTeamReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
+	// Fast forward clock to clear out UID map
 	pollForMembershipUpdate(team, ann, bob, cam)
 	divDebug(ctx, "Polled for rekey")
 
@@ -433,6 +440,7 @@ func TestImplicitTeamReset(t *testing.T) {
 }
 
 func TestImplicitTeamUserReset(t *testing.T) {
+	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
