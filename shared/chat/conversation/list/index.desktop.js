@@ -59,7 +59,7 @@ class BaseList extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
     if (this._keepIdxVisible !== -1) {
-      this.setState({listRerender: this.state.listRerender + 1}) // eslint-disable-line react/no-did-update-set-state
+      this.setState(prevState => ({listRerender: prevState.listRerender + 1})) // eslint-disable-line react/no-did-update-set-state
       this._keepIdxVisible = -1
     }
     this._lastRowIdx = -1 // always reset this to be safe

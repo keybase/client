@@ -89,7 +89,8 @@ class Files extends Component<Props, State> {
           {onClick: ignoreCurrentFolder, title: 'Ignore'},
         ]}
         visiblePopupMenu={this.state.visiblePopupMenu}
-        onTogglePopupMenu={() => this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
+        onTogglePopupMenu={() =>
+          this.setState(prevState => ({visiblePopupMenu: !prevState.visiblePopupMenu}))}
         selfUsername={username}
         allowIgnore={allowIgnore}
         users={folder.users}

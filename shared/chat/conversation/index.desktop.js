@@ -83,7 +83,7 @@ class Conversation extends Component<Props, State> {
   }
 
   _onToggleInfoPanel = () => {
-    this.setState({infoPanelOpen: !this.state.infoPanelOpen})
+    this.setState(prevState => ({infoPanelOpen: !prevState.infoPanelOpen}))
   }
 
   render() {

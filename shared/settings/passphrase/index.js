@@ -94,7 +94,7 @@ class UpdatePassphrase extends Component<Props, State> {
         />
         <Checkbox
           label="Show typing"
-          onCheck={showTyping => this.setState({showTyping: !this.state.showTyping})}
+          onCheck={showTyping => this.setState(prevState => ({showTyping: !prevState.showTyping}))}
           checked={this.state.showTyping}
           style={{marginBottom: globalMargins.medium}}
         />
