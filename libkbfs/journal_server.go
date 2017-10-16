@@ -221,6 +221,10 @@ func (j *JournalServer) getTLFJournal(
 	getJournalFn := func() (*tlfJournal, bool, bool, bool) {
 		j.lock.RLock()
 		defer j.lock.RUnlock()
+		// Don't create any journals when logged out.
+		if j.currentUID.IsNil() {
+			return nil, false, false, false
+		}
 		tlfJournal, ok := j.tlfJournals[tlfID]
 		enableAuto, enableAutoSetByUser := j.getEnableAutoLocked()
 		return tlfJournal, enableAuto, enableAutoSetByUser, ok
@@ -271,6 +275,13 @@ func (j *JournalServer) EnableExistingJournals(
 		}
 	}()
 
+	if currentUID == keybase1.UID("") {
+		return errors.New("Current UID is empty")
+	}
+	if currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
+		return errors.New("Current verifying key is empty")
+	}
+
 	// TODO: We should also look up journals from other
 	// users/devices so that we can take into account their
 	// journal usage.
@@ -278,19 +289,10 @@ func (j *JournalServer) EnableExistingJournals(
 	j.lock.Lock()
 	defer j.lock.Unlock()
 
-	err = j.readConfig()
-	switch {
-	case ioutil.IsNotExist(err):
-		// Config file doesn't exist, so write it.
-		err := j.writeConfig()
-		if err != nil {
-			return err
-		}
-	case err != nil:
-		return err
-	}
-
-	if j.currentUID != keybase1.UID("") {
+	if j.currentUID == currentUID {
+		// The user is not changing, so nothing needs to be done.
+		return nil
+	} else if j.currentUID != keybase1.UID("") {
 		return errors.Errorf("Trying to set current UID from %s to %s",
 			j.currentUID, currentUID)
 	}
@@ -300,11 +302,16 @@ func (j *JournalServer) EnableExistingJournals(
 			j.currentVerifyingKey, currentVerifyingKey)
 	}
 
-	if currentUID == keybase1.UID("") {
-		return errors.New("Current UID is empty")
-	}
-	if currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
-		return errors.New("Current verifying key is empty")
+	err = j.readConfig()
+	switch {
+	case ioutil.IsNotExist(err):
+		// Config file doesn't exist, so write out a default one.
+		err := j.writeConfig()
+		if err != nil {
+			return err
+		}
+	case err != nil:
+		return err
 	}
 
 	// Need to set it here since tlfJournalPathLocked and
