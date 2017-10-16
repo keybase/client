@@ -126,6 +126,14 @@ func TestRunnerInitRepoPublic(t *testing.T) {
 	testRunnerInitRepo(t, tlf.Public, "public")
 }
 
+func gitExec(t *testing.T, gitDir, workTree string, command ...string) {
+	cmd := exec.Command("git",
+		append([]string{"--git-dir", gitDir, "--work-tree", workTree},
+			command...)...)
+	err := cmd.Run()
+	require.NoError(t, err)
+}
+
 func makeLocalRepoWithOneFile(t *testing.T,
 	gitDir, filename, contents, branch string) {
 	t.Logf("Make a new repo in %s with one file", gitDir)
@@ -133,30 +141,15 @@ func makeLocalRepoWithOneFile(t *testing.T,
 		filepath.Join(gitDir, filename), []byte(contents), 0600)
 	require.NoError(t, err)
 	dotgit := filepath.Join(gitDir, ".git")
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", gitDir, "init")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit, gitDir, "init")
 
 	if branch != "" {
-		cmd := exec.Command(
-			"git", "--git-dir", dotgit, "--work-tree", gitDir,
-			"checkout", "-b", branch)
-		err = cmd.Run()
-		require.NoError(t, err)
+		gitExec(t, dotgit, gitDir, "checkout", "-b", branch)
 	}
 
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", gitDir, "add", filename)
-	err = cmd.Run()
-	require.NoError(t, err)
-
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", gitDir,
-		"-c", "user.name=Foo", "-c", "user.email=foo@foo.com",
-		"commit", "-a", "-m", "foo")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit, gitDir, "add", filename)
+	gitExec(t, dotgit, gitDir, "-c", "user.name=Foo",
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "foo")
 }
 
 func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
@@ -166,17 +159,9 @@ func addOneFileToRepo(t *testing.T, gitDir, filename, contents string) {
 	require.NoError(t, err)
 	dotgit := filepath.Join(gitDir, ".git")
 
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", gitDir, "add", filename)
-	err = cmd.Run()
-	require.NoError(t, err)
-
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", gitDir,
-		"-c", "user.name=Foo", "-c", "user.email=foo@foo.com",
-		"commit", "-a", "-m", "foo")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit, gitDir, "add", filename)
+	gitExec(t, dotgit, gitDir, "-c", "user.name=Foo",
+		"-c", "user.email=foo@foo.com", "commit", "-a", "-m", "foo")
 }
 
 func testPushWithTemplate(t *testing.T, ctx context.Context,
@@ -306,10 +291,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 
 	t.Logf("Make a new repo in %s to clone from the KBFS repo", git2)
 	dotgit2 := filepath.Join(git2, ".git")
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit2, "--work-tree", git2, "init")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit2, git2, "init")
 
 	// Find out the head hash.
 	heads := testListAndGetHeads(t, ctx, config, git2,
@@ -344,10 +326,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 	// Checkout the head directly (fetching directly via the runner
 	// doesn't leave any refs, those would normally be created by the
 	// `git` process that invokes the runner).
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit2, "--work-tree", git2, "checkout", heads[0])
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit2, git2, "checkout", heads[0])
 
 	data, err := ioutil.ReadFile(filepath.Join(git2, "foo"))
 	require.NoError(t, err)
@@ -457,11 +436,7 @@ func TestForcePush(t *testing.T) {
 
 	// Now revert to the old commit and add a different file.
 	dotgit := filepath.Join(git, ".git")
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", git,
-		"reset", "--hard", "HEAD~1")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit, git, "reset", "--hard", "HEAD~1")
 
 	addOneFileToRepo(t, git, "foo3", "hello3")
 	// A non-force push should fail.
@@ -484,10 +459,7 @@ func TestPushAllWithPackedRefs(t *testing.T) {
 	makeLocalRepoWithOneFile(t, git, "foo", "hello", "")
 
 	dotgit := filepath.Join(git, ".git")
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", git, "pack-refs", "--all")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit, git, "pack-refs", "--all")
 
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
@@ -521,25 +493,13 @@ func TestPushSomeWithPackedRefs(t *testing.T) {
 	// Make a non-branch ref (under refs/test).  This ref would not be
 	// pushed as part of `git push --all`.
 	dotgit := filepath.Join(git, ".git")
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", git,
-		"push", git, "HEAD:refs/test/ref")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit, git, "push", git, "HEAD:refs/test/ref")
 
 	addOneFileToRepo(t, git, "foo2", "hello2")
 
 	// Make a tag, and then another branch.
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", git, "tag", "v0")
-	err = cmd.Run()
-	require.NoError(t, err)
-
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit, "--work-tree", git,
-		"checkout", "-b", "test")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit, git, "tag", "v0")
+	gitExec(t, dotgit, git, "checkout", "-b", "test")
 	addOneFileToRepo(t, git, "foo3", "hello3")
 
 	// Simulate a `git push --all`, and make sure `refs/test/ref`
@@ -593,12 +553,9 @@ func TestRunnerReaderClone(t *testing.T) {
 	git2, err := ioutil.TempDir(os.TempDir(), "kbfsgittest")
 	require.NoError(t, err)
 	defer os.RemoveAll(git2)
-
 	dotgit2 := filepath.Join(git2, ".git")
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit2, "--work-tree", git2, "init")
-	err = cmd.Run()
-	require.NoError(t, err)
+
+	gitExec(t, dotgit2, git2, "init")
 
 	heads := testListAndGetHeadsWithName(t, ctx, config2, git2,
 		[]string{"refs/heads/master", "HEAD"}, "user1#user2")
@@ -624,10 +581,7 @@ func TestRunnerReaderClone(t *testing.T) {
 	// Checkout the head directly (fetching directly via the runner
 	// doesn't leave any refs, those would normally be created by the
 	// `git` process that invokes the runner).
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit2, "--work-tree", git2, "checkout", heads[0])
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit2, git2, "checkout", heads[0])
 
 	data, err := ioutil.ReadFile(filepath.Join(git2, "foo"))
 	require.NoError(t, err)
@@ -647,17 +601,10 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 	makeLocalRepoWithOneFile(t, git1, "foo", "hello", "b")
 
 	// Add a different file to master.
-	cmd := exec.Command(
-		"git", "--git-dir", dotgit1, "--work-tree", git1,
-		"checkout", "-b", "master")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit1, git1, "checkout", "-b", "master")
 	addOneFileToRepo(t, git1, "foo2", "hello2")
 
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit1, "--work-tree", git1, "pack-refs", "--all")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit1, git1, "pack-refs", "--all")
 
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
@@ -675,11 +622,7 @@ func TestRunnerDeletePackedRef(t *testing.T) {
 		[]string{"refs/heads/master", "refs/heads/b", "HEAD"}, "user1")
 
 	// Add a new file to the branch and push, to create a loose ref.
-	cmd = exec.Command(
-		"git", "--git-dir", dotgit1, "--work-tree", git1,
-		"checkout", "b")
-	err = cmd.Run()
-	require.NoError(t, err)
+	gitExec(t, dotgit1, git1, "checkout", "b")
 	addOneFileToRepo(t, git1, "foo3", "hello3")
 	testPush(t, ctx, config, git1, "refs/heads/b:refs/heads/b")
 
