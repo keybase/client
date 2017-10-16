@@ -25,6 +25,7 @@ type Context interface {
 	GetLogDir() string
 	GetDataDir() string
 	ConfigureSocketInfo() (err error)
+	GetGlobalContext() *libkb.GlobalContext
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	NewRPCLogFactory() *libkb.RPCLogFactory
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
@@ -91,6 +92,11 @@ func (c *KBFSContext) GetDataDir() string {
 // GetRunMode returns run mode
 func (c *KBFSContext) GetRunMode() libkb.RunMode {
 	return c.g.GetRunMode()
+}
+
+// GetGlobalContext returns the libkb global context.
+func (c *KBFSContext) GetGlobalContext() *libkb.GlobalContext {
+	return c.g
 }
 
 // GetSocket returns a socket

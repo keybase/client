@@ -59,6 +59,27 @@ func getLocalGitDir() (gitDir string, err error) {
 	return filepath.FromSlash(gitDir), nil
 }
 
+func checkService(kbCtx env.Context) *libfs.Error {
+	// Trying to dial the service seems like the best
+	// platform-agnostic way of seeing if the service is up.  Stat-ing
+	// the socket file, for example, doesn't work for Windows named
+	// pipes.
+	s, err := libkb.NewSocket(kbCtx.GetGlobalContext())
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
+	c, err := s.DialSocket()
+	if err != nil {
+		return libfs.InitError(
+			"The Keybase service is not running for this user.")
+	}
+	err = c.Close()
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
+	return nil
+}
+
 func start() (startErr *libfs.Error) {
 	kbCtx := env.NewContext()
 
@@ -85,6 +106,12 @@ func start() (startErr *libfs.Error) {
 		}
 	}()
 	defaultLogPath := filepath.Join(kbCtx.GetLogDir(), libkb.GitLogFileName)
+
+	// Make sure the service is running before blocking on a connection to it.
+	startErr = checkService(kbCtx)
+	if startErr != nil {
+		return startErr
+	}
 
 	// Duplicate the stderr fd, so that when the logger closes it when
 	// redirecting log messages to a file, we will still be able to
