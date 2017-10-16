@@ -144,8 +144,8 @@ func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.An
 		pkg := namePkgs[num]
 
 		member.Username = pkg.NormalizedUsername.String()
-		if fullName := pkg.FullName; fullName != nil {
-			member.FullName = string(fullName.FullName)
+		if pkg.FullName != nil {
+			member.FullName = string(pkg.FullName.FullName)
 		}
 	}
 
