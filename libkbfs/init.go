@@ -618,6 +618,18 @@ func doInit(
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
 
+	if config.Mode() == InitDefault {
+		// Initialize kbfsService only when we run a full KBFS process.
+		kbfsService, err := NewKBFSService(kbCtx, kbfsLog)
+		if err != nil {
+			// This error shouldn't be fatal
+			log.CWarningf(ctx, "Error starting RPC server for KBFS: %+v", err)
+		} else {
+			config.SetKBFSService(kbfsService)
+			log.CDebugf(ctx, "Started RPC server for KBFS")
+		}
+	}
+
 	if registry := config.MetricsRegistry(); registry != nil {
 		service = NewKeybaseServiceMeasured(service, registry)
 	}
