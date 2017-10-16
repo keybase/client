@@ -32,7 +32,7 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
   if (messageID) {
     // Deleting a server message.
     const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
-      select(Shared.selectedInboxSelector, conversationIDKey),
+      select(Constants.getInbox, conversationIDKey),
       select(Constants.lastMessageID, conversationIDKey),
     ])
     yield put(navigateTo([], [chatTab, conversationIDKey]))
@@ -84,7 +84,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
-    select(Shared.selectedInboxSelector, conversationIDKey),
+    select(Constants.getInbox, conversationIDKey),
     select(Constants.lastMessageID, conversationIDKey),
   ])
 
@@ -154,7 +154,7 @@ function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
-    select(Shared.selectedInboxSelector, conversationIDKey),
+    select(Constants.getInbox, conversationIDKey),
     select(Constants.lastMessageID, conversationIDKey),
   ])
 

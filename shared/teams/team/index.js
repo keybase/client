@@ -1,7 +1,17 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Text, List, Tabs, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  Text,
+  Tabs,
+  List,
+  Icon,
+  PopupMenu,
+  ProgressIndicator,
+} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import TeamMemberRow from './member-row/container'
@@ -19,6 +29,7 @@ export type Props = {
   showMenu: boolean,
   selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
+  onAddPeople: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
@@ -133,6 +144,7 @@ class Team extends React.PureComponent<Props> {
       requests,
       showMenu,
       setShowMenu,
+      onAddPeople,
       onLeaveTeam,
       selectedTab,
       loading,
@@ -188,6 +200,12 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
+        <Button
+          type="Primary"
+          label="Add people"
+          onClick={onAddPeople}
+          style={{marginTop: globalMargins.small}}
+        />
         <Help name={name} />
         <TeamTabs {...this.props} admin={admin} />
         {contents}

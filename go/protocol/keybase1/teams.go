@@ -1066,24 +1066,24 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 type LoadTeamArg struct {
 	ID              TeamID         `codec:"ID" json:"ID"`
 	Name            string         `codec:"name" json:"name"`
+	Public          bool           `codec:"public" json:"public"`
 	NeedAdmin       bool           `codec:"needAdmin" json:"needAdmin"`
 	Refreshers      TeamRefreshers `codec:"refreshers" json:"refreshers"`
 	ForceFullReload bool           `codec:"forceFullReload" json:"forceFullReload"`
 	ForceRepoll     bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK         bool           `codec:"staleOK" json:"staleOK"`
-	Public          bool           `codec:"public" json:"public"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	return LoadTeamArg{
 		ID:              o.ID.DeepCopy(),
 		Name:            o.Name,
+		Public:          o.Public,
 		NeedAdmin:       o.NeedAdmin,
 		Refreshers:      o.Refreshers.DeepCopy(),
 		ForceFullReload: o.ForceFullReload,
 		ForceRepoll:     o.ForceRepoll,
 		StaleOK:         o.StaleOK,
-		Public:          o.Public,
 	}
 }
 

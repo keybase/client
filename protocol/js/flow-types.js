@@ -3672,12 +3672,12 @@ export type LoadDeviceErr = {
 export type LoadTeamArg = {
   ID: TeamID,
   name: string,
+  public: boolean,
   needAdmin: boolean,
   refreshers: TeamRefreshers,
   forceFullReload: boolean,
   forceRepoll: boolean,
   staleOK: boolean,
-  public: boolean,
 }
 
 export type LockContext = {

@@ -228,6 +228,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 
 	team, err := teams.Load(ctx, h.G(), keybase1.LoadTeamArg{
 		ID:          teamID,
+		Public:      arg.IsPublic,
 		ForceRepoll: true,
 	})
 	if err != nil {

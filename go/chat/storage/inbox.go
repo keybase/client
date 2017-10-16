@@ -264,12 +264,12 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, convs []chat1.Conversati
 			rcm := &types.RemoteConversationMetadata{
 				TopicName: utils.GetTopicName(convLocal),
 				Headline:  utils.GetHeadline(convLocal),
+				Snippet:   utils.GetConvSnippet(convLocal),
 			}
 			switch convLocal.GetMembersType() {
 			case chat1.ConversationMembersType_TEAM:
 				// don't fill out things that don't get shown in inbox for team chats
 			default:
-				rcm.Snippet = utils.GetConvSnippet(convLocal)
 				rcm.WriterNames = convLocal.Names()
 				rcm.ResetParticipants = convLocal.Info.ResetNames
 			}

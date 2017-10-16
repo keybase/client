@@ -74,6 +74,7 @@ type _State = {
   inboxUnreadCountBadge: I.Map<ChatConstants.ConversationIDKey, number>,
   inboxUnreadCountTotal: I.Map<ChatConstants.ConversationIDKey, number>,
   inboxVersion: I.Map<ChatConstants.ConversationIDKey, number>,
+  inboxUntrustedState: I.Map<ChatConstants.ConversationIDKey, ChatConstants.InboxUntrustedState>,
   messageUpdates: I.Map<
     ChatConstants.ConversationIDKey,
     I.Map<ChatConstants.MessageID, I.OrderedSet<ChatConstants.MessageKey>>
@@ -107,6 +108,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   inboxSupersededBy: I.Map(),
   inboxUnreadCountBadge: I.Map(),
   inboxUnreadCountTotal: I.Map(),
+  inboxUntrustedState: I.Map(),
   inboxVersion: I.Map(),
   messageUpdates: I.Map(),
   messages: I.Map(),

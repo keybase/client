@@ -22,8 +22,7 @@ import {
   CommonTLFVisibility,
   ConstantsStatusCode,
 } from '../../constants/types/flow-types'
-import {call, put, all, take, select, race} from 'redux-saga/effects'
-import {delay} from 'redux-saga'
+import {call, put, all, select} from 'redux-saga/effects'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
 import {openInKBFS} from '../kbfs'
@@ -50,7 +49,6 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       const setStatus: ?ChatTypes.SetStatusInfo = action.payload.activity.setStatus
       if (setStatus) {
         yield call(Inbox.processConversation, setStatus.conv)
-        yield call(_ensureValidSelectedChat, false, true)
       }
       return
     case ChatTypes.NotifyChatChatActivityType.failedMessage:
@@ -302,39 +300,7 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () => Creators.inboxStale())
 }
 
-const inboxSelector = (state: TypedState, conversationIDKey) => state.chat.get('inbox')
-
-function* _ensureValidSelectedChat(onlyIfNoSelection: boolean, forceSelectOnMobile: boolean) {
-  // Mobile doesn't auto select a conversation
-  if (isMobile && !forceSelectOnMobile) {
-    return
-  }
-
-  const inbox = yield select(inboxSelector)
-  if (inbox.count()) {
-    const conversationIDKey = yield select(Constants.getSelectedConversation)
-
-    if (onlyIfNoSelection && conversationIDKey) {
-      return
-    }
-
-    const alwaysShow = yield select(Shared.alwaysShowSelector)
-
-    const current = inbox.find(c => c.get('conversationIDKey') === conversationIDKey)
-    // current is good
-    if (current && (!current.get('isEmpty') || alwaysShow.has(conversationIDKey))) {
-      return
-    }
-
-    const firstGood = inbox.find(i => !i.get('isEmpty') || alwaysShow.has(i.get('conversationIDKey')))
-    if (firstGood && !isMobile) {
-      const conversationIDKey = firstGood.get('conversationIDKey')
-      yield put(Creators.selectConversation(conversationIDKey, false))
-    } else {
-      yield put(Creators.selectConversation(null, false))
-    }
-  }
-}
+const inboxSelector = (state: TypedState) => state.entities.get('inbox')
 
 function* _updateThread({
   payload: {yourName, thread, yourDeviceName, conversationIDKey},
@@ -395,9 +361,9 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       return
     }
 
-    const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
+    const untrustedState = yield select(state => state.entities.inboxUntrustedState.get(conversationIDKey))
 
-    if (inboxConvo && inboxConvo.state !== 'unboxed') {
+    if (untrustedState !== 'unboxed') {
       console.log('Bailing on not yet unboxed conversation')
       return
     }
@@ -695,25 +661,25 @@ function _unboxedToMessage(
           }
         }
         case ChatTypes.CommonMessageType.join: {
-          const message = new HiddenString('_*has joined the channel*_')
+          const message = new HiddenString('joined')
           return {
-            type: 'Text',
+            type: 'System',
             ...common,
             editedCount: 0,
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
         case ChatTypes.CommonMessageType.leave: {
-          const message = new HiddenString('_*has left the channel*_')
+          const message = new HiddenString('left')
           return {
-            type: 'Text',
+            type: 'System',
             ...common,
             editedCount: 0,
             message,
             messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
-            key: Constants.messageKey(common.conversationIDKey, 'messageIDText', common.messageID),
+            key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
         default:
@@ -800,17 +766,14 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
     console.warn('Attempted to start a chat without the current user')
   }
 
-  const inboxSelector = (state: TypedState, tlfName: string) => {
-    return state.chat
-      .get('inbox')
-      .find(
-        convo =>
-          convo.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs &&
-          convo.get('participants').sort().join(',') === tlfName
-      )
-  }
+  // not effecient but only happens when you start a new convo and not over and over
   const tlfName = users.sort().join(',')
-  const existing = yield select(inboxSelector, tlfName)
+  const inbox = yield select(inboxSelector)
+  const existing = inbox.find(
+    state =>
+      state.get('membersType') === ChatTypes.CommonConversationMembersType.kbfs &&
+      state.get('participants').sort().join(',') === tlfName
+  )
 
   if (forceImmediate && existing) {
     const newID = yield call(Shared.startNewConversation, existing.get('conversationIDKey'))
@@ -831,7 +794,7 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
 function* _openFolder(): SagaGenerator<any, any> {
   const conversationIDKey = yield select(Constants.getSelectedConversation)
 
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(Constants.getInbox, conversationIDKey)
   if (inbox) {
     const helper = inbox.visibility === CommonTLFVisibility.public
       ? publicFolderWithUsers
@@ -914,7 +877,7 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     yield put(Creators.clearMessages(conversationIDKey))
   }
 
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inbox = yield select(Constants.getInbox, conversationIDKey)
   const inSearch = yield select(inSearchSelector)
   if (inbox && !inbox.teamname) {
     const participants = inbox.get('participants').toArray()
@@ -1186,7 +1149,7 @@ function* _sendNotifications(action: Constants.AppendMessages): SagaGenerator<an
     const me = yield select(usernameSelector)
     const message = action.payload.messages.reverse().find(m => m.type === 'Text' && m.author !== me)
     // Is this message part of a muted conversation? If so don't notify.
-    const convo = yield select(Shared.selectedInboxSelector, action.payload.conversationIDKey)
+    const convo = yield select(Constants.getInbox, action.payload.conversationIDKey)
     if (convo && convo.get('status') !== 'muted') {
       if (message && message.type === 'Text') {
         console.log('Sending Chat notification')
@@ -1221,11 +1184,20 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
 function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   const {convs} = action.payload
   const author = yield select(usernameSelector)
-  const items: I.List<Constants.InboxState> = Shared.makeInboxStateRecords(author, convs)
+  const items = Shared.makeInboxStateRecords(author, convs, I.Map())
 
-  const convIDs = items.map(item => item.conversationIDKey).toArray()
-  const updateActions = items.map(item => put(Creators.updateInbox(item)))
-  yield all(updateActions)
+  yield put(
+    EntityCreators.replaceEntity(
+      ['inbox'],
+      I.Map(
+        items.reduce((map, c) => {
+          map[c.conversationIDKey] = c
+          return map
+        }, {})
+      )
+    )
+  )
+  const convIDs = items.map(item => item.conversationIDKey)
   yield put(Creators.unboxConversations(convIDs, true, true))
 
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -1247,27 +1219,7 @@ function _threadIsCleared(originalAction: Action, checkAction: Action): boolean 
 function* _openConversation({
   payload: {conversationIDKey},
 }: Constants.OpenConversation): SagaGenerator<any, any> {
-  const inbox = yield select(inboxSelector)
-  const validInbox = inbox.find(
-    c => c.get('conversationIDKey') === conversationIDKey && c.get('state') === 'unboxed'
-  )
-  if (!validInbox) {
-    yield put(Creators.getInboxAndUnbox([conversationIDKey]))
-    const raceResult: {[key: string]: any} = yield race({
-      updateInbox: take(
-        a =>
-          a.type === 'chat:updateInbox' &&
-          a.payload.conversation &&
-          a.payload.conversation.conversationIDKey === conversationIDKey
-      ),
-      timeout: call(delay, 10e3),
-    })
-    if (raceResult.updateInbox) {
-      yield put(Creators.selectConversation(conversationIDKey, false))
-    }
-  } else {
-    yield put(Creators.selectConversation(conversationIDKey, false))
-  }
+  yield put(Creators.selectConversation(conversationIDKey, false))
 }
 
 function* _updateTyping({
@@ -1321,39 +1273,90 @@ function _exitSearch(
   ])
 }
 
-const _setNotifications = function*(action: Constants.SetNotifications) {
+const _setNotifications = function*(
+  action:
+    | Constants.SetNotifications
+    | Constants.ToggleChannelWideNotifications
+    | Constants.UpdatedNotifications
+) {
   const {payload: {conversationIDKey}} = action
-  // Send the new post-reducer setNotifications structure to the service.
-  const inbox = yield select(Shared.selectedInboxSelector, conversationIDKey)
-  if (inbox && inbox.notifications) {
-    const {notifications} = inbox
-    const param = {
-      convID: Constants.keyToConversationID(conversationIDKey),
-      channelWide: notifications.channelWide,
-      settings: [
-        {
-          deviceType: CommonDeviceType.desktop,
-          kind: ChatTypes.CommonNotificationKind.atmention,
-          enabled: notifications.desktop.atmention,
-        },
-        {
-          deviceType: CommonDeviceType.desktop,
-          kind: ChatTypes.CommonNotificationKind.generic,
-          enabled: notifications.desktop.generic,
-        },
-        {
-          deviceType: CommonDeviceType.mobile,
-          kind: ChatTypes.CommonNotificationKind.atmention,
-          enabled: notifications.mobile.atmention,
-        },
-        {
-          deviceType: CommonDeviceType.mobile,
-          kind: ChatTypes.CommonNotificationKind.generic,
-          enabled: notifications.mobile.generic,
-        },
-      ],
+
+  // update the one in the store
+  const old = yield select(s => s.entities.inbox.get(conversationIDKey))
+  if (old) {
+    let nextNotifications = {}
+
+    if (action.type === 'chat:setNotifications') {
+      const {payload: {deviceType, notifyType}} = action
+
+      // This is the flip-side of the logic in the notifications container.
+      if (old.notifications && old.notifications[deviceType]) {
+        nextNotifications = {[deviceType]: {}}
+        switch (notifyType) {
+          case 'generic':
+            nextNotifications[deviceType].generic = true
+            nextNotifications[deviceType].atmention = true
+            break
+          case 'atmention':
+            nextNotifications[deviceType].generic = false
+            nextNotifications[deviceType].atmention = true
+            break
+          case 'never':
+            nextNotifications[deviceType].generic = false
+            nextNotifications[deviceType].atmention = false
+            break
+        }
+      }
+    } else if (action.type === 'chat:toggleChannelWideNotifications') {
+      nextNotifications = {channelWide: !old.notifications.channelWide}
+    } else if (action.type === 'chat:updatedNotifications') {
+      nextNotifications = action.payload.notifications
     }
-    yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
+
+    yield put.resolve(
+      EntityCreators.replaceEntity(
+        ['inbox', conversationIDKey],
+        old.set('notifications', {
+          ...old.notifications,
+          ...nextNotifications,
+        })
+      )
+    )
+  }
+
+  // Send out the update if we made it
+  if (action.type !== 'chat:updatedNotifications') {
+    const inbox = yield select(Constants.getInbox, conversationIDKey)
+    if (inbox && inbox.notifications) {
+      const {notifications} = inbox
+      const param = {
+        convID: Constants.keyToConversationID(conversationIDKey),
+        channelWide: notifications.channelWide,
+        settings: [
+          {
+            deviceType: CommonDeviceType.desktop,
+            kind: ChatTypes.CommonNotificationKind.atmention,
+            enabled: notifications.desktop.atmention,
+          },
+          {
+            deviceType: CommonDeviceType.desktop,
+            kind: ChatTypes.CommonNotificationKind.generic,
+            enabled: notifications.desktop.generic,
+          },
+          {
+            deviceType: CommonDeviceType.mobile,
+            kind: ChatTypes.CommonNotificationKind.atmention,
+            enabled: notifications.mobile.atmention,
+          },
+          {
+            deviceType: CommonDeviceType.mobile,
+            kind: ChatTypes.CommonNotificationKind.generic,
+            enabled: notifications.mobile.generic,
+          },
+        ],
+      }
+      yield call(ChatTypes.localSetAppNotificationSettingsLocalRpcPromise, {param})
+    }
   }
 }
 
@@ -1431,7 +1434,6 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeSerially('chat:loadAttachment', Attachment.onLoadAttachment)
   yield Saga.safeTakeEvery('chat:loadAttachmentPreview', Attachment.onLoadAttachmentPreview)
   yield Saga.safeTakeEvery('chat:loadMoreMessages', Saga.cancelWhen(_threadIsCleared, _loadMoreMessages))
-  yield Saga.safeTakeEvery('chat:loadedInbox', _ensureValidSelectedChat, true, false)
   yield Saga.safeTakeEvery('chat:markThreadsStale', _markThreadsStale)
   yield Saga.safeTakeEvery('chat:inboxSynced', _inboxSynced)
   yield Saga.safeTakeEvery('chat:muteConversation', _muteConversation)
@@ -1449,20 +1451,17 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:setupChatHandlers', _setupChatHandlers)
   yield Saga.safeTakeEvery('chat:shareAttachment', Attachment.onShareAttachment)
   yield Saga.safeTakeEvery('chat:startConversation', _startConversation)
-  yield Saga.safeTakeEvery('chat:untrustedInboxVisible', Inbox.untrustedInboxVisible)
   yield Saga.safeTakeEveryPure(
     'chat:updateBadging',
     _updateBadging,
     (state: TypedState, {payload: {conversationIDKey}}: Constants.UpdateBadging) =>
       Constants.lastMessageID(state, conversationIDKey)
   )
-  yield Saga.safeTakeEvery('chat:updateInboxComplete', _ensureValidSelectedChat, false, false)
   yield Saga.safeTakeEvery('chat:updateMetadata', _updateMetadata)
   yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
   yield Saga.safeTakeEvery('chat:updateThread', _updateThread)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
-  yield Saga.safeTakeLatest('chat:inboxStale', Inbox.onInboxStale)
-  yield Saga.safeTakeLatest('chat:loadInbox', Inbox.onInitialInboxLoad)
+  yield Saga.safeTakeLatest(['chat:inboxStale', 'chat:loadInbox'], Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
   yield Saga.safeTakeLatest(
     SearchConstants.isUserInputItemsUpdated('chatSearch'),
@@ -1472,8 +1471,10 @@ function* chatSaga(): SagaGenerator<any, any> {
     SearchConstants.getUserInputItemIds(s, {searchKey: 'chatSearch'}),
     previousConversationSelector(s),
   ])
-  yield Saga.safeTakeLatest('chat:setNotifications', _setNotifications)
-  yield Saga.safeTakeLatest('chat:toggleChannelWideNotifications', _setNotifications)
+  yield Saga.safeTakeEvery(
+    ['chat:setNotifications', 'chat:updatedNotifications', 'chat:toggleChannelWideNotifications'],
+    _setNotifications
+  )
   yield Saga.safeTakeSerially('chat:unboxConversations', Inbox.unboxConversations)
   yield Saga.safeTakeLatest('chat:unboxMore', Inbox.unboxMore)
   yield Saga.safeTakeEvery('chat:inboxFilterSelectNext', Inbox.filterSelectNext)
@@ -1481,10 +1482,4 @@ function* chatSaga(): SagaGenerator<any, any> {
 
 export default chatSaga
 
-export {
-  badgeAppForChat,
-  openTlfInChat,
-  setupChatHandlers,
-  startConversation,
-  untrustedInboxVisible,
-} from './creators'
+export {badgeAppForChat, openTlfInChat, setupChatHandlers, startConversation} from './creators'

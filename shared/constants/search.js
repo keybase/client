@@ -44,6 +44,7 @@ export type RowProps = {
   onClick: () => void,
   onMouseOver?: () => void,
   selected: boolean,
+  userIsInTeam: boolean,
 }
 
 // A normalized version of the row props above.

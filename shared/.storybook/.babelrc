@@ -30,7 +30,7 @@
         ],
         "modules": false,
         "targets": {
-          "electron": "1.6.10"
+          "browsers": "last 2 Chrome versions"
         },
         "useBuiltIns": false
       }
