@@ -71,9 +71,6 @@ const messageKeysSelector = immutableCreateSelector(
   }
 )
 
-const getMessageFromMessageKeyFnSelector = (state: TypedState) => (messageKey: Constants.MessageKey) =>
-  Constants.getMessageFromMessageKey(state, messageKey)
-
 const convStateProps = createSelector(
   [Constants.getSelectedConversation, supersedesIfNoMoreToLoadSelector, getValidatedState],
   (selectedConversation, _supersedes, validated) => ({
@@ -83,21 +80,21 @@ const convStateProps = createSelector(
   })
 )
 
+// TODO this is temp until we can discuss a better solution to this getMessageFromMessageKey thing
+let _stateHack
 const mapStateToProps = createSelector(
-  [
-    ownPropsSelector,
-    Selectors.usernameSelector,
-    convStateProps,
-    messageKeysSelector,
-    getMessageFromMessageKeyFnSelector,
-  ],
-  (ownProps, username, convStateProps, messageKeys, getMessageFromMessageKey) => ({
-    you: username,
-    messageKeys,
-    getMessageFromMessageKey,
-    ...ownProps,
-    ...convStateProps,
-  })
+  [state => state, ownPropsSelector, Selectors.usernameSelector, convStateProps, messageKeysSelector],
+  (state, ownProps, username, convStateProps, messageKeys) => {
+    _stateHack = state
+    const TEMP = {
+      you: username,
+      messageKeys,
+      ...ownProps,
+      ...convStateProps,
+    }
+
+    return TEMP
+  }
 )
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
@@ -131,9 +128,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     })
   }
 
+  const getMessageFromMessageKey = (messageKey: Constants.MessageKey) =>
+    Constants.getMessageFromMessageKey(_stateHack, messageKey)
+
   return {
     editLastMessageCounter: stateProps.editLastMessageCounter,
-    getMessageFromMessageKey: stateProps.getMessageFromMessageKey,
+    getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
     messageKeys: messageKeysWithHeaders,
     onDeleteMessage: dispatchProps.onDeleteMessage,
