@@ -889,6 +889,10 @@
         },
         {
           "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "boolean",
           "name": "needAdmin"
         },
         {
@@ -906,10 +910,6 @@
         {
           "type": "boolean",
           "name": "staleOK"
-        },
-        {
-          "type": "boolean",
-          "name": "public"
         }
       ]
     },

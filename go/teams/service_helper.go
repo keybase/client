@@ -40,8 +40,11 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	tracer := g.CTimeTracer(ctx, "TeamDetails")
 	defer tracer.Finish()
 
+	// Assume private team
+	public := false
+
 	tracer.Stage("load team")
-	t, err := GetMaybeAdminByStringName(ctx, g, name)
+	t, err := GetMaybeAdminByStringName(ctx, g, name, public)
 	if err != nil {
 		return res, err
 	}
@@ -739,6 +742,7 @@ func apiArg(ctx context.Context, endpoint string) libkb.APIArg {
 func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (keybase1.TeamID, error) {
 	team, err := g.GetTeamLoader().Load(ctx, keybase1.LoadTeamArg{
 		ID:      id,
+		Public:  id.IsPublic(),
 		StaleOK: true,
 	})
 

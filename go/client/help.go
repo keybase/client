@@ -126,7 +126,7 @@ secret key stays locally stored on the file system, and is never moved into the
 OS's keychain.
 
 Keybase has a passphrase update protocol: if a passphrase is changed
-on any device, the service mask described above is changed accordingly, so that
+on any device, the server mask described above is changed accordingly, so that
 the user can immediately use her new passphrase across all devices. However,
 the server cannot decrypt an LKS-protected secret key unless it also
 has access to the user's passphrase (or can crack it). More details

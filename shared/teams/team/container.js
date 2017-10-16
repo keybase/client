@@ -34,6 +34,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
 type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
   _onOpenFolder: (teamname: Constants.Teamname) => void,
+  _onAddPeople: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
   setSelectedTab: (tab: string) => void,
@@ -42,6 +43,8 @@ type DispatchProps = {
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState}): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
+  _onAddPeople: (teamname: Constants.Teamname) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onManageChat: (teamname: Constants.Teamname) =>
@@ -55,6 +58,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState}): Di
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
   const onOpenFolder = () => dispatchProps._onOpenFolder(stateProps.name)
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
@@ -76,6 +80,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       .toArray()
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     requests: stateProps._requests.toJS(),
+    onAddPeople,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,

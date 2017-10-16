@@ -79,12 +79,9 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 		}
 		var cname keybase1.CanonicalTLFNameAndIDWithBreaks
 		var err error
-		var visout string
 		if req.Visibility == keybase1.TLFVisibility_PUBLIC {
-			visout = "public"
 			cname, err = r.TlfClient.PublicCanonicalTLFNameAndID(ctx, query)
 		} else {
-			visout = "private"
 			cname, err = r.TlfClient.CompleteAndCanonicalizePrivateTlfName(ctx, query)
 		}
 		if err != nil {
@@ -92,15 +89,10 @@ func (r *chatConversationResolver) completeAndCanonicalizeTLFName(ctx context.Co
 			// will see. It needs to be human readable.
 			return fmt.Errorf("failed to open chat conversation: %v", err)
 		}
-		if string(cname.CanonicalName) != tlfName {
-			// If we auto-complete TLF name, we should let users know.
-			// TODO: don't spam user here if it's just re-ordering
-			r.G.UI.GetTerminalUI().Printf("Using %s conversation %s.\n", visout, cname.CanonicalName)
-		}
 		req.ctx.canonicalizedTlfName = string(cname.CanonicalName)
 	case chat1.ConversationMembersType_IMPTEAM:
 		// Add our name out front
-		if req.Visibility == keybase1.TLFVisibility_PRIVATE {
+		if req.Visibility != keybase1.TLFVisibility_PUBLIC {
 			username := r.G.Env.GetUsername()
 			if len(username) == 0 {
 				return libkb.LoginRequiredError{}
