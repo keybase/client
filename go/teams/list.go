@@ -54,23 +54,23 @@ func memberNeedAdmin(member keybase1.MemberInfo, meUID keybase1.UID) bool {
 // what team chain says. Nothing is checked when MemberInfo's role is
 // NONE, in this context it means that user has implied membership in
 // the team and no role given in sigchain.
-func verifyMemberRoleInTeam(ctx context.Context, member keybase1.MemberInfo, team *Team) (expected bool, err error) {
+func verifyMemberRoleInTeam(ctx context.Context, member keybase1.MemberInfo, team *Team) error {
 	if member.Role == keybase1.TeamRole_NONE {
-		return true, nil
+		return nil
 	}
 
 	memberUV, err := team.chain().GetLatestUVWithUID(member.UserID)
 	if err != nil {
-		return false, err
+		return err
 	}
 	role, err := team.chain().GetUserRole(memberUV)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if role != member.Role {
-		return false, fmt.Errorf("unexpected member role: got %v but actual role is %v", member.Role, role)
+		return fmt.Errorf("unexpected member role: got %v but actual role is %v", member.Role, role)
 	}
-	return true, nil
+	return nil
 }
 
 // getTeamForMember tries to load team in a recent enough state to
@@ -86,8 +86,8 @@ func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybas
 		return nil, err
 	}
 
-	expectedRole, _ := verifyMemberRoleInTeam(ctx, member, team)
-	if !expectedRole {
+	err = verifyMemberRoleInTeam(ctx, member, team)
+	if err != nil {
 		team, err = Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          member.TeamID,
 			NeedAdmin:   needAdmin,
@@ -97,7 +97,7 @@ func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybas
 			return nil, err
 		}
 
-		_, err := verifyMemberRoleInTeam(ctx, member, team)
+		err = verifyMemberRoleInTeam(ctx, member, team)
 		if err != nil {
 			return nil, fmt.Errorf("server was wrong about role in team : %v", err)
 		}
