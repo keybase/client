@@ -403,116 +403,136 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 
 func FindConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
+	membersTypeIn chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
 
-	query := &chat1.GetInboxLocalQuery{
-		Name: &chat1.NameQuery{
-			Name:        tlfName,
-			MembersType: membersType,
-		},
-		TlfVisibility:     &vis,
-		TopicName:         &topicName,
-		TopicType:         &topicType,
-		OneChatTypePerTLF: oneChatPerTLF,
-	}
+	findConvosWithMembersType := func(membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
+		query := &chat1.GetInboxLocalQuery{
+			Name: &chat1.NameQuery{
+				Name:        tlfName,
+				MembersType: membersType,
+			},
+			TlfVisibility:     &vis,
+			TopicName:         &topicName,
+			TopicType:         &topicType,
+			OneChatTypePerTLF: oneChatPerTLF,
+		}
 
-	inbox, irl, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
-	if err != nil {
-		return res, rl, err
-	}
-	if irl != nil {
-		rl = append(rl, *irl)
-	}
-
-	// If we have inbox hits, return those
-	if len(inbox.Convs) > 0 {
-		debugger.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
-			tlfName, len(inbox.Convs))
-		res = inbox.Convs
-	} else if membersType == chat1.ConversationMembersType_TEAM {
-		// If this is a team chat that we are looking for, then let's try searching all
-		// chats on the team to see if any match the arguments before giving up.
-		// No need to worry (yet) about conflicting with public code path, since there
-		// are not any public team chats.
-
-		// Fetch the TLF ID from specified name
-		nameInfo, err := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, false)
+		inbox, irl, err := g.InboxSource.Read(ctx, uid, nil, true, query, nil)
 		if err != nil {
-			debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
 			return res, rl, err
 		}
-		tlfConvs, irl, err := GetTLFConversations(ctx, g, debugger, ri,
-			uid, nameInfo.ID, topicType, membersType)
-		if err != nil {
-			debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
-			return res, rl, err
+		if irl != nil {
+			rl = append(rl, *irl)
 		}
-		rl = append(rl, irl...)
 
-		for _, tlfConv := range tlfConvs {
-			if utils.GetTopicName(tlfConv) == topicName {
-				res = append(res, tlfConv)
+		// If we have inbox hits, return those
+		if len(inbox.Convs) > 0 {
+			debugger.Debug(ctx, "FindConversations: found conversations in inbox: tlfName: %s num: %d",
+				tlfName, len(inbox.Convs))
+			res = inbox.Convs
+		} else if membersType == chat1.ConversationMembersType_TEAM {
+			// If this is a team chat that we are looking for, then let's try searching all
+			// chats on the team to see if any match the arguments before giving up.
+			// No need to worry (yet) about conflicting with public code path, since there
+			// are not any public team chats.
+
+			// Fetch the TLF ID from specified name
+			nameInfo, err := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, false)
+			if err != nil {
+				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
+				return res, rl, err
 			}
-		}
-		if len(res) > 0 {
-			debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
-		}
-	} else if vis == keybase1.TLFVisibility_PUBLIC {
-		debugger.Debug(ctx, "FindConversations: no conversations found in inbox, trying public chats")
+			tlfConvs, irl, err := GetTLFConversations(ctx, g, debugger, ri,
+				uid, nameInfo.ID, topicType, membersType)
+			if err != nil {
+				debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
+				return res, rl, err
+			}
+			rl = append(rl, irl...)
 
-		// Check for offline and return an error
-		if g.InboxSource.IsOffline(ctx) {
-			return res, rl, OfflineError{}
-		}
+			for _, tlfConv := range tlfConvs {
+				if utils.GetTopicName(tlfConv) == topicName {
+					res = append(res, tlfConv)
+				}
+			}
+			if len(res) > 0 {
+				debugger.Debug(ctx, "FindConversations: found team channels: num: %d", len(res))
+			}
+		} else if vis == keybase1.TLFVisibility_PUBLIC {
+			debugger.Debug(ctx, "FindConversations: no conversations found in inbox, trying public chats")
 
-		// If we miss the inbox, and we are looking for a public TLF, let's try and find
-		// any conversation that matches
-		nameInfo, err := GetInboxQueryNameInfo(ctx, g, query)
-		if err != nil {
-			return res, rl, err
-		}
+			// Check for offline and return an error
+			if g.InboxSource.IsOffline(ctx) {
+				return res, rl, OfflineError{}
+			}
 
-		// Call into gregor to try and find some public convs
-		pubConvs, err := ri().GetPublicConversations(ctx, chat1.GetPublicConversationsArg{
-			TlfID:            nameInfo.ID,
-			TopicType:        topicType,
-			SummarizeMaxMsgs: true,
-		})
-		if err != nil {
-			return res, rl, err
-		}
-		if pubConvs.RateLimit != nil {
-			rl = append(rl, *pubConvs.RateLimit)
-		}
-
-		// Localize the convs (if any)
-		if len(pubConvs.Conversations) > 0 {
-			localizer := NewBlockingLocalizer(g)
-			convsLocal, err := localizer.Localize(ctx, uid, types.Inbox{
-				ConvsUnverified: utils.RemoteConvs(pubConvs.Conversations),
-			})
+			// If we miss the inbox, and we are looking for a public TLF, let's try and find
+			// any conversation that matches
+			nameInfo, err := GetInboxQueryNameInfo(ctx, g, query)
 			if err != nil {
 				return res, rl, err
 			}
 
-			// Search for conversations that match the topic name
-			for _, convLocal := range convsLocal {
-				if convLocal.Error != nil {
-					debugger.Debug(ctx, "FindConversations: skipping convID: %s localization failure: %s",
-						convLocal.GetConvID(), convLocal.Error.Message)
-					continue
+			// Call into gregor to try and find some public convs
+			pubConvs, err := ri().GetPublicConversations(ctx, chat1.GetPublicConversationsArg{
+				TlfID:            nameInfo.ID,
+				TopicType:        topicType,
+				SummarizeMaxMsgs: true,
+			})
+			if err != nil {
+				return res, rl, err
+			}
+			if pubConvs.RateLimit != nil {
+				rl = append(rl, *pubConvs.RateLimit)
+			}
+
+			// Localize the convs (if any)
+			if len(pubConvs.Conversations) > 0 {
+				localizer := NewBlockingLocalizer(g)
+				convsLocal, err := localizer.Localize(ctx, uid, types.Inbox{
+					ConvsUnverified: utils.RemoteConvs(pubConvs.Conversations),
+				})
+				if err != nil {
+					return res, rl, err
 				}
-				if convLocal.Info.TopicName == topicName {
-					debugger.Debug(ctx, "FindConversations: found matching public conv: id: %s topicName: %s",
-						convLocal.GetConvID(), topicName)
-					res = append(res, convLocal)
+
+				// Search for conversations that match the topic name
+				for _, convLocal := range convsLocal {
+					if convLocal.Error != nil {
+						debugger.Debug(ctx, "FindConversations: skipping convID: %s localization failure: %s",
+							convLocal.GetConvID(), convLocal.Error.Message)
+						continue
+					}
+					if convLocal.Info.TopicName == topicName {
+						debugger.Debug(ctx, "FindConversations: found matching public conv: id: %s topicName: %s",
+							convLocal.GetConvID(), topicName)
+						res = append(res, convLocal)
+					}
 				}
 			}
-		}
 
+		}
+		return res, rl, nil
 	}
-	return res, rl, nil
+	res, rl, err = findConvosWithMembersType(membersTypeIn)
+	if err != nil || len(res) == 0 {
+		switch membersTypeIn {
+		case chat1.ConversationMembersType_IMPTEAM:
+			// Try again with KBFS
+			debugger.Debug(ctx,
+				"FindConversations: failing to find anything for IMPTEAM, trying again for KBFS")
+			kres, krl, kerr := findConvosWithMembersType(chat1.ConversationMembersType_KBFS)
+			rl = utils.AggRateLimits(append(rl, krl...))
+			if kerr == nil {
+				res = kres
+				err = nil
+				debugger.Debug(ctx,
+					"FindConversations: KBFS pass succeeded without error, returning that result")
+			}
+		}
+	}
+	return res, rl, err
 }
 
 // Post a join or leave message. Must be called when the user is in the conv.
@@ -697,21 +717,6 @@ func (n *newConversationHelper) findConversations(ctx context.Context, membersTy
 }
 
 func (n *newConversationHelper) findExisting(ctx context.Context, topicName string) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
-	switch n.membersType {
-	case chat1.ConversationMembersType_IMPTEAM:
-		// if IMPTEAM, check if a KBFS conversation exists already
-		convs, rl, err := n.findConversations(ctx, chat1.ConversationMembersType_KBFS, topicName)
-		if err != nil {
-			n.Debug(ctx, "error looking for KBFS conversation for IMPTEAM: %s", err)
-		} else if len(convs) == 1 {
-			// If we find one conversation, then just return it as if we created it.
-			n.Debug(ctx, "IMPTEAM conv requested, but found previous KBFS conversation that matches, returning (%s)", n.tlfName)
-			return convs, rl, nil
-		}
-
-		n.Debug(ctx, "no KBFS conversation found for IMPTEAM (%s)", n.tlfName)
-	}
-
 	// proceed to findConversations for requested member type
 	return n.findConversations(ctx, n.membersType, topicName)
 }

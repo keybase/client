@@ -107,6 +107,7 @@ const commonRow = {
   onShowTracker: action('Show tracker'),
   selected: false,
   showTrackerButton: false,
+  userIsInTeam: false,
 }
 const kbRow = {
   ...commonRow,
@@ -274,6 +275,7 @@ const load = () => {
         onShowTracker: action('Show tracker'),
         selectedId: null,
         showSearchSuggestions: false,
+        disableIfInTeamName: null,
       }
       const servicesResultsListMapCommonRows: {[key: string]: Constants.SearchResult} = {
         chris: {

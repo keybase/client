@@ -680,7 +680,7 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
-					require.Zero(t, len(conv.LocalMetadata.Snippet))
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)

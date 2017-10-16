@@ -39,6 +39,7 @@ type MessageKeyKind =
   | 'outboxIDText'
   | 'timestamp'
   | 'supersedes'
+  | 'system'
 
 export type MessageType = 'Text'
 export type FollowingMap = {[key: string]: true}
@@ -1075,6 +1076,8 @@ function messageKeyConversationIDKey(key: MessageKey): ConversationIDKey {
 function messageKeyKind(key: MessageKey): MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
+    case 'system':
+      return 'system'
     case 'error':
       return 'error'
     case 'errorInvisible':

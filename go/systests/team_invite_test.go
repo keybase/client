@@ -40,7 +40,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, tt.users[0].tc.G, team, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,7 @@ func TestTeamInviteEmail(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, tt.users[0].tc.G, team, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -157,7 +157,7 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, tt.users[0].tc.G, team, false, true)
 	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
@@ -408,7 +408,7 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	// member instead of making an invitation.
 	ann.addTeamMember(team, bob.username+"@rooter", keybase1.TeamRole_WRITER)
 
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), ann.tc.G, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, ann.tc.G, team, false, true)
 	require.NoError(t, err)
 
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)

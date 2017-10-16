@@ -1,6 +1,9 @@
 // @flow
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
+import {userIsInTeam} from './selectors'
+
+import type {Service} from './search'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
 
@@ -98,11 +101,14 @@ export type SetTeamCreationError = NoErrorTypedAction<
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
 export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
+export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role: string, teamname: string}>
+
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
+  teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamnames: I.Set<Teamname>,
@@ -113,12 +119,16 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   convIDToChannelInfo: I.Map(),
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
-  teamNameToMembers: I.Map(),
   teamNameToLoading: I.Map(),
+  teamNameToMemberUsernames: I.Map(),
+  teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })
+
+const userIsInTeamHelper = (state: TypedState, username: string, service: Service, teamname: string) =>
+  service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map()).findKey(i => i.channelname === channelname)
@@ -128,4 +138,4 @@ const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.Con
 
 export const getFollowingMap = ChatConstants.getFollowingMap
 
-export {getConversationIDKeyFromChannelName, getParticipants}
+export {getConversationIDKeyFromChannelName, getParticipants, userIsInTeamHelper}
