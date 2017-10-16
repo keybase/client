@@ -56,7 +56,7 @@ func (c *CmdTeamRequestAccess) Run() error {
 
 	dui := c.G().UI.GetDumbOutputUI()
 	if ret.Open {
-		dui.Printf("You have joined %q! Even though %q is an open team, it's still end-to-end encrypted - you'll have to wait till admin's device keys you in.\n", c.Team, c.Team)
+		dui.Printf("You have joined %q! Even though %q is an open team, it's still end-to-end encrypted - you'll have to wait until an admin's device keys you in.\n", c.Team, c.Team)
 	} else {
 		dui.Printf("If %q exists, an email has been sent to its admins, notifying of your request for access.\n", c.Team)
 	}
