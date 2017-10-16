@@ -292,32 +292,26 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 	apiLookupIndex := make(map[int]int)
 
 	var uidsToLookup []keybase1.UID
-	if u.testNoCachingMode {
-		for i, uid := range uids {
+	for i, uid := range uids {
+		up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness, forceNetworkForFullNames)
+		g.GetLog().CDebugf(ctx, "| findUsernamePackageLocally(%s): %v", uid, status)
+		// If we successfully looked up some of the user, set the return slot here.
+		if up != nil {
+			res[i] = *up
+		}
+
+		// There are 3 important cases when we should go to network:
+		//
+		//  1. No username is found (up == nil)
+		//  2. No FullName found and we've asked to force network lookups (status == notFound && forceNetworkForNullNames)
+		//  3. The FullName found was stale (status == stale).
+		//
+		// Thus, if you provide forceNetworkForFullName=false, and fullNameFreshness=0, you can avoid
+		// the network trip as long as all of your username lookups hit the cache or are hardcoded.
+		if u.testNoCachingMode || up == nil ||
+			(status == notFound && forceNetworkForFullNames) || (status == stale) {
 			apiLookupIndex[len(uidsToLookup)] = i
 			uidsToLookup = append(uidsToLookup, uid)
-		}
-	} else {
-		for i, uid := range uids {
-			up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness, forceNetworkForFullNames)
-			g.GetLog().CDebugf(ctx, "| findUsernamePackageLocally(%s): %v", uid, status)
-			// If we successfully looked up some of the user, set the return slot here.
-			if up != nil {
-				res[i] = *up
-			}
-
-			// There are 3 important cases when we should go to network:
-			//
-			//  1. No username is found (up == nil)
-			//  2. No FullName found and we've asked to force network lookups (status == notFound && forceNetworkForNullNames)
-			//  3. The FullName found was stale (status == stale).
-			//
-			// Thus, if you provide forceNetworkForFullName=false, and fullNameFreshness=0, you can avoid
-			// the network trip as long as all of your username lookups hit the cache or are hardcoded.
-			if up == nil || (status == notFound && forceNetworkForFullNames) || (status == stale) {
-				apiLookupIndex[len(uidsToLookup)] = i
-				uidsToLookup = append(uidsToLookup, uid)
-			}
 		}
 	}
 
