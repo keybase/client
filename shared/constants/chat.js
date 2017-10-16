@@ -81,6 +81,11 @@ export type TextMessage = {
   mentions: Mentions,
   channelMention: ChannelMention,
 }
+export function textMessageEditable(message: TextMessage): boolean {
+  // For now, disallow editing of non-sent messages. In the future, we
+  // may want to do something more intelligent.
+  return message.messageState === 'sent'
+}
 
 export type ErrorMessage = {
   type: 'Error',
@@ -840,7 +845,7 @@ function messageIDToSelfInventedID(msgID: MessageID) {
   return parseInt(msgID.substring(_selfInventedID.length), 16)
 }
 
-type ParsedMessageID =
+export type ParsedMessageID =
   | {
       type: 'rpcMessageID',
       msgID: ChatTypes.MessageID,
