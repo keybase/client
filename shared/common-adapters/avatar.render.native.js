@@ -180,8 +180,8 @@ class AvatarRender extends React.PureComponent<Props, State> {
       : this.props.size / 2
 
     return (
-      <ClickableBox onClick={onClick} feedback={false} style={boxStyle(size, style)}>
-        <Box style={boxStyle(size, style)}>
+      <ClickableBox onClick={onClick} feedback={false} style={boxStyle(style, size)}>
+        <Box style={boxStyle(style, size)}>
           {!skipBackground &&
             <Background loaded={this.state.loaded} loadingColor={loadingColor} borderRadius={borderRadius} />}
           {!!url &&
@@ -217,8 +217,10 @@ const _boxStyle = memoize(size => ({
   width: size,
 }))
 
-const boxStyle = (size, style) => {
+// TODO this is technically unsafe. Memoize will only cache by the first param so if size changes it'll be incorrect. In
+// our current usage this is safe as style will always mutate w/ size
+const boxStyle = memoize((style, size) => {
   return style ? {..._boxStyle(size), ...style} : _boxStyle(size)
-}
+})
 
 export default AvatarRender

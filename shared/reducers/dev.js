@@ -9,6 +9,7 @@ const initialState: Constants.State = {
     dumbIndex: 0,
   },
   hmrReloading: false,
+  debugCount: 0,
 }
 
 export default function(state: Constants.State = initialState, action: Constants.Actions) {
@@ -27,6 +28,13 @@ export default function(state: Constants.State = initialState, action: Constants
     return {
       ...state,
       reloading: action.payload.reloading,
+    }
+  }
+
+  if (action.type === 'debugCount') {
+    return {
+      ...state,
+      debugCount: state.debugCount + 1,
     }
   }
   return state

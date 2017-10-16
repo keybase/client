@@ -99,6 +99,14 @@ if (closureStoreCheck) {
   middlewares.push(closureCheck)
 }
 
+if (__DEV__ && typeof window !== 'undefined') {
+  window.debugActionLoop = () => {
+    setInterval(() => {
+      theStore.dispatch({type: 'debugCount', payload: undefined})
+    }, 1000)
+  }
+}
+
 export default function configureStore(initialState: any) {
   const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
   theStore = store

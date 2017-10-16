@@ -92,48 +92,51 @@ const Image = glamorous.image(
     props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
 )
 
-const Icon = (props: Exact<Props>) => {
-  let iconType = shared.typeToIconMapper(props.type)
+class Icon extends React.PureComponent<Props> {
+  render() {
+    const props = this.props
+    let iconType = shared.typeToIconMapper(props.type)
 
-  if (!iconType) {
-    console.warn('Null iconType passed')
-    return null
+    if (!iconType) {
+      console.warn('Null iconType passed')
+      return null
+    }
+    if (!iconMeta[iconType]) {
+      console.warn(`Invalid icon type passed in: ${iconType}`)
+      return null
+    }
+
+    let icon
+
+    if (iconMeta[iconType].isFont) {
+      const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
+
+      icon = (
+        <Text style={props.style} type={props.type}>
+          {code}
+        </Text>
+      )
+    } else {
+      // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
+      // lets just filter it out if it exists
+      const imageStyle = has(props.style, 'color') ? omit(props.style, 'color') : props.style
+      icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
+    }
+
+    const filter = ['color', 'fontSize', 'textAlign']
+    const boxStyle = filter.some(key => has(props.style, key)) ? omit(props.style, filter) : props.style
+
+    return props.onClick
+      ? <ClickableBox
+          activeOpacity={0.8}
+          underlayColor={props.underlayColor || globalColors.white}
+          onClick={props.onClick}
+          style={boxStyle}
+        >
+          {icon}
+        </ClickableBox>
+      : icon
   }
-  if (!iconMeta[iconType]) {
-    console.warn(`Invalid icon type passed in: ${iconType}`)
-    return null
-  }
-
-  let icon
-
-  if (iconMeta[iconType].isFont) {
-    const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-
-    icon = (
-      <Text style={props.style} type={props.type}>
-        {code}
-      </Text>
-    )
-  } else {
-    // We can't pass color to Image, but often we generically pass color to Icon, so instead of leaking this out
-    // lets just filter it out if it exists
-    const imageStyle = has(props.style, 'color') ? omit(props.style, 'color') : props.style
-    icon = <Image source={iconMeta[iconType].require} style={imageStyle} />
-  }
-
-  const filter = ['color', 'fontSize', 'textAlign']
-  const boxStyle = filter.some(key => has(props.style, key)) ? omit(props.style, filter) : props.style
-
-  return props.onClick
-    ? <ClickableBox
-        activeOpacity={0.8}
-        underlayColor={props.underlayColor || globalColors.white}
-        onClick={props.onClick}
-        style={boxStyle}
-      >
-        {icon}
-      </ClickableBox>
-    : icon
 }
 
 export function iconTypeToImgSet(type: IconType) {

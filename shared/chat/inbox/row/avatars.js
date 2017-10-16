@@ -73,7 +73,7 @@ class Avatars extends PureComponent<AvatarProps> {
             multiSize={32}
             avatarProps={avatarProps}
             multiPadding={isMobile ? 2 : 0}
-            style={{...multiStyle(backgroundColor), opacity}}
+            style={multiStyle(backgroundColor, opacity)}
           />
           {icon}
         </Box>
@@ -82,11 +82,12 @@ class Avatars extends PureComponent<AvatarProps> {
   }
 }
 
-const multiStyle = memoize(backgroundColor => {
+const multiStyle = memoize((backgroundColor, opacity) => {
   return {
     ...(isMobile ? {paddingBottom: 10, paddingTop: 10, backgroundColor} : {}),
     height: '100%',
     width: '100%',
+    opacity,
   }
 })
 
