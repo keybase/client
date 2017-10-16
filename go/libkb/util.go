@@ -461,23 +461,27 @@ func RandHexString(prefix string, numbytes int) (string, error) {
 }
 
 func Trace(log logger.Logger, msg string, f func() error) func() {
-	log.Debug("+ %s", msg)
+	// NOTE: Here and in all the similar functions below, we increment the log
+	// depth in the calls we make immediately, but *not* in the calls we defer
+	// to the caller. Those will (probably, hopefully) run in the caller's
+	// stackframe.
+	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func TraceTimed(log logger.Logger, msg string, f func() error) func() {
-	log.Debug("+ %s", msg)
+	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
 	start := time.Now()
 	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
 }
 
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
-	log.CDebugf(ctx, "+ %s", msg)
+	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
-	log.CDebugf(ctx, "+ %s", msg)
+	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
 		log.CDebugf(ctx, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
@@ -485,17 +489,17 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 }
 
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
-	log.Debug("+ %s", msg)
+	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %v", msg, f()) }
 }
 
 func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
-	log.CDebugf(ctx, "+ %s", msg)
+	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
 }
 
 func (g *GlobalContext) Trace(msg string, f func() error) func() {
-	return Trace(g.Log, msg, f)
+	return Trace(g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
@@ -503,7 +507,7 @@ func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
 }
 
 func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
-	return CTrace(ctx, g.Log, msg, f)
+	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
@@ -512,11 +516,11 @@ func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string
 }
 
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.Log, msg, f, g.Clock())
+	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
 }
 
 func (g *GlobalContext) CTimeTracer(ctx context.Context, label string) *TimeTracer {
-	return NewTimeTracer(ctx, g.Log, g.Clock(), label)
+	return NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
 }
 
 func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
@@ -524,11 +528,11 @@ func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
 }
 
 func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
-	return TraceOK(g.Log, msg, f)
+	return TraceOK(g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CTraceOK(ctx context.Context, msg string, f func() bool) func() {
-	return CTraceOK(ctx, g.Log, msg, f)
+	return CTraceOK(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CVTraceOK(ctx context.Context, lev VDebugLevel, msg string, f func() bool) func() {

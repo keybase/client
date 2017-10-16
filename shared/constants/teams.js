@@ -38,6 +38,14 @@ export type EditMembership = NoErrorTypedAction<
   'teams:editMembership',
   {name: string, username: string, role: TeamRoleType}
 >
+
+// username -> removeMember
+// email -> removePendingInvite
+export type RemoveMemberOrPendingInvite = NoErrorTypedAction<
+  'teams:removeMemberOrPendingInvite',
+  {name: string, username: string, email: string}
+>
+
 export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: string, username: string}>
 export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
@@ -137,5 +145,6 @@ const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.Con
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())
 
 export const getFollowingMap = ChatConstants.getFollowingMap
+export const getFollowerMap = (state: TypedState) => state.config.followers
 
 export {getConversationIDKeyFromChannelName, getParticipants, userIsInTeamHelper}

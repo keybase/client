@@ -56,8 +56,8 @@ describe('Markdown parser', () => {
     check(':ok_hand::skin-tone-2::smile::wink:')
   })
 
-  it('parses invalid bold correctly', () => {
-    check('*not bold**')
+  it('parses inline bold correctly', () => {
+    check('*bold**')
   })
 
   it('parses formatting adjacent to punctuation', () => {
@@ -82,8 +82,8 @@ describe('Markdown parser', () => {
     check('I \\*should\\* see asterisks')
   })
 
-  it('parses special characters within words correctly', () => {
-    check('not*bolded* *also*notbolded')
+  it('allows partially styled words correctly', () => {
+    check('is*bolded* *also*isbolded')
   })
 
   it('parses native emoji correctly', () => {
@@ -129,6 +129,7 @@ this is a code block with two newline above\`\`\`
     ftp://blah.com,
     gopher://blah.com,
     mailto:blah@blah.com
+    nytimes.json
   Include:
     http://keybase.io
     http://keybase.io/
@@ -141,12 +142,16 @@ this is a code block with two newline above\`\`\`
     https://keybase.io
     HTTP://cnn.com
     http://twitter.com
+    http://t.co
+    t.co
+    10.0.0.24
     google.com
     keybase.io/a/user/lookup?one=1&two=2
     keybase.io/a/user/path_with_underscore
     keybase.io?blah=true
     keybase.io/~user/cool
     http://keybase.io/blah/../up-one/index.html
+    keybase.io/)(,)?=56,78,910@123
   These should have the trailing punctuation outside the link:
     amazon.co.uk.
     keybase.io,

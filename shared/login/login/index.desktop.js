@@ -49,7 +49,7 @@ class Login extends Component<Props, State> {
   }
 
   _toggleOpen = () => {
-    this.setState({open: !this.state.open})
+    this.setState(prevState => ({open: !prevState.open}))
   }
 
   render() {

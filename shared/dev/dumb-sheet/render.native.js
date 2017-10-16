@@ -46,7 +46,7 @@ class DumbSheetRender extends Component<Props, any> {
       if (this.state.testIndex >= total) {
         this.setState({testIndex: -1})
       } else {
-        this.setState({testIndex: this.state.testIndex + 1})
+        this.setState(prevState => ({testIndex: prevState.testIndex + 1}))
       }
     }
   }
@@ -148,7 +148,7 @@ class DumbSheetRender extends Component<Props, any> {
           this.setState({mockStore: createStore(old => mockStore, mockStore)})
         } else {
           // necessary to stop warnings about dynamically replacing the store https://github.com/reactjs/react-redux/releases/tag/v2.0.0
-          this.setState({mockStore: this.state.mockStore.replaceReducer(old => mockStore)})
+          this.setState(prevState => ({mockStore: prevState.mockStore.replaceReducer(old => mockStore)}))
         }
       } else {
         this.setState({mockStore: null})

@@ -408,6 +408,9 @@ def testGo(prefix) {
                 }
             }
         }
+        if (tests.size() > 0) {
+            parallelTests << tests
+        }
         parallelTests << specialTests
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)
         for (def i=0; i<parallelTests.size(); i++) {
