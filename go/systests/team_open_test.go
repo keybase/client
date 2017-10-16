@@ -14,6 +14,8 @@ import (
 )
 
 func TestTeamOpenAutoAddMember(t *testing.T) {
+	require.Equal(t, false, true)
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
@@ -36,7 +38,9 @@ func TestTeamOpenAutoAddMember(t *testing.T) {
 
 	t.Logf("Open team name is %q", teamName)
 
-	roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName})
+	ret, err := roo.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: teamName})
+	require.NoError(t, err)
+	require.Equal(t, true, ret.Open)
 
 	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(teamName, keybase1.Seqno(2))
@@ -210,7 +214,7 @@ func TestTeamOpenBans(t *testing.T) {
 	err = removeRunner.Run()
 	require.NoError(t, err)
 
-	err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
+	_, err = bob.teamsClient.TeamRequestAccess(context.TODO(), keybase1.TeamRequestAccessArg{Name: team})
 	require.Error(t, err)
 	appErr, ok := err.(libkb.AppStatusError)
 	require.True(t, ok)

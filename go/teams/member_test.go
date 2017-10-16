@@ -813,6 +813,8 @@ func TestMemberCancelInviteSocial(t *testing.T) {
 }
 
 func TestMemberCancelInviteEmail(t *testing.T) {
+	require.Equal(t, false, true)
+
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
