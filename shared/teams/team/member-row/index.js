@@ -10,32 +10,32 @@ export type Props = {
   teamname: string,
   you: ?string,
   type: ?string,
-  onOpenProfile: (u: string) => void,
+  onClick: () => void,
 }
 
 type TypeMap = {
-  admins: string | boolean,
-  owners: string | boolean,
-  readers: string | boolean,
-  writers: string | boolean,
+  admin: string | boolean,
+  owner: string | boolean,
+  reader: string | boolean,
+  writer: string | boolean,
 }
 
 const typeToLabel: TypeMap = {
-  admins: 'Admin',
-  owners: 'Owner',
-  readers: 'Reader',
-  writers: 'Writer',
+  admin: 'Admin',
+  owner: 'Owner',
+  reader: 'Reader',
+  writer: 'Writer',
 }
 
 const showCrown: TypeMap = {
-  admins: true,
-  owners: true,
-  readers: false,
-  writers: false,
+  admin: true,
+  owner: true,
+  reader: false,
+  writer: false,
 }
 
 export const TeamMemberRow = (props: Props) => {
-  const {username, onOpenProfile, you, following, type} = props
+  const {username, onClick, you, following, type} = props
   return (
     <ClickableBox
       style={{
@@ -46,7 +46,7 @@ export const TeamMemberRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      onClick={() => onOpenProfile(username)}
+      onClick={onClick}
     >
       <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>

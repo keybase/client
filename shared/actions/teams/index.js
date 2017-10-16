@@ -106,6 +106,24 @@ const _editMembership = function*(action: Constants.EditMembership) {
   }
 }
 
+const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrPendingInvite) {
+  const {payload: {name, username, email}} = action
+
+  // disallow call with both username & email
+  if (!!username && !!email) {
+    const errMsg = 'Supplied both email and username to removeMemberOrPendingInvite'
+    console.error(errMsg)
+    throw new Error(errMsg)
+  }
+
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
+  try {
+    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {name, username, email}})
+  } finally {
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+  }
+}
+
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
   const {payload: {name, username}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
@@ -369,6 +387,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:addPeopleToTeam', _addPeopleToTeam)
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
+  yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
 }
 
 export default teamsSaga

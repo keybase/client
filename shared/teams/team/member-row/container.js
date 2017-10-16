@@ -4,9 +4,7 @@ import {connect} from 'react-redux'
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
 import {TeamMemberRow} from '.'
-import {showUserProfile} from '../../../actions/profile'
-import {getProfile} from '../../../actions/tracker'
-import {isMobile} from '../../../constants/platform'
+import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 
@@ -33,13 +31,19 @@ const mapStateToProps = (state: TypedState, {teamname, username}: OwnProps): Sta
 })
 
 type DispatchProps = {
-  onOpenProfile: (u: string) => void,
+  onClick: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
-  onOpenProfile: (username: string) => {
-    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
-  },
+const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
+  onClick: () =>
+    dispatch(
+      navigateAppend([
+        {
+          selected: 'member',
+          props: ownProps,
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps: OwnProps) => {

@@ -493,6 +493,11 @@ func (d *Service) writeServiceInfo() error {
 }
 
 func (d *Service) hourlyChecks() {
+	// do this right away
+	if err := d.G().LogoutIfRevoked(); err != nil {
+		d.G().Log.Debug("LogoutIfRevoked error: %s", err)
+	}
+
 	ticker := time.NewTicker(1 * time.Hour)
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping hourlyChecks loop")
