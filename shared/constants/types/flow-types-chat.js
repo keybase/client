@@ -1333,6 +1333,7 @@ export type InboxUIItem = {
   notifications?: ?ConversationNotificationInfo,
   creatorInfo?: ?ConversationCreatorInfoLocal,
   version: ConversationVers,
+  maxMsgID: MessageID,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -2031,6 +2032,7 @@ export type UnverifiedInboxUIItem = {
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
   version: ConversationVers,
+  maxMsgID: MessageID,
   localMetadata?: ?UnverifiedInboxUIItemMetadata,
 }
 
