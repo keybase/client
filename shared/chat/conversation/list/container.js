@@ -86,14 +86,15 @@ const mapStateToProps = createSelector(
   [state => state, ownPropsSelector, Selectors.usernameSelector, convStateProps, messageKeysSelector],
   (state, ownProps, username, convStateProps, messageKeys) => {
     _stateHack = state
-    const TEMP = {
-      you: username,
+    return {
+      editLastMessageCounter: ownProps.editLastMessageCounter,
+      listScrollDownCounter: ownProps.listScrollDownCounter,
       messageKeys,
-      ...ownProps,
-      ...convStateProps,
+      onFocusInput: ownProps.onFocusInput,
+      selectedConversation: convStateProps.selectedConversation,
+      validated: convStateProps.validated,
+      you: username,
     }
-
-    return TEMP
   }
 )
 
