@@ -121,7 +121,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
 
         const pagination = incomingMessage.pagination
         if (pagination) {
-          yield put(Creators.updatePaginationNext(conversationIDKey, pagination.next))
+          yield put(Creators.updatePaginationNext(conversationIDKey, pagination.next, pagination.previous))
         }
 
         // Is this message for the currently selected and focused conversation?
@@ -330,7 +330,15 @@ function* _updateThread({
 
   newMessages = newMessages.reverse()
   const pagination = _threadToPagination(thread)
-  yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
+  yield put(
+    Creators.prependMessages(
+      conversationIDKey,
+      newMessages,
+      !pagination.last,
+      pagination.next,
+      pagination.previous
+    )
+  )
 }
 
 function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
@@ -411,6 +419,20 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       .map(k => ChatTypes.CommonMessageType[k])
     const conversationID = Constants.keyToConversationID(conversationIDKey)
 
+    const pagination = action.payload.onlyNewerThan
+      ? {
+          last: false,
+          next: null,
+          num: 9999,
+          previous: action.payload.onlyNewerThan,
+        }
+      : {
+          last: false,
+          next,
+          num: Constants.maxMessagesToLoadAtATime,
+          previous: null,
+        }
+
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
@@ -419,12 +441,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         param: {
           conversationID,
           identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-          pagination: {
-            last: false,
-            next,
-            num: Constants.maxMessagesToLoadAtATime,
-            previous: null,
-          },
+          pagination,
           query: {
             disableResolveSupersedes: false,
             markAsRead: true,
@@ -465,13 +482,14 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
   }
 }
 
-function _threadToPagination(thread): {last: any, next: any} {
+function _threadToPagination(thread): {last: any, next: any, previous: any} {
   if (thread && thread.pagination) {
     return thread.pagination
   }
   return {
     last: undefined,
     next: undefined,
+    previous: undefined,
   }
 }
 
@@ -1204,8 +1222,12 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
     return
   }
-  yield put(Creators.clearMessages(selectedConversation))
-  yield put(Creators.loadMoreMessages(selectedConversation, false))
+
+  const conversation = yield select(Constants.getSelectedConversationStates, selectedConversation)
+  if (conversation) {
+    const onlyNewerThan = conversation.paginationPrevious //convo ? convo.paginationPrevious : null
+    yield put(Creators.loadMoreMessages(selectedConversation, false, false, onlyNewerThan))
+  }
 }
 
 function _threadIsCleared(originalAction: Action, checkAction: Action): boolean {

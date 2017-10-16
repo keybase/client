@@ -179,10 +179,11 @@ function loadInbox(): Constants.LoadInbox {
 function loadMoreMessages(
   conversationIDKey: Constants.ConversationIDKey,
   onlyIfUnloaded: boolean,
-  fromUser?: boolean = false
+  fromUser?: boolean = false,
+  onlyNewerThan?: string
 ): Constants.LoadMoreMessages {
   return {
-    payload: {conversationIDKey, onlyIfUnloaded, fromUser},
+    payload: {conversationIDKey, onlyIfUnloaded, fromUser, onlyNewerThan},
     type: 'chat:loadMoreMessages',
   }
 }
@@ -260,10 +261,11 @@ function updateSupersededByState(
 
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: string
+  paginationNext: ?string,
+  paginationPrevious: ?string
 ): Constants.UpdatePaginationNext {
   return {
-    payload: {conversationIDKey, paginationNext},
+    payload: {conversationIDKey, paginationNext, paginationPrevious},
     type: 'chat:updatePaginationNext',
   }
 }
@@ -338,11 +340,12 @@ function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
   messages: Array<Constants.Message>,
   moreToLoad: boolean,
-  paginationNext: ?Buffer
+  paginationNext: ?string,
+  paginationPrevious: ?string
 ): Constants.PrependMessages {
   return {
     logTransformer: prependMessagesActionTransformer,
-    payload: {conversationIDKey, messages, moreToLoad, paginationNext},
+    payload: {conversationIDKey, messages, moreToLoad, paginationNext, paginationPrevious},
     type: 'chat:prependMessages',
   }
 }

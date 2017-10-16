@@ -230,8 +230,8 @@ type _ConversationState = {
   isRequesting: boolean,
   isStale: boolean,
   loadedOffline: boolean,
-  paginationNext: ?Buffer,
-  paginationPrevious: ?Buffer,
+  paginationNext: ?string,
+  paginationPrevious: ?string,
   firstNewMessageID: ?MessageID,
   typing: I.Set<Username>,
 }
@@ -533,7 +533,8 @@ export type PrependMessages = NoErrorTypedAction<
     conversationIDKey: ConversationIDKey,
     messages: Array<Message>,
     moreToLoad: boolean,
-    paginationNext: ?Buffer,
+    paginationNext: ?string,
+    paginationPrevious: ?string,
   }
 >
 export type RemoveOutboxMessage = NoErrorTypedAction<
@@ -614,7 +615,7 @@ export type UpdateLatestMessage = NoErrorTypedAction<
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatePaginationNext = NoErrorTypedAction<
   'chat:updatePaginationNext',
-  {conversationIDKey: ConversationIDKey, paginationNext: Buffer}
+  {conversationIDKey: ConversationIDKey, paginationNext: string, paginationPrevious: ?string}
 >
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',
