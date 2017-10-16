@@ -647,6 +647,10 @@ type UIDMapper interface {
 	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
 	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
 	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+
+	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
+	// for use in tests*
+	SetTestingNoCachingMode(enabled bool)
 }
 
 type ChatHelper interface {

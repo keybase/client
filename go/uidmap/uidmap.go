@@ -18,6 +18,7 @@ type UIDMap struct {
 	usernameCache     map[keybase1.UID]libkb.NormalizedUsername
 	fullNameCache     *lru.Cache
 	testBatchIterHook func()
+	testNoCachingMode bool
 }
 
 func NewUIDMap(fullNameCacheSize int) *UIDMap {
@@ -51,6 +52,10 @@ const (
 
 // The number of UIDs per batch to send. It's not `const` so we can twiddle it in our tests.
 var batchSize = 250
+
+func (u *UIDMap) SetTestingNoCachingMode(enabled bool) {
+	u.testNoCachingMode = enabled
+}
 
 func (u *UIDMap) Clear() {
 	u.Lock()
@@ -186,11 +191,13 @@ func uidsToString(uids []keybase1.UID) string {
 }
 
 func (u *UIDMap) lookupFromServerBatch(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, networkTimeBudget time.Duration) ([]libkb.UsernamePackage, error) {
+	noCache := u.testNoCachingMode
 	arg := libkb.NewRetryAPIArg("user/names")
 	arg.NetContext = ctx
 	arg.SessionType = libkb.APISessionTypeNONE
 	arg.Args = libkb.HTTPArgs{
-		"uids": libkb.S{Val: uidsToString(uids)},
+		"uids":     libkb.S{Val: uidsToString(uids)},
+		"no_cache": libkb.B{Val: noCache},
 	}
 	if networkTimeBudget > time.Duration(0) {
 		arg.InitialTimeout = networkTimeBudget
@@ -259,7 +266,7 @@ func (u *UIDMap) lookupFromServer(ctx context.Context, g libkb.UIDMapperContext,
 	return ret, nil
 }
 
-// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
+// MapUIDsToUsernamePackages maps the given set of UIDs to the username packages, which include
 // a username and a fullname, and when the mapping was loaded from the server. It blocks
 // on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
 // it will block on the network too. If the flag is not specified, then stale values (or unknown values)
@@ -285,26 +292,32 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 	apiLookupIndex := make(map[int]int)
 
 	var uidsToLookup []keybase1.UID
-
-	for i, uid := range uids {
-		up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness, forceNetworkForFullNames)
-
-		// If we successfully looked up some of the user, set the return slot here.
-		if up != nil {
-			res[i] = *up
-		}
-
-		// There are 3 important cases when we should go to network:
-		//
-		//  1. No username is found (up == nil)
-		//  2. No FullName found and we've asked to force network lookups (status == notFound && forceNetworkForNullNames)
-		//  3. The FullName found was stale (status == stale).
-		//
-		// Thus, if you provide forceNetworkForFullName=false, and fullNameFreshness=0, you can avoid
-		// the network trip as long as all of your username lookups hit the cache or are hardcoded.
-		if up == nil || (status == notFound && forceNetworkForFullNames) || (status == stale) {
+	if u.testNoCachingMode {
+		for i, uid := range uids {
 			apiLookupIndex[len(uidsToLookup)] = i
 			uidsToLookup = append(uidsToLookup, uid)
+		}
+	} else {
+		for i, uid := range uids {
+			up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness, forceNetworkForFullNames)
+			g.GetLog().CDebugf(ctx, "| findUsernamePackageLocally(%s): %v", uid, status)
+			// If we successfully looked up some of the user, set the return slot here.
+			if up != nil {
+				res[i] = *up
+			}
+
+			// There are 3 important cases when we should go to network:
+			//
+			//  1. No username is found (up == nil)
+			//  2. No FullName found and we've asked to force network lookups (status == notFound && forceNetworkForNullNames)
+			//  3. The FullName found was stale (status == stale).
+			//
+			// Thus, if you provide forceNetworkForFullName=false, and fullNameFreshness=0, you can avoid
+			// the network trip as long as all of your username lookups hit the cache or are hardcoded.
+			if up == nil || (status == notFound && forceNetworkForFullNames) || (status == stale) {
+				apiLookupIndex[len(uidsToLookup)] = i
+				uidsToLookup = append(uidsToLookup, uid)
+			}
 		}
 	}
 
@@ -316,7 +329,8 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 
 			for i, row := range apiResults {
 				uid := uidsToLookup[i]
-				g.GetLog().CDebugf(ctx, "| API server resolution %s -> %v", uid, row)
+				g.GetLog().CDebugf(ctx, "| API server resolution %s -> (%s, %v, %v)", uid,
+					row.NormalizedUsername, row.FullName.FullName, row.FullName.EldestSeqno)
 
 				// Always write these results out if the cached value is unset.
 				// Or, see below for other case...
@@ -372,6 +386,10 @@ func (o *OfflineUIDMap) CheckUIDAgainstUsername(uid keybase1.UID, un libkb.Norma
 
 func (o *OfflineUIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]libkb.UsernamePackage, error) {
 	return nil, errors.New("offline uid map always fails")
+}
+
+func (o *OfflineUIDMap) SetTestingNoCachingMode(enabled bool) {
+
 }
 
 var _ libkb.UIDMapper = (*OfflineUIDMap)(nil)
