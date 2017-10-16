@@ -284,7 +284,7 @@ class PopupEnabledList extends BaseList {
     }
 
     this._keepIdxVisible = idx
-    this.setState({listRerender: this.state.listRerender + 1})
+    this.setState(prevState => ({listRerender: prevState.listRerender + 1}))
 
     const listNode = ReactDOM.findDOMNode(this._list)
     if (!(listNode instanceof window.Element)) {
