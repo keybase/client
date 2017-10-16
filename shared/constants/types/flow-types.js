@@ -3851,6 +3851,10 @@ export type NotifyTeamTeamDeletedRpcParam = Exact<{
   teamID: TeamID
 }>
 
+export type NotifyTeamTeamExitRpcParam = Exact<{
+  teamID: TeamID
+}>
+
 export type NotifyTrackingTrackingChangedRpcParam = Exact<{
   uid: UID,
   username: string,
@@ -6960,6 +6964,12 @@ export type incomingCallMapType = Exact<{
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyTeam.teamDeleted'?: (
+    params: Exact<{
+      teamID: TeamID
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyTeam.teamExit'?: (
     params: Exact<{
       teamID: TeamID
     }>,
