@@ -14,6 +14,8 @@ import (
 )
 
 func TestTeamOpenAutoAddMember(t *testing.T) {
+	require.Equal(t, false, true)
+
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
