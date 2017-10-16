@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"io"
 	"net"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -11,9 +12,10 @@ import (
 
 // KBFSService represents a running KBFS service.
 type KBFSService struct {
-	log    logger.Logger
-	kbCtx  Context
-	stopCh chan struct{}
+	log      logger.Logger
+	kbCtx    Context
+	stopOnce sync.Once
+	stopCh   chan struct{}
 }
 
 // NewKBFSService creates a new KBFSService.
@@ -61,14 +63,14 @@ func (k *KBFSService) handle(c net.Conn) {
 		return
 	}
 
-	// Run the server, then wait for it or this KBFSService to finish. If
-	// KBFSService finishes first, close the connection.
+	// Run the server, then wait for it or this KBFSService to finish.
 	serverCh := server.Run()
 	go func() {
 		select {
 		case <-k.stopCh:
 		case <-serverCh:
 		}
+		// Close is idempotent, so always close when we're done.
 		c.Close()
 	}()
 	<-serverCh
@@ -93,7 +95,6 @@ func (k *KBFSService) listenLoop(l net.Listener) error {
 	for {
 		c, err := l.Accept()
 		if err != nil {
-
 			if libkb.IsSocketClosedError(err) {
 				err = nil
 			}
@@ -106,11 +107,8 @@ func (k *KBFSService) listenLoop(l net.Listener) error {
 }
 
 // Shutdown shuts down this KBFSService.
-func (k *KBFSService) Shutdown() <-chan struct{} {
-	select {
-	case <-k.stopCh:
-	default:
+func (k *KBFSService) Shutdown() {
+	k.stopOnce.Do(func() {
 		close(k.stopCh)
-	}
-	return k.stopCh
+	})
 }
