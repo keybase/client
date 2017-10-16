@@ -115,11 +115,9 @@ const TeamTabs = (props: TeamTabsProps) => {
       </Text>
     )
   }
-  tabs.push(
-    <Text key="loadingIndicator" type="BodySmallSemibold">
-      {loading && <ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />}
-    </Text>
-  )
+  if (loading) {
+    tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
+  }
 
   const onSelect = (tab: any) => {
     const key = tab && tab.key
