@@ -329,15 +329,15 @@ func (g *gregorHandler) getRPCCli() rpc.GenericClient {
 }
 
 func (g *gregorHandler) Debug(ctx context.Context, s string, args ...interface{}) {
-	g.G().Log.CDebugf(ctx, "PushHandler: "+s, args...)
+	g.G().Log.CloneWithAddedDepth(1).CDebugf(ctx, "PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) Warning(ctx context.Context, s string, args ...interface{}) {
-	g.G().Log.CWarningf(ctx, "PushHandler: "+s, args...)
+	g.G().Log.CloneWithAddedDepth(1).CWarningf(ctx, "PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) Errorf(ctx context.Context, s string, args ...interface{}) {
-	g.G().Log.CErrorf(ctx, "PushHandler: "+s, args...)
+	g.G().Log.CloneWithAddedDepth(1).CErrorf(ctx, "PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) SetPushStateFilter(f func(m gregor.Message) bool) {
@@ -1200,6 +1200,9 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 		}
 		g.G().Log.Debug("gregorHandler APIServerSessionStatus error: %s (returning loggedInMaybe)", err)
 		return uid, token, loggedInMaybe
+	}
+	if status == nil {
+		return uid, token, loggedInNo
 	}
 
 	return status.UID, status.SessionToken, loggedInYes

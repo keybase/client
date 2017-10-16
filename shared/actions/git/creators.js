@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/git'
+import {type OutOfBandMessage} from '../../constants/types/flow-types-gregor'
 
 const loadGit = (): Constants.LoadGit => ({
   payload: undefined,
@@ -49,6 +50,11 @@ const badgeAppForGit = (ids: ?Array<string>): Constants.BadgeAppForGit => ({
   type: 'git:badgeAppForGit',
 })
 
+const handleIncomingGregor = (messages: Array<OutOfBandMessage>): Constants.HandleIncomingGregor => ({
+  payload: {messages},
+  type: 'git:handleIncomingGregor',
+})
+
 export {
   loadGit,
   createTeamRepo,
@@ -57,5 +63,6 @@ export {
   deleteTeamRepo,
   deletePersonalRepo,
   setError,
+  handleIncomingGregor,
   badgeAppForGit,
 }

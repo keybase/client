@@ -1,13 +1,15 @@
 package uidmap
 
 import (
+	"sync"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"testing"
-	"time"
 )
 
 type testPair struct {
@@ -66,6 +68,68 @@ func TestLookupUsernameOnly(t *testing.T) {
 	}
 }
 
+func TestLookupUsernameConcurrent(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestLookup", 1)
+	defer tc.Cleanup()
+
+	batchSize = 7
+
+	testStuff := func() {
+		var seed = []testPair{
+			{"afb5eda3154bc13c1df0189ce93ba119", "t_bob"},
+			{"00000000000000000000000000000119", ""},
+			{"295a7eea607af32040647123732bc819", "t_alice"},
+			{"00000000000000000000000000000219", ""},
+			{"9cbca30c38afba6ab02d76b206515919", "t_helen"},
+			{"00000000000000000000000000000319", ""},
+			{string(max), "max"},
+			{"00000000000000000000000000000419", ""},
+			{string(mikem), "mikem"},
+			{"00000000000000000000000000000519", ""},
+			{"9f9611a4b7920637b1c2a839b2a0e119", "t_george"},
+			{"00000000000000000000000000000619", ""},
+			{"359c7644857203be38bfd3bf79bf1819", "t_frank"},
+			{"00000000000000000000000000000719", ""},
+		}
+
+		var tests []testPair
+		for len(tests) < batchSize*10 {
+			tests = append(tests, seed...)
+		}
+
+		var uids []keybase1.UID
+		for _, test := range tests {
+			uid, err := keybase1.UIDFromString(test.uid)
+			require.NoError(t, err)
+			uids = append(uids, uid)
+		}
+
+		uidMap := NewUIDMap(10)
+
+		for i := 0; i < 4; i++ {
+			results, err := uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, 0, false)
+			require.NoError(t, err)
+			for j, test := range tests {
+				require.True(t, results[j].NormalizedUsername.Eq(libkb.NewNormalizedUsername(test.username)))
+			}
+			if i == 2 {
+				uidMap.Clear()
+			}
+		}
+	}
+
+	var wg sync.WaitGroup
+	for i := 1; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			testStuff()
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+}
+
 const tKB = keybase1.UID("7b7248a1c09d17451f9002d9edc8df19")
 
 func TestRanOutOfTime(t *testing.T) {
@@ -113,6 +177,7 @@ func TestRanOutOfTime(t *testing.T) {
 
 	// now success for user t_kb, who has a non-hardcoded username and a fullname on the
 	// server
+	t.Logf("tKB: %s", tKB)
 	uids = []keybase1.UID{tKB}
 	hit = false
 	results, err = uidMap.MapUIDsToUsernamePackages(context.TODO(), tc.G, uids, 0, 0, true)

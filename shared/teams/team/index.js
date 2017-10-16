@@ -115,11 +115,9 @@ const TeamTabs = (props: TeamTabsProps) => {
       </Text>
     )
   }
-  tabs.push(
-    <Text key="loadingIndicator" style={{cursor: 'default'}} type="BodySmallSemibold">
-      {loading && <ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />}
-    </Text>
-  )
+  if (loading) {
+    tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
+  }
 
   const onSelect = (tab: any) => {
     const key = tab && tab.key
@@ -153,7 +151,7 @@ class Team extends React.PureComponent<Props> {
     } = this.props
 
     const me = members.find(member => member.username === you)
-    const admin = me ? me.type === 'admins' || me.type === 'owners' : false
+    const admin = me ? me.type === 'admin' || me.type === 'owner' : false
 
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))

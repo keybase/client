@@ -1,10 +1,6 @@
 {
   // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
   // Note: We aren't trying to be 100% perfect here, just getting something that works pretty good and pretty quickly
-  function goodLink (link) {
-    return !link.match(dotDotExp) // disallow 'a...b', but allow /../
-  }
-
   function flatten (input) {
     const result = []
     let strs = []
@@ -51,7 +47,7 @@ TextBlock
  = children:(__INLINE_MACRO__<> / InlineDelimiter)+ { return {type: 'text-block', children: flatten(children)} }
 
 InlineStart
- = InlineCode / Italic / Bold / Mention / Strike / Link / InlineCont
+ = InlineCode / Italic / Bold / Link / Mention / Strike / InlineCont
 
 InlineCont
  = !CodeBlock (Text / Emoji / EscapedChar / NativeEmoji / SpecialChar)
@@ -89,16 +85,16 @@ Text
 
 // TODO: should coalesce multiple line quotes
 QuoteBlock
- = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)+ LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
+ = QuoteBlockMarker WhiteSpace* children:(CodeBlock / TextBlock)* LineTerminatorSequence? { return {type: 'quote-block', children: flatten(children)} }
 
 Bold
- = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker !(BoldMarker / NormalChar) { return {type: 'bold', children: flatten(children)} }
+ = BoldMarker !WhiteSpace children:__INLINE_MACRO__<!BoldMarker> BoldMarker { return {type: 'bold', children: flatten(children)} }
 
 Italic
- = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker !(ItalicMarker / NormalChar) { return {type: 'italic', children: flatten(children)} }
+ = ItalicMarker !WhiteSpace children:__INLINE_MACRO__<!ItalicMarker> ItalicMarker { return {type: 'italic', children: flatten(children)} }
 
 Strike
- = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker !(StrikeMarker / NormalChar) { return {type: 'strike', children: flatten(children)} }
+ = StrikeMarker !WhiteSpace children:__INLINE_MACRO__<!StrikeMarker> StrikeMarker { return {type: 'strike', children: flatten(children)} }
 
 Mention
  = MentionMarker !WhiteSpace children:__INLINE_MACRO__<!ClosingMentionMarker> MentionMarker service:ValidMentionService { return {type: 'mention', children: flatten(children), service: service.toLowerCase()} }
@@ -139,28 +135,42 @@ NativeEmoji
  }
 
 LinkChar
- = !(SpecialChar+ (InlineDelimiter / LineTerminatorSequence / !.)) char:NonBlank { return char }
+ = !(SpecialChar+ (LineTerminatorSequence / !.)) char:NonBlank { return char }
 
 Link
  = proto:("http"i "s"i? ":")? url:(LinkChar+) & {
-     const matches = url.join('').match(linkExp)
+     const Url = url.join('')
+     const fullUrl = proto ? proto.join('') + Url : Url
+     const matches = linkExp.exec(fullUrl)
      if (!matches) {
        return false
      }
-     const match = matches[0]
+     let match
+     const firstMatch = matches[0]
+     const firstChar = firstMatch.substring(0,1)
+     const alphasExp = /^[a-z]$/i
+     if (!alphasExp.exec(firstChar)) {
+       match = matches[3]
+     } else {
+       match = matches[0]
+     }
      url._match = match  // save the match via expando property (used below)
-     return goodLink(match)
+     return match
    }
  {
    const match = url._match
    delete url._match
    const urlText = url.join('')
    const protoText = proto ? proto.join('') : ''
-   const href = (protoText || 'http://') + match
-   const text = protoText + match
+   const href = protoText ? match : 'http://' + match
+   let text = protoText + urlText
+   let delims = urlText.split(match)
+   delims = delims.length > 1 ? delims : ["", ""] // Detect if the substring op failed
+   text = delims.length > 1 ? match : text
    return [
+     delims[0],
      {type: 'link', href, children: [text]},
-     urlText.substring(match.length, urlText.length),
+     delims[1],
    ]
  }
 

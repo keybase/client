@@ -139,7 +139,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	for i, uv := range uvs {
 		pkg := packages[i]
 		active := true
-		if pkg.FullName != nil && pkg.FullName.EldestSeqno > uv.EldestSeqno {
+		if pkg.FullName != nil && pkg.FullName.EldestSeqno != uv.EldestSeqno {
 			active = false
 		}
 		ret[i] = keybase1.TeamMemberDetails{

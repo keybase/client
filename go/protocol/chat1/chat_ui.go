@@ -76,6 +76,7 @@ type UnverifiedInboxUIItem struct {
 	Notifications *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time          gregor1.Time                   `codec:"time" json:"time"`
 	Version       ConversationVers               `codec:"version" json:"version"`
+	MaxMsgID      MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
 	LocalMetadata *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
 }
 
@@ -95,8 +96,9 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time:    o.Time.DeepCopy(),
-		Version: o.Version.DeepCopy(),
+		Time:     o.Time.DeepCopy(),
+		Version:  o.Version.DeepCopy(),
+		MaxMsgID: o.MaxMsgID.DeepCopy(),
 		LocalMetadata: (func(x *UnverifiedInboxUIItemMetadata) *UnverifiedInboxUIItemMetadata {
 			if x == nil {
 				return nil
@@ -156,6 +158,7 @@ type InboxUIItem struct {
 	Notifications     *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
+	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
 	FinalizeInfo      *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes        []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
@@ -223,7 +226,8 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
-		Version: o.Version.DeepCopy(),
+		Version:  o.Version.DeepCopy(),
+		MaxMsgID: o.MaxMsgID.DeepCopy(),
 		FinalizeInfo: (func(x *ConversationFinalizeInfo) *ConversationFinalizeInfo {
 			if x == nil {
 				return nil

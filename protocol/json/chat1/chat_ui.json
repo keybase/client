@@ -115,6 +115,10 @@
           "name": "version"
         },
         {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
           "type": [
             null,
             "UnverifiedInboxUIItemMetadata"
@@ -238,6 +242,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxMsgID"
         },
         {
           "type": [

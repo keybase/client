@@ -88,6 +88,7 @@ func (t *ImplicitTeamsNameInfoSource) Lookup(ctx context.Context, name string, v
 		return t.lookupInternalName(ctx, name, vis)
 	}
 
+	// Always create here to simulate behavior of GetTLFCryptKeys
 	teamID, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, t.G().ExternalG(), name,
 		vis == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
