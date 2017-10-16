@@ -38,18 +38,23 @@ func HandleRotateRequest(ctx context.Context, g *libkb.GlobalContext, teamID key
 	return nil
 }
 
-func reloadLocal(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) error {
+func reloadLocal(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (*Team, error) {
+	forceRepoll := true
 	if change.Renamed {
 		// This force reloads the team as a side effect
-		return g.GetTeamLoader().NotifyTeamRename(ctx, row.Id, row.Name)
+		err := g.GetTeamLoader().NotifyTeamRename(ctx, row.Id, row.Name)
+		if err != nil {
+			return nil, err
+		}
+		forceRepoll = false
 	}
 
-	_, err := Load(ctx, g, keybase1.LoadTeamArg{
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
 		ID:          row.Id,
 		Public:      row.Id.IsPublic(),
-		ForceRepoll: true,
+		ForceRepoll: forceRepoll,
 	})
-	return err
+	return team, err
 }
 
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
@@ -58,10 +63,11 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 
 	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
-	if err = reloadLocal(ctx, g, row, change); err != nil {
+	team, err := reloadLocal(ctx, g, row, change)
+	if err != nil {
 		return err
 	}
-	g.NotifyRouter.HandleTeamChanged(ctx, row.Id, row.Name, row.LatestSeqno, change)
+	g.NotifyRouter.HandleTeamChanged(ctx, team.ID, team.Name().String(), team.chain().GetLatestSeqno(), change)
 	return nil
 }
 
@@ -99,6 +105,7 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 		if err != nil {
 			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
 		}
+		g.NotifyRouter.HandleTeamExit(ctx, row.Id)
 	}
 	return nil
 }
