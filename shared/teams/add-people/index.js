@@ -1,6 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Dropdown, ProgressIndicator, Text, PopupDialog} from '../../common-adapters'
+import {
+  Box,
+  Button,
+  ClickableBox,
+  Dropdown,
+  ProgressIndicator,
+  Text,
+  PopupDialog,
+} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
@@ -24,6 +32,7 @@ type Props = {
   onAddPeople: (role: string) => void,
   onClose: () => void,
   onLeave: () => void,
+  onOpenRolePicker: (role: string, (string) => void) => void,
   name: string,
 }
 
@@ -64,6 +73,12 @@ class AddPeople extends React.Component<Props, State> {
     this.props.onAddPeople(this.state.selectedRole)
   }
 
+  _openRolePicker = () => {
+    this.props.onOpenRolePicker(this.state.selectedRole, (selectedRole: string) =>
+      this.setState({selectedRole})
+    )
+  }
+
   render() {
     return (
       <MaybePopup onClose={this.props.onClose}>
@@ -78,11 +93,13 @@ class AddPeople extends React.Component<Props, State> {
             <Text style={{margin: globalMargins.tiny}} type="Body">
               Add these team members to {this.props.name} as:
             </Text>
-            <Dropdown
-              items={this._makeDropdownItems()}
-              selected={this._makeDropdownItem(this.state.selectedRole)}
-              onChanged={this._dropdownChanged}
-            />
+            <ClickableBox onClick={this._openRolePicker}>
+              <Dropdown
+                items={this._makeDropdownItems()}
+                selected={this._makeDropdownItem(this.state.selectedRole)}
+                onChanged={this._dropdownChanged}
+              />
+            </ClickableBox>
             <Button
               label="Invite"
               onClick={this._onSubmit}

@@ -8,6 +8,7 @@ import ManageChannels from '../chat/manage-channels/container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
 import RolePicker from './role-picker/container'
+import ControlledRolePicker from './role-picker/controlled-container'
 import Member from './team/member/container'
 import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
@@ -71,7 +72,13 @@ const routeTree = makeRouteDefNode({
           component: Member,
         },
         addPeople: {
-          children: {},
+          children: {
+            controlledRolePicker: {
+              children: {},
+              component: ControlledRolePicker,
+              tags: makeLeafTags({layerOnTop: !isMobile}),
+            },
+          },
           component: AddPeopleDialog,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
