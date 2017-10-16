@@ -4,7 +4,7 @@ import Avatar from './avatar'
 import Box from './box'
 import * as React from 'react'
 import {globalStyles} from '../styles'
-import memoize from 'lodash/memoize'
+import {createSelector} from 'reselect'
 
 import type {Props as AvatarProps, AvatarSize} from './avatar'
 
@@ -48,8 +48,8 @@ class MultiAvatar extends React.PureComponent<Props> {
   }
 }
 
-const rightStyle = memoize((style, backgroundColor) => ({
-  ...style,
+const rightStyle = createSelector([a => a, (_, b) => b], (style: ?Object, backgroundColor: ?string) => ({
+  ...(style || {}),
   backgroundColor,
 }))
 
@@ -59,18 +59,18 @@ const singleStyle = {
   width: '100%',
 }
 
-const leftAvatar = memoize((offset = 0, style) => ({
+const leftAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) => ({
   left: 0,
   position: 'absolute',
   top: offset,
-  ...style,
+  ...(style || {}),
 }))
 
-const rightAvatar = memoize((offset = 0, style) => ({
+const rightAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) => ({
   bottom: offset,
   position: 'absolute',
   right: 0,
-  ...style,
+  ...(style || {}),
 }))
 
 export default MultiAvatar
