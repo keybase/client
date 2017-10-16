@@ -329,8 +329,13 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 
 			for i, row := range apiResults {
 				uid := uidsToLookup[i]
-				g.GetLog().CDebugf(ctx, "| API server resolution %s -> (%s, %v, %v)", uid,
-					row.NormalizedUsername, row.FullName.FullName, row.FullName.EldestSeqno)
+				if row.FullName != nil {
+					g.GetLog().CDebugf(ctx, "| API server resolution %s -> (%s, %v, %v)", uid,
+						row.NormalizedUsername, row.FullName.FullName, row.FullName.EldestSeqno)
+				} else {
+					g.GetLog().CDebugf(ctx, "| API server resolution %s -> (%s, <no fn res>)", uid,
+						row.NormalizedUsername)
+				}
 
 				// Always write these results out if the cached value is unset.
 				// Or, see below for other case...

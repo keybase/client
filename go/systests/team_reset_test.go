@@ -440,6 +440,7 @@ func TestImplicitTeamReset(t *testing.T) {
 }
 
 func TestImplicitTeamUserReset(t *testing.T) {
+	t.Skip()
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
