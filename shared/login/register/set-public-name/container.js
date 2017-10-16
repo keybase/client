@@ -91,7 +91,11 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
 const mapDispatchToProps = (dispatch: Dispatch<*>) => ({
   clearDeviceNameError: () => dispatch(clearDeviceNameError()),
   onBack: () => dispatch(Creators.onBack()),
-  onSubmit: deviceName => dispatch(Creators.submitDeviceName(deviceName)),
+  onSubmit: deviceName => {
+    // map 'smart apostrophes' to ASCII (typewriter apostrophe)
+    deviceName = deviceName.replace(/[\u2018\u2019\u0060\u00B4]/g, "'")
+    dispatch(Creators.submitDeviceName(deviceName))
+  },
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(_SetPublicName)
