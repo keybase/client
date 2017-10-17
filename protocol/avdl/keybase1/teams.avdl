@@ -454,6 +454,10 @@ protocol teams {
     TeamRole joinAs;
   }
 
+  record TeamRequestAccessResult {
+    boolean open;
+  }
+
   TeamCreateResult teamCreate(int sessionID, string name, boolean sendChatNotification);
   TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean sendChatNotification, TeamSettings settings);
   TeamDetails teamGet(int sessionID, string name, boolean forceRepoll);
@@ -467,7 +471,7 @@ protocol teams {
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
   void teamAcceptInvite(int sessionID, string token);
-  void teamRequestAccess(int sessionID, string name);
+  TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
   // Accept an invite or request to join a team, try both.
   void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
   array<TeamJoinRequest> teamListRequests(int sessionID);
