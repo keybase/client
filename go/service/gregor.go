@@ -846,20 +846,15 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 func (g *gregorHandler) broadcastMessageHandler() {
 	ctx := context.Background()
 	for {
-		select {
-		case <-g.shutdownCh:
-			g.G().Log.CDebugf(context.Background(), "gregor broadcastMessageHandler shutdown")
-			return
-		case m := <-g.broadcastCh:
-			err := g.broadcastMessageOnce(ctx, m)
-			if err != nil {
-				g.G().Log.CDebugf(context.Background(), "gregor broadcast error: %v", err)
-			}
+		m := <-g.broadcastCh
+		err := g.broadcastMessageOnce(ctx, m)
+		if err != nil {
+			g.G().Log.CDebugf(context.Background(), "gregor broadcast error: %v", err)
+		}
 
-			// Testing alerts
-			if g.testingEvents != nil {
-				g.testingEvents.broadcastSentCh <- err
-			}
+		// Testing alerts
+		if g.testingEvents != nil {
+			g.testingEvents.broadcastSentCh <- err
 		}
 	}
 }
