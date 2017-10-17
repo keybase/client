@@ -395,7 +395,6 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
     return
   }
 
-  // debugger
   yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
