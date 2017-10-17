@@ -889,15 +889,10 @@ function* _selectConversation(action: Constants.SelectConversation): SagaGenerat
     }
   }
 
-  const teamCreationErrorSelector = (state: TypedState) => {
-    return state.chat.get('teamCreationError')
-  }
-  const teamCreationError = yield select(teamCreationErrorSelector)
-
   if (conversationIDKey) {
     yield put(Creators.loadMoreMessages(conversationIDKey, true, fromUser))
     yield put(navigateTo([conversationIDKey], [chatTab]))
-  } else if (!teamCreationError) {
+  } else {
     yield put(navigateTo([chatTab]))
   }
 

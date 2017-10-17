@@ -17,10 +17,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-export default compose(
+const NewTeamDialogFromChat = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withState('name', 'onNameChange', ''),
   withHandlers({
     onSubmit: ({name, _onCreateNewTeam}) => () => _onCreateNewTeam(name),
   })
 )(NewTeamDialog)
+
+export default NewTeamDialogFromChat
