@@ -37,6 +37,7 @@ type KeybaseServiceBase struct {
 	sessionCacheLock sync.RWMutex
 	// Set to the zero value when invalidated.
 	cachedCurrentSession SessionInfo
+	sessionInProgressCh  chan struct{}
 
 	userCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
@@ -664,16 +665,45 @@ func (k *KeybaseServiceBase) LoadUnverifiedKeys(ctx context.Context, uid keybase
 	return keys, nil
 }
 
-func (k *KeybaseServiceBase) getCurrentSession(
-	ctx context.Context, sessionID int) (SessionInfo, bool, error) {
-	// Hold the lock the entire function, to prevent multiple
-	// goroutines from trying to fetch the session at once.
+func (k *KeybaseServiceBase) getCachedCurrentSessionOrInProgressCh() (
+	cachedSession SessionInfo, inProgressCh chan struct{}, doRPC bool) {
 	k.sessionCacheLock.Lock()
 	defer k.sessionCacheLock.Unlock()
 
-	cachedCurrentSession := k.cachedCurrentSession
-	if cachedCurrentSession != (SessionInfo{}) {
-		return cachedCurrentSession, false, nil
+	if k.cachedCurrentSession != (SessionInfo{}) {
+		return k.cachedCurrentSession, nil, false
+	}
+
+	// If someone already started the RPC, wait for them (and release
+	// the lock).
+	if k.sessionInProgressCh != nil {
+		return SessionInfo{}, k.sessionInProgressCh, false
+	}
+
+	k.sessionInProgressCh = make(chan struct{})
+	return SessionInfo{}, k.sessionInProgressCh, true
+}
+
+func (k *KeybaseServiceBase) getCurrentSession(
+	ctx context.Context, sessionID int) (SessionInfo, bool, error) {
+	var cachedCurrentSession SessionInfo
+	var inProgressCh chan struct{}
+	doRPC := false
+	// Loop until either we have the session info, or until we are the
+	// sole goroutine that needs to make the RPC.  Avoid holding the
+	// session cache lock during the RPC, since that can result in a
+	// deadlock if the RPC results in a call to `clearCaches()`.
+	for !doRPC {
+		cachedCurrentSession, inProgressCh, doRPC =
+			k.getCachedCurrentSessionOrInProgressCh()
+		if cachedCurrentSession != (SessionInfo{}) {
+			return cachedCurrentSession, false, nil
+		}
+
+		if !doRPC {
+			// Wait for another goroutine to finish the RPC.
+			<-inProgressCh
+		}
 	}
 
 	res, err := k.sessionClient.CurrentSession(ctx, sessionID)
@@ -693,7 +723,11 @@ func (k *KeybaseServiceBase) getCurrentSession(
 		ctx, "new session with username %s, uid %s, crypt public key %s, and verifying key %s",
 		s.Name, s.UID, s.CryptPublicKey, s.VerifyingKey)
 
+	k.sessionCacheLock.Lock()
+	defer k.sessionCacheLock.Unlock()
 	k.cachedCurrentSession = s
+	close(k.sessionInProgressCh)
+	k.sessionInProgressCh = nil
 	return s, true, nil
 }
 
