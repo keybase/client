@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
 import {PlaintextUsernames, Box} from '../../../../common-adapters'
-import {globalStyles, globalColors} from '../../../../styles'
+import {globalStyles} from '../../../../styles'
 import {isMobile} from '../../../../constants/platform'
 import {List} from 'immutable'
 
