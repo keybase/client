@@ -42,6 +42,8 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
+// How many messages we consider too many to just download when you are stale and we could possibly just append
+const tooManyMessagesToJustAppendOnStale = 3
 
 function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
@@ -587,17 +589,18 @@ function _unboxedToMessage(
     if (payload) {
       const common = {
         author: payload.senderUsername,
+        channelMention: _parseChannelMention(payload.channelMention),
         conversationIDKey,
         deviceName: payload.senderDeviceName,
         deviceType: toDeviceType(payload.senderDeviceType),
         failureDescription: null,
+        mentions: I.Set(payload.atMentions || []),
         messageID: Constants.rpcMessageIDToMessageID(payload.messageID),
+        rawMessageID: payload.messageID,
+        outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
         timestamp: payload.ctime,
         you: yourName,
-        outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
-        mentions: I.Set(payload.atMentions || []),
-        channelMention: _parseChannelMention(payload.channelMention),
       }
 
       switch (payload.messageBody.messageType) {
@@ -1244,7 +1247,33 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
 
   const conversation = yield select(Constants.getSelectedConversationStates, selectedConversation)
   if (conversation) {
-    const onlyNewerThan = conversation.paginationPrevious //convo ? convo.paginationPrevious : null
+    const inbox = yield select(Constants.getInbox, selectedConversation)
+
+    console.log('aaa inboxid', inbox && inbox.maxMsgID)
+    const messageKeys = yield select(Constants.getConversationMessages, selectedConversation)
+    const lastMessageKey = messageKeys.last()
+    if (lastMessageKey) {
+      const lastMessage = yield select(Constants.getMessageFromMessageKey, lastMessageKey)
+      // Check to see if we could possibly be asking for too many messages
+      console.log('aaa lastmessageid', lastMessage, lastMessage && lastMessage.rawMessageID)
+      //
+      if (
+        lastMessage &&
+        lastMessage.rawMessageID &&
+        inbox &&
+        inbox.maxMsgID &&
+        inbox.maxMsgID - lastMessage.rawMessageID > tooManyMessagesToJustAppendOnStale
+      ) {
+        console.log('aaa full stale', inbox.maxMsgID - lastMessage.rawMessageID)
+        yield put(Creators.inboxStale())
+        return
+      }
+
+      try {
+        console.log('aaa just append', inbox.maxMsgID - lastMessage.rawMessageID)
+      } catch (_) {}
+    }
+    const onlyNewerThan = conversation.paginationPrevious
     yield put(Creators.loadMoreMessages(selectedConversation, false, false, onlyNewerThan))
   }
 }

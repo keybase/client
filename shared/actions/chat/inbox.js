@@ -498,6 +498,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     channelname,
     conversationIDKey,
     isEmpty: c.isEmpty,
+    maxMsgID: c.maxMsgID,
     membersType: c.membersType,
     name: c.name,
     notifications,
