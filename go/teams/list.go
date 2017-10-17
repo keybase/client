@@ -236,8 +236,8 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
 			team, err := getTeamForMember(subctx, g, memberInfo, serverSaysNeedAdmin)
 			if err != nil {
-				g.Log.CDebugf(subctx, "| Error in getTeamForMember: %v", err)
-				return err
+				g.Log.CDebugf(subctx, "| Error in getTeamForMember %q: %v; skipping member", memberInfo.UserID, err)
+				return nil
 			}
 
 			type AnnotatedTeamInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
@@ -261,7 +261,8 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			if serverSaysNeedAdmin {
 				anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())
 				if err != nil {
-					return err
+					g.Log.CDebugf(subctx, "| Failed to AnnotateInvites for team %q: %v", teamID, err)
+					return nil
 				}
 			}
 
