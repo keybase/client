@@ -883,29 +883,29 @@ func (md *MDServerMemory) putExtraMetadataLocked(rmds *RootMetadataSigned,
 		return nil
 	}
 
-	extraV3, ok := extra.(*ExtraMetadataV3)
+	extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3)
 	if !ok {
 		return errors.New("Invalid extra metadata")
 	}
 
 	tlfID := rmds.MD.TlfID()
 
-	if extraV3.wkbNew {
+	if extraV3.IsWriterKeyBundleNew() {
 		wkbID := rmds.MD.GetTLFWriterKeyBundleID()
 		if wkbID == (TLFWriterKeyBundleID{}) {
 			panic("writer key bundle ID is empty")
 		}
 		md.writerKeyBundleDb[mdExtraWriterKey{tlfID, wkbID}] =
-			extraV3.wkb
+			extraV3.GetWriterKeyBundle()
 	}
 
-	if extraV3.rkbNew {
+	if extraV3.IsReaderKeyBundleNew() {
 		rkbID := rmds.MD.GetTLFReaderKeyBundleID()
 		if rkbID == (TLFReaderKeyBundleID{}) {
 			panic("reader key bundle ID is empty")
 		}
 		md.readerKeyBundleDb[mdExtraReaderKey{tlfID, rkbID}] =
-			extraV3.rkb
+			extraV3.GetReaderKeyBundle()
 	}
 	return nil
 }
@@ -926,7 +926,7 @@ func (md *MDServerMemory) getKeyBundlesRLocked(tlfID tlf.ID,
 				"Could not find WKB for ID %s", wkbID)
 		}
 
-		err := checkWKBID(md.config.Codec(), wkbID, foundWKB)
+		err := kbfsmd.CheckWKBID(md.config.Codec(), wkbID, foundWKB)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -942,7 +942,7 @@ func (md *MDServerMemory) getKeyBundlesRLocked(tlfID tlf.ID,
 				"Could not find RKB for ID %s", rkbID)
 		}
 
-		err := checkRKBID(md.config.Codec(), rkbID, foundRKB)
+		err := kbfsmd.CheckRKBID(md.config.Codec(), rkbID, foundRKB)
 		if err != nil {
 			return nil, nil, err
 		}

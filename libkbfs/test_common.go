@@ -303,13 +303,6 @@ func ConfigAsUser(config *ConfigLocal,
 	return configAsUserWithMode(config, loggedInUser, config.Mode())
 }
 
-// FakeBranchID creates a fake branch ID from the given
-// byte.
-func FakeBranchID(b byte) BranchID {
-	bytes := [BranchIDByteLen]byte{b}
-	return BranchID{bytes}
-}
-
 // NewEmptyTLFWriterKeyBundle creates a new empty TLFWriterKeyBundleV2
 func NewEmptyTLFWriterKeyBundle() TLFWriterKeyBundleV2 {
 	return TLFWriterKeyBundleV2{

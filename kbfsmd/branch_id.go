@@ -2,12 +2,14 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"encoding"
 	"encoding/hex"
 	"errors"
+
+	"github.com/keybase/kbfs/kbfscrypto"
 )
 
 const (
@@ -75,4 +77,25 @@ func ParseBranchID(s string) (BranchID, error) {
 		return NullBranchID, InvalidBranchID{s}
 	}
 	return id, nil
+}
+
+// MakeRandomBranchID generates a per-device branch ID using a CSPRNG.
+// It will not return LocalSquashBranchID or NullBranchID.
+func MakeRandomBranchID() (BranchID, error) {
+	var id BranchID
+	// Loop just in case we randomly pick the null or local squash
+	// branch IDs.
+	for id == NullBranchID || id == PendingLocalSquashBranchID {
+		err := kbfscrypto.RandRead(id.id[:])
+		if err != nil {
+			return BranchID{}, err
+		}
+	}
+	return id, nil
+}
+
+// FakeBranchID creates a fake branch ID from the given byte.
+func FakeBranchID(b byte) BranchID {
+	bytes := [BranchIDByteLen]byte{b}
+	return BranchID{bytes}
 }

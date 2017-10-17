@@ -12,6 +12,8 @@ import (
 	"bazil.org/fuse"
 )
 
+// TODO: Figure out how to avoid pulling in bazil.org/fuse.
+
 var _ fuse.ErrorNumber = ServerErrorUnauthorized{}
 
 // Errno implements the fuse.ErrorNumber interface for ServerErrorUnauthorized.
@@ -23,5 +25,13 @@ var _ fuse.ErrorNumber = ServerErrorWriteAccess{}
 
 // Errno implements the fuse.ErrorNumber interface for ServerErrorWriteAccess.
 func (e ServerErrorWriteAccess) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}
+
+var _ fuse.ErrorNumber = MetadataIsFinalError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// MetadataIsFinalError.
+func (e MetadataIsFinalError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }

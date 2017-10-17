@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfshash"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/nacl/box"
@@ -39,16 +40,7 @@ func (c CryptoCommon) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
 
 // MakeRandomBranchID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeRandomBranchID() (BranchID, error) {
-	var id BranchID
-	// Loop just in case we randomly pick the null or local squash
-	// branch IDs.
-	for id == NullBranchID || id == PendingLocalSquashBranchID {
-		err := kbfscrypto.RandRead(id.id[:])
-		if err != nil {
-			return BranchID{}, err
-		}
-	}
-	return id, nil
+	return kbfsmd.MakeRandomBranchID()
 }
 
 // MakeMerkleHash implements the Crypto interface for CryptoCommon.

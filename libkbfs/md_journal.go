@@ -340,7 +340,7 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
-	err = checkWKBID(j.codec, wkbID, wkb)
+	err = kbfsmd.CheckWKBID(j.codec, wkbID, wkb)
 	if err != nil {
 		return nil, err
 	}
@@ -351,12 +351,12 @@ func (j mdJournal) getExtraMetadata(
 		return nil, err
 	}
 
-	err = checkRKBID(j.codec, rkbID, rkb)
+	err = kbfsmd.CheckRKBID(j.codec, rkbID, rkb)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewExtraMetadataV3(wkb, rkb, wkbNew, rkbNew), nil
+	return kbfsmd.NewExtraMetadataV3(wkb, rkb, wkbNew, rkbNew), nil
 }
 
 func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
@@ -382,7 +382,7 @@ func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
 		panic("reader key bundle ID is empty")
 	}
 
-	extraV3, ok := extra.(*ExtraMetadataV3)
+	extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3)
 	if !ok {
 		return false, false, errors.New("Invalid extra metadata")
 	}
@@ -391,29 +391,29 @@ func (j mdJournal) putExtraMetadata(rmd BareRootMetadata, extra ExtraMetadata) (
 	// it as part of the mdInfo, so we don't needlessly send it
 	// while flushing.
 
-	err = checkWKBID(j.codec, wkbID, extraV3.wkb)
+	err = kbfsmd.CheckWKBID(j.codec, wkbID, extraV3.GetWriterKeyBundle())
 	if err != nil {
 		return false, false, err
 	}
 
-	err = checkRKBID(j.codec, rkbID, extraV3.rkb)
-	if err != nil {
-		return false, false, err
-	}
-
-	err = kbfscodec.SerializeToFileIfNotExist(
-		j.codec, extraV3.wkb, j.writerKeyBundleV3Path(wkbID))
+	err = kbfsmd.CheckRKBID(j.codec, rkbID, extraV3.GetReaderKeyBundle())
 	if err != nil {
 		return false, false, err
 	}
 
 	err = kbfscodec.SerializeToFileIfNotExist(
-		j.codec, extraV3.rkb, j.readerKeyBundleV3Path(rkbID))
+		j.codec, extraV3.GetWriterKeyBundle(), j.writerKeyBundleV3Path(wkbID))
 	if err != nil {
 		return false, false, err
 	}
 
-	return extraV3.wkbNew, extraV3.rkbNew, nil
+	err = kbfscodec.SerializeToFileIfNotExist(
+		j.codec, extraV3.GetReaderKeyBundle(), j.readerKeyBundleV3Path(rkbID))
+	if err != nil {
+		return false, false, err
+	}
+
+	return extraV3.IsWriterKeyBundleNew(), extraV3.IsReaderKeyBundleNew(), nil
 }
 
 // getMDAndExtra verifies the MD data, the writer signature (but not

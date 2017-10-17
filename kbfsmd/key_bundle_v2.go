@@ -45,7 +45,7 @@ func (t EPubKeyLocationV2) String() string {
 
 // GetEphemeralPublicKeyInfoV2 encapsulates all the ugly logic needed to
 // deal with the "negative hack" from
-// BareRootMetadataV2.UpdateKeyGeneration.
+// RootMetadataV2.UpdateKeyGeneration.
 func GetEphemeralPublicKeyInfoV2(info TLFCryptKeyInfo,
 	wkb TLFWriterKeyBundleV2, rkb TLFReaderKeyBundleV2) (
 	keyLocation EPubKeyLocationV2, index int,

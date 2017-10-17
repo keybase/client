@@ -52,14 +52,6 @@ func (e WriteAccessError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
 
-var _ fuse.ErrorNumber = MetadataIsFinalError{}
-
-// Errno implements the fuse.ErrorNumber interface for
-// MetadataIsFinalError.
-func (e MetadataIsFinalError) Errno() fuse.Errno {
-	return fuse.Errno(syscall.EACCES)
-}
-
 var _ fuse.ErrorNumber = WriteUnsupportedError{}
 
 // Errno implements the fuse.ErrorNumber interface for

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"fmt"
@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -60,21 +59,21 @@ type WriterMetadataV3 struct {
 	codec.UnknownFieldSetHandler
 }
 
-// BareRootMetadataV3 is the MD that is signed by the reader or
+// RootMetadataV3 is the MD that is signed by the reader or
 // writer. Unlike RootMetadata, it contains exactly the serializable
 // metadata.
-type BareRootMetadataV3 struct {
+type RootMetadataV3 struct {
 	// The metadata that is only editable by the writer.
 	WriterMetadata WriterMetadataV3 `codec:"wmd"`
 
-	// The last KB user who modified this BareRootMetadata
+	// The last KB user who modified this RootMetadata
 	LastModifyingUser keybase1.UID
 	// Flags
 	Flags MetadataFlags
 	// The revision number
-	Revision kbfsmd.Revision
+	Revision Revision
 	// Pointer to the previous root block ID
-	PrevRoot kbfsmd.ID
+	PrevRoot ID
 
 	// For private TLFs. Any unresolved social assertions for readers.
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
@@ -191,12 +190,24 @@ func (extra ExtraMetadataV3) GetReaderKeyBundle() TLFReaderKeyBundleV3 {
 	return extra.rkb
 }
 
-// MakeInitialBareRootMetadataV3 creates a new BareRootMetadataV3
-// object with revision kbfsmd.RevisionInitial, and the given TLF ID
+// IsWriterKeyBundleNew returns whether or not the writer key bundle
+// is new and should be sent to the server on an MD put.
+func (extra ExtraMetadataV3) IsWriterKeyBundleNew() bool {
+	return extra.wkbNew
+}
+
+// IsReaderKeyBundleNew returns whether or not the reader key bundle
+// is new and should be sent to the server on an MD put.
+func (extra ExtraMetadataV3) IsReaderKeyBundleNew() bool {
+	return extra.rkbNew
+}
+
+// MakeInitialRootMetadataV3 creates a new RootMetadataV3
+// object with revision RevisionInitial, and the given TLF ID
 // and handle. Note that if the given ID/handle are private, rekeying
 // must be done separately.
-func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
-	*BareRootMetadataV3, error) {
+func MakeInitialRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
+	*RootMetadataV3, error) {
 	if tlfID.Type() != h.Type() {
 		return nil, errors.New("TlfID and TlfHandle disagree on TLF type")
 	}
@@ -220,13 +231,13 @@ func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
 		copy(unresolvedReaders, h.UnresolvedReaders)
 	}
 
-	return &BareRootMetadataV3{
+	return &RootMetadataV3{
 		WriterMetadata: WriterMetadataV3{
 			Writers:           writers,
 			ID:                tlfID,
 			UnresolvedWriters: unresolvedWriters,
 		},
-		Revision:          kbfsmd.RevisionInitial,
+		Revision:          RevisionInitial,
 		UnresolvedReaders: unresolvedReaders,
 		// Normally an MD wouldn't start out with extensions, but this
 		// is useful for tests.
@@ -235,14 +246,14 @@ func MakeInitialBareRootMetadataV3(tlfID tlf.ID, h tlf.Handle) (
 	}, nil
 }
 
-// TlfID implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) TlfID() tlf.ID {
+// TlfID implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) TlfID() tlf.ID {
 	return md.WriterMetadata.ID
 }
 
-// KeyGenerationsToUpdate implements the BareRootMetadata interface
-// for BareRootMetadataV3.
-func (md *BareRootMetadataV3) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
+// KeyGenerationsToUpdate implements the RootMetadata interface
+// for RootMetadataV3.
+func (md *RootMetadataV3) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
 	latest := md.LatestKeyGeneration()
 	if latest < FirstValidKeyGen {
 		return 0, 0
@@ -251,17 +262,17 @@ func (md *BareRootMetadataV3) KeyGenerationsToUpdate() (KeyGen, KeyGen) {
 	return latest, latest + 1
 }
 
-// LatestKeyGeneration implements the BareRootMetadata interface for
-// BareRootMetadataV3.
-func (md *BareRootMetadataV3) LatestKeyGeneration() KeyGen {
+// LatestKeyGeneration implements the RootMetadata interface for
+// RootMetadataV3.
+func (md *RootMetadataV3) LatestKeyGeneration() KeyGen {
 	if md.TlfID().Type() == tlf.Public {
 		return PublicKeyGen
 	}
 	return md.WriterMetadata.LatestKeyGen
 }
 
-func (md *BareRootMetadataV3) haveOnlyUserRKeysChanged(
-	codec kbfscodec.Codec, prevMD *BareRootMetadataV3,
+func (md *RootMetadataV3) haveOnlyUserRKeysChanged(
+	codec kbfscodec.Codec, prevMD *RootMetadataV3,
 	user keybase1.UID, prevRkb, rkb TLFReaderKeyBundleV3) (bool, error) {
 	if len(rkb.Keys) != len(prevRkb.Keys) {
 		return false, nil
@@ -281,16 +292,16 @@ func (md *BareRootMetadataV3) haveOnlyUserRKeysChanged(
 	return true, nil
 }
 
-// IsValidRekeyRequest implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsValidRekeyRequest(
-	codec kbfscodec.Codec, prevBareMd BareRootMetadata,
+// IsValidRekeyRequest implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsValidRekeyRequest(
+	codec kbfscodec.Codec, prevBareMd RootMetadata,
 	user keybase1.UID, prevExtra, extra ExtraMetadata) (
 	bool, error) {
 	if !md.IsWriterMetadataCopiedSet() {
 		// Not a copy.
 		return false, nil
 	}
-	prevMd, ok := prevBareMd.(*BareRootMetadataV3)
+	prevMd, ok := prevBareMd.(*RootMetadataV3)
 	if !ok {
 		// Not the same type so not a copy.
 		return false, nil
@@ -324,30 +335,30 @@ func (md *BareRootMetadataV3) IsValidRekeyRequest(
 	return true, nil
 }
 
-// MergedStatus implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) MergedStatus() MergeStatus {
+// MergedStatus implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) MergedStatus() MergeStatus {
 	if md.WriterMetadata.WFlags&MetadataFlagUnmerged != 0 {
 		return Unmerged
 	}
 	return Merged
 }
 
-// IsRekeySet implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsRekeySet() bool {
+// IsRekeySet implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsRekeySet() bool {
 	return md.Flags&MetadataFlagRekey != 0
 }
 
-// IsWriterMetadataCopiedSet implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsWriterMetadataCopiedSet() bool {
+// IsWriterMetadataCopiedSet implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsWriterMetadataCopiedSet() bool {
 	return md.Flags&MetadataFlagWriterMetadataCopied != 0
 }
 
-// IsFinal implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsFinal() bool {
+// IsFinal implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsFinal() bool {
 	return md.Flags&MetadataFlagFinal != 0
 }
 
-func (md *BareRootMetadataV3) checkNonPrivateExtra(extra ExtraMetadata) error {
+func (md *RootMetadataV3) checkNonPrivateExtra(extra ExtraMetadata) error {
 	if md.TlfID().Type() == tlf.Private {
 		return errors.New("checkNonPrivateExtra called on private TLF")
 	}
@@ -359,7 +370,7 @@ func (md *BareRootMetadataV3) checkNonPrivateExtra(extra ExtraMetadata) error {
 	return nil
 }
 
-func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
+func (md *RootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
 	if md.TlfID().Type() != tlf.Private {
 		return nil, nil, InvalidNonPrivateTLFOperation{
@@ -380,7 +391,14 @@ func (md *BareRootMetadataV3) getTLFKeyBundles(extra ExtraMetadata) (
 	return &extraV3.wkb, &extraV3.rkb, nil
 }
 
-func (md *BareRootMetadataV3) isNonTeamWriter(
+// GetTLFKeyBundlesForTest returns the writer and reader key bundles
+// from extra.
+func (md *RootMetadataV3) GetTLFKeyBundlesForTest(extra ExtraMetadata) (
+	*TLFWriterKeyBundleV3, *TLFReaderKeyBundleV3, error) {
+	return md.getTLFKeyBundles(extra)
+}
+
+func (md *RootMetadataV3) isNonTeamWriter(
 	ctx context.Context, user keybase1.UID,
 	cryptKey kbfscrypto.CryptPublicKey, extra ExtraMetadata) (bool, error) {
 	switch md.TlfID().Type() {
@@ -407,8 +425,8 @@ func (md *BareRootMetadataV3) isNonTeamWriter(
 	}
 }
 
-// IsWriter implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsWriter(
+// IsWriter implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsWriter(
 	ctx context.Context, user keybase1.UID,
 	cryptKey kbfscrypto.CryptPublicKey, verifyingKey kbfscrypto.VerifyingKey,
 	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) (bool, error) {
@@ -437,8 +455,8 @@ func (md *BareRootMetadataV3) IsWriter(
 	}
 }
 
-// IsReader implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsReader(
+// IsReader implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsReader(
 	ctx context.Context, user keybase1.UID,
 	cryptKey kbfscrypto.CryptPublicKey, teamMemChecker TeamMembershipChecker,
 	extra ExtraMetadata) (bool, error) {
@@ -487,21 +505,21 @@ func (md *BareRootMetadataV3) IsReader(
 	}
 }
 
-// DeepCopy implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) DeepCopy(
-	codec kbfscodec.Codec) (MutableBareRootMetadata, error) {
-	var newMd BareRootMetadataV3
+// DeepCopy implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) DeepCopy(
+	codec kbfscodec.Codec) (MutableRootMetadata, error) {
+	var newMd RootMetadataV3
 	if err := kbfscodec.Update(codec, &newMd, md); err != nil {
 		return nil, err
 	}
 	return &newMd, nil
 }
 
-// MakeSuccessorCopy implements the ImmutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) MakeSuccessorCopy(
+// MakeSuccessorCopy implements the ImmutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) MakeSuccessorCopy(
 	codec kbfscodec.Codec, extra ExtraMetadata, _ MetadataVer,
 	_ func() ([]kbfscrypto.TLFCryptKey, error), isReadableAndWriter bool) (
-	MutableBareRootMetadata, ExtraMetadata, error) {
+	MutableRootMetadata, ExtraMetadata, error) {
 	var extraCopy ExtraMetadata
 	if extra != nil {
 		var err error
@@ -514,13 +532,13 @@ func (md *BareRootMetadataV3) MakeSuccessorCopy(
 	if err != nil {
 		return nil, nil, err
 	}
-	// TODO: If there is ever a BareRootMetadataV4 this will need to perform the conversion.
+	// TODO: If there is ever a RootMetadataV4 this will need to perform the conversion.
 	return mdCopy, extraCopy, nil
 }
 
-// CheckValidSuccessor implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) CheckValidSuccessor(
-	currID kbfsmd.ID, nextMd BareRootMetadata) error {
+// CheckValidSuccessor implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) CheckValidSuccessor(
+	currID ID, nextMd RootMetadata) error {
 	// (1) Verify current metadata is non-final.
 	if md.IsFinal() {
 		return MetadataIsFinalError{}
@@ -529,16 +547,16 @@ func (md *BareRootMetadataV3) CheckValidSuccessor(
 	// (2) Check TLF ID.
 	if nextMd.TlfID() != md.TlfID() {
 		return MDTlfIDMismatch{
-			currID: md.TlfID(),
-			nextID: nextMd.TlfID(),
+			CurrID: md.TlfID(),
+			NextID: nextMd.TlfID(),
 		}
 	}
 
 	// (3) Check revision.
 	if nextMd.RevisionNumber() != md.RevisionNumber()+1 {
 		return MDRevisionMismatch{
-			rev:  nextMd.RevisionNumber(),
-			curr: md.RevisionNumber(),
+			Rev:  nextMd.RevisionNumber(),
+			Curr: md.RevisionNumber(),
 		}
 	}
 
@@ -594,41 +612,41 @@ func (md *BareRootMetadataV3) CheckValidSuccessor(
 	return nil
 }
 
-// CheckValidSuccessorForServer implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) CheckValidSuccessorForServer(
-	currID kbfsmd.ID, nextMd BareRootMetadata) error {
+// CheckValidSuccessorForServer implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) CheckValidSuccessorForServer(
+	currID ID, nextMd RootMetadata) error {
 	err := md.CheckValidSuccessor(currID, nextMd)
 	switch err := err.(type) {
 	case nil:
 		break
 
 	case MDRevisionMismatch:
-		return kbfsmd.ServerErrorConflictRevision{
-			Expected: err.curr + 1,
-			Actual:   err.rev,
+		return ServerErrorConflictRevision{
+			Expected: err.Curr + 1,
+			Actual:   err.Rev,
 		}
 
 	case MDPrevRootMismatch:
-		return kbfsmd.ServerErrorConflictPrevRoot{
+		return ServerErrorConflictPrevRoot{
 			Expected: err.expectedPrevRoot,
 			Actual:   err.prevRoot,
 		}
 
 	case MDDiskUsageMismatch:
-		return kbfsmd.ServerErrorConflictDiskUsage{
+		return ServerErrorConflictDiskUsage{
 			Expected: err.expectedDiskUsage,
 			Actual:   err.actualDiskUsage,
 		}
 
 	default:
-		return kbfsmd.ServerError{Err: err}
+		return ServerError{Err: err}
 	}
 
 	return nil
 }
 
-// MakeBareTlfHandle implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
+// MakeBareTlfHandle implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
 	tlf.Handle, error) {
 	var writers, readers []keybase1.UserOrTeamID
 	if md.TlfID().Type() == tlf.Private {
@@ -669,8 +687,8 @@ func (md *BareRootMetadataV3) MakeBareTlfHandle(extra ExtraMetadata) (
 		md.TlfHandleExtensions())
 }
 
-// TlfHandleExtensions implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) TlfHandleExtensions() (
+// TlfHandleExtensions implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) TlfHandleExtensions() (
 	extensions []tlf.HandleExtension) {
 	if md.ConflictInfo != nil {
 		extensions = append(extensions, *md.ConflictInfo)
@@ -681,9 +699,9 @@ func (md *BareRootMetadataV3) TlfHandleExtensions() (
 	return extensions
 }
 
-// PromoteReaders implements the BareRootMetadata interface for
-// BareRootMetadataV3.
-func (md *BareRootMetadataV3) PromoteReaders(
+// PromoteReaders implements the RootMetadata interface for
+// RootMetadataV3.
+func (md *RootMetadataV3) PromoteReaders(
 	readersToPromote map[keybase1.UID]bool, extra ExtraMetadata) error {
 	if md.TlfID().Type() != tlf.Private {
 		return InvalidNonPrivateTLFOperation{md.TlfID(), "PromoteReaders", md.Version()}
@@ -718,9 +736,9 @@ func (md *BareRootMetadataV3) PromoteReaders(
 	return nil
 }
 
-// RevokeRemovedDevices implements the BareRootMetadata interface for
-// BareRootMetadataV3.
-func (md *BareRootMetadataV3) RevokeRemovedDevices(
+// RevokeRemovedDevices implements the RootMetadata interface for
+// RootMetadataV3.
+func (md *RootMetadataV3) RevokeRemovedDevices(
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	extra ExtraMetadata) (ServerHalfRemovalInfo, error) {
 	if md.TlfID().Type() != tlf.Private {
@@ -738,9 +756,9 @@ func (md *BareRootMetadataV3) RevokeRemovedDevices(
 	return wRemovalInfo.MergeUsers(rRemovalInfo)
 }
 
-// GetUserDevicePublicKeys implements the BareRootMetadata interface
-// for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetUserDevicePublicKeys(extra ExtraMetadata) (
+// GetUserDevicePublicKeys implements the RootMetadata interface
+// for RootMetadataV3.
+func (md *RootMetadataV3) GetUserDevicePublicKeys(extra ExtraMetadata) (
 	writerDeviceKeys, readerDeviceKeys UserDevicePublicKeys, err error) {
 	if md.TlfID().Type() != tlf.Private {
 		return nil, nil, InvalidNonPrivateTLFOperation{
@@ -755,23 +773,24 @@ func (md *BareRootMetadataV3) GetUserDevicePublicKeys(extra ExtraMetadata) (
 	return wkb.Keys.ToPublicKeys(), rkb.Keys.ToPublicKeys(), nil
 }
 
-// GetTLFCryptKeyParams implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
+// GetTLFCryptKeyParams implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetTLFCryptKeyParams(
 	keyGen KeyGen, user keybase1.UID,
 	key kbfscrypto.CryptPublicKey, extra ExtraMetadata) (
-	kbfscrypto.TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
-	TLFCryptKeyServerHalfID, bool, error) {
+	kbfscrypto.TLFEphemeralPublicKey,
+	kbfscrypto.EncryptedTLFCryptKeyClientHalf,
+	kbfscrypto.TLFCryptKeyServerHalfID, bool, error) {
 	if keyGen != md.LatestKeyGeneration() {
 		return kbfscrypto.TLFEphemeralPublicKey{},
-			EncryptedTLFCryptKeyClientHalf{},
-			TLFCryptKeyServerHalfID{}, false,
+			kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
+			kbfscrypto.TLFCryptKeyServerHalfID{}, false,
 			TLFCryptKeyNotPerDeviceEncrypted{md.TlfID(), keyGen}
 	}
 	wkb, rkb, err := md.getTLFKeyBundles(extra)
 	if err != nil {
 		return kbfscrypto.TLFEphemeralPublicKey{},
-			EncryptedTLFCryptKeyClientHalf{},
-			TLFCryptKeyServerHalfID{}, false, err
+			kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
+			kbfscrypto.TLFCryptKeyServerHalfID{}, false, err
 	}
 	isWriter := true
 	dkim := wkb.Keys[user]
@@ -779,16 +798,16 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 		dkim = rkb.Keys[user]
 		if dkim == nil {
 			return kbfscrypto.TLFEphemeralPublicKey{},
-				EncryptedTLFCryptKeyClientHalf{},
-				TLFCryptKeyServerHalfID{}, false, nil
+				kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
+				kbfscrypto.TLFCryptKeyServerHalfID{}, false, nil
 		}
 		isWriter = false
 	}
 	info, ok := dkim[key]
 	if !ok {
 		return kbfscrypto.TLFEphemeralPublicKey{},
-			EncryptedTLFCryptKeyClientHalf{},
-			TLFCryptKeyServerHalfID{}, false, nil
+			kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
+			kbfscrypto.TLFCryptKeyServerHalfID{}, false, nil
 	}
 
 	var publicKeys kbfscrypto.TLFEphemeralPublicKeys
@@ -804,17 +823,19 @@ func (md *BareRootMetadataV3) GetTLFCryptKeyParams(
 	index := info.EPubKeyIndex
 	if index >= keyCount {
 		return kbfscrypto.TLFEphemeralPublicKey{},
-			EncryptedTLFCryptKeyClientHalf{},
-			TLFCryptKeyServerHalfID{}, false,
+			kbfscrypto.EncryptedTLFCryptKeyClientHalf{},
+			kbfscrypto.TLFCryptKeyServerHalfID{}, false,
 			errors.Errorf("Invalid %s key index %d >= %d",
 				keyType, index, keyCount)
 	}
 	return publicKeys[index], info.ClientHalf, info.ServerHalfID, true, nil
 }
 
-func checkWKBID(codec kbfscodec.Codec,
+// CheckWKBID returns an error if the ID of the given writer key
+// bundle doesn't match the given one.
+func CheckWKBID(codec kbfscodec.Codec,
 	wkbID TLFWriterKeyBundleID, wkb TLFWriterKeyBundleV3) error {
-	computedWKBID, err := kbfsmd.MakeTLFWriterKeyBundleID(codec, wkb)
+	computedWKBID, err := MakeTLFWriterKeyBundleID(codec, wkb)
 	if err != nil {
 		return err
 	}
@@ -827,9 +848,11 @@ func checkWKBID(codec kbfscodec.Codec,
 	return nil
 }
 
-func checkRKBID(codec kbfscodec.Codec,
+// CheckRKBID returns an error if the ID of the given reader key
+// bundle doesn't match the given one.
+func CheckRKBID(codec kbfscodec.Codec,
 	rkbID TLFReaderKeyBundleID, rkb TLFReaderKeyBundleV3) error {
-	computedRKBID, err := kbfsmd.MakeTLFReaderKeyBundleID(codec, rkb)
+	computedRKBID, err := MakeTLFReaderKeyBundleID(codec, rkb)
 	if err != nil {
 		return err
 	}
@@ -842,8 +865,8 @@ func checkRKBID(codec kbfscodec.Codec,
 	return nil
 }
 
-// IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsValidAndSigned(
+// IsValidAndSigned implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsValidAndSigned(
 	ctx context.Context, codec kbfscodec.Codec,
 	teamMemChecker TeamMembershipChecker, extra ExtraMetadata,
 	writerVerifyingKey kbfscrypto.VerifyingKey) error {
@@ -853,12 +876,12 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 			return err
 		}
 
-		err = checkWKBID(codec, md.GetTLFWriterKeyBundleID(), *wkb)
+		err = CheckWKBID(codec, md.GetTLFWriterKeyBundleID(), *wkb)
 		if err != nil {
 			return err
 		}
 
-		err = checkRKBID(codec, md.GetTLFReaderKeyBundleID(), *rkb)
+		err = CheckRKBID(codec, md.GetTLFReaderKeyBundleID(), *rkb)
 		if err != nil {
 			return err
 		}
@@ -870,30 +893,30 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 	}
 
 	if md.IsFinal() {
-		if md.Revision < kbfsmd.RevisionInitial+1 {
+		if md.Revision < RevisionInitial+1 {
 			return errors.Errorf("Invalid final revision %d", md.Revision)
 		}
 
-		if md.Revision == (kbfsmd.RevisionInitial + 1) {
-			if md.PrevRoot != (kbfsmd.ID{}) {
+		if md.Revision == (RevisionInitial + 1) {
+			if md.PrevRoot != (ID{}) {
 				return errors.Errorf("Invalid PrevRoot %s for initial final revision", md.PrevRoot)
 			}
 		} else {
-			if md.PrevRoot == (kbfsmd.ID{}) {
+			if md.PrevRoot == (ID{}) {
 				return errors.New("No PrevRoot for non-initial final revision")
 			}
 		}
 	} else {
-		if md.Revision < kbfsmd.RevisionInitial {
+		if md.Revision < RevisionInitial {
 			return errors.Errorf("Invalid revision %d", md.Revision)
 		}
 
-		if md.Revision == kbfsmd.RevisionInitial {
-			if md.PrevRoot != (kbfsmd.ID{}) {
+		if md.Revision == RevisionInitial {
+			if md.PrevRoot != (ID{}) {
 				return errors.Errorf("Invalid PrevRoot %s for initial revision", md.PrevRoot)
 			}
 		} else {
-			if md.PrevRoot == (kbfsmd.ID{}) {
+			if md.PrevRoot == (ID{}) {
 				return errors.New("No PrevRoot for non-initial revision")
 			}
 		}
@@ -952,9 +975,9 @@ func (md *BareRootMetadataV3) IsValidAndSigned(
 	return nil
 }
 
-// IsLastModifiedBy implements the BareRootMetadata interface for
-// BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsLastModifiedBy(
+// IsLastModifiedBy implements the RootMetadata interface for
+// RootMetadataV3.
+func (md *RootMetadataV3) IsLastModifiedBy(
 	uid keybase1.UID, key kbfscrypto.VerifyingKey) error {
 	// Verify the user and device are the writer.
 	writer := md.LastModifyingWriter()
@@ -973,160 +996,160 @@ func (md *BareRootMetadataV3) IsLastModifiedBy(
 	return nil
 }
 
-// LastModifyingWriter implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) LastModifyingWriter() keybase1.UID {
+// LastModifyingWriter implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) LastModifyingWriter() keybase1.UID {
 	return md.WriterMetadata.LastModifyingWriter
 }
 
-// GetLastModifyingUser implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetLastModifyingUser() keybase1.UID {
+// GetLastModifyingUser implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetLastModifyingUser() keybase1.UID {
 	return md.LastModifyingUser
 }
 
-// RefBytes implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) RefBytes() uint64 {
+// RefBytes implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) RefBytes() uint64 {
 	return md.WriterMetadata.RefBytes
 }
 
-// UnrefBytes implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) UnrefBytes() uint64 {
+// UnrefBytes implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) UnrefBytes() uint64 {
 	return md.WriterMetadata.UnrefBytes
 }
 
-// MDRefBytes implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) MDRefBytes() uint64 {
+// MDRefBytes implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) MDRefBytes() uint64 {
 	return md.WriterMetadata.MDRefBytes
 }
 
-// DiskUsage implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) DiskUsage() uint64 {
+// DiskUsage implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) DiskUsage() uint64 {
 	return md.WriterMetadata.DiskUsage
 }
 
-// MDDiskUsage implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) MDDiskUsage() uint64 {
+// MDDiskUsage implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) MDDiskUsage() uint64 {
 	return md.WriterMetadata.MDDiskUsage
 }
 
-// SetRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetRefBytes(refBytes uint64) {
+// SetRefBytes implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetRefBytes(refBytes uint64) {
 	md.WriterMetadata.RefBytes = refBytes
 }
 
-// SetUnrefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetUnrefBytes(unrefBytes uint64) {
+// SetUnrefBytes implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetUnrefBytes(unrefBytes uint64) {
 	md.WriterMetadata.UnrefBytes = unrefBytes
 }
 
-// SetMDRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetMDRefBytes(mdRefBytes uint64) {
+// SetMDRefBytes implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetMDRefBytes(mdRefBytes uint64) {
 	md.WriterMetadata.MDRefBytes = mdRefBytes
 }
 
-// SetDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetDiskUsage(diskUsage uint64) {
+// SetDiskUsage implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetDiskUsage(diskUsage uint64) {
 	md.WriterMetadata.DiskUsage = diskUsage
 }
 
-// SetMDDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetMDDiskUsage(mdDiskUsage uint64) {
+// SetMDDiskUsage implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetMDDiskUsage(mdDiskUsage uint64) {
 	md.WriterMetadata.MDDiskUsage = mdDiskUsage
 }
 
-// AddRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddRefBytes(refBytes uint64) {
+// AddRefBytes implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) AddRefBytes(refBytes uint64) {
 	md.WriterMetadata.RefBytes += refBytes
 }
 
-// AddUnrefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddUnrefBytes(unrefBytes uint64) {
+// AddUnrefBytes implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) AddUnrefBytes(unrefBytes uint64) {
 	md.WriterMetadata.UnrefBytes += unrefBytes
 }
 
-// AddMDRefBytes implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddMDRefBytes(mdRefBytes uint64) {
+// AddMDRefBytes implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) AddMDRefBytes(mdRefBytes uint64) {
 	md.WriterMetadata.MDRefBytes += mdRefBytes
 }
 
-// AddDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddDiskUsage(diskUsage uint64) {
+// AddDiskUsage implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) AddDiskUsage(diskUsage uint64) {
 	md.WriterMetadata.DiskUsage += diskUsage
 }
 
-// AddMDDiskUsage implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddMDDiskUsage(mdDiskUsage uint64) {
+// AddMDDiskUsage implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) AddMDDiskUsage(mdDiskUsage uint64) {
 	md.WriterMetadata.MDDiskUsage += mdDiskUsage
 }
 
-// RevisionNumber implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) RevisionNumber() kbfsmd.Revision {
+// RevisionNumber implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) RevisionNumber() Revision {
 	return md.Revision
 }
 
-// MerkleRoot implements the BareRootMetadata interface for
-// BareRootMetadataV3.
-func (md *BareRootMetadataV3) MerkleRoot() keybase1.MerkleRootV2 {
+// MerkleRoot implements the RootMetadata interface for
+// RootMetadataV3.
+func (md *RootMetadataV3) MerkleRoot() keybase1.MerkleRootV2 {
 	return *md.KBMerkleRoot
 }
 
-// BID implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) BID() BranchID {
+// BID implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) BID() BranchID {
 	return md.WriterMetadata.BID
 }
 
-// GetPrevRoot implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetPrevRoot() kbfsmd.ID {
+// GetPrevRoot implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetPrevRoot() ID {
 	return md.PrevRoot
 }
 
-// ClearRekeyBit implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) ClearRekeyBit() {
+// ClearRekeyBit implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) ClearRekeyBit() {
 	md.Flags &= ^MetadataFlagRekey
 }
 
-// ClearWriterMetadataCopiedBit implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) ClearWriterMetadataCopiedBit() {
+// ClearWriterMetadataCopiedBit implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) ClearWriterMetadataCopiedBit() {
 	md.Flags &= ^MetadataFlagWriterMetadataCopied
 }
 
-// IsUnmergedSet implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) IsUnmergedSet() bool {
+// IsUnmergedSet implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) IsUnmergedSet() bool {
 	return (md.WriterMetadata.WFlags & MetadataFlagUnmerged) != 0
 }
 
-// SetUnmerged implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetUnmerged() {
+// SetUnmerged implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetUnmerged() {
 	md.WriterMetadata.WFlags |= MetadataFlagUnmerged
 }
 
-// SetBranchID implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetBranchID(bid BranchID) {
+// SetBranchID implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetBranchID(bid BranchID) {
 	md.WriterMetadata.BID = bid
 }
 
-// SetPrevRoot implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetPrevRoot(mdID kbfsmd.ID) {
+// SetPrevRoot implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetPrevRoot(mdID ID) {
 	md.PrevRoot = mdID
 }
 
-// GetSerializedPrivateMetadata implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetSerializedPrivateMetadata() []byte {
+// GetSerializedPrivateMetadata implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetSerializedPrivateMetadata() []byte {
 	return md.WriterMetadata.SerializedPrivateMetadata
 }
 
-// SetSerializedPrivateMetadata implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetSerializedPrivateMetadata(spmd []byte) {
+// SetSerializedPrivateMetadata implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetSerializedPrivateMetadata(spmd []byte) {
 	md.WriterMetadata.SerializedPrivateMetadata = spmd
 }
 
-// GetSerializedWriterMetadata implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetSerializedWriterMetadata(
+// GetSerializedWriterMetadata implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetSerializedWriterMetadata(
 	codec kbfscodec.Codec) ([]byte, error) {
 	return codec.Encode(md.WriterMetadata)
 }
 
-// SignWriterMetadataInternally implements the MutableBareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV3) SignWriterMetadataInternally(
+// SignWriterMetadataInternally implements the MutableRootMetadata interface for RootMetadataV2.
+func (md *RootMetadataV3) SignWriterMetadataInternally(
 	ctx context.Context, codec kbfscodec.Codec,
 	signer kbfscrypto.Signer) error {
 	// Nothing to do.
@@ -1136,43 +1159,43 @@ func (md *BareRootMetadataV3) SignWriterMetadataInternally(
 	return nil
 }
 
-// SetLastModifyingWriter implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetLastModifyingWriter(user keybase1.UID) {
+// SetLastModifyingWriter implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetLastModifyingWriter(user keybase1.UID) {
 	md.WriterMetadata.LastModifyingWriter = user
 }
 
-// SetLastModifyingUser implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetLastModifyingUser(user keybase1.UID) {
+// SetLastModifyingUser implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetLastModifyingUser(user keybase1.UID) {
 	md.LastModifyingUser = user
 }
 
-// SetRekeyBit implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetRekeyBit() {
+// SetRekeyBit implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetRekeyBit() {
 	md.Flags |= MetadataFlagRekey
 }
 
-// SetFinalBit implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetFinalBit() {
+// SetFinalBit implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetFinalBit() {
 	md.Flags |= MetadataFlagFinal
 }
 
-// SetWriterMetadataCopiedBit implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetWriterMetadataCopiedBit() {
+// SetWriterMetadataCopiedBit implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetWriterMetadataCopiedBit() {
 	md.Flags |= MetadataFlagWriterMetadataCopied
 }
 
-// SetRevision implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetRevision(revision kbfsmd.Revision) {
+// SetRevision implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetRevision(revision Revision) {
 	md.Revision = revision
 }
 
-// SetMerkleRoot implements the MutableBareRootMetadata interface for
-// BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetMerkleRoot(root keybase1.MerkleRootV2) {
+// SetMerkleRoot implements the MutableRootMetadata interface for
+// RootMetadataV3.
+func (md *RootMetadataV3) SetMerkleRoot(root keybase1.MerkleRootV2) {
 	md.KBMerkleRoot = &root
 }
 
-func (md *BareRootMetadataV3) updateKeyBundles(codec kbfscodec.Codec,
+func (md *RootMetadataV3) updateKeyBundles(codec kbfscodec.Codec,
 	extra ExtraMetadata,
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
@@ -1227,9 +1250,9 @@ func (md *BareRootMetadataV3) updateKeyBundles(codec kbfscodec.Codec,
 	return wServerHalves.MergeUsers(rServerHalves)
 }
 
-// AddKeyGeneration implements the MutableBareRootMetadata interface
-// for BareRootMetadataV3.
-func (md *BareRootMetadataV3) AddKeyGeneration(
+// AddKeyGeneration implements the MutableRootMetadata interface
+// for RootMetadataV3.
+func (md *RootMetadataV3) AddKeyGeneration(
 	codec kbfscodec.Codec, currExtra ExtraMetadata,
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
@@ -1253,7 +1276,7 @@ func (md *BareRootMetadataV3) AddKeyGeneration(
 	}
 
 	latestKeyGen := md.LatestKeyGeneration()
-	var encryptedHistoricKeys EncryptedTLFCryptKeys
+	var encryptedHistoricKeys kbfscrypto.EncryptedTLFCryptKeys
 	if currCryptKey == (kbfscrypto.TLFCryptKey{}) {
 		if latestKeyGen >= FirstValidKeyGen {
 			return nil, nil, errors.Errorf(
@@ -1334,8 +1357,8 @@ func (md *BareRootMetadataV3) AddKeyGeneration(
 }
 
 // SetLatestKeyGenerationForTeamTLF implements the
-// MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetLatestKeyGenerationForTeamTLF(keyGen KeyGen) {
+// MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetLatestKeyGenerationForTeamTLF(keyGen KeyGen) {
 	if md.TlfID().Type() != tlf.SingleTeam {
 		panic(fmt.Sprintf(
 			"Can't call SetLatestKeyGenerationForTeamTLF on a %s TLF",
@@ -1345,49 +1368,49 @@ func (md *BareRootMetadataV3) SetLatestKeyGenerationForTeamTLF(keyGen KeyGen) {
 	md.WriterMetadata.LatestKeyGen = keyGen
 }
 
-// SetUnresolvedReaders implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetUnresolvedReaders(readers []keybase1.SocialAssertion) {
+// SetUnresolvedReaders implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetUnresolvedReaders(readers []keybase1.SocialAssertion) {
 	md.UnresolvedReaders = readers
 }
 
-// SetUnresolvedWriters implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetUnresolvedWriters(writers []keybase1.SocialAssertion) {
+// SetUnresolvedWriters implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetUnresolvedWriters(writers []keybase1.SocialAssertion) {
 	md.WriterMetadata.UnresolvedWriters = writers
 }
 
-// SetConflictInfo implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetConflictInfo(ci *tlf.HandleExtension) {
+// SetConflictInfo implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetConflictInfo(ci *tlf.HandleExtension) {
 	md.ConflictInfo = ci
 }
 
-// SetFinalizedInfo implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetFinalizedInfo(fi *tlf.HandleExtension) {
+// SetFinalizedInfo implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetFinalizedInfo(fi *tlf.HandleExtension) {
 	md.FinalizedInfo = fi
 }
 
-// SetWriters implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetWriters(writers []keybase1.UserOrTeamID) {
+// SetWriters implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetWriters(writers []keybase1.UserOrTeamID) {
 	md.WriterMetadata.Writers = writers
 }
 
-// SetTlfID implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) SetTlfID(tlf tlf.ID) {
+// SetTlfID implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) SetTlfID(tlf tlf.ID) {
 	md.WriterMetadata.ID = tlf
 }
 
-// ClearFinalBit implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) ClearFinalBit() {
+// ClearFinalBit implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) ClearFinalBit() {
 	md.Flags &= ^MetadataFlagFinal
 }
 
-// Version implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) Version() MetadataVer {
+// Version implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) Version() MetadataVer {
 	return SegregatedKeyBundlesVer
 }
 
-// GetCurrentTLFPublicKey implements the BareRootMetadata interface
-// for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetCurrentTLFPublicKey(
+// GetCurrentTLFPublicKey implements the RootMetadata interface
+// for RootMetadataV3.
+func (md *RootMetadataV3) GetCurrentTLFPublicKey(
 	extra ExtraMetadata) (kbfscrypto.TLFPublicKey, error) {
 	wkb, _, err := md.getTLFKeyBundles(extra)
 	if err != nil {
@@ -1396,8 +1419,8 @@ func (md *BareRootMetadataV3) GetCurrentTLFPublicKey(
 	return wkb.TLFPublicKey, nil
 }
 
-// GetUnresolvedParticipants implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetUnresolvedParticipants() []keybase1.SocialAssertion {
+// GetUnresolvedParticipants implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetUnresolvedParticipants() []keybase1.SocialAssertion {
 	writers := md.WriterMetadata.UnresolvedWriters
 	readers := md.UnresolvedReaders
 	users := make([]keybase1.SocialAssertion, 0, len(writers)+len(readers))
@@ -1406,9 +1429,9 @@ func (md *BareRootMetadataV3) GetUnresolvedParticipants() []keybase1.SocialAsser
 	return users
 }
 
-// UpdateKeyBundles implements the MutableBareRootMetadata interface
-// for BareRootMetadataV3.
-func (md *BareRootMetadataV3) UpdateKeyBundles(codec kbfscodec.Codec,
+// UpdateKeyBundles implements the MutableRootMetadata interface
+// for RootMetadataV3.
+func (md *RootMetadataV3) UpdateKeyBundles(codec kbfscodec.Codec,
 	extra ExtraMetadata,
 	updatedWriterKeys, updatedReaderKeys UserDevicePublicKeys,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey,
@@ -1431,18 +1454,18 @@ func (md *BareRootMetadataV3) UpdateKeyBundles(codec kbfscodec.Codec,
 	return []UserDeviceKeyServerHalves{serverHalves}, nil
 }
 
-// GetTLFWriterKeyBundleID implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
+// GetTLFWriterKeyBundleID implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetTLFWriterKeyBundleID() TLFWriterKeyBundleID {
 	return md.WriterMetadata.WKeyBundleID
 }
 
-// GetTLFReaderKeyBundleID implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
+// GetTLFReaderKeyBundleID implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetTLFReaderKeyBundleID() TLFReaderKeyBundleID {
 	return md.RKeyBundleID
 }
 
-// FinalizeRekey implements the MutableBareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) FinalizeRekey(
+// FinalizeRekey implements the MutableRootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) FinalizeRekey(
 	codec kbfscodec.Codec, extra ExtraMetadata) error {
 	extraV3, ok := extra.(*ExtraMetadataV3)
 	if !ok {
@@ -1451,11 +1474,11 @@ func (md *BareRootMetadataV3) FinalizeRekey(
 	oldWKBID := md.WriterMetadata.WKeyBundleID
 	oldRKBID := md.RKeyBundleID
 
-	newWKBID, err := kbfsmd.MakeTLFWriterKeyBundleID(codec, extraV3.wkb)
+	newWKBID, err := MakeTLFWriterKeyBundleID(codec, extraV3.wkb)
 	if err != nil {
 		return err
 	}
-	newRKBID, err := kbfsmd.MakeTLFReaderKeyBundleID(codec, extraV3.rkb)
+	newRKBID, err := MakeTLFReaderKeyBundleID(codec, extraV3.rkb)
 	if err != nil {
 		return err
 	}
@@ -1468,13 +1491,13 @@ func (md *BareRootMetadataV3) FinalizeRekey(
 	return nil
 }
 
-// StoresHistoricTLFCryptKeys implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) StoresHistoricTLFCryptKeys() bool {
+// StoresHistoricTLFCryptKeys implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) StoresHistoricTLFCryptKeys() bool {
 	return true
 }
 
-// GetHistoricTLFCryptKey implements the BareRootMetadata interface for BareRootMetadataV3.
-func (md *BareRootMetadataV3) GetHistoricTLFCryptKey(codec kbfscodec.Codec,
+// GetHistoricTLFCryptKey implements the RootMetadata interface for RootMetadataV3.
+func (md *RootMetadataV3) GetHistoricTLFCryptKey(codec kbfscodec.Codec,
 	keyGen KeyGen, currentKey kbfscrypto.TLFCryptKey, extra ExtraMetadata) (
 	kbfscrypto.TLFCryptKey, error) {
 	extraV3, ok := extra.(*ExtraMetadataV3)

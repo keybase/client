@@ -533,7 +533,7 @@ func testMDJournalPutCase4(t *testing.T, ver MetadataVer) {
 	ctx := context.Background()
 	md := makeMDForTest(t, ver, id, kbfsmd.Revision(10), j.uid, signer, kbfsmd.FakeID(1))
 	md.SetUnmerged()
-	md.SetBranchID(FakeBranchID(1))
+	md.SetBranchID(kbfsmd.FakeBranchID(1))
 	_, err := j.put(ctx, signer, ekg, bsplit, md, false)
 	require.NoError(t, err)
 }
@@ -880,7 +880,7 @@ func testMDJournalClear(t *testing.T, ver MetadataVer) {
 	require.Error(t, err)
 
 	// Clearing a different branch ID should do nothing.
-	err = j.clear(ctx, FakeBranchID(1))
+	err = j.clear(ctx, kbfsmd.FakeBranchID(1))
 	require.NoError(t, err)
 	require.Equal(t, bid, j.branchID)
 

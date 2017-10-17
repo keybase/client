@@ -83,7 +83,7 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 
 	mdcache := NewMDCacheStandard(2)
 	testMdcachePut(t, id0, 0, NullBranchID, h0, mdcache)
-	bid := FakeBranchID(1)
+	bid := kbfsmd.FakeBranchID(1)
 	testMdcachePut(t, id1, 0, bid, h1, mdcache)
 	testMdcachePut(t, id2, 1, NullBranchID, h2, mdcache)
 
@@ -103,7 +103,7 @@ func TestMdcacheReplace(t *testing.T) {
 	require.NoError(t, err)
 
 	// Change the BID
-	bid := FakeBranchID(1)
+	bid := kbfsmd.FakeBranchID(1)
 	newRmd, err := irmd.deepCopy(kbfscodec.NewMsgpack())
 	require.NoError(t, err)
 

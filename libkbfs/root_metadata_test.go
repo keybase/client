@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -23,6 +25,146 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
+
+var testMetadataVers = []MetadataVer{
+	InitialExtraMetadataVer, SegregatedKeyBundlesVer,
+}
+
+// runTestOverMetadataVers runs the given test function over all
+// metadata versions to test. The test is assumed to be parallelizable
+// with other instances of itself. Example use:
+//
+// func TestFoo(t *testing.T) {
+//	runTestOverMetadataVers(t, testFoo)
+// }
+//
+// func testFoo(t *testing.T, ver MetadataVer) {
+//	...
+// 	brmd, err := MakeInitialRootMetadata(ver, ...)
+//	...
+// }
+func runTestOverMetadataVers(
+	t *testing.T, f func(t *testing.T, ver MetadataVer)) {
+	for _, ver := range testMetadataVers {
+		ver := ver // capture range variable.
+		t.Run(ver.String(), func(t *testing.T) {
+			f(t, ver)
+		})
+	}
+}
+
+// runTestsOverMetadataVers runs the given list of test functions over
+// all metadata versions to test. prefix should be the common prefix
+// for all the test function names, and the names of the subtest will
+// be taken to be the strings after that prefix. Example use:
+//
+// func TestFoo(t *testing.T) {
+// 	tests := []func(*testing.T, MetadataVer){
+//		testFooBar1,
+//		testFooBar2,
+//		testFooBar3,
+//		...
+//	}
+//	runTestsOverMetadataVers(t, "testFoo", tests)
+// }
+func runTestsOverMetadataVers(t *testing.T, prefix string,
+	fs []func(t *testing.T, ver MetadataVer)) {
+	for _, f := range fs {
+		f := f // capture range variable.
+		name := runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
+		i := strings.LastIndex(name, prefix)
+		if i >= 0 {
+			i += len(prefix)
+		} else {
+			i = 0
+		}
+		name = name[i:]
+		t.Run(name, func(t *testing.T) {
+			runTestOverMetadataVers(t, f)
+		})
+	}
+}
+
+// runBenchmarkOverMetadataVers runs the given benchmark function over
+// all metadata versions to test. Example use:
+//
+// func BenchmarkFoo(b *testing.B) {
+//	runBenchmarkOverMetadataVers(b, testFoo)
+// }
+//
+// func benchmarkFoo(b *testing.B, ver MetadataVer) {
+//	...
+// 	brmd, err := MakeInitialRootMetadata(ver, ...)
+//	...
+// }
+func runBenchmarkOverMetadataVers(
+	b *testing.B, f func(b *testing.B, ver MetadataVer)) {
+	for _, ver := range testMetadataVers {
+		ver := ver // capture range variable.
+		b.Run(ver.String(), func(b *testing.B) {
+			f(b, ver)
+		})
+	}
+}
+
+// TODO: Add way to test with all possible (ver, maxVer) combos,
+// e.g. for upconversion tests.
+
+func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
+	tlfID := tlf.FakeID(1, tlf.Private)
+
+	uid := keybase1.MakeTestUID(1)
+	bh, err := tlf.MakeHandle(
+		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	brmd, err := kbfsmd.MakeInitialRootMetadata(ver, tlfID, bh)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+	codec := kbfscodec.NewMsgpack()
+	signer := kbfscrypto.SigningKeySigner{
+		Key: kbfscrypto.MakeFakeSigningKeyOrBust("key"),
+	}
+
+	extra := kbfsmd.FakeInitialRekey(brmd, bh, kbfscrypto.TLFPublicKey{})
+
+	brmd.SetLastModifyingWriter(uid)
+	brmd.SetLastModifyingUser(uid)
+	brmd.SetSerializedPrivateMetadata([]byte{42})
+	err = brmd.SignWriterMetadataInternally(ctx, codec, signer)
+	require.NoError(t, err)
+
+	rmds, err := SignBareRootMetadata(
+		ctx, codec, signer, signer, brmd, time.Time{})
+	require.NoError(t, err)
+
+	// verify it
+	err = rmds.IsValidAndSigned(ctx, codec, nil, extra)
+	require.NoError(t, err)
+
+	ext, err := tlf.NewHandleExtension(
+		tlf.HandleExtensionFinalized, 1, "fake user", time.Now())
+	require.NoError(t, err)
+
+	// make a final copy
+	rmds2, err := rmds.MakeFinalCopy(codec, time.Now(), ext)
+	require.NoError(t, err)
+
+	// verify the finalized copy
+	err = rmds2.IsValidAndSigned(ctx, codec, nil, extra)
+	require.NoError(t, err)
+
+	// touch something the server shouldn't be allowed to edit for
+	// finalized metadata and verify verification failure.
+	md3, err := rmds2.MD.DeepCopy(codec)
+	require.NoError(t, err)
+	md3.SetRekeyBit()
+	rmds3 := rmds2
+	rmds2.MD = md3
+	err = rmds3.IsValidAndSigned(ctx, codec, nil, extra)
+	require.NotNil(t, err)
+}
 
 type privateMetadataFuture struct {
 	PrivateMetadata
@@ -272,7 +414,7 @@ func testRootMetadataFinalIsFinal(t *testing.T, ver MetadataVer) {
 	rmd.SetFinalBit()
 	_, err = rmd.MakeSuccessor(context.Background(), -1, nil, nil, nil,
 		nil, kbfsmd.FakeID(1), true)
-	_, isFinalError := err.(MetadataIsFinalError)
+	_, isFinalError := err.(kbfsmd.MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
 }
 
@@ -330,8 +472,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, KeyGen(1), rmd.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
-	require.Equal(t, 0, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
-	require.Equal(t, 1, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
+	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
+	require.Equal(t, 1, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
 
 	// revoke bob's device
 	_, bobID, err := config.KBPKI().Resolve(context.Background(), "bob")
@@ -348,8 +490,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, KeyGen(2), rmd.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
-	require.Equal(t, 1, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
-	require.Equal(t, 0, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
+	require.Equal(t, 1, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
+	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// prove charlie
 	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
@@ -362,8 +504,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, KeyGen(2), rmd.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
-	require.Equal(t, 2, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
-	require.Equal(t, 0, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
+	require.Equal(t, 2, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
+	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// add a device for charlie and rekey as charlie
 	_, charlieID, err := config.KBPKI().Resolve(context.Background(), "charlie")
@@ -384,8 +526,8 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, KeyGen(2), rmd.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
-	require.Equal(t, 2, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
-	require.Equal(t, 1, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
+	require.Equal(t, 2, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
+	require.Equal(t, 1, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// override the metadata version
 	config.metadataVersion = SegregatedKeyBundlesVer
@@ -399,10 +541,10 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	require.Equal(t, KeyGen(2), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
 	require.Equal(t, SegregatedKeyBundlesVer, rmd2.Version())
-	extra, ok := rmd2.extra.(*ExtraMetadataV3)
+	extra, ok := rmd2.extra.(*kbfsmd.ExtraMetadataV3)
 	require.True(t, ok)
-	require.True(t, extra.wkbNew)
-	require.True(t, extra.rkbNew)
+	require.True(t, extra.IsWriterKeyBundleNew())
+	require.True(t, extra.IsReaderKeyBundleNew())
 
 	// compare numbers
 	require.Equal(t, diskUsage, rmd2.DiskUsage())
@@ -452,10 +594,10 @@ func TestRootMetadataUpconversionPrivate(t *testing.T) {
 	// Rekeying again shouldn't change wkbNew/rkbNew.
 	err = rmd2.finalizeRekey(config.Codec())
 	require.NoError(t, err)
-	extra, ok = rmd2.extra.(*ExtraMetadataV3)
+	extra, ok = rmd2.extra.(*kbfsmd.ExtraMetadataV3)
 	require.True(t, ok)
-	require.True(t, extra.wkbNew)
-	require.True(t, extra.rkbNew)
+	require.True(t, extra.IsWriterKeyBundleNew())
+	require.True(t, extra.IsReaderKeyBundleNew())
 }
 
 // Test upconversion from MDv2 to MDv3 for a public folder.
@@ -545,8 +687,8 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	require.Equal(t, KeyGen(1), rmd.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
-	require.Equal(t, 0, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
-	require.Equal(t, 1, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
+	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
+	require.Equal(t, 1, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
 	require.True(t, rmd.IsReadable())
 
 	// override the metadata version
@@ -561,16 +703,16 @@ func TestRootMetadataUpconversionPrivateConflict(t *testing.T) {
 	require.Equal(t, KeyGen(1), rmd2.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(2), rmd2.Revision())
 	require.Equal(t, SegregatedKeyBundlesVer, rmd2.Version())
-	extra, ok := rmd2.extra.(*ExtraMetadataV3)
+	extra, ok := rmd2.extra.(*kbfsmd.ExtraMetadataV3)
 	require.True(t, ok)
-	require.True(t, extra.wkbNew)
-	require.True(t, extra.rkbNew)
+	require.True(t, extra.IsWriterKeyBundleNew())
+	require.True(t, extra.IsReaderKeyBundleNew())
 
 	// Check the handle, but the cached handle in the MD is a direct copy...
 	require.Equal(
 		t, h.GetCanonicalPath(), rmd2.GetTlfHandle().GetCanonicalPath())
 	// So also check that the conflict info is set in the MD itself.
-	require.NotNil(t, rmd2.bareMd.(*BareRootMetadataV3).ConflictInfo)
+	require.NotNil(t, rmd2.bareMd.(*kbfsmd.RootMetadataV3).ConflictInfo)
 }
 
 // The server will be reusing IsLastModifiedBy and we don't want a client
@@ -639,8 +781,8 @@ func TestRootMetadataReaderUpconversionPrivate(t *testing.T) {
 	require.Equal(t, KeyGen(1), rmd.LatestKeyGeneration())
 	require.Equal(t, kbfsmd.Revision(1), rmd.Revision())
 	require.Equal(t, PreExtraMetadataVer, rmd.Version())
-	require.Equal(t, 1, len(rmd.bareMd.(*BareRootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
-	require.Equal(t, 0, len(rmd.bareMd.(*BareRootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
+	require.Equal(t, 1, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).WKeys[0].TLFEphemeralPublicKeys))
+	require.Equal(t, 0, len(rmd.bareMd.(*kbfsmd.RootMetadataV2).RKeys[0].TLFReaderEphemeralPublicKeys))
 
 	// Set the private MD, to make sure it gets copied properly during
 	// upconversion.
@@ -837,6 +979,7 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 
 func TestRootMetadata(t *testing.T) {
 	tests := []func(*testing.T, MetadataVer){
+		testRootMetadataFinalVerify,
 		testRootMetadataGetTlfHandlePublic,
 		testRootMetadataGetTlfHandlePrivate,
 		testRootMetadataLatestKeyGenerationPrivate,

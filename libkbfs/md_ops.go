@@ -721,7 +721,7 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 			rkbID, tlf, err2)
 	}
 	if wkb != nil && rkb != nil {
-		return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
+		return kbfsmd.NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 	}
 	if wkb != nil {
 		// Don't need the writer bundle.
@@ -739,5 +739,5 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd BareRootMetadata) 
 	// Cache the results.
 	kbcache.PutTLFWriterKeyBundle(wkbID, *wkb)
 	kbcache.PutTLFReaderKeyBundle(rkbID, *rkb)
-	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
+	return kbfsmd.NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }

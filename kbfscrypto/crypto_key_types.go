@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfshash"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/nacl/box"
 )
 
 // All section references below are to https://keybase.io/docs/crypto/kbfs
@@ -442,6 +443,63 @@ var _ encoding.TextUnmarshaler = (*TLFCryptKeyClientHalf)(nil)
 // containing the given data.
 func MakeTLFCryptKeyClientHalf(data [32]byte) TLFCryptKeyClientHalf {
 	return TLFCryptKeyClientHalf{publicByte32Container{data}}
+}
+
+func prepareTLFCryptKeyClientHalf(
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	nonce [24]byte, err error) {
+	if encryptedClientHalf.Version != EncryptionSecretbox {
+		return [24]byte{}, errors.WithStack(UnknownEncryptionVer{
+			Ver: encryptedClientHalf.Version})
+	}
+
+	// This check isn't strictly needed, but parallels the
+	// implementation in libkbfs.CryptoClient.
+	expectedLen := len((TLFCryptKeyClientHalf{}).Data()) +
+		box.Overhead
+	if len(encryptedClientHalf.EncryptedData) != expectedLen {
+		return [24]byte{}, errors.Errorf("Expected %d bytes, got %d",
+			expectedLen,
+			len(encryptedClientHalf.EncryptedData))
+	}
+
+	if len(encryptedClientHalf.Nonce) != len(nonce) {
+		return [24]byte{}, errors.WithStack(InvalidNonceError{
+			Nonce: encryptedClientHalf.Nonce})
+	}
+	copy(nonce[:], encryptedClientHalf.Nonce)
+	return nonce, nil
+}
+
+// DecryptTLFCryptKeyClientHalf decrypts a
+// TLFCryptKeyClientHalf using the given device private key
+// and the TLF's ephemeral public key.
+func DecryptTLFCryptKeyClientHalf(
+	privateKey CryptPrivateKey, publicKey TLFEphemeralPublicKey,
+	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+	TLFCryptKeyClientHalf, error) {
+	nonce, err := prepareTLFCryptKeyClientHalf(encryptedClientHalf)
+	if err != nil {
+		return TLFCryptKeyClientHalf{}, err
+	}
+
+	publicKeyData := publicKey.Data()
+	privateKeyData := privateKey.Data()
+	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData,
+		&nonce, &publicKeyData, &privateKeyData)
+	if !ok {
+		return TLFCryptKeyClientHalf{},
+			errors.WithStack(libkb.DecryptionError{})
+	}
+
+	var clientHalfData [32]byte
+	if len(decryptedData) != len(clientHalfData) {
+		return TLFCryptKeyClientHalf{},
+			errors.WithStack(libkb.DecryptionError{})
+	}
+
+	copy(clientHalfData[:], decryptedData)
+	return MakeTLFCryptKeyClientHalf(clientHalfData), nil
 }
 
 // TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private

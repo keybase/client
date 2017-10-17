@@ -76,7 +76,7 @@ func getBranchID(ctx context.Context, config libkbfs.Config,
 		return irmd.BID(), nil
 	}
 
-	return libkbfs.ParseBranchID(branchStr)
+	return kbfsmd.ParseBranchID(branchStr)
 }
 
 func getRevision(ctx context.Context, config libkbfs.Config,

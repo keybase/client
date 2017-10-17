@@ -316,7 +316,7 @@ func makeImmutableRMDForTest(t *testing.T, config Config, rmd *RootMetadata,
 	// in this file modify the returned value, invalidating any
 	// real signatures. TODO: Fix all the tests in this file to
 	// not do so, and then just use MakeImmutableRootMetadata.
-	if brmdv2, ok := rmd.bareMd.(*BareRootMetadataV2); ok {
+	if brmdv2, ok := rmd.bareMd.(*kbfsmd.RootMetadataV2); ok {
 		vk := brmdv2.WriterMetadataSigInfo.VerifyingKey
 		require.True(t, vk == (kbfscrypto.VerifyingKey{}) || vk == session.VerifyingKey,
 			"Writer signature %s with unexpected non-nil verifying key != %s",
@@ -3372,7 +3372,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	// TODO: We can actually fake out the PrevRoot pointer, too
 	// and then we'll be caught by the handle check. But when we
 	// have MDOps do the handle check, that'll trigger first.
-	require.IsType(t, MDPrevRootMismatch{}, err)
+	require.IsType(t, kbfsmd.MDPrevRootMismatch{}, err)
 }
 
 // TODO: Test malicious mdserver and rekey flow against wrong

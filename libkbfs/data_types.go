@@ -77,8 +77,8 @@ type SessionInfo struct {
 // EncryptionVer is a temporary alias.
 type EncryptionVer = kbfscrypto.EncryptionVer
 
+// Temporary aliases.
 const (
-	// EncryptionSecretbox is a temporary alias.
 	EncryptionSecretbox EncryptionVer = kbfscrypto.EncryptionSecretbox
 )
 
@@ -115,51 +115,25 @@ type EncryptedTLFCryptKeyClientAndEphemeral struct {
 // KeyGen is a temporary alias.
 type KeyGen = kbfsmd.KeyGen
 
+// Temporary aliases.
 const (
-	// PublicKeyGen is a temporary alias.
-	PublicKeyGen KeyGen = kbfsmd.PublicKeyGen
-	// UnspecifiedKeyGen is a temporary alias.
+	PublicKeyGen      KeyGen = kbfsmd.PublicKeyGen
 	UnspecifiedKeyGen KeyGen = kbfsmd.UnspecifiedKeyGen
-	// FirstValidKeyGen is a temporary alias.
-	FirstValidKeyGen KeyGen = kbfsmd.FirstValidKeyGen
+	FirstValidKeyGen  KeyGen = kbfsmd.FirstValidKeyGen
 )
 
-// MetadataVer is the type of a version for marshalled KBFS metadata
-// structures.
-type MetadataVer int
+// MetadataVer is a temporary alias.
+type MetadataVer = kbfsmd.MetadataVer
 
+// Temporary aliases.
 const (
-	// FirstValidMetadataVer is the first value that is considered a
-	// valid data version. For historical reasons 0 is considered
-	// valid.
-	FirstValidMetadataVer MetadataVer = 0
-	// PreExtraMetadataVer is the latest metadata version that did not include
-	// support for extra MD fields.
-	PreExtraMetadataVer MetadataVer = 1
-	// InitialExtraMetadataVer is the first metadata version that did
-	// include support for extra MD fields.
-	InitialExtraMetadataVer MetadataVer = 2
-	// SegregatedKeyBundlesVer is the first metadata version to allow separate
-	// storage of key bundles.
-	SegregatedKeyBundlesVer MetadataVer = 3
+	FirstValidMetadataVer   MetadataVer = kbfsmd.FirstValidMetadataVer
+	PreExtraMetadataVer     MetadataVer = kbfsmd.PreExtraMetadataVer
+	InitialExtraMetadataVer MetadataVer = kbfsmd.InitialExtraMetadataVer
+	SegregatedKeyBundlesVer MetadataVer = kbfsmd.SegregatedKeyBundlesVer
 
-	defaultClientMetadataVer MetadataVer = SegregatedKeyBundlesVer
+	defaultClientMetadataVer MetadataVer = kbfsmd.SegregatedKeyBundlesVer
 )
-
-func (v MetadataVer) String() string {
-	switch v {
-	case FirstValidMetadataVer:
-		return "MDVer(FirstValid)"
-	case PreExtraMetadataVer:
-		return "MDVer(PreExtra)"
-	case InitialExtraMetadataVer:
-		return "MDVer(InitialExtra)"
-	case SegregatedKeyBundlesVer:
-		return "MDVer(SegregatedKeyBundles)"
-	default:
-		return fmt.Sprintf("MDVer(%d)", v)
-	}
-}
 
 // DataVer is the type of a version for marshalled KBFS data
 // structures.
@@ -599,30 +573,14 @@ type ReportedError struct {
 	Stack []uintptr
 }
 
-// MergeStatus represents the merge status of a TLF.
-type MergeStatus int
+// MergeStatus is a temporary alias.
+type MergeStatus = kbfsmd.MergeStatus
 
+// Temporary aliases.
 const (
-	// Merged means that the TLF is merged and no conflict
-	// resolution needs to be done.
-	Merged MergeStatus = iota
-	// Unmerged means that the TLF is unmerged and conflict
-	// resolution needs to be done. Metadata blocks which
-	// represent unmerged history should have a non-null
-	// branch ID defined.
-	Unmerged
+	Merged   MergeStatus = kbfsmd.Merged
+	Unmerged MergeStatus = kbfsmd.Unmerged
 )
-
-func (m MergeStatus) String() string {
-	switch m {
-	case Merged:
-		return "merged"
-	case Unmerged:
-		return "unmerged"
-	default:
-		return "unknown"
-	}
-}
 
 // OpSummary describes the changes performed by a single op, and is
 // suitable for encoding directly as JSON.

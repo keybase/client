@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -98,13 +99,13 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	}
 
 	if keyGen < FirstValidKeyGen {
-		return kbfscrypto.TLFCryptKey{}, InvalidKeyGenerationError{tlfID, keyGen}
+		return kbfscrypto.TLFCryptKey{}, kbfsmd.InvalidKeyGenerationError{TlfID: tlfID, KeyGen: keyGen}
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
 	if keyGen > kmd.LatestKeyGeneration() {
-		return kbfscrypto.TLFCryptKey{}, NewKeyGenerationError{tlfID, keyGen}
+		return kbfscrypto.TLFCryptKey{}, kbfsmd.NewKeyGenerationError{TlfID: tlfID, KeyGen: keyGen}
 	}
 
 	// look in the cache first
@@ -132,7 +133,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		tlfCryptKey, ok := keys[keyGen]
 		if !ok {
 			return kbfscrypto.TLFCryptKey{},
-				InvalidKeyGenerationError{tlfID, keyGen}
+				kbfsmd.InvalidKeyGenerationError{TlfID: tlfID, KeyGen: keyGen}
 		}
 		if flags&getTLFCryptKeyDoCache != 0 {
 			if err = kcache.PutTLFCryptKey(
@@ -156,7 +157,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			session.Name, flags)
 
 	var notPerDeviceEncrypted bool
-	if _, notPerDeviceEncrypted = err.(TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
+	if _, notPerDeviceEncrypted = err.(kbfsmd.TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
 		// get the key we want using the current crypt key
 		currKeyGen := kmd.LatestKeyGeneration()
 		// look in the cache first
@@ -234,7 +235,7 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(
 
 		for i, k := range publicKeys {
 			ePublicKey, encryptedClientHalf, serverHalfID, found, err := kmd.GetTLFCryptKeyParams(keyGen, uid, k)
-			if _, notPerDeviceEncrypted := err.(TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
+			if _, notPerDeviceEncrypted := err.(kbfsmd.TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
 				return kbfscrypto.TLFCryptKeyClientHalf{},
 					TLFCryptKeyServerHalfID{},
 					kbfscrypto.CryptPublicKey{}, err
@@ -293,7 +294,7 @@ func (km *KeyManagerStandard) getTLFCryptKeyParams(
 
 		ePublicKey, encryptedClientHalf, foundServerHalfID, found, err :=
 			kmd.GetTLFCryptKeyParams(keyGen, uid, cryptPublicKey)
-		if _, notPerDeviceEncrypted := err.(TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
+		if _, notPerDeviceEncrypted := err.(kbfsmd.TLFCryptKeyNotPerDeviceEncrypted); notPerDeviceEncrypted {
 			return kbfscrypto.TLFCryptKeyClientHalf{},
 				TLFCryptKeyServerHalfID{},
 				kbfscrypto.CryptPublicKey{}, err

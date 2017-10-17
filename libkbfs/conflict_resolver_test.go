@@ -85,8 +85,8 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid BranchID) ImmutableRootMetadata {
 	}
 	key := kbfscrypto.MakeFakeVerifyingKeyOrBust("fake key")
 	return MakeImmutableRootMetadata(&RootMetadata{
-		bareMd: &BareRootMetadataV2{
-			WriterMetadataV2: WriterMetadataV2{
+		bareMd: &kbfsmd.RootMetadataV2{
+			WriterMetadataV2: kbfsmd.WriterMetadataV2{
 				ID:     tlf.FakeID(0x1, tlf.Private),
 				WFlags: writerFlags,
 				BID:    bid,

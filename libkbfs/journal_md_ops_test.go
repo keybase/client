@@ -306,7 +306,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(2))
 	rmd.SetPrevRoot(kbfsmd.FakeID(1))
-	rmd.SetBranchID(FakeBranchID(1))
+	rmd.SetBranchID(kbfsmd.FakeBranchID(1))
 
 	_, err = mdOps.PutUnmerged(ctx, rmd, session.VerifyingKey)
 	require.NoError(t, err)

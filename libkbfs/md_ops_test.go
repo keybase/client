@@ -225,10 +225,12 @@ func testMDOpsGetForHandlePublicSuccess(t *testing.T, ver MetadataVer) {
 }
 
 func expectGetKeyBundles(ctx context.Context, config *ConfigMock, extra ExtraMetadata) {
-	if extraV3, ok := extra.(*ExtraMetadataV3); ok {
+	if extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3); ok {
+		wkb := extraV3.GetWriterKeyBundle()
+		rkb := extraV3.GetReaderKeyBundle()
 		config.mockMdserv.EXPECT().GetKeyBundles(
 			ctx, gomock.Any(), gomock.Any(), gomock.Any()).
-			Return(&extraV3.wkb, &extraV3.rkb, nil)
+			Return(&wkb, &rkb, nil)
 	}
 }
 
@@ -593,9 +595,9 @@ func (mds *keyBundleMDServer) putRKB(
 
 func (mds *keyBundleMDServer) processRMDSes(
 	rmds *RootMetadataSigned, extra ExtraMetadata) {
-	if extraV3, ok := extra.(*ExtraMetadataV3); ok {
-		mds.putWKB(rmds.MD.GetTLFWriterKeyBundleID(), extraV3.wkb)
-		mds.putRKB(rmds.MD.GetTLFReaderKeyBundleID(), extraV3.rkb)
+	if extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3); ok {
+		mds.putWKB(rmds.MD.GetTLFWriterKeyBundleID(), extraV3.GetWriterKeyBundle())
+		mds.putRKB(rmds.MD.GetTLFReaderKeyBundleID(), extraV3.GetReaderKeyBundle())
 	}
 }
 
@@ -758,8 +760,8 @@ func validatePutPublicRMDS(
 	expectedRmd.SetLastModifyingWriter(rmds.MD.LastModifyingWriter())
 	expectedRmd.SetLastModifyingUser(rmds.MD.GetLastModifyingUser())
 	if ver < SegregatedKeyBundlesVer {
-		expectedRmd.(*BareRootMetadataV2).WriterMetadataSigInfo =
-			rmds.MD.(*BareRootMetadataV2).WriterMetadataSigInfo
+		expectedRmd.(*kbfsmd.RootMetadataV2).WriterMetadataSigInfo =
+			rmds.MD.(*kbfsmd.RootMetadataV2).WriterMetadataSigInfo
 	}
 	expectedRmd.SetSerializedPrivateMetadata(rmds.MD.GetSerializedPrivateMetadata())
 

@@ -233,5 +233,5 @@ func getExtraMetadata(kbg keyBundleGetter, brmd BareRootMetadata) (ExtraMetadata
 		return nil, err
 	}
 
-	return NewExtraMetadataV3(*wkb, *rkb, false, false), nil
+	return kbfsmd.NewExtraMetadataV3(*wkb, *rkb, false, false), nil
 }

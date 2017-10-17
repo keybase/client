@@ -8,6 +8,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -95,7 +96,7 @@ func mdDumpReadOnlyRMD(ctx context.Context, config libkbfs.Config,
 		printError("md dump", err)
 	}
 
-	brmdDump, err := libkbfs.DumpBareRootMetadata(config.Codec(), brmd)
+	brmdDump, err := kbfsmd.DumpRootMetadata(config.Codec(), brmd)
 	if err != nil {
 		return err
 	}
@@ -104,7 +105,7 @@ func mdDumpReadOnlyRMD(ctx context.Context, config libkbfs.Config,
 
 	fmt.Print("Extra metadata\n")
 	fmt.Print("--------------\n")
-	extraDump, err := libkbfs.DumpExtraMetadata(config.Codec(), extra)
+	extraDump, err := kbfsmd.DumpExtraMetadata(config.Codec(), extra)
 	if err != nil {
 		return err
 	}

@@ -2,21 +2,13 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
-	"context"
 	"reflect"
 	"runtime"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/kbfscodec"
-	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/tlf"
-	"github.com/stretchr/testify/require"
 )
 
 var testMetadataVers = []MetadataVer{
@@ -33,7 +25,7 @@ var testMetadataVers = []MetadataVer{
 //
 // func testFoo(t *testing.T, ver MetadataVer) {
 //	...
-// 	brmd, err := MakeInitialBareRootMetadata(ver, ...)
+// 	brmd, err := MakeInitialRootMetadata(ver, ...)
 //	...
 // }
 func runTestOverMetadataVers(
@@ -87,7 +79,7 @@ func runTestsOverMetadataVers(t *testing.T, prefix string,
 //
 // func benchmarkFoo(b *testing.B, ver MetadataVer) {
 //	...
-// 	brmd, err := MakeInitialBareRootMetadata(ver, ...)
+// 	brmd, err := MakeInitialRootMetadata(ver, ...)
 //	...
 // }
 func runBenchmarkOverMetadataVers(
@@ -102,64 +94,3 @@ func runBenchmarkOverMetadataVers(
 
 // TODO: Add way to test with all possible (ver, maxVer) combos,
 // e.g. for upconversion tests.
-
-// Test verification of finalized metadata blocks.
-func TestRootMetadataFinalVerify(t *testing.T) {
-	runTestOverMetadataVers(t, testRootMetadataFinalVerify)
-}
-
-func testRootMetadataFinalVerify(t *testing.T, ver MetadataVer) {
-	tlfID := tlf.FakeID(1, tlf.Private)
-
-	uid := keybase1.MakeTestUID(1)
-	bh, err := tlf.MakeHandle(
-		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
-	require.NoError(t, err)
-
-	brmd, err := MakeInitialBareRootMetadata(ver, tlfID, bh)
-	require.NoError(t, err)
-
-	ctx := context.Background()
-	codec := kbfscodec.NewMsgpack()
-	signer := kbfscrypto.SigningKeySigner{
-		Key: kbfscrypto.MakeFakeSigningKeyOrBust("key"),
-	}
-
-	extra := FakeInitialRekey(brmd, bh, kbfscrypto.TLFPublicKey{})
-
-	brmd.SetLastModifyingWriter(uid)
-	brmd.SetLastModifyingUser(uid)
-	brmd.SetSerializedPrivateMetadata([]byte{42})
-	err = brmd.SignWriterMetadataInternally(ctx, codec, signer)
-	require.NoError(t, err)
-
-	rmds, err := SignBareRootMetadata(
-		ctx, codec, signer, signer, brmd, time.Time{})
-	require.NoError(t, err)
-
-	// verify it
-	err = rmds.IsValidAndSigned(ctx, codec, nil, extra)
-	require.NoError(t, err)
-
-	ext, err := tlf.NewHandleExtension(
-		tlf.HandleExtensionFinalized, 1, "fake user", time.Now())
-	require.NoError(t, err)
-
-	// make a final copy
-	rmds2, err := rmds.MakeFinalCopy(codec, time.Now(), ext)
-	require.NoError(t, err)
-
-	// verify the finalized copy
-	err = rmds2.IsValidAndSigned(ctx, codec, nil, extra)
-	require.NoError(t, err)
-
-	// touch something the server shouldn't be allowed to edit for
-	// finalized metadata and verify verification failure.
-	md3, err := rmds2.MD.DeepCopy(codec)
-	require.NoError(t, err)
-	md3.SetRekeyBit()
-	rmds3 := rmds2
-	rmds2.MD = md3
-	err = rmds3.IsValidAndSigned(ctx, codec, nil, extra)
-	require.NotNil(t, err)
-}

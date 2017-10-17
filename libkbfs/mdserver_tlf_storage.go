@@ -300,30 +300,30 @@ func (s *mdServerTlfStorage) putExtraMetadataLocked(rmds *RootMetadataSigned,
 		return nil
 	}
 
-	extraV3, ok := extra.(*ExtraMetadataV3)
+	extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3)
 	if !ok {
 		return errors.New("Invalid extra metadata")
 	}
 
-	if extraV3.wkbNew {
+	if extraV3.IsWriterKeyBundleNew() {
 		wkbID := rmds.MD.GetTLFWriterKeyBundleID()
 		if wkbID == (TLFWriterKeyBundleID{}) {
 			panic("writer key bundle ID is empty")
 		}
 		err := kbfscodec.SerializeToFileIfNotExist(
-			s.codec, extraV3.wkb, s.writerKeyBundleV3Path(wkbID))
+			s.codec, extraV3.GetWriterKeyBundle(), s.writerKeyBundleV3Path(wkbID))
 		if err != nil {
 			return err
 		}
 	}
 
-	if extraV3.rkbNew {
+	if extraV3.IsReaderKeyBundleNew() {
 		rkbID := rmds.MD.GetTLFReaderKeyBundleID()
 		if rkbID == (TLFReaderKeyBundleID{}) {
 			panic("reader key bundle ID is empty")
 		}
 		err := kbfscodec.SerializeToFileIfNotExist(
-			s.codec, extraV3.rkb, s.readerKeyBundleV3Path(rkbID))
+			s.codec, extraV3.GetReaderKeyBundle(), s.readerKeyBundleV3Path(rkbID))
 		if err != nil {
 			return err
 		}
@@ -522,7 +522,7 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(tlfID tlf.ID,
 			return nil, nil, err
 		}
 
-		err = checkWKBID(s.codec, wkbID, foundWKB)
+		err = kbfsmd.CheckWKBID(s.codec, wkbID, foundWKB)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -537,7 +537,7 @@ func (s *mdServerTlfStorage) getKeyBundlesReadLocked(tlfID tlf.ID,
 			return nil, nil, err
 		}
 
-		err = checkRKBID(s.codec, rkbID, foundRKB)
+		err = kbfsmd.CheckRKBID(s.codec, rkbID, foundRKB)
 		if err != nil {
 			return nil, nil, err
 		}

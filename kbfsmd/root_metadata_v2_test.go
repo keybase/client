@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"context"
@@ -15,12 +15,11 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 )
 
-func TestBareRootMetadataVersionV2(t *testing.T) {
+func TestRootMetadataVersionV2(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.Private)
 
 	// Metadata objects with unresolved assertions should have
@@ -32,7 +31,7 @@ func TestBareRootMetadataVersionV2(t *testing.T) {
 		nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV2(tlfID, bh)
 	require.NoError(t, err)
 
 	require.Equal(t, InitialExtraMetadataVer, rmd.Version())
@@ -41,7 +40,7 @@ func TestBareRootMetadataVersionV2(t *testing.T) {
 	bh2, err := tlf.MakeHandle([]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	rmd2, err := MakeInitialBareRootMetadata(
+	rmd2, err := MakeInitialRootMetadata(
 		InitialExtraMetadataVer, tlfID, bh2)
 	require.NoError(t, err)
 
@@ -55,7 +54,7 @@ func TestBareRootMetadataVersionV2(t *testing.T) {
 
 // Test that old encoded WriterMetadataV2 objects (i.e., without any
 // extra fields) can be deserialized and serialized to the same form,
-// which is important for BareRootMetadataV2.IsValidAndSigned().
+// which is important for RootMetadataV2.IsValidAndSigned().
 func testWriterMetadataV2UnchangedEncoding(t *testing.T, ver MetadataVer) {
 	encodedWm := []byte{
 		0x89, 0xa3, 0x42, 0x49, 0x44, 0xc4, 0x10, 0x0,
@@ -162,106 +161,6 @@ func (wmef writerMetadataExtraV2Future) toCurrent() WriterMetadataExtraV2 {
 	return wmef.WriterMetadataExtraV2
 }
 
-// TODO: Remove the below once we move this file to kbfsmd.
-
-type tlfCryptKeyInfoFuture struct {
-	kbfsmd.TLFCryptKeyInfo
-	kbfscodec.Extra
-}
-
-func (cki tlfCryptKeyInfoFuture) toCurrent() kbfsmd.TLFCryptKeyInfo {
-	return cki.TLFCryptKeyInfo
-}
-
-func (cki tlfCryptKeyInfoFuture) ToCurrentStruct() kbfscodec.CurrentStruct {
-	return cki.toCurrent()
-}
-
-func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
-	id, err := kbfscrypto.MakeTLFCryptKeyServerHalfID(
-		keybase1.MakeTestUID(1),
-		kbfscrypto.MakeFakeCryptPublicKeyOrBust("fake"),
-		kbfscrypto.MakeTLFCryptKeyServerHalf([32]byte{0x3}))
-	require.NoError(t, err)
-	cki := TLFCryptKeyInfo{
-		ClientHalf: kbfscrypto.MakeEncryptedTLFCryptKeyClientHalfForTest(
-			kbfscrypto.EncryptionSecretbox,
-			[]byte("fake encrypted data"),
-			[]byte("fake nonce")),
-		ServerHalfID:           id,
-		EPubKeyIndex:           5,
-		UnknownFieldSetHandler: codec.UnknownFieldSetHandler{},
-	}
-	return tlfCryptKeyInfoFuture{
-		cki,
-		kbfscodec.MakeExtraOrBust("TLFCryptKeyInfo", t),
-	}
-}
-
-type deviceKeyInfoMapV2Future map[keybase1.KID]tlfCryptKeyInfoFuture
-
-func (dkimf deviceKeyInfoMapV2Future) toCurrent() kbfsmd.DeviceKeyInfoMapV2 {
-	dkim := make(DeviceKeyInfoMapV2, len(dkimf))
-	for k, kif := range dkimf {
-		ki := kif.toCurrent()
-		dkim[k] = TLFCryptKeyInfo(ki)
-	}
-	return dkim
-}
-
-func makeFakeDeviceKeyInfoMapV2Future(t *testing.T) userDeviceKeyInfoMapV2Future {
-	return userDeviceKeyInfoMapV2Future{
-		"fake uid": deviceKeyInfoMapV2Future{
-			"fake kid": makeFakeTLFCryptKeyInfoFuture(t),
-		},
-	}
-}
-
-type userDeviceKeyInfoMapV2Future map[keybase1.UID]deviceKeyInfoMapV2Future
-
-func (udkimf userDeviceKeyInfoMapV2Future) toCurrent() kbfsmd.UserDeviceKeyInfoMapV2 {
-	udkim := make(UserDeviceKeyInfoMapV2)
-	for u, dkimf := range udkimf {
-		dkim := dkimf.toCurrent()
-		udkim[u] = dkim
-	}
-	return udkim
-}
-
-type tlfWriterKeyBundleV2Future struct {
-	TLFWriterKeyBundleV2
-	// Override TLFWriterKeyBundleV2.WKeys.
-	WKeys userDeviceKeyInfoMapV2Future
-	kbfscodec.Extra
-}
-
-func (wkbf tlfWriterKeyBundleV2Future) toCurrent() TLFWriterKeyBundleV2 {
-	wkb := wkbf.TLFWriterKeyBundleV2
-	wkb.WKeys = wkbf.WKeys.toCurrent()
-	return wkb
-}
-
-func (wkbf tlfWriterKeyBundleV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
-	return wkbf.toCurrent()
-}
-
-func makeFakeTLFWriterKeyBundleV2Future(
-	t *testing.T) tlfWriterKeyBundleV2Future {
-	wkb := TLFWriterKeyBundleV2{
-		WKeys:        nil,
-		TLFPublicKey: kbfscrypto.MakeTLFPublicKey([32]byte{0xa}),
-		TLFEphemeralPublicKeys: kbfscrypto.TLFEphemeralPublicKeys{
-			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xb}),
-		},
-		UnknownFieldSetHandler: codec.UnknownFieldSetHandler{},
-	}
-	return tlfWriterKeyBundleV2Future{
-		wkb,
-		makeFakeDeviceKeyInfoMapV2Future(t),
-		kbfscodec.MakeExtraOrBust("TLFWriterKeyBundleV2", t),
-	}
-}
-
 type tlfWriterKeyGenerationsV2Future []*tlfWriterKeyBundleV2Future
 
 func (wkgf tlfWriterKeyGenerationsV2Future) toCurrent() TLFWriterKeyGenerationsV2 {
@@ -333,39 +232,6 @@ func TestWriterMetadataV2UnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeWriterMetadataV2Future(t))
 }
 
-type tlfReaderKeyBundleV2Future struct {
-	TLFReaderKeyBundleV2
-	// Override TLFReaderKeyBundleV2.RKeys.
-	RKeys userDeviceKeyInfoMapV2Future
-	kbfscodec.Extra
-}
-
-func (rkbf tlfReaderKeyBundleV2Future) toCurrent() TLFReaderKeyBundleV2 {
-	rkb := rkbf.TLFReaderKeyBundleV2
-	rkb.RKeys = rkbf.RKeys.toCurrent()
-	return rkb
-}
-
-func (rkbf tlfReaderKeyBundleV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
-	return rkbf.toCurrent()
-}
-
-func makeFakeTLFReaderKeyBundleV2Future(
-	t *testing.T) tlfReaderKeyBundleV2Future {
-	rkb := TLFReaderKeyBundleV2{
-		RKeys: nil,
-		TLFReaderEphemeralPublicKeys: kbfscrypto.TLFEphemeralPublicKeys{
-			kbfscrypto.MakeTLFEphemeralPublicKey([32]byte{0xc}),
-		},
-		UnknownFieldSetHandler: codec.UnknownFieldSetHandler{},
-	}
-	return tlfReaderKeyBundleV2Future{
-		rkb,
-		makeFakeDeviceKeyInfoMapV2Future(t),
-		kbfscodec.MakeExtraOrBust("TLFReaderKeyBundleV2", t),
-	}
-}
-
 type tlfReaderKeyGenerationsV2Future []*tlfReaderKeyBundleV2Future
 
 func (rkgf tlfReaderKeyGenerationsV2Future) toCurrent() TLFReaderKeyGenerationsV2 {
@@ -379,43 +245,43 @@ func (rkgf tlfReaderKeyGenerationsV2Future) toCurrent() TLFReaderKeyGenerationsV
 
 // rootMetadataWrapper exists only to add extra depth to fields
 // in RootMetadata, so that they may be overridden in
-// bareRootMetadataV2Future.
-type bareRootMetadataWrapper struct {
-	BareRootMetadataV2
+// rootMetadataV2Future.
+type rootMetadataWrapper struct {
+	RootMetadataV2
 }
 
-type bareRootMetadataV2Future struct {
-	// Override BareRootMetadata.WriterMetadata. Put it first to work
+type rootMetadataV2Future struct {
+	// Override RootMetadata.WriterMetadata. Put it first to work
 	// around a bug in codec's field lookup code.
 	//
 	// TODO: Report and fix this bug upstream.
 	writerMetadataV2Future
 
-	bareRootMetadataWrapper
-	// Override BareRootMetadata.RKeys.
+	rootMetadataWrapper
+	// Override RootMetadata.RKeys.
 	RKeys tlfReaderKeyGenerationsV2Future `codec:",omitempty"`
 	kbfscodec.Extra
 }
 
-func (brmf *bareRootMetadataV2Future) toCurrent() BareRootMetadata {
-	rm := brmf.bareRootMetadataWrapper.BareRootMetadataV2
+func (brmf *rootMetadataV2Future) toCurrent() RootMetadata {
+	rm := brmf.rootMetadataWrapper.RootMetadataV2
 	rm.WriterMetadataV2 = WriterMetadataV2(brmf.writerMetadataV2Future.toCurrent())
 	rm.RKeys = brmf.RKeys.toCurrent()
 	return &rm
 }
 
-func (brmf *bareRootMetadataV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
+func (brmf *rootMetadataV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return brmf.toCurrent()
 }
 
-func makeFakeBareRootMetadataV2Future(t *testing.T) *bareRootMetadataV2Future {
+func makeFakeRootMetadataV2Future(t *testing.T) *rootMetadataV2Future {
 	wmf := makeFakeWriterMetadataV2Future(t)
 	rkb := makeFakeTLFReaderKeyBundleV2Future(t)
 	sa, _ := externals.NormalizeSocialAssertion("bar@github")
-	rmf := bareRootMetadataV2Future{
+	rmf := rootMetadataV2Future{
 		wmf,
-		bareRootMetadataWrapper{
-			BareRootMetadataV2{
+		rootMetadataWrapper{
+			RootMetadataV2{
 				// This needs to be list format so it
 				// fails to compile if new fields are
 				// added, effectively checking at
@@ -430,7 +296,7 @@ func makeFakeBareRootMetadataV2Future(t *testing.T) *bareRootMetadataV2Future {
 				"uid1",
 				0xb,
 				5,
-				kbfsmd.FakeID(1),
+				FakeID(1),
 				nil,
 				[]keybase1.SocialAssertion{sa},
 				nil,
@@ -439,13 +305,13 @@ func makeFakeBareRootMetadataV2Future(t *testing.T) *bareRootMetadataV2Future {
 			},
 		},
 		[]*tlfReaderKeyBundleV2Future{&rkb},
-		kbfscodec.MakeExtraOrBust("BareRootMetadata", t),
+		kbfscodec.MakeExtraOrBust("RootMetadata", t),
 	}
 	return &rmf
 }
 
-func TestBareRootMetadataV2UnknownFields(t *testing.T) {
-	testStructUnknownFields(t, makeFakeBareRootMetadataV2Future(t))
+func TestRootMetadataV2UnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeRootMetadataV2Future(t))
 }
 
 func TestIsValidRekeyRequestBasicV2(t *testing.T) {
@@ -456,7 +322,7 @@ func TestIsValidRekeyRequestBasicV2(t *testing.T) {
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	brmd, err := MakeInitialRootMetadataV2(tlfID, bh)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -468,7 +334,7 @@ func TestIsValidRekeyRequestBasicV2(t *testing.T) {
 	err = brmd.SignWriterMetadataInternally(ctx, codec, signer)
 	require.NoError(t, err)
 
-	newBrmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	newBrmd, err := MakeInitialRootMetadataV2(tlfID, bh)
 	require.NoError(t, err)
 	ok, err := newBrmd.IsValidRekeyRequest(
 		codec, brmd, newBrmd.LastModifyingWriter(), nil, nil)
@@ -537,7 +403,7 @@ func TestRevokeRemovedDevicesV2(t *testing.T) {
 		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()}, nil, nil, nil)
 	require.NoError(t, err)
 
-	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	brmd, err := MakeInitialRootMetadataV2(tlfID, bh)
 	require.NoError(t, err)
 
 	brmd.WKeys = TLFWriterKeyGenerationsV2{
@@ -612,7 +478,7 @@ func TestRevokeRemovedDevicesV2(t *testing.T) {
 		uid2: UserServerHalfRemovalInfo{
 			UserRemoved: true,
 			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
-				key2: []TLFCryptKeyServerHalfID{id2a, id2b},
+				key2: []kbfscrypto.TLFCryptKeyServerHalfID{id2a, id2b},
 			},
 		},
 	}, removalInfo)
@@ -694,7 +560,7 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 		nil, nil, nil)
 	require.NoError(t, err)
 
-	brmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	brmd, err := MakeInitialRootMetadataV2(tlfID, bh)
 	require.NoError(t, err)
 
 	brmd.WKeys = TLFWriterKeyGenerationsV2{
@@ -738,13 +604,13 @@ func TestRevokeLastDeviceV2(t *testing.T) {
 	require.Equal(t, ServerHalfRemovalInfo{
 		uid1: UserServerHalfRemovalInfo{
 			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
-				key1: []TLFCryptKeyServerHalfID{id1},
+				key1: []kbfscrypto.TLFCryptKeyServerHalfID{id1},
 			},
 		},
 		uid2: UserServerHalfRemovalInfo{
 			UserRemoved: true,
 			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
-				key2: []TLFCryptKeyServerHalfID{id2},
+				key2: []kbfscrypto.TLFCryptKeyServerHalfID{id2},
 			},
 		},
 		uid4: UserServerHalfRemovalInfo{
@@ -843,16 +709,11 @@ func checkCryptKeyInfo(t *testing.T, privKey kbfscrypto.CryptPrivateKey,
 	expectedEPubKey kbfscrypto.TLFEphemeralPublicKey,
 	expectedTLFCryptKey kbfscrypto.TLFCryptKey, info TLFCryptKeyInfo,
 	ePubKey kbfscrypto.TLFEphemeralPublicKey) {
-	dummySigningKey := kbfscrypto.MakeFakeSigningKeyOrBust("dummy")
-	codec := kbfscodec.NewMsgpack()
-	crypto := NewCryptoLocal(codec, dummySigningKey, privKey)
-
 	require.Equal(t, expectedEPubKeyIndex, info.EPubKeyIndex)
 	require.Equal(t, expectedEPubKey, ePubKey)
 
-	ctx := context.Background()
-	clientHalf, err := crypto.DecryptTLFCryptKeyClientHalf(
-		ctx, ePubKey, info.ClientHalf)
+	clientHalf, err := kbfscrypto.DecryptTLFCryptKeyClientHalf(
+		privKey, ePubKey, info.ClientHalf)
 	require.NoError(t, err)
 
 	tlfCryptKey := kbfscrypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
@@ -895,7 +756,7 @@ func checkGetTLFCryptKeyV2(t *testing.T, keyGen KeyGen,
 			info, ok := rkb.RKeys[uid][pubKey.KID()]
 			require.True(t, ok)
 
-			_, _, ePubKey, err := kbfsmd.GetEphemeralPublicKeyInfoV2(
+			_, _, ePubKey, err := GetEphemeralPublicKeyInfoV2(
 				info, *wkb, *rkb)
 			require.NoError(t, err)
 
@@ -979,7 +840,7 @@ func userDeviceServerHalvesToPublicKeys(
 // info expected from expectedRekeyInfos and expectedPubKey.
 func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 	expectedTLFCryptKeys []kbfscrypto.TLFCryptKey,
-	expectedPubKeys []kbfscrypto.TLFPublicKey, rmd *BareRootMetadataV2) {
+	expectedPubKeys []kbfscrypto.TLFPublicKey, rmd *RootMetadataV2) {
 	require.Equal(t, len(expectedTLFCryptKeys), len(expectedPubKeys))
 	require.Equal(t, len(expectedTLFCryptKeys),
 		int(rmd.LatestKeyGeneration()-FirstValidKeyGen+1))
@@ -1047,7 +908,7 @@ func checkKeyBundlesV2(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV2,
 	}
 }
 
-func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
+func TestRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 	uid3 := keybase1.MakeTestUID(3)
@@ -1074,13 +935,12 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 		nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV2(tlfID, bh)
 	require.NoError(t, err)
 
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 
-	ePubKey1, ePrivKey1, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey1, ePrivKey1, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	// Add first key generations.
@@ -1147,7 +1007,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	privKey3b := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("key3b")
 	updatedReaderKeys[uid3][privKey3b.GetPublicKey()] = true
 
-	ePubKey2, ePrivKey2, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey2, ePrivKey2, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	serverHalves2, err := rmd.UpdateKeyBundles(codec, nil,
@@ -1191,7 +1051,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	privKey1c := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("key1c")
 	updatedWriterKeys[uid1][privKey1c.GetPublicKey()] = true
 
-	ePubKey3, ePrivKey3, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey3, ePrivKey3, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	serverHalves3, err := rmd.UpdateKeyBundles(codec, nil,
@@ -1235,7 +1095,7 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	updatedReaderKeys[uid3][privKey3c.GetPublicKey()] = true
 	updatedReaderKeys[uid3][privKey3d.GetPublicKey()] = true
 
-	ePubKey4, ePrivKey4, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey4, ePrivKey4, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	filteredReaderKeys := UserDevicePublicKeys{
@@ -1272,9 +1132,9 @@ func TestBareRootMetadataV2UpdateKeyBundles(t *testing.T) {
 	checkKeyBundlesV2(t, expectedRekeyInfos, tlfCryptKeys, pubKeys, rmd)
 }
 
-// TestBareRootMetadataV2AddKeyGenerationKeylessUsers checks that
+// TestRootMetadataV2AddKeyGenerationKeylessUsers checks that
 // keyless users are handled properly by AddKeyGeneration.
-func TestBareRootMetadataV2AddKeyGenerationKeylessUsers(t *testing.T) {
+func TestRootMetadataV2AddKeyGenerationKeylessUsers(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 	uid3 := keybase1.MakeTestUID(3)
@@ -1297,13 +1157,12 @@ func TestBareRootMetadataV2AddKeyGenerationKeylessUsers(t *testing.T) {
 		nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV2(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV2(tlfID, bh)
 	require.NoError(t, err)
 
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 
-	ePubKey1, ePrivKey1, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey1, ePrivKey1, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	// Add first key generation.

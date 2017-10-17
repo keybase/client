@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -23,7 +24,7 @@ func getKeyBundlesForTesting(
 	rmd.fakeInitialRekey()
 	wkbID := rmd.bareMd.GetTLFWriterKeyBundleID()
 	rkbID := rmd.bareMd.GetTLFReaderKeyBundleID()
-	wkb, rkb, err := rmd.bareMd.(*BareRootMetadataV3).getTLFKeyBundles(
+	wkb, rkb, err := rmd.bareMd.(*kbfsmd.RootMetadataV3).GetTLFKeyBundlesForTest(
 		rmd.extra)
 	require.NoError(t, err)
 	return wkbID, wkb, rkbID, rkb

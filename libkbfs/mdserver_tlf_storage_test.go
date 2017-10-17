@@ -94,7 +94,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	// middle merged block.
 
 	prevRoot = middleRoot
-	bid := FakeBranchID(1)
+	bid := kbfsmd.FakeBranchID(1)
 	for i := kbfsmd.Revision(6); i < 41; i++ {
 		brmd := makeBRMDForTest(t, codec, tlfID, h, i, uid, prevRoot)
 		brmd.SetUnmerged()

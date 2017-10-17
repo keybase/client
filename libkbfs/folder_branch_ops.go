@@ -687,7 +687,7 @@ func (fbo *folderBranchOps) validateHeadLocked(
 	// Validate fbo against fetched md and discard the fetched one.
 	if fbo.head.TlfID() != md.TlfID() {
 		fbo.log.CCriticalf(ctx, "Fake untrusted TLF encountered %v %v %v %v", fbo.head.TlfID(), md.TlfID(), fbo.head.mdID, md.mdID)
-		return MDTlfIDMismatch{fbo.head.TlfID(), md.TlfID()}
+		return kbfsmd.MDTlfIDMismatch{CurrID: fbo.head.TlfID(), NextID: md.TlfID()}
 	}
 	fbo.headStatus = headTrusted
 	return nil
@@ -1453,20 +1453,20 @@ func (fbo *folderBranchOps) initMDLocked(
 		}
 		if keyGen < FirstValidKeyGen {
 			return errors.WithStack(
-				InvalidKeyGenerationError{md.TlfID(), keyGen})
+				kbfsmd.InvalidKeyGenerationError{TlfID: md.TlfID(), KeyGen: keyGen})
 		}
 		expectedKeyGen = keyGen
 		md.bareMd.SetLatestKeyGenerationForTeamTLF(keyGen)
 		key, ok := keys[keyGen]
 		if !ok {
 			return errors.WithStack(
-				InvalidKeyGenerationError{md.TlfID(), keyGen})
+				kbfsmd.InvalidKeyGenerationError{TlfID: md.TlfID(), KeyGen: keyGen})
 		}
 		tlfCryptKey = &key
 	}
 	keyGen := md.LatestKeyGeneration()
 	if keyGen != expectedKeyGen {
-		return InvalidKeyGenerationError{md.TlfID(), keyGen}
+		return kbfsmd.InvalidKeyGenerationError{TlfID: md.TlfID(), KeyGen: keyGen}
 	}
 
 	// create a dblock since one doesn't exist yet
@@ -5157,8 +5157,8 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		// rekey bit is set, just a "folder needs rekey" update.
 		if err := fbo.getAndApplyMDUpdates(
 			ctx, lState, nil, fbo.applyMDUpdatesLocked); err != nil {
-			if applyErr, ok := err.(MDRevisionMismatch); !ok ||
-				applyErr.rev != applyErr.curr {
+			if applyErr, ok := err.(kbfsmd.MDRevisionMismatch); !ok ||
+				applyErr.Rev != applyErr.Curr {
 				return RekeyResult{}, err
 			}
 		}
@@ -5372,8 +5372,8 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(ctx context.Context,
 
 		if err := fbo.getAndApplyMDUpdates(
 			ctx, lState, lockBeforeGet, fbo.applyMDUpdates); err != nil {
-			if applyErr, ok := err.(MDRevisionMismatch); ok {
-				if applyErr.rev == applyErr.curr {
+			if applyErr, ok := err.(kbfsmd.MDRevisionMismatch); ok {
+				if applyErr.Rev == applyErr.Curr {
 					fbo.log.CDebugf(ctx, "Already up-to-date with server")
 					return nil
 				}

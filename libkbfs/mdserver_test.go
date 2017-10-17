@@ -20,23 +20,23 @@ import (
 
 func makeBRMDForTest(t *testing.T, codec kbfscodec.Codec,
 	id tlf.ID, h tlf.Handle, revision kbfsmd.Revision, uid keybase1.UID,
-	prevRoot kbfsmd.ID) *BareRootMetadataV2 {
-	var md BareRootMetadataV2
+	prevRoot kbfsmd.ID) *kbfsmd.RootMetadataV2 {
+	var md kbfsmd.RootMetadataV2
 	// MDv3 TODO: uncomment the below when we're ready for MDv3
-	// md := &BareRootMetadataV3{}
+	// md := &kbfsmd.RootMetadataV3{}
 	md.SetTlfID(id)
 	md.SetSerializedPrivateMetadata([]byte{0x1})
 	md.SetRevision(revision)
 	md.SetLastModifyingWriter(uid)
 	md.SetLastModifyingUser(uid)
-	FakeInitialRekey(&md, h, kbfscrypto.TLFPublicKey{})
+	kbfsmd.FakeInitialRekey(&md, h, kbfscrypto.TLFPublicKey{})
 	md.SetPrevRoot(prevRoot)
 	return &md
 }
 
 func signRMDSForTest(
 	t *testing.T, codec kbfscodec.Codec, signer kbfscrypto.Signer,
-	brmd *BareRootMetadataV2) *RootMetadataSigned {
+	brmd *kbfsmd.RootMetadataV2) *RootMetadataSigned {
 	ctx := context.Background()
 
 	// Encode and sign writer metadata.

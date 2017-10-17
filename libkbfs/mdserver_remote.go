@@ -653,14 +653,14 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 		// For now, if we have a non-nil extra, it must be
 		// *ExtraMetadataV3, but in the future it might be
 		// some other type (e.g., *ExtraMetadataV4).
-		extraV3, ok := extra.(*ExtraMetadataV3)
+		extraV3, ok := extra.(*kbfsmd.ExtraMetadataV3)
 		if !ok {
 			return fmt.Errorf("Extra of unexpected type %T", extra)
 		}
 
 		// Add any new key bundles.
-		if extraV3.wkbNew {
-			wkbBytes, err := md.config.Codec().Encode(extraV3.wkb)
+		if extraV3.IsWriterKeyBundleNew() {
+			wkbBytes, err := md.config.Codec().Encode(extraV3.GetWriterKeyBundle())
 			if err != nil {
 				return err
 			}
@@ -669,8 +669,8 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 				Bundle:  wkbBytes,
 			}
 		}
-		if extraV3.rkbNew {
-			rkbBytes, err := md.config.Codec().Encode(extraV3.rkb)
+		if extraV3.IsReaderKeyBundleNew() {
+			rkbBytes, err := md.config.Codec().Encode(extraV3.GetReaderKeyBundle())
 			if err != nil {
 				return err
 			}

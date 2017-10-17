@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/pkg/errors"
-	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
 )
 
@@ -35,60 +34,14 @@ func NewCryptoLocal(codec kbfscodec.Codec,
 	}
 }
 
-func (c CryptoLocal) prepareTLFCryptKeyClientHalf(
-	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-	nonce [24]byte, err error) {
-	if encryptedClientHalf.Version != EncryptionSecretbox {
-		return [24]byte{}, errors.WithStack(kbfscrypto.UnknownEncryptionVer{
-			Ver: encryptedClientHalf.Version})
-	}
-
-	// This check isn't strictly needed, but parallels the
-	// implementation in CryptoClient.
-	expectedLen := len((kbfscrypto.TLFCryptKeyClientHalf{}).Data()) +
-		box.Overhead
-	if len(encryptedClientHalf.EncryptedData) != expectedLen {
-		return [24]byte{}, errors.Errorf("Expected %d bytes, got %d",
-			expectedLen,
-			len(encryptedClientHalf.EncryptedData))
-	}
-
-	if len(encryptedClientHalf.Nonce) != len(nonce) {
-		return [24]byte{}, errors.WithStack(kbfscrypto.InvalidNonceError{
-			Nonce: encryptedClientHalf.Nonce})
-	}
-	copy(nonce[:], encryptedClientHalf.Nonce)
-	return nonce, nil
-}
-
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoLocal.
 func (c CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey kbfscrypto.TLFEphemeralPublicKey,
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 	kbfscrypto.TLFCryptKeyClientHalf, error) {
-	nonce, err := c.prepareTLFCryptKeyClientHalf(encryptedClientHalf)
-	if err != nil {
-		return kbfscrypto.TLFCryptKeyClientHalf{}, err
-	}
-
-	publicKeyData := publicKey.Data()
-	privateKeyData := c.cryptPrivateKey.Data()
-	decryptedData, ok := box.Open(nil, encryptedClientHalf.EncryptedData,
-		&nonce, &publicKeyData, &privateKeyData)
-	if !ok {
-		return kbfscrypto.TLFCryptKeyClientHalf{},
-			errors.WithStack(libkb.DecryptionError{})
-	}
-
-	var clientHalfData [32]byte
-	if len(decryptedData) != len(clientHalfData) {
-		return kbfscrypto.TLFCryptKeyClientHalf{},
-			errors.WithStack(libkb.DecryptionError{})
-	}
-
-	copy(clientHalfData[:], decryptedData)
-	return kbfscrypto.MakeTLFCryptKeyClientHalf(clientHalfData), nil
+	return kbfscrypto.DecryptTLFCryptKeyClientHalf(
+		c.cryptPrivateKey, publicKey, encryptedClientHalf)
 }
 
 // DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for

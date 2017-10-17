@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"fmt"
@@ -13,11 +13,11 @@ import (
 )
 
 // FakeInitialRekey fakes the initial rekey for the given
-// BareRootMetadata. This is necessary since newly-created
-// BareRootMetadata objects don't have enough data to build a
+// RootMetadata. This is necessary since newly-created
+// RootMetadata objects don't have enough data to build a
 // TlfHandle from until the first rekey. pubKey is non-empty only for
 // server-side tests.
-func FakeInitialRekey(md MutableBareRootMetadata,
+func FakeInitialRekey(md MutableRootMetadata,
 	h tlf.Handle, pubKey kbfscrypto.TLFPublicKey) ExtraMetadata {
 	if md.LatestKeyGeneration() >= FirstValidKeyGen {
 		panic(fmt.Errorf("FakeInitialRekey called on MD with existing key generations"))

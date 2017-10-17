@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBareRootMetadataVersionV3(t *testing.T) {
+func TestRootMetadataVersionV3(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.Private)
 
 	// All V3 objects should have SegregatedKeyBundlesVer.
@@ -24,7 +24,7 @@ func TestBareRootMetadataVersionV3(t *testing.T) {
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 
 	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
@@ -38,7 +38,7 @@ func TestRootMetadataV3ExtraNew(t *testing.T) {
 		[]keybase1.UserOrTeamID{uid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 
 	codec := kbfscodec.NewMsgpack()
@@ -73,7 +73,7 @@ func TestIsValidRekeyRequestBasicV3(t *testing.T) {
 
 	codec := kbfscodec.NewMsgpack()
 
-	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	brmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 	extra := FakeInitialRekey(brmd, bh, kbfscrypto.TLFPublicKey{})
 
@@ -100,7 +100,7 @@ func TestIsValidRekeyRequestBasicV3(t *testing.T) {
 	require.True(t, ok)
 }
 
-func TestBareRootMetadataPublicVersionV3(t *testing.T) {
+func TestRootMetadataPublicVersionV3(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.Public)
 
 	uid := keybase1.MakeTestUID(1)
@@ -110,7 +110,7 @@ func TestBareRootMetadataPublicVersionV3(t *testing.T) {
 		nil, nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
 
@@ -118,7 +118,7 @@ func TestBareRootMetadataPublicVersionV3(t *testing.T) {
 	require.Equal(t, bh, bh2)
 }
 
-func TestBareRootMetadataSingleTeamVersionV3(t *testing.T) {
+func TestRootMetadataSingleTeamVersionV3(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
 
 	tid := keybase1.MakeTestTeamID(1, false)
@@ -126,7 +126,7 @@ func TestBareRootMetadataSingleTeamVersionV3(t *testing.T) {
 		[]keybase1.UserOrTeamID{tid.AsUserOrTeam()}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 	require.Equal(t, SegregatedKeyBundlesVer, rmd.Version())
 
@@ -161,7 +161,7 @@ func TestRevokeRemovedDevicesV3(t *testing.T) {
 		[]keybase1.UserOrTeamID{uid3.AsUserOrTeam()}, nil, nil, nil)
 	require.NoError(t, err)
 
-	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	brmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 
 	extra := FakeInitialRekey(brmd, bh, kbfscrypto.TLFPublicKey{})
@@ -211,7 +211,7 @@ func TestRevokeRemovedDevicesV3(t *testing.T) {
 		uid2: UserServerHalfRemovalInfo{
 			UserRemoved: true,
 			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
-				key2: []TLFCryptKeyServerHalfID{id2a},
+				key2: []kbfscrypto.TLFCryptKeyServerHalfID{id2a},
 			},
 		},
 	}, removalInfo)
@@ -269,7 +269,7 @@ func TestRevokeLastDeviceV3(t *testing.T) {
 		nil, nil, nil)
 	require.NoError(t, err)
 
-	brmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	brmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 
 	extra := FakeInitialRekey(brmd, bh, kbfscrypto.TLFPublicKey{})
@@ -314,13 +314,13 @@ func TestRevokeLastDeviceV3(t *testing.T) {
 	require.Equal(t, ServerHalfRemovalInfo{
 		uid1: UserServerHalfRemovalInfo{
 			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
-				key1: []TLFCryptKeyServerHalfID{id1},
+				key1: []kbfscrypto.TLFCryptKeyServerHalfID{id1},
 			},
 		},
 		uid2: UserServerHalfRemovalInfo{
 			UserRemoved: true,
 			DeviceServerHalfIDs: DeviceServerHalfRemovalInfo{
-				key2: []TLFCryptKeyServerHalfID{id2},
+				key2: []kbfscrypto.TLFCryptKeyServerHalfID{id2},
 			},
 		},
 		uid4: UserServerHalfRemovalInfo{
@@ -469,7 +469,7 @@ func checkKeyBundlesV3(t *testing.T, expectedRekeyInfos []expectedRekeyInfoV3,
 	}
 }
 
-func TestBareRootMetadataV3UpdateKeyBundles(t *testing.T) {
+func TestRootMetadataV3UpdateKeyBundles(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 	uid3 := keybase1.MakeTestUID(3)
@@ -496,13 +496,12 @@ func TestBareRootMetadataV3UpdateKeyBundles(t *testing.T) {
 		nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 
-	ePubKey1, ePrivKey1, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey1, ePrivKey1, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	// Add first key generations, although only the last one
@@ -577,7 +576,7 @@ func TestBareRootMetadataV3UpdateKeyBundles(t *testing.T) {
 	privKey3b := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("key3b")
 	updatedReaderKeys[uid3][privKey3b.GetPublicKey()] = true
 
-	ePubKey2, ePrivKey2, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey2, ePrivKey2, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	serverHalves2, err := rmd.UpdateKeyBundles(codec,
@@ -624,7 +623,7 @@ func TestBareRootMetadataV3UpdateKeyBundles(t *testing.T) {
 	privKey1c := kbfscrypto.MakeFakeCryptPrivateKeyOrBust("key1c")
 	updatedWriterKeys[uid1][privKey1c.GetPublicKey()] = true
 
-	ePubKey3, ePrivKey3, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey3, ePrivKey3, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	serverHalves3, err := rmd.UpdateKeyBundles(codec,
@@ -671,7 +670,7 @@ func TestBareRootMetadataV3UpdateKeyBundles(t *testing.T) {
 	updatedReaderKeys[uid3][privKey3c.GetPublicKey()] = true
 	updatedReaderKeys[uid3][privKey3d.GetPublicKey()] = true
 
-	ePubKey4, ePrivKey4, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey4, ePrivKey4, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	filteredReaderKeys := UserDevicePublicKeys{
@@ -713,9 +712,9 @@ func TestBareRootMetadataV3UpdateKeyBundles(t *testing.T) {
 	checkKeyBundlesV3(t, expectedRekeyInfos, tlfCryptKey, pubKey, wkb, rkb)
 }
 
-// TestBareRootMetadataV3AddKeyGenerationKeylessUsers checks that
+// TestRootMetadataV3AddKeyGenerationKeylessUsers checks that
 // keyless users are handled properly by AddKeyGeneration.
-func TestBareRootMetadataV3AddKeyGenerationKeylessUsers(t *testing.T) {
+func TestRootMetadataV3AddKeyGenerationKeylessUsers(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 	uid3 := keybase1.MakeTestUID(3)
@@ -738,13 +737,12 @@ func TestBareRootMetadataV3AddKeyGenerationKeylessUsers(t *testing.T) {
 		nil, nil)
 	require.NoError(t, err)
 
-	rmd, err := MakeInitialBareRootMetadataV3(tlfID, bh)
+	rmd, err := MakeInitialRootMetadataV3(tlfID, bh)
 	require.NoError(t, err)
 
 	codec := kbfscodec.NewMsgpack()
-	crypto := MakeCryptoCommon(codec)
 
-	ePubKey1, ePrivKey1, err := crypto.MakeRandomTLFEphemeralKeys()
+	ePubKey1, ePrivKey1, err := kbfscrypto.MakeRandomTLFEphemeralKeys()
 	require.NoError(t, err)
 
 	// Add first key generation.
