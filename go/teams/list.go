@@ -54,7 +54,7 @@ func memberNeedAdmin(member keybase1.MemberInfo, meUID keybase1.UID) bool {
 // what team chain says. Nothing is checked when MemberInfo's role is
 // NONE, in this context it means that user has implied membership in
 // the team and no role given in sigchain.
-func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UserID, expectedRole keybase1.TeamRole, team *Team) error {
+func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRole keybase1.TeamRole, team *Team) error {
 	if expectedRole == keybase1.TeamRole_NONE {
 		return nil
 	}
@@ -261,7 +261,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 			if serverSaysNeedAdmin {
 				anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())
 				if err != nil {
-					g.Log.CDebugf(subctx, "| Failed to AnnotateInvites for team %q: %v", teamID, err)
+					g.Log.CDebugf(subctx, "| Failed to AnnotateInvites for team %q: %v", team.ID, err)
 					return nil
 				}
 			}
