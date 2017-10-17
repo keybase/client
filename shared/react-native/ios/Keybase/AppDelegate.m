@@ -17,7 +17,7 @@
 // Systrace is busted due to the new bridge. Uncomment this to force the old bridge.
 // You'll also have to edit the React.xcodeproj. Intructions here:
 // https://github.com/facebook/react-native/issues/15003#issuecomment-323715121
-#define SYSTRACING
+//#define SYSTRACING
 
 @interface AppDelegate ()
 @property UIBackgroundTaskIdentifier backgroundTask;
