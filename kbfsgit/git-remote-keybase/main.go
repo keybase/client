@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/env"
@@ -70,8 +71,12 @@ func checkService(kbCtx env.Context) *libfs.Error {
 	}
 	c, err := s.DialSocket()
 	if err != nil {
+		if runtime.GOOS == "darwin" || runtime.GOOS == "windows" {
+			return libfs.InitError(
+				"Keybase isn't running. Open the Keybase app.")
+		}
 		return libfs.InitError(
-			"The Keybase service is not running for this user.")
+			"Keybase isn't running. Try `run_keybase`.")
 	}
 	err = c.Close()
 	if err != nil {
