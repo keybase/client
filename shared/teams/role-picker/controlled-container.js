@@ -16,7 +16,7 @@ import {type TeamRoleType} from '../../constants/teams'
 */
 export type ControlledRolePickerProps = {
   onComplete: (role: TeamRoleType) => void,
-  selectedRole?: string,
+  selectedRole?: TeamRoleType,
   allowOwner?: boolean,
 }
 

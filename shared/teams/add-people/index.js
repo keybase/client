@@ -12,6 +12,7 @@ import {
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
+import {type TeamRoleType} from '../../constants/teams'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 
@@ -29,15 +30,15 @@ const MaybePopup = isMobile
     )
 
 type Props = {
-  onAddPeople: (role: string) => void,
+  onAddPeople: (role: TeamRoleType) => void,
   onClose: () => void,
   onLeave: () => void,
-  onOpenRolePicker: (role: string, (string) => void) => void,
+  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   name: string,
 }
 
 type State = {
-  selectedRole: string,
+  selectedRole: TeamRoleType,
 }
 
 class AddPeople extends React.Component<Props, State> {
@@ -65,7 +66,7 @@ class AddPeople extends React.Component<Props, State> {
 
   _dropdownChanged = (node: React.Node) => {
     // $FlowIssue doesn't understand key will be string
-    const selectedRole: string = (node && node.key) || null
+    const selectedRole: TeamRoleType = (node && node.key) || null
     this.setState({selectedRole})
   }
 
@@ -74,7 +75,7 @@ class AddPeople extends React.Component<Props, State> {
   }
 
   _openRolePicker = () => {
-    this.props.onOpenRolePicker(this.state.selectedRole, (selectedRole: string) =>
+    this.props.onOpenRolePicker(this.state.selectedRole, (selectedRole: TeamRoleType) =>
       this.setState({selectedRole})
     )
   }

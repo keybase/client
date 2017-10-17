@@ -103,8 +103,7 @@ export const RoleOptions = ({
   >
     <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
       <Text type="Header">
-        {!!username && `Select a role for ${username}`}
-        {!username && 'Select a role'}
+        {username ? `Select a role for ${username}` : 'Select a role'}
       </Text>
     </Box>
     {makeRoleOption('reader', selectedRole, setSelectedRole)}
