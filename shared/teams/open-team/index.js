@@ -45,14 +45,13 @@ const RoleDropDown = ({
   )
 }
 
-type TeamConfirmProps = {
+export type OpenTeamConfirmProps = {
   teamNameInput: string,
   onChangeTeamNameInput: (next: string) => void,
   confirmEnabled: boolean,
   defaultRole: Role,
   onChangeDefaultRole: (nextRole: Role) => void,
   onMakeTeamOpen: () => void,
-  onCancel: () => void,
 }
 
 const MakeOpenTeamConfirm = withProps({title: 'Open this team to everyone?'})(
@@ -64,7 +63,7 @@ const MakeOpenTeamConfirm = withProps({title: 'Open this team to everyone?'})(
       defaultRole,
       onChangeDefaultRole,
       onMakeTeamOpen,
-    }: TeamConfirmProps) => (
+    }: OpenTeamConfirmProps) => (
       <Box style={containerStyle}>
         <Text type="Body" style={centerText}>
           This will allow anyone to join without an admin's confirmation.

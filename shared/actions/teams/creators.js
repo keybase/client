@@ -42,6 +42,14 @@ function leaveTeam(teamname: string): Constants.LeaveTeam {
   return {payload: {teamname}, type: 'teams:leaveTeam'}
 }
 
+function makeTeamOpen(
+  teamname: string,
+  convertToOpen: boolean,
+  defaultRole: Constants.TeamRoleType
+): Constants.MakeTeamOpen {
+  return {payload: {convertToOpen, defaultRole, teamname}, type: 'teams:makeTeamOpen'}
+}
+
 function addToTeam(
   name: string,
   email: string,
@@ -101,6 +109,7 @@ export {
   ignoreRequest,
   joinTeam,
   leaveTeam,
+  makeTeamOpen,
   removeMember,
   removePendingInvite,
   setTeamCreationError,

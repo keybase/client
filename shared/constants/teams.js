@@ -51,6 +51,11 @@ export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
 
+export type MakeTeamOpen = NoErrorTypedAction<
+  'teams:makeTeamOpen',
+  {convertToOpen: boolean, defaultRole: TeamRoleType, teamname: string}
+>
+
 export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
 
 export type ToggleChannelMembership = NoErrorTypedAction<
@@ -119,6 +124,7 @@ type _State = {
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
+  teamNameToIsOpen: I.Map<Teamname, boolean>,
   teamnames: I.Set<Teamname>,
   loaded: boolean,
 }
@@ -131,6 +137,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
+  teamNameToIsOpen: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })

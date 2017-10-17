@@ -1,6 +1,11 @@
 // @flow
 import TeamsContainer from './container'
+<<<<<<< 58714253fe6ea1a3620dce25eaa44454d21e55d6
 import AddPeopleDialog from './add-people/container'
+||||||| merged common ancestors
+=======
+import {MaybePopupHoc} from '../common-adapters'
+>>>>>>> Add wiring for open team settings
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
@@ -11,6 +16,7 @@ import RolePicker from './role-picker/container'
 import Member from './team/member/container'
 import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
+import {ConnectedMakeOpenTeamConfirm, ConnectedMakeTeamClosed} from './open-team/container'
 import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
@@ -57,6 +63,16 @@ const routeTree = makeRouteDefNode({
         ...makeManageChannels,
         ...makeRolePicker,
         ...makeReallyLeaveTeam,
+        openTeamSetting: {
+          children: {},
+          component: MaybePopupHoc(ConnectedMakeOpenTeamConfirm),
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+        openCloseTeamSetting: {
+          children: {},
+          component: MaybePopupHoc(ConnectedMakeTeamClosed),
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
         member: {
           children: {
             ...makeRolePicker,
@@ -73,11 +89,6 @@ const routeTree = makeRouteDefNode({
         addPeople: {
           children: {},
           component: AddPeopleDialog,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-        reallyLeaveTeam: {
-          children: {},
-          component: ReallyLeaveTeam,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
       },

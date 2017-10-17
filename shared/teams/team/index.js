@@ -14,6 +14,7 @@ import {
 } from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
+import {OpenTeamSettingButton} from '../open-team'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
 
@@ -33,6 +34,8 @@ export type Props = {
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
+  onClickOpenTeamSetting: () => void,
+  isTeamOpen: boolean,
 }
 
 const Help = isMobile
@@ -205,6 +208,9 @@ class Team extends React.PureComponent<Props> {
           style={{marginTop: globalMargins.small}}
         />
         <Help name={name} />
+        <Box style={{marginTop: globalMargins.medium, marginBottom: globalMargins.medium}}>
+          <OpenTeamSettingButton onClick={this.props.onClickOpenTeamSetting} isOpen={this.props.isTeamOpen} />
+        </Box>
         <TeamTabs {...this.props} admin={admin} />
         {contents}
         {showMenu &&

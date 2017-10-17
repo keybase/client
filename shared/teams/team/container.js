@@ -20,6 +20,7 @@ type StateProps = {
   name: Constants.Teamname,
   you: ?string,
   selectedTab: string,
+  isTeamOpen: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
@@ -29,6 +30,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   name: routeProps.get('teamname'),
   you: state.config.username,
   selectedTab: routeState.get('selectedTab') || 'members',
+  isTeamOpen: state.entities.getIn(['teams', 'teamNameToIsOpen', routeProps.get('teamname')], false),
 })
 
 type DispatchProps = {
@@ -39,9 +41,10 @@ type DispatchProps = {
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
   setSelectedTab: (tab: string) => void,
   onBack: () => void,
+  _onClickOpenTeamSetting: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState}): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, routeProps}): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
@@ -55,6 +58,18 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState}): Di
   },
   setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),
+  _onClickOpenTeamSetting: isTeamOpen =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            onClose: (navigateUpFn: Function) => dispatch(navigateUpFn()),
+            actualTeamName: routeProps.get('teamname'),
+          },
+          selected: isTeamOpen ? 'openCloseTeamSetting' : 'openTeamSetting',
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -62,6 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onOpenFolder = () => dispatchProps._onOpenFolder(stateProps.name)
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
+  const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
 
   const customComponent = (
     <CustomComponent
@@ -84,6 +100,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
+    onClickOpenTeamSetting,
   }
 }
 
