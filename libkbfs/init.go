@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 const (
@@ -312,7 +313,7 @@ func parseRootDir(addr string) (string, bool) {
 }
 
 func makeMDServer(config Config, mdserverAddr string,
-	rpcLogFactory *libkb.RPCLogFactory, log logger.Logger) (
+	rpcLogFactory rpc.LogFactory, log logger.Logger) (
 	MDServer, error) {
 	if mdserverAddr == memoryAddr {
 		log.Debug("Using in-memory mdserver")
@@ -367,7 +368,7 @@ func makeKeyServer(config Config, keyserverAddr string,
 }
 
 func makeBlockServer(config Config, bserverAddr string,
-	rpcLogFactory *libkb.RPCLogFactory,
+	rpcLogFactory rpc.LogFactory,
 	log logger.Logger) (BlockServer, error) {
 	if bserverAddr == memoryAddr {
 		log.Debug("Using in-memory bserver")

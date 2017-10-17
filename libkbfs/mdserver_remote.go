@@ -46,7 +46,7 @@ type MDServerRemote struct {
 	deferLog      traceLogger
 	mdSrvAddr     string
 	connOpts      rpc.ConnectionOpts
-	rpcLogFactory *libkb.RPCLogFactory
+	rpcLogFactory rpc.LogFactory
 	authToken     *kbfscrypto.AuthToken
 	squelchRekey  bool
 	pinger        pinger
@@ -88,7 +88,7 @@ var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(config Config, srvAddr string,
-	rpcLogFactory *libkb.RPCLogFactory) *MDServerRemote {
+	rpcLogFactory rpc.LogFactory) *MDServerRemote {
 	log := config.MakeLogger("")
 	deferLog := log.CloneWithAddedDepth(1)
 	mdServer := &MDServerRemote{

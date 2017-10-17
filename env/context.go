@@ -27,7 +27,7 @@ type Context interface {
 	ConfigureSocketInfo() (err error)
 	GetGlobalContext() *libkb.GlobalContext
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
-	NewRPCLogFactory() *libkb.RPCLogFactory
+	NewRPCLogFactory() rpc.LogFactory
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
 }
@@ -52,21 +52,6 @@ func (c *KBFSContext) initKBFSSocket() {
 	c.kbfsSocket = libkb.NewSocketWithFiles(log, bindFile, dialFiles)
 }
 
-var libkbG *libkb.GlobalContext
-var libkbGOnce sync.Once
-
-func getLibkbG() *libkb.GlobalContext {
-	libkbGOnce.Do(func() {
-		g := libkb.NewGlobalContextInit()
-		g.ConfigureConfig()
-		g.ConfigureLogging()
-		g.ConfigureCaches()
-		g.ConfigureMerkleClient()
-		libkbG = g
-	})
-	return libkbG
-}
-
 // NewContextFromGlobalContext constructs a context
 func NewContextFromGlobalContext(g *libkb.GlobalContext) *KBFSContext {
 	c := &KBFSContext{g: g}
@@ -74,9 +59,15 @@ func NewContextFromGlobalContext(g *libkb.GlobalContext) *KBFSContext {
 	return c
 }
 
-// NewContext constructs a context
+// NewContext constructs a context. This should only be called once in
+// main functions.
 func NewContext() *KBFSContext {
-	return NewContextFromGlobalContext(getLibkbG())
+	g := libkb.NewGlobalContextInit()
+	g.ConfigureConfig()
+	g.ConfigureLogging()
+	g.ConfigureCaches()
+	g.ConfigureMerkleClient()
+	return NewContextFromGlobalContext(g)
 }
 
 // GetLogDir returns log dir
@@ -111,7 +102,7 @@ func (c *KBFSContext) ConfigureSocketInfo() error {
 }
 
 // NewRPCLogFactory constructs an RPC logger
-func (c *KBFSContext) NewRPCLogFactory() *libkb.RPCLogFactory {
+func (c *KBFSContext) NewRPCLogFactory() rpc.LogFactory {
 	return &libkb.RPCLogFactory{Contextified: libkb.NewContextified(c.g)}
 }
 

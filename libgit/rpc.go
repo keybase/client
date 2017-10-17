@@ -10,7 +10,6 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -35,12 +34,6 @@ func NewRPCHandlerWithCtx(kbCtx libkbfs.Context, config libkbfs.Config,
 		kbfsInitParams: kbfsInitParams,
 		log:            config.MakeLogger(""),
 	}
-}
-
-// NewRPCHandler returns a new instance of a Git RPC handler using the
-// default environment context.
-func NewRPCHandler(config libkbfs.Config) keybase1.KBFSGitInterface {
-	return NewRPCHandlerWithCtx(env.NewContext(), config, nil)
 }
 
 var _ keybase1.KBFSGitInterface = (*RPCHandler)(nil)

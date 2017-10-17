@@ -43,7 +43,7 @@ type blockServerRemoteClientHandler struct {
 	authToken     *kbfscrypto.AuthToken
 	srvAddr       string
 	connOpts      rpc.ConnectionOpts
-	rpcLogFactory *libkb.RPCLogFactory
+	rpcLogFactory rpc.LogFactory
 	pinger        pinger
 
 	connMu sync.RWMutex
@@ -53,7 +53,7 @@ type blockServerRemoteClientHandler struct {
 
 func newBlockServerRemoteClientHandler(name string, log logger.Logger,
 	signer kbfscrypto.Signer, csg CurrentSessionGetter, srvAddr string,
-	rpcLogFactory *libkb.RPCLogFactory) *blockServerRemoteClientHandler {
+	rpcLogFactory rpc.LogFactory) *blockServerRemoteClientHandler {
 	deferLog := log.CloneWithAddedDepth(1)
 	b := &blockServerRemoteClientHandler{
 		name:          name,
@@ -320,7 +320,7 @@ var _ BlockServer = (*BlockServerRemote)(nil)
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(config blockServerRemoteConfig,
-	blkSrvAddr string, rpcLogFactory *libkb.RPCLogFactory) *BlockServerRemote {
+	blkSrvAddr string, rpcLogFactory rpc.LogFactory) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{

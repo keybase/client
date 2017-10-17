@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/env"
 	"golang.org/x/net/context"
 )
 
@@ -39,8 +38,8 @@ var adminFeatureList = map[keybase1.UID]bool{
 
 // EnableAdminFeature returns true if admin features should be enabled
 // for the currently-logged-in user.
-func EnableAdminFeature(ctx context.Context, config Config) bool {
-	if env.NewContext().GetRunMode() == libkb.DevelRunMode {
+func EnableAdminFeature(ctx context.Context, runMode libkb.RunMode, config Config) bool {
+	if runMode == libkb.DevelRunMode {
 		// All users in devel mode are admins.
 		return true
 	}
