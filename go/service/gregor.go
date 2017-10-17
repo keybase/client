@@ -223,14 +223,6 @@ func (g *gregorHandler) Init() {
 func (g *gregorHandler) monitorAppState() {
 	// Wait for state updates and react accordingly
 	for {
-		// Check to see if we have been shutdown
-		select {
-		case <-g.shutdownCh:
-			return
-		default:
-			// if we were going to block, then that means we are still alive
-		}
-
 		state := <-g.G().AppState.NextUpdate()
 		switch state {
 		case keybase1.AppState_BACKGROUNDACTIVE:
@@ -785,14 +777,6 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 	g.Lock()
 	defer g.Unlock()
 
-	// Check to see if we have been shutdown
-	select {
-	case <-g.shutdownCh:
-		return fmt.Errorf("gregor handler has shutdown")
-	default:
-		// if we were going to block, then that means we are still alive
-	}
-
 	// Handle the message
 	var obm gregor.OutOfBandMessage
 	ibm := m.ToInBandMessage()
@@ -848,9 +832,6 @@ func (g *gregorHandler) broadcastMessageHandler() {
 	for {
 		m := <-g.broadcastCh
 		err := g.broadcastMessageOnce(ctx, m)
-		if err != nil {
-			g.G().Log.CDebugf(context.Background(), "gregor broadcast error: %v", err)
-		}
 
 		// Testing alerts
 		if g.testingEvents != nil {
@@ -1197,7 +1178,7 @@ const (
 
 func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token string, res loggedInRes) {
 
-	// Check to see if we have been shutdown
+	// Check to see if we have been shutdown,
 	select {
 	case <-g.shutdownCh:
 		return uid, token, loggedInMaybe
