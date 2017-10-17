@@ -104,7 +104,7 @@ const BOOL isDebug = NO;
 
 #ifdef SYSTRACING
 - (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
-  return [NSURL URLWithString:@"http://10.0.1.50:8081/index.ios.bundle?platform=ios&dev=true"];
+  return [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=true"];
 }
 
 - (BOOL)shouldBridgeUseCxxBridge:(RCTBridge *)bridge {
