@@ -43,7 +43,7 @@ import type {TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
 // How many messages we consider too many to just download when you are stale and we could possibly just append
-const tooManyMessagesToJustAppendOnStale = 3
+const tooManyMessagesToJustAppendOnStale = 200
 
 function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
@@ -336,7 +336,6 @@ function* _updateThread({
     const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
     const appFocused = yield select(Shared.focusedSelector)
 
-    // TODO update pagination
     yield put(
       Creators.appendMessages(
         conversationIDKey,
@@ -391,7 +390,6 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
 
     // only load unboxed things
     if (!['unboxed', 'reUnboxing'].includes(untrustedState)) {
-      // debugger
       console.log('Bailing on not yet unboxed conversation', untrustedState)
       return
     }
@@ -453,7 +451,6 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
           previous: null,
         }
 
-    // debugger
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, !!action.payload.onlyNewerThan),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
@@ -1249,14 +1246,11 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   if (conversation) {
     const inbox = yield select(Constants.getInbox, selectedConversation)
 
-    console.log('aaa inboxid', inbox && inbox.maxMsgID)
     const messageKeys = yield select(Constants.getConversationMessages, selectedConversation)
     const lastMessageKey = messageKeys.last()
     if (lastMessageKey) {
       const lastMessage = yield select(Constants.getMessageFromMessageKey, lastMessageKey)
       // Check to see if we could possibly be asking for too many messages
-      console.log('aaa lastmessageid', lastMessage, lastMessage && lastMessage.rawMessageID)
-      //
       if (
         lastMessage &&
         lastMessage.rawMessageID &&
@@ -1264,14 +1258,16 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
         inbox.maxMsgID &&
         inbox.maxMsgID - lastMessage.rawMessageID > tooManyMessagesToJustAppendOnStale
       ) {
-        console.log('aaa full stale', inbox.maxMsgID - lastMessage.rawMessageID)
-        yield put(Creators.inboxStale())
+        console.log(
+          'Doing a full load due to too many old messages',
+          inbox.maxMsgID - lastMessage.rawMessageID
+        )
+        yield all([
+          put(Creators.clearMessages(selectedConversation)),
+          yield put(Creators.loadMoreMessages(selectedConversation, false)),
+        ])
         return
       }
-
-      try {
-        console.log('aaa just append', inbox.maxMsgID - lastMessage.rawMessageID)
-      } catch (_) {}
     }
     const onlyNewerThan = conversation.paginationPrevious
     yield put(Creators.loadMoreMessages(selectedConversation, false, false, onlyNewerThan))
