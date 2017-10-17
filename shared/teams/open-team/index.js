@@ -2,7 +2,8 @@
 import React from 'react'
 import {Box, Button, Dropdown, Input, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
-import {withProps} from 'recompose'
+import {withProps, mapProps, compose} from 'recompose'
+import {isMobile} from '../../constants/platform'
 
 type Role = 'reader' | 'writer'
 
@@ -52,76 +53,80 @@ export type OpenTeamConfirmProps = {
   defaultRole: Role,
   onChangeDefaultRole: (nextRole: Role) => void,
   onMakeTeamOpen: () => void,
+  onClose: () => void,
 }
 
-const MakeOpenTeamConfirm = withProps({title: 'Open this team to everyone?'})(
-  HeaderHoc(
-    ({
-      teamNameInput,
-      onChangeTeamNameInput,
-      confirmEnabled,
-      defaultRole,
-      onChangeDefaultRole,
-      onMakeTeamOpen,
-    }: OpenTeamConfirmProps) => (
-      <Box style={containerStyle}>
+const MakeOpenTeamConfirm = compose(
+  mapProps(props => (isMobile ? {...props, onBack: props.onClose} : props)),
+  withProps({title: 'Open this team to everyone?'}),
+  HeaderHoc
+)(
+  ({
+    teamNameInput,
+    onChangeTeamNameInput,
+    confirmEnabled,
+    defaultRole,
+    onChangeDefaultRole,
+    onMakeTeamOpen,
+  }: OpenTeamConfirmProps) => (
+    <Box style={containerStyle}>
+      <Text type="Body" style={centerText}>
+        This will allow anyone to join without an admin's confirmation.
+      </Text>
+
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          marginTop: globalMargins.medium,
+          marginBottom: globalMargins.medium,
+        }}
+      >
         <Text type="Body" style={centerText}>
-          This will allow anyone to join without an admin's confirmation.
+          Type the team name to confirm
         </Text>
-
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            marginTop: globalMargins.medium,
-            marginBottom: globalMargins.medium,
-          }}
-        >
-          <Text type="Body" style={centerText}>
-            Type the team name to confirm
-          </Text>
-          <Input
-            style={{flexShrink: 0}}
-            value={teamNameInput}
-            onChangeText={onChangeTeamNameInput}
-            hintText="Team Name"
-          />
-        </Box>
-
-        <Text type="Body" style={centerText}>Select the default role for new team members</Text>
-        <RoleDropDown selectedRole={defaultRole} onChangeRole={onChangeDefaultRole} />
-
-        <Box
-          style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'flex-end'}}
-        >
-          <Button
-            type="Primary"
-            style={{marginTop: globalMargins.medium}}
-            label="Open this team"
-            onClick={onMakeTeamOpen}
-            disabled={!confirmEnabled}
-          />
-        </Box>
+        <Input
+          style={{flexShrink: 0}}
+          value={teamNameInput}
+          onChangeText={onChangeTeamNameInput}
+          hintText="Team Name"
+        />
       </Box>
-    )
+
+      <Text type="Body" style={centerText}>Select the default role for new team members</Text>
+      <RoleDropDown selectedRole={defaultRole} onChangeRole={onChangeDefaultRole} />
+
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'flex-end'}}>
+        <Button
+          type="Primary"
+          style={{marginTop: globalMargins.medium}}
+          label="Open this team"
+          onClick={onMakeTeamOpen}
+          disabled={!confirmEnabled}
+        />
+      </Box>
+    </Box>
   )
 )
 
 type CloseTeamProps = {
   onMakeTeamClosed: () => void,
+  onClose: () => void,
 }
 
-const MakeTeamClosed = withProps({
-  title: 'Close open access to this team?',
-})(
-  HeaderHoc(({onMakeTeamClosed}: CloseTeamProps) => (
-    <Box style={containerStyle}>
-      <Text type="Body" style={{textAlign: 'center', flex: 1}}>
-        This will prevent anyone from joining without an admin's confirmation
-      </Text>
-      <Button type="Primary" label="Close open access" onClick={onMakeTeamClosed} />
-    </Box>
-  ))
-)
+const MakeTeamClosed = compose(
+  withProps({
+    title: 'Close open access to this team?',
+  }),
+  mapProps(props => (isMobile ? {...props, onBack: props.onClose} : props)),
+  HeaderHoc
+)(({onMakeTeamClosed}: CloseTeamProps) => (
+  <Box style={containerStyle}>
+    <Text type="Body" style={{textAlign: 'center', flex: 1}}>
+      This will prevent anyone from joining without an admin's confirmation
+    </Text>
+    <Button type="Primary" label="Close open access" onClick={onMakeTeamClosed} />
+  </Box>
+))
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
