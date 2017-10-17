@@ -1,11 +1,7 @@
 // @flow
 import TeamsContainer from './container'
-<<<<<<< 58714253fe6ea1a3620dce25eaa44454d21e55d6
 import AddPeopleDialog from './add-people/container'
-||||||| merged common ancestors
-=======
 import {MaybePopupHoc} from '../common-adapters'
->>>>>>> Add wiring for open team settings
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
