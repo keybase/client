@@ -135,13 +135,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('conversationStates', newConversationStates)
     }
     case 'chat:updatePaginationNext': {
-      const {conversationIDKey, paginationNext, paginatinPrevious} = action.payload
+      const {conversationIDKey, paginationNext, paginationPrevious} = action.payload
       const newConversationStates = state
         .get('conversationStates')
         .update(conversationIDKey, initialConversation, conversation =>
-          conversation
-            .set('paginationNext', paginationNext)
-            .conversation.get('paginationPrevious', paginationPrevious)
+          conversation.set('paginationNext', paginationNext).set('paginationPrevious', paginationPrevious)
         )
       return state.set('conversationStates', newConversationStates)
     }

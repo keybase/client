@@ -587,10 +587,11 @@ function updateThread(
   thread: ChatTypes.UIMessages,
   yourName: string,
   yourDeviceName: string,
-  conversationIDKey: string
+  conversationIDKey: string,
+  append: boolean
 ): Constants.UpdateThread {
   return {
-    payload: {thread, yourName, yourDeviceName, conversationIDKey},
+    payload: {thread, yourName, yourDeviceName, conversationIDKey, append},
     type: 'chat:updateThread',
   }
 }

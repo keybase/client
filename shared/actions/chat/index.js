@@ -303,7 +303,7 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
 const inboxSelector = (state: TypedState) => state.entities.get('inbox')
 
 function* _updateThread({
-  payload: {yourName, thread, yourDeviceName, conversationIDKey},
+  payload: {yourName, thread, yourDeviceName, conversationIDKey, append},
 }: Constants.UpdateThread) {
   let newMessages = []
   const newUnboxeds = (thread && thread.messages) || []
@@ -328,32 +328,48 @@ function* _updateThread({
     }
   }
 
-  newMessages = newMessages.reverse()
   const pagination = _threadToPagination(thread)
-  yield put(
-    Creators.prependMessages(
-      conversationIDKey,
-      newMessages,
-      !pagination.last,
-      pagination.next,
-      pagination.previous
+  newMessages = newMessages.reverse()
+  if (append) {
+    const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
+    const appFocused = yield select(Shared.focusedSelector)
+
+    // TODO update pagination
+    yield put(
+      Creators.appendMessages(
+        conversationIDKey,
+        conversationIDKey === selectedConversationIDKey,
+        appFocused,
+        newMessages,
+        false
+      )
     )
-  )
+  } else {
+    yield put(
+      Creators.prependMessages(
+        conversationIDKey,
+        newMessages,
+        !pagination.last,
+        pagination.next,
+        pagination.previous
+      )
+    )
+  }
 }
 
-function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
+function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append) {
   return function* subSagaUpdateThreadHelper({thread}) {
     if (thread) {
       const decThread: ChatTypes.UIMessages = JSON.parse(thread)
-      yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey))
+      yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey, append))
     }
     return EngineRpc.rpcResult()
   }
 }
 
-const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey) => ({
-  'chat.1.chatUi.chatThreadCached': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
-  'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
+const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey, append) => ({
+  'chat.1.chatUi.chatThreadCached': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
+  'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
 })
 
 function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
@@ -371,8 +387,10 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
 
     const untrustedState = yield select(state => state.entities.inboxUntrustedState.get(conversationIDKey))
 
-    if (untrustedState !== 'unboxed') {
-      console.log('Bailing on not yet unboxed conversation')
+    // only load unboxed things
+    if (!['unboxed', 'reUnboxing'].includes(untrustedState)) {
+      // debugger
+      console.log('Bailing on not yet unboxed conversation', untrustedState)
       return
     }
 
@@ -389,7 +407,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
 
     let next = null
-    if (oldConversationState) {
+    if (oldConversationState && !action.payload.onlyNewerThan) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
         console.log('Bailing on chat load more due to already has initial load')
         return
@@ -433,8 +451,9 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
           previous: null,
         }
 
+    // debugger
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
-      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey),
+      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, !!action.payload.onlyNewerThan),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
       'localGetThreadNonblock',
       {

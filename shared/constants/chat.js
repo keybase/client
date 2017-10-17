@@ -278,7 +278,8 @@ export type NotificationsState = {
   mobile: NotificationsKindState,
 }
 
-export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'unboxing'
+// firstUnboxing is when its going from untrusted to unboxing vs unboxed to reUnboxing
+export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'firstUnboxing' | 'reUnboxing'
 
 type _InboxState = {
   conversationIDKey: ConversationIDKey,
@@ -620,7 +621,7 @@ export type UpdateLatestMessage = NoErrorTypedAction<
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatePaginationNext = NoErrorTypedAction<
   'chat:updatePaginationNext',
-  {conversationIDKey: ConversationIDKey, paginationNext: string, paginationPrevious: ?string}
+  {conversationIDKey: ConversationIDKey, paginationNext: ?string, paginationPrevious: ?string}
 >
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',
@@ -767,6 +768,7 @@ export type UpdateThread = NoErrorTypedAction<
     yourName: string,
     yourDeviceName: string,
     conversationIDKey: string,
+    append: boolean,
   }
 >
 
