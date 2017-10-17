@@ -1946,7 +1946,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver MetadataVer) {
 	config2Dev2.SetCrypto(clta)
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
-	ops.rekeyFSM.Event(newRekeyKickoffEventForTest())
+	ops.rekeyFSM.Event(newRekeyKickoffEvent())
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -2077,7 +2077,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver Metada
 	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 
-	ops.rekeyFSM.Event(newRekeyKickoffEventForTest())
+	ops.rekeyFSM.Event(newRekeyKickoffEvent())
 	select {
 	case <-c:
 	case <-ctx.Done():
@@ -2165,7 +2165,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver Met
 	c := make(chan struct{}, 1)
 	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), sync.Once{}, c, config2Dev2.Crypto()}
 	config2Dev2.SetCrypto(clta)
-	ops.rekeyFSM.Event(newRekeyKickoffEventForTest())
+	ops.rekeyFSM.Event(newRekeyKickoffEvent())
 	select {
 	case <-c:
 	case <-ctx.Done():

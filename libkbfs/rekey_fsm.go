@@ -59,10 +59,10 @@ const (
 	rekeyFinishedEvent
 	rekeyTimeupEvent
 	rekeyNotNeededEvent
+	rekeyKickoffEvent
 
 	rekeyShutdownEvent
 
-	rekeyKickoffEventForTest
 	rekeyCancelEventForTest
 )
 
@@ -78,8 +78,8 @@ func (e rekeyEventType) String() string {
 		return "rekeyNotNeededEvent"
 	case rekeyShutdownEvent:
 		return "rekeyShutdownEvent"
-	case rekeyKickoffEventForTest:
-		return "rekeyKickoffEventForTest"
+	case rekeyKickoffEvent:
+		return "rekeyKickoffEvent"
 	case rekeyCancelEventForTest:
 		return "rekeyCancelEventForTest"
 	default:
@@ -201,9 +201,9 @@ func newRekeyShutdownEvent() RekeyEvent {
 	}
 }
 
-func newRekeyKickoffEventForTest() RekeyEvent {
+func newRekeyKickoffEvent() RekeyEvent {
 	return RekeyEvent{
-		eventType: rekeyKickoffEventForTest,
+		eventType: rekeyKickoffEvent,
 	}
 }
 
@@ -322,7 +322,7 @@ func (r *rekeyStateScheduled) reactToEvent(event RekeyEvent) rekeyState {
 		// single-goroutined, we are safe here.
 		r.task.promptPaper = false
 		return r
-	case rekeyKickoffEventForTest:
+	case rekeyKickoffEvent:
 		r.timer.Reset(time.Millisecond)
 		return r
 	case rekeyCancelEventForTest:

@@ -6403,6 +6403,13 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 	}()
 }
 
+// KickoffAllOutstandingRekeys (does not) implement the KBFSOps interface for
+// KBFSOpsStandard.
+func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
+	return errors.New(
+		"KickoffAllOutstandingRekeys is not supported on *folderBranchOps")
+}
+
 // PushConnectionStatusChange pushes human readable connection status changes.
 func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus error) {
 	fbo.config.KBFSOps().PushConnectionStatusChange(service, newStatus)

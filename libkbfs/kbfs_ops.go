@@ -895,6 +895,15 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 	}
 }
 
+// KickoffAllOutstandingRekeys implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) KickoffAllOutstandingRekeys() error {
+	for _, op := range fs.ops {
+		op.rekeyFSM.Event(newRekeyKickoffEvent())
+	}
+	return nil
+}
+
 func (fs *KBFSOpsStandard) changeHandle(ctx context.Context,
 	oldFav Favorite, newHandle *TlfHandle) {
 	fs.opsLock.Lock()

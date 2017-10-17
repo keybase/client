@@ -370,6 +370,10 @@ type KBFSOps interface {
 	// we should clean up any outstanding handle info associated with
 	// the team ID.
 	TeamNameChanged(ctx context.Context, tid keybase1.TeamID)
+	// KickoffAllOutstandingRekeys kicks off all outstanding rekeys. It does
+	// nothing to folders that have not scheduled a rekey. This should be
+	// called when we receive an event of "paper key cached" from service.
+	KickoffAllOutstandingRekeys() error
 }
 
 type merkleRootGetter interface {

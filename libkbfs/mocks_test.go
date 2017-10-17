@@ -1255,6 +1255,18 @@ func (mr *MockKBFSOpsMockRecorder) TeamNameChanged(ctx, tid interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TeamNameChanged", reflect.TypeOf((*MockKBFSOps)(nil).TeamNameChanged), ctx, tid)
 }
 
+// KickoffAllOutstandingRekeys mocks base method
+func (m *MockKBFSOps) KickoffAllOutstandingRekeys() error {
+	ret := m.ctrl.Call(m, "KickoffAllOutstandingRekeys")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// KickoffAllOutstandingRekeys indicates an expected call of KickoffAllOutstandingRekeys
+func (mr *MockKBFSOpsMockRecorder) KickoffAllOutstandingRekeys() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "KickoffAllOutstandingRekeys", reflect.TypeOf((*MockKBFSOps)(nil).KickoffAllOutstandingRekeys))
+}
+
 // MockmerkleRootGetter is a mock of merkleRootGetter interface
 type MockmerkleRootGetter struct {
 	ctrl     *gomock.Controller
