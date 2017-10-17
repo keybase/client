@@ -30,6 +30,7 @@ export type Props = {
   selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
   onAddPeople: () => void,
+  onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
@@ -143,6 +144,7 @@ class Team extends React.PureComponent<Props> {
       showMenu,
       setShowMenu,
       onAddPeople,
+      onInviteByEmail,
       onLeaveTeam,
       selectedTab,
       loading,
@@ -198,12 +200,19 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
-        <Button
-          type="Primary"
-          label="Add people"
-          onClick={onAddPeople}
-          style={{marginTop: globalMargins.small}}
-        />
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
+	  <Button
+            type="Primary"
+            label="Add people"
+            onClick={onAddPeople}
+          />
+          <Button
+            type="Primary"
+            label="Invite by email"
+            onClick={onInviteByEmail}
+            style={{marginLeft: globalMargins.small}}
+          />
+        </Box>
         <Help name={name} />
         <TeamTabs {...this.props} admin={admin} />
         {contents}
