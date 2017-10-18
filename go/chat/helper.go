@@ -368,6 +368,78 @@ func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils
 	return res, rl, nil
 }
 
+type GetTLFConversationTopicNamesRes struct {
+	ConvID    chat1.ConversationID
+	TopicName string
+}
+
+func GetTLFConversationTopicNames(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
+	membersType chat1.ConversationMembersType) (res []GetTLFConversationTopicNamesRes, rl []chat1.RateLimit, err error) {
+
+	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
+		TlfID:            tlfID,
+		TopicType:        topicType,
+		MembersType:      membersType,
+		SummarizeMaxMsgs: false,
+	})
+	if err != nil {
+		return res, rl, err
+	}
+	if tlfRes.RateLimit != nil {
+		rl = append(rl, *tlfRes.RateLimit)
+	}
+
+	getMetadataMsg := func(conv chat1.Conversation) (chat1.MessageBoxed, bool) {
+		for _, msg := range conv.MaxMsgs {
+			if msg.GetMessageType() == chat1.MessageType_METADATA {
+				return msg, true
+			}
+		}
+		return chat1.MessageBoxed{}, false
+	}
+
+	// Find metadata messages in this result and unbox them
+	for _, conv := range tlfRes.Conversations {
+		msg, ok := getMetadataMsg(conv)
+		if ok {
+			unboxeds, err := g.ConvSource.GetMessagesWithRemotes(ctx, conv, uid, []chat1.MessageBoxed{msg})
+			if err != nil {
+				debugger.Debug(ctx, "GetTLFConversationTopicNames: failed to unbox metadata message for: convID: %s err: %s", conv.GetConvID(), err)
+				continue
+			}
+			if len(unboxeds) != 1 {
+				debugger.Debug(ctx, "GetTLFConversationTopicNames: empty result: convID: %s", conv.GetConvID())
+				continue
+			}
+			unboxed := unboxeds[0]
+			if !unboxed.IsValid() {
+				debugger.Debug(ctx, "GetTLFConversationTopicNames: metadata message invalid: convID, %s",
+					conv.GetConvID())
+				continue
+			}
+			body := unboxed.Valid().MessageBody
+			typ, err := body.MessageType()
+			if err != nil {
+				debugger.Debug(ctx, "GetTLFConversationTopicNames: error getting message type: convID, %s",
+					conv.GetConvID(), err)
+				continue
+			}
+			if typ != chat1.MessageType_METADATA {
+				debugger.Debug(ctx, "GetTLFConversationTopicNames: message not a real metadata message: convID, %s msgID: %d", conv.GetConvID(), unboxed.GetMessageID())
+				continue
+			}
+
+			res = append(res, GetTLFConversationTopicNamesRes{
+				ConvID:    conv.GetConvID(),
+				TopicName: body.Metadata().ConversationTitle,
+			})
+		}
+	}
+
+	return res, rl, nil
+}
+
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	convs []chat1.ConversationLocal,
 	uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
