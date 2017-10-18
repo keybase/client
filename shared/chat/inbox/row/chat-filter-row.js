@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -24,7 +24,7 @@ type State = {
   isEditing: boolean,
 }
 
-class _ChatFilterRow extends Component<Props, State> {
+class _ChatFilterRow extends React.PureComponent<Props, State> {
   state: State
   _input: any
 

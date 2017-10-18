@@ -1,12 +1,11 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as I from 'immutable'
-import React, {Component} from 'react'
+import * as React from 'react'
 import Render from './avatar.render'
 import pickBy from 'lodash/pickBy'
 import {iconTypeToImgSet, urlsToImgSet} from './icon'
 import {isTesting} from '../local-debug'
-import shallowEqual from 'shallowequal'
 import {requestIdleCallback} from '../util/idle-callback'
 import {globalStyles} from '../styles'
 
@@ -128,7 +127,7 @@ const followSizeToStyle = {
   '80': {bottom: 0, left: 57, position: 'absolute'},
 }
 
-class Avatar extends Component<Props, State> {
+class Avatar extends React.PureComponent<Props, State> {
   state: State
   _mounted: boolean = false
   _onURLLoaded = (name: string, urlMap: ?URLMap) => {
@@ -269,20 +268,19 @@ class Avatar extends Component<Props, State> {
     ])
   }
 
-  shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
-    return (
-      this.state.url !== nextState.url ||
-      !shallowEqual(this.props, nextProps, (obj, oth, key) => {
-        if (key === 'style') {
-          return shallowEqual(obj, oth)
-        }
-        return undefined
-      })
-    )
-  }
-
   render() {
     const url = __SCREENSHOT__ || isTesting ? this._noAvatar() : this.state.url
+    let style
+
+    if (this.props.style) {
+      if (this.props.onClick) {
+        style = {...this.props.style, ...globalStyles.clickable}
+      } else {
+        style = this.props.style
+      }
+    } else if (this.props.onClick) {
+      style = globalStyles.clickable
+    }
 
     return (
       <Render
@@ -296,7 +294,7 @@ class Avatar extends Component<Props, State> {
         onClick={this.props.onClick}
         opacity={this.props.opacity}
         size={this.props.size}
-        style={{...this.props.style, ...(this.props.onClick ? globalStyles.clickable : {})}}
+        style={style}
         url={url}
       />
     )
