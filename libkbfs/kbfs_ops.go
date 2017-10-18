@@ -439,6 +439,28 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 	if err != nil {
 		return nil, tlf.ID{}, err
 	}
+
+	// If journaling is enabled, wait for the initial revision to be
+	// accepted by the server, so we don't return keys that might
+	// later hit a conflict. (See KBFS-2553.)
+	jServer, err := GetJournalServer(fs.config)
+	if err == nil {
+		fb := FolderBranch{Tlf: rmd.TlfID(), Branch: MasterBranch}
+		ops := fs.getOpsNoAdd(ctx, fb)
+		lState := makeFBOLockState()
+		for ops.getLatestMergedRevision(lState) < kbfsmd.RevisionInitial {
+			err = ops.waitForJournal(ctx, lState, jServer)
+			if err != nil {
+				return nil, tlf.ID{}, err
+			}
+
+			rmd, err = fs.getMDByHandle(ctx, tlfHandle, FavoritesOpNoChange)
+			if err != nil {
+				return nil, tlf.ID{}, err
+			}
+		}
+	}
+
 	keys, err = fs.config.KeyManager().GetTLFCryptKeyOfAllGenerations(ctx, rmd)
 	return keys, rmd.TlfID(), err
 }
