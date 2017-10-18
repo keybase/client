@@ -152,6 +152,7 @@ function updateUserState(
         lastAction: 'refollowed',
         reason: `You have re-followed ${state.username}.`,
         trackerState: 'normal',
+        eldestKidChanged: false,
       }
     case Constants.onUnfollow:
       return {
