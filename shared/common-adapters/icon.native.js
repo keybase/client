@@ -8,7 +8,6 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import {NativeStyleSheet} from './native-wrappers.native.js'
 
-import type {Exact} from '../constants/types/more'
 import type {IconType, Props} from './icon'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
