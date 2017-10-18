@@ -19,6 +19,7 @@ import {roleIconMap, roleDescMap, permissionMap} from './index.meta'
 
 export type RolePickerProps = {
   confirm: boolean,
+  controlled?: boolean,
   currentType: ?TeamRoleType,
   username: string,
   selectedRole: TeamRoleType,
@@ -81,6 +82,7 @@ const makeRoleOption = (
 
 // 1. Display roles for user to pick from
 export const RoleOptions = ({
+  controlled,
   currentType,
   username,
   selectedRole,
@@ -100,7 +102,9 @@ export const RoleOptions = ({
     }}
   >
     <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.small}}>
-      <Text type="Header">Select a role for {username}</Text>
+      <Text type="Header">
+        {username ? `Select a role for ${username}` : 'Select a role'}
+      </Text>
     </Box>
     {makeRoleOption('reader', selectedRole, setSelectedRole)}
     {makeRoleOption('writer', selectedRole, setSelectedRole)}
@@ -112,7 +116,7 @@ export const RoleOptions = ({
       </Box>}
     <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
       <Button
-        label="Continue"
+        label={controlled ? 'Select' : 'Continue'}
         type="Primary"
         onClick={() => setConfirm(true)}
         disabled={selectedRole === currentType}
