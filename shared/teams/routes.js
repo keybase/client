@@ -85,11 +85,6 @@ const routeTree = makeRouteDefNode({
           component: InviteByEmailDialog,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
-        reallyLeaveTeam: {
-          children: {},
-          component: ReallyLeaveTeam,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
       },
       component: Team,
     },
