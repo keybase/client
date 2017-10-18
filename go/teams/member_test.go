@@ -2,6 +2,7 @@ package teams
 
 import (
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -905,5 +906,68 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	}
 	if _, ok := err.(TeamDoesNotExistError); !ok {
 		t.Errorf("expected teams.TeamDoesNotExistError, got %T", err)
+	}
+}
+
+// Test two users racing to post chain links to the same team.
+// In this case, adding different users to the team.
+func TestMemberAddRace(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 4)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1")
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err, "add member")
+
+	// add or remove a user from the team
+	mod := func(userIndexOperator, userIndexTarget int, add bool) <-chan error {
+		errCh := make(chan error)
+		go func() {
+			ctx := context.TODO()
+			ctx = libkb.WithLogTag(ctx, "TEST")
+			var err error
+			desc := "removes"
+			if add {
+				desc = "adds"
+			}
+			t.Logf("U%v %v U%v", userIndexOperator, desc, userIndexTarget)
+			if add {
+				_, err = AddMember(context.TODO(),
+					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username, keybase1.TeamRole_READER)
+			} else {
+				err = RemoveMember(context.TODO(),
+					tcs[userIndexOperator].G, rootName.String(), fus[userIndexTarget].Username)
+			}
+			errCh <- err
+		}()
+		return errCh
+	}
+
+	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
+		select {
+		case err := <-errCh:
+			require.NoError(t, err, msgAndArgs...)
+		case <-time.After(20 * time.Second):
+			require.FailNow(t, "timeout waiting for return channel")
+		}
+	}
+
+	for i := 0; i < 5; i++ {
+		t.Logf("round %v", i)
+
+		t.Logf("parallel start")
+
+		errCh1 := mod(0, 2, true)
+		errCh2 := mod(1, 3, true)
+		assertNoErr(errCh1, "round %v", i)
+		assertNoErr(errCh2, "round %v", i)
+
+		t.Logf("parallel end")
+
+		assertNoErr(mod(0, 2, false))
+		assertNoErr(mod(1, 3, false))
 	}
 }
