@@ -73,11 +73,13 @@ class InviteByEmail extends React.Component<Props, void> {
           }}
         >
           {!isMobile && <Text style={styleInside} type="Header">Invite by email</Text>}
-          <Box style={{
-            ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-            alignItems: 'center',
-            margin: globalMargins.tiny,
-          }}>
+          <Box
+            style={{
+              ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
+              alignItems: 'center',
+              margin: globalMargins.tiny,
+            }}
+          >
             <Text style={{margin: globalMargins.tiny}} type="Body">
               Add these team members to {this.props.name} as:
             </Text>

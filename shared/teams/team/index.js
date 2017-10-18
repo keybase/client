@@ -219,14 +219,15 @@ class Team extends React.PureComponent<Props> {
           </Text>
         )
       } else {
-        contents = (invites.length !== 0 || !loading) &&
-        <List
-          keyProperty="username"
-          items={inviteProps}
-          fixedHeight={48}
-          renderItem={TeamInviteRow}
-          style={{alignSelf: 'stretch'}}
-        />
+        contents =
+          (invites.length !== 0 || !loading) &&
+          <List
+            keyProperty="username"
+            items={inviteProps}
+            fixedHeight={48}
+            renderItem={TeamInviteRow}
+            style={{alignSelf: 'stretch'}}
+          />
       }
     }
 
@@ -238,11 +239,7 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
-	        <Button
-            type="Primary"
-            label="Add people"
-            onClick={onAddPeople}
-          />
+          <Button type="Primary" label="Add people" onClick={onAddPeople} />
           <Button
             type="Primary"
             label="Invite by email"

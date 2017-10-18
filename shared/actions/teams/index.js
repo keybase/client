@@ -246,10 +246,12 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
-    const invitesMap = map(results.annotatedActiveInvites, invite => Constants.makeInviteInfo({
-      name: invite.type.c === 4 ? `${invite.name}@${invite.type.sbs}` : invite.name,
-      role: Constants.teamRoleByEnum[invite.role],
-    }))
+    const invitesMap = map(results.annotatedActiveInvites, invite =>
+      Constants.makeInviteInfo({
+        name: invite.type.c === 4 ? `${invite.name}@${invite.type.sbs}` : invite.name,
+        role: Constants.teamRoleByEnum[invite.role],
+      })
+    )
 
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {

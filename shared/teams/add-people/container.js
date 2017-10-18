@@ -36,7 +36,7 @@ export default compose(
       title: 'Add people',
     })),
     withHandlers({
-      onAddPeople: ({onAddPeople, role}) => () => role && onAddPeople(role)
+      onAddPeople: ({onAddPeople, role}) => () => role && onAddPeople(role),
     }),
     HeaderHoc
   )

@@ -4,7 +4,6 @@ import {connect} from 'react-redux'
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
 import {TeamInviteRow} from '.'
-import {navigateAppend} from '../../../actions/route-tree'
 
 import type {TypedState} from '../../../constants/reducer'
 

@@ -123,7 +123,10 @@ export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', 
 
 export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role: string, teamname: string}>
 
-export type InviteToTeamByEmail = NoErrorTypedAction<'teams:inviteToTeamByEmail', {invitees: string, role: string, teamname: string}>
+export type InviteToTeamByEmail = NoErrorTypedAction<
+  'teams:inviteToTeamByEmail',
+  {invitees: string, role: string, teamname: string}
+>
 
 export const teamRoleByEnum = invert(TeamsTeamRole)
 
@@ -131,10 +134,13 @@ type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
-  teamNameToInvites: I.Map<Teamname, I.RecordOf<{
-    role: teamRoleByEnum,
-    name: string,
-  }>>,
+  teamNameToInvites: I.Map<
+    Teamname,
+    I.RecordOf<{
+      role: teamRoleByEnum,
+      name: string,
+    }>
+  >,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
