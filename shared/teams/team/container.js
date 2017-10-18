@@ -17,6 +17,7 @@ type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   loading: boolean,
   _requests: I.Set<Constants.RequestInfo>,
+  _invites: I.Set<Constants.InviteInfo>,
   name: Constants.Teamname,
   you: ?string,
   selectedTab: string,

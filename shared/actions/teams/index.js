@@ -246,7 +246,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
-    const invitesMap = map(results.annotatedActiveInvites, invite => ({
+    const invitesMap = map(results.annotatedActiveInvites, invite => Constants.makeInviteInfo({
       name: invite.type.c === 4 ? `${invite.name}@${invite.type.sbs}` : invite.name,
       role: Constants.teamRoleByEnum[invite.role],
     }))
@@ -260,7 +260,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
-      put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Record(invitesMap)]]))),
+      put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
     ])
   } finally {
     yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))

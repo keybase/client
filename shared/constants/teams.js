@@ -93,6 +93,16 @@ export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
   username: '',
 })
 
+type _InviteInfo = {
+  name: string,
+  role: string,
+}
+export type InviteInfo = I.RecordOf<_InviteInfo>
+export const makeInviteInfo: I.RecordFactory<_InviteInfo> = I.Record({
+  name: '',
+  role: '',
+})
+
 type _RequestInfo = {
   username: string,
 }
