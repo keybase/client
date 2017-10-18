@@ -12,9 +12,10 @@ import {
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
-import {type TeamRoleType} from '../../constants/teams'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
+
+import {type TeamRoleType} from '../../constants/teams'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -80,65 +81,63 @@ class AddPeople extends React.Component<Props, State> {
     )
   }
 
-  render() {
-    return (
-      <MaybePopup onClose={this.props.onClose}>
-        <Box style={{...globalStyles.flexBoxColumn}}>
+  render = () => (
+    <MaybePopup onClose={this.props.onClose}>
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box
+          style={{
+            ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
+            alignItems: 'center',
+            margin: globalMargins.small,
+          }}
+        >
+          <Text style={{margin: globalMargins.tiny}} type="Body">
+            Add these team members to {this.props.name} as:
+          </Text>
+          <ClickableBox onClick={this._openRolePicker}>
+            <Dropdown
+              items={this._makeDropdownItems()}
+              selected={this._makeDropdownItem(this.state.selectedRole)}
+              onChanged={this._dropdownChanged}
+            />
+          </ClickableBox>
+          <Button
+            label="Invite"
+            onClick={this._onSubmit}
+            style={{margin: globalMargins.tiny}}
+            type="Primary"
+          />
+        </Box>
+
+        {!isMobile &&
           <Box
             style={{
-              ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-              margin: globalMargins.small,
-              alignItems: 'center',
+              ...globalStyles.flexBoxRow,
+              borderBottom: `1px solid ${globalColors.black_10}`,
+              boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
             }}
-          >
-            <Text style={{margin: globalMargins.tiny}} type="Body">
-              Add these team members to {this.props.name} as:
-            </Text>
-            <ClickableBox onClick={this._openRolePicker}>
-              <Dropdown
-                items={this._makeDropdownItems()}
-                selected={this._makeDropdownItem(this.state.selectedRole)}
-                onChanged={this._dropdownChanged}
-              />
-            </ClickableBox>
-            <Button
-              label="Invite"
-              onClick={this._onSubmit}
-              style={{margin: globalMargins.tiny}}
-              type="Primary"
-            />
-          </Box>
+          />}
 
-          {!isMobile &&
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-                borderBottom: `1px solid ${globalColors.black_10}`,
-                boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-              }}
-            />}
-
-          <Box style={{...globalStyles.flexBoxColumn}}>
-            <UserInput
-              autoFocus={true}
-              onExitSearch={this.props.onClose}
-              placeholder="Add people"
-              searchKey={'addToTeamSearch'}
-            />
-          </Box>
-          <Box style={{...globalStyles.scrollable, height: 500, flex: 1}}>
-            {this.props.showSearchPending
-              ? <ProgressIndicator style={{width: globalMargins.large}} />
-              : <SearchResultsList
-                  searchKey={'addToTeamSearch'}
-                  disableIfInTeamName={this.props.name}
-                  style={{flexGrow: 1, height: 500}}
-                />}
-          </Box>
+        <Box style={{...globalStyles.flexBoxColumn}}>
+          <UserInput
+            autoFocus={true}
+            onExitSearch={this.props.onClose}
+            placeholder="Add people"
+            searchKey={'addToTeamSearch'}
+          />
         </Box>
-      </MaybePopup>
-    )
-  }
+        <Box style={{...globalStyles.scrollable, flex: 1, height: 500}}>
+          {this.props.showSearchPending
+            ? <ProgressIndicator style={{width: globalMargins.large}} />
+            : <SearchResultsList
+                searchKey={'addToTeamSearch'}
+                disableIfInTeamName={this.props.name}
+                style={{flexGrow: 1, height: 500}}
+              />}
+        </Box>
+      </Box>
+    </MaybePopup>
+  )
 }
 
 const _styleCover = {
@@ -148,12 +147,12 @@ const _styleCover = {
 }
 
 const _styleContainer = {
-  height: '100%',
   ...globalStyles.flexBoxColumn,
   alignSelf: 'center',
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
+  height: '100%',  
   minWidth: 800,
   position: 'relative',
   top: 10,

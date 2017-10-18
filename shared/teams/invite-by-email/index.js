@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Dropdown, ProgressIndicator, Text, PopupDialog} from '../../common-adapters'
+import {Box, Button, ClickableBox, Dropdown, Input, PopupDialog, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
-import UserInput from '../../search/user-input/container'
-import SearchResultsList from '../../search/results-list/container'
+
+import {type TeamRoleType} from '../../constants/teams'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -21,14 +21,14 @@ const MaybePopup = isMobile
     )
 
 type Props = {
-  onAddPeople: (role: string) => void,
-  onClose: () => void,
-  onLeave: () => void,
+  invitees: string,
   name: string,
+  onInvite: () => void,
+  onClose: () => void,
 }
 
 type State = {
-  selectedRole: string,
+  selectedRole: TeamRoleType,
 }
 
 class InviteByEmail extends React.Component<Props, State> {
@@ -56,7 +56,7 @@ class InviteByEmail extends React.Component<Props, State> {
 
   _dropdownChanged = (node: React.Node) => {
     // $FlowIssue doesn't understand key will be string
-    const selectedRole: string = (node && node.key) || null
+    const selectedRole: TeamRoleType = (node && node.key) || null
     this.setState({selectedRole})
   }
 
@@ -64,63 +64,55 @@ class InviteByEmail extends React.Component<Props, State> {
     this.props.onAddPeople(this.state.selectedRole)
   }
 
-  render() {
-    return (
-      <MaybePopup onClose={this.props.onClose}>
-        <Box style={{...globalStyles.flexBoxColumn}}>
-          <Box
-            style={{
-              ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-              margin: globalMargins.small,
-              alignItems: 'center',
-            }}
-          >
+  _openRolePicker = () => {
+    this.props.onOpenRolePicker(this.state.selectedRole, (selectedRole: TeamRoleType) =>
+      this.setState({selectedRole})
+    )
+  }
+
+  render = () => (
+    <MaybePopup onClose={this.props.onClose}>
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box
+          style={{
+            ...globalStyles.flexBoxColumn,
+            alignItems: 'center',
+            margin: globalMargins.large,
+          }}
+        >
+          <Text style={styleInside} type="Header">Invite by email</Text>
+          <Box style={{...globalStyles.flexBoxRow,
+          alignItems: 'center', margin: globalMargins.tiny}}>
             <Text style={{margin: globalMargins.tiny}} type="Body">
               Add these team members to {this.props.name} as:
             </Text>
-            <Dropdown
-              items={this._makeDropdownItems()}
-              selected={this._makeDropdownItem(this.state.selectedRole)}
-              onChanged={this._dropdownChanged}
-            />
-            <Button
-              label="Invite"
-              onClick={this._onSubmit}
-              style={{margin: globalMargins.tiny}}
-              type="Primary"
-            />
+            <ClickableBox onClick={this._openRolePicker}>
+              <Dropdown
+                items={this._makeDropdownItems()}
+                selected={this._makeDropdownItem(this.state.selectedRole)}
+                onChanged={this._dropdownChanged}
+              />
+            </ClickableBox>
           </Box>
-
-          {!isMobile &&
-            <Box
-              style={{
-                ...globalStyles.flexBoxRow,
-                borderBottom: `1px solid ${globalColors.black_10}`,
-                boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-              }}
-            />}
-
-          <Box style={{...globalStyles.flexBoxColumn}}>
-            <UserInput
-              autoFocus={true}
-              onExitSearch={this.props.onClose}
-              placeholder="Add people"
-              searchKey={'addToTeamSearch'}
-            />
-          </Box>
-          <Box style={{...globalStyles.scrollable, height: 500, flex: 1}}>
-            {this.props.showSearchPending
-              ? <ProgressIndicator style={{width: globalMargins.large}} />
-              : <SearchResultsList
-                  searchKey={'addToTeamSearch'}
-                  disableIfInTeamName={this.props.name}
-                  style={{flexGrow: 1, height: 500}}
-                />}
-          </Box>
+          <Input
+            autoFocus={true}
+            hintText="Email addresses"
+            multiline={true}
+            onChangeText={invitees => this.props.onInviteesChange(invitees)}
+            onEnterKeyDown={this.props.onInvite}
+            rowsMin={3}
+            rowsMax={8}
+            style={styleInside}
+            value={this.props.invitees}
+          />
+          <Button label="Invite" onClick={this.props.onInvite} type="Primary" />
         </Box>
-      </MaybePopup>
-    )
-  }
+      </Box>
+    </MaybePopup>
+  )
+}
+const styleInside = {
+  padding: globalMargins.small,
 }
 
 const _styleCover = {
@@ -130,13 +122,11 @@ const _styleCover = {
 }
 
 const _styleContainer = {
-  height: '100%',
   ...globalStyles.flexBoxColumn,
   alignSelf: 'center',
   backgroundColor: globalColors.white,
   borderRadius: 5,
   boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-  minWidth: 800,
   position: 'relative',
   top: 10,
 }

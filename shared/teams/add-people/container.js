@@ -14,7 +14,6 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  onClose: () => dispatch(navigateUp()),
   onAddPeople: (role: string) => {
     dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
     dispatch(navigateUp())
@@ -22,8 +21,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
     dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
+  onClose: () => dispatch(navigateUp()),
   onOpenRolePicker: (role: string, onComplete: string => void) => {
-    dispatch(navigateAppend([{selected: 'controlledRolePicker', props: {selectedRole: role, onComplete}}]))
+    dispatch(navigateAppend([{props: {onComplete, selectedRole: role}, selected: 'controlledRolePicker'}]))
   },
 })
 

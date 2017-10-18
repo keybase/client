@@ -3,6 +3,7 @@ import {connect} from 'react-redux'
 import * as Creators from '../../actions/teams/creators'
 import InviteByEmail from '.'
 import {HeaderHoc} from '../../common-adapters'
+import {navigateAppend} from '../../actions/route-tree'
 import {compose, withPropsOnChange} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
@@ -17,6 +18,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
     dispatch(navigateUp())
     dispatch(Creators.getTeams())
+  },
+  onOpenRolePicker: (role: string, onComplete: string => void) => {
+    dispatch(navigateAppend([{props: {onComplete, selectedRole: role}, selected: 'controlledRolePicker'}]))
   },
 })
 

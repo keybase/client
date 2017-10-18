@@ -84,7 +84,13 @@ const routeTree = makeRouteDefNode({
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
         inviteByEmail: {
-          children: {},
+          children: {
+            controlledRolePicker: {
+              children: {},
+              component: ControlledRolePicker,
+              tags: makeLeafTags({layerOnTop: !isMobile}),
+            },
+          },
           component: InviteByEmailDialog,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
