@@ -25,7 +25,7 @@ let config: {[key: string]: any} = {
   maskStrings: false,
   overrideLoggedInTab: null,
   printOutstandingRPCs: false,
-  printRPC: false,
+  printRPC: true,
   printRoutes: false,
   filterActionLogs: null,
   reactPerf: false,
@@ -48,7 +48,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.logStatFrequency = 0.8
   config.overrideLoggedInTab = Tabs.settingsTab
   config.printOutstandingRPCs = true
-  config.printRPC = false
+  config.printRPC = true
   config.printRoutes = false
   config.filterActionLogs = null // '^chat|entity'
   config.redirectOnLogout = false

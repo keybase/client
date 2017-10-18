@@ -111,6 +111,8 @@ export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', 
 
 export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role: string, teamname: string}>
 
+export type InviteToTeamByEmail = NoErrorTypedAction<'teams:inviteToTeamByEmail', {invitees: string, role: string, teamname: string}>
+
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,

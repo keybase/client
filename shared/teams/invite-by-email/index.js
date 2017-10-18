@@ -27,15 +27,7 @@ type Props = {
   onClose: () => void,
 }
 
-type State = {
-  selectedRole: TeamRoleType,
-}
-
-class InviteByEmail extends React.Component<Props, State> {
-  state: State = {
-    selectedRole: 'writer',
-  }
-
+class InviteByEmail extends React.Component<Props, void> {
   _makeDropdownItem = (item: string) => {
     return (
       <Box
@@ -57,16 +49,12 @@ class InviteByEmail extends React.Component<Props, State> {
   _dropdownChanged = (node: React.Node) => {
     // $FlowIssue doesn't understand key will be string
     const selectedRole: TeamRoleType = (node && node.key) || null
-    this.setState({selectedRole})
-  }
-
-  _onSubmit = () => {
-    this.props.onAddPeople(this.state.selectedRole)
+    this.props.onRoleChange(selectedRole)
   }
 
   _openRolePicker = () => {
-    this.props.onOpenRolePicker(this.state.selectedRole, (selectedRole: TeamRoleType) =>
-      this.setState({selectedRole})
+    this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
+      this.props.onRoleChange(selectedRole)
     )
   }
 
@@ -89,7 +77,7 @@ class InviteByEmail extends React.Component<Props, State> {
             <ClickableBox onClick={this._openRolePicker}>
               <Dropdown
                 items={this._makeDropdownItems()}
-                selected={this._makeDropdownItem(this.state.selectedRole)}
+                selected={this._makeDropdownItem(this.props.role)}
                 onChanged={this._dropdownChanged}
               />
             </ClickableBox>
@@ -99,7 +87,6 @@ class InviteByEmail extends React.Component<Props, State> {
             hintText="Email addresses"
             multiline={true}
             onChangeText={invitees => this.props.onInviteesChange(invitees)}
-            onEnterKeyDown={this.props.onInvite}
             rowsMin={3}
             rowsMax={8}
             style={styleInside}

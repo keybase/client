@@ -4,7 +4,7 @@ import * as Creators from '../../actions/teams/creators'
 import InviteByEmail from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
-import {compose, withPropsOnChange} from 'recompose'
+import {compose, withHandlers, withPropsOnChange, withState} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -14,8 +14,8 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
-  onInvite: (role: string) => {
-    dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
+  onInvite: ({invitees, role}) => {
+    dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitees))
     dispatch(navigateUp())
     dispatch(Creators.getTeams())
   },
@@ -27,10 +27,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
+    withState('invitees', 'onInviteesChange'),
+    withState('role', 'onRoleChange', 'writer'),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
       title: 'Invite by email',
     })),
+    withHandlers({
+      onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
+    }),
     HeaderHoc
   )
 )(InviteByEmail)

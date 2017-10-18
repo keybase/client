@@ -5,7 +5,7 @@ import * as SearchCreators from '../../actions/search/creators'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
-import {compose, withPropsOnChange} from 'recompose'
+import {compose, withHandlers, withPropsOnChange, withState} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
 
@@ -30,10 +30,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
+    withState('role', 'onRoleChange', 'writer'),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
       title: 'Add people',
     })),
+    withHandlers({
+      onAddPeople: ({onAddPeople, role}) => () => role && onAddPeople(role)
+    }),
     HeaderHoc
   )
 )(AddPeople)

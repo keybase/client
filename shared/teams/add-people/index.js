@@ -38,15 +38,7 @@ type Props = {
   name: string,
 }
 
-type State = {
-  selectedRole: TeamRoleType,
-}
-
-class AddPeople extends React.Component<Props, State> {
-  state: State = {
-    selectedRole: 'writer',
-  }
-
+class AddPeople extends React.Component<Props, void> {
   _makeDropdownItem = (item: string) => {
     return (
       <Box
@@ -68,16 +60,12 @@ class AddPeople extends React.Component<Props, State> {
   _dropdownChanged = (node: React.Node) => {
     // $FlowIssue doesn't understand key will be string
     const selectedRole: TeamRoleType = (node && node.key) || null
-    this.setState({selectedRole})
-  }
-
-  _onSubmit = () => {
-    this.props.onAddPeople(this.state.selectedRole)
+    this.props.onRoleChange(selectedRole)
   }
 
   _openRolePicker = () => {
-    this.props.onOpenRolePicker(this.state.selectedRole, (selectedRole: TeamRoleType) =>
-      this.setState({selectedRole})
+    this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
+      this.props.onRoleChange(selectedRole)
     )
   }
 
@@ -97,13 +85,13 @@ class AddPeople extends React.Component<Props, State> {
           <ClickableBox onClick={this._openRolePicker}>
             <Dropdown
               items={this._makeDropdownItems()}
-              selected={this._makeDropdownItem(this.state.selectedRole)}
+              selected={this._makeDropdownItem(this.props.role)}
               onChanged={this._dropdownChanged}
             />
           </ClickableBox>
           <Button
             label="Invite"
-            onClick={this._onSubmit}
+            onClick={this.props.onAddPeople}
             style={{margin: globalMargins.tiny}}
             type="Primary"
           />
