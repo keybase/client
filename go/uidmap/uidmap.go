@@ -66,12 +66,12 @@ func (u *UIDMap) Clear() {
 
 func (u *UIDMap) findUsernamePackageLocally(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, fullNameFreshness time.Duration, forceNetworkForFullNames bool) (ret *libkb.UsernamePackage, stats mapStatus) {
 	nun, usernameStatus := u.findUsernameLocally(ctx, g, uid)
-	g.GetVLog().CLogf(ctx, libkb.VLog0, "| local username lookup %s -> %s (status=%d)", uid, nun, usernameStatus)
+	g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "| local username lookup %s -> %s (status=%d)", uid, nun, usernameStatus)
 	if usernameStatus == notFound {
 		return nil, notFound
 	}
 	fullName, fullNameStatus := u.findFullNameLocally(ctx, g, uid, fullNameFreshness)
-	g.GetVLog().CLogf(ctx, libkb.VLog0, "| local fullname lookup %s -> %+v (status=%d)", uid, fullName, fullNameStatus)
+	g.GetVDebugLog().CLogf(ctx, libkb.VLog0, "| local fullname lookup %s -> %+v (status=%d)", uid, fullName, fullNameStatus)
 	return &libkb.UsernamePackage{NormalizedUsername: nun, FullName: fullName}, fullNameStatus
 }
 
