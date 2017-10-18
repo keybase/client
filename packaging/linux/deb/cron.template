@@ -27,6 +27,7 @@ DEFAULTS_FILE="/etc/default/@@NAME@@"
 # sources.list setting for @@NAME@@ updates.
 REPOCONFIG="deb @@REPO_URL@@ stable main"
 SSLREPOCONFIG="deb @@REPO_SSL_URL@@ stable main"
+REPOGREP="deb (\[.*\] )?(@@REPO_URL@@|@@REPO_SSL_URL@@) stable main"
 
 APT_GET="`which apt-get 2> /dev/null`"
 APT_CONFIG="`which apt-config 2> /dev/null`"
@@ -164,7 +165,7 @@ update_bad_sources() {
   ACTIVECONFIGS=$(grep -v "^[[:space:]]*\(#.*\)\?$" "$SOURCELIST" 2>/dev/null)
 
   # Check if the correct repository configuration is in there.
-  REPOMATCH=$(grep -E "^[[:space:]#]*\b($REPOCONFIG|$SSLREPOCONFIG)\b" "$SOURCELIST" \
+  REPOMATCH=$(grep -E "^[[:space:]#]*\b$REPOGREP\b" "$SOURCELIST" \
     2>/dev/null)
 
   # Check if the correct repository is disabled.
