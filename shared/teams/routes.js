@@ -26,20 +26,23 @@ const makeManageChannels = {
     tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
   },
 }
-const makeRolePicker = {
-  rolePicker: {
-    children: {},
-    component: RolePicker,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
+
+const rolePicker = {
+  children: {},
+  component: RolePicker,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
 }
-const makeReallyLeaveTeam = {
-  reallyLeaveTeam: {
-    children: {},
-    component: ReallyLeaveTeam,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
+const reallyLeaveTeam = {
+  children: {},
+  component: ReallyLeaveTeam,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
 }
+const controlledRolePicker = {
+  children: {},
+  component: ControlledRolePicker,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
@@ -56,12 +59,12 @@ const routeTree = makeRouteDefNode({
     team: {
       children: {
         ...makeManageChannels,
-        ...makeRolePicker,
-        ...makeReallyLeaveTeam,
+        rolePicker,
+        reallyLeaveTeam,
         member: {
           children: {
-            ...makeRolePicker,
-            ...makeReallyLeaveTeam,
+            rolePicker,
+            reallyLeaveTeam,
 
             reallyRemoveMember: {
               children: {},
@@ -72,19 +75,8 @@ const routeTree = makeRouteDefNode({
           component: Member,
         },
         addPeople: {
-          children: {
-            controlledRolePicker: {
-              children: {},
-              component: ControlledRolePicker,
-              tags: makeLeafTags({layerOnTop: !isMobile}),
-            },
-          },
+          children: {controlledRolePicker},
           component: AddPeopleDialog,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-        reallyLeaveTeam: {
-          children: {},
-          component: ReallyLeaveTeam,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
       },
