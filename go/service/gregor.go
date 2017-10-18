@@ -202,7 +202,6 @@ func newGregorHandler(g *globals.Context) *gregorHandler {
 		forceSessionCheck: false,
 		connectHappened:   make(chan struct{}),
 	}
-
 	return gh
 }
 
@@ -794,10 +793,6 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 			g.Debug(ctx, "BroadcastMessage: failed to get Gregor client: %s", err.Error())
 			return err
 		}
-		if g.cli == nil {
-			g.Debug(ctx, "BroadcastMessage: failed to get secondary client")
-			return fmt.Errorf("empty secondary client")
-		}
 		// Check to see if this is already in our state
 		msgID := ibm.Metadata().MsgID()
 		state, err := gcli.StateMachineState(ctx, nil)
@@ -845,7 +840,7 @@ func (g *gregorHandler) broadcastMessageHandler() {
 		m := <-g.broadcastCh
 		err := g.broadcastMessageOnce(ctx, m)
 		if err != nil {
-			g.G().Log.CDebugf(context.Background(), "gregor broadcast error: %v", err)
+			g.Debug(context.Background(), "broadcast error: %v", err)
 		}
 
 		// Testing alerts
