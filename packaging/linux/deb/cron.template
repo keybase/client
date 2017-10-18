@@ -27,6 +27,9 @@ DEFAULTS_FILE="/etc/default/@@NAME@@"
 # sources.list setting for @@NAME@@ updates.
 REPOCONFIG="deb @@REPO_URL@@ stable main"
 SSLREPOCONFIG="deb @@REPO_SSL_URL@@ stable main"
+# @yoe contributed this change in https://github.com/keybase/client/pull/8677,
+# to make it possible to silence a warning on multiarch systems. Note that
+# using this workaround disables handle_distro_upgrade(), however.
 REPOGREP="deb (\[.*\] )?(@@REPO_URL@@|@@REPO_SSL_URL@@) stable main"
 
 APT_GET="`which apt-get 2> /dev/null`"
@@ -253,6 +256,7 @@ handle_distro_upgrade() {
   if [ -r "$SOURCELIST" ]; then
     REPOLINE=$(grep -E "^[[:space:]]*#[[:space:]]*($REPOCONFIG|$SSLREPOCONFIG)[[:space:]]*# disabled on upgrade to .*" "$SOURCELIST")
     if [ $? -eq 0 ]; then
+      # Note that we're not using the REPOGREP expression here, because of regex escaping issues. See comment at top.
       sed -i -e "s,^[[:space:]]*#[[:space:]]*\($REPOCONFIG\|$SSLREPOCONFIG\)[[:space:]]*# disabled on upgrade to .*,\1," \
         "$SOURCELIST"
       LOGGER=$(which logger 2> /dev/null)
