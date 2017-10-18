@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -362,16 +362,19 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 	fops := fs.getOpsByHandle(ctx, h, fb, fop)
 
 	err = fops.SetInitialHeadToNew(ctx, id, h)
-	if err != nil {
+	// Someone else initialized the TLF out from under us, so we
+	// didn't initialize it.
+	_, alreadyExisted := errors.Cause(err).(RekeyConflictError)
+	if err != nil && !alreadyExisted {
 		return false, ImmutableRootMetadata{}, id, err
 	}
 
 	id, md, err = mdops.GetForHandle(ctx, h, Merged, nil)
 	if err != nil {
-		return true, ImmutableRootMetadata{}, id, err
+		return false, ImmutableRootMetadata{}, id, err
 	}
 
-	return true, md, id, err
+	return !alreadyExisted, md, id, err
 
 }
 
@@ -439,28 +442,6 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(
 	if err != nil {
 		return nil, tlf.ID{}, err
 	}
-
-	// If journaling is enabled, wait for the initial revision to be
-	// accepted by the server, so we don't return keys that might
-	// later hit a conflict. (See KBFS-2553.)
-	jServer, err := GetJournalServer(fs.config)
-	if err == nil {
-		fb := FolderBranch{Tlf: rmd.TlfID(), Branch: MasterBranch}
-		ops := fs.getOpsNoAdd(ctx, fb)
-		lState := makeFBOLockState()
-		for ops.getLatestMergedRevision(lState) < kbfsmd.RevisionInitial {
-			err = ops.waitForJournal(ctx, lState, jServer)
-			if err != nil {
-				return nil, tlf.ID{}, err
-			}
-
-			rmd, err = fs.getMDByHandle(ctx, tlfHandle, FavoritesOpNoChange)
-			if err != nil {
-				return nil, tlf.ID{}, err
-			}
-		}
-	}
-
 	keys, err = fs.config.KeyManager().GetTLFCryptKeyOfAllGenerations(ctx, rmd)
 	return keys, rmd.TlfID(), err
 }

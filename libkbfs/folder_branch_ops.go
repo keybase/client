@@ -1502,15 +1502,20 @@ func (fbo *folderBranchOps) initMDLocked(
 		return err
 	}
 
-	// Finally, write out the new metadata.  TODO: if journaling is
-	// enabled, we should bypass it here, so we don't have to worry
-	// about delayed conflicts (since this is essentially a rekey, and
-	// we always bypass the journal for rekeys).  The caller will have
-	// to intelligently deal with a conflict.
-	irmd, err := fbo.config.MDOps().Put(
+	// Write out the new metadata.  If journaling is enabled, we don't
+	// want the rekey to hit the journal and possibly end up on a
+	// conflict branch, so push straight to the server.
+	mdOps := fbo.config.MDOps()
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		mdOps = jServer.delegateMDOps
+	}
+	irmd, err := mdOps.Put(
 		ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
-	if err != nil {
+	isConflict := isRevisionConflict(err)
+	if err != nil && !isConflict {
 		return err
+	} else if isConflict {
+		return RekeyConflictError{err}
 	}
 
 	md.loadCachedBlockChanges(ctx, bps, fbo.log)
