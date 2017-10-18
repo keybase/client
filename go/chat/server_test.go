@@ -613,34 +613,57 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 		ui := kbtest.NewChatUI(inboxCb, threadCb)
 		ctc.as(t, users[0]).h.mockChatUI = ui
 
+		var firstConv chat1.ConversationInfoLocal
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			firstConv = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1:]...)
+		default:
+		}
+
 		// Create a bunch of blank convos
+		ctx := ctc.as(t, users[0]).startCtx
 		convs := make(map[string]bool)
 		for i := 0; i < numconvs; i++ {
-			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-				mt, ctc.as(t, users[i+1]).user())
+			var created chat1.ConversationInfoLocal
+			switch mt {
+			case chat1.ConversationMembersType_TEAM:
+				topicName := fmt.Sprintf("%d", i+1)
+				ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+					chat1.NewConversationLocalArg{
+						TlfName:       firstConv.TlfName,
+						TopicName:     &topicName,
+						TopicType:     chat1.TopicType_CHAT,
+						TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+						MembersType:   chat1.ConversationMembersType_TEAM,
+					})
+				require.NoError(t, err)
+				created = ncres.Conv.Info
+			default:
+				created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+					mt, ctc.as(t, users[i+1]).user())
+			}
+			t.Logf("created: %s", created.Id)
 			convs[created.Id.String()] = true
 
 			mustPostLocalForTest(t, ctc, users[i+1], created,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: fmt.Sprintf("%d", i+1),
 				}))
-
-			switch mt {
-			case chat1.ConversationMembersType_TEAM:
-				mustPostLocalForTest(t, ctc, users[i+1], created,
-					chat1.NewMessageBodyWithMetadata(chat1.MessageConversationMetadata{
-						ConversationTitle: fmt.Sprintf("%d", i+1),
-					}))
-			}
 		}
 
-		ctx := ctc.as(t, users[0]).startCtx
 		_, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxNonblockLocal(ctx,
 			chat1.GetInboxNonblockLocalArg{
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			},
 		)
 		require.NoError(t, err)
+
+		// Account for initial team convo
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			numconvs++
+		default:
+		}
 
 		select {
 		case ibox := <-inboxCb:
@@ -679,8 +702,11 @@ func TestChatSrvGetInboxNonblockLocalMetadata(t *testing.T) {
 				require.NotNil(t, conv.LocalMetadata)
 				switch mt {
 				case chat1.ConversationMembersType_TEAM:
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.ChannelName)
-					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
+					if conv.ConvID == firstConv.Id.String() {
+						continue
+					}
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.ChannelName)
+					require.Equal(t, fmt.Sprintf("%d", numconvs-index-1), conv.LocalMetadata.Snippet)
 					require.Zero(t, len(conv.LocalMetadata.WriterNames))
 				default:
 					require.Equal(t, fmt.Sprintf("%d", numconvs-index), conv.LocalMetadata.Snippet)
@@ -1018,8 +1044,26 @@ func TestChatSrvPostLocalLengthLimit(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user())
+		var created chat1.ConversationInfoLocal
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+			firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
+			topicName := "MIKE"
+			ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(context.TODO(),
+				chat1.NewConversationLocalArg{
+					TlfName:       firstConv.TlfName,
+					TopicName:     &topicName,
+					TopicType:     chat1.TopicType_CHAT,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   chat1.ConversationMembersType_TEAM,
+				})
+			require.NoError(t, err)
+			created = ncres.Conv.Info
+		default:
+			created = mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
+		}
 
 		maxTextBody := strings.Repeat(".", msgchecker.TextMessageMaxLength)
 		_, err := postLocalForTest(t, ctc, users[0], created, chat1.NewMessageBodyWithText(chat1.MessageText{Body: maxTextBody}))
@@ -2616,8 +2660,20 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		default:
 			return
 		}
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		topicName := "MIKE"
 		ctx := ctc.as(t, users[0]).startCtx
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       firstConv.TlfName,
+				TopicName:     &topicName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   chat1.ConversationMembersType_TEAM,
+			})
+		require.NoError(t, err)
+		conv := ncres.Conv.Info
+
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		ri := ctc.as(t, users[0]).ri
@@ -2625,7 +2681,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		require.NoError(t, err)
 
 		// Creating a conversation with same topic name just returns the matching one
-		topicName := "random"
+		topicName = "random"
 		ncarg := chat1.NewConversationLocalArg{
 			TlfName:       conv.TlfName,
 			TopicName:     &topicName,
@@ -2633,7 +2689,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 			TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 			MembersType:   chat1.ConversationMembersType_TEAM,
 		}
-		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
+		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
 		randomConvID := ncres.Conv.GetConvID()
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
