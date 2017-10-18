@@ -563,7 +563,7 @@ function _serverCallMap(
           } else {
             dispatch({
               type: Constants.updateReason,
-              payload: {username, reason: `${username} has deleted a proof.`},
+              payload: {username, reason: `${username} has deleted a PGP key.`},
             })
           }
           dispatch({type: Constants.updateProofState, payload: {username}})
