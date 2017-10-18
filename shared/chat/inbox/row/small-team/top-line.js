@@ -1,11 +1,11 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, PlaintextUsernames, Box} from '../../../common-adapters'
-import {globalStyles, globalColors, lineHeight} from '../../../styles'
-import {isMobile} from '../../../constants/platform'
+import {Text, PlaintextUsernames, Box} from '../../../../common-adapters'
+import {globalStyles, globalColors, lineHeight} from '../../../../styles'
+import {isMobile} from '../../../../constants/platform'
 import {List} from 'immutable'
 
-type SimpleTopLineProps = {
+type Props = {
   hasUnread: boolean,
   participants: List<string>,
   showBold: boolean,
@@ -17,7 +17,7 @@ type SimpleTopLineProps = {
 
 const height = isMobile ? 19 : 17
 
-class SimpleTopLine extends PureComponent<SimpleTopLineProps> {
+class SimpleTopLine extends PureComponent<Props> {
   render() {
     const {participants, showBold, subColor, timestamp, usernameColor, hasBadge} = this.props
     const boldOverride = showBold ? globalStyles.fontBold : null
@@ -64,51 +64,6 @@ class SimpleTopLine extends PureComponent<SimpleTopLineProps> {
   }
 }
 
-type FilteredTopLineProps = {
-  participants: List<string>,
-  showBold: boolean,
-  usernameColor: ?string,
-}
-
-class FilteredTopLine extends PureComponent<FilteredTopLineProps> {
-  render() {
-    const {participants, showBold, usernameColor} = this.props
-    const boldOverride = showBold ? globalStyles.fontBold : null
-    return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flex: 1,
-          justifyContent: 'flex-start',
-          maxHeight: height,
-          minHeight: height,
-          position: 'relative',
-        }}
-      >
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            bottom: 0,
-            justifyContent: 'flex-start',
-            left: 0,
-            position: 'absolute',
-            right: 0,
-            top: 0,
-          }}
-        >
-          <PlaintextUsernames
-            type="BodySemibold"
-            containerStyle={{...boldOverride, color: usernameColor, paddingRight: 7}}
-            users={participants.map(p => ({username: p})).toArray()}
-            title={participants.join(', ')}
-          />
-        </Box>
-      </Box>
-    )
-  }
-}
-
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,
   borderRadius: 6,
@@ -117,4 +72,4 @@ const unreadDotStyle = {
   width: 8,
 }
 
-export {SimpleTopLine, FilteredTopLine}
+export {SimpleTopLine}

@@ -217,6 +217,7 @@ function* _appendAttachmentPlaceholder(
     failureDescription: '',
     key: Constants.messageKey(conversationIDKey, 'outboxIDAttachment', outboxIDKey),
     messageState: 'pending',
+    rawMessageID: -1,
     outboxID: outboxIDKey,
     senderDeviceRevokedAt: null,
     timestamp: Date.now(),

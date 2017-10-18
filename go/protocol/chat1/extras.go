@@ -702,3 +702,12 @@ func AllConversationExistences() (res []ConversationExistence) {
 func (v InboxVers) ToConvVers() ConversationVers {
 	return ConversationVers(v)
 }
+
+func (p ConversationIDMessageIDPairs) Contains(convID ConversationID) (MessageID, bool) {
+	for _, c := range p.Pairs {
+		if c.ConvID.Eq(convID) {
+			return c.MsgID, true
+		}
+	}
+	return MessageID(0), false
+}

@@ -186,7 +186,8 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	e.G().Log.Debug("deviceWithType: got device name: %q", name)
 
 	// make a new secret:
-	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile)
+	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile ||
+		provisionerType == keybase1.DeviceType_MOBILE)
 	if err != nil {
 		return err
 	}
