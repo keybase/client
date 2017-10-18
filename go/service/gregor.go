@@ -247,6 +247,13 @@ func (g *gregorHandler) GetURI() *rpc.FMPURI {
 	return g.uri
 }
 
+func (g *gregorHandler) GetIncomingClient() gregor1.IncomingInterface {
+	if g.IsShutdown() || g.cli == nil {
+		return gregor1.IncomingClient{Cli: chat.OfflineClient{}}
+	}
+	return gregor1.IncomingClient{Cli: g.cli}
+}
+
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	if g.IsShutdown() || g.cli == nil {
 		select {
@@ -804,7 +811,7 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 		}
 
 		g.Debug(ctx, "broadcast: in-band message: msgID: %s Ctime: %s", msgID, ibm.Metadata().CTime())
-		err = g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
+		err = g.handleInBandMessage(ctx, g.GetIncomingClient(), ibm)
 
 		// Send message to local state machine
 		gcli.StateMachineConsumeMessage(ctx, m)
