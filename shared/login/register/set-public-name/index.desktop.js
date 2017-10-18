@@ -24,7 +24,7 @@ const SetPublicName = ({
         errorText={deviceNameError}
         style={stylesInput}
         hintText="Device name"
-        onEnterKeyDown={() => onSubmit()}
+        onEnterKeyDown={submitEnabled ? onSubmit : () => {}}
         onChangeText={text => onChange(text)}
         value={deviceName}
       />

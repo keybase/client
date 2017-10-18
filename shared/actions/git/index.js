@@ -7,6 +7,7 @@ import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeConstants from '../../constants/route-tree'
+import {globalError} from '../../constants/config'
 import {call, put} from 'redux-saga/effects'
 import {navigateTo} from '../route-tree'
 import moment from 'moment'
@@ -20,24 +21,38 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
   yield put(Creators.setLoading(true))
 
   try {
-    const results: ?Array<RPCTypes.GitRepoResult> = yield call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
+    const results: Array<RPCTypes.GitRepoResult> = yield call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
       param: {},
-    })
+    }) || []
 
-    const idToInfo = (results || []).reduce((map, r) => {
-      const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
-      map[r.globalUniqueID] = Constants.makeGitInfo({
-        canDelete: r.canDelete,
-        devicename: r.serverMetadata.lastModifyingDeviceName,
-        id: r.globalUniqueID,
-        lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
-        lastEditUser: r.serverMetadata.lastModifyingUsername,
-        name: r.localMetadata.repoName,
-        teamname,
-        url: r.repoUrl,
-      })
-      return map
-    }, {})
+    let idToInfo = {}
+
+    for (let i = 0; i < results.length; i++) {
+      const repoResult = results[i]
+      if (repoResult.state === RPCTypes.GitGitRepoResultState.ok && repoResult.ok) {
+        const r: RPCTypes.GitRepoInfo = repoResult.ok
+        const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
+        idToInfo[r.globalUniqueID] = Constants.makeGitInfo({
+          canDelete: r.canDelete,
+          devicename: r.serverMetadata.lastModifyingDeviceName,
+          id: r.globalUniqueID,
+          lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
+          lastEditUser: r.serverMetadata.lastModifyingUsername,
+          name: r.localMetadata.repoName,
+          teamname,
+          url: r.repoUrl,
+        })
+      } else {
+        let errStr: string = 'unknown'
+        if (repoResult.state === RPCTypes.GitGitRepoResultState.err && repoResult.err) {
+          errStr = repoResult.err
+        }
+        yield put({
+          payload: new Error(`Git repo error: ${errStr}`),
+          type: globalError,
+        })
+      }
+    }
 
     yield put(Entities.replaceEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
   } finally {
