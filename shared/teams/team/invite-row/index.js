@@ -10,7 +10,6 @@ export type Props = {
   teamname: string,
   you: ?string,
   type: ?string,
-  onClick: () => void,
 }
 
 type TypeMap = {
@@ -28,8 +27,7 @@ const typeToLabel: TypeMap = {
 }
 
 export const TeamInviteRow = (props: Props) => {
-  console.warn('in render')
-  const {username, onClick, you, following, type} = props
+  const {username, you, following, type} = props
   return (
     <ClickableBox
       style={{
@@ -40,7 +38,6 @@ export const TeamInviteRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      onClick={onClick}
     >
       <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>

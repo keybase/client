@@ -35,7 +35,9 @@ type Props = {
   onClose: () => void,
   onLeave: () => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
+  onRoleChange: (role: TeamRoleType) => void,
   name: string,
+  role: TeamRoleType,
 }
 
 class AddPeople extends React.Component<Props, void> {

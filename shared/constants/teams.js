@@ -131,7 +131,7 @@ type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
-  teamNameToInvites: I.Map<Teamname, I.Record<{
+  teamNameToInvites: I.Map<Teamname, I.RecordOf<{
     role: teamRoleByEnum,
     name: string,
   }>>,

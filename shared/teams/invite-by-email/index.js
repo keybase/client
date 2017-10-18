@@ -23,8 +23,12 @@ const MaybePopup = isMobile
 type Props = {
   invitees: string,
   name: string,
-  onInvite: () => void,
   onClose: () => void,
+  onInvite: () => void,
+  onInviteesChange: (invitees: string) => void,
+  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
+  onRoleChange: (role: TeamRoleType) => void,
+  role: TeamRoleType,
 }
 
 class InviteByEmail extends React.Component<Props, void> {
