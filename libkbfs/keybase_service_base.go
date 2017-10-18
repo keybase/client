@@ -702,9 +702,23 @@ func (k *KeybaseServiceBase) getCurrentSession(
 
 		if !doRPC {
 			// Wait for another goroutine to finish the RPC.
-			<-inProgressCh
+			select {
+			case <-inProgressCh:
+			case <-ctx.Done():
+				return SessionInfo{}, false, ctx.Err()
+			}
 		}
 	}
+
+	var s SessionInfo
+	// Close and clear the in-progress channel, even on an error.
+	defer func() {
+		k.sessionCacheLock.Lock()
+		defer k.sessionCacheLock.Unlock()
+		k.cachedCurrentSession = s
+		close(k.sessionInProgressCh)
+		k.sessionInProgressCh = nil
+	}()
 
 	res, err := k.sessionClient.CurrentSession(ctx, sessionID)
 	if err != nil {
@@ -714,7 +728,7 @@ func (k *KeybaseServiceBase) getCurrentSession(
 		}
 		return SessionInfo{}, false, err
 	}
-	s, err := SessionInfoFromProtocol(res)
+	s, err = SessionInfoFromProtocol(res)
 	if err != nil {
 		return SessionInfo{}, false, err
 	}
@@ -722,12 +736,6 @@ func (k *KeybaseServiceBase) getCurrentSession(
 	k.log.CDebugf(
 		ctx, "new session with username %s, uid %s, crypt public key %s, and verifying key %s",
 		s.Name, s.UID, s.CryptPublicKey, s.VerifyingKey)
-
-	k.sessionCacheLock.Lock()
-	defer k.sessionCacheLock.Unlock()
-	k.cachedCurrentSession = s
-	close(k.sessionInProgressCh)
-	k.sessionInProgressCh = nil
 	return s, true, nil
 }
 
