@@ -153,7 +153,7 @@ class Inbox extends React.PureComponent<Props, State> {
     big: globalMargins.large,
     bigHeader: globalMargins.large,
     divider: 56,
-    small: 64,
+    small: globalMargins.xlarge,
   }
 
   // This is an under documented api to help optimize the FlatList's layout. see https://github.com/facebook/react-native/blob/v0.50.0-rc.0/Libraries/Lists/FlatList.js#L118
