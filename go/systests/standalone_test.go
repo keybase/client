@@ -13,12 +13,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func makeUserStandalone(t *testing.T, pre string, disableGregor bool) *userPlusDevice {
+type standaloneUserArgs struct {
+	disableGregor bool
+}
+
+func makeUserStandalone(t *testing.T, pre string, opts standaloneUserArgs) *userPlusDevice {
 	tctx := setupTest(t, pre)
 	var u userPlusDevice
 
 	g := tctx.G
-	if disableGregor {
+	if opts.disableGregor {
+		// Some tests may want to disable gregor loop completely to
+		// simulate user that stays offline when not doing anything.
+		// Useful for teams tests to have a user that can post sigs
+		// but will not respond to any rekeyd messages.
 		g.Env.GetConfigWriter().SetBoolAtPath("push.disabled", true)
 	}
 
@@ -65,7 +73,7 @@ func TestStandaloneTeamMemberOps(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	tt.users = append(tt.users, makeUserStandalone(t, "user1", false /* disableGregor */))
+	tt.users = append(tt.users, makeUserStandalone(t, "user1", standaloneUserArgs{}))
 	tt.addUser("user2")
 
 	team := tt.users[0].createTeam()
