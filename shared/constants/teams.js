@@ -106,6 +106,11 @@ export type SetTeamCreationError = NoErrorTypedAction<
   {teamCreationError: string}
 >
 
+export type SetTeamCreationPending = NoErrorTypedAction<
+  'teams:setTeamCreationPending',
+  {teamCreationPending: boolean}
+>
+
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
 export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 

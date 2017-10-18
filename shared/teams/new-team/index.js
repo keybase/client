@@ -6,7 +6,7 @@ import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './'
 
-const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
+const Contents = ({errorText, name, onNameChange, onSubmit, pending}: Props) => (
   <ScrollView>
     <Box style={globalStyles.flexBoxColumn}>
       <Box style={{...styleContainer, backgroundColor: errorText ? globalColors.red : globalColors.blue}}>
@@ -35,6 +35,7 @@ const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
           value={name}
           onChangeText={onNameChange}
           onEnterKeyDown={onSubmit}
+          disabled={pending}
         />
         <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
           <Button
@@ -42,6 +43,7 @@ const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
             style={{marginLeft: globalMargins.tiny}}
             onClick={onSubmit}
             label="Create team"
+            disabled={pending}
           />
         </Box>
       </Box>

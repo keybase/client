@@ -265,6 +265,10 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       const {payload: {teamCreationError}} = action
       return state.set('teamCreationError', teamCreationError)
     }
+    case 'teams:setTeamCreationPending': {
+      const {payload: {teamCreationPending}} = action
+      return state.set('teamCreationPending', teamCreationPending)
+    }
     case 'teams:setTeamJoinError': {
       const {payload: {teamJoinError}} = action
       return state.set('teamJoinError', teamJoinError)

@@ -8,6 +8,7 @@ import {upperFirst} from 'lodash'
 
 const mapStateToProps = (state: TypedState) => ({
   errorText: upperFirst(state.chat.teamCreationError),
+  pending: state.chat.teamCreationPending,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
