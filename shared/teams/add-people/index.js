@@ -31,7 +31,7 @@ const MaybePopup = isMobile
     )
 
 type Props = {
-  onAddPeople: (role: TeamRoleType) => void,
+  onAddPeople: () => void,
   onClose: () => void,
   onLeave: () => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,

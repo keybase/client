@@ -25,6 +25,7 @@ type StateProps = {
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
   _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
+  _invites: state.entities.getIn(['teams', 'teamNameToInvites', routeProps.get('teamname')], I.Set()),
   loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
   name: routeProps.get('teamname'),
   you: state.config.username,
@@ -80,6 +81,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
     customComponent,
     headerStyle: {borderBottomWidth: 0},
+    invites: stateProps._invites.toJS(),
     members: stateProps._memberInfo
       .toArray()
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),

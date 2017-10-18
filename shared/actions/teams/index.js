@@ -15,6 +15,7 @@ import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 import {navigateTo} from '../route-tree'
 import {chatTab, teamsTab} from '../../constants/tabs'
+import map from 'lodash/map'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -245,6 +246,11 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
+    const invitesMap = map(results.annotatedActiveInvites, invite => ({
+      name: invite.type.c === 4 ? `${invite.name}@${invite.type.sbs}` : invite.name,
+      role: Constants.teamRoleByEnum[invite.role],
+    }))
+
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
       yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
@@ -254,6 +260,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
+      put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Record(invitesMap)]]))),
     ])
   } finally {
     yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))

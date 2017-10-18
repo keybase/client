@@ -2,6 +2,8 @@
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
 import {userIsInTeam} from './selectors'
+import invert from 'lodash/invert'
+import {TeamsTeamRole} from './types/flow-types'
 
 import type {Service} from './search'
 import {type NoErrorTypedAction} from './types/flux'
@@ -113,10 +115,16 @@ export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role:
 
 export type InviteToTeamByEmail = NoErrorTypedAction<'teams:inviteToTeamByEmail', {invitees: string, role: string, teamname: string}>
 
+export const teamRoleByEnum = invert(TeamsTeamRole)
+
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
+  teamNameToInvites: I.Map<Teamname, I.Record<{
+    role: teamRoleByEnum,
+    name: string,
+  }>>,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
@@ -129,6 +137,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   convIDToChannelInfo: I.Map(),
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
+  teamNameToInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
