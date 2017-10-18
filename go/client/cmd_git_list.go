@@ -2,6 +2,7 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -44,7 +45,7 @@ func (c *CmdGitList) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func fullRepoName(repo keybase1.GitRepoResult) string {
+func fullRepoName(repo keybase1.GitRepoInfo) string {
 	if repo.Folder.FolderType == keybase1.FolderType_PRIVATE {
 		return string(repo.LocalMetadata.RepoName)
 	} else if repo.Folder.FolderType == keybase1.FolderType_TEAM {
@@ -54,7 +55,7 @@ func fullRepoName(repo keybase1.GitRepoResult) string {
 	}
 }
 
-func longestRepoName(repos []keybase1.GitRepoResult) int {
+func longestRepoName(repos []keybase1.GitRepoInfo) int {
 	max := 0
 	for _, repo := range repos {
 		l := len(fullRepoName(repo))
@@ -80,9 +81,19 @@ func (c *CmdGitList) Run() error {
 
 	dui := c.G().UI.GetDumbOutputUI()
 
-	repos, err := cli.GetAllGitMetadata(context.Background())
+	repoResults, err := cli.GetAllGitMetadata(context.Background())
 	if err != nil {
 		return err
+	}
+
+	var repos []keybase1.GitRepoInfo
+	for _, repoRes := range repoResults {
+		repo, err := repoRes.GetIfOk()
+		if err != nil {
+			dui.Printf(ColorString(c.G(), "red", fmt.Sprintf("Error in repo: %v\n", err)))
+			continue
+		}
+		repos = append(repos, repo)
 	}
 
 	// Get the length of the longest repo name, for some nice looking padding.

@@ -26,7 +26,7 @@ const SetPublicName = ({
         errorText={deviceNameError}
         floatingHintTextOverride="Device name"
         hintText="Device name"
-        onEnterKeyDown={() => onSubmit()}
+        onEnterKeyDown={submitEnabled ? onSubmit : () => {}}
         onChangeText={deviceName => onChange(deviceName)}
         value={deviceName}
       />
