@@ -42,6 +42,8 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 
 const inSearchSelector = (state: TypedState) => state.chat.get('inSearch')
+// How many messages we consider too many to just download when you are stale and we could possibly just append
+const tooManyMessagesToJustAppendOnStale = 200
 
 function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any, any> {
   switch (action.payload.activity.activityType) {
@@ -121,7 +123,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
 
         const pagination = incomingMessage.pagination
         if (pagination) {
-          yield put(Creators.updatePaginationNext(conversationIDKey, pagination.next))
+          yield put(Creators.updatePaginationNext(conversationIDKey, pagination.next, pagination.previous))
         }
 
         // Is this message for the currently selected and focused conversation?
@@ -303,7 +305,7 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
 const inboxSelector = (state: TypedState) => state.entities.get('inbox')
 
 function* _updateThread({
-  payload: {yourName, thread, yourDeviceName, conversationIDKey},
+  payload: {yourName, thread, yourDeviceName, conversationIDKey, append},
 }: Constants.UpdateThread) {
   let newMessages = []
   const newUnboxeds = (thread && thread.messages) || []
@@ -328,24 +330,47 @@ function* _updateThread({
     }
   }
 
-  newMessages = newMessages.reverse()
   const pagination = _threadToPagination(thread)
-  yield put(Creators.prependMessages(conversationIDKey, newMessages, !pagination.last, pagination.next))
+  newMessages = newMessages.reverse()
+  if (append) {
+    const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
+    const appFocused = yield select(Shared.focusedSelector)
+
+    yield put(
+      Creators.appendMessages(
+        conversationIDKey,
+        conversationIDKey === selectedConversationIDKey,
+        appFocused,
+        newMessages,
+        false
+      )
+    )
+  } else {
+    yield put(
+      Creators.prependMessages(
+        conversationIDKey,
+        newMessages,
+        !pagination.last,
+        pagination.next,
+        pagination.previous
+      )
+    )
+  }
 }
 
-function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey) {
+function subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append) {
   return function* subSagaUpdateThreadHelper({thread}) {
     if (thread) {
       const decThread: ChatTypes.UIMessages = JSON.parse(thread)
-      yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey))
+      yield put(Creators.updateThread(decThread, yourName, yourDeviceName, conversationIDKey, append))
     }
     return EngineRpc.rpcResult()
   }
 }
 
-const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey) => ({
-  'chat.1.chatUi.chatThreadCached': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
-  'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey),
+const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey, append) => ({
+  'chat.1.chatUi.chatThreadCached': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
+  'chat.1.chatUi.chatThreadFull': subSagaUpdateThread(yourName, yourDeviceName, conversationIDKey, append),
 })
 
 function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
@@ -363,8 +388,9 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
 
     const untrustedState = yield select(state => state.entities.inboxUntrustedState.get(conversationIDKey))
 
-    if (untrustedState !== 'unboxed') {
-      console.log('Bailing on not yet unboxed conversation')
+    // only load unboxed things
+    if (!['unboxed', 'reUnboxing'].includes(untrustedState)) {
+      console.log('Bailing on not yet unboxed conversation', untrustedState)
       return
     }
 
@@ -381,7 +407,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
 
     let next = null
-    if (oldConversationState) {
+    if (oldConversationState && !action.payload.onlyNewerThan) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
         console.log('Bailing on chat load more due to already has initial load')
         return
@@ -411,20 +437,29 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       .map(k => ChatTypes.CommonMessageType[k])
     const conversationID = Constants.keyToConversationID(conversationIDKey)
 
+    const pagination = action.payload.onlyNewerThan
+      ? {
+          last: false,
+          next: null,
+          num: 9999,
+          previous: action.payload.onlyNewerThan,
+        }
+      : {
+          last: false,
+          next,
+          num: Constants.maxMessagesToLoadAtATime,
+          previous: null,
+        }
+
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
-      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey),
+      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, !!action.payload.onlyNewerThan),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
       'localGetThreadNonblock',
       {
         param: {
           conversationID,
           identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-          pagination: {
-            last: false,
-            next,
-            num: Constants.maxMessagesToLoadAtATime,
-            previous: null,
-          },
+          pagination,
           query: {
             disableResolveSupersedes: false,
             markAsRead: true,
@@ -465,13 +500,14 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
   }
 }
 
-function _threadToPagination(thread): {last: any, next: any} {
+function _threadToPagination(thread): {last: any, next: any, previous: any} {
   if (thread && thread.pagination) {
     return thread.pagination
   }
   return {
     last: undefined,
     next: undefined,
+    previous: undefined,
   }
 }
 
@@ -550,17 +586,18 @@ function _unboxedToMessage(
     if (payload) {
       const common = {
         author: payload.senderUsername,
+        channelMention: _parseChannelMention(payload.channelMention),
         conversationIDKey,
         deviceName: payload.senderDeviceName,
         deviceType: toDeviceType(payload.senderDeviceType),
         failureDescription: null,
+        mentions: I.Set(payload.atMentions || []),
         messageID: Constants.rpcMessageIDToMessageID(payload.messageID),
+        rawMessageID: payload.messageID,
+        outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
         senderDeviceRevokedAt: payload.senderDeviceRevokedAt,
         timestamp: payload.ctime,
         you: yourName,
-        outboxID: payload.outboxID && Constants.outboxIDToKey(payload.outboxID),
-        mentions: I.Set(payload.atMentions || []),
-        channelMention: _parseChannelMention(payload.channelMention),
       }
 
       switch (payload.messageBody.messageType) {
@@ -1204,8 +1241,37 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
   if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
     return
   }
-  yield put(Creators.clearMessages(selectedConversation))
-  yield put(Creators.loadMoreMessages(selectedConversation, false))
+
+  const conversation = yield select(Constants.getSelectedConversationStates, selectedConversation)
+  if (conversation) {
+    const inbox = yield select(Constants.getInbox, selectedConversation)
+
+    const messageKeys = yield select(Constants.getConversationMessages, selectedConversation)
+    const lastMessageKey = messageKeys.last()
+    if (lastMessageKey) {
+      const lastMessage = yield select(Constants.getMessageFromMessageKey, lastMessageKey)
+      // Check to see if we could possibly be asking for too many messages
+      if (
+        lastMessage &&
+        lastMessage.rawMessageID &&
+        inbox &&
+        inbox.maxMsgID &&
+        inbox.maxMsgID - lastMessage.rawMessageID > tooManyMessagesToJustAppendOnStale
+      ) {
+        console.log(
+          'Doing a full load due to too many old messages',
+          inbox.maxMsgID - lastMessage.rawMessageID
+        )
+        yield all([
+          put(Creators.clearMessages(selectedConversation)),
+          yield put(Creators.loadMoreMessages(selectedConversation, false)),
+        ])
+        return
+      }
+    }
+    const onlyNewerThan = conversation.paginationPrevious
+    yield put(Creators.loadMoreMessages(selectedConversation, false, false, onlyNewerThan))
+  }
 }
 
 function _threadIsCleared(originalAction: Action, checkAction: Action): boolean {

@@ -73,6 +73,7 @@ export type TextMessage = {
   messageID?: MessageID,
   you: string,
   messageState: MessageState,
+  rawMessageID: number,
   failureDescription: ?string,
   outboxID?: ?OutboxIDKey,
   senderDeviceRevokedAt: ?number,
@@ -134,6 +135,7 @@ export type AttachmentMessage = {
   deviceName: string,
   deviceType: DeviceType,
   messageID?: MessageID,
+  rawMessageID: number,
   filename: ?string,
   title: ?string,
   attachmentDurationMs: ?number,
@@ -235,8 +237,8 @@ type _ConversationState = {
   isRequesting: boolean,
   isStale: boolean,
   loadedOffline: boolean,
-  paginationNext: ?Buffer,
-  paginationPrevious: ?Buffer,
+  paginationNext: ?string,
+  paginationPrevious: ?string,
   firstNewMessageID: ?MessageID,
   typing: I.Set<Username>,
 }
@@ -278,7 +280,8 @@ export type NotificationsState = {
   mobile: NotificationsKindState,
 }
 
-export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'unboxing'
+// firstUnboxing is when its going from untrusted to unboxing vs unboxed to reUnboxing
+export type InboxUntrustedState = 'untrusted' | 'unboxed' | 'error' | 'firstUnboxing' | 'reUnboxing'
 
 type _InboxState = {
   conversationIDKey: ConversationIDKey,
@@ -286,6 +289,7 @@ type _InboxState = {
   isEmpty: boolean,
   teamname: ?string,
   channelname: ?string,
+  maxMsgID: ?number,
   name: ?string,
   membersType: ChatTypes.ConversationMembersType,
   notifications: ?NotificationsState,
@@ -305,6 +309,7 @@ export const makeInboxState: I.RecordFactory<_InboxState> = I.Record({
   isEmpty: false,
   teamname: null,
   channelname: null,
+  maxMsgID: null,
   membersType: 0,
   notifications: null,
   participants: I.List(),
@@ -538,7 +543,8 @@ export type PrependMessages = NoErrorTypedAction<
     conversationIDKey: ConversationIDKey,
     messages: Array<Message>,
     moreToLoad: boolean,
-    paginationNext: ?Buffer,
+    paginationNext: ?string,
+    paginationPrevious: ?string,
   }
 >
 export type RemoveOutboxMessage = NoErrorTypedAction<
@@ -619,7 +625,7 @@ export type UpdateLatestMessage = NoErrorTypedAction<
 export type UpdateMetadata = NoErrorTypedAction<'chat:updateMetadata', {users: Array<string>}>
 export type UpdatePaginationNext = NoErrorTypedAction<
   'chat:updatePaginationNext',
-  {conversationIDKey: ConversationIDKey, paginationNext: Buffer}
+  {conversationIDKey: ConversationIDKey, paginationNext: ?string, paginationPrevious: ?string}
 >
 export type UpdateSupersededByState = NoErrorTypedAction<
   'chat:updateSupersededByState',
@@ -766,6 +772,7 @@ export type UpdateThread = NoErrorTypedAction<
     yourName: string,
     yourDeviceName: string,
     conversationIDKey: string,
+    append: boolean,
   }
 >
 
