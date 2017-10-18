@@ -22,7 +22,12 @@ func DeleteMetadata(ctx context.Context, g *libkb.GlobalContext, folder keybase1
 		return err
 	}
 	var repoID keybase1.RepoID
-	for _, repo := range repos {
+	for _, repoResult := range repos {
+		repo, err := repoResult.GetIfOk()
+		if err != nil {
+			g.Log.CDebugf(ctx, "%v", err)
+			continue
+		}
 		if repo.LocalMetadata.RepoName == repoName {
 			repoID = repo.RepoID
 			break

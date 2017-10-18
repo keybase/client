@@ -194,10 +194,10 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 
-func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) (err error) {
+func (h *TeamsHandler) TeamRequestAccess(ctx context.Context, arg keybase1.TeamRequestAccessArg) (res keybase1.TeamRequestAccessResult, err error) {
 	h.G().CTraceTimed(ctx, "TeamRequestAccess", func() error { return err })()
 	if err := h.assertLoggedIn(ctx); err != nil {
-		return err
+		return keybase1.TeamRequestAccessResult{}, err
 	}
 	return teams.RequestAccess(ctx, h.G().ExternalG(), arg.Name)
 }

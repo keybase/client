@@ -297,6 +297,11 @@ export const GitGitLocalMetadataVersion = {
   v1: 1,
 }
 
+export const GitGitRepoResultState = {
+  err: 0,
+  ok: 1,
+}
+
 export const GregorUIPushReason = {
   none: 0,
   reconnected: 1,
@@ -2532,11 +2537,11 @@ export function teamsTeamRenameRpcPromise (request: (requestCommon & requestErro
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRename', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
-export function teamsTeamRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam}): EngineChannel {
+export function teamsTeamRequestAccessRpcChannelMap (configKeys: Array<string>, request: requestCommon & {callback?: ?(err: ?any, response: teamsTeamRequestAccessResult) => void} & {param: teamsTeamRequestAccessRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'keybase.1.teams.teamRequestAccess', request)
 }
 
-export function teamsTeamRequestAccessRpcPromise (request: (requestCommon & requestErrorCallback & {param: teamsTeamRequestAccessRpcParam})): Promise<void> {
+export function teamsTeamRequestAccessRpcPromise (request: (requestCommon & {callback?: ?(err: ?any, response: teamsTeamRequestAccessResult) => void} & {param: teamsTeamRequestAccessRpcParam})): Promise<teamsTeamRequestAccessResult> {
   return new Promise((resolve, reject) => engineRpcOutgoing('keybase.1.teams.teamRequestAccess', request, (error, result) => error ? reject(error) : resolve(result)))
 }
 
@@ -3413,9 +3418,7 @@ export type GitLocalMetadataVersion =
 export type GitLocalMetadataVersioned =
     { version: 1, v1: ?GitLocalMetadataV1 }
 
-export type GitRepoName = string
-
-export type GitRepoResult = {
+export type GitRepoInfo = {
   folder: Folder,
   repoID: RepoID,
   localMetadata: GitLocalMetadata,
@@ -3424,6 +3427,16 @@ export type GitRepoResult = {
   globalUniqueID: string,
   canDelete: boolean,
 }
+
+export type GitRepoName = string
+
+export type GitRepoResult =
+    { state: 0, err: ?string }
+  | { state: 1, ok: ?GitRepoInfo }
+
+export type GitRepoResultState =
+    0 // ERR_0
+  | 1 // OK_1
 
 export type GitServerMetadata = {
   ctime: Time,
@@ -4971,6 +4984,10 @@ export type TeamRefreshers = {
   needKeyGeneration: PerTeamKeyGeneration,
   wantMembers?: ?Array<UserVersion>,
   wantMembersRole: TeamRole,
+}
+
+export type TeamRequestAccessResult = {
+  open: boolean,
 }
 
 export type TeamRole =
@@ -6596,6 +6613,7 @@ type teamsTeamGetResult = TeamDetails
 type teamsTeamListRequestsResult = ?Array<TeamJoinRequest>
 type teamsTeamListResult = AnnotatedTeamList
 type teamsTeamListSubteamsRecursiveResult = ?Array<TeamIDAndName>
+type teamsTeamRequestAccessResult = TeamRequestAccessResult
 type teamsTeamTreeResult = TeamTreeResult
 type teamsUiConfirmRootTeamDeleteResult = boolean
 type teamsUiConfirmSubteamDeleteResult = boolean

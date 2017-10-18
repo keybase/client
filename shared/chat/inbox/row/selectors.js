@@ -92,6 +92,7 @@ const snippetRowSelector = createCachedSelector(
     const participants = inbox ? Constants.participantFilter(inbox.get('participants'), you) : I.List()
     const timestamp = inbox ? formatTimeForConversationList(inbox.get('time'), nowOverride) : ''
     const d = _commonDerivedProps(rekeyInfo, finalizeInfo, unreadTotal, unreadBadge, isError, isSelected)
+    const teamname = inbox ? inbox.teamname : null
 
     return {
       backgroundColor: d.backgroundColor,
@@ -103,6 +104,7 @@ const snippetRowSelector = createCachedSelector(
       participants,
       showBold: d.showBold,
       subColor: d.subColor,
+      teamname,
       timestamp,
       usernameColor: d.usernameColor,
       youNeedToRekey: d.youNeedToRekey,

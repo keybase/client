@@ -1,11 +1,10 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, Box, ErrorBoundary} from '../../common-adapters'
+import {Text, Icon, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import FloatingDivider from './row/floating-divider/container'
-import {BigTeamsLabel} from './row/big-teams-label'
 import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
@@ -103,14 +102,6 @@ class Inbox extends PureComponent<Props, State> {
           toggle={this.props.toggleSmallTeamsExpanded}
           smallIDsHidden={this.props.smallIDsHidden}
         />
-      )
-    }
-
-    if (row.type === 'bigTeamsLabel') {
-      return (
-        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
-          <BigTeamsLabel isFiltered={row.isFiltered} />
-        </Box>
       )
     }
 
@@ -224,13 +215,6 @@ const _scrollableStyle = {
   flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
-}
-
-const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 24,
-  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

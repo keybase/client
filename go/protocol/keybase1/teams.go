@@ -1300,6 +1300,16 @@ func (o TeamSettings) DeepCopy() TeamSettings {
 	}
 }
 
+type TeamRequestAccessResult struct {
+	Open bool `codec:"open" json:"open"`
+}
+
+func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
+	return TeamRequestAccessResult{
+		Open: o.Open,
+	}
+}
+
 type BulkRes struct {
 	Invited        []string `codec:"invited" json:"invited"`
 	AlreadyInvited []string `codec:"alreadyInvited" json:"alreadyInvited"`
@@ -1784,7 +1794,7 @@ type TeamsInterface interface {
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
-	TeamRequestAccess(context.Context, TeamRequestAccessArg) error
+	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
 	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) error
 	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
@@ -2009,7 +2019,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamRequestAccessArg)(nil), args)
 						return
 					}
-					err = i.TeamRequestAccess(ctx, (*typedArgs)[0])
+					ret, err = i.TeamRequestAccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2274,8 +2284,8 @@ func (c TeamsClient) TeamAcceptInvite(ctx context.Context, __arg TeamAcceptInvit
 	return
 }
 
-func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAccessArg) (res TeamRequestAccessResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, &res)
 	return
 }
 

@@ -74,7 +74,9 @@ func TestPutAndGet(t *testing.T) {
 	allRepos, err := GetAllMetadata(context.Background(), tc.G)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(allRepos), "expected to get both repos back, found: %d", len(allRepos))
-	for _, repo := range allRepos {
+	for _, repoRes := range allRepos {
+		repo, err := repoRes.GetIfOk()
+		require.NoError(t, err)
 		require.Equal(t, expectedIDNames[string(repo.RepoID)], string(repo.LocalMetadata.RepoName))
 		require.Equal(t, repo.Folder.FolderType, keybase1.FolderType_TEAM)
 		require.Equal(t, repo.Folder.Private, true)
@@ -90,7 +92,8 @@ func TestPutAndGet(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(oneRepoList), "expected to get only one repo back, found: %d", len(oneRepoList))
-	oneRepo := oneRepoList[0]
+	oneRepo, err := oneRepoList[0].GetIfOk()
+	require.NoError(t, err)
 	require.Equal(t, "repoNameFirst", string(oneRepo.LocalMetadata.RepoName))
 	require.Equal(t, kbtest.DefaultDeviceName, oneRepo.ServerMetadata.LastModifyingDeviceName)
 	require.Equal(t, string(team1.Chain.Id+"_abc123"), oneRepo.GlobalUniqueID)
@@ -129,7 +132,9 @@ func TestDeleteRepo(t *testing.T) {
 	allRepos, err := GetAllMetadata(context.Background(), tc.G)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(allRepos), "expected to see 1 git repo, saw %d", len(allRepos))
-	require.Equal(t, repoName, allRepos[0].LocalMetadata.RepoName)
+	firstRepo, err := allRepos[0].GetIfOk()
+	require.NoError(t, err)
+	require.Equal(t, repoName, firstRepo.LocalMetadata.RepoName)
 
 	// Now delete that repo.
 	err = DeleteMetadata(context.Background(), tc.G, folder, repoName)
@@ -210,7 +215,9 @@ func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 	// Now make sure we can query these repos (or not, as appropriate for the
 	// multi-person case).
 
-	assertStuffAboutRepo := func(t *testing.T, repo keybase1.GitRepoResult, folder keybase1.Folder, repoName keybase1.GitRepoName) {
+	assertStuffAboutRepo := func(t *testing.T, repoRes keybase1.GitRepoResult, folder keybase1.Folder, repoName keybase1.GitRepoName) {
+		repo, err := repoRes.GetIfOk()
+		require.NoError(t, err)
 		require.Equal(t, repoName, repo.LocalMetadata.RepoName)
 		require.Equal(t, folderType, repo.Folder.FolderType)
 		require.Equal(t, !public, repo.Folder.Private)
@@ -266,7 +273,9 @@ func TestPutAndGetWritersCantDelete(t *testing.T) {
 	repos, err := GetAllMetadata(context.Background(), tc.G)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(repos), "expected exactly one repo")
-	require.Equal(t, true, repos[0].CanDelete, "owners/admins should be able to delete")
+	firstRepo, err := repos[0].GetIfOk()
+	require.NoError(t, err)
+	require.Equal(t, true, firstRepo.CanDelete, "owners/admins should be able to delete")
 
 	// Now log in as u1, load the repo again, and confirm that u1 sees it as CanDelete=FALSE.
 	err = tc.G.Logout()
@@ -276,5 +285,7 @@ func TestPutAndGetWritersCantDelete(t *testing.T) {
 	repos2, err := GetAllMetadata(context.Background(), tc.G)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(repos2), "expected exactly one repo")
-	require.Equal(t, false, repos2[0].CanDelete, "non-admins must not be able to delete")
+	repo2, err := repos2[0].GetIfOk()
+	require.NoError(t, err)
+	require.Equal(t, false, repo2.CanDelete, "non-admins must not be able to delete")
 }
