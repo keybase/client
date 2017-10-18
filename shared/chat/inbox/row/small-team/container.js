@@ -8,7 +8,7 @@ import {pausableConnect, type TypedState} from '../../../../util/container'
 const getSnippet = (state: TypedState, conversationIDKey: Constants.ConversationIDKey) =>
   Constants.getSnippet(state, conversationIDKey)
 
-const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, teamname, isActiveRoute}) => {
+const mapStateToProps = (state: TypedState, {conversationIDKey, isActiveRoute}) => {
   const isPending = Constants.isPendingConversationIDKey(conversationIDKey || '')
   const p = isPending
     ? Selectors.pendingSnippetRowSelector(state, conversationIDKey)
@@ -16,7 +16,6 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, tea
 
   return {
     backgroundColor: p.backgroundColor,
-    channelname,
     hasBadge: p.hasBadge,
     hasUnread: p.hasUnread,
     isActiveRoute,
@@ -27,7 +26,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, tea
     showBold: p.showBold,
     snippet: getSnippet(state, conversationIDKey || ''),
     subColor: p.subColor,
-    teamname,
+    teamname: p.teamname,
     timestamp: p.timestamp,
     usernameColor: p.usernameColor,
     youNeedToRekey: p.youNeedToRekey,

@@ -24,7 +24,7 @@ import (
 // can't conflict here.
 var bindLock sync.Mutex
 
-func (s SocketInfo) BindToSocket() (net.Listener, error) {
+func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 
 	// Lock so that multiple goroutines can't race over current working dir.
 	// See note above.
@@ -32,6 +32,9 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 	defer bindLock.Unlock()
 
 	bindFile := s.bindFile
+	what := fmt.Sprintf("SocketInfo#BindToSocket(unix:%s)", bindFile)
+	defer Trace(s.log, what, func() error { return err })()
+
 	if err := MakeParentDirs(s.log, bindFile); err != nil {
 		return nil, err
 	}
@@ -51,16 +54,27 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.log.Warning("Changing current working directory because path for binding is too long")
-		if err := os.Chdir(filepath.Dir(bindFile)); err != nil {
+		s.log.Warning("| Changing current working directory because path for binding is too long")
+		dir := filepath.Dir(bindFile)
+		s.log.Debug("| Chdir(%s)", dir)
+		if err := os.Chdir(dir); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
-		defer os.Chdir(prevWd)
+
+		defer func() {
+			s.log.Debug("| Chdir(%s)", prevWd)
+			os.Chdir(prevWd)
+		}()
+
 		bindFile = filepath.Base(bindFile)
 	}
 
-	s.log.Info("Binding to unix:%s", bindFile)
-	return net.Listen("unix", bindFile)
+	s.log.Info("| net.Listen on unix:%s", bindFile)
+	ret, err = net.Listen("unix", bindFile)
+	if err != nil {
+		s.log.Warning("net.Listen failed with: %s", err.Error())
+	}
+	return ret, err
 }
 
 func (s SocketInfo) DialSocket() (net.Conn, error) {
@@ -75,16 +89,20 @@ func (s SocketInfo) DialSocket() (net.Conn, error) {
 	return nil, CombineErrors(errs...)
 }
 
-func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
+func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 
 	// Lock so that multiple goroutines can't race over current working dir.
 	// See note above.
 	bindLock.Lock()
 	defer bindLock.Unlock()
 
+	what := fmt.Sprintf("SocketInfo#dialSocket(unix:%s)", dialFile)
+	defer Trace(s.log, what, func() error { return err })()
+
 	if dialFile == "" {
 		return nil, fmt.Errorf("Can't dial empty path")
 	}
+
 	// Path can't be longer than 108 characters.
 	// In this case Chdir to the file directory first.
 	// https://github.com/golang/go/issues/6895#issuecomment-98006662
@@ -93,15 +111,17 @@ func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.log.Warning("Changing current working directory because path for dialing is too long")
-		if err := os.Chdir(filepath.Dir(dialFile)); err != nil {
+		s.log.Warning("| Changing current working directory because path for dialing is too long")
+		dir := filepath.Dir(dialFile)
+		s.log.Debug("| os.Chdir(%s)", dir)
+		if err := os.Chdir(dir); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
 		defer os.Chdir(prevWd)
 		dialFile = filepath.Base(dialFile)
 	}
 
-	s.log.Debug("Dialing unix:%s", dialFile)
+	s.log.Debug("| net.Dial(unix:%s)", dialFile)
 	return net.Dial("unix", dialFile)
 }
 

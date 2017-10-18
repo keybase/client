@@ -110,8 +110,40 @@
       ]
     },
     {
-      "type": "record",
+      "type": "enum",
+      "name": "GitRepoResultState",
+      "symbols": [
+        "ERR_0",
+        "OK_1"
+      ]
+    },
+    {
+      "type": "variant",
       "name": "GitRepoResult",
+      "switch": {
+        "type": "GitRepoResultState",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ERR",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "OK",
+            "def": false
+          },
+          "body": "GitRepoInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitRepoInfo",
       "fields": [
         {
           "type": "Folder",

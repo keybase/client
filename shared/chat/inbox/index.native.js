@@ -12,7 +12,6 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
 import FloatingDivider from './row/floating-divider/container'
-import {BigTeamsLabel} from './row/big-teams-label'
 import Divider from './row/divider/container'
 import debounce from 'lodash/debounce'
 
@@ -57,14 +56,6 @@ class Inbox extends React.PureComponent<Props, State> {
           toggle={this.props.toggleSmallTeamsExpanded}
           smallIDsHidden={this.props.smallIDsHidden}
         />
-      )
-    }
-
-    if (row.type === 'bigTeamsLabel') {
-      return (
-        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
-          <BigTeamsLabel isFiltered={row.isFiltered} />
-        </Box>
       )
     }
 
@@ -232,13 +223,6 @@ const boxStyle = {
   backgroundColor: globalColors.white,
   flex: 1,
   position: 'relative',
-}
-
-const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 32,
-  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

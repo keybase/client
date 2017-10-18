@@ -2008,3 +2008,17 @@ func (p StringKVPair) IntValue() int {
 	}
 	return i
 }
+
+func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
+	state, err := r.State()
+	if err != nil {
+		return res, err
+	}
+	switch state {
+	case GitRepoResultState_ERR:
+		return res, fmt.Errorf(r.Err())
+	case GitRepoResultState_OK:
+		return r.Ok(), nil
+	}
+	return res, fmt.Errorf("git repo unknown error")
+}
