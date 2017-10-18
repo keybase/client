@@ -60,7 +60,7 @@ function buildParser() {
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
   // $FlowIssue Unclear why flow isn't accepting String.raw here
   const prependJS = String.raw`
-    const linkExp = /^[(\[{\`"']*(http(s?):\/\/)?((([a-zA-Z0-9\-\_]+\.)+(?!(json|png|jpg|jpeg|gif|doc|xsl|ppt|pdf|txt|js))([a-zA-Z]{2,64})(?![[{\]()}]+))|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))((\/|\?)[a-zA-Z0-9\_\-\s\.\/\?\(\)~,@\!:\+\%\#\&\?\=]*)?$/i
+    const linkExp = /^[(\[{\`"']*(http(s?):\/\/)?((([a-zA-Z0-9\-\_]+\.)+(?!(json|png|jpg|jpeg|gif|doc|xsl|ppt|pdf|txt|js))([a-zA-Z]{2,63})(?![[{\]()}]+))|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))((\/|\?)[a-zA-Z0-9\_\-\s\.\/\?\(\)~,@\!:\+\%\#\&\?\=]*)?$/i
     const emojiExp = ${emojiRegex}
     const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
     const emojiIndexByName = ${JSON.stringify(invert(emojiIndexByChar))}
