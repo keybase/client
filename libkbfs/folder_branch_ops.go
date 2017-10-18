@@ -2310,13 +2310,6 @@ func (fbo *folderBranchOps) waitForJournalLocked(ctx context.Context,
 	return nil
 }
 
-func (fbo *folderBranchOps) waitForJournal(ctx context.Context,
-	lState *lockState, jServer *JournalServer) error {
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-	return fbo.waitForJournalLocked(ctx, lState, jServer)
-}
-
 func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata,
 	lastWriterVerifyingKey kbfscrypto.VerifyingKey) (err error) {
