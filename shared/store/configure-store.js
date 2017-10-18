@@ -1,12 +1,11 @@
 // @flow
 import rootReducer from '../reducers'
-import storeEnhancer from './enhancer.platform'
 import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
 import {convertToError} from '../util/errors'
 import {createLogger} from 'redux-logger'
-import {createStore} from 'redux'
+import {createStore, applyMiddleware} from 'redux'
 import {
   enableStoreLogging,
   enableActionLogging,
@@ -108,7 +107,7 @@ if (__DEV__ && typeof window !== 'undefined') {
 }
 
 export default function configureStore(initialState: any) {
-  const store = createStore(rootReducer, initialState, storeEnhancer(middlewares))
+  const store = createStore(rootReducer, initialState, applyMiddleware(...middlewares))
   theStore = store
 
   if (module.hot && !isMobile) {
