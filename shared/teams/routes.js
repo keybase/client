@@ -62,7 +62,7 @@ const routeTree = makeRouteDefNode({
       children: {
         ...makeManageChannels,
         openTeamSetting: {
-          children: {},
+          children: {controlledRolePicker},
           component: MaybePopupHoc(ConnectedMakeOpenTeamConfirm),
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },

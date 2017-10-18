@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Button, Dropdown, Input, Text, HeaderHoc} from '../../common-adapters'
+import {Box, Button, Input, Text, HeaderHoc} from '../../common-adapters'
 import {globalStyles, globalMargins} from '../../styles'
 import {withProps, mapProps, compose} from 'recompose'
 import {isMobile} from '../../constants/platform'
@@ -16,42 +16,12 @@ const OpenTeamSettingButton = ({onClick, isOpen}: {onClick: () => void, isOpen: 
         Turn this into an open team
       </Text>
 
-const roles: Array<Role> = ['reader', 'writer']
-const rolePrettyName = {
-  reader: 'KBFS Reader',
-  writer: 'KBFS Reader and Writer',
-}
-
-const roleDescription = {
-  reader: '(Recommended) They can only read from KBFS, but can read and write messages',
-  writer: 'They can only read and write from KBFS, and can read and write messages',
-}
-
-const RoleDropDown = ({
-  selectedRole,
-  onChangeRole,
-}: {
-  selectedRole: Role,
-  onChangeRole: (nextRole: Role) => void,
-}) => {
-  const roleNodes = roles.map(r => (
-    <Text key={r} type="BodySmall">{rolePrettyName[r]} – {roleDescription[r]}</Text>
-  ))
-  return (
-    <Dropdown
-      onChanged={node => onChangeRole(roles[roleNodes.indexOf(node)])}
-      selected={roleNodes[roles.indexOf(selectedRole)]}
-      items={roleNodes}
-    />
-  )
-}
-
 export type OpenTeamConfirmProps = {
   teamNameInput: string,
   onChangeTeamNameInput: (next: string) => void,
   confirmEnabled: boolean,
   defaultRole: Role,
-  onChangeDefaultRole: (nextRole: Role) => void,
+  onChangeDefaultRole: () => void,
   onMakeTeamOpen: () => void,
   onClose: () => void,
 }
@@ -92,8 +62,9 @@ const MakeOpenTeamConfirm = compose(
         />
       </Box>
 
-      <Text type="Body" style={centerText}>Select the default role for new team members</Text>
-      <RoleDropDown selectedRole={defaultRole} onChangeRole={onChangeDefaultRole} />
+      <Text type="BodyPrimaryLink" style={centerText} onClick={onChangeDefaultRole}>
+        New users will join as {defaultRole}s
+      </Text>
 
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, alignItems: 'center', justifyContent: 'flex-end'}}>
         <Button
