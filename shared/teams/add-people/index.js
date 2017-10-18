@@ -1,9 +1,18 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Dropdown, ProgressIndicator, Text, PopupDialog} from '../../common-adapters'
+import {
+  Box,
+  Button,
+  ClickableBox,
+  Dropdown,
+  ProgressIndicator,
+  Text,
+  PopupDialog,
+} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
+import {type TeamRoleType} from '../../constants/teams'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 
@@ -21,14 +30,15 @@ const MaybePopup = isMobile
     )
 
 type Props = {
-  onAddPeople: (role: string) => void,
+  onAddPeople: (role: TeamRoleType) => void,
   onClose: () => void,
   onLeave: () => void,
+  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   name: string,
 }
 
 type State = {
-  selectedRole: string,
+  selectedRole: TeamRoleType,
 }
 
 class AddPeople extends React.Component<Props, State> {
@@ -56,12 +66,18 @@ class AddPeople extends React.Component<Props, State> {
 
   _dropdownChanged = (node: React.Node) => {
     // $FlowIssue doesn't understand key will be string
-    const selectedRole: string = (node && node.key) || null
+    const selectedRole: TeamRoleType = (node && node.key) || null
     this.setState({selectedRole})
   }
 
   _onSubmit = () => {
     this.props.onAddPeople(this.state.selectedRole)
+  }
+
+  _openRolePicker = () => {
+    this.props.onOpenRolePicker(this.state.selectedRole, (selectedRole: TeamRoleType) =>
+      this.setState({selectedRole})
+    )
   }
 
   render() {
@@ -78,11 +94,13 @@ class AddPeople extends React.Component<Props, State> {
             <Text style={{margin: globalMargins.tiny}} type="Body">
               Add these team members to {this.props.name} as:
             </Text>
-            <Dropdown
-              items={this._makeDropdownItems()}
-              selected={this._makeDropdownItem(this.state.selectedRole)}
-              onChanged={this._dropdownChanged}
-            />
+            <ClickableBox onClick={this._openRolePicker}>
+              <Dropdown
+                items={this._makeDropdownItems()}
+                selected={this._makeDropdownItem(this.state.selectedRole)}
+                onChanged={this._dropdownChanged}
+              />
+            </ClickableBox>
             <Button
               label="Invite"
               onClick={this._onSubmit}
