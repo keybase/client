@@ -18,14 +18,17 @@ export type ControlledRolePickerProps = {
   onComplete: (role: TeamRoleType) => void,
   selectedRole?: TeamRoleType,
   allowOwner?: boolean,
+  allowAdmin?: boolean,
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const currentType = routeProps.get('selectedRole')
   const _onComplete = routeProps.get('onComplete')
+  const allowAdmin = routeProps.get('allowAdmin')
   const allowOwner = routeProps.get('allowOwner')
   return {
     _onComplete,
+    allowAdmin,
     allowOwner,
     confirm: false,
     controlled: true,

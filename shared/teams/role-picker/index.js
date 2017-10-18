@@ -23,7 +23,8 @@ export type RolePickerProps = {
   currentType: ?TeamRoleType,
   username: string,
   selectedRole: TeamRoleType,
-  allowOwner: boolean,
+  allowAdmin?: boolean,
+  allowOwner?: boolean,
   sendNotification: boolean,
   teamname: string,
   showSendNotification: boolean,
@@ -87,7 +88,8 @@ export const RoleOptions = ({
   username,
   selectedRole,
   setSelectedRole,
-  allowOwner,
+  allowAdmin = true,
+  allowOwner = true,
   setSendNotification,
   sendNotification,
   setConfirm,
@@ -108,7 +110,7 @@ export const RoleOptions = ({
     </Box>
     {makeRoleOption('reader', selectedRole, setSelectedRole)}
     {makeRoleOption('writer', selectedRole, setSelectedRole)}
-    {makeRoleOption('admin', selectedRole, setSelectedRole)}
+    {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole)}
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole)}
     {showSendNotification &&
       <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
