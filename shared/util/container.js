@@ -23,6 +23,7 @@ export {
   mapProps,
   withPropsOnChange,
 } from 'recompose'
+export {default as createCachedSelector} from 're-reselect'
 export {default as pausableConnect} from './pausable-connect'
 export {TypedState} from '../constants/reducer'
 export {

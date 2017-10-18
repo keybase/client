@@ -9,8 +9,8 @@ export const roleDescMap = {
 }
 
 export const roleIconMap = {
-  reader: 'iconfont-search',
-  writer: 'iconfont-edit',
+  reader: 'iconfont-glasses',
+  writer: 'iconfont-pen',
   admin: 'iconfont-crown',
   owner: 'iconfont-crown',
 }

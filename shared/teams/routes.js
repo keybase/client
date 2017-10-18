@@ -9,6 +9,7 @@ import ManageChannels from '../chat/manage-channels/container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
 import RolePicker from './role-picker/container'
+import ControlledRolePicker from './role-picker/controlled-container'
 import Member from './team/member/container'
 import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
@@ -27,20 +28,23 @@ const makeManageChannels = {
     tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
   },
 }
-const makeRolePicker = {
-  rolePicker: {
-    children: {},
-    component: RolePicker,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
+
+const rolePicker = {
+  children: {},
+  component: RolePicker,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
 }
-const makeReallyLeaveTeam = {
-  reallyLeaveTeam: {
-    children: {},
-    component: ReallyLeaveTeam,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
+const reallyLeaveTeam = {
+  children: {},
+  component: ReallyLeaveTeam,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
 }
+const controlledRolePicker = {
+  children: {},
+  component: ControlledRolePicker,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const routeTree = makeRouteDefNode({
   children: {
     ...makeManageChannels,
@@ -57,8 +61,6 @@ const routeTree = makeRouteDefNode({
     team: {
       children: {
         ...makeManageChannels,
-        ...makeRolePicker,
-        ...makeReallyLeaveTeam,
         openTeamSetting: {
           children: {},
           component: MaybePopupHoc(ConnectedMakeOpenTeamConfirm),
@@ -69,10 +71,12 @@ const routeTree = makeRouteDefNode({
           component: MaybePopupHoc(ConnectedMakeTeamClosed),
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
+        rolePicker,
+        reallyLeaveTeam,
         member: {
           children: {
-            ...makeRolePicker,
-            ...makeReallyLeaveTeam,
+            rolePicker,
+            reallyLeaveTeam,
 
             reallyRemoveMember: {
               children: {},
@@ -83,7 +87,7 @@ const routeTree = makeRouteDefNode({
           component: Member,
         },
         addPeople: {
-          children: {},
+          children: {controlledRolePicker},
           component: AddPeopleDialog,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },

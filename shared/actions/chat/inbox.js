@@ -370,24 +370,32 @@ const unboxConversationsSagaMap = {
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
   let {conversationIDKeys, force, forInboxSync} = action.payload
 
-  // const inbox = yield select(state => state.entities.inbox)
   const untrustedState = yield select(state => state.entities.inboxUntrustedState)
 
-  conversationIDKeys = conversationIDKeys.filter(c => {
-    return (
-      force ||
-      (!Constants.isPendingConversationIDKey(c) &&
-        (!untrustedState.get(c) || untrustedState.get(c) === 'untrusted'))
-    )
-  })
+  const newUntrustedState = conversationIDKeys.reduce((map, c) => {
+    // Don't unbox pending conversations
+    if (Constants.isPendingConversationIDKey(c)) {
+      return map
+    }
+
+    if (untrustedState.get(c) === 'unboxed') {
+      // only unbox unboxed if we force
+      if (force) {
+        map[c] = 'reUnboxing'
+      }
+      // only unbox if we're not currently unboxing
+    } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
+      // This means this is the first unboxing
+      map[c] = 'firstUnboxing'
+    }
+    return map
+  }, {})
 
   if (!conversationIDKeys.length) {
     return
   }
 
-  yield put.resolve(
-    EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(conversationIDKeys.map(c => [c, 'unboxing'])))
-  )
+  yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
   if (!isMobile) {
@@ -489,6 +497,7 @@ function _conversationLocalToInboxState(c: ?ChatTypes.InboxUIItem): ?Constants.I
     channelname,
     conversationIDKey,
     isEmpty: c.isEmpty,
+    maxMsgID: c.maxMsgID,
     membersType: c.membersType,
     name: c.name,
     notifications,

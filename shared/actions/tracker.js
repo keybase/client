@@ -555,10 +555,17 @@ function _serverCallMap(
       addToIdleResponseQueue(() => {
         if (key.breaksTracking) {
           dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
-          dispatch({
-            type: Constants.updateReason,
-            payload: {username, reason: `${username} has reset their account!`},
-          })
+          if (key.trackDiff.type === RPCTypes.IdentifyCommonTrackDiffType.newEldest) {
+            dispatch({
+              type: Constants.updateReason,
+              payload: {username, reason: `${username} has reset their account!`},
+            })
+          } else {
+            dispatch({
+              type: Constants.updateReason,
+              payload: {username, reason: `${username} has deleted a PGP key.`},
+            })
+          }
           dispatch({type: Constants.updateProofState, payload: {username}})
           if (!isGetProfile) {
             dispatch({type: Constants.showTracker, payload: {username}})
