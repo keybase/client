@@ -63,7 +63,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const yourType =
-    stateProps._memberInfo.count() > 0 &&
     stateProps._memberInfo.find(member => member.username === stateProps.you)
   const youCanAddPeople = yourType && (yourType.type === 'owner' || yourType.type === 'admin')
 
