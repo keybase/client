@@ -35,7 +35,6 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
         source={{icon: _icons[tab], type: 'icon'}}
-        underlined={selectedTab === tab}
         styleIcon={selectedTab === tab ? _selectedIconStyle : _iconStyle}
       />
     ))}
@@ -43,7 +42,7 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
 )
 
 const _iconStyle = {
-  color: globalColors.blue3_60,
+  color: globalColors.blue3_40,
   fontSize: 32,
 }
 const _selectedIconStyle = {
