@@ -5831,7 +5831,8 @@ export type metadataGetMetadataRpcParam = Exact<{
   startRevision: long,
   stopRevision: long,
   logTags: {[key: string]: string},
-  lockBeforeGet?: ?LockID
+  lockBeforeGet?: ?LockID,
+  noCreate: boolean
 }>
 
 export type metadataLockRpcParam = Exact<{
