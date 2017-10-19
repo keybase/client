@@ -159,3 +159,11 @@ type AppState interface {
 	State() keybase1.AppState
 	NextUpdate() chan keybase1.AppState
 }
+
+type TeamChannelSource interface {
+	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
+		chat1.ConversationMembersType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
+	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
+		chat1.ConversationMembersType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
+	ChannelsChanged(context.Context, chat1.TLFID)
+}
