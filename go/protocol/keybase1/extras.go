@@ -1273,6 +1273,25 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	return false
 }
 
+func (u UserPlusKeysV2AllIncarnations) AllDeviceNames() []string {
+	var names []string
+
+	for _, k := range u.Current.DeviceKeys {
+		if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+			names = append(names, k.DeviceDescription)
+		}
+	}
+	for _, v := range u.PastIncarnations {
+		for _, k := range v.DeviceKeys {
+			if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+				names = append(names, k.DeviceDescription)
+			}
+		}
+	}
+
+	return names
+}
+
 func (ut UserOrTeamID) String() string {
 	return string(ut)
 }
