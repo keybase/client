@@ -2041,3 +2041,15 @@ func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
 	}
 	return res, fmt.Errorf("git repo unknown error")
 }
+
+func (b MDGetBehavior) ShouldCreateClassicTLF() bool {
+	switch b {
+	case MDGetBehavior_GET_CLASSIC_TLF_NO_CREATE:
+		return false
+	case MDGetBehavior_GET_OR_CREATE_CLASSIC_TLF:
+		return true
+	default:
+		// This shouldn't happen in production as we have TestMDGetBehavior.
+		panic("😱 need to update extras.go after adding MDGetBehavior values")
+	}
+}
