@@ -79,7 +79,7 @@ const stylesTabBar = {
 
 const stylesTabButton = {
   height: 56,
-  color: globalColors.darkBlue,
+  color: globalColors.blue3_60,
 }
 
 const stylesSelectedTabButton = {
