@@ -23,7 +23,6 @@ import {type Dispatch} from '../constants/types/flux'
 import {type SagaGenerator} from '../constants/types/saga'
 import {
   type State as GregorState,
-  type ItemAndMetadata as GregorItem,
   type OutOfBandMessage,
 } from '../constants/types/flow-types-gregor'
 import {type TypedState} from '../constants/reducer'
