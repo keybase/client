@@ -302,14 +302,14 @@ const stylesTabBarNavIcon = {
 }
 
 const navRealCSS = `
-  .nav-item .img { color: ${globalColors.blue3_40}; }
-  .nav-item:hover .img { color: ${globalColors.blue3_60}; }
+  .nav-item .img { color: ${globalColors.darkBlue}; }
+  .nav-item:hover .img { color: ${globalColors.white}; }
   .nav-item.selected .img { color: ${globalColors.white}; }
 
   .nav-item .title { color: transparent; }
-  .nav-item-avatar .title { color: ${globalColors.blue3_60}; }
+  .nav-item-avatar .title { color: ${globalColors.white}; }
   .nav-item.selected .title, .nav-item-avatar.selected .title { color: ${globalColors.white}; }
-  .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${globalColors.blue3}; opacity: 1.0; }
+  .nav-item:hover .title, .nav-item-avatar:hover .title { color: ${globalColors.white}; opacity: 1.0; }
   .nav-item:hover.selected .title, .nav-item-avatar:hover.selected .title { color: ${globalColors.white}; opacity: 1.0;}
 `
 

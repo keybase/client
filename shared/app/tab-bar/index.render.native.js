@@ -43,7 +43,7 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
 )
 
 const _iconStyle = {
-  color: globalColors.blue3_40,
+  color: globalColors.darkBlue,
   fontSize: 32,
 }
 const _selectedIconStyle = {
