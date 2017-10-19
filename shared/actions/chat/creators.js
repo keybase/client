@@ -106,6 +106,11 @@ const loadingMessagesTransformer = ({type, payload: {isRequesting}}: Constants.L
   type,
 })
 
+const updateThreadTransformer = ({type, payload: {append}}: Constants.UpdateThread) => ({
+  payload: {append},
+  type,
+})
+
 function exitSearch(skipSelectPreviousConversation: boolean): Constants.ExitSearch {
   return {
     payload: {skipSelectPreviousConversation},
@@ -613,6 +618,7 @@ function updateThread(
   append: boolean
 ): Constants.UpdateThread {
   return {
+    logTransformer: updateThreadTransformer,
     payload: {thread, yourName, yourDeviceName, conversationIDKey, append},
     type: 'chat:updateThread',
   }
