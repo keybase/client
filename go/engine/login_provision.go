@@ -483,11 +483,15 @@ func (e *loginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 
 // deviceName gets a new device name from the user.
 func (e *loginProvision) deviceName(ctx *Context) (string, error) {
-	names, err := e.arg.User.DeviceNames()
+	var names []string
+	upk, _, err := e.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), e.arg.User.GetUID()).WithPublicKeyOptional().WithForcePoll(true))
 	if err != nil {
-		e.G().Log.Debug("error getting device names: %s", err)
+		e.G().Log.Debug("error getting device names via upak: %s", err)
 		e.G().Log.Debug("proceeding to ask user for a device name despite error...")
+	} else {
+		names = upk.AllDeviceNames()
 	}
+
 	arg := keybase1.PromptNewDeviceNameArg{
 		ExistingDevices: names,
 	}

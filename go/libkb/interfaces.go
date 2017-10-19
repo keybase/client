@@ -610,7 +610,7 @@ type ClockContext interface {
 }
 
 type UIDMapperContext interface {
-	LogContext
+	VLogContext
 	APIContext
 	KVStoreContext
 	ClockContext

@@ -385,11 +385,12 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 }
 
 func TestClearSocialInvitesOnAdd(t *testing.T) {
-	t.Skip()
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
-	ann := makeUserStandalone(t, "ann")
+	// Disable gregor in this test so Ann does not immediately add Bob
+	// through SBS handler when bob proves Rooter.
+	ann := makeUserStandalone(t, "ann", standaloneUserArgs{disableGregor: true})
 	tt.users = append(tt.users, ann)
 
 	bob := tt.addUser("bob")
