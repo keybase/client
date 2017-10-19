@@ -1,0 +1,20 @@
+/**
+  DiskCacheRemote specifies how to access a disk cache remotely.
+  */
+@namespace("kbgitkbfs.1")
+protocol DiskCacheRemote {
+
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+
+  /**
+    ToDoStruct is a placeholder.
+    */
+  record ToDoStruct {
+      keybase1.UID uid;
+  }
+
+  /**
+    ToDoFunction is a placeholder.
+    */
+  void ToDoFunction();
+}
