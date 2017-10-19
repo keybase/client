@@ -68,7 +68,7 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         .update(conversationIDKey, initialConversation, conversation => {
           const firstMessage = appendMessages[0]
           const inConversationFocused = isSelected && isAppFocused
-          if (!conversation.get('firstNewMessageID') && !inConversationFocused) {
+          if (!conversation.get('firstNewMessageID') && !inConversationFocused && firstMessage) {
             // Set first new message if we don't have one set, and are not in
             // the conversation with window focused
             // $TemporarilyNotAFlowIssue TODO ServerMessage -> Message change
