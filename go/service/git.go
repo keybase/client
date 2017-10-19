@@ -28,19 +28,37 @@ func NewGitHandler(xp rpc.Transporter, g *libkb.GlobalContext) *GitHandler {
 	}
 }
 
-func (h *GitHandler) PutGitMetadata(ctx context.Context, arg keybase1.PutGitMetadataArg) error {
+func (h *GitHandler) PutGitMetadata(ctx context.Context, arg keybase1.PutGitMetadataArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
+		"git:PutGitMetadata(%v, %v, %v)", arg.RepoID, arg.Folder.Name, arg.Folder.FolderType),
+		func() error { return err })()
+
 	return git.PutMetadata(ctx, h.G(), arg)
 }
 
-func (h *GitHandler) DeleteGitMetadata(ctx context.Context, arg keybase1.DeleteGitMetadataArg) error {
+func (h *GitHandler) DeleteGitMetadata(ctx context.Context, arg keybase1.DeleteGitMetadataArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
+		"git:DeleteGitMetadata(%v, %v)", arg.Folder.Name, arg.Folder.FolderType),
+		func() error { return err })()
+
 	return git.DeleteMetadata(ctx, h.G(), arg.Folder, arg.RepoName)
 }
 
-func (h *GitHandler) GetGitMetadata(ctx context.Context, folder keybase1.Folder) ([]keybase1.GitRepoResult, error) {
+func (h *GitHandler) GetGitMetadata(ctx context.Context, folder keybase1.Folder) (res []keybase1.GitRepoResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
+		"git:GetGitMetadata(%v, %v)", folder.Name, folder.FolderType),
+		func() error { return err })()
+
 	return git.GetMetadata(ctx, h.G(), folder)
 }
 
-func (h *GitHandler) GetAllGitMetadata(ctx context.Context) ([]keybase1.GitRepoResult, error) {
+func (h *GitHandler) GetAllGitMetadata(ctx context.Context) (res []keybase1.GitRepoResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, "git:GetAllGitMetadata", func() error { return err })()
+
 	return git.GetAllMetadata(ctx, h.G())
 }
 
@@ -70,7 +88,12 @@ func isRoleAtLeast(ctx context.Context, g *libkb.GlobalContext, teamName string,
 	return role.IsOrAbove(minimumRole), nil
 }
 
-func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.Folder, repoName keybase1.GitRepoName, notifyTeam bool) (keybase1.RepoID, error) {
+func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.Folder, repoName keybase1.GitRepoName, notifyTeam bool) (repoID keybase1.RepoID, err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
+		"git:createRepo(%v, %v)", folder.Name, folder.FolderType),
+		func() error { return err })()
+
 	client, err := h.kbfsClient()
 	if err != nil {
 		return "", err
@@ -80,11 +103,11 @@ func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.Folder, rep
 		Folder: folder,
 		Name:   repoName,
 	}
-	repoID, err := client.CreateRepo(ctx, carg)
+	repoID, err = client.CreateRepo(ctx, carg)
 	if err != nil {
 		// Real user errors are going to come through this path, like "repo
 		// already exists". Make them clear for the user.
-		return "", git.HumanizeGitErrors(err)
+		return "", git.HumanizeGitErrors(ctx, h.G(), err)
 	}
 
 	// Currently KBFS will also call back into the service to put metadata
@@ -105,7 +128,10 @@ func (h *GitHandler) createRepo(ctx context.Context, folder keybase1.Folder, rep
 	return repoID, nil
 }
 
-func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) (keybase1.RepoID, error) {
+func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) (repoID keybase1.RepoID, err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, "git:CreatePersonalRepo", func() error { return err })()
+
 	folder := keybase1.Folder{
 		Name:       h.G().Env.GetUsername().String(),
 		FolderType: keybase1.FolderType_PRIVATE,
@@ -114,7 +140,12 @@ func (h *GitHandler) CreatePersonalRepo(ctx context.Context, repoName keybase1.G
 	return h.createRepo(ctx, folder, repoName, false /* notifyTeam */)
 }
 
-func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (keybase1.RepoID, error) {
+func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeamRepoArg) (repoID keybase1.RepoID, err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
+		"git:CreateTeamRepo(%v)", arg.TeamName),
+		func() error { return err })()
+
 	// Only support private teams
 	public := false
 
@@ -135,7 +166,11 @@ func (h *GitHandler) CreateTeamRepo(ctx context.Context, arg keybase1.CreateTeam
 	return h.createRepo(ctx, folder, arg.RepoName, arg.NotifyTeam)
 }
 
-func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) error {
+func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.GitRepoName) (err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, "git:DeletePersonalRepo",
+		func() error { return err })()
+
 	client, err := h.kbfsClient()
 	if err != nil {
 		return err
@@ -161,10 +196,15 @@ func (h *GitHandler) DeletePersonalRepo(ctx context.Context, repoName keybase1.G
 
 	// Delete the repo metadata from the Keybase server.
 	err = git.DeleteMetadata(ctx, h.G(), folder, repoName)
-	return git.HumanizeGitErrors(err)
+	return git.HumanizeGitErrors(ctx, h.G(), err)
 }
 
-func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) error {
+func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeamRepoArg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "GIT")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf(
+		"git:DeleteTeamRepo(%v)", arg.TeamName),
+		func() error { return err })()
+
 	// Only support private teams
 	public := false
 
@@ -200,7 +240,7 @@ func (h *GitHandler) DeleteTeamRepo(ctx context.Context, arg keybase1.DeleteTeam
 
 	// Delete the repo metadata from the Keybase server.
 	err = git.DeleteMetadata(ctx, h.G(), folder, arg.RepoName)
-	return git.HumanizeGitErrors(err)
+	return git.HumanizeGitErrors(ctx, h.G(), err)
 }
 
 func (h *GitHandler) kbfsClient() (*keybase1.KBFSGitClient, error) {
