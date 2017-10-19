@@ -1,0 +1,11 @@
+{
+  "name": "kbfs-protocol",
+  "version": "1.0.0",
+  "description": "An IDL and protocol generator for KBFS components",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "avdl-compiler": "1.3.9"
+  }
+}
