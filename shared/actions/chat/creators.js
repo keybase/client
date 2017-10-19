@@ -93,6 +93,11 @@ const loadAttachmentPreviewTransformer = ({
   type,
 })
 
+const loadMoreMessagesTransformer = ({type, payload: {onlyIfUnloaded}}: Constants.LoadMoreMessages) => ({
+  payload: {onlyIfUnloaded},
+  type,
+})
+
 function exitSearch(skipSelectPreviousConversation: boolean): Constants.ExitSearch {
   return {
     payload: {skipSelectPreviousConversation},
@@ -183,6 +188,7 @@ function loadMoreMessages(
   numberOverride?: ?number // how many to ask for
 ): Constants.LoadMoreMessages {
   return {
+    logTransformer: loadMoreMessagesTransformer,
     payload: {conversationIDKey, onlyIfUnloaded, fromUser, wantNewer, numberOverride},
     type: 'chat:loadMoreMessages',
   }
