@@ -53,7 +53,8 @@ func (log *TestLogger) prefixCaller(extraDepth int, lvl logging.Level, fmts stri
 	if log.log.Failed() {
 		failed = "[X] "
 	}
-	return fmt.Sprintf("\r%s %s%s:%d: [%.1s] %s", time.Now(),
+
+	return fmt.Sprintf("\r%s %s%s:%d: [%.1s] %s", time.Now().Format("2006-01-02 15:04:05.00000"),
 		failed, elements[len(elements)-1], line, lvl, fmts)
 }
 
