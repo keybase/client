@@ -93,8 +93,11 @@ const loadAttachmentPreviewTransformer = ({
   type,
 })
 
-const loadMoreMessagesTransformer = ({type, payload: {onlyIfUnloaded}}: Constants.LoadMoreMessages) => ({
-  payload: {onlyIfUnloaded},
+const loadMoreMessagesTransformer = ({
+  type,
+  payload: {onlyIfUnloaded, fromUser, wantNewer},
+}: Constants.LoadMoreMessages) => ({
+  payload: {onlyIfUnloaded, fromUser, wantNewer},
   type,
 })
 
