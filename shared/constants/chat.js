@@ -234,6 +234,7 @@ export type MaybeTimestamp = TimestampMessage | null
 export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 type _ConversationState = {
   moreToLoad: ?boolean,
+  isLoaded: boolean,
   isRequesting: boolean,
   isStale: boolean,
   loadedOffline: boolean,
@@ -1036,7 +1037,7 @@ function convSupersededByInfo(conversationID: ConversationIDKey, chat: State): ?
 }
 
 function newestConversationIDKey(conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
-  const supersededBy = chat.getIn(['supersededByState', conversationIDKey])
+  const supersededBy = conversationIDKey ? chat.getIn(['supersededByState', conversationIDKey]) : null
   if (!supersededBy) {
     return conversationIDKey
   }
@@ -1171,7 +1172,9 @@ const getTeamName = createSelector(
 
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
-  return state.chat.getIn(['conversationStates', selectedConversationIDKey])
+  return selectedConversationIDKey
+    ? state.chat.getIn(['conversationStates', selectedConversationIDKey])
+    : null
 }
 
 const getSupersedes = (state: TypedState): ?SupersedeInfo => {
@@ -1226,10 +1229,10 @@ function getMessageUpdates(
   messageKey: MessageKey
 ): I.OrderedSet<EditingMessage | UpdatingAttachment> {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  const updateKeys = state.entities.messageUpdates.getIn(
+  const updateKeys = conversationIDKey ? state.entities.messageUpdates.getIn(
     [conversationIDKey, String(messageID)],
     I.OrderedSet()
-  )
+  ) : I.OrderedSet()
   return updateKeys.map(k => state.entities.messages.get(k))
 }
 

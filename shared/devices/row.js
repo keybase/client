@@ -14,6 +14,10 @@ const makeGetDeviceSelector = (deviceID: string) => (state: TypedState) =>
 
 const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
   const selector = createSelector(makeGetDeviceSelector(deviceID), device => {
+    if (!device) {
+      return {}
+    }
+
     const icon: IconType = {
       backup: isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32',
       desktop: isMobile ? 'icon-computer-48' : 'icon-computer-32',

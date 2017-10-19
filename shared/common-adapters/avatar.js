@@ -257,15 +257,15 @@ class Avatar extends React.PureComponent<Props, State> {
       String(this.props.size),
       `they${this.props.followsYou ? 'Yes' : 'No'}`,
       `you${this.props.following ? 'Yes' : 'No'}`,
-    ])
+    ]) || 0
   }
 
-  _followIconSize() {
+  _followIconSize(){
     return followStateToSize.getIn([
       String(this.props.size),
       `they${this.props.followsYou ? 'Yes' : 'No'}`,
       `you${this.props.following ? 'Yes' : 'No'}`,
-    ])
+    ]) || 0
   }
 
   render() {

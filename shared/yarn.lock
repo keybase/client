@@ -4695,9 +4695,9 @@ image-size@^0.6.0:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/image-size/-/image-size-0.6.1.tgz#98122a562d59dcc097ef1b2c8191866eb8f5d663"
 
-immutable@4.0.0-rc.7:
-  version "4.0.0-rc.7"
-  resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.0.0-rc.7.tgz#50b4ad60e02ac5c71ebb19ad72577b08ed4ab736"
+immutable@4.0.0-rc.9:
+  version "4.0.0-rc.9"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.0.0-rc.9.tgz#1e6e0094e649013ec3742d2b5aeeca5eeda4f0bf"
 
 immutable@^3.8.1:
   version "3.8.1"
