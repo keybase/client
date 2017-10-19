@@ -41,9 +41,9 @@ type RpcRunResult = Finished | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bai
 
 function _sagaWaitingDecorator(rpcNameKey, saga) {
   return function* _sagaWaitingDecoratorHelper(...args: any) {
-    yield put(Creators.waitingForRpc(rpcNameKey, false))
-    yield call(saga, ...args)
     yield put(Creators.waitingForRpc(rpcNameKey, true))
+    yield call(saga, ...args)
+    yield put(Creators.waitingForRpc(rpcNameKey, false))
   }
 }
 
