@@ -1,5 +1,6 @@
 // @flow
 /* eslint-env browser */
+// $FlowIssue can't find this
 import {showImagePicker} from 'react-native-image-picker'
 import React, {Component} from 'react'
 import {Box, Icon, Input, Text} from '../../../common-adapters'

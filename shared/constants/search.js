@@ -157,15 +157,13 @@ function maybeUpgradeSearchResultIdToKeybaseId(
   searchResultMap: $PropertyType<$PropertyType<TypedState, 'entities'>, 'searchResults'>,
   id: SearchResultId
 ): SearchResultId {
-  if (!searchResultMap.get(id)) {
-    return id
-  }
-
   const searchResult = searchResultMap.get(id)
-  if (searchResult.get('leftService') === 'Keybase') {
-    return searchResult.get('leftUsername')
-  } else if (searchResult.get('rightService') === 'Keybase') {
-    return searchResult.get('rightUsername') || id
+  if (searchResult) {
+    if (searchResult.leftService === 'Keybase') {
+      return searchResult.leftUsername
+    } else if (searchResult.rightService === 'Keybase') {
+      return searchResult.rightUsername || id
+    }
   }
 
   return id

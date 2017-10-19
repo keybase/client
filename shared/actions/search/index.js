@@ -261,7 +261,6 @@ function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants
   ])
 
   const maybeUpgradedUsers = searchResults.map(u =>
-    // $FlowIssue not sure yet
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )
   yield put.resolve(

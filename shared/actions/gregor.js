@@ -54,7 +54,7 @@ function injectItem(category: string, body: string, dtime?: ?Date): Constants.In
   return {type: Constants.injectItem, payload: {category, body, dtime}}
 }
 
-function isTlfItem(gItem: GregorItem): boolean {
+function isTlfItem(gItem: Constants.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
 }
 
