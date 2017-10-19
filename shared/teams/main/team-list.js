@@ -37,7 +37,7 @@ const Row = ({team, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
         </Text>
         {team.memberCount != null &&
           <Text type="BodySemiboldItalic" style={{marginRight: globalMargins.small}}>
-            {team.memberCount + ' member' + (team.memberCount > 1 ? 's' : '')}
+            {team.memberCount + ' member' + (team.memberCount !== 1 ? 's' : '')}
           </Text>}
       </ClickableBox>
       {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
