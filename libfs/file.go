@@ -167,8 +167,8 @@ func (f *File) Lock() (err error) {
 	if err != nil {
 		return err
 	}
-	if err = jServer.FinishSingleOp(
-		f.fs.ctx, f.fs.root.GetFolderBranch().Tlf, nil); err != nil {
+	if err = jServer.FinishSingleOp(f.fs.ctx,
+		f.fs.root.GetFolderBranch().Tlf, nil, f.fs.priority); err != nil {
 		return err
 	}
 
@@ -222,7 +222,7 @@ func (f *File) Unlock() (err error) {
 		f.fs.root.GetFolderBranch().Tlf, &keybase1.LockContext{
 			RequireLockID:       f.getLockID(),
 			ReleaseAfterSuccess: true,
-		})
+		}, f.fs.priority)
 }
 
 // Truncate implements the billy.File interface for File.

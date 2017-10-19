@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -91,7 +92,8 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
 
@@ -124,7 +126,8 @@ func TestCreateRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
 
@@ -155,7 +158,8 @@ func TestGetRepoAndID(t *testing.T) {
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
 
@@ -177,7 +181,8 @@ func TestDeleteRepo(t *testing.T) {
 	require.NoError(t, err)
 	jServer, err := libkbfs.GetJournalServer(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 
 	err = DeleteRepo(ctx, config, h, "Repo1")
@@ -212,7 +217,8 @@ func TestDeleteRepo(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, children, 0)
 
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
 

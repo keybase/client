@@ -1147,12 +1147,17 @@ type MDOps interface {
 	// If lockContext is not nil, it causes the mdserver to check a lockID at
 	// the time of the put, and optionally (if specified in lockContext)
 	// releases the lock on the lock ID if the put is successful. Releasing the
-	// lock in mdserver is idempotent.
+	// lock in mdserver is idempotent. Note that journalMDOps doesn't support
+	// lockContext for now. If journaling is enabled, use FinishSinbleOp to
+	// require locks.
 	//
 	// The priority parameter specifies the priority of this particular MD put
 	// operation. When conflict happens, mdserver tries to prioritize writes
 	// with higher priorities. Caller should use pre-defined (or define new)
-	// constants in keybase1 package, such as keybase1.MDPriorityNormal.
+	// constants in keybase1 package, such as keybase1.MDPriorityNormal. Note
+	// that journalMDOps doesn't support any priority other than
+	// MDPriorityNormal for now. If journaling is enabled, use FinishSinbleOp
+	// to override priority.
 	Put(ctx context.Context, rmd *RootMetadata,
 		verifyingKey kbfscrypto.VerifyingKey,
 		lockContext *keybase1.LockContext, priority keybase1.MDPriority) (

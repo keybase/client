@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
 	"github.com/keybase/kbfs/libkbfs"
@@ -109,7 +110,7 @@ func testRunnerInitRepo(t *testing.T, tlfType tlf.Type, typeString string) {
 
 	// Now there should be a valid git repo stored in KBFS.  Check the
 	// existence of the HEAD file to be sure.
-	fs, err := libfs.NewFS(ctx, config, h, ".kbfs_git/test", "")
+	fs, err := libfs.NewFS(ctx, config, h, ".kbfs_git/test", "", keybase1.MDPriorityGit)
 	require.NoError(t, err)
 	head, err := fs.Open("HEAD")
 	require.NoError(t, err)

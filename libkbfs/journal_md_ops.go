@@ -451,6 +451,12 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata,
 				"journal Put doesn't support LockContext " +
 					"yet. Use FinishSingleOp to require locks on MD write.")
 		}
+		if priority != keybase1.MDPriorityNormal {
+			return ImmutableRootMetadata{}, errors.New(
+				"journal Put doesn't support priority other than " +
+					"MDPriorityNormal yet. Use FinishSingleOp to specify " +
+					"priority on MD write.")
+		}
 		// Just route to the journal.
 		irmd, err := tlfJournal.putMD(ctx, rmd, verifyingKey)
 		switch errors.Cause(err).(type) {

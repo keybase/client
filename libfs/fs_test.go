@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
@@ -27,7 +28,7 @@ func makeFS(t *testing.T, subdir string) (
 	config := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
-	fs, err := NewFS(ctx, config, h, subdir, "")
+	fs, err := NewFS(ctx, config, h, subdir, "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 	return ctx, h, fs
 }
@@ -58,7 +59,7 @@ func makeFSWithJournal(t *testing.T, subdir string) (
 
 	h, err := libkbfs.ParseTlfHandle(ctx, config.KBPKI(), "user1", tlf.Private)
 	require.NoError(t, err)
-	fs, err := NewFS(ctx, config, h, subdir, "")
+	fs, err := NewFS(ctx, config, h, subdir, "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	return ctx, h, fs, shutdown
@@ -266,7 +267,7 @@ func TestStat(t *testing.T) {
 	h2, err := libkbfs.ParseTlfHandle(
 		ctx, config2.KBPKI(), "user2#user1", tlf.Private)
 	require.NoError(t, err)
-	fs2U2, err := NewFS(ctx, config2, h2, "", "")
+	fs2U2, err := NewFS(ctx, config2, h2, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 	rootNode2, _, err := fs2U2.config.KBFSOps().GetRootNode(
 		ctx, h2, libkbfs.MasterBranch)
@@ -276,7 +277,7 @@ func TestStat(t *testing.T) {
 	testCreateFile(t, ctx, fs2U2, "a/foo", aNode2)
 
 	// Read as the reader.
-	fs2U1, err := NewFS(ctx, fs.config, h2, "", "")
+	fs2U1, err := NewFS(ctx, fs.config, h2, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
 	fi, err = fs2U1.Stat("a")
@@ -623,7 +624,8 @@ func TestFileLocking(t *testing.T) {
 	require.NotEqual(t, kbfsmd.RevisionUninitialized, status.RevisionStart)
 
 	// Now manually flush again so the journal is clean.
-	err = jServer.FinishSingleOp(fs.ctx, fs.root.GetFolderBranch().Tlf, nil)
+	err = jServer.FinishSingleOp(fs.ctx,
+		fs.root.GetFolderBranch().Tlf, nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 }
 

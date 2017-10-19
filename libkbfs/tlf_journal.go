@@ -204,8 +204,13 @@ const (
 	singleOpFinished
 )
 
-type finishSingleOpContext struct {
+type flushContext struct {
 	lockContextForPut *keybase1.LockContext
+	priorityForPut    keybase1.MDPriority
+}
+
+func defaultFlushContext() flushContext {
+	return flushContext{priorityForPut: keybase1.MDPriorityNormal}
 }
 
 // A tlfJournal contains all the journals for a (TLF, user, device)
@@ -257,11 +262,11 @@ type tlfJournal struct {
 
 	// Serializes all flushes, and protects `lastServerMDCheck` and
 	// `singleOpMode`.
-	flushLock           sync.Mutex
-	lastServerMDCheck   time.Time
-	singleOpMode        singleOpMode
-	finishSingleOpCh    chan finishSingleOpContext
-	singleOpLockContext *keybase1.LockContext
+	flushLock            sync.Mutex
+	lastServerMDCheck    time.Time
+	singleOpMode         singleOpMode
+	finishSingleOpCh     chan flushContext
+	singleOpFlushContext flushContext
 
 	// Tracks background work.
 	wg kbfssync.RepeatedWaitGroup
@@ -425,7 +430,8 @@ func makeTLFJournal(
 		needShutdownCh:       make(chan struct{}, 1),
 		needBranchCheckCh:    make(chan struct{}, 1),
 		backgroundShutdownCh: make(chan struct{}),
-		finishSingleOpCh:     make(chan finishSingleOpContext, 1),
+		finishSingleOpCh:     make(chan flushContext, 1),
+		singleOpFlushContext: defaultFlushContext(),
 		blockJournal:         blockJournal,
 		mdJournal:            mdJournal,
 		flushingBlocks:       make(map[kbfsblock.ID]bool),
@@ -835,12 +841,11 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 		}
 
 		select {
-		case finishSingleOpCtx := <-j.finishSingleOpCh:
+		case j.singleOpFlushContext = <-j.finishSingleOpCh:
 			err := j.checkAndFinishSingleOpFlushLocked(ctx)
 			if err != nil {
 				return err
 			}
-			j.singleOpLockContext = finishSingleOpCtx.lockContextForPut
 		default:
 		}
 
@@ -864,7 +869,7 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 			if j.singleOpMode == singleOpFinished {
 				j.log.CDebugf(ctx, "Resetting single op mode")
 				j.singleOpMode = singleOpRunning
-				j.singleOpLockContext = nil
+				j.singleOpFlushContext = defaultFlushContext()
 			}
 			break
 		}
@@ -903,8 +908,8 @@ func (j *tlfJournal) flush(ctx context.Context) (err error) {
 
 		flushedOneMD := false
 		for {
-			flushed, err := j.flushOneMDOp(
-				ctx, maxMDRevToFlush, j.singleOpLockContext)
+			flushed, err := j.flushOneMDOp(ctx,
+				maxMDRevToFlush, j.singleOpFlushContext)
 			if err != nil {
 				return err
 			}
@@ -1418,7 +1423,7 @@ func (j *tlfJournal) removeFlushedMDEntryLocked(ctx context.Context,
 }
 
 func (j *tlfJournal) flushOneMDOp(ctx context.Context,
-	maxMDRevToFlush kbfsmd.Revision, lc *keybase1.LockContext) (
+	maxMDRevToFlush kbfsmd.Revision, flushCtx flushContext) (
 	flushed bool, err error) {
 	if maxMDRevToFlush == kbfsmd.RevisionUninitialized {
 		// Avoid a call to `getNextMDEntryToFlush`, which
@@ -1452,7 +1457,7 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 	// could be 2 revisions in the MD journal.  Don't unlock on the
 	// first flush, since we'll still need to hold the lock until the
 	// second flush.
-	if lc != nil {
+	if flushCtx.lockContextForPut != nil {
 		_, mdCount, err := j.getJournalEntryCounts()
 		if err != nil {
 			return false, err
@@ -1465,13 +1470,14 @@ func (j *tlfJournal) flushOneMDOp(ctx context.Context,
 			}
 
 			j.log.CDebugf(ctx, "Ignoring lock context for initial MD flush")
-			lc = nil
+			flushCtx.lockContextForPut = nil
 		}
 	}
 
 	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
 		rmds.MD.TlfID(), mdID, rmds.MD.RevisionNumber(), rmds.MD.BID())
-	pushErr := mdServer.Put(ctx, rmds, extra, lc, keybase1.MDPriorityNormal)
+	pushErr := mdServer.Put(ctx, rmds, extra,
+		flushCtx.lockContextForPut, flushCtx.priorityForPut)
 	if isRevisionConflict(pushErr) {
 		headMdID, err := getMdID(ctx, mdServer, j.config.Codec(),
 			rmds.MD.TlfID(), rmds.MD.BID(), rmds.MD.MergedStatus(),
@@ -2370,14 +2376,19 @@ func (j *tlfJournal) wait(ctx context.Context) error {
 }
 
 func (j *tlfJournal) finishSingleOp(ctx context.Context,
-	lc *keybase1.LockContext) error {
+	lc *keybase1.LockContext, priority keybase1.MDPriority) error {
 	j.log.CDebugf(ctx, "Finishing single op")
+
+	flushCtx := flushContext{
+		lockContextForPut: lc,
+		priorityForPut:    priority,
+	}
 
 	// Let the background flusher know it should change the single op
 	// mode to finished, so we can have it set ASAP without waiting to
 	// take `flushLock` here.
 	select {
-	case j.finishSingleOpCh <- finishSingleOpContext{lockContextForPut: lc}:
+	case j.finishSingleOpCh <- flushCtx:
 	default:
 	}
 

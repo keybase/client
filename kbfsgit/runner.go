@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libgit"
@@ -527,7 +528,8 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	// revision, to make sure that no partial states of the bare repo
 	// are seen by other readers of the TLF.  It also waits for any
 	// necessary conflict resolution to complete.
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf, nil)
+	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+		nil, keybase1.MDPriorityGit)
 	if err != nil {
 		return err
 	}

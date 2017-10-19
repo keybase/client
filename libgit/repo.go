@@ -97,7 +97,7 @@ func CleanOldDeletedRepos(
 	tlfHandle *libkbfs.TlfHandle) (err error) {
 	fs, err := libfs.NewFS(
 		ctx, config, tlfHandle, path.Join(kbfsRepoDir, kbfsDeletedReposDir),
-		"" /* uniq ID isn't used for removals */)
+		"" /* uniq ID isn't used for removals */, keybase1.MDPriorityGit)
 	switch errors.Cause(err).(type) {
 	case libkbfs.NoSuchNameError:
 		// Nothing to clean.
@@ -422,7 +422,7 @@ func getOrCreateRepoAndID(
 
 	fs, err = libfs.NewFS(
 		ctx, config, tlfHandle, path.Join(kbfsRepoDir, normalizedRepoName),
-		uniqID)
+		uniqID, keybase1.MDPriorityGit)
 	if err != nil {
 		return nil, NullID, err
 	}
@@ -641,7 +641,8 @@ func RenameRepo(
 		return nil
 	}
 
-	fs, err := libfs.NewFS(ctx, config, tlfHandle, path.Join(kbfsRepoDir), "")
+	fs, err := libfs.NewFS(ctx, config, tlfHandle, path.Join(kbfsRepoDir),
+		"", keybase1.MDPriorityGit)
 	if err != nil {
 		return err
 	}
