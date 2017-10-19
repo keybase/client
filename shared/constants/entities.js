@@ -27,7 +27,7 @@ export type Subtract = NoErrorTypedAction<
 export type Actions = Delete | Merge | Replace | Subtract
 
 type _SearchSubState = {
-  searchResults: I.Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  searchResults: I.Map<SearchConstants.SearchResultId, I.RecordOf<SearchConstants.SearchResult>>,
   searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
   searchKeyToResults: I.Map<string, ?I.List<SearchConstants.SearchResultId>>,
   searchKeyToPending: I.Map<string, boolean>,

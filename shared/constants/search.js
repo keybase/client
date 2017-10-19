@@ -1,5 +1,5 @@
 // @flow
-import {OrderedSet} from 'immutable'
+import * as I from 'immutable'
 import {amIFollowing, usernameSelector} from './selectors'
 import {type NoErrorTypedAction} from '../constants/types/flux'
 import {type IconType} from '../common-adapters/icon'
@@ -61,6 +61,19 @@ export type SearchResult = {
   rightService: ?Service,
   rightUsername: ?string,
 }
+
+export const makeSearchResult: I.RecordFactory<SearchResult> = I.Record({
+  id: '',
+
+  leftIcon: null,
+  leftService: 'Keybase',
+  leftUsername: '',
+
+  rightFullname: null,
+  rightIcon: null,
+  rightService: null,
+  rightUsername: null,
+})
 
 // Actions
 export type Search = NoErrorTypedAction<
@@ -226,7 +239,7 @@ const _getSearchResultIds = ({entities}: TypedState, {searchKey}: {searchKey: st
 const getSearchResultIdsArray = createSelector(_getSearchResultIds, ids => ids && ids.toArray())
 
 const getUserInputItemIdsOrderedSet = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
-  entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], OrderedSet())
+  entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
 const getUserInputItemIds = createSelector(getUserInputItemIdsOrderedSet, ids => ids && ids.toArray())
 
 const getClearSearchTextInput = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
