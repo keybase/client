@@ -79,21 +79,13 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
 const _inviteByEmail = function*(action: Constants.InviteToTeamByEmail) {
   const {payload: {invitees, role, teamname}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  // Invitees is a string containing newlines/whitespace, and we want emails to iterate
-  // over. Email addresses can't contain spaces/commas, so split on comma or whitespace.
-  // e.g. '1\n2,3\n4 5' => [1, 2, 3, 4, 5]
-  const emails = invitees.split(/[,\s+]+/)
-  for (const email of emails) {
-    yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
-      param: {
-        name: teamname,
-        email,
-        username: null,
-        role: role && RpcTypes.TeamsTeamRole[role],
-        sendChatNotification: true,
-      },
-    })
-  }
+  yield call(RpcTypes.teamsTeamAddEmailsBulkRpcPromise, {
+    param: {
+      name: teamname,
+      emails: invitees,
+      role: role && RpcTypes.TeamsTeamRole[role],
+    },
+  })
   yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname))) // getDetails will unset loading
 }
 
