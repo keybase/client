@@ -36,18 +36,10 @@ import io.keybase.ossifrage.util.DNSNSFetcher;
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
 
-    private File kbNoBackupFilesDir() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            return this.getNoBackupFilesDir();
-        }
-        return this.getFilesDir();
-    }
-
     private void createDummyFile() {
         final File dummyFile = new File(this.getFilesDir(), "dummy.txt");
         try {
             if (dummyFile.createNewFile()) {
-
                 dummyFile.setWritable(true);
                 final FileOutputStream stream = new FileOutputStream(dummyFile);
                 try {
@@ -73,7 +65,7 @@ public class MainActivity extends ReactActivity {
         }
 
         createDummyFile();
-        initOnce(this.kbNoBackupFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
+        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 
