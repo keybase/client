@@ -33,6 +33,7 @@ export type Props = {
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
+  youCanAddPeople: boolean,
 }
 
 const Help = isMobile
@@ -148,6 +149,7 @@ class Team extends React.PureComponent<Props> {
       loading,
       onManageChat,
       you,
+      youCanAddPeople,
     } = this.props
 
     const me = members.find(member => member.username === you)
@@ -198,12 +200,13 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
-        <Button
-          type="Primary"
-          label="Add people"
-          onClick={onAddPeople}
-          style={{marginTop: globalMargins.small}}
-        />
+        {youCanAddPeople &&
+          <Button
+            type="Primary"
+            label="Add people"
+            onClick={onAddPeople}
+            style={{marginTop: globalMargins.small}}
+          />}
         <Help name={name} />
         <TeamTabs {...this.props} admin={admin} />
         {contents}
