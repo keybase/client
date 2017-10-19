@@ -43,11 +43,30 @@ func NewTestLogger(log TestLogBackend) *TestLogger {
 // Verify TestLogger fully implements the Logger interface.
 var _ Logger = (*TestLogger)(nil)
 
+// ctx can be `nil`
+func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal bool, fmts string, arg ...interface{}) {
+	if ctx != nil {
+		if useFatal {
+			log.log.Fatalf(prepareString(ctx,
+				log.prefixCaller(log.extraDepth, lvl, fmts)), arg...)
+		} else {
+			log.log.Logf(prepareString(ctx,
+				log.prefixCaller(log.extraDepth, lvl, fmts)), arg...)
+		}
+	} else {
+		if useFatal {
+			log.log.Fatalf(log.prefixCaller(log.extraDepth, lvl, fmts), arg...)
+		} else {
+			log.log.Logf(log.prefixCaller(log.extraDepth, lvl, fmts), arg...)
+		}
+	}
+}
+
 func (log *TestLogger) prefixCaller(extraDepth int, lvl logging.Level, fmts string) string {
 	// The testing library doesn't let us control the stack depth,
 	// and it always prints out its own prefix, so use \r to clear
 	// it out (at least on a terminal) and do our own formatting.
-	_, file, line, _ := runtime.Caller(2 + extraDepth)
+	_, file, line, _ := runtime.Caller(3 + extraDepth)
 	elements := strings.Split(file, "/")
 	failed := ""
 	if log.log.Failed() {
@@ -59,81 +78,74 @@ func (log *TestLogger) prefixCaller(extraDepth int, lvl logging.Level, fmts stri
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.DEBUG, fmts), arg...)
+	log.common(nil, logging.INFO, false, fmts, arg...)
 }
 
 func (log *TestLogger) CDebugf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prepareString(ctx,
-		log.prefixCaller(log.extraDepth, logging.DEBUG, fmts)), arg...)
+	log.common(ctx, logging.DEBUG, false, fmts, arg...)
 }
 
 func (log *TestLogger) Info(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.INFO, fmts), arg...)
+	log.common(nil, logging.INFO, false, fmts, arg...)
 }
 
 func (log *TestLogger) CInfof(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prepareString(ctx,
-		log.prefixCaller(log.extraDepth, logging.INFO, fmts)), arg...)
+	log.common(ctx, logging.INFO, false, fmts, arg...)
 }
 
 func (log *TestLogger) Notice(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.NOTICE, fmts), arg...)
+	log.common(nil, logging.NOTICE, false, fmts, arg...)
 }
 
 func (log *TestLogger) CNoticef(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prepareString(ctx,
-		log.prefixCaller(log.extraDepth, logging.NOTICE, fmts)), arg...)
+	log.common(ctx, logging.NOTICE, false, fmts, arg...)
 }
 
 func (log *TestLogger) Warning(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.WARNING, fmts), arg...)
+	log.common(nil, logging.WARNING, false, fmts, arg...)
 }
 
 func (log *TestLogger) CWarningf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prepareString(ctx,
-		log.prefixCaller(log.extraDepth, logging.WARNING, fmts)), arg...)
+	log.common(ctx, logging.WARNING, false, fmts, arg...)
 }
 
 func (log *TestLogger) Error(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.ERROR, fmts), arg...)
+	log.common(nil, logging.ERROR, false, fmts, arg...)
 }
 
 func (log *TestLogger) Errorf(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.ERROR, fmts), arg...)
+	log.common(nil, logging.ERROR, false, fmts, arg...)
 }
 
 func (log *TestLogger) CErrorf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prepareString(ctx,
-		log.prefixCaller(log.extraDepth, logging.ERROR, fmts)), arg...)
+	log.common(ctx, logging.ERROR, false, fmts, arg...)
 }
 
 func (log *TestLogger) Critical(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.common(nil, logging.CRITICAL, false, fmts, arg...)
 }
 
 func (log *TestLogger) CCriticalf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prepareString(ctx,
-		log.prefixCaller(log.extraDepth, logging.CRITICAL, fmts)), arg...)
+	log.common(ctx, logging.CRITICAL, false, fmts, arg...)
 }
 
 func (log *TestLogger) Fatalf(fmts string, arg ...interface{}) {
-	log.log.Fatalf(log.prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.common(nil, logging.CRITICAL, true, fmts, arg...)
 }
 
 func (log *TestLogger) CFatalf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Fatalf(prepareString(ctx,
-		log.prefixCaller(log.extraDepth, logging.CRITICAL, fmts)), arg...)
+	log.common(ctx, logging.CRITICAL, true, fmts, arg...)
 }
 
 func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
-	log.log.Logf(log.prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.common(nil, logging.CRITICAL, false, fmts, arg...)
 }
 
 func (log *TestLogger) Configure(style string, debug bool, filename string) {
