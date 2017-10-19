@@ -1,15 +1,15 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Box, ClickableBox} from '../../../common-adapters'
-import {globalStyles} from '../../../styles'
+import {Box, ClickableBox} from '../../../../common-adapters'
+import {globalStyles} from '../../../../styles'
 import {List} from 'immutable'
 
-import {SimpleTopLine, FilteredTopLine} from './top-line'
-import BottomLine from './bottom-line'
-import {Avatars, TeamAvatar} from './avatars'
-import {isMobile} from '../../../constants/platform'
+import {SimpleTopLine} from './top-line'
+import {BottomLine} from './bottom-line'
+import {Avatars, TeamAvatar} from '.././avatars'
+import {isMobile} from '../../../../constants/platform'
 
-type SimpleProps = {
+type Props = {
   backgroundColor: string,
   hasUnread: boolean,
   isMuted: boolean,
@@ -27,7 +27,7 @@ type SimpleProps = {
   hasBadge: boolean,
 }
 
-class SmallTeamRow extends PureComponent<SimpleProps> {
+class SmallTeam extends PureComponent<Props> {
   render() {
     const props = this.props
     return (
@@ -73,54 +73,6 @@ class SmallTeamRow extends PureComponent<SimpleProps> {
   }
 }
 
-type FilteredProps = {
-  backgroundColor: string,
-  isMuted: boolean,
-  isSelected: boolean,
-  onSelectConversation: () => void,
-  participantNeedToRekey: boolean,
-  participants: List<string>,
-  showBold: boolean,
-  teamname: ?string,
-  usernameColor: string,
-  youNeedToRekey: boolean,
-}
-
-class SmallTeamFilteredRow extends PureComponent<FilteredProps> {
-  render() {
-    const props = this.props
-    return (
-      <ClickableBox onClick={props.onSelectConversation} style={{backgroundColor: props.backgroundColor}}>
-        <Box style={{...rowContainerStyle, backgroundColor: props.backgroundColor}}>
-          {props.teamname
-            ? <TeamAvatar teamname={props.teamname} />
-            : <Avatars
-                backgroundColor={props.backgroundColor}
-                isMuted={props.isMuted}
-                isSelected={props.isSelected}
-                participantNeedToRekey={props.participantNeedToRekey}
-                participants={props.participants}
-                youNeedToRekey={props.youNeedToRekey}
-              />}
-          <Box
-            style={{
-              ...conversationRowStyle,
-              paddingLeft: 0,
-              backgroundColor: props.backgroundColor,
-            }}
-          >
-            <FilteredTopLine
-              participants={props.teamname ? List.of(props.teamname) : props.participants}
-              showBold={props.showBold}
-              usernameColor={props.usernameColor}
-            />
-          </Box>
-        </Box>
-      </ClickableBox>
-    )
-  }
-}
-
 const conversationRowStyle = {
   ...globalStyles.flexBoxColumn,
   flexGrow: 1,
@@ -139,4 +91,4 @@ const rowContainerStyle = {
   minHeight: rowHeight,
 }
 
-export {SmallTeamRow, SmallTeamFilteredRow}
+export {SmallTeam}

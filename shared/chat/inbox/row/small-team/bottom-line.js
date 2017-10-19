@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, Markdown, Box} from '../../../common-adapters'
+import {Text, Markdown, Box} from '../../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -8,10 +8,10 @@ import {
   styleSheetCreate,
   collapseStyles,
   lineHeight,
-} from '../../../styles'
-import {isMobile, isAndroid} from '../../../constants/platform'
+} from '../../../../styles'
+import {isMobile, isAndroid} from '../../../../constants/platform'
 
-type BottomLineProps = {
+type Props = {
   backgroundColor: ?string,
   participantNeedToRekey: boolean,
   showBold: boolean,
@@ -20,7 +20,7 @@ type BottomLineProps = {
   youNeedToRekey: boolean,
 }
 
-class BottomLine extends PureComponent<BottomLineProps> {
+class BottomLine extends PureComponent<Props> {
   render() {
     const {participantNeedToRekey, youNeedToRekey, showBold, subColor, snippet, backgroundColor} = this.props
     let content
@@ -148,4 +148,4 @@ const styles = styleSheetCreate({
       },
 })
 
-export default BottomLine
+export {BottomLine}

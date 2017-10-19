@@ -10,4 +10,11 @@ const mapStateToProps = createSelector([getNavBadges, usernameSelector], (badgeN
   username,
 }))
 
-export default connect(mapStateToProps)(TabBarRender)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  badgeNumbers: stateProps.badgeNumbers,
+  onTabClick: ownProps.onTabClick,
+  selectedTab: ownProps.selectedTab,
+  username: stateProps.username || '',
+})
+
+export default connect(mapStateToProps, null, mergeProps)(TabBarRender)

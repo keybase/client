@@ -1,10 +1,11 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, Box, ErrorBoundary} from '../../common-adapters'
+import {Text, Icon, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import Row from './row/container'
-import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
+import {makeRow} from './row'
+import FloatingDivider from './row/floating-divider/container'
+import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
@@ -104,30 +105,14 @@ class Inbox extends PureComponent<Props, State> {
       )
     }
 
-    if (row.type === 'bigTeamsLabel') {
-      return (
-        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
-          <BigTeamsLabel isFiltered={row.isFiltered} />
-        </Box>
-      )
-    }
-
-    const key =
-      (row.type === 'small' && row.conversationIDKey) ||
-      (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
-      'missingkey'
-    return (
-      <Row
-        conversationIDKey={row.conversationIDKey}
-        key={key}
-        filtered={!!this.props.filter}
-        isActiveRoute={true}
-        teamname={row.teamname}
-        channelname={row.channelname}
-        type={row.type}
-      />
-    )
+    return makeRow({
+      channelname: row.channelname,
+      conversationIDKey: row.conversationIDKey,
+      filtered: !!this.props.filter,
+      isActiveRoute: true,
+      teamname: row.teamname,
+      type: row.type,
+    })
   }
 
   _updateShowFloating = () => {
@@ -230,13 +215,6 @@ const _scrollableStyle = {
   flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
-}
-
-const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 24,
-  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

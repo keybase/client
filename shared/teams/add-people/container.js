@@ -4,6 +4,7 @@ import * as Creators from '../../actions/teams/creators'
 import * as SearchCreators from '../../actions/search/creators'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
+import {navigateAppend} from '../../actions/route-tree'
 import {compose, withPropsOnChange} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
@@ -20,6 +21,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.getTeams())
     dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
     dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
+  },
+  onOpenRolePicker: (role: string, onComplete: string => void) => {
+    dispatch(navigateAppend([{selected: 'controlledRolePicker', props: {selectedRole: role, onComplete}}]))
   },
 })
 
