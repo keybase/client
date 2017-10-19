@@ -18,15 +18,13 @@ type Props = {
 const SystemNotice = ({channelname, message, onManageChannels, you}: Props) => (
   <UserNotice style={{marginTop: globalMargins.small}} username={message.author} bgColor={globalColors.blue4}>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+      {formatTimeForMessages(message.timestamp)}:
+      {' '}
       {message.author === you ? 'You' : message.author}
       {' '}
       {message.message.stringValue()}
       {' '}
-      #{channelname}
-      {' '}
-      at
-      {' '}
-      {formatTimeForMessages(message.timestamp)}.
+      #{channelname}.
     </Text>
     {message.author === you &&
       <Text
