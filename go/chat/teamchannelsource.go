@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"sort"
+	"sync"
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
@@ -15,6 +16,7 @@ import (
 type CachingTeamChannelSource struct {
 	globals.Contextified
 	utils.DebugLabeler
+	sync.Mutex
 
 	cache *lru.Cache
 	ri    func() chat1.RemoteInterface
@@ -30,9 +32,15 @@ func NewCachingTeamChannelSource(g *globals.Context, ri func() chat1.RemoteInter
 	}
 }
 
+func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context, teamID chat1.TLFID) (res []chat1.Conversation, ok bool) {
+
+}
+
 func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, teamID chat1.TLFID,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal,
 	rl []chat1.RateLimit, err error) {
+	c.Lock()
+	defer c.Unlock()
 
 	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
 		TlfID:            teamID,
@@ -62,6 +70,8 @@ func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid greg
 
 func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 	teamID chat1.TLFID, topicType chat1.TopicType, membersType chat1.ConversationMembersType) (res []types.ConvIDAndTopicName, rl []chat1.RateLimit, err error) {
+	c.Lock()
+	defer c.Unlock()
 	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
 		TlfID:            teamID,
 		TopicType:        topicType,
@@ -126,5 +136,6 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 }
 
 func (c *CachingTeamChannelSource) ChannelsChanged(ctx context.Context, teamID chat1.TLFID) {
-
+	c.Lock()
+	defer c.Unlock()
 }
