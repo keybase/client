@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	logging "github.com/keybase/go-logging"
@@ -25,6 +26,7 @@ type TestLogBackend interface {
 	Log(args ...interface{})
 	Logf(format string, args ...interface{})
 	Failed() bool
+	Name() string
 }
 
 // TestLogger is a Logger that writes to a TestLogBackend.  All
@@ -32,8 +34,9 @@ type TestLogBackend interface {
 // test that is trying to test an error condition.  No context tags
 // are logged.
 type TestLogger struct {
-	log        TestLogBackend
-	extraDepth int
+	log          TestLogBackend
+	extraDepth   int
+	failReported int32 // 1 is true
 }
 
 func NewTestLogger(log TestLogBackend) *TestLogger {
@@ -45,6 +48,13 @@ var _ Logger = (*TestLogger)(nil)
 
 // ctx can be `nil`
 func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal bool, fmts string, arg ...interface{}) {
+	if log.log.Failed() {
+		failReported := atomic.SwapInt32(&(log.failReported), 1)
+		if failReported == 0 {
+			log.log.Logf("TEST FAILED: %s", log.log.Name())
+		}
+	}
+
 	if ctx != nil {
 		if useFatal {
 			log.log.Fatalf(prepareString(ctx,
