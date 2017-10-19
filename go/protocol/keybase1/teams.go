@@ -1155,6 +1155,7 @@ type AnnotatedMemberInfo struct {
 	Role           TeamRole      `codec:"role" json:"role"`
 	Implicit       *ImplicitRole `codec:"implicit,omitempty" json:"implicit,omitempty"`
 	NeedsPUK       bool          `codec:"needsPUK" json:"needsPUK"`
+	MemberCount    int           `codec:"memberCount" json:"member_count"`
 }
 
 func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
@@ -1173,7 +1174,8 @@ func (o AnnotatedMemberInfo) DeepCopy() AnnotatedMemberInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Implicit),
-		NeedsPUK: o.NeedsPUK,
+		NeedsPUK:    o.NeedsPUK,
+		MemberCount: o.MemberCount,
 	}
 }
 

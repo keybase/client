@@ -7,19 +7,19 @@ import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
 import {openInKBFS} from '../actions/kbfs'
 import {injectItem} from '../actions/gregor'
-import {type Teamname} from '../constants/teams'
+import type {Teamname, TeamListRow} from '../constants/teams'
 
 type StateProps = {
-  _teamnames: I.Set<Teamname>,
+  _teamrows: I.Set<TeamListRow>,
   sawChatBanner: boolean,
   loaded: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
-  const teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const teamrows = state.entities.getIn(['teams', 'teamrows'], I.Set())
   const loaded = state.entities.getIn(['teams', 'loaded'], false)
   return {
-    _teamnames: teamnames,
+    _teamrows: teamrows,
     sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
     loaded,
   }
@@ -61,12 +61,22 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
-  let teamnames = stateProps._teamnames.toArray()
-  // TODO: Sort case-insensitively?
-  teamnames.sort()
+  let teamrows = stateProps._teamrows.toArray()
+  teamrows.sort((a, b) => {
+    const aName = a.teamName.toUpperCase()
+    const bName = b.teamName.toUpperCase()
+    if (aName < bName) {
+      return -1
+    } else if (aName > bName) {
+      return 1
+    } else {
+      return 0
+    }
+  })
+
   return {
     sawChatBanner: stateProps.sawChatBanner,
-    teamnames,
+    teamrows,
     loaded: stateProps.loaded,
     ...dispatchProps,
   }

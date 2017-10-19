@@ -4,23 +4,23 @@ import {ClickableBox, Icon, Avatar, Box, Divider, Text, ProgressIndicator} from 
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
-import type {Teamname} from '../../constants/teams'
+import type {Teamname, TeamListRow} from '../../constants/teams'
 
 export type Props = {
-  teamnames: Array<Teamname>,
+  teamrows: Array<TeamListRow>,
   onOpenFolder: (teamname: Teamname) => void,
   onManageChat: (teamname: Teamname) => void,
   onViewTeam: (teamname: Teamname) => void,
 }
 
 type RowProps = {
-  name: Teamname,
+  team: TeamListRow,
   onOpenFolder: () => void,
   onManageChat: () => void,
   onViewTeam: () => void,
 }
 
-const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
+const Row = ({team, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
   <Box style={rowStyle}>
     <Box
       style={{
@@ -31,10 +31,14 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
       }}
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
-        <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
+        <Avatar size={isMobile ? 48 : 32} teamname={team.teamName} isTeam={true} />
         <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.small}}>
-          {name}
+          {team.teamName}
         </Text>
+        {team.memberCount != null &&
+          <Text type="BodySemiboldItalic" style={{marginRight: globalMargins.small}}>
+            {team.memberCount + ' member' + (team.memberCount > 1 ? 's' : '')}
+          </Text>}
       </ClickableBox>
       {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
       {!isMobile &&
@@ -53,13 +57,13 @@ const TeamList = (props: Props) => (
     }}
   >
     {!props.loaded && <ProgressIndicator style={{alignSelf: 'center', width: 20}} />}
-    {props.teamnames.map((name, index, arr) => (
+    {props.teamrows.map((row, index, arr) => (
       <Row
-        key={name}
-        name={name}
-        onOpenFolder={() => props.onOpenFolder(name)}
-        onManageChat={() => props.onManageChat(name)}
-        onViewTeam={() => props.onViewTeam(name)}
+        key={row.teamName}
+        team={row}
+        onOpenFolder={() => props.onOpenFolder(row.teamName)}
+        onManageChat={() => props.onManageChat(row.teamName)}
+        onViewTeam={() => props.onViewTeam(row.teamName)}
       />
     ))}
   </Box>
