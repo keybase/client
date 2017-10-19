@@ -54,13 +54,17 @@ function buildParser() {
     .replace('__EMOJI_CHARACTERS__', emojiCharacterClass)
     .replace(
       /__INLINE_MACRO__<([^>]*)>/g,
-      '($1 InlineDelimiter* InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)'
+      '($1 InlineStart ((InlineDelimiter+ $1 InlineStart) / ($1 InlineCont))*)'
     )
 
   // the regexes here get recompiled on every parse if we put it in the initializer, so we force it to run at import time.
   // $FlowIssue Unclear why flow isn't accepting String.raw here
   const prependJS = String.raw`
-    const linkExp = /^[(\[{\`"']*(http(s?):\/\/)?((([a-zA-Z0-9\-\_]+\.)+(?!(json|png|jpg|jpeg|gif|doc|xsl|ppt|pdf|txt|js))([a-zA-Z]{2,63})(?![[{\]()}]+))|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))((\/|\?)[a-zA-Z0-9\_\-\s\.\/\?\(\)~,@\!:\+\%\#\&\?\=]*)?$/i
+    import _tlds from 'tlds'
+    const tlds = _tlds
+    const linkExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))(((\/)|(\?))[a-z0-9.()\-_~:?#[\]@!$&'%*+,;=]*)*$/i
+    const tldPuncExp = /^(?:(http(s)?):\/\/)?(([a-z0-9-]+\.)+([a-z]{2,63})|(\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b))([)\].,;:"']+$)/i
+    const tldExp = /^(?:(http(s)?):\/\/)?([a-z0-9-]+\.)+([a-z]{2,63})/i
     const emojiExp = ${emojiRegex}
     const emojiIndexByChar = ${JSON.stringify(emojiIndexByChar)}
     const emojiIndexByName = ${JSON.stringify(invert(emojiIndexByChar))}
