@@ -33,6 +33,13 @@ import io.keybase.ossifrage.util.DNSNSFetcher;
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
 
+    private File kbNoBackupFilesDir() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            return this.getNoBackupFilesDir();
+        }
+        return this.getFilesDir();
+    }
+
 
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
@@ -43,7 +50,7 @@ public class MainActivity extends ReactActivity {
             e.printStackTrace();
         }
 
-        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
+        initOnce(this.kbNoBackupFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false, new DNSNSFetcher());
 
         super.onCreate(savedInstanceState);
 
