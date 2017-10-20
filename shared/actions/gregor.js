@@ -21,11 +21,7 @@ import {replaceEntity} from './entities'
 import {safeTakeEvery, safeTakeLatest} from '../util/saga'
 import {type Dispatch} from '../constants/types/flux'
 import {type SagaGenerator} from '../constants/types/saga'
-import {
-  type State as GregorState,
-  type ItemAndMetadata as GregorItem,
-  type OutOfBandMessage,
-} from '../constants/types/flow-types-gregor'
+import {type State as GregorState, type OutOfBandMessage} from '../constants/types/flow-types-gregor'
 import {type TypedState} from '../constants/reducer'
 import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {handleIncomingGregor as gitHandleIncomingGregor} from './git/creators'

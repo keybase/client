@@ -1,6 +1,5 @@
 // @flow
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
-import * as I from 'immutable'
 import * as React from 'react'
 import Render from './avatar.render'
 import pickBy from 'lodash/pickBy'
