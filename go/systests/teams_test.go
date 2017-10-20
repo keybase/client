@@ -280,6 +280,13 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	}
 }
 
+func (u *userPlusDevice) leave(team string) {
+	leave := client.NewCmdTeamLeaveRunner(u.tc.G)
+	leave.Team = team
+	err := leave.Run()
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.TeamRole) {
 	change := client.NewCmdTeamEditMemberRunner(u.tc.G)
 	change.Team = team
@@ -340,6 +347,17 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) {
 	err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
 	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeams bool) keybase1.AnnotatedTeamList {
+	cli := u.teamsClient
+	res, err := cli.TeamList(context.TODO(), keybase1.TeamListArg{
+		UserAssertion:        userAssertion,
+		All:                  all,
+		IncludeImplicitTeams: includeImplicitTeams,
+	})
+	require.NoError(u.tc.T, err)
+	return res
 }
 
 func (u *userPlusDevice) revokePaperKey() {
@@ -626,6 +644,10 @@ func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.Tea
 	return nil
 }
 
+func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID) error {
+	return nil
+}
+
 func TestGetTeamRootID(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -838,4 +860,26 @@ func TestImpTeamLookupWithTrackingFailure(t *testing.T) {
 	team2, err := alice.lookupImplicitTeam(true /*create*/, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 	require.Equal(t, team, team2)
+}
+
+// Leave a team and make sure the team list no longer includes it.
+func TestTeamLeaveThenList(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	teamID, teamName := alice.createTeam2()
+	// add bob as owner because we can't leave as the only owner.
+	alice.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_OWNER)
+
+	teams := alice.teamList("", false, false)
+	require.Len(t, teams.Teams, 1)
+	require.Equal(t, teamID, teams.Teams[0].TeamID)
+
+	alice.leave(teamName.String())
+
+	teams = alice.teamList("", false, false)
+	require.Len(t, teams.Teams, 0)
 }
