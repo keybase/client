@@ -258,7 +258,7 @@ class Avatar extends React.PureComponent<Props, State> {
         this.props.following ? 'youYes' : 'youNo'
       ]
     } catch (_) {
-      return 0
+      return null
     }
   }
 
