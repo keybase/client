@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 )
 
 const (
@@ -17,7 +18,7 @@ const (
 	privateName = "private"
 )
 
-const publicSuffix = libkbfs.ReaderSep + libkbfs.PublicUIDName
+const publicSuffix = tlf.ReaderSep + libkbfs.PublicUIDName
 
 func byteCountStr(n int) string {
 	if n == 1 {

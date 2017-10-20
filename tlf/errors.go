@@ -29,3 +29,14 @@ func (e HandleExtensionMismatchError) Error() string {
 	return fmt.Sprintf("Folder handle extension mismatch, "+
 		"expected: %s, actual: %s", e.Expected, e.Actual)
 }
+
+// BadNameError indicates a top-level folder name that has an
+// incorrect format.
+type BadNameError struct {
+	Name string
+}
+
+// Error implements the error interface for BadNameError.
+func (e BadNameError) Error() string {
+	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
+}

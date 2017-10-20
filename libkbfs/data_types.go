@@ -19,10 +19,6 @@ import (
 )
 
 const (
-	// ReaderSep is the string that separates readers from writers in a
-	// TLF name.
-	ReaderSep = "#"
-
 	// PublicUIDName is the name given to keybase1.PublicUID.  This string
 	// should correspond to an illegal or reserved Keybase user name.
 	PublicUIDName = "_public"
@@ -331,7 +327,7 @@ func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
 		// Old versions of the client still use an outdated "#public"
 		// suffix for favorited public folders. TODO: remove this once
 		// those old versions of the client are retired.
-		const oldPublicSuffix = ReaderSep + "public"
+		const oldPublicSuffix = tlf.ReaderSep + "public"
 		name = strings.TrimSuffix(folder.Name, oldPublicSuffix)
 	}
 

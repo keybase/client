@@ -1138,7 +1138,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver MetadataVer) 
 	uid2 := session2.UID
 
 	// Create a shared folder
-	name := u1.String() + "," + u2.String() + ReaderSep + u3.String()
+	name := u1.String() + "," + u2.String() + tlf.ReaderSep + u3.String()
 
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
@@ -1326,7 +1326,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver MetadataVer) {
 	uid2 := session2.UID
 
 	t.Log("Create a shared folder")
-	name := u1.String() + ReaderSep + u2.String()
+	name := u1.String() + tlf.ReaderSep + u2.String()
 
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 
@@ -1423,7 +1423,7 @@ func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver MetadataVer) {
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 
 	t.Log("Create a shared folder")
-	name := u1.String() + ReaderSep + u2.String()
+	name := u1.String() + tlf.ReaderSep + u2.String()
 
 	rootNode1 := GetRootNodeOrBust(ctx, t, config1, name, tlf.Private)
 

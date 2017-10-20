@@ -1007,22 +1007,3 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	_, err = ParseTlfHandle(ctx, kbpki, nonCanonicalName, tlf.Private)
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
-
-func TestFavoriteNameToPreferredTLFNameFormatAs(t *testing.T) {
-	for _, q := range []struct {
-		As     libkb.NormalizedUsername
-		Try    CanonicalTlfName
-		Answer PreferredTlfName
-	}{
-		{"", "a,b,c", "a,b,c"},
-		{"a", "a,b,c", "a,b,c"},
-		{"b", "a,b,c", "b,a,c"},
-		{"c", "a,b,c", "c,a,b"},
-		{"b", "a,b,c#d,e", "b,a,c#d,e"},
-		{"d", "a,b,c#d,e", "a,b,c#d,e"},
-	} {
-		r, err := FavoriteNameToPreferredTLFNameFormatAs(q.As, q.Try)
-		assert.Equal(t, q.Answer, r)
-		assert.NoError(t, err)
-	}
-}

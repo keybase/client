@@ -21,8 +21,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-// CanonicalTlfName is a string containing the canonical name of a TLF.
-type CanonicalTlfName string
+// CanonicalTlfName is a temporary alias.
+type CanonicalTlfName = tlf.CanonicalName
 
 // TlfHandle contains all the info in a tlf.Handle as well as
 // additional info. This doesn't embed tlf.Handle to avoid having to
@@ -407,29 +407,6 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 	return assertions
 }
 
-// splitTLFName splits a TLF name into components.
-func splitTLFName(name string) (writerNames, readerNames []string,
-	extensionSuffix string, err error) {
-	names := strings.SplitN(name, tlf.HandleExtensionSep, 2)
-	if len(names) > 2 {
-		return nil, nil, "", BadTLFNameError{name}
-	}
-	if len(names) > 1 {
-		extensionSuffix = names[1]
-	}
-
-	splitNames := strings.SplitN(names[0], ReaderSep, 3)
-	if len(splitNames) > 2 {
-		return nil, nil, "", BadTLFNameError{name}
-	}
-	writerNames = strings.Split(splitNames[0], ",")
-	if len(splitNames) > 1 {
-		readerNames = strings.Split(splitNames[1], ",")
-	}
-
-	return writerNames, readerNames, extensionSuffix, nil
-}
-
 // splitAndNormalizeTLFName takes a tlf name as a string
 // and tries to normalize it offline. In addition to other
 // checks it returns TlfNameNotCanonical if it does not
@@ -439,7 +416,7 @@ func splitTLFName(name string) (writerNames, readerNames []string,
 func splitAndNormalizeTLFName(name string, t tlf.Type) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = splitTLFName(name)
+	writerNames, readerNames, extensionSuffix, err = tlf.SplitName(name)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -546,7 +523,7 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 		}
 		changesMade = changesMade || rchanges
 		sort.Strings(readerNames)
-		normalizedName += ReaderSep + strings.Join(readerNames, ",")
+		normalizedName += tlf.ReaderSep + strings.Join(readerNames, ",")
 	}
 	if len(extensionSuffix) != 0 {
 		// This *should* be normalized already but make sure.  I can see not
@@ -579,56 +556,20 @@ func (h TlfHandle) IsConflict() bool {
 	return h.conflictInfo != nil
 }
 
-// PreferredTlfName is a preferred Tlf name.
-type PreferredTlfName string
+// PreferredTlfName is a temporary alias.
+type PreferredTlfName = tlf.PreferredName
 
 // GetPreferredFormat returns a TLF name formatted with the username given
 // as the parameter first.
-// This calls FavoriteNameToPreferredTLFNameFormatAs with the canonical
+// This calls tlf.FavoriteNameToPreferredTLFNameFormatAs with the canonical
 // tlf name which will be reordered into the preferred format.
 // An empty username is allowed here and results in the canonical ordering.
 func (h TlfHandle) GetPreferredFormat(
 	username libkb.NormalizedUsername) PreferredTlfName {
-	s, err := FavoriteNameToPreferredTLFNameFormatAs(
+	s, err := tlf.FavoriteNameToPreferredTLFNameFormatAs(
 		username, h.GetCanonicalName())
 	if err != nil {
 		panic("TlfHandle.GetPreferredFormat: Parsing canonical username failed!")
 	}
 	return s
-}
-
-// FavoriteNameToPreferredTLFNameFormatAs formats a favorite names for display with the
-// username given.
-// An empty username is allowed here and results in tlfname being returned unmodified.
-func FavoriteNameToPreferredTLFNameFormatAs(username libkb.NormalizedUsername,
-	canon CanonicalTlfName) (PreferredTlfName, error) {
-	tlfname := string(canon)
-	if len(username) == 0 {
-		return PreferredTlfName(tlfname), nil
-	}
-	ws, rs, ext, err := splitTLFName(tlfname)
-	if err != nil {
-		return "", err
-	}
-	if len(ws) == 0 {
-		return "", fmt.Errorf("TLF name %q with no writers", tlfname)
-	}
-	uname := username.String()
-	for i, w := range ws {
-		if w == uname {
-			if i != 0 {
-				copy(ws[1:i+1], ws[0:i])
-				ws[0] = w
-				tlfname = strings.Join(ws, ",")
-				if len(rs) > 0 {
-					tlfname += ReaderSep + strings.Join(rs, ",")
-				}
-				if len(ext) > 0 {
-					tlfname += tlf.HandleExtensionSep + ext
-				}
-			}
-			break
-		}
-	}
-	return PreferredTlfName(tlfname), nil
 }

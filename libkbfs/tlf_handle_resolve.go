@@ -133,7 +133,7 @@ func makeTlfHandleHelper(
 	canonicalName := strings.Join(writerNames, ",")
 	if t == tlf.Private && len(usedRNames)+len(unresolvedReaders) > 0 {
 		readerNames := getSortedNames(usedRNames, unresolvedReaders)
-		canonicalName += ReaderSep + strings.Join(readerNames, ",")
+		canonicalName += tlf.ReaderSep + strings.Join(readerNames, ",")
 	}
 
 	extensionList := tlf.HandleExtensionList(extensions)

@@ -116,12 +116,12 @@ func (e *fsEngine) GetFavorites(user User, t tlf.Type) (map[string]bool, error) 
 // GetRootDir implements the Engine interface.
 func (e *fsEngine) GetRootDir(user User, tlfName string, t tlf.Type, expectedCanonicalTlfName string) (dir Node, err error) {
 	u := user.(*fsUser)
-	preferredName, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(u.username,
+	preferredName, err := tlf.FavoriteNameToPreferredTLFNameFormatAs(u.username,
 		libkbfs.CanonicalTlfName(tlfName))
 	if err != nil {
 		return nil, err
 	}
-	expectedPreferredName, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(u.username,
+	expectedPreferredName, err := tlf.FavoriteNameToPreferredTLFNameFormatAs(u.username,
 		libkbfs.CanonicalTlfName(expectedCanonicalTlfName))
 	if err != nil {
 		return nil, err

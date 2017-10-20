@@ -149,7 +149,7 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 		if fav.Type != t {
 			continue
 		}
-		pname, err := libkbfs.FavoriteNameToPreferredTLFNameFormatAs(
+		pname, err := tlf.FavoriteNameToPreferredTLFNameFormatAs(
 			session.Name, libkbfs.CanonicalTlfName(fav.Name))
 		if err != nil {
 			k.log.Errorf("FavoriteNameToPreferredTLFNameFormatAs: %q %v", fav.Name, err)
