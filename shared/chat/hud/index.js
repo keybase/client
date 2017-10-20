@@ -52,7 +52,7 @@ const MentionRowRenderer = ({
   >
     <Avatar username={username} size={32} />
     <Usernames
-      type="Body"
+      type="BodySemibold"
       colorFollowing={true}
       users={[{you: you === username, username, following: following[username]}]}
       style={{marginLeft: globalMargins.small}}
