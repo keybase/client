@@ -313,7 +313,7 @@ type DebugLabeler struct {
 
 func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		log:     log,
+		log:     log.CloneWithAddedDepth(1),
 		label:   label,
 		verbose: verbose,
 	}
