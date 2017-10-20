@@ -275,50 +275,63 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 }
 
 func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return keybase1.TeamAddMemberResult{}, err
-	}
+	var inviteRequired bool
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
 	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
-			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
+			inviteRequired = true
 		}
 		if _, ok := err.(libkb.NotFoundError); ok {
 			return keybase1.TeamAddMemberResult{}, libkb.NotFoundError{
-				Msg: fmt.Sprintf("Not found: user %v", username),
+				Msg: fmt.Sprintf("User not found: %v", username),
 			}
 		}
 		return keybase1.TeamAddMemberResult{}, err
 	}
-	if t.IsMember(ctx, uv) {
-		return keybase1.TeamAddMemberResult{}, libkb.ExistsError{Msg: fmt.Sprintf("user %q (%s) is already a member of team %q", username, resolvedUsername, teamname)}
-	}
-	req, err := reqFromRole(uv, role)
-	if err != nil {
-		return keybase1.TeamAddMemberResult{}, err
-	}
-	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-	if err == nil {
-		// Case where same UV (uid+seqno) already exists is covered by
-		// `t.IsMember` check above. This only checks if there is a reset
-		// member in the team to automatically remove them (so AddMember
-		// can function as a Re-Add).
-		if existingUV.EldestSeqno > uv.EldestSeqno {
-			return keybase1.TeamAddMemberResult{}, fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
+
+	var res keybase1.TeamAddMemberResult
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true /*needAdmin*/)
+		if err != nil {
+			return err
 		}
-		req.None = []keybase1.UserVersion{existingUV}
-	}
-	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-	if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
-		g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
-	}
-	timeoutCancel()
-	if err := t.ChangeMembership(ctx, req); err != nil {
-		return keybase1.TeamAddMemberResult{}, err
-	}
-	return keybase1.TeamAddMemberResult{User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}, nil
+
+		if inviteRequired {
+			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
+			return err
+		}
+
+		if t.IsMember(ctx, uv) {
+			return libkb.ExistsError{Msg: fmt.Sprintf("user %q (%s) is already a member of team %q", username, resolvedUsername, teamname)}
+		}
+		req, err := reqFromRole(uv, role)
+		if err != nil {
+			return err
+		}
+		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+		if err == nil {
+			// Case where same UV (uid+seqno) already exists is covered by
+			// `t.IsMember` check above. This only checks if there is a reset
+			// member in the team to automatically remove them (so AddMember
+			// can function as a Re-Add).
+			if existingUV.EldestSeqno > uv.EldestSeqno {
+				return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
+			}
+			req.None = []keybase1.UserVersion{existingUV}
+		}
+		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+		if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
+			g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
+		}
+		timeoutCancel()
+		if err := t.ChangeMembership(ctx, req); err != nil {
+			return err
+		}
+		res = keybase1.TeamAddMemberResult{User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}
+		return nil
+	})
+	return res, err
 }
 
 func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {

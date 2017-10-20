@@ -1304,3 +1304,37 @@ func (t *Team) precheckLinkToPost(ctx context.Context, sigMultiItem libkb.SigMul
 	}
 	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), me.ToUserVersion())
 }
+
+// Try to run `post` (expected to post new team sigchain links).
+// Retry it several times if it fails due to being behind the latest team sigchain state.
+// Passes the attempt number (initially 0) to `post`.
+func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
+	defer g.CTraceTimed(ctx, "RetryOnSigOldSeqnoError", func() error { return err })()
+	const nRetries = 3
+	for i := 0; i < nRetries; i++ {
+		g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError(%v)", i)
+		err = post(ctx, i)
+		if isSigOldSeqnoError(err) {
+			// This error means retry
+			continue
+		}
+		return err
+	}
+	if err == nil {
+		// Should never happen
+		return fmt.Errorf("failed retryable team operation")
+	}
+	// Return the error from the final round
+	return err
+}
+
+func isSigOldSeqnoError(err error) bool {
+	switch err := err.(type) {
+	case libkb.AppStatusError:
+		switch keybase1.StatusCode(err.Code) {
+		case keybase1.StatusCode_SCSigOldSeqno:
+			return true
+		}
+	}
+	return false
+}
