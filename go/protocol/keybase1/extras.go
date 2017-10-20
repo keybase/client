@@ -2050,6 +2050,6 @@ func (b MDGetBehavior) ShouldCreateClassicTLF() bool {
 		return true
 	default:
 		// This shouldn't happen in production as we have TestMDGetBehavior.
-		panic("😱 need to update extras.go after adding MDGetBehavior values")
+		panic("~>.<~ need to update extras.go after adding MDGetBehavior values")
 	}
 }
