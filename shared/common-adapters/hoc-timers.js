@@ -1,6 +1,15 @@
 // @flow
 import * as React from 'react'
-import {type TimerProps} from './hoc-timers.js.flow'
+
+// duplicating this from the .flow file as we don't pull in those files for rn
+type TimerFunc = (func: () => void, timing: number) => number
+type ClearTimerFunc = (id: ?number) => void
+type TimerProps = {
+  setTimeout: TimerFunc,
+  clearTimeout: ClearTimerFunc,
+  setInterval: TimerFunc,
+  clearInterval: ClearTimerFunc,
+}
 
 function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?number): void {
   if ((id || id === 0) && array.includes(id)) {
