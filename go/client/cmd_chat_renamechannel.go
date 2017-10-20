@@ -29,7 +29,7 @@ func newCmdChatRenameChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 	return cli.Command{
 		Name:         "rename-channel",
 		Usage:        "Rename a conversation channel",
-		ArgumentHelp: "[conversation [new channel name]]",
+		ArgumentHelp: "<team name> <new channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatRenameChannelRunner(g), "rename-channel", c)
 		},
@@ -70,7 +70,7 @@ func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
 		c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
 	}
 	if c.setTopicName == "" {
-		return fmt.Errorf("Must supply non-empty channel name.")
+		return fmt.Errorf("Must supply non-empty channel name")
 	}
 	if len(ctx.Args()) > 1 {
 		return fmt.Errorf("cannot send text message and set channel name simultaneously")
