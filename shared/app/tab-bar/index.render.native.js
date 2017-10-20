@@ -35,7 +35,6 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
         source={{icon: _icons[tab], type: 'icon'}}
-        underlined={selectedTab === tab}
         styleIcon={selectedTab === tab ? _selectedIconStyle : _iconStyle}
       />
     ))}
