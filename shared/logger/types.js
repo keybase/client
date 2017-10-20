@@ -3,15 +3,15 @@
 
 type Timestamp = number
 
-export type LogLevels = 'Error' | 'Warn' | 'Info' | 'Action' | 'Debug'
+export type LogLevel = 'Error' | 'Warn' | 'Info' | 'Action' | 'Debug'
 
 export type LogLine = [Timestamp, string]
-export type LogLineWithLevel = [LogLevels, Timestamp, string]
+export type LogLineWithLevel = [LogLevel, Timestamp, string]
 
-export type LogFn = (...s: Array<string>) => void
+export type LogFn = (...s: Array<any>) => void
 export interface Logger {
   log: LogFn,
-  dump(levelPrefix: LogLevels): Promise<Array<LogLineWithLevel>>, // Should return an ordered array of log lines (ordered by timestamp)
+  dump(levelPrefix: LogLevel): Promise<Array<LogLineWithLevel>>, // Should return an ordered array of log lines (ordered by timestamp)
   flush(): void,
 }
 
@@ -28,6 +28,6 @@ export interface AggregateLogger {
   info: LogFn,
   action: LogFn,
   debug: LogFn,
-  dump(filter?: Array<LogLevels>): Promise<Array<LogLineWithLevel>>, // Should return an ordered array of log lines (ordered by timestamp)
+  dump(filter?: Array<LogLevel>): Promise<Array<LogLineWithLevel>>, // Should return an ordered array of log lines (ordered by timestamp)
   flush(): void, // this calls flush on all logger impls
 }

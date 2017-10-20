@@ -1,5 +1,5 @@
 // @flow
-import type {LogLine, Logger, LogLevels, LogLineWithLevel} from './types'
+import type {LogLine, Logger, LogLevel, LogLineWithLevel} from './types'
 
 // Simple in memory ring Logger
 class RingLogger implements Logger {
@@ -17,7 +17,7 @@ class RingLogger implements Logger {
     this._currentWriteIdx = (this._currentWriteIdx + 1) % this._ringSize
   }
 
-  dump(levelPrefix: LogLevels) {
+  dump(levelPrefix: LogLevel) {
     const toDump = []
     for (let i = 0; i < this._ringSize; i++) {
       const s = this._ringBuffer[this._currentWriteIdx]

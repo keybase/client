@@ -1,5 +1,5 @@
 // @flow
-import type {AggregateLogger, LogLevels, Logger, LogFn, LogLineWithLevel} from './types'
+import type {AggregateLogger, LogLevel, Logger, LogFn, LogLineWithLevel} from './types'
 
 // Function to flatten arrays and preserve their sort order
 // Same as concating all the arrays and calling .sort() but could be faster
@@ -20,7 +20,7 @@ class AggregateLoggerImpl implements AggregateLogger {
   info: LogFn
   action: LogFn
   debug: LogFn
-  _allLoggers: {[key: LogLevels]: Logger}
+  _allLoggers: {[key: LogLevel]: Logger}
 
   constructor({
     error,
@@ -56,11 +56,11 @@ class AggregateLoggerImpl implements AggregateLogger {
     this.debug = debug.log
   }
 
-  dump(filter?: Array<LogLevels>) {
+  dump(filter?: Array<LogLevel>) {
     // $FlowIssue with Object.keys just returning Array<string>
-    const allKeys: Array<LogLevels> = Object.keys(this._allLoggers)
+    const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
     const filterKeys = filter || allKeys
-    const logDumpPromises = filterKeys.map((level: LogLevels) => this._allLoggers[level].dump(level))
+    const logDumpPromises = filterKeys.map((level: LogLevel) => this._allLoggers[level].dump(level))
     const p: Promise<Array<LogLineWithLevel>> = Promise.all(
       logDumpPromises
     ).then((logsToDump: Array<Array<LogLineWithLevel>>): Array<LogLineWithLevel> =>
@@ -75,7 +75,7 @@ class AggregateLoggerImpl implements AggregateLogger {
 
   flush() {
     // $FlowIssue with Object.keys just returning Array<string>
-    const allKeys: Array<LogLevels> = Object.keys(this._allLoggers)
+    const allKeys: Array<LogLevel> = Object.keys(this._allLoggers)
     allKeys.forEach(level => this._allLoggers[level].flush())
   }
 }
