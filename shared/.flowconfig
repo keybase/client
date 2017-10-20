@@ -66,6 +66,7 @@
 ../protocol/.*
 ./desktop/build/.*
 ./desktop/release/.*
+./react-native/react-native-contacts
 
 [include]
 
