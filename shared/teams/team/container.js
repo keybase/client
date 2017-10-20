@@ -30,7 +30,9 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProp
   name: routeProps.get('teamname'),
   you: state.config.username,
   selectedTab: routeState.get('selectedTab') || 'members',
-  isTeamOpen: state.entities.getIn(['teams', 'teamNameToIsOpen', routeProps.get('teamname')], false),
+  isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', routeProps.get('teamname')], {
+    open: false,
+  }).open,
 })
 
 type DispatchProps = {

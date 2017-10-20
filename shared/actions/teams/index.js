@@ -224,8 +224,6 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
-    const isOpenTeam = results.settings.open
-
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
       yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
@@ -235,7 +233,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
-      put(replaceEntity(['teams', 'teamNameToIsOpen'], I.Map({[teamname]: isOpenTeam}))),
+      put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: results.settings}))),
     ])
   } finally {
     yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))

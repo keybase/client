@@ -208,9 +208,13 @@ class Team extends React.PureComponent<Props> {
           style={{marginTop: globalMargins.small}}
         />
         <Help name={name} />
-        <Box style={{marginTop: globalMargins.medium, marginBottom: globalMargins.medium}}>
-          <OpenTeamSettingButton onClick={this.props.onClickOpenTeamSetting} isOpen={this.props.isTeamOpen} />
-        </Box>
+        {admin &&
+          <Box style={{marginTop: globalMargins.medium, marginBottom: globalMargins.medium}}>
+            <OpenTeamSettingButton
+              onClick={this.props.onClickOpenTeamSetting}
+              isOpen={this.props.isTeamOpen}
+            />
+          </Box>}
         <TeamTabs {...this.props} admin={admin} />
         {contents}
         {showMenu &&

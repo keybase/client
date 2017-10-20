@@ -2,10 +2,13 @@
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
 import {userIsInTeam} from './selectors'
+import * as RPCTypes from './types/flow-types'
 
 import type {Service} from './search'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
+
+export type TeamSettings = RPCTypes.TeamSettings
 
 export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
@@ -124,7 +127,7 @@ type _State = {
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
-  teamNameToIsOpen: I.Map<Teamname, boolean>,
+  teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamnames: I.Set<Teamname>,
   loaded: boolean,
 }
@@ -137,7 +140,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
-  teamNameToIsOpen: I.Map(),
+  teamNameToTeamSettings: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })
