@@ -12,6 +12,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+// A snapshot of a team's state.
+// Not threadsafe.
 type Team struct {
 	libkb.Contextified
 
