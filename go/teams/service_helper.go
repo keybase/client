@@ -303,7 +303,11 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 		}
 
 		if t.IsMember(ctx, uv) {
-			return libkb.ExistsError{Msg: fmt.Sprintf("user %q (%s) is already a member of team %q", username, resolvedUsername, teamname)}
+			showUsername := fmt.Sprintf("%q", resolvedUsername.String())
+			if username != resolvedUsername.String() {
+				showUsername = fmt.Sprintf("%q (%s)", username, resolvedUsername.String())
+			}
+			return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q", showUsername, teamname)}
 		}
 		req, err := reqFromRole(uv, role)
 		if err != nil {
