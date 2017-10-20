@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
     return {
       icon,
       isCurrentDevice: device.currentDevice,
-      isRevoked: !!device.revokedBy,
+      isRevoked: !!device.revokedByName,
       name: device.name,
     }
   })

@@ -957,13 +957,13 @@ function getBrokenUsers(participants: Array<string>, you: string, metaDataMap: M
 function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
   if (height > width) {
     return {
-      height: clamp(height, maxAttachmentPreviewSize),
-      width: clamp(height, maxAttachmentPreviewSize) * width / height,
+      height: clamp(height || 0, 0, maxAttachmentPreviewSize),
+      width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
     }
   } else {
     return {
-      height: clamp(width, maxAttachmentPreviewSize) * height / width,
-      width: clamp(width, maxAttachmentPreviewSize),
+      height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
+      width: clamp(width || 0, 0, maxAttachmentPreviewSize),
     }
   }
 }
@@ -1229,11 +1229,10 @@ function getMessageUpdates(
   messageKey: MessageKey
 ): I.OrderedSet<EditingMessage | UpdatingAttachment> {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  const updateKeys = conversationIDKey ? state.entities.messageUpdates.getIn(
-    [conversationIDKey, String(messageID)],
-    I.OrderedSet()
-  ) : I.OrderedSet()
-  return updateKeys.map(k => state.entities.messages.get(k))
+  const updateKeys = conversationIDKey
+    ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
+    : I.OrderedSet()
+  return updateKeys.map(k => state.entities.messages.get(k)).filter(Boolean)
 }
 
 function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?Message {

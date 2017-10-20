@@ -7,7 +7,8 @@ import {compose, renderNothing, branch, connect, type TypedState} from '../../ut
 const missingGit = {error: 'NoGit', loading: false, name: '', teamname: ''}
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const git = Constants.getIdToGit(state).get(routeProps.get('id'))
+  const gitMap = Constants.getIdToGit(state)
+  const git = gitMap ? gitMap.get(routeProps.get('id')) : null
 
   return git
     ? {

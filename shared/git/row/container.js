@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import Row from '.'
+import * as Constants from '../../constants/git'
 import {connect, type TypedState} from '../../util/container'
 import {getProfile} from '../../actions/tracker'
 import {copyToClipboard} from '../../util/clipboard'
@@ -8,7 +9,7 @@ import {usernameSelector} from '../../constants/selectors'
 import openURL from '../../util/open-url'
 
 const mapStateToProps = (state: TypedState, {id, expanded}) => {
-  const git = state.entities.getIn(['git', 'idToInfo', id]).toObject()
+  const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo()).toObject()
   return {
     ...git,
     expanded,
@@ -24,8 +25,9 @@ const mapDispatchToProps = (dispatch: any) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
-  onClickDevice: () =>
-    stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`),
+  onClickDevice: () => {
+    stateProps.lastEditUser && openURL(`https://keybase.io/${stateProps.lastEditUser}/devices`)
+  },
   onCopy: () => copyToClipboard(stateProps.url),
   onShowDelete: () => ownProps.onShowDelete(stateProps.id),
   openUserTracker: dispatchProps.openUserTracker,

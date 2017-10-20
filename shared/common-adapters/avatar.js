@@ -73,51 +73,51 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '80': 'icon-team-placeholder-avatar-80',
 }
 
-const followStateToType = I.Map({
-  '112': I.fromJS({
+const followStateToType = {
+  '112': {
     theyNo: {youYes: 'icon-following-28'},
     theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'},
-  }),
-  '176': I.fromJS({
+  },
+  '176': {
     theyNo: {youYes: 'icon-following-32'},
     theyYes: {youNo: 'icon-follow-me-32', youYes: 'icon-mutual-follow-32'},
-  }),
-  '48': I.fromJS({
+  },
+  '48': {
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  }),
-  '64': I.fromJS({
+  },
+  '64': {
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  }),
-  '80': I.fromJS({
+  },
+  '80': {
     theyNo: {youYes: 'icon-following-21'},
     theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'},
-  }),
-})
+  },
+}
 
-const followStateToSize = I.Map({
-  '112': I.fromJS({
+const followStateToSize = {
+  '112': {
     theyNo: {youYes: 28},
     theyYes: {youNo: 28, youYes: 28},
-  }),
-  '176': I.fromJS({
+  },
+  '176': {
     theyNo: {youYes: 32},
     theyYes: {youNo: 32, youYes: 32},
-  }),
-  '48': I.fromJS({
+  },
+  '48': {
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  }),
-  '64': I.fromJS({
+  },
+  '64': {
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  }),
-  '80': I.fromJS({
+  },
+  '80': {
     theyNo: {youYes: 21},
     theyYes: {youNo: 21, youYes: 21},
-  }),
-})
+  },
+}
 
 const followSizeToStyle = {
   '112': {bottom: 0, left: 80, position: 'absolute'},
@@ -252,20 +252,45 @@ class Avatar extends React.PureComponent<Props, State> {
     }
   }
 
-  _followIconType() {
-    return followStateToType.getIn([
-      String(this.props.size),
-      `they${this.props.followsYou ? 'Yes' : 'No'}`,
-      `you${this.props.following ? 'Yes' : 'No'}`,
-    ]) || 0
+  // just to help flow
+  _followSizeToString() {
+    switch (this.props.size) {
+      case 112:
+        return '112'
+      case 176:
+        return '176'
+      case 48:
+        return '48'
+      case 64:
+        return '64'
+      case 80:
+        return '80'
+    }
+    return '176'
   }
 
-  _followIconSize(){
-    return followStateToSize.getIn([
-      String(this.props.size),
-      `they${this.props.followsYou ? 'Yes' : 'No'}`,
-      `you${this.props.following ? 'Yes' : 'No'}`,
-    ]) || 0
+  _followIconType() {
+    return I.getIn(
+      followStateToType,
+      [
+        this._followSizeToString(),
+        this.props.followsYou ? 'theyYes' : 'theyNo',
+        this.props.following ? 'youYes' : 'youNo',
+      ],
+      0
+    )
+  }
+
+  _followIconSize() {
+    return I.getIn(
+      followStateToSize,
+      [
+        this._followSizeToString(),
+        this.props.followsYou ? 'theyYes' : 'theyNo',
+        this.props.following ? 'youYes' : 'youNo',
+      ],
+      0
+    )
   }
 
   render() {

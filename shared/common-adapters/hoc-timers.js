@@ -1,14 +1,6 @@
 // @flow
 import * as React from 'react'
-
-export type TimerFunc = (func: () => void, timing: number) => number
-export type ClearTimerFunc = (id?: ?number) => void
-export type TimerProps = {
-  setTimeout: TimerFunc,
-  clearTimeout: ClearTimerFunc,
-  setInterval: TimerFunc,
-  clearInterval: ClearTimerFunc,
-}
+import {type TimerProps} from './hoc-timers.js.flow'
 
 function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?number): void {
   if ((id || id === 0) && array.includes(id)) {
@@ -18,14 +10,11 @@ function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?n
 }
 
 function getDisplayName(WrappedComponent): string {
-  // $FlowIssue
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
-export default function HOCTimers<P: Object>(
-  ComposedComponent: React.ComponentType<P & TimerProps>
-): React.ComponentType<P> {
-  class TimersComponent extends React.Component<P> {
+export default function HOCTimers(ComposedComponent: any) {
+  class TimersComponent extends React.Component<any> {
     static displayName = `HOCTimers(${getDisplayName(ComposedComponent)})`
     _timeoutIds: Array<number>
     _intervalIds: Array<number>

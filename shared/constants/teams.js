@@ -139,7 +139,7 @@ const userIsInTeamHelper = (state: TypedState, username: string, service: Servic
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
-  state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map()).findKey(i => i.channelname === channelname)
+  state.entities.teams.convIDToChannelInfo.findKey(i => i.channelname === channelname)
 
 const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())

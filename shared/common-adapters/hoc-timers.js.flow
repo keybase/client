@@ -1,0 +1,15 @@
+// @flow
+export type TimerFunc = (func: () => void, timing: number) => number
+export type ClearTimerFunc = (id: ?number) => void
+export type TimerProps = {
+  setTimeout: TimerFunc,
+  clearTimeout: ClearTimerFunc,
+  setInterval: TimerFunc,
+  clearInterval: ClearTimerFunc,
+}
+
+type UnaryFn<A, R> = (a: A) => R
+type Component<A> = React$ComponentType<A>
+type HOC<Base, Enhanced> = UnaryFn<Component<Base>, Component<Enhanced>>
+
+declare export default function HOCTimers<Base, Enhanced>(a: Component<Base>): HOC<Base, Enhanced>
