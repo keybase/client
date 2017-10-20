@@ -14,8 +14,8 @@ import (
 
 type CmdTeamLeave struct {
 	libkb.Contextified
-	team      string
-	permanent bool
+	Team      string
+	Permanent bool
 }
 
 func newCmdTeamLeave(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -36,14 +36,18 @@ func newCmdTeamLeave(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 	}
 }
 
+func NewCmdTeamLeaveRunner(g *libkb.GlobalContext) *CmdTeamLeave {
+	return &CmdTeamLeave{Contextified: libkb.NewContextified(g)}
+}
+
 func (c *CmdTeamLeave) ParseArgv(ctx *cli.Context) error {
 	var err error
-	c.team, err = ParseOneTeamName(ctx)
+	c.Team, err = ParseOneTeamName(ctx)
 	if err != nil {
 		return err
 	}
 
-	c.permanent = ctx.Bool("permanent")
+	c.Permanent = ctx.Bool("permanent")
 	return nil
 }
 
@@ -54,8 +58,8 @@ func (c *CmdTeamLeave) Run() error {
 	}
 
 	arg := keybase1.TeamLeaveArg{
-		Name:      c.team,
-		Permanent: c.permanent,
+		Name:      c.Team,
+		Permanent: c.Permanent,
 	}
 
 	if err = cli.TeamLeave(context.Background(), arg); err != nil {
@@ -63,10 +67,10 @@ func (c *CmdTeamLeave) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	if c.permanent {
-		dui.Printf("Success! You have left %s (and will never be added again).\n", c.team)
+	if c.Permanent {
+		dui.Printf("Success! You have left %s (and will never be added again).\n", c.Team)
 	} else {
-		dui.Printf("Success! You have left %s.\n", c.team)
+		dui.Printf("Success! You have left %s.\n", c.Team)
 	}
 
 	return nil
