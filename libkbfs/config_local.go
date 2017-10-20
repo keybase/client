@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
+	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 	metrics "github.com/rcrowley/go-metrics"
@@ -856,7 +857,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(defaultMDCacheCapacity)
 	c.kcache = NewKeyCacheStandard(defaultMDCacheCapacity)
-	c.kbcache = NewKeyBundleCacheLRU(keyBundlesCacheCapacityBytes)
+	c.kbcache = kbfsmd.NewKeyBundleCacheLRU(keyBundlesCacheCapacityBytes)
 
 	log := c.MakeLogger("")
 	var capacity uint64

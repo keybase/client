@@ -2,45 +2,47 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"testing"
 
-	"github.com/keybase/kbfs/kbfsmd"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func getKeyBundlesForTesting(
-	t *testing.T, c Config, tlfByte byte, handleStr string) (
+	t *testing.T, tlfByte byte, h tlf.Handle) (
 	TLFWriterKeyBundleID, *TLFWriterKeyBundleV3,
 	TLFReaderKeyBundleID, *TLFReaderKeyBundleV3) {
 	tlfID := tlf.FakeID(tlfByte, tlf.Private)
-	h := parseTlfHandleOrBust(t, c, handleStr, tlf.Private)
-	rmd, err := makeInitialRootMetadata(SegregatedKeyBundlesVer, tlfID, h)
+	rmd, err := MakeInitialRootMetadataV3(tlfID, h)
 	require.NoError(t, err)
-	rmd.fakeInitialRekey()
-	wkbID := rmd.bareMd.GetTLFWriterKeyBundleID()
-	rkbID := rmd.bareMd.GetTLFReaderKeyBundleID()
-	wkb, rkb, err := rmd.bareMd.(*kbfsmd.RootMetadataV3).GetTLFKeyBundlesForTest(
-		rmd.extra)
+	extra := FakeInitialRekey(rmd, h, kbfscrypto.TLFPublicKey{})
+	wkbID := rmd.GetTLFWriterKeyBundleID()
+	rkbID := rmd.GetTLFReaderKeyBundleID()
+	wkb, rkb, err := rmd.GetTLFKeyBundlesForTest(extra)
 	require.NoError(t, err)
 	return wkbID, wkb, rkbID, rkb
 }
 
 func TestKeyBundleCacheBasic(t *testing.T) {
-	ctx := context.Background()
-	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
-	defer config.Shutdown(ctx)
+	alice := keybase1.MakeTestUID(1).AsUserOrTeam()
+	bob := keybase1.MakeTestUID(2).AsUserOrTeam()
+	charlie := keybase1.MakeTestUID(3).AsUserOrTeam()
 
-	wkbID, wkb, rkbID, rkb := getKeyBundlesForTesting(t,
-		config, 1, "alice,bob#charlie")
-	wkbID2, wkb2, rkbID2, rkb2 := getKeyBundlesForTesting(t,
-		config, 2, "bob,charlie#alice")
-	wkbID3, wkb3, rkbID3, rkb3 := getKeyBundlesForTesting(t,
-		config, 3, "alice,charlie#bob")
+	h1, err := tlf.MakeHandle([]keybase1.UserOrTeamID{alice, bob}, []keybase1.UserOrTeamID{charlie}, nil, nil, nil)
+	require.NoError(t, err)
+	h2, err := tlf.MakeHandle([]keybase1.UserOrTeamID{bob, charlie}, []keybase1.UserOrTeamID{alice}, nil, nil, nil)
+	require.NoError(t, err)
+	h3, err := tlf.MakeHandle([]keybase1.UserOrTeamID{alice, charlie}, []keybase1.UserOrTeamID{bob}, nil, nil, nil)
+	require.NoError(t, err)
+
+	wkbID, wkb, rkbID, rkb := getKeyBundlesForTesting(t, 1, h1)
+	wkbID2, wkb2, rkbID2, rkb2 := getKeyBundlesForTesting(t, 2, h2)
+	wkbID3, wkb3, rkbID3, rkb3 := getKeyBundlesForTesting(t, 3, h3)
 
 	wkbEntrySize := len(wkbID.String()) + wkb.Size()
 	rkbEntrySize := len(rkbID.String()) + rkb.Size()

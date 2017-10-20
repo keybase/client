@@ -1968,19 +1968,8 @@ type BareRootMetadata = kbfsmd.RootMetadata
 // MutableBareRootMetadata is a temporary alias.
 type MutableBareRootMetadata = kbfsmd.MutableRootMetadata
 
-// KeyBundleCache is an interface to a key bundle cache for use with v3 metadata.
-type KeyBundleCache interface {
-	// GetTLFReaderKeyBundle returns the TLFReaderKeyBundleV3 for
-	// the given TLFReaderKeyBundleID, or nil if there is none.
-	GetTLFReaderKeyBundle(TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error)
-	// GetTLFWriterKeyBundle returns the TLFWriterKeyBundleV3 for
-	// the given TLFWriterKeyBundleID, or nil if there is none.
-	GetTLFWriterKeyBundle(TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error)
-	// PutTLFReaderKeyBundle stores the given TLFReaderKeyBundleV3.
-	PutTLFReaderKeyBundle(TLFReaderKeyBundleID, TLFReaderKeyBundleV3)
-	// PutTLFWriterKeyBundle stores the given TLFWriterKeyBundleV3.
-	PutTLFWriterKeyBundle(TLFWriterKeyBundleID, TLFWriterKeyBundleV3)
-}
+// KeyBundleCache is a temporary alias.
+type KeyBundleCache = kbfsmd.KeyBundleCache
 
 // RekeyFSM is a Finite State Machine (FSM) for housekeeping rekey states for a
 // FolderBranch. Each FolderBranch has its own FSM for rekeys.

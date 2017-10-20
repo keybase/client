@@ -2,13 +2,27 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-package libkbfs
+package kbfsmd
 
 import (
 	"errors"
 
 	"github.com/keybase/kbfs/cache"
 )
+
+// KeyBundleCache is an interface to a key bundle cache for use with v3 metadata.
+type KeyBundleCache interface {
+	// GetTLFReaderKeyBundle returns the TLFReaderKeyBundleV3 for
+	// the given TLFReaderKeyBundleID, or nil if there is none.
+	GetTLFReaderKeyBundle(TLFReaderKeyBundleID) (*TLFReaderKeyBundleV3, error)
+	// GetTLFWriterKeyBundle returns the TLFWriterKeyBundleV3 for
+	// the given TLFWriterKeyBundleID, or nil if there is none.
+	GetTLFWriterKeyBundle(TLFWriterKeyBundleID) (*TLFWriterKeyBundleV3, error)
+	// PutTLFReaderKeyBundle stores the given TLFReaderKeyBundleV3.
+	PutTLFReaderKeyBundle(TLFReaderKeyBundleID, TLFReaderKeyBundleV3)
+	// PutTLFWriterKeyBundle stores the given TLFWriterKeyBundleV3.
+	PutTLFWriterKeyBundle(TLFWriterKeyBundleID, TLFWriterKeyBundleV3)
+}
 
 // KeyBundleCacheStandard is an LRU-based implementation of the KeyBundleCache interface.
 type KeyBundleCacheStandard struct {
