@@ -1,7 +1,6 @@
 // @flow
 import * as Creators from '../../actions/teams/creators'
-import * as SearchCreators from '../../actions/search/creators'
-import AddPeople from '.'
+import InviteByEmail from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
 import {
@@ -18,14 +17,12 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  onAddPeople: (role: string) => {
-    dispatch(Creators.addPeopleToTeam(routeProps.get('teamname'), role))
+  onClose: () => dispatch(navigateUp()),
+  onInvite: ({invitees, role}) => {
+    dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitees))
     dispatch(navigateUp())
     dispatch(Creators.getTeams())
-    dispatch(SearchCreators.clearSearchResults('addToTeamSearch'))
-    dispatch(SearchCreators.setUserInputItems('addToTeamSearch', []))
   },
-  onClose: () => dispatch(navigateUp()),
   onOpenRolePicker: (role: string, onComplete: string => void) => {
     dispatch(navigateAppend([{props: {onComplete, selectedRole: role}, selected: 'controlledRolePicker'}]))
   },
@@ -34,14 +31,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
+    withState('invitees', 'onInviteesChange'),
     withState('role', 'onRoleChange', 'writer'),
     withPropsOnChange(['onExitSearch'], props => ({
       onCancel: () => props.onClose(),
-      title: 'Add people',
+      title: 'Invite by email',
     })),
     withHandlers({
-      onAddPeople: ({onAddPeople, role}) => () => role && onAddPeople(role),
+      onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
     }),
     HeaderHoc
   )
-)(AddPeople)
+)(InviteByEmail)

@@ -9,6 +9,7 @@ import * as Saga from '../../util/saga'
 import * as Creators from './creators'
 import * as ChatCreators from '../chat/creators'
 import engine from '../../engine'
+import map from 'lodash/map'
 import {replaceEntity} from '../entities'
 import {call, put, select, all} from 'redux-saga/effects'
 import {usernameSelector} from '../../constants/selectors'
@@ -72,6 +73,19 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
       },
     })
   }
+  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname))) // getDetails will unset loading
+}
+
+const _inviteByEmail = function*(action: Constants.InviteToTeamByEmail) {
+  const {payload: {invitees, role, teamname}} = action
+  yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield call(RpcTypes.teamsTeamAddEmailsBulkRpcPromise, {
+    param: {
+      name: teamname,
+      emails: invitees,
+      role: role && RpcTypes.TeamsTeamRole[role],
+    },
+  })
   yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname))) // getDetails will unset loading
 }
 
@@ -224,6 +238,13 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       })
     })
 
+    const invitesMap = map(results.annotatedActiveInvites, invite =>
+      Constants.makeInviteInfo({
+        name: invite.type.c === 4 ? `${invite.name}@${invite.type.sbs}` : invite.name,
+        role: Constants.teamRoleByEnum[invite.role],
+      })
+    )
+
     // if we have no requests for this team, make sure we don't hold on to any old ones
     if (!requestMap[teamname]) {
       yield put(replaceEntity(['teams', 'teamNameToRequests'], I.Map([[teamname, I.Set()]])))
@@ -233,6 +254,7 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
+      put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
     ])
   } finally {
     yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
@@ -385,6 +407,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:setupTeamHandlers', _setupTeamHandlers)
   yield Saga.safeTakeEvery('teams:addToTeam', _addToTeam)
   yield Saga.safeTakeEvery('teams:addPeopleToTeam', _addPeopleToTeam)
+  yield Saga.safeTakeEvery('teams:inviteToTeamByEmail', _inviteByEmail)
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
