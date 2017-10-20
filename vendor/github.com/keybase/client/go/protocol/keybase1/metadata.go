@@ -148,6 +148,32 @@ func (o LockContext) DeepCopy() LockContext {
 	}
 }
 
+type MDGetBehavior int
+
+const (
+	MDGetBehavior_GET_OR_CREATE_CLASSIC_TLF MDGetBehavior = 0
+	MDGetBehavior_GET_CLASSIC_TLF_NO_CREATE MDGetBehavior = 1
+)
+
+func (o MDGetBehavior) DeepCopy() MDGetBehavior { return o }
+
+var MDGetBehaviorMap = map[string]MDGetBehavior{
+	"GET_OR_CREATE_CLASSIC_TLF": 0,
+	"GET_CLASSIC_TLF_NO_CREATE": 1,
+}
+
+var MDGetBehaviorRevMap = map[MDGetBehavior]string{
+	0: "GET_OR_CREATE_CLASSIC_TLF",
+	1: "GET_CLASSIC_TLF_NO_CREATE",
+}
+
+func (e MDGetBehavior) String() string {
+	if v, ok := MDGetBehaviorRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GetChallengeArg struct {
 }
 
@@ -211,6 +237,7 @@ type GetMetadataArg struct {
 	StopRevision  int64             `codec:"stopRevision" json:"stopRevision"`
 	LogTags       map[string]string `codec:"logTags" json:"logTags"`
 	LockBeforeGet *LockID           `codec:"lockBeforeGet,omitempty" json:"lockBeforeGet,omitempty"`
+	GetBehavior   MDGetBehavior     `codec:"getBehavior" json:"getBehavior"`
 }
 
 func (o GetMetadataArg) DeepCopy() GetMetadataArg {
@@ -245,6 +272,7 @@ func (o GetMetadataArg) DeepCopy() GetMetadataArg {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.LockBeforeGet),
+		GetBehavior: o.GetBehavior.DeepCopy(),
 	}
 }
 

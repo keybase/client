@@ -471,3 +471,7 @@ func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMappe
 	}
 	return res, nil
 }
+
+func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
+
+}

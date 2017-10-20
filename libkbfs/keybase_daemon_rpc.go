@@ -402,3 +402,8 @@ func (k *KeybaseDaemonRPC) Shutdown() {
 		k.keepAliveCancel()
 	}
 }
+
+// TeamExit (does not) implement keybase1.NotifyTeamInterface.
+func (k *KeybaseDaemonRPC) TeamExit(context.Context, keybase1.TeamID) error {
+	return nil
+}

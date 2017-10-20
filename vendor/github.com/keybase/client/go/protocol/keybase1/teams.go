@@ -1066,24 +1066,24 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 type LoadTeamArg struct {
 	ID              TeamID         `codec:"ID" json:"ID"`
 	Name            string         `codec:"name" json:"name"`
+	Public          bool           `codec:"public" json:"public"`
 	NeedAdmin       bool           `codec:"needAdmin" json:"needAdmin"`
 	Refreshers      TeamRefreshers `codec:"refreshers" json:"refreshers"`
 	ForceFullReload bool           `codec:"forceFullReload" json:"forceFullReload"`
 	ForceRepoll     bool           `codec:"forceRepoll" json:"forceRepoll"`
 	StaleOK         bool           `codec:"staleOK" json:"staleOK"`
-	Public          bool           `codec:"public" json:"public"`
 }
 
 func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 	return LoadTeamArg{
 		ID:              o.ID.DeepCopy(),
 		Name:            o.Name,
+		Public:          o.Public,
 		NeedAdmin:       o.NeedAdmin,
 		Refreshers:      o.Refreshers.DeepCopy(),
 		ForceFullReload: o.ForceFullReload,
 		ForceRepoll:     o.ForceRepoll,
 		StaleOK:         o.StaleOK,
-		Public:          o.Public,
 	}
 }
 
@@ -1297,6 +1297,16 @@ func (o TeamSettings) DeepCopy() TeamSettings {
 	return TeamSettings{
 		Open:   o.Open,
 		JoinAs: o.JoinAs.DeepCopy(),
+	}
+}
+
+type TeamRequestAccessResult struct {
+	Open bool `codec:"open" json:"open"`
+}
+
+func (o TeamRequestAccessResult) DeepCopy() TeamRequestAccessResult {
+	return TeamRequestAccessResult{
+		Open: o.Open,
 	}
 }
 
@@ -1538,7 +1548,6 @@ type TeamRemoveMemberArg struct {
 	Name      string `codec:"name" json:"name"`
 	Username  string `codec:"username" json:"username"`
 	Email     string `codec:"email" json:"email"`
-	Permanent bool   `codec:"permanent" json:"permanent"`
 }
 
 func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
@@ -1547,7 +1556,6 @@ func (o TeamRemoveMemberArg) DeepCopy() TeamRemoveMemberArg {
 		Name:      o.Name,
 		Username:  o.Username,
 		Email:     o.Email,
-		Permanent: o.Permanent,
 	}
 }
 
@@ -1786,7 +1794,7 @@ type TeamsInterface interface {
 	TeamEditMember(context.Context, TeamEditMemberArg) error
 	TeamRename(context.Context, TeamRenameArg) error
 	TeamAcceptInvite(context.Context, TeamAcceptInviteArg) error
-	TeamRequestAccess(context.Context, TeamRequestAccessArg) error
+	TeamRequestAccess(context.Context, TeamRequestAccessArg) (TeamRequestAccessResult, error)
 	TeamAcceptInviteOrRequestAccess(context.Context, TeamAcceptInviteOrRequestAccessArg) error
 	TeamListRequests(context.Context, int) ([]TeamJoinRequest, error)
 	TeamIgnoreRequest(context.Context, TeamIgnoreRequestArg) error
@@ -2011,7 +2019,7 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]TeamRequestAccessArg)(nil), args)
 						return
 					}
-					err = i.TeamRequestAccess(ctx, (*typedArgs)[0])
+					ret, err = i.TeamRequestAccess(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -2276,8 +2284,8 @@ func (c TeamsClient) TeamAcceptInvite(ctx context.Context, __arg TeamAcceptInvit
 	return
 }
 
-func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAccessArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, nil)
+func (c TeamsClient) TeamRequestAccess(ctx context.Context, __arg TeamRequestAccessArg) (res TeamRequestAccessResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamRequestAccess", []interface{}{__arg}, &res)
 	return
 }
 

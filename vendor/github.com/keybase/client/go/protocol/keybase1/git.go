@@ -143,7 +143,109 @@ func (o GitServerMetadata) DeepCopy() GitServerMetadata {
 	}
 }
 
+type GitRepoResultState int
+
+const (
+	GitRepoResultState_ERR GitRepoResultState = 0
+	GitRepoResultState_OK  GitRepoResultState = 1
+)
+
+func (o GitRepoResultState) DeepCopy() GitRepoResultState { return o }
+
+var GitRepoResultStateMap = map[string]GitRepoResultState{
+	"ERR": 0,
+	"OK":  1,
+}
+
+var GitRepoResultStateRevMap = map[GitRepoResultState]string{
+	0: "ERR",
+	1: "OK",
+}
+
+func (e GitRepoResultState) String() string {
+	if v, ok := GitRepoResultStateRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type GitRepoResult struct {
+	State__ GitRepoResultState `codec:"state" json:"state"`
+	Err__   *string            `codec:"err,omitempty" json:"err,omitempty"`
+	Ok__    *GitRepoInfo       `codec:"ok,omitempty" json:"ok,omitempty"`
+}
+
+func (o *GitRepoResult) State() (ret GitRepoResultState, err error) {
+	switch o.State__ {
+	case GitRepoResultState_ERR:
+		if o.Err__ == nil {
+			err = errors.New("unexpected nil value for Err__")
+			return ret, err
+		}
+	case GitRepoResultState_OK:
+		if o.Ok__ == nil {
+			err = errors.New("unexpected nil value for Ok__")
+			return ret, err
+		}
+	}
+	return o.State__, nil
+}
+
+func (o GitRepoResult) Err() (res string) {
+	if o.State__ != GitRepoResultState_ERR {
+		panic("wrong case accessed")
+	}
+	if o.Err__ == nil {
+		return
+	}
+	return *o.Err__
+}
+
+func (o GitRepoResult) Ok() (res GitRepoInfo) {
+	if o.State__ != GitRepoResultState_OK {
+		panic("wrong case accessed")
+	}
+	if o.Ok__ == nil {
+		return
+	}
+	return *o.Ok__
+}
+
+func NewGitRepoResultWithErr(v string) GitRepoResult {
+	return GitRepoResult{
+		State__: GitRepoResultState_ERR,
+		Err__:   &v,
+	}
+}
+
+func NewGitRepoResultWithOk(v GitRepoInfo) GitRepoResult {
+	return GitRepoResult{
+		State__: GitRepoResultState_OK,
+		Ok__:    &v,
+	}
+}
+
+func (o GitRepoResult) DeepCopy() GitRepoResult {
+	return GitRepoResult{
+		State__: o.State__.DeepCopy(),
+		Err__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Err__),
+		Ok__: (func(x *GitRepoInfo) *GitRepoInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Ok__),
+	}
+}
+
+type GitRepoInfo struct {
 	Folder         Folder            `codec:"folder" json:"folder"`
 	RepoID         RepoID            `codec:"repoID" json:"repoID"`
 	LocalMetadata  GitLocalMetadata  `codec:"localMetadata" json:"localMetadata"`
@@ -153,8 +255,8 @@ type GitRepoResult struct {
 	CanDelete      bool              `codec:"canDelete" json:"canDelete"`
 }
 
-func (o GitRepoResult) DeepCopy() GitRepoResult {
-	return GitRepoResult{
+func (o GitRepoInfo) DeepCopy() GitRepoInfo {
+	return GitRepoInfo{
 		Folder:         o.Folder.DeepCopy(),
 		RepoID:         o.RepoID.DeepCopy(),
 		LocalMetadata:  o.LocalMetadata.DeepCopy(),
@@ -178,6 +280,18 @@ func (o PutGitMetadataArg) DeepCopy() PutGitMetadataArg {
 		RepoID:     o.RepoID.DeepCopy(),
 		Metadata:   o.Metadata.DeepCopy(),
 		NotifyTeam: o.NotifyTeam,
+	}
+}
+
+type DeleteGitMetadataArg struct {
+	Folder   Folder      `codec:"folder" json:"folder"`
+	RepoName GitRepoName `codec:"repoName" json:"repoName"`
+}
+
+func (o DeleteGitMetadataArg) DeepCopy() DeleteGitMetadataArg {
+	return DeleteGitMetadataArg{
+		Folder:   o.Folder.DeepCopy(),
+		RepoName: o.RepoName.DeepCopy(),
 	}
 }
 
@@ -248,6 +362,7 @@ func (o DeleteTeamRepoArg) DeepCopy() DeleteTeamRepoArg {
 
 type GitInterface interface {
 	PutGitMetadata(context.Context, PutGitMetadataArg) error
+	DeleteGitMetadata(context.Context, DeleteGitMetadataArg) error
 	GetGitMetadata(context.Context, Folder) ([]GitRepoResult, error)
 	GetAllGitMetadata(context.Context) ([]GitRepoResult, error)
 	CreatePersonalRepo(context.Context, GitRepoName) (RepoID, error)
@@ -272,6 +387,22 @@ func GitProtocol(i GitInterface) rpc.Protocol {
 						return
 					}
 					err = i.PutGitMetadata(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"deleteGitMetadata": {
+				MakeArg: func() interface{} {
+					ret := make([]DeleteGitMetadataArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeleteGitMetadataArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeleteGitMetadataArg)(nil), args)
+						return
+					}
+					err = i.DeleteGitMetadata(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -377,6 +508,11 @@ type GitClient struct {
 
 func (c GitClient) PutGitMetadata(ctx context.Context, __arg PutGitMetadataArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.git.putGitMetadata", []interface{}{__arg}, nil)
+	return
+}
+
+func (c GitClient) DeleteGitMetadata(ctx context.Context, __arg DeleteGitMetadataArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.git.deleteGitMetadata", []interface{}{__arg}, nil)
 	return
 }
 

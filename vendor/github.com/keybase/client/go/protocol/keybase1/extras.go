@@ -1273,6 +1273,25 @@ func (u UserPlusKeysV2AllIncarnations) IsOlderThan(v UserPlusKeysV2AllIncarnatio
 	return false
 }
 
+func (u UserPlusKeysV2AllIncarnations) AllDeviceNames() []string {
+	var names []string
+
+	for _, k := range u.Current.DeviceKeys {
+		if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+			names = append(names, k.DeviceDescription)
+		}
+	}
+	for _, v := range u.PastIncarnations {
+		for _, k := range v.DeviceKeys {
+			if k.DeviceDescription != "" && (k.DeviceType == "mobile" || k.DeviceType == "desktop") {
+				names = append(names, k.DeviceDescription)
+			}
+		}
+	}
+
+	return names
+}
+
 func (ut UserOrTeamID) String() string {
 	return string(ut)
 }
@@ -2007,4 +2026,30 @@ func (p StringKVPair) IntValue() int {
 		return 0
 	}
 	return i
+}
+
+func (r *GitRepoResult) GetIfOk() (res GitRepoInfo, err error) {
+	state, err := r.State()
+	if err != nil {
+		return res, err
+	}
+	switch state {
+	case GitRepoResultState_ERR:
+		return res, fmt.Errorf(r.Err())
+	case GitRepoResultState_OK:
+		return r.Ok(), nil
+	}
+	return res, fmt.Errorf("git repo unknown error")
+}
+
+func (b MDGetBehavior) ShouldCreateClassicTLF() bool {
+	switch b {
+	case MDGetBehavior_GET_CLASSIC_TLF_NO_CREATE:
+		return false
+	case MDGetBehavior_GET_OR_CREATE_CLASSIC_TLF:
+		return true
+	default:
+		// This shouldn't happen in production as we have TestMDGetBehavior.
+		panic("~>.<~ need to update extras.go after adding MDGetBehavior values")
+	}
 }
