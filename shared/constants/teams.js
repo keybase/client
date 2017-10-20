@@ -24,6 +24,7 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
   }
 >
 
+export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 
 export type AddToTeam = NoErrorTypedAction<
@@ -129,6 +130,20 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
 >
 
 export const teamRoleByEnum = invert(TeamsTeamRole)
+
+export type TypeMap = {
+  admin: string | boolean,
+  owner: string | boolean,
+  reader: string | boolean,
+  writer: string | boolean,
+}
+
+export const typeToLabel: TypeMap = {
+  admin: 'Admin',
+  owner: 'Owner',
+  reader: 'Reader',
+  writer: 'Writer',
+}
 
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,

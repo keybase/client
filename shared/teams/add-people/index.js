@@ -15,7 +15,7 @@ import {isMobile} from '../../constants/platform'
 import UserInput from '../../search/user-input/container'
 import SearchResultsList from '../../search/results-list/container'
 
-import {type TeamRoleType} from '../../constants/teams'
+import {teamRoleTypes, type TeamRoleType} from '../../constants/teams'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -40,95 +40,88 @@ type Props = {
   role: TeamRoleType,
 }
 
-class AddPeople extends React.Component<Props, void> {
-  _makeDropdownItem = (item: string) => {
-    return (
+const _makeDropdownItem = (item: string) => (
+  <Box
+    key={item}
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+    }}
+  >
+    <Text type="Body">{capitalize(item)}</Text>
+  </Box>
+)
+
+const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
+
+const AddPeople = (props: Props) => (
+  <MaybePopup onClose={props.onClose}>
+    <Box style={{...globalStyles.flexBoxColumn}}>
       <Box
-        key={item}
         style={{
-          ...globalStyles.flexBoxRow,
+          ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
           alignItems: 'center',
-          paddingLeft: globalMargins.small,
-          paddingRight: globalMargins.small,
+          margin: globalMargins.small,
         }}
       >
-        <Text type="Body">{capitalize(item)}</Text>
+        <Text style={{margin: globalMargins.tiny}} type="Body">
+          Add these team members to {props.name} as:
+        </Text>
+        <ClickableBox
+          onClick={() =>
+            props.onOpenRolePicker(props.role, (selectedRole: TeamRoleType) =>
+              props.onRoleChange(selectedRole)
+            )}
+        >
+          <Dropdown
+            items={_makeDropdownItems()}
+            selected={_makeDropdownItem(props.role)}
+            onChanged={(node: React.Node) => {
+              // $FlowIssue doesn't understand key will be string
+              const selectedRole: TeamRoleType = (node && node.key) || null
+              props.onRoleChange(selectedRole)
+            }}
+          />
+        </ClickableBox>
+        <Button
+          label="Invite"
+          onClick={props.onAddPeople}
+          style={{margin: globalMargins.tiny}}
+          type="Primary"
+        />
       </Box>
-    )
-  }
 
-  _makeDropdownItems = () => ['admin', 'owner', 'reader', 'writer'].map(item => this._makeDropdownItem(item))
-
-  _dropdownChanged = (node: React.Node) => {
-    // $FlowIssue doesn't understand key will be string
-    const selectedRole: TeamRoleType = (node && node.key) || null
-    this.props.onRoleChange(selectedRole)
-  }
-
-  _openRolePicker = () => {
-    this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
-      this.props.onRoleChange(selectedRole)
-    )
-  }
-
-  render = () => (
-    <MaybePopup onClose={this.props.onClose}>
-      <Box style={{...globalStyles.flexBoxColumn}}>
+      {!isMobile &&
         <Box
           style={{
-            ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-            alignItems: 'center',
-            margin: globalMargins.small,
+            ...globalStyles.flexBoxRow,
+            borderBottom: `1px solid ${globalColors.black_10}`,
+            boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
           }}
-        >
-          <Text style={{margin: globalMargins.tiny}} type="Body">
-            Add these team members to {this.props.name} as:
-          </Text>
-          <ClickableBox onClick={this._openRolePicker}>
-            <Dropdown
-              items={this._makeDropdownItems()}
-              selected={this._makeDropdownItem(this.props.role)}
-              onChanged={this._dropdownChanged}
-            />
-          </ClickableBox>
-          <Button
-            label="Invite"
-            onClick={this.props.onAddPeople}
-            style={{margin: globalMargins.tiny}}
-            type="Primary"
-          />
-        </Box>
+        />}
 
-        {!isMobile &&
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              borderBottom: `1px solid ${globalColors.black_10}`,
-              boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
-            }}
-          />}
-
-        <Box style={{...globalStyles.flexBoxColumn}}>
-          <UserInput
-            autoFocus={true}
-            onExitSearch={this.props.onClose}
-            placeholder="Add people"
-            searchKey={'addToTeamSearch'}
-          />
-        </Box>
-        <Box style={{...globalStyles.scrollable, flex: 1, height: 500}}>
-          {this.props.showSearchPending
-            ? <ProgressIndicator style={{width: globalMargins.large}} />
-            : <SearchResultsList
-                searchKey={'addToTeamSearch'}
-                disableIfInTeamName={this.props.name}
-                style={{flexGrow: 1, height: 500}}
-              />}
-        </Box>
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <UserInput
+          autoFocus={true}
+          onExitSearch={props.onClose}
+          placeholder="Add people"
+          searchKey={'addToTeamSearch'}
+        />
       </Box>
-    </MaybePopup>
-  )
-}
+      <Box style={{...globalStyles.scrollable, flex: 1, height: 500}}>
+        {props.showSearchPending
+          ? <ProgressIndicator style={{width: globalMargins.large}} />
+          : <SearchResultsList
+              searchKey={'addToTeamSearch'}
+              disableIfInTeamName={props.name}
+              style={{flexGrow: 1, height: 500}}
+            />}
+      </Box>
+    </Box>
+  </MaybePopup>
+)
 
 const _styleCover = {
   alignItems: 'stretch',

@@ -5,7 +5,7 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 import capitalize from 'lodash/capitalize'
 import {isMobile} from '../../constants/platform'
 
-import {type TeamRoleType} from '../../constants/teams'
+import {teamRoleTypes, type TeamRoleType} from '../../constants/teams'
 
 const MaybePopup = isMobile
   ? (props: {onClose: () => void, children: React.Node}) => (
@@ -31,82 +31,76 @@ type Props = {
   role: TeamRoleType,
 }
 
-class InviteByEmail extends React.Component<Props, void> {
-  _makeDropdownItem = (item: string) => {
-    return (
+const _makeDropdownItem = (item: string) => (
+  <Box
+    key={item}
+    style={{
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+    }}
+  >
+    <Text type="Body">{capitalize(item)}</Text>
+  </Box>
+)
+
+const _makeDropdownItems = () => teamRoleTypes.map(item => _makeDropdownItem(item))
+
+const InviteByEmail = (props: Props) => (
+  <MaybePopup onClose={props.onClose}>
+    <Box style={{...globalStyles.flexBoxColumn}}>
       <Box
-        key={item}
         style={{
-          ...globalStyles.flexBoxRow,
+          ...globalStyles.flexBoxColumn,
           alignItems: 'center',
-          paddingLeft: globalMargins.small,
-          paddingRight: globalMargins.small,
+          margin: globalMargins.medium,
         }}
       >
-        <Text type="Body">{capitalize(item)}</Text>
-      </Box>
-    )
-  }
-
-  _makeDropdownItems = () => ['admin', 'owner', 'reader', 'writer'].map(item => this._makeDropdownItem(item))
-
-  _dropdownChanged = (node: React.Node) => {
-    // $FlowIssue doesn't understand key will be string
-    const selectedRole: TeamRoleType = (node && node.key) || null
-    this.props.onRoleChange(selectedRole)
-  }
-
-  _openRolePicker = () => {
-    this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
-      this.props.onRoleChange(selectedRole)
-    )
-  }
-
-  render = () => (
-    <MaybePopup onClose={this.props.onClose}>
-      <Box style={{...globalStyles.flexBoxColumn}}>
+        {!isMobile && <Text style={styleInside} type="Header">Invite by email</Text>}
         <Box
           style={{
-            ...globalStyles.flexBoxColumn,
+            ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
             alignItems: 'center',
-            margin: globalMargins.medium,
+            margin: globalMargins.tiny,
           }}
         >
-          {!isMobile && <Text style={styleInside} type="Header">Invite by email</Text>}
-          <Box
-            style={{
-              ...(isMobile ? globalStyles.flexBoxColumn : globalStyles.flexBoxRow),
-              alignItems: 'center',
-              margin: globalMargins.tiny,
-            }}
+          <Text style={{margin: globalMargins.tiny}} type="Body">
+            Add these team members to {props.name} as:
+          </Text>
+          <ClickableBox
+            onClick={() =>
+              props.onOpenRolePicker(props.role, (selectedRole: TeamRoleType) =>
+                props.onRoleChange(selectedRole)
+              )}
           >
-            <Text style={{margin: globalMargins.tiny}} type="Body">
-              Add these team members to {this.props.name} as:
-            </Text>
-            <ClickableBox onClick={this._openRolePicker}>
-              <Dropdown
-                items={this._makeDropdownItems()}
-                selected={this._makeDropdownItem(this.props.role)}
-                onChanged={this._dropdownChanged}
-              />
-            </ClickableBox>
-          </Box>
-          <Input
-            autoFocus={true}
-            hintText="Email addresses"
-            multiline={true}
-            onChangeText={invitees => this.props.onInviteesChange(invitees)}
-            rowsMin={3}
-            rowsMax={8}
-            style={styleInside}
-            value={this.props.invitees}
-          />
-          <Button label="Invite" onClick={this.props.onInvite} type="Primary" />
+            <Dropdown
+              items={_makeDropdownItems()}
+              selected={_makeDropdownItem(props.role)}
+              onChanged={(node: React.Node) => {
+                // $FlowIssue doesn't understand key will be string
+                const selectedRole: TeamRoleType = (node && node.key) || null
+                props.onRoleChange(selectedRole)
+              }}
+            />
+          </ClickableBox>
         </Box>
+        <Input
+          autoFocus={true}
+          hintText="Email addresses"
+          multiline={true}
+          onChangeText={invitees => props.onInviteesChange(invitees)}
+          rowsMin={3}
+          rowsMax={8}
+          style={styleInside}
+          value={props.invitees}
+        />
+        <Button label="Invite" onClick={props.onInvite} type="Primary" />
       </Box>
-    </MaybePopup>
-  )
-}
+    </Box>
+  </MaybePopup>
+)
+
 const styleInside = {
   padding: globalMargins.small,
 }

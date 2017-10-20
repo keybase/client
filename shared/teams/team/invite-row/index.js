@@ -3,6 +3,7 @@ import * as React from 'react'
 import {Avatar, Box, ClickableBox, Text, Usernames} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
+import {typeToLabel} from '../../../constants/teams'
 
 export type Props = {
   username: string,
@@ -10,20 +11,6 @@ export type Props = {
   teamname: string,
   you: ?string,
   type: ?string,
-}
-
-type TypeMap = {
-  admin: string | boolean,
-  owner: string | boolean,
-  reader: string | boolean,
-  writer: string | boolean,
-}
-
-const typeToLabel: TypeMap = {
-  admin: 'Admin',
-  owner: 'Owner',
-  reader: 'Reader',
-  writer: 'Writer',
 }
 
 export const TeamInviteRow = (props: Props) => {

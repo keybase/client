@@ -222,7 +222,7 @@ class Team extends React.PureComponent<Props> {
         )
       } else {
         contents =
-          (invites.length !== 0 || !loading) &&
+          !loading &&
           <List
             keyProperty="username"
             items={inviteProps}

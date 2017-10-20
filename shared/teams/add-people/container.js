@@ -1,13 +1,17 @@
 // @flow
-import {connect} from 'react-redux'
 import * as Creators from '../../actions/teams/creators'
 import * as SearchCreators from '../../actions/search/creators'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
-import {compose, withHandlers, withPropsOnChange, withState} from 'recompose'
-
-import type {TypedState} from '../../constants/reducer'
+import {
+  connect,
+  compose,
+  withHandlers,
+  withPropsOnChange,
+  withState,
+  type TypedState,
+} from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   name: routeProps.get('teamname'),
