@@ -320,14 +320,14 @@ const stylesNavText = {
 
 const styleBadgeAvatar = {
   position: 'absolute',
-  left: 46,
-  top: -5,
+  left: 45,
+  top: 0,
 }
 
 const styleBadgeNav = {
   position: 'absolute',
-  left: 46,
-  top: 5,
+  left: 45,
+  top: 4,
 }
 
 const styleBadgeIcon = {
