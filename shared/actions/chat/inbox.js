@@ -371,13 +371,10 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   let {conversationIDKeys, force, forInboxSync} = action.payload
 
   const untrustedState = yield select(state => state.entities.inboxUntrustedState)
+  // Don't unbox pending conversations
+  conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
 
   const newUntrustedState = conversationIDKeys.reduce((map, c) => {
-    // Don't unbox pending conversations
-    if (Constants.isPendingConversationIDKey(c)) {
-      return map
-    }
-
     if (untrustedState.get(c) === 'unboxed') {
       // only unbox unboxed if we force
       if (force) {

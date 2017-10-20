@@ -245,6 +245,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     smallIDsHidden: stateProps.smallIDsHidden,
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+    filterFocusCount: ownProps.filterFocusCount,
   }
 }
 

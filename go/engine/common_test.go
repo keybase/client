@@ -44,6 +44,7 @@ type FakeUser struct {
 	Passphrase    string
 	User          *libkb.User
 	EncryptionKey libkb.GenericKey
+	DeviceName    string
 }
 
 func NewFakeUser(prefix string) (fu *FakeUser, err error) {
@@ -122,6 +123,7 @@ func CreateAndSignupFakeUser2(tc libkb.TestContext, prefix string) (*FakeUser, *
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
 	arg := MakeTestSignupEngineRunArg(fu)
+	fu.DeviceName = arg.DeviceName
 	eng := SignupFakeUserWithArg(tc, fu, arg)
 	return fu, eng
 }

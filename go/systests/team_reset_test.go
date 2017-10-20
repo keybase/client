@@ -471,18 +471,34 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	tryLoad := func(teamID keybase1.TeamID) (res *teams.Team) {
 		res, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
 			ID:          teamID,
+			Public:      teamID.IsPublic(),
 			ForceRepoll: true,
 		})
 		require.NoError(t, err)
 		return res
 	}
 
-	resTeam := tryLoad(team.ID)
-	teamName := resTeam.Name().String()
+	tryLoad(team.ID)
+
+	getRole := func(username string) keybase1.TeamRole {
+		g := G
+		loadUserArg := libkb.NewLoadUserArg(g).
+			WithNetContext(context.TODO()).
+			WithName(username).
+			WithPublicKeyOptional().
+			WithForcePoll(true)
+		upak, _, err := g.GetUPAKLoader().LoadV2(loadUserArg)
+		require.NoError(t, err)
+
+		team, err := teams.GetForTeamManagementByTeamID(context.TODO(), g, team.ID, false)
+		require.NoError(t, err)
+		role, err := team.MemberRole(context.TODO(), upak.Current.ToUserVersion())
+		require.NoError(t, err)
+		return role
+	}
 
 	// Bob's role should be NONE since he's still reset.
-	role, err := teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role := getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob.
@@ -493,8 +509,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	tryLoad(team.ID)
 
 	// Check if bob is back as OWNER.
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 
 	// Reset and re-provision bob again.
@@ -507,8 +522,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	// Check if sigchain plays correctly, check if role is NONE.
 	tryLoad(team.ID)
 
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob, again.
@@ -521,8 +535,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	// with uids and eldest from before and after reset.
 	tryLoad(team.ID)
 
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }
 

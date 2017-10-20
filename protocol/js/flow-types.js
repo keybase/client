@@ -408,6 +408,11 @@ export const KbfsCommonFSStatusCode = {
   error: 2,
 }
 
+export const MetadataMDGetBehavior = {
+  getOrCreateClassicTlf: 0,
+  getClassicTlfNoCreate: 1,
+}
+
 export const PassphraseCommonPassphraseType = {
   none: 0,
   paperKey: 1,
@@ -3722,6 +3727,10 @@ export type MDBlock = {
   block: bytes,
 }
 
+export type MDGetBehavior =
+    0 // GET_OR_CREATE_CLASSIC_TLF_0
+  | 1 // GET_CLASSIC_TLF_NO_CREATE_1
+
 export type MDPriority = int
 
 export type MaskB64 = bytes
@@ -5831,7 +5840,8 @@ export type metadataGetMetadataRpcParam = Exact<{
   startRevision: long,
   stopRevision: long,
   logTags: {[key: string]: string},
-  lockBeforeGet?: ?LockID
+  lockBeforeGet?: ?LockID,
+  getBehavior: MDGetBehavior
 }>
 
 export type metadataLockRpcParam = Exact<{

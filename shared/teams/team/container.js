@@ -80,6 +80,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
   const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
+  const yourType = stateProps._memberInfo.find(member => member.username === stateProps.you)
+  const youCanAddPeople = yourType && (yourType.type === 'owner' || yourType.type === 'admin')
 
   const customComponent = (
     <CustomComponent
@@ -103,6 +105,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onManageChat,
     onOpenFolder,
     onClickOpenTeamSetting,
+    youCanAddPeople,
   }
 }
 

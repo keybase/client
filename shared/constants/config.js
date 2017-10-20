@@ -21,6 +21,7 @@ const daemonError = 'config:daemonError'
 const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 const defaultPrivatePrefix = '/private/'
 const defaultPublicPrefix = '/public/'
+const defaultTeamPrefix = '/team/'
 const extendedConfigLoaded = 'config:extendedConfigLoaded'
 const globalError = 'config:globalError'
 const globalErrorDismiss = 'config:globalErrorDismiss'
@@ -58,6 +59,10 @@ export function privateFolderWithUsers(users: Array<string>): string {
 
 export function publicFolderWithUsers(users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
+}
+
+export function teamFolder(team: string): string {
+  return `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 }
 
 export type State = {
