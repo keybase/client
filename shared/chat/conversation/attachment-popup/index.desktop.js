@@ -25,11 +25,7 @@ const AttachmentStatusFooter = ({
     contents = <AttachmentProgressBar text="Downloading" progress={downloadProgress} />
   } else if (savedPath) {
     contents = (
-      <Text
-        type="BodySmall"
-        style={{color: globalColors.black_60, cursor: 'pointer'}}
-        onClick={onOpenInFileUI}
-      >
+      <Text type="BodySmallPrimaryLink" style={{cursor: 'pointer'}} onClick={onOpenInFileUI}>
         Show in {fileUIName}
       </Text>
     )
