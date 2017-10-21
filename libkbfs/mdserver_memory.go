@@ -524,7 +524,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned,
 		md.branchDb[branchKey] = bid
 	}
 
-	encodedMd, err := EncodeRootMetadataSigned(md.config.Codec(), rmds)
+	encodedMd, err := kbfsmd.EncodeRootMetadataSigned(md.config.Codec(), &rmds.RootMetadataSigned)
 	if err != nil {
 		return kbfsmd.ServerError{Err: err}
 	}

@@ -158,3 +158,28 @@ func (e InvalidMetadataVersionError) Error() string {
 	return fmt.Sprintf("Invalid metadata version %d for folder %s",
 		int(e.MetadataVer), e.TlfID)
 }
+
+// NewMetadataVersionError indicates that the metadata for the given
+// folder has been written using a new metadata version that our
+// client doesn't understand.
+type NewMetadataVersionError struct {
+	Tlf         tlf.ID
+	MetadataVer MetadataVer
+}
+
+// Error implements the error interface for NewMetadataVersionError.
+func (e NewMetadataVersionError) Error() string {
+	return fmt.Sprintf(
+		"The metadata for folder %s is of a version (%d) that we can't read",
+		e.Tlf, e.MetadataVer)
+}
+
+// MutableRootMetadataNoImplError is returned when an interface expected
+// to implement MutableRootMetadata does not do so.
+type MutableRootMetadataNoImplError struct {
+}
+
+// Error implements the error interface for MutableRootMetadataNoImplError
+func (e MutableRootMetadataNoImplError) Error() string {
+	return "Does not implement MutableRootMetadata"
+}

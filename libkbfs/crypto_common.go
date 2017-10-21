@@ -9,11 +9,9 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
-	"github.com/keybase/kbfs/kbfshash"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
@@ -41,19 +39,6 @@ func (c CryptoCommon) MakeRandomTlfID(t tlf.Type) (tlf.ID, error) {
 // MakeRandomBranchID implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) MakeRandomBranchID() (BranchID, error) {
 	return kbfsmd.MakeRandomBranchID()
-}
-
-// MakeMerkleHash implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error) {
-	buf, err := c.codec.Encode(md)
-	if err != nil {
-		return MerkleHash{}, err
-	}
-	h, err := kbfshash.DefaultHash(buf)
-	if err != nil {
-		return MerkleHash{}, err
-	}
-	return MerkleHash{h}, nil
 }
 
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
@@ -234,50 +219,4 @@ func (c CryptoCommon) DecryptBlock(
 		return errors.WithStack(BlockDecodeError{err})
 	}
 	return nil
-}
-
-// EncryptMerkleLeaf encrypts a Merkle leaf node with the
-// kbfscrypto.TLFPublicKey.
-func (c CryptoCommon) EncryptMerkleLeaf(leaf MerkleLeaf,
-	pubKey kbfscrypto.TLFPublicKey,
-	nonce *[24]byte, ePrivKey kbfscrypto.TLFEphemeralPrivateKey) (
-	EncryptedMerkleLeaf, error) {
-	// encode the clear-text leaf
-	leafBytes, err := c.codec.Encode(leaf)
-	if err != nil {
-		return EncryptedMerkleLeaf{}, err
-	}
-	// encrypt the encoded leaf
-	pubKeyData := pubKey.Data()
-	privKeyData := ePrivKey.Data()
-	encryptedData := box.Seal(
-		nil, leafBytes[:], nonce, &pubKeyData, &privKeyData)
-	return EncryptedMerkleLeaf{
-		Version:       EncryptionSecretbox,
-		EncryptedData: encryptedData,
-	}, nil
-}
-
-// DecryptMerkleLeaf decrypts a Merkle leaf node with the
-// kbfscrypto.TLFPrivateKey.
-func (c CryptoCommon) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf,
-	privKey kbfscrypto.TLFPrivateKey, nonce *[24]byte,
-	ePubKey kbfscrypto.TLFEphemeralPublicKey) (*MerkleLeaf, error) {
-	if encryptedLeaf.Version != EncryptionSecretbox {
-		return nil, errors.WithStack(
-			kbfscrypto.UnknownEncryptionVer{Ver: encryptedLeaf.Version})
-	}
-	pubKeyData := ePubKey.Data()
-	privKeyData := privKey.Data()
-	leafBytes, ok := box.Open(
-		nil, encryptedLeaf.EncryptedData[:], nonce, &pubKeyData, &privKeyData)
-	if !ok {
-		return nil, errors.WithStack(libkb.DecryptionError{})
-	}
-	// decode the leaf
-	var leaf MerkleLeaf
-	if err := c.codec.Decode(leafBytes, &leaf); err != nil {
-		return nil, err
-	}
-	return &leaf, nil
 }

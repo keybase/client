@@ -51,7 +51,7 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 	// TODO: Avoid having to do this type assertion.
 	brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
 	if !ok {
-		return ImmutableRootMetadata{}, MutableBareRootMetadataNoImplError{}
+		return ImmutableRootMetadata{}, kbfsmd.MutableRootMetadataNoImplError{}
 	}
 
 	rmd := makeRootMetadata(brmd, ibrmd.extra, handle)

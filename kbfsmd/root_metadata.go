@@ -324,6 +324,37 @@ func MakeInitialRootMetadata(
 	return MakeInitialRootMetadataV3(tlfID, h)
 }
 
+func makeMutableRootMetadataForDecode(codec kbfscodec.Codec, tlf tlf.ID,
+	ver, max MetadataVer, buf []byte) (MutableRootMetadata, error) {
+	if ver < FirstValidMetadataVer {
+		return nil, InvalidMetadataVersionError{TlfID: tlf, MetadataVer: ver}
+	} else if ver > max {
+		return nil, NewMetadataVersionError{tlf, ver}
+	}
+	if ver > SegregatedKeyBundlesVer {
+		// Shouldn't be possible at the moment.
+		panic("Invalid metadata version")
+	}
+	if ver < SegregatedKeyBundlesVer {
+		return &RootMetadataV2{}, nil
+	}
+	return &RootMetadataV3{}, nil
+}
+
+// DecodeRootMetadata deserializes a metadata block into the specified
+// versioned structure.
+func DecodeRootMetadata(codec kbfscodec.Codec, tlf tlf.ID,
+	ver, max MetadataVer, buf []byte) (MutableRootMetadata, error) {
+	rmd, err := makeMutableRootMetadataForDecode(codec, tlf, ver, max, buf)
+	if err != nil {
+		return nil, err
+	}
+	if err := codec.Decode(buf, rmd); err != nil {
+		return nil, err
+	}
+	return rmd, nil
+}
+
 // DumpConfig returns the *spew.ConfigState used by DumpRootMetadata
 // and related functions.
 func DumpConfig() *spew.ConfigState {

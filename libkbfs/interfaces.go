@@ -996,10 +996,6 @@ type cryptoPure interface {
 	// NullBranchID.
 	MakeRandomBranchID() (BranchID, error)
 
-	// MakeMerkleHash computes the hash of a RootMetadataSigned object
-	// for inclusion into the KBFS Merkle tree.
-	MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error)
-
 	// MakeTemporaryBlockID generates a temporary block ID using a
 	// CSPRNG. This is used for indirect blocks before they're
 	// committed to the server.
@@ -1046,16 +1042,6 @@ type cryptoPure interface {
 	// block) <= len(encryptedBlock).
 	DecryptBlock(encryptedBlock EncryptedBlock,
 		key kbfscrypto.BlockCryptKey, block Block) error
-
-	// EncryptMerkleLeaf encrypts a Merkle leaf node with the TLFPublicKey.
-	EncryptMerkleLeaf(leaf MerkleLeaf, pubKey kbfscrypto.TLFPublicKey,
-		nonce *[24]byte, ePrivKey kbfscrypto.TLFEphemeralPrivateKey) (
-		EncryptedMerkleLeaf, error)
-
-	// DecryptMerkleLeaf decrypts a Merkle leaf node with the TLFPrivateKey.
-	DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf,
-		privKey kbfscrypto.TLFPrivateKey, nonce *[24]byte,
-		ePubKey kbfscrypto.TLFEphemeralPublicKey) (*MerkleLeaf, error)
 }
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.

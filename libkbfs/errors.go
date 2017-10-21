@@ -458,21 +458,6 @@ func (e NoSuchMDError) Error() string {
 		"%s", e.Tlf, e.Rev, e.BID)
 }
 
-// NewMetadataVersionError indicates that the metadata for the given
-// folder has been written using a new metadata version that our
-// client doesn't understand.
-type NewMetadataVersionError struct {
-	Tlf         tlf.ID
-	MetadataVer MetadataVer
-}
-
-// Error implements the error interface for NewMetadataVersionError.
-func (e NewMetadataVersionError) Error() string {
-	return fmt.Sprintf(
-		"The metadata for folder %s is of a version (%d) that we can't read",
-		e.Tlf, e.MetadataVer)
-}
-
 // InvalidDataVersionError indicates that an invalid data version was
 // used.
 type InvalidDataVersionError struct {
@@ -1039,16 +1024,6 @@ type UnmergedSelfConflictError struct {
 // Error implements the error interface for UnmergedSelfConflictError.
 func (e UnmergedSelfConflictError) Error() string {
 	return fmt.Sprintf("Unmerged self conflict: %v", e.Err)
-}
-
-// MutableBareRootMetadataNoImplError is returned when an interface expected
-// to implement MutableBareRootMetadata does not do so.
-type MutableBareRootMetadataNoImplError struct {
-}
-
-// Error implements the error interface for MutableBareRootMetadataNoImplError
-func (e MutableBareRootMetadataNoImplError) Error() string {
-	return "Does not implement MutableBareRootMetadata"
 }
 
 // blockNonExistentError is returned when a block doesn't exist. This

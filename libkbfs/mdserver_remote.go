@@ -626,7 +626,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned,
 	}()
 
 	// encode MD block
-	rmdsBytes, err := EncodeRootMetadataSigned(md.config.Codec(), rmds)
+	rmdsBytes, err := kbfsmd.EncodeRootMetadataSigned(md.config.Codec(), &rmds.RootMetadataSigned)
 	if err != nil {
 		return err
 	}

@@ -1656,7 +1656,7 @@ func (j *tlfJournal) getUnflushedPathMDInfos(ctx context.Context,
 		// convert to RootMetadata.
 		brmd, ok := ibrmd.BareRootMetadata.(MutableBareRootMetadata)
 		if !ok {
-			return nil, MutableBareRootMetadataNoImplError{}
+			return nil, kbfsmd.MutableRootMetadataNoImplError{}
 		}
 		rmd := makeRootMetadata(brmd, ibrmd.extra, handle)
 

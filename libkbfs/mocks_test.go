@@ -3230,19 +3230,6 @@ func (mr *MockcryptoPureMockRecorder) MakeRandomBranchID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRandomBranchID", reflect.TypeOf((*MockcryptoPure)(nil).MakeRandomBranchID))
 }
 
-// MakeMerkleHash mocks base method
-func (m *MockcryptoPure) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error) {
-	ret := m.ctrl.Call(m, "MakeMerkleHash", md)
-	ret0, _ := ret[0].(MerkleHash)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// MakeMerkleHash indicates an expected call of MakeMerkleHash
-func (mr *MockcryptoPureMockRecorder) MakeMerkleHash(md interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeMerkleHash", reflect.TypeOf((*MockcryptoPure)(nil).MakeMerkleHash), md)
-}
-
 // MakeTemporaryBlockID mocks base method
 func (m *MockcryptoPure) MakeTemporaryBlockID() (kbfsblock.ID, error) {
 	ret := m.ctrl.Call(m, "MakeTemporaryBlockID")
@@ -3363,32 +3350,6 @@ func (mr *MockcryptoPureMockRecorder) DecryptBlock(encryptedBlock, key, block in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptBlock", reflect.TypeOf((*MockcryptoPure)(nil).DecryptBlock), encryptedBlock, key, block)
 }
 
-// EncryptMerkleLeaf mocks base method
-func (m *MockcryptoPure) EncryptMerkleLeaf(leaf MerkleLeaf, pubKey kbfscrypto.TLFPublicKey, nonce *[24]byte, ePrivKey kbfscrypto.TLFEphemeralPrivateKey) (EncryptedMerkleLeaf, error) {
-	ret := m.ctrl.Call(m, "EncryptMerkleLeaf", leaf, pubKey, nonce, ePrivKey)
-	ret0, _ := ret[0].(EncryptedMerkleLeaf)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EncryptMerkleLeaf indicates an expected call of EncryptMerkleLeaf
-func (mr *MockcryptoPureMockRecorder) EncryptMerkleLeaf(leaf, pubKey, nonce, ePrivKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptMerkleLeaf", reflect.TypeOf((*MockcryptoPure)(nil).EncryptMerkleLeaf), leaf, pubKey, nonce, ePrivKey)
-}
-
-// DecryptMerkleLeaf mocks base method
-func (m *MockcryptoPure) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privKey kbfscrypto.TLFPrivateKey, nonce *[24]byte, ePubKey kbfscrypto.TLFEphemeralPublicKey) (*MerkleLeaf, error) {
-	ret := m.ctrl.Call(m, "DecryptMerkleLeaf", encryptedLeaf, privKey, nonce, ePubKey)
-	ret0, _ := ret[0].(*MerkleLeaf)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DecryptMerkleLeaf indicates an expected call of DecryptMerkleLeaf
-func (mr *MockcryptoPureMockRecorder) DecryptMerkleLeaf(encryptedLeaf, privKey, nonce, ePubKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptMerkleLeaf", reflect.TypeOf((*MockcryptoPure)(nil).DecryptMerkleLeaf), encryptedLeaf, privKey, nonce, ePubKey)
-}
-
 // MockCrypto is a mock of Crypto interface
 type MockCrypto struct {
 	ctrl     *gomock.Controller
@@ -3436,19 +3397,6 @@ func (m *MockCrypto) MakeRandomBranchID() (BranchID, error) {
 // MakeRandomBranchID indicates an expected call of MakeRandomBranchID
 func (mr *MockCryptoMockRecorder) MakeRandomBranchID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeRandomBranchID", reflect.TypeOf((*MockCrypto)(nil).MakeRandomBranchID))
-}
-
-// MakeMerkleHash mocks base method
-func (m *MockCrypto) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error) {
-	ret := m.ctrl.Call(m, "MakeMerkleHash", md)
-	ret0, _ := ret[0].(MerkleHash)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// MakeMerkleHash indicates an expected call of MakeMerkleHash
-func (mr *MockCryptoMockRecorder) MakeMerkleHash(md interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeMerkleHash", reflect.TypeOf((*MockCrypto)(nil).MakeMerkleHash), md)
 }
 
 // MakeTemporaryBlockID mocks base method
@@ -3569,32 +3517,6 @@ func (m *MockCrypto) DecryptBlock(encryptedBlock EncryptedBlock, key kbfscrypto.
 // DecryptBlock indicates an expected call of DecryptBlock
 func (mr *MockCryptoMockRecorder) DecryptBlock(encryptedBlock, key, block interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptBlock", reflect.TypeOf((*MockCrypto)(nil).DecryptBlock), encryptedBlock, key, block)
-}
-
-// EncryptMerkleLeaf mocks base method
-func (m *MockCrypto) EncryptMerkleLeaf(leaf MerkleLeaf, pubKey kbfscrypto.TLFPublicKey, nonce *[24]byte, ePrivKey kbfscrypto.TLFEphemeralPrivateKey) (EncryptedMerkleLeaf, error) {
-	ret := m.ctrl.Call(m, "EncryptMerkleLeaf", leaf, pubKey, nonce, ePrivKey)
-	ret0, _ := ret[0].(EncryptedMerkleLeaf)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// EncryptMerkleLeaf indicates an expected call of EncryptMerkleLeaf
-func (mr *MockCryptoMockRecorder) EncryptMerkleLeaf(leaf, pubKey, nonce, ePrivKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncryptMerkleLeaf", reflect.TypeOf((*MockCrypto)(nil).EncryptMerkleLeaf), leaf, pubKey, nonce, ePrivKey)
-}
-
-// DecryptMerkleLeaf mocks base method
-func (m *MockCrypto) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privKey kbfscrypto.TLFPrivateKey, nonce *[24]byte, ePubKey kbfscrypto.TLFEphemeralPublicKey) (*MerkleLeaf, error) {
-	ret := m.ctrl.Call(m, "DecryptMerkleLeaf", encryptedLeaf, privKey, nonce, ePubKey)
-	ret0, _ := ret[0].(*MerkleLeaf)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// DecryptMerkleLeaf indicates an expected call of DecryptMerkleLeaf
-func (mr *MockCryptoMockRecorder) DecryptMerkleLeaf(encryptedLeaf, privKey, nonce, ePubKey interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DecryptMerkleLeaf", reflect.TypeOf((*MockCrypto)(nil).DecryptMerkleLeaf), encryptedLeaf, privKey, nonce, ePubKey)
 }
 
 // Sign mocks base method

@@ -90,13 +90,6 @@ type EncryptedBlock = kbfscrypto.EncryptedBlock
 // EncryptedTLFCryptKeys is a temporary alias.
 type EncryptedTLFCryptKeys = kbfscrypto.EncryptedTLFCryptKeys
 
-// EncryptedMerkleLeaf is an encrypted Merkle leaf.
-type EncryptedMerkleLeaf struct {
-	_struct       bool `codec:",toarray"`
-	Version       EncryptionVer
-	EncryptedData []byte
-}
-
 // EncryptedTLFCryptKeyClientAndEphemeral has what's needed to
 // request a client half decryption.
 type EncryptedTLFCryptKeyClientAndEphemeral struct {

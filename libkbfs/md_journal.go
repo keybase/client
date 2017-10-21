@@ -443,7 +443,7 @@ func (j mdJournal) getMDAndExtra(ctx context.Context, entry mdIDJournalEntry,
 		return nil, nil, time.Time{}, err
 	}
 
-	rmd, err := DecodeRootMetadata(
+	rmd, err := kbfsmd.DecodeRootMetadata(
 		j.codec, j.tlfID, version, j.mdVer, data)
 	if err != nil {
 		return nil, nil, time.Time{}, err

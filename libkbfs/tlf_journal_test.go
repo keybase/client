@@ -517,7 +517,7 @@ func testTLFJournalBlockOpDiskByteLimit(t *testing.T, ver MetadataVer) {
 	// Fake an MD flush.
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
 	err = tlfJournal.doOnMDFlushAndRemoveFlushedMDEntry(
-		ctx, kbfsmd.ID{}, &RootMetadataSigned{MD: md.bareMd})
+		ctx, kbfsmd.ID{}, &RootMetadataSigned{RootMetadataSigned: kbfsmd.RootMetadataSigned{MD: md.bareMd}})
 
 	select {
 	case err := <-errCh:
@@ -557,7 +557,7 @@ func testTLFJournalBlockOpDiskFileLimit(t *testing.T, ver MetadataVer) {
 	// Fake an MD flush.
 	md := config.makeMD(kbfsmd.RevisionInitial, kbfsmd.ID{})
 	err = tlfJournal.doOnMDFlushAndRemoveFlushedMDEntry(
-		ctx, kbfsmd.ID{}, &RootMetadataSigned{MD: md.bareMd})
+		ctx, kbfsmd.ID{}, &RootMetadataSigned{RootMetadataSigned: kbfsmd.RootMetadataSigned{MD: md.bareMd}})
 
 	select {
 	case err := <-errCh:

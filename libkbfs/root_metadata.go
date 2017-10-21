@@ -979,56 +979,24 @@ func (irmd ImmutableRootMetadata) LastModifyingWriterVerifyingKey() kbfscrypto.V
 	return irmd.lastWriterVerifyingKey
 }
 
-// RootMetadataSigned is the top-level MD object stored in MD server
-//
-// TODO: Have separate types for:
-//
-// - The in-memory client representation (needs untrustedServerTimestamp);
-// - the type sent over RPC;
-// - the type stored in the journal;
-// - and the type stored in the MD server.
+// RootMetadataSigned is a wrapper around kbfsmd.RootMetadataSigned
+// that adds an untrusted server timestamp.
 type RootMetadataSigned struct {
-	// SigInfo is the signature over the root metadata by the
-	// last modifying user's private signing key.
-	SigInfo kbfscrypto.SignatureInfo
-	// WriterSigInfo is the signature over the writer metadata by
-	// the last modifying writer's private signing key.
-	WriterSigInfo kbfscrypto.SignatureInfo
-	// all the metadata
-	MD BareRootMetadata
+	kbfsmd.RootMetadataSigned
 	// When does the server say this MD update was received?  (This is
 	// not necessarily trustworthy, just for informational purposes.)
 	untrustedServerTimestamp time.Time
 }
 
-func checkWriterSig(rmds *RootMetadataSigned) error {
-	if mdv2, ok := rmds.MD.(*kbfsmd.RootMetadataV2); ok {
-		if !mdv2.WriterMetadataSigInfo.Equals(rmds.WriterSigInfo) {
-			return fmt.Errorf(
-				"Expected writer sig info %v, got %v",
-				mdv2.WriterMetadataSigInfo, rmds.WriterSigInfo)
-		}
-	}
-	return nil
-}
-
 // makeRootMetadataSigned makes a RootMetadataSigned object from the
 // given info. If md stores the writer signature info internally, it
 // must match the given one.
-func makeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
-	md BareRootMetadata,
-	untrustedServerTimestamp time.Time) (*RootMetadataSigned, error) {
-	rmds := &RootMetadataSigned{
-		MD:                       md,
-		SigInfo:                  sigInfo,
-		WriterSigInfo:            writerSigInfo,
+func makeRootMetadataSigned(rmds *kbfsmd.RootMetadataSigned,
+	untrustedServerTimestamp time.Time) *RootMetadataSigned {
+	return &RootMetadataSigned{
+		RootMetadataSigned:       *rmds,
 		untrustedServerTimestamp: untrustedServerTimestamp,
 	}
-	err := checkWriterSig(rmds)
-	if err != nil {
-		return nil, err
-	}
-	return rmds, nil
 }
 
 // SignBareRootMetadata signs the given BareRootMetadata and returns a
@@ -1037,61 +1005,13 @@ func makeRootMetadataSigned(sigInfo, writerSigInfo kbfscrypto.SignatureInfo,
 func SignBareRootMetadata(
 	ctx context.Context, codec kbfscodec.Codec,
 	rootMetadataSigner, writerMetadataSigner kbfscrypto.Signer,
-	brmd BareRootMetadata, untrustedServerTimestamp time.Time) (
+	md BareRootMetadata, untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error) {
-	// encode the root metadata
-	buf, err := codec.Encode(brmd)
+	rmds, err := kbfsmd.SignRootMetadata(ctx, codec, rootMetadataSigner, writerMetadataSigner, md)
 	if err != nil {
 		return nil, err
 	}
-
-	var sigInfo, writerSigInfo kbfscrypto.SignatureInfo
-	if mdv2, ok := brmd.(*kbfsmd.RootMetadataV2); ok {
-		// sign the root metadata
-		sigInfo, err = rootMetadataSigner.Sign(ctx, buf)
-		if err != nil {
-			return nil, err
-		}
-		// Assume that writerMetadataSigner has already signed
-		// mdv2 internally. If not, makeRootMetadataSigned
-		// will catch it.
-		writerSigInfo = mdv2.WriterMetadataSigInfo
-	} else {
-		// sign the root metadata -- use the KBFS signing prefix.
-		sigInfo, err = rootMetadataSigner.SignForKBFS(ctx, buf)
-		if err != nil {
-			return nil, err
-		}
-		buf, err = brmd.GetSerializedWriterMetadata(codec)
-		if err != nil {
-			return nil, err
-		}
-		// sign the writer metadata
-		writerSigInfo, err = writerMetadataSigner.SignForKBFS(ctx, buf)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return makeRootMetadataSigned(
-		sigInfo, writerSigInfo, brmd, untrustedServerTimestamp)
-}
-
-// GetWriterMetadataSigInfo returns the signature of the writer
-// metadata.
-func (rmds *RootMetadataSigned) GetWriterMetadataSigInfo() kbfscrypto.SignatureInfo {
-	return rmds.WriterSigInfo
-}
-
-// MerkleHash computes a hash of this RootMetadataSigned object for inclusion
-// into the KBFS Merkle tree.
-func (rmds *RootMetadataSigned) MerkleHash(crypto cryptoPure) (MerkleHash, error) {
-	return crypto.MakeMerkleHash(rmds)
-}
-
-// Version returns the metadata version of this MD block, depending on
-// which features it uses.
-func (rmds *RootMetadataSigned) Version() MetadataVer {
-	return rmds.MD.Version()
+	return makeRootMetadataSigned(rmds, untrustedServerTimestamp), nil
 }
 
 // MakeFinalCopy returns a complete copy of this RootMetadataSigned
@@ -1099,182 +1019,11 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 func (rmds *RootMetadataSigned) MakeFinalCopy(
 	codec kbfscodec.Codec, now time.Time,
 	finalizedInfo *tlf.HandleExtension) (*RootMetadataSigned, error) {
-	if finalizedInfo.Type != tlf.HandleExtensionFinalized {
-		return nil, fmt.Errorf(
-			"Extension %s does not have finalized type",
-			finalizedInfo)
-	}
-	if rmds.MD.IsFinal() {
-		return nil, kbfsmd.MetadataIsFinalError{}
-	}
-	newBareMd, err := rmds.MD.DeepCopy(codec)
+	rmdsCopy, err := rmds.RootMetadataSigned.MakeFinalCopy(codec, finalizedInfo)
 	if err != nil {
 		return nil, err
 	}
-	// Set the final flag.
-	newBareMd.SetFinalBit()
-	// Set the copied bit, so that clients don't take the ops and byte
-	// counts in it seriously.
-	newBareMd.SetWriterMetadataCopiedBit()
-	// Increment revision but keep the PrevRoot --
-	// We want the client to be able to verify the signature by masking out the final
-	// bit, decrementing the revision, and nulling out the finalized extension info.
-	// This way it can easily tell a server didn't modify anything unexpected when
-	// creating the final metadata block. Note that PrevRoot isn't being updated. This
-	// is to make verification easier for the client as otherwise it'd need to request
-	// the head revision - 1.
-	newBareMd.SetRevision(rmds.MD.RevisionNumber() + 1)
-	newBareMd.SetFinalizedInfo(finalizedInfo)
-	return makeRootMetadataSigned(
-		rmds.SigInfo.DeepCopy(), rmds.WriterSigInfo.DeepCopy(),
-		newBareMd, now)
-}
-
-// IsValidAndSigned verifies the RootMetadataSigned, checks the root
-// signature, and returns an error if a problem was found.  This
-// should be the first thing checked on an RMDS retrieved from an
-// untrusted source, and then the signing users and keys should be
-// validated, either by comparing to the current device key (using
-// IsLastModifiedBy), or by checking with KBPKI.
-func (rmds *RootMetadataSigned) IsValidAndSigned(
-	ctx context.Context, codec kbfscodec.Codec,
-	teamMemChecker TeamMembershipChecker, extra ExtraMetadata) error {
-	// Optimization -- if the RootMetadata signature is nil, it
-	// will fail verification.
-	if rmds.SigInfo.IsNil() {
-		return errors.New("Missing RootMetadata signature")
-	}
-	// Optimization -- if the WriterMetadata signature is nil, it
-	// will fail verification.
-	if rmds.WriterSigInfo.IsNil() {
-		return errors.New("Missing WriterMetadata signature")
-	}
-
-	err := rmds.MD.IsValidAndSigned(
-		ctx, codec, teamMemChecker, extra,
-		rmds.WriterSigInfo.VerifyingKey)
-	if err != nil {
-		return err
-	}
-
-	md := rmds.MD
-	if rmds.MD.IsFinal() {
-		mdCopy, err := md.DeepCopy(codec)
-		if err != nil {
-			return err
-		}
-		mutableMdCopy, ok := mdCopy.(MutableBareRootMetadata)
-		if !ok {
-			return MutableBareRootMetadataNoImplError{}
-		}
-		// Mask out finalized additions.  These are the only
-		// things allowed to change in the finalized metadata
-		// block.
-		mutableMdCopy.ClearFinalBit()
-		mutableMdCopy.ClearWriterMetadataCopiedBit()
-		mutableMdCopy.SetRevision(md.RevisionNumber() - 1)
-		mutableMdCopy.SetFinalizedInfo(nil)
-		md = mutableMdCopy
-	}
-	// Re-marshal the whole RootMetadata. This is not avoidable
-	// without support from ugorji/codec.
-	buf, err := codec.Encode(md)
-	if err != nil {
-		return err
-	}
-
-	err = kbfscrypto.Verify(buf, rmds.SigInfo)
-	if err != nil {
-		return fmt.Errorf("Could not verify root metadata: %v", err)
-	}
-
-	buf, err = md.GetSerializedWriterMetadata(codec)
-	if err != nil {
-		return err
-	}
-
-	err = kbfscrypto.Verify(buf, rmds.WriterSigInfo)
-	if err != nil {
-		return fmt.Errorf("Could not verify writer metadata: %v", err)
-	}
-
-	return nil
-}
-
-// IsLastModifiedBy verifies that the RootMetadataSigned is written by
-// the given user and device (identified by the device verifying key),
-// and returns an error if not.
-func (rmds *RootMetadataSigned) IsLastModifiedBy(
-	uid keybase1.UID, key kbfscrypto.VerifyingKey) error {
-	err := rmds.MD.IsLastModifiedBy(uid, key)
-	if err != nil {
-		return err
-	}
-
-	if rmds.SigInfo.VerifyingKey != key {
-		return fmt.Errorf("Last modifier verifying key %v != %v",
-			rmds.SigInfo.VerifyingKey, key)
-	}
-
-	writer := rmds.MD.LastModifyingWriter()
-	if !rmds.MD.IsWriterMetadataCopiedSet() {
-		if writer != uid {
-			return fmt.Errorf("Last writer %s != %s", writer, uid)
-		}
-		if rmds.WriterSigInfo.VerifyingKey != key {
-			return fmt.Errorf(
-				"Last writer verifying key %v != %v",
-				rmds.WriterSigInfo.VerifyingKey, key)
-		}
-	}
-
-	return nil
-}
-
-// EncodeRootMetadataSigned serializes a metadata block. This should
-// be used instead of directly calling codec.Encode(), as it handles
-// some version-specific quirks.
-func EncodeRootMetadataSigned(
-	codec kbfscodec.Codec, rmds *RootMetadataSigned) ([]byte, error) {
-	err := checkWriterSig(rmds)
-	if err != nil {
-		return nil, err
-	}
-	rmdsCopy := *rmds
-	if rmdsCopy.Version() < SegregatedKeyBundlesVer {
-		// For v2, the writer signature is in rmds.MD, so
-		// remove the one in rmds.
-		rmdsCopy.WriterSigInfo = kbfscrypto.SignatureInfo{}
-	}
-	return codec.Encode(rmdsCopy)
-}
-
-// DecodeRootMetadata deserializes a metadata block into the specified
-// versioned structure.
-func DecodeRootMetadata(codec kbfscodec.Codec, tlf tlf.ID,
-	ver, max MetadataVer, buf []byte) (
-	MutableBareRootMetadata, error) {
-	if ver < FirstValidMetadataVer {
-		return nil, kbfsmd.InvalidMetadataVersionError{TlfID: tlf, MetadataVer: ver}
-	} else if ver > max {
-		return nil, NewMetadataVersionError{tlf, ver}
-	}
-	if ver > SegregatedKeyBundlesVer {
-		// Shouldn't be possible at the moment.
-		panic("Invalid metadata version")
-	}
-	if ver < SegregatedKeyBundlesVer {
-		var brmd kbfsmd.RootMetadataV2
-		if err := codec.Decode(buf, &brmd); err != nil {
-			return nil, err
-		}
-		return &brmd, nil
-	}
-	var brmd kbfsmd.RootMetadataV3
-	if err := codec.Decode(buf, &brmd); err != nil {
-		return nil, err
-	}
-	return &brmd, nil
+	return makeRootMetadataSigned(rmdsCopy, now), nil
 }
 
 // DecodeRootMetadataSigned deserializes a metadata block into the
@@ -1283,37 +1032,9 @@ func DecodeRootMetadataSigned(
 	codec kbfscodec.Codec, tlf tlf.ID, ver, max MetadataVer, buf []byte,
 	untrustedServerTimestamp time.Time) (
 	*RootMetadataSigned, error) {
-	if ver < FirstValidMetadataVer {
-		return nil, kbfsmd.InvalidMetadataVersionError{TlfID: tlf, MetadataVer: ver}
-	} else if ver > max {
-		return nil, NewMetadataVersionError{tlf, ver}
-	}
-	if ver > SegregatedKeyBundlesVer {
-		// Shouldn't be possible at the moment.
-		panic("Invalid metadata version")
-	}
-	var rmds RootMetadataSigned
-	if ver < SegregatedKeyBundlesVer {
-		rmds.MD = &kbfsmd.RootMetadataV2{}
-	} else {
-		rmds.MD = &kbfsmd.RootMetadataV3{}
-	}
-	if err := codec.Decode(buf, &rmds); err != nil {
+	rmds, err := kbfsmd.DecodeRootMetadataSigned(codec, tlf, ver, max, buf)
+	if err != nil {
 		return nil, err
 	}
-	if ver < SegregatedKeyBundlesVer {
-		// For v2, the writer signature is in rmds.MD, so copy
-		// it out.
-		if !rmds.WriterSigInfo.IsNil() {
-			return nil, fmt.Errorf(
-				"Decoded RootMetadataSigned with version "+
-					"%d unexpectedly has non-nil "+
-					"writer signature %s",
-				ver, rmds.WriterSigInfo)
-		}
-		mdv2 := rmds.MD.(*kbfsmd.RootMetadataV2)
-		rmds.WriterSigInfo = mdv2.WriterMetadataSigInfo
-	}
-	rmds.untrustedServerTimestamp = untrustedServerTimestamp
-	return &rmds, nil
+	return makeRootMetadataSigned(rmds, untrustedServerTimestamp), nil
 }

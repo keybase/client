@@ -5564,7 +5564,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 		return
 	}
 
-	fakeSignedHead := &RootMetadataSigned{MD: fbo.head.bareMd}
+	fakeSignedHead := &RootMetadataSigned{RootMetadataSigned: kbfsmd.RootMetadataSigned{MD: fbo.head.bareMd}}
 	finalRmd, err := fakeSignedHead.MakeFinalCopy(
 		fbo.config.Codec(), now, finalizedInfo)
 	if err != nil {
@@ -5655,7 +5655,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					// skip the back-off timer and continue directly to next
 					// registerForUpdates
 					return nil
-				case NewMetadataVersionError:
+				case kbfsmd.NewMetadataVersionError:
 					fbo.log.CDebugf(ctx, "Abandoning updates since we can't "+
 						"read the newest metadata: %+v", err)
 					fbo.status.setPermErr(err)
