@@ -56,7 +56,9 @@ func TestSeitanEncryption(t *testing.T) {
 
 	peikey, encoded, err := ikey.GeneratePackedEncryptionIKey(context.TODO(), team)
 	require.NoError(t, err)
-	require.Equal(t, peikey.Version, uint(1))
+	require.EqualValues(t, peikey.Version, 1)
+	require.EqualValues(t, peikey.TeamKeyGeneration, 1)
+	require.NotZero(tc.T, peikey.RandomNonce)
 
 	fmt.Printf("Encrypted ikey with gen: %d\n", peikey.TeamKeyGeneration)
 	fmt.Printf("Armored output: %s\n", encoded)
