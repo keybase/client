@@ -12,7 +12,9 @@ const Search = (props: Props) => (
     <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
         <UserInput
+          disableListBuilding={true}
           searchKey="profileSearch"
+          onSelectUser={props.onClick}
           onExitSearch={props.onClose}
           autoFocus={true}
           placeholder={props.placeholder}

@@ -368,8 +368,8 @@ func TestSignAfterRevoke(t *testing.T) {
 	if err == nil {
 		t.Fatal("nil error signing after LogoutIfRevoked")
 	}
-	if _, ok := err.(libkb.KeyRevokedError); !ok {
-		t.Errorf("error type: %T, expected libkb.KeyRevokedError", err)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Errorf("error type: %T, expected libkb.LoginRequiredError", err)
 	}
 }
 

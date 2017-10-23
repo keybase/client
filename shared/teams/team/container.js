@@ -17,6 +17,7 @@ type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   loading: boolean,
   _requests: I.Set<Constants.RequestInfo>,
+  _invites: I.Set<Constants.InviteInfo>,
   name: Constants.Teamname,
   you: ?string,
   selectedTab: string,
@@ -26,6 +27,7 @@ type StateProps = {
 const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
   _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
   _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
+  _invites: state.entities.getIn(['teams', 'teamNameToInvites', routeProps.get('teamname')], I.Set()),
   loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
   name: routeProps.get('teamname'),
   you: state.config.username,
@@ -39,6 +41,7 @@ type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
   _onOpenFolder: (teamname: Constants.Teamname) => void,
   _onAddPeople: (teamname: Constants.Teamname) => void,
+  _onInviteByEmail: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
   setSelectedTab: (tab: string) => void,
@@ -50,6 +53,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
   _onAddPeople: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
+  _onInviteByEmail: (teamname: Constants.Teamname) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onManageChat: (teamname: Constants.Teamname) =>
@@ -76,6 +81,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, rout
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
+  const onInviteByEmail = () => dispatchProps._onInviteByEmail(stateProps.name)
   const onOpenFolder = () => dispatchProps._onOpenFolder(stateProps.name)
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
@@ -96,11 +102,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
     customComponent,
     headerStyle: {borderBottomWidth: 0},
+    invites: stateProps._invites.toJS(),
     members: stateProps._memberInfo
       .toArray()
       .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
     requests: stateProps._requests.toJS(),
     onAddPeople,
+    onInviteByEmail,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,

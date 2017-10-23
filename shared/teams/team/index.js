@@ -15,15 +15,18 @@ import {
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import {OpenTeamSettingButton} from '../open-team'
+import TeamInviteRow from './invite-row/container'
 import TeamMemberRow from './member-row/container'
 import TeamRequestRow from './request-row/container'
 
 export type MemberRowProps = Constants.MemberInfo
+type InviteRowProps = Constants.InviteInfo
 type RequestRowProps = Constants.RequestInfo
 
 export type Props = {
   you: string,
   name: Constants.Teamname,
+  invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
   requests: Array<RequestRowProps>,
   loading: boolean,
@@ -31,6 +34,7 @@ export type Props = {
   selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
   onAddPeople: () => void,
+  onInviteByEmail: () => void,
   setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
@@ -44,7 +48,7 @@ const Help = isMobile
   : ({name}: {name: Constants.Teamname}) => (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
         <Text type="Body" style={{textAlign: 'center'}}>
-          Team management in the app is coming soon! In the meantime you can do it from the terminal:
+          You can also manage teams from the terminal:
         </Text>
         <Box
           style={{
@@ -82,6 +86,7 @@ const Help = isMobile
 
 type TeamTabsProps = {
   admin: boolean,
+  invites: Array<InviteRowProps>,
   members: Array<MemberRowProps>,
   requests: Array<RequestRowProps>,
   loading?: boolean,
@@ -90,7 +95,7 @@ type TeamTabsProps = {
 }
 
 const TeamTabs = (props: TeamTabsProps) => {
-  const {admin, members, requests, loading = false, selectedTab, setSelectedTab} = props
+  const {admin, invites, members, requests, loading = false, selectedTab, setSelectedTab} = props
   let membersLabel = 'MEMBERS'
   membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
   const tabs = [
@@ -106,7 +111,7 @@ const TeamTabs = (props: TeamTabsProps) => {
   ]
   if (admin) {
     const requestsLabel = `REQUESTS (${requests.length})`
-    // TODO Pending invite tab
+    const invitesLabel = `INVITES (${invites.length})`
     tabs.push(
       <Text
         key="requests"
@@ -116,6 +121,17 @@ const TeamTabs = (props: TeamTabsProps) => {
         }}
       >
         {requestsLabel}
+      </Text>
+    )
+    tabs.push(
+      <Text
+        key="invites"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {invitesLabel}
       </Text>
     )
   }
@@ -141,12 +157,14 @@ const TeamTabs = (props: TeamTabsProps) => {
 class Team extends React.PureComponent<Props> {
   render() {
     const {
+      invites,
       name,
       members,
       requests,
       showMenu,
       setShowMenu,
       onAddPeople,
+      onInviteByEmail,
       onLeaveTeam,
       selectedTab,
       loading,
@@ -161,6 +179,7 @@ class Team extends React.PureComponent<Props> {
     // massage data for rowrenderers
     const memberProps = members.map(member => ({username: member.username, teamname: name}))
     const requestProps = requests.map(req => ({username: req.username, teamname: name}))
+    const inviteProps = invites.map(invite => ({username: invite.name, teamname: name}))
 
     let contents
     if (selectedTab === 'members') {
@@ -194,6 +213,27 @@ class Team extends React.PureComponent<Props> {
           />
         )
       }
+    } else if (selectedTab === 'invites') {
+      if (invites.length === 0) {
+        contents = (
+          <Text
+            type="BodySmall"
+            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+          >
+            This team has no pending invites.
+          </Text>
+        )
+      } else {
+        contents =
+          !loading &&
+          <List
+            keyProperty="username"
+            items={inviteProps}
+            fixedHeight={48}
+            renderItem={TeamInviteRow}
+            style={{alignSelf: 'stretch'}}
+          />
+      }
     }
 
     return (
@@ -204,12 +244,15 @@ class Team extends React.PureComponent<Props> {
         </Text>
         <Text type="BodySmall">TEAM</Text>
         {youCanAddPeople &&
-          <Button
-            type="Primary"
-            label="Add people"
-            onClick={onAddPeople}
-            style={{marginTop: globalMargins.small}}
-          />}
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
+            <Button type="Primary" label="Add people" onClick={onAddPeople} />
+            <Button
+              type="Secondary"
+              label="Invite by email"
+              onClick={onInviteByEmail}
+              style={{marginLeft: globalMargins.small}}
+            />
+          </Box>}
         <Help name={name} />
         {admin &&
           <Box style={{marginTop: globalMargins.medium, marginBottom: globalMargins.medium}}>
