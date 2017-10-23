@@ -24,7 +24,21 @@ const AccessDenied = () => (
   </Text>
 )
 
-const contactRow = (i: number, props) => {
+// Note: 'on Android the entire display name is passed in the givenName field. middleName and familyName will be empty strings.'
+type ContactProps = {
+  recordID: string,
+  company: string,
+  emailAddresses: Array<{label: string, email: string}>,
+  familyName: string,
+  givenName: string,
+  middleName: string,
+  phoneNumbers: Array<{label: string, number: string}>,
+  hasThumbnail: boolean,
+  thumbnailPath: string,
+  // Postal addresses, etc. - unused
+}
+
+const contactRow = (i: number, props: ContactProps) => {
   return (
     <Box
       style={{
@@ -104,32 +118,21 @@ class InviteByEmail extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, margin: globalMargins.small}}>
+      <Box style={{...globalStyles.flexBoxColumn, margin: globalMargins.small, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type="BodySemibold">
-            Select which contacts to invite by email. Those with only a phone number will open a text message with their invite token.
+            Select contacts to invite to {this.props.name}
           </Text>
         </Box>
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            border: 1,
-            marginTop: globalMargins.small,
-            borderColor: globalColors.black_40,
-            flexGrow: 1,
-            minHeight: 96,
-          }}
-        >
-          {!this.state.hasPermission && <AccessDenied />}
-          {this.state.hasPermission &&
-            <List
-              keyProperty="recordID"
-              items={this.state.contacts}
-              fixedHeight={48}
-              renderItem={contactRow}
-              style={{alignSelf: 'stretch'}}
-            />}
-        </Box>
+        {!this.state.hasPermission && <AccessDenied />}
+        {this.state.hasPermission &&
+          <List
+            keyProperty="recordID"
+            items={this.state.contacts}
+            fixedHeight={48}
+            renderItem={contactRow}
+            style={{alignSelf: 'stretch'}}
+          />}
       </Box>
     )
   }
