@@ -59,6 +59,8 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 		SenderDeviceRevokedAt: msg.Valid().SenderDeviceRevokedAt,
 		AtMentions:            superMsg.Valid().AtMentions,
 		AtMentionUsernames:    superMsg.Valid().AtMentionUsernames,
+		ChannelMention:        superMsg.Valid().ChannelMention,
+		ChannelNameMentions:   superMsg.Valid().ChannelNameMentions,
 	})
 	return &newMsg
 }
