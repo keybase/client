@@ -46,7 +46,7 @@ protocol DiskBlockCache {
   /**
     DeleteBlocks deletes a set of blocks from the disk cache.
     */
-  DeleteBlocksRes DeleteBlock(array<string> blockIDs);
+  DeleteBlocksRes DeleteBlocks(array<string> blockIDs);
 
   /**
     UpdateBlockMetadata updates the metadata for a block in the disk cache.

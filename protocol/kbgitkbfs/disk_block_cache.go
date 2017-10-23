@@ -54,7 +54,7 @@ type PutBlockArg struct {
 	ServerHalf string         `codec:"serverHalf" json:"serverHalf"`
 }
 
-type DeleteBlockArg struct {
+type DeleteBlocksArg struct {
 	BlockIDs []string `codec:"blockIDs" json:"blockIDs"`
 }
 
@@ -70,7 +70,7 @@ type DiskBlockCacheInterface interface {
 	// PutBlock puts a block into the disk cache.
 	PutBlock(context.Context, PutBlockArg) error
 	// DeleteBlocks deletes a set of blocks from the disk cache.
-	DeleteBlock(context.Context, []string) (DeleteBlocksRes, error)
+	DeleteBlocks(context.Context, []string) (DeleteBlocksRes, error)
 	// UpdateBlockMetadata updates the metadata for a block in the disk cache.
 	UpdateBlockMetadata(context.Context, UpdateBlockMetadataArg) error
 }
@@ -111,18 +111,18 @@ func DiskBlockCacheProtocol(i DiskBlockCacheInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"DeleteBlock": {
+			"DeleteBlocks": {
 				MakeArg: func() interface{} {
-					ret := make([]DeleteBlockArg, 1)
+					ret := make([]DeleteBlocksArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DeleteBlockArg)
+					typedArgs, ok := args.(*[]DeleteBlocksArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]DeleteBlockArg)(nil), args)
+						err = rpc.NewTypeError((*[]DeleteBlocksArg)(nil), args)
 						return
 					}
-					ret, err = i.DeleteBlock(ctx, (*typedArgs)[0].BlockIDs)
+					ret, err = i.DeleteBlocks(ctx, (*typedArgs)[0].BlockIDs)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -164,9 +164,9 @@ func (c DiskBlockCacheClient) PutBlock(ctx context.Context, __arg PutBlockArg) (
 }
 
 // DeleteBlocks deletes a set of blocks from the disk cache.
-func (c DiskBlockCacheClient) DeleteBlock(ctx context.Context, blockIDs []string) (res DeleteBlocksRes, err error) {
-	__arg := DeleteBlockArg{BlockIDs: blockIDs}
-	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.DeleteBlock", []interface{}{__arg}, &res)
+func (c DiskBlockCacheClient) DeleteBlocks(ctx context.Context, blockIDs []string) (res DeleteBlocksRes, err error) {
+	__arg := DeleteBlocksArg{BlockIDs: blockIDs}
+	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.DeleteBlocks", []interface{}{__arg}, &res)
 	return
 }
 
