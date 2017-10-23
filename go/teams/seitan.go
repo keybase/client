@@ -21,6 +21,7 @@ import (
 const SeitanRawIKeyLength = 10
 const SeitanEncodedIKeyLength = 16
 
+// Key-Base 34 encoding. lower case letters and digits except for 0 and 1.
 const KBase34EncodeStd = "abcdefghijklmnopqrstuvwxyz23456789"
 
 var Base34Encoding = basex.NewEncoding(KBase34EncodeStd, SeitanRawIKeyLength, "")
@@ -87,12 +88,12 @@ func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
 
 	out := mac.Sum(nil)
 	out = out[0:15]
-	out = append(out, byte(SeitanInviteIDSuffix))
-	id = SCTeamInviteID(hex.EncodeToString(out[0:15]))
+	out = append(out, byte(0x27)) // TODO: is it 0x0d or 0x27 ?
+	id = SCTeamInviteID(hex.EncodeToString(out[:]))
 	return id, nil
 }
 
-func (ikey SeitanIKey) GeneratePackedEncryptionIKey(ctx context.Context, team *Team) (peikey SeitanPEIKey, encoded string, err error) {
+func (ikey SeitanIKey) GeneratePackedEncryptedIKey(ctx context.Context, team *Team) (peikey SeitanPEIKey, encoded string, err error) {
 	appKey, err := team.SeitanInviteTokenKey(ctx)
 	if err != nil {
 		return peikey, encoded, err

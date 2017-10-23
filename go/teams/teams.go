@@ -787,20 +787,40 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 	return keybase1.TeamAddMemberResult{Invited: true}, nil
 }
 
-func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole) (string, error) {
+func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole) (ikey SeitanIKey, err error) {
 	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+
+	ikey, err = GenerateIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return ikey, err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return ikey, err
+	}
+
+	_, encoded, err := ikey.GeneratePackedEncryptedIKey(ctx, t)
+	if err != nil {
+		return ikey, err
+	}
 
 	invite := SCTeamInvite{
 		Type: "seitan_invite_token",
-		Name: "lAEBxBi3mXdM5kwoOngAa0gEZDMrnAMmh8J/303EIIRs1I04gToJA+sIId0g2QjmEhvtCdP8jWmshViZmeQb",
-		ID:   NewInviteID(),
+		Name: keybase1.TeamInviteName(encoded),
+		ID:   inviteID,
 	}
 
 	if err := t.postInvite(ctx, invite, role); err != nil {
-		return "", err
+		return ikey, err
 	}
 
-	return string(invite.Name), nil
+	return ikey, err
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {

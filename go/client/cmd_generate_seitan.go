@@ -74,7 +74,7 @@ func (c *CmdGenerateSeitan) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Generated token: %s\n", res)
+	dui.Printf("Generated token: %q. Tell your friend!\n", res)
 
 	return nil
 }

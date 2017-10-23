@@ -53,8 +53,9 @@ func TestSeitanEncryption(t *testing.T) {
 	inviteID, err := sikey.GenerateTeamInviteID()
 	require.NoError(t, err)
 	fmt.Printf("Invite id is: %s\n", inviteID)
+	require.Equal(t, len(string(inviteID)), 32)
 
-	peikey, encoded, err := ikey.GeneratePackedEncryptionIKey(context.TODO(), team)
+	peikey, encoded, err := ikey.GeneratePackedEncryptedIKey(context.TODO(), team)
 	require.NoError(t, err)
 	require.EqualValues(t, peikey.Version, 1)
 	require.EqualValues(t, peikey.TeamKeyGeneration, 1)
