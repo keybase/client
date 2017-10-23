@@ -20,7 +20,8 @@
         "KBFS_1",
         "CHAT_2",
         "SALTPACK_3",
-        "GIT_METADATA_4"
+        "GIT_METADATA_4",
+        "SEITAN_INVITE_TOKEN_5"
       ]
     },
     {
@@ -1593,6 +1594,23 @@
         }
       ],
       "response": null
+    },
+    "teamCreateSeitanToken": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        }
+      ],
+      "response": "string"
     },
     "teamAddEmailsBulk": {
       "request": [

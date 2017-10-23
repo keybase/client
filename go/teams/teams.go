@@ -94,6 +94,10 @@ func (t *Team) GitMetadataKey(ctx context.Context) (keybase1.TeamApplicationKey,
 	return t.ApplicationKey(ctx, keybase1.TeamApplication_GIT_METADATA)
 }
 
+func (t *Team) SeitanInviteTokenKey(ctx context.Context) (keybase1.TeamApplicationKey, error) {
+	return t.ApplicationKey(ctx, keybase1.TeamApplication_SEITAN_INVITE_TOKEN)
+}
+
 func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 	role, err := t.MemberRole(ctx, uv)
 	if err != nil {
@@ -295,6 +299,8 @@ func (t *Team) applicationKeyForMask(mask keybase1.ReaderKeyMask, secret keybase
 		derivationString = libkb.TeamSaltpackDerivationString
 	case keybase1.TeamApplication_GIT_METADATA:
 		derivationString = libkb.TeamGitMetadataDerivationString
+	case keybase1.TeamApplication_SEITAN_INVITE_TOKEN:
+		derivationString = libkb.TeamSeitanTokenDerivationString
 	default:
 		return keybase1.TeamApplicationKey{}, errors.New("invalid application id")
 	}
@@ -779,6 +785,22 @@ func (t *Team) inviteSBSMember(ctx context.Context, username string, role keybas
 	}
 
 	return keybase1.TeamAddMemberResult{Invited: true}, nil
+}
+
+func (t *Team) InviteSeitan(ctx context.Context, role keybase1.TeamRole) (string, error) {
+	t.G().Log.Debug("team %s invite seitan %v", t.Name(), role)
+
+	invite := SCTeamInvite{
+		Type: "seitan_invite_token",
+		Name: "lAEBxBi3mXdM5kwoOngAa0gEZDMrnAMmh8J/303EIIRs1I04gToJA+sIId0g2QjmEhvtCdP8jWmshViZmeQb",
+		ID:   NewInviteID(),
+	}
+
+	if err := t.postInvite(ctx, invite, role); err != nil {
+		return "", err
+	}
+
+	return string(invite.Name), nil
 }
 
 func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase1.TeamRole) error {

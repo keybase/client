@@ -961,3 +961,11 @@ func splitBulk(s string) []string {
 	}
 	return strings.FieldsFunc(s, f)
 }
+
+func CreateSeitanToken(ctx context.Context, g *libkb.GlobalContext, teamname string, role keybase1.TeamRole) (string, error) {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return "", err
+	}
+	return t.InviteSeitan(ctx, role)
+}

@@ -47,19 +47,21 @@ func (e TeamRole) String() string {
 type TeamApplication int
 
 const (
-	TeamApplication_KBFS         TeamApplication = 1
-	TeamApplication_CHAT         TeamApplication = 2
-	TeamApplication_SALTPACK     TeamApplication = 3
-	TeamApplication_GIT_METADATA TeamApplication = 4
+	TeamApplication_KBFS                TeamApplication = 1
+	TeamApplication_CHAT                TeamApplication = 2
+	TeamApplication_SALTPACK            TeamApplication = 3
+	TeamApplication_GIT_METADATA        TeamApplication = 4
+	TeamApplication_SEITAN_INVITE_TOKEN TeamApplication = 5
 )
 
 func (o TeamApplication) DeepCopy() TeamApplication { return o }
 
 var TeamApplicationMap = map[string]TeamApplication{
-	"KBFS":         1,
-	"CHAT":         2,
-	"SALTPACK":     3,
-	"GIT_METADATA": 4,
+	"KBFS":                1,
+	"CHAT":                2,
+	"SALTPACK":            3,
+	"GIT_METADATA":        4,
+	"SEITAN_INVITE_TOKEN": 5,
 }
 
 var TeamApplicationRevMap = map[TeamApplication]string{
@@ -67,6 +69,7 @@ var TeamApplicationRevMap = map[TeamApplication]string{
 	2: "CHAT",
 	3: "SALTPACK",
 	4: "GIT_METADATA",
+	5: "SEITAN_INVITE_TOKEN",
 }
 
 func (e TeamApplication) String() string {
@@ -1703,6 +1706,20 @@ func (o TeamSetSettingsArg) DeepCopy() TeamSetSettingsArg {
 	}
 }
 
+type TeamCreateSeitanTokenArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Name      string   `codec:"name" json:"name"`
+	Role      TeamRole `codec:"role" json:"role"`
+}
+
+func (o TeamCreateSeitanTokenArg) DeepCopy() TeamCreateSeitanTokenArg {
+	return TeamCreateSeitanTokenArg{
+		SessionID: o.SessionID,
+		Name:      o.Name,
+		Role:      o.Role.DeepCopy(),
+	}
+}
+
 type TeamAddEmailsBulkArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Name      string   `codec:"name" json:"name"`
@@ -1803,6 +1820,7 @@ type TeamsInterface interface {
 	TeamTree(context.Context, TeamTreeArg) (TeamTreeResult, error)
 	TeamDelete(context.Context, TeamDeleteArg) error
 	TeamSetSettings(context.Context, TeamSetSettingsArg) error
+	TeamCreateSeitanToken(context.Context, TeamCreateSeitanTokenArg) (string, error)
 	TeamAddEmailsBulk(context.Context, TeamAddEmailsBulkArg) (BulkRes, error)
 	LookupImplicitTeam(context.Context, LookupImplicitTeamArg) (LookupImplicitTeamRes, error)
 	LookupOrCreateImplicitTeam(context.Context, LookupOrCreateImplicitTeamArg) (LookupImplicitTeamRes, error)
@@ -2122,6 +2140,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"teamCreateSeitanToken": {
+				MakeArg: func() interface{} {
+					ret := make([]TeamCreateSeitanTokenArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TeamCreateSeitanTokenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TeamCreateSeitanTokenArg)(nil), args)
+						return
+					}
+					ret, err = i.TeamCreateSeitanToken(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"teamAddEmailsBulk": {
 				MakeArg: func() interface{} {
 					ret := make([]TeamAddEmailsBulkArg, 1)
@@ -2319,6 +2353,11 @@ func (c TeamsClient) TeamDelete(ctx context.Context, __arg TeamDeleteArg) (err e
 
 func (c TeamsClient) TeamSetSettings(ctx context.Context, __arg TeamSetSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.teamSetSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c TeamsClient) TeamCreateSeitanToken(ctx context.Context, __arg TeamCreateSeitanTokenArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.teams.teamCreateSeitanToken", []interface{}{__arg}, &res)
 	return
 }
 

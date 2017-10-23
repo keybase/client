@@ -625,6 +625,7 @@ const (
 	TeamSaltpackDerivationString         = "Keybase-Derived-Team-NaCl-Saltpack-1"
 	TeamPrevKeySecretBoxDerivationString = "Keybase-Derived-Team-NaCl-SecretBox-1"
 	TeamGitMetadataDerivationString      = "Keybase-Derived-Team-NaCl-GitMetadata-1"
+	TeamSeitanTokenDerivationString      = "Keybase-Derived-Team-NaCl-SeitanInviteToken-1"
 )
 
 func CurrentSaltpackVersion() saltpack.Version {
