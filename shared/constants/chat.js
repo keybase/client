@@ -1266,7 +1266,11 @@ function getMessageUpdates(
   const updateKeys = conversationIDKey
     ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
     : I.OrderedSet()
-  return updateKeys.map(k => state.entities.messages.get(k)).filter(Boolean)
+  const messages: I.OrderedSet<null | EditingMessage | UpdatingAttachment> = updateKeys.map(k => {
+    const message = state.entities.messages.get(k)
+    return message && (message.type === 'Edit' || message.type === 'UpdateAttachment') ? message : null
+  })
+  return messages.filter(Boolean)
 }
 
 function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?Message {
