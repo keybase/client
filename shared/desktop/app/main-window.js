@@ -113,6 +113,11 @@ export default function() {
     console.log('Show main window (requested)')
     mainWindow.show(true)
     mainWindow.window && mainWindow.window.focus()
+    console.log(
+      '...showMain: visible=',
+      mainWindow.window && mainWindow.window.isVisible(),
+      mainWindow.window && mainWindow.window.getBounds()
+    )
   })
 
   return mainWindow
