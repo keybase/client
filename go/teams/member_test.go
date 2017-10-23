@@ -610,6 +610,64 @@ func TestLeave(t *testing.T) {
 	}
 }
 
+func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
+	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
+	defer tc.Cleanup()
+
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherB.Username); err != nil {
+		t.Fatal(err)
+	}
+	teamNameParsed, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	subteamNameParsed, _ := createSubteam(&tc, teamNameParsed, "subteam")
+	subteamName := subteamNameParsed.String()
+
+	if err := SetRoleAdmin(context.TODO(), tc.G, subteamName, otherA.Username); err != nil {
+		t.Fatal(err)
+	}
+	if err := SetRoleAdmin(context.TODO(), tc.G, subteamName, otherB.Username); err != nil {
+		t.Fatal(err)
+	}
+
+	tc.G.Logout()
+
+	if err := otherA.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Logout()
+
+	if err := otherB.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	if err := Leave(context.TODO(), tc.G, subteamName, false); err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Logout()
+
+	if err := owner.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+	team, err := GetForTestByStringName(context.TODO(), tc.G, subteamName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if team.IsMember(context.TODO(), otherA.GetUserVersion()) {
+		t.Fatal("Admin user is still member after leave.")
+	}
+	if team.IsMember(context.TODO(), otherB.GetUserVersion()) {
+		t.Fatal("Writer user is still member after leave.")
+	}
+}
+
 func TestMemberAddResolveCache(t *testing.T) {
 	tc, _, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
