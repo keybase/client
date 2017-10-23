@@ -1,7 +1,6 @@
 package teams
 
 import (
-	"bytes"
 	"fmt"
 
 	"crypto/hmac"
@@ -49,13 +48,13 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 	var encodedKey [SeitanEncodedIKeyLength]byte
 	Base33Encoding.Encode(encodedKey[:], rawKey)
 
-	var verify [10]byte
+	var verify [SeitanRawIKeyLength]byte
 	_, err = Base33Encoding.Decode(verify[:], encodedKey[:])
 	if err != nil {
 		return ikey, err
 	}
 
-	if !bytes.Equal(verify[:], rawKey) {
+	if !libkb.SecureByteArrayEq(verify[:], rawKey) {
 		return ikey, errors.New("Internal error - ikey encoding failed")
 	}
 
@@ -75,9 +74,6 @@ func (ikey SeitanIKey) String() string {
 	return string(ikey)
 }
 
-// "Stretched Invite Key"
-type SeitanSIKey [32]byte
-
 const (
 	SeitanScryptCost   = 1 << 10
 	SeitanScryptR      = 8
@@ -85,13 +81,13 @@ const (
 	SeitanScryptKeylen = 32
 )
 
+// "Stretched Invite Key"
+type SeitanSIKey [SeitanScryptKeylen]byte
+
 func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
 	ret, err := scrypt.Key([]byte(ikey), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
 	if err != nil {
 		return sikey, err
-	}
-	if len(ret) != 32 {
-		return sikey, errors.New("internal error - scrypt did not return 32 bytes")
 	}
 	copy(sikey[:], ret)
 	return sikey, nil
