@@ -23,10 +23,10 @@ import (
 const SeitanRawIKeyLength = 10
 const SeitanEncodedIKeyLength = 16
 
-// Key-Base 34 encoding. lower case letters and digits except for 0 and 1.
-const KBase34EncodeStd = "abcdefghijklmnopqrstuvwxyz23456789"
+// Key-Base 33 encoding. lower case letters except 'l' and digits except for '0' and '1'.
+const KBase33EncodeStd = "abcdefghijkmnopqrstuvwxyz23456789"
 
-var Base34Encoding = basex.NewEncoding(KBase34EncodeStd, SeitanRawIKeyLength, "")
+var Base33Encoding = basex.NewEncoding(KBase33EncodeStd, SeitanRawIKeyLength, "")
 
 // "Invite Key"
 type SeitanIKey string
@@ -47,10 +47,10 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 	}
 
 	var encodedKey [SeitanEncodedIKeyLength]byte
-	Base34Encoding.Encode(encodedKey[:], rawKey)
+	Base33Encoding.Encode(encodedKey[:], rawKey)
 
 	var verify [10]byte
-	_, err = Base34Encoding.Decode(verify[:], encodedKey[:])
+	_, err = Base33Encoding.Decode(verify[:], encodedKey[:])
 	if err != nil {
 		return ikey, err
 	}
