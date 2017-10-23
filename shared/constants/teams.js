@@ -145,17 +145,6 @@ export const typeToLabel: TypeMap = {
   writer: 'Writer',
 }
 
-type _TeamListRow = {
-  teamName: Teamname,
-  memberCount: number,
-}
-
-export type TeamListRow = I.RecordOf<_TeamListRow>
-export const makeTeamListRow: I.RecordFactory<_TeamListRow> = I.Record({
-  teamName: '',
-  memberCount: 0,
-})
-
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
@@ -171,7 +160,8 @@ type _State = {
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
-  teamrows: I.Set<TeamListRow>,
+  teamnames: I.Set<Teamname>,
+  teammembercounts: I.Map<Teamname, number>,
   loaded: boolean,
 }
 export type State = I.RecordOf<_State>
@@ -184,7 +174,8 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
-  teamrows: I.Set(),
+  teamnames: I.Set(),
+  teammembercounts: I.Map(),
   loaded: false,
 })
 

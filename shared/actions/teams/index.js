@@ -309,13 +309,19 @@ const _getTeams = function*(action: Constants.GetTeams): SagaGenerator<any, any>
     })
 
     const teams = results.teams || []
-    const teamrows = teams.map(team => {
-      return Constants.makeTeamListRow({
-        teamName: team.fqName,
-        memberCount: team.memberCount,
-      })
+    const teamnames = []
+    const teammembercounts = {}
+    teams.forEach(team => {
+      teamnames.push(team.fqName)
+      teammembercounts[team.fqName] = team.memberCount
     })
-    yield put(replaceEntity(['teams'], I.Map({teamrows: I.Set(teamrows)})))
+
+    yield put(
+      replaceEntity(
+        ['teams'],
+        I.Map({teamnames: I.Set(teamnames), teammembercounts: I.Map(teammembercounts)})
+      )
+    )
   } finally {
     yield put(replaceEntity(['teams'], I.Map([['loaded', true]])))
   }

@@ -7,19 +7,22 @@ import {navigateAppend} from '../actions/route-tree'
 import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
 import {openInKBFS} from '../actions/kbfs'
 import {injectItem} from '../actions/gregor'
-import type {Teamname, TeamListRow} from '../constants/teams'
+import {type Teamname} from '../constants/teams'
 
 type StateProps = {
-  _teamrows: I.Set<TeamListRow>,
+  _teamnames: I.Set<Teamname>,
+  _teammembercounts: I.Map<Teamname, number>,
   sawChatBanner: boolean,
   loaded: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
-  const teamrows = state.entities.getIn(['teams', 'teamrows'], I.Set())
+  const teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const teammembercounts = state.entities.getIn(['teams', 'teammembercounts'], I.Map())
   const loaded = state.entities.getIn(['teams', 'loaded'], false)
   return {
-    _teamrows: teamrows,
+    _teamnames: teamnames,
+    _teammembercounts: teammembercounts,
     sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
     loaded,
   }
@@ -61,10 +64,10 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
-  let teamrows = stateProps._teamrows.toArray()
-  teamrows.sort((a, b) => {
-    const aName = a.teamName.toUpperCase()
-    const bName = b.teamName.toUpperCase()
+  let teamnames = stateProps._teamnames.toArray()
+  teamnames.sort((a, b) => {
+    const aName = a.toUpperCase()
+    const bName = b.toUpperCase()
     if (aName < bName) {
       return -1
     } else if (aName > bName) {
@@ -76,7 +79,8 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 
   return {
     sawChatBanner: stateProps.sawChatBanner,
-    teamrows,
+    teamnames,
+    teammembercounts: stateProps._teammembercounts.toObject(),
     loaded: stateProps.loaded,
     ...dispatchProps,
   }
