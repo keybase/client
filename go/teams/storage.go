@@ -88,7 +88,7 @@ type DiskStorage struct {
 }
 
 // Increment to invalidate the disk cache.
-const diskStorageVersion = 5
+const diskStorageVersion = 6
 
 type DiskStorageItem struct {
 	Version int                `codec:"V"`
