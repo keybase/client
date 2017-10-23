@@ -912,12 +912,13 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 // Test two users racing to post chain links to the same team.
 // In this case, adding different users to the team.
 // The expected behavior is that they both succeed.
+// A rotation is also thrown in some time.
 func TestMemberAddRace(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 4)
 	defer cleanup()
 
 	t.Logf("U0 creates A")
-	rootName, _ := createTeam2(*tcs[0])
+	rootName, rootID := createTeam2(*tcs[0])
 
 	t.Logf("U0 adds U1")
 	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
@@ -947,6 +948,15 @@ func TestMemberAddRace(t *testing.T) {
 		return errCh
 	}
 
+	rotate := func(userIndexOperator int) <-chan error {
+		errCh := make(chan error)
+		go func() {
+			err := HandleRotateRequest(context.TODO(), tcs[userIndexOperator].G, rootID, keybase1.PerTeamKeyGeneration(100))
+			errCh <- err
+		}()
+		return errCh
+	}
+
 	assertNoErr := func(errCh <-chan error, msgAndArgs ...interface{}) {
 		select {
 		case err := <-errCh:
@@ -958,13 +968,21 @@ func TestMemberAddRace(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		t.Logf("round %v", i)
+		doRotate := i%3 == 1
 
 		t.Logf("parallel start")
 
 		errCh1 := mod(0, 2, true)
 		errCh2 := mod(1, 3, true)
+		var errCh3 <-chan error
+		if doRotate {
+			errCh3 = rotate(0)
+		}
 		assertNoErr(errCh1, "round %v", i)
 		assertNoErr(errCh2, "round %v", i)
+		if doRotate {
+			assertNoErr(errCh3, "round %v", i)
+		}
 
 		t.Logf("parallel end")
 
