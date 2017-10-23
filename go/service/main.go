@@ -732,15 +732,28 @@ func (d *Service) lockPIDFile() (err error) {
 	return nil
 }
 
-func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
-	if l, err = d.G().BindToSocket(); err != nil {
-		return
+func (d *Service) ConfigRPCServer() (net.Listener, error) {
+	// First, check to see if we've been launched with socket activation by
+	// systemd. If so, the socket is already open. Otherwise open it ourselves.
+	listener, err := GetListenerFromEnvironment()
+	if err != nil {
+		d.G().Log.Error("unexpected error in GetListenerFromEnvironment: %#v", err)
+		return nil, err
+	} else if listener != nil {
+		d.G().Log.Debug("Systemd socket activation in use. Accepting connections on fd 3.")
+	} else {
+		d.G().Log.Debug("No socket activation in the environment. Binding to a new socket.")
+		listener, err = d.G().BindToSocket()
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	if d.startCh != nil {
 		close(d.startCh)
 		d.startCh = nil
 	}
-	return
+	return listener, nil
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
