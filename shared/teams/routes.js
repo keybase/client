@@ -1,5 +1,6 @@
 // @flow
 import TeamsContainer from './container'
+import {MaybePopupHoc} from '../common-adapters'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import AddPeopleDialog from './add-people/container'
 import InviteByEmailDialog from './invite-by-email/container'
@@ -13,6 +14,7 @@ import ControlledRolePicker from './role-picker/controlled-container'
 import Member from './team/member/container'
 import ReallyRemoveMember from './team/really-remove-member/container'
 import Team from './team/container'
+import {ConnectedMakeOpenTeamConfirm, ConnectedMakeTeamClosed} from './open-team/container'
 import {isMobile} from '../constants/platform'
 
 const makeManageChannels = {
@@ -60,6 +62,16 @@ const routeTree = makeRouteDefNode({
     team: {
       children: {
         ...makeManageChannels,
+        openTeamSetting: {
+          children: {controlledRolePicker},
+          component: MaybePopupHoc(ConnectedMakeOpenTeamConfirm),
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+        openCloseTeamSetting: {
+          children: {},
+          component: MaybePopupHoc(ConnectedMakeTeamClosed),
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
         rolePicker,
         reallyLeaveTeam,
         member: {

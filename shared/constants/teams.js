@@ -2,12 +2,14 @@
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
 import {userIsInTeam} from './selectors'
+import * as RPCTypes from './types/flow-types'
 import invert from 'lodash/invert'
-import {TeamsTeamRole} from './types/flow-types'
 
 import type {Service} from './search'
 import {type NoErrorTypedAction} from './types/flux'
 import {type TypedState} from './reducer'
+
+export type TeamSettings = RPCTypes.TeamSettings
 
 export type CreateNewTeam = NoErrorTypedAction<
   'teams:createNewTeam',
@@ -53,6 +55,11 @@ export type IgnoreRequest = NoErrorTypedAction<'teams:ignoreRequest', {name: str
 export type JoinTeam = NoErrorTypedAction<'teams:joinTeam', {teamname: string}>
 export type LeaveTeam = NoErrorTypedAction<'teams:leaveTeam', {teamname: string}>
 export type GetChannels = NoErrorTypedAction<'teams:getChannels', {teamname: string}>
+
+export type MakeTeamOpen = NoErrorTypedAction<
+  'teams:makeTeamOpen',
+  {convertToOpen: boolean, defaultRole: TeamRoleType, teamname: string}
+>
 
 export type GetTeams = NoErrorTypedAction<'teams:getTeams', {}>
 
@@ -129,7 +136,7 @@ export type InviteToTeamByEmail = NoErrorTypedAction<
   {invitees: string, role: string, teamname: string}
 >
 
-export const teamRoleByEnum = invert(TeamsTeamRole)
+export const teamRoleByEnum = invert(RPCTypes.TeamsTeamRole)
 
 export type TypeMap = {
   admin: string | boolean,
@@ -162,6 +169,7 @@ type _State = {
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
+  teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamnames: I.Set<Teamname>,
   loaded: boolean,
 }
@@ -175,6 +183,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
+  teamNameToTeamSettings: I.Map(),
   teamnames: I.Set(),
   loaded: false,
 })
