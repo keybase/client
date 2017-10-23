@@ -2,6 +2,8 @@
 import * as I from 'immutable'
 import * as ChatConstants from './chat'
 import {userIsInTeam} from './selectors'
+import invert from 'lodash/invert'
+import {TeamsTeamRole} from './types/flow-types'
 
 import type {Service} from './search'
 import {type NoErrorTypedAction} from './types/flux'
@@ -22,6 +24,7 @@ export type CreateNewTeamFromConversation = NoErrorTypedAction<
   }
 >
 
+export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 
 export type AddToTeam = NoErrorTypedAction<
@@ -91,6 +94,16 @@ export const makeMemberInfo: I.RecordFactory<_MemberInfo> = I.Record({
   username: '',
 })
 
+type _InviteInfo = {
+  name: string,
+  role: string,
+}
+export type InviteInfo = I.RecordOf<_InviteInfo>
+export const makeInviteInfo: I.RecordFactory<_InviteInfo> = I.Record({
+  name: '',
+  role: '',
+})
+
 type _RequestInfo = {
   username: string,
 }
@@ -111,10 +124,38 @@ export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', 
 
 export type AddPeopleToTeam = NoErrorTypedAction<'teams:addPeopleToTeam', {role: string, teamname: string}>
 
+export type InviteToTeamByEmail = NoErrorTypedAction<
+  'teams:inviteToTeamByEmail',
+  {invitees: string, role: string, teamname: string}
+>
+
+export const teamRoleByEnum = invert(TeamsTeamRole)
+
+export type TypeMap = {
+  admin: string | boolean,
+  owner: string | boolean,
+  reader: string | boolean,
+  writer: string | boolean,
+}
+
+export const typeToLabel: TypeMap = {
+  admin: 'Admin',
+  owner: 'Owner',
+  reader: 'Reader',
+  writer: 'Writer',
+}
+
 type _State = {
   convIDToChannelInfo: I.Map<ChatConstants.ConversationIDKey, ChannelInfo>,
   sawChatBanner: boolean,
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
+  teamNameToInvites: I.Map<
+    Teamname,
+    I.RecordOf<{
+      role: teamRoleByEnum,
+      name: string,
+    }>
+  >,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
   teamNameToLoading: I.Map<Teamname, boolean>,
@@ -127,6 +168,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   convIDToChannelInfo: I.Map(),
   sawChatBanner: false,
   teamNameToConvIDs: I.Map(),
+  teamNameToInvites: I.Map(),
   teamNameToLoading: I.Map(),
   teamNameToMemberUsernames: I.Map(),
   teamNameToMembers: I.Map(),

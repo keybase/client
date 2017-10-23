@@ -34,6 +34,14 @@ function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToT
   return {payload: {role, teamname}, type: 'teams:addPeopleToTeam'}
 }
 
+function inviteToTeamByEmail(
+  teamname: string,
+  role: string,
+  invitees: string
+): Constants.InviteToTeamByEmail {
+  return {payload: {invitees, role, teamname}, type: 'teams:inviteToTeamByEmail'}
+}
+
 function joinTeam(teamname: string): Constants.JoinTeam {
   return {payload: {teamname}, type: 'teams:joinTeam'}
 }
@@ -99,6 +107,7 @@ export {
   getDetails,
   getTeams,
   ignoreRequest,
+  inviteToTeamByEmail,
   joinTeam,
   leaveTeam,
   removeMember,

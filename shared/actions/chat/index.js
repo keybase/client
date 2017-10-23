@@ -27,7 +27,7 @@ import {isMobile} from '../../constants/platform'
 import {navigateTo, switchTo} from '../route-tree'
 import {openInKBFS} from '../kbfs'
 import {parseFolderNameToUsers} from '../../util/kbfs'
-import {publicFolderWithUsers, privateFolderWithUsers} from '../../constants/config'
+import {publicFolderWithUsers, privateFolderWithUsers, teamFolder} from '../../constants/config'
 import {chatTab} from '../../constants/tabs'
 import {showMainWindow} from '../platform-specific'
 import some from 'lodash/some'
@@ -833,10 +833,15 @@ function* _openFolder(): SagaGenerator<any, any> {
 
   const inbox = yield select(Constants.getInbox, conversationIDKey)
   if (inbox) {
-    const helper = inbox.visibility === CommonTLFVisibility.public
-      ? publicFolderWithUsers
-      : privateFolderWithUsers
-    const path = helper(inbox.get('participants').toArray())
+    let path
+    if (inbox.membersType === ChatTypes.CommonConversationMembersType.team) {
+      path = teamFolder(inbox.teamname)
+    } else {
+      const helper = inbox.visibility === CommonTLFVisibility.public
+        ? publicFolderWithUsers
+        : privateFolderWithUsers
+      path = helper(inbox.get('participants').toArray())
+    }
     yield put(openInKBFS(path))
   } else {
     throw new Error(`Can't find conversation path`)

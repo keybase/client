@@ -20,6 +20,8 @@ type OwnProps = {|
   focusInputCounter?: number,
   placeholder: ?string,
   onExitSearch: ?() => void,
+  onSelectUser?: (id: string) => void,
+  disableListBuilding?: boolean,
 |}
 
 const UserInputWithServiceFilter = props => {

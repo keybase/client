@@ -85,3 +85,12 @@ func TestUserOrTeamIDChecking(t *testing.T) {
 		}
 	}
 }
+
+func TestMDGetBehavior(t *testing.T) {
+	// Makes sure any potential addition to the MDGetBehavior enum without
+	// extending ShouldCreateClassicTLF would fail on CI, so that we don't
+	// panic elsewhere.
+	for _, b := range MDGetBehaviorMap {
+		b.ShouldCreateClassicTLF()
+	}
+}
