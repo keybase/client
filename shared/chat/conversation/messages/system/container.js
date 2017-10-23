@@ -22,6 +22,7 @@ type StateProps = {
 
 type DispatchProps = {
   _onManageChannels: (teamname: string) => void,
+  onUsernameClicked: (username: string) => void,
 }
 
 const getDetails = createCachedSelector(
