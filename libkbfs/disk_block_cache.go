@@ -700,18 +700,6 @@ func (cache *DiskBlockCacheStandard) UpdateMetadata(ctx context.Context,
 	return cache.updateMetadataLocked(ctx, blockID.Bytes(), md)
 }
 
-// Size implements the DiskBlockCache interface for DiskBlockCacheStandard.
-func (cache *DiskBlockCacheStandard) Size() int64 {
-	cache.lock.RLock()
-	defer cache.lock.RUnlock()
-	err := cache.checkCacheLocked("Size")
-	if err != nil {
-		return 0
-	}
-
-	return int64(cache.currBytes)
-}
-
 // deleteLocked deletes a set of blocks from the disk block cache.
 func (cache *DiskBlockCacheStandard) deleteLocked(ctx context.Context,
 	blockEntries []kbfsblock.ID) (numRemoved int, sizeRemoved int64,

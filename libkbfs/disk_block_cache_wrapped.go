@@ -210,17 +210,6 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
 	return cache.workingSetCache.UpdateMetadata(ctx, blockID, prefetchStatus)
 }
 
-// Size implements the DiskBlockCache interface for diskBlockCacheWrapped.
-func (cache *diskBlockCacheWrapped) Size() int64 {
-	cache.mtx.RLock()
-	defer cache.mtx.RUnlock()
-	size := cache.workingSetCache.Size()
-	if cache.syncCache != nil {
-		size += cache.syncCache.Size()
-	}
-	return size
-}
-
 // Status implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Status(
 	ctx context.Context) map[string]DiskBlockCacheStatus {
