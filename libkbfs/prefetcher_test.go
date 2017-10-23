@@ -993,9 +993,8 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	notifySyncCh(t, prefetchSyncCh)
 
-	wrappedCache := cache.(*diskBlockCacheWrapped)
-	syncCache := wrappedCache.syncCache.(*DiskBlockCacheStandard)
-	workingCache := wrappedCache.syncCache.(*DiskBlockCacheStandard)
+	syncCache := cache.syncCache
+	workingCache := cache.workingSetCache
 
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {b, a -> {ab, aa -> {aab, aaa}}}")
