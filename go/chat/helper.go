@@ -582,9 +582,6 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 		rl = append(rl, *joinRes.RateLimit)
 	}
 
-	// Clear team channel source
-	g.TeamChannelSource.ChannelsChanged(ctx, nil)
-
 	if _, err = g.InboxSource.MembershipUpdate(ctx, uid, 0, []chat1.ConversationMember{
 		chat1.ConversationMember{
 			Uid:    uid,
@@ -639,9 +636,6 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 	if leaveRes.RateLimit != nil {
 		rl = append(rl, *leaveRes.RateLimit)
 	}
-
-	// Clear team channel source
-	g.TeamChannelSource.ChannelsChanged(ctx, nil)
 
 	return rl, nil
 }
@@ -849,6 +843,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err = n.G().InboxSource.NewConversation(ctx, n.uid, 0, updateConv.Conv); err != nil {
 			return res, rl, err
 		}
+
+		// Clear team channel source
+		n.G().TeamChannelSource.ChannelsChanged(ctx, updateConv.Conv.Metadata.IdTriple.Tlfid)
 
 		if res.Error != nil {
 			return res, rl, errors.New(res.Error.Message)

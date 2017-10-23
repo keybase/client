@@ -312,6 +312,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	pushHandler := NewPushHandler(g)
 	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
+	g.TeamChannelSource = NewCachingTeamChannelSource(g, func() chat1.RemoteInterface { return ri })
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -3216,5 +3217,87 @@ func TestChatSrvUserReset(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
+	})
+}
+
+func TestChatSrvTeamChannelNameMentions(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		ctc := makeChatTestContext(t, "TestChatSrvTeamChannelNameMentions", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		// Only run this test for teams
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+
+		ctx := ctc.as(t, users[0]).startCtx
+		ctx1 := ctc.as(t, users[1]).startCtx
+		listener0 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().SetService()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[1]).h.G().SetService()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
+		consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+
+		topicNames := []string{"miketime", "random", "hi"}
+		for index, topicName := range topicNames {
+			channel, err := ctc.as(t, users[1]).chatLocalHandler().NewConversationLocal(ctx,
+				chat1.NewConversationLocalArg{
+					TlfName:       conv.TlfName,
+					TopicName:     &topicName,
+					TopicType:     chat1.TopicType_CHAT,
+					TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+					MembersType:   chat1.ConversationMembersType_TEAM,
+				})
+			t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
+			require.NoError(t, err)
+			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+			if index == 0 {
+				consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+				consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			}
+
+			_, err = ctc.as(t, users[0]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
+				channel.Conv.GetConvID())
+			require.NoError(t, err)
+			consumeNewMsg(t, listener0, chat1.MessageType_JOIN)
+			consumeNewMsg(t, listener1, chat1.MessageType_JOIN)
+
+			_, err = ctc.as(t, users[1]).chatLocalHandler().PostLocal(ctx1, chat1.PostLocalArg{
+				ConversationID: channel.Conv.GetConvID(),
+				Msg: chat1.MessagePlaintext{
+					ClientHeader: chat1.MessageClientHeader{
+						Conv:        channel.Conv.Info.Triple,
+						MessageType: chat1.MessageType_TEXT,
+						TlfName:     channel.Conv.Info.TlfName,
+					},
+					MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+						Body: fmt.Sprintf("The worst channel is #%s. #error", topicName),
+					}),
+				},
+			})
+			require.NoError(t, err)
+			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+
+			tv, err := ctc.as(t, users[0]).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
+				ConversationID: channel.Conv.GetConvID(),
+				Query: &chat1.GetThreadQuery{
+					MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				},
+			})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(tv.Thread.Messages))
+			require.Equal(t, 1, len(tv.Thread.Messages[0].Valid().ChannelNameMentions))
+			require.Equal(t, topicName, tv.Thread.Messages[0].Valid().ChannelNameMentions[0])
+		}
 	})
 }

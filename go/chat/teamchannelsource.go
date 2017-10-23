@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
@@ -12,6 +13,11 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
+
+type teamChannelCacheItem struct {
+	dat   []types.ConvIDAndTopicName
+	entry time.Time
+}
 
 type CachingTeamChannelSource struct {
 	globals.Contextified
@@ -37,20 +43,28 @@ func (c *CachingTeamChannelSource) key(teamID chat1.TLFID) string {
 	return teamID.String()
 }
 
-func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context, teamID chat1.TLFID) (res []chat1.Conversation, ok bool) {
+func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context, teamID chat1.TLFID) (res []types.ConvIDAndTopicName, ok bool) {
 	val, ok := c.cache.Get(c.key(teamID))
 	if !ok {
 		return res, false
 	}
-	if res, ok = val.([]chat1.Conversation); !ok {
+	var item teamChannelCacheItem
+	if item, ok = val.(teamChannelCacheItem); !ok {
 		return nil, false
 	}
-	return res, true
+	// Check to see if the entry is stale, and get it out of there if so
+	if time.Now().Sub(item.entry) > 5*time.Minute {
+		c.invalidate(ctx, teamID)
+		return nil, false
+	}
+	return item.dat, true
 }
 
-func (c *CachingTeamChannelSource) writeToCache(ctx context.Context, teamID chat1.TLFID,
-	convs []chat1.Conversation) {
-	c.cache.Add(c.key(teamID), convs)
+func (c *CachingTeamChannelSource) writeToCache(ctx context.Context, teamID chat1.TLFID, names []types.ConvIDAndTopicName) {
+	c.cache.Add(c.key(teamID), teamChannelCacheItem{
+		dat:   names,
+		entry: time.Now(),
+	})
 }
 
 func (c *CachingTeamChannelSource) invalidate(ctx context.Context, teamID chat1.TLFID) {
@@ -60,29 +74,20 @@ func (c *CachingTeamChannelSource) invalidate(ctx context.Context, teamID chat1.
 func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID, teamID chat1.TLFID,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal,
 	rl []chat1.RateLimit, err error) {
-	var ok bool
 	var convs []chat1.Conversation
-	if convs, ok = c.fetchFromCache(ctx, teamID); !ok {
-		c.Debug(ctx, "GetChannelsFull: cache miss")
-		tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-			TlfID:            teamID,
-			TopicType:        topicType,
-			MembersType:      membersType,
-			SummarizeMaxMsgs: false,
-		})
-		if err != nil {
-			return res, rl, err
-		}
-		if tlfRes.RateLimit != nil {
-			rl = append(rl, *tlfRes.RateLimit)
-		}
-		convs = tlfRes.Conversations
-
-		// Write back to cache
-		c.writeToCache(ctx, teamID, convs)
-	} else {
-		c.Debug(ctx, "GetChannelsFull: cache hit")
+	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
+		TlfID:            teamID,
+		TopicType:        topicType,
+		MembersType:      membersType,
+		SummarizeMaxMsgs: false,
+	})
+	if err != nil {
+		return res, rl, err
 	}
+	if tlfRes.RateLimit != nil {
+		rl = append(rl, *tlfRes.RateLimit)
+	}
+	convs = tlfRes.Conversations
 
 	// Localize the conversations
 	res, err = NewBlockingLocalizer(c.G()).Localize(ctx, uid, types.Inbox{
@@ -99,29 +104,27 @@ func (c *CachingTeamChannelSource) GetChannelsFull(ctx context.Context, uid greg
 
 func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
 	teamID chat1.TLFID, topicType chat1.TopicType, membersType chat1.ConversationMembersType) (res []types.ConvIDAndTopicName, rl []chat1.RateLimit, err error) {
-	var ok bool
-	var convs []chat1.Conversation
-	if convs, ok = c.fetchFromCache(ctx, teamID); !ok {
-		c.Debug(ctx, "GetChannelsTopicName: cache miss")
-		tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-			TlfID:            teamID,
-			TopicType:        topicType,
-			MembersType:      membersType,
-			SummarizeMaxMsgs: false,
-		})
-		if err != nil {
-			return res, rl, err
-		}
-		if tlfRes.RateLimit != nil {
-			rl = append(rl, *tlfRes.RateLimit)
-		}
-		convs = tlfRes.Conversations
 
-		// Write back to cache
-		c.writeToCache(ctx, teamID, convs)
-	} else {
+	var ok bool
+	if res, ok = c.fetchFromCache(ctx, teamID); ok {
 		c.Debug(ctx, "GetChannelsTopicName: cache hit")
+		return res, rl, nil
 	}
+
+	var convs []chat1.Conversation
+	tlfRes, err := c.ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
+		TlfID:            teamID,
+		TopicType:        topicType,
+		MembersType:      membersType,
+		SummarizeMaxMsgs: false,
+	})
+	if err != nil {
+		return res, rl, err
+	}
+	if tlfRes.RateLimit != nil {
+		rl = append(rl, *tlfRes.RateLimit)
+	}
+	convs = tlfRes.Conversations
 
 	getMetadataMsg := func(conv chat1.Conversation) (chat1.MessageBoxed, bool) {
 		for _, msg := range conv.MaxMsgs {
@@ -172,6 +175,7 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 		}
 	}
 
+	c.writeToCache(ctx, teamID, res)
 	return res, rl, nil
 }
 
