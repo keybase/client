@@ -557,6 +557,7 @@ function _unboxedToMessage(
       message: new HiddenString((messageText && messageText.body) || ''),
       messageState,
       outboxID: outboxIDKey,
+      rawMessageID: -1,
       senderDeviceRevokedAt: null,
       timestamp: payload.ctime,
       type: 'Text',

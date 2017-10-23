@@ -108,6 +108,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
     message: new HiddenString(action.payload.text.stringValue()),
     messageState: 'pending',
     outboxID: outboxIDKey,
+    rawMessageID: -1,
     senderDeviceRevokedAt: null,
     timestamp: Date.now(),
     type: 'Text',
