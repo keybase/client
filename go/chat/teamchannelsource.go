@@ -53,7 +53,7 @@ func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context, teamID ch
 		return nil, false
 	}
 	// Check to see if the entry is stale, and get it out of there if so
-	if time.Now().Sub(item.entry) > 5*time.Minute {
+	if time.Now().Sub(item.entry) > time.Hour {
 		c.invalidate(ctx, teamID)
 		return nil, false
 	}
