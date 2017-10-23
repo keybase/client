@@ -79,14 +79,18 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
 const _inviteByEmail = function*(action: Constants.InviteToTeamByEmail) {
   const {payload: {invitees, role, teamname}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
-  yield call(RpcTypes.teamsTeamAddEmailsBulkRpcPromise, {
-    param: {
-      name: teamname,
-      emails: invitees,
-      role: role && RpcTypes.TeamsTeamRole[role],
-    },
-  })
-  yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname))) // getDetails will unset loading
+  try {
+    yield call(RpcTypes.teamsTeamAddEmailsBulkRpcPromise, {
+      param: {
+        name: teamname,
+        emails: invitees,
+        role: role && RpcTypes.TeamsTeamRole[role],
+      },
+    })
+  } finally {
+    // TODO handle error, but for now make sure loading is unset
+    yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname))) // getDetails will unset loading
+  }
 }
 
 const _addToTeam = function*(action: Constants.AddToTeam) {

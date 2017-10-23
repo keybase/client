@@ -325,7 +325,7 @@
   </Fragment>
   <Fragment>
     <CustomAction Id="QtExecRemoveBundle" BinaryKey="WixCA" DllEntry="WixQuietExec"
-                Execute="deferred" Return="check" Impersonate="no"/>
+                Execute="deferred" Return="ignore" Impersonate="no"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="QtExecCopyBundle" BinaryKey="WixCA" DllEntry="WixQuietExec"

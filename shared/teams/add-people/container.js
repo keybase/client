@@ -27,7 +27,18 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   },
   onClose: () => dispatch(navigateUp()),
   onOpenRolePicker: (role: string, onComplete: string => void) => {
-    dispatch(navigateAppend([{props: {onComplete, selectedRole: role}, selected: 'controlledRolePicker'}]))
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            allowOwner: false,
+            onComplete,
+            selectedRole: role,
+          },
+          selected: 'controlledRolePicker',
+        },
+      ])
+    )
   },
 })
 
