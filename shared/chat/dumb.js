@@ -527,9 +527,10 @@ export default {
   ChatBannerError: errorBanner,
   ChatBannerInfo: infoBanner,
   ChatBannerInvite: inviteBanner,
-  ChatInbox: conversationsList,
+  // XXX: Temp disabled, contains a connected component
+  // ChatInbox: conversationsList,
   ChatHeader: header,
-  ChatInput: input,
+  // ChatInput: input,
   ChatList: list,
   ChatParticipantRekey: participantRekey,
   // XXX: Temp disabled, contains a connected component

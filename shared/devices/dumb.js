@@ -84,10 +84,10 @@ const mockStore = {
 }
 
 export default {
-  'Devices: Devices List': {
-    component: Devices,
-    mocks: {
-      Devices: {mockStore, routeState: {showingRevoked: true}, setRouteState: () => {}},
-    },
-  },
+  // 'Devices: Devices List': {
+  // component: Devices,
+  // mocks: {
+  // Devices: {mockStore, routeState: {showingRevoked: true}, setRouteState: () => {}},
+  // },
+  // },
 }
