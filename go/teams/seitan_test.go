@@ -1,14 +1,11 @@
 package teams
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
 	"golang.org/x/net/context"
 
-	//"github.com/keybase/client/go/externals"
-	//"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -32,15 +29,15 @@ func TestSeitanEncryption(t *testing.T) {
 
 	ikey, err := GenerateIKey()
 	require.NoError(t, err)
-	fmt.Printf("ikey is: %q (%d)\n", ikey, len(ikey))
+	t.Logf("ikey is: %q (%d)\n", ikey, len(ikey))
 
 	sikey, err := ikey.GenerateSIKey()
 	require.NoError(t, err)
-	fmt.Printf("sikey is: %v (%d)\n", sikey, len(sikey))
+	t.Logf("sikey is: %v (%d)\n", sikey, len(sikey))
 
 	inviteID, err := sikey.GenerateTeamInviteID()
 	require.NoError(t, err)
-	fmt.Printf("Invite id is: %s\n", inviteID)
+	t.Logf("Invite id is: %s\n", inviteID)
 	require.Equal(t, len(string(inviteID)), 32)
 
 	peikey, encoded, err := ikey.GeneratePackedEncryptedIKey(context.TODO(), team)
@@ -49,8 +46,8 @@ func TestSeitanEncryption(t *testing.T) {
 	require.EqualValues(t, peikey.TeamKeyGeneration, 1)
 	require.NotZero(tc.T, peikey.RandomNonce)
 
-	fmt.Printf("Encrypted ikey with gen: %d\n", peikey.TeamKeyGeneration)
-	fmt.Printf("Armored output: %s\n", encoded)
+	t.Logf("Encrypted ikey with gen: %d\n", peikey.TeamKeyGeneration)
+	t.Logf("Armored output: %s\n", encoded)
 
 	peikey2, err := SeitanDecodePEIKey(encoded)
 	require.NoError(t, err)
@@ -63,8 +60,12 @@ func TestSeitanEncryption(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ikey, ikey2)
 
-	fmt.Printf("Decrypted ikey is %q, wowie!\n", ikey2)
+	t.Logf("Decrypted ikey is %q, wowie!\n", ikey2)
 
 	_, _, err = sikey.GenerateAcceptanceKey(user.User.GetUID(), user.EldestSeqno, time.Now().Unix())
 	require.NoError(t, err)
+}
+
+func TestSeitanKnownSamples(t *testing.T) {
+
 }

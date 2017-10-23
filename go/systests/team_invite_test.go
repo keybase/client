@@ -438,12 +438,15 @@ func TestTeamInviteSeitan(t *testing.T) {
 
 	team := own.createTeam()
 
+	t.Logf("Created team %q", team)
+
 	token, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
 		Name: team,
 		Role: keybase1.TeamRole_WRITER,
 	})
-
 	require.NoError(t, err)
+
+	t.Logf("Created token %q", token)
 
 	err = roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
 		Token:  token,
@@ -451,10 +454,12 @@ func TestTeamInviteSeitan(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	t.Logf("User used token, waiting for rekeyd")
+
 	own.kickTeamRekeyd()
 	own.waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
-	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, own.tc.G, team, false, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, own.tc.G, team, false /* public */, true /* needAdmin */)
 	require.NoError(t, err)
 
 	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
