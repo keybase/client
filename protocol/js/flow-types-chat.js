@@ -1915,6 +1915,10 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
+export type TeamChannelUpdate = {
+  teamID: TLFID,
+}
+
 export type TeamType =
     0 // NONE_0
   | 1 // SIMPLE_1

@@ -96,4 +96,8 @@ protocol gregor {
         array<ConversationMember> reset;
         union { null, UnreadUpdate } unreadUpdate;
     }
+
+    record TeamChannelUpdate {
+        TLFID teamID;
+    }
 }

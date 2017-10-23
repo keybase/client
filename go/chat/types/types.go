@@ -18,6 +18,7 @@ var PushTyping = "chat.typing"
 var PushMembershipUpdate = "chat.membershipUpdate"
 var PushTLFFinalize = "chat.tlffinalize"
 var PushTLFResolve = "chat.tlfresolve"
+var PushTeamChannels = "chat.teamchannels"
 
 type NameInfo struct {
 	ID               chat1.TLFID

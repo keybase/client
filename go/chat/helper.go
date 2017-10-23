@@ -581,6 +581,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if joinRes.RateLimit != nil {
 		rl = append(rl, *joinRes.RateLimit)
 	}
+
 	// Clear team channel source
 	g.TeamChannelSource.ChannelsChanged(ctx, nil)
 
@@ -638,6 +639,7 @@ func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.D
 	if leaveRes.RateLimit != nil {
 		rl = append(rl, *leaveRes.RateLimit)
 	}
+
 	// Clear team channel source
 	g.TeamChannelSource.ChannelsChanged(ctx, nil)
 
