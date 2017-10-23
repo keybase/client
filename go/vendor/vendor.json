@@ -90,6 +90,18 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"checksumSHA1": "RBwpnMpfQt7Jo7YWrRph0Vwe+f0=",
+			"path": "github.com/coreos/go-systemd/activation",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
+			"checksumSHA1": "+Zz+leZHHC9C0rx8DoRuffSRPso=",
+			"path": "github.com/coreos/go-systemd/daemon",
+			"revision": "d2196463941895ee908e13531a23a39feb9e1243",
+			"revisionTime": "2017-07-31T11:19:25Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
