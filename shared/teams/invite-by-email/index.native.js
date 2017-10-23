@@ -50,20 +50,27 @@ type ContactProps = {
   // Postal addresses, etc. - unused
 }
 
+type ContactDisplayProps = {
+  name: string,
+  email?: string,
+  phoneNo?: string,
+  thumbnailPath?: string,
+  label: string,
+  recordID: string,
+}
+
 type ContactRowProps = {
-  contact: ContactProps,
+  contact: ContactDisplayProps,
   id: string,
   onClick: () => void,
   selected: boolean,
 }
 
 const contactRow = (i: number, props: ContactRowProps) => {
-  const contactName = isAndroid
-    ? props.contact.givenName
-    : props.contact.givenName + ' ' + props.contact.familyName
   const source = typeof props.contact.thumbnailPath === 'string'
     ? {uri: 'file://' + props.contact.thumbnailPath}
     : props.contact.thumbnailPath
+  const hasThumbnail = props.contact.thumbnailPath && props.contact.thumbnailPath.length > 0
   return (
     <ClickableBox
       style={{
@@ -74,15 +81,23 @@ const contactRow = (i: number, props: ContactRowProps) => {
         padding: globalMargins.small,
       }}
       onClick={props.onClick}
-      key={props.contact.recordID}
     >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
-          {props.contact.hasThumbnail &&
+          {!!hasThumbnail &&
             <NativeImage style={{width: 32, height: 32, borderRadius: 16, marginRight: 8}} source={source} />}
-          {!props.contact.hasThumbnail && <Box style={{width: 40}} />}
-          <Text type="Body">{contactName}</Text>
-          {props.contact.emailAddresses.length === 0 &&
+          {!hasThumbnail && <Box style={{width: 40}} />}
+          <Box>
+            <Box style={globalStyles.flexBoxRow}>
+              <Text type="Body">{props.contact.name}</Text>
+            </Box>
+            <Box style={globalStyles.flexBoxRow}>
+              <Text type="BodySmall">
+                {props.contact.label} - {props.contact.email || props.contact.phoneNo}
+              </Text>
+            </Box>
+          </Box>
+          {!props.contact.email &&
             <Icon
               type="iconfont-open-browser"
               style={{color: globalColors.black_20, fontSize: 16, marginLeft: globalMargins.small}}
@@ -98,12 +113,11 @@ const contactRow = (i: number, props: ContactRowProps) => {
   )
 }
 
-// We need inviteeIDs separate from inviteeEmails to keep track of selected contacts that don't have an email address
 type State = {
   invitees: Array<{contactID: string, address?: string}>,
   loading: boolean,
   hasPermission: boolean,
-  contacts: Array<any>,
+  contacts: Array<ContactProps>,
 }
 
 class InviteByEmail extends React.Component<Props, State> {
@@ -143,7 +157,7 @@ class InviteByEmail extends React.Component<Props, State> {
     }
   }
 
-  onSelectContact(contact: ContactProps) {
+  onSelectContact(contact: ContactDisplayProps) {
     console.log('clicked: ', contact)
 
     if (this.isSelected(contact)) {
@@ -153,17 +167,14 @@ class InviteByEmail extends React.Component<Props, State> {
     }
   }
 
-  isSelected(contact: ContactProps): boolean {
+  isSelected(contact: ContactDisplayProps): boolean {
     return this.state.invitees.findIndex(rec => rec.contactID === contact.recordID) >= 0
   }
 
-  _addInvitee(contact: ContactProps) {
-    if (contact.emailAddresses.length > 0) {
+  _addInvitee(contact: ContactDisplayProps) {
+    if (contact.email) {
       this.setState({
-        invitees: [
-          ...this.state.invitees,
-          {contactID: contact.recordID, address: contact.emailAddresses[0].email},
-        ],
+        invitees: [...this.state.invitees, {contactID: contact.recordID, address: contact.email}],
       })
     } else {
       this.setState({
@@ -172,7 +183,7 @@ class InviteByEmail extends React.Component<Props, State> {
     }
   }
 
-  _removeInvitee(contact: ContactProps) {
+  _removeInvitee(contact: ContactDisplayProps) {
     const idx = this.state.invitees.findIndex(rec => rec.contactID === contact.recordID)
     if (idx < 0) {
       console.warn('Warning: attempted to remove an invitee that was not in the list.')
@@ -184,12 +195,40 @@ class InviteByEmail extends React.Component<Props, State> {
   }
 
   render() {
-    const contactRowProps = this.state.contacts.map(contact => ({
-      contact,
-      id: contact.recordID,
-      onClick: () => this.onSelectContact(contact),
-      selected: this.isSelected(contact),
-    }))
+    const contactRowProps = this.state.contacts.reduce((res, contact) => {
+      const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
+      contact.emailAddresses.forEach(email => {
+        const cData = {
+          name: contactName,
+          email: email.email,
+          label: email.label,
+          thumbnailPath: contact.thumbnailPath,
+          recordID: contact.recordID + email.email,
+        }
+        res.push({
+          id: contact.recordID + email.email,
+          onClick: () => this.onSelectContact(cData),
+          selected: this.isSelected(cData),
+          contact: cData,
+        })
+      })
+      contact.phoneNumbers.forEach(phoneNo => {
+        const cData = {
+          name: contactName,
+          phoneNo: phoneNo.number,
+          label: phoneNo.label,
+          thumbnailPath: contact.thumbnailPath,
+          recordID: contact.recordID + phoneNo.number,
+        }
+        res.push({
+          id: contact.recordID + phoneNo.number,
+          onClick: () => this.onSelectContact(cData),
+          selected: this.isSelected(cData),
+          contact: cData,
+        })
+      })
+      return res
+    }, [])
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {!this.state.hasPermission && <AccessDenied />}
