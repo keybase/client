@@ -1258,25 +1258,58 @@ function getDeletedMessageIDs(state: TypedState, convIDKey: ConversationIDKey): 
   return state.entities.deletedIDs.get(convIDKey, I.Set())
 }
 
-function getMessageUpdates(
-  state: TypedState,
-  messageKey: MessageKey
-): I.OrderedSet<EditingMessage | UpdatingAttachment> {
+function getTextMessageUpdates(state: TypedState, messageKey: MessageKey): I.OrderedSet<EditingMessage> {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
   const updateKeys = conversationIDKey
     ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
     : I.OrderedSet()
-  const messages: I.OrderedSet<null | EditingMessage | UpdatingAttachment> = updateKeys.map(k => {
+  const messages: I.OrderedSet<?EditingMessage> = updateKeys.map(k => {
     const message = state.entities.messages.get(k)
-    return message && (message.type === 'Edit' || message.type === 'UpdateAttachment') ? message : null
+    return message && message.type === 'Edit' ? message : null
   })
   return messages.filter(Boolean)
 }
 
+function getAttachmentMessageUpdates(
+  state: TypedState,
+  messageKey: MessageKey
+): I.OrderedSet<UpdatingAttachment> {
+  const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
+  const updateKeys = conversationIDKey
+    ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
+    : I.OrderedSet()
+  const messages: I.OrderedSet<?UpdatingAttachment> = updateKeys.map(k => {
+    const message = state.entities.messages.get(k)
+    return message && message.type === 'UpdateAttachment' ? message : null
+  })
+  return messages.filter(Boolean)
+}
+
+function getMessageUpdateCount(state: TypedState, message: Message): number {
+  if (message.type === 'Text') {
+    return getTextMessageUpdates(state, message.key).count()
+  } else if (message.type === 'Attachment') {
+    return getAttachmentMessageUpdates(state, message.key).count()
+  } else {
+    return 0
+  }
+}
+
 function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?Message {
   const message = state.entities.messages.get(messageKey)
-  const messageUpdates = getMessageUpdates(state, messageKey)
-  return message ? applyMessageUpdates(message, messageUpdates) : null
+  if (!message) {
+    return null
+  }
+
+  if (message.type === 'Text') {
+    const updates = getTextMessageUpdates(state, messageKey)
+    return applyTextMessageUpdates(message, updates)
+  } else if (message.type === 'Attachment') {
+    const updates = getAttachmentMessageUpdates(state, messageKey)
+    return applyAttachmentMessageUpdates(message, updates)
+  } else {
+    return message
+  }
 }
 
 // Sometimes we only have the conv id and msg id. Like when the service tells us something
@@ -1365,15 +1398,40 @@ function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDK
   return state.entities.pagination.prev.get(conversationIDKey, null)
 }
 
-function applyMessageUpdates(
-  message: Message,
-  updates: I.OrderedSet<EditingMessage | UpdatingAttachment>
-): Message {
+function applyTextMessageUpdates(message: TextMessage, updates: I.OrderedSet<EditingMessage>): Message {
   if (updates.isEmpty()) {
     return message
   }
 
-  return updates.reduce((message: Message, update: EditingMessage | UpdatingAttachment): Message => {
+  return updates.reduce((message: TextMessage, update: EditingMessage): TextMessage => {
+    if (!update) {
+      return message
+    } else if (update.type === 'Edit') {
+      return {
+        ...message,
+        message: update.message,
+        mentions: update.mentions,
+        channelMention: update.channelMention,
+      }
+    } else if (update.type === 'UpdateAttachment') {
+      return {
+        ...message,
+        ...update.updates,
+      }
+    }
+    return message
+  }, message)
+}
+
+function applyAttachmentMessageUpdates(
+  message: AttachmentMessage,
+  updates: I.OrderedSet<UpdatingAttachment>
+): AttachmentMessage {
+  if (updates.isEmpty()) {
+    return message
+  }
+
+  return updates.reduce((message: AttachmentMessage, update: UpdatingAttachment): AttachmentMessage => {
     if (!update) {
       return message
     } else if (update.type === 'Edit') {
@@ -1394,7 +1452,6 @@ function applyMessageUpdates(
 }
 
 export {
-  applyMessageUpdates,
   getBrokenUsers,
   getConversationMessages,
   getDeletedMessageIDs,
@@ -1402,7 +1459,7 @@ export {
   getEditingMessage,
   getInbox,
   getMessageFromMessageKey,
-  getMessageUpdates,
+  getMessageUpdateCount,
   getSelectedConversation,
   getSelectedConversationStates,
   getSupersedes,
