@@ -5,8 +5,7 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import * as Contacts from 'react-native-contacts'
 import {isAndroid} from '../../constants/platform'
-
-import {type TeamRoleType} from '../../constants/teams'
+import {type Props} from './index'
 
 const AccessDenied = () => (
   <Box
@@ -97,17 +96,6 @@ const contactRow = (i: number, props: ContactRowProps) => {
       </Box>
     </ClickableBox>
   )
-}
-
-type Props = {
-  invitees: string,
-  name: string,
-  onClose: () => void,
-  onInvite: () => void,
-  onInviteesChange: (invitees: string) => void,
-  onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
-  onRoleChange: (role: TeamRoleType) => void,
-  role: TeamRoleType,
 }
 
 // We need inviteeIDs separate from inviteeEmails to keep track of selected contacts that don't have an email address
