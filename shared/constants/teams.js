@@ -151,10 +151,12 @@ type _State = {
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
   teamNameToInvites: I.Map<
     Teamname,
-    I.RecordOf<{
-      role: teamRoleByEnum,
-      name: string,
-    }>
+    I.Set<
+      I.RecordOf<{
+        role: string,
+        name: string,
+      }>
+    >
   >,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
@@ -181,7 +183,7 @@ const userIsInTeamHelper = (state: TypedState, username: string, service: Servic
   service === 'Keybase' ? userIsInTeam(state, teamname, username) : false
 
 const getConversationIDKeyFromChannelName = (state: TypedState, channelname: string) =>
-  state.entities.getIn(['teams', 'convIDToChannelInfo'], I.Map()).findKey(i => i.channelname === channelname)
+  state.entities.teams.convIDToChannelInfo.findKey(i => i.channelname === channelname)
 
 const getParticipants = (state: TypedState, conversationIDKey: ChatConstants.ConversationIDKey) =>
   state.entities.getIn(['teams', 'convIDToChannelInfo', conversationIDKey, 'participants'], I.Set())

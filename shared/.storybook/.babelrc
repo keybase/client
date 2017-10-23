@@ -28,7 +28,7 @@
         "exclude": [
           "transform-regenerator"
         ],
-        "modules": false,
+        "modules": "commonjs",
         "targets": {
           "browsers": "last 2 Chrome versions"
         },

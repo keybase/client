@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
 
-export type TimerFunc = (func: () => void, timing: number) => number
-export type ClearTimerFunc = (id?: ?number) => void
-export type TimerProps = {
+// duplicating this from the .flow file as we don't pull in those files for rn
+type TimerFunc = (func: () => void, timing: number) => number
+type ClearTimerFunc = (id: ?number) => void
+type TimerProps = {
   setTimeout: TimerFunc,
   clearTimeout: ClearTimerFunc,
   setInterval: TimerFunc,
@@ -18,14 +19,11 @@ function clearId(clearFunc: (id?: number) => void, array: Array<number>, id?: ?n
 }
 
 function getDisplayName(WrappedComponent): string {
-  // $FlowIssue
   return WrappedComponent.displayName || WrappedComponent.name || 'Component'
 }
 
-export default function HOCTimers<P: Object>(
-  ComposedComponent: React.ComponentType<P & TimerProps>
-): React.ComponentType<P> {
-  class TimersComponent extends React.Component<P> {
+export default function HOCTimers(ComposedComponent: any) {
+  class TimersComponent extends React.Component<any> {
     static displayName = `HOCTimers(${getDisplayName(ComposedComponent)})`
     _timeoutIds: Array<number>
     _intervalIds: Array<number>

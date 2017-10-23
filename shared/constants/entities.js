@@ -27,7 +27,7 @@ export type Subtract = NoErrorTypedAction<
 export type Actions = Delete | Merge | Replace | Subtract
 
 type _SearchSubState = {
-  searchResults: I.Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
+  searchResults: I.Map<SearchConstants.SearchResultId, I.RecordOf<SearchConstants.SearchResult>>,
   searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
   searchKeyToResults: I.Map<string, ?I.List<SearchConstants.SearchResultId>>,
   searchKeyToPending: I.Map<string, boolean>,
@@ -69,7 +69,7 @@ type _State = {
   inboxBigChannels: I.Map<ChatConstants.ConversationIDKey, string>,
   inboxBigChannelsToTeam: I.Map<ChatConstants.ConversationIDKey, string>,
   inboxIsEmpty: I.Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxSmallTimestamps: I.Map<ChatConstants.ConversationIDKey, string>,
+  inboxSmallTimestamps: I.Map<ChatConstants.ConversationIDKey, number>,
   inboxSupersededBy: I.Map<ChatConstants.ConversationIDKey, boolean>,
   inboxUnreadCountBadge: I.Map<ChatConstants.ConversationIDKey, number>,
   inboxUnreadCountTotal: I.Map<ChatConstants.ConversationIDKey, number>,

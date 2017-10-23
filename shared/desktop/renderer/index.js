@@ -170,6 +170,7 @@ function render(store, MainComponent) {
         </div>
       </Root>
     </AppContainer>,
+    // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )
 }
