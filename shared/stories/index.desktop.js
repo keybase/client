@@ -8,10 +8,6 @@ import stories from './stories'
 // Load css
 import '../desktop/renderer/style.css'
 
-global.requestAnimationFrame = function(callback) {
-  setTimeout(callback, 0)
-}
-
 const load = () => {
   addDecorator(story => (
     <ScrollView key="scrollview" style={{flex: 1}}>
