@@ -1,20 +1,21 @@
 package teams
 
 import (
-	//"fmt"
 	"bytes"
+
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
-	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/crypto/scrypt"
 	"golang.org/x/net/context"
 
+	libkb "github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack/encoding/basex"
 )
 
