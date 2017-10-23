@@ -9,9 +9,32 @@ import {isAndroid} from '../../constants/platform'
 import {type TeamRoleType} from '../../constants/teams'
 
 const AccessDenied = () => (
-  <Text type="BodySemibold">
-    We don't have permission to access your contacts! To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
-  </Text>
+  <Box
+    style={{
+      ...globalStyles.flexBoxColumn,
+      padding: globalMargins.small,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flex: 1,
+    }}
+  >
+    <Icon
+      type="iconfont-close"
+      style={{
+        color: globalColors.red,
+        fontSize: globalMargins.xlarge,
+        marginBottom: globalMargins.large,
+      }}
+    />
+    <Box>
+      <Text type="Body" style={{marginBottom: globalMargins.small}}>
+        We don't have permission to access your contacts!
+      </Text>
+      <Text type="Body">
+        To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
+      </Text>
+    </Box>
+  </Box>
 )
 
 // Note: 'on Android the entire display name is passed in the givenName field. middleName and familyName will be empty strings.'
@@ -59,7 +82,7 @@ const contactRow = (i: number, props: ContactRowProps) => {
           {props.contact.hasThumbnail &&
             <NativeImage style={{width: 32, height: 32, borderRadius: 16, marginRight: 8}} source={source} />}
           {!props.contact.hasThumbnail && <Box style={{width: 40}} />}
-          <Text type="BodySemibold">{contactName}</Text>
+          <Text type="Body">{contactName}</Text>
           {props.contact.emailAddresses.length === 0 &&
             <Icon
               type="iconfont-open-browser"
@@ -181,12 +204,13 @@ class InviteByEmail extends React.Component<Props, State> {
     }))
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.small}}>
-          <Text type="BodySemibold">
-            Select contacts to invite to {this.props.name}
-          </Text>
-        </Box>
         {!this.state.hasPermission && <AccessDenied />}
+        {this.state.hasPermission &&
+          <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.small}}>
+            <Text type="Body">
+              Select contacts to invite to {this.props.name}
+            </Text>
+          </Box>}
         {this.state.hasPermission &&
           <List
             keyProperty="id"
