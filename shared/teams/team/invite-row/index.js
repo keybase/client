@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, ClickableBox, Text, Icon, Usernames} from '../../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../../styles'
+import {Avatar, Box, ClickableBox, Text, Usernames} from '../../../common-adapters'
+import {globalStyles, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
-import {typeToLabel, type TypeMap} from '../../../constants/teams'
+import {typeToLabel} from '../../../constants/teams'
 
 export type Props = {
   username: string,
@@ -11,18 +11,10 @@ export type Props = {
   teamname: string,
   you: ?string,
   type: ?string,
-  onClick: () => void,
 }
 
-const showCrown: TypeMap = {
-  admin: true,
-  owner: true,
-  reader: false,
-  writer: false,
-}
-
-export const TeamMemberRow = (props: Props) => {
-  const {username, onClick, you, following, type} = props
+export const TeamInviteRow = (props: Props) => {
+  const {username, you, following, type} = props
   return (
     <ClickableBox
       style={{
@@ -33,7 +25,6 @@ export const TeamMemberRow = (props: Props) => {
         padding: globalMargins.tiny,
         width: '100%',
       }}
-      onClick={onClick}
     >
       <Avatar username={username} size={isMobile ? 48 : 32} />
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
@@ -43,16 +34,6 @@ export const TeamMemberRow = (props: Props) => {
           users={[{username, following, you: you === username}]}
         />
         <Box style={globalStyles.flexBoxRow}>
-          {type &&
-            !!showCrown[type] &&
-            <Icon
-              type="iconfont-crown"
-              style={{
-                color: globalColors.black_40,
-                fontSize: isMobile ? 16 : 12,
-                marginRight: globalMargins.xtiny,
-              }}
-            />}
           <Text type="BodySmall">{type && typeToLabel[type]}</Text>
         </Box>
       </Box>

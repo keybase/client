@@ -461,27 +461,27 @@ func RandHexString(prefix string, numbytes int) (string, error) {
 }
 
 func Trace(log logger.Logger, msg string, f func() error) func() {
-	// NOTE: Here and in all the similar functions below, we increment the log
-	// depth in the calls we make immediately, but *not* in the calls we defer
-	// to the caller. Those will (probably, hopefully) run in the caller's
-	// stackframe.
-	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
+	log = log.CloneWithAddedDepth(1)
+	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func TraceTimed(log logger.Logger, msg string, f func() error) func() {
-	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
+	log = log.CloneWithAddedDepth(1)
+	log.Debug("+ %s", msg)
 	start := time.Now()
 	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
 }
 
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
-	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
+	log = log.CloneWithAddedDepth(1)
+	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
-	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
+	log = log.CloneWithAddedDepth(1)
+	log.CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
 		log.CDebugf(ctx, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
@@ -489,12 +489,14 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 }
 
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
-	log.CloneWithAddedDepth(1).Debug("+ %s", msg)
+	log = log.CloneWithAddedDepth(1)
+	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %v", msg, f()) }
 }
 
 func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
-	log.CloneWithAddedDepth(1).CDebugf(ctx, "+ %s", msg)
+	log = log.CloneWithAddedDepth(1)
+	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
 }
 
