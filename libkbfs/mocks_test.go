@@ -3134,31 +3134,6 @@ func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, blockID, prefetchS
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), ctx, blockID, prefetchStatus)
 }
 
-// GetMetadata mocks base method
-func (m *MockDiskBlockCache) GetMetadata(ctx context.Context, blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
-	ret := m.ctrl.Call(m, "GetMetadata", ctx, blockID)
-	ret0, _ := ret[0].(DiskBlockCacheMetadata)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetMetadata indicates an expected call of GetMetadata
-func (mr *MockDiskBlockCacheMockRecorder) GetMetadata(ctx, blockID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).GetMetadata), ctx, blockID)
-}
-
-// Size mocks base method
-func (m *MockDiskBlockCache) Size() int64 {
-	ret := m.ctrl.Call(m, "Size")
-	ret0, _ := ret[0].(int64)
-	return ret0
-}
-
-// Size indicates an expected call of Size
-func (mr *MockDiskBlockCacheMockRecorder) Size() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Size", reflect.TypeOf((*MockDiskBlockCache)(nil).Size))
-}
-
 // Status mocks base method
 func (m *MockDiskBlockCache) Status(ctx context.Context) map[string]DiskBlockCacheStatus {
 	ret := m.ctrl.Call(m, "Status", ctx)
