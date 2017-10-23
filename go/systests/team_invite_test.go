@@ -428,3 +428,36 @@ func TestClearSocialInvitesOnAdd(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, hasInv)
 }
+
+func TestTeamInviteSeitan(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	own := tt.addUser("own")
+	roo := tt.addUser("roo")
+
+	team := own.createTeam()
+
+	token, err := own.teamsClient.TeamCreateSeitanToken(context.TODO(), keybase1.TeamCreateSeitanTokenArg{
+		Name: team,
+		Role: keybase1.TeamRole_WRITER,
+	})
+
+	require.NoError(t, err)
+
+	err = roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
+		Token:  token,
+		Seitan: true,
+	})
+	require.NoError(t, err)
+
+	own.kickTeamRekeyd()
+	own.waitForTeamChangedGregor(team, keybase1.Seqno(3))
+
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, own.tc.G, team, false, true)
+	require.NoError(t, err)
+
+	role, err := t0.MemberRole(context.TODO(), teams.NewUserVersion(roo.uid, 1))
+	require.NoError(t, err)
+	require.Equal(t, role, keybase1.TeamRole_WRITER)
+}

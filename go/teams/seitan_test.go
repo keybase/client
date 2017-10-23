@@ -68,7 +68,3 @@ func TestSeitanEncryption(t *testing.T) {
 	_, _, err = sikey.GenerateAcceptanceKey(user.User.GetUID(), user.EldestSeqno, time.Now().Unix())
 	require.NoError(t, err)
 }
-
-func TestSeitanEndToEnd(t *testing.T) {
-
-}

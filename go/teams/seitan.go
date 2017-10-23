@@ -195,8 +195,6 @@ func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno key
 		return akey, encoded, err
 	}
 
-	fmt.Printf("msg pack is %q\n", payload)
-
 	mac := hmac.New(sha512.New, sikey[:])
 	_, err = mac.Write(payload)
 	if err != nil {
