@@ -52,9 +52,7 @@ func (k *KBFSService) registerProtocols(
 	srv *rpc.Server, xp rpc.Transporter) error {
 	// TODO: fill in with actual protocols.
 	protocols := []rpc.Protocol{
-		kbgitkbfs.DiskBlockCacheProtocol(
-			NewDiskBlockCacheService(
-				k.config.DiskBlockCache())),
+		kbgitkbfs.DiskBlockCacheProtocol(NewDiskBlockCacheService(k.config)),
 	}
 	for _, proto := range protocols {
 		if err := srv.Register(proto); err != nil {

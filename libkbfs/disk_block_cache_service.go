@@ -7,15 +7,19 @@ import (
 	"golang.org/x/net/context"
 )
 
+type diskBlockCacheServiceConfig interface {
+	diskBlockCacheGetter
+}
+
 type DiskBlockCacheService struct {
-	cache DiskBlockCache
+	config diskBlockCacheServiceConfig
 }
 
 var _ kbgitkbfs.DiskBlockCacheInterface = (*DiskBlockCacheService)(nil)
 
-func NewDiskBlockCacheService(dbc DiskBlockCache) *DiskBlockCacheService {
+func NewDiskBlockCacheService(config diskBlockCacheServiceConfig) *DiskBlockCacheService {
 	return &DiskBlockCacheService{
-		cache: dbc,
+		config: config,
 	}
 }
 
