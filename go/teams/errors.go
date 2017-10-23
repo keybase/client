@@ -244,3 +244,11 @@ func NewKeyMaskNotFoundErrorForApplication(a keybase1.TeamApplication) libkb.Key
 func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplication, g keybase1.PerTeamKeyGeneration) libkb.KeyMaskNotFoundError {
 	return libkb.KeyMaskNotFoundError{App: a, Gen: g}
 }
+
+type ImplicitAdminCannotLeave struct{}
+
+func NewImplicitAdminCannotLeave() error { return &ImplicitAdminCannotLeave{} }
+
+func (e ImplicitAdminCannotLeave) Error() string {
+	return "You cannot leave this team. You are an implicit admin (admin of a parent team) but not an explicit member."
+}

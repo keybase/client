@@ -666,6 +666,17 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	if team.IsMember(context.TODO(), otherB.GetUserVersion()) {
 		t.Fatal("Writer user is still member after leave.")
 	}
+
+	// Try to leave the team again.
+	// They are now an implicit admin and not an explicit member.
+	// So this should fail, but with a reasonable error.
+	t.Logf("try to leave again")
+	tc.G.Logout()
+	err = otherA.Login(tc.G)
+	require.NoError(t, err)
+	err = Leave(context.TODO(), tc.G, subteamName, false)
+	require.Error(t, err)
+	require.IsType(t, &ImplicitAdminCannotLeave{}, err, "wrong error type")
 }
 
 func TestMemberAddResolveCache(t *testing.T) {
