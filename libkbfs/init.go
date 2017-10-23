@@ -621,7 +621,7 @@ func doInit(
 
 	if config.Mode() == InitDefault {
 		// Initialize kbfsService only when we run a full KBFS process.
-		kbfsService, err := NewKBFSService(kbCtx, kbfsLog)
+		kbfsService, err := NewKBFSService(kbCtx, config)
 		if err != nil {
 			// This error shouldn't be fatal
 			log.CWarningf(ctx, "Error starting RPC server for KBFS: %+v", err)

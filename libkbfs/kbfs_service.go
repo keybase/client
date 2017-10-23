@@ -8,10 +8,17 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs"
 )
+
+type kbfsServiceConfig interface {
+	diskBlockCacheGetter
+	logMaker
+}
 
 // KBFSService represents a running KBFS service.
 type KBFSService struct {
+	config   kbfsServiceConfig
 	log      logger.Logger
 	kbCtx    Context
 	stopOnce sync.Once
@@ -19,14 +26,17 @@ type KBFSService struct {
 }
 
 // NewKBFSService creates a new KBFSService.
-func NewKBFSService(kbCtx Context, log logger.Logger) (*KBFSService, error) {
+func NewKBFSService(kbCtx Context, config kbfsServiceConfig) (
+	*KBFSService, error) {
 	l, err := kbCtx.BindToKBFSSocket()
 	if err != nil {
 		return nil, err
 	}
+	log := config.MakeLogger("FSS")
 	k := &KBFSService{
-		log:   log,
-		kbCtx: kbCtx,
+		config: config,
+		log:    log,
+		kbCtx:  kbCtx,
 	}
 	k.Run(l)
 	return k, nil
@@ -41,7 +51,11 @@ func (k *KBFSService) Run(l net.Listener) {
 func (k *KBFSService) registerProtocols(
 	srv *rpc.Server, xp rpc.Transporter) error {
 	// TODO: fill in with actual protocols.
-	protocols := []rpc.Protocol{}
+	protocols := []rpc.Protocol{
+		kbgitkbfs.DiskBlockCacheProtocol(
+			NewDiskBlockCacheService(
+				k.config.DiskBlockCache())),
+	}
 	for _, proto := range protocols {
 		if err := srv.Register(proto); err != nil {
 			return err
