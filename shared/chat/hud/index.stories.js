@@ -7,7 +7,12 @@ import {storiesOf, action} from '../../stories/storybook'
 import {globalStyles, globalMargins} from '../../styles'
 
 const dummyStore = {
-  getState: () => ({}),
+  getState: () => ({
+    config: {
+      following: {},
+      username: 'chris',
+    },
+  }),
   subscribe: (...args) => {},
   dispatch: (...args) => {},
 }
