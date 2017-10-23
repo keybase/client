@@ -54,7 +54,7 @@
       "raf/polyfill"
     ],
     "moduleNameMapper": {
-      "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/fileMock.js",
+      "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
       "react-list": "<rootDir>/__mocks__/react-list.js"
     },
     "moduleFileExtensions": [
