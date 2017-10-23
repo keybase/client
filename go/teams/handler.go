@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"encoding/base64"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -307,12 +309,18 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return err
 		}
 
-		_, encoded, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
+		akey, _, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
 		if err != nil {
 			return err
 		}
 
-		if seitan.Akey != encoded {
+		// Decode given AKey to be able to do secure hash comparison.
+		decodedAKey, err := base64.StdEncoding.DecodeString(seitan.Akey)
+		if err != nil {
+			return err
+		}
+
+		if !libkb.SecureByteArrayEq(akey, decodedAKey) {
 			return fmt.Errorf("did not end up with the same AKey")
 		}
 
