@@ -2,6 +2,7 @@ package teams
 
 import (
 	"bytes"
+	"fmt"
 
 	"crypto/hmac"
 	"crypto/rand"
@@ -60,6 +61,18 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 
 	ikey = SeitanIKey(encodedKey[:])
 	return ikey, nil
+}
+
+func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
+	if len(token) != SeitanEncodedIKeyLength {
+		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))
+	}
+
+	return SeitanIKey(token), nil
+}
+
+func (ikey SeitanIKey) String() string {
+	return string(ikey)
 }
 
 // "Stretched Invite Key"
@@ -137,7 +150,7 @@ func SeitanDecodePEIKey(base64Buffer string) (peikey SeitanPEIKey, err error) {
 		return peikey, err
 	}
 
-	err = libkb.MsgpackDecode(peikey, packed)
+	err = libkb.MsgpackDecode(&peikey, packed)
 	return peikey, err
 }
 
@@ -156,4 +169,39 @@ func (peikey SeitanPEIKey) DecryptIKey(ctx context.Context, team *Team) (ikey Se
 
 	ikey = SeitanIKey(plain)
 	return ikey, nil
+}
+
+// "Acceptance Key"
+type SeitanAKey []byte
+
+func (sikey SeitanSIKey) GenerateAcceptanceKey(uid keybase1.UID, eldestSeqno keybase1.Seqno, unixTime int64) (akey SeitanAKey, encoded string, err error) {
+	type AKeyPayload struct {
+		Stage       string         `codec:"stage" json:"stage"`
+		UID         keybase1.UID   `codec:"uid" json:"uid"`
+		EldestSeqno keybase1.Seqno `codec:"eldest_seqno" json:"eldest_seqno"`
+		CTime       int64          `codec:"ctime" json:"ctime"`
+	}
+
+	payload, err := libkb.MsgpackEncode(AKeyPayload{
+		Stage:       "accept",
+		UID:         uid,
+		EldestSeqno: eldestSeqno,
+		CTime:       unixTime,
+	})
+	if err != nil {
+		return akey, encoded, err
+	}
+
+	fmt.Printf("msg pack is %q\n", payload)
+
+	mac := hmac.New(sha512.New, sikey[:])
+	_, err = mac.Write(payload)
+	if err != nil {
+		return akey, encoded, err
+	}
+
+	out := mac.Sum(nil)
+	akey = out[:32]
+	encoded = base64.StdEncoding.EncodeToString(akey)
+	return akey, encoded, nil
 }

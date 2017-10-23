@@ -1040,6 +1040,48 @@ func (o TeamOpenReqMsg) DeepCopy() TeamOpenReqMsg {
 	}
 }
 
+type TeamSeitanRequest struct {
+	InviteID    TeamInviteID `codec:"inviteID" json:"invite_id"`
+	Uid         UID          `codec:"uid" json:"uid"`
+	EldestSeqno Seqno        `codec:"eldestSeqno" json:"eldest_seqno"`
+	Akey        string       `codec:"akey" json:"akey"`
+	Role        TeamRole     `codec:"role" json:"role"`
+	UnixCTime   int64        `codec:"unixCTime" json:"ctime"`
+}
+
+func (o TeamSeitanRequest) DeepCopy() TeamSeitanRequest {
+	return TeamSeitanRequest{
+		InviteID:    o.InviteID.DeepCopy(),
+		Uid:         o.Uid.DeepCopy(),
+		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		Akey:        o.Akey,
+		Role:        o.Role.DeepCopy(),
+		UnixCTime:   o.UnixCTime,
+	}
+}
+
+type TeamSeitanMsg struct {
+	TeamID  TeamID              `codec:"teamID" json:"team_id"`
+	Seitans []TeamSeitanRequest `codec:"seitans" json:"seitans"`
+}
+
+func (o TeamSeitanMsg) DeepCopy() TeamSeitanMsg {
+	return TeamSeitanMsg{
+		TeamID: o.TeamID.DeepCopy(),
+		Seitans: (func(x []TeamSeitanRequest) []TeamSeitanRequest {
+			if x == nil {
+				return nil
+			}
+			var ret []TeamSeitanRequest
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.Seitans),
+	}
+}
+
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
@@ -1611,12 +1653,14 @@ func (o TeamRenameArg) DeepCopy() TeamRenameArg {
 type TeamAcceptInviteArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Token     string `codec:"token" json:"token"`
+	Seitan    bool   `codec:"seitan" json:"seitan"`
 }
 
 func (o TeamAcceptInviteArg) DeepCopy() TeamAcceptInviteArg {
 	return TeamAcceptInviteArg{
 		SessionID: o.SessionID,
 		Token:     o.Token,
+		Seitan:    o.Seitan,
 	}
 }
 

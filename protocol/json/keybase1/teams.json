@@ -855,6 +855,58 @@
     },
     {
       "type": "record",
+      "name": "TeamSeitanRequest",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID",
+          "jsonkey": "invite_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "string",
+          "name": "akey"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "int64",
+          "name": "unixCTime",
+          "jsonkey": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSeitanMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamSeitanRequest"
+          },
+          "name": "seitans"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
       "name": "TeamRefreshers",
       "fields": [
         {
@@ -1493,6 +1545,10 @@
         {
           "name": "token",
           "type": "string"
+        },
+        {
+          "name": "seitan",
+          "type": "boolean"
         }
       ],
       "response": null

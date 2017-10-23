@@ -269,3 +269,78 @@ func HandleOpenTeamAccessRequest(ctx context.Context, g *libkb.GlobalContext, ms
 		return team.ChangeMembership(ctx, req)
 	})
 }
+
+func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.TeamSeitanMsg) (err error) {
+	ctx = libkb.WithLogTag(ctx, "CLKR")
+	defer g.CTrace(ctx, "HandleTeamSeitan", func() error { return err })()
+
+	team, err := Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          msg.TeamID,
+		Public:      msg.TeamID.IsPublic(),
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	var req keybase1.TeamChangeReq
+	req.CompletedInvites = make(map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm)
+
+	for _, seitan := range msg.Seitans {
+		invite, found := team.chain().FindActiveInviteByID(seitan.InviteID)
+		if !found {
+			return libkb.NotFoundError{}
+		}
+
+		peikey, err := SeitanDecodePEIKey(string(invite.Name))
+		if err != nil {
+			return err
+		}
+
+		ikey, err := peikey.DecryptIKey(ctx, team)
+		if err != nil {
+			return err
+		}
+
+		sikey, err := ikey.GenerateSIKey()
+		if err != nil {
+			return err
+		}
+
+		_, encoded, err := sikey.GenerateAcceptanceKey(seitan.Uid, seitan.EldestSeqno, seitan.UnixCTime)
+		if err != nil {
+			return err
+		}
+
+		if seitan.Akey != encoded {
+			return fmt.Errorf("did not end up with the same AKey")
+		}
+
+		uv := NewUserVersion(seitan.Uid, seitan.EldestSeqno)
+		currentRole, err := team.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+
+		if currentRole.IsOrAbove(invite.Role) {
+			continue
+		}
+
+		switch invite.Role {
+		case keybase1.TeamRole_READER:
+			req.Readers = append(req.Readers, uv)
+		case keybase1.TeamRole_WRITER:
+			req.Writers = append(req.Writers, uv)
+		case keybase1.TeamRole_ADMIN:
+			req.Readers = append(req.Admins, uv)
+		case keybase1.TeamRole_OWNER:
+			req.Writers = append(req.Owners, uv)
+		default:
+			return fmt.Errorf("Unexpected role in invitation: %v", invite.Role)
+		}
+
+		req.CompletedInvites[seitan.InviteID] = uv.PercentForm()
+	}
+
+	return team.ChangeMembership(ctx, req)
+}

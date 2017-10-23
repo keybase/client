@@ -193,6 +193,9 @@ func (h *TeamsHandler) TeamAcceptInvite(ctx context.Context, arg keybase1.TeamAc
 	if err := h.assertLoggedIn(ctx); err != nil {
 		return err
 	}
+	if arg.Seitan {
+		return teams.AcceptSeitan(ctx, h.G().ExternalG(), arg.Token)
+	}
 	return teams.AcceptInvite(ctx, h.G().ExternalG(), arg.Token)
 }
 

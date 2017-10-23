@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -586,6 +587,41 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	arg := apiArg(ctx, "team/token")
 	arg.Args.Add("token", libkb.S{Val: token})
 	_, err := g.API.Post(arg)
+	return err
+}
+
+func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, token string) error {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+	if err != nil {
+		return err
+	}
+
+	ikey, err := GenerateIKeyFromString(token)
+	if err != nil {
+		return err
+	}
+
+	sikey, err := ikey.GenerateSIKey()
+	if err != nil {
+		return err
+	}
+
+	inviteID, err := sikey.GenerateTeamInviteID()
+	if err != nil {
+		return err
+	}
+
+	unixNow := time.Now().Unix()
+	_, encoded, err := sikey.GenerateAcceptanceKey(me.GetUID(), me.GetCurrentEldestSeqno(), unixNow)
+	if err != nil {
+		return err
+	}
+
+	arg := apiArg(ctx, "team/seitan")
+	arg.Args.Add("akey", libkb.S{Val: encoded})
+	arg.Args.Add("now", libkb.S{Val: strconv.FormatInt(unixNow, 10)})
+	arg.Args.Add("invite_id", libkb.S{Val: string(inviteID)})
+	_, err = g.API.Post(arg)
 	return err
 }
 

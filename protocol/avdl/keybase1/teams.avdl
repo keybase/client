@@ -336,6 +336,25 @@ protocol teams {
     array<TeamAccessRequest> tars;
   }
 
+  record TeamSeitanRequest {
+    @jsonkey("invite_id")
+    TeamInviteID inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    string akey;
+    TeamRole role;
+    @jsonkey("ctime")
+    int64 unixCTime;
+  }
+
+  @lint("ignore")
+  record TeamSeitanMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    array<TeamSeitanRequest> seitans; 
+  }
+
   /**
    * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
    * a refresh of the cache.
@@ -473,7 +492,7 @@ protocol teams {
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
-  void teamAcceptInvite(int sessionID, string token);
+  void teamAcceptInvite(int sessionID, string token, boolean seitan);
   TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
   // Accept an invite or request to join a team, try both.
   void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);

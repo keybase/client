@@ -5033,6 +5033,20 @@ export type TeamSBSMsg = {
   invitees?: ?Array<TeamInvitee>,
 }
 
+export type TeamSeitanMsg = {
+  teamID: TeamID,
+  seitans?: ?Array<TeamSeitanRequest>,
+}
+
+export type TeamSeitanRequest = {
+  inviteID: TeamInviteID,
+  uid: UID,
+  eldestSeqno: Seqno,
+  akey: string,
+  role: TeamRole,
+  unixCTime: int64,
+}
+
 export type TeamSettings = {
   open: boolean,
   joinAs: TeamRole,
@@ -6276,7 +6290,8 @@ export type teamsTeamAcceptInviteOrRequestAccessRpcParam = Exact<{
 }>
 
 export type teamsTeamAcceptInviteRpcParam = Exact<{
-  token: string
+  token: string,
+  seitan: boolean
 }>
 
 export type teamsTeamAddEmailsBulkRpcParam = Exact<{
