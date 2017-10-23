@@ -133,6 +133,9 @@ protocol remote {
       boolean ignore;
       // The inbox version that this full update was derived from
       InboxVers inboxVers;
+      // Inbox sync status
+      SyncInboxResType inboxSyncStatus;
+
       array<UnreadUpdate> updates;
   }
 
@@ -182,6 +185,11 @@ protocol remote {
 
   SyncChatRes syncChat(InboxVers vers);
 
+  enum SyncAllProtVers {
+    V0_0,
+    V1_1
+  }
+
   enum SyncAllNotificationType {
     STATE_0,
     INCREMENTAL_1
@@ -199,7 +207,7 @@ protocol remote {
     UnreadUpdateFull badge;
   }
 
-  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh);
+  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
