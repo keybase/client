@@ -69,7 +69,7 @@ type _State = {
   inboxBigChannels: I.Map<ChatConstants.ConversationIDKey, string>,
   inboxBigChannelsToTeam: I.Map<ChatConstants.ConversationIDKey, string>,
   inboxIsEmpty: I.Map<ChatConstants.ConversationIDKey, boolean>,
-  inboxSmallTimestamps: I.Map<ChatConstants.ConversationIDKey, string>,
+  inboxSmallTimestamps: I.Map<ChatConstants.ConversationIDKey, number>,
   inboxSupersededBy: I.Map<ChatConstants.ConversationIDKey, boolean>,
   inboxUnreadCountBadge: I.Map<ChatConstants.ConversationIDKey, number>,
   inboxUnreadCountTotal: I.Map<ChatConstants.ConversationIDKey, number>,

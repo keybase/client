@@ -276,7 +276,7 @@ function* _listSaga(): SagaGenerator<any, any> {
 }
 
 // If the notify data has changed, show a popup
-let previousNotifyState = null
+let previousNotifyState = []
 
 function _notify(state) {
   const total = state.publicBadge + state.privateBadge

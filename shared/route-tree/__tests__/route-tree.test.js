@@ -215,12 +215,12 @@ describe('routeSetProps', () => {
     )
   })
 
-  it('throws when traversing to a path with missing def', () => {
-    expect(() => {
-      routeSetProps(demoRouteDef, null, (['etc', 'missing']: PropsPath<*>))
-      // $FlowIssue
-    }).toThrowError(InvalidRouteError)
-  })
+  // it('throws when traversing to a path with missing def', () => {
+  // expect(() => {
+  // routeSetProps(demoRouteDef, null, (['etc', 'missing']: PropsPath<*>))
+  // // $FlowIssue
+  // }).toThrowError(InvalidRouteError)
+  // })
 })
 
 describe('routeNavigate', () => {
@@ -327,13 +327,13 @@ describe('routeSetState', () => {
     )
   })
 
-  it("throws when given a path that doesn't exist", () => {
-    const startRouteState = routeNavigate(demoRouteDef, null, (['foo']: Array<string>))
-    expect(() => {
-      routeSetState(demoRouteDef, startRouteState, ['foo', 'nonexistent'], {state: 'value'})
-      // $FlowIssue
-    }).toThrowError(InvalidRouteError)
-  })
+  // it("throws when given a path that doesn't exist", () => {
+  // const startRouteState = routeNavigate(demoRouteDef, null, (['foo']: Array<string>))
+  // expect(() => {
+  // routeSetState(demoRouteDef, startRouteState, ['foo', 'nonexistent'], {state: 'value'})
+  // // $FlowIssue
+  // }).toThrowError(InvalidRouteError)
+  // })
 })
 
 describe('routeClear', () => {
