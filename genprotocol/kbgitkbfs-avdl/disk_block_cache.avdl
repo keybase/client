@@ -1,0 +1,55 @@
+// Copyright 2017 Keybase Inc. All rights reserved.
+// Use of this source code is governed by a BSD
+// license that can be found in the LICENSE file.
+
+/**
+  DiskBlockCacheInterface specifies how to access a disk cache remotely.
+  */
+@namespace("kbgitkbfs.1")
+protocol DiskBlockCache {
+
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+
+  enum PrefetchStatus {
+      NO_PREFETCH_0,
+      TRIGGERED_PREFETCH_1,
+      FINISHED_PREFETCH_2
+  }
+
+  /**
+    GetCachedBlockRes is the response from GetBlock.
+    */
+  record GetBlockRes {
+    bytes buf;
+    string serverHalf;
+    PrefetchStatus prefetchStatus;
+  }
+
+  /**
+    DeleteBlocksRes is the response from DeleteBlocks.
+    */
+  record DeleteBlocksRes {
+    int numRemoved;
+    long sizeRemoved;
+  }
+
+  /**
+    GetBlock gets a block from the disk cache.
+    */
+  GetBlockRes GetBlock(keybase1.TLFID tlfID, string blockID);
+
+  /**
+    PutBlock puts a block into the disk cache.
+    */
+  void PutBlock(keybase1.TLFID tlfID, string blockID, bytes buf, string serverHalf);
+
+  /**
+    DeleteBlocks deletes a set of blocks from the disk cache.
+    */
+  DeleteBlocksRes DeleteBlock(array<string> blockIDs);
+
+  /**
+    UpdateBlockMetadata updates the metadata for a block in the disk cache.
+    */
+  void UpdateBlockMetadata(string blockID, PrefetchStatus prefetchStatus);
+}
