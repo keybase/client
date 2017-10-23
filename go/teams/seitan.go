@@ -78,8 +78,15 @@ func (ikey SeitanIKey) String() string {
 // "Stretched Invite Key"
 type SeitanSIKey [32]byte
 
+const (
+	SeitanScryptCost   = 1 << 10
+	SeitanScryptR      = 8
+	SeitanScryptP      = 1
+	SeitanScryptKeylen = 32
+)
+
 func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
-	ret, err := scrypt.Key([]byte(ikey), nil, 4, 8, 1, 32)
+	ret, err := scrypt.Key([]byte(ikey), nil, SeitanScryptCost, SeitanScryptR, SeitanScryptP, SeitanScryptKeylen)
 	if err != nil {
 		return sikey, err
 	}
