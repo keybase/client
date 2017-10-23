@@ -151,10 +151,12 @@ type _State = {
   teamNameToConvIDs: I.Map<Teamname, ChatConstants.ConversationIDKey>,
   teamNameToInvites: I.Map<
     Teamname,
-    I.RecordOf<{
-      role: teamRoleByEnum,
-      name: string,
-    }>
+    I.Set<
+      I.RecordOf<{
+        role: string,
+        name: string,
+      }>
+    >
   >,
   teamNameToMembers: I.Map<Teamname, I.Set<MemberInfo>>,
   teamNameToMemberUsernames: I.Map<Teamname, I.Set<string>>,
