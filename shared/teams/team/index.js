@@ -245,7 +245,7 @@ class Team extends React.PureComponent<Props> {
             <Button type="Primary" label="Add people" onClick={onAddPeople} />
             <Button
               type="Secondary"
-              label="Invite by email"
+              label={isMobile ? 'Invite contacts' : 'Invite by email'}
               onClick={onInviteByEmail}
               style={{marginLeft: globalMargins.small}}
             />

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Icon, List, Text} from '../../common-adapters'
+import {Box, Button, Icon, Input, List, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import * as Contacts from 'react-native-contacts'
@@ -72,7 +72,7 @@ const contactRow = (i: number, props: ContactRowProps) => {
     : props.contact.thumbnailPath
   const hasThumbnail = props.contact.thumbnailPath && props.contact.thumbnailPath.length > 0
   return (
-    <ClickableBox
+    <Box
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
@@ -80,7 +80,6 @@ const contactRow = (i: number, props: ContactRowProps) => {
         width: '100%',
         padding: globalMargins.small,
       }}
-      onClick={props.onClick}
     >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
@@ -93,29 +92,29 @@ const contactRow = (i: number, props: ContactRowProps) => {
             </Box>
             <Box style={globalStyles.flexBoxRow}>
               <Text type="BodySmall">
-                {props.contact.label} - {props.contact.email || props.contact.phoneNo}
+                {props.contact.email || props.contact.phoneNo}
               </Text>
             </Box>
           </Box>
-          {!props.contact.email &&
-            <Icon
-              type="iconfont-open-browser"
-              style={{color: globalColors.black_20, fontSize: 16, marginLeft: globalMargins.small}}
-            />}
         </Box>
-        {props.selected &&
-          <Icon
-            type="iconfont-check"
-            style={{color: globalColors.blue, fontSize: 24, marginRight: globalMargins.medium}}
-          />}
+        <Box>
+          <Button
+            type={props.selected ? 'Following' : 'Follow'}
+            label={props.selected ? 'Invited!' : 'Invite'}
+            small={true}
+            onClick={props.onClick}
+            style={{width: 'auto', paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium}}
+          />
+        </Box>
       </Box>
-    </ClickableBox>
+    </Box>
   )
 }
 
 type State = {
   invitees: Array<{contactID: string, address?: string}>,
   loading: boolean,
+  filter: string,
   hasPermission: boolean,
   contacts: Array<ContactProps>,
 }
@@ -126,6 +125,7 @@ class InviteByEmail extends React.Component<Props, State> {
     this.state = {
       invitees: [],
       loading: true,
+      filter: '',
       hasPermission: false,
       contacts: [],
     }
@@ -233,10 +233,15 @@ class InviteByEmail extends React.Component<Props, State> {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {!this.state.hasPermission && <AccessDenied />}
         {this.state.hasPermission &&
-          <Box style={{...globalStyles.flexBoxRow, padding: globalMargins.small}}>
-            <Text type="Body">
-              Select contacts to invite to {this.props.name}
-            </Text>
+          <Box style={{...globalStyles.flexBoxRow}}>
+            <Input
+              keyboardType="email-address"
+              value={this.state.filter}
+              hintText="Email or phone number"
+              hideUnderline={true}
+              style={{width: '100%'}}
+              inputStyle={{textAlign: 'left', paddingLeft: globalMargins.small}}
+            />
           </Box>}
         {this.state.hasPermission &&
           <List

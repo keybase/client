@@ -11,6 +11,7 @@ import {
   withState,
   type TypedState,
 } from '../../util/container'
+import {isMobile} from '../../constants/platform'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
   name: routeProps.get('teamname'),
@@ -46,8 +47,9 @@ export default compose(
     withState('invitees', 'onInviteesChange'),
     withState('role', 'onRoleChange', 'writer'),
     withPropsOnChange(['onExitSearch'], props => ({
-      onCancel: () => props.onClose(),
-      title: 'Invite by email',
+      onCancel: isMobile ? undefined : () => props.onClose(),
+      onBack: isMobile ? () => props.onClose() : undefined,
+      title: isMobile ? 'Invite contacts' : 'Invite by email',
     })),
     withHandlers({
       onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
