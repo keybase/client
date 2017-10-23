@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
+	"crypto/sha512"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
@@ -77,18 +77,24 @@ func (ikey SeitanIKey) GenerateSIKey() (sikey SeitanSIKey, err error) {
 }
 
 func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
-	const SeitanInviteIDPayload = "{\"stage\": \"invite_id\"}"
-	const SeitanInviteIDSuffix = 0x0d
+	type InviteStagePayload struct {
+		Stage string `codec:"stage" json:"stage"`
+	}
 
-	mac := hmac.New(sha256.New, sikey[:])
-	_, err = mac.Write([]byte(SeitanInviteIDPayload))
+	payload, err := libkb.MsgpackEncode(InviteStagePayload{Stage: "invite_id"})
+	if err != nil {
+		return id, err
+	}
+
+	mac := hmac.New(sha512.New, sikey[:])
+	_, err = mac.Write(payload)
 	if err != nil {
 		return id, err
 	}
 
 	out := mac.Sum(nil)
 	out = out[0:15]
-	out = append(out, byte(0x27)) // TODO: is it 0x0d or 0x27 ?
+	out = append(out, libkb.InviteIDTag)
 	id = SCTeamInviteID(hex.EncodeToString(out[:]))
 	return id, nil
 }
