@@ -11,6 +11,8 @@
     "transform-flow-strip-types",
     "transform-object-rest-spread",
     "babel-plugin-transform-class-properties",
+    "transform-class-properties",
+    "transform-es2015-modules-commonjs",
     "transform-es2015-destructuring",
     [
       "transform-runtime",
@@ -28,9 +30,10 @@
         "exclude": [
           "transform-regenerator"
         ],
-        "modules": false,
+        "modules": "commonjs",
         "targets": {
-          "browsers": "last 2 Chrome versions"
+          "browsers": "last 2 Chrome versions",
+          "node": "current"
         },
         "useBuiltIns": false
       }

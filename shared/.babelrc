@@ -22,6 +22,23 @@
         "babel-preset-stage-1"
       ],
       "plugins": []
+    },
+    // Used by jest
+    "test": {
+      "presets": [
+        "babel-preset-es2015",
+        "babel-preset-stage-1",
+        "jest",
+        "react",
+        ["env", {
+            "debug": false,
+            "modules": "commonjs"
+        }]
+      ],
+      "plugins": [
+        "transform-class-properties",
+        "transform-es2015-modules-commonjs"
+      ],
     }
   }
 }
