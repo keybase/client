@@ -9,6 +9,7 @@ type Info = {
   callbacks: Array<(username: string, urlMap: ?URLMap) => void>,
   done: boolean,
   error: boolean,
+  isTeam: boolean,
   requesting: boolean,
 }
 
@@ -93,7 +94,7 @@ const _getUserImages = throttle(() => {
     }
   })
 
-  const [teamnames, usernames] = partition(good, n => _nameToInfo[n].isTeam)
+  const [teamnames, usernames] = partition(good, n => _nameToInfo[n] && _nameToInfo[n].isTeam)
   _getPictures(usernames, 'image/username_pic_lookups', 'usernames')
   _getPictures(teamnames, 'image/team_avatar_lookups', 'team_names')
 }, 200)

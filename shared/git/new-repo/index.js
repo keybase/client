@@ -70,6 +70,7 @@ class NewRepo extends React.Component<Props, State> {
   }
 
   _dropdownChanged = (node: React.Node) => {
+    // $FlowIssue doesn't understand key will be string
     if (node && node.key === NewTeamSentry) {
       this.props.onNewTeam()
     } else {

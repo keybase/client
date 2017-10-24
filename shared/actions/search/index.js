@@ -187,9 +187,9 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
   try {
     yield call(onIdlePromise, 1e3)
     const searchResults = yield call(_apiSearch, term, _serviceToApiServiceName(service))
-    const rows = searchResults.list.map((result: RawResult) => {
-      return _parseRawResultToRow(result, service || 'Keybase')
-    })
+    const rows = searchResults.list.map((result: RawResult) =>
+      Constants.makeSearchResult(_parseRawResultToRow(result, service || 'Keybase'))
+    )
 
     // Make a version that maps from keybase id to SearchResult.
     // This is in case we want to lookup this data by their keybase id.
@@ -200,10 +200,8 @@ function* search({payload: {term, service, searchKey}}: Constants.Search) {
       leftUsername: r.rightUsername,
       leftIcon: null,
     }))
-    // $FlowIssue
-    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(rows, 'id'))))
-    // $FlowIssue
-    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.fromJS(keyBy(kbRows, 'id'))))
+    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(rows, 'id'))))
+    yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(kbRows, 'id'))))
 
     const ids = rows.map(r => r.id)
     yield put(
@@ -233,11 +231,10 @@ function* searchSuggestions({payload: {maxUsers, searchKey}}: Constants.SearchSu
   // No search results (e.g. this user doesn't follow/chat anyone)
   suggestions = suggestions || []
 
-  const rows = suggestions.map(person => _parseSuggestion(person.username))
+  const rows = suggestions.map(person => Constants.makeSearchResult(_parseSuggestion(person.username)))
   const ids = rows.map(r => r.id)
 
-  // $FlowIssue
-  yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(I.fromJS(keyBy(rows, 'id')))))
+  yield put(EntityAction.mergeEntity(['search', 'searchResults'], I.Map(keyBy(rows, 'id'))))
   yield all([
     put(EntityAction.replaceEntity(['search', 'searchKeyToResults'], I.Map({[searchKey]: I.List(ids)}))),
     put(
@@ -261,7 +258,6 @@ function* addResultsToUserInput({payload: {searchKey, searchResults}}: Constants
   ])
 
   const maybeUpgradedUsers = searchResults.map(u =>
-    // $FlowIssue not sure yet
     Constants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, u)
   )
   yield put.resolve(

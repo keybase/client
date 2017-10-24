@@ -258,11 +258,27 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
       put(replaceEntity(['teams', 'teamNameToMembers'], I.Map([[teamname, I.Set(infos)]]))),
       put(replaceEntity(['teams', 'teamNameToMemberUsernames'], I.Map([[teamname, memberNames]]))),
       put(replaceEntity(['teams', 'teamNameToRequests'], I.Map(requestMap))),
+      put(replaceEntity(['teams', 'teamNameToTeamSettings'], I.Map({[teamname]: results.settings}))),
       put(replaceEntity(['teams', 'teamNameToInvites'], I.Map([[teamname, I.Set(invitesMap)]]))),
     ])
   } finally {
     yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, false]])))
   }
+}
+
+const _changeOpenTeamSetting = function*({
+  payload: {teamname, convertToOpen, defaultRole},
+}: Constants.MakeTeamOpen) {
+  const param: RpcTypes.teamsTeamSetSettingsRpcParam = {
+    name: teamname,
+    settings: {
+      joinAs: RpcTypes.TeamsTeamRole[defaultRole],
+      open: convertToOpen,
+    },
+  }
+
+  yield call(RpcTypes.teamsTeamSetSettingsRpcPromise, {param})
+  yield put(Creators.getDetails(teamname))
 }
 
 const _getChannels = function*(action: Constants.GetChannels): SagaGenerator<any, any> {
@@ -401,6 +417,7 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
+  yield Saga.safeTakeEvery('teams:makeTeamOpen', _changeOpenTeamSetting)
   yield Saga.safeTakeEvery('teams:joinTeam', _joinTeam)
   yield Saga.safeTakeEvery('teams:getDetails', _getDetails)
   yield Saga.safeTakeEvery('teams:createNewTeamFromConversation', _createNewTeamFromConversation)
