@@ -145,7 +145,12 @@ func (b *BadgeState) UpdateWithChatFull(update chat1.UnreadUpdateFull) {
 		return
 	}
 
-	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+	switch update.InboxSyncStatus {
+	case chat1.SyncInboxResType_CURRENT:
+	case chat1.SyncInboxResType_INCREMENTAL:
+	case chat1.SyncInboxResType_CLEAR:
+		b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+	}
 
 	for _, upd := range update.Updates {
 		b.updateWithChat(upd)

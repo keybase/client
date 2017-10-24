@@ -660,6 +660,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		InboxVers: iboxVers,
 		Ctime:     latestCtime,
 		Fresh:     g.firstConnect,
+		ProtVers:  chat1.SyncAllProtVers_V1,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt

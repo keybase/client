@@ -240,6 +240,11 @@ export const RemoteSyncAllNotificationType = {
   incremental: 1,
 }
 
+export const RemoteSyncAllProtVers = {
+  v0: 0,
+  v1: 1,
+}
+
 export function localCancelPostRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}): EngineChannel {
   return engine()._channelMapRpcHelper(configKeys, 'chat.1.local.CancelPost', request)
 }
@@ -1874,6 +1879,10 @@ export type SyncAllNotificationType =
     0 // STATE_0
   | 1 // INCREMENTAL_1
 
+export type SyncAllProtVers =
+    0 // V0_0
+  | 1 // V1_1
+
 export type SyncAllResult = {
   auth: gregor1.AuthResult,
   chat: SyncChatRes,
@@ -2024,6 +2033,7 @@ export type UnreadUpdate = {
 export type UnreadUpdateFull = {
   ignore: boolean,
   inboxVers: InboxVers,
+  inboxSyncStatus: SyncInboxResType,
   updates?: ?Array<UnreadUpdate>,
 }
 
@@ -2474,7 +2484,8 @@ export type remoteSyncAllRpcParam = Exact<{
   session: gregor1.SessionToken,
   inboxVers: InboxVers,
   ctime: gregor1.Time,
-  fresh: boolean
+  fresh: boolean,
+  protVers: SyncAllProtVers
 }>
 
 export type remoteSyncChatRpcParam = Exact<{
