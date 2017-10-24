@@ -2,7 +2,6 @@ package libkbfs
 
 import (
 	"context"
-	"errors"
 
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -87,12 +86,41 @@ func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) DeleteBlocks(ctx context.Context,
 	blockIDs []string) (kbgitkbfs.DeleteBlocksRes, error) {
-	return kbgitkbfs.DeleteBlocksRes{}, errors.New("not implemented")
+	dbc := cache.config.DiskBlockCache()
+	if dbc == nil {
+		return kbgitkbfs.DeleteBlocksRes{},
+			DiskBlockCacheError{"Disk cache is nil"}
+	}
+	blocks := make([]kbfsblock.ID, 0, len(blockIDs))
+	for _, b := range blockIDs {
+		blockID, err := kbfsblock.IDFromString(b)
+		if err != nil {
+			return kbgitkbfs.DeleteBlocksRes{}, newDiskBlockCacheError(err)
+		}
+		blocks = append(blocks, blockID)
+	}
+	numRemoved, sizeRemoved, err := dbc.Delete(ctx, blocks)
+	if err != nil {
+		return kbgitkbfs.DeleteBlocksRes{}, newDiskBlockCacheError(err)
+	}
+	return kbgitkbfs.DeleteBlocksRes{numRemoved, sizeRemoved}, nil
 }
 
 // UpdateBlockMetadata implements the DiskBlockCacheInterface interface for
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) UpdateBlockMetadata(ctx context.Context,
 	arg kbgitkbfs.UpdateBlockMetadataArg) error {
-	return errors.New("not implemented")
+	dbc := cache.config.DiskBlockCache()
+	if dbc == nil {
+		return DiskBlockCacheError{"Disk cache is nil"}
+	}
+	blockID, err := kbfsblock.IDFromString(arg.BlockID)
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	err = dbc.UpdateMetadata(ctx, blockID, PrefetchStatus(arg.PrefetchStatus))
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	return nil
 }
