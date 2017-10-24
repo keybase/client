@@ -873,10 +873,17 @@ func (fs *KBFSOpsStandard) TeamNameChanged(
 
 	fs.log.CDebugf(ctx, "Got TeamNameChanged for %s", tid)
 	fs.opsLock.Lock()
-	defer fs.opsLock.Unlock()
+	// Copy the ops list so we don't have to hold opsLock when calling
+	// `getRootNode()` (which can lead to deadlocks).
+	ops := make(map[FolderBranch]*folderBranchOps)
+	for fb, fbo := range fs.ops {
+		ops[fb] = fbo
+	}
+	fs.opsLock.Unlock()
+
 	// We have to search for the tid since we don't know the old name
 	// of the team here.  Should we add an index for this?
-	for fb, fbo := range fs.ops {
+	for fb, fbo := range ops {
 		if fb.Tlf.Type() != tlf.SingleTeam {
 			continue
 		}
