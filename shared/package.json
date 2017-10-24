@@ -53,6 +53,7 @@
     "setupFiles": [
       "raf/polyfill"
     ],
+    "testPathIgnorePatterns": ["/node_modules/", "/stories/"],
     "snapshotSerializers": [
         "jest-glamor-react"
     ],
