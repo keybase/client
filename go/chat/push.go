@@ -248,7 +248,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 				conv = nil
 			}
 
-			if conv.GetTopicType() == chat1.TopicType_CHAT {
+			if conv == nil || conv.GetTopicType() == chat1.TopicType_CHAT {
 				if g.shouldSendNotifications() {
 					g.G().NotifyRouter.HandleChatTLFFinalize(ctx, keybase1.UID(uid.String()),
 						convID, update.FinalizeInfo, g.presentUIItem(conv))
