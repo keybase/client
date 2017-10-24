@@ -9,16 +9,13 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type CmdChatRenameChannel struct {
 	libkb.Contextified
-
 	resolvingRequest chatConversationResolvingRequest
 	setTopicName     string
-	nonBlock         bool
-	team             bool
 }
 
 func NewCmdChatRenameChannelRunner(g *libkb.GlobalContext) *CmdChatRenameChannel {
@@ -28,13 +25,12 @@ func NewCmdChatRenameChannelRunner(g *libkb.GlobalContext) *CmdChatRenameChannel
 func newCmdChatRenameChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "rename-channel",
-		Usage:        "Rename a conversation channel",
-		ArgumentHelp: "<team name> <new channel name>",
+		Usage:        "Rename a channel",
+		ArgumentHelp: "<team name> <old channel name> <new channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatRenameChannelRunner(g), "rename-channel", c)
 		},
-		Flags: append(getConversationResolverFlags(),
-			mustGetChatFlags("set-channel", "nonblock")...),
+		Flags: mustGetChatFlags("topic-type"),
 	}
 }
 
@@ -43,7 +39,6 @@ func (c *CmdChatRenameChannel) Run() error {
 	return chatSend(context.TODO(), c.G(), ChatSendArg{
 		resolvingRequest: c.resolvingRequest,
 		setTopicName:     c.setTopicName,
-		nonBlock:         c.nonBlock,
 		team:             true,
 		message:          "",
 		setHeadline:      "",
@@ -53,28 +48,22 @@ func (c *CmdChatRenameChannel) Run() error {
 }
 
 func (c *CmdChatRenameChannel) ParseArgv(ctx *cli.Context) (err error) {
-	c.setTopicName = utils.SanitizeTopicName(ctx.String("set-channel"))
-	c.nonBlock = ctx.Bool("nonblock")
-
-	var tlfName string
-	if len(ctx.Args()) >= 1 {
-		tlfName = ctx.Args().Get(0)
-	} else {
-		return fmt.Errorf("Must supply team name.")
+	if len(ctx.Args()) != 3 {
+		return fmt.Errorf("wrong number of arguments")
 	}
-	if c.resolvingRequest, err = parseConversationResolvingRequest(ctx, tlfName); err != nil {
+
+	teamName := ctx.Args().Get(0)
+	oldChannelName := utils.SanitizeTopicName(ctx.Args().Get(1))
+	newChannelName := utils.SanitizeTopicName(ctx.Args().Get(2))
+
+	c.resolvingRequest.TlfName = teamName
+	c.resolvingRequest.TopicName = oldChannelName
+	c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
+	c.resolvingRequest.MembersType = chat1.ConversationMembersType_TEAM
+	if c.resolvingRequest.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return err
 	}
-	c.resolvingRequest.MembersType = chat1.ConversationMembersType_TEAM
-	if c.resolvingRequest.Visibility == keybase1.TLFVisibility_ANY {
-		c.resolvingRequest.Visibility = keybase1.TLFVisibility_PRIVATE
-	}
-	if c.setTopicName == "" {
-		return fmt.Errorf("Must supply non-empty channel name")
-	}
-	if len(ctx.Args()) > 1 {
-		return fmt.Errorf("cannot send text message and set channel name simultaneously")
-	}
+	c.setTopicName = newChannelName
 
 	return nil
 }

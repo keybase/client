@@ -63,8 +63,7 @@ func (c *CmdChatJoinChannel) ParseArgv(ctx *cli.Context) (err error) {
 	}
 
 	if len(ctx.Args()) != 2 {
-		cli.ShowCommandHelp(ctx, "join-channel")
-		return fmt.Errorf("Incorrect usage")
+		return fmt.Errorf("wrong number of arguments")
 	}
 
 	c.teamName = ctx.Args().Get(0)
