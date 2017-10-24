@@ -56,6 +56,10 @@ type problemSetBody struct {
 	Count int `json:"count"`
 }
 
+type newTeamBody struct {
+	TeamID string `json:"id"`
+}
+
 // UpdateWithGregor updates the badge state from a gregor state.
 func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.Lock()
@@ -65,6 +69,7 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
+	b.state.NewTeamIDs = nil
 
 	items, err := gstate.Items()
 	if err != nil {
@@ -113,6 +118,18 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				continue
 			}
 			b.state.NewGitRepoGlobalUniqueIDs = append(b.state.NewGitRepoGlobalUniqueIDs, globalUniqueID)
+		case "team.newly_added_to_team":
+			var body newTeamBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState unmarshal error for team.newly_added_to_team item: %v", err)
+				continue
+			}
+			teamID, err := keybase1.TeamIDFromString(body.TeamID)
+			if err != nil {
+				b.log.Warning("BadgeState invalid team id in team.newly_added_to_team item: %v", err)
+				continue
+			}
+			b.state.NewTeamIDs = append(b.state.NewTeamIDs, teamID)
 		}
 	}
 
