@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/kbfscrypto"
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -59,7 +60,27 @@ func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) PutBlock(ctx context.Context,
 	arg kbgitkbfs.PutBlockArg) error {
-	return errors.New("not implemented")
+	dbc := cache.config.DiskBlockCache()
+	if dbc == nil {
+		return DiskBlockCacheError{"Disk cache is nil"}
+	}
+	tlfID, err := tlf.ParseID(arg.TlfID.String())
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	blockID, err := kbfsblock.IDFromString(arg.BlockID)
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	serverHalf, err := kbfscrypto.ParseBlockCryptKeyServerHalf(arg.ServerHalf)
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	err = dbc.Put(ctx, tlfID, blockID, arg.Buf, serverHalf)
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	return nil
 }
 
 // DeleteBlocks implements the DiskBlockCacheInterface interface for
