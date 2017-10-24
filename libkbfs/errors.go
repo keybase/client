@@ -1120,10 +1120,14 @@ type DiskBlockCacheError struct {
 	Msg string
 }
 
+func newDiskBlockCacheError(err error) DiskBlockCacheError {
+	return DiskBlockCacheError{err.Error()}
+}
+
 // ToStatus implements the ExportableError interface for BServerError.
 func (e DiskBlockCacheError) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeDiskBlockCacheError
-	s.Name = "CACHE_ERROR"
+	s.Name = "DISK_BLOCK_CACHE_ERROR"
 	s.Desc = e.Msg
 	return
 }

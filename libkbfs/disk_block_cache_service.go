@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 
+	"github.com/keybase/kbfs/kbfsblock"
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs"
+	"github.com/keybase/kbfs/tlf"
 )
 
 type diskBlockCacheServiceConfig interface {
@@ -30,7 +32,27 @@ func NewDiskBlockCacheService(config diskBlockCacheServiceConfig) *DiskBlockCach
 // DiskBlockCacheService.
 func (cache *DiskBlockCacheService) GetBlock(ctx context.Context,
 	arg kbgitkbfs.GetBlockArg) (kbgitkbfs.GetBlockRes, error) {
-	return kbgitkbfs.GetBlockRes{}, errors.New("not implemented")
+	dbc := cache.config.DiskBlockCache()
+	if dbc == nil {
+		return kbgitkbfs.GetBlockRes{},
+			DiskBlockCacheError{"Disk cache is nil"}
+	}
+	tlfID, err := tlf.ParseID(arg.TlfID.String())
+	if err != nil {
+		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
+	}
+	blockID, err := kbfsblock.IDFromString(arg.BlockID)
+	if err != nil {
+		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
+	}
+	buf, serverHalf, prefetchStatus, err := dbc.Get(ctx, tlfID, blockID)
+	if err != nil {
+		return kbgitkbfs.GetBlockRes{}, newDiskBlockCacheError(err)
+	}
+
+	return kbgitkbfs.GetBlockRes{
+		buf, serverHalf.String(), kbgitkbfs.PrefetchStatus(prefetchStatus),
+	}, nil
 }
 
 // PutBlock implements the DiskBlockCacheInterface interface for
