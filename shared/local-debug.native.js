@@ -15,40 +15,27 @@ const nativeBridge = NativeModules.KeybaseEngine || {test: 'fallback'}
 // Set this to true if you want to turn off most console logging so you can profile easier
 const PERF = false
 
-let config: {[key: string]: any} = {
-  actionStatFrequency: 0,
-  clickableVisible: false,
-  colorBoxes: false, // set to true to color boxes to help debug layout and perf
-  dumbChatOnly: false,
-  dumbSheetOnly: false,
-  enableActionLogging: true,
-  enableStoreLogging: false,
-  featureFlagsOverride: null,
-  forceImmediateLogging: false,
-  forwardLogs: true,
-  isDevApplePushToken: false,
-  isTesting: nativeBridge.test === '1',
-  immediateStateLogging: false,
-  logStatFrequency: 0,
-  overrideLoggedInTab: null,
-  printOutstandingRPCs: false,
-  printRPC: false,
-  printBridgeB64: false, // raw b64 going over the wire
-  printRoutes: false,
-  maskStrings: false, // makes hidden strings random so avoid seeing stuff while debugging
-  filterActionLogs: null,
-  reactPerf: false,
-  reduxSagaLogger: false,
-  reduxSagaLoggerMasked: true,
-  redirectOnLogout: true,
-  showAllTrackers: false,
-  userTimings: false,
+let config = {
+  enableActionLogging: true, // Log actions to the log
+  enableStoreLogging: false, // Log full store changes
+  featureFlagsOverride: null, // Override feature flags
+  filterActionLogs: null, // Filter actions in log
+  forceImmediateLogging: false, // Don't wait for idle to log
+  forwardLogs: true, // Send logs to remote console
+  immediateStateLogging: false, // Don't wait for idle to log state
+  isDevApplePushToken: false, // Use a dev push token
+  isTesting: nativeBridge.test === '1', // Is running a unit test
+  maskStrings: false, // Replace all hiddenstrings w/ fake values
+  printBridgeB64: false, // Print raw b64 going over the wire
+  printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
+  printRPC: false, // Print rpc traffic
+  reduxSagaLogger: false, // Print saga debug info
+  reduxSagaLoggerMasked: true, // Print saga debug info masked out
+  userTimings: false, // Add user timings api to timeline in chrome
 }
 
-if (__DEV__ && true) {
-  config.clickableVisible = false
-  config.dumbChatOnly = false
-  config.dumbSheetOnly = false
+// Developer settings
+if (__DEV__) {
   config.enableActionLogging = false
   config.enableStoreLogging = false
   config.forwardLogs = false
@@ -56,13 +43,8 @@ if (__DEV__ && true) {
   config.isDevApplePushToken = true
   config.printOutstandingRPCs = true
   config.printRPC = true
-  config.printRoutes = true
-  config.reactPerf = false
-  config.redirectOnLogout = false
-  config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
-  config.showAllTrackers = false
 }
 
 if (PERF) {
@@ -78,63 +60,35 @@ if (PERF) {
   window.console.error = noop
   window.console.info = noop
 
-  config = {
-    actionStatFrequency: 0,
-    clickableVisible: false,
-    colorBoxes: config.colorBoxes,
-    dumbChatOnly: false,
-    dumbSheetOnly: false,
-    enableActionLogging: false,
-    enableStoreLogging: false,
-    featureFlagsOverride: null,
-    forceImmediateLogging: false,
-    forwardLogs: false,
-    isDevApplePushToken: false,
-    isTesting: false,
-    immediateStateLogging: false,
-    logStatFrequency: 0,
-    overrideLoggedInTab: null,
-    printOutstandingRPCs: false,
-    printRPC: false,
-    printBridgeB64: false,
-    printRoutes: false,
-    reactPerf: false,
-    reduxSagaLogger: false,
-    reduxSagaLoggerMasked: false,
-    redirectOnLogout: false,
-    showAllTrackers: false,
-    userTimings: true,
-  }
+  config.enableActionLogging = false
+  config.enableStoreLogging = false
+  config.filterActionLogs = null
+  config.forceImmediateLogging = false
+  config.forwardLogs = false
+  config.immediateStateLogging = false
+  config.printOutstandingRPCs = false
+  config.printRPC = false
+  config.reduxSagaLogger = false
+  config.reduxSagaLoggerMasked = false
+  config.userTimings = true
 }
 
 export const {
-  actionStatFrequency,
-  clickableVisible,
-  colorBoxes,
-  dumbChatOnly,
-  dumbSheetOnly,
   enableActionLogging,
   enableStoreLogging,
   featureFlagsOverride,
+  filterActionLogs,
   forceImmediateLogging,
   forwardLogs,
+  immediateStateLogging,
   isDevApplePushToken,
   isTesting,
-  immediateStateLogging,
-  logStatFrequency,
   maskStrings,
-  overrideLoggedInTab,
+  printBridgeB64,
   printOutstandingRPCs,
   printRPC,
-  printBridgeB64,
-  printRoutes,
-  reactPerf,
-  reduxDevToolsSelect,
-  reduxSagaLoggerMasked,
   reduxSagaLogger,
-  showAllTrackers,
-  showDevTools,
-  filterActionLogs,
+  reduxSagaLoggerMasked,
   userTimings,
 } = config
 
@@ -145,8 +99,4 @@ export function setup(store: any) {
     module.hot.accept(() => updateLiveConfig())
   }
   updateLiveConfig()
-}
-
-export function envVarDebugJson() {
-  return null
 }
