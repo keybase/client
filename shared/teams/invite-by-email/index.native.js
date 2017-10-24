@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, Icon, Input, List, Text} from '../../common-adapters'
+import {Avatar, Box, Button, ClickableBox, Icon, Input, List, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import * as Contacts from 'react-native-contacts'
@@ -27,10 +27,10 @@ const AccessDenied = () => (
       }}
     />
     <Box>
-      <Text type="Body" style={{marginBottom: globalMargins.small}}>
+      <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
         We don't have permission to access your contacts!
       </Text>
-      <Text type="Body">
+      <Text type="Body" style={{textAlign: 'center'}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
     </Box>
@@ -77,7 +77,7 @@ const contactRow = (i: number, props: ContactRowProps) => {
       style={{
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
-        height: 48,
+        height: 56,
         width: '100%',
         padding: globalMargins.small,
       }}
@@ -85,11 +85,14 @@ const contactRow = (i: number, props: ContactRowProps) => {
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
           {!!hasThumbnail &&
-            <NativeImage style={{width: 32, height: 32, borderRadius: 16, marginRight: 8}} source={source} />}
-          {!hasThumbnail && <Box style={{width: 40}} />}
+            <NativeImage
+              style={{width: 48, height: 48, borderRadius: 24, marginRight: 16}}
+              source={source}
+            />}
+          {!hasThumbnail && <Avatar size={48} style={{marginRight: 16}} />}
           <Box>
             <Box style={globalStyles.flexBoxRow}>
-              <Text type="Body">{props.contact.name}</Text>
+              <Text type="BodySemibold">{props.contact.name}</Text>
             </Box>
             <Box style={globalStyles.flexBoxRow}>
               <Text type="BodySmall">
@@ -197,6 +200,10 @@ class InviteByEmail extends React.Component<Props, State> {
     }
   }
 
+  _trim(s: string): string {
+    return (s && s.replace(/^[^a-z0-9@.]/i, '').toLowerCase()) || ''
+  }
+
   render() {
     const contactRowProps = this.state.contacts.reduce((res, contact) => {
       const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
@@ -232,6 +239,18 @@ class InviteByEmail extends React.Component<Props, State> {
       })
       return res
     }, [])
+    const filteredContactRows = contactRowProps.filter(contact => {
+      let {filter} = this.state
+      filter = this._trim(filter)
+      if (filter.length === 0) {
+        return true
+      }
+      return (
+        this._trim(contact.name).includes(filter) ||
+        this._trim(contact.email).includes(filter) ||
+        this._trim(contact.phoneNo).includes(filter)
+      )
+    })
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {!this.state.hasPermission && <AccessDenied />}
@@ -250,17 +269,38 @@ class InviteByEmail extends React.Component<Props, State> {
               hintText="Email or phone number"
               hideUnderline={true}
               style={{width: '100%'}}
+              errorStyle={{minHeight: 14}}
               inputStyle={{textAlign: 'left', paddingLeft: globalMargins.small, fontSize: 16}}
             />
           </Box>}
         {this.state.hasPermission &&
           <List
             keyProperty="id"
-            items={contactRowProps}
-            fixedHeight={48}
+            items={filteredContactRows}
+            fixedHeight={56}
             renderItem={contactRow}
             style={{alignSelf: 'stretch'}}
           />}
+        {this.state.hasPermission &&
+          <ClickableBox
+            onClick={() =>
+              this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
+                this.props.onRoleChange(selectedRole)
+              )}
+            style={{
+              ...globalStyles.flexBoxColumn,
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: globalMargins.large,
+              borderTopWidth: StyleSheet.hairlineWidth,
+              borderTopColor: globalColors.black_05,
+            }}
+          >
+            <Text type="Body" style={{textAlign: 'center'}}>
+              Invite contacts to {this.props.name} as
+              <Text type="BodyPrimaryLink">{' ' + this.props.role + 's'}</Text>
+            </Text>
+          </ClickableBox>}
       </Box>
     )
   }

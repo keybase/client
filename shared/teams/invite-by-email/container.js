@@ -21,7 +21,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onInvite: ({invitees, role}) => {
     dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitees))
-    dispatch(navigateUp())
+    if (!isMobile) {
+      dispatch(navigateUp())
+    }
     dispatch(Creators.getTeams())
   },
 
