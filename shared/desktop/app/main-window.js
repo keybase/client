@@ -112,12 +112,13 @@ export default function() {
   ipcMain.on('showMain', () => {
     console.log('Show main window (requested)')
     mainWindow.show(true)
-    mainWindow.window && mainWindow.window.focus()
-    console.log(
-      '...showMain: visible=',
-      mainWindow.window && mainWindow.window.isVisible(),
-      mainWindow.window && mainWindow.window.getBounds()
-    )
+    const window = mainWindow.window
+    if (window) {
+      window.focus()
+      console.log('...showMain: visible=', window.isVisible(), window.getBounds())
+    } else {
+      console.log('...showMain: no mainWindow!')
+    }
   })
 
   return mainWindow
