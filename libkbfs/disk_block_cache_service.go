@@ -1,10 +1,10 @@
 package libkbfs
 
 import (
+	"context"
 	"errors"
 
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs"
-	"golang.org/x/net/context"
 )
 
 type diskBlockCacheServiceConfig interface {
