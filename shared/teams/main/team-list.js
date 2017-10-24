@@ -7,7 +7,7 @@ import {isMobile} from '../../constants/platform'
 import type {Teamname} from '../../constants/teams'
 
 export type Props = {
-  teamrows: Array<Teamname>,
+  teamnames: Array<Teamname>,
   teammembercounts: {[string]: number},
   onOpenFolder: (teamname: Teamname) => void,
   onManageChat: (teamname: Teamname) => void,
