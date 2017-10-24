@@ -1247,38 +1247,61 @@ function getDeletedMessageIDs(state: TypedState, convIDKey: ConversationIDKey): 
   return state.entities.deletedIDs.get(convIDKey, I.Set())
 }
 
-function getTextMessageUpdates(state: TypedState, messageKey: MessageKey): I.OrderedSet<EditingMessage> {
+function getTextMessageUpdates(
+  state: TypedState,
+  messageKey: MessageKey
+): {last: ?EditingMessage, count: number} {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  const updateKeys = conversationIDKey
-    ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
-    : I.OrderedSet()
-  const messages: I.OrderedSet<?EditingMessage> = updateKeys.map(k => {
-    const message = state.entities.messages.get(k)
-    return message && message.type === 'Edit' ? message : null
-  })
-  return messages.filter(Boolean)
+  if (!conversationIDKey) {
+    return {last: null, count: 0}
+  }
+  const updateKeys = state.entities.messageUpdates.getIn(
+    [conversationIDKey, String(messageID)],
+    I.OrderedSet()
+  )
+  return updateKeys.reduce(
+    (ret, k) => {
+      const message = state.entities.messages.get(k)
+      if (message && message.type === 'Edit') {
+        return {last: message, count: ret.count + 1}
+      } else {
+        return ret
+      }
+    },
+    {last: null, count: 0}
+  )
 }
 
 function getAttachmentMessageUpdates(
   state: TypedState,
   messageKey: MessageKey
-): I.OrderedSet<UpdatingAttachment> {
+): {last: ?UpdatingAttachment, count: number} {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  const updateKeys = conversationIDKey
-    ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
-    : I.OrderedSet()
-  const messages: I.OrderedSet<?UpdatingAttachment> = updateKeys.map(k => {
-    const message = state.entities.messages.get(k)
-    return message && message.type === 'UpdateAttachment' ? message : null
-  })
-  return messages.filter(Boolean)
+  if (!conversationIDKey) {
+    return {last: null, count: 0}
+  }
+  const updateKeys = state.entities.messageUpdates.getIn(
+    [conversationIDKey, String(messageID)],
+    I.OrderedSet()
+  )
+  return updateKeys.reduce(
+    (ret, k) => {
+      const message = state.entities.messages.get(k)
+      if (message && message.type === 'UpdateAttachment') {
+        return {last: message, count: ret.count + 1}
+      } else {
+        return ret
+      }
+    },
+    {last: null, count: 0}
+  )
 }
 
 function getMessageUpdateCount(state: TypedState, message: Message): number {
   if (message.type === 'Text') {
-    return getTextMessageUpdates(state, message.key).count()
+    return getTextMessageUpdates(state, message.key).count
   } else if (message.type === 'Attachment') {
-    return getAttachmentMessageUpdates(state, message.key).count()
+    return getAttachmentMessageUpdates(state, message.key).count
   } else {
     return 0
   }
@@ -1291,14 +1314,26 @@ function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?M
   }
 
   if (message.type === 'Text') {
-    const updates = getTextMessageUpdates(state, messageKey)
-    return applyTextMessageUpdates(message, updates)
+    const {last} = getTextMessageUpdates(state, messageKey)
+    if (last) {
+      return ({
+        ...message,
+        message: last.message,
+        mentions: last.mentions,
+        channelMention: last.channelMention,
+      }: TextMessage)
+    }
   } else if (message.type === 'Attachment') {
-    const updates = getAttachmentMessageUpdates(state, messageKey)
-    return applyAttachmentMessageUpdates(message, updates)
-  } else {
-    return message
+    const {last} = getAttachmentMessageUpdates(state, messageKey)
+    if (last) {
+      return ({
+        ...message,
+        ...last.updates,
+      }: AttachmentMessage)
+    }
   }
+
+  return message
 }
 
 // Sometimes we only have the conv id and msg id. Like when the service tells us something
@@ -1385,29 +1420,6 @@ function getPaginationNext(state: TypedState, conversationIDKey: ConversationIDK
 
 function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDKey): ?string {
   return state.entities.pagination.prev.get(conversationIDKey, null)
-}
-
-function applyTextMessageUpdates(message: TextMessage, updates: I.OrderedSet<EditingMessage>): Message {
-  return updates.reduce((message: TextMessage, update: EditingMessage): TextMessage => {
-    return {
-      ...message,
-      message: update.message,
-      mentions: update.mentions,
-      channelMention: update.channelMention,
-    }
-  }, message)
-}
-
-function applyAttachmentMessageUpdates(
-  message: AttachmentMessage,
-  updates: I.OrderedSet<UpdatingAttachment>
-): AttachmentMessage {
-  return updates.reduce((message: AttachmentMessage, update: UpdatingAttachment): AttachmentMessage => {
-    return {
-      ...message,
-      ...update.updates,
-    }
-  }, message)
 }
 
 export {
