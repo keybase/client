@@ -34,13 +34,14 @@ const Row = ({name, membercount, onOpenFolder, onManageChat, onViewTeam}: RowPro
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
         <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
-        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.small}}>
-          {name}
-        </Text>
-        {!isMobile &&
-          <Text type="BodySemiboldItalic" style={{marginRight: globalMargins.small}}>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
+          <Text type="BodySemibold">
+            {name}
+          </Text>
+          <Text type="BodySmall">
             {membercount + ' member' + (membercount !== 1 ? 's' : '')}
-          </Text>}
+          </Text>
+        </Box>
       </ClickableBox>
       {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
       {!isMobile &&
