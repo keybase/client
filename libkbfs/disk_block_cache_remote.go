@@ -35,7 +35,6 @@ func NewDiskBlockCacheRemote(kbCtx Context, config diskBlockCacheRemoteConfig) (
 	if err != nil {
 		return nil, err
 	}
-	// TODO: add log tag function
 	cli := rpc.NewClient(xp, KBFSErrorUnwrapper{},
 		libkb.LogTagsFromContext)
 
@@ -57,12 +56,10 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 		dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Get %s done (err=%+v)", blockID, err)
 	}()
 
-	arg := kbgitkbfs.GetBlockArg{
+	res, err := dbcr.client.GetBlock(ctx, kbgitkbfs.GetBlockArg{
 		keybase1.TLFID(tlfID.String()),
 		blockID.String(),
-	}
-
-	res, err := dbcr.client.GetBlock(ctx, arg)
+	})
 	if err != nil {
 		return buf, serverHalf, prefetchStatus, err
 	}
@@ -78,7 +75,12 @@ func (dbcr *DiskBlockCacheRemote) Get(ctx context.Context, tlfID tlf.ID,
 // Put implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,
-	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf) (err error) {
+	dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Put %s", blockID)
+	defer func() {
+		dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Put %s done (err=%+v)", blockID, err)
+	}()
+
 	return dbcr.client.PutBlock(ctx, kbgitkbfs.PutBlockArg{
 		keybase1.TLFID(tlfID.String()),
 		blockID.String(),
@@ -90,8 +92,22 @@ func (dbcr *DiskBlockCacheRemote) Put(ctx context.Context, tlfID tlf.ID,
 // Delete implements the DiskBlockCache interface for DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) Delete(ctx context.Context,
 	blockIDs []kbfsblock.ID) (numRemoved int, sizeRemoved int64, err error) {
-	err = errors.New("not implemented")
-	return
+	numBlocks := len(blockIDs)
+	dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Delete %s block(s)",
+		numBlocks)
+	defer func() {
+		dbcr.log.LazyTrace(ctx, "DiskBlockCacheRemote: Delete %s block(s) "+
+			"done (err=%+v)", numBlocks, err)
+	}()
+	blocks := make([]string, 0, len(blockIDs))
+	for _, b := range blockIDs {
+		blocks = append(blocks, b.String())
+	}
+	res, err := dbcr.client.DeleteBlocks(ctx, blocks)
+	if err != nil {
+		return 0, 0, err
+	}
+	return res.NumRemoved, res.SizeRemoved, nil
 }
 
 // UpdateMetadata implements the DiskBlockCache interface for
