@@ -294,6 +294,15 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 			return libkb.NotFoundError{}
 		}
 
+		category, err := invite.Type.C()
+		if err != nil {
+			return err
+		}
+
+		if category != keybase1.TeamInviteCategory_SEITAN {
+			return fmt.Errorf("HandleTeamSeitan wanted to claim an invite with category %v", category)
+		}
+
 		peikey, err := SeitanDecodePEIKey(string(invite.Name))
 		if err != nil {
 			return err

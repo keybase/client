@@ -611,6 +611,7 @@ export const TeamsTeamInviteCategory = {
   keybase: 2,
   email: 3,
   sbs: 4,
+  seitan: 5,
 }
 
 export const TeamsTeamRole = {
@@ -4927,6 +4928,7 @@ export type TeamInviteCategory =
   | 2 // KEYBASE_2
   | 3 // EMAIL_3
   | 4 // SBS_4
+  | 5 // SEITAN_5
 
 export type TeamInviteID = string
 
