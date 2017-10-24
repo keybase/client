@@ -1388,27 +1388,13 @@ function getPaginationPrev(state: TypedState, conversationIDKey: ConversationIDK
 }
 
 function applyTextMessageUpdates(message: TextMessage, updates: I.OrderedSet<EditingMessage>): Message {
-  if (updates.isEmpty()) {
-    return message
-  }
-
   return updates.reduce((message: TextMessage, update: EditingMessage): TextMessage => {
-    if (!update) {
-      return message
-    } else if (update.type === 'Edit') {
-      return {
-        ...message,
-        message: update.message,
-        mentions: update.mentions,
-        channelMention: update.channelMention,
-      }
-    } else if (update.type === 'UpdateAttachment') {
-      return {
-        ...message,
-        ...update.updates,
-      }
+    return {
+      ...message,
+      message: update.message,
+      mentions: update.mentions,
+      channelMention: update.channelMention,
     }
-    return message
   }, message)
 }
 
@@ -1416,27 +1402,11 @@ function applyAttachmentMessageUpdates(
   message: AttachmentMessage,
   updates: I.OrderedSet<UpdatingAttachment>
 ): AttachmentMessage {
-  if (updates.isEmpty()) {
-    return message
-  }
-
   return updates.reduce((message: AttachmentMessage, update: UpdatingAttachment): AttachmentMessage => {
-    if (!update) {
-      return message
-    } else if (update.type === 'Edit') {
-      return {
-        ...message,
-        message: update.message,
-        mentions: update.mentions,
-        channelMention: update.channelMention,
-      }
-    } else if (update.type === 'UpdateAttachment') {
-      return {
-        ...message,
-        ...update.updates,
-      }
+    return {
+      ...message,
+      ...update.updates,
     }
-    return message
   }, message)
 }
 
