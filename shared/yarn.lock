@@ -5495,7 +5495,7 @@ jest-get-type@^21.2.0:
 
 "jest-glamor-react@git://github.com/keybase/jest-glamor-react#sort-styles-off-of-312":
   version "0.0.0-semantically-released"
-  resolved "git://github.com/keybase/jest-glamor-react#abb65e6ea19819623323dc251d927d2b00647ce5"
+  resolved "git://github.com/keybase/jest-glamor-react#847143177f9a14216d77e123abb1c9764bc9e787"
   dependencies:
     chalk "^1.1.3"
     css "^2.2.1"
