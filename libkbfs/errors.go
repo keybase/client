@@ -1108,3 +1108,27 @@ type NoUpdatesWhileDirtyError struct{}
 func (e NoUpdatesWhileDirtyError) Error() string {
 	return "Ignoring MD updates while writes are dirty"
 }
+
+// Disk Cache Errors
+const (
+	// StatusCodeDiskBlockCacheError is a generic disk cache error.
+	StatusCodeDiskBlockCacheError = 0x666
+)
+
+// DiskBlockCacheError is a generic disk cache error.
+type DiskBlockCacheError struct {
+	Msg string
+}
+
+// ToStatus implements the ExportableError interface for BServerError.
+func (e DiskBlockCacheError) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeDiskBlockCacheError
+	s.Name = "CACHE_ERROR"
+	s.Desc = e.Msg
+	return
+}
+
+// Error implements the Error interface for DiskBlockCacheError.
+func (e DiskBlockCacheError) Error() string {
+	return "DiskBlockCacheError{" + e.Msg + "}"
+}

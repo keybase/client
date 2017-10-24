@@ -1,15 +1,60 @@
 package libkbfs
 
 import (
+	"errors"
 	"io"
 	"net"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	kbgitkbfs "github.com/keybase/kbfs/protocol/kbgitkbfs"
 )
+
+// KBFSErrorUnwrapper unwraps errors from the KBFS service.
+type KBFSErrorUnwrapper struct {
+}
+
+var _ rpc.ErrorUnwrapper = KBFSErrorUnwrapper{}
+
+// MakeArg implements rpc.ErrorUnwrapper.
+func (eu KBFSErrorUnwrapper) MakeArg() interface{} {
+	return &keybase1.Status{}
+}
+
+// UnwrapError implements rpc.ErrorUnwrapper.
+func (eu KBFSErrorUnwrapper) UnwrapError(arg interface{}) (appError error,
+	dispatchError error) {
+	s, ok := arg.(*keybase1.Status)
+	if !ok {
+		return nil, errors.New("Error converting arg to keybase1.Status object in DiskCacheErrorUnwrapper.UnwrapError")
+	}
+
+	if s == nil || s.Code == 0 {
+		return nil, nil
+	}
+
+	switch s.Code {
+	case StatusCodeDiskBlockCacheError:
+		appError = DiskBlockCacheError{Msg: s.Desc}
+		break
+	default:
+		ase := libkb.AppStatusError{
+			Code:   s.Code,
+			Name:   s.Name,
+			Desc:   s.Desc,
+			Fields: make(map[string]string),
+		}
+		for _, f := range s.Fields {
+			ase.Fields[f.Key] = f.Value
+		}
+		appError = ase
+	}
+
+	return appError, nil
+}
 
 type kbfsServiceConfig interface {
 	diskBlockCacheGetter
