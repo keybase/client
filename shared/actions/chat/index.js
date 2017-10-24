@@ -109,7 +109,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           // Sometimes (just for deletes?) we get an incomingMessage without
           // a conv object -- in that case, ask the service to give us an
           // updated one so that the snippet etc gets updated.
-          yield put(Creators.unboxConversations([conversationIDKey], true))
+          yield put(Creators.unboxConversations([conversationIDKey], 'no conv from incoming message', true))
         }
 
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
@@ -1218,7 +1218,7 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {updates} = action.payload
   const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-  yield put(Creators.unboxConversations(convIDs, true))
+  yield put(Creators.unboxConversations(convIDs, 'thread stale', true))
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -1246,7 +1246,7 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
     )
   )
   const convIDs = items.map(item => item.conversationIDKey)
-  yield put(Creators.unboxConversations(convIDs, true, true))
+  yield put(Creators.unboxConversations(convIDs, 'inbox syncing', true, true))
 
   const selectedConversation = yield select(Constants.getSelectedConversation)
   if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {

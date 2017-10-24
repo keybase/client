@@ -615,10 +615,11 @@ function updateSnippet(
 
 function unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>,
+  reason: string,
   force?: boolean = false,
   forInboxSync?: boolean = false
 ): Constants.UnboxConversations {
-  return {payload: {conversationIDKeys, force, forInboxSync}, type: 'chat:unboxConversations'}
+  return {payload: {conversationIDKeys, reason, force, forInboxSync}, type: 'chat:unboxConversations'}
 }
 
 function unboxMore(): Constants.UnboxMore {
