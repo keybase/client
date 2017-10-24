@@ -4,6 +4,7 @@ import {Box, Button, Icon, Input, List, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import * as Contacts from 'react-native-contacts'
+import {StyleSheet} from 'react-native'
 import {isAndroid} from '../../constants/platform'
 import {type Props} from './index'
 
@@ -173,9 +174,11 @@ class InviteByEmail extends React.Component<Props, State> {
 
   _addInvitee(contact: ContactDisplayProps) {
     if (contact.email) {
+      this.props.onInviteesChange(contact.email)
       this.setState({
         invitees: [...this.state.invitees, {contactID: contact.recordID, address: contact.email}],
       })
+      this.props.onInvite()
     } else {
       this.setState({
         invitees: [...this.state.invitees, {contactID: contact.recordID}],
@@ -233,14 +236,21 @@ class InviteByEmail extends React.Component<Props, State> {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {!this.state.hasPermission && <AccessDenied />}
         {this.state.hasPermission &&
-          <Box style={{...globalStyles.flexBoxRow}}>
+          <Box
+            style={{
+              ...globalStyles.flexBoxRow,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: globalColors.black_05,
+            }}
+          >
             <Input
               keyboardType="email-address"
               value={this.state.filter}
+              onChangeText={filter => this.setState({filter})}
               hintText="Email or phone number"
               hideUnderline={true}
               style={{width: '100%'}}
-              inputStyle={{textAlign: 'left', paddingLeft: globalMargins.small}}
+              inputStyle={{textAlign: 'left', paddingLeft: globalMargins.small, fontSize: 16}}
             />
           </Box>}
         {this.state.hasPermission &&

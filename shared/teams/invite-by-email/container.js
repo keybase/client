@@ -50,6 +50,7 @@ export default compose(
       onCancel: isMobile ? undefined : () => props.onClose(),
       onBack: isMobile ? () => props.onClose() : undefined,
       title: isMobile ? 'Invite contacts' : 'Invite by email',
+      headerStyle: isMobile ? {borderBottomWidth: 0} : {},
     })),
     withHandlers({
       onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
