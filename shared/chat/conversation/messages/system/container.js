@@ -6,6 +6,9 @@ import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
+import {isMobile} from '../../../../constants/platform'
+import {showUserProfile} from '../../../../actions/profile'
+import {getProfile} from '../../../../actions/tracker'
 
 import type {TypedState} from '../../../../constants/reducer'
 import type {OwnProps} from './container'
@@ -19,12 +22,26 @@ type StateProps = {
 
 type DispatchProps = {
   _onManageChannels: (teamname: string) => void,
+  onUsernameClicked: (username: string) => void,
 }
 
 const getDetails = createCachedSelector(
-  [Constants.getMessageFromMessageKey, Constants.getYou, Constants.getChannelName, Constants.getTeamName],
-  (message: Constants.TextMessage, you: string, channelname: string, teamname: string) => ({
+  [
+    Constants.getMessageFromMessageKey,
+    Constants.getYou,
+    Constants.getChannelName,
+    Constants.getTeamName,
+    Constants.getFollowingMap,
+  ],
+  (
+    message: Constants.TextMessage,
+    you: string,
+    channelname: string,
+    teamname: string,
+    following: {[key: string]: ?boolean}
+  ) => ({
     channelname,
+    following: !!following[message.author],
     message,
     teamname,
     you,
@@ -38,11 +55,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [teamsTab]))
     dispatch(switchTo([teamsTab]))
   },
+  onUsernameClicked: (username: string) => {
+    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+  },
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => ({
   ...stateProps,
   onManageChannels: () => dispatchProps._onManageChannels(stateProps.teamname),
+  onUsernameClicked: dispatchProps.onUsernameClicked,
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(SystemNotice)
