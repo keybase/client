@@ -49,8 +49,13 @@ function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
   }
 }
 
+function* onInboxLoad(): SagaGenerator<any, any> {
+  yield put(Creators.inboxStale('random inbox load from view layer'))
+}
+
 // Loads the untrusted inbox only
-function* onInboxStale(): SagaGenerator<any, any> {
+function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
+  console.log('onInboxStale: running because of: ' + param.payload.reason)
   try {
     yield put(Creators.setInboxUntrustedState('loading'))
 
@@ -530,6 +535,7 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
 
 export {
   filterSelectNext,
+  onInboxLoad,
   onInboxStale,
   onGetInboxAndUnbox,
   parseNotifications,

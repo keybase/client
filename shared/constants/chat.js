@@ -491,7 +491,7 @@ export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
 >
-export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
+export type InboxStale = NoErrorTypedAction<'chat:inboxStale', {reason: string}>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatTypes.ChatActivity}>
 export type IncomingTyping = NoErrorTypedAction<'chat:incomingTyping', {activity: ChatTypes.TyperInfo}>
 export type LeaveConversation = NoErrorTypedAction<
