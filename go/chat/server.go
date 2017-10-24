@@ -2213,8 +2213,8 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	}
 
 	var convs []chat1.ConversationLocal
-	convs, res.RateLimits, err = GetTLFConversations(ctx, h.G(), h.DebugLabeler,
-		h.remoteClient, uid, nameInfo.ID, arg.TopicType, arg.MembersType)
+	convs, res.RateLimits, err = h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType,
+		arg.MembersType)
 	if err != nil {
 		return res, err
 	}

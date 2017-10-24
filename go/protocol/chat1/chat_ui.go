@@ -302,6 +302,7 @@ type UIMessageValid struct {
 	SenderDeviceRevokedAt *gregor1.Time  `codec:"senderDeviceRevokedAt,omitempty" json:"senderDeviceRevokedAt,omitempty"`
 	AtMentions            []string       `codec:"atMentions" json:"atMentions"`
 	ChannelMention        ChannelMention `codec:"channelMention" json:"channelMention"`
+	ChannelNameMentions   []string       `codec:"channelNameMentions" json:"channelNameMentions"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -339,6 +340,17 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			return ret
 		})(o.AtMentions),
 		ChannelMention: o.ChannelMention.DeepCopy(),
+		ChannelNameMentions: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			var ret []string
+			for _, v := range x {
+				vCopy := v
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.ChannelNameMentions),
 	}
 }
 

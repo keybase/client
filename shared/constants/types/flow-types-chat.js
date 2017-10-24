@@ -1589,6 +1589,7 @@ export type MessageUnboxedValid = {
   atMentionUsernames?: ?Array<string>,
   atMentions?: ?Array<gregor1.UID>,
   channelMention: ChannelMention,
+  channelNameMentions?: ?Array<string>,
 }
 
 export type NameQuery = {
@@ -1915,6 +1916,10 @@ export type TLFResolveUpdate = {
   inboxVers: InboxVers,
 }
 
+export type TeamChannelUpdate = {
+  teamID: TLFID,
+}
+
 export type TeamType =
     0 // NONE_0
   | 1 // SIMPLE_1
@@ -1989,6 +1994,7 @@ export type UIMessageValid = {
   senderDeviceRevokedAt?: ?gregor1.Time,
   atMentions?: ?Array<string>,
   channelMention: ChannelMention,
+  channelNameMentions?: ?Array<string>,
 }
 
 export type UIMessages = {
