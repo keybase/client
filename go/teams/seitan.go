@@ -116,24 +116,14 @@ func (sikey SeitanSIKey) GenerateTeamInviteID() (id SCTeamInviteID, err error) {
 	return id, nil
 }
 
-func (ikey SeitanIKey) GeneratePackedEncryptedIKey(ctx context.Context, team *Team) (peikey SeitanPEIKey, encoded string, err error) {
-	appKey, err := team.SeitanInviteTokenKey(ctx)
-	if err != nil {
-		return peikey, encoded, err
-	}
-
-	var nonce keybase1.BoxNonce
-	if _, err = rand.Read(nonce[:]); err != nil {
-		return peikey, encoded, err
-	}
-
-	var encKey [libkb.NaclSecretBoxKeySize]byte = appKey.Key
+func (ikey SeitanIKey) generatePackedEncryptedIKeyWithSecretKey(secretKey keybase1.Bytes32, gen keybase1.PerTeamKeyGeneration, nonce keybase1.BoxNonce) (peikey SeitanPEIKey, encoded string, err error) {
+	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
 	var naclNonce [libkb.NaclDHNonceSize]byte = nonce
 	eikey := secretbox.Seal(nil, []byte(ikey), &naclNonce, &encKey)
 
 	peikey = SeitanPEIKey{
 		Version:           1,
-		TeamKeyGeneration: appKey.KeyGeneration,
+		TeamKeyGeneration: gen,
 		RandomNonce:       nonce,
 		EIKey:             eikey,
 	}
@@ -147,6 +137,20 @@ func (ikey SeitanIKey) GeneratePackedEncryptedIKey(ctx context.Context, team *Te
 	return peikey, encoded, nil
 }
 
+func (ikey SeitanIKey) GeneratePackedEncryptedIKey(ctx context.Context, team *Team) (peikey SeitanPEIKey, encoded string, err error) {
+	appKey, err := team.SeitanInviteTokenKey(ctx)
+	if err != nil {
+		return peikey, encoded, err
+	}
+
+	var nonce keybase1.BoxNonce
+	if _, err = rand.Read(nonce[:]); err != nil {
+		return peikey, encoded, err
+	}
+
+	return ikey.generatePackedEncryptedIKeyWithSecretKey(appKey.Key, appKey.KeyGeneration, nonce)
+}
+
 func SeitanDecodePEIKey(base64Buffer string) (peikey SeitanPEIKey, err error) {
 	packed, err := base64.StdEncoding.DecodeString(base64Buffer)
 	if err != nil {
@@ -157,13 +161,8 @@ func SeitanDecodePEIKey(base64Buffer string) (peikey SeitanPEIKey, err error) {
 	return peikey, err
 }
 
-func (peikey SeitanPEIKey) DecryptIKey(ctx context.Context, team *Team) (ikey SeitanIKey, err error) {
-	appKey, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, peikey.TeamKeyGeneration)
-	if err != nil {
-		return ikey, err
-	}
-
-	var encKey [libkb.NaclSecretBoxKeySize]byte = appKey.Key
+func (peikey SeitanPEIKey) decryptIKeyWithSecretKey(secretKey keybase1.Bytes32) (ikey SeitanIKey, err error) {
+	var encKey [libkb.NaclSecretBoxKeySize]byte = secretKey
 	var naclNonce [libkb.NaclDHNonceSize]byte = peikey.RandomNonce
 	plain, ok := secretbox.Open(nil, peikey.EIKey, &naclNonce, &encKey)
 	if !ok {
@@ -172,6 +171,15 @@ func (peikey SeitanPEIKey) DecryptIKey(ctx context.Context, team *Team) (ikey Se
 
 	ikey = SeitanIKey(plain)
 	return ikey, nil
+}
+
+func (peikey SeitanPEIKey) DecryptIKey(ctx context.Context, team *Team) (ikey SeitanIKey, err error) {
+	appKey, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_SEITAN_INVITE_TOKEN, peikey.TeamKeyGeneration)
+	if err != nil {
+		return ikey, err
+	}
+
+	return peikey.decryptIKeyWithSecretKey(appKey.Key)
 }
 
 // "Acceptance Key"
