@@ -53,9 +53,12 @@
     "setupFiles": [
       "raf/polyfill"
     ],
-    "testPathIgnorePatterns": ["/node_modules/", "/stories/"],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/stories/"
+    ],
     "snapshotSerializers": [
-        "jest-glamor-react"
+      "jest-glamor-react"
     ],
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
@@ -129,7 +132,8 @@
     "shallowequal": "1.0.2",
     "tlds": "^1.198.0",
     "typedarray-to-buffer": "3.1.2",
-    "util": "0.10.3"
+    "util": "0.10.3",
+    "whatwg-url": "^6.3.0"
   },
   "devDependencies": {
     "@storybook/addon-storyshots": "3.2.13",
