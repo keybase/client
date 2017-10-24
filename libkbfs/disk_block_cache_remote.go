@@ -9,6 +9,8 @@ import (
 	"github.com/keybase/kbfs/tlf"
 )
 
+// DiskBlockCacheRemote implements a client to access a remote
+// DiskBlockCacheService. It implements the DiskBlockCache interface.
 type DiskBlockCacheRemote struct {
 }
 

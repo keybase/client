@@ -11,12 +11,15 @@ type diskBlockCacheServiceConfig interface {
 	diskBlockCacheGetter
 }
 
+// DiskBlockCacheService delegates requests for blocks to this KBFS
+// instance's disk cache.
 type DiskBlockCacheService struct {
 	config diskBlockCacheServiceConfig
 }
 
 var _ kbgitkbfs.DiskBlockCacheInterface = (*DiskBlockCacheService)(nil)
 
+// NewDiskBlockCacheService creates a new DiskBlockCacheService.
 func NewDiskBlockCacheService(config diskBlockCacheServiceConfig) *DiskBlockCacheService {
 	return &DiskBlockCacheService{
 		config: config,
