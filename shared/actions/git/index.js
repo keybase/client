@@ -31,6 +31,10 @@ function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
       const repoResult = results[i]
       if (repoResult.state === RPCTypes.GitGitRepoResultState.ok && repoResult.ok) {
         const r: RPCTypes.GitRepoInfo = repoResult.ok
+        if (!r.folder.private) {
+          // Skip public repos
+          continue
+        }
         const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
         idToInfo[r.globalUniqueID] = Constants.makeGitInfo({
           canDelete: r.canDelete,
