@@ -710,6 +710,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 			{ConvID: chat1.ConversationID(`b`), UnreadMessages: 0},
 			{ConvID: chat1.ConversationID(`c`), UnreadMessages: 3},
 		},
+		InboxSyncStatus: chat1.SyncInboxResType_CLEAR,
 	})
 	h.badger.Send()
 	bs = listener.getBadgeState(t)
