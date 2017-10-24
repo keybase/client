@@ -41,7 +41,8 @@ type MessageKeyKind =
   | 'supersedes'
   | 'system'
 
-export type MessageType = 'Text'
+// TODO: Ideally, this would be 'Text' | 'Error' | etc.
+export type MessageType = string
 export type FollowingMap = {[key: string]: true}
 
 export type MessageState = 'pending' | 'failed' | 'sent'
@@ -1247,18 +1248,18 @@ function getDeletedMessageIDs(state: TypedState, convIDKey: ConversationIDKey): 
   return state.entities.deletedIDs.get(convIDKey, I.Set())
 }
 
+function getMessageUpdateKeys(state: TypedState, messageKey: MessageKey): I.OrderedSet<MessageKey> {
+  const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
+  return conversationIDKey
+    ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
+    : I.OrderedSet()
+}
+
 function getTextMessageUpdates(
   state: TypedState,
   messageKey: MessageKey
 ): {last: ?EditingMessage, count: number} {
-  const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  if (!conversationIDKey) {
-    return {last: null, count: 0}
-  }
-  const updateKeys = state.entities.messageUpdates.getIn(
-    [conversationIDKey, String(messageID)],
-    I.OrderedSet()
-  )
+  const updateKeys = getMessageUpdateKeys(state, messageKey)
   return updateKeys.reduce(
     (ret, k) => {
       const message = state.entities.messages.get(k)
@@ -1276,14 +1277,7 @@ function getAttachmentMessageUpdates(
   state: TypedState,
   messageKey: MessageKey
 ): {last: ?UpdatingAttachment, count: number} {
-  const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  if (!conversationIDKey) {
-    return {last: null, count: 0}
-  }
-  const updateKeys = state.entities.messageUpdates.getIn(
-    [conversationIDKey, String(messageID)],
-    I.OrderedSet()
-  )
+  const updateKeys = getMessageUpdateKeys(state, messageKey)
   return updateKeys.reduce(
     (ret, k) => {
       const message = state.entities.messages.get(k)
@@ -1297,11 +1291,11 @@ function getAttachmentMessageUpdates(
   )
 }
 
-function getMessageUpdateCount(state: TypedState, message: Message): number {
-  if (message.type === 'Text') {
-    return getTextMessageUpdates(state, message.key).count
-  } else if (message.type === 'Attachment') {
-    return getAttachmentMessageUpdates(state, message.key).count
+function getMessageUpdateCount(state: TypedState, messageType: MessageType, messageKey: MessageKey): number {
+  if (messageType === 'Text') {
+    return getTextMessageUpdates(state, messageKey).count
+  } else if (messageType === 'Attachment') {
+    return getAttachmentMessageUpdates(state, messageKey).count
   } else {
     return 0
   }

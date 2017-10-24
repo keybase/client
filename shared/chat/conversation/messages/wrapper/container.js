@@ -25,7 +25,8 @@ const mapStateToProps = (state: TypedState, {messageKey, prevMessageKey}: OwnPro
 
   const {message: _prevMessage} = lookupMessageProps(state, prevMessageKey)
   const isEditing = message === Constants.getEditingMessage(state)
-  const _editedCount: number = Constants.getMessageUpdateCount(state, message) + message.editedCount
+  const _editedCount: number =
+    Constants.getMessageUpdateCount(state, message.type, message.key) + message.editedCount
 
   return {
     _conversationState,
