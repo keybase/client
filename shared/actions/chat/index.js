@@ -685,7 +685,9 @@ function _unboxedToMessage(
           const message = new HiddenString('joined')
           return {
             type: 'System',
-            ...common,
+            messageID: common.messageID,
+            author: common.author,
+            timestamp: common.timestamp,
             message,
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
@@ -694,7 +696,9 @@ function _unboxedToMessage(
           const message = new HiddenString('left')
           return {
             type: 'System',
-            ...common,
+            messageID: common.messageID,
+            author: common.author,
+            timestamp: common.timestamp,
             message,
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
