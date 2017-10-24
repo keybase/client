@@ -56,15 +56,15 @@ if (!__STORYBOOK__) {
 if (PERF) {
   console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
 
-  window.console._log = window.console.log
-  window.console._warn = window.console.warn
-  window.console._error = window.console.error
-  window.console._info = window.console.info
+  console._log = console.log
+  console._warn = console.warn
+  console._error = console.error
+  console._info = console.info
 
-  window.console.log = noop
-  window.console.warn = noop
-  window.console.error = noop
-  window.console.info = noop
+  console.log = noop
+  console.warn = noop
+  console.error = noop
+  console.info = noop
 
   config.enableActionLogging = false
   config.enableStoreLogging = false
