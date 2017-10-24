@@ -2,7 +2,6 @@ package libkbfs
 
 import (
 	"context"
-	"errors"
 	"net"
 
 	"github.com/keybase/client/go/libkb"
@@ -114,7 +113,11 @@ func (dbcr *DiskBlockCacheRemote) Delete(ctx context.Context,
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
 	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
-	return errors.New("not implemented")
+	return dbcr.client.UpdateBlockMetadata(ctx,
+		kbgitkbfs.UpdateBlockMetadataArg{
+			blockID.String(),
+			kbgitkbfs.PrefetchStatus(prefetchStatus),
+		})
 }
 
 // Status implements the DiskBlockCache interface for DiskBlockCacheRemote.
