@@ -686,9 +686,7 @@ function _unboxedToMessage(
           return {
             type: 'System',
             ...common,
-            editedCount: 0,
             message,
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
@@ -697,9 +695,7 @@ function _unboxedToMessage(
           return {
             type: 'System',
             ...common,
-            editedCount: 0,
             message,
-            messageState: 'sent', // TODO, distinguish sent/pending once CORE sends it.
             key: Constants.messageKey(common.conversationIDKey, 'system', common.messageID),
           }
         }
