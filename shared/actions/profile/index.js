@@ -224,7 +224,9 @@ function outputInstructionsActionLink(): Constants.OutputInstructionsActionLink 
 }
 
 function* _onAppLink(action: AppLink): SagaGenerator<any, any> {
-  const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)$/)
+  // TODO: When https://github.com/facebook/react-native/issues/16434
+  // is fixed, use window.URL.
+  const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)(\?[^?]*)(#[^#]*)?$/)
   const username = match && match[1]
   if (username) {
     yield put(showUserProfile(username))
