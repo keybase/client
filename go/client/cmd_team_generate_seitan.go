@@ -13,19 +13,19 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type CmdGenerateSeitan struct {
+type CmdTeamGenerateSeitan struct {
 	libkb.Contextified
 	Team string
 	Role keybase1.TeamRole
 }
 
-func newCmdGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdTeamGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "generate-seitan",
 		ArgumentHelp: "<team name>",
 		Usage:        "Generate no-server-trust \"Seitan\" token.",
 		Action: func(c *cli.Context) {
-			cmd := NewCmdGenerateSeitanRunner(g)
+			cmd := NewCmdTeamGenerateSeitanRunner(g)
 			cl.ChooseCommand(cmd, "generate-seitan", c)
 		},
 		Flags: []cli.Flag{
@@ -38,11 +38,11 @@ func newCmdGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 }
 
-func NewCmdGenerateSeitanRunner(g *libkb.GlobalContext) *CmdGenerateSeitan {
-	return &CmdGenerateSeitan{Contextified: libkb.NewContextified(g)}
+func NewCmdTeamGenerateSeitanRunner(g *libkb.GlobalContext) *CmdTeamGenerateSeitan {
+	return &CmdTeamGenerateSeitan{Contextified: libkb.NewContextified(g)}
 }
 
-func (c *CmdGenerateSeitan) ParseArgv(ctx *cli.Context) error {
+func (c *CmdTeamGenerateSeitan) ParseArgv(ctx *cli.Context) error {
 	var err error
 	c.Team, err = ParseOneTeamName(ctx)
 	if err != nil {
@@ -57,7 +57,7 @@ func (c *CmdGenerateSeitan) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *CmdGenerateSeitan) Run() error {
+func (c *CmdTeamGenerateSeitan) Run() error {
 	cli, err := GetTeamsClient(c.G())
 	if err != nil {
 		return err
@@ -79,7 +79,7 @@ func (c *CmdGenerateSeitan) Run() error {
 	return nil
 }
 
-func (c *CmdGenerateSeitan) GetUsage() libkb.Usage {
+func (c *CmdTeamGenerateSeitan) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		API:       true,
@@ -89,4 +89,4 @@ func (c *CmdGenerateSeitan) GetUsage() libkb.Usage {
 
 const teamGenerateSeitanDoc = `"keybase team generate-seitan" allows you to create a one-time use,
 expiring, cryptographically secure token that someone can use to join
-a team. Seitan because it's not TOFU.`
+a team.`
