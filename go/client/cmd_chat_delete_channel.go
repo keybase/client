@@ -28,8 +28,8 @@ func NewCmdChatDeleteChannelRunner(g *libkb.GlobalContext) *CmdChatDeleteChannel
 func newCmdChatDeleteChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "delete-channel",
-		Usage:        "Delete a conversation channel",
-		ArgumentHelp: "[conversation [channel name]]",
+		Usage:        "Delete a channel",
+		ArgumentHelp: "<team name> <channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatDeleteChannelRunner(g), "delete-channel", c)
 		},
@@ -78,8 +78,7 @@ func (c *CmdChatDeleteChannel) Run() error {
 
 func (c *CmdChatDeleteChannel) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 2 {
-		cli.ShowCommandHelp(ctx, "delete-channel")
-		return fmt.Errorf("Incorrect usage.")
+		return fmt.Errorf("wrong number of arguments")
 	}
 	teamName := ctx.Args().Get(0)
 	topicName := ctx.Args().Get(1)
