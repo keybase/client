@@ -158,7 +158,7 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
       .concat(conversations.filter(c => c.teamname))
       .map(c => c.conversationIDKey)
 
-    yield put(Creators.unboxConversations(toUnbox))
+    yield put(Creators.unboxConversations(toUnbox, 'reloading entire inbox'))
   } finally {
     if (yield cancelled()) {
       yield put(Creators.setInboxUntrustedState('unloaded'))
@@ -169,7 +169,7 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
 function* onGetInboxAndUnbox({
   payload: {conversationIDKeys},
 }: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
-  yield put(Creators.unboxConversations(conversationIDKeys))
+  yield put(Creators.unboxConversations(conversationIDKeys, 'getInboxAndUnbox'))
 }
 
 function _toSupersedeInfo(
@@ -373,7 +373,7 @@ const unboxConversationsSagaMap = {
 
 // Loads the trusted inbox segments
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
-  let {conversationIDKeys, force, forInboxSync} = action.payload
+  let {conversationIDKeys, reason, force, forInboxSync} = action.payload
 
   const untrustedState = yield select(state => state.entities.inboxUntrustedState)
   // Don't unbox pending conversations
@@ -396,6 +396,8 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   if (!conversationIDKeys.length) {
     return
   }
+
+  console.log(`unboxConversations: unboxing ${conversationIDKeys.length} convs, because: ${reason}`)
 
   yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
 

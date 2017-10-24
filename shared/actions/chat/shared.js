@@ -116,7 +116,7 @@ function* startNewConversation(
     yield put(Creators.selectConversation(newConversationIDKey, false))
   }
   // Load the inbox so we can post, we wait till this is done
-  yield put(Creators.unboxConversations([newConversationIDKey]))
+  yield put(Creators.unboxConversations([newConversationIDKey], 'new convo'))
   return [newConversationIDKey, tlfName]
 }
 
