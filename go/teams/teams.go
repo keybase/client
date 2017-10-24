@@ -110,6 +110,15 @@ func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase
 	return t.chain().GetUserRole(uv)
 }
 
+func (t *Team) myRole(ctx context.Context) (keybase1.TeamRole, error) {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return keybase1.TeamRole_NONE, err
+	}
+	role, err := t.MemberRole(ctx, me.ToUserVersion())
+	return role, err
+}
+
 func (t *Team) UserVersionByUID(ctx context.Context, uid keybase1.UID) (keybase1.UserVersion, error) {
 	return t.chain().GetLatestUVWithUID(uid)
 }
@@ -472,6 +481,8 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 }
 
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
+	defer t.G().CTrace(ctx, "Team#downgradeIfOwnerOrAdmin", func() error { return err })()
+
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return false, err
@@ -509,6 +520,19 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		})
 		if err != nil {
 			return err
+		}
+	}
+
+	// Check if we are an implicit admin with no explicit membership
+	// in order to give a nice error.
+	role, err := t.myRole(ctx)
+	if err != nil {
+		role = keybase1.TeamRole_NONE
+	}
+	if role == keybase1.TeamRole_NONE {
+		_, err := t.getAdminPermission(ctx, false)
+		if err == nil {
+			return NewImplicitAdminCannotLeave()
 		}
 	}
 
