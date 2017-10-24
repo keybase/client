@@ -168,22 +168,11 @@ export type ChatSecuredHeaderMessage = {
 
 export type SystemMessage = {
   type: 'System',
-  message: HiddenString,
-  author: string,
-  deviceName: string,
-  deviceType: DeviceType,
-  timestamp: number,
-  conversationIDKey: ConversationIDKey,
   messageID?: MessageID,
-  you: string,
-  messageState: MessageState,
-  failureDescription: ?string,
-  outboxID?: ?OutboxIDKey,
-  senderDeviceRevokedAt: ?number,
+  author: string,
+  timestamp: number,
+  message: HiddenString,
   key: MessageKey,
-  editedCount: number, // increase as we edit it
-  mentions: Mentions,
-  channelMention: ChannelMention,
 }
 
 export type SupersedesMessage = {
