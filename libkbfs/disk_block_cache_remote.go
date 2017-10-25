@@ -36,8 +36,8 @@ func NewDiskBlockCacheRemote(kbCtx Context, config diskBlockCacheRemoteConfig) (
 	}
 	cli := rpc.NewClient(xp, KBFSErrorUnwrapper{},
 		libkb.LogTagsFromContext)
-
 	client := kbgitkbfs.DiskBlockCacheClient{Cli: cli}
+
 	return &DiskBlockCacheRemote{
 		conn:   conn,
 		client: client,
