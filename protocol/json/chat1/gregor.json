@@ -310,11 +310,11 @@
           "name": "reset"
         },
         {
-          "type": [
-            null,
-            "UnreadUpdate"
-          ],
-          "name": "unreadUpdate"
+          "type": {
+            "type": "array",
+            "items": "UnreadUpdate"
+          },
+          "name": "unreadUpdates"
         }
       ]
     },

@@ -2071,7 +2071,7 @@ export type UpdateConversationMembership = {
   joined?: ?Array<ConversationMember>,
   removed?: ?Array<ConversationMember>,
   reset?: ?Array<ConversationMember>,
-  unreadUpdate?: ?UnreadUpdate,
+  unreadUpdates?: ?Array<UnreadUpdate>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
