@@ -132,6 +132,7 @@ export const ConfigForkType = {
   auto: 1,
   watchdog: 2,
   launchd: 3,
+  systemd: 4,
 }
 
 export const ConstantsStatusCode = {
@@ -3330,6 +3331,7 @@ export type ForkType =
   | 1 // AUTO_1
   | 2 // WATCHDOG_2
   | 3 // LAUNCHD_3
+  | 4 // SYSTEMD_4
 
 export type FullName = string
 

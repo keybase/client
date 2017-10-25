@@ -225,8 +225,13 @@ func (d *Service) Run() (err error) {
 		}
 	}
 
-	if d.G().Env.GetServiceType() == "launchd" {
+	switch d.G().Env.GetServiceType() {
+	case "launchd":
 		d.ForkType = keybase1.ForkType_LAUNCHD
+	case "systemd":
+		d.ForkType = keybase1.ForkType_SYSTEMD
+	default:
+		d.G().Log.Warning("Unknown service type: %q", d.G().Env.GetServiceType())
 	}
 
 	if err = d.GetExclusiveLock(); err != nil {
