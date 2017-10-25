@@ -73,7 +73,7 @@ func realMain() (exitStatus int) {
 
 	// Turn these off to not interfere with a running kbfs daemon.
 	kbfsParams.EnableJournal = false
-	kbfsParams.EnableDiskCache = false
+	kbfsParams.DiskCacheMode = libkbfs.DiskCacheModeOff
 
 	ctx := context.Background()
 	config, err := libkbfs.Init(ctx, kbCtx, *kbfsParams, nil, nil, log)

@@ -94,7 +94,7 @@ type InitParams struct {
 	EnableJournal bool
 
 	// DiskCacheMode specifies which mode to start the disk cache.
-	DiskCacheMode DiskBlockCacheMode
+	DiskCacheMode DiskCacheMode
 
 	// StorageRoot, if non-empty, points to a local directory to put its local
 	// databases for things like the journal or disk cache.

@@ -109,7 +109,7 @@ type ConfigLocal struct {
 	maxDirBytes   uint64
 	rekeyQueue    RekeyQueue
 	storageRoot   string
-	diskCacheMode DiskBlockCacheMode
+	diskCacheMode DiskCacheMode
 
 	traceLock    sync.RWMutex
 	traceEnabled bool
@@ -143,12 +143,12 @@ type ConfigLocal struct {
 	rekeyFSMLimiter *OngoingWorkLimiter
 }
 
-// DiskBlockCacheMode represents the mode of initialization for the disk cache.
-type DiskBlockCacheMode int
+// DiskCacheMode represents the mode of initialization for the disk cache.
+type DiskCacheMode int
 
 const (
 	// DiskCacheModeOff indicates to leave off the disk cache.
-	DiskCacheModeOff DiskBlockCacheMode = iota
+	DiskCacheModeOff DiskCacheMode = iota
 	// DiskCacheModeLocal indicates to use a local disk cache.
 	DiskCacheModeLocal
 	// DiskCacheModeRemote indicates to use a remote disk cache.
@@ -156,7 +156,7 @@ const (
 )
 
 // String outputs a human-readable description of this DiskBlockCacheMode.
-func (m DiskBlockCacheMode) String() string {
+func (m DiskCacheMode) String() string {
 	switch m {
 	case DiskCacheModeOff:
 		return "Off"
@@ -171,7 +171,7 @@ func (m DiskBlockCacheMode) String() string {
 // ParseDiskBlockCacheMode parses a string representing a disk block cache
 // initialization mode, and outputs the mode value corresponding to that
 // string. Defaults to DiskCacheModeOff.
-func ParseDiskBlockCacheMode(s string) DiskBlockCacheMode {
+func ParseDiskBlockCacheMode(s string) DiskCacheMode {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "local":
 		return DiskCacheModeLocal
@@ -356,7 +356,7 @@ func getDefaultCleanBlockCacheCapacity() uint64 {
 // TODO: Now that NewConfigLocal takes loggerFn, add more default
 // components.
 func NewConfigLocal(mode InitMode, loggerFn func(module string) logger.Logger,
-	storageRoot string, diskCacheMode DiskBlockCacheMode, kbCtx Context) *ConfigLocal {
+	storageRoot string, diskCacheMode DiskCacheMode, kbCtx Context) *ConfigLocal {
 	config := &ConfigLocal{
 		loggerFn:      loggerFn,
 		storageRoot:   storageRoot,
