@@ -21,12 +21,12 @@ type CmdTeamGenerateSeitan struct {
 
 func newCmdTeamGenerateSeitan(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "generate-seitan",
+		Name:         "generate-invite-token",
 		ArgumentHelp: "<team name>",
-		Usage:        "Generate no-server-trust \"Seitan\" token.",
+		Usage:        "Generate an invite token that you can send via SMS, iMessage, or other similar mechanism.",
 		Action: func(c *cli.Context) {
 			cmd := NewCmdTeamGenerateSeitanRunner(g)
-			cl.ChooseCommand(cmd, "generate-seitan", c)
+			cl.ChooseCommand(cmd, "generate-invite-token", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -87,6 +87,6 @@ func (c *CmdTeamGenerateSeitan) GetUsage() libkb.Usage {
 	}
 }
 
-const teamGenerateSeitanDoc = `"keybase team generate-seitan" allows you to create a one-time use,
+const teamGenerateSeitanDoc = `"keybase team generate-token" allows you to create a one-time use,
 expiring, cryptographically secure token that someone can use to join
 a team.`
