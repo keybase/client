@@ -27,14 +27,12 @@ function urlToUsername(url: URL): ?string {
   }
 
   const pathname = url.pathname
-
-  // TODO: More restrictive username parser.
-  const match = pathname.match(/^\/(\w+)\/?$/i)
+  const match = pathname.match(/^\/([A-Za-z0-9_]+)\/?$/)
   if (!match) {
     return null
   }
 
-  const username = match[1].toLocaleLowerCase()
+  const username = match[1].toLowerCase()
   return username
 }
 
