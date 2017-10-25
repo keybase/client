@@ -339,6 +339,9 @@ func (d *Service) createChatModules() {
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), d.attachmentstore, ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
+	// team channel source
+	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
+
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
 	chatSyncer.RegisterOfflinable(g.ConvSource)

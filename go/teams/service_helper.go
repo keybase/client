@@ -274,238 +274,290 @@ func tryToCompleteInvites(ctx context.Context, g *libkb.GlobalContext, team *Tea
 	return nil
 }
 
-func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (keybase1.TeamAddMemberResult, error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return keybase1.TeamAddMemberResult{}, err
-	}
+func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
+	var inviteRequired bool
 	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
 	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
-			return t.InviteMember(ctx, username, role, resolvedUsername, uv)
-		}
-		if _, ok := err.(libkb.NotFoundError); ok {
+			inviteRequired = true
+		} else if _, ok := err.(libkb.NotFoundError); ok {
 			return keybase1.TeamAddMemberResult{}, libkb.NotFoundError{
-				Msg: fmt.Sprintf("Not found: user %v", username),
+				Msg: fmt.Sprintf("User not found: %v", username),
 			}
+		} else {
+			return keybase1.TeamAddMemberResult{}, err
 		}
-		return keybase1.TeamAddMemberResult{}, err
 	}
-	if t.IsMember(ctx, uv) {
-		return keybase1.TeamAddMemberResult{}, libkb.ExistsError{Msg: fmt.Sprintf("user %q (%s) is already a member of team %q", username, resolvedUsername, teamname)}
-	}
-	req, err := reqFromRole(uv, role)
-	if err != nil {
-		return keybase1.TeamAddMemberResult{}, err
-	}
-	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-	if err == nil {
-		// Case where same UV (uid+seqno) already exists is covered by
-		// `t.IsMember` check above. This only checks if there is a reset
-		// member in the team to automatically remove them (so AddMember
-		// can function as a Re-Add).
-		if existingUV.EldestSeqno > uv.EldestSeqno {
-			return keybase1.TeamAddMemberResult{}, fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
+
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true /*needAdmin*/)
+		if err != nil {
+			return err
 		}
-		req.None = []keybase1.UserVersion{existingUV}
-	}
-	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
-	if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
-		g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
-	}
-	timeoutCancel()
-	if err := t.ChangeMembership(ctx, req); err != nil {
-		return keybase1.TeamAddMemberResult{}, err
-	}
-	return keybase1.TeamAddMemberResult{User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}, nil
+
+		if inviteRequired {
+			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
+			return err
+		}
+
+		if t.IsMember(ctx, uv) {
+			showUsername := fmt.Sprintf("%q", resolvedUsername.String())
+			if username != resolvedUsername.String() {
+				showUsername = fmt.Sprintf("%q (%s)", username, resolvedUsername.String())
+			}
+			return libkb.ExistsError{Msg: fmt.Sprintf("user %s is already a member of team %q", showUsername, teamname)}
+		}
+		req, err := reqFromRole(uv, role)
+		if err != nil {
+			return err
+		}
+		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+		if err == nil {
+			// Case where same UV (uid+seqno) already exists is covered by
+			// `t.IsMember` check above. This only checks if there is a reset
+			// member in the team to automatically remove them (so AddMember
+			// can function as a Re-Add).
+			if existingUV.EldestSeqno > uv.EldestSeqno {
+				return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", resolvedUsername, teamname, existingUV.EldestSeqno, uv.EldestSeqno)
+			}
+			req.None = []keybase1.UserVersion{existingUV}
+		}
+		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+		if err := tryToCompleteInvites(timeoutCtx, g, t, username, uv, &req); err != nil {
+			g.Log.CWarningf(ctx, "team.AddMember: error during tryToCompleteInvites: %v", err)
+		}
+		timeoutCancel()
+		if err := t.ChangeMembership(ctx, req); err != nil {
+			return err
+		}
+		// return value assign to escape closure
+		res = keybase1.TeamAddMemberResult{User: &keybase1.User{Uid: uv.Uid, Username: resolvedUsername.String()}}
+		return nil
+	})
+	return res, err
 }
 
 func InviteEmailMember(ctx context.Context, g *libkb.GlobalContext, teamname, email string, role keybase1.TeamRole) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return err
-	}
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
 
-	return t.InviteEmailMember(ctx, email, role)
+		return t.InviteEmailMember(ctx, email, role)
+	})
 }
 
-func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (keybase1.BulkRes, error) {
-	var res keybase1.BulkRes
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return keybase1.BulkRes{}, err
-	}
-
+func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails string, role keybase1.TeamRole) (resOuter keybase1.BulkRes, err error) {
 	emailList := splitBulk(emails)
 	g.Log.CDebugf(ctx, "team %s: bulk email invite count: %d", teamname, len(emailList))
 
-	var invites []SCTeamInvite
-	for _, e := range emailList {
-		if !libkb.CheckEmail.F(e) {
-			g.Log.CDebugf(ctx, "team %s: skipping malformed email %q", teamname, e)
-			res.Malformed = append(res.Malformed, e)
-			continue
-		}
-		name := keybase1.TeamInviteName(e)
-		existing, err := t.HasActiveInvite(name, "email")
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		var res keybase1.BulkRes
+
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
-			return keybase1.BulkRes{}, err
+			return err
 		}
-		if existing {
-			g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list", teamname, e)
-			res.AlreadyInvited = append(res.AlreadyInvited, e)
-			continue
-		}
-		inv := SCTeamInvite{
-			Type: "email",
-			Name: name,
-			ID:   NewInviteID(),
-		}
-		invites = append(invites, inv)
-		res.Invited = append(res.Invited, e)
-	}
-	if len(invites) == 0 {
-		g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
-		return res, nil
-	}
 
-	var teamInvites SCTeamInvites
-	switch role {
-	case keybase1.TeamRole_ADMIN:
-		teamInvites.Admins = &invites
-	case keybase1.TeamRole_WRITER:
-		teamInvites.Writers = &invites
-	case keybase1.TeamRole_READER:
-		teamInvites.Readers = &invites
-	case keybase1.TeamRole_OWNER:
-		teamInvites.Owners = &invites
-	default:
-		return keybase1.BulkRes{}, fmt.Errorf("unknown team role: %s", role)
-	}
+		var invites []SCTeamInvite
+		for _, e := range emailList {
+			if !libkb.CheckEmail.F(e) {
+				g.Log.CDebugf(ctx, "team %s: skipping malformed email %q", teamname, e)
+				res.Malformed = append(res.Malformed, e)
+				continue
+			}
+			name := keybase1.TeamInviteName(e)
+			existing, err := t.HasActiveInvite(name, "email")
+			if err != nil {
+				return err
+			}
+			if existing {
+				g.Log.CDebugf(ctx, "team %s: invite for %s already exists, omitting from invite list", teamname, e)
+				res.AlreadyInvited = append(res.AlreadyInvited, e)
+				continue
+			}
+			inv := SCTeamInvite{
+				Type: "email",
+				Name: name,
+				ID:   NewInviteID(),
+			}
+			invites = append(invites, inv)
+			res.Invited = append(res.Invited, e)
+		}
+		if len(invites) == 0 {
+			g.Log.CDebugf(ctx, "team %s: after exisitng filter, no one to invite", teamname)
+			// return value assign to escape closure
+			resOuter = res
+			return nil
+		}
 
-	g.Log.CDebugf(ctx, "team %s: after exisitng filter, inviting %d emails as %s", teamname, len(invites), role)
-	err = t.postTeamInvites(ctx, teamInvites)
-	if err != nil {
-		return keybase1.BulkRes{}, err
-	}
-	return res, nil
+		var teamInvites SCTeamInvites
+		switch role {
+		case keybase1.TeamRole_ADMIN:
+			teamInvites.Admins = &invites
+		case keybase1.TeamRole_WRITER:
+			teamInvites.Writers = &invites
+		case keybase1.TeamRole_READER:
+			teamInvites.Readers = &invites
+		case keybase1.TeamRole_OWNER:
+			teamInvites.Owners = &invites
+		default:
+			return fmt.Errorf("unknown team role: %s", role)
+		}
+
+		g.Log.CDebugf(ctx, "team %s: after exisitng filter, inviting %d emails as %s", teamname, len(invites), role)
+		err = t.postTeamInvites(ctx, teamInvites)
+		if err != nil {
+			return err
+		}
+		// return value assign to escape closure
+		resOuter = res
+		return nil
+	})
+	return resOuter, err
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return err
-	}
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
 	}
-	if !t.IsMember(ctx, uv) {
-		return fmt.Errorf("user %q is not a member of team %q", username, teamname)
-	}
-	existingRole, err := t.MemberRole(ctx, uv)
-	if err != nil {
-		return err
-	}
-	if existingRole == role {
-		return fmt.Errorf("user %q in team %q already has the role %s", username, teamname, role)
-	}
 
-	req, err := reqFromRole(uv, role)
-	if err != nil {
-		return err
-	}
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
+		if !t.IsMember(ctx, uv) {
+			return fmt.Errorf("user %q is not a member of team %q", username, teamname)
+		}
+		existingRole, err := t.MemberRole(ctx, uv)
+		if err != nil {
+			return err
+		}
+		if existingRole == role {
+			return fmt.Errorf("user %q in team %q already has the role %s", username, teamname, role)
+		}
 
-	return t.ChangeMembership(ctx, req)
+		req, err := reqFromRole(uv, role)
+		if err != nil {
+			return err
+		}
+
+		return t.ChangeMembership(ctx, req)
+	})
 }
 
-func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (keybase1.TeamRole, error) {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
-	if err != nil {
-		return keybase1.TeamRole_NONE, err
-	}
+func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (role keybase1.TeamRole, err error) {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
-	return t.MemberRole(ctx, uv)
+
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+		if err != nil {
+			return err
+		}
+		// return value assign to escape closure
+		role, err = t.MemberRole(ctx, uv)
+		return err
+	})
+	return role, err
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return err
-	}
 
+	var inviteRequired bool
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		if err == errInviteRequired {
+			inviteRequired = true
+		} else {
+			return err
+		}
+	}
+
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
+
+		if inviteRequired {
 			return removeMemberInvite(ctx, g, t, username, uv)
 		}
-		return err
-	}
 
-	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-	if err != nil {
-		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
-	}
+		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+		if err != nil {
+			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username, teamname)}
+		}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
-	if err != nil {
-		return err
-	}
+		me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
+		if err != nil {
+			return err
+		}
 
-	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
-		return Leave(ctx, g, teamname, false)
-	}
-	req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
+		if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
+			return Leave(ctx, g, teamname, false)
+		}
+		req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
 
-	// Ban for open teams only.
-	permanent := t.IsOpen()
-	return t.ChangeMembershipPermanent(ctx, req, permanent)
+		// Ban for open teams only.
+		permanent := t.IsOpen()
+		return t.ChangeMembershipPermanent(ctx, req, permanent)
+	})
 }
 
 func CancelEmailInvite(ctx context.Context, g *libkb.GlobalContext, teamname, email string) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return err
-	}
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
 
-	if !libkb.CheckEmail.F(email) {
-		return errors.New("Invalid email address")
-	}
+		if !libkb.CheckEmail.F(email) {
+			return errors.New("Invalid email address")
+		}
 
-	return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email")
+		return removeMemberInviteOfType(ctx, g, t, keybase1.TeamInviteName(email), "email")
+	})
 }
 
 func Leave(ctx context.Context, g *libkb.GlobalContext, teamname string, permanent bool) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
-	if err != nil {
-		return err
-	}
-	err = t.Leave(ctx, permanent)
-	if err != nil {
-		return err
-	}
-	// Assume this is for the private team
-	err = g.GetTeamLoader().Delete(ctx, t.ID)
-	if err != nil {
-		g.Log.CDebugf(ctx, "team.Leave: error deleting team cache: %v", err)
-	}
-	return nil
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+		if err != nil {
+			return err
+		}
+		err = t.Leave(ctx, permanent)
+		if err != nil {
+			return err
+		}
+		// Assume this is for the private team
+		err = g.GetTeamLoader().Delete(ctx, t.ID)
+		if err != nil {
+			g.Log.CDebugf(ctx, "team.Leave: error deleting team cache: %v", err)
+		}
+		return nil
+	})
 }
 
 func Delete(ctx context.Context, g *libkb.GlobalContext, ui keybase1.TeamsUiInterface, teamname string) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
-	if err != nil {
-		return err
-	}
+	// This retry can cause multiple confirmation popups for the user
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+		if err != nil {
+			return err
+		}
 
-	if t.chain().IsSubteam() {
-		return t.deleteSubteam(ctx, ui)
-	}
-	return t.deleteRoot(ctx, ui)
+		if t.chain().IsSubteam() {
+			return t.deleteSubteam(ctx, ui)
+		}
+		return t.deleteRoot(ctx, ui)
+	})
 }
 
 func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) error {
@@ -516,12 +568,14 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 }
 
 func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, req keybase1.TeamChangeReq) error {
-	// Don't needAdmin because we might be leaving, and this needs no information from stubbable links.
-	t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
-	if err != nil {
-		return err
-	}
-	return t.ChangeMembership(ctx, req)
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		// Don't needAdmin because we might be leaving, and this needs no information from stubbable links.
+		t, err := GetForTeamManagementByStringName(ctx, g, teamname, false)
+		if err != nil {
+			return err
+		}
+		return t.ChangeMembership(ctx, req)
+	})
 }
 
 var errInviteRequired = errors.New("invite required for username")
@@ -761,57 +815,61 @@ func GetRootID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) 
 }
 
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string) error {
-	t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
-	if err != nil {
-		return err
-	}
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
 	}
 
-	existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
-	if err != nil {
-		return libkb.NotFoundError{Msg: fmt.Sprintf("user %q has never been a member of this team.", username)}
-	}
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true)
+		if err != nil {
+			return err
+		}
+		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
+		if err != nil {
+			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q has never been a member of this team.", username)}
+		}
 
-	if existingUV.EldestSeqno == uv.EldestSeqno {
-		return libkb.ExistsError{Msg: fmt.Sprintf("user %q has not reset, no need to re-add", username)}
-	} else if existingUV.EldestSeqno > uv.EldestSeqno {
-		return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", username, teamID, existingUV.EldestSeqno, uv.EldestSeqno)
-	}
+		if existingUV.EldestSeqno == uv.EldestSeqno {
+			return libkb.ExistsError{Msg: fmt.Sprintf("user %q has not reset, no need to re-add", username)}
+		} else if existingUV.EldestSeqno > uv.EldestSeqno {
+			return fmt.Errorf("newer version of user %q already exists in team %q (%v > %v)", username, teamID, existingUV.EldestSeqno, uv.EldestSeqno)
+		}
 
-	existingRole, err := t.MemberRole(ctx, existingUV)
-	if err != nil {
-		return err
-	}
+		existingRole, err := t.MemberRole(ctx, existingUV)
+		if err != nil {
+			return err
+		}
 
-	req, err := reqFromRole(uv, existingRole)
-	if err != nil {
-		return err
-	}
+		req, err := reqFromRole(uv, existingRole)
+		if err != nil {
+			return err
+		}
 
-	req.None = []keybase1.UserVersion{existingUV}
-	return t.ChangeMembership(ctx, req)
+		req.None = []keybase1.UserVersion{existingUV}
+		return t.ChangeMembership(ctx, req)
+	})
 }
 
 func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName string, settings keybase1.TeamSettings) error {
-	t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
-	if err != nil {
-		return err
-	}
-
-	if !settings.Open && !t.IsOpen() {
-		return libkb.NoOpError{Desc: "Team is already closed."}
-	}
-
-	if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
-		return libkb.NoOpError{
-			Desc: fmt.Sprintf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String())),
+	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		t, err := GetForTeamManagementByStringName(ctx, g, teamName, true)
+		if err != nil {
+			return err
 		}
-	}
 
-	return t.PostTeamSettings(ctx, settings)
+		if !settings.Open && !t.IsOpen() {
+			return libkb.NoOpError{Desc: "Team is already closed."}
+		}
+
+		if settings.Open && t.IsOpen() && t.OpenTeamJoinAs() == settings.JoinAs {
+			return libkb.NoOpError{
+				Desc: fmt.Sprintf("Team is already open with default role: %s.", strings.ToLower(t.OpenTeamJoinAs().String())),
+			}
+		}
+
+		return t.PostTeamSettings(ctx, settings)
+	})
 }
 
 func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) error {

@@ -402,16 +402,44 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
+var chanNameMentionRegExp = regexp.MustCompile(`\B#([0-9a-zA-Z_-]+)`)
+
+func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, ts types.TeamChannelSource) (res []string) {
+	names := parseRegexpNames(ctx, body, chanNameMentionRegExp)
+	if len(names) == 0 {
+		return nil
+	}
+	chanResponse, _, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT, membersType)
+	if err != nil {
+		return nil
+	}
+	validChans := make(map[string]bool)
+	for _, cr := range chanResponse {
+		validChans[cr.TopicName] = true
+	}
+	for _, name := range names {
+		if validChans[name] {
+			res = append(res, name)
+		}
+	}
+	return res
+}
+
 var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
 
-func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
-	matches := atMentionRegExp.FindAllStringSubmatch(body, -1)
+func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []string) {
+	matches := re.FindAllStringSubmatch(body, -1)
 	for _, m := range matches {
 		if len(m) >= 2 {
 			res = append(res, m[1])
 		}
 	}
 	return res
+}
+
+func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
+	return parseRegexpNames(ctx, body, atMentionRegExp)
 }
 
 func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
@@ -693,6 +721,7 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
 			AtMentions:            rawMsg.Valid().AtMentionUsernames,
 			ChannelMention:        rawMsg.Valid().ChannelMention,
+			ChannelNameMentions:   rawMsg.Valid().ChannelNameMentions,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string

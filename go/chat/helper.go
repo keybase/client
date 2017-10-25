@@ -338,36 +338,6 @@ func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	return inbox.ConvsUnverified[0].Conv, ratelim, nil
 }
 
-func GetTLFConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
-	membersType chat1.ConversationMembersType) (res []chat1.ConversationLocal, rl []chat1.RateLimit, err error) {
-
-	tlfRes, err := ri().GetTLFConversations(ctx, chat1.GetTLFConversationsArg{
-		TlfID:            tlfID,
-		TopicType:        topicType,
-		MembersType:      membersType,
-		SummarizeMaxMsgs: false,
-	})
-	if err != nil {
-		return res, rl, err
-	}
-	if tlfRes.RateLimit != nil {
-		rl = append(rl, *tlfRes.RateLimit)
-	}
-
-	// Localize the conversations
-	res, err = NewBlockingLocalizer(g).Localize(ctx, uid, types.Inbox{
-		ConvsUnverified: utils.RemoteConvs(tlfRes.Conversations),
-	})
-	if err != nil {
-		debugger.Debug(ctx, "GetTLFConversations: failed to localize conversations: %s", err.Error())
-		return res, rl, err
-	}
-	sort.Sort(utils.ConvLocalByTopicName(res))
-	rl = utils.AggRateLimits(rl)
-	return res, rl, nil
-}
-
 func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	convs []chat1.ConversationLocal,
 	uid gregor1.UID, tlfID chat1.TLFID, topicType chat1.TopicType,
@@ -443,8 +413,8 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
 				return res, rl, err
 			}
-			tlfConvs, irl, err := GetTLFConversations(ctx, g, debugger, ri,
-				uid, nameInfo.ID, topicType, membersType)
+			tlfConvs, irl, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType,
+				membersType)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
 				return res, rl, err
@@ -611,6 +581,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if joinRes.RateLimit != nil {
 		rl = append(rl, *joinRes.RateLimit)
 	}
+
 	if _, err = g.InboxSource.MembershipUpdate(ctx, uid, 0, []chat1.ConversationMember{
 		chat1.ConversationMember{
 			Uid:    uid,
@@ -872,6 +843,9 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err = n.G().InboxSource.NewConversation(ctx, n.uid, 0, updateConv.Conv); err != nil {
 			return res, rl, err
 		}
+
+		// Clear team channel source
+		n.G().TeamChannelSource.ChannelsChanged(ctx, updateConv.Conv.Metadata.IdTriple.Tlfid)
 
 		if res.Error != nil {
 			return res, rl, errors.New(res.Error.Message)

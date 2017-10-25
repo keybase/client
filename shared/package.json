@@ -53,14 +53,15 @@
     "setupFiles": [
       "raf/polyfill"
     ],
+    "testPathIgnorePatterns": ["/node_modules/", "/stories/"],
     "snapshotSerializers": [
         "jest-glamor-react"
     ],
-    "testPathIgnorePatterns": ["/node_modules/", "/stories/"],
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
       "\\.(jpg|png|gif|ttf|css)$": "<rootDir>/__mocks__/file-mock.js",
-      "react-list": "<rootDir>/__mocks__/react-list.js"
+      "react-list": "<rootDir>/__mocks__/react-list.js",
+      "desktop/resolve-root": "<rootDir>/__mocks__/resolve-root.js"
     },
     "moduleFileExtensions": [
       "js",

@@ -527,7 +527,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		if err == nil {
 			// Since we are using the "holey" collector, we need to resolve any placeholder
 			// messages that may have been fetched.
-			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d", convID, uid, rc.Holes())
+			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", convID, uid, rc.Holes(),
+				len(thread.Messages))
 			err = s.resolveHoles(ctx, uid, &thread, conv)
 		}
 		if err == nil {

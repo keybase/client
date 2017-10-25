@@ -26,6 +26,7 @@ type BadgeState struct {
 	InboxVers                 int                     `codec:"inboxVers" json:"inboxVers"`
 	Conversations             []BadgeConversationInfo `codec:"conversations" json:"conversations"`
 	NewGitRepoGlobalUniqueIDs []string                `codec:"newGitRepoGlobalUniqueIDs" json:"newGitRepoGlobalUniqueIDs"`
+	NewTeamIDs                []TeamID                `codec:"newTeamIDs" json:"newTeamIDs"`
 }
 
 func (o BadgeState) DeepCopy() BadgeState {
@@ -56,6 +57,17 @@ func (o BadgeState) DeepCopy() BadgeState {
 			}
 			return ret
 		})(o.NewGitRepoGlobalUniqueIDs),
+		NewTeamIDs: (func(x []TeamID) []TeamID {
+			if x == nil {
+				return nil
+			}
+			var ret []TeamID
+			for _, v := range x {
+				vCopy := v.DeepCopy()
+				ret = append(ret, vCopy)
+			}
+			return ret
+		})(o.NewTeamIDs),
 	}
 }
 

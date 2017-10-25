@@ -373,8 +373,8 @@ function updateBrokenTracker(userToBroken: {[username: string]: boolean}): Const
   return {payload: {userToBroken}, type: 'chat:updateBrokenTracker'}
 }
 
-function inboxStale(): Constants.InboxStale {
-  return {payload: undefined, type: 'chat:inboxStale'}
+function inboxStale(reason: string): Constants.InboxStale {
+  return {payload: {reason}, type: 'chat:inboxStale'}
 }
 
 function markThreadsStale(updates: Array<ChatTypes.ConversationStaleUpdate>): Constants.MarkThreadsStale {
@@ -615,10 +615,11 @@ function updateSnippet(
 
 function unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>,
+  reason: string,
   force?: boolean = false,
   forInboxSync?: boolean = false
 ): Constants.UnboxConversations {
-  return {payload: {conversationIDKeys, force, forInboxSync}, type: 'chat:unboxConversations'}
+  return {payload: {conversationIDKeys, reason, force, forInboxSync}, type: 'chat:unboxConversations'}
 }
 
 function unboxMore(): Constants.UnboxMore {

@@ -13,6 +13,7 @@ protocol NotifyBadges {
 
     array<BadgeConversationInfo> conversations;
     array<string> newGitRepoGlobalUniqueIDs;
+    array<TeamID> newTeamIDs;
   }
 
   record BadgeConversationInfo {

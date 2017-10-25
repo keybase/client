@@ -288,6 +288,16 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 	}
 }
 
+type TeamChannelUpdate struct {
+	TeamID TLFID `codec:"teamID" json:"teamID"`
+}
+
+func (o TeamChannelUpdate) DeepCopy() TeamChannelUpdate {
+	return TeamChannelUpdate{
+		TeamID: o.TeamID.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 }
 
