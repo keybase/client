@@ -449,8 +449,7 @@ func TestTeamInviteSeitan(t *testing.T) {
 	t.Logf("Created token %q", token)
 
 	err = roo.teamsClient.TeamAcceptInvite(context.TODO(), keybase1.TeamAcceptInviteArg{
-		Token:  token,
-		Seitan: true,
+		Token: token,
 	})
 	require.NoError(t, err)
 

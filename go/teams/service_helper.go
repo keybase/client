@@ -590,13 +590,8 @@ func AcceptInvite(ctx context.Context, g *libkb.GlobalContext, token string) err
 	return err
 }
 
-func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, token string) error {
+func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
 	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithContext(ctx, g))
-	if err != nil {
-		return err
-	}
-
-	ikey, err := GenerateIKeyFromString(token)
 	if err != nil {
 		return err
 	}

@@ -1546,10 +1546,6 @@
         {
           "name": "token",
           "type": "string"
-        },
-        {
-          "name": "seitan",
-          "type": "boolean"
         }
       ],
       "response": null

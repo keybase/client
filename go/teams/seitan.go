@@ -19,7 +19,17 @@ import (
 	"github.com/keybase/saltpack/encoding/basex"
 )
 
+// How many random bytes are needed to create "Invite Key" token of
+// chosen alphabet and length.
 const SeitanRawIKeyLength = 10
+
+// This is expected seitan token length, the secret "Invite Key" that
+// is generated on one client and distributed to another via face-to-
+// face meeting, use of a trusted courier etc.
+//
+// We only try to distinguish Seitan tokens from normal e-mail tokens
+// via length so make sure they are never the same length. Right now
+// server-trust e-mail tokens are 12 characters.
 const SeitanEncodedIKeyLength = 16
 
 // Key-Base 33 encoding. lower case letters except 'l' and digits except for '0' and '1'.
@@ -62,6 +72,11 @@ func GenerateIKey() (ikey SeitanIKey, err error) {
 	return ikey, nil
 }
 
+// GenerateIKeyFromString safely creates SeitanIKey value from
+// plaintext string. Only length is checked - any 16-character token
+// can be "Invite Key". Alphabet is not checked, as it is only a hint
+// for token generation and it can change over time, but we assume
+// that token length stays the same.
 func GenerateIKeyFromString(token string) (ikey SeitanIKey, err error) {
 	if len(token) != SeitanEncodedIKeyLength {
 		return ikey, fmt.Errorf("invalid token length: expected %d characters, got %d", SeitanEncodedIKeyLength, len(token))

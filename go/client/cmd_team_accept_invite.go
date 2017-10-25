@@ -31,10 +31,6 @@ func newCmdTeamAcceptInvite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 				Name:  "token",
 				Usage: "token",
 			},
-			cli.BoolFlag{
-				Name:  "seitan",
-				Usage: "Is it a seitan token?",
-			},
 		},
 	}
 }
@@ -49,8 +45,6 @@ func (c *CmdTeamAcceptInvite) ParseArgv(ctx *cli.Context) error {
 		return errors.New("please specify an invite token with the --token flag")
 	}
 
-	c.Seitan = ctx.Bool("seitan")
-
 	return nil
 }
 
@@ -61,8 +55,7 @@ func (c *CmdTeamAcceptInvite) Run() error {
 	}
 
 	arg := keybase1.TeamAcceptInviteArg{
-		Token:  c.Token,
-		Seitan: c.Seitan,
+		Token: c.Token,
 	}
 
 	if err := cli.TeamAcceptInvite(context.Background(), arg); err != nil {

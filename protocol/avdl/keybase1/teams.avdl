@@ -493,7 +493,7 @@ protocol teams {
   void teamLeave(int sessionID, string name, boolean permanent);
   void teamEditMember(int sessionID, string name, string username, TeamRole role);
   void teamRename(int sessionID, TeamName prevName, TeamName newName);
-  void teamAcceptInvite(int sessionID, string token, boolean seitan);
+  void teamAcceptInvite(int sessionID, string token);
   TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
   // Accept an invite or request to join a team, try both.
   void teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
