@@ -337,13 +337,16 @@ protocol teams {
     array<TeamAccessRequest> tars;
   }
 
+  @typedef("string")
+  record SeitanAKey {}
+
   record TeamSeitanRequest {
     @jsonkey("invite_id")
     TeamInviteID inviteID;
     UID uid;
     @jsonkey("eldest_seqno")
     Seqno eldestSeqno;
-    string akey;
+    SeitanAKey akey;
     TeamRole role;
     @jsonkey("ctime")
     int64 unixCTime;

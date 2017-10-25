@@ -1043,11 +1043,17 @@ func (o TeamOpenReqMsg) DeepCopy() TeamOpenReqMsg {
 	}
 }
 
+type SeitanAKey string
+
+func (o SeitanAKey) DeepCopy() SeitanAKey {
+	return o
+}
+
 type TeamSeitanRequest struct {
 	InviteID    TeamInviteID `codec:"inviteID" json:"invite_id"`
 	Uid         UID          `codec:"uid" json:"uid"`
 	EldestSeqno Seqno        `codec:"eldestSeqno" json:"eldest_seqno"`
-	Akey        string       `codec:"akey" json:"akey"`
+	Akey        SeitanAKey   `codec:"akey" json:"akey"`
 	Role        TeamRole     `codec:"role" json:"role"`
 	UnixCTime   int64        `codec:"unixCTime" json:"ctime"`
 }
@@ -1057,7 +1063,7 @@ func (o TeamSeitanRequest) DeepCopy() TeamSeitanRequest {
 		InviteID:    o.InviteID.DeepCopy(),
 		Uid:         o.Uid.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
-		Akey:        o.Akey,
+		Akey:        o.Akey.DeepCopy(),
 		Role:        o.Role.DeepCopy(),
 		UnixCTime:   o.UnixCTime,
 	}

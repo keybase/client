@@ -4413,6 +4413,8 @@ export type SecretResponse = {
   phrase: string,
 }
 
+export type SeitanAKey = string
+
 export type SelectKeyRes = {
   keyID: string,
   doSecretPush: boolean,
@@ -5044,7 +5046,7 @@ export type TeamSeitanRequest = {
   inviteID: TeamInviteID,
   uid: UID,
   eldestSeqno: Seqno,
-  akey: string,
+  akey: SeitanAKey,
   role: TeamRole,
   unixCTime: int64,
 }

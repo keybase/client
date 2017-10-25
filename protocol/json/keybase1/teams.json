@@ -856,6 +856,12 @@
     },
     {
       "type": "record",
+      "name": "SeitanAKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "TeamSeitanRequest",
       "fields": [
         {
@@ -873,7 +879,7 @@
           "jsonkey": "eldest_seqno"
         },
         {
-          "type": "string",
+          "type": "SeitanAKey",
           "name": "akey"
         },
         {

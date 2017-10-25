@@ -324,7 +324,7 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		}
 
 		// Decode given AKey to be able to do secure hash comparison.
-		decodedAKey, err := base64.StdEncoding.DecodeString(seitan.Akey)
+		decodedAKey, err := base64.StdEncoding.DecodeString(string(seitan.Akey))
 		if err != nil {
 			return err
 		}
