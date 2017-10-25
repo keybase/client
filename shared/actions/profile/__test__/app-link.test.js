@@ -30,4 +30,8 @@ describe('urlToUsername', () => {
     check('https://keybase.io/chris?foo=bar#baz', 'chris')
     check('https://keybase.io/chris?foo=bar#baz', 'chris')
   })
+
+  it('path', () => {
+    check('https://keybase.io/chris/', 'chris')
+  })
 })

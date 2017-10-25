@@ -27,14 +27,21 @@ function urlToUsername(url: URL): ?string {
   }
 
   const pathname = url.pathname
-  const match = pathname.match(/^\/([A-Za-z0-9_]+)\/?$/)
+  // Adapted username regexp (see checkers.go) with a leading / and an
+  // optional trailing /.
+  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_]?)+)\/?$/)
   if (!match) {
+    return null
+  }
+
+  const usernameMatch = match[1]
+  if (usernameMatch.length < 2 || usernameMatch.length > 16) {
     return null
   }
 
   // Ignore query string and hash parameters.
 
-  const username = match[1].toLowerCase()
+  const username = usernameMatch.toLowerCase()
   return username
 }
 
