@@ -108,6 +108,9 @@ func getTeamForMember(ctx context.Context, g *libkb.GlobalContext, member keybas
 	return team, nil
 }
 
+// getUsernameAndFullName uses UPAKLoader to get username and fullname
+// for given UID. It should not be used for fetching data for multiple
+// UIDs, for this use UIDMapper.
 func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (username libkb.NormalizedUsername, fullName string, err error) {
 	username, err = g.GetUPAKLoader().LookupUsername(ctx, uid)
 	if err != nil {
@@ -192,6 +195,10 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 		AnnotatedActiveInvites: make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite),
 	}
 
+	// Also save visited admin teams to annotate all invitations
+	// afterwards, for all teams at once.
+	uniqueAdminTeams := make(map[keybase1.TeamID]*Team)
+
 	if len(teams) == 0 {
 		return res, nil
 	}
@@ -240,11 +247,7 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 				return nil
 			}
 
-			type AnnotatedTeamInviteMap map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite
-			var anMemberInfo *keybase1.AnnotatedMemberInfo
-			var anInvites AnnotatedTeamInviteMap
-
-			anMemberInfo = &keybase1.AnnotatedMemberInfo{
+			anMemberInfo := &keybase1.AnnotatedMemberInfo{
 				TeamID:         team.ID,
 				FqName:         team.Name().String(),
 				UserID:         memberInfo.UserID,
@@ -266,22 +269,14 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 				}
 			}
 
-			anInvites = make(AnnotatedTeamInviteMap)
-			if serverSaysNeedAdmin {
-				anInvites, err = AnnotateInvites(subctx, g, team.chain().inner.ActiveInvites, team.Name().String())
-				if err != nil {
-					g.Log.CDebugf(subctx, "| Failed to AnnotateInvites for team %q: %v", team.ID, err)
-					return nil
-				}
-			}
-
 			// After this lock it is safe to write out results
 			resLock.Lock()
 			defer resLock.Unlock()
 
 			res.Teams = append(res.Teams, *anMemberInfo)
-			for teamInviteID, annotatedTeamInvite := range anInvites {
-				res.AnnotatedActiveInvites[teamInviteID] = annotatedTeamInvite
+			if serverSaysNeedAdmin {
+				// Save team for later, to batch-annotate invitations.
+				uniqueAdminTeams[team.ID] = team
 			}
 
 			return nil
@@ -289,6 +284,13 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 	}
 
 	err = group.Wait()
+
+	tracer.Stage("Annotating Invites")
+
+	res.AnnotatedActiveInvites, err = AnnotateAllInvites(ctx, g, uniqueAdminTeams)
+	if err != nil {
+		g.Log.CDebugf(subctx, "Error in annotateAllInvites: %v", err)
+	}
 
 	if arg.All && len(res.Teams) != 0 {
 		tracer.Stage("FillUsernames")
@@ -330,8 +332,121 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTe
 	return res, nil
 }
 
-func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, invites map[keybase1.TeamInviteID]keybase1.TeamInvite, teamName string) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
+func AnnotateAllInvites(ctx context.Context, g *libkb.GlobalContext, teams map[keybase1.TeamID]*Team) (res map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, err error) {
+	// Gather users first
+	var userList []keybase1.UID
+	userSet := map[keybase1.UID]int{}
+	gatherUser := func(uid keybase1.UID) {
+		_, found := userSet[uid]
+		if !found {
+			userSet[uid] = len(userList)
+			userList = append(userList, uid)
+		}
+	}
 
+	for _, team := range teams {
+		invites := team.chain().inner.ActiveInvites
+		for _, invite := range invites {
+			gatherUser(invite.Inviter.Uid)
+
+			category, err := invite.Type.C()
+			if err != nil {
+				g.Log.CDebugf(ctx, "| AnnotateAllInvites, while gathering users: %v", err)
+				continue
+			}
+			if category == keybase1.TeamInviteCategory_KEYBASE {
+				uv, err := invite.KeybaseUserVersion()
+				if err != nil {
+					g.Log.CDebugf(ctx, "| AnnotateAllInvites, while gathering users: %v", err)
+					continue
+				}
+
+				gatherUser(uv.Uid)
+			}
+		}
+	}
+
+	namePkgs, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, userList, 0, 0, true)
+	if err != nil {
+		return res, err
+	}
+
+	getUser := func(uid keybase1.UID) (res libkb.UsernamePackage, err error) {
+		num, ok := userSet[uid]
+		if !ok {
+			return res, fmt.Errorf("UID %q was not requested for uid mapping", uid)
+		}
+		return namePkgs[num], nil
+	}
+
+	res = make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite)
+
+	for _, team := range teams {
+		teamName := team.Name().String()
+		invites := team.chain().inner.ActiveInvites
+		for inviteID, invite := range invites {
+			inviterPkg, err := getUser(invite.Inviter.Uid)
+			if err != nil {
+				g.Log.CDebugf(ctx, "| AnnotateAllInvites, while annotating: %v", err)
+				continue
+			}
+
+			username := inviterPkg.NormalizedUsername
+
+			name := invite.Name
+			category, err := invite.Type.C()
+			if err != nil {
+				return res, err
+			}
+			var uv keybase1.UserVersion
+			if category == keybase1.TeamInviteCategory_KEYBASE {
+				// "keybase" invites (i.e. pukless users) have user version for name
+				uv, err := invite.KeybaseUserVersion()
+				if err != nil {
+					// If this errors, it has also errored while gathering users. Skip logging here.
+					continue
+				}
+				pkg, err := getUser(uv.Uid)
+				if err != nil {
+					// If this errors; same as above.
+					continue
+				}
+				if pkg.FullName == nil {
+					g.Log.CDebugf(ctx, "| Failed to get UsernamePackage.FullName for keybase invite for user %q uid %q\n", pkg.NormalizedUsername, uv.Uid)
+					continue
+				}
+				if uv.EldestSeqno != pkg.FullName.EldestSeqno {
+					// Not an error - user has just reset, they are not (invited) member anymore.
+					continue
+				}
+				name = keybase1.TeamInviteName(pkg.NormalizedUsername)
+			}
+			res[inviteID] = keybase1.AnnotatedTeamInvite{
+				Role:            invite.Role,
+				Id:              invite.Id,
+				Type:            invite.Type,
+				Name:            name,
+				Uv:              uv,
+				Inviter:         invite.Inviter,
+				InviterUsername: username.String(),
+				TeamName:        teamName,
+			}
+		}
+	}
+
+	return res, err
+}
+
+func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (res map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, err error) {
+	teams := make(map[keybase1.TeamID]*Team)
+	teams[team.ID] = team
+	return AnnotateAllInvites(ctx, g, teams)
+}
+
+// AnnotateInvitesUPAKLoader is a slow but reliable function to
+// annotate invites in team. It uses UPAKLoader to fetch user
+// for every invite.
+func AnnotateInvitesUPAKLoader(ctx context.Context, g *libkb.GlobalContext, invites map[keybase1.TeamInviteID]keybase1.TeamInvite, teamName string) (map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, error) {
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
 	upakLoader := g.GetUPAKLoader()
 	for id, invite := range invites {

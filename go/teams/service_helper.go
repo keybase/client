@@ -56,8 +56,8 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string, forceRepo
 	}
 
 	tracer.Stage("annotate")
-	activeInvites := t.chain().inner.ActiveInvites
-	annotatedInvites, err := AnnotateInvites(ctx, g, activeInvites, t.Name().String())
+
+	annotatedInvites, err := AnnotateInvites(ctx, g, t)
 	if err != nil {
 		return res, err
 	}

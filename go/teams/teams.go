@@ -187,7 +187,7 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 
 	// Add the invites
 	chainInvites := t.chain().inner.ActiveInvites
-	inviteMap, err := AnnotateInvites(ctx, t.G(), chainInvites, t.Name().String())
+	inviteMap, err := AnnotateInvitesUPAKLoader(ctx, t.G(), chainInvites, t.Name().String())
 	if err != nil {
 		return res, err
 	}
