@@ -507,10 +507,9 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 		if h == nil {
 			// Any path that creates a single-team TLF journal should
 			// also provide a handle.  If not, we'd have to fetch it
-			// from the server, which isn't a trusted path.  So panic
-			// instead; if we hit this, we might need to rethink this.
-			panic(fmt.Sprintf(
-				"No handle provided for single-team TLF %s", tlfID))
+			// from the server, which isn't a trusted path.
+			return errors.Errorf(
+				"No handle provided for single-team TLF %s", tlfID)
 		}
 
 		chargedTo = h.FirstResolvedWriter()
