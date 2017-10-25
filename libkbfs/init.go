@@ -227,8 +227,8 @@ func AddFlagsWithDefaults(
 	flags.StringVar(&params.StorageRoot, "storage-root",
 		defaultParams.StorageRoot, "Specifies where Keybase will store its "+
 			"local databases for the journal and disk cache.")
-	flags.IntVar((*int)(&params.DiskCacheMode), "disk-cache-mode",
-		int(defaultParams.DiskCacheMode),
+	params.DiskCacheMode = defaultParams.DiskCacheMode
+	flags.Var(&params.DiskCacheMode, "disk-cache-mode",
 		"Sets the mode for the disk cache. If 'local', then it uses a subdirectory of -storage-root to store the cache.")
 	flags.BoolVar(&params.EnableJournal, "enable-journal",
 		defaultParams.EnableJournal, "Enables write journaling for TLFs.")

@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -146,6 +147,8 @@ type ConfigLocal struct {
 // DiskCacheMode represents the mode of initialization for the disk cache.
 type DiskCacheMode int
 
+var _ flag.Value = (*DiskCacheMode)(nil)
+
 const (
 	// DiskCacheModeOff indicates to leave off the disk cache.
 	DiskCacheModeOff DiskCacheMode = iota
@@ -159,26 +162,27 @@ const (
 func (m DiskCacheMode) String() string {
 	switch m {
 	case DiskCacheModeOff:
-		return "Off"
+		return "off"
 	case DiskCacheModeLocal:
-		return "Local"
+		return "local"
 	case DiskCacheModeRemote:
-		return "Remote"
+		return "remote"
 	}
-	return "Unknown"
+	return "unknown"
 }
 
-// ParseDiskBlockCacheMode parses a string representing a disk block cache
-// initialization mode, and outputs the mode value corresponding to that
-// string. Defaults to DiskCacheModeOff.
-func ParseDiskBlockCacheMode(s string) DiskCacheMode {
+// Set parses a string representing a disk block cache initialization mode,
+// and outputs the mode value corresponding to that string. Defaults to
+// DiskCacheModeOff.
+func (m *DiskCacheMode) Set(s string) error {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "local":
-		return DiskCacheModeLocal
+		*m = DiskCacheModeLocal
 	case "remote":
-		return DiskCacheModeRemote
+		*m = DiskCacheModeRemote
 	}
-	return DiskCacheModeOff
+	*m = DiskCacheModeOff
+	return nil
 }
 
 var _ Config = (*ConfigLocal)(nil)
