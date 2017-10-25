@@ -11,15 +11,18 @@ import {type Teamname} from '../constants/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
+  _teammembercounts: I.Map<Teamname, number>,
   sawChatBanner: boolean,
   loaded: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
   const teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const teammembercounts = state.entities.getIn(['teams', 'teammembercounts'], I.Map())
   const loaded = state.entities.getIn(['teams', 'loaded'], false)
   return {
     _teamnames: teamnames,
+    _teammembercounts: teammembercounts,
     sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
     loaded,
   }
@@ -62,11 +65,22 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   let teamnames = stateProps._teamnames.toArray()
-  // TODO: Sort case-insensitively?
-  teamnames.sort()
+  teamnames.sort((a, b) => {
+    const aName = a.toUpperCase()
+    const bName = b.toUpperCase()
+    if (aName < bName) {
+      return -1
+    } else if (aName > bName) {
+      return 1
+    } else {
+      return 0
+    }
+  })
+
   return {
     sawChatBanner: stateProps.sawChatBanner,
     teamnames,
+    teammembercounts: stateProps._teammembercounts.toObject(),
     loaded: stateProps.loaded,
     ...dispatchProps,
   }
