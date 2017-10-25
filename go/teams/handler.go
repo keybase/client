@@ -349,9 +349,9 @@ func HandleTeamSeitan(ctx context.Context, g *libkb.GlobalContext, msg keybase1.
 		case keybase1.TeamRole_WRITER:
 			req.Writers = append(req.Writers, uv)
 		case keybase1.TeamRole_ADMIN:
-			req.Readers = append(req.Admins, uv)
+			req.Admins = append(req.Admins, uv)
 		case keybase1.TeamRole_OWNER:
-			req.Writers = append(req.Owners, uv)
+			req.Owners = append(req.Owners, uv)
 		default:
 			return fmt.Errorf("Unexpected role in invitation: %v", invite.Role)
 		}
