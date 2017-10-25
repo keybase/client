@@ -4,9 +4,20 @@ import {Avatar, Box, Button, ClickableBox, Icon, Input, List, Text} from '../../
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import * as Contacts from 'react-native-contacts'
-import {StyleSheet} from 'react-native'
+import {Linking, StyleSheet} from 'react-native'
 import {isAndroid} from '../../constants/platform'
 import {type Props} from './index'
+
+const settingsURL = 'app-settings:'
+const openSettings = () => {
+  Linking.canOpenURL(settingsURL).then(can => {
+    if (can) {
+      Linking.openURL(settingsURL)
+    } else {
+      console.warn('Invite contacts: Unable to open app settings')
+    }
+  })
+}
 
 const AccessDenied = () => (
   <Box
@@ -30,9 +41,10 @@ const AccessDenied = () => (
       <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
         We don't have permission to access your contacts!
       </Text>
-      <Text type="Body" style={{textAlign: 'center'}}>
+      <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
+      <Button type="Primary" label="Open settings" onClick={openSettings} />
     </Box>
   </Box>
 )
@@ -130,7 +142,7 @@ class InviteByEmail extends React.Component<Props, State> {
       invitees: [],
       loading: true,
       filter: '',
-      hasPermission: false,
+      hasPermission: true,
       contacts: [],
     }
   }
@@ -246,9 +258,9 @@ class InviteByEmail extends React.Component<Props, State> {
         return true
       }
       return (
-        this._trim(contact.name).includes(filter) ||
-        this._trim(contact.email).includes(filter) ||
-        this._trim(contact.phoneNo).includes(filter)
+        this._trim(contact.contact.name).includes(filter) ||
+        this._trim(contact.contact.email).includes(filter) ||
+        this._trim(contact.contact.phoneNo).includes(filter)
       )
     })
     return (
@@ -291,7 +303,7 @@ class InviteByEmail extends React.Component<Props, State> {
               ...globalStyles.flexBoxColumn,
               alignItems: 'center',
               justifyContent: 'center',
-              height: globalMargins.large,
+              padding: globalMargins.small,
               borderTopWidth: StyleSheet.hairlineWidth,
               borderTopColor: globalColors.black_05,
             }}
