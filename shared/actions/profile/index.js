@@ -26,6 +26,7 @@ import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
 import type {AppLink} from '../../constants/app'
 import {parseUserId} from '../../util/platforms'
+import {URL} from 'whatwg-url'
 
 function editProfile(bio: string, fullName: string, location: string): Constants.EditProfile {
   return {payload: {bio, fullName, location}, type: Constants.editProfile}
@@ -224,10 +225,44 @@ function outputInstructionsActionLink(): Constants.OutputInstructionsActionLink 
 }
 
 function* _onAppLink(action: AppLink): SagaGenerator<any, any> {
+  const link = action.payload.link
+  let url
+  try {
+    url = new URL(link)
+  } catch (e) {
+    console.log('AppLink: could not parse link', link)
+    return
+  }
+  console.log('AppLink: url', url)
+
+  if (url.scheme !== 'http:' && url.scheme !== 'https') {
+    return
+  }
+
+  if (url.username !== '' || url.password !== '') {
+    return
+  }
+
+  if (url.host !== 'keybase.io' && url.host !== 'www.keybase.io') {
+    return
+  }
+
+  if (url.port) {
+    if (url.scheme === 'http:' && url.port !== 80) {
+      return
+    }
+
+    if (url.scheme === 'https:' && url.port !== 443) {
+      return
+    }
+  }
+
+  const path = url.path[0]
+
   // TODO: When https://github.com/facebook/react-native/issues/16434
   // is fixed, use window.URL.
-  const match = action.payload.link.match(/^https:\/\/keybase\.io\/(\w+)(\?[^?]*)(#[^#]*)?$/)
-  const username = match && match[1]
+  const match = path.match(/^\/(\w+)\/?$/i)
+  const username = match && match[1].toLowercase()
   if (username) {
     yield put(showUserProfile(username))
   }
