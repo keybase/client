@@ -235,7 +235,7 @@ function* _onAppLink(action: AppLink): SagaGenerator<any, any> {
     return
   }
   const username = urlToUsername(url)
-  console.log('AppLink: url', url, 'username', username)
+  console.log('AppLink: url', url.href, 'username', username)
   if (username) {
     yield put(showUserProfile(username))
   }
