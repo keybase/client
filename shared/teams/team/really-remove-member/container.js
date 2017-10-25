@@ -6,9 +6,8 @@ import {navigateTo} from '../../../actions/route-tree'
 import {teamsTab} from '../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  email: routeProps.get('email'),
+  member: routeProps.get('username') || routeProps.get('email'),
   name: routeProps.get('teamname'),
-  username: routeProps.get('username'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
