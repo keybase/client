@@ -308,6 +308,8 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 // Whether the chain link is of a (child-half) type
 // that affects a parent and child chain in lockstep.
 // So far these events: subteam create, and subteam rename
+// Technically subteam delete is one of these too, but we don't
+// bother because the subteam is rendered inaccessible.
 func (l *TeamLoader) isParentChildOperation(ctx context.Context,
 	link *chainLinkUnpacked) bool {
 

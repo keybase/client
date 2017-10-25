@@ -677,7 +677,7 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	require.NoError(t, err)
 	err = Leave(context.TODO(), tc.G, subteamName, false)
 	require.Error(t, err)
-	require.IsType(t, &ImplicitAdminCannotLeave{}, err, "wrong error type")
+	require.IsType(t, &ImplicitAdminCannotLeaveError{}, err, "wrong error type")
 }
 
 func TestMemberAddResolveCache(t *testing.T) {

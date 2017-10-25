@@ -1439,8 +1439,10 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		res.newState = prevState.DeepCopy()
 		err = t.parseTeamSettings(team.Settings, &res.newState)
 		return res, err
-	case "":
-		return res, errors.New("empty body type")
+	case libkb.LinkTypeDeleteRoot:
+		return res, NewTeamDeletedError()
+	case libkb.LinkTypeDeleteUpPointer:
+		return res, NewTeamDeletedError()
 	default:
 		return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 	}

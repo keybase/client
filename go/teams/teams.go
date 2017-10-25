@@ -532,7 +532,7 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 	if role == keybase1.TeamRole_NONE {
 		_, err := t.getAdminPermission(ctx, false)
 		if err == nil {
-			return NewImplicitAdminCannotLeave()
+			return NewImplicitAdminCannotLeaveError()
 		}
 	}
 
