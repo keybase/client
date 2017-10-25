@@ -396,14 +396,14 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
     return map
   }, {})
 
+  // Load new untrusted state
+  yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
+
   conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
     return
   }
-
   console.log(`unboxConversations: unboxing ${conversationIDKeys.length} convs, because: ${reason}`)
-
-  yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
   if (!isMobile) {
