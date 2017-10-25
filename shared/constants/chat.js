@@ -404,6 +404,7 @@ type _State = {
   inSearch: boolean,
   searchResultTerm: string,
   teamCreationError: string,
+  teamCreationPending: boolean,
   teamJoinError: string,
   teamJoinSuccess: boolean,
 }
@@ -436,6 +437,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   tempPendingConversations: I.Map(),
   searchResultTerm: '',
   teamCreationError: '',
+  teamCreationPending: false,
   teamJoinError: '',
   teamJoinSuccess: false,
 })

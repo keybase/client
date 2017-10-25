@@ -103,6 +103,7 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
     }, {})
 
     const oldInbox = yield select(s => s.entities.get('inbox'))
+    const toDelete = oldInbox.keySeq().toSet().subtract((inbox.items || []).map(c => c.convID))
     const conversations = Shared.makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map(snippets)))
     yield put(Creators.setInboxUntrustedState('loaded'))
@@ -149,6 +150,11 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
       put(EntityCreators.replaceEntity(['inboxBigChannelsToTeam'], inboxBigChannelsToTeam)),
       put(EntityCreators.replaceEntity(['inboxIsEmpty'], inboxIsEmpty)),
       put(EntityCreators.replaceEntity(['inbox'], inboxMap)),
+      put(EntityCreators.deleteEntity(['inboxVersion'], toDelete)),
+      put(EntityCreators.deleteEntity(['inboxSmallTimestamps'], toDelete)),
+      put(EntityCreators.deleteEntity(['inboxBigChannelsToTeam'], toDelete)),
+      put(EntityCreators.deleteEntity(['inboxIsEmpty'], toDelete)),
+      put(EntityCreators.deleteEntity(['inbox'], toDelete)),
     ])
 
     // Load the first visible simple and teams so we can get the channel names

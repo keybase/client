@@ -7,6 +7,11 @@ import {Box} from '../common-adapters'
 import {storiesOf, action} from '../stories/storybook'
 
 const teamnames = ['stripe', 'stripe.usa', 'techtonica']
+const teammembercounts = {
+  stripe: 5,
+  'stripe.usa': 1,
+  techtonica: 0,
+}
 
 const load = () => {
   storiesOf('Teams', module)
@@ -16,6 +21,7 @@ const load = () => {
       <Box style={{maxWidth: 320}}>
         <TeamList
           teamnames={teamnames}
+          teammembercounts={teammembercounts}
           onOpenFolder={action('onOpenFolder')}
           onManageChat={action('onManageChat')}
           onViewTeam={action('onViewTeam')}

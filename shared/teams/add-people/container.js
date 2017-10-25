@@ -1,6 +1,7 @@
 // @flow
 import * as Creators from '../../actions/teams/creators'
 import * as SearchCreators from '../../actions/search/creators'
+import * as SearchConstants from '../../constants/search'
 import AddPeople from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
@@ -14,6 +15,7 @@ import {
 } from '../../util/container'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  isEmpty: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length === 0,
   name: routeProps.get('teamname'),
 })
 

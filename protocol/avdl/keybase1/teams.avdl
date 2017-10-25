@@ -416,6 +416,8 @@ protocol teams {
     union{null, ImplicitRole} implicit;
     @lint("ignore")
     boolean needsPUK;
+    @jsonkey("member_count")
+    int memberCount;
   }
 
   record AnnotatedTeamList {

@@ -130,6 +130,11 @@ export type SetTeamCreationError = NoErrorTypedAction<
   {teamCreationError: string}
 >
 
+export type SetTeamCreationPending = NoErrorTypedAction<
+  'teams:setTeamCreationPending',
+  {teamCreationPending: boolean}
+>
+
 export type SetTeamJoinError = NoErrorTypedAction<'teams:setTeamJoinError', {teamJoinError: string}>
 export type SetTeamJoinSuccess = NoErrorTypedAction<'teams:setTeamJoinSuccess', {teamJoinSuccess: boolean}>
 
@@ -176,6 +181,7 @@ type _State = {
   teamNameToRequests: I.Map<Teamname, I.List<string>>,
   teamNameToTeamSettings: I.Map<Teamname, TeamSettings>,
   teamnames: I.Set<Teamname>,
+  teammembercounts: I.Map<Teamname, number>,
   loaded: boolean,
 }
 export type State = I.RecordOf<_State>
@@ -190,6 +196,7 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   teamNameToMembers: I.Map(),
   teamNameToRequests: I.Map(),
   teamNameToTeamSettings: I.Map(),
+  teammembercounts: I.Map(),
   teamnames: I.Set(),
 })
 

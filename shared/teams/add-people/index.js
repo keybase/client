@@ -31,6 +31,7 @@ const MaybePopup = isMobile
     )
 
 type Props = {
+  isEmpty: boolean,
   onAddPeople: () => void,
   onClose: () => void,
   onLeave: () => void,
@@ -87,7 +88,8 @@ const AddPeople = (props: Props) => (
         </ClickableBox>
         <Button
           label="Invite"
-          onClick={props.onAddPeople}
+          onClick={props.isEmpty ? undefined : props.onAddPeople}
+          disabled={props.isEmpty}
           style={{margin: globalMargins.tiny}}
           type="Primary"
         />

@@ -88,6 +88,9 @@ function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreat
   return {payload: {teamCreationError}, type: 'teams:setTeamCreationError'}
 }
 
+function setTeamCreationPending(teamCreationPending: boolean): Constants.SetTeamCreationPending {
+  return {payload: {teamCreationPending}, type: 'teams:setTeamCreationPending'}
+}
 function setTeamJoinError(teamJoinError: string): Constants.SetTeamJoinError {
   return {payload: {teamJoinError}, type: 'teams:setTeamJoinError'}
 }
@@ -117,6 +120,7 @@ export {
   makeTeamOpen,
   removeMember,
   setTeamCreationError,
+  setTeamCreationPending,
   setTeamJoinError,
   setTeamJoinSuccess,
   setupTeamHandlers,
