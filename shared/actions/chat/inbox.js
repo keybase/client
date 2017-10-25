@@ -143,12 +143,12 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
     const inboxIsEmpty = I.Map(conversations.map(c => [c.conversationIDKey, c.isEmpty]))
 
     yield all([
-      put(EntityCreators.replaceEntity(['inboxVersion'], idToVersion)),
-      put(EntityCreators.replaceEntity(['inboxSmallTimestamps'], inboxSmallTimestamps)),
+      put(EntityCreators.replaceEntity([], I.Map([['inboxVersion', idToVersion]]))),
+      put(EntityCreators.replaceEntity([], I.Map([['inboxSmallTimestamps', inboxSmallTimestamps]]))),
       put(EntityCreators.mergeEntity(['inboxBigChannels'], inboxBigChannels)), // keep old names if we have them
-      put(EntityCreators.replaceEntity(['inboxBigChannelsToTeam'], inboxBigChannelsToTeam)),
+      put(EntityCreators.replaceEntity([], I.Map([['inboxBigChannelsToTeam', inboxBigChannelsToTeam]]))),
       put(EntityCreators.replaceEntity(['inboxIsEmpty'], inboxIsEmpty)),
-      put(EntityCreators.replaceEntity(['inbox'], inboxMap)),
+      put(EntityCreators.replaceEntity([], I.Map([['inbox', inboxMap]]))),
     ])
 
     // Load the first visible simple and teams so we can get the channel names
