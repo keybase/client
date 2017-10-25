@@ -18,7 +18,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey, channelname, tea
     participantNeedToRekey: p.participantNeedToRekey,
     participants: p.participants,
     showBold: p.showBold,
-    teamname,
+    teamname: p.teamname,
     usernameColor: p.usernameColor,
     youNeedToRekey: p.youNeedToRekey,
   }
