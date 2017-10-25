@@ -103,7 +103,7 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
     }, {})
 
     const oldInbox = yield select(s => s.entities.get('inbox'))
-    const toDelete = oldInbox.keySeq().toSet().subtract(inbox.items.map(c => c.convID))
+    const toDelete = oldInbox.keySeq().toSet().subtract((inbox.items || []).map(c => c.convID))
     const conversations = Shared.makeInboxStateRecords(author, inbox.items || [], oldInbox)
     yield put(EntityCreators.replaceEntity(['convIDToSnippet'], I.Map(snippets)))
     yield put(Creators.setInboxUntrustedState('loaded'))
