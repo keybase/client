@@ -32,6 +32,8 @@ function urlToUsername(url: URL): ?string {
     return null
   }
 
+  // Ignore query string and hash parameters.
+
   const username = match[1].toLowerCase()
   return username
 }
