@@ -379,27 +379,31 @@ function* unboxConversations(action: Constants.UnboxConversations): SagaGenerato
   // Don't unbox pending conversations
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
 
+  let newConvIDKeys = []
   const newUntrustedState = conversationIDKeys.reduce((map, c) => {
     if (untrustedState.get(c) === 'unboxed') {
       // only unbox unboxed if we force
       if (force) {
         map[c] = 'reUnboxing'
+        newConvIDKeys.push(c)
       }
       // only unbox if we're not currently unboxing
     } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
       // This means this is the first unboxing
       map[c] = 'firstUnboxing'
+      newConvIDKeys.push(c)
     }
     return map
   }, {})
 
+  // Load new untrusted state
+  yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
+
+  conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
     return
   }
-
   console.log(`unboxConversations: unboxing ${conversationIDKeys.length} convs, because: ${reason}`)
-
-  yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
   if (!isMobile) {
