@@ -687,6 +687,8 @@ func TestGregorTeamBadges(t *testing.T) {
 	teamID := keybase1.MakeTestTeamID(1, false)
 	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`[{"id": "`+teamID+`"}]`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+	msg = server.newIbm2(uid, gregor1.Category("team.request_access"), gregor1.Body([]byte(`[{"id": "`+teamID+`"}]`)))
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
 	// Sync from the server
 	t.Logf("client sync")
@@ -702,6 +704,8 @@ func TestGregorTeamBadges(t *testing.T) {
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, len(bs.NewTeamIDs), "one new team id")
 	require.Equal(t, teamID, bs.NewTeamIDs[0])
+	require.Equal(t, 1, len(bs.NewTeamAccessRequests), "one team access request")
+	require.Equal(t, teamID, bs.NewTeamAccessRequests[0])
 }
 
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
