@@ -159,6 +159,20 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		return list.Teams[i].FqName < list.Teams[j].FqName
 	})
 
+	var inviteList []keybase1.AnnotatedTeamInvite
+	if c.showAll {
+		for _, invite := range list.AnnotatedActiveInvites {
+			inviteList = append(inviteList, invite)
+		}
+
+		sort.Slice(inviteList, func(i, j int) bool {
+			if inviteList[i].TeamName == inviteList[j].TeamName {
+				return inviteList[i].Name < inviteList[j].Name
+			}
+			return inviteList[i].TeamName < inviteList[j].TeamName
+		})
+	}
+
 	if c.json {
 		b, err := json.MarshalIndent(list, "", "    ")
 		if err != nil {
@@ -197,7 +211,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		}
 	}
 	if c.showAll {
-		c.outputInvites(list.AnnotatedActiveInvites)
+		c.outputInvites(inviteList)
 	}
 
 	c.tabw.Flush()
@@ -232,7 +246,16 @@ func (c *CmdTeamListMemberships) outputTerminal(details keybase1.TeamDetails) er
 	c.outputRole("admin", details.Members.Admins)
 	c.outputRole("writer", details.Members.Writers)
 	c.outputRole("reader", details.Members.Readers)
-	c.outputInvites(details.AnnotatedActiveInvites)
+
+	var inviteList []keybase1.AnnotatedTeamInvite
+	for _, invite := range details.AnnotatedActiveInvites {
+		inviteList = append(inviteList, invite)
+	}
+	sort.Slice(inviteList, func(i, j int) bool {
+		return inviteList[i].Name < inviteList[j].Name
+	})
+
+	c.outputInvites(inviteList)
 	c.tabw.Flush()
 
 	if c.verbose {
@@ -264,7 +287,7 @@ func (c *CmdTeamListMemberships) formatInviteName(invite keybase1.AnnotatedTeamI
 	return res
 }
 
-func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
+func (c *CmdTeamListMemberships) outputInvites(invites []keybase1.AnnotatedTeamInvite) {
 	for _, invite := range invites {
 		fmtstring := "%s\t%s*\t%s\t(* added by %s; awaiting acceptance)\n"
 		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()),

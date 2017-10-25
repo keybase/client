@@ -285,19 +285,18 @@ func List(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListArg)
 
 	err = group.Wait()
 
-	tracer.Stage("Annotating Invites")
-
-	res.AnnotatedActiveInvites, err = AnnotateAllInvites(ctx, g, uniqueAdminTeams)
-	if err != nil {
-		g.Log.CDebugf(subctx, "Error in annotateAllInvites: %v", err)
-	}
-
 	if arg.All && len(res.Teams) != 0 {
 		tracer.Stage("FillUsernames")
 
 		err := fillUsernames(ctx, g, res)
 		if err != nil {
 			return nil, err
+		}
+		tracer.Stage("Annotating Invites")
+
+		res.AnnotatedActiveInvites, err = AnnotateAllInvites(ctx, g, uniqueAdminTeams)
+		if err != nil {
+			g.Log.CDebugf(subctx, "Error in annotateAllInvites: %v", err)
 		}
 	}
 
