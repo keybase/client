@@ -13,7 +13,6 @@ import {
   createImmutableEqualSelector,
   type TypedState,
 } from '../../util/container'
-import throttle from 'lodash/throttle'
 import {scoreFilter, passesStringFilter} from './filtering'
 
 const smallTeamsCollapsedMaxShown = 5
