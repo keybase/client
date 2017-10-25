@@ -100,10 +100,10 @@ type setRoleTest struct {
 }
 
 var setRoleTests = []setRoleTest{
-	setRoleTest{name: "owner", setRoleFunc: SetRoleOwner, afterRole: keybase1.TeamRole_OWNER},
-	setRoleTest{name: "admin", setRoleFunc: SetRoleAdmin, afterRole: keybase1.TeamRole_ADMIN},
-	setRoleTest{name: "writer", setRoleFunc: SetRoleWriter, afterRole: keybase1.TeamRole_WRITER},
-	setRoleTest{name: "reader", setRoleFunc: SetRoleReader, afterRole: keybase1.TeamRole_READER},
+	setRoleTest{name: "owner", setRoleFunc: setRoleOwner, afterRole: keybase1.TeamRole_OWNER},
+	setRoleTest{name: "admin", setRoleFunc: setRoleAdmin, afterRole: keybase1.TeamRole_ADMIN},
+	setRoleTest{name: "writer", setRoleFunc: setRoleWriter, afterRole: keybase1.TeamRole_WRITER},
+	setRoleTest{name: "reader", setRoleFunc: setRoleReader, afterRole: keybase1.TeamRole_READER},
 }
 
 func TestMemberSetRole(t *testing.T) {
@@ -163,7 +163,7 @@ func TestMemberRemove(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := setRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -182,14 +182,14 @@ func TestMemberChangeRole(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := setRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
 	assertRole(tc, name, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, name, other.Username, keybase1.TeamRole_WRITER)
 
-	if err := SetRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := setRoleReader(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -232,7 +232,7 @@ func TestMemberChangeRoleNoBoxes(t *testing.T) {
 	assertRole(tc, name, other.Username, keybase1.TeamRole_NONE)
 
 	// add other.Username as a writer
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := setRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -267,7 +267,7 @@ func TestMemberRemoveRotatesKeys(t *testing.T) {
 		t.Fatalf("initial team generation: %d, expected 1", before.Generation())
 	}
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := setRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 	if err := RemoveMember(context.TODO(), tc.G, name, other.Username); err != nil {
@@ -572,10 +572,10 @@ func TestLeave(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
+	if err := setRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := SetRoleWriter(context.TODO(), tc.G, name, otherB.Username); err != nil {
+	if err := setRoleWriter(context.TODO(), tc.G, name, otherB.Username); err != nil {
 		t.Fatal(err)
 	}
 	tc.G.Logout()
@@ -615,10 +615,10 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	tc, owner, otherA, otherB, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
+	if err := setRoleAdmin(context.TODO(), tc.G, name, otherA.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := SetRoleAdmin(context.TODO(), tc.G, name, otherB.Username); err != nil {
+	if err := setRoleAdmin(context.TODO(), tc.G, name, otherB.Username); err != nil {
 		t.Fatal(err)
 	}
 	teamNameParsed, err := keybase1.TeamNameFromString(name)
@@ -629,10 +629,10 @@ func TestLeaveSubteamWithImplicitAdminship(t *testing.T) {
 	subteamNameParsed, _ := createSubteam(&tc, teamNameParsed, "subteam")
 	subteamName := subteamNameParsed.String()
 
-	if err := SetRoleAdmin(context.TODO(), tc.G, subteamName, otherA.Username); err != nil {
+	if err := setRoleAdmin(context.TODO(), tc.G, subteamName, otherA.Username); err != nil {
 		t.Fatal(err)
 	}
-	if err := SetRoleAdmin(context.TODO(), tc.G, subteamName, otherB.Username); err != nil {
+	if err := setRoleAdmin(context.TODO(), tc.G, subteamName, otherB.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -831,7 +831,7 @@ func TestImplicitAdminsKeyedForSubteamAfterUpgrade(t *testing.T) {
 	require.Error(t, err)
 
 	// Set U1 to be an admin of root team.
-	err = SetRoleAdmin(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username)
+	err = setRoleAdmin(context.TODO(), tcs[0].G, parentName.String(), fus[1].Username)
 	require.NoError(t, err)
 
 	// U1 should be able to read subteam now.
@@ -1081,4 +1081,30 @@ func TestMemberAddRaceConflict(t *testing.T) {
 
 		assertNoErr(mod(0, 2, false))
 	}
+}
+
+// Add user without puk to a team, then change their role.
+func TestMemberInviteChangeRole(t *testing.T) {
+	tc, _, name := memberSetup(t)
+	defer tc.Cleanup()
+
+	username := "t_alice"
+	uid := keybase1.UID("295a7eea607af32040647123732bc819")
+	role := keybase1.TeamRole_READER
+
+	res, err := AddMember(context.TODO(), tc.G, name, username, role)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.Invited {
+		t.Fatal("res.Invited should be set")
+	}
+
+	fqUID := string(uid) + "%1"
+	assertInvite(tc, name, fqUID, "keybase", role)
+
+	if err := EditMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_ADMIN); err != nil {
+		t.Fatal(err)
+	}
+	assertInvite(tc, name, fqUID, "keybase", keybase1.TeamRole_ADMIN)
 }

@@ -143,7 +143,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "doesn't know about any subteams")
 
 	t.Logf("U0 makes U1 an admin")
-	err = SetRoleAdmin(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
+	err = setRoleAdmin(context.TODO(), tcs[0].G, teamName.String(), fus[1].Username)
 	require.NoError(t, err)
 
 	t.Logf("U1 loads from the cache, and doesn't realize they're an admin")

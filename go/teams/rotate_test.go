@@ -15,7 +15,7 @@ func TestRotate(t *testing.T) {
 	tc, owner, other, _, name := memberSetupMultiple(t)
 	defer tc.Cleanup()
 
-	if err := SetRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
+	if err := setRoleWriter(context.TODO(), tc.G, name, other.Username); err != nil {
 		t.Fatal(err)
 	}
 
@@ -90,7 +90,7 @@ func setupRotateTest(t *testing.T, implicit bool, public bool) (tc libkb.TestCon
 	teamName, teamID = createTeam2(tc)
 
 	t.Logf("adding writer")
-	err = SetRoleWriter(context.TODO(), tc.G, teamName.String(), other.Username)
+	err = setRoleWriter(context.TODO(), tc.G, teamName.String(), other.Username)
 	require.NoError(t, err)
 
 	return tc, owner, other, teamID, teamName

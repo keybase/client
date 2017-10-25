@@ -151,7 +151,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	return ret, nil
 }
 
-func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func setRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Owners: []keybase1.UserVersion{uv}})
 }
 
-func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func setRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
@@ -167,7 +167,7 @@ func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Admins: []keybase1.UserVersion{uv}})
 }
 
-func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func setRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Writers: []keybase1.UserVersion{uv}})
 }
 
-func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func setRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
@@ -421,6 +421,10 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
+	if err == errInviteRequired {
+		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamname, username)
+		return editMemberInvite(ctx, g, teamname, username, role, uv)
+	}
 	if err != nil {
 		return err
 	}
@@ -448,6 +452,24 @@ func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 
 		return t.ChangeMembership(ctx, req)
 	})
+}
+
+func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole, uv keybase1.UserVersion) error {
+	t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
+	if err != nil {
+		return err
+	}
+
+	if err := removeMemberInvite(ctx, g, t, username, uv); err != nil {
+		g.Log.CDebugf(ctx, "editMemberInvite error in removeMemberInvite: %s", err)
+		return err
+	}
+	// use AddMember in case it's possible to add them directly now
+	if _, err := AddMember(ctx, g, teamname, username, role); err != nil {
+		g.Log.CDebugf(ctx, "editMemberInvite error in AddMember: %s", err)
+		return err
+	}
+	return nil
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (role keybase1.TeamRole, err error) {
