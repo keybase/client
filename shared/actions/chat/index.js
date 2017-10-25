@@ -138,20 +138,10 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         const chatTabSelected = selectedTab === chatTab
         const conversationIsFocused =
           conversationIDKey === selectedConversationIDKey && appFocused && chatTabSelected && userActive
-        const {type: msgIDType, msgID: rpcMessageID} = Constants.parseMessageID(message.messageID)
+        const {type: msgIDType} = Constants.parseMessageID(message.messageID)
 
         if (message && message.messageID && conversationIsFocused && msgIDType === 'rpcMessageID') {
-          // TODO does this have to be sync?
-          try {
-            yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-              param: {
-                conversationID: incomingMessage.convID,
-                msgID: rpcMessageID,
-              },
-            })
-          } catch (err) {
-            console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
-          }
+          yield call(_markAsRead, conversationIDKey, message.messageID)
         }
 
         const messageFromYou =
@@ -984,17 +974,38 @@ function* _muteConversation(action: Constants.MuteConversation): SagaGenerator<a
   })
 }
 
+// Keeping this out of the store to avoid races
+// Avoid sending mark as read over and over
+const _lastMarkedAsRead = {}
+function* _markAsRead(
+  conversationIDKey: Constants.ConversationIDKey,
+  messageID: Constants.MessageID
+): SagaGenerator<any, any> {
+  if (_lastMarkedAsRead[conversationIDKey] === messageID) {
+    return
+  }
+
+  const conversationID = Constants.keyToConversationID(conversationIDKey)
+  const {msgID} = Constants.parseMessageID(messageID)
+
+  try {
+    yield call(ChatTypes.localMarkAsReadLocalRpcPromise, {
+      param: {conversationID, msgID},
+    })
+
+    _lastMarkedAsRead[conversationIDKey] = messageID
+  } catch (err) {
+    console.log(`Couldn't mark as read ${conversationIDKey} ${err}`)
+  }
+}
+
 function _updateBadging(
   {payload: {conversationIDKey}}: Constants.UpdateBadging,
   lastMessageID: ?Constants.MessageID
 ) {
   // Update gregor's view of the latest message we've read.
   if (conversationIDKey && lastMessageID) {
-    const conversationID = Constants.keyToConversationID(conversationIDKey)
-    const {msgID} = Constants.parseMessageID(lastMessageID)
-    return call(ChatTypes.localMarkAsReadLocalRpcPromise, {
-      param: {conversationID, msgID},
-    })
+    return call(_markAsRead, conversationIDKey, lastMessageID)
   }
 }
 
