@@ -30,7 +30,6 @@ func NewCmdTeam(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 			newCmdTeamDelete(cl, g),
 			newCmdTeamAPI(cl, g),
 			newCmdTeamSettings(cl, g),
-			newCmdTeamGenerateSeitan(cl, g),
 		},
 	}
 }
