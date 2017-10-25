@@ -23,4 +23,11 @@ describe('urlToUsername', () => {
     check('https://KeyBase.io/chris', 'chris')
     check('https://KeyBase.io/Chris', 'chris')
   })
+
+  it('extraneous', () => {
+    check('https://keybase.io/chris?foo=bar', 'chris')
+    check('https://keybase.io/chris#baz', 'chris')
+    check('https://keybase.io/chris?foo=bar#baz', 'chris')
+    check('https://keybase.io/chris?foo=bar#baz', 'chris')
+  })
 })
