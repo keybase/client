@@ -13,7 +13,6 @@ import {
   createImmutableEqualSelector,
   type TypedState,
 } from '../../util/container'
-import throttle from 'lodash/throttle'
 import {scoreFilter, passesStringFilter} from './filtering'
 
 const smallTeamsCollapsedMaxShown = 5
@@ -28,7 +27,6 @@ const getSmallTimestamps = (state: TypedState) => state.entities.getIn(['inboxSm
 const getSupersededBy = (state: TypedState) => state.entities.get('inboxSupersededBy')
 const _rowsForSelect = (rows: Array<any>) => rows.filter(r => ['small', 'big'].includes(r.type))
 const _smallTeamsPassThrough = (_, smallTeamsExpanded) => smallTeamsExpanded
-const _throttleHelper = throttle(cb => cb(), 60 * 1000)
 
 // This chain of reselects is to optimize not having to redo any work
 // If the timestamps are the same, we didn't change the list
@@ -203,6 +201,7 @@ const mapStateToProps = (state: TypedState, {isActiveRoute, routeState}) => {
     filter,
     isActiveRoute,
     isLoading: state.chat.get('inboxUntrustedState') === 'loading',
+    user: Constants.getYou(state),
   }
 }
 
@@ -233,6 +232,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isActiveRoute: stateProps.isActiveRoute,
     isLoading: stateProps.isLoading,
     loadInbox: dispatchProps.loadInbox,
+    user: stateProps.user,
     onHotkey: dispatchProps.onHotkey,
     onNewChat: dispatchProps.onNewChat,
     onSelect: dispatchProps.onSelect,
@@ -250,6 +250,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
+// We want to load inbox once per user so log out works
+let _lastUser: ?string
+
 export default compose(
   withState('filterFocusCount', 'setFilterFocusCount', 0),
   withHandlers({
@@ -258,9 +261,10 @@ export default compose(
   pausableConnect(mapStateToProps, mapDispatchToProps, mergeProps),
   lifecycle({
     componentDidMount: function() {
-      _throttleHelper(() => {
+      if (_lastUser !== this.props.user) {
+        _lastUser = this.props.user
         this.props.loadInbox()
-      })
+      }
     },
   })
 )(Inbox.default)
