@@ -411,6 +411,9 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
     engine().setIncomingHandler('keybase.1.NotifyTeam.teamDeleted', () => {
       dispatch(Creators.getTeams())
     })
+    engine().setIncomingHandler('keybase.1.NotifyTeam.teamExit', () => {
+      dispatch(Creators.getTeams())
+    })
   })
 }
 
