@@ -115,11 +115,11 @@ const contactRow = (i: number, props: ContactRowProps) => {
         </Box>
         <Box>
           <Button
-            type={props.selected ? 'Following' : 'Follow'}
+            type={props.selected ? 'Following' : 'Primary'}
             label={props.selected ? 'Invited!' : 'Invite'}
             small={true}
             onClick={props.onClick}
-            style={{width: 'auto', paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium}}
+            style={{width: 100, paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}
           />
         </Box>
       </Box>
@@ -278,21 +278,13 @@ class InviteByEmail extends React.Component<Props, State> {
               keyboardType="email-address"
               value={this.state.filter}
               onChangeText={filter => this.setState({filter})}
-              hintText="Email or phone number"
+              hintText="Search"
               hideUnderline={true}
               style={{width: '100%'}}
               errorStyle={{minHeight: 14}}
               inputStyle={{textAlign: 'left', paddingLeft: globalMargins.small, fontSize: 16}}
             />
           </Box>}
-        {this.state.hasPermission &&
-          <List
-            keyProperty="id"
-            items={filteredContactRows}
-            fixedHeight={56}
-            renderItem={contactRow}
-            style={{alignSelf: 'stretch'}}
-          />}
         {this.state.hasPermission &&
           <ClickableBox
             onClick={() =>
@@ -304,15 +296,23 @@ class InviteByEmail extends React.Component<Props, State> {
               alignItems: 'center',
               justifyContent: 'center',
               padding: globalMargins.small,
-              borderTopWidth: StyleSheet.hairlineWidth,
-              borderTopColor: globalColors.black_05,
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: globalColors.black_05,
             }}
           >
-            <Text type="Body" style={{textAlign: 'center'}}>
-              Invite contacts to {this.props.name} as
-              <Text type="BodyPrimaryLink">{' ' + this.props.role + 's'}</Text>
+            <Text type="BodySmall" style={{textAlign: 'center'}}>
+              Users will be invited to {this.props.name} as
+              <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
             </Text>
           </ClickableBox>}
+        {this.state.hasPermission &&
+          <List
+            keyProperty="id"
+            items={filteredContactRows}
+            fixedHeight={56}
+            renderItem={contactRow}
+            style={{alignSelf: 'stretch'}}
+          />}
       </Box>
     )
   }
