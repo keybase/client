@@ -47,6 +47,11 @@ describe('urlToUsername', () => {
 
     check('https://keybase.io:80/chris', null)
     check('http://keybase.io:443/chris', null)
+
+    check('https://foo@keybase.io/chris', null)
+    check('https://foo:@keybase.io/chris', null)
+    check('https://:bar@keybase.io/chris', null)
+    check('https://foo:bar@keybase.io/chris', null)
   })
 
   it('usernames', () => {
