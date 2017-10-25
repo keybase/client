@@ -264,7 +264,6 @@ export default compose(
     componentDidMount: function() {
       if (_lastUser !== this.props.user) {
         _lastUser = this.props.user
-        console.log('aaa', _lastUser)
         this.props.loadInbox()
       }
     },
