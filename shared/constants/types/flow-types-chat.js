@@ -2072,6 +2072,7 @@ export type UpdateConversationMembership = {
   removed?: ?Array<ConversationMember>,
   reset?: ?Array<ConversationMember>,
   unreadUpdate?: ?UnreadUpdate,
+  unreadUpdates?: ?Array<UnreadUpdate>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
