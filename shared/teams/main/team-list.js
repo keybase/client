@@ -8,6 +8,7 @@ import type {Teamname} from '../../constants/teams'
 
 export type Props = {
   teamnames: Array<Teamname>,
+  teammembercounts: {[string]: number},
   onOpenFolder: (teamname: Teamname) => void,
   onManageChat: (teamname: Teamname) => void,
   onViewTeam: (teamname: Teamname) => void,
@@ -15,12 +16,13 @@ export type Props = {
 
 type RowProps = {
   name: Teamname,
+  membercount: number,
   onOpenFolder: () => void,
   onManageChat: () => void,
   onViewTeam: () => void,
 }
 
-const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
+const Row = ({name, membercount, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
   <Box style={rowStyle}>
     <Box
       style={{
@@ -32,9 +34,14 @@ const Row = ({name, onOpenFolder, onManageChat, onViewTeam}: RowProps) => (
     >
       <ClickableBox style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}} onClick={onViewTeam}>
         <Avatar size={isMobile ? 48 : 32} teamname={name} isTeam={true} />
-        <Text type="BodySemibold" style={{flex: 1, marginLeft: globalMargins.small}}>
-          {name}
-        </Text>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, marginLeft: globalMargins.small}}>
+          <Text type="BodySemibold">
+            {name}
+          </Text>
+          <Text type="BodySmall">
+            {membercount + ' member' + (membercount !== 1 ? 's' : '')}
+          </Text>
+        </Box>
       </ClickableBox>
       {!isMobile && <Icon type="iconfont-folder-private" onClick={onOpenFolder} />}
       {!isMobile &&
@@ -57,6 +64,7 @@ const TeamList = (props: Props) => (
       <Row
         key={name}
         name={name}
+        membercount={props.teammembercounts[name]}
         onOpenFolder={() => props.onOpenFolder(name)}
         onManageChat={() => props.onManageChat(name)}
         onViewTeam={() => props.onViewTeam(name)}

@@ -1025,6 +1025,11 @@
           "type": "boolean",
           "name": "needsPUK",
           "lint": "ignore"
+        },
+        {
+          "type": "int",
+          "name": "memberCount",
+          "jsonkey": "member_count"
         }
       ]
     },
