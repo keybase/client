@@ -12,6 +12,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+// A snapshot of a team's state.
+// Not threadsafe.
 type Team struct {
 	libkb.Contextified
 
@@ -106,6 +108,15 @@ func (t *Team) IsMember(ctx context.Context, uv keybase1.UserVersion) bool {
 
 func (t *Team) MemberRole(ctx context.Context, uv keybase1.UserVersion) (keybase1.TeamRole, error) {
 	return t.chain().GetUserRole(uv)
+}
+
+func (t *Team) myRole(ctx context.Context) (keybase1.TeamRole, error) {
+	me, err := t.loadMe(ctx)
+	if err != nil {
+		return keybase1.TeamRole_NONE, err
+	}
+	role, err := t.MemberRole(ctx, me.ToUserVersion())
+	return role, err
 }
 
 func (t *Team) UserVersionByUID(ctx context.Context, uid keybase1.UID) (keybase1.UserVersion, error) {
@@ -470,6 +481,8 @@ func (t *Team) ChangeMembership(ctx context.Context, req keybase1.TeamChangeReq)
 }
 
 func (t *Team) downgradeIfOwnerOrAdmin(ctx context.Context) (needsReload bool, err error) {
+	defer t.G().CTrace(ctx, "Team#downgradeIfOwnerOrAdmin", func() error { return err })()
+
 	me, err := t.loadMe(ctx)
 	if err != nil {
 		return false, err
@@ -507,6 +520,19 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		})
 		if err != nil {
 			return err
+		}
+	}
+
+	// Check if we are an implicit admin with no explicit membership
+	// in order to give a nice error.
+	role, err := t.myRole(ctx)
+	if err != nil {
+		role = keybase1.TeamRole_NONE
+	}
+	if role == keybase1.TeamRole_NONE {
+		_, err := t.getAdminPermission(ctx, false)
+		if err == nil {
+			return NewImplicitAdminCannotLeave()
 		}
 	}
 
@@ -669,6 +695,8 @@ func (t *Team) HasActiveInvite(name keybase1.TeamInviteName, typ string) (bool, 
 	return t.chain().HasActiveInvite(name, it)
 }
 
+// If uv.Uid is set, then username is ignored.
+// Otherwise resolvedUsername and uv are ignored.
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {
 
 	// if a user version was previously loaded, then there is a keybase user for username, but
@@ -685,8 +713,8 @@ func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.
 		return t.inviteKeybaseMember(ctx, uv, role, resolvedUsername)
 	}
 
-	// If a social, or email, or other type of invite, assert it's now an owner.
-	if role == keybase1.TeamRole_OWNER {
+	// If a social, or email, or other type of invite, assert it's not an owner.
+	if role.IsOrAbove(keybase1.TeamRole_OWNER) {
 		return keybase1.TeamAddMemberResult{}, errors.New("You cannot invite an owner to a team.")
 	}
 
@@ -1301,4 +1329,38 @@ func (t *Team) precheckLinkToPost(ctx context.Context, sigMultiItem libkb.SigMul
 		return err
 	}
 	return precheckLinkToPost(ctx, t.G(), sigMultiItem, t.chain(), me.ToUserVersion())
+}
+
+// Try to run `post` (expected to post new team sigchain links).
+// Retry it several times if it fails due to being behind the latest team sigchain state.
+// Passes the attempt number (initially 0) to `post`.
+func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post func(ctx context.Context, attempt int) error) (err error) {
+	defer g.CTraceTimed(ctx, "RetryOnSigOldSeqnoError", func() error { return err })()
+	const nRetries = 3
+	for i := 0; i < nRetries; i++ {
+		g.Log.CDebugf(ctx, "| RetryOnSigOldSeqnoError(%v)", i)
+		err = post(ctx, i)
+		if isSigOldSeqnoError(err) {
+			// This error means retry
+			continue
+		}
+		return err
+	}
+	if err == nil {
+		// Should never happen
+		return fmt.Errorf("failed retryable team operation")
+	}
+	// Return the error from the final round
+	return err
+}
+
+func isSigOldSeqnoError(err error) bool {
+	switch err := err.(type) {
+	case libkb.AppStatusError:
+		switch keybase1.StatusCode(err.Code) {
+		case keybase1.StatusCode_SCSigOldSeqno:
+			return true
+		}
+	}
+	return false
 }

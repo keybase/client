@@ -1,6 +1,8 @@
 // Copyright 2017 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+// RPC handlers for team operations
+
 package service
 
 import (

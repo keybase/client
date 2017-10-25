@@ -21,7 +21,7 @@ const UserNotice = ({bgColor, username, children, style}: Props) => (
 )
 
 const styleAvatar = {
-  marginBottom: !isMobile ? globalMargins.xtiny : 0,
+  marginBottom: !isMobile ? globalMargins.xtiny : -globalMargins.tiny,
   marginTop: isMobile ? -globalMargins.tiny - AVATAR_SIZE / 4 : -globalMargins.small - AVATAR_SIZE / 2,
 }
 

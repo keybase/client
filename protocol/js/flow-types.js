@@ -183,6 +183,7 @@ export const ConstantsStatusCode = {
   sckeysyncedpgpnotfound: 929,
   sckeynomatchinggpg: 930,
   sckeyrevoked: 931,
+  scsigoldseqno: 1010,
   scbadtracksession: 1301,
   scdevicebadname: 1404,
   scdevicenameinuse: 1408,
@@ -2898,6 +2899,7 @@ export type BadgeState = {
   inboxVers: int,
   conversations?: ?Array<BadgeConversationInfo>,
   newGitRepoGlobalUniqueIDs?: ?Array<string>,
+  newTeamIDs?: ?Array<TeamID>,
 }
 
 export type BinaryKID = bytes
@@ -4663,6 +4665,7 @@ export type StatusCode =
   | 929 // SCKeySyncedPGPNotFound_929
   | 930 // SCKeyNoMatchingGPG_930
   | 931 // SCKeyRevoked_931
+  | 1010 // SCSigOldSeqno_1010
   | 1301 // SCBadTrackSession_1301
   | 1404 // SCDeviceBadName_1404
   | 1408 // SCDeviceNameInUse_1408

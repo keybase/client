@@ -199,6 +199,7 @@ function load(options) {
       component={options.component}
       selectorParams={options.selectorParams}
     />,
+    // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )
 }

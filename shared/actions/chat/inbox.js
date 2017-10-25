@@ -49,8 +49,13 @@ function* _updateFinalized(inbox: ChatTypes.GetInboxLocalRes) {
   }
 }
 
+function* onInboxLoad(): SagaGenerator<any, any> {
+  yield put(Creators.inboxStale('random inbox load from view layer'))
+}
+
 // Loads the untrusted inbox only
-function* onInboxStale(): SagaGenerator<any, any> {
+function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
+  console.log('onInboxStale: running because of: ' + param.payload.reason)
   try {
     yield put(Creators.setInboxUntrustedState('loading'))
 
@@ -153,7 +158,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
       .concat(conversations.filter(c => c.teamname))
       .map(c => c.conversationIDKey)
 
-    yield put(Creators.unboxConversations(toUnbox))
+    yield put(Creators.unboxConversations(toUnbox, 'reloading entire inbox'))
   } finally {
     if (yield cancelled()) {
       yield put(Creators.setInboxUntrustedState('unloaded'))
@@ -164,7 +169,7 @@ function* onInboxStale(): SagaGenerator<any, any> {
 function* onGetInboxAndUnbox({
   payload: {conversationIDKeys},
 }: Constants.GetInboxAndUnbox): SagaGenerator<any, any> {
-  yield put(Creators.unboxConversations(conversationIDKeys))
+  yield put(Creators.unboxConversations(conversationIDKeys, 'getInboxAndUnbox'))
 }
 
 function _toSupersedeInfo(
@@ -368,31 +373,37 @@ const unboxConversationsSagaMap = {
 
 // Loads the trusted inbox segments
 function* unboxConversations(action: Constants.UnboxConversations): SagaGenerator<any, any> {
-  let {conversationIDKeys, force, forInboxSync} = action.payload
+  let {conversationIDKeys, reason, force, forInboxSync} = action.payload
 
   const untrustedState = yield select(state => state.entities.inboxUntrustedState)
   // Don't unbox pending conversations
   conversationIDKeys = conversationIDKeys.filter(c => !Constants.isPendingConversationIDKey(c))
 
+  let newConvIDKeys = []
   const newUntrustedState = conversationIDKeys.reduce((map, c) => {
     if (untrustedState.get(c) === 'unboxed') {
       // only unbox unboxed if we force
       if (force) {
         map[c] = 'reUnboxing'
+        newConvIDKeys.push(c)
       }
       // only unbox if we're not currently unboxing
     } else if (!['firstUnboxing', 'reUnboxing'].includes(untrustedState.get(c, 'untrusted'))) {
       // This means this is the first unboxing
       map[c] = 'firstUnboxing'
+      newConvIDKeys.push(c)
     }
     return map
   }, {})
 
+  // Load new untrusted state
+  yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
+
+  conversationIDKeys = newConvIDKeys
   if (!conversationIDKeys.length) {
     return
   }
-
-  yield put.resolve(EntityCreators.replaceEntity(['inboxUntrustedState'], I.Map(newUntrustedState)))
+  console.log(`unboxConversations: unboxing ${conversationIDKeys.length} convs, because: ${reason}`)
 
   // If we've been asked to unbox something and we don't have a selected thing, lets make it selected (on desktop)
   if (!isMobile) {
@@ -530,6 +541,7 @@ function* filterSelectNext(action: Constants.InboxFilterSelectNext): SagaGenerat
 
 export {
   filterSelectNext,
+  onInboxLoad,
   onInboxStale,
   onGetInboxAndUnbox,
   parseNotifications,

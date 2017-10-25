@@ -671,6 +671,39 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")
 }
 
+func TestGregorTeamBadges(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	listener := newNlistener(t)
+	tc.G.NotifyRouter.SetListener(listener)
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+	h.badger = badges.NewBadger(tc.G)
+	t.Logf("client setup complete")
+
+	t.Logf("server message")
+	teamID := keybase1.MakeTestTeamID(1, false)
+	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`{"id": "`+teamID+`"}`)))
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+
+	// Sync from the server
+	t.Logf("client sync")
+	_, _, err := h.serverSync(context.TODO(), server, h.gregorCli, nil)
+	require.NoError(t, err)
+	t.Logf("client sync complete")
+
+	ri := func() chat1.RemoteInterface {
+		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
+	}
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+
+	bs := listener.getBadgeState(t)
+	require.Equal(t, 1, len(bs.NewTeamIDs), "one new team id")
+	require.Equal(t, teamID, bs.NewTeamIDs[0])
+}
+
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
 // Instead it feeds chat updates directly to badger. So it's a pretty weak test.
 func TestGregorBadgesOOBM(t *testing.T) {
@@ -710,6 +743,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 			{ConvID: chat1.ConversationID(`b`), UnreadMessages: 0},
 			{ConvID: chat1.ConversationID(`c`), UnreadMessages: 3},
 		},
+		InboxSyncStatus: chat1.SyncInboxResType_CLEAR,
 	})
 	h.badger.Send()
 	bs = listener.getBadgeState(t)

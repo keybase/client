@@ -319,5 +319,4 @@ const _rowClickStyleExpanded = {
   paddingBottom: 0,
 }
 
-// $FlowIssue we need to fix up timer hoc props
 export default HOCTimers(Row)

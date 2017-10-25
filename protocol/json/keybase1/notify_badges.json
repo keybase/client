@@ -47,6 +47,13 @@
             "items": "string"
           },
           "name": "newGitRepoGlobalUniqueIDs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamID"
+          },
+          "name": "newTeamIDs"
         }
       ]
     },

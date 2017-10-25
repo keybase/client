@@ -109,7 +109,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
           // Sometimes (just for deletes?) we get an incomingMessage without
           // a conv object -- in that case, ask the service to give us an
           // updated one so that the snippet etc gets updated.
-          yield put(Creators.unboxConversations([conversationIDKey], true))
+          yield put(Creators.unboxConversations([conversationIDKey], 'no conv from incoming message', true))
         }
 
         const messageUnboxed: ChatTypes.UIMessage = incomingMessage.message
@@ -215,7 +215,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       break
     case ChatTypes.NotifyChatChatActivityType.teamtype:
       // Just reload everything if we get one of these
-      yield put(Creators.inboxStale())
+      yield put(Creators.inboxStale('team type changed'))
       break
     case ChatTypes.NotifyChatChatActivityType.newConversation:
       const newConv: ?ChatTypes.NewConversationInfo = action.payload.activity.newConversation
@@ -225,7 +225,7 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
       }
       // Just reload everything if we get this with no InboxUIItem
       console.log('newConversation with no InboxUIItem')
-      yield put(Creators.inboxStale())
+      yield put(Creators.inboxStale('no inbox item for new conv message'))
       break
     default:
       console.warn(
@@ -268,11 +268,13 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
     Creators.getInboxAndUnbox([Constants.conversationIDToKey(convID)])
   )
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxStale', () => Creators.inboxStale())
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxStale', () =>
+    Creators.inboxStale('service invoked')
+  )
 
   engine().setIncomingActionCreator(
     'chat.1.NotifyChat.ChatTLFResolve',
-    ({convID, resolveInfo: {newTLFName}}) => Creators.inboxStale()
+    ({convID, resolveInfo: {newTLFName}}) => Creators.inboxStale('TLF resolve notification')
   )
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatThreadsStale', ({updates}) => {
@@ -285,21 +287,25 @@ function* _setupChatHandlers(): SagaGenerator<any, any> {
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSynced', ({syncRes}) => {
     switch (syncRes.syncType) {
       case ChatTypes.CommonSyncInboxResType.clear:
-        return Creators.inboxStale()
+        return Creators.inboxStale('sync with clear result')
       case ChatTypes.CommonSyncInboxResType.current:
         return Creators.setInboxUntrustedState('loaded')
       case ChatTypes.CommonSyncInboxResType.incremental:
         return Creators.inboxSynced(syncRes.incremental.items)
     }
-    return Creators.inboxStale()
+    return Creators.inboxStale('sync with unknown result')
   })
 
   engine().setIncomingActionCreator('chat.1.NotifyChat.ChatInboxSyncStarted', () => {
     return Creators.setInboxUntrustedState('loading')
   })
 
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () => Creators.inboxStale())
-  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () => Creators.inboxStale())
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatJoinedConversation', () =>
+    Creators.inboxStale('joined a conversation')
+  )
+  engine().setIncomingActionCreator('chat.1.NotifyChat.ChatLeftConversation', () =>
+    Creators.inboxStale('left a conversation')
+  )
 }
 
 const inboxSelector = (state: TypedState) => state.entities.get('inbox')
@@ -1212,7 +1218,7 @@ function* _markThreadsStale(action: Constants.MarkThreadsStale): SagaGenerator<a
   // Load inbox items of any stale items so we get update on rekeyInfos, etc
   const {updates} = action.payload
   const convIDs = updates.map(u => Constants.conversationIDToKey(u.convID))
-  yield put(Creators.unboxConversations(convIDs, true))
+  yield put(Creators.unboxConversations(convIDs, 'thread stale', true))
 
   // Selected is stale?
   const selectedConversation = yield select(Constants.getSelectedConversation)
@@ -1240,7 +1246,7 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
     )
   )
   const convIDs = items.map(item => item.conversationIDKey)
-  yield put(Creators.unboxConversations(convIDs, true, true))
+  yield put(Creators.unboxConversations(convIDs, 'inbox syncing', true, true))
 
   const selectedConversation = yield select(Constants.getSelectedConversation)
   if (!selectedConversation || convIDs.indexOf(selectedConversation) < 0) {
@@ -1532,7 +1538,8 @@ function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('chat:updateTyping', _updateTyping)
   yield Saga.safeTakeEvery('chat:updateThread', _updateThread)
   yield Saga.safeTakeLatest('chat:badgeAppForChat', _badgeAppForChat)
-  yield Saga.safeTakeLatest(['chat:inboxStale', 'chat:loadInbox'], Inbox.onInboxStale)
+  yield Saga.safeTakeLatest(['chat:loadInbox'], Inbox.onInboxLoad)
+  yield Saga.safeTakeLatest(['chat:inboxStale'], Inbox.onInboxStale)
   yield Saga.safeTakeLatest('chat:selectConversation', _selectConversation)
   yield Saga.safeTakeLatest(
     SearchConstants.isUserInputItemsUpdated('chatSearch'),

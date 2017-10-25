@@ -1,4 +1,49 @@
 // @flow
+import * as React from 'react'
+import * as I from 'immutable'
+import Box from './box'
+import PopupDialog from './popup-dialog'
+import {isMobile} from '../constants/platform'
+import {globalColors} from '../styles'
+
+const MaybePopup = isMobile
+  ? (props: {onClose: () => void, children: React.Node}) => (
+      <Box style={{height: '100%', width: '100%'}} children={props.children} />
+    )
+  : (props: {onClose: () => void, children: React.Node}) => (
+      <PopupDialog
+        onClose={props.onClose}
+        styleCover={_styleCover}
+        styleContainer={_styleContainer}
+        children={props.children}
+      />
+    )
+
+function MaybePopupHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
+  return (
+    props: P & {navigateUp: Function, routeProps: I.RecordOf<{onClose: (navigateUpFn: Function) => void}>}
+  ) => {
+    const onClose = () => {
+      props.routeProps && props.routeProps.get('onClose') && props.routeProps.get('onClose')(props.navigateUp)
+    }
+    return (
+      <MaybePopup onClose={onClose}>
+        <WrappedComponent onClose={onClose} {...(props: P)} />
+      </MaybePopup>
+    )
+  }
+}
+
+const _styleCover = {
+  alignItems: 'stretch',
+  backgroundColor: globalColors.black_75,
+  justifyContent: 'stretch',
+}
+
+const _styleContainer = {
+  height: '100%',
+}
+
 export {initAvatarLookup, initAvatarLoad} from './index.shared'
 export {default as AutosizeInput} from './autosize-input'
 export {default as Avatar} from './avatar'
@@ -29,6 +74,7 @@ export {default as LoadingLine} from './loading-line'
 export {default as LinkWithIcon} from './link-with-icon'
 export {default as ListItem} from './list-item'
 export {default as Markdown} from './markdown'
+export {MaybePopup, MaybePopupHoc}
 export {default as MultiAvatar} from './multi-avatar.js'
 export {default as Meta} from './meta'
 export {default as PlatformIcon} from './platform-icon'

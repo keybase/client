@@ -46,6 +46,7 @@ function render() {
         <Wrapper DumbSheet={DumbSheet} />
       </GlobalEscapeHandler>
     </AppContainer>,
+    // $FlowIssue wants this to be non-null
     document.getElementById('root')
   )
 }

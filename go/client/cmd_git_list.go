@@ -25,12 +25,6 @@ func newCmdGitList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cmd := NewCmdGitListRunner(g)
 			cl.ChooseCommand(cmd, "list", c)
 		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "team",
-				Usage: "keybase team name (optional)",
-			},
-		},
 	}
 }
 

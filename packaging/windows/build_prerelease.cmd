@@ -23,7 +23,7 @@ echo KEYBASE_VERSION %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo KEYBASE_BUILD %KEYBASE_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
-
+popd
 
 :: Then build kbfsdokan.
 :: First, sanity-check the hashes

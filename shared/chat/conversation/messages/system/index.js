@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Text} from '../../../../common-adapters'
+import {Text, Usernames} from '../../../../common-adapters'
 import UserNotice from '../../notices/user-notice'
 import {globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
@@ -11,17 +11,25 @@ type Props = {
   channelname: string,
   message: TextMessage,
   onManageChannels: () => void,
+  onUsernameClicked: (username: string) => void,
   teamname: string,
+  following: boolean,
   you: string,
 }
 
-const SystemNotice = ({channelname, message, onManageChannels, you}: Props) => (
+const SystemNotice = ({channelname, message, onManageChannels, you, following, onUsernameClicked}: Props) => (
   <UserNotice style={{marginTop: globalMargins.small}} username={message.author} bgColor={globalColors.blue4}>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
       {formatTimeForMessages(message.timestamp)}
     </Text>
     <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
-      {message.author === you ? 'You' : message.author}
+      <Usernames
+        inline={true}
+        type="BodySmallSemibold"
+        onUsernameClicked={onUsernameClicked}
+        colorFollowing={true}
+        users={[{username: message.author, following, you: you === message.author}]}
+      />
       {' '}
       {message.message.stringValue()}
       {' '}

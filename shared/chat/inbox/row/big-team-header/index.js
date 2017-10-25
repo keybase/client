@@ -15,16 +15,22 @@ class BigTeamHeader extends PureComponent<Props> {
       <HeaderBox>
         <Avatar teamname={this.props.teamname} size={isMobile ? 24 : 16} />
         <Text type="BodySmallSemibold" style={teamStyle}>{this.props.teamname}</Text>
-        <Icon className="icon" type="iconfont-ellipsis" onClick={this.props.onShowMenu} style={iconStyle} />
+        <Icon className="icon" type="iconfont-gear" onClick={this.props.onShowMenu} style={iconStyle} />
       </HeaderBox>
     )
   }
 }
 
 const iconStyle = {
+  color: globalColors.black_20,
   fontSize: isMobile ? 20 : 16,
   padding: isMobile ? 8 : 4,
   paddingRight: isMobile ? 2 : 4,
+  ...(isMobile
+    ? {}
+    : {
+        hoverColor: globalColors.black_75,
+      }),
 }
 
 const teamRowContainerStyle = {

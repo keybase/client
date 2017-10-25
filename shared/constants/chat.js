@@ -234,6 +234,7 @@ export type MaybeTimestamp = TimestampMessage | null
 export const ConversationStatusByEnum = invert(ChatTypes.CommonConversationStatus)
 type _ConversationState = {
   moreToLoad: ?boolean,
+  isLoaded: boolean,
   isRequesting: boolean,
   isStale: boolean,
   loadedOffline: boolean,
@@ -450,7 +451,7 @@ export const blankChat = 'chat:blankChat'
 export type UnboxMore = NoErrorTypedAction<'chat:unboxMore', void>
 export type UnboxConversations = NoErrorTypedAction<
   'chat:unboxConversations',
-  {conversationIDKeys: Array<ConversationIDKey>, force?: boolean, forInboxSync?: boolean}
+  {conversationIDKeys: Array<ConversationIDKey>, reason: string, force?: boolean, forInboxSync?: boolean}
 >
 
 export type AddPendingConversation = NoErrorTypedAction<
@@ -490,7 +491,7 @@ export type GetInboxAndUnbox = NoErrorTypedAction<
   'chat:getInboxAndUnbox',
   {conversationIDKeys: Array<ConversationIDKey>}
 >
-export type InboxStale = NoErrorTypedAction<'chat:inboxStale', void>
+export type InboxStale = NoErrorTypedAction<'chat:inboxStale', {reason: string}>
 export type IncomingMessage = NoErrorTypedAction<'chat:incomingMessage', {activity: ChatTypes.ChatActivity}>
 export type IncomingTyping = NoErrorTypedAction<'chat:incomingTyping', {activity: ChatTypes.TyperInfo}>
 export type LeaveConversation = NoErrorTypedAction<
@@ -956,13 +957,13 @@ function getBrokenUsers(participants: Array<string>, you: string, metaDataMap: M
 function clampAttachmentPreviewSize({width, height}: AttachmentSize) {
   if (height > width) {
     return {
-      height: clamp(height, maxAttachmentPreviewSize),
-      width: clamp(height, maxAttachmentPreviewSize) * width / height,
+      height: clamp(height || 0, 0, maxAttachmentPreviewSize),
+      width: clamp(height || 0, 0, maxAttachmentPreviewSize) * width / (height || 1),
     }
   } else {
     return {
-      height: clamp(width, maxAttachmentPreviewSize) * height / width,
-      width: clamp(width, maxAttachmentPreviewSize),
+      height: clamp(width || 0, 0, maxAttachmentPreviewSize) * height / (width || 1),
+      width: clamp(width || 0, 0, maxAttachmentPreviewSize),
     }
   }
 }
@@ -1036,7 +1037,7 @@ function convSupersededByInfo(conversationID: ConversationIDKey, chat: State): ?
 }
 
 function newestConversationIDKey(conversationIDKey: ?ConversationIDKey, chat: State): ?ConversationIDKey {
-  const supersededBy = chat.getIn(['supersededByState', conversationIDKey])
+  const supersededBy = conversationIDKey ? chat.getIn(['supersededByState', conversationIDKey]) : null
   if (!supersededBy) {
     return conversationIDKey
   }
@@ -1171,7 +1172,9 @@ const getTeamName = createSelector(
 
 const getSelectedConversationStates = (state: TypedState): ?ConversationState => {
   const selectedConversationIDKey = getSelectedConversation(state)
-  return state.chat.getIn(['conversationStates', selectedConversationIDKey])
+  return selectedConversationIDKey
+    ? state.chat.getIn(['conversationStates', selectedConversationIDKey])
+    : null
 }
 
 const getSupersedes = (state: TypedState): ?SupersedeInfo => {
@@ -1226,11 +1229,10 @@ function getMessageUpdates(
   messageKey: MessageKey
 ): I.OrderedSet<EditingMessage | UpdatingAttachment> {
   const {conversationIDKey, messageID} = splitMessageIDKey(messageKey)
-  const updateKeys = state.entities.messageUpdates.getIn(
-    [conversationIDKey, String(messageID)],
-    I.OrderedSet()
-  )
-  return updateKeys.map(k => state.entities.messages.get(k))
+  const updateKeys = conversationIDKey
+    ? state.entities.messageUpdates.getIn([conversationIDKey, String(messageID)], I.OrderedSet())
+    : I.OrderedSet()
+  return updateKeys.map(k => state.entities.messages.get(k)).filter(Boolean)
 }
 
 function getMessageFromMessageKey(state: TypedState, messageKey: MessageKey): ?Message {
