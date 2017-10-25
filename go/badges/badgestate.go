@@ -132,6 +132,20 @@ func (b *BadgeState) UpdateWithGregor(gstate gregor.State) error {
 				}
 				b.state.NewTeamIDs = append(b.state.NewTeamIDs, teamID)
 			}
+		case "team.request_access":
+			var body []newTeamBody
+			if err := json.Unmarshal(item.Body().Bytes(), &body); err != nil {
+				b.log.Warning("BadgeState unmarshal error for team.request_access item: %v", err)
+				continue
+			}
+			for _, x := range body {
+				teamID, err := keybase1.TeamIDFromString(x.TeamID)
+				if err != nil {
+					b.log.Warning("BadgeState invalid team id in team.request_access item: %v", err)
+					continue
+				}
+				b.state.NewTeamAccessRequests = append(b.state.NewTeamAccessRequests, teamID)
+			}
 		}
 	}
 
