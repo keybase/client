@@ -136,7 +136,7 @@ const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrP
 
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[name, true]])))
   try {
-    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {name, username, email}})
+    yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username}})
   } finally {
     yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
   }
@@ -244,8 +244,11 @@ const _getDetails = function*(action: Constants.GetDetails): SagaGenerator<any, 
 
     const invitesMap = map(results.annotatedActiveInvites, invite =>
       Constants.makeInviteInfo({
-        name: invite.type.c === 4 ? `${invite.name}@${invite.type.sbs}` : invite.name,
+        email: invite.type.c === RpcTypes.TeamsTeamInviteCategory.email ? invite.name : '',
         role: Constants.teamRoleByEnum[invite.role],
+        username: invite.type.c === RpcTypes.TeamsTeamInviteCategory.sbs
+          ? `${invite.name}@${invite.type.sbs}`
+          : '',
       })
     )
 
