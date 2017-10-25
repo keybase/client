@@ -24,6 +24,7 @@ import type {TypedState} from '../../constants/reducer'
 const _createNewTeam = function*(action: Constants.CreateNewTeam) {
   const {payload: {name}} = action
   yield put(Creators.setTeamCreationError(''))
+  yield put(Creators.setTeamCreationPending(true))
   try {
     yield call(RpcTypes.teamsTeamCreateRpcPromise, {
       param: {name, sendChatNotification: true},
@@ -33,6 +34,8 @@ const _createNewTeam = function*(action: Constants.CreateNewTeam) {
     yield put(navigateTo([isMobile ? chatTab : teamsTab]))
   } catch (error) {
     yield put(Creators.setTeamCreationError(error.desc))
+  } finally {
+    yield put(Creators.setTeamCreationPending(false))
   }
 }
 
@@ -179,21 +182,30 @@ const _createNewTeamFromConversation = function*(
   }
 
   if (participants) {
-    const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
-      param: {name, sendChatNotification: true},
-    })
-    for (const username of participants.toArray()) {
-      if (!createRes.creatorAdded || username !== me) {
-        yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
-          param: {
-            email: '',
-            name,
-            role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
-            sendChatNotification: true,
-            username,
-          },
-        })
+    yield put(Creators.setTeamCreationError(''))
+    yield put(Creators.setTeamCreationPending(true))
+    try {
+      const createRes = yield call(RpcTypes.teamsTeamCreateRpcPromise, {
+        param: {name, sendChatNotification: true},
+      })
+      for (const username of participants.toArray()) {
+        if (!createRes.creatorAdded || username !== me) {
+          yield call(RpcTypes.teamsTeamAddMemberRpcPromise, {
+            param: {
+              email: '',
+              name,
+              role: username === me ? RpcTypes.TeamsTeamRole.admin : RpcTypes.TeamsTeamRole.writer,
+              sendChatNotification: true,
+              username,
+            },
+          })
+        }
       }
+      yield put(ChatCreators.selectConversation(null, false))
+    } catch (error) {
+      yield put(Creators.setTeamCreationError(error.desc))
+    } finally {
+      yield put(Creators.setTeamCreationPending(false))
     }
   }
 }
