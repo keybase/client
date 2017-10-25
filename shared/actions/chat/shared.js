@@ -74,7 +74,7 @@ function* startNewConversation(
   } else {
     const existing = yield select(Constants.getInbox, oldConversationIDKey)
     if (existing) {
-      tlfName = existing.get('participants').sort().join(',')
+      tlfName = existing.get('participants').join(',')
     }
   }
 
