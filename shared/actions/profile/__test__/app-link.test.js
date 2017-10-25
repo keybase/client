@@ -34,4 +34,14 @@ describe('urlToUsername', () => {
   it('path', () => {
     check('https://keybase.io/chris/', 'chris')
   })
+
+  it('weird', () => {
+    check('https://keybase.io:443/chris', 'chris')
+    check('http://keybase.io:80/chris', 'chris')
+  })
+
+  it('usernames', () => {
+    check('https://keybase.io:443/Aa', 'aa')
+    check('http://keybase.io:80/0123456789abcdeF', '0123456789abcdef')
+  })
 })
