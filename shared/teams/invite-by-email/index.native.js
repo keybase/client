@@ -3,10 +3,10 @@ import * as React from 'react'
 import {Avatar, Box, Button, ClickableBox, Icon, Input, List, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
-import * as Contacts from 'react-native-contacts'
 import {Linking, StyleSheet} from 'react-native'
 import {isAndroid} from '../../constants/platform'
-import {type Props} from './index'
+import {type MobileProps} from './index'
+import {type TeamRoleType} from '../../constants/teams'
 
 const settingsURL = 'app-settings:'
 const openSettings = () => {
@@ -48,20 +48,6 @@ const AccessDenied = () => (
     </Box>
   </Box>
 )
-
-// Note: 'on Android the entire display name is passed in the givenName field. middleName and familyName will be empty strings.'
-type ContactProps = {
-  recordID: string,
-  company: string,
-  emailAddresses: Array<{label: string, email: string}>,
-  familyName: string,
-  givenName: string,
-  middleName: string,
-  phoneNumbers: Array<{label: string, number: string}>,
-  hasThumbnail: boolean,
-  thumbnailPath: string,
-  // Postal addresses, etc. - unused
-}
 
 type ContactDisplayProps = {
   name: string,
@@ -129,71 +115,36 @@ const contactRow = (i: number, props: ContactRowProps) => {
 
 type State = {
   invitees: Array<{contactID: string, address?: string}>,
-  loading: boolean,
   filter: string,
-  hasPermission: boolean,
-  contacts: Array<ContactProps>,
 }
 
-class InviteByEmail extends React.Component<Props, State> {
-  constructor(props: Props) {
+class InviteByEmail extends React.Component<MobileProps, State> {
+  constructor(props: MobileProps) {
     super(props)
     this.state = {
       invitees: [],
-      loading: true,
       filter: '',
-      hasPermission: true,
-      contacts: [],
     }
   }
 
-  componentWillMount() {
-    if (isAndroid) {
-      Contacts.requestPermission((_, granted) => {
-        this.setState({hasPermission: false})
-        if (granted) {
-          Contacts.getAll((err, contacts) => {
-            if (err) {
-              this.setState({hasPermission: false})
-            } else {
-              this.setState({hasPermission: true, contacts})
-            }
-          })
-        }
-      })
-    } else {
-      Contacts.getAll((err, contacts) => {
-        if (err) {
-          this.setState({hasPermission: false})
-        } else {
-          this.setState({hasPermission: true, contacts})
-          console.log('CONTACTS: ', contacts)
-        }
-      })
-    }
-  }
-
-  onSelectContact(contact: ContactDisplayProps) {
-    console.log('clicked: ', contact)
-
-    if (this.isSelected(contact)) {
+  _onSelectContact(contact: ContactDisplayProps) {
+    if (this._isSelected(contact)) {
       this._removeInvitee(contact)
     } else {
       this._addInvitee(contact)
     }
   }
 
-  isSelected(contact: ContactDisplayProps): boolean {
+  _isSelected(contact: ContactDisplayProps): boolean {
     return this.state.invitees.findIndex(rec => rec.contactID === contact.recordID) >= 0
   }
 
   _addInvitee(contact: ContactDisplayProps) {
     if (contact.email) {
-      this.props.onInviteesChange(contact.email)
+      this.props.onInvite(contact.email)
       this.setState({
         invitees: [...this.state.invitees, {contactID: contact.recordID, address: contact.email}],
       })
-      this.props.onInvite()
     } else {
       this.setState({
         invitees: [...this.state.invitees, {contactID: contact.recordID}],
@@ -212,12 +163,12 @@ class InviteByEmail extends React.Component<Props, State> {
     }
   }
 
-  _trim(s: string): string {
+  _trim(s: ?string): string {
     return (s && s.replace(/^[^a-z0-9@.]/i, '').toLowerCase()) || ''
   }
 
   render() {
-    const contactRowProps = this.state.contacts.reduce((res, contact) => {
+    const contactRowProps = this.props.contacts.reduce((res, contact) => {
       const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
       contact.emailAddresses.forEach(email => {
         const cData = {
@@ -229,8 +180,8 @@ class InviteByEmail extends React.Component<Props, State> {
         }
         res.push({
           id: contact.recordID + email.email,
-          onClick: () => this.onSelectContact(cData),
-          selected: this.isSelected(cData),
+          onClick: () => this._onSelectContact(cData),
+          selected: this._isSelected(cData),
           contact: cData,
         })
       })
@@ -244,8 +195,8 @@ class InviteByEmail extends React.Component<Props, State> {
         }
         res.push({
           id: contact.recordID + phoneNo.number,
-          onClick: () => this.onSelectContact(cData),
-          selected: this.isSelected(cData),
+          onClick: () => this._onSelectContact(cData),
+          selected: this._isSelected(cData),
           contact: cData,
         })
       })
@@ -263,10 +214,10 @@ class InviteByEmail extends React.Component<Props, State> {
         this._trim(contact.contact.phoneNo).includes(filter)
       )
     })
-    return (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        {!this.state.hasPermission && <AccessDenied />}
-        {this.state.hasPermission &&
+    let contents
+    if (this.props.hasPermission) {
+      contents = (
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
           <Box
             style={{
               ...globalStyles.flexBoxRow,
@@ -284,8 +235,7 @@ class InviteByEmail extends React.Component<Props, State> {
               errorStyle={{minHeight: 14}}
               inputStyle={{textAlign: 'left', paddingLeft: globalMargins.small, fontSize: 16}}
             />
-          </Box>}
-        {this.state.hasPermission &&
+          </Box>
           <ClickableBox
             onClick={() =>
               this.props.onOpenRolePicker(this.props.role, (selectedRole: TeamRoleType) =>
@@ -304,17 +254,24 @@ class InviteByEmail extends React.Component<Props, State> {
               Users will be invited to {this.props.name} as
               <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
             </Text>
-          </ClickableBox>}
-        {this.state.hasPermission &&
+          </ClickableBox>
           <List
             keyProperty="id"
             items={filteredContactRows}
             fixedHeight={56}
             renderItem={contactRow}
             style={{alignSelf: 'stretch'}}
-          />}
-      </Box>
-    )
+          />
+        </Box>
+      )
+    } else {
+      contents = (
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          <AccessDenied />
+        </Box>
+      )
+    }
+    return contents
   }
 }
 
