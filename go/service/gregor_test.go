@@ -685,7 +685,7 @@ func TestGregorTeamBadges(t *testing.T) {
 
 	t.Logf("server message")
 	teamID := keybase1.MakeTestTeamID(1, false)
-	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`{"id": "`+teamID+`"}`)))
+	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`[{"id": "`+teamID+`"}]`)))
 	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
 
 	// Sync from the server
