@@ -251,6 +251,7 @@ class Input extends Component<Props, State> {
     const multilineProps = {
       ...commonProps,
       multiline: true,
+      blurOnSubmit: false,
       onContentSizeChange: isIOS ? this._onContentSizeChange : null,
       style: {...multilineStyle, ...this.props.inputStyle},
     }
