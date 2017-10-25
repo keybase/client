@@ -254,6 +254,14 @@ func (d *Service) Run() (err error) {
 
 	d.RunBackgroundOperations(uir)
 
+	// At this point initialization is complete, and we're about to start the
+	// listen loop. This is the natural point to report "startup successful" to
+	// the supervisor (currently just systemd on Linux). This isn't necessary
+	// for correctness, but it allows commands like "systemctl start keybase.service"
+	// to report startup errors to the terminal, by delaying their return
+	// until they get this notification (Type=notify, in systemd lingo).
+	NotifyStartupFinished()
+
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err

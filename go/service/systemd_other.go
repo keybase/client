@@ -8,3 +8,8 @@ import "net"
 func GetListenerFromEnvironment() (net.Listener, error) {
 	return nil, nil
 }
+
+// Currently only implemented for systemd on Linux.
+func NotifyStartupFinished() {
+	// no-op
+}

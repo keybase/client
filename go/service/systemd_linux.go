@@ -7,6 +7,7 @@ import (
 	"net"
 
 	sdActivation "github.com/coreos/go-systemd/activation"
+	sdDaemon "github.com/coreos/go-systemd/daemon"
 )
 
 // If the service has been started via socket activation, with a socket already
@@ -30,4 +31,8 @@ func GetListenerFromEnvironment() (net.Listener, error) {
 	// No socket found. Either we're not running under systemd at all, or the
 	// socket isn't configured. The caller will create its own socket.
 	return nil, nil
+}
+
+func NotifyStartupFinished() {
+	sdDaemon.SdNotify(true /* unsetEnv */, "READY=1")
 }
