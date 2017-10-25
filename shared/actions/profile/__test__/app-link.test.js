@@ -16,4 +16,11 @@ describe('urlToUsername', () => {
     check('https://www.keybase.io/chris', 'chris')
     check('https://keybase.io/chris', 'chris')
   })
+
+  it('case', () => {
+    check('Https://keybase.io/chris', 'chris')
+    check('Http://keybase.io/chris', 'chris')
+    check('https://KeyBase.io/chris', 'chris')
+    check('https://KeyBase.io/Chris', 'chris')
+  })
 })
