@@ -810,7 +810,7 @@ function* _startConversation(action: Constants.StartConversation): SagaGenerator
 
   if (forceImmediate && existing) {
     const newID = yield call(Shared.startNewConversation, existing.get('conversationIDKey'))
-    yield put(Creators.selectConversation(newID, false))
+    yield put(Creators.selectConversation(newID && newID.length && newID[0], false))
   } else if (existing) {
     // Select existing conversations
     yield put(Creators.selectConversation(existing.get('conversationIDKey'), false))
