@@ -73,7 +73,7 @@ func (c *CmdTeamGenerateSeitan) Run() error {
 	}
 
 	dui := c.G().UI.GetDumbOutputUI()
-	dui.Printf("Generated token: %q. Tell your friend!\n", res)
+	dui.Printf("Generated token: %q.\nAnother Keybase user can join the team using the following command:\n\nkeybase team accept-invite --token %s\n", res, res)
 
 	return nil
 }
