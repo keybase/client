@@ -43,7 +43,7 @@ export const TeamInviteRow = (props: Props) => {
         </Box>
       </Box>
       <Box style={{...globalStyles.flexBoxRow, flexShrink: 1}}>
-        <Button label="Cancel invite" onClick={onCancelInvite} type="Danger" />
+        <Button small={true} label="Cancel invite" onClick={onCancelInvite} type="Danger" />
       </Box>
     </ClickableBox>
   )
