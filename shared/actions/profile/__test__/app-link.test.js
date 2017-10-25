@@ -15,6 +15,9 @@ describe('urlToUsername', () => {
     check('http://keybase.io/chris', 'chris')
     check('https://www.keybase.io/chris', 'chris')
     check('https://keybase.io/chris', 'chris')
+
+    check('https://api.keybase.io/chris', null)
+    check('ftp://keybase.io/chris', null)
   })
 
   it('case', () => {
@@ -33,15 +36,25 @@ describe('urlToUsername', () => {
 
   it('path', () => {
     check('https://keybase.io/chris/', 'chris')
+
+    check('https://keybase.io/chris//', null)
+    check('https://keybase.io/chris/bar', null)
   })
 
   it('weird', () => {
     check('https://keybase.io:443/chris', 'chris')
     check('http://keybase.io:80/chris', 'chris')
+
+    check('https://keybase.io:80/chris', null)
+    check('http://keybase.io:443/chris', null)
   })
 
   it('usernames', () => {
     check('https://keybase.io:443/Aa', 'aa')
     check('http://keybase.io:80/0123456789abcdeF', '0123456789abcdef')
+    check('https://keybase.io:443/A_B', 'a_b')
+
+    check('https://keybase.io:443/A', null)
+    check('https://keybase.io:443/A__B', null)
   })
 })
