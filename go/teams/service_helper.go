@@ -151,7 +151,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 	return ret, nil
 }
 
-func setRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
@@ -159,7 +159,7 @@ func setRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Owners: []keybase1.UserVersion{uv}})
 }
 
-func setRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
@@ -167,7 +167,7 @@ func setRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Admins: []keybase1.UserVersion{uv}})
 }
 
-func setRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func setRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Writers: []keybase1.UserVersion{uv}})
 }
 
-func setRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
+func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 	uv, err := loadUserVersionByUsername(ctx, g, username)
 	if err != nil {
 		return err
