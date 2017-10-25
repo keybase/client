@@ -49,38 +49,10 @@ const Help = isMobile
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
         <Text type="Body" style={{textAlign: 'center'}}>
           You can also manage teams from the terminal:
-        </Text>
-        <Box
-          style={{
-            backgroundColor: globalColors.midnightBlue,
-            borderRadius: 4,
-            marginTop: 20,
-            padding: 16,
-          }}
-        >
-          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
-            # Add a member
-          </Text>
-          <Text
-            type="Terminal"
-            backgroundMode="Terminal"
-            style={{display: 'block', ...globalStyles.selectable}}
-          >{`keybase team add-member ${name} --user={user} --role=writer`}</Text>
-          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
-            # Remove a member
-          </Text>
-          <Text
-            type="Terminal"
-            backgroundMode="Terminal"
-            style={globalStyles.selectable}
-          >{`keybase team remove-member ${name} --user={user}`}</Text>
-          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
-            # More commands
-          </Text>
-          <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
+          <Text type="TerminalInline" style={{...globalStyles.selectable, marginLeft: globalMargins.tiny}}>
             keybase team --help
           </Text>
-        </Box>
+        </Text>
       </Box>
     )
 
