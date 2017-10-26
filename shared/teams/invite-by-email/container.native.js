@@ -89,6 +89,28 @@ export default compose(
         }
       },
     }),
+    withPropsOnChange(['contacts', '_pendingInvites'], props => {
+      const invitees = []
+
+      // Search through pending invites & cross reference against contacts to find any who have been already invited
+      // TODO: examine the perf implications of this.
+      props._pendingInvites.toJS().forEach(invite => {
+        props.contacts.forEach(contact => {
+          contact.emailAddresses.forEach(address => {
+            if (address.email === invite.name) {
+              invitees.push({contactID: contact.recordID + address.email, address: address.email})
+            }
+          })
+          contact.phoneNumbers.forEach(phone => {
+            if (phone.number === invite.name) {
+              invitees.push({contactID: contact.recordID + phone.number})
+            }
+          })
+        })
+      })
+
+      return {invitees}
+    }),
     withHandlers({
       onInvite: ({onInvite, role}) => (invitee: string) => role && onInvite({invitee, role}),
     }),

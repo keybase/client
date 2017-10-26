@@ -55,6 +55,7 @@ export type MobileProps = {
   onRoleChange: (role: TeamRoleType) => void,
   role: TeamRoleType,
   contacts: Array<any>,
+  invitees: Array<{contactID: string, address?: string}>,
   hasPermission: boolean,
 }
 

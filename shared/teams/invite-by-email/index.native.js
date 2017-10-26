@@ -98,7 +98,6 @@ const contactRow = (i: number, props: ContactRowProps) => {
 }
 
 type State = {
-  invitees: Array<{contactID: string, address?: string}>,
   filter: string,
 }
 
@@ -106,45 +105,37 @@ class InviteByEmail extends React.Component<MobileProps, State> {
   constructor(props: MobileProps) {
     super(props)
     this.state = {
-      invitees: [],
       filter: '',
     }
   }
 
   _onSelectContact(contact: ContactDisplayProps) {
     if (this._isSelected(contact)) {
-      this._removeInvitee(contact)
+      this._removeInvitee(contact) // TODO: wire up to revoke invite RPC
     } else {
       this._addInvitee(contact)
     }
   }
 
   _isSelected(contact: ContactDisplayProps): boolean {
-    return this.state.invitees.findIndex(rec => rec.contactID === contact.recordID) >= 0
+    return this.props.invitees.findIndex(rec => rec.contactID === contact.recordID) >= 0
   }
 
   _addInvitee(contact: ContactDisplayProps) {
     if (contact.email) {
       this.props.onInvite(contact.email)
-      this.setState({
-        invitees: [...this.state.invitees, {contactID: contact.recordID, address: contact.email}],
-      })
-    } else {
-      this.setState({
-        invitees: [...this.state.invitees, {contactID: contact.recordID}],
-      })
     }
   }
 
   _removeInvitee(contact: ContactDisplayProps) {
-    const idx = this.state.invitees.findIndex(rec => rec.contactID === contact.recordID)
-    if (idx < 0) {
-      console.warn('Warning: attempted to remove an invitee that was not in the list.')
-    } else {
-      this.setState({
-        invitees: this.state.invitees.filter(rec => rec.contactID !== contact.recordID),
-      })
-    }
+    // const idx = this.props.invitees.findIndex(rec => rec.contactID === contact.recordID)
+    // if (idx < 0) {
+    //   console.warn('Warning: attempted to remove an invitee that was not in the list.')
+    // } else {
+    //   this.setState({
+    //     invitees: this.state.invitees.filter(rec => rec.contactID !== contact.recordID),
+    //   })
+    // }
   }
 
   _trim(s: ?string): string {
