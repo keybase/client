@@ -117,10 +117,15 @@ func (s Service) Start(wait time.Duration) error {
 // HasPlist returns true if service has plist installed
 func (s Service) HasPlist() bool {
 	plistDest := s.plistDestination()
-	if _, err := os.Stat(plistDest); err == nil {
-		return true
+	if _, err := os.Stat(plistDest); os.IsNotExist(err) {
+		s.log.Info("HasPlist: %s does not exist", plistDest)
+		return false
+	} else if err != nil {
+		s.log.Info("HasPlist: %s stat error: %s", plistDest, err)
+		return false
 	}
-	return false
+
+	return true
 }
 
 func exitStatus(err error) int {
@@ -257,6 +262,9 @@ func (s Service) savePlist(p Plist) error {
 
 	if _, ferr := os.Stat(p.binPath); os.IsNotExist(ferr) {
 		return fmt.Errorf("%s doesn't exist", p.binPath)
+	} else if ferr != nil {
+		s.log.Info("unexpected os.Stat error on binPath %s: %s", p.binPath, ferr)
+		return ferr
 	}
 
 	plist := p.plistXML()
@@ -264,6 +272,7 @@ func (s Service) savePlist(p Plist) error {
 	// Plist directory (~/Library/LaunchAgents/) might not exist on clean OS installs
 	// See GH issue: https://github.com/keybase/client/pull/1399#issuecomment-164810645
 	if err := libkb.MakeParentDirs(s.log, plistDest); err != nil {
+		s.log.Info("error making parent directories for %s: %s", plistDest, err)
 		return err
 	}
 
@@ -508,14 +517,6 @@ func launchdHomeDir() string {
 		panic(err)
 	}
 	return currentUser.HomeDir
-}
-
-func ensureDirectoryExists(dir string) error {
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		err = os.MkdirAll(dir, 0700)
-		return err
-	}
-	return nil
 }
 
 // Check if plist matches plist at path
