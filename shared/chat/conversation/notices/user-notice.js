@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import {Avatar, Box} from '../../../common-adapters'
-import {isMobile} from '../../../constants/platform'
 import {globalStyles, globalMargins} from '../../../styles'
 
 export type Props = {
@@ -14,27 +13,42 @@ export type Props = {
 const AVATAR_SIZE = 24
 
 const UserNotice = ({bgColor, username, children, style}: Props) => (
-  <Box style={{...styleBox, ...style, backgroundColor: bgColor}}>
-    <Avatar size={AVATAR_SIZE} username={username} style={styleAvatar} />
-    {children}
+  <Box style={{...styleOuterBox}}>
+    <Box style={stylesAvatarWrapper(AVATAR_SIZE)}>
+      <Avatar size={AVATAR_SIZE} username={username} style={stylesAvatar} />
+    </Box>
+    <Box style={{...styleBox, ...style, backgroundColor: bgColor}}>
+      {children}
+    </Box>
   </Box>
 )
 
-const styleAvatar = {
-  marginBottom: !isMobile ? globalMargins.xtiny : -globalMargins.tiny,
-  marginTop: isMobile ? -globalMargins.tiny - AVATAR_SIZE / 4 : -globalMargins.small - AVATAR_SIZE / 2,
+const styleOuterBox = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+}
+
+const stylesAvatarWrapper = (avatarSize: number) => ({
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  height: avatarSize,
+  position: 'relative',
+  top: AVATAR_SIZE,
+  zIndex: 10,
+})
+const stylesAvatar = {
+  ...globalStyles.clickable,
 }
 
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  marginTop: AVATAR_SIZE / 2,
   marginLeft: globalMargins.xlarge,
   marginRight: globalMargins.xlarge,
-  marginBottom: globalMargins.medium,
   padding: globalMargins.small,
   paddingBottom: globalMargins.tiny,
   borderRadius: globalMargins.xtiny,
+  alignSelf: 'stretch',
 }
 
 export default UserNotice
