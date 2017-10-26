@@ -31,6 +31,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitee))
     dispatch(Creators.getTeams())
   },
+  onUninvite: (invitee: string) => {
+    dispatch(Creators.removeMember(invitee, routeProps.get('teamname'), ''))
+  },
 
   onOpenRolePicker: (role: string, onComplete: string => void) => {
     dispatch(
@@ -90,29 +93,31 @@ export default compose(
       },
     }),
     withPropsOnChange(['contacts', '_pendingInvites'], props => {
-      const invitees = []
+      const invited = []
 
       // Search through pending invites & cross reference against contacts to find any who have been already invited
       // TODO: examine the perf implications of this.
       props._pendingInvites.toJS().forEach(invite => {
         props.contacts.forEach(contact => {
           contact.emailAddresses.forEach(address => {
-            if (address.email === invite.name) {
-              invitees.push({contactID: contact.recordID + address.email, address: address.email})
+            if (address.email === invite.email) {
+              invited.push({contactID: contact.recordID + address.email, address: address.email})
             }
           })
           contact.phoneNumbers.forEach(phone => {
             if (phone.number === invite.name) {
-              invitees.push({contactID: contact.recordID + phone.number})
+              // TODO update invite prop once bookkeeping is piped through
+              invited.push({contactID: contact.recordID + phone.number})
             }
           })
         })
       })
 
-      return {invitees}
+      return {invited}
     }),
     withHandlers({
       onInvite: ({onInvite, role}) => (invitee: string) => role && onInvite({invitee, role}),
+      onUninvite: ({onUninvite}) => (invitee: string) => onUninvite(invitee),
     }),
     HeaderHoc
   )

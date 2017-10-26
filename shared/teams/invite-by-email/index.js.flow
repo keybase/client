@@ -46,16 +46,15 @@ export type Props = {
 
 export type MobileProps = {
   invitee: string,
-  invited: Array<string>,
+  invited: Array<{contactID: string, address?: string}>,
   name: string,
   onClose: () => void,
   onInvite: (invitee: string) => void,
-  onInviteeChange: (invitee: string) => void,
+  onUninvite: (invitee: string) => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   onRoleChange: (role: TeamRoleType) => void,
   role: TeamRoleType,
   contacts: Array<any>,
-  invitees: Array<{contactID: string, address?: string}>,
   hasPermission: boolean,
 }
 

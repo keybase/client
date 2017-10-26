@@ -118,7 +118,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
   }
 
   _isSelected(contact: ContactDisplayProps): boolean {
-    return this.props.invitees.findIndex(rec => rec.contactID === contact.recordID) >= 0
+    return this.props.invited.findIndex(rec => rec.contactID === contact.recordID) >= 0
   }
 
   _addInvitee(contact: ContactDisplayProps) {
@@ -128,14 +128,9 @@ class InviteByEmail extends React.Component<MobileProps, State> {
   }
 
   _removeInvitee(contact: ContactDisplayProps) {
-    // const idx = this.props.invitees.findIndex(rec => rec.contactID === contact.recordID)
-    // if (idx < 0) {
-    //   console.warn('Warning: attempted to remove an invitee that was not in the list.')
-    // } else {
-    //   this.setState({
-    //     invitees: this.state.invitees.filter(rec => rec.contactID !== contact.recordID),
-    //   })
-    // }
+    if (contact.email) {
+      this.props.onUninvite(contact.email)
+    }
   }
 
   _trim(s: ?string): string {
