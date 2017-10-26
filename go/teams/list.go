@@ -402,20 +402,24 @@ func AnnotateAllInvites(ctx context.Context, g *libkb.GlobalContext, teams map[k
 				// "keybase" invites (i.e. pukless users) have user version for name
 				uv, err := invite.KeybaseUserVersion()
 				if err != nil {
-					// If this errors, it has also errored while gathering users. Skip logging here.
+					// If this errors, it has also errored while gathering
+					// users. Skip logging here.
 					continue
 				}
 				pkg, err := getUser(uv.Uid)
 				if err != nil {
-					// If this errors; same as above.
+					// If this errors; same as above. This would only error out if
+					// we failed to properly request that Uid in gathering phase.
 					continue
 				}
 				if pkg.FullName == nil {
 					g.Log.CDebugf(ctx, "| Failed to get UsernamePackage.FullName for keybase invite for user %q uid %q\n", pkg.NormalizedUsername, uv.Uid)
-					continue
-				}
-				if uv.EldestSeqno != pkg.FullName.EldestSeqno {
-					// Not an error - user has just reset, they are not (invited) member anymore.
+					// We failed to get FullName package, so we will be unable
+					// to check EldestSeqno. But it's better to assume the
+					// invitee has not reset.
+				} else if uv.EldestSeqno != pkg.FullName.EldestSeqno {
+					// Not an error - user has just reset, they are not (invited)
+					// member anymore.
 					continue
 				}
 				name = keybase1.TeamInviteName(pkg.NormalizedUsername)
