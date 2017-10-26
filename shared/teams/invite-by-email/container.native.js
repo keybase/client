@@ -1,7 +1,7 @@
 // @flow
 import * as Creators from '../../actions/teams/creators'
 import {Set} from 'immutable'
-import InviteByEmail from '.'
+import InviteByEmailMobile from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
 import * as Contacts from 'react-native-contacts'
@@ -14,20 +14,21 @@ import {
   lifecycle,
   type TypedState,
 } from '../../util/container'
-import {isMobile, isAndroid} from '../../constants/platform'
+import {type OwnProps} from './container'
+import {isAndroid} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
   name: routeProps.get('teamname'),
-  _invites: state.entities.getIn(['teams', 'teamNameToInvites', routeProps.get('teamname')], Set()),
+  _pendingInvites: state.entities.getIn(
+    ['teams', 'teamNameToInvites', routeProps.get('teamname') || ''],
+    Set()
+  ),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
-  onInvite: ({invitees, role}) => {
-    dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitees))
-    if (!isMobile) {
-      dispatch(navigateUp())
-    }
+  onInvite: ({invitee, role}) => {
+    dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitee))
     dispatch(Creators.getTeams())
   },
 
@@ -48,23 +49,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-const desktopInviteByEmail = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  compose(
-    withState('invitees', 'onInviteesChange'),
-    withState('role', 'onRoleChange', 'writer'),
-    withPropsOnChange(['onExitSearch'], props => ({
-      onCancel: () => props.onClose(),
-      title: 'Invite by email',
-    })),
-    withHandlers({
-      onInvite: ({invitees, onInvite, role}) => () => invitees && role && onInvite({invitees, role}),
-    }),
-    HeaderHoc
-  )
-)(InviteByEmail)
-
-const mobileInviteByEmail = compose(
+export default compose(
   connect(mapStateToProps, mapDispatchToProps),
   compose(
     withState('role', 'onRoleChange', 'writer'),
@@ -105,10 +90,8 @@ const mobileInviteByEmail = compose(
       },
     }),
     withHandlers({
-      onInvite: ({onInvite, role}) => (invitee: string) => role && onInvite({invitees: invitee, role}),
+      onInvite: ({onInvite, role}) => (invitee: string) => role && onInvite({invitee, role}),
     }),
     HeaderHoc
   )
-)(InviteByEmail)
-
-export default (isMobile ? mobileInviteByEmail : desktopInviteByEmail)
+)(InviteByEmailMobile)

@@ -17,6 +17,22 @@ export type ContactProps = {
   // Postal addresses, etc. - unused
 }
 
+export type ContactDisplayProps = {
+  name: string,
+  email?: string,
+  phoneNo?: string,
+  thumbnailPath?: string,
+  label: string,
+  recordID: string,
+}
+
+export type ContactRowProps = {
+  contact: ContactDisplayProps,
+  id: string,
+  onClick: () => void,
+  selected: boolean,
+}
+
 export type Props = {
   invitees: string,
   name: string,
@@ -26,7 +42,6 @@ export type Props = {
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   onRoleChange: (role: TeamRoleType) => void,
   role: TeamRoleType,
-  contacts?: any,
 }
 
 export type MobileProps = {
@@ -43,7 +58,7 @@ export type MobileProps = {
   hasPermission: boolean,
 }
 
-declare class InviteByEmailDesktop extends React.Component<Props> {}
-declare class InviteByEmailMobile extends React.Component<MobileProps> {}
+declare export class InviteByEmailDesktop extends React.Component<Props> {}
+declare export class InviteByEmailMobile extends React.Component<MobileProps> {}
 
 export default (isMobile ? InviteByEmailMobile : InviteByEmailDesktop)

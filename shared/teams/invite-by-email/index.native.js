@@ -5,7 +5,7 @@ import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import {Linking, StyleSheet} from 'react-native'
 import {isAndroid} from '../../constants/platform'
-import {type MobileProps} from './index'
+import type {MobileProps, ContactRowProps, ContactDisplayProps} from './index'
 import {type TeamRoleType} from '../../constants/teams'
 
 const settingsURL = 'app-settings:'
@@ -48,22 +48,6 @@ const AccessDenied = () => (
     </Box>
   </Box>
 )
-
-type ContactDisplayProps = {
-  name: string,
-  email?: string,
-  phoneNo?: string,
-  thumbnailPath?: string,
-  label: string,
-  recordID: string,
-}
-
-type ContactRowProps = {
-  contact: ContactDisplayProps,
-  id: string,
-  onClick: () => void,
-  selected: boolean,
-}
 
 const contactRow = (i: number, props: ContactRowProps) => {
   const source = typeof props.contact.thumbnailPath === 'string'
