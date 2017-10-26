@@ -115,9 +115,10 @@ set smokeASemVer=%KEYBASE_VERSION%
 ::SlackBot?
 
 ::build again
-call %GOPATH%\src\github.com\keybase\client\packaging\windows\dorelease.cmd
+call %GOPATH%\src\github.com\keybase\client\packaging\windows\dorelease.cmd ||  EXIT /B 1
 
-goto :no_smokeb
+:: and we're done here
+EXIT /B 0
 
 :no_smokea
 
