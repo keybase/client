@@ -47,6 +47,15 @@ const (
 	blockLookup
 )
 
+const (
+	// numBlockSizeWorkersMax is the max number of workers to use when
+	// fetching a set of block sizes.
+	numBlockSizeWorkersMax = 50
+	// truncateExtendCutoffPoint is the amount of data in extending
+	// truncate that will trigger the extending with a hole algorithm.
+	truncateExtendCutoffPoint = 128 * 1024
+)
+
 type mdToCleanIfUnused struct {
 	md  ReadOnlyRootMetadata
 	bps *blockPutState
@@ -507,7 +516,7 @@ func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 		ptrCh <- ptr
 	}
 
-	numWorkers := 50
+	numWorkers := numBlockSizeWorkersMax
 	if len(ptrs) < numWorkers {
 		numWorkers = len(ptrs)
 	}
@@ -2140,10 +2149,6 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	fbo.log.CDebugf(ctx, "truncateExtendLocked: done")
 	return latestWrite, dirtyPtrs, nil
 }
-
-// truncateExtendCutoffPoint is the amount of data in extending
-// truncate that will trigger the extending with a hole algorithm.
-const truncateExtendCutoffPoint = 128 * 1024
 
 // Returns the set of newly-ID'd blocks created during this truncate
 // that might need to be cleaned up if the truncate is deferred.
