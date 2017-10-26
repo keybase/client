@@ -326,8 +326,7 @@ function* _updateThread({
     const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
     const appFocused = yield select(Shared.focusedSelector)
 
-    yield all(
-      put(
+    yield put(
         Creators.appendMessages(
           conversationIDKey,
           conversationIDKey === selectedConversationIDKey,
@@ -335,11 +334,10 @@ function* _updateThread({
           newMessages,
           false
         )
-      )
     )
   } else {
     const last = thread && thread.pagination && thread.pagination.last
-    yield all([put(Creators.prependMessages(conversationIDKey, newMessages, !last))])
+    yield put(Creators.prependMessages(conversationIDKey, newMessages, !last))
   }
 }
 
@@ -360,6 +358,7 @@ const getThreadNonblockSagaMap = (yourName, yourDeviceName, conversationIDKey, a
 
 function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<any, any> {
   const conversationIDKey = action.payload.conversationIDKey
+  const recent = action.payload.wantNewer === true
 
   try {
     if (!conversationIDKey) {
@@ -390,7 +389,7 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     }
 
     const oldConversationState = yield select(Shared.conversationStateSelector, conversationIDKey)
-    if (oldConversationState && !action.payload.onlyNewerThan) {
+    if (oldConversationState && !recent) {
       if (action.payload.onlyIfUnloaded && oldConversationState.get('isLoaded')) {
         console.log('Bailing on chat load more due to already has initial load')
         return
@@ -418,16 +417,20 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       .map(k => ChatTypes.CommonMessageType[k])
     const conversationID = Constants.keyToConversationID(conversationIDKey)
 
-    const recent = action.payload.onlyNewerThan === true
+    const messageKeys = yield select(Constants.getConversationMessages, conversationIDKey)
+    // Find a real message id (ignore outbox etc)
+    let pivotMessageKey = recent
+      ? messageKeys.findLast(Constants.messageKeyKindIsMessageID)
+      : messageKeys.find(Constants.messageKeyKindIsMessageID)
 
-    const messageKeys = yield select(Constants.getConversationMessages, conversationID)
-    const pivot =
-      (recent
-        ? messageKeys.findLast(Constants.messageKeyKindIsMessageID)
-        : messageKeys.find(Constants.messageKeyKindIsMessageID)) || null
+    let pivot
+    if (pivotMessageKey) {
+      const message = yield select(Constants.getMessageFromMessageKey, pivotMessageKey)
+      pivot = message ? message.rawMessageID : null
+    }
 
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
-      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, !!action.payload.onlyNewerThan),
+      getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, recent),
       ChatTypes.localGetThreadNonblockRpcChannelMap,
       'localGetThreadNonblock',
       {

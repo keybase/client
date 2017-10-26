@@ -41,7 +41,6 @@ const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
 const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
-    hasPaginationNext: !!action.payload.paginationNext,
     messages: action.payload.messages.map(safeServerMessageMap),
     moreToLoad: action.payload.moreToLoad,
   },
@@ -181,7 +180,7 @@ function loadMoreMessages(
   onlyIfUnloaded: boolean,
   fromUser?: boolean = false,
   wantNewer?: boolean = false, // new messages, else older ones
-  numberOverride?: number // how many to ask for
+  numberOverride?: ?number // how many to ask for
 ): Constants.LoadMoreMessages {
   return {
     payload: {conversationIDKey, onlyIfUnloaded, fromUser, wantNewer, numberOverride},
@@ -349,7 +348,7 @@ function setLoaded(conversationIDKey: Constants.ConversationIDKey, isLoaded: boo
 function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
   messages: Array<Constants.Message>,
-  moreToLoad: boolean,
+  moreToLoad: boolean
 ): Constants.PrependMessages {
   return {
     logTransformer: prependMessagesActionTransformer,

@@ -503,7 +503,13 @@ export type LeaveConversation = NoErrorTypedAction<
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
-  {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
+  {
+    conversationIDKey: ConversationIDKey,
+    onlyIfUnloaded: boolean,
+    fromUser: boolean,
+    wantNewer: boolean,
+    numberOverride: ?number,
+  }
 >
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
@@ -546,8 +552,6 @@ export type PrependMessages = NoErrorTypedAction<
     conversationIDKey: ConversationIDKey,
     messages: Array<Message>,
     moreToLoad: boolean,
-    paginationNext: ?string,
-    paginationPrevious: ?string,
   }
 >
 export type RemoveOutboxMessage = NoErrorTypedAction<
