@@ -503,7 +503,6 @@ func (d *Service) hourlyChecks() {
 		return nil
 	})
 	go func() {
-		<-time.After(5 * time.Second)
 		// do this quickly
 		if err := d.G().LogoutIfRevoked(); err != nil {
 			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
