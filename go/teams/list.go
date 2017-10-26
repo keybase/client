@@ -395,14 +395,21 @@ func AnnotateAllInvites(ctx context.Context, g *libkb.GlobalContext, teams map[k
 				annotatedInvite.Uv = uv
 				mapper.MapUIDToPackage(uv.Uid, func(pkg libkb.UsernamePackage) {
 					if pkg.FullName == nil {
-						g.Log.CDebugf(ctx, "| Failed to get UsernamePackage.FullName for keybase invite for user %q uid %q\n", pkg.NormalizedUsername, uv.Uid)
 						// We failed to get FullName package, so we will be unable
 						// to check EldestSeqno. But it's better to assume the
 						// invitee has not reset.
-					} else if uv.EldestSeqno != pkg.FullName.EldestSeqno {
+						g.Log.CDebugf(ctx, "| Failed to get UsernamePackage.FullName for keybase invite for user %q uid %q\n", pkg.NormalizedUsername, uv.Uid)
+					}
+
+					if pkg.FullName == nil && uv.EldestSeqno != pkg.FullName.EldestSeqno {
 						// Not an error - user has just reset, they are not (invited)
 						// member anymore.
 						delete(res, inviteID)
+					} else {
+						// User has not reset (or we were unable to check), Mutate invite
+						// name to be username.
+						annotatedInvite.Name = keybase1.TeamInviteName(pkg.NormalizedUsername.String())
+						res[inviteID] = annotatedInvite
 					}
 				})
 			}
