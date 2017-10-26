@@ -124,15 +124,28 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 	return username, fullName, err
 }
 
-func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.AnnotatedTeamList) error {
+type DeferredUIDMapper struct {
+	callbacks map[keybase1.UID][]func(libkb.UsernamePackage)
+}
+
+func CreateDeferredUIDMapper() (res DeferredUIDMapper) {
+	res.callbacks = make(map[keybase1.UID][]func(libkb.UsernamePackage))
+	return
+}
+
+func (d DeferredUIDMapper) MapUIDToPackage(uid keybase1.UID, callback func(libkb.UsernamePackage)) {
+	d.callbacks[uid] = append(d.callbacks[uid], callback)
+}
+
+func (d DeferredUIDMapper) Go(ctx context.Context, g *libkb.GlobalContext) error {
 	var userList []keybase1.UID
 	userSet := map[keybase1.UID]int{}
 
-	for _, member := range res.Teams {
-		_, found := userSet[member.UserID]
+	for uid := range d.callbacks {
+		_, found := userSet[uid]
 		if !found {
-			userSet[member.UserID] = len(userList)
-			userList = append(userList, member.UserID)
+			userSet[uid] = len(userList)
+			userList = append(userList, uid)
 		}
 	}
 
@@ -141,18 +154,31 @@ func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.An
 		return err
 	}
 
-	for id := range res.Teams {
-		member := &res.Teams[id]
-		num := userSet[member.UserID]
-		pkg := namePkgs[num]
-
-		member.Username = pkg.NormalizedUsername.String()
-		if pkg.FullName != nil {
-			member.FullName = string(pkg.FullName.FullName)
+	for i, uid := range userList {
+		pkg := namePkgs[i]
+		for _, cb := range d.callbacks[uid] {
+			cb(pkg)
 		}
 	}
 
 	return nil
+}
+
+func fillUsernames(ctx context.Context, g *libkb.GlobalContext, res *keybase1.AnnotatedTeamList) error {
+	mapper := CreateDeferredUIDMapper()
+
+	for id := range res.Teams {
+		member := &res.Teams[id]
+
+		mapper.MapUIDToPackage(member.UserID, func(pkg libkb.UsernamePackage) {
+			member.Username = pkg.NormalizedUsername.String()
+			if pkg.FullName != nil {
+				member.FullName = string(pkg.FullName.FullName)
+			}
+		})
+	}
+
+	return mapper.Go(ctx, g)
 }
 
 // List info about teams
@@ -332,51 +358,7 @@ func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTe
 }
 
 func AnnotateAllInvites(ctx context.Context, g *libkb.GlobalContext, teams map[keybase1.TeamID]*Team) (res map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, err error) {
-	// Gather users first
-	var userList []keybase1.UID
-	userSet := map[keybase1.UID]int{}
-	gatherUser := func(uid keybase1.UID) {
-		_, found := userSet[uid]
-		if !found {
-			userSet[uid] = len(userList)
-			userList = append(userList, uid)
-		}
-	}
-
-	for _, team := range teams {
-		invites := team.chain().inner.ActiveInvites
-		for _, invite := range invites {
-			gatherUser(invite.Inviter.Uid)
-
-			category, err := invite.Type.C()
-			if err != nil {
-				g.Log.CDebugf(ctx, "| AnnotateAllInvites, while gathering users: %v", err)
-				continue
-			}
-			if category == keybase1.TeamInviteCategory_KEYBASE {
-				uv, err := invite.KeybaseUserVersion()
-				if err != nil {
-					g.Log.CDebugf(ctx, "| AnnotateAllInvites, while gathering users: %v", err)
-					continue
-				}
-
-				gatherUser(uv.Uid)
-			}
-		}
-	}
-
-	namePkgs, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, userList, 0, 0, true)
-	if err != nil {
-		return res, err
-	}
-
-	getUser := func(uid keybase1.UID) (res libkb.UsernamePackage, err error) {
-		num, ok := userSet[uid]
-		if !ok {
-			return res, fmt.Errorf("UID %q was not requested for uid mapping", uid)
-		}
-		return namePkgs[num], nil
-	}
+	mapper := CreateDeferredUIDMapper()
 
 	res = make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite)
 
@@ -384,20 +366,23 @@ func AnnotateAllInvites(ctx context.Context, g *libkb.GlobalContext, teams map[k
 		teamName := team.Name().String()
 		invites := team.chain().inner.ActiveInvites
 		for inviteID, invite := range invites {
-			inviterPkg, err := getUser(invite.Inviter.Uid)
-			if err != nil {
-				g.Log.CDebugf(ctx, "| AnnotateAllInvites, while annotating: %v", err)
-				continue
-			}
-
-			username := inviterPkg.NormalizedUsername
-
 			name := invite.Name
 			category, err := invite.Type.C()
 			if err != nil {
 				return res, err
 			}
-			var uv keybase1.UserVersion
+
+			inviteID := inviteID
+			annotatedInvite := keybase1.AnnotatedTeamInvite{
+				Role:     invite.Role,
+				Id:       invite.Id,
+				Type:     invite.Type,
+				Name:     name,
+				Inviter:  invite.Inviter,
+				TeamName: teamName,
+			}
+			res[inviteID] = annotatedInvite
+
 			if category == keybase1.TeamInviteCategory_KEYBASE {
 				// "keybase" invites (i.e. pukless users) have user version for name
 				uv, err := invite.KeybaseUserVersion()
@@ -406,36 +391,33 @@ func AnnotateAllInvites(ctx context.Context, g *libkb.GlobalContext, teams map[k
 					// users. Skip logging here.
 					continue
 				}
-				pkg, err := getUser(uv.Uid)
-				if err != nil {
-					// If this errors; same as above. This would only error out if
-					// we failed to properly request that Uid in gathering phase.
-					continue
-				}
-				if pkg.FullName == nil {
-					g.Log.CDebugf(ctx, "| Failed to get UsernamePackage.FullName for keybase invite for user %q uid %q\n", pkg.NormalizedUsername, uv.Uid)
-					// We failed to get FullName package, so we will be unable
-					// to check EldestSeqno. But it's better to assume the
-					// invitee has not reset.
-				} else if uv.EldestSeqno != pkg.FullName.EldestSeqno {
-					// Not an error - user has just reset, they are not (invited)
-					// member anymore.
-					continue
-				}
-				name = keybase1.TeamInviteName(pkg.NormalizedUsername)
+
+				annotatedInvite.Uv = uv
+				mapper.MapUIDToPackage(uv.Uid, func(pkg libkb.UsernamePackage) {
+					if pkg.FullName == nil {
+						g.Log.CDebugf(ctx, "| Failed to get UsernamePackage.FullName for keybase invite for user %q uid %q\n", pkg.NormalizedUsername, uv.Uid)
+						// We failed to get FullName package, so we will be unable
+						// to check EldestSeqno. But it's better to assume the
+						// invitee has not reset.
+					} else if uv.EldestSeqno != pkg.FullName.EldestSeqno {
+						// Not an error - user has just reset, they are not (invited)
+						// member anymore.
+						delete(res, inviteID)
+					}
+				})
 			}
-			res[inviteID] = keybase1.AnnotatedTeamInvite{
-				Role:            invite.Role,
-				Id:              invite.Id,
-				Type:            invite.Type,
-				Name:            name,
-				Uv:              uv,
-				Inviter:         invite.Inviter,
-				InviterUsername: username.String(),
-				TeamName:        teamName,
-			}
+
+			mapper.MapUIDToPackage(invite.Inviter.Uid, func(pkg libkb.UsernamePackage) {
+				annotatedInvite.InviterUsername = pkg.NormalizedUsername.String()
+				if _, ok := res[inviteID]; ok {
+					// Make sure it wasn't deletd by the EldestSeqno check
+					res[inviteID] = annotatedInvite
+				}
+			})
 		}
 	}
+
+	err = mapper.Go(ctx, g)
 
 	return res, err
 }
