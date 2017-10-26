@@ -121,12 +121,6 @@ function* _incomingMessage(action: Constants.IncomingMessage): SagaGenerator<any
         }
         const svcShouldDisplayNotification = incomingMessage.displayDesktopNotification
 
-        const pagination = incomingMessage.pagination
-        if (pagination) {
-          // This message will get appended, so only update the prev pointer
-          yield put(Creators.updatePaginationPrev(conversationIDKey, pagination.previous))
-        }
-
         // Is this message for the currently selected and focused conversation?
         // And is the Chat tab the currently displayed route? If all that is
         // true, mark it as read ASAP to avoid badging it -- we don't need to
@@ -327,14 +321,12 @@ function* _updateThread({
     }
   }
 
-  const pagination = _threadToPagination(thread)
   newMessages = newMessages.reverse()
   if (append) {
     const selectedConversationIDKey = yield select(Constants.getSelectedConversation)
     const appFocused = yield select(Shared.focusedSelector)
 
-    yield all([
-      put(Creators.updatePaginationPrev(conversationIDKey, pagination.previous)),
+    yield all(
       put(
         Creators.appendMessages(
           conversationIDKey,
@@ -343,21 +335,11 @@ function* _updateThread({
           newMessages,
           false
         )
-      ),
-    ])
+      )
+    )
   } else {
-    yield all([
-      put(Creators.updatePaginationNext(conversationIDKey, pagination.next)),
-      put(
-        Creators.prependMessages(
-          conversationIDKey,
-          newMessages,
-          !pagination.last,
-          pagination.next,
-          pagination.previous
-        )
-      ),
-    ])
+    const last = thread && thread.pagination && thread.pagination.last
+    yield all([put(Creators.prependMessages(conversationIDKey, newMessages, !last))])
   }
 }
 
@@ -424,7 +406,6 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         return
       }
     }
-    const next = yield select(Constants.getPaginationNext, conversationIDKey)
 
     yield put(Creators.loadingMessages(conversationIDKey, true))
 
@@ -437,19 +418,13 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
       .map(k => ChatTypes.CommonMessageType[k])
     const conversationID = Constants.keyToConversationID(conversationIDKey)
 
-    const pagination = action.payload.onlyNewerThan
-      ? {
-          last: false,
-          next: null,
-          num: 9999,
-          previous: action.payload.onlyNewerThan,
-        }
-      : {
-          last: false,
-          next,
-          num: Constants.maxMessagesToLoadAtATime,
-          previous: null,
-        }
+    const recent = action.payload.onlyNewerThan === true
+
+    const messageKeys = yield select(Constants.getConversationMessages, conversationID)
+    const pivot =
+      (recent
+        ? messageKeys.findLast(Constants.messageKeyKindIsMessageID)
+        : messageKeys.find(Constants.messageKeyKindIsMessageID)) || null
 
     const loadThreadChanMapRpc = new EngineRpc.EngineRpcCall(
       getThreadNonblockSagaMap(yourName, yourDeviceName, conversationIDKey, !!action.payload.onlyNewerThan),
@@ -459,11 +434,15 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
         param: {
           conversationID,
           identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-          pagination,
           query: {
             disableResolveSupersedes: false,
             markAsRead: true,
             messageTypes,
+            messageIDControl: {
+              pivot,
+              recent,
+              num: action.payload.numberOverride || Constants.maxMessagesToLoadAtATime,
+            },
           },
         },
       }
@@ -497,17 +476,6 @@ function* _loadMoreMessages(action: Constants.LoadMoreMessages): SagaGenerator<a
     }
   } finally {
     yield put(Creators.loadingMessages(conversationIDKey, false))
-  }
-}
-
-function _threadToPagination(thread): {last: any, next: any, previous: any} {
-  if (thread && thread.pagination) {
-    return thread.pagination
-  }
-  return {
-    last: undefined,
-    next: undefined,
-    previous: undefined,
   }
 }
 
@@ -1274,29 +1242,30 @@ function* _inboxSynced(action: Constants.InboxSynced): SagaGenerator<any, any> {
 
     const messageKeys = yield select(Constants.getConversationMessages, selectedConversation)
     const lastMessageKey = messageKeys.last()
+    let numberOverride
     if (lastMessageKey) {
       const lastMessage = yield select(Constants.getMessageFromMessageKey, lastMessageKey)
       // Check to see if we could possibly be asking for too many messages
-      if (
-        lastMessage &&
-        lastMessage.rawMessageID &&
-        inbox &&
-        inbox.maxMsgID &&
-        inbox.maxMsgID - lastMessage.rawMessageID > tooManyMessagesToJustAppendOnStale
-      ) {
-        console.log(
-          'Doing a full load due to too many old messages',
-          inbox.maxMsgID - lastMessage.rawMessageID
-        )
-        yield all([
-          put(Creators.clearMessages(selectedConversation)),
-          yield put(Creators.loadMoreMessages(selectedConversation, false)),
-        ])
-        return
+      if (lastMessage && lastMessage.rawMessageID && inbox && inbox.maxMsgID) {
+        numberOverride = inbox.maxMsgID - lastMessage.rawMessageID
+
+        if (numberOverride > tooManyMessagesToJustAppendOnStale) {
+          console.log(
+            'Doing a full load due to too many old messages',
+            inbox.maxMsgID - lastMessage.rawMessageID
+          )
+          yield all([
+            put(Creators.clearMessages(selectedConversation)),
+            yield put(Creators.loadMoreMessages(selectedConversation, false)),
+          ])
+          return
+        }
       }
     }
-    const onlyNewerThan = yield select(Constants.getPaginationPrev, selectedConversation)
-    yield put(Creators.loadMoreMessages(selectedConversation, false, false, onlyNewerThan))
+    // It is VERY important to pass the exact number of things to request here. The pagination system will
+    // return whatever number we ask for on newest messages due to its architecture so if we want only N
+    // newer items we have to explictly ask for N or it will give us messages older than onyNewerThan
+    yield put(Creators.loadMoreMessages(selectedConversation, false, false, true, numberOverride))
   }
 }
 
@@ -1491,24 +1460,6 @@ function attachmentLoaded(action: Constants.AttachmentLoaded) {
   ])
 }
 
-function _updatePaginationNext(action: Constants.UpdatePaginationNext) {
-  return put(
-    EntityCreators.replaceEntity(
-      ['pagination', 'next'],
-      I.Map({[action.payload.conversationIDKey]: action.payload.paginationNext})
-    )
-  )
-}
-
-function _updatePaginationPrev(action: Constants.UpdatePaginationPrev) {
-  return put(
-    EntityCreators.replaceEntity(
-      ['pagination', 'prev'],
-      I.Map({[action.payload.conversationIDKey]: action.payload.paginationPrev})
-    )
-  )
-}
-
 function* chatSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('app:changedFocus', _changedFocus)
   yield Saga.safeTakeEvery('app:changedActive', _changedActive)
@@ -1531,8 +1482,6 @@ function* chatSaga(): SagaGenerator<any, any> {
       Constants.getConversationMessages(s, a.payload.conversationIDKey)
   )
   yield Saga.safeTakeEveryPure('chat:updateTempMessage', _updateMessageEntity)
-  yield Saga.safeTakeEveryPure('chat:updatePaginationNext', _updatePaginationNext)
-  yield Saga.safeTakeEveryPure('chat:updatePaginationPrev', _updatePaginationPrev)
   yield Saga.safeTakeEvery('chat:appendMessages', _appendMessagesToConversation)
   yield Saga.safeTakeEvery('chat:prependMessages', _prependMessagesToConversation)
   yield Saga.safeTakeEvery('chat:outboxMessageBecameReal', _updateOutboxMessageToReal)

@@ -180,10 +180,11 @@ function loadMoreMessages(
   conversationIDKey: Constants.ConversationIDKey,
   onlyIfUnloaded: boolean,
   fromUser?: boolean = false,
-  onlyNewerThan?: string
+  wantNewer?: boolean = false, // new messages, else older ones
+  numberOverride?: number // how many to ask for
 ): Constants.LoadMoreMessages {
   return {
-    payload: {conversationIDKey, onlyIfUnloaded, fromUser, onlyNewerThan},
+    payload: {conversationIDKey, onlyIfUnloaded, fromUser, wantNewer, numberOverride},
     type: 'chat:loadMoreMessages',
   }
 }
@@ -349,12 +350,10 @@ function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
   messages: Array<Constants.Message>,
   moreToLoad: boolean,
-  paginationNext: ?string,
-  paginationPrevious: ?string
 ): Constants.PrependMessages {
   return {
     logTransformer: prependMessagesActionTransformer,
-    payload: {conversationIDKey, messages, moreToLoad, paginationNext, paginationPrevious},
+    payload: {conversationIDKey, messages, moreToLoad},
     type: 'chat:prependMessages',
   }
 }

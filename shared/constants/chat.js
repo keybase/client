@@ -1092,6 +1092,10 @@ function messageKeyConversationIDKey(key: MessageKey): ConversationIDKey {
   return key.split(':')[0]
 }
 
+function messageKeyKindIsMessageID(key: MessageKey): boolean {
+  return messageKeyKind(key).startsWith('messageID')
+}
+
 function messageKeyKind(key: MessageKey): MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
@@ -1390,6 +1394,7 @@ export {
   makeTeamTitle,
   messageKey,
   messageKeyKind,
+  messageKeyKindIsMessageID,
   messageKeyValue,
   messageKeyConversationIDKey,
   splitMessageIDKey,
