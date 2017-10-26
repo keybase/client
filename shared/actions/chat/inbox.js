@@ -99,7 +99,7 @@ function* onInboxStale(param: Constants.InboxStale): SagaGenerator<any, any> {
     const snippets = (inbox.items || []).reduce((map, c) => {
       // If we don't have metaData ignore it
       if (c.localMetadata) {
-        map[c.convID] = new HiddenString(Constants.makeSnippet(c.localMetadata.snippet ) || '')
+        map[c.convID] = new HiddenString(Constants.makeSnippet(c.localMetadata.snippet) || '')
       }
       return map
     }, {})
