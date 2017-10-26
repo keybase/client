@@ -5,13 +5,11 @@ import List from './list'
 import React, {Component} from 'react'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import {fuseStatus} from '../actions/kbfs'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {isLinux} from '../constants/platform'
-
-import type {Props} from '.'
-import type {TypedState} from '../constants/reducer'
+import {type Props} from '.'
 
 class FoldersRender extends Component<Props> {
   _makeItem(isPublic: boolean, isSelected: boolean) {
@@ -134,7 +132,7 @@ const tabBarStyle = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const installed = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  const installed = isLinux || (state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted)
   return {
     installed,
     showSecurityPrefs: !installed && state.favorite.kextPermissionError,

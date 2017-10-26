@@ -1,18 +1,22 @@
 // @flow
 import Git from '.'
+import * as I from 'immutable'
 import * as Creators from '../actions/git/creators'
 import * as Constants from '../constants/git'
-import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, lifecycle, connect, type TypedState} from '../util/container'
 import {createSelector} from 'reselect'
 import partition from 'lodash/partition'
 import sortBy from 'lodash/sortBy'
 
-import type {TypedState} from '../constants/reducer'
-
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
-const getRepos = createSelector([Constants.getIdToGit], git => {
+const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Constants.GitInfo>) => {
+  if (!git) {
+    return {
+      personals: [],
+      teams: [],
+    }
+  }
   const [personals, teams] = partition(git.valueSeq().toArray(), g => !g.teamname)
 
   return {
@@ -24,7 +28,7 @@ const getRepos = createSelector([Constants.getIdToGit], git => {
 const mapStateToProps = (state: TypedState, {routeState}) => {
   return {
     ...getRepos(state),
-    expandedSet: routeState.expandedSet,
+    expandedSet: routeState.get('expandedSet'),
     loading: state.entities.getIn(['git', 'loading']),
   }
 }
@@ -45,7 +49,7 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
     dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}]))
   },
   onToggleExpand: (id: string) => {
-    const old = routeState.expandedSet
+    const old = routeState.get('expandedSet')
     // TODO use unique id
     setRouteState({expandedSet: old.has(id) ? old.delete(id) : old.add(id)})
   },

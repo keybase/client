@@ -1,20 +1,17 @@
 // @flow
 import DevicePage from '.'
 import moment from 'moment'
-import {compose, mapProps} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, mapProps, connect, type TypedState} from '../../util/container'
 import {globalColors} from '../../styles'
 import {navigateUp} from '../../actions/route-tree'
 import {showRevokePage} from '../../actions/devices'
-
-import type {DeviceDetail} from '../../constants/devices'
-import type {TypedState} from '../../constants/reducer'
+import {type DeviceDetail} from '../../constants/devices'
 
 const buildTimeline = (device: DeviceDetail) => {
   const revoked = device.get('revokedAt') && [
     {
       desc: `Revoked ${moment(device.get('revokedAt')).format('MMM D, YYYY')}`,
-      subDesc: device.getIn(['revokedBy', 'name'], ''),
+      subDesc: device.revokedByName || '',
       type: 'Revoked',
     },
   ]
@@ -22,14 +19,14 @@ const buildTimeline = (device: DeviceDetail) => {
   const lastUsed = device.lastUsed && [
     {
       desc: `Last used ${moment(device.get('lastUsed')).format('MMM D, YYYY')}`,
-      subDesc: moment(device.get('lastUsed')).fromNow(),
+      subDesc: moment(device.lastUsed).fromNow(),
       type: 'LastUsed',
     },
   ]
 
   const added = {
     desc: `Added ${moment(device.get('created')).format('MMM D, YYYY')}`,
-    subDesc: device.getIn(['provisioner', 'name'], ''),
+    subDesc: device.provisionerName || '',
     type: 'Added',
   }
 
@@ -37,12 +34,12 @@ const buildTimeline = (device: DeviceDetail) => {
 }
 
 const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  device: state.entities.getIn(['devices', routeProps.deviceID]),
+  device: state.entities.getIn(['devices', routeProps.get('deviceID')]),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
-  showRevokeDevicePage: () => dispatch(showRevokePage(routeProps.deviceID)),
+  showRevokeDevicePage: () => dispatch(showRevokePage(routeProps.get('deviceID'))),
 })
 
 const bannerColor = props =>

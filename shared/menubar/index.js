@@ -7,17 +7,13 @@ import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
-import {exec} from 'child_process'
-import {isWindows} from '../constants/platform'
-import {loginTab} from '../constants/tabs'
+import {loginTab, type Tab} from '../constants/tabs'
+import {navigateTo, switchTo} from '../actions/route-tree'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {openInKBFS} from '../actions/kbfs'
 import {shell, ipcRenderer} from 'electron'
-import {navigateTo, switchTo} from '../actions/route-tree'
-
-import type {KBFSStatus} from '../constants/favorite'
-import type {Props as FolderProps} from '../folders'
-import type {Tab} from '../constants/tabs'
+import {type KBFSStatus} from '../constants/favorite'
+import {type Props as FolderProps} from '../folders'
 
 export type Props = $Shape<{
   username: ?string,
@@ -149,18 +145,6 @@ class Menubar extends Component<Props> {
     this._closeMenubar()
   }
 
-  _openShell() {
-    if (isWindows) {
-      let shellCmd =
-        'start "Keybase Shell" "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Keybase\\Keybase Shell.lnk"'
-      exec(shellCmd, err => {
-        if (err) {
-          console.log('Error starting Keybase Shell:', err)
-        }
-      })
-    }
-  }
-
   _quit() {
     executeActionsForContext('quitButton')
   }
@@ -185,7 +169,6 @@ class Menubar extends Component<Props> {
           this._showMain()
           tab && this.props.switchTab(tab)
         }}
-        openShell={() => this._openShell()}
         showBug={() => this._showBug()}
         username={this.props.username}
         kbfsStatus={this.props.kbfsStatus}
@@ -199,7 +182,6 @@ class Menubar extends Component<Props> {
   }
 }
 
-// $FlowIssue type this connector
 export default connect(
   state => ({
     username: state.config && state.config.username,

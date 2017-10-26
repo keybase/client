@@ -89,7 +89,8 @@ class Files extends Component<Props, State> {
           {onClick: ignoreCurrentFolder, title: 'Ignore'},
         ]}
         visiblePopupMenu={this.state.visiblePopupMenu}
-        onTogglePopupMenu={() => this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
+        onTogglePopupMenu={() =>
+          this.setState(prevState => ({visiblePopupMenu: !prevState.visiblePopupMenu}))}
         selfUsername={username}
         allowIgnore={allowIgnore}
         users={folder.users}
@@ -110,7 +111,7 @@ class Files extends Component<Props, State> {
 }
 
 const ConnectedFiles = connect(
-  (state: any, {routeProps: {path}}) => {
+  (state: any, {routeProps}) => {
     const folders: Array<Folder> = [].concat(
       get(state, 'favorite.folderState.private.tlfs', []),
       get(state, 'favorite.folderState.public.tlfs', []),
@@ -118,10 +119,10 @@ const ConnectedFiles = connect(
       get(state, 'favorite.folderState.public.ignored', [])
     )
 
-    const folder = folders.find(f => f.path === path)
+    const folder = folders.find(f => f.path === routeProps.get('path'))
 
     return {
-      path,
+      path: routeProps.get('path'),
       folder,
       username: state.config && state.config.username,
     }

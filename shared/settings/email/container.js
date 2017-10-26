@@ -2,11 +2,9 @@
 import UpdateEmail from './index'
 import {navigateUp} from '../../actions/route-tree'
 import {onChangeNewEmail, onSubmitNewEmail} from '../../actions/settings'
-import {TypedConnector} from '../../util/typed-connect'
+import {connect, type TypedState} from '../../util/container'
 
-const connector = new TypedConnector()
-
-export default connector.connect((state, dispatch, ownProps) => {
+const mapStateToProps = (state: TypedState) => {
   const {waitingForResponse} = state.settings
   const {emails, error} = state.settings.email
   let email = ''
@@ -17,15 +15,18 @@ export default connector.connect((state, dispatch, ownProps) => {
   }
   return {
     email,
-    isVerified,
     error,
+    isVerified,
     waitingForResponse,
-    onBack: () => {
-      dispatch(navigateUp())
-    },
-    onSave: email => {
-      dispatch(onChangeNewEmail(email))
-      dispatch(onSubmitNewEmail())
-    },
   }
-})(UpdateEmail)
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onBack: () => dispatch(navigateUp()),
+  onSave: email => {
+    dispatch(onChangeNewEmail(email))
+    dispatch(onSubmitNewEmail())
+  },
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(UpdateEmail)

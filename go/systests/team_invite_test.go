@@ -7,7 +7,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -41,7 +40,7 @@ func TestTeamInviteRooter(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, tt.users[0].tc.G, team, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +98,7 @@ func TestTeamInviteEmail(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, tt.users[0].tc.G, team, false, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,7 +157,7 @@ func TestTeamInviteAcceptOrRequest(t *testing.T) {
 	tt.users[1].waitForTeamChangedGregor(team, keybase1.Seqno(3))
 
 	// the team should have user 1 in it now as a writer
-	t0, err := teams.GetForTeamManagementByStringName(context.TODO(), tt.users[0].tc.G, team, true)
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, tt.users[0].tc.G, team, false, true)
 	require.NoError(t, err)
 	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
@@ -235,7 +234,6 @@ func TestTeamReInviteAfterReset(t *testing.T) {
 
 	t.Logf("Trying to get a PUK")
 
-	libkb.G = bob.getPrimaryGlobalContext()
 	bob.primaryDevice().tctx.Tp.DisableUpgradePerUserKey = false
 
 	err := bob.perUserKeyUpgrade()
@@ -354,11 +352,7 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	require.NotEqual(t, team1, team2)
 
-	// proveRooter has a problem where some code path relies on global
-	// libkb.G context, so we need to change it before for each user.
-	libkb.G = bob.tc.G
 	bob.proveRooter()
-	libkb.G = charlie.tc.G
 	charlie.proveRooter()
 
 	alice.kickTeamRekeyd()
@@ -388,4 +382,49 @@ func TestImpTeamWithMultipleRooters(t *testing.T) {
 
 	team2, err = alice.lookupImplicitTeam(false /*create*/, displayNameRooter2, false /*isPublic*/)
 	require.Error(t, err)
+}
+
+func TestClearSocialInvitesOnAdd(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	// Disable gregor in this test so Ann does not immediately add Bob
+	// through SBS handler when bob proves Rooter.
+	ann := makeUserStandalone(t, "ann", standaloneUserArgs{disableGregor: true})
+	tt.users = append(tt.users, ann)
+
+	bob := tt.addUser("bob")
+
+	team := ann.createTeam()
+
+	t.Logf("Ann created team %q", team)
+
+	bobBadRooter := "other" + bob.username
+
+	ann.addTeamMember(team, bob.username+"@rooter", keybase1.TeamRole_WRITER)
+	ann.addTeamMember(team, bobBadRooter+"@rooter", keybase1.TeamRole_WRITER)
+
+	bob.proveRooter()
+
+	// Because bob@rooter is now proven by bob, this will add bob as a
+	// member instead of making an invitation.
+	ann.addTeamMember(team, bob.username+"@rooter", keybase1.TeamRole_WRITER)
+
+	t0, err := teams.GetTeamByNameForTest(context.TODO(), t, ann.tc.G, team, false, true)
+	require.NoError(t, err)
+
+	writers, err := t0.UsersWithRole(keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+	require.Equal(t, len(writers), 1)
+	require.True(t, writers[0].Uid.Equal(bob.uid))
+
+	// Adding should have cleared bob...@rooter
+	hasInv, err := t0.HasActiveInvite(keybase1.TeamInviteName(bob.username), "rooter")
+	require.NoError(t, err)
+	require.False(t, hasInv)
+
+	// But should not have cleared otherbob...@rooter
+	hasInv, err = t0.HasActiveInvite(keybase1.TeamInviteName(bobBadRooter), "rooter")
+	require.NoError(t, err)
+	require.True(t, hasInv)
 }

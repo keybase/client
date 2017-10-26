@@ -3,11 +3,8 @@ import * as Constants from '../../../../constants/chat'
 import * as Creators from '../../../../actions/chat/creators'
 import OldProfileResetNotice from '.'
 import {List} from 'immutable'
-import {compose, branch, renderNothing} from 'recompose'
-import {connect} from 'react-redux'
-
-import type {TypedState} from '../../../../constants/reducer'
-import type {StateProps, DispatchProps} from './container'
+import {compose, branch, renderNothing, connect, type TypedState} from '../../../../util/container'
+import {type StateProps, type DispatchProps} from './container'
 
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
@@ -15,17 +12,15 @@ const mapStateToProps = (state: TypedState) => {
     // $FlowIssue this isn't typesafe
     return {}
   }
-  const finalizeInfo = state.chat.get('finalizedState').get(selectedConversationIDKey)
+  const finalizeInfo = state.chat.finalizedState.get(selectedConversationIDKey)
   const _supersededBy = Constants.convSupersededByInfo(selectedConversationIDKey, state.chat)
-
-  const inbox = state.chat.get('inbox')
-  const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversationIDKey)
-  const _participants = (selected && selected.participants) || List()
+  const selected = Constants.getInbox(state, selectedConversationIDKey)
+  const _participants = selected ? selected.participants : List()
 
   return {
     _participants,
     _supersededBy,
-    username: finalizeInfo.resetUser,
+    username: finalizeInfo ? finalizeInfo.resetUser : '',
   }
 }
 

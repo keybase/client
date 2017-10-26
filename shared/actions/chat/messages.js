@@ -16,40 +16,40 @@ import type {SagaGenerator} from '../../constants/types/saga'
 
 function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let messageID
-  let conversationIDKey: ?Constants.ConversationIDKey
-  switch (message.type) {
-    case 'Text':
-    case 'Attachment':
-      const attrs = Constants.splitMessageIDKey(message.key)
-      messageID = Constants.parseMessageID(attrs.messageID).msgID
-      conversationIDKey = attrs.conversationIDKey
-      break
+  if (message.type !== 'Text' && message.type !== 'Attachment') {
+    console.warn('Deleting non-text non-attachment message:', message)
+    return
   }
 
-  if (!conversationIDKey) throw new Error('No conversation for message delete')
-
-  if (messageID) {
+  const attrs = Constants.splitMessageIDKey(message.key)
+  const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
+  const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  if (messageID.type === 'rpcMessageID') {
     // Deleting a server message.
     const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
-      select(Shared.selectedInboxSelector, conversationIDKey),
+      select(Constants.getInbox, conversationIDKey),
       select(Constants.lastMessageID, conversationIDKey),
     ])
     yield put(navigateTo([], [chatTab, conversationIDKey]))
 
+    if (!inboxConvo.name) {
+      console.warn('Deleting message for non-existent TLF:', message)
+      return
+    }
+    const tlfName: string = inboxConvo.name
+
     const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {
-      param: {
-        clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
-        conversationID: Constants.keyToConversationID(conversationIDKey),
-        identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-        outboxID,
-        supersedes: messageID,
-        tlfName: inboxConvo.name,
-        tlfPublic: false,
-      },
-    })
-  } else {
+    const param: ChatTypes.localPostDeleteNonblockRpcParam = {
+      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
+      conversationID: Constants.keyToConversationID(conversationIDKey),
+      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+      outboxID,
+      supersedes: messageID.msgID,
+      tlfName,
+      tlfPublic: false,
+    }
+    yield call(ChatTypes.localPostDeleteNonblockRpcPromise, {param})
+  } else if (messageID.type === 'outboxID') {
     // Deleting a local outbox message.
     const outboxID = message.outboxID
     if (!outboxID) throw new Error('No outboxID for pending message delete')
@@ -60,6 +60,8 @@ function* deleteMessage(action: Constants.DeleteMessage): SagaGenerator<any, any
     // It's deleted, but we don't get notified that the conversation now has
     // one less outbox entry in it.  Gotta remove it from the store ourselves.
     yield put(Creators.removeOutboxMessage(conversationIDKey, outboxID))
+  } else {
+    console.warn('Deleting message without RPC or outbox message ID:', message, messageID)
   }
 }
 
@@ -84,7 +86,7 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
   }
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
-    select(Shared.selectedInboxSelector, conversationIDKey),
+    select(Constants.getInbox, conversationIDKey),
     select(Constants.lastMessageID, conversationIDKey),
   ])
 
@@ -137,43 +139,66 @@ function* postMessage(action: Constants.PostMessage): SagaGenerator<any, any> {
 
 function* editMessage(action: Constants.EditMessage): SagaGenerator<any, any> {
   const {message} = action.payload
-  let messageID
-  let conversationIDKey: Constants.ConversationIDKey = ''
-  switch (message.type) {
-    case 'Text':
-    case 'Attachment': // fallthrough
-      const attrs = Constants.splitMessageIDKey(message.key)
-      messageID = Constants.parseMessageID(attrs.messageID).msgID
-      conversationIDKey = attrs.conversationIDKey
-      break
-  }
-
-  if (!messageID) {
-    console.warn('Editing unknown message type', message)
+  if (message.type !== 'Text') {
+    console.warn('Editing non-text message:', message)
     return
   }
+  const textMessage = (message: Constants.TextMessage)
+  const attrs = Constants.splitMessageIDKey(textMessage.key)
+  const conversationIDKey: Constants.ConversationIDKey = attrs.conversationIDKey
+  const messageID: Constants.ParsedMessageID = Constants.parseMessageID(attrs.messageID)
+  if (messageID.type !== 'rpcMessageID') {
+    console.warn('Editing message without RPC message ID:', message, messageID)
+    return
+  }
+  let supersedes: ChatTypes.MessageID = messageID.msgID
 
   const [inboxConvo, lastMessageID]: [Constants.InboxState, ?Constants.MessageID] = yield all([
-    select(Shared.selectedInboxSelector, conversationIDKey),
+    select(Constants.getInbox, conversationIDKey),
     select(Constants.lastMessageID, conversationIDKey),
   ])
+
+  let clientPrev: ChatTypes.MessageID
+  if (lastMessageID) {
+    const clientPrevMessageID = Constants.parseMessageID(lastMessageID)
+    if (clientPrevMessageID.type !== 'rpcMessageID') {
+      console.warn('Editing message without RPC last message ID:', message, clientPrevMessageID)
+      return
+    }
+
+    clientPrev = clientPrevMessageID.msgID
+  } else {
+    clientPrev = 0
+  }
+
+  if (!inboxConvo.name) {
+    console.warn('Editing message for non-existent TLF:', message)
+    return
+  }
+  const tlfName: string = inboxConvo.name
 
   // Not editing anymore
   yield put(Creators.showEditor(null))
 
+  // if message post-edit is the same as message pre-edit, skip call and marking message as 'EDITED'
+  const prevMessageText = textMessage.message.stringValue()
+  const newMessageText = action.payload.text.stringValue()
+  if (prevMessageText === newMessageText) {
+    return
+  }
+
   const outboxID = yield call(ChatTypes.localGenerateOutboxIDRpcPromise)
-  yield call(ChatTypes.localPostEditNonblockRpcPromise, {
-    param: {
-      body: action.payload.text.stringValue(),
-      clientPrev: lastMessageID ? Constants.parseMessageID(lastMessageID).msgID : 0,
-      conversationID: Constants.keyToConversationID(conversationIDKey),
-      identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
-      outboxID,
-      supersedes: messageID,
-      tlfName: inboxConvo.name,
-      tlfPublic: false,
-    },
-  })
+  const param: ChatTypes.localPostEditNonblockRpcParam = {
+    body: newMessageText,
+    clientPrev,
+    conversationID: Constants.keyToConversationID(conversationIDKey),
+    identifyBehavior: TlfKeysTLFIdentifyBehavior.chatGui,
+    outboxID,
+    supersedes,
+    tlfName,
+    tlfPublic: false,
+  }
+  yield call(ChatTypes.localPostEditNonblockRpcPromise, {param})
 }
 
 function* retryMessage(action: Constants.RetryMessage): SagaGenerator<any, any> {

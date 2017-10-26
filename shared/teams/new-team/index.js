@@ -1,49 +1,54 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderHoc, Input, PopupDialog, Text} from '../../common-adapters/index'
+import {Box, Button, HeaderHoc, Input, PopupDialog, Text, ScrollView} from '../../common-adapters/index'
 import {isMobile} from '../../constants/platform'
 import {globalColors, globalMargins, globalStyles} from '../../styles'
 
 import type {Props} from './'
 
-const Contents = ({errorText, name, onNameChange, onSubmit}: Props) => (
-  <Box style={globalStyles.flexBoxColumn}>
-    <Box style={{...styleContainer, backgroundColor: errorText ? globalColors.red : globalColors.blue}}>
-      <Text
-        style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
-        type="BodySemibold"
-        backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
-      >
-        {errorText ||
-          "For security reasons, team names are unique and can't be changed, so choose carefully."}
-      </Text>
-    </Box>
+const Contents = ({errorText, name, onNameChange, onSubmit, pending}: Props) => (
+  <ScrollView>
+    <Box style={globalStyles.flexBoxColumn}>
+      <Box style={{...styleContainer, backgroundColor: errorText ? globalColors.red : globalColors.blue}}>
+        <Text
+          style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+          type="BodySemibold"
+          backgroundMode={errorText ? 'HighRisk' : 'Announcements'}
+        >
+          {errorText ||
+            "For security reasons, team names are unique and can't be changed, so choose carefully."}
+        </Text>
+      </Box>
 
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        ...stylePadding,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Input
-        autoFocus={true}
-        hintText="Name your team"
-        value={name}
-        onChangeText={onNameChange}
-        onEnterKeyDown={onSubmit}
-      />
-      <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
-        <Button
-          type="Primary"
-          style={{marginLeft: globalMargins.tiny}}
-          onClick={onSubmit}
-          label="Create team"
+      <Box
+        style={{
+          ...globalStyles.flexBoxColumn,
+          ...stylePadding,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: globalColors.white,
+        }}
+      >
+        <Input
+          autoFocus={true}
+          hintText="Name your team"
+          value={name}
+          onChangeText={onNameChange}
+          onEnterKeyDown={onSubmit}
+          disabled={pending}
         />
+        <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
+          <Button
+            type="Primary"
+            style={{marginLeft: globalMargins.tiny}}
+            onClick={onSubmit}
+            label="Create team"
+            disabled={pending}
+          />
+        </Box>
       </Box>
     </Box>
-  </Box>
+  </ScrollView>
 )
 
 const PopupWrapped = (props: Props) => (
@@ -58,8 +63,8 @@ const styleContainer = {
   minHeight: 40,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  borderTopLeftRadius: 4,
-  borderTopRightRadius: 4,
+  borderTopLeftRadius: isMobile ? 0 : 4,
+  borderTopRightRadius: isMobile ? 0 : 4,
 }
 
 const stylePadding = isMobile

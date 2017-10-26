@@ -26,15 +26,19 @@ const copySync = (src, target, options) => {
   fs.copySync(desktopPath(src), desktopPath(target), {...options, dereference: true})
 }
 
-const argv = minimist(process.argv.slice(2))
+const argv = minimist(process.argv.slice(2), {string: ['appVersion']})
 
 const appName = 'Keybase'
 const shouldUseAsar = argv.asar || argv.a || false
 const shouldBuildAll = argv.all || false
-const shouldBuildAnArch = argv.arch || false
-const appVersion = argv.appVersion || '0.0.0'
-const comment = argv.comment || ''
-const outDir = argv.outDir || ''
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const shouldBuildAnArch: ?string = argv.arch
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const appVersion: string = argv.appVersion || '0.0.0'
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const comment: string = argv.comment || ''
+// $FlowIssue // flow-typed libdef is pretty weak, thinks this might be a boolean
+const outDir: string = argv.outDir || ''
 const appCopyright = 'Copyright (c) 2015, Keybase'
 const companyName = 'Keybase, Inc.'
 
@@ -82,9 +86,15 @@ function main() {
     // $FlowIssue
     packagerOpts.electronVersion = require('../package.json').devDependencies.electron
     console.log('Found electron version:', packagerOpts.electronVersion)
-    startPack()
   } catch (err) {
     console.log("Couldn't parse yarn list to find electron:", err)
+    process.exit(1)
+  }
+
+  try {
+    startPack()
+  } catch (err) {
+    console.log('Error startPack: ', err)
     process.exit(1)
   }
 }
@@ -117,15 +127,15 @@ function startPack() {
 
           platforms.forEach(plat => {
             archs.forEach(arch => {
-              pack(plat, arch, log(plat, arch))
+              pack(plat, arch, postPack(plat, arch))
             })
           })
         } else if (shouldBuildAnArch) {
           // build for a specified arch on current platform only
-          pack(os.platform(), shouldBuildAnArch, log(os.platform(), shouldBuildAnArch))
+          pack(os.platform(), shouldBuildAnArch, postPack(os.platform(), shouldBuildAnArch))
         } else {
           // build for current platform only
-          pack(os.platform(), os.arch(), log(os.platform(), os.arch()))
+          pack(os.platform(), os.arch(), postPack(os.platform(), os.arch()))
         }
       })
       .catch(err => {
@@ -166,7 +176,7 @@ function pack(plat, arch, cb) {
   packager(opts, cb)
 }
 
-function log(plat, arch) {
+function postPack(plat, arch) {
   return (err, filepath) => {
     if (err) {
       console.error(err)
@@ -188,6 +198,20 @@ function log(plat, arch) {
         process.exit(1)
       }
     })
+    if (plat === 'win32') {
+      let packageOutDir = outDir
+      if (packageOutDir === '') packageOutDir = desktopPath(`release/${plat}-${arch}`)
+      const regeditVbsDir = `${packageOutDir}/Keybase-${plat}-${arch}/node_modules/regedit/vbs`
+      fs
+        .ensureDir(regeditVbsDir)
+        .then(() => {
+          fs.copy('node_modules/regedit/vbs', regeditVbsDir)
+        })
+        .catch(err => {
+          console.error(err)
+          process.exit(1)
+        })
+    }
     console.log(`${plat}-${arch} finished!`)
   }
 }

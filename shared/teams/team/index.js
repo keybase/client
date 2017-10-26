@@ -1,36 +1,46 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
-import {Avatar, Box, Text, Tabs, List, Icon, PopupMenu, ProgressIndicator} from '../../common-adapters'
+import {
+  Avatar,
+  Box,
+  Button,
+  Text,
+  Tabs,
+  List,
+  Icon,
+  PopupMenu,
+  ProgressIndicator,
+} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
+import {OpenTeamSettingButton} from '../open-team'
+import TeamInviteRow from './invite-row/container'
+import TeamMemberRow from './member-row/container'
+import TeamRequestRow from './request-row/container'
 
-export type RowProps = {
-  ...Constants.MemberInfo,
-}
+export type MemberRowProps = Constants.MemberInfo
+type InviteRowProps = Constants.InviteInfo
+type RequestRowProps = Constants.RequestInfo
 
 export type Props = {
   you: string,
   name: Constants.Teamname,
-  members: Array<RowProps>,
+  invites: Array<InviteRowProps>,
+  members: Array<MemberRowProps>,
+  requests: Array<RequestRowProps>,
   loading: boolean,
+  showMenu: boolean,
+  selectedTab: Constants.TabKey,
   setShowMenu: (s: boolean) => void,
+  onAddPeople: () => void,
+  onInviteByEmail: () => void,
+  setSelectedTab: (t: ?Constants.TabKey) => void,
   onLeaveTeam: () => void,
   onManageChat: () => void,
-}
-
-const typeToLabel = {
-  admins: 'Admin',
-  owners: 'Owner',
-  readers: 'Reader',
-  writers: 'Writer',
-}
-
-const showCrown = {
-  admins: true,
-  owners: true,
-  readers: false,
-  writer: false,
+  onClickOpenTeamSetting: () => void,
+  isTeamOpen: boolean,
+  youCanAddPeople: boolean,
 }
 
 const Help = isMobile
@@ -38,93 +48,170 @@ const Help = isMobile
   : ({name}: {name: Constants.Teamname}) => (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', margin: 20}}>
         <Text type="Body" style={{textAlign: 'center'}}>
-          Team management in the app is coming soon! In the meantime you can do it from the terminal:
-        </Text>
-        <Box
-          style={{
-            backgroundColor: globalColors.midnightBlue,
-            borderRadius: 4,
-            marginTop: 20,
-            padding: 16,
-          }}
-        >
-          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
-            # Add a member
-          </Text>
-          <Text
-            type="Terminal"
-            backgroundMode="Terminal"
-            style={{display: 'block', ...globalStyles.selectable}}
-          >{`keybase team add-member ${name} --user={user} --role=writer`}</Text>
-          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
-            # Remove a member
-          </Text>
-          <Text
-            type="Terminal"
-            backgroundMode="Terminal"
-            style={globalStyles.selectable}
-          >{`keybase team remove-member ${name} --user={user}`}</Text>
-          <Text type="TerminalComment" backgroundMode="Terminal" style={{display: 'block'}}>
-            # More commands
-          </Text>
-          <Text type="Terminal" backgroundMode="Terminal" style={globalStyles.selectable}>
+          You can also manage teams from the terminal:
+          <Text type="TerminalInline" style={{...globalStyles.selectable, marginLeft: globalMargins.tiny}}>
             keybase team --help
           </Text>
-        </Box>
+        </Text>
       </Box>
     )
 
-class Team extends React.PureComponent<Props> {
-  _renderItem = (index: number, item: RowProps) => {
-    return (
-      <Box
-        key={item.username}
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flexShrink: 0,
-          height: isMobile ? 56 : 48,
-          padding: globalMargins.tiny,
-          width: '100%',
-        }}
-      >
-        <Avatar username={item.username} size={isMobile ? 48 : 32} />
-        <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <Text type={this.props.you === item.username ? 'BodySemiboldItalic' : 'BodySemibold'}>
-            {item.username}
-          </Text>
-          <Box style={globalStyles.flexBoxRow}>
-            {!!showCrown[item.type] &&
-              <Icon
-                type="iconfont-crown"
-                style={{
-                  color: globalColors.black_40,
-                  fontSize: isMobile ? 16 : 12,
-                  marginRight: globalMargins.xtiny,
-                }}
-              />}
-            <Text type="BodySmall">{typeToLabel[item.type]}</Text>
-          </Box>
-        </Box>
-      </Box>
-    )
-  }
+type TeamTabsProps = {
+  admin: boolean,
+  invites: Array<InviteRowProps>,
+  members: Array<MemberRowProps>,
+  requests: Array<RequestRowProps>,
+  loading?: boolean,
+  selectedTab?: string,
+  setSelectedTab: (?Constants.TabKey) => void,
+}
 
-  render() {
-    const {name, members, setShowMenu, onLeaveTeam, loading, onManageChat} = this.props
-    const tabs = [
+const TeamTabs = (props: TeamTabsProps) => {
+  const {admin, invites, members, requests, loading = false, selectedTab, setSelectedTab} = props
+  let membersLabel = 'MEMBERS'
+  membersLabel += !loading || members.length !== 0 ? ' (' + members.length + ')' : ''
+  const tabs = [
+    <Text
+      key="members"
+      type="BodySmallSemibold"
+      style={{
+        color: globalColors.black_75,
+      }}
+    >
+      {membersLabel}
+    </Text>,
+  ]
+  if (admin) {
+    const requestsLabel = `REQUESTS (${requests.length})`
+    const invitesLabel = `PENDING INVITES (${invites.length})`
+    tabs.push(
       <Text
-        key="members"
+        key="requests"
         type="BodySmallSemibold"
         style={{
           color: globalColors.black_75,
         }}
       >
-        MEMBERS ({members.length})
-      </Text>,
-    ]
-    // TODO admin lets us have multiple tabs
-    const selectedTab = tabs[0]
+        {requestsLabel}
+      </Text>
+    )
+    tabs.push(
+      <Text
+        key="invites"
+        type="BodySmallSemibold"
+        style={{
+          color: globalColors.black_75,
+        }}
+      >
+        {invitesLabel}
+      </Text>
+    )
+  }
+  if (loading) {
+    tabs.push(<ProgressIndicator style={{alignSelf: 'center', width: 17, height: 17}} />)
+  }
+
+  const onSelect = (tab: any) => {
+    const key = tab && tab.key
+    if (key) {
+      if (key !== 'loadingIndicator') {
+        setSelectedTab(key)
+      } else {
+        setSelectedTab('members')
+      }
+    }
+  }
+
+  const selected = tabs.find(tab => tab.key === selectedTab)
+  return <Tabs tabs={tabs} selected={selected} onSelect={onSelect} />
+}
+
+class Team extends React.PureComponent<Props> {
+  render() {
+    const {
+      invites,
+      name,
+      members,
+      requests,
+      showMenu,
+      setShowMenu,
+      onAddPeople,
+      onInviteByEmail,
+      onLeaveTeam,
+      selectedTab,
+      loading,
+      onManageChat,
+      you,
+      youCanAddPeople,
+    } = this.props
+
+    const me = members.find(member => member.username === you)
+    const admin = me ? me.type === 'admin' || me.type === 'owner' : false
+
+    // massage data for rowrenderers
+    const memberProps = members.map(member => ({username: member.username, teamname: name}))
+    const requestProps = requests.map(req => ({username: req.username, teamname: name}))
+    const inviteProps = invites.map(invite => ({
+      key: invite.email || invite.username,
+      email: invite.email,
+      teamname: name,
+      username: invite.username,
+    }))
+
+    let contents
+    if (selectedTab === 'members') {
+      contents =
+        (members.length !== 0 || !loading) &&
+        <List
+          keyProperty="username"
+          items={memberProps}
+          fixedHeight={48}
+          renderItem={TeamMemberRow}
+          style={{alignSelf: 'stretch'}}
+        />
+    } else if (selectedTab === 'requests') {
+      if (requests.length === 0) {
+        contents = (
+          <Text
+            type="BodySmall"
+            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+          >
+            This team has no pending requests.
+          </Text>
+        )
+      } else {
+        contents = (
+          <List
+            keyProperty="username"
+            items={requestProps}
+            fixedHeight={48}
+            renderItem={TeamRequestRow}
+            style={{alignSelf: 'stretch'}}
+          />
+        )
+      }
+    } else if (selectedTab === 'invites') {
+      if (invites.length === 0) {
+        contents = (
+          <Text
+            type="BodySmall"
+            style={{color: globalColors.black_40, textAlign: 'center', marginTop: globalMargins.xlarge}}
+          >
+            This team has no pending invites.
+          </Text>
+        )
+      } else {
+        contents =
+          !loading &&
+          <List
+            keyProperty="key"
+            items={inviteProps}
+            fixedHeight={48}
+            renderItem={TeamInviteRow}
+            style={{alignSelf: 'stretch'}}
+          />
+      }
+    }
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
@@ -133,18 +220,27 @@ class Team extends React.PureComponent<Props> {
           {name}
         </Text>
         <Text type="BodySmall">TEAM</Text>
+        {youCanAddPeople &&
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginTop: globalMargins.small}}>
+            <Button type="Primary" label="Add people" onClick={onAddPeople} />
+            <Button
+              type="Secondary"
+              label="Invite by email"
+              onClick={onInviteByEmail}
+              style={{marginLeft: globalMargins.small}}
+            />
+          </Box>}
         <Help name={name} />
-        {loading && <ProgressIndicator style={{alignSelf: 'center', width: 100}} />}
-        {!loading && <Tabs tabs={tabs} selected={selectedTab} onSelect={() => {}} />}
-        {!loading &&
-          <List
-            keyProperty="username"
-            items={members}
-            fixedHeight={48}
-            renderItem={this._renderItem}
-            style={{alignSelf: 'stretch'}}
-          />}
-        {this.props.showMenu &&
+        {admin &&
+          <Box style={{marginTop: globalMargins.medium, marginBottom: globalMargins.medium}}>
+            <OpenTeamSettingButton
+              onClick={this.props.onClickOpenTeamSetting}
+              isOpen={this.props.isTeamOpen}
+            />
+          </Box>}
+        <TeamTabs {...this.props} admin={admin} />
+        {contents}
+        {showMenu &&
           <PopupMenu
             items={[
               {onClick: onManageChat, title: 'Manage chat channels'},

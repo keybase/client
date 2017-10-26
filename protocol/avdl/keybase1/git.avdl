@@ -48,9 +48,21 @@ protocol git {
     string lastModifyingDeviceName;
   }
 
-  void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata);
+  // These RPCs are only exposed for testing. Public commands won't call it directly.
+  void putGitMetadata(Folder folder, RepoID repoID, GitLocalMetadata metadata, boolean notifyTeam);
+  void deleteGitMetadata(Folder folder, GitRepoName repoName);
 
-  record GitRepoResult {
+  enum GitRepoResultState {
+    ERR_0,
+    OK_1
+  }
+
+  variant GitRepoResult switch (GitRepoResultState state) {
+    case ERR: string;
+    case OK: GitRepoInfo;
+  }
+
+  record GitRepoInfo {
     Folder folder;
     RepoID repoID;
     GitLocalMetadata localMetadata;

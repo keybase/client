@@ -64,7 +64,7 @@ type Sender interface {
 }
 
 type ChatLocalizer interface {
-	Localize(ctx context.Context, uid gregor1.UID, inbox chat1.Inbox) ([]chat1.ConversationLocal, error)
+	Localize(ctx context.Context, uid gregor1.UID, inbox Inbox) ([]chat1.ConversationLocal, error)
 	Name() string
 	SetOffline()
 }
@@ -73,9 +73,9 @@ type InboxSource interface {
 	Offlinable
 
 	Read(ctx context.Context, uid gregor1.UID, localizer ChatLocalizer, useLocalData bool,
-		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+		query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, *chat1.RateLimit, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
-		query *chat1.GetInboxQuery, p *chat1.Pagination) (chat1.Inbox, *chat1.RateLimit, error)
+		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, *chat1.RateLimit, error)
 	IsMember(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (bool, *chat1.RateLimit, error)
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -91,7 +91,8 @@ type InboxSource interface {
 	TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) ([]chat1.ConversationLocal, error)
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-		joined []chat1.ConversationMember, removed []chat1.ConversationMember) (MembershipUpdateRes, error)
+		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
+		resets []chat1.ConversationMember) (MembershipUpdateRes, error)
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
 
@@ -157,4 +158,14 @@ type PushHandler interface {
 type AppState interface {
 	State() keybase1.AppState
 	NextUpdate() chan keybase1.AppState
+}
+
+type TeamChannelSource interface {
+	Offlinable
+
+	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
+		chat1.ConversationMembersType) ([]chat1.ConversationLocal, []chat1.RateLimit, error)
+	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType,
+		chat1.ConversationMembersType) ([]ConvIDAndTopicName, []chat1.RateLimit, error)
+	ChannelsChanged(context.Context, chat1.TLFID)
 }

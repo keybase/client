@@ -21,8 +21,7 @@ func doUpdate(fingerprints []string, all bool, fu *FakeUser, tc libkb.TestContex
 }
 
 func getFakeUsersKeyBundleFromServer(tc libkb.TestContext, fu *FakeUser) *libkb.PGPKeyBundle {
-	arg := libkb.NewLoadUserForceArg(tc.G)
-	arg.Name = fu.Username
+	arg := libkb.NewLoadUserForceArg(tc.G).WithName(fu.Username)
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal("Failed loading user", err)
@@ -36,8 +35,7 @@ func getFakeUsersKeyBundleFromServer(tc libkb.TestContext, fu *FakeUser) *libkb.
 }
 
 func getFakeUsersBundlesList(tc libkb.TestContext, fu *FakeUser) []string {
-	arg := libkb.NewLoadUserForceArg(tc.G)
-	arg.Name = fu.Username
+	arg := libkb.NewLoadUserForceArg(tc.G).WithName(fu.Username)
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal("Failed loading user", err)
@@ -113,8 +111,9 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
-	arg.Gen.MakeAllIds()
+	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),

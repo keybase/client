@@ -1,11 +1,9 @@
 // @flow
 import * as actions from '../../actions/settings'
 import Bootstrapable from '../../util/bootstrapable'
-import Landing from './index'
-import {connect} from 'react-redux'
+import Landing from '.'
+import {connect, type TypedState} from '../../util/container'
 import {navigateAppend} from '../../actions/route-tree'
-
-import type {TypedState} from '../../constants/reducer'
 
 export default connect(
   (state: TypedState, ownProps: {}) => {

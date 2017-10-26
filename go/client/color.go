@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/keybase/client/go/libkb"
 )
 
 //
@@ -92,7 +93,7 @@ func colorByteSequence(code int) []byte {
 func (cp CodePair) OpenBytes() []byte  { return colorByteSequence(cp.Open) }
 func (cp CodePair) CloseBytes() []byte { return colorByteSequence(cp.Close) }
 
-func HasColor() bool {
+func HasColor(g *libkb.GlobalContext) bool {
 	// TODO Color should be based on whether log format supports it
 	logFormatHasColor := map[string]bool{
 		"":        true,
@@ -101,11 +102,11 @@ func HasColor() bool {
 		"file":    false,
 		"plain":   false,
 	}
-	return logFormatHasColor[G.Env.GetLogFormat()]
+	return logFormatHasColor[g.Env.GetLogFormat()]
 }
 
-func ColorOpen(which string) []byte {
-	if !HasColor() {
+func ColorOpen(g *libkb.GlobalContext, which string) []byte {
+	if !HasColor(g) {
 		return nil
 	}
 	if cp, ok := codes[which]; ok {
@@ -121,8 +122,8 @@ func GetColorCode(which string) *CodePair {
 	return nil
 }
 
-func ColorClose(which string) []byte {
-	if !HasColor() {
+func ColorClose(g *libkb.GlobalContext, which string) []byte {
+	if !HasColor(g) {
 		return nil
 	}
 	if cp, ok := codes[which]; ok {
@@ -131,8 +132,8 @@ func ColorClose(which string) []byte {
 	return nil
 }
 
-func ColorBytes(which string, text []byte) []byte {
-	if !HasColor() {
+func ColorBytes(g *libkb.GlobalContext, which string, text []byte) []byte {
+	if !HasColor(g) {
 		return text
 	} else if cp, ok := codes[which]; ok {
 		ret := colorByteSequence(cp.Open)
@@ -144,6 +145,6 @@ func ColorBytes(which string, text []byte) []byte {
 	}
 }
 
-func ColorString(which, text string) string {
-	return string(ColorBytes(which, []byte(text)))
+func ColorString(g *libkb.GlobalContext, which, text string) string {
+	return string(ColorBytes(g, which, []byte(text)))
 }

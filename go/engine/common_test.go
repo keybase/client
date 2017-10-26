@@ -44,6 +44,7 @@ type FakeUser struct {
 	Passphrase    string
 	User          *libkb.User
 	EncryptionKey libkb.GenericKey
+	DeviceName    string
 }
 
 func NewFakeUser(prefix string) (fu *FakeUser, err error) {
@@ -122,6 +123,7 @@ func CreateAndSignupFakeUser2(tc libkb.TestContext, prefix string) (*FakeUser, *
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
 	arg := MakeTestSignupEngineRunArg(fu)
+	fu.DeviceName = arg.DeviceName
 	eng := SignupFakeUserWithArg(tc, fu, arg)
 	return fu, eng
 }
@@ -239,6 +241,10 @@ func (fu *FakeUser) LoginOrBust(tc libkb.TestContext) {
 
 func (fu *FakeUser) NewSecretUI() *libkb.TestSecretUI {
 	return &libkb.TestSecretUI{Passphrase: fu.Passphrase}
+}
+
+func (fu *FakeUser) NewCountSecretUI() *libkb.TestCountSecretUI {
+	return &libkb.TestCountSecretUI{Passphrase: fu.Passphrase}
 }
 
 func AssertProvisioned(tc libkb.TestContext) error {
@@ -403,6 +409,14 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	}
 	tc.T.Logf("Account reset for user %s", u.Username)
 	Logout(tc)
+}
+
+func ResetAccountNoLogout(tc libkb.TestContext, u *FakeUser) {
+	err := tc.G.LoginState().ResetAccount(u.Username)
+	if err != nil {
+		tc.T.Fatalf("In account reset: %s", err)
+	}
+	tc.T.Logf("Account reset for user %s", u.Username)
 }
 
 func ForcePUK(tc libkb.TestContext) {

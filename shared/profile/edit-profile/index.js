@@ -1,12 +1,16 @@
 // @flow
 import Render from './render'
-import {compose, withHandlers, withPropsOnChange, withState} from 'recompose'
-import {connect} from 'react-redux'
+import {
+  compose,
+  withHandlers,
+  withPropsOnChange,
+  withState,
+  connect,
+  type TypedState,
+} from '../../util/container'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
 import {navigateUp} from '../../actions/route-tree'
-
-import type {TypedState} from '../../constants/reducer'
 
 const mapStateToProps = (state: TypedState) => {
   if (!state.config.username) {

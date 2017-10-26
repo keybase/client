@@ -157,7 +157,7 @@ func TestGetMaybeAdminByStringName(t *testing.T) {
 	require.Equal(t, 0, len(team.chain().inner.SubteamLog), "still doesn't know about any subteams")
 
 	t.Logf("U1 loads and realizes they're an admin")
-	team, err = GetMaybeAdminByStringName(context.TODO(), tcs[1].G, teamName.String())
+	team, err = GetMaybeAdminByStringName(context.TODO(), tcs[1].G, teamName.String(), false /*isPublic*/)
 	require.NoError(t, err)
 	role, err = team.MemberRole(context.TODO(), fus[1].GetUserVersion())
 	require.NoError(t, err)
@@ -185,7 +185,7 @@ func createTeam(tc libkb.TestContext) string {
 		tc.T.Fatal(err)
 	}
 	name := hex.EncodeToString(b)
-	err = CreateRootTeam(context.TODO(), tc.G, name)
+	err = CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -196,5 +196,13 @@ func createTeam2(tc libkb.TestContext) (keybase1.TeamName, keybase1.TeamID) {
 	teamNameS := createTeam(tc)
 	teamName, err := keybase1.TeamNameFromString(teamNameS)
 	require.NoError(tc.T, err)
-	return teamName, teamName.ToTeamID()
+	return teamName, teamName.ToPrivateTeamID()
+}
+
+func createSubteam(tc *libkb.TestContext, parent keybase1.TeamName, subteamNamePart string) (keybase1.TeamName, keybase1.TeamID) {
+	subteamName, err := parent.Append(subteamNamePart)
+	require.NoError(tc.T, err)
+	subteamID, err := CreateSubteam(context.TODO(), tc.G, subteamNamePart, parent)
+	require.NoError(tc.T, err)
+	return subteamName, *subteamID
 }

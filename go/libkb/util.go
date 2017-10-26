@@ -64,22 +64,22 @@ func FileExists(path string) (bool, error) {
 	return false, err
 }
 
-func MakeParentDirs(filename string) error {
+func MakeParentDirs(log SkinnyLogger, filename string) error {
 
 	dir, _ := filepath.Split(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
-		G.Log.Errorf("Can't see if parent dir %s exists", dir)
+		log.Errorf("Can't see if parent dir %s exists", dir)
 		return err
 	}
 
 	if !exists {
 		err = os.MkdirAll(dir, PermDir)
 		if err != nil {
-			G.Log.Errorf("Can't make parent dir %s", dir)
+			log.Errorf("Can't make parent dir %s", dir)
 			return err
 		}
-		G.Log.Debug("Created parent directory %s", dir)
+		log.Debug("Created parent directory %s", dir)
 	}
 	return nil
 }
@@ -371,8 +371,7 @@ func RandInt() (int, error) {
 func RandIntn(n int) int {
 	x, err := RandInt()
 	if err != nil {
-		G.Log.Warning("RandInt error: %s", err)
-		return 0
+		panic(fmt.Sprintf("RandInt error: %s", err))
 	}
 	return x % n
 }
@@ -452,23 +451,36 @@ func RandStringB64(numTriads int) string {
 	return base64.URLEncoding.EncodeToString(buf)
 }
 
+func RandHexString(prefix string, numbytes int) (string, error) {
+	buf, err := RandBytes(numbytes)
+	if err != nil {
+		return "", err
+	}
+	str := hex.EncodeToString(buf)
+	return prefix + str, nil
+}
+
 func Trace(log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func TraceTimed(log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	start := time.Now()
 	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
 }
 
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
@@ -477,17 +489,19 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 }
 
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %v", msg, f()) }
 }
 
 func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
 }
 
 func (g *GlobalContext) Trace(msg string, f func() error) func() {
-	return Trace(g.Log, msg, f)
+	return Trace(g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
@@ -495,7 +509,7 @@ func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
 }
 
 func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
-	return CTrace(ctx, g.Log, msg, f)
+	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
@@ -504,11 +518,11 @@ func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string
 }
 
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.Log, msg, f, g.Clock())
+	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
 }
 
 func (g *GlobalContext) CTimeTracer(ctx context.Context, label string) *TimeTracer {
-	return NewTimeTracer(ctx, g.Log, g.Clock(), label)
+	return NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
 }
 
 func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
@@ -516,11 +530,11 @@ func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
 }
 
 func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
-	return TraceOK(g.Log, msg, f)
+	return TraceOK(g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CTraceOK(ctx context.Context, msg string, f func() bool) func() {
-	return CTraceOK(ctx, g.Log, msg, f)
+	return CTraceOK(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CVTraceOK(ctx context.Context, lev VDebugLevel, msg string, f func() bool) func() {
@@ -695,6 +709,7 @@ type TimeTracer struct {
 
 func NewTimeTracer(ctx context.Context, log logger.Logger, clock clockwork.Clock, label string) *TimeTracer {
 	now := clock.Now()
+	log.CDebugf(ctx, "+ %s", label)
 	return &TimeTracer{
 		ctx:    ctx,
 		log:    log,
@@ -727,4 +742,12 @@ func (t *TimeTracer) Finish() {
 		t.finishStage()
 	}
 	t.log.CDebugf(t.ctx, "- %s [time=%s]", t.label, t.clock.Since(t.start))
+}
+
+func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		return err.Code == int(code)
+	}
+	return false
 }

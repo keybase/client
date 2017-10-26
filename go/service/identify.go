@@ -199,9 +199,9 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 	// Duplicates are also handled by Lookup*. So we might end up doing extra identifies of duplicates out here.
 	// (Duplicates e.g. "me,chris,chris", "me,chris#chris", "me,chris@rooter#chris")
 	if arg.Create {
-		teamID, impName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
+		teamID, _, impName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
 	} else {
-		teamID, impName, err = teams.LookupImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
+		teamID, _, impName, err = teams.LookupImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
 	}
 	if err != nil {
 		return res, err
@@ -228,6 +228,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 
 	team, err := teams.Load(ctx, h.G(), keybase1.LoadTeamArg{
 		ID:          teamID,
+		Public:      arg.IsPublic,
 		ForceRepoll: true,
 	})
 	if err != nil {

@@ -8,6 +8,7 @@ import {
   FormWithCheckbox,
   NativeScrollView,
 } from '../../common-adapters/index.native'
+import {isDeviceSecureAndroid, isAndroidNewerThanM, isAndroid} from '../../constants/platform'
 import Dropdown from './dropdown.native'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 
@@ -38,6 +39,14 @@ class LoginRender extends Component<Props> {
     return (
       <NativeScrollView>
         <Box style={styles.container}>
+          {isAndroid &&
+            !isDeviceSecureAndroid &&
+            !isAndroidNewerThanM &&
+            <Box style={deviceNotSecureStyle}>
+              <Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
+                Since you don't have a lock screen, you'll have to type your passphrase everytime.
+              </Text>
+            </Box>}
           <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
             <Dropdown
               type="Username"
@@ -95,6 +104,13 @@ const styles = {
     marginTop: globalMargins.medium,
     width: '100%',
   },
+}
+
+const deviceNotSecureStyle = {
+  alignSelf: 'stretch',
+  backgroundColor: globalColors.yellow,
+  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.tiny,
 }
 
 export default LoginRender

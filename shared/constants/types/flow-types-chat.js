@@ -73,6 +73,7 @@ export const CommonConversationMemberStatus = {
   removed: 1,
   left: 2,
   preview: 3,
+  reset: 4,
 }
 
 export const CommonConversationMembersType = {
@@ -118,6 +119,12 @@ export const CommonMessageType = {
 export const CommonNotificationKind = {
   generic: 0,
   atmention: 1,
+}
+
+export const CommonSyncInboxResType = {
+  current: 0,
+  incremental: 1,
+  clear: 2,
 }
 
 export const CommonTeamType = {
@@ -233,10 +240,9 @@ export const RemoteSyncAllNotificationType = {
   incremental: 1,
 }
 
-export const RemoteSyncInboxResType = {
-  current: 0,
-  incremental: 1,
-  clear: 2,
+export const RemoteSyncAllProtVers = {
+  v0: 0,
+  v1: 1,
 }
 
 export function localCancelPostRpcChannelMap (configKeys: Array<string>, request: requestCommon & requestErrorCallback & {param: localCancelPostRpcParam}): EngineChannel {
@@ -881,6 +887,15 @@ export type ChatActivityType =
   | 7 // SET_APP_NOTIFICATION_SETTINGS_7
   | 8 // TEAMTYPE_8
 
+export type ChatSyncIncrementalInfo = {
+  items?: ?Array<UnverifiedInboxUIItem>,
+}
+
+export type ChatSyncResult =
+    { syncType: 0 }
+  | { syncType: 2 }
+  | { syncType: 1, incremental: ?ChatSyncIncrementalInfo }
+
 export type ConvTypingUpdate = {
   convID: ConversationID,
   typers?: ?Array<TyperInfo>,
@@ -967,12 +982,13 @@ export type ConversationInfoLocal = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   existence: ConversationExistence,
   version: ConversationVers,
-  writerNames?: ?Array<string>,
-  readerNames?: ?Array<string>,
+  participants?: ?Array<ConversationLocalParticipant>,
   finalizeInfo?: ?ConversationFinalizeInfo,
+  resetNames?: ?Array<string>,
 }
 
 export type ConversationLocal = {
@@ -988,6 +1004,11 @@ export type ConversationLocal = {
   identifyFailures?: ?Array<keybase1.TLFIdentifyFailure>,
 }
 
+export type ConversationLocalParticipant = {
+  username: string,
+  fullname?: ?string,
+}
+
 export type ConversationMember = {
   uid: gregor1.UID,
   convID: ConversationID,
@@ -998,6 +1019,7 @@ export type ConversationMemberStatus =
   | 1 // REMOVED_1
   | 2 // LEFT_2
   | 3 // PREVIEW_3
+  | 4 // RESET_4
 
 export type ConversationMembersType =
     0 // KBFS_0
@@ -1018,6 +1040,7 @@ export type ConversationMetadata = {
   supersededBy?: ?Array<ConversationMetadata>,
   activeList?: ?Array<gregor1.UID>,
   allList?: ?Array<gregor1.UID>,
+  resetList?: ?Array<gregor1.UID>,
 }
 
 export type ConversationNotificationInfo = {
@@ -1226,10 +1249,12 @@ export type GetThreadQuery = {
   disableResolveSupersedes: boolean,
   before?: ?gregor1.Time,
   after?: ?gregor1.Time,
+  messageIDControl?: ?MessageIDControl,
 }
 
 export type GetThreadRemoteRes = {
   thread: ThreadViewBoxed,
+  membersType: ConversationMembersType,
   rateLimit?: ?RateLimit,
 }
 
@@ -1291,13 +1316,6 @@ export type HeaderPlaintextVersion =
   | 9 // V9_9
   | 10 // V10_10
 
-export type Inbox = {
-  version: InboxVers,
-  convsUnverified?: ?Array<Conversation>,
-  convs?: ?Array<ConversationLocal>,
-  pagination?: ?Pagination,
-}
-
 export type InboxResType =
     0 // VERSIONHIT_0
   | 1 // FULL_1
@@ -1311,13 +1329,17 @@ export type InboxUIItem = {
   headline: string,
   visibility: keybase1.TLFVisibility,
   participants?: ?Array<string>,
+  fullNames: {[key: string]: string},
+  resetParticipants?: ?Array<string>,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   time: gregor1.Time,
   notifications?: ?ConversationNotificationInfo,
   creatorInfo?: ?ConversationCreatorInfoLocal,
   version: ConversationVers,
+  maxMsgID: MessageID,
   finalizeInfo?: ?ConversationFinalizeInfo,
   supersedes?: ?Array<ConversationMetadata>,
   supersededBy?: ?Array<ConversationMetadata>,
@@ -1387,7 +1409,7 @@ export type MarkAsReadRes = {
 export type MembersUpdateInfo = {
   convID: ConversationID,
   member: string,
-  joined: boolean,
+  status: ConversationMemberStatus,
 }
 
 export type MerkleRoot = {
@@ -1483,6 +1505,12 @@ export type MessageHeadline = {
 
 export type MessageID = uint
 
+export type MessageIDControl = {
+  pivot?: ?MessageID,
+  recent: boolean,
+  num: int,
+}
+
 export type MessageJoin = {}
 
 export type MessageLeave = {}
@@ -1573,6 +1601,7 @@ export type MessageUnboxedValid = {
   atMentionUsernames?: ?Array<string>,
   atMentions?: ?Array<gregor1.UID>,
   channelMention: ChannelMention,
+  channelNameMentions?: ?Array<string>,
 }
 
 export type NameQuery = {
@@ -1629,12 +1658,26 @@ export type NotifyChatChatInboxStaleRpcParam = Exact<{
   uid: keybase1.UID
 }>
 
+export type NotifyChatChatInboxSyncStartedRpcParam = Exact<{
+  uid: keybase1.UID
+}>
+
+export type NotifyChatChatInboxSyncedRpcParam = Exact<{
+  uid: keybase1.UID,
+  syncRes: ChatSyncResult
+}>
+
 export type NotifyChatChatJoinedConversationRpcParam = Exact<{
   uid: keybase1.UID,
   conv: InboxUIItem
 }>
 
 export type NotifyChatChatLeftConversationRpcParam = Exact<{
+  uid: keybase1.UID,
+  convID: ConversationID
+}>
+
+export type NotifyChatChatResetConversationRpcParam = Exact<{
   uid: keybase1.UID,
   convID: ConversationID
 }>
@@ -1843,6 +1886,10 @@ export type SyncAllNotificationType =
     0 // STATE_0
   | 1 // INCREMENTAL_1
 
+export type SyncAllProtVers =
+    0 // V0_0
+  | 1 // V1_1
+
 export type SyncAllResult = {
   auth: gregor1.AuthResult,
   chat: SyncChatRes,
@@ -1883,6 +1930,10 @@ export type TLFID = bytes
 export type TLFResolveUpdate = {
   convID: ConversationID,
   inboxVers: InboxVers,
+}
+
+export type TeamChannelUpdate = {
+  teamID: TLFID,
 }
 
 export type TeamType =
@@ -1959,6 +2010,7 @@ export type UIMessageValid = {
   senderDeviceRevokedAt?: ?gregor1.Time,
   atMentions?: ?Array<string>,
   channelMention: ChannelMention,
+  channelNameMentions?: ?Array<string>,
 }
 
 export type UIMessages = {
@@ -1988,6 +2040,7 @@ export type UnreadUpdate = {
 export type UnreadUpdateFull = {
   ignore: boolean,
   inboxVers: InboxVers,
+  inboxSyncStatus: SyncInboxResType,
   updates?: ?Array<UnreadUpdate>,
 }
 
@@ -1997,10 +2050,21 @@ export type UnverifiedInboxUIItem = {
   visibility: keybase1.TLFVisibility,
   status: ConversationStatus,
   membersType: ConversationMembersType,
+  memberStatus: ConversationMemberStatus,
   teamType: TeamType,
   notifications?: ?ConversationNotificationInfo,
   time: gregor1.Time,
   version: ConversationVers,
+  maxMsgID: MessageID,
+  localMetadata?: ?UnverifiedInboxUIItemMetadata,
+}
+
+export type UnverifiedInboxUIItemMetadata = {
+  channelName: string,
+  headline: string,
+  snippet: string,
+  writerNames?: ?Array<string>,
+  resetParticipants?: ?Array<string>,
 }
 
 export type UnverifiedInboxUIItems = {
@@ -2013,7 +2077,9 @@ export type UpdateConversationMembership = {
   inboxVers: InboxVers,
   joined?: ?Array<ConversationMember>,
   removed?: ?Array<ConversationMember>,
+  reset?: ?Array<ConversationMember>,
   unreadUpdate?: ?UnreadUpdate,
+  unreadUpdates?: ?Array<UnreadUpdate>,
 }
 
 export type chatUiChatAttachmentDownloadProgressRpcParam = Exact<{
@@ -2044,7 +2110,7 @@ export type chatUiChatConfirmChannelDeleteRpcParam = Exact<{
 }>
 
 export type chatUiChatInboxConversationRpcParam = Exact<{
-  conv: InboxUIItem
+  conv: string
 }>
 
 export type chatUiChatInboxFailedRpcParam = Exact<{
@@ -2118,6 +2184,7 @@ export type localGetInboxAndUnboxLocalRpcParam = Exact<{
 
 export type localGetInboxNonblockLocalRpcParam = Exact<{
   maxUnbox?: ?int,
+  skipUnverified: boolean,
   query?: ?GetInboxLocalQuery,
   pagination?: ?Pagination,
   identifyBehavior: keybase1.TLFIdentifyBehavior
@@ -2425,7 +2492,8 @@ export type remoteSyncAllRpcParam = Exact<{
   session: gregor1.SessionToken,
   inboxVers: InboxVers,
   ctime: gregor1.Time,
-  fresh: boolean
+  fresh: boolean,
+  protVers: SyncAllProtVers
 }>
 
 export type remoteSyncChatRpcParam = Exact<{
@@ -2586,7 +2654,7 @@ export type incomingCallMapType = Exact<{
   'keybase.1.chatUi.chatInboxConversation'?: (
     params: Exact<{
       sessionID: int,
-      conv: InboxUIItem
+      conv: string
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -2690,6 +2758,29 @@ export type incomingCallMapType = Exact<{
     params: Exact<{
       uid: keybase1.UID,
       convID: ConversationID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatResetConversation'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      convID: ConversationID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatInboxSyncStarted'?: (
+    params: Exact<{
+      uid: keybase1.UID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyChat.ChatInboxSynced'?: (
+    params: Exact<{
+      uid: keybase1.UID,
+      syncRes: ChatSyncResult
     }> /* ,
     response: {} // Notify call
     */

@@ -1,11 +1,9 @@
 // @flow
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import {createSelector} from 'reselect'
 import {isMobile} from '../constants/platform'
 import {navigateAppend} from '../actions/route-tree'
-
-import type {IconType} from '../common-adapters/icon'
-import type {TypedState} from '../constants/reducer'
+import {type IconType} from '../common-adapters/icon'
 
 type OwnProps = {
   deviceID: string,
@@ -16,6 +14,10 @@ const makeGetDeviceSelector = (deviceID: string) => (state: TypedState) =>
 
 const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
   const selector = createSelector(makeGetDeviceSelector(deviceID), device => {
+    if (!device) {
+      return {}
+    }
+
     const icon: IconType = {
       backup: isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32',
       desktop: isMobile ? 'icon-computer-48' : 'icon-computer-32',
@@ -24,7 +26,7 @@ const mapStateToProps = (state: TypedState, {deviceID}: OwnProps) => {
     return {
       icon,
       isCurrentDevice: device.currentDevice,
-      isRevoked: !!device.revokedBy,
+      isRevoked: !!device.revokedByName,
       name: device.name,
     }
   })

@@ -18,7 +18,7 @@ func TestRenameSimple(t *testing.T) {
 
 	parentTeamName, err := keybase1.TeamNameFromString(u.Username + "T")
 	require.NoError(t, err)
-	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String())
+	err = CreateRootTeam(context.TODO(), tc.G, parentTeamName.String(), keybase1.TeamSettings{})
 	require.NoError(t, err)
 
 	subteamBasename := "bb1"
@@ -50,7 +50,7 @@ func TestRenameSimple(t *testing.T) {
 	subteamList := parent.chain().ListSubteams()
 	require.Len(t, subteamList, 1, "has 1 subteam")
 	require.Equal(t, subteamList[0].Name.String(), parentTeamName.String()+".bb2")
-	require.Equal(t, subteamList[0].ID.String(), subteamID.String())
+	require.Equal(t, subteamList[0].Id.String(), subteamID.String())
 	require.Len(t, parent.chain().inner.SubteamLog, 1, "subteam log has 1 series")
 	require.Len(t, parent.chain().inner.SubteamLog[*subteamID], 2, "subteam log has 2 entries")
 }
@@ -146,7 +146,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 
 	t.Logf("U1 loads R")
 	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          parentName.ToTeamID(),
+		ID:          parentName.ToPrivateTeamID(),
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
@@ -170,7 +170,7 @@ func TestRenameIntoMovedSubteam(t *testing.T) {
 
 	t.Logf("U1 loads R")
 	_, err = tcs[1].G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
-		ID:          parentName.ToTeamID(),
+		ID:          parentName.ToPrivateTeamID(),
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)

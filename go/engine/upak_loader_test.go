@@ -38,8 +38,7 @@ func TestLoadDeviceKeyNew(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 	t.Logf("using username:%+v", fu.Username)
-	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username)
-	loadArg.PublicKeyOptional = true
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(loadArg)
 	if err != nil {
 		tc.T.Fatal(err)
@@ -135,8 +134,7 @@ func TestLoadDeviceKeyRevoked(t *testing.T) {
 
 	fu := CreateAndSignupFakeUserPaper(tc, "rev")
 	t.Logf("using username:%+v", fu.Username)
-	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username)
-	loadArg.PublicKeyOptional = true
+	loadArg := libkb.NewLoadUserByNameArg(tc.G, fu.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(loadArg)
 	if err != nil {
 		tc.T.Fatal(err)
@@ -349,11 +347,7 @@ func TestLoadAfterAcctReset1(t *testing.T) {
 
 	loadUpak := func() error {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G)
-		loadArg.UID = fu.UID()
-		loadArg.PublicKeyOptional = false
-		loadArg.NetContext = context.TODO()
-		loadArg.StaleOK = false
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithNetContext(context.TODO()).WithStaleOK(false)
 
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {
@@ -407,12 +401,7 @@ func TestLoadAfterAcctReset2(t *testing.T) {
 
 	loadUpak := func() (*keybase1.UserPlusAllKeys, error) {
 		t.Logf("loadUpak: using username:%+v", fu.Username)
-		loadArg := libkb.NewLoadUserArg(tc.G)
-		loadArg.UID = fu.UID()
-		loadArg.PublicKeyOptional = false
-		loadArg.NetContext = context.TODO()
-		loadArg.StaleOK = false
-
+		loadArg := libkb.NewLoadUserArg(tc.G).WithUID(fu.UID()).WithPublicKeyOptional().WithNetContext(context.TODO()).WithStaleOK(false)
 		upak, _, err := tc.G.GetUPAKLoader().Load(loadArg)
 		if err != nil {
 			return nil, err

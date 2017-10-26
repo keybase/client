@@ -9,12 +9,13 @@ import {
   ErrorBoundary,
 } from '../../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import Row from './row/container'
+import {makeRow} from './row'
 import ChatFilterRow from './row/chat-filter-row'
-import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
+import FloatingDivider from './row/floating-divider/container'
+import Divider from './row/divider/container'
 import debounce from 'lodash/debounce'
 
-import type {Props} from './'
+import type {Props, RowItem} from './'
 
 const NoChats = () => (
   <Box
@@ -39,6 +40,8 @@ type State = {
 
 class Inbox extends React.PureComponent<Props, State> {
   _list: any
+  // Help us calculate row heights and offsets quickly
+  _dividerIndex = -1
 
   state = {
     showFloating: false,
@@ -49,32 +52,21 @@ class Inbox extends React.PureComponent<Props, State> {
     if (row.type === 'divider') {
       return (
         <Divider
-          badgeCount={this.props.smallTeamsHiddenBadgeCount}
           key="divider"
-          hiddenCount={this.props.smallTeamsHiddenRowCount}
           toggle={this.props.toggleSmallTeamsExpanded}
+          smallIDsHidden={this.props.smallIDsHidden}
         />
       )
     }
 
-    if (row.type === 'bigTeamsLabel') {
-      return (
-        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
-          <BigTeamsLabel isFiltered={row.isFiltered} />
-        </Box>
-      )
-    }
-
-    return (
-      <Row
-        conversationIDKey={item.conversationIDKey}
-        filtered={!!this.props.filter}
-        isActiveRoute={this.props.isActiveRoute}
-        teamname={item.teamname}
-        channelname={item.channelname}
-        type={row.type}
-      />
-    )
+    return makeRow({
+      channelname: row.channelname,
+      conversationIDKey: row.conversationIDKey,
+      filtered: !!this.props.filter,
+      isActiveRoute: true,
+      teamname: row.teamname,
+      type: row.type,
+    })
   }
 
   _keyExtractor = (item, index) => {
@@ -96,13 +88,15 @@ class Inbox extends React.PureComponent<Props, State> {
     if (this.props.smallTeamsHiddenRowCount === 0 && nextProps.smallTeamsHiddenRowCount > 0) {
       this._list && this._list.scrollToOffset({animated: false, offset: 0})
     }
+    if (this.props.rows !== nextProps.rows) {
+      this._dividerIndex = nextProps.rows.findIndex(r => r.type === 'divider')
+    }
   }
 
-  _askForUnboxing = (row: any, count: number) => {
-    const {conversationIDKey} = row
-    if (conversationIDKey) {
-      this.props.onUntrustedInboxVisible(conversationIDKey, count)
-    }
+  _askForUnboxing = (rows: Array<RowItem>) => {
+    const toUnbox = rows.filter(r => r.type === 'small' && r.conversationIDKey)
+    // $FlowIssue doesn't understand that we filtered out the nulls
+    this.props.onUntrustedInboxVisible(toUnbox.map(r => r.conversationIDKey))
   }
 
   _onViewChanged = data => {
@@ -139,13 +133,13 @@ class Inbox extends React.PureComponent<Props, State> {
     const {viewableItems} = data
     const item = viewableItems && viewableItems[0]
     if (item && item.index) {
-      this._askForUnboxing(item.item, viewableItems.length)
+      this._askForUnboxing(viewableItems)
     }
   }, 1000)
 
   componentDidMount() {
-    if (this.props.rows.count()) {
-      this._askForUnboxing(this.props.rows.first(), 30)
+    if (this.props.rows.length) {
+      this._askForUnboxing(this.props.rows.slice(0, 30))
     }
   }
 
@@ -155,7 +149,36 @@ class Inbox extends React.PureComponent<Props, State> {
     this._list = r
   }
 
-  // TODO maybe we can put getItemLayout back if we do a bunch of pre-calc. The offset could be figured out based on index if we're very careful
+  _itemTypeToHeight = {
+    big: globalMargins.large,
+    bigHeader: globalMargins.large,
+    divider: 56,
+    small: globalMargins.xlarge,
+  }
+
+  // This is an under documented api to help optimize the FlatList's layout. see https://github.com/facebook/react-native/blob/v0.50.0-rc.0/Libraries/Lists/FlatList.js#L118
+  _getItemLayout = (data, index) => {
+    // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
+    // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
+    const smallHeight = this._itemTypeToHeight['small']
+    if (index < this._dividerIndex || this._dividerIndex === -1) {
+      return {index, length: smallHeight, offset: index ? smallHeight * index : 0}
+    }
+
+    const dividerHeight = this._itemTypeToHeight['divider']
+    if (index === this._dividerIndex) {
+      return {index, length: dividerHeight, offset: smallHeight * index}
+    }
+
+    let offset = smallHeight * (this._dividerIndex - 1) + dividerHeight
+
+    for (let i = this._dividerIndex; i < index; ++i) {
+      offset += this._itemTypeToHeight[data[i].type]
+    }
+
+    return {index, length: this._itemTypeToHeight[data[index].type], offset}
+  }
+
   render() {
     return (
       <ErrorBoundary>
@@ -170,7 +193,7 @@ class Inbox extends React.PureComponent<Props, State> {
               />
             }
             loading={this.props.isLoading /* force loading to update */}
-            data={this.props.rows.toArray()}
+            data={this.props.rows}
             isActiveRoute={this.props.isActiveRoute}
             keyExtractor={this._keyExtractor}
             renderItem={this._renderItem}
@@ -178,14 +201,12 @@ class Inbox extends React.PureComponent<Props, State> {
             onViewableItemsChanged={this._onViewChanged}
             initialNumToRender={this._maxVisible}
             windowSize={this._maxVisible}
+            getItemLayout={this._getItemLayout}
           />
-          {!this.props.isLoading && !this.props.rows.count() && <NoChats />}
+          {!this.props.isLoading && !this.props.rows.length && <NoChats />}
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
-            <FloatingDivider
-              toggle={this.props.toggleSmallTeamsExpanded}
-              badgeCount={this.props.bigTeamsBadgeCount}
-            />}
+            <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
           {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&
@@ -202,13 +223,6 @@ const boxStyle = {
   backgroundColor: globalColors.white,
   flex: 1,
   position: 'relative',
-}
-
-const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 32,
-  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

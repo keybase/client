@@ -30,12 +30,73 @@ function toggleChannelMembership(teamname: string, channelname: string): Constan
   return {payload: {channelname, teamname}, type: 'teams:toggleChannelMembership'}
 }
 
+function addPeopleToTeam(teamname: string, role: string): Constants.AddPeopleToTeam {
+  return {payload: {role, teamname}, type: 'teams:addPeopleToTeam'}
+}
+
+function inviteToTeamByEmail(
+  teamname: string,
+  role: string,
+  invitees: string
+): Constants.InviteToTeamByEmail {
+  return {payload: {invitees, role, teamname}, type: 'teams:inviteToTeamByEmail'}
+}
+
+function joinTeam(teamname: string): Constants.JoinTeam {
+  return {payload: {teamname}, type: 'teams:joinTeam'}
+}
+
 function leaveTeam(teamname: string): Constants.LeaveTeam {
   return {payload: {teamname}, type: 'teams:leaveTeam'}
 }
 
+function makeTeamOpen(
+  teamname: string,
+  convertToOpen: boolean,
+  defaultRole: Constants.TeamRoleType
+): Constants.MakeTeamOpen {
+  return {payload: {convertToOpen, defaultRole, teamname}, type: 'teams:makeTeamOpen'}
+}
+
+function addToTeam(
+  name: string,
+  email: string,
+  username: string,
+  role: Constants.TeamRoleType,
+  sendChatNotification: boolean
+): Constants.AddToTeam {
+  return {payload: {name, email, username, role, sendChatNotification}, type: 'teams:addToTeam'}
+}
+
+function editMembership(
+  name: string,
+  username: string,
+  role: Constants.TeamRoleType
+): Constants.EditMembership {
+  return {payload: {name, username, role}, type: 'teams:editMembership'}
+}
+
+function removeMember(email: string, name: string, username: string): Constants.RemoveMemberOrPendingInvite {
+  return {payload: {email, name, username}, type: 'teams:removeMemberOrPendingInvite'}
+}
+
+function ignoreRequest(name: string, username: string): Constants.IgnoreRequest {
+  return {payload: {name, username}, type: 'teams:ignoreRequest'}
+}
+
 function setTeamCreationError(teamCreationError: string): Constants.SetTeamCreationError {
   return {payload: {teamCreationError}, type: 'teams:setTeamCreationError'}
+}
+
+function setTeamCreationPending(teamCreationPending: boolean): Constants.SetTeamCreationPending {
+  return {payload: {teamCreationPending}, type: 'teams:setTeamCreationPending'}
+}
+function setTeamJoinError(teamJoinError: string): Constants.SetTeamJoinError {
+  return {payload: {teamJoinError}, type: 'teams:setTeamJoinError'}
+}
+
+function setTeamJoinSuccess(teamJoinSuccess: boolean): Constants.SetTeamJoinSuccess {
+  return {payload: {teamJoinSuccess}, type: 'teams:setTeamJoinSuccess'}
 }
 
 function setupTeamHandlers(): Constants.SetupTeamHandlers {
@@ -43,14 +104,25 @@ function setupTeamHandlers(): Constants.SetupTeamHandlers {
 }
 
 export {
+  addPeopleToTeam,
+  addToTeam,
   createChannel,
   createNewTeam,
   createNewTeamFromConversation,
+  editMembership,
   getChannels,
   getDetails,
   getTeams,
+  ignoreRequest,
+  inviteToTeamByEmail,
+  joinTeam,
   leaveTeam,
+  makeTeamOpen,
+  removeMember,
   setTeamCreationError,
+  setTeamCreationPending,
+  setTeamJoinError,
+  setTeamJoinSuccess,
   setupTeamHandlers,
   toggleChannelMembership,
 }

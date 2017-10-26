@@ -50,6 +50,7 @@ protocol constants {
     SCKeySyncedPGPNotFound_929,
     SCKeyNoMatchingGPG_930,
     SCKeyRevoked_931,
+    SCSigOldSeqno_1010,
     SCBadTrackSession_1301,
     SCDeviceBadName_1404,
     SCDeviceNameInUse_1408,
@@ -83,6 +84,11 @@ protocol constants {
     SCInstallError_1804,
     SCLoadKextError_1810,
     SCLoadKextPermError_1811,
+    SCGitInternal_2300,
+    SCGitRepoAlreadyExists_2301,
+    SCGitInvalidRepoName_2302,
+    SCGitCannotDelete_2303,
+    SCGitRepoDoesntExist_2304,
     SCLoginStateTimeout_2400,
     SCChatInternal_2500,
     SCChatRateLimit_2501,
@@ -107,6 +113,7 @@ protocol constants {
     SCTeamNotFound_2614,
     SCTeamExists_2619,
     SCTeamReadError_2623,
+    SCNoOp_2638,
     SCTeamTarDuplicate_2663,
     SCTeamTarNotFound_2664,
     SCTeamMemberExists_2665,
@@ -131,6 +138,8 @@ protocol constants {
     SCTeamBadAdminSeqnoType_2684,
     SCTeamImplicitBadAdd_2685,
     SCTeamImplicitBadRemove_2686,
-    SCTeamKeyMaskNotFound_2697
+    SCTeamKeyMaskNotFound_2697,
+    SCTeamBanned_2702,
+    SCTeamInvalidBan_2703
   }
 }

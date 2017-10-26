@@ -16,22 +16,34 @@
                       Name="PendingFileRenameOperations"
                       Type="raw" />
     </Property>
-    
+    <Property Id="REG_BUNDLEFILE">
+      <RegistrySearch Id="BundlePath"
+                      Root="HKCU"
+                      Key="Software\Keybase\Keybase"
+                      Name="BUNDLEFILE"
+                      Type="raw" />
+    </Property>
+    <SetProperty Id="QtExecCopyBundle" Value="&quot;[SystemFolder]cmd.exe&quot; /C copy /Y &quot;[BUNDLEFILE]&quot; &quot;[INSTALLERFOLDER]&quot;"
+            Before="QtExecCopyBundle" Sequence='execute'/>
+    <SetProperty Id="QtExecRemoveBundle" Value="&quot;[SystemFolder]cmd.exe&quot; /C del &quot;[REG_BUNDLEFILE]&quot;"
+        Before="QtExecCopyBundle" Sequence='execute'/>
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />	
 
-		<Feature Id="ProductFeature" Title="Keybase Application" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
-      <ComponentGroupRef Id="GuiComponents" />
-      <ComponentGroupRef Id="PrompterComponents" />
+    <Feature Id="ProductFeature" Title="Keybase Application" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="GuiComps" />
       <ComponentGroupRef Id="ApplicationShortcuts" />
       <ComponentGroupRef Id="StartupShortcuts" />
       <ComponentGroupRef Id="GuiStartMenuTileColors" />
       <ComponentGroupRef Id="BrowserExtensionKbnm" />
+      <ComponentGroupRef Id="installerFolderGroup" />
     </Feature>
 
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+      <Custom Action="ParseBundlePath" After="CostFinalize">NOT REMOVE AND BUNDLEFILE</Custom>
+      <Custom Action="QtExecRemoveBundle"  Before="InstallFinalize"><![CDATA[Installed AND REG_BUNDLEFILE]]></Custom>
       <Custom Action="StopUpdater" Before="InstallValidate"><![CDATA[Installed]]></Custom>
       <!-- These roaming actions are temporary, while we switch from appdata to localappdata. -->
       <Custom Action="StopUpdaterRoaming" Before="InstallValidate"><![CDATA[Installed]]></Custom>
@@ -43,6 +55,7 @@
       <Custom Action="RunMainApp" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="RunGUI" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
       <Custom Action="AddBrowserExtension" Before="InstallFinalize"><![CDATA[NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
+      <Custom Action="QtExecCopyBundle" Before="InstallFinalize"><![CDATA[BUNDLEFILE AND NOT (RESTART_PENDING >< "Dokan") AND NOT (REMOVE ~= "ALL")]]></Custom>
     </InstallExecuteSequence>
 
 
@@ -62,7 +75,7 @@
 		<Directory Id="TARGETDIR" Name="SourceDir">
 			<Directory Id="LocalAppDataFolder">
         <Directory Id="INSTALLFOLDER" Name="Keybase">
-          <Directory Id="PROMPTERFOLDER" Name="prompter"/>
+          <Directory Id="INSTALLERFOLDER" Name="install"/>
         </Directory>
       </Directory>
       <Directory Id="ProgramMenuFolder">
@@ -85,7 +98,10 @@
         <!-- The heat tool output (which generates gui.wxs) won't work if there are directories with only subdirectories
         and no removable components, so we have to special-case them here and in the xsl transform (gui.xsl) -->
         <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
+        <RemoveFolder Id="GuiNodeModulesDirRemove" On="uninstall" Directory="GuiNodeModulesDir"/>
+        <RemoveFolder Id="GuiRegeditDirRemove" On="uninstall" Directory="GuiRegeditDir"/>
         <RemoveFolder Id="ROAMINGINSTALLFOLDERRemove" On="uninstall" Directory="ROAMINGINSTALLFOLDER"/>
+        <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" Directory="ApplicationProgramsFolder"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
@@ -108,7 +124,17 @@
         </RegistryKey>
         <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
       </Component>
-
+			
+      <Component Id="GitHelperExe" Guid="{d8938a5b-c45f-4942-b552-a357a5563329}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveGitHelper" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="GitHelperExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='GitHelperExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe" />
+        <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
+      </Component>
+      
       <Component Id="upd.exe" Guid="{65C18DA3-BCD5-4E18-9C80-AC66471B433A}">
         <CreateFolder />
         <RemoveFolder Id="RemoveUpdater" On="uninstall" />
@@ -117,6 +143,14 @@
         </RegistryKey>
         <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
       </Component>
+      <Component Id="prompter.exe" Guid="{238016CC-6D9B-4B88-8618-EC1203F89CBF}">
+        <CreateFolder />
+        <RemoveFolder Id="RemovePrompterExe" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="prompterexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="prompter.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe" Checksum="yes"/>
+      </Component>
       <!-- The cleaner will look at these to make sure it only scrubs the driver we installed -->
       <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
         <RegistryKey Root="HKCU"
@@ -124,37 +158,8 @@
               Action="createAndRemoveOnUninstall">
           <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
           <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
-	  <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
+	        <RegistryValue Type="string" Name="BUNDLEKEY" Value="[BUNDLEKEY]"/>
         </RegistryKey>
-      </Component>
-      
-    </ComponentGroup>
-  </Fragment>
-  <Fragment>
-    <ComponentGroup Id="PrompterComponents" Directory="PROMPTERFOLDER">
-      <Component Id="prompter.hta" Guid="{424BA879-35A2-4853-8F3D-6D8112655FF6}">
-        <CreateFolder />
-        <RemoveFolder Id="RemovePrompterHta" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="prompterhta" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="prompter.hta" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\prompter.hta" Checksum="yes"/>
-      </Component>
-      <Component Id="keybase.ico" Guid="{747ACACB-5F0E-4979-AFA8-6C6401481C19}">
-        <CreateFolder />
-        <RemoveFolder Id="RemovePrompterKeybaseIco" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="prompterkbicon" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="keybase.ico" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\keybase.ico" Checksum="yes"/>
-      </Component>
-      <Component Id="keybase.png" Guid="{FC444587-2B9D-4E7D-A926-F0BC5A239F42}">
-        <CreateFolder />
-        <RemoveFolder Id="RemovePrompterKeybasePng" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="prompterkbpng" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="icon_128x128.png" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\windows\prompter\icon_128x128.png" Checksum="yes"/>
       </Component>
     </ComponentGroup>
   </Fragment>
@@ -175,7 +180,7 @@
                   Description="Start GUI at boot"
                   Target="[INSTALLFOLDER]keybaserq.exe"
                   Arguments="&quot;[GuiDir]Keybase.exe&quot;"
-                  WorkingDirectory="INSTALLFOLDER"/>
+                  WorkingDirectory="GuiDir"/>
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="ShortCutStartUpGUI" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
@@ -207,15 +212,6 @@
         <File Id="kbnm.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.exe" Checksum="yes"/>
       </Component>
 
-      <Component Id="kbnm.json" Guid="{62193DE0-E8A9-4B64-BBA5-96CF3DEA48A7}">
-        <CreateFolder />
-        <RemoveFolder Id="RemoveMyBrowserExtensionJson" On="uninstall" />
-        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
-          <RegistryValue Name="kbnmjson" Value="1" KeyPath="yes" Type="integer" />
-        </RegistryKey>
-        <File Id="kbnm.json" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbnm\kbnm.json" Checksum="yes"/>
-      </Component>
-
     </ComponentGroup>
   </Fragment>
 
@@ -223,17 +219,6 @@
 
   <Fragment>
     <ComponentGroup Id="ApplicationShortcuts" Directory="ApplicationProgramsFolder">
-      <Component Id="ApplicationShortcut" Guid="E05F8D29-F530-4791-AE6B-B89DAE1F6D5C">
-          <Shortcut Id="ApplicationStartMenuShortcut"
-              Name="Keybase Shell"
-              Description="Open command console with keybase in the local path"
-              Target="[SystemFolder]cmd.exe"
-              Arguments="/K &quot;set PATH=%PATH%;[INSTALLFOLDER]&quot;"
-              WorkingDirectory="INSTALLFOLDER"      
-              Icon="ProductIcon"/>
-          <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-          <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
-      </Component>
       <Component Id="GUIShortCutComponent" Guid="{034E2E25-3676-4101-87F5-F6E081CA446A}">
         <Shortcut Id="GUIShortCut"
                   Name="Keybase"
@@ -244,7 +229,18 @@
           <RegistryValue Name="ShortCutGUI" Type="integer" Value="1" KeyPath="yes"  />
         </RegistryKey>
       </Component>
+    </ComponentGroup>
+  </Fragment>
 
+  <Fragment>
+    <ComponentGroup Id="installerFolderGroup" Directory="INSTALLERFOLDER">
+      <Component Id="installerFolderId" Guid="{DD3552AD-520F-4766-B717-151316F781E4}">
+        <CreateFolder />
+        <RemoveFolder Id='INSTALLERFOLDERRemove' Directory='INSTALLERFOLDER' On='uninstall' />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Type="string" Name="BUNDLEFILE" Value="[INSTALLERFOLDER][BUNDLENAME]" KeyPath="yes"/>
+        </RegistryKey>        
+      </Component>
     </ComponentGroup>
   </Fragment>
   <Fragment>
@@ -318,5 +314,21 @@
               ExeCommand="[INSTALLFOLDER]keybaserq.exe -wait &quot;[INSTALLFOLDER]kbnm.exe&quot; uninstall"
               Execute="immediate"
               Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="ParseBundlePath" Script="vbscript">
+      <![CDATA[
+         Set fso = CreateObject("Scripting.FileSystemObject")
+         Session.Property("BUNDLENAME") = fso.GetFileName(Session.Property("BUNDLEFILE"))
+       ]]>
+    </CustomAction>  
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="QtExecRemoveBundle" BinaryKey="WixCA" DllEntry="WixQuietExec"
+                Execute="deferred" Return="ignore" Impersonate="no"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="QtExecCopyBundle" BinaryKey="WixCA" DllEntry="WixQuietExec"
+                Execute="deferred" Return="check" Impersonate="no"/>
   </Fragment>
 </Wix>

@@ -49,6 +49,7 @@ const ChannelHeader = ({badgeNumber, channelName, muted, onBack, onToggleInfoPan
 
 const UsernameHeader = ({
   badgeNumber,
+  canOpenInfoPanel,
   muted,
   onBack,
   onOpenFolder,
@@ -84,11 +85,12 @@ const UsernameHeader = ({
       />
       {muted && <ShhIcon />}
     </Box>
-    <Icon
-      type="iconfont-info"
-      style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
-      onClick={onToggleInfoPanel}
-    />
+    {canOpenInfoPanel &&
+      <Icon
+        type="iconfont-info"
+        style={{...styleLeft, flexShrink: 0, padding: globalMargins.tiny, fontSize: 21}}
+        onClick={onToggleInfoPanel}
+      />}
   </Box>
 )
 

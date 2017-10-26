@@ -49,6 +49,10 @@ func (t TeamSigChainState) IsPublic() bool {
 	return t.inner.Public
 }
 
+func (t TeamSigChainState) IsOpen() bool {
+	return t.inner.Open
+}
+
 func (t TeamSigChainState) LatestLastNamePart() keybase1.TeamNamePart {
 	return t.inner.NameLog[len(t.inner.NameLog)-1].LastPart
 }
@@ -375,11 +379,6 @@ func (t *TeamSigChainState) informSubteamDelete(id keybase1.TeamID, seqno keybas
 	return nil
 }
 
-type TeamIDAndName struct {
-	ID   keybase1.TeamID
-	Name keybase1.TeamName
-}
-
 // Only call this on a Team that has been loaded with NeedAdmin.
 // Otherwise, you might get incoherent answers due to links that
 // were stubbed over the life of the cached object.
@@ -389,7 +388,7 @@ type TeamIDAndName struct {
 // The list will not contain duplicate names.
 // Since this should only be called when you are an admin,
 // none of that should really come up, but it's here just to be less fragile.
-func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
+func (t *TeamSigChainState) ListSubteams() (res []keybase1.TeamIDAndName) {
 	type Entry struct {
 		ID   keybase1.TeamID
 		Name keybase1.TeamName
@@ -408,6 +407,10 @@ func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
 			continue
 		}
 		lastPoint := points[len(points)-1]
+		if lastPoint.Name.IsNil() {
+			// the subteam has been deleted
+			continue
+		}
 		entry := Entry{
 			ID:    subteamID,
 			Name:  lastPoint.Name,
@@ -420,8 +423,8 @@ func (t *TeamSigChainState) ListSubteams() (res []TeamIDAndName) {
 		}
 	}
 	for _, entry := range resMap {
-		res = append(res, TeamIDAndName{
-			ID:   entry.ID,
+		res = append(res, keybase1.TeamIDAndName{
+			Id:   entry.ID,
 			Name: entry.Name,
 		})
 	}
@@ -672,6 +675,11 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		return res, err
 	}
 
+	if teamID.IsPublic() != team.Public {
+		return res, fmt.Errorf("link specified public:%v but ID is public:%v",
+			team.Public, teamID.IsPublic())
+	}
+
 	if prevState != nil && !prevState.inner.Id.Equal(teamID) {
 		return res, fmt.Errorf("wrong team id: %s != %s", teamID.String(), prevState.inner.Id.String())
 	}
@@ -735,6 +743,9 @@ func (t *TeamSigChainPlayer) addInnerLink(
 	hasCompletedInvites := func(has bool) error {
 		return hasGeneric(has, len(team.CompletedInvites) != 0, "completed_invites")
 	}
+	hasSettings := func(has bool) error {
+		return hasGeneric(has, team.Settings != nil, "settings")
+	}
 	allowInflate := func(allow bool) error {
 		if isInflate && !allow {
 			return fmt.Errorf("inflating link type not supported: %v", payload.Body.Type)
@@ -777,7 +788,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 		// Check the team ID
 		// assert that team_name = hash(team_id)
 		// this is only true for root teams
-		if !teamID.Equal(teamName.ToTeamID()) {
+		if !teamID.Equal(teamName.ToTeamID(team.Public)) {
 			return res, fmt.Errorf("team id:%s does not match team name:%s", teamID, teamName)
 		}
 		if teamID.IsSubTeam() {
@@ -845,6 +856,13 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("signer is not an owner: %v (%v)", signer, team.Members.Owners)
 		}
 
+		if settings := team.Settings; settings != nil {
+			err = t.parseTeamSettings(settings, &res.newState)
+			if err != nil {
+				return res, err
+			}
+		}
+
 		return res, nil
 	case libkb.LinkTypeChangeMembership:
 		err = libkb.PickFirstError(
@@ -855,7 +873,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasParent(false),
 			hasInvites(false),
 			hasSubteam(false),
-			hasInvites(false))
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -995,7 +1013,8 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(true),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
@@ -1039,13 +1058,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasInvites(false),
 			hasAdmin(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
 
 		if prevState.IsImplicit() {
-			NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check that the signer is at least a reader.
@@ -1078,13 +1098,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(true),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
 
 		if prevState.IsImplicit() {
-			NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1148,7 +1169,7 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			return res, fmt.Errorf("subteam has root team name: %s", teamName)
 		}
 		if teamName.IsImplicit() || team.Implicit {
-			NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
@@ -1191,6 +1212,12 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			}}
 
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
+		if settings := team.Settings; settings != nil {
+			err = t.parseTeamSettings(settings, &res.newState)
+			if err != nil {
+				return res, err
+			}
+		}
 
 		return res, nil
 	case libkb.LinkTypeRenameSubteam:
@@ -1203,13 +1230,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(true),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
 
 		if prevState.IsImplicit() {
-			NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1244,13 +1272,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(false),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
 
 		if prevState.IsImplicit() {
-			NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// These links only occur in subteam.
@@ -1304,13 +1333,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasSubteam(true),
 			hasPerTeamKey(false),
 			hasInvites(false),
-			hasCompletedInvites(false))
+			hasCompletedInvites(false),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
 
 		if prevState.IsImplicit() {
-			NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check the subteam ID
@@ -1342,13 +1372,14 @@ func (t *TeamSigChainPlayer) addInnerLink(
 			hasParent(false),
 			hasSubteam(false),
 			hasPerTeamKey(false),
-			hasInvites(true))
+			hasInvites(true),
+			hasSettings(false))
 		if err != nil {
 			return res, err
 		}
 
 		if prevState.IsImplicit() {
-			NewImplicitTeamOperationError(payload.Body.Type)
+			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
 		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
@@ -1374,6 +1405,51 @@ func (t *TeamSigChainPlayer) addInnerLink(
 
 		res.newState = prevState.DeepCopy()
 		t.updateInvites(&res.newState, additions, cancelations)
+		return res, nil
+	case libkb.LinkTypeSettings:
+		err = libkb.PickFirstError(
+			allowInflate(false),
+			hasPrevState(true),
+			hasName(false),
+			hasMembers(false),
+			hasParent(false),
+			hasInvites(false),
+			hasSubteam(false),
+			hasPerTeamKey(false),
+			hasCompletedInvites(false),
+			hasSettings(true))
+		if err != nil {
+			return res, err
+		}
+
+		// Check that the signer is at least an ADMIN or is an IMPLICIT ADMIN to have permission to make this link.
+		if !signer.implicitAdmin {
+			signerRole, err := prevState.GetUserRole(signer.signer)
+			if err != nil {
+				return res, err
+			}
+			switch signerRole {
+			case keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER:
+				// ok
+			default:
+				return res, fmt.Errorf("link signer does not have permission to invite: %v is a %v", signer, signerRole)
+			}
+		}
+
+		res.newState = prevState.DeepCopy()
+		err = t.parseTeamSettings(team.Settings, &res.newState)
+		return res, err
+	case libkb.LinkTypeDeleteRoot:
+		return res, NewTeamDeletedError()
+	case libkb.LinkTypeDeleteUpPointer:
+		return res, NewTeamDeletedError()
+	case libkb.LinkTypeLegacyTLFUpgrade:
+		// This link type is not really understood but is processed as a no-op for forward compatibility.
+		// When implementing this for real (or deleting it) be sure to:
+		// - Bust the TeamData cache
+		// - Update SigchainV2Type.RequiresAdminPermission
+		// - Add checks here that the signer is an admin and that this is an implicit team. If those are intended.
+		res.newState = prevState.DeepCopy()
 		return res, nil
 	case "":
 		return res, errors.New("empty body type")
@@ -1441,6 +1517,20 @@ type sanityCheckInvitesOptions struct {
 	implicitTeam bool
 }
 
+func assertIsKeybaseInvite(g *libkb.GlobalContext, i SCTeamInvite) bool {
+	typ, err := keybase1.TeamInviteTypeFromString(string(i.Type), g.Env.GetRunMode() == libkb.DevelRunMode)
+	if err != nil {
+		g.Log.Info("bad invite type: %s", err)
+		return false
+	}
+	cat, err := typ.C()
+	if err != nil {
+		g.Log.Info("bad invite category: %s", err)
+		return false
+	}
+	return cat == keybase1.TeamInviteCategory_KEYBASE
+}
+
 // sanityCheckInvites sanity checks a raw SCTeamInvites section and coerces it into a
 // format that we can use. It checks:
 //  - no owners are invited
@@ -1464,11 +1554,11 @@ func (t *TeamSigChainPlayer) sanityCheckInvites(
 	additions = make(map[keybase1.TeamRole][]keybase1.TeamInvite)
 
 	if invites.Owners != nil && len(*invites.Owners) > 0 {
-		if !options.implicitTeam {
-			return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
-		}
 		additions[keybase1.TeamRole_OWNER] = nil
 		for _, i := range *invites.Owners {
+			if !options.implicitTeam && !assertIsKeybaseInvite(t.G(), i) {
+				return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
+			}
 			all = append(all, assignment{i, keybase1.TeamRole_OWNER})
 		}
 	}
@@ -1794,4 +1884,32 @@ func (t *TeamSigChainPlayer) assertIsSubteamID(subteamIDStr string) (keybase1.Te
 		return subteamID, fmt.Errorf("malformed subteam id")
 	}
 	return subteamID, nil
+}
+
+func (t *TeamSigChainPlayer) parseTeamSettings(settings *SCTeamSettings, newState *TeamSigChainState) error {
+	if open := settings.Open; open != nil {
+		if newState.inner.Implicit {
+			return fmt.Errorf("implicit team cannot be open")
+		}
+
+		newState.inner.Open = open.Enabled
+		if options := open.Options; options != nil {
+			if !open.Enabled {
+				return fmt.Errorf("closed team shouldn't define team.settings.open.options")
+			}
+
+			switch options.JoinAs {
+			case "reader":
+				newState.inner.OpenTeamJoinAs = keybase1.TeamRole_READER
+			case "writer":
+				newState.inner.OpenTeamJoinAs = keybase1.TeamRole_WRITER
+			default:
+				return fmt.Errorf("invalid join_as role in open team: %s", options.JoinAs)
+			}
+		} else if open.Enabled {
+			return fmt.Errorf("team set to open but team.settings.open.options is missing")
+		}
+	}
+
+	return nil
 }

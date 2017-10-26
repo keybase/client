@@ -17,20 +17,20 @@ type IdentifyState struct {
 }
 
 func NewIdentifyStateWithGregorItem(g *GlobalContext, item gregor.Item, u *User) IdentifyState {
-	res := NewIdentifyOutcomeWithUsername(u.GetNormalizedName())
+	res := NewIdentifyOutcomeWithUsername(g, u.GetNormalizedName())
 	res.ResponsibleGregorItem = item
 	return IdentifyState{Contextified: NewContextified(g), res: res, u: u}
 }
 
 func (s *IdentifyState) SetTrackLookup(t *TrackChainLink) {
-	s.track = NewTrackLookup(t)
+	s.track = NewTrackLookup(s.G(), t)
 	if s.res != nil {
 		s.res.TrackUsed = s.track
 	}
 }
 
 func (s *IdentifyState) SetTmpTrackLookup(t *TrackChainLink) {
-	s.tmpTrack = NewTrackLookup(t)
+	s.tmpTrack = NewTrackLookup(s.G(), t)
 }
 
 func (s *IdentifyState) TrackLookup() *TrackLookup {

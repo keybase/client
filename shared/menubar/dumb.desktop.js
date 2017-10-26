@@ -23,7 +23,6 @@ const propsNormal = {
   logIn: () => console.log('login'),
   showHelp: () => console.log('show help'),
   showUser: () => console.log('show user'),
-  openShell: () => console.log('open shell'),
   quit: () => console.log('quit'),
   refresh: () => console.log('refresh'),
   onRekey: () => console.log('rekey popup'),

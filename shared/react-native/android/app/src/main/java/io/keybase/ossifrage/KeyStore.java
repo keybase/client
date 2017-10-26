@@ -3,7 +3,10 @@ package io.keybase.ossifrage;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.util.Base64;
+import android.util.Log;
 
 import org.msgpack.MessagePack;
 
@@ -25,14 +28,13 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import keybase.Keybase;
 import keybase.UnsafeExternalKeyStore;
 import io.keybase.ossifrage.keystore.KeyStoreHelper;
 
 public class KeyStore implements UnsafeExternalKeyStore {
     private final Context context;
     private final SharedPreferences prefs;
-    private final java.security.KeyStore ks;
+    private java.security.KeyStore ks;
 
     // Prefix for the key we use when we place the data in shared preferences
     private static final String PREFS_KEY = "_wrappedKey_";
@@ -82,18 +84,27 @@ public class KeyStore implements UnsafeExternalKeyStore {
     @Override
     public synchronized byte[] retrieveSecret(final String serviceName, final String key) throws Exception {
         final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
-        Entry entry;
-        try {
-            entry = ks.getEntry(keyStoreAlias(serviceName), null);
-        } catch (Exception e) {
-            throw new KeyStoreException("Failed to get the RSA keys from the keystore");
-        }
+        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
-        if (!(entry instanceof PrivateKeyEntry)){
+        if (entry == null){
             throw new KeyStoreException("No RSA keys in the keystore");
         }
 
-        return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+        if (!(entry instanceof PrivateKeyEntry)){
+            throw new KeyStoreException("Entry is not a PrivateKeyEntry. It is: " + entry.getClass());
+        }
+
+        try {
+            return unwrapSecret((PrivateKeyEntry) entry, wrappedSecret).getEncoded();
+        } catch (InvalidKeyException e) {
+            // Invalid key, this can happen when a user changes their lock screen from something to nothing
+            // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
+                Log.d("KBKeyStore", "Key no longer valid. Deleting entry", e);
+                ks.deleteEntry((keyStoreAlias(serviceName)));
+            }
+            throw e;
+        }
     }
 
     @Override
@@ -111,23 +122,19 @@ public class KeyStore implements UnsafeExternalKeyStore {
         try {
             final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
             if (entry == null) {
-                throw new NullPointerException("Null Entry");
+                ks.deleteEntry(keyStoreAlias(serviceName));
+                KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
             }
-        } catch (Exception e) {
-            ks.deleteEntry(keyStoreAlias(serviceName));
-            KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
+         } finally {
+          // Reload the keystore
+          ks = java.security.KeyStore.getInstance("AndroidKeyStore");
+          ks.load(null);
         }
     }
 
     @Override
     public synchronized void storeSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
-        Entry entry = null;
-
-        try {
-            entry = ks.getEntry(keyStoreAlias(serviceName), null);
-        } catch (Exception e) {
-            throw new KeyStoreException("Failed to get the RSA keys from the keystore");
-        }
+        Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
 
         if (entry == null) {
             throw new KeyStoreException("No RSA keys in the keystore");

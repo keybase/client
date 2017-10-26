@@ -651,8 +651,9 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 			SubkeyBits:  768,
 		},
 		PushSecret: true,
+		Ctx:        tc.G,
 	}
-	arg.Gen.MakeAllIds()
+	arg.Gen.MakeAllIds(tc.G)
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
@@ -722,8 +723,9 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		PushSecret: true,
 		NoSave:     true,
 		AllowMulti: true,
+		Ctx:        tc.G,
 	}
-	parg.Gen.MakeAllIds()
+	parg.Gen.MakeAllIds(tc.G)
 	pctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
@@ -839,8 +841,9 @@ func TestPassphraseGenerationStored(t *testing.T) {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
-	pgpArg.Gen.MakeAllIds()
+	pgpArg.Gen.MakeAllIds(tc.G)
 	pgpEng := NewPGPKeyImportEngine(pgpArg)
 	pgpCtx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),

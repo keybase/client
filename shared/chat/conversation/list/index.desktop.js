@@ -59,7 +59,7 @@ class BaseList extends React.Component<Props, State> {
   componentDidUpdate(prevProps: Props, prevState: State) {
     // Force a rerender if we passed a row to scroll to. If it's kept around the virutal list gets confused so we only want it to render once basically
     if (this._keepIdxVisible !== -1) {
-      this.setState({listRerender: this.state.listRerender + 1}) // eslint-disable-line react/no-did-update-set-state
+      this.setState(prevState => ({listRerender: prevState.listRerender + 1})) // eslint-disable-line react/no-did-update-set-state
       this._keepIdxVisible = -1
     }
     this._lastRowIdx = -1 // always reset this to be safe
@@ -81,7 +81,7 @@ class BaseList extends React.Component<Props, State> {
     if (this.props.messageKeys.count() !== nextProps.messageKeys.count()) {
       if (this.props.messageKeys.count() > 1 && this._lastRowIdx !== -1) {
         const toFind = this.props.messageKeys.get(this._lastRowIdx)
-        this._keepIdxVisible = nextProps.messageKeys.indexOf(toFind)
+        this._keepIdxVisible = toFind ? nextProps.messageKeys.indexOf(toFind) : -1
       }
       // Force the grid to throw away its local index based cache. There might be a lighterway to do this but
       // this seems to fix the overlap problem. The cellCache has correct values inside it but the list itself has
@@ -264,32 +264,44 @@ class PopupEnabledList extends BaseList {
 
   // How this works is kinda crappy. We have to plumb through this key => message helper and all this DOM stuff just to support this
   _onEditLastMessage = () => {
-    const entry: any = this.props.messageKeys.findLastEntry(k => {
-      const m = this.props.getMessageFromMessageKey(k)
-      return !!(m && m.type === 'Text' && m.author === this.props.you)
+    let tuple: ?[number, Constants.MessageKey, Constants.TextMessage]
+    this.props.messageKeys.findLastEntry((v, k) => {
+      const m = this.props.getMessageFromMessageKey(v)
+      if (m && m.type === 'Text' && m.author === this.props.you) {
+        tuple = [k, v, m]
+        return true
+      }
+      return false
     })
 
-    if (entry) {
-      const idx: number = entry[0]
-      const messageKey: Constants.MessageKey = entry[1]
-      // $ForceType
-      const message: Constants.TextMessage = this.props.getMessageFromMessageKey(messageKey)
-
-      this._keepIdxVisible = idx
-      this.setState({listRerender: this.state.listRerender + 1})
-
-      const listNode = ReactDOM.findDOMNode(this._list)
-      if (listNode) {
-        // $FlowIssue
-        const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
-        if (messageNodes) {
-          const messageNode = messageNodes[0]
-          if (messageNode) {
-            this._showEditor(message, this._domNodeToRect(messageNode))
-          }
-        }
-      }
+    if (!tuple) {
+      return
     }
+
+    const [idx, messageKey, message] = tuple
+    if (!Constants.textMessageEditable(message)) {
+      return
+    }
+
+    this._keepIdxVisible = idx
+    this.setState(prevState => ({listRerender: prevState.listRerender + 1}))
+
+    const listNode = ReactDOM.findDOMNode(this._list)
+    if (!(listNode instanceof window.Element)) {
+      return
+    }
+
+    const messageNodes = listNode.querySelectorAll(`[data-message-key="${messageKey}"]`)
+    if (!messageNodes) {
+      return
+    }
+
+    const messageNode = messageNodes[0]
+    if (!messageNode) {
+      return
+    }
+
+    this._showEditor(message, this._domNodeToRect(messageNode))
   }
 
   _renderPopup(
@@ -421,6 +433,7 @@ class PopupEnabledList extends BaseList {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
+  contain: 'strict',
   flex: 1,
   position: 'relative',
 }

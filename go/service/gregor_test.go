@@ -70,6 +70,7 @@ func TestGregorHandler(t *testing.T) {
 }
 
 type nlistener struct {
+	libkb.NoopNotifyListener
 	t                *testing.T
 	favoritesChanged []keybase1.UID
 	badgeState       chan keybase1.BadgeState
@@ -88,43 +89,15 @@ func newNlistener(t *testing.T) *nlistener {
 	}
 }
 
-func (n *nlistener) Logout()                                                             {}
-func (n *nlistener) Login(username string)                                               {}
-func (n *nlistener) ClientOutOfDate(to, uri, msg string)                                 {}
-func (n *nlistener) UserChanged(uid keybase1.UID)                                        {}
-func (n *nlistener) TrackingChanged(uid keybase1.UID, username libkb.NormalizedUsername) {}
-func (n *nlistener) FSActivity(activity keybase1.FSNotification)                         {}
-func (n *nlistener) FSEditListResponse(arg keybase1.FSEditListArg)                       {}
-func (n *nlistener) FSEditListRequest(arg keybase1.FSEditListRequest)                    {}
-func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID)        {}
 func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
 }
-func (n *nlistener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity)      {}
-func (n *nlistener) ChatIdentifyUpdate(update keybase1.CanonicalTLFNameAndIDWithBreaks) {}
-func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                                  {}
-func (n *nlistener) PGPKeyInSecretStoreFile()                                           {}
-func (n *nlistener) FSSyncStatusResponse(arg keybase1.FSSyncStatusArg)                  {}
-func (n *nlistener) FSSyncEvent(arg keybase1.FSPathSyncStatus)                          {}
-func (n *nlistener) ReachabilityChanged(r keybase1.Reachability)                        {}
-func (n *nlistener) ChatTLFFinalize(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationFinalizeInfo) {
-}
-func (n *nlistener) ChatTLFResolve(uid keybase1.UID, convID chat1.ConversationID, info chat1.ConversationResolveInfo) {
-}
-func (n *nlistener) ChatJoinedConversation(uid keybase1.UID, conv chat1.InboxUIItem)    {}
-func (n *nlistener) ChatLeftConversation(uid keybase1.UID, convID chat1.ConversationID) {}
-func (n *nlistener) ChatInboxStale(uid keybase1.UID)                                    {}
-func (n *nlistener) TeamChanged(teamID keybase1.TeamID, teamName string, latestSeqno keybase1.Seqno, changes keybase1.TeamChangeSet) {
-}
-func (n *nlistener) TeamDeleted(teamID keybase1.TeamID) {}
 func (n *nlistener) ChatThreadsStale(uid keybase1.UID, cids []chat1.ConversationStaleUpdate) {
 	select {
 	case n.threadStale <- cids:
 	case <-time.After(n.testChanTimeout):
 		require.Fail(n.t, "thread send timeout")
 	}
-}
-func (n *nlistener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 }
 func (n *nlistener) BadgeState(badgeState keybase1.BadgeState) {
 	select {
@@ -312,6 +285,11 @@ func (m mockGregord) ConsumeMessage(ctx context.Context, msg gregor1.Message) er
 	_, err := m.sm.ConsumeMessage(ctx, msg)
 	return err
 }
+
+func (m mockGregord) ConsumeMessageMulti(ctx context.Context, arg gregor1.ConsumeMessageMultiArg) error {
+	return errors.New("unimplemented")
+}
+
 func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message) error {
 	return errors.New("unimplemented")
 }
@@ -693,6 +671,43 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")
 }
 
+func TestGregorTeamBadges(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+	listener := newNlistener(t)
+	tc.G.NotifyRouter.SetListener(listener)
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+	h.badger = badges.NewBadger(tc.G)
+	t.Logf("client setup complete")
+
+	t.Logf("server message")
+	teamID := keybase1.MakeTestTeamID(1, false)
+	msg := server.newIbm2(uid, gregor1.Category("team.newly_added_to_team"), gregor1.Body([]byte(`[{"id": "`+teamID+`"}]`)))
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+	msg = server.newIbm2(uid, gregor1.Category("team.request_access"), gregor1.Body([]byte(`[{"id": "`+teamID+`"}]`)))
+	require.NoError(t, server.ConsumeMessage(context.TODO(), msg))
+
+	// Sync from the server
+	t.Logf("client sync")
+	_, _, err := h.serverSync(context.TODO(), server, h.gregorCli, nil)
+	require.NoError(t, err)
+	t.Logf("client sync complete")
+
+	ri := func() chat1.RemoteInterface {
+		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
+	}
+	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+
+	bs := listener.getBadgeState(t)
+	require.Equal(t, 1, len(bs.NewTeamIDs), "one new team id")
+	require.Equal(t, teamID, bs.NewTeamIDs[0])
+	require.Equal(t, 1, len(bs.NewTeamAccessRequests), "one team access request")
+	require.Equal(t, teamID, bs.NewTeamAccessRequests[0])
+}
+
 // TestGregorBadgesOOBM doesn't actually use out of band messages.
 // Instead it feeds chat updates directly to badger. So it's a pretty weak test.
 func TestGregorBadgesOOBM(t *testing.T) {
@@ -732,6 +747,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 			{ConvID: chat1.ConversationID(`b`), UnreadMessages: 0},
 			{ConvID: chat1.ConversationID(`c`), UnreadMessages: 3},
 		},
+		InboxSyncStatus: chat1.SyncInboxResType_CLEAR,
 	})
 	h.badger.Send()
 	bs = listener.getBadgeState(t)

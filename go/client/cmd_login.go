@@ -25,13 +25,8 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdLoginRunner(g), "login", c)
 		},
-		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "provision-by-email",
-				Usage: "Use an email address associated with a keybase account to provision a device",
-			},
-		},
 	}
+
 	// Note we'll only be able to set this via mode via Environment variable
 	// since it's too early to check command-line setting of it.
 	if g.Env.GetRunMode() == libkb.DevelRunMode {
@@ -119,30 +114,13 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 		return errors.New("Invalid arguments.")
 	}
 
-	provisionByEmail := ctx.Bool("provision-by-email")
-
 	if nargs == 1 {
 		c.username = ctx.Args()[0]
-		if provisionByEmail {
-			// if --provision-by-email flag set, then they can
-			// use an email address for provisioning.
-			if !libkb.CheckEmail.F(c.username) {
-				return errors.New("Invalid email format. Please login again via `keybase login --provision-by-email [email]`")
-			}
-		} else {
-			// they must use a username
-			if libkb.CheckEmail.F(c.username) {
-				return errors.New("You must use a username. Please login again via `keybase login [username]`")
-			}
-			if !libkb.CheckUsername.F(c.username) {
-				return errors.New("Invalid username format. Please login again via `keybase login [username]`")
-			}
-		}
-
-		if ctx.Bool("emulate-gui") {
-			c.clientType = keybase1.ClientType_GUI_MAIN
+		if !libkb.CheckEmailOrUsername.F(c.username) {
+			return errors.New("Invalid username or email address format. Please login again via `keybase login [username or email]`")
 		}
 	}
+
 	return nil
 }
 

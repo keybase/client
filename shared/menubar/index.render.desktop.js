@@ -5,7 +5,7 @@ import UserAdd from './user-add'
 import {Box, Icon, Text, Button, PopupMenu, Badge} from '../common-adapters/index'
 import {folderTab, peopleTab, chatTab, devicesTab} from '../constants/tabs'
 import {globalStyles, globalColors} from '../styles'
-import {isWindows, isDarwin} from '../constants/platform'
+import {isDarwin} from '../constants/platform'
 
 import type {Props} from './index.render'
 import type {Tab} from '../constants/tabs'
@@ -51,7 +51,7 @@ class MenubarRender extends Component<Props, State> {
           <Icon
             style={menuStyle}
             type="iconfont-hamburger"
-            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
+            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -80,7 +80,6 @@ class MenubarRender extends Component<Props, State> {
     return [
       ...(this.props.loggedIn ? [{title: 'Open Keybase', onClick: () => this.props.openApp()}] : []),
       {title: 'Open folders', onClick: this.props.showKBFS},
-      ...(isWindows ? [{title: 'Keybase Shell', onClick: this.props.openShell}] : []),
       {title: 'Keybase.io', onClick: this.props.showUser},
       {title: 'Report a bug', onClick: this.props.showBug},
       {title: 'Help/Doc', onClick: this.props.showHelp},
@@ -163,7 +162,7 @@ class MenubarRender extends Component<Props, State> {
               marginLeft: 8,
             }}
             type="iconfont-hamburger"
-            onClick={() => this.setState({showingMenu: !this.state.showingMenu})}
+            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
           />
         </Box>
         <Folders {...mergedProps} />

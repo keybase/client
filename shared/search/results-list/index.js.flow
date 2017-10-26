@@ -11,6 +11,7 @@ export type Props = {
   onShowTracker?: (id: SearchResultId) => void,
   selectedId: ?SearchResultId,
   showSearchSuggestions: boolean,
+  disableIfInTeamName: ?string,
 }
 
 export default class ResultsList extends Component<Props> {}

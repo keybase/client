@@ -10,16 +10,17 @@ import * as Creators from './creators'
 import * as EngineRpc from '../engine/helper'
 import HiddenString from '../../util/hidden-string'
 import {RPCError} from '../../util/errors'
-import {bootstrap, setInitialTab, getExtendedStatus, setInitialLink} from '../config'
+import {bootstrap, clearRouteState, getExtendedStatus} from '../config'
 import {appLink} from '../app'
 import {defaultModeForDeviceRoles} from './provision-helpers'
 import openURL from '../../util/open-url'
-import {loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
+import type {InitialState} from '../../constants/config'
+import {chatTab, loginTab, peopleTab, isValidInitialTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {load as loadDevices, setWaiting as setDevicesWaiting, devicesTabLocation} from '../devices'
 import {setDeviceNameError} from '../signup'
 import {deletePushTokenSaga} from '../push'
-import {configurePush} from '../push/creators'
+import {selectConversation} from '../chat/creators'
 import {pathSelector, navigateTo, navigateAppend} from '../route-tree'
 import {overrideLoggedInTab} from '../../local-debug'
 import {toDeviceType} from '../../constants/types/more'
@@ -92,47 +93,60 @@ function* setCodePageOtherDeviceRole(otherDeviceRole: DeviceRole) {
   yield put(Creators.setOtherDeviceCodeState(otherDeviceRole))
 }
 
-function* navBasedOnLoginState() {
+function* navBasedOnLoginAndInitialState(): SagaGenerator<any, any> {
   const selector = ({
-    config: {loggedIn, registered, initialTab, initialLink, launchedViaPush},
+    config: {loggedIn, registered, initialState},
     login: {justDeletedSelf, loginError},
+    routeTree: {loggedInUserNavigated},
   }: TypedState) => ({
     loggedIn,
     registered,
-    initialTab,
-    initialLink,
+    initialState,
     justDeletedSelf,
-    launchedViaPush,
     loginError,
+    loggedInUserNavigated,
   })
 
-  const {
-    loggedIn,
-    registered,
-    initialTab,
-    initialLink,
-    justDeletedSelf,
-    launchedViaPush,
-    loginError,
-  } = yield select(selector)
+  const args = yield select(selector)
 
+  console.log('[RouteState] navBasedOnLoginAndInitialState:', args)
+
+  const {loggedIn, registered, initialState, justDeletedSelf, loginError, loggedInUserNavigated} = args
+
+  // All branches except for when loggedIn is true,
+  // loggedInUserNavigated is false, and and initialState is null must
+  // finish by yielding an action which sets
+  // state.routeTree.loggedInUserNavigated to true; see
+  // loggedInUserNavigatedReducer.
   if (justDeletedSelf) {
     yield put(navigateTo([loginTab]))
   } else if (loggedIn) {
+    // If the user has already performed a navigation action, or if
+    // we've already applied the initialState, do nothing.
+    if (loggedInUserNavigated) {
+      return
+    }
+
     if (overrideLoggedInTab) {
-      console.log('Loading overridden logged in tab')
       yield put(navigateTo([overrideLoggedInTab]))
-    } else if (initialLink) {
-      yield put(setInitialLink(null))
-      yield put(appLink(initialLink))
-    } else if (initialTab && isValidInitialTab(initialTab)) {
-      // only do this once
-      yield put(setInitialTab(null))
-      if (!launchedViaPush) {
-        yield put(navigateTo([initialTab]))
+    } else if (initialState) {
+      const {url, tab, conversation} = (initialState: InitialState)
+      if (url) {
+        yield put(appLink(url))
+      } else if (tab && isValidInitialTab(tab)) {
+        if (tab === chatTab && conversation) {
+          yield put(selectConversation(conversation, false))
+          yield put(navigateTo([chatTab], null, 'initial-restore'))
+        } else {
+          yield put(navigateTo([tab], null, 'initial-restore'))
+        }
+      } else {
+        yield put(navigateTo([peopleTab], null, 'initial-restore'))
       }
     } else {
-      yield put(navigateTo([peopleTab]))
+      // If the initial state is not set yet, navigate to the people
+      // tab without setting state.routeTree.loggedInUserNavigated to true.
+      yield put(navigateTo([peopleTab], null, 'initial-default'))
     }
   } else if (registered) {
     // relogging in
@@ -147,7 +161,7 @@ function* navBasedOnLoginState() {
   }
 }
 
-const kex2Sagas = (onBackSaga, provisionerSuccessSaga) => ({
+const kex2Sagas = (onBackSaga, provisionerSuccessSaga, getPassphraseSaga = defaultGetPassphraseSaga) => ({
   'keybase.1.gpgUi.selectKey': selectKeySaga,
   'keybase.1.loginUi.displayPrimaryPaperKey': displayPrimaryPaperKeySaga(onBackSaga),
   'keybase.1.loginUi.getEmailOrUsername': getEmailOrUsernameSaga(onBackSaga),
@@ -332,7 +346,9 @@ const chooseDeviceSaga = onBackSaga =>
           desktop: Constants.codePageDeviceRoleExistingComputer,
           mobile: Constants.codePageDeviceRoleExistingPhone,
         }: {[key: DeviceType]: DeviceRole})[toDeviceType(device.type)]
-        yield call(setCodePageOtherDeviceRole, role)
+        if (role) {
+          yield call(setCodePageOtherDeviceRole, role)
+        }
         return EngineRpc.rpcResult(deviceID)
       }
     }
@@ -360,7 +376,7 @@ const chooseGPGMethodSaga = onBackSaga =>
     }
   }
 
-const getPassphraseSaga = onBackSaga =>
+const defaultGetPassphraseSaga = onBackSaga =>
   function*({pinentry: {type, prompt, username, retryLabel}}) {
     switch (type) {
       case Types.PassphraseCommonPassphraseType.paperKey:
@@ -437,8 +453,13 @@ function* handleProvisioningError(error) {
   yield call(cancelLogin)
 }
 
-function* loginFlowSaga(usernameOrEmail) {
-  const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga)
+function* loginFlowSaga(usernameOrEmail, passphrase) {
+  // If there is passphrase, use that.
+  const passphraseSaga = passphrase
+    ? onBackSaga => () => EngineRpc.rpcResult({passphrase: passphrase.stringValue(), storeSecret: false})
+    : defaultGetPassphraseSaga
+
+  const loginSagas = kex2Sagas(cancelLogin, EngineRpc.passthroughResponseSaga, passphraseSaga)
 
   const loginRpcCall = new EngineRpc.EngineRpcCall(loginSagas, Types.loginLoginRpcChannelMap, 'loginRpc', {
     param: {
@@ -459,7 +480,7 @@ function* loginFlowSaga(usernameOrEmail) {
         yield call(handleProvisioningError, error)
       } else {
         yield put(Creators.loginDone())
-        yield call(navBasedOnLoginState)
+        yield call(navBasedOnLoginAndInitialState)
       }
     } else if (result === EngineRpc.BailedEarly) {
       console.log('Bailed early')
@@ -515,6 +536,15 @@ function* startLoginSaga() {
   }
 }
 
+function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
+  yield put(Creators.setLoginFromRevokedDevice(''))
+  yield put(Creators.setRevokedSelf(''))
+  yield put(Creators.setDeletedSelf(''))
+
+  yield call(initalizeMyCodeStateForLogin)
+  yield call(loginFlowSaga, usernameOrEmail, passphrase)
+}
+
 function* cameraBrokenModeSaga({payload: {broken}}) {
   const codePage: AfterSelect<typeof codePageSelector> = yield select(codePageSelector)
   if (codePage.myDeviceRole == null) {
@@ -535,16 +565,16 @@ function* cameraBrokenModeSaga({payload: {broken}}) {
   yield put(Creators.setCodePageMode(mode))
 }
 
-function* loginSuccess() {
-  yield put(Creators.loginDone())
-  yield put(configurePush())
-  yield put(loadDevices())
-  yield put(bootstrap())
-}
-
 const _deviceTypeMap: {[key: string]: any} = {
   [Constants.codePageDeviceRoleNewComputer]: Types.CommonDeviceType.desktop,
   [Constants.codePageDeviceRoleNewPhone]: Types.CommonDeviceType.mobile,
+}
+
+function secretExchangedSaga() {
+  return function*() {
+    yield put(Creators.clearQRCode())
+    return EngineRpc.rpcResult()
+  }
 }
 
 function chooseDeviceTypeSaga(role) {
@@ -567,6 +597,7 @@ function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
   const addDeviceSagas = {
     ...kex2Sagas(onBackSaga, onBackSaga),
     'keybase.1.provisionUi.chooseDeviceType': chooseDeviceTypeSaga(role),
+    'keybase.1.provisionUi.DisplaySecretExchanged': secretExchangedSaga(),
   }
 
   const addDeviceRpc = new EngineRpc.EngineRpcCall(
@@ -586,34 +617,6 @@ function* addNewDeviceSaga({payload: {role}}: DeviceConstants.AddNewDevice) {
   yield put(setDevicesWaiting(false))
 }
 
-function* reloginSaga({payload: {usernameOrEmail, passphrase}}: Constants.Relogin) {
-  const chanMap = Types.loginLoginProvisionedDeviceRpcChannelMap(
-    ['keybase.1.secretUi.getPassphrase', 'finished'],
-    {param: {noPassphrasePrompt: false, username: usernameOrEmail}}
-  )
-
-  while (true) {
-    const incoming = yield chanMap.race()
-    if (incoming['keybase.1.secretUi.getPassphrase']) {
-      const {response} = (incoming['keybase.1.secretUi.getPassphrase']: any)
-      response.result({passphrase: passphrase.stringValue(), storeSecret: true})
-    } else if (incoming.finished) {
-      const {error} = (incoming.finished: any)
-      if (error) {
-        const message = error.toString()
-        yield put(Creators.loginDone({message}))
-        if (error.desc === 'No device provisioned locally for this user') {
-          yield put(Creators.setLoginFromRevokedDevice(message))
-          yield put(navigateTo([loginTab]))
-        }
-      } else {
-        yield call(loginSuccess)
-      }
-      break
-    }
-  }
-}
-
 function* openAccountResetPageSaga() {
   yield call(openURL, 'https://keybase.io/#password-reset')
 }
@@ -621,12 +624,12 @@ function* openAccountResetPageSaga() {
 function* logoutDoneSaga() {
   yield put({payload: undefined, type: CommonConstants.resetStore})
 
-  yield call(navBasedOnLoginState)
+  yield call(navBasedOnLoginAndInitialState)
   yield put(bootstrap())
 }
 
 function* logoutSaga() {
-  yield call(deletePushTokenSaga)
+  yield all([call(deletePushTokenSaga), put(clearRouteState)])
 
   // Add waiting handler
   const chanMap = Types.loginLogoutRpcChannelMap(['finished'], {})
@@ -644,7 +647,7 @@ function* loginSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(Constants.setCodeMode, generateQRCode)
   yield Saga.safeTakeLatest(Constants.relogin, reloginSaga)
   yield Saga.safeTakeLatest(Constants.openAccountResetPage, openAccountResetPageSaga)
-  yield Saga.safeTakeLatest(Constants.navBasedOnLoginState, navBasedOnLoginState)
+  yield Saga.safeTakeLatest(Constants.navBasedOnLoginAndInitialState, navBasedOnLoginAndInitialState)
   yield Saga.safeTakeLatest(Constants.logoutDone, logoutDoneSaga)
   yield Saga.safeTakeLatest(Constants.logout, logoutSaga)
   yield Saga.safeTakeLatest('device:addNewDevice', addNewDeviceSaga)

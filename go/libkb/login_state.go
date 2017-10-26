@@ -566,7 +566,7 @@ func (s *LoginState) pubkeyLoginHelper(lctx LoginContext, username string, getSe
 	}
 
 	var me *User
-	if me, err = LoadUser(LoadUserArg{Name: username, LoginContext: lctx, Contextified: NewContextified(s.G())}); err != nil {
+	if me, err = LoadUser(NewLoadUserByNameArg(s.G(), username).WithLoginContext(lctx)); err != nil {
 		return
 	}
 
@@ -802,9 +802,9 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 	//
 	// Can get here without a device ID during device provisioning as this is used to establish a login
 	// session before the device keys are generated.
-	if storeSecret && !s.G().Env.GetDeviceIDForUsername(NewNormalizedUsername(username)).IsNil() {
+	if storeSecret && !s.G().Env.GetDeviceIDForUsername(NewNormalizedUsername(res.username)).IsNil() {
 
-		err = s.doStoreSecret(lctx, username, res)
+		err = s.doStoreSecret(lctx, res)
 		if err != nil {
 			s.G().Log.Debug("| LoginState#passphraseLogin: emergency logout")
 			tmpErr := lctx.Logout()
@@ -813,6 +813,10 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 			}
 			return err
 		}
+	} else if !storeSecret {
+		s.G().Log.Debug("| LoginState#passphraseLogin: not storing secret because storeSecret false")
+	} else if s.G().Env.GetDeviceIDForUsername(NewNormalizedUsername(res.username)).IsNil() {
+		s.G().Log.Debug("| LoginState#passphraseLogin: not storing secret because no device id for username %q", res.username)
 	}
 
 	if repairErr := RunBug3964Repairman(s.G(), lctx, lctx.PassphraseStreamCache().PassphraseStream()); repairErr != nil {
@@ -822,7 +826,7 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 	return nil
 }
 
-func (s *LoginState) doStoreSecret(lctx LoginContext, username string, res *loginAPIResult) (err error) {
+func (s *LoginState) doStoreSecret(lctx LoginContext, res *loginAPIResult) (err error) {
 
 	defer s.G().Trace("LoginState#doStoreSecret", func() error { return err })()
 	pps := lctx.PassphraseStreamCache().PassphraseStream()
@@ -836,7 +840,7 @@ func (s *LoginState) doStoreSecret(lctx LoginContext, username string, res *logi
 		return err
 	}
 
-	secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
+	secretStore := NewSecretStore(s.G(), NewNormalizedUsername(res.username))
 	if secretStore == nil {
 		s.G().Log.Debug("secret store requested, but unable to create one")
 		return nil
@@ -1299,6 +1303,14 @@ func (s *LoginState) APIServerSession(force bool) (*APIServerSessionStatus, erro
 		// pubkey login to refresh session
 		username := s.G().Env.GetUsername()
 		if err := s.LoginWithStoredSecret(username.String(), nil); err != nil {
+			if _, ok := err.(NoKeyError); ok {
+				s.G().Log.Debug("APIServerSession: ActiveDevice is valid, but no key in LoginWithStoredSecret (reset or revoked): Logging out")
+				if logoutErr := s.G().Logout(); logoutErr != nil {
+					return nil, logoutErr
+				}
+				return nil, err
+
+			}
 			return nil, err
 		}
 	}

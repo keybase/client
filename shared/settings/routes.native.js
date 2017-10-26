@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import TestPopup from '../dev/test-popup.native'
 import Settings from './'
 import InvitationsContainer from './invites/container'
@@ -15,9 +15,11 @@ import Passphrase from './passphrase/container'
 
 import About from './about-container'
 import NotificationsContainer from './notifications/container'
+import DBNukeConfirm from './db-nuke-confirm/container'
 import DeleteContainer from './delete/container'
 import RemoveDevice from '../devices/device-revoke/container'
 import DeleteConfirm from './delete-confirm/container'
+import AdvancedContainer from './advanced/container'
 import DevMenu from '../dev/dev-menu'
 import Screenprotector from './screenprotector-container.native'
 
@@ -29,7 +31,7 @@ const DumbWrapper = () => {
   return <DumbSheet />
 }
 
-const routeTree = new RouteDefNode({
+const routeTree = makeRouteDefNode({
   component: Settings,
   children: {
     [Constants.aboutTab]: {
@@ -57,6 +59,15 @@ const routeTree = new RouteDefNode({
     [Constants.devicesTab]: DevicesRoute,
     [Constants.gitTab]: GitRoute,
     [Constants.notificationsTab]: {component: NotificationsContainer},
+    [Constants.advancedTab]: {
+      component: AdvancedContainer,
+      children: {
+        dbNukeConfirm: {
+          component: DBNukeConfirm,
+          tags: {modal: true},
+        },
+      },
+    },
     [Constants.deleteMeTab]: {
       component: DeleteContainer,
       children: {
@@ -74,7 +85,7 @@ const routeTree = new RouteDefNode({
         },
         testPopup: {
           component: TestPopup,
-          tags: {layerOnTop: true},
+          tags: makeLeafTags({layerOnTop: true}),
         },
       },
     },

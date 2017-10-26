@@ -20,6 +20,7 @@ class SearchResultsList extends Component<Props> {
         onMouseOver={() => onMouseOver && onMouseOver(id)}
         onShowTracker={onShowTracker ? () => onShowTracker(id) : undefined}
         selected={this.props.selectedId === id}
+        disableIfInTeamName={this.props.disableIfInTeamName}
       />
     )
   }

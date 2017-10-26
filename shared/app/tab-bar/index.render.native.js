@@ -5,6 +5,7 @@ import {Box} from '../../common-adapters'
 import flags from '../../util/feature-flags'
 import {TabBarButton} from '../../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../../styles'
+import {isIPhoneX} from '../../constants/platform'
 
 import type {Props} from './index.render'
 
@@ -34,7 +35,6 @@ const TabBarRender = ({selectedTab, onTabClick, badgeNumbers}: Props) => (
         onClick={() => onTabClick(tab)}
         selected={selectedTab === tab}
         source={{icon: _icons[tab], type: 'icon'}}
-        underlined={selectedTab === tab}
         styleIcon={selectedTab === tab ? _selectedIconStyle : _iconStyle}
       />
     ))}
@@ -50,13 +50,18 @@ const _selectedIconStyle = {
   color: globalColors.white,
 }
 
-const tabBarHeight = 48
+const tabBarHeight = isIPhoneX ? 80 : 48
 
 const stylesTabBar = {
   ...globalStyles.flexBoxRow,
   backgroundColor: globalColors.darkBlue2,
   height: tabBarHeight,
   justifyContent: 'flex-start',
+  ...(isIPhoneX
+    ? {
+        paddingBottom: 30,
+      }
+    : {}),
 }
 
 export default TabBarRender

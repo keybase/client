@@ -36,3 +36,7 @@ android/keybaselib/keybaselib.aar
 android/.idea
 *.iml
 index.bundle
+
+# Builds
+ios/dist
+android/dist

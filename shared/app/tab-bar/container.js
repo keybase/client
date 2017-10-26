@@ -1,12 +1,20 @@
 // @flow
-import {connect} from 'react-redux'
-import {createSelector} from 'reselect'
+import {createSelector, connect, type TypedState} from '../../util/container'
 import {usernameSelector} from '../../constants/selectors'
 import TabBarRender from './index.render'
 
-const mapStateToProps = createSelector(
-  [state => state.notifications.get('navBadges'), usernameSelector],
-  (badgeNumbers, username) => ({badgeNumbers: badgeNumbers.toObject(), username})
-)
+const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 
-export default connect(mapStateToProps)(TabBarRender)
+const mapStateToProps = createSelector([getNavBadges, usernameSelector], (badgeNumbers, username) => ({
+  badgeNumbers: badgeNumbers.toObject(),
+  username,
+}))
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  badgeNumbers: stateProps.badgeNumbers,
+  onTabClick: ownProps.onTabClick,
+  selectedTab: ownProps.selectedTab,
+  username: stateProps.username || '',
+})
+
+export default connect(mapStateToProps, null, mergeProps)(TabBarRender)

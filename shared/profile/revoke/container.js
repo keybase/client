@@ -1,23 +1,24 @@
 // @flow
 import Revoke from './index'
-import {TypedConnector} from '../../util/typed-connect'
 import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
+import {connect, type TypedState} from '../../util/container'
 
-const connector = new TypedConnector()
-
-export default connector.connect((state, dispatch, {routeProps}) => ({
-  isWaiting: state.profile.revoke.waiting,
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
   errorMessage: state.profile.revoke.error,
-  onCancel: () => {
-    dispatch(finishRevoking())
-  },
+  isWaiting: state.profile.revoke.waiting,
+  platform: routeProps.get('platform'),
+  platformHandle: routeProps.get('platformHandle'),
+})
+
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+  onCancel: () => dispatch(finishRevoking()),
   onRevoke: () => {
-    if (routeProps.platform === 'pgp') {
-      dispatch(dropPgp(routeProps.proofId))
+    if (routeProps.get('platform') === 'pgp') {
+      dispatch(dropPgp(routeProps.get('proofId')))
     } else {
-      dispatch(submitRevokeProof(routeProps.proofId))
+      dispatch(submitRevokeProof(routeProps.get('proofId')))
     }
   },
-  platform: routeProps.platform,
-  platformHandle: routeProps.platformHandle,
-}))(Revoke)
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Revoke)

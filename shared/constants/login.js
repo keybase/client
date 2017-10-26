@@ -69,6 +69,9 @@ export type SetTextCode = NoErrorTypedAction<'login:setTextCode', {textCode: Hid
 export const setQRCode = 'login:setQRCode'
 export type SetQRCode = NoErrorTypedAction<'login:setQRCode', {qrCode: HiddenString}>
 
+export const clearQRCode = 'login:clearQRCode'
+export type ClearQRCode = NoErrorTypedAction<'login:clearQRCode', {}>
+
 export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
 export type SetOtherDeviceCodeState = NoErrorTypedAction<'login:setOtherDeviceCodeState', DeviceRole>
 
@@ -119,7 +122,7 @@ export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 export const openAccountResetPage = 'login:openAccountResetPage'
-export const navBasedOnLoginState = 'login:navBasedOnLoginState'
+export const navBasedOnLoginAndInitialState = 'login:navBasedOnLoginAndInitialState'
 
 // It's the b64 encoded value used to render the image
 type QRCode = HiddenString

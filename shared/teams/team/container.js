@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../../util/container'
 import {compose, lifecycle, withState} from 'recompose'
 import {HeaderHoc} from '../../common-adapters'
 import * as Creators from '../../actions/teams/creators'
@@ -9,45 +9,85 @@ import * as I from 'immutable'
 import Team, {CustomComponent} from '.'
 import {openInKBFS} from '../../actions/kbfs'
 import {navigateAppend} from '../../actions/route-tree'
-
-import type {TypedState} from '../../constants/reducer'
+import {showUserProfile} from '../../actions/profile'
+import {getProfile} from '../../actions/tracker'
+import {isMobile} from '../../constants/platform'
 
 type StateProps = {
   _memberInfo: I.Set<Constants.MemberInfo>,
   loading: boolean,
+  _requests: I.Set<Constants.RequestInfo>,
+  _invites: I.Set<Constants.InviteInfo>,
   name: Constants.Teamname,
   you: ?string,
+  selectedTab: string,
+  isTeamOpen: boolean,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => ({
-  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.teamname], I.Set()),
-  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.teamname], true),
-  name: routeProps.teamname,
+const mapStateToProps = (state: TypedState, {routeProps, routeState}): StateProps => ({
+  _memberInfo: state.entities.getIn(['teams', 'teamNameToMembers', routeProps.get('teamname')], I.Set()),
+  _requests: state.entities.getIn(['teams', 'teamNameToRequests', routeProps.get('teamname')], I.Set()),
+  _invites: state.entities.getIn(['teams', 'teamNameToInvites', routeProps.get('teamname')], I.Set()),
+  loading: state.entities.getIn(['teams', 'teamNameToLoading', routeProps.get('teamname')], true),
+  name: routeProps.get('teamname'),
   you: state.config.username,
+  selectedTab: routeState.get('selectedTab') || 'members',
+  isTeamOpen: state.entities.getIn(['teams', 'teamNameToTeamSettings', routeProps.get('teamname')], {
+    open: false,
+  }).open,
 })
 
 type DispatchProps = {
   _loadTeam: (teamname: Constants.Teamname) => void,
   _onOpenFolder: (teamname: Constants.Teamname) => void,
+  _onAddPeople: (teamname: Constants.Teamname) => void,
+  _onInviteByEmail: (teamname: Constants.Teamname) => void,
   _onManageChat: (teamname: Constants.Teamname) => void,
   _onLeaveTeam: (teamname: Constants.Teamname) => void,
+  setSelectedTab: (tab: string) => void,
   onBack: () => void,
+  _onClickOpenTeamSetting: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, routeProps}): DispatchProps => ({
   _loadTeam: teamname => dispatch(Creators.getDetails(teamname)),
+  _onAddPeople: (teamname: Constants.Teamname) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}])),
+  _onInviteByEmail: (teamname: Constants.Teamname) =>
+    dispatch(navigateAppend([{props: {teamname}, selected: 'inviteByEmail'}])),
   _onLeaveTeam: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onManageChat: (teamname: Constants.Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   _onOpenFolder: (teamname: Constants.Teamname) => dispatch(openInKBFS(`/keybase/team/${teamname}`)),
+  onUsernameClick: (username: string) => {
+    isMobile ? dispatch(showUserProfile(username)) : dispatch(getProfile(username, true, true))
+  },
+  setSelectedTab: selectedTab => setRouteState({selectedTab}),
   onBack: () => dispatch(navigateUp()),
+  _onClickOpenTeamSetting: isTeamOpen =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {
+            onClose: (navigateUpFn: Function) => dispatch(navigateUpFn()),
+            actualTeamName: routeProps.get('teamname'),
+          },
+          selected: isTeamOpen ? 'openCloseTeamSetting' : 'openTeamSetting',
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const onAddPeople = () => dispatchProps._onAddPeople(stateProps.name)
+  const onInviteByEmail = () => dispatchProps._onInviteByEmail(stateProps.name)
   const onOpenFolder = () => dispatchProps._onOpenFolder(stateProps.name)
   const onManageChat = () => dispatchProps._onManageChat(stateProps.name)
   const onLeaveTeam = () => dispatchProps._onLeaveTeam(stateProps.name)
+  const onClickOpenTeamSetting = () => dispatchProps._onClickOpenTeamSetting(stateProps.isTeamOpen)
+  const yourType = stateProps._memberInfo.find(member => member.username === stateProps.you)
+  const youCanAddPeople = yourType && (yourType.type === 'owner' || yourType.type === 'admin')
 
   const customComponent = (
     <CustomComponent
@@ -62,10 +102,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ...ownProps,
     customComponent,
     headerStyle: {borderBottomWidth: 0},
-    members: stateProps._memberInfo.toJS().sort((a, b) => a.username.localeCompare(b.username)),
+    invites: stateProps._invites.toJS(),
+    members: stateProps._memberInfo
+      .toArray()
+      .sort((a: Constants.MemberInfo, b: Constants.MemberInfo) => a.username.localeCompare(b.username)),
+    requests: stateProps._requests.toJS(),
+    onAddPeople,
+    onInviteByEmail,
     onLeaveTeam,
     onManageChat,
     onOpenFolder,
+    onClickOpenTeamSetting,
+    youCanAddPeople,
   }
 }
 

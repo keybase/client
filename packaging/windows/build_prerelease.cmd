@@ -1,7 +1,7 @@
 :: Build keybase.exe with prerelease options
 set GOARCH=386
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\build84
 echo DOKAN_PATH %DOKAN_PATH%
 
 echo GOPATH %GOPATH%
@@ -23,7 +23,7 @@ echo KEYBASE_VERSION %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo KEYBASE_BUILD %KEYBASE_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
-
+popd
 
 :: Then build kbfsdokan.
 :: First, sanity-check the hashes
@@ -43,29 +43,56 @@ for /f "tokens=1 delims=+" %%i in ("%KEYBASE_BUILD%") do set KBFS_BUILD=%%i+%KBF
 echo KBFS_BUILD %KBFS_BUILD%
 set CGO_ENABLED=1
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+popd
+
+:: git-remote-keybase
+pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase
+del get-remote-keybase.exe
+go build -a
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 popd
 
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
+del upd.exe
 go build -a -o upd.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 popd
 
 :: dokanclean
 pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
+del dokanclean.exe
 go build
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 popd
 
 :: release
 pushd %GOPATH%\src\github.com\keybase\release
+del release.exe
 go build
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 popd
 
 :: Browser Extension
 pushd %GOPATH%\src\github.com\keybase\client\go\kbnm
+del kbnm.exe
 if "%KBNM_BUILD%" == "" (
-    KBNM_BUILD = %KEYBASE_BUILD%
+    set KBNM_BUILD=%KEYBASE_BUILD%
 )
 echo KBNM_BUILD %KBNM_BUILD%
 go build -a -ldflags="-X main.Version=%KBNM_BUILD%"
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 popd
-

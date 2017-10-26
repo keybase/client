@@ -23,6 +23,9 @@ module.exports = (storybookBaseConfig, configType) => {
       'process.platform': JSON.stringify('darwin'),
     })
   )
+
+  // Override default ignoring node_modules
+  storybookBaseConfig.module.rules[0].exclude = /((node_modules\/(?!universalify|fs-extra|react-redux|@storybook))|\/dist\/)/
   storybookBaseConfig.module.rules.push(
     {
       // Don't include large mock images in a prod build

@@ -16,7 +16,7 @@ set CERTISSUER=DigiCert
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
-if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build81
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=c:\work\bin\dokan-dev\build84
 echo DOKAN_PATH %DOKAN_PATH%
 
 for /F delims^=^"^ tokens^=2 %%x in ('findstr ProductCodeX64 %DOKAN_PATH%\dokan_wix\version.xml') do set DokanProductCodeX64=%%x
@@ -35,6 +35,7 @@ echo %SEMVER%
 set KEYBASE_VERSION=%SEMVER%
 
 echo KEYBASE_VERSION %KEYBASE_VERSION%
+popd
 
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
@@ -44,13 +45,26 @@ IF %DOKANVER%=="" (
   EXIT /B 1
 )
 
+
+:: prompter
+pushd %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter
+msbuild WpfPrompter.sln /t:Clean
+msbuild WpfPrompter.sln /p:Configuration=Release /t:Build
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+popd
+
 call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 :: Browser Extension
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
+:: prompter
+call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
 
 if not EXIST %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\keybaserq.exe call %GOPATH%\src\github.com\keybase\packaging\windows\buildrq.bat
 
@@ -62,6 +76,12 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that kbfs is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that git-remote-keybase is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -84,7 +104,13 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-if NOT DEFINED BUILD_TAG set BUILD_TAG=%SEMVER%
+:: Double check that the prompter exe is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\windows\WpfPrompter\WpfApplication1\bin\Release\prompter.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+set BUILD_TAG=%SEMVER%
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
@@ -116,14 +142,19 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-:: Run keybase sign to get signature of update
-set KeybaseBin="%LOCALAPPDATA%\Keybase\keybase.exe"
-set SigFile=sig.txt
-%KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+:: Run ssss to get signature of update
+pushd %GOPATH%\src\github.com\keybase\client\go\tools\ssss
+go build
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-
+popd
+set SigningBin="%GOPATH%\src\github.com\keybase\client\go\tools\ssss\ssss.exe"
+set SigFile=sig.txt
+%SigningBin% %KEYBASE_INSTALLER_NAME% > %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 
 :: UpdateChannel is a Jenkins select parameter, one of: Smoke, Test, None
 echo UpdateChannel: %UpdateChannel%
@@ -156,12 +187,15 @@ echo %JSON_UPDATE_FILENAME%
 
 :end_update_json
 
+popd
+
 goto:eof
 
 
 :dosignexe
 :: Other alternate time servers:
 ::   http://timestamp.verisign.com/scripts/timstamp.dll
+::   http://sha256timestamp.ws.symantec.com/sha256/timestamp (sha256)
 ::   http://timestamp.globalsign.com/scripts/timestamp.dll
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode

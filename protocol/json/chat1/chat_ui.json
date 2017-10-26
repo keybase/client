@@ -37,6 +37,38 @@
     },
     {
       "type": "record",
+      "name": "UnverifiedInboxUIItemMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "channelName"
+        },
+        {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": "string",
+          "name": "snippet"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UnverifiedInboxUIItem",
       "fields": [
         {
@@ -60,6 +92,10 @@
           "name": "membersType"
         },
         {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
+        },
+        {
           "type": "TeamType",
           "name": "teamType"
         },
@@ -77,6 +113,17 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
+          "type": [
+            null,
+            "UnverifiedInboxUIItemMetadata"
+          ],
+          "name": "localMetadata"
         }
       ]
     },
@@ -144,12 +191,31 @@
           "name": "participants"
         },
         {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "fullNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
+        },
+        {
           "type": "ConversationStatus",
           "name": "status"
         },
         {
           "type": "ConversationMembersType",
           "name": "membersType"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
         },
         {
           "type": "TeamType",
@@ -176,6 +242,10 @@
         {
           "type": "ConversationVers",
           "name": "version"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxMsgID"
         },
         {
           "type": [
@@ -280,6 +350,13 @@
         {
           "type": "ChannelMention",
           "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "channelNameMentions"
         }
       ]
     },
@@ -517,7 +594,7 @@
         },
         {
           "name": "conv",
-          "type": "InboxUIItem"
+          "type": "string"
         }
       ],
       "response": null

@@ -51,7 +51,13 @@ const corpus = [
 
 const emojiOnly = [':ghost:', ':+1:', ':100:']
 
-function makeMessage(messageID: string, you: string, author: string, timestamp: number, message: string) {
+function makeMessage(
+  messageID: string,
+  you: string,
+  author: string,
+  timestamp: number,
+  message: string
+): Constants.Message {
   const key = Constants.messageKey(conversationIDKey, 'messageIDText', messageID)
   return {
     type: 'Text',
@@ -74,7 +80,7 @@ function makeMessage(messageID: string, you: string, author: string, timestamp: 
 const messageCount = 100
 const messageMapFn = (corpus: Array<string>) =>
   range(messageCount).reduce((acc, i) => {
-    const m = makeMessage(i, you, users[i % users.length], 1, corpus[i % corpus.length])
+    const m = makeMessage(String(i), you, users[i % users.length], 1, corpus[i % corpus.length])
     acc[m.key] = m
     return acc
   }, {})
@@ -102,31 +108,26 @@ const mockFn = messageMap => ({
   },
 })
 
-const storeFn = (messageMap: Object) => ({
+const storeFn = (messageMap: {[key: string]: Constants.Message}) => ({
   config: {
     following: {},
     username: 'tester',
   },
-  chat: new Constants.StateRecord({
-    // $FlowIssue
-    messageMap: new I.Map(messageMap),
+  chat: Constants.makeState({
+    messageMap: I.Map(messageMap),
     localMessageStates: I.Map(),
-    inbox: I.List(),
     inboxFilter: '',
-    inboxSearch: I.List(),
     conversationStates: I.Map(),
     metaData: I.Map(),
     finalizedState: I.Map(),
     supersedesState: I.Map(),
     supersededByState: I.Map(),
-    pendingFailures: I.Map(),
     conversationUnreadCounts: I.Map(),
     rekeyInfos: I.Map(),
     alwaysShow: I.Set(),
     pendingConversations: I.Map(),
     nowOverride: null,
     editingMessage: null,
-    initialConversation: null,
     inboxUntrustedState: 'unloaded',
     previousConversation: null,
     searchPending: false,

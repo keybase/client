@@ -186,7 +186,8 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	e.G().Log.Debug("deviceWithType: got device name: %q", name)
 
 	// make a new secret:
-	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile)
+	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile ||
+		provisionerType == keybase1.DeviceType_MOBILE)
 	if err != nil {
 		return err
 	}
@@ -272,8 +273,8 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		}
 
 		// Load me again so that keys will be up to date.
-		loadArg := libkb.NewLoadUserArgBase(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
-		e.arg.User, err = libkb.LoadUser(*loadArg)
+		loadArg := libkb.NewLoadUserArg(e.G()).WithSelf(true).WithUID(e.arg.User.GetUID()).WithNetContext(ctx.NetContext)
+		e.arg.User, err = libkb.LoadUser(loadArg)
 		if err != nil {
 			return err
 		}
@@ -354,7 +355,13 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 		uid, err := e.uidByKID(kp.sigKey.GetKID())
 		if err != nil {
 			e.G().Log.Debug("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
-			lastErr = err
+			if nf, ok := err.(libkb.NotFoundError); ok {
+				// make Msg a little friendlier (instead of KID Not Found)
+				nf.Msg = ("paper key not found, most likely due to a typo in one of the words in the phrase")
+				lastErr = nf
+			} else {
+				lastErr = err
+			}
 			continue
 		}
 
@@ -476,11 +483,15 @@ func (e *loginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 
 // deviceName gets a new device name from the user.
 func (e *loginProvision) deviceName(ctx *Context) (string, error) {
-	names, err := e.arg.User.DeviceNames()
+	var names []string
+	upk, _, err := e.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), e.arg.User.GetUID()).WithPublicKeyOptional().WithForcePoll(true))
 	if err != nil {
-		e.G().Log.Debug("error getting device names: %s", err)
+		e.G().Log.Debug("error getting device names via upak: %s", err)
 		e.G().Log.Debug("proceeding to ask user for a device name despite error...")
+	} else {
+		names = upk.AllDeviceNames()
 	}
+
 	arg := keybase1.PromptNewDeviceNameArg{
 		ExistingDevices: names,
 	}

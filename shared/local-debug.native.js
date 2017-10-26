@@ -35,6 +35,7 @@ let config: {[key: string]: any} = {
   printRPC: false,
   printBridgeB64: false, // raw b64 going over the wire
   printRoutes: false,
+  maskStrings: false, // makes hidden strings random so avoid seeing stuff while debugging
   filterActionLogs: null,
   reactPerf: false,
   reduxSagaLogger: false,
@@ -70,10 +71,12 @@ if (PERF) {
   window.console._log = window.console.log
   window.console._warn = window.console.warn
   window.console._error = window.console.error
+  window.console._info = window.console.info
 
   window.console.log = noop
   window.console.warn = noop
   window.console.error = noop
+  window.console.info = noop
 
   config = {
     actionStatFrequency: 0,
@@ -100,7 +103,7 @@ if (PERF) {
     reduxSagaLoggerMasked: false,
     redirectOnLogout: false,
     showAllTrackers: false,
-    userTimings: false,
+    userTimings: true,
   }
 }
 
@@ -119,6 +122,7 @@ export const {
   isTesting,
   immediateStateLogging,
   logStatFrequency,
+  maskStrings,
   overrideLoggedInTab,
   printOutstandingRPCs,
   printRPC,

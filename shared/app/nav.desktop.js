@@ -1,41 +1,49 @@
 // @flow
 import * as React from 'react'
-import {Box, ErrorBoundary} from '../common-adapters'
 import GlobalError from './global-errors/container'
 import Offline from '../offline'
 import TabBar from './tab-bar/container'
-import {chatTab, loginTab, peopleTab, profileTab} from '../constants/tabs'
-import {connect} from 'react-redux'
+import {Box, ErrorBoundary} from '../common-adapters'
+import {chatTab, loginTab, peopleTab, profileTab, type Tab} from '../constants/tabs'
+import {connect, type TypedState} from '../util/container'
 import {globalStyles} from '../styles'
 import {navigateTo, switchTo} from '../actions/route-tree'
 import {showUserProfile} from '../actions/profile'
+import {type Props, type StateProps, type DispatchProps, type OwnProps} from './nav'
 
-import type {Tab} from '../constants/tabs'
-import type {Props, StateProps, DispatchProps, OwnProps} from './nav'
-import type {TypedState} from '../constants/reducer'
-
-function Nav(props: Props) {
-  const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
-  if (!visibleScreen) {
-    throw new Error('no route component to render without layerOnTop tag')
+class Nav extends React.Component<Props> {
+  _switchTab = tab => {
+    this.props.switchTab(tab)
   }
-  const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
-  return (
-    <Box style={stylesTabsContainer}>
-      {props.routeSelected !== loginTab &&
-        <TabBar onTabClick={props.switchTab} selectedTab={props.routeSelected} />}
+
+  render() {
+    const props = this.props
+    const visibleScreen = props.routeStack.findLast(r => !r.tags.layerOnTop)
+    if (!visibleScreen) {
+      throw new Error('no route component to render without layerOnTop tag')
+    }
+    const layerScreens = props.routeStack.filter(r => r.tags.layerOnTop)
+    return (
       <ErrorBoundary>
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
-          {layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))}
+        <Box style={stylesTabsContainer}>
+          {props.routeSelected !== loginTab &&
+            <TabBar onTabClick={this._switchTab} selectedTab={props.routeSelected} />}
+          <ErrorBoundary>
+            <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+              {visibleScreen.component({isActiveRoute: true, shouldRender: true})}
+              {layerScreens.map(r => r.leafComponent({isActiveRoute: true, shouldRender: true}))}
+            </Box>
+          </ErrorBoundary>
+          <ErrorBoundary>
+            <div id="popupContainer" />
+          </ErrorBoundary>
+          {![chatTab, loginTab].includes(props.routeSelected) &&
+            <Offline reachable={props.reachable} appFocused={props.appFocused} />}
+          <GlobalError />
         </Box>
       </ErrorBoundary>
-      <div id="popupContainer" />
-      {![chatTab, loginTab].includes(props.routeSelected) &&
-        <Offline reachable={props.reachable} appFocused={props.appFocused} />}
-      <GlobalError />
-    </Box>
-  )
+    )
+  }
 }
 
 const stylesTabsContainer = {
@@ -43,7 +51,7 @@ const stylesTabsContainer = {
   flex: 1,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state: TypedState) => ({
   _me: state.config.username,
   appFocused: state.config.appFocused,
   reachable: state.gregor.reachability.reachable,
@@ -77,7 +85,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 
     // otherwise, back out to the default route of the tab.
     const action = ownProps.routeSelected === tab ? navigateTo : switchTo
-    // $FlowIssue TODO
     dispatch(action(ownProps.routePath.push(tab)))
   },
 })

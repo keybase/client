@@ -5,7 +5,7 @@ import * as DeviceConstants from '../../constants/devices'
 import HiddenString from '../../util/hidden-string'
 import {qrGenerate} from './provision-helpers'
 
-import type {Action, TypedAction} from '../../constants/types/flux'
+import type {NoErrorTypedAction, TypedAction} from '../../constants/types/flux'
 
 function submitUsernameOrEmail(usernameOrEmail: string): Constants.SubmitUsernameOrEmail {
   return {type: Constants.submitUsernameOrEmail, payload: {usernameOrEmail}}
@@ -32,6 +32,10 @@ function relogin(usernameOrEmail: string, passphrase: string): Constants.Relogin
 
 function setQRCode(code: string): Constants.SetQRCode {
   return {type: Constants.setQRCode, payload: {qrCode: new HiddenString(qrGenerate(code))}}
+}
+
+function clearQRCode(): Constants.ClearQRCode {
+  return {type: Constants.clearQRCode, payload: {}}
 }
 
 function submitPassphrase(
@@ -150,8 +154,8 @@ function openAccountResetPage() {
   return {payload: {}, type: Constants.openAccountResetPage}
 }
 
-function navBasedOnLoginState(): Action {
-  return {payload: {}, type: Constants.navBasedOnLoginState}
+function navBasedOnLoginAndInitialState(): NoErrorTypedAction<'login:navBasedOnLoginAndInitialState', void> {
+  return {payload: undefined, type: Constants.navBasedOnLoginAndInitialState}
 }
 
 function waitingForResponse(waiting: boolean): TypedAction<'login:waitingForResponse', boolean, void> {
@@ -163,10 +167,11 @@ export {
   addNewDevice,
   addNewPhone,
   chooseGPGMethod,
+  clearQRCode,
   loginDone,
   logout,
   logoutDone,
-  navBasedOnLoginState,
+  navBasedOnLoginAndInitialState,
   onBack,
   onFinish,
   onWont,

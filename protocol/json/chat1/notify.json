@@ -147,8 +147,8 @@
           "name": "member"
         },
         {
-          "type": "boolean",
-          "name": "joined"
+          "type": "ConversationMemberStatus",
+          "name": "status"
         }
       ]
     },
@@ -303,6 +303,50 @@
           "name": "updateType"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSyncIncrementalInfo",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UnverifiedInboxUIItem"
+          },
+          "name": "items"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ChatSyncResult",
+      "switch": {
+        "type": "SyncInboxResType",
+        "name": "syncType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "CURRENT",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "CLEAR",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "INCREMENTAL",
+            "def": false
+          },
+          "body": "ChatSyncIncrementalInfo"
+        }
+      ]
     }
   ],
   "messages": {
@@ -444,6 +488,47 @@
         {
           "name": "convID",
           "type": "ConversationID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatResetConversation": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatInboxSyncStarted": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatInboxSynced": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "syncRes",
+          "type": "ChatSyncResult"
         }
       ],
       "response": null,

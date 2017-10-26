@@ -23,7 +23,7 @@ const colors = {
   darkBlue4: '#103c64',
   darkBlue: '#195080',
   green2: '#36b37c',
-  green3: '#e5f6ef',
+  green3: '#E8FAF3',
   green: '#3dcc8e',
   grey: '#cccccc',
   lightGrey2: '#e6e6e6',

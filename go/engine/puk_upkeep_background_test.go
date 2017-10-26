@@ -99,12 +99,12 @@ func TestPerUserKeyUpkeepBackgroundWork(t *testing.T) {
 	// Upkeep hits the cache. It's ok that upkeep doesn't notice a deprovision
 	// right away. Bust the upak cache as a way of simulating time passing
 	// for the sake of this test.
-	loadArg := libkb.NewLoadUserArgBase(tc.G).
+	loadArg := libkb.NewLoadUserArg(tc.G).
 		WithUID(fu.UID()).
 		WithSelf(true).
-		WithForcePoll(). // <-
+		WithForcePoll(true). // <-
 		WithPublicKeyOptional()
-	_, _, err := tc.G.GetUPAKLoader().LoadV2(*loadArg)
+	_, _, err := tc.G.GetUPAKLoader().LoadV2(loadArg)
 	require.NoError(t, err)
 
 	advance := func(d time.Duration) {

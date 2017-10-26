@@ -3,27 +3,34 @@ import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
 import {SmallTeamInfoPanel, BigTeamInfoPanel} from '.'
 import {Map} from 'immutable'
-import {compose, renderComponent, renderNothing, branch} from 'recompose'
-import {connect} from 'react-redux'
+import {
+  compose,
+  renderComponent,
+  renderNothing,
+  branch,
+  connect,
+  type TypedState,
+} from '../../../util/container'
 import {createSelector} from 'reselect'
 import {navigateAppend, navigateTo} from '../../../actions/route-tree'
 import {chatTab} from '../../../constants/tabs'
 import {showUserProfile} from '../../../actions/profile'
-
-import type {TypedState} from '../../../constants/reducer'
-
 import flags from '../../../util/feature-flags'
 
 const getParticipants = createSelector(
-  [Constants.getYou, Constants.getTLF, Constants.getFollowingMap, Constants.getMetaDataMap],
-  (you, tlf, followingMap, metaDataMap) => {
-    const users = tlf.split(',')
-
-    return users.map(username => {
+  [
+    Constants.getYou,
+    Constants.getParticipantsWithFullNames,
+    Constants.getFollowingMap,
+    Constants.getMetaDataMap,
+  ],
+  (you, users, followingMap, metaDataMap) => {
+    return users.map(user => {
+      const username = user.username
       const following = !!followingMap[username]
       const meta = metaDataMap.get(username, Map({}))
-      const fullname = meta.get('fullname', 'Unknown')
-      const broken = meta.get('brokenTracker', false)
+      const fullname = user.fullname ? user.fullname : meta.get('fullname') || 'Unknown'
+      const broken = meta.get('brokenTracker') || false
       return {
         broken,
         following,
@@ -37,10 +44,10 @@ const getParticipants = createSelector(
 
 const mapStateToProps = (state: TypedState) => {
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
-  if (!selectedConversationIDKey) {
+  const inbox = Constants.getSelectedInbox(state)
+  if (!selectedConversationIDKey || !inbox) {
     return {}
   }
-  const inbox = Constants.getSelectedInbox(state)
   const channelname = inbox.get('channelname')
   const teamname = inbox.get('teamname')
   const showTeamButton = flags.teamChatEnabled

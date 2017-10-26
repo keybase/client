@@ -2,6 +2,7 @@
 import uniq from 'lodash/uniq'
 import {runMode} from './platform'
 
+import type {ConversationIDKey} from './chat'
 import type {Tab} from './tabs'
 import type {BootstrapStatus, Config, DeviceID, ExtendedStatus} from './types/flow-types'
 import type {NoErrorTypedAction} from './types/flux'
@@ -20,13 +21,13 @@ const daemonError = 'config:daemonError'
 const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 const defaultPrivatePrefix = '/private/'
 const defaultPublicPrefix = '/public/'
+const defaultTeamPrefix = '/team/'
 const extendedConfigLoaded = 'config:extendedConfigLoaded'
 const globalError = 'config:globalError'
 const globalErrorDismiss = 'config:globalErrorDismiss'
 const readAppVersion = 'config:readAppVersion'
 const setFollowers = 'config:setFollowers'
 const setFollowing = 'config:setFollowing'
-const setLaunchedViaPush = 'config:setLaunchedViaPush'
 const statusLoaded = 'config:statusLoaded'
 const updateFollowing = 'config:updateFollowing'
 
@@ -39,9 +40,15 @@ export type UpdateFollowing = NoErrorTypedAction<
   'config:updateFollowing',
   {username: string, isTracking: boolean}
 >
-export type SetInitialLink = NoErrorTypedAction<'config:setInitialLink', {url: ?string}>
-export type SetInitialTab = NoErrorTypedAction<'config:setInitialTab', {tab: ?Tab}>
-export type SetLaunchedViaPush = NoErrorTypedAction<'config:setLaunchedViaPush', boolean>
+
+export type InitialState = {|
+  conversation?: ConversationIDKey,
+  tab?: Tab,
+  url?: string,
+|}
+
+export type SetInitialState = NoErrorTypedAction<'config:setInitialState', InitialState>
+
 export type PushLoaded = NoErrorTypedAction<'config:pushLoaded', boolean>
 
 export type BootStatus = 'bootStatusLoading' | 'bootStatusBootstrapped' | 'bootStatusFailure'
@@ -52,6 +59,10 @@ export function privateFolderWithUsers(users: Array<string>): string {
 
 export function publicFolderWithUsers(users: Array<string>): string {
   return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
+}
+
+export function teamFolder(team: string): string {
+  return `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 }
 
 export type State = {
@@ -69,14 +80,12 @@ export type State = {
   following: {[key: string]: true},
   globalError: ?Error,
   kbfsPath: string,
-  launchedViaPush: boolean,
   loggedIn: boolean,
   registered: boolean,
   readyForBootstrap: boolean,
   uid: ?string,
   username: ?string,
-  initialTab: ?Tab,
-  initialLink: ?string,
+  initialState: ?InitialState,
   deviceID: ?DeviceID,
   deviceName: ?string,
 }
@@ -101,7 +110,6 @@ export {
   readAppVersion,
   setFollowers,
   setFollowing,
-  setLaunchedViaPush,
   statusLoaded,
   updateFollowing,
 }

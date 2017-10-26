@@ -59,7 +59,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to decode packets: %s", err)
 	}
-	p3skbs, err := packets.ToListOfSKBs()
+	p3skbs, err := packets.ToListOfSKBs(nil)
 	if err != nil {
 		t.Errorf("Failed to make a list of SKBs: %s", err)
 	}

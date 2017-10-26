@@ -120,6 +120,10 @@
           "name": "thread"
         },
         {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
           "type": [
             null,
             "RateLimit"
@@ -271,6 +275,10 @@
           "name": "inboxVers"
         },
         {
+          "type": "SyncInboxResType",
+          "name": "inboxSyncStatus"
+        },
+        {
           "type": {
             "type": "array",
             "items": "UnreadUpdate"
@@ -311,15 +319,6 @@
           "type": "string",
           "name": "regionBucketEndpoint"
         }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "SyncInboxResType",
-      "symbols": [
-        "CURRENT_0",
-        "INCREMENTAL_1",
-        "CLEAR_2"
       ]
     },
     {
@@ -396,6 +395,14 @@
           "type": "SyncInboxRes",
           "name": "inboxRes"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SyncAllProtVers",
+      "symbols": [
+        "V0_0",
+        "V1_1"
       ]
     },
     {
@@ -768,6 +775,10 @@
         {
           "name": "fresh",
           "type": "boolean"
+        },
+        {
+          "name": "protVers",
+          "type": "SyncAllProtVers"
         }
       ],
       "response": "SyncAllResult"

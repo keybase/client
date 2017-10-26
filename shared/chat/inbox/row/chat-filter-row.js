@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -24,7 +24,7 @@ type State = {
   isEditing: boolean,
 }
 
-class _ChatFilterRow extends Component<Props, State> {
+class _ChatFilterRow extends React.PureComponent<Props, State> {
   state: State
   _input: any
 
@@ -48,9 +48,23 @@ class _ChatFilterRow extends Component<Props, State> {
       this.props.onSetFilter('')
       this._stopEditing()
     } else if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      e.stopPropagation()
       this.props.onSelectDown()
     } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      e.stopPropagation()
       this.props.onSelectUp()
+    }
+  }
+
+  _onEnterKeyDown = (e: SyntheticKeyboardEvent<>) => {
+    if (!isMobile) {
+      e.preventDefault()
+      e.stopPropagation()
+      this.props.onSetFilter('')
+      this._stopEditing()
+      this._input && this._input.blur()
     }
   }
 
@@ -91,6 +105,7 @@ class _ChatFilterRow extends Component<Props, State> {
           onFocus={this._startEditing}
           onBlur={this._stopEditing}
           onKeyDown={this._onKeyDown}
+          onEnterKeyDown={this._onEnterKeyDown}
           ref={this._setRef}
           style={{marginRight: globalMargins.tiny}}
         />,
@@ -124,7 +139,7 @@ class _ChatFilterRow extends Component<Props, State> {
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading &&
-          <Box style={{bottom: 0, left: 0, position: 'absolute', right: 0}}>
+          <Box style={{bottom: 0, left: 0, position: 'absolute', height: 1, right: 0}}>
             <LoadingLine />
           </Box>}
       </Box>

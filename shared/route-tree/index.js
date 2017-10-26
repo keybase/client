@@ -1,10 +1,10 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
-import type {Component} from 'react'
-import type {ConnectedComponent} from 'react-redux'
-import type {ConnectedComponent as TypedConnectedComponent} from '../util/typed-connect'
 
-type LeafTagsParams = {
+// I put a lot of FlowIssues here so i could get this checked in. The typing of this isn't perfect, but its getting closer
+
+type _LeafTags = {
   persistChildren: boolean, // Whether to persist children state when navigating to this route.
   modal: boolean,
   layerOnTop: boolean,
@@ -13,9 +13,12 @@ type LeafTagsParams = {
   hideStatusBar: boolean, // mobile only
   fullscreen: boolean,
   keepKeyboardOnLeave: boolean,
+  root: boolean,
+  title: ?string,
 }
 
-export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<LeafTagsParams> = I.Record({
+export type LeafTags = I.RecordOf<_LeafTags>
+export const makeLeafTags: I.RecordFactory<_LeafTags> = I.Record({
   persistChildren: false,
   modal: false,
   layerOnTop: false,
@@ -24,49 +27,49 @@ export const LeafTags: (spec?: LeafTagsParams) => LeafTagsParams & I.Record<Leaf
   showStatusBarDarkContent: false,
   fullscreen: false,
   keepKeyboardOnLeave: false,
+  root: false, // only used by the root shim to allow special padding logic as its the root container
+  title: null,
 })
 
-const _RouteDefNode = I.Record({
+// TODO type this properly. component and container component are mutually exclusive
+export type RouteDefParams = {
+  component?: ?React.ComponentType<*>,
+  containerComponent?: ?React.ComponentType<*>,
+  defaultSelected?: ?string,
+  tags?: ?LeafTags,
+  initialState?: ?Object,
+  // Returning any but really a RouteDefNode
+  children?: {[key: string]: RouteDefParams | (() => RouteDefParams)} | ((name: string) => RouteDefParams),
+}
+
+type _RouteDefNode = {
+  component: ?React.ComponentType<*>,
+  containerComponent: ?React.ComponentType<*>,
+  defaultSelected: ?string,
+  tags: LeafTags,
+  initialState: ?I.Map<any, any>,
+  children: I.Map<string, RouteDefParams | (() => RouteDefParams)> | ((name: string) => RouteDefParams),
+}
+
+export type RouteDefNode = I.RecordOf<_RouteDefNode>
+
+const _makeRouteDefNode: I.RecordFactory<_RouteDefNode> = I.Record({
   defaultSelected: null,
   component: null,
   containerComponent: null,
-  tags: LeafTags(),
+  tags: makeLeafTags(),
   initialState: I.Map(),
   children: I.Map(),
 })
 
-type RouteDefParamsCommon<P> = {
-  defaultSelected?: string,
-  tags?: LeafTags,
-  initialState?: {},
-  children?: {[key: string]: RouteDefParams<P> | (() => RouteDefNode)} | ((name: string) => RouteDefNode),
-}
-
-// TODO type this properly. component and container component are mutually exclusive
-type RouteDefParams<P> = {
-  component?: ?(
-    | Component<P, any>
-    | $Supertype<Component<P, any>>
-    | Class<ConnectedComponent<P, any, any, any>>
-    | Class<TypedConnectedComponent<P>>),
-  containerComponent?: ?Component<P, any>,
-  ...RouteDefParamsCommon<P>,
-}
-
-export class RouteDefNode extends _RouteDefNode {
-  constructor({
-    defaultSelected,
-    component,
-    containerComponent,
-    tags,
-    initialState,
-    children,
-  }: RouteDefParams<*>) {
+class MakeRouteDefNodeClass extends _makeRouteDefNode {
+  constructor({defaultSelected, component, containerComponent, tags, initialState, children}) {
+    // $FlowIssue
     super({
       defaultSelected: defaultSelected || null,
       component,
       containerComponent,
-      tags: LeafTags(tags),
+      tags,
       initialState: I.Map(initialState),
       props: I.Map(),
       state: I.Map(),
@@ -75,9 +78,9 @@ export class RouteDefNode extends _RouteDefNode {
         : I.Seq(children)
             .map(
               params =>
-                params instanceof RouteDefNode || typeof params === 'function'
+                params instanceof MakeRouteDefNodeClass || typeof params === 'function'
                   ? params
-                  : new RouteDefNode(params)
+                  : makeRouteDefNode(params)
             )
             .toMap(),
     })
@@ -88,6 +91,7 @@ export class RouteDefNode extends _RouteDefNode {
       return this.children(name)
     }
 
+    // $FlowIssue
     const childDef = this.children.get(name)
     if (childDef && typeof childDef === 'function') {
       return childDef(name)
@@ -96,38 +100,63 @@ export class RouteDefNode extends _RouteDefNode {
   }
 }
 
-type RouteStateParams = {
-  selected: string | null,
-  props?: I.Map<string, any>,
-  state?: I.Map<string, any>,
+export const makeRouteDefNode: I.RecordFactory<RouteDefParams> = params => new MakeRouteDefNodeClass(params)
+
+type _RouteState = {
+  selected: ?string,
+  props: I.Map<string, any>,
+  state: I.Map<string, any>,
+  children: I.Map<string, *>,
 }
 
-const _RouteStateNode = I.Record({
+export type RouteStateNode = I.RecordOf<
+  // $FlowIssue
+  _RouteState & {
+    // Not part of the record really but here cause flow gets confused about extending from the record
+    getChild: (name: string) => ?I.RecordOf<RouteStateNode>,
+    updateChild: (
+      name: string,
+      op: (node: ?I.RecordOf<RouteStateNode>) => ?I.RecordOf<RouteStateNode>
+    ) => ?I.RecordOf<RouteStateNode>,
+  }
+>
+
+const _makeRouteStateNode: I.RecordFactory<
+  _RouteState & {
+    // Not part of the record really but here cause flow gets confused about extending from the record
+    getChild: (name: string) => ?I.RecordOf<RouteStateNode>,
+    updateChild: (
+      name: string,
+      op: (node: ?I.RecordOf<RouteStateNode>) => ?I.RecordOf<RouteStateNode>
+    ) => ?I.RecordOf<RouteStateNode>,
+  }
+  // $FlowIssue
+> = I.Record({
   selected: null,
   props: I.Map(),
   state: I.Map(),
   children: I.Map(),
 })
 
-export class RouteStateNode extends _RouteStateNode {
-  // eslint-disable-next-line no-useless-constructor
-  constructor(data: RouteStateParams) {
-    super(data)
-  }
+class MakeRouteStateNode extends _makeRouteStateNode {
+  children: I.Map<string, *>
 
   getChild(name: string): ?RouteStateNode {
     return this.children.get(name)
   }
 
-  updateChild(name: string, op: (node: ?RouteStateNode) => ?RouteStateNode): RouteStateNode {
+  updateChild(name: string, op: (node: ?RouteStateNode) => ?RouteStateNode): ?RouteStateNode {
     return this.updateIn(['children', name], op)
   }
 }
 
+// $FlowIssue
+export const makeRouteStateNode = (params: RouteDefParams) => new MakeRouteStateNode(params)
+
 // Converts plain old objects into route state nodes. Useful for testing
 export function dataToRouteState(data: Object): RouteStateNode {
   const {children, ...params} = data
-  const root: RouteStateNode = new RouteStateNode(params)
+  const root: RouteStateNode = makeRouteStateNode(params)
   const parsedChildren = Object.keys(children).map(k => ({name: k, op: () => dataToRouteState(children[k])}))
   return parsedChildren.reduce(
     (acc: RouteStateNode, {name, op}): RouteStateNode => acc.updateChild(name, op),
@@ -144,7 +173,7 @@ type PathIterable<X> = I.IndexedSeq<X> | I.List<X> | Array<X>
 export type Path = PathIterable<string>
 export type PropsPath<P> = PathIterable<string | {selected: string | null, props: P}>
 type PathParam<P> = [] | Path | PropsPath<P> // Flow doesn't accept Path as a subtype of PropsPath, so be explicit here.
-type PathSetSpec<P> = I.IndexedIterable<{type: 'traverse' | 'navigate', next: string | null, props?: P}>
+type PathSetSpec<P> = I.Collection.Indexed<{type: 'traverse' | 'navigate', next: string | null, props?: P}>
 
 // Traverse a routeState making changes according to the pathSpec. This is the
 // primary mutation function for navigation and changing props. It will follow
@@ -158,18 +187,24 @@ function _routeSet(
 ): RouteStateNode {
   const pathHead = pathSpec && pathSpec.first()
 
-  let newRouteState = routeState || new RouteStateNode({selected: routeDef.defaultSelected})
+  let newRouteState =
+    routeState ||
+    // Set the initial state off of the route def
+    // $FlowIssue
+    makeRouteStateNode({selected: routeDef.defaultSelected, state: I.Map(routeDef.initialState)})
   if (pathHead && pathHead.type === 'navigate') {
     newRouteState = newRouteState.set('selected', pathHead.next || routeDef.defaultSelected)
-    if (pathHead.next === null && !routeDef.tags.persistChildren) {
+    if (pathHead.next === null && (!routeDef.tags || !routeDef.tags.persistChildren)) {
       // Navigating to a route clears out the state of any children that may
       // have previously been displayed.
       newRouteState = newRouteState.delete('children')
     }
   }
 
+  // $FlowIssue
   const childName = pathHead && pathHead.type === 'traverse' ? pathHead.next : newRouteState.selected
   if (childName !== null) {
+    // $FlowIssue
     const childDef = routeDef.getChild(childName)
     if (!childDef) {
       throw new InvalidRouteError(`Invalid route child: ${childName}`)
@@ -184,11 +219,12 @@ function _routeSet(
     })
   }
 
+  // $FlowIssue
   return newRouteState
 }
 
 export function routeSetProps(
-  routeDef: RouteDefNode,
+  routeDef: ?RouteDefNode,
   routeState: ?RouteStateNode,
   pathProps: PathParam<*>,
   parentPath: ?Path
@@ -203,11 +239,12 @@ export function routeSetProps(
   const parentPathSeq = I.Seq(parentPath || []).map(item => {
     return {type: 'traverse', next: item}
   })
+  // $FlowIssue
   return _routeSet(routeDef, routeState, parentPathSeq.concat(pathSeq))
 }
 
 export function routeNavigate(
-  routeDef: RouteDefNode,
+  routeDef: ?RouteDefNode,
   routeState: ?RouteStateNode,
   pathProps: PathParam<*>,
   parentPath: ?Path
@@ -216,18 +253,21 @@ export function routeNavigate(
 }
 
 export function routeSetState(
-  routeDef: RouteDefNode,
-  routeState: RouteStateNode,
+  routeDef: ?RouteDefNode,
+  routeState: ?RouteStateNode,
   path: Path,
   partialState: {}
 ): RouteStateNode {
   const pathSeq = I.Seq(path)
-  if (!pathSeq.size) {
+  const name = pathSeq.first()
+  if (!name) {
+    // $FlowIssue
     return routeState.update('state', state => state.merge(partialState))
   }
-  return routeState.updateChild(pathSeq.first(), childState => {
+  // $FlowIssue
+  return routeState.updateChild(name, childState => {
     if (!childState) {
-      throw new InvalidRouteError(`Missing state child: ${pathSeq.first()}`)
+      throw new InvalidRouteError(`Missing state child: ${name}`)
     }
     return routeSetState(routeDef, childState, pathSeq.skip(1), partialState)
   })
@@ -238,21 +278,28 @@ export function routeClear(routeState: ?RouteStateNode, path: Path): ?RouteState
     return null
   }
   const pathSeq = I.Seq(path)
-  if (!pathSeq.size) {
+  const name = pathSeq.first()
+  if (!name) {
     return null
   }
-  return routeState.updateChild(pathSeq.first(), childState => routeClear(childState, pathSeq.skip(1)))
+  return routeState.updateChild(name, childState => routeClear(childState, pathSeq.skip(1)))
 }
 
 // Traverse a routeState, making sure it matches the routeDef and ends on a leaf component.
-export function checkRouteState(routeDef: RouteDefNode, routeState: ?RouteStateNode): ?string {
+export function checkRouteState(
+  loggedInUserNavigated: boolean,
+  routeDef: ?RouteDefNode,
+  routeState: ?RouteStateNode
+): ?string {
   let path = []
   let curDef = routeDef
   let curState = routeState
-  while (curDef && curState && curState.selected !== null) {
-    path.push(curState.selected)
-    curDef = curDef.getChild(curState.selected)
-    curState = curState.getChild(curState.selected)
+  while (curDef && curState && curState.selected) {
+    const selected = curState.selected
+    path.push(selected)
+    // $FlowIssue
+    curDef = curDef.getChild(selected)
+    curState = curState.getChild(selected)
   }
   if (!curDef) {
     return `Route missing def: ${pathToString(path)}`
@@ -265,13 +312,13 @@ export function checkRouteState(routeDef: RouteDefNode, routeState: ?RouteStateN
   }
 }
 
-export function getPath(routeState: RouteStateNode, parentPath?: Path): I.List<string> {
+export function getPath(routeState: ?RouteStateNode, parentPath?: Path): I.List<string> {
   const path = []
   let curState = routeState
 
   if (parentPath) {
     for (const next of parentPath) {
-      curState = curState && curState.getChild(next)
+      curState = curState && next && curState.getChild(next)
       if (!curState) {
         return I.List(path)
       }
@@ -280,19 +327,22 @@ export function getPath(routeState: RouteStateNode, parentPath?: Path): I.List<s
   }
 
   while (curState && curState.selected !== null) {
-    path.push(curState.selected)
-    curState = curState.getChild(curState.selected)
+    const selected = curState.selected
+    if (selected) {
+      path.push(selected)
+      curState = curState.getChild(selected)
+    }
   }
   return I.List(path)
 }
 
-export function getPathState(routeState: RouteStateNode, parentPath?: Path): ?I.Map<string, any> {
+export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I.Map<string, any> {
   const path = []
   let curState = routeState
 
   if (parentPath) {
     for (const next of parentPath) {
-      curState = curState && curState.getChild(next)
+      curState = curState && next && curState.getChild(next)
       if (!curState) {
         return null
       }
@@ -300,7 +350,7 @@ export function getPathState(routeState: RouteStateNode, parentPath?: Path): ?I.
     }
   }
 
-  while (curState && curState.selected !== null) {
+  while (curState && curState.selected) {
     curState = curState.getChild(curState.selected)
   }
   return curState ? curState.state : null
@@ -309,9 +359,9 @@ export function getPathState(routeState: RouteStateNode, parentPath?: Path): ?I.
 // Returns an array of props corresponding to all the nodes in the route tree
 // under the given parentPath
 export function getPathProps(
-  routeState: RouteStateNode,
+  routeState: ?RouteStateNode,
   parentPath: Path
-): I.List<{node: string, props: I.Map<string, any>}> {
+): I.List<{node: ?string, props: I.Map<string, any>}> {
   const path = []
   let curState = routeState
 
@@ -327,7 +377,8 @@ export function getPathProps(
   }
 
   while (curState && curState.selected !== null) {
-    let thisNode = curState && curState.selected
+    const thisNode = curState ? curState.selected : null
+    // $FlowIssue need class based interface for helpers
     curState = curState.getChild(curState.selected)
     path.push({
       node: thisNode,
@@ -338,6 +389,6 @@ export function getPathProps(
   return I.List(path)
 }
 
-export function pathToString(path: Array<string> | I.IndexedIterable<string>): string {
+export function pathToString(path: Array<string> | I.Collection.Indexed<string>): string {
   return '/' + path.join('/')
 }

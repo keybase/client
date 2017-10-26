@@ -246,6 +246,13 @@ func (g *gregorHandler) GetURI() *rpc.FMPURI {
 	return g.uri
 }
 
+func (g *gregorHandler) GetIncomingClient() gregor1.IncomingInterface {
+	if g.IsShutdown() || g.cli == nil {
+		return gregor1.IncomingClient{Cli: chat.OfflineClient{}}
+	}
+	return gregor1.IncomingClient{Cli: g.cli}
+}
+
 func (g *gregorHandler) GetClient() chat1.RemoteInterface {
 	if g.IsShutdown() || g.cli == nil {
 		select {
@@ -329,15 +336,15 @@ func (g *gregorHandler) getRPCCli() rpc.GenericClient {
 }
 
 func (g *gregorHandler) Debug(ctx context.Context, s string, args ...interface{}) {
-	g.G().Log.CDebugf(ctx, "PushHandler: "+s, args...)
+	g.G().Log.CloneWithAddedDepth(1).CDebugf(ctx, "PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) Warning(ctx context.Context, s string, args ...interface{}) {
-	g.G().Log.CWarningf(ctx, "PushHandler: "+s, args...)
+	g.G().Log.CloneWithAddedDepth(1).CWarningf(ctx, "PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) Errorf(ctx context.Context, s string, args ...interface{}) {
-	g.G().Log.CErrorf(ctx, "PushHandler: "+s, args...)
+	g.G().Log.CloneWithAddedDepth(1).CErrorf(ctx, "PushHandler: "+s, args...)
 }
 
 func (g *gregorHandler) SetPushStateFilter(f func(m gregor.Message) bool) {
@@ -653,6 +660,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		InboxVers: iboxVers,
 		Ctime:     latestCtime,
 		Fresh:     g.firstConnect,
+		ProtVers:  chat1.SyncAllProtVers_V1,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt
@@ -799,7 +807,7 @@ func (g *gregorHandler) broadcastMessageOnce(ctx context.Context, m gregor1.Mess
 		}
 
 		g.Debug(ctx, "broadcast: in-band message: msgID: %s Ctime: %s", msgID, ibm.Metadata().CTime())
-		err = g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
+		err = g.handleInBandMessage(ctx, g.GetIncomingClient(), ibm)
 
 		// Send message to local state machine
 		gcli.StateMachineConsumeMessage(ctx, m)
@@ -832,6 +840,9 @@ func (g *gregorHandler) broadcastMessageHandler() {
 	for {
 		m := <-g.broadcastCh
 		err := g.broadcastMessageOnce(ctx, m)
+		if err != nil {
+			g.Debug(context.Background(), "broadcast error: %v", err)
+		}
 
 		// Testing alerts
 		if g.testingEvents != nil {
@@ -1201,6 +1212,9 @@ func (g *gregorHandler) loggedIn(ctx context.Context) (uid keybase1.UID, token s
 		g.G().Log.Debug("gregorHandler APIServerSessionStatus error: %s (returning loggedInMaybe)", err)
 		return uid, token, loggedInMaybe
 	}
+	if status == nil {
+		return uid, token, loggedInNo
+	}
 
 	return status.UID, status.SessionToken, loggedInYes
 }
@@ -1375,6 +1389,8 @@ func (g *gregorHandler) connectTLS() error {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
 	g.chatLog.Debug(ctx, "Using CA for gregor: %s", libkb.ShortCA(rawCA))
+	// Let people know we are trying to sync
+	g.G().NotifyRouter.HandleChatInboxSyncStarted(ctx, g.G().Env.GetUID())
 
 	constBackoff := backoff.NewConstantBackOff(GregorConnectionRetryInterval)
 	opts := rpc.ConnectionOpts{
@@ -1463,7 +1479,10 @@ func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
 	}, nil
 }
 
-func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
+// `cli` is the interface used to talk to gregor.
+// If nil then the global cli will be used.
+// Be sure to pass a cli when called from within OnConnect, as the global cli would deadlock.
+func (g *gregorHandler) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	if id == nil {
 		return nil
 	}
@@ -1481,9 +1500,11 @@ func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
 		MsgIDs_: []gregor1.MsgID{gregor1.MsgID(id.Bytes())},
 	}
 
-	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	if cli == nil {
+		cli = gregor1.IncomingClient{Cli: g.cli}
+	}
 	// TODO: Should the interface take a context from the caller?
-	err = incomingClient.ConsumeMessage(context.TODO(), *dismissal)
+	err = cli.ConsumeMessage(context.TODO(), *dismissal)
 	return err
 }
 

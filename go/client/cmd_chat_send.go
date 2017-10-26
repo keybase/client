@@ -12,7 +12,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -43,7 +43,7 @@ func (c *CmdChatSend) SetTeamChatForTest(n string) {
 	c.team = true
 	c.resolvingRequest = chatConversationResolvingRequest{
 		TlfName:     n,
-		TopicName:   chat.DefaultTeamTopic,
+		TopicName:   globals.DefaultTeamTopic,
 		MembersType: chat1.ConversationMembersType_TEAM,
 		TopicType:   chat1.TopicType_CHAT,
 		Visibility:  keybase1.TLFVisibility_PRIVATE,
@@ -173,7 +173,7 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 
 	if nActions < 1 {
 		cli.ShowCommandHelp(ctx, "send")
-		return fmt.Errorf("Incorrect Usage.")
+		return fmt.Errorf("incorrect usage")
 	}
 	if nActions > 1 {
 		cli.ShowCommandHelp(ctx, "send")

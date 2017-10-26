@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox} from '../../common-adapters'
+import {Avatar, Box, Text, Icon, Input, Button, Dropdown, Checkbox, ScrollView} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -70,6 +70,7 @@ class NewRepo extends React.Component<Props, State> {
   }
 
   _dropdownChanged = (node: React.Node) => {
+    // $FlowIssue doesn't understand key will be string
     if (node && node.key === NewTeamSentry) {
       this.props.onNewTeam()
     } else {
@@ -85,68 +86,70 @@ class NewRepo extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box style={_containerStyle}>
-        {!!this.props.error &&
-          <Box
-            style={{
-              alignSelf: 'stretch',
-              backgroundColor: globalColors.red,
-              marginBottom: globalMargins.small,
-              padding: globalMargins.tiny,
-            }}
-          >
-            <Text type="Body" backgroundMode="Terminal">{this.props.error.message}</Text>
-          </Box>}
-        <Text type="Header" style={{marginBottom: 27}}>
-          New {this.props.isTeam ? 'team' : 'personal'} git repository
-        </Text>
-        <Icon
-          type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
-          style={_addIconStyle}
-        />
-        <Text type="Body" style={{marginBottom: 27}}>
-          {this.props.isTeam
-            ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
-            : 'Your repository will be encrypted and only accessible by you.'}
-        </Text>
-        {this.props.isTeam &&
-          <Dropdown
-            items={this._makeDropdownItems()}
-            selected={this._makeDropdownItem(this.state.selectedTeam)}
-            onChanged={this._dropdownChanged}
-            style={{marginBottom: globalMargins.small}}
-          />}
-        <Input
-          value={this.state.name}
-          autoFocus={true}
-          onChangeText={name => this.setState({name})}
-          hintText="Name your respository"
-          onEnterKeyDown={this._onSubmit}
-        />
-        {this.props.isTeam &&
-          <Checkbox
-            label="Notify the team"
-            checked={this.state.notifyTeam}
-            onCheck={notifyTeam => this.setState({notifyTeam})}
-            style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
-          />}
-        <Box style={{flex: 1}} />
-        <Box style={globalStyles.flexBoxRow}>
-          <Button
-            type="Secondary"
-            onClick={this.props.onClose}
-            label="Cancel"
-            style={{marginRight: globalMargins.tiny}}
+      <ScrollView>
+        <Box style={_containerStyle}>
+          {!!this.props.error &&
+            <Box
+              style={{
+                alignSelf: 'stretch',
+                backgroundColor: globalColors.red,
+                marginBottom: globalMargins.small,
+                padding: globalMargins.tiny,
+              }}
+            >
+              <Text type="Body" backgroundMode="Terminal">{this.props.error.message}</Text>
+            </Box>}
+          <Text type="Header" style={{marginBottom: 27}}>
+            New {this.props.isTeam ? 'team' : 'personal'} git repository
+          </Text>
+          <Icon
+            type={this.props.isTeam ? 'icon-repo-team-add-48' : 'icon-repo-personal-add-48'}
+            style={_addIconStyle}
           />
-          <Button
-            type="Primary"
-            onClick={this._onSubmit}
-            label="Create"
-            disabled={!this.state.name}
-            waiting={this.props.loading}
+          <Text type="Body" style={{marginBottom: 27}}>
+            {this.props.isTeam
+              ? 'Your repository will be end-to-end encrypted and accessible by all members in the team.'
+              : 'Your repository will be encrypted and only accessible by you.'}
+          </Text>
+          {this.props.isTeam &&
+            <Dropdown
+              items={this._makeDropdownItems()}
+              selected={this._makeDropdownItem(this.state.selectedTeam)}
+              onChanged={this._dropdownChanged}
+              style={{marginBottom: globalMargins.small}}
+            />}
+          <Input
+            value={this.state.name}
+            autoFocus={true}
+            onChangeText={name => this.setState({name})}
+            hintText="Name your repository"
+            onEnterKeyDown={this._onSubmit}
           />
+          {this.props.isTeam &&
+            <Checkbox
+              label="Notify the team"
+              checked={this.state.notifyTeam}
+              onCheck={notifyTeam => this.setState({notifyTeam})}
+              style={{marginBottom: globalMargins.small, marginTop: globalMargins.small}}
+            />}
+          <Box style={{flex: 1}} />
+          <Box style={globalStyles.flexBoxRow}>
+            <Button
+              type="Secondary"
+              onClick={this.props.onClose}
+              label="Cancel"
+              style={{marginRight: globalMargins.tiny}}
+            />
+            <Button
+              type="Primary"
+              onClick={this._onSubmit}
+              label="Create"
+              disabled={!this.state.name}
+              waiting={this.props.loading}
+            />
+          </Box>
         </Box>
-      </Box>
+      </ScrollView>
     )
   }
 }

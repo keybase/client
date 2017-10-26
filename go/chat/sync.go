@@ -252,6 +252,7 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 		s.Debug(ctx, "Sync: aborting because currently offline")
 		return OfflineError{}
 	}
+	kuid := keybase1.UID(uid.String())
 
 	// Grab current on disk version
 	ibox := storage.NewInbox(s.G(), uid)
@@ -301,9 +302,10 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to clear inbox: %s", err.Error())
 		}
 		// Send notifications for a full clear
-		s.SendChatStaleNotifications(ctx, uid, nil, true)
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 	case chat1.SyncInboxResType_CURRENT:
 		s.Debug(ctx, "Sync: version is current, standing pat: %v", vers)
+		s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithCurrent())
 	case chat1.SyncInboxResType_INCREMENTAL:
 		incr := syncRes.InboxRes.Incremental()
 		s.Debug(ctx, "Sync: version out of date, but can incrementally sync: old vers: %v vers: %v convs: %d",
@@ -314,15 +316,19 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 			s.Debug(ctx, "Sync: failed to sync conversations to inbox: %s", err.Error())
 
 			// Send notifications for a full clear
-			s.SendChatStaleNotifications(ctx, uid, nil, true)
+			s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 		} else {
 			if s.shouldDoFullReloadFromIncremental(ctx, iboxSyncRes, incr.Convs) {
 				// If we get word we shoudl full clear the inbox (like if the user left a conversation),
 				// then just reload everything
-				s.SendChatStaleNotifications(ctx, uid, nil, true)
+				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid, chat1.NewChatSyncResultWithClear())
 			} else {
 				// Send notifications for a successful partial sync
-				s.SendChatStaleNotifications(ctx, uid, s.getUpdates(incr.Convs), true)
+				convs := utils.PresentRemoteConversations(utils.RemoteConvs(incr.Convs))
+				s.G().NotifyRouter.HandleChatInboxSynced(ctx, kuid,
+					chat1.NewChatSyncResultWithIncremental(chat1.ChatSyncIncrementalInfo{
+						Items: convs,
+					}))
 			}
 		}
 

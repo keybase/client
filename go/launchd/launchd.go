@@ -263,7 +263,7 @@ func (s Service) savePlist(p Plist) error {
 
 	// Plist directory (~/Library/LaunchAgents/) might not exist on clean OS installs
 	// See GH issue: https://github.com/keybase/client/pull/1399#issuecomment-164810645
-	if err := libkb.MakeParentDirs(plistDest); err != nil {
+	if err := libkb.MakeParentDirs(s.log, plistDest); err != nil {
 		return err
 	}
 

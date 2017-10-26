@@ -5,59 +5,80 @@ import * as Entities from '../entities'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/flow-types'
 import * as Saga from '../../util/saga'
-import {call, put, select} from 'redux-saga/effects'
-import {gitTab} from '../../constants/tabs'
+import * as Tabs from '../../constants/tabs'
+import * as RouteTreeConstants from '../../constants/route-tree'
+import {globalError} from '../../constants/config'
+import {call, put} from 'redux-saga/effects'
 import {navigateTo} from '../route-tree'
 import moment from 'moment'
+import {isMobile} from '../../constants/platform'
+import * as SettingsConstants from '../../constants/settings'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 
 function* _loadGit(action: Constants.LoadGit): SagaGenerator<any, any> {
   yield put(Creators.setError(null))
-  const alreadyLoading = yield select(s => s.entities.getIn(['git', 'loading'], false))
-  if (alreadyLoading) {
-    console.log('Skipping git load as we have one in progress')
-    return
-  }
   yield put(Creators.setLoading(true))
 
-  const results: ?Array<RPCTypes.GitRepoResult> = yield call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
-    param: {},
-  })
+  try {
+    const results: Array<RPCTypes.GitRepoResult> = yield call(RPCTypes.gitGetAllGitMetadataRpcPromise, {
+      param: {},
+    }) || []
 
-  const idToInfo = (results || []).reduce((map, r) => {
-    const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
-    map[r.globalUniqueID] = Constants.GitInfo({
-      canDelete: true, // TODO jack
-      devicename: r.serverMetadata.lastModifyingDeviceName,
-      id: r.globalUniqueID,
-      isNew: false, // TODO jack
-      lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
-      lastEditUser: r.serverMetadata.lastModifyingUsername,
-      name: r.localMetadata.repoName,
-      repoID: r.repoID,
-      teamname,
-      url: r.repoUrl,
-    })
-    return map
-  }, {})
+    let idToInfo = {}
 
-  yield put(Entities.replaceEntity(['git', 'idToInfo'], I.Map(idToInfo)))
-  yield put(Creators.setLoading(false))
+    for (let i = 0; i < results.length; i++) {
+      const repoResult = results[i]
+      if (repoResult.state === RPCTypes.GitGitRepoResultState.ok && repoResult.ok) {
+        const r: RPCTypes.GitRepoInfo = repoResult.ok
+        if (!r.folder.private) {
+          // Skip public repos
+          continue
+        }
+        const teamname = r.folder.folderType === RPCTypes.FavoriteFolderType.team ? r.folder.name : null
+        idToInfo[r.globalUniqueID] = Constants.makeGitInfo({
+          canDelete: r.canDelete,
+          devicename: r.serverMetadata.lastModifyingDeviceName,
+          id: r.globalUniqueID,
+          lastEditTime: moment(r.serverMetadata.mtime).fromNow(),
+          lastEditUser: r.serverMetadata.lastModifyingUsername,
+          name: r.localMetadata.repoName,
+          teamname,
+          url: r.repoUrl,
+        })
+      } else {
+        let errStr: string = 'unknown'
+        if (repoResult.state === RPCTypes.GitGitRepoResultState.err && repoResult.err) {
+          errStr = repoResult.err
+        }
+        yield put({
+          payload: new Error(`Git repo error: ${errStr}`),
+          type: globalError,
+        })
+      }
+    }
+
+    yield put(Entities.replaceEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
+  } finally {
+    yield put(Creators.setLoading(false))
+  }
 }
 
 // reset errors and set loading, make a call and either go back to the root or show an error
 function* _createDeleteHelper(theCall: *) {
-  yield put(Creators.setError(null))
-  yield put(Creators.setLoading(true))
+  yield put.resolve(Creators.setError(null))
+  yield put.resolve(Creators.setLoading(true))
   try {
     yield theCall
+    yield put(navigateTo(isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab], []))
+    yield put.resolve(Creators.setLoading(false))
     yield put(Creators.loadGit())
-    yield put(navigateTo([gitTab], []))
   } catch (err) {
     yield put(Creators.setError(err))
+    yield put.resolve(Creators.setLoading(false))
   } finally {
-    yield put(Creators.setLoading(false))
+    // just in case
+    yield put.resolve(Creators.setLoading(false))
   }
 }
 
@@ -121,6 +142,41 @@ function* _setError(action: Constants.SetError): SagaGenerator<any, any> {
   yield put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.gitError]])))
 }
 
+const _badgeAppForGit = (action: Constants.BadgeAppForGit) =>
+  put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
+
+let _wasOnGitTab = false
+const _onTabChange = (action: RouteTreeConstants.SwitchTo) => {
+  // on the git tab?
+  const list = I.List(action.payload.path)
+  const root = list.first()
+
+  if (root === Tabs.gitTab) {
+    _wasOnGitTab = true
+  } else if (_wasOnGitTab) {
+    _wasOnGitTab = false
+    // clear badges
+    return call(RPCTypes.gregorDismissCategoryRpcPromise, {
+      param: {
+        category: 'new_git_repo',
+      },
+    })
+  }
+
+  return null
+}
+
+function* _handleIncomingGregor(action: Constants.HandleIncomingGregor): SagaGenerator<any, any> {
+  const msgs = action.payload.messages.map(msg => JSON.parse(msg.body))
+  for (let body of msgs) {
+    const needsLoad = ['delete', 'create', 'update'].includes(body.action)
+    if (needsLoad) {
+      yield put(Creators.loadGit())
+      return // Note: remove (or replace with `continue`) if any other actions may need dispatching
+    }
+  }
+}
+
 function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeLatest('git:loadGit', _loadGit)
   yield Saga.safeTakeEvery('git:createPersonalRepo', _createPersonalRepo)
@@ -129,6 +185,9 @@ function* gitSaga(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('git:deleteTeamRepo', _deleteTeamRepo)
   yield Saga.safeTakeLatest('git:setLoading', _setLoading)
   yield Saga.safeTakeLatest('git:setError', _setError)
+  yield Saga.safeTakeEveryPure('git:badgeAppForGit', _badgeAppForGit)
+  yield Saga.safeTakeEvery('git:handleIncomingGregor', _handleIncomingGregor)
+  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange)
 }
 
 export default gitSaga

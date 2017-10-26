@@ -1,12 +1,12 @@
 // @flow
 import SettingsContainer from './render'
-import pausableConnect from '../util/pausable-connect'
-import {switchTo} from '../actions/route-tree'
+import {pausableConnect, type TypedState} from '../util/container'
 import {logout} from '../actions/login/creators'
+import {switchTo} from '../actions/route-tree'
+import {type RouteProps} from '../route-tree/render-route'
+import {type Tab} from '../constants/settings'
 
-import type {Tab} from '../constants/settings'
-import type {TypedState} from '../constants/reducer'
-import type {RouteProps} from '../route-tree/render-route'
+const getNavBadges = (state: TypedState) => state.notifications.get('navBadges')
 
 type StateProps = {
   badgeNumbers: {[key: Tab]: number},
@@ -17,12 +17,16 @@ type StateProps = {
 const mapStateToProps = (
   state: TypedState,
   {routeLeafTags, routeSelected}: RouteProps<{}, {}>
-): StateProps => ({
-  badgeNumbers: {}, // TODO add badging logic
-  isModal: routeLeafTags.modal,
-  // TODO: Is there a way to validate that routeSelected is a Tab?
-  selectedTab: (routeSelected: any),
-})
+): StateProps => {
+  // $FlowIssue
+  const badgeNumbers: {[key: Tab]: number} = getNavBadges(state).toObject()
+  return {
+    badgeNumbers,
+    isModal: routeLeafTags.modal,
+    // TODO: Is there a way to validate that routeSelected is a Tab?
+    selectedTab: (routeSelected: any),
+  }
+}
 
 type DispatchProps = {
   onLogout: () => void,

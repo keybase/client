@@ -25,4 +25,5 @@ export type Actions = UpdateDebugConfig | UpdateReloading
 export type State = {
   debugConfig: DebugConfig,
   hmrReloading: boolean,
+  debugCount: number,
 }

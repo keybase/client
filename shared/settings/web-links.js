@@ -1,14 +1,10 @@
 // @flow
 import {HeaderHoc, NativeWebView} from '../common-adapters/index.native'
-import {connect} from 'react-redux'
-import {compose, defaultProps} from 'recompose'
+import {connect, compose, defaultProps, type TypedState} from '../util/container'
 
-import type {Dispatch} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
-
-const mapStateToProps = (state: TypedState, {routeProps: {title, source}}) => ({
-  source,
-  title,
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  source: routeProps.get('source'),
+  title: routeProps.get('title'),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({

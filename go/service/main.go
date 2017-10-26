@@ -225,8 +225,13 @@ func (d *Service) Run() (err error) {
 		}
 	}
 
-	if d.G().Env.GetServiceType() == "launchd" {
+	switch d.G().Env.GetServiceType() {
+	case "launchd":
 		d.ForkType = keybase1.ForkType_LAUNCHD
+	case "systemd":
+		d.ForkType = keybase1.ForkType_SYSTEMD
+	default:
+		d.G().Log.Warning("Unknown service type: %q", d.G().Env.GetServiceType())
 	}
 
 	if err = d.GetExclusiveLock(); err != nil {
@@ -253,6 +258,14 @@ func (d *Service) Run() (err error) {
 	}
 
 	d.RunBackgroundOperations(uir)
+
+	// At this point initialization is complete, and we're about to start the
+	// listen loop. This is the natural point to report "startup successful" to
+	// the supervisor (currently just systemd on Linux). This isn't necessary
+	// for correctness, but it allows commands like "systemctl start keybase.service"
+	// to report startup errors to the terminal, by delaying their return
+	// until they get this notification (Type=notify, in systemd lingo).
+	NotifyStartupFinished()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -339,6 +352,9 @@ func (d *Service) createChatModules() {
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), d.attachmentstore, ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
+	// team channel source
+	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
+
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
 	chatSyncer.RegisterOfflinable(g.ConvSource)
@@ -348,6 +364,8 @@ func (d *Service) createChatModules() {
 	// Add a tlfHandler into the user changed handler group so we can keep identify info
 	// fresh
 	g.AddUserChangedHandler(chat.NewIdentifyChangedHandler(g))
+
+	g.ChatHelper = chat.NewHelper(g, ri)
 }
 
 func (d *Service) configureRekey(uir *UIRouter) {
@@ -498,6 +516,10 @@ func (d *Service) hourlyChecks() {
 		return nil
 	})
 	go func() {
+		// do this quickly
+		if err := d.G().LogoutIfRevoked(); err != nil {
+			d.G().Log.Debug("LogoutIfRevoked error: %s", err)
+		}
 		for {
 			<-ticker.C
 			d.G().Log.Debug("+ hourly check loop")
@@ -723,15 +745,28 @@ func (d *Service) lockPIDFile() (err error) {
 	return nil
 }
 
-func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
-	if l, err = d.G().BindToSocket(); err != nil {
-		return
+func (d *Service) ConfigRPCServer() (net.Listener, error) {
+	// First, check to see if we've been launched with socket activation by
+	// systemd. If so, the socket is already open. Otherwise open it ourselves.
+	listener, err := GetListenerFromEnvironment()
+	if err != nil {
+		d.G().Log.Error("unexpected error in GetListenerFromEnvironment: %#v", err)
+		return nil, err
+	} else if listener != nil {
+		d.G().Log.Debug("Systemd socket activation in use. Accepting connections on fd 3.")
+	} else {
+		d.G().Log.Debug("No socket activation in the environment. Binding to a new socket.")
+		listener, err = d.G().BindToSocket()
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	if d.startCh != nil {
 		close(d.startCh)
 		d.startCh = nil
 	}
-	return
+	return listener, nil
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {
@@ -826,7 +861,7 @@ func (d *Service) GregorDismiss(id gregor.MsgID) error {
 	if d.gregor == nil {
 		return errors.New("can't gregor dismiss without a gregor")
 	}
-	return d.gregor.DismissItem(id)
+	return d.gregor.DismissItem(gregor1.IncomingClient{Cli: d.gregor.cli}, id)
 }
 
 func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {

@@ -82,6 +82,11 @@ protocol Common {
     TLFVisibility visibility;
   }
 
+  record TeamIDAndName {
+    TeamID id;
+    TeamName name;
+  }
+
   @typedef("int64") @lint("ignore")
   record Seqno {}
 
@@ -286,6 +291,21 @@ protocol Common {
   record UserResolution {
       SocialAssertion assertion;
       UID userID;
+  }
+
+  @typedef("string")
+  record FullName {}
+
+  enum FullNamePackageVersion {
+    V0_0,
+    V1_1
+  }
+
+  record FullNamePackage {
+    FullNamePackageVersion version;
+    FullName fullName;
+    Seqno eldestSeqno;
+    Time cachedAt;
   }
 
 }

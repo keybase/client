@@ -16,4 +16,5 @@ protocol NotifyTeam {
 
   void teamChanged(TeamID teamID, string teamName, Seqno latestSeqno, TeamChangeSet changes) oneway;
   void teamDeleted(TeamID teamID) oneway;
+  void teamExit(TeamID teamID) oneway;
 }

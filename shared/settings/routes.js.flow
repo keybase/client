@@ -1,4 +1,4 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
+import {makeRouteDefNode} from '../route-tree'
 
-export default RouteDefNode
+export default makeRouteDefNode()

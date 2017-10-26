@@ -14,7 +14,8 @@ import (
 func TestOurResolve(t *testing.T) {
 	_, nm, g, cleanup := createUserAndRootTeam(t)
 	defer cleanup()
-	id := RootTeamIDFromName(nm)
+	require.True(t, nm.IsRootTeam())
+	id := nm.ToPrivateTeamID()
 
 	ctx := context.TODO()
 	nm2, err := ResolveIDToName(ctx, g, id)

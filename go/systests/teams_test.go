@@ -108,6 +108,50 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	}
 }
 
+func TestImplicitTeamRotateOnRevokePrivate(t *testing.T) {
+	testImplicitTeamRotateOnRevoke(t, false)
+}
+
+func TestImplicitTeamRotateOnRevokePublic(t *testing.T) {
+	testImplicitTeamRotateOnRevoke(t, true)
+}
+
+func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
+	t.Logf("public: %v", public)
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+
+	tt.addUser("bob")
+	bob := tt.users[1]
+
+	iTeamName := strings.Join([]string{alice.username, bob.username}, ",")
+
+	t.Logf("make an implicit team")
+	team, err := alice.lookupImplicitTeam(true /*create*/, iTeamName, public)
+	require.NoError(t, err)
+
+	// get the before state of the team
+	before, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(1), before.Generation())
+	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+
+	bob.revokePaperKey()
+	alice.waitForRotateByID(team, keybase1.Seqno(2))
+
+	// check that key was rotated for team
+	after, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
+	require.NoError(t, err)
+	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "generation after rotate")
+
+	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
+		t.Fatal("team secret did not change when rotated")
+	}
+}
+
 type teamTester struct {
 	t     *testing.T
 	users []*userPlusDevice
@@ -236,6 +280,13 @@ func (u *userPlusDevice) addTeamMember(team, username string, role keybase1.Team
 	}
 }
 
+func (u *userPlusDevice) leave(team string) {
+	leave := client.NewCmdTeamLeaveRunner(u.tc.G)
+	leave.Team = team
+	err := leave.Run()
+	require.NoError(u.tc.T, err)
+}
+
 func (u *userPlusDevice) changeTeamMember(team, username string, role keybase1.TeamRole) {
 	change := client.NewCmdTeamEditMemberRunner(u.tc.G)
 	change.Team = team
@@ -296,6 +347,17 @@ func (u *userPlusDevice) acceptEmailInvite(token string) {
 func (u *userPlusDevice) acceptInviteOrRequestAccess(tokenOrName string) {
 	err := teams.TeamAcceptInviteOrRequestAccess(context.TODO(), u.tc.G, tokenOrName)
 	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) teamList(userAssertion string, all, includeImplicitTeams bool) keybase1.AnnotatedTeamList {
+	cli := u.teamsClient
+	res, err := cli.TeamList(context.TODO(), keybase1.TeamListArg{
+		UserAssertion:        userAssertion,
+		All:                  all,
+		IncludeImplicitTeams: includeImplicitTeams,
+	})
+	require.NoError(u.tc.T, err)
+	return res
 }
 
 func (u *userPlusDevice) revokePaperKey() {
@@ -361,7 +423,7 @@ func (u *userPlusDevice) waitForTeamIDChangedGregor(teamID keybase1.TeamID, toSe
 		case <-time.After(1 * time.Second):
 		}
 	}
-	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID.String())
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
 func (u *userPlusDevice) drainGregor() {
@@ -377,7 +439,10 @@ func (u *userPlusDevice) drainGregor() {
 	}
 }
 
+// TODO this should use ID instead
 func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
+	u.tc.T.Logf("waiting for team rotate %s", team)
+
 	// jump start the clkr queue processing loop
 	u.kickTeamRekeyd()
 
@@ -395,6 +460,28 @@ func (u *userPlusDevice) waitForRotate(team string, toSeqno keybase1.Seqno) {
 		}
 	}
 	u.tc.T.Fatalf("timed out waiting for team rotate %s", team)
+}
+
+func (u *userPlusDevice) waitForRotateByID(teamID keybase1.TeamID, toSeqno keybase1.Seqno) {
+	u.tc.T.Logf("waiting for team rotate %s", teamID)
+
+	// jump start the clkr queue processing loop
+	u.kickTeamRekeyd()
+
+	// process 10 team rotations or 10s worth of time
+	for i := 0; i < 10; i++ {
+		select {
+		case arg := <-u.notifications.rotateCh:
+			u.tc.T.Logf("rotate received: %+v", arg)
+			if arg.TeamID.Eq(teamID) && arg.Changes.KeyRotated && arg.LatestSeqno == toSeqno {
+				u.tc.T.Logf("rotate matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring rotate message")
+		case <-time.After(1 * time.Second):
+		}
+	}
+	u.tc.T.Fatalf("timed out waiting for team rotate %s", teamID)
 }
 
 func (u *userPlusDevice) waitForTeamChangedAndRotated(team string, toSeqno keybase1.Seqno) {
@@ -432,6 +519,7 @@ func (u *userPlusDevice) track(username string) {
 func (u *userPlusDevice) getTeamSeqno(teamID keybase1.TeamID) keybase1.Seqno {
 	team, err := teams.Load(context.Background(), u.tc.G, keybase1.LoadTeamArg{
 		ID:          teamID,
+		Public:      teamID.IsPublic(),
 		ForceRepoll: true,
 	})
 	require.NoError(u.tc.T, err)
@@ -445,14 +533,14 @@ func (u *userPlusDevice) kickTeamRekeyd() {
 func (u *userPlusDevice) lookupImplicitTeam(create bool, displayName string, public bool) (keybase1.TeamID, error) {
 	cli := u.teamsClient
 	var err error
-	var teamID keybase1.TeamID
+	var res keybase1.LookupImplicitTeamRes
 	if create {
-		teamID, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupOrCreateImplicitTeam(context.TODO(), keybase1.LookupOrCreateImplicitTeamArg{Name: displayName, Public: public})
 	} else {
-		teamID, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
+		res, err = cli.LookupImplicitTeam(context.TODO(), keybase1.LookupImplicitTeamArg{Name: displayName, Public: public})
 	}
 
-	return teamID, err
+	return res.TeamID, err
 }
 
 func (u *userPlusDevice) newSecretUI() *libkb.TestSecretUI {
@@ -509,10 +597,8 @@ func (u *userPlusDevice) provisionNewDevice() *deviceWrapper {
 
 func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 	apiArg := libkb.APIArg{
-		Endpoint: "test/accelerate_team_rekeyd",
-		Args: libkb.HTTPArgs{
-			"timeout": libkb.I{Val: 2000},
-		},
+		Endpoint:    "test/accelerate_team_rekeyd",
+		Args:        libkb.HTTPArgs{},
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 
@@ -525,6 +611,14 @@ func kickTeamRekeyd(g *libkb.GlobalContext, t testing.TB) {
 func GetTeamForTestByStringName(ctx context.Context, g *libkb.GlobalContext, name string) (*teams.Team, error) {
 	return teams.Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        name,
+		ForceRepoll: true,
+	})
+}
+
+func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, public bool) (*teams.Team, error) {
+	return teams.Load(ctx, g, keybase1.LoadTeamArg{
+		ID:          id,
+		Public:      public,
 		ForceRepoll: true,
 	})
 }
@@ -548,6 +642,10 @@ func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.Tea
 	return nil
 }
 
+func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID) error {
+	return nil
+}
+
 func TestGetTeamRootID(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -558,7 +656,7 @@ func TestGetTeamRootID(t *testing.T) {
 	parentName, err := keybase1.TeamNameFromString(tt.users[0].createTeam())
 	require.NoError(t, err)
 
-	parentID := parentName.ToTeamID()
+	parentID := parentName.ToPrivateTeamID()
 
 	t.Logf("create a subteam")
 	subteamID, err := teams.CreateSubteam(context.TODO(), tt.users[0].tc.G, "mysubteam", parentName)
@@ -623,10 +721,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 	t.Logf("bob updates cache of alice's info")
 	{
-		arg := libkb.NewLoadUserArg(bob.tc.G)
-		arg.UID = alice.uid
-		arg.PublicKeyOptional = true
-		arg.ForcePoll = true
+		arg := libkb.NewLoadUserArg(bob.tc.G).WithUID(alice.uid).WithPublicKeyOptional().WithForcePoll(true)
 		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
 		require.NoError(t, err)
 	}
@@ -707,10 +802,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 
 	t.Logf("bob updates cache of alice's info")
 	{
-		arg := libkb.NewLoadUserArg(bob.tc.G)
-		arg.UID = alice.uid
-		arg.PublicKeyOptional = true
-		arg.ForcePoll = true
+		arg := libkb.NewLoadUserArg(bob.tc.G).WithUID(alice.uid).WithPublicKeyOptional().WithForcePoll(true)
 		_, _, err := bob.tc.G.GetUPAKLoader().LoadV2(arg)
 		require.NoError(t, err)
 	}
@@ -766,4 +858,26 @@ func TestImpTeamLookupWithTrackingFailure(t *testing.T) {
 	team2, err := alice.lookupImplicitTeam(true /*create*/, iTeamNameCreate, false /*isPublic*/)
 	require.NoError(t, err)
 	require.Equal(t, team, team2)
+}
+
+// Leave a team and make sure the team list no longer includes it.
+func TestTeamLeaveThenList(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+
+	teamID, teamName := alice.createTeam2()
+	// add bob as owner because we can't leave as the only owner.
+	alice.addTeamMember(teamName.String(), bob.username, keybase1.TeamRole_OWNER)
+
+	teams := alice.teamList("", false, false)
+	require.Len(t, teams.Teams, 1)
+	require.Equal(t, teamID, teams.Teams[0].TeamID)
+
+	alice.leave(teamName.String())
+
+	teams = alice.teamList("", false, false)
+	require.Len(t, teams.Teams, 0)
 }

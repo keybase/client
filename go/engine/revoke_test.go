@@ -13,8 +13,7 @@ import (
 )
 
 func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
-	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
-	arg.PublicKeyOptional = true
+	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal(err)
@@ -369,8 +368,8 @@ func TestSignAfterRevoke(t *testing.T) {
 	if err == nil {
 		t.Fatal("nil error signing after LogoutIfRevoked")
 	}
-	if _, ok := err.(libkb.KeyRevokedError); !ok {
-		t.Errorf("error type: %T, expected libkb.KeyRevokedError", err)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Errorf("error type: %T, expected libkb.LoginRequiredError", err)
 	}
 }
 

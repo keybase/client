@@ -14,7 +14,7 @@ export type NonNullGregorItem = {
   item: Item,
 }
 
-export type MsgMap = {[key: string]: NonNullGregorItem}
+export type MsgMap = {[key: string]: ?NonNullGregorItem}
 export const pushState = 'gregor:pushState'
 export type PushState = TypedAction<'gregor:pushState', {state: GregorState, reason: PushReason}, void>
 

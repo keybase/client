@@ -66,8 +66,9 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
 	}
-	gen.AddDefaultUID()
+	gen.AddDefaultUID(tc.G)
 	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+		Ctx:        tc.G,
 		Gen:        &gen,
 		PushSecret: true,
 		Lks:        s.lks,
@@ -185,7 +186,7 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 	secui := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
 	s := NewSignupEngine(nil, tc.G)
 	ctx := &Context{
-		GPGUI:    newGPGSelectEmailUI(fu.Email),
+		GPGUI:    newGPGSelectEmailUI(tc.G, fu.Email),
 		SecretUI: secui,
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{Username: fu.Username},
@@ -227,8 +228,9 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
-	arg.Gen.MakeAllIds()
+	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -249,8 +251,9 @@ func createFakeUserWithPGPSibkeyPaper(tc libkb.TestContext) *FakeUser {
 			PrimaryBits: 768,
 			SubkeyBits:  768,
 		},
+		Ctx: tc.G,
 	}
-	arg.Gen.MakeAllIds()
+	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -275,7 +278,7 @@ func createFakeUserWithPGPSibkeyPushed(tc libkb.TestContext) *FakeUser {
 		NoSave:     true,
 		Ctx:        tc.G,
 	}
-	arg.Gen.MakeAllIds()
+	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -300,7 +303,7 @@ func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
 		NoSave:     true,
 		Ctx:        tc.G,
 	}
-	arg.Gen.MakeAllIds()
+	arg.Gen.MakeAllIds(tc.G)
 	ctx := Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),

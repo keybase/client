@@ -12,7 +12,7 @@ import {
 import {isMobile, isSimulator} from '../../constants/platform'
 import {listenForKBFSNotifications} from '../../actions/notifications'
 import {fuseStatus} from '../../actions/kbfs'
-import {navBasedOnLoginState} from '../../actions/login/creators'
+import {navBasedOnLoginAndInitialState} from '../../actions/login/creators'
 import {
   checkReachabilityOnConnect,
   registerGregorListeners,
@@ -20,6 +20,7 @@ import {
   listenForNativeReachabilityEvents,
 } from '../../actions/gregor'
 import {resetSignup} from '../../actions/signup'
+import {RouteStateStorage} from '../../actions/route-state-storage'
 import * as Saga from '../../util/saga'
 import {configurePush} from '../push/creators'
 import {put, select} from 'redux-saga/effects'
@@ -28,8 +29,7 @@ import {flushLogFile} from '../../util/forward-logs'
 
 import type {TypedState} from '../../constants/reducer'
 import type {SagaGenerator} from '../../constants/types/saga'
-import type {Tab} from '../../constants/tabs'
-import type {UpdateFollowing} from '../../constants/config'
+import type {InitialState, UpdateFollowing} from '../../constants/config'
 import type {AsyncAction} from '../../constants/types/flux'
 
 // TODO convert to sagas
@@ -40,16 +40,9 @@ isMobile &&
     console.log('accepted update in actions/config')
   })
 
-const setInitialTab = (tab: ?Tab): Constants.SetInitialTab => ({payload: {tab}, type: 'config:setInitialTab'})
-
-const setInitialLink = (url: ?string): Constants.SetInitialLink => ({
-  payload: {url},
-  type: 'config:setInitialLink',
-})
-
-const setLaunchedViaPush = (pushed: boolean): Constants.SetLaunchedViaPush => ({
-  payload: pushed,
-  type: 'config:setLaunchedViaPush',
+const setInitialState = (initialState: InitialState): Constants.SetInitialState => ({
+  payload: initialState,
+  type: 'config:setInitialState',
 })
 
 const getConfig = (): AsyncAction => (dispatch, getState) =>
@@ -129,7 +122,10 @@ const daemonError = (error: ?string): Constants.DaemonError => ({
   type: Constants.daemonError,
 })
 
+// TODO: It's unfortunate that we have these globals. Ideally,
+// bootstrap would be a method on an object.
 let bootstrapSetup = false
+const routeStateStorage = new RouteStateStorage()
 type BootstrapOptions = {isReconnect?: boolean}
 
 // TODO: We REALLY need to saga-ize this.
@@ -162,7 +158,15 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
         })
         dispatch(listenForKBFSNotifications())
         if (!opts.isReconnect) {
-          dispatch(navBasedOnLoginState())
+          dispatch(async (): Promise<*> => {
+            await dispatch(navBasedOnLoginAndInitialState())
+            if (getState().config.loggedIn) {
+              // If we're logged in, restore any saved route state and
+              // then nav again based on it.
+              await dispatch(routeStateStorage.load)
+              await dispatch(navBasedOnLoginAndInitialState())
+            }
+          })
           dispatch(resetSignup())
         }
       })
@@ -182,6 +186,9 @@ const bootstrap = (opts?: BootstrapOptions = {}): AsyncAction => (dispatch, getS
       })
   }
 }
+
+const persistRouteState: AsyncAction = routeStateStorage.store
+const clearRouteState: AsyncAction = routeStateStorage.clear
 
 const getBootstrapStatus = (): AsyncAction => dispatch =>
   new Promise((resolve, reject) => {
@@ -228,9 +235,9 @@ export {
   isFollower,
   isFollowing,
   retryBootstrap,
-  setInitialTab,
-  setInitialLink,
-  setLaunchedViaPush,
+  clearRouteState,
+  persistRouteState,
+  setInitialState,
   updateFollowing,
   waitForKBFS,
 }

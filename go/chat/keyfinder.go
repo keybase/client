@@ -109,7 +109,8 @@ func (k *KeyFinderImpl) FindForEncryption(ctx context.Context,
 			return res, err
 		}
 		team, err := teams.Load(ctx, k.G().ExternalG(), keybase1.LoadTeamArg{
-			ID: teamID,
+			ID:     teamID,
+			Public: public,
 		})
 		if err != nil {
 			return res, err
@@ -136,12 +137,16 @@ func (k *KeyFinderImpl) FindForDecryption(ctx context.Context,
 		if err != nil {
 			return res, err
 		}
+		var refreshers keybase1.TeamRefreshers
+		if !public {
+			// Only need keys for private teams.
+			refreshers.NeedKeyGeneration = keybase1.PerTeamKeyGeneration(keyGeneration)
+		}
 		team, err := teams.Load(ctx, k.G().ExternalG(), keybase1.LoadTeamArg{
-			ID: teamID,
-			Refreshers: keybase1.TeamRefreshers{
-				NeedKeyGeneration: keybase1.PerTeamKeyGeneration(keyGeneration),
-			},
-			StaleOK: true,
+			ID:         teamID,
+			Public:     public,
+			Refreshers: refreshers,
+			StaleOK:    true,
 		})
 		if err != nil {
 			return res, err

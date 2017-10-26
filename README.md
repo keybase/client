@@ -1,12 +1,16 @@
 ## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
 
-Hi, and welcome to the Keybase client repo.  All our client apps (macOS, Windows, Linux, iOS, and Android) are being actively developed in this repository. Please, dig around.
+Hi, and welcome to the Keybase client repo.  All our client apps (macOS,
+Windows, Linux, iOS, and Android) are being actively developed in this
+repository. Please, dig around.
 
 ### Warnings
 
 We'd love you to read our source code.
 
-But - some of the things in this repo are explorations, and the app you build from source just *might not do what it says it's doing*. So, if you just want to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for macOS, Linux, or Windows.
+But - some of the things in this repo are explorations, and the app you build
+from source just *might not do what it says it's doing*. So, if you just want
+to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for macOS, Linux, or Windows.
 
 ![Sharing](https://keybase.io/images/github/repo_share.png?)
 
@@ -23,8 +27,10 @@ But - some of the things in this repo are explorations, and the app you build fr
 
 ### Problems?
 
-Report any issues with client software on this GitHub [issue tracker](https://github.com/keybase/client/issues).
-Internally, we track our progress using Jira, but all PRs come through GitHub for your review!
+Report any issues with client software on this GitHub
+[issue tracker](https://github.com/keybase/client/issues).
+Internally, we track our progress using Jira, but all PRs come through GitHub
+for your review!
 
 If you're having problems with the command line `keybase` client, take a
 look at [the troubleshooting doc](go/doc/troubleshooting.md).
@@ -36,12 +42,13 @@ We check and update both frequently.
 
 ### License
 
-Most code is released under the New BSD (3 Clause) License.  If subdirectories include
-a different license, that license applies instead.
+Most code is released under the New BSD (3 Clause) License.  If subdirectories
+include a different license, that license applies instead.
 
 ### Development Guidelines
 
-We check all git commits with pre-commit hooks generated via [pre-commit.com](http://pre-commit.com) pre-commit hooks.
+We check all git commits with pre-commit hooks generated via
+[pre-commit.com](http://pre-commit.com) pre-commit hooks.
 To enable use of these pre-commit hooks:
 
 * [Install](http://pre-commit.com/#install) the `pre-commit` utility. For some common cases:
@@ -52,9 +59,30 @@ To enable use of these pre-commit hooks:
 
 Then proceed as normal.
 
+#### External Contributors
+
+If you forked this repository on GitHub and made a PR, then it'll show up as
+having failed Jenkins CI. We do not build external PRs because it's a security
+risk to do so without a review first. If your PR is successfully reviewed by a
+member of the Keybase team, then we will merge your commits to a branch on our
+primary fork and build from there.
+
 
 ### Cryptography Notice
 
-This distribution includes cryptographic software. The country in which you currently reside may have restrictions on the import, possession, use, and/or re-export to another country, of encryption software. BEFORE using any encryption software, please check your country's laws, regulations and policies concerning the import, possession, or use, and re-export of encryption software, to see if this is permitted. See http://www.wassenaar.org/ for more information.
+This distribution includes cryptographic software. The country in which you
+currently reside may have restrictions on the import, possession, use, and/or
+re-export to another country, of encryption software. BEFORE using any
+encryption software, please check your country's laws, regulations and policies
+concerning the import, possession, or use, and re-export of encryption
+software, to see if this is permitted. See http://www.wassenaar.org/ for more
+information.
 
-The U.S. Government Department of Commerce, Bureau of Industry and Security (BIS), has classified this software as Export Commodity Control Number (ECCN) 5D002.C.1, which includes information security software using or performing cryptographic functions with asymmetric algorithms. The form and manner of this distribution makes it eligible for export under the License Exception ENC Technology Software Unrestricted (TSU) exception (see the BIS Export Administration Regulations, Section 740.13) for both object code and source code.
+The U.S. Government Department of Commerce, Bureau of Industry and Security
+(BIS), has classified this software as Export Commodity Control Number (ECCN)
+5D002.C.1, which includes information security software using or performing
+cryptographic functions with asymmetric algorithms. The form and manner of this
+distribution makes it eligible for export under the License Exception ENC
+Technology Software Unrestricted (TSU) exception (see the BIS Export
+Administration Regulations, Section 740.13) for both object code and source
+code.

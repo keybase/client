@@ -613,8 +613,16 @@ func (f JSONConfigFile) GetUPAKCacheSize() (int, bool) {
 	return f.getCacheSize("cache.limits.upak")
 }
 
+func (f JSONConfigFile) GetUIDMapFullNameCacheSize() (int, bool) {
+	return f.getCacheSize("cache.limits.uid_map_full_name")
+}
+
 func (f JSONConfigFile) GetLevelDBNumFiles() (int, bool) {
 	return f.GetIntAtPath("leveldb.num_files")
+}
+
+func (f JSONConfigFile) GetChatInboxSourceLocalizeThreads() (int, bool) {
+	return f.GetIntAtPath("chat.inboxsource.localizethreads")
 }
 
 func (f JSONConfigFile) getStringArray(v *jsonw.Wrapper) []string {

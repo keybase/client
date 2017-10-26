@@ -79,7 +79,8 @@ func ShortCA(raw string) string {
 // GenClientConfigForInternalAPI pulls the information out of the environment configuration,
 // and build a Client config that will be used in all API server
 // requests
-func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
+func genClientConfigForInternalAPI(g *GlobalContext) (*ClientConfig, error) {
+	e := g.Env
 	serverURI := e.GetServerURI()
 
 	if e.GetTorMode().Enabled() {
@@ -115,7 +116,7 @@ func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
 			err = fmt.Errorf("In parsing CAs for %s: %s", host, err)
 			return nil, err
 		}
-		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
+		g.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
 			host, ShortCA(rawCA)))
 	}
 
@@ -128,7 +129,7 @@ func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
 	return ret, nil
 }
 
-func (e *Env) GenClientConfigForScrapers() (*ClientConfig, error) {
+func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 	return &ClientConfig{
 		UseCookies: true,
 		Timeout:    e.GetScraperTimeout(),

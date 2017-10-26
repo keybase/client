@@ -106,6 +106,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 	ann.ctx.log.Debug("team details checked out: %+v", details)
 }
 
+// tests a user deleting her account.
 func TestTeamDelete(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
@@ -132,6 +133,16 @@ func TestTeamDelete(t *testing.T) {
 
 	ann.delete()
 	divDebug(ctx, "Ann deleted her account")
+	divDebug(ctx, "ann uid: %s", ann.uid())
+	divDebug(ctx, "bob uid: %s", bob.uid())
+	divDebug(ctx, "cam uid: %s", cam.uid())
+
+	// just one person needs to do this
+	kickTeamRekeyd(bob.getPrimaryGlobalContext(), t)
+
+	// bob and cam should see the key get rotated after ann deletes
+	bob.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
+	cam.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2))
 
 	// It's important for cam to clear her cache right before the attempt to send,
 	// since she might have received gregors that ann deleted her account,
@@ -149,13 +160,19 @@ func TestTeamReset(t *testing.T) {
 
 	ann := ctx.installKeybaseForUser("ann", 10)
 	ann.signup()
-	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	divDebug(ctx, "Signed up ann (%s, %s)", ann.username, ann.uid())
 	bob := ctx.installKeybaseForUser("bob", 10)
 	bob.signup()
-	divDebug(ctx, "Signed up bob (%s)", bob.username)
+	divDebug(ctx, "Signed up bob (%s, %s)", bob.username, bob.uid())
 	cam := ctx.installKeybaseForUser("cam", 10)
 	cam.signup()
-	divDebug(ctx, "Signed up cam (%s)", cam.username)
+	divDebug(ctx, "Signed up cam (%s, %s)", cam.username, cam.uid())
+	users := []*smuUser{ann, bob, cam}
+	for _, user := range users {
+		for _, device := range user.devices {
+			device.tctx.G.UIDMapper.SetTestingNoCachingMode(true)
+		}
+	}
 
 	team := ann.createTeam([]*smuUser{bob, cam})
 	divDebug(ctx, "team created (%s)", team.name)
@@ -170,6 +187,7 @@ func TestTeamReset(t *testing.T) {
 	bob.reset()
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
+	// Fast forward clock to clear out UID map
 	pollForMembershipUpdate(team, ann, bob, cam)
 	divDebug(ctx, "Polled for rekey")
 
@@ -452,18 +470,34 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	tryLoad := func(teamID keybase1.TeamID) (res *teams.Team) {
 		res, err := teams.Load(context.TODO(), G, keybase1.LoadTeamArg{
 			ID:          teamID,
+			Public:      teamID.IsPublic(),
 			ForceRepoll: true,
 		})
 		require.NoError(t, err)
 		return res
 	}
 
-	resTeam := tryLoad(team.ID)
-	teamName := resTeam.Name().String()
+	tryLoad(team.ID)
+
+	getRole := func(username string) keybase1.TeamRole {
+		g := G
+		loadUserArg := libkb.NewLoadUserArg(g).
+			WithNetContext(context.TODO()).
+			WithName(username).
+			WithPublicKeyOptional().
+			WithForcePoll(true)
+		upak, _, err := g.GetUPAKLoader().LoadV2(loadUserArg)
+		require.NoError(t, err)
+
+		team, err := teams.GetForTeamManagementByTeamID(context.TODO(), g, team.ID, false)
+		require.NoError(t, err)
+		role, err := team.MemberRole(context.TODO(), upak.Current.ToUserVersion())
+		require.NoError(t, err)
+		return role
+	}
 
 	// Bob's role should be NONE since he's still reset.
-	role, err := teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role := getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob.
@@ -474,8 +508,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	tryLoad(team.ID)
 
 	// Check if bob is back as OWNER.
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 
 	// Reset and re-provision bob again.
@@ -488,8 +521,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	// Check if sigchain plays correctly, check if role is NONE.
 	tryLoad(team.ID)
 
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_NONE)
 
 	// Alice re-adds bob, again.
@@ -502,8 +534,7 @@ func TestImplicitTeamUserReset(t *testing.T) {
 	// with uids and eldest from before and after reset.
 	tryLoad(team.ID)
 
-	role, err = teams.MemberRole(context.TODO(), G, teamName, bob.username)
-	require.NoError(t, err)
+	role = getRole(bob.username)
 	require.Equal(t, role, keybase1.TeamRole_OWNER)
 }
 

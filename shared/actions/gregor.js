@@ -1,74 +1,60 @@
 // @flow
-
 import * as Constants from '../constants/gregor'
 import * as I from 'immutable'
 import engine from '../engine'
-import {all, call, put, select} from 'redux-saga/effects'
 import {
   delegateUiCtlRegisterGregorFirehoseRpcPromise,
   reachabilityCheckReachabilityRpcPromise,
   reachabilityStartReachabilityRpcPromise,
   ReachabilityReachable,
   gregorInjectItemRpcPromise,
+  type PushReason,
+  type Reachability,
 } from '../constants/types/flow-types'
+import {all, call, put, select} from 'redux-saga/effects'
+import {bootstrap} from '../actions/config'
+import {clearErrors} from '../util/pictures'
 import {favoriteList, markTLFCreated} from './favorite'
 import {folderFromPath} from '../constants/favorite.js'
-import {bootstrap} from '../actions/config'
-import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {clearErrors} from '../util/pictures'
-import {usernameSelector, loggedInSelector} from '../constants/selectors'
 import {nativeReachabilityEvents} from '../util/reachability'
 import {replaceEntity} from './entities'
+import {safeTakeEvery, safeTakeLatest} from '../util/saga'
+import {type Dispatch} from '../constants/types/flux'
+import {type SagaGenerator} from '../constants/types/saga'
+import {type State as GregorState, type OutOfBandMessage} from '../constants/types/flow-types-gregor'
+import {type TypedState} from '../constants/reducer'
+import {usernameSelector, loggedInSelector} from '../constants/selectors'
+import {handleIncomingGregor as gitHandleIncomingGregor} from './git/creators'
 
-import type {
-  CheckReachability,
-  PushState,
-  PushOOBM,
-  UpdateReachability,
-  UpdateSeenMsgs,
-  MsgMap,
-  NonNullGregorItem,
-  InjectItem,
-} from '../constants/gregor'
-import type {Dispatch} from '../constants/types/flux'
-import type {PushReason, Reachability} from '../constants/types/flow-types'
-import type {
-  State as GregorState,
-  ItemAndMetadata as GregorItem,
-  OutOfBandMessage,
-} from '../constants/types/flow-types-gregor'
-import type {SagaGenerator} from '../constants/types/saga'
-import type {TypedState} from '../constants/reducer'
-
-function pushState(state: GregorState, reason: PushReason): PushState {
+function pushState(state: GregorState, reason: PushReason): Constants.PushState {
   return {type: Constants.pushState, payload: {state, reason}}
 }
 
-function pushOOBM(messages: Array<OutOfBandMessage>): PushOOBM {
+function pushOOBM(messages: Array<OutOfBandMessage>): Constants.PushOOBM {
   return {type: Constants.pushOOBM, payload: {messages}}
 }
 
-function updateReachability(reachability: Reachability): UpdateReachability {
+function updateReachability(reachability: Reachability): Constants.UpdateReachability {
   return {type: Constants.updateReachability, payload: {reachability}}
 }
 
-function checkReachability(): CheckReachability {
+function checkReachability(): Constants.CheckReachability {
   return {type: Constants.checkReachability, payload: undefined}
 }
 
-function updateSeenMsgs(seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
+function updateSeenMsgs(seenMsgs: Array<Constants.NonNullGregorItem>): Constants.UpdateSeenMsgs {
   return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
 }
 
-function injectItem(category: string, body: string, dtime?: ?Date): InjectItem {
+function injectItem(category: string, body: string, dtime?: ?Date): Constants.InjectItem {
   return {type: Constants.injectItem, payload: {category, body, dtime}}
 }
 
-function isTlfItem(gItem: GregorItem): boolean {
+function isTlfItem(gItem: Constants.NonNullGregorItem): boolean {
   return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
 }
 
-function toNonNullGregorItems(state: GregorState): Array<NonNullGregorItem> {
+function toNonNullGregorItems(state: GregorState): Array<Constants.NonNullGregorItem> {
   if (!state.items) {
     return []
   }
@@ -156,8 +142,8 @@ function registerGregorListeners() {
   }
 }
 
-function* handleTLFUpdate(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
-  const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
+function* handleTLFUpdate(items: Array<Constants.NonNullGregorItem>): SagaGenerator<any, any> {
+  const seenMsgs: Constants.MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
   // Check if any are a tlf items
   const tlfUpdates = items.filter(isTlfItem)
@@ -168,7 +154,7 @@ function* handleTLFUpdate(items: Array<NonNullGregorItem>): SagaGenerator<any, a
   }
 }
 
-function* handleChatBanner(items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
+function* handleChatBanner(items: Array<Constants.NonNullGregorItem>): SagaGenerator<any, any> {
   const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
   if (sawChatBanner) {
     // TODO move this to teams eventually
@@ -176,7 +162,7 @@ function* handleChatBanner(items: Array<NonNullGregorItem>): SagaGenerator<any, 
   }
 }
 
-function* handlePushState(pushAction: PushState): SagaGenerator<any, any> {
+function* handlePushState(pushAction: Constants.PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
     const nonNullItems = toNonNullGregorItems(state)
@@ -200,7 +186,7 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
     createdTLFs
       .map(m => {
         const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-        if (folder != null) {
+        if (folder && folder.payload && folder.payload.folder) {
           return put(folder)
         }
         console.warn('Failed to parse tlf for oobm:', m)
@@ -209,9 +195,16 @@ function* handleKbfsFavoritesOOBM(kbfsFavoriteMessages: Array<OutOfBandMessage>)
   )
 }
 
-function* handlePushOOBM(pushOOBM: pushOOBM) {
+function* handlePushOOBM(pushOOBM: Constants.PushOOBM) {
   if (!pushOOBM.error) {
     const {payload: {messages}} = pushOOBM
+
+    // Filter first so we don't dispatch unnecessary actions
+    const gitMessages = messages.filter(i => i.system === 'git')
+    if (gitMessages.length > 0) {
+      yield put(gitHandleIncomingGregor(gitMessages))
+    }
+
     yield call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites'))
   } else {
     console.log('Error in gregor oobm', pushOOBM.payload)

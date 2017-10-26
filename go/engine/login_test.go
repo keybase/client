@@ -701,6 +701,8 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	// and start login process for web user.
 	CreateAndSignupFakeUser(tc, "alice")
 
+	Logout(tc)
+
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{Username: username},
@@ -1234,7 +1236,7 @@ func TestProvisionGPGSign(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    u1.NewSecretUI(),
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 		}
 		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine(eng, ctx); err != nil {
@@ -1354,7 +1356,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    secUI,
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 		}
 		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine(eng, ctx); err != nil {
@@ -1425,7 +1427,7 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    u1.NewSecretUI(),
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 		}
 
 		arg := loginProvisionArg{
@@ -1507,7 +1509,7 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 	}
 
 	arg := loginProvisionArg{
@@ -1542,7 +1544,7 @@ func TestProvisionGPGNoKeyring(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err == nil {
@@ -1575,7 +1577,7 @@ func TestProvisionGPGNoMatch(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err == nil {
@@ -1605,7 +1607,7 @@ func TestProvisionGPGNoGPGExecutable(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	err := RunEngine(eng, ctx)
@@ -1638,7 +1640,7 @@ func TestProvisionGPGNoGPGFound(t *testing.T) {
 		LogUI:       tc2.G.UI.GetLogUI(),
 		SecretUI:    u1.NewSecretUI(),
 		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       &gpgtestui{},
+		GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	err := RunEngine(eng, ctx)
@@ -2079,6 +2081,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	Logout(tc)
+
 	// provision user[1] on the same device, specifying username
 	ctx = &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
@@ -2097,6 +2101,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
 	}
+
+	Logout(tc)
 
 	// provision user[2] on the same device, specifying email
 	ctx = &Context{
@@ -2117,9 +2123,9 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// when you specify an email address, you are forcing provisioning
-	// to happen, so make sure that it detects that the device is already
-	// registered for this user.
+	Logout(tc)
+
+	// login via email works now (CORE-6284):
 	ctx = &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
@@ -2128,10 +2134,8 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err == nil {
-		t.Fatal("login provision via email successful for already provisioned device/user combo")
-	} else if _, ok := err.(libkb.DeviceAlreadyProvisionedError); !ok {
-		t.Fatalf("err: %T, expected libkb.DeviceAlreadyProvisionedError", err)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -2143,6 +2147,62 @@ func TestResetAccount(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "login")
 	originalDevice := tc.G.Env.GetDeviceID()
 	ResetAccount(tc, u)
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tc.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
+
+	testUserHasDeviceKey(tc)
+}
+
+// create a standard user with device keys, reset account (but don't logout), login.
+func TestResetAccountNoLogout(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
+	ResetAccountNoLogout(tc, u)
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tc.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
+
+	testUserHasDeviceKey(tc)
+}
+
+// create a standard user with device keys, reset account (but don't logout), login.
+// Prime the FullSelfer cache before reset.
+func TestResetAccountNoLogoutSelfCache(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
+
+	// make sure FullSelf is cached
+	tc.G.GetFullSelfer().WithSelf(context.TODO(), func(u *libkb.User) error {
+		t.Logf("full self user: %s", u.GetName())
+		return nil
+	})
+
+	ResetAccountNoLogout(tc, u)
 
 	// this will reprovision as an eldest device:
 	u.LoginOrBust(tc)
@@ -2386,8 +2446,9 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 		PrimaryBits: 1024,
 		SubkeyBits:  1024,
 	}
-	gen.AddDefaultUID()
+	gen.AddDefaultUID(tc.G)
 	peng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+		Ctx:        tc.G,
 		Gen:        &gen,
 		PushSecret: true,
 		NoSave:     true,
@@ -3084,7 +3145,7 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 			LogUI:       tc2.G.UI.GetLogUI(),
 			SecretUI:    u1.NewSecretUI(),
 			LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-			GPGUI:       &gpgtestui{},
+			GPGUI:       &gpgtestui{Contextified: libkb.NewContextified(tc2.G)},
 		}
 		eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 		if err := RunEngine(eng, ctx); err != nil {
@@ -3144,6 +3205,93 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 	}
 
 	t.Fatalf("TestBootstrapAfterGPGSign failed %d times", attempts)
+}
+
+func TestLoginAlready(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+	u1.LoginOrBust(tc)
+
+	// Logging in again with same username should not return an error
+	if err := u1.Login(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	// Logging in with a different username should returh LoggedInError
+	u1.Username = "x" + u1.Username
+	err := u1.Login(tc.G)
+	if err == nil {
+		t.Fatal("login with different username should return an error")
+	}
+	if _, ok := err.(libkb.LoggedInError); !ok {
+		t.Fatalf("err type: %T (%s), expected libkb.LoggedInError", err, err)
+	}
+}
+
+func TestLoginEmailOnProvisionedDevice(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+
+	secui := u1.NewCountSecretUI()
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secui,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, u1.Email, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatalf("login with email should work now, got error: %s (%T)", err, err)
+	}
+
+	assertPassphraseStreamCache(tc)
+	assertDeviceKeysCached(tc)
+	assertSecretStored(tc, u1.Username)
+
+	// make sure they only had to enter passphrase once:
+	if secui.CallCount != 1 {
+		t.Errorf("login with email, passphrase prompts: %d, expected 1", secui.CallCount)
+	}
+}
+
+func TestBeforeResetDeviceName(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDeviceName := u.DeviceName
+	t.Logf("original device name: %s", originalDeviceName)
+	ResetAccount(tc, u)
+
+	provui := &testProvisionSetNameUI{
+		testProvisionUI: newTestProvisionUI(),
+		DeviceName:      originalDeviceName,
+	}
+	ctx := &Context{
+		ProvisionUI: provui,
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Errorf("Login worked with pre-reset device name")
+	}
+	if len(provui.ExistingDevicesFromArg) == 0 {
+		t.Fatalf("no existing devices provided to provision ui, expected 1 (pre reset)")
+	}
+	if provui.ExistingDevicesFromArg[0] != originalDeviceName {
+		t.Errorf("existing device name 0: %q, expected %q", provui.ExistingDevicesFromArg[0], originalDeviceName)
+	}
 }
 
 type testProvisionUI struct {
@@ -3290,6 +3438,18 @@ type testProvisionDupDeviceUI struct {
 // return an existing device name
 func (u *testProvisionDupDeviceUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
 	return arg.ExistingDevices[0], nil
+}
+
+type testProvisionSetNameUI struct {
+	*testProvisionUI
+	DeviceName             string
+	ExistingDevicesFromArg []string
+}
+
+// return an existing device name
+func (u *testProvisionSetNameUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
+	u.ExistingDevicesFromArg = arg.ExistingDevices
+	return u.DeviceName, nil
 }
 
 type paperLoginUI struct {

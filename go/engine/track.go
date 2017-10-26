@@ -75,8 +75,8 @@ func (e *TrackEngine) Run(ctx *Context) error {
 
 	upk := ieng.Result().Upk
 	var err error
-	loadarg := libkb.NewLoadUserArgBase(e.G()).WithNetContext(ctx.NetContext).WithUID(upk.Uid).WithPublicKeyOptional()
-	e.them, err = libkb.LoadUser(*loadarg)
+	loadarg := libkb.NewLoadUserArg(e.G()).WithNetContext(ctx.NetContext).WithUID(upk.Uid).WithPublicKeyOptional()
+	e.them, err = libkb.LoadUser(loadarg)
 	if err != nil {
 		return err
 	}

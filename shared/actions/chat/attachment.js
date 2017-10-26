@@ -13,9 +13,8 @@ import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 import {tmpDir, tmpFile, downloadFilePath, copy, exists, stat} from '../../util/file'
 import {isMobile} from '../../constants/platform'
 import {usernameSelector} from '../../constants/selectors'
-
-import type {TypedState} from '../../constants/reducer'
-import type {SagaGenerator} from '../../constants/types/saga'
+import {type TypedState} from '../../constants/reducer'
+import {type SagaGenerator} from '../../constants/types/saga'
 
 function* onShareAttachment({payload: {messageKey}}: Constants.ShareAttachment): SagaGenerator<any, any> {
   const path = yield call(onSaveAttachment, Creators.saveAttachment(messageKey))
@@ -218,6 +217,7 @@ function* _appendAttachmentPlaceholder(
     failureDescription: '',
     key: Constants.messageKey(conversationIDKey, 'outboxIDAttachment', outboxIDKey),
     messageState: 'pending',
+    rawMessageID: -1,
     outboxID: outboxIDKey,
     senderDeviceRevokedAt: null,
     timestamp: Date.now(),
@@ -323,7 +323,7 @@ function* onSelectAttachment({payload: {input}}: Constants.SelectAttachment): Ge
     },
   })
 
-  const inboxConvo = yield select(Shared.selectedInboxSelector, conversationIDKey)
+  const inboxConvo = yield select(Constants.getInbox, conversationIDKey)
   const param = {
     conversationID: Constants.keyToConversationID(conversationIDKey),
     tlfName: inboxConvo ? inboxConvo.name : newConvoTlfName,

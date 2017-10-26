@@ -7,29 +7,35 @@ import chatInfoPanelNotifications from '../chat/conversation/info-panel/notifica
 import chatList from '../chat/conversation/list/index.stories'
 import chatCreateChannel from '../chat/create-channel/index.stories'
 import chatManageChannels from '../chat/manage-channels/index.stories'
+import chatHud from '../chat/hud/index.stories'
 import checkbox from '../common-adapters/checkbox.stories'
 import dropdown from '../common-adapters/dropdown.stories'
 import git from '../git/index.stories'
 import icon from '../common-adapters/icon.stories'
 import radiobutton from '../common-adapters/radio-button.stories'
+import roles from '../teams/role-picker/index.stories'
 import search from '../search/search.stories'
 import teams from '../teams/index.stories'
 import text from '../common-adapters/text.stories'
+import openTeam from '../teams/open-team/index.stories'
 
 const stories = {
   avatar,
   box,
+  chatCreateChannel,
+  chatHud,
   chatInboxRow,
   chatInfoPanel,
   chatInfoPanelNotifications,
   chatList,
-  chatCreateChannel,
   chatManageChannels,
   checkbox,
   dropdown,
   git,
   icon,
+  openTeam,
   radiobutton,
+  roles,
   search,
   teams,
   text,

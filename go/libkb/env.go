@@ -40,6 +40,7 @@ func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)        
 func (n NullConfiguration) GetLinkCacheSize() (int, bool)                                  { return 0, false }
 func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)                    { return 0, false }
 func (n NullConfiguration) GetUPAKCacheSize() (int, bool)                                  { return 0, false }
+func (n NullConfiguration) GetUIDMapFullNameCacheSize() (int, bool)                        { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                                        { return nil }
 func (n NullConfiguration) GetCodeSigningKIDs() []string                                   { return nil }
 func (n NullConfiguration) GetPinentry() string                                            { return "" }
@@ -87,7 +88,7 @@ func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)               
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)                         { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                                            { return NoAppType }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                                { return 0, false }
-
+func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)                 { return 1, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -793,6 +794,14 @@ func (e *Env) GetUPAKCacheSize() int {
 	)
 }
 
+func (e *Env) GetUIDMapFullNameCacheSize() int {
+	return e.GetInt(UIDMapFullNameCacheSize,
+		e.cmd.GetUIDMapFullNameCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_UID_MAP_FULL_NAME_CACHE_SIZE") },
+		e.config.GetUIDMapFullNameCacheSize,
+	)
+}
+
 func (e *Env) GetLevelDBNumFiles() int {
 	return e.GetInt(LevelDBNumFiles,
 		e.cmd.GetLevelDBNumFiles,
@@ -997,6 +1006,15 @@ func (e *Env) GetInboxSourceType() string {
 	)
 }
 
+func (e *Env) GetChatInboxSourceLocalizeThreads() int {
+	return e.GetInt(
+		10,
+		e.cmd.GetChatInboxSourceLocalizeThreads,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_INBOX_SOURCE_LOCALIZE_THREADS") },
+		e.config.GetChatInboxSourceLocalizeThreads,
+	)
+}
+
 // GetChatMemberType returns the default member type for new conversations.
 // Currently defaults to `kbfs`, but `impteam` will be default in future.
 func (e *Env) GetChatMemberType() string {
@@ -1104,14 +1122,15 @@ func (e *Env) GetStoredSecretServiceName() string {
 
 type AppConfig struct {
 	NullConfiguration
-	HomeDir                     string
-	LogFile                     string
-	RunMode                     RunMode
-	Debug                       bool
-	LocalRPCDebug               string
-	ServerURI                   string
-	VDebugSetting               string
-	SecurityAccessGroupOverride bool
+	HomeDir                        string
+	LogFile                        string
+	RunMode                        RunMode
+	Debug                          bool
+	LocalRPCDebug                  string
+	ServerURI                      string
+	VDebugSetting                  string
+	SecurityAccessGroupOverride    bool
+	ChatInboxSourceLocalizeThreads int
 }
 
 var _ CommandLine = AppConfig{}
@@ -1150,6 +1169,10 @@ func (c AppConfig) GetAppType() AppType {
 
 func (c AppConfig) GetVDebugSetting() string {
 	return c.VDebugSetting
+}
+
+func (c AppConfig) GetChatInboxSourceLocalizeThreads() (int, bool) {
+	return c.ChatInboxSourceLocalizeThreads, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

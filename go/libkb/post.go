@@ -206,10 +206,14 @@ func PostDeviceLKS(ctx context.Context, g *GlobalContext, sr SessionReader, devi
 			"kid":             S{Val: clientHalfRecoveryKID.String()},
 			"platform":        S{Val: GetPlatformString()},
 		},
+		RetryCount: 10,
 		SessionR:   sr,
 		NetContext: ctx,
 	}
 	_, err := g.API.Post(arg)
+	if err != nil {
+		g.Log.Info("device/update(%+v) failed: %s", arg.Args, err)
+	}
 	return err
 }
 

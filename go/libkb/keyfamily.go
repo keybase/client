@@ -237,6 +237,7 @@ func (cki *ComputedKeyInfos) PaperDevices() []*Device {
 // https://github.com/keybase/client/issues/414 .
 func (cki ComputedKeyInfos) ShallowCopy() *ComputedKeyInfos {
 	ret := &ComputedKeyInfos{
+		Contextified:  NewContextified(cki.G()),
 		dirty:         cki.dirty,
 		Version:       cki.Version,
 		Infos:         make(map[keybase1.KID]*ComputedKeyInfo, len(cki.Infos)),
@@ -349,7 +350,7 @@ func (cki ComputedKeyInfos) InsertLocalEldestKey(kid keybase1.KID) {
 // For use when there are no chain links at all, so all we can do is trust the
 // eldest key that the server reported.
 func (cki ComputedKeyInfos) InsertServerEldestKey(eldestKey GenericKey, un NormalizedUsername) error {
-	kbid := KeybaseIdentity(un)
+	kbid := KeybaseIdentity(cki.G(), un)
 	if pgp, ok := eldestKey.(*PGPKeyBundle); ok {
 
 		// In the future, we might chose to ignore this etime, as we do in
@@ -1111,9 +1112,6 @@ func (ckf *ComputedKeyFamily) GetSibkeyForDevice(did keybase1.DeviceID) (key Gen
 
 // GetCurrentDevice returns the current device.
 func (ckf *ComputedKeyFamily) GetCurrentDevice(g *GlobalContext) (*Device, error) {
-	if g == nil {
-		g = G
-	}
 	did := g.Env.GetDeviceID()
 	if did.IsNil() {
 		return nil, NotProvisionedError{}

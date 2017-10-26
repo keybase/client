@@ -15,7 +15,13 @@
  <xsl:template match="wix:Directory[@Name='resources']/@Id">
   <xsl:attribute name="Id">GuiResourcesDir</xsl:attribute>
  </xsl:template>
- 
+ <xsl:template match="wix:Directory[@Name='node_modules']/@Id">
+  <xsl:attribute name="Id">GuiNodeModulesDir</xsl:attribute>
+ </xsl:template>
+ <xsl:template match="wix:Directory[@Name='regedit']/@Id">
+  <xsl:attribute name="Id">GuiRegeditDir</xsl:attribute>
+ </xsl:template>
+  
   <xsl:template match="wix:Component">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>

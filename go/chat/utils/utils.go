@@ -11,9 +11,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/chat/pager"
+
 	"regexp"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -106,19 +109,27 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 	return res
 }
 
-type ReorderUsernameSource interface {
-	LookupUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
-}
-
-// Reorder participants based on the order in activeList.
+// ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, uloader ReorderUsernameSource, tlfname string, activeList []gregor1.UID) (writerNames []string, readerNames []string, err error) {
-	srcWriterNames, srcReaderNames, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
+func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
+	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
 	if err != nil {
-		return writerNames, readerNames, err
+		return writerNames, err
 	}
-
+	var activeKuids []keybase1.UID
+	for _, a := range activeList {
+		activeKuids = append(activeKuids, keybase1.UID(a.String()))
+	}
+	packages, err := umapper.MapUIDsToUsernamePackages(ctx, g, activeKuids, time.Hour*24, 10*time.Second,
+		true)
+	activeMap := make(map[string]chat1.ConversationLocalParticipant)
+	if err == nil {
+		for i := 0; i < len(activeKuids); i++ {
+			activeMap[activeKuids[i].String()] = UsernamePackageToParticipant(packages[i])
+		}
+	}
 	allowedWriters := make(map[string]bool)
 
 	// Allow all writers from tlfname.
@@ -129,33 +140,29 @@ func ReorderParticipants(ctx context.Context, uloader ReorderUsernameSource, tlf
 	// Fill from the active list first.
 	for _, uid := range activeList {
 		kbUID := keybase1.UID(uid.String())
-		normalizedUsername, err := uloader.LookupUsername(ctx, kbUID)
-		if err != nil {
+		p, ok := activeMap[kbUID.String()]
+		if !ok {
 			continue
 		}
-		user := normalizedUsername.String()
-		user, err = kbfs.NormalizeAssertionOrName(user)
-		if err != nil {
-			continue
-		}
-		if allowed, _ := allowedWriters[user]; allowed {
-			writerNames = append(writerNames, user)
+		if allowed, _ := allowedWriters[p.Username]; allowed {
+			writerNames = append(writerNames, p)
 			// Allow only one occurrence.
-			allowedWriters[user] = false
+			allowedWriters[p.Username] = false
 		}
 	}
 
 	// Include participants even if they weren't in the active list, in stable order.
 	for _, user := range srcWriterNames {
 		if allowed, _ := allowedWriters[user]; allowed {
-			writerNames = append(writerNames, user)
+			writerNames = append(writerNames, UsernamePackageToParticipant(libkb.UsernamePackage{
+				NormalizedUsername: libkb.NewNormalizedUsername(user),
+				FullName:           nil,
+			}))
 			allowedWriters[user] = false
 		}
 	}
 
-	readerNames = srcReaderNames
-
-	return writerNames, readerNames, nil
+	return writerNames, nil
 }
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
@@ -308,7 +315,7 @@ type DebugLabeler struct {
 
 func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler {
 	return DebugLabeler{
-		log:     log,
+		log:     log.CloneWithAddedDepth(1),
 		label:   label,
 		verbose: verbose,
 	}
@@ -397,16 +404,44 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 	}
 }
 
+var chanNameMentionRegExp = regexp.MustCompile(`\B#([0-9a-zA-Z_-]+)`)
+
+func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID, teamID chat1.TLFID,
+	membersType chat1.ConversationMembersType, ts types.TeamChannelSource) (res []string) {
+	names := parseRegexpNames(ctx, body, chanNameMentionRegExp)
+	if len(names) == 0 {
+		return nil
+	}
+	chanResponse, _, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT, membersType)
+	if err != nil {
+		return nil
+	}
+	validChans := make(map[string]bool)
+	for _, cr := range chanResponse {
+		validChans[cr.TopicName] = true
+	}
+	for _, name := range names {
+		if validChans[name] {
+			res = append(res, name)
+		}
+	}
+	return res
+}
+
 var atMentionRegExp = regexp.MustCompile(`\B@([a-z][a-z0-9_]+)`)
 
-func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
-	matches := atMentionRegExp.FindAllStringSubmatch(body, -1)
+func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []string) {
+	matches := re.FindAllStringSubmatch(body, -1)
 	for _, m := range matches {
 		if len(m) >= 2 {
 			res = append(res, m[1])
 		}
 	}
 	return res
+}
+
+func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
+	return parseRegexpNames(ctx, body, atMentionRegExp)
 }
 
 func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
@@ -575,6 +610,10 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	if err != nil {
 		return ""
 	}
+	return GetMsgSnippet(msg)
+}
+
+func GetMsgSnippet(msg chat1.MessageUnboxed) string {
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return msg.Valid().MessageBody.Text().Body
@@ -584,13 +623,54 @@ func GetConvSnippet(conv chat1.ConversationLocal) string {
 	return ""
 }
 
+func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+	rawConv := rc.Conv
+	res.ConvID = rawConv.GetConvID().String()
+	res.Name = rawConv.MaxMsgSummaries[0].TlfName
+	res.Status = rawConv.Metadata.Status
+	res.Time = GetConvMtime(rawConv)
+	res.Visibility = rawConv.Metadata.Visibility
+	res.Notifications = rawConv.Notifications
+	res.MembersType = rawConv.GetMembersType()
+	res.TeamType = rawConv.Metadata.TeamType
+	res.Version = rawConv.Metadata.Version
+	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	if rc.LocalMetadata != nil {
+		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
+			ChannelName:       rc.LocalMetadata.TopicName,
+			Headline:          rc.LocalMetadata.Headline,
+			Snippet:           rc.LocalMetadata.Snippet,
+			WriterNames:       rc.LocalMetadata.WriterNames,
+			ResetParticipants: rc.LocalMetadata.ResetParticipants,
+		}
+	}
+	return res
+}
+
+func PresentRemoteConversations(rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+	for _, rc := range rcs {
+		res = append(res, PresentRemoteConversation(rc))
+	}
+	return res
+}
+
 func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxUIItem) {
+	var writerNames []string
+	fullNames := make(map[string]string)
+	for _, p := range rawConv.Info.Participants {
+		writerNames = append(writerNames, p.Username)
+		if p.Fullname != nil {
+			fullNames[p.Username] = *p.Fullname
+		}
+	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.Name = rawConv.Info.TlfName
 	res.Snippet = GetConvSnippet(rawConv)
 	res.Channel = GetTopicName(rawConv)
 	res.Headline = GetHeadline(rawConv)
-	res.Participants = rawConv.Info.WriterNames
+	res.Participants = writerNames
+	res.FullNames = fullNames
+	res.ResetParticipants = rawConv.Info.ResetNames
 	res.Status = rawConv.Info.Status
 	res.MembersType = rawConv.GetMembersType()
 	res.Visibility = rawConv.Info.Visibility
@@ -603,6 +683,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal) (res chat1.InboxU
 	res.CreatorInfo = rawConv.CreatorInfo
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
+	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
 	return res
 }
 
@@ -642,6 +723,7 @@ func PresentMessageUnboxed(rawMsg chat1.MessageUnboxed) (res chat1.UIMessage) {
 			Superseded:            rawMsg.Valid().ServerHeader.SupersededBy != 0,
 			AtMentions:            rawMsg.Valid().AtMentionUsernames,
 			ChannelMention:        rawMsg.Valid().ChannelMention,
+			ChannelNameMentions:   rawMsg.Valid().ChannelNameMentions,
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body string
@@ -708,6 +790,14 @@ type ConvByConvID []chat1.Conversation
 func (c ConvByConvID) Len() int      { return len(c) }
 func (c ConvByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ConvByConvID) Less(i, j int) bool {
+	return c[i].GetConvID().Less(c[j].GetConvID())
+}
+
+type RemoteConvByConvID []types.RemoteConversation
+
+func (c RemoteConvByConvID) Len() int      { return len(c) }
+func (c RemoteConvByConvID) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c RemoteConvByConvID) Less(i, j int) bool {
 	return c[i].GetConvID().Less(c[j].GetConvID())
 }
 
@@ -785,4 +875,66 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 	b := make([]byte, base64.StdEncoding.DecodedLen(len(enc)))
 	n, err := base64.StdEncoding.Decode(b, enc)
 	return b[:n], err
+}
+
+func RemoteConvs(convs []chat1.Conversation) (res []types.RemoteConversation) {
+	for _, conv := range convs {
+		res = append(res, types.RemoteConversation{
+			Conv: conv,
+		})
+	}
+	return res
+}
+
+func PluckConvs(rcs []types.RemoteConversation) (res []chat1.Conversation) {
+	for _, rc := range rcs {
+		res = append(res, rc.Conv)
+	}
+	return res
+}
+
+func SplitTLFName(tlfName string) []string {
+	return strings.Split(strings.Fields(tlfName)[0], ",")
+}
+
+func UsernamePackageToParticipant(p libkb.UsernamePackage) chat1.ConversationLocalParticipant {
+	var fullName *string
+	if p.FullName != nil {
+		s := string(p.FullName.FullName)
+		fullName = &s
+	}
+	return chat1.ConversationLocalParticipant{
+		Username: p.NormalizedUsername.String(),
+		Fullname: fullName,
+	}
+}
+
+type pagerMsg struct {
+	msgID chat1.MessageID
+}
+
+func (p pagerMsg) GetMessageID() chat1.MessageID {
+	return p.msgID
+}
+
+func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
+	if control == nil {
+		return res
+	}
+	pag := pager.NewThreadPager()
+	res = new(chat1.Pagination)
+	res.Num = control.Num
+	if control.Pivot != nil {
+		pm := pagerMsg{msgID: *control.Pivot}
+		var err error
+		if control.Recent {
+			res.Previous, err = pag.MakeIndex(pm)
+		} else {
+			res.Next, err = pag.MakeIndex(pm)
+		}
+		if err != nil {
+			return nil
+		}
+	}
+	return res
 }

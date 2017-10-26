@@ -461,6 +461,7 @@ func (c *ChainLink) UnpackLocal() (err error) {
 
 func (c *ChainLink) UnpackComputedKeyInfos(jw *jsonw.Wrapper) (err error) {
 	var tmp ComputedKeyInfos
+	tmp.SetGlobalContext(c.G())
 	if jw == nil || jw.IsNil() {
 		return
 	}

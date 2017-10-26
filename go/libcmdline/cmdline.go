@@ -259,6 +259,14 @@ func (p CommandLine) GetLevelDBNumFiles() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetChatInboxSourceLocalizeThreads() (int, bool) {
+	ret := p.GetGInt("chat-inboxsource-localizethreads")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetLinkCacheSize() (int, bool) {
 	ret := p.GetGInt("link-cache-size")
 	if ret != 0 {
@@ -269,6 +277,14 @@ func (p CommandLine) GetLinkCacheSize() (int, bool) {
 
 func (p CommandLine) GetUPAKCacheSize() (int, bool) {
 	ret := p.GetGInt("upak-cache-size")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
+func (p CommandLine) GetUIDMapFullNameCacheSize() (int, bool) {
+	ret := p.GetGInt("uid-map-full-name-cache-size")
 	if ret != 0 {
 		return ret, true
 	}

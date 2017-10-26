@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"text/tabwriter"
 
@@ -23,7 +24,6 @@ type CmdTeamListMemberships struct {
 	json                 bool
 	forcePoll            bool
 	userAssertion        string
-	includeSubteams      bool
 	includeImplicitTeams bool
 	showAll              bool
 	verbose              bool
@@ -100,7 +100,6 @@ func (c *CmdTeamListMemberships) ParseArgv(ctx *cli.Context) error {
 		c.team = ctx.Args()[0]
 	}
 	c.userAssertion = ctx.String("user")
-	c.includeSubteams = ctx.Bool("include-subteams")
 	c.includeImplicitTeams = ctx.Bool("include-implicit-teams")
 	c.showAll = ctx.Bool("all")
 
@@ -153,6 +152,13 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		return err
 	}
 
+	sort.Slice(list.Teams, func(i, j int) bool {
+		if list.Teams[i].FqName == list.Teams[j].FqName {
+			return list.Teams[i].Username < list.Teams[j].Username
+		}
+		return list.Teams[i].FqName < list.Teams[j].FqName
+	})
+
 	if c.json {
 		b, err := json.MarshalIndent(list, "", "    ")
 		if err != nil {
@@ -171,7 +177,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 	if c.showAll {
 		fmt.Fprintf(c.tabw, "Team\tRole\tUsername\tFull name\n")
 	} else {
-		fmt.Fprintf(c.tabw, "Team\tRole\n")
+		fmt.Fprintf(c.tabw, "Team\tRole\tMembers\n")
 	}
 	for _, t := range list.Teams {
 		var role string
@@ -187,7 +193,7 @@ func (c *CmdTeamListMemberships) runUser(cli keybase1.TeamsClient) error {
 		if c.showAll {
 			fmt.Fprintf(c.tabw, "%s\t%s\t%s\t%s\n", t.FqName, role, t.Username, t.FullName)
 		} else {
-			fmt.Fprintf(c.tabw, "%s\t%s\n", t.FqName, role)
+			fmt.Fprintf(c.tabw, "%s\t%s\t%d\n", t.FqName, role, t.MemberCount)
 		}
 	}
 	if c.showAll {
@@ -246,10 +252,23 @@ func (c *CmdTeamListMemberships) outputRole(role string, members []keybase1.Team
 	}
 }
 
+func (c *CmdTeamListMemberships) formatInviteName(invite keybase1.AnnotatedTeamInvite) (res string) {
+	res = string(invite.Name)
+	category, err := invite.Type.C()
+	if err == nil {
+		switch category {
+		case keybase1.TeamInviteCategory_SBS:
+			res = fmt.Sprintf("%s@%s", invite.Name, string(invite.Type.Sbs()))
+		}
+	}
+	return res
+}
+
 func (c *CmdTeamListMemberships) outputInvites(invites map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite) {
 	for _, invite := range invites {
-		fmtstring := "%s\t%s*\t%s\t(* invited by %s; awaiting acceptance)\n"
-		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()), invite.Name, invite.InviterUsername)
+		fmtstring := "%s\t%s*\t%s\t(* added by %s; awaiting acceptance)\n"
+		fmt.Fprintf(c.tabw, fmtstring, invite.TeamName, strings.ToLower(invite.Role.String()),
+			c.formatInviteName(invite), invite.InviterUsername)
 	}
 }
 

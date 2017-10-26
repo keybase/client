@@ -1,10 +1,10 @@
 // @flow
-import {List} from 'immutable'
+import * as I from 'immutable'
 import {amIFollowing, usernameSelector} from './selectors'
-
-import type {NoErrorTypedAction} from '../constants/types/flux'
-import type {IconType} from '../common-adapters/icon'
-import type {TypedState} from './reducer'
+import {type NoErrorTypedAction} from '../constants/types/flux'
+import {type IconType} from '../common-adapters/icon'
+import {createSelector} from 'reselect'
+import {type TypedState} from './reducer'
 
 const services: {[service: string]: true} = {
   Facebook: true,
@@ -44,6 +44,7 @@ export type RowProps = {
   onClick: () => void,
   onMouseOver?: () => void,
   selected: boolean,
+  userIsInTeam: boolean,
 }
 
 // A normalized version of the row props above.
@@ -61,30 +62,86 @@ export type SearchResult = {
   rightUsername: ?string,
 }
 
+export const makeSearchResult: I.RecordFactory<SearchResult> = I.Record({
+  id: '',
+
+  leftIcon: null,
+  leftService: 'Keybase',
+  leftUsername: '',
+
+  rightFullname: null,
+  rightIcon: null,
+  rightService: null,
+  rightUsername: null,
+})
+
 // Actions
-export type Search<TypeToFire> = NoErrorTypedAction<
+export type Search = NoErrorTypedAction<
   'search:search',
-  {term: string, service: Service, pendingActionTypeToFire: TypeToFire, finishedActionTypeToFire: TypeToFire}
+  {
+    term: string,
+    service: Service,
+    searchKey: string,
+  }
 >
 
-export type SearchSuggestions<TypeToFire> = NoErrorTypedAction<
+export type AddResultsToUserInput = NoErrorTypedAction<
+  'search:addResultsToUserInput',
+  {
+    searchKey: string,
+    searchResults: Array<SearchResultId>,
+  }
+>
+
+export type RemoveResultsToUserInput = NoErrorTypedAction<
+  'search:removeResultsToUserInput',
+  {
+    searchKey: string,
+    searchResults: Array<SearchResultId>,
+  }
+>
+
+export type SetUserInputItems = NoErrorTypedAction<
+  'search:setUserInputItems',
+  {searchKey: string, searchResults: Array<SearchResultId>}
+>
+
+export type UserInputItemsUpdated = NoErrorTypedAction<
+  'search:userInputItemsUpdated',
+  {searchKey: string, userInputItemIds: Array<SearchResultId>}
+>
+
+export type AddClickedFromUserInput = NoErrorTypedAction<
+  'search:addClickedFromUserInput',
+  {
+    searchKey: string,
+  }
+>
+
+export type ClearSearchResults = NoErrorTypedAction<
+  'search:clearSearchResults',
+  {
+    searchKey: string,
+  }
+>
+
+export type UpdateSelectedSearchResult = NoErrorTypedAction<
+  'search:updateSelectedSearchResult',
+  {
+    searchKey: string,
+    id: ?SearchResultId,
+  }
+>
+
+export type SearchSuggestions = NoErrorTypedAction<
   'search:searchSuggestions',
-  {actionTypeToFire: TypeToFire, maxUsers: number}
+  {maxUsers: number, searchKey: string}
 >
 
-export type PendingSearch<TypeToFire> = NoErrorTypedAction<TypeToFire, {pending: boolean}>
-
-export type FinishedSearch<TypeToFire> = NoErrorTypedAction<
-  TypeToFire,
-  {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service}
+export type FinishedSearch = NoErrorTypedAction<
+  'search:finishedSearch',
+  {searchResults: Array<SearchResultId>, searchResultTerm: string, service: Service, searchKey: string}
 >
-
-// Generic so others can make their own version
-export type UpdateSearchResultsGeneric<T> = NoErrorTypedAction<
-  T,
-  {searchResultTerm: string, searchResults: List<SearchResultId>, searchShowingSuggestions: boolean}
->
-export type PendingSearchGeneric<T> = NoErrorTypedAction<T, boolean>
 
 function serviceIdToService(serviceId: string): Service {
   return {
@@ -113,16 +170,13 @@ function maybeUpgradeSearchResultIdToKeybaseId(
   searchResultMap: $PropertyType<$PropertyType<TypedState, 'entities'>, 'searchResults'>,
   id: SearchResultId
 ): SearchResultId {
-  if (!searchResultMap.get(id)) {
-    console.warn('search result id not found in entities.', id)
-    return id
-  }
-
   const searchResult = searchResultMap.get(id)
-  if (searchResult.get('leftService') === 'Keybase') {
-    return searchResult.get('leftUsername')
-  } else if (searchResult.get('rightService') === 'Keybase') {
-    return searchResult.get('rightUsername') || id
+  if (searchResult) {
+    if (searchResult.leftService === 'Keybase') {
+      return searchResult.leftUsername
+    } else if (searchResult.rightService === 'Keybase') {
+      return searchResult.rightUsername || id
+    }
   }
 
   return id
@@ -176,6 +230,21 @@ function platformToLogo16(service: Service): IconType {
   }[service]
 }
 
+const isUserInputItemsUpdated = (searchKey: string) => (action: any) =>
+  action.type === 'search:userInputItemsUpdated' && action.payload && action.payload.searchKey === searchKey
+
+const _getSearchResultIds = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+  entities.getIn(['search', 'searchKeyToResults', searchKey])
+
+const getSearchResultIdsArray = createSelector(_getSearchResultIds, ids => ids && ids.toArray())
+
+const getUserInputItemIdsOrderedSet = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+  entities.getIn(['search', 'searchKeyToUserInputItemIds', searchKey], I.OrderedSet())
+const getUserInputItemIds = createSelector(getUserInputItemIdsOrderedSet, ids => ids && ids.toArray())
+
+const getClearSearchTextInput = ({entities}: TypedState, {searchKey}: {searchKey: string}) =>
+  entities.getIn(['search', 'searchKeyToClearSearchTextInput', searchKey], 0)
+
 export {
   serviceIdToService,
   followStateHelper,
@@ -184,4 +253,9 @@ export {
   platformToLogo32,
   platformToLogo24,
   platformToLogo16,
+  getClearSearchTextInput,
+  getSearchResultIdsArray,
+  getUserInputItemIds,
+  getUserInputItemIdsOrderedSet,
+  isUserInputItemsUpdated,
 }

@@ -2099,10 +2099,23 @@ func NewImplicitTeamDisplayNameError(format string, args ...interface{}) Implici
 	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
 }
 
-type TeamVisibilityError struct{}
+type TeamVisibilityError struct {
+	wantedPublic bool
+	gotPublic    bool
+}
 
 func (e TeamVisibilityError) Error() string {
-	return "loaded team doesn't match specified visibility"
+	pps := func(public bool) string {
+		if public {
+			return "public"
+		}
+		return "private"
+	}
+	return fmt.Sprintf("loaded for %v team but got %v team", pps(e.wantedPublic), pps(e.gotPublic))
+}
+
+func NewTeamVisibilityError(wantedPublic, gotPublic bool) TeamVisibilityError {
+	return TeamVisibilityError{wantedPublic: wantedPublic, gotPublic: gotPublic}
 }
 
 type KeyMaskNotFoundError struct {
@@ -2138,3 +2151,51 @@ func UserErrorFromStatus(s keybase1.StatusCode) error {
 }
 
 //=============================================================================
+
+// InvalidRepoNameError indicates that a repo name is invalid.
+type InvalidRepoNameError struct {
+	Name string
+}
+
+func (e InvalidRepoNameError) Error() string {
+	return fmt.Sprintf("Invalid repo name %q", e.Name)
+}
+
+//=============================================================================
+
+// RepoAlreadyCreatedError is returned when trying to create a repo
+// that already exists.
+type RepoAlreadyExistsError struct {
+	DesiredName  string
+	ExistingName string
+	ExistingID   string
+}
+
+func (e RepoAlreadyExistsError) Error() string {
+	return fmt.Sprintf(
+		"A repo named %s (id=%s) already existed when trying to create "+
+			"a repo named %s", e.ExistingName, e.ExistingID, e.DesiredName)
+}
+
+//=============================================================================
+
+// RepoDoesntExistError is returned when trying to delete a repo that doesn't exist.
+type RepoDoesntExistError struct {
+	Name string
+}
+
+func (e RepoDoesntExistError) Error() string {
+	return fmt.Sprintf("There is no repo named %q.", e.Name)
+}
+
+//=============================================================================
+
+// NoOpError is returned when an RPC call is issued but it would
+// result in no change, so the call is dropped.
+type NoOpError struct {
+	Desc string
+}
+
+func (e NoOpError) Error() string {
+	return e.Desc
+}

@@ -2,16 +2,21 @@
 import * as I from 'immutable'
 
 import type {NoErrorTypedAction, TypedAction} from '../constants/types/flux'
-import type {RouteDefNode, Path, PropsPath} from '../route-tree'
+import type {RouteDefNode, RouteDefParams, Path, PropsPath, RouteStateNode} from '../route-tree'
 
 export const setRouteDef = 'routeTree:setRouteDef'
-export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef: RouteDefNode}>
+export type SetRouteDef = NoErrorTypedAction<'routeTree:setRouteDef', {routeDef: RouteDefParams}>
 
 export const switchTo = 'routeTree:switchTo'
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
+export type NavigationSource = 'initial-default' | 'initial-restore' | 'user'
+
 export const navigateTo = 'routeTree:navigateTo'
-export type NavigateTo = NoErrorTypedAction<'routeTree:navigateTo', {path: PropsPath<*>, parentPath: ?Path}>
+export type NavigateTo = NoErrorTypedAction<
+  'routeTree:navigateTo',
+  {path: PropsPath<*>, parentPath: ?Path, navigationSource: NavigationSource}
+>
 
 export const navigateAppend = 'routeTree:navigateAppend'
 export type NavigateAppend = NoErrorTypedAction<
@@ -43,7 +48,14 @@ export type NavigateActions =
   | SetRouteState
   | ResetRoute
 
-export const State = I.Record({
+type _State = {
+  loggedInUserNavigated: boolean,
+  routeDef: ?RouteDefNode,
+  routeState: ?RouteStateNode,
+}
+export type State = I.RecordOf<_State>
+export const makeState: I.RecordFactory<_State> = I.Record({
+  loggedInUserNavigated: false,
   routeDef: null,
   routeState: null,
 })

@@ -1,67 +1,47 @@
 // @flow
-import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
-import isEqualWith from 'lodash/isEqualWith'
-
-import type {TypedState} from './reducer'
-import type {SearchQuery} from './search'
+// Not use util/container as we have import loops otherwise
+import {createSelector} from 'reselect'
+import {type TypedState} from './reducer'
+import {type SearchQuery} from './search'
 
 const usernameSelector = ({config: {username}}: TypedState) => username
 const loggedInSelector = ({config: {loggedIn}}: TypedState) => loggedIn
 
-const cachedSearchResults = ({entities: {searchQueryToResult}}: TypedState, searchQuery: SearchQuery) =>
-  searchQueryToResult.get(searchQuery)
+const cachedSearchResults = (
+  {entities: {search: {searchQueryToResult}}}: TypedState,
+  searchQuery: SearchQuery
+) => searchQueryToResult.get(searchQuery)
 
-const searchResultSelector = ({entities: {searchResults}}: TypedState, username: string) => {
+const searchResultSelector = ({entities: {search: {searchResults}}}: TypedState, username: string) => {
   return searchResults.get(username)
 }
-
-const inboxSearchSelector = ({chat: {inboxSearch}}: TypedState) => inboxSearch
 
 const previousConversationSelector = ({chat: {previousConversation}}: TypedState) => previousConversation
 
 const amIFollowing = ({config: {following}}: TypedState, otherUser: string) => following[otherUser]
 const amIBeingFollowed = ({config: {followers}}: TypedState, otherUser: string) => followers[otherUser]
 
+const userIsInTeam = (
+  {entities: {teams: {teamNameToMemberUsernames}}}: TypedState,
+  teamname: string,
+  username: string
+) => {
+  return teamNameToMemberUsernames.getIn([teamname, username])
+}
+
 const searchResultMapSelector = createSelector(
-  ({entities: {searchResults}}: TypedState) => searchResults,
+  ({entities: {search: {searchResults}}}: TypedState) => searchResults,
   searchResults => searchResults
-)
-
-const chatSearchPending = ({chat: {searchPending}}: TypedState) => searchPending
-
-const chatSearchResultArray = createSelector(
-  ({chat: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : [])
-)
-
-const chatSearchShowingSuggestions = ({chat: {searchShowingSuggestions}}: TypedState) =>
-  searchShowingSuggestions
-
-const chatSearchResultTerm = ({chat: {searchResultTerm}}: TypedState) => searchResultTerm
-
-const profileSearchResultArray = createSelector(
-  ({profile: {searchResults}}: TypedState) => searchResults,
-  searchResults => (searchResults ? searchResults.toArray() : null)
-)
-
-const createShallowEqualSelector = createSelectorCreator(defaultMemoize, (a, b) =>
-  isEqualWith(a, b, (a, b, indexOrKey, object, other, stack) => (stack ? a === b : undefined))
 )
 
 export {
   amIBeingFollowed,
   amIFollowing,
   cachedSearchResults,
-  chatSearchPending,
-  chatSearchShowingSuggestions,
-  chatSearchResultTerm,
-  chatSearchResultArray,
-  createShallowEqualSelector,
-  inboxSearchSelector,
   loggedInSelector,
   previousConversationSelector,
-  profileSearchResultArray,
   searchResultMapSelector,
   searchResultSelector,
+  userIsInTeam,
   usernameSelector,
 }

@@ -87,9 +87,9 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 type getLinksLows struct {
 	// Latest seqno on file
 	Seqno keybase1.Seqno
-	// Latest PTK generation on file
+	// Latest PTK generation secret we have
 	PerTeamKey keybase1.PerTeamKeyGeneration
-	// Latest RKM generation on file
+	// Latest RKM semi-secret we have
 	ReaderKeyMask keybase1.PerTeamKeyGeneration
 }
 
@@ -109,7 +109,7 @@ func (l *TeamLoader) checkStubbed(ctx context.Context, arg load2ArgT, link *chai
 
 func (l *TeamLoader) loadUserAndKeyFromLinkInner(ctx context.Context,
 	inner SCChainLinkPayload) (
-	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+	signerUV keybase1.UserVersion, key *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
 
 	defer l.G().CTrace(ctx, fmt.Sprintf("TeamLoader#loadUserForSigVerification(%d)", int(inner.Seqno)), func() error { return err })()
 	keySection := inner.Body.Key
@@ -129,7 +129,7 @@ func (l *TeamLoader) verifySignatureAndExtractKID(ctx context.Context, outer lib
 	return outer.Verify(l.G().Log)
 }
 
-func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap map[keybase1.Seqno]keybase1.LinkID, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap map[keybase1.Seqno]keybase1.LinkID, proofSet *proofSetT) {
+func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID keybase1.TeamID, teamLinkMap linkMapT, link *chainLinkUnpacked, uid keybase1.UID, key *keybase1.PublicKeyV2NaCl, userLinkMap linkMapT, proofSet *proofSetT) {
 	a := newProofTerm(uid.AsUserOrTeam(), key.Base.Provisioning, userLinkMap)
 	b := newProofTerm(teamID.AsUserOrTeam(), link.SignatureMetadata(), teamLinkMap)
 	c := key.Base.Revocation
@@ -181,7 +181,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		return nil, libkb.NewWrongKidError(kid, key.Base.Kid)
 	}
 
-	teamLinkMap := make(map[keybase1.Seqno]keybase1.LinkID)
+	teamLinkMap := make(linkMapT)
 	if state != nil {
 		// copy over the stored links
 		for k, v := range state.Chain.LinkIDs {
@@ -237,10 +237,11 @@ func (l *TeamLoader) walkUpToAdmin(
 			return nil, NewAdminNotFoundError(admin)
 		}
 		arg := load2ArgT{
-			teamID:        *parent,
-			reason:        "walkUpToAdmin",
-			me:            me,
-			staleOK:       true,
+			teamID: *parent,
+			reason: "walkUpToAdmin",
+			me:     me,
+			// Get the latest so that the linkmap is up to date for the proof order checker.
+			forceRepoll:   true,
 			readSubteamID: &readSubteamID,
 		}
 		if target.Eq(*parent) {
@@ -307,6 +308,8 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 // Whether the chain link is of a (child-half) type
 // that affects a parent and child chain in lockstep.
 // So far these events: subteam create, and subteam rename
+// Technically subteam delete is one of these too, but we don't
+// bother because the subteam is rendered inaccessible.
 func (l *TeamLoader) isParentChildOperation(ctx context.Context,
 	link *chainLinkUnpacked) bool {
 
@@ -443,7 +446,7 @@ func (l *TeamLoader) inflateLink(ctx context.Context,
 // Check that the parent-child operations appear in the parent sigchains.
 func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 	me keybase1.UserVersion, loadingTeamID keybase1.TeamID, parentID *keybase1.TeamID, readSubteamID keybase1.TeamID,
-	parentChildOperations []*parentChildOperation) error {
+	parentChildOperations []*parentChildOperation, proofSet *proofSetT) error {
 
 	if len(parentChildOperations) == 0 {
 		return nil
@@ -479,13 +482,19 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 		return fmt.Errorf("error loading parent: %v", err)
 	}
 
+	parentChain := TeamSigChainState{inner: parent.team.Chain}
+
 	for _, pco := range parentChildOperations {
-		parentChain := TeamSigChainState{inner: parent.team.Chain}
 		err = l.checkOneParentChildOperation(ctx, pco, loadingTeamID, &parentChain)
 		if err != nil {
 			return err
 		}
 	}
+
+	// Give a more up-to-date linkmap to the ordering checker for the parent.
+	// Without this it could fail if the parent is new.
+	// Because the team linkmap in the proof objects is stale.
+	proofSet.SetTeamLinkMap(ctx, parentChain.inner.Id, parentChain.inner.LinkIDs)
 
 	return nil
 }

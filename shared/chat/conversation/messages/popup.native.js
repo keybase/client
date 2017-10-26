@@ -1,16 +1,13 @@
 // @flow
-import * as React from 'react'
-import {connect} from 'react-redux'
-import {deleteMessage, showEditor} from '../../../actions/chat/creators'
-import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
 import * as ChatConstants from '../../../constants/chat'
+import * as React from 'react'
 import MessagePopupHeader from './popup-header'
+import {NativeClipboard, PopupMenu} from '../../../common-adapters/index.native'
+import {connect, type TypedState} from '../../../util/container'
+import {deleteMessage, showEditor} from '../../../actions/chat/creators'
 import {isIOS} from '../../../constants/platform'
-
-import type {TextProps, AttachmentProps} from './popup'
-import type {RouteProps} from '../../../route-tree/render-route'
-import type {TypedState} from '../../../constants/reducer'
-import type {ServerMessage, TextMessage} from '../../../constants/chat'
+import {type RouteProps} from '../../../route-tree/render-route'
+import {type TextProps, type AttachmentProps} from './popup'
 
 function _textMessagePopupHelper({message, type, onDeleteMessage, onHidden, onShowEditor, you}: TextProps) {
   const edit = message.author === you
@@ -116,8 +113,8 @@ function MessagePopup(props: TextProps | AttachmentProps) {
 
 type MessagePopupRouteProps = RouteProps<
   {
-    message: ServerMessage,
-    onShowEditor: (message: TextMessage) => void,
+    message: ChatConstants.ServerMessage,
+    onShowEditor: (message: ChatConstants.TextMessage) => void,
   },
   {}
 >
@@ -125,7 +122,7 @@ type OwnProps = MessagePopupRouteProps & {}
 
 export default connect(
   (state: TypedState, {routeProps}: OwnProps) => {
-    const {message} = routeProps
+    const message = routeProps.get('message')
     const you = state.config.username
     return {
       message,
@@ -133,11 +130,11 @@ export default connect(
     }
   },
   (dispatch: Dispatch, {routeProps, navigateUp}: OwnProps) => ({
-    onDeleteMessage: (message: ServerMessage) => {
+    onDeleteMessage: (message: ChatConstants.ServerMessage) => {
       dispatch(deleteMessage(message))
     },
     onHidden: () => dispatch(navigateUp()),
-    onShowEditor: () => dispatch(showEditor(routeProps.message)),
+    onShowEditor: () => dispatch(showEditor(routeProps.get('message'))),
     onSaveAttachment: message =>
       dispatch(
         ({

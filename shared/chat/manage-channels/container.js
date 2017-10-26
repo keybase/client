@@ -2,20 +2,17 @@
 import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import ManageChannels from '.'
-import {compose, lifecycle} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, lifecycle, connect, type TypedState} from '../../util/container'
 import {getChannels, toggleChannelMembership} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
 
-import type {TypedState} from '../../constants/reducer'
-
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  const convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', routeProps.teamname], I.Set())
+  const convIDs = state.entities.getIn(['teams', 'teamNameToConvIDs', routeProps.get('teamname')], I.Set())
   const you = state.config.username
 
   const channels = convIDs
     .map(convID => {
-      const info: Constants.ChannelInfoRecord = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
+      const info: ?Constants.ChannelInfo = state.entities.getIn(['teams', 'convIDToChannelInfo', convID])
 
       return info && info.channelname
         ? {
@@ -31,19 +28,23 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   return {
     channels,
-    teamname: routeProps.teamname,
+    teamname: routeProps.get('teamname'),
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => ({
-  _loadChannels: () => dispatch(getChannels(routeProps.teamname)),
+  _loadChannels: () => dispatch(getChannels(routeProps.get('teamname'))),
   onBack: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onCreate: () =>
     dispatch(
-      navigateTo([{selected: 'createChannel', props: {teamname: routeProps.teamname}}], routePath.butLast())
+      navigateTo(
+        [{selected: 'createChannel', props: {teamname: routeProps.get('teamname')}}],
+        routePath.butLast()
+      )
     ),
-  onToggle: (channelname: string) => dispatch(toggleChannelMembership(routeProps.teamname, channelname)),
+  onToggle: (channelname: string) =>
+    dispatch(toggleChannelMembership(routeProps.get('teamname'), channelname)),
 })
 
 export default compose(

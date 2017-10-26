@@ -139,6 +139,14 @@
           "name": "releaseAfterSuccess"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "MDGetBehavior",
+      "symbols": [
+        "GET_OR_CREATE_CLASSIC_TLF_0",
+        "GET_CLASSIC_TLF_NO_CREATE_1"
+      ]
     }
   ],
   "messages": {
@@ -229,6 +237,10 @@
             null,
             "LockID"
           ]
+        },
+        {
+          "name": "getBehavior",
+          "type": "MDGetBehavior"
         }
       ],
       "response": "MetadataResponse"

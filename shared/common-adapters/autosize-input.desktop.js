@@ -13,12 +13,14 @@ class AutosizeInput extends Component<Props, State> {
   _inputEl: ?HTMLElement
   _measureEl: ?HTMLElement
   _raf: number
+  _mounted: boolean = false
 
   state = {
     measuredWidth: null,
   }
 
   componentDidMount() {
+    this._mounted = true
     this._measure()
   }
 
@@ -27,6 +29,7 @@ class AutosizeInput extends Component<Props, State> {
   }
 
   componentWillUnmount() {
+    this._mounted = false
     window.cancelAnimationFrame(this._raf)
   }
 
@@ -41,7 +44,9 @@ class AutosizeInput extends Component<Props, State> {
       const measuredWidth =
         Math.ceil(this._measureEl ? this._measureEl.getBoundingClientRect().width : 0) + fudgeFactor
       if (measuredWidth !== this.state.measuredWidth) {
-        this.setState({measuredWidth})
+        if (this._mounted) {
+          this.setState({measuredWidth})
+        }
       }
     })
   }

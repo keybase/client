@@ -141,13 +141,6 @@ protocol local {
     keybase1.TLFIdentifyBehavior identifyBehavior;
   }
 
-  record Inbox {
-    InboxVers version;
-    array<Conversation> convsUnverified;
-    array<ConversationLocal> convs;
-    union { null, Pagination } pagination;
-  }
-
   enum HeaderPlaintextVersion {
     V1_1,
     V2_2,
@@ -299,6 +292,7 @@ protocol local {
     array<string> atMentionUsernames;
     array<gregor1.UID> atMentions;
     ChannelMention channelMention;
+    array<string> channelNameMentions;
   }
 
   enum MessageUnboxedErrorType {
@@ -345,6 +339,11 @@ protocol local {
     int AtMost;
   }
 
+  record ConversationLocalParticipant {
+    string username;
+    union { null, string } fullname;
+  }
+
   record ConversationInfoLocal {
     ConversationID id;
     ConversationIDTriple triple;
@@ -354,15 +353,18 @@ protocol local {
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
     TeamType teamType;
     ConversationExistence existence;
     ConversationVers version;
 
     // Lists of usernames, always complete, optionally sorted by activity.
-    array<string> writerNames;
-    array<string> readerNames;
+    array<ConversationLocalParticipant> participants;
 
+    // Only ever set for KBFS conversations
     union { null, ConversationFinalizeInfo } finalizeInfo;
+    // Only ever set for TEAM and IMPTEAM conversations
+    array<string> resetNames;
   }
 
   enum ConversationErrorType {
@@ -428,6 +430,12 @@ protocol local {
     union { null, Pagination } pagination;
   }
 
+  record MessageIDControl {
+    union { null, MessageID } pivot;
+    boolean recent;
+    int num;
+  }
+
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetThreadQuery {
     boolean markAsRead;
@@ -436,6 +444,8 @@ protocol local {
 
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
+    union { null, MessageIDControl } messageIDControl;
+
   }
   record GetThreadLocalRes {
     ThreadView thread;
@@ -497,7 +507,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
+  NonblockFetchRes getInboxNonblockLocal(int sessionID, union { null, int } maxUnbox, boolean skipUnverified, union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   PostLocalRes postLocal(ConversationID conversationID, MessagePlaintext msg, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalRes {
@@ -694,4 +704,5 @@ protocol local {
 
   // Unpack message from a push notification
   string unboxMobilePushNotification(string payload, string convID, ConversationMembersType membersType, array<string> pushIDs);
+
 }

@@ -7,12 +7,12 @@
 package teams
 
 import (
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -26,7 +26,7 @@ func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection
 		SigningKey: key,
 		Seqno:      1,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -42,21 +42,6 @@ func TeamRootSig(me *libkb.User, key libkb.GenericKey, teamSection SCTeamSection
 	body.SetKey("team", teamSectionJSON)
 
 	return ret, nil
-}
-
-func RootTeamIDFromName(n keybase1.TeamName) keybase1.TeamID {
-	if !n.IsRootTeam() {
-		panic("can't get a team ID from a subteam")
-	}
-	return RootTeamIDFromNameString(n.String())
-}
-
-// the first 15 bytes of the sha256 of the lowercase team name, followed by the byte 0x24, encoded as hex
-func RootTeamIDFromNameString(name string) keybase1.TeamID {
-	sum := sha256.Sum256([]byte(strings.ToLower(name)))
-	idBytes := sum[0:16]
-	idBytes[15] = libkb.RootTeamIDTag
-	return keybase1.TeamID(hex.EncodeToString(idBytes))
 }
 
 func NewImplicitTeamName() (res keybase1.TeamName, err error) {
@@ -78,7 +63,7 @@ func NewSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigChai
 		LinkType:   libkb.LinkTypeNewSubteam,
 		SigningKey: key,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
 		Seqno:      parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID: prevLinkID,
 	}.ToJSON(me.G())
@@ -116,7 +101,7 @@ func SubteamHeadSig(me *libkb.User, key libkb.GenericKey, subteamTeamSection SCT
 		SigningKey: key,
 		Seqno:      1,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(subteamTeamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -148,7 +133,7 @@ func RenameSubteamSig(me *libkb.User, key libkb.GenericKey, parentTeam *TeamSigC
 		Seqno:      parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID: prev,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -177,7 +162,7 @@ func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigCh
 		Seqno:      subteam.GetLatestSeqno() + 1,
 		PrevLinkID: prev,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 	}.ToJSON(me.G())
 	if err != nil {
 		return nil, err
@@ -195,8 +180,12 @@ func RenameUpPointerSig(me *libkb.User, key libkb.GenericKey, subteam *TeamSigCh
 }
 
 // 15 random bytes, followed by the byte 0x25, encoded as hex
-func NewSubteamID() keybase1.TeamID {
-	idBytes, err := libkb.RandBytesWithSuffix(16, libkb.SubteamIDTag)
+func NewSubteamID(public bool) keybase1.TeamID {
+	var useSuffix byte = keybase1.SUB_TEAMID_PRIVATE_SUFFIX
+	if public {
+		useSuffix = keybase1.SUB_TEAMID_PUBLIC_SUFFIX
+	}
+	idBytes, err := libkb.RandBytesWithSuffix(16, useSuffix)
 	if err != nil {
 		panic("RandBytes failed: " + err.Error())
 	}
@@ -211,7 +200,8 @@ func NewInviteID() SCTeamInviteID {
 	return SCTeamInviteID(hex.EncodeToString(b))
 }
 
-func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection, linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
+func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection,
+	linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot) (*jsonw.Wrapper, error) {
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")
@@ -225,7 +215,7 @@ func ChangeSig(me *libkb.User, prev libkb.LinkID, seqno keybase1.Seqno, key libk
 		Seqno:      seqno,
 		PrevLinkID: prev,
 		SigVersion: libkb.KeybaseSignatureV2,
-		SeqType:    libkb.SeqTypeSemiprivate,
+		SeqType:    seqTypeForTeamPublicness(teamSection.Public),
 		MerkleRoot: merkleRoot,
 	}.ToJSON(me.G())
 	if err != nil {
@@ -249,4 +239,59 @@ func makeSCTeamEntropy() (SCTeamEntropy, error) {
 		return SCTeamEntropy(""), err
 	}
 	return SCTeamEntropy(base64.StdEncoding.EncodeToString(rb)), nil
+}
+
+func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
+	if public {
+		return keybase1.SeqType_PUBLIC
+	}
+	return keybase1.SeqType_SEMIPRIVATE
+}
+
+func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
+	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+
+	defer g.CTraceTimed(ctx, "precheckLinkToPost", func() error { return err })()
+
+	outerLink, err := libkb.DecodeOuterLinkV2(sigMultiItem.Sig)
+	if err != nil {
+		return fmt.Errorf("unpack outer: %v", err)
+	}
+
+	link1 := SCChainLink{
+		Seqno:   outerLink.Seqno,
+		Sig:     sigMultiItem.Sig,
+		Payload: sigMultiItem.SigInner,
+		UID:     me.Uid,
+		Version: 2,
+	}
+	link2, err := unpackChainLink(&link1)
+	if err != nil {
+		return fmt.Errorf("unpack link: %v", err)
+	}
+
+	if link2.isStubbed() {
+		return fmt.Errorf("link missing inner")
+	}
+	isAdmin := true
+	if state != nil {
+		role, err := state.GetUserRole(me)
+		if err != nil {
+			role = keybase1.TeamRole_NONE
+		}
+		isAdmin = role.IsAdminOrAbove()
+	}
+
+	var player *TeamSigChainPlayer
+	if state == nil {
+		player = NewTeamSigChainPlayer(g, me)
+	} else {
+		player = NewTeamSigChainPlayerWithState(g, me, *state)
+	}
+
+	signer := signerX{
+		signer:        me,
+		implicitAdmin: !isAdmin,
+	}
+	return player.AppendChainLink(ctx, link2, &signer)
 }

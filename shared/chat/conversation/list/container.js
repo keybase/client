@@ -1,30 +1,29 @@
 // @flow
 import * as Constants from '../../../constants/chat'
 import * as Creators from '../../../actions/chat/creators'
-import HiddenString from '../../../util/hidden-string'
-import ListComponent from '.'
-import {List, is, Set} from 'immutable'
-import {compose} from 'recompose'
-import {connect} from 'react-redux'
-import {navigateAppend} from '../../../actions/route-tree'
-import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
 import * as Selectors from '../../../constants/selectors'
-
-import type {OpenInFileUI} from '../../../constants/kbfs'
-import type {OwnProps, StateProps, DispatchProps} from './container'
-import type {Props} from '.'
-import type {TypedState} from '../../../constants/reducer'
+import HiddenString from '../../../util/hidden-string'
+import ListComponent, {type Props} from '.'
+import {List, is, Set} from 'immutable'
+import {compose, connect, type TypedState} from '../../../util/container'
+import {createSelector, createSelectorCreator, defaultMemoize} from 'reselect'
+import {navigateAppend} from '../../../actions/route-tree'
+import {type OpenInFileUI} from '../../../constants/kbfs'
+import {type OwnProps, type StateProps, type DispatchProps} from './container'
 
 const getValidatedState = (state: TypedState) => {
-  const inbox = Constants.getSelectedInbox(state)
   const selectedConversationIDKey = Constants.getSelectedConversation(state)
+  if (!selectedConversationIDKey) {
+    return false
+  }
+  const untrustedState = state.entities.inboxUntrustedState.get(selectedConversationIDKey)
   if (selectedConversationIDKey && Constants.isPendingConversationIDKey(selectedConversationIDKey)) {
     if (Constants.pendingConversationIDKeyToTlfName(selectedConversationIDKey)) {
       // If it's as pending conversation with a tlfname, let's call it valid
       return true
     }
   }
-  return (inbox && inbox.state === 'unboxed') || false
+  return ['reUnboxing', 'unboxed'].includes(untrustedState)
 }
 
 const supersedesIfNoMoreToLoadSelector = createSelector(
@@ -72,9 +71,6 @@ const messageKeysSelector = immutableCreateSelector(
   }
 )
 
-const getMessageFromMessageKeyFnSelector = (state: TypedState) => (messageKey: Constants.MessageKey) =>
-  Constants.getMessageFromMessageKey(state, messageKey)
-
 const convStateProps = createSelector(
   [Constants.getSelectedConversation, supersedesIfNoMoreToLoadSelector, getValidatedState],
   (selectedConversation, _supersedes, validated) => ({
@@ -84,21 +80,22 @@ const convStateProps = createSelector(
   })
 )
 
+// TODO this is temp until we can discuss a better solution to this getMessageFromMessageKey thing
+let _stateHack
 const mapStateToProps = createSelector(
-  [
-    ownPropsSelector,
-    Selectors.usernameSelector,
-    convStateProps,
-    messageKeysSelector,
-    getMessageFromMessageKeyFnSelector,
-  ],
-  (ownProps, username, convStateProps, messageKeys, getMessageFromMessageKey) => ({
-    you: username,
-    messageKeys,
-    getMessageFromMessageKey,
-    ...ownProps,
-    ...convStateProps,
-  })
+  [state => state, ownPropsSelector, Selectors.usernameSelector, convStateProps, messageKeysSelector],
+  (state, ownProps, username, convStateProps, messageKeys) => {
+    _stateHack = state
+    return {
+      editLastMessageCounter: ownProps.editLastMessageCounter,
+      listScrollDownCounter: ownProps.listScrollDownCounter,
+      messageKeys,
+      onFocusInput: ownProps.onFocusInput,
+      selectedConversation: convStateProps.selectedConversation,
+      validated: convStateProps.validated,
+      you: username,
+    }
+  }
 )
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
@@ -132,9 +129,12 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps): Props
     })
   }
 
+  const getMessageFromMessageKey = (messageKey: Constants.MessageKey) =>
+    Constants.getMessageFromMessageKey(_stateHack, messageKey)
+
   return {
     editLastMessageCounter: stateProps.editLastMessageCounter,
-    getMessageFromMessageKey: stateProps.getMessageFromMessageKey,
+    getMessageFromMessageKey,
     listScrollDownCounter: stateProps.listScrollDownCounter,
     messageKeys: messageKeysWithHeaders,
     onDeleteMessage: dispatchProps.onDeleteMessage,

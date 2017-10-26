@@ -8,7 +8,6 @@ import {call, put, take, select} from 'redux-saga/effects'
 import {chatTab} from '../../constants/tabs'
 import {navigateTo} from '../route-tree'
 import {safeTakeEvery, safeTakeLatest} from '../../util/saga'
-import {setLaunchedViaPush} from '../config'
 
 import type {SagaGenerator} from '../../constants/types/saga'
 import type {TypedState} from '../../constants/reducer'
@@ -46,7 +45,7 @@ function* permissionsRequestSaga(): SagaGenerator<any, any> {
 }
 
 function* pushNotificationSaga(notification: Constants.PushNotification): SagaGenerator<any, any> {
-  console.warn('Push notification:', notification)
+  console.log('Push notification:', notification)
   const payload = notification.payload
   if (payload && payload.userInteraction) {
     if (payload.type === 'chat.newmessageSilent') {
@@ -60,6 +59,14 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
             pushIDs: payload.p,
           },
         })
+        if (payload.x && payload.x > 0) {
+          const num = payload.x
+          const ageMS = Date.now() - num * 1000
+          if (ageMS > 15000) {
+            console.info('Push notification: silent notification is stale:', ageMS)
+            return
+          }
+        }
         yield call(displayNewMessageNotification, unboxRes, payload.c, payload.b, payload.d)
       } catch (err) {
         console.info('failed to unbox silent notification', err)
@@ -71,9 +78,6 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
         console.error('Push chat notification payload missing conversation ID')
         return
       }
-      // Record that we're going to a push notification conversation, in order
-      // to avoid racing with restoring a saved initial tab.
-      yield put(setLaunchedViaPush(true))
       yield put(navigateTo([chatTab, convID]))
     } else if (payload.type === 'follow') {
       const {username} = payload
@@ -82,9 +86,6 @@ function* pushNotificationSaga(notification: Constants.PushNotification): SagaGe
         return
       }
       console.info('Push notification: follow received, follower= ', username)
-      // Record that we're going to a push notification conversation, in order
-      // to avoid racing with restoring a saved initial tab.
-      yield put(setLaunchedViaPush(true))
       yield put(showUserProfile(username))
     } else {
       console.error('Push notification payload missing or unknown type')

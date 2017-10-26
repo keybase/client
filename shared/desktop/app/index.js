@@ -9,12 +9,27 @@ import semver from 'semver'
 import storeHelper from './store-helper'
 import urlHelper from './url-helper'
 import windowHelper from './window-helper'
-import {BrowserWindow, app, ipcMain, dialog} from 'electron'
+import {BrowserWindow, app, ipcMain, dialog, crashReporter} from 'electron'
 import {setupExecuteActionsListener, executeActionsForContext} from '../../util/quit-helper.desktop'
 import {setupTarget} from '../../util/forward-logs'
 import {allowMultipleInstances} from '../../local-debug.desktop'
 import startWinService from './start-win-service'
-import {isWindows} from '../../constants/platform'
+import {isWindows, cacheRoot} from '../../constants/platform.desktop'
+
+process.on('uncaughtException', e => {
+  console.log('Uncaught exception on main thread:', e)
+})
+
+if (process.env.KEYBASE_CRASH_REPORT) {
+  console.log(`Adding crash reporting (local). Crash files located in ${app.getPath('temp')}`)
+  crashReporter.start({
+    companyName: 'Keybase',
+    crashesDirectory: cacheRoot,
+    productName: 'Keybase',
+    submitURL: '',
+    uploadToServer: false,
+  })
+}
 
 let mainWindow = null
 
@@ -48,10 +63,6 @@ function start() {
       return
     }
   }
-
-  process.on('uncaughtException', e => {
-    console.log('Uncaught exception on main thread:', e)
-  })
 
   // MUST do this else we get limited by simultaneous hot reload event streams
   app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')

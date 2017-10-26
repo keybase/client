@@ -175,7 +175,7 @@ func (log *Standard) Debug(fmt string, arg ...interface{}) {
 func (log *Standard) CDebugf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.DEBUG) {
-		log.Debug(prepareString(ctx, fmt), arg...)
+		log.CloneWithAddedDepth(1).Debug(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -189,7 +189,7 @@ func (log *Standard) Info(fmt string, arg ...interface{}) {
 func (log *Standard) CInfof(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.INFO) {
-		log.Info(prepareString(ctx, fmt), arg...)
+		log.CloneWithAddedDepth(1).Info(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -203,7 +203,7 @@ func (log *Standard) Notice(fmt string, arg ...interface{}) {
 func (log *Standard) CNoticef(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.NOTICE) {
-		log.Notice(prepareString(ctx, fmt), arg...)
+		log.CloneWithAddedDepth(1).Notice(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -217,7 +217,7 @@ func (log *Standard) Warning(fmt string, arg ...interface{}) {
 func (log *Standard) CWarningf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.WARNING) {
-		log.Warning(prepareString(ctx, fmt), arg...)
+		log.CloneWithAddedDepth(1).Warning(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -229,13 +229,13 @@ func (log *Standard) Error(fmt string, arg ...interface{}) {
 }
 
 func (log *Standard) Errorf(fmt string, arg ...interface{}) {
-	log.Error(fmt, arg...)
+	log.CloneWithAddedDepth(1).Error(fmt, arg...)
 }
 
 func (log *Standard) CErrorf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.ERROR) {
-		log.Error(prepareString(ctx, fmt), arg...)
+		log.CloneWithAddedDepth(1).Error(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -249,7 +249,7 @@ func (log *Standard) Critical(fmt string, arg ...interface{}) {
 func (log *Standard) CCriticalf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.CRITICAL) {
-		log.Critical(prepareString(ctx, fmt), arg...)
+		log.CloneWithAddedDepth(1).Critical(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -262,11 +262,11 @@ func (log *Standard) Fatalf(fmt string, arg ...interface{}) {
 
 func (log *Standard) CFatalf(ctx context.Context, fmt string,
 	arg ...interface{}) {
-	log.Fatalf(prepareString(ctx, fmt), arg...)
+	log.CloneWithAddedDepth(1).Fatalf(prepareString(ctx, fmt), arg...)
 }
 
 func (log *Standard) Profile(fmts string, arg ...interface{}) {
-	log.Debug(fmts, arg...)
+	log.CloneWithAddedDepth(1).Debug(fmts, arg...)
 }
 
 // Configure sets the style of the log file, whether debugging (verbose)

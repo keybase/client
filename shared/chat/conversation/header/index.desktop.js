@@ -11,7 +11,14 @@ const ShhIcon = () => (
   </Box>
 )
 
-const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, teamName}: Props) => (
+const ChannelHeader = ({
+  channelName,
+  infoPanelOpen,
+  muted,
+  onOpenFolder,
+  onToggleInfoPanel,
+  teamName,
+}: Props) => (
   <Box style={containerStyle}>
     <Box
       style={{
@@ -28,6 +35,7 @@ const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, te
       </Text>
       {muted && <ShhIcon />}
     </Box>
+    <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
     <Icon
       type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
       style={styleLeft}
@@ -37,6 +45,7 @@ const ChannelHeader = ({channelName, infoPanelOpen, muted, onToggleInfoPanel, te
 )
 
 const UsernameHeader = ({
+  canOpenInfoPanel,
   infoPanelOpen,
   muted,
   onOpenFolder,
@@ -48,6 +57,7 @@ const UsernameHeader = ({
     <Box style={{...globalStyles.flexBoxRow, flex: 1, justifyContent: 'center', marginLeft: 48}}>
       <Usernames
         colorFollowing={true}
+        underline={true}
         inline={false}
         commaColor={globalColors.black_40}
         type="BodyBig"
@@ -58,11 +68,12 @@ const UsernameHeader = ({
       {muted && <ShhIcon />}
     </Box>
     <Icon type="iconfont-folder-private" style={styleLeft} onClick={onOpenFolder} />
-    <Icon
-      type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
-      style={styleLeft}
-      onClick={onToggleInfoPanel}
-    />
+    {canOpenInfoPanel &&
+      <Icon
+        type={infoPanelOpen ? 'iconfont-close' : 'iconfont-info'}
+        style={styleLeft}
+        onClick={onToggleInfoPanel}
+      />}
   </Box>
 )
 

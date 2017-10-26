@@ -1,28 +1,28 @@
 // @flow
 import * as I from 'immutable'
 import Teams from './main'
-import pausableConnect from '../util/pausable-connect'
 import openURL from '../util/open-url'
 import {getTeams} from '../actions/teams/creators'
 import {navigateAppend} from '../actions/route-tree'
-import {compose, lifecycle} from 'recompose'
+import {compose, lifecycle, type TypedState, pausableConnect} from '../util/container'
 import {openInKBFS} from '../actions/kbfs'
 import {injectItem} from '../actions/gregor'
-
-import type {TypedState} from '../constants/reducer'
-import type {Teamname} from '../constants/teams'
+import {type Teamname} from '../constants/teams'
 
 type StateProps = {
   _teamnames: I.Set<Teamname>,
+  _teammembercounts: I.Map<Teamname, number>,
   sawChatBanner: boolean,
   loaded: boolean,
 }
 
 const mapStateToProps = (state: TypedState): StateProps => {
   const teamnames = state.entities.getIn(['teams', 'teamnames'], I.Set())
+  const teammembercounts = state.entities.getIn(['teams', 'teammembercounts'], I.Map())
   const loaded = state.entities.getIn(['teams', 'loaded'], false)
   return {
     _teamnames: teamnames,
+    _teammembercounts: teammembercounts,
     sawChatBanner: state.entities.getIn(['teams', 'sawChatBanner'], false),
     loaded,
   }
@@ -52,8 +52,7 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
   },
   onHideBanner: () => dispatch(injectItem('sawChatBanner', 'true')),
   onJoinTeam: () => {
-    // TODO: Hook this up once we have a join team dialog.
-    console.log('onJoinTeam not implemented yet')
+    dispatch(navigateAppend(['showJoinTeamDialog']))
   },
   onManageChat: (teamname: Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
@@ -66,11 +65,22 @@ const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
   let teamnames = stateProps._teamnames.toArray()
-  // TODO: Sort case-insensitively?
-  teamnames.sort()
+  teamnames.sort((a, b) => {
+    const aName = a.toUpperCase()
+    const bName = b.toUpperCase()
+    if (aName < bName) {
+      return -1
+    } else if (aName > bName) {
+      return 1
+    } else {
+      return 0
+    }
+  })
+
   return {
     sawChatBanner: stateProps.sawChatBanner,
     teamnames,
+    teammembercounts: stateProps._teammembercounts.toObject(),
     loaded: stateProps.loaded,
     ...dispatchProps,
   }

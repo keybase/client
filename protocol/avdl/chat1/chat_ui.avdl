@@ -12,16 +12,27 @@ protocol chatUi {
     boolean last;
   }
 
+  record UnverifiedInboxUIItemMetadata {
+    string channelName;
+    string headline;
+    string snippet;
+    array<string> writerNames;
+    array<string> resetParticipants;
+  }
+
   record UnverifiedInboxUIItem {
     string convID;
     string name;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
     TeamType teamType;
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
+    MessageID maxMsgID;
+    union { null , UnverifiedInboxUIItemMetadata } localMetadata;
   }
 
   record UnverifiedInboxUIItems {
@@ -39,15 +50,19 @@ protocol chatUi {
     string headline;
     keybase1.TLFVisibility visibility;
     array<string> participants;
+    map<string, string> fullNames;
+    array<string> resetParticipants;
     ConversationStatus status;
     ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
     TeamType teamType;
     gregor1.Time time;
     union { null, ConversationNotificationInfo } notifications;
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
+    MessageID maxMsgID;
 
-    // Finalized convo stuff
+    // Finalized convo stuff (KBFS only)
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
@@ -71,6 +86,7 @@ protocol chatUi {
     union {null, gregor1.Time} senderDeviceRevokedAt;
     array<string> atMentions;
     ChannelMention channelMention;
+    array<string> channelNameMentions;
   }
 
   record UIMessageOutbox {
@@ -113,7 +129,7 @@ protocol chatUi {
   void chatAttachmentDownloadDone(int sessionID);
 
   void chatInboxUnverified(int sessionID, string inbox);
-  void chatInboxConversation(int sessionID, InboxUIItem conv);
+  void chatInboxConversation(int sessionID, string conv);
   void chatInboxFailed(int sessionID, ConversationID convID, ConversationErrorLocal error);
 
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;

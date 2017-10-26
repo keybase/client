@@ -17,11 +17,13 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -36,29 +38,6 @@ func MakeThinGlobalContextForTesting(t *testing.T) *GlobalContext {
 	g := NewGlobalContext().Init()
 	g.Log = logger.NewTestLogger(t)
 	return g
-}
-
-func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
-	G.Log = logger.NewTestLogger(t)
-	G.Init()
-
-	var f *os.File
-	var err error
-	if f, err = ioutil.TempFile(os.TempDir(), "testconfig"); err != nil {
-		t.Fatalf("couldn't create temp file: %s", err)
-	}
-	c.configFileName = f.Name()
-	if _, err = f.WriteString(initConfig); err != nil {
-		t.Fatalf("couldn't write config file: %s", err)
-	}
-	f.Close()
-
-	// XXX: The global G prevents us from running tests in parallel
-	G.Env.Test.ConfigFilename = c.configFileName
-
-	if err = G.ConfigureConfig(); err != nil {
-		t.Fatalf("couldn't configure the config: %s", err)
-	}
 }
 
 func makeLogGetter(t *testing.T) func() logger.Logger {
@@ -243,7 +222,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	}
 
 	// use stub engine for external api
-	g.XAPI = NewStubAPIEngine()
+	g.XAPI = NewStubAPIEngine(g)
 
 	if err = g.ConfigureConfig(); err != nil {
 		return
@@ -266,14 +245,12 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	}
 
 	g.GregorDismisser = &FakeGregorDismisser{}
-
-	tc.PrevGlobal = G
-	G = g
+	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 	tc.G = g
 	tc.T = tb
 
-	if G.SecretStoreAll == nil {
-		G.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(G, G)}
+	if g.SecretStoreAll == nil {
+		g.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(g, g)}
 	}
 
 	return
@@ -407,6 +384,20 @@ func (t *TestCancelSecretUI) GetPassphrase(_ keybase1.GUIEntryArg, _ *keybase1.S
 	return keybase1.GetPassphraseRes{}, InputCanceledError{}
 }
 
+type TestCountSecretUI struct {
+	Passphrase  string
+	StoreSecret bool
+	CallCount   int
+}
+
+func (t *TestCountSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	t.CallCount++
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrase,
+		StoreSecret: t.StoreSecret,
+	}, nil
+}
+
 type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool
@@ -444,7 +435,7 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
@@ -453,4 +444,34 @@ func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
 // Bypasses locks.
 func (g *GlobalContext) ResetLoginState() {
 	g.createLoginStateLocked()
+}
+
+type TestUIDMapper struct {
+	ul UPAKLoader
+}
+
+func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
+	return TestUIDMapper{
+		ul: ul,
+	}
+}
+
+func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
+	return true
+}
+
+func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error) {
+	var res []UsernamePackage
+	for _, uid := range uids {
+		name, err := t.ul.LookupUsernameUPAK(ctx, uid)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, UsernamePackage{NormalizedUsername: name})
+	}
+	return res, nil
+}
+
+func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
+
 }

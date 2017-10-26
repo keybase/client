@@ -1,16 +1,13 @@
 // @flow
 import CreateChannel from '.'
-import {compose, withHandlers, withState} from 'recompose'
-import {connect} from 'react-redux'
+import {compose, withHandlers, withState, connect, type TypedState} from '../../util/container'
 import {createChannel} from '../../actions/teams/creators'
 import {navigateTo} from '../../actions/route-tree'
 import {chatTab} from '../../constants/tabs'
 
-import type {TypedState} from '../../constants/reducer'
-
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {
-    teamname: routeProps.teamname,
+    teamname: routeProps.get('teamname'),
   }
 }
 

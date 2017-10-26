@@ -174,8 +174,12 @@ helpers.rootLinuxNode(env, {
                                     }},
                                 )
                             },
-                           /* test_kbfs: {
-                                if (hasGoChanges) {
+                            test_kbfs: {
+                                // Only build KBFS on master builds. This means
+                                // that we can have master breaks, but it
+                                // strikes a good balance between velocity and
+                                // test coverage.
+                                if (env.BRANCH_NAME == "master") {
                                     build([
                                         job: "/kbfs/master",
                                         parameters: [
@@ -190,7 +194,7 @@ helpers.rootLinuxNode(env, {
                                         ]
                                     ])
                                 }
-                            },*/
+                            },
                         )
                     },
                     test_windows: {
@@ -201,7 +205,7 @@ helpers.rootLinuxNode(env, {
                                 def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
                                 def GOPATH="${BASEDIR}\\go"
                                 withEnv([
-                                    'GOROOT=C:\\tools\\go',
+                                    'GOROOT=C:\\go',
                                     "GOPATH=\"${GOPATH}\"",
                                     "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
@@ -370,14 +374,12 @@ def testGo(prefix) {
             goversion = bat(returnStdout: true, script: "@go version").trim()
         }
         println "Running tests on commit ${env.COMMIT_HASH} with ${goversion}."
-        shell "go get \"github.com/stretchr/testify/require\""
-        shell "go get \"github.com/stretchr/testify/assert\""
         def parallelTests = []
         def tests = [:]
         def specialTests = [:]
-        def specialTestFilter = ['chat', 'chat_storage']
+        def specialTestFilter = ['chat', 'engine', 'teams', 'chat_storage']
         for (def i=0; i<dirs.size(); i++) {
-            if (tests.size() == 2) {
+            if (tests.size() == 4) {
                 parallelTests << tests
                 tests = [:]
             }
@@ -405,6 +407,9 @@ def testGo(prefix) {
                     println "Skipping tests for $dirPath because no test binary was produced."
                 }
             }
+        }
+        if (tests.size() > 0) {
+            parallelTests << tests
         }
         parallelTests << specialTests
         helpers.waitForURL(prefix, env.KEYBASE_SERVER_URI)

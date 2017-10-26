@@ -6,6 +6,7 @@
 1. Export all the icons to this folder
     1. On the right panel you can click the assets tab and download all SVGs into this folder.
     1. Delete all non-icon font svgs from that folder (anything thats not 'kb-iconfont-.*')
+        * hint: `find . -type f ! -name 'kb-iconfont-*' -name '*.svg' -delete`
 
 ## Phase 2: Get svg paths
 1. Go to https://icomoon.io

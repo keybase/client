@@ -1,10 +1,9 @@
 // @flow
 import * as ChatTypes from '../../constants/types/flow-types-chat'
 import * as RPCTypes from '../../constants/types/flow-types'
-import * as SearchConstants from '../../constants/search'
 import * as Constants from '../../constants/chat'
 import HiddenString from '../../util/hidden-string'
-import {List, Map} from 'immutable'
+import {List} from 'immutable'
 import {chatTab} from '../../constants/tabs'
 import {setRouteState} from '../route-tree'
 import uniq from 'lodash/uniq'
@@ -20,24 +19,6 @@ const updateTempMessageTransformer = ({
 }: Constants.UpdateTempMessage) => ({
   payload: {conversationIDKey, outboxID},
   type,
-})
-
-const loadedInboxActionTransformer = action => ({
-  payload: {
-    inbox: action.payload.inbox.map(i => {
-      const {conversationIDKey, muted, time, validated, participants, info} = i
-
-      return {
-        conversationIDKey,
-        info: {status: info && info.status},
-        muted,
-        participantsCount: participants.count(),
-        time,
-        validated,
-      }
-    }),
-  },
-  type: action.type,
 })
 
 const safeServerMessageMap = (m: any) => ({
@@ -60,7 +41,6 @@ const appendMessageActionTransformer = (action: Constants.AppendMessages) => ({
 const prependMessagesActionTransformer = (action: Constants.PrependMessages) => ({
   payload: {
     conversationIDKey: action.payload.conversationIDKey,
-    hasPaginationNext: !!action.payload.paginationNext,
     messages: action.payload.messages.map(safeServerMessageMap),
     moreToLoad: action.payload.moreToLoad,
   },
@@ -120,26 +100,11 @@ function exitSearch(skipSelectPreviousConversation: boolean): Constants.ExitSear
   }
 }
 
-function loadedInbox(conversations: List<Constants.InboxState>): Constants.LoadedInbox {
-  return {
-    logTransformer: loadedInboxActionTransformer,
-    payload: {inbox: conversations},
-    type: 'chat:loadedInbox',
-  }
-}
-
 function pendingToRealConversation(
   oldKey: Constants.ConversationIDKey,
   newKey: Constants.ConversationIDKey
 ): Constants.PendingToRealConversation {
   return {payload: {newKey, oldKey}, type: 'chat:pendingToRealConversation'}
-}
-
-function replaceConversation(
-  oldKey: Constants.ConversationIDKey,
-  newKey: Constants.ConversationIDKey
-): Constants.ReplaceConversation {
-  return {payload: {newKey, oldKey}, type: 'chat:replaceConversation'}
 }
 
 function updateBadging(conversationIDKey: Constants.ConversationIDKey): Constants.UpdateBadging {
@@ -213,10 +178,12 @@ function loadInbox(): Constants.LoadInbox {
 function loadMoreMessages(
   conversationIDKey: Constants.ConversationIDKey,
   onlyIfUnloaded: boolean,
-  fromUser?: boolean = false
+  fromUser?: boolean = false,
+  wantNewer?: boolean = false, // new messages, else older ones
+  numberOverride?: ?number // how many to ask for
 ): Constants.LoadMoreMessages {
   return {
-    payload: {conversationIDKey, onlyIfUnloaded, fromUser},
+    payload: {conversationIDKey, onlyIfUnloaded, fromUser, wantNewer, numberOverride},
     type: 'chat:loadMoreMessages',
   }
 }
@@ -292,17 +259,23 @@ function updateSupersededByState(
   }
 }
 
-function updateInbox(conversation: Constants.InboxState): Constants.UpdateInbox {
-  return {payload: {conversation}, type: 'chat:updateInbox'}
-}
-
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: string
+  paginationNext: ?string
 ): Constants.UpdatePaginationNext {
   return {
     payload: {conversationIDKey, paginationNext},
     type: 'chat:updatePaginationNext',
+  }
+}
+
+function updatePaginationPrev(
+  conversationIDKey: Constants.ConversationIDKey,
+  paginationPrev: ?string
+): Constants.UpdatePaginationPrev {
+  return {
+    payload: {conversationIDKey, paginationPrev},
+    type: 'chat:updatePaginationPrev',
   }
 }
 
@@ -354,23 +327,10 @@ function setNotifications(
   return {payload: {conversationIDKey, deviceType, notifyType}, type: 'chat:setNotifications'}
 }
 
-function clearSearchResults(): Constants.ClearSearchResults {
-  return {payload: {}, type: 'chat:clearSearchResults'}
-}
-
 function toggleChannelWideNotifications(
   conversationIDKey: Constants.ConversationIDKey
 ): Constants.ToggleChannelWideNotifications {
   return {payload: {conversationIDKey}, type: 'chat:toggleChannelWideNotifications'}
-}
-
-function updateConversationUnreadCounts(
-  conversationUnreadCounts: Map<Constants.ConversationIDKey, Constants.UnreadCounts>
-): Constants.UpdateConversationUnreadCounts {
-  return {
-    payload: {conversationUnreadCounts},
-    type: 'chat:updateConversationUnreadCounts',
-  }
 }
 
 function updateMetadata(users: Array<string>): Constants.UpdateMetadata {
@@ -388,12 +348,11 @@ function setLoaded(conversationIDKey: Constants.ConversationIDKey, isLoaded: boo
 function prependMessages(
   conversationIDKey: Constants.ConversationIDKey,
   messages: Array<Constants.Message>,
-  moreToLoad: boolean,
-  paginationNext: ?Buffer
+  moreToLoad: boolean
 ): Constants.PrependMessages {
   return {
     logTransformer: prependMessagesActionTransformer,
-    payload: {conversationIDKey, messages, moreToLoad, paginationNext},
+    payload: {conversationIDKey, messages, moreToLoad},
     type: 'chat:prependMessages',
   }
 }
@@ -421,12 +380,16 @@ function updateBrokenTracker(userToBroken: {[username: string]: boolean}): Const
   return {payload: {userToBroken}, type: 'chat:updateBrokenTracker'}
 }
 
-function inboxStale(): Constants.InboxStale {
-  return {payload: undefined, type: 'chat:inboxStale'}
+function inboxStale(reason: string): Constants.InboxStale {
+  return {payload: {reason}, type: 'chat:inboxStale'}
 }
 
 function markThreadsStale(updates: Array<ChatTypes.ConversationStaleUpdate>): Constants.MarkThreadsStale {
   return {payload: {updates}, type: 'chat:markThreadsStale'}
+}
+
+function inboxSynced(convs: Array<ChatTypes.UnverifiedInboxUIItem>): Constants.InboxSynced {
+  return {payload: {convs}, type: 'chat:inboxSynced'}
 }
 
 function loadingMessages(
@@ -552,31 +515,6 @@ function outboxMessageBecameReal(
   }
 }
 
-function untrustedInboxVisible(
-  conversationIDKey: Constants.ConversationIDKey,
-  rowsVisible: number
-): Constants.UntrustedInboxVisible {
-  return {
-    payload: {conversationIDKey, rowsVisible},
-    type: 'chat:untrustedInboxVisible',
-  }
-}
-
-function setUnboxing(
-  conversationIDKeys: Array<Constants.ConversationIDKey>,
-  errored: boolean
-): Constants.SetUnboxing {
-  // Just to make flow happy
-  if (errored) {
-    return {
-      error: true,
-      payload: {conversationIDKeys},
-      type: 'chat:setUnboxing',
-    }
-  }
-  return {payload: {conversationIDKeys}, type: 'chat:setUnboxing'}
-}
-
 function clearRekey(conversationIDKey: Constants.ConversationIDKey): Constants.ClearRekey {
   return {payload: {conversationIDKey}, type: 'chat:clearRekey'}
 }
@@ -622,12 +560,6 @@ function openAttachmentPopup(
   return {payload: {message, currentPath}, type: 'chat:openAttachmentPopup'}
 }
 
-function setInitialConversation(
-  conversationIDKey: ?Constants.ConversationIDKey
-): Constants.SetInitialConversation {
-  return {payload: {conversationIDKey}, type: 'chat:setInitialConversation'}
-}
-
 function setPreviousConversation(
   conversationIDKey: ?Constants.ConversationIDKey
 ): Constants.SetPreviousConversation {
@@ -652,32 +584,21 @@ function setInboxFilter(filter: string): Constants.SetInboxFilter {
   return {payload: {filter}, type: 'chat:inboxFilter'}
 }
 
-function setInboxSearch(search: Array<string>): Constants.SetInboxSearch {
-  return {payload: {search}, type: 'chat:inboxSearch'}
-}
-
 function setInboxUntrustedState(
   inboxUntrustedState: Constants.UntrustedState
 ): Constants.SetInboxUntrustedState {
   return {payload: {inboxUntrustedState}, type: 'chat:inboxUntrustedState'}
 }
 
-function stageUserForSearch(user: SearchConstants.SearchResultId): Constants.StageUserForSearch {
-  return {payload: {user}, type: 'chat:stageUserForSearch'}
-}
-
-function unstageUserForSearch(user: SearchConstants.SearchResultId): Constants.UnstageUserForSearch {
-  return {payload: {user}, type: 'chat:unstageUserForSearch'}
-}
-
 function updateThread(
   thread: ChatTypes.UIMessages,
   yourName: string,
   yourDeviceName: string,
-  conversationIDKey: string
+  conversationIDKey: string,
+  append: boolean
 ): Constants.UpdateThread {
   return {
-    payload: {thread, yourName, yourDeviceName, conversationIDKey},
+    payload: {thread, yourName, yourDeviceName, conversationIDKey, append},
     type: 'chat:updateThread',
   }
 }
@@ -701,13 +622,19 @@ function updateSnippet(
 
 function unboxConversations(
   conversationIDKeys: Array<Constants.ConversationIDKey>,
-  force?: boolean = false
+  reason: string,
+  force?: boolean = false,
+  forInboxSync?: boolean = false
 ): Constants.UnboxConversations {
-  return {payload: {conversationIDKeys, force}, type: 'chat:unboxConversations'}
+  return {payload: {conversationIDKeys, reason, force, forInboxSync}, type: 'chat:unboxConversations'}
 }
 
 function unboxMore(): Constants.UnboxMore {
   return {type: 'chat:unboxMore', payload: undefined}
+}
+
+function selectNext(rows: Array<any>, direction: -1 | 1): Constants.InboxFilterSelectNext {
+  return {type: 'chat:inboxFilterSelectNext', payload: {rows, direction}}
 }
 
 export {
@@ -721,13 +648,13 @@ export {
   blockConversation,
   clearMessages,
   clearRekey,
-  clearSearchResults,
   deleteMessage,
   downloadProgress,
   editMessage,
   exitSearch,
   getInboxAndUnbox,
   inboxStale,
+  inboxSynced,
   incomingMessage,
   incomingTyping,
   leaveConversation,
@@ -735,7 +662,6 @@ export {
   loadAttachmentPreview,
   loadInbox,
   loadMoreMessages,
-  loadedInbox,
   loadingMessages,
   markSeenMessage,
   markThreadsStale,
@@ -751,43 +677,36 @@ export {
   prependMessages,
   removeOutboxMessage,
   removeTempPendingConversations,
-  replaceConversation,
   retryAttachment,
   retryMessage,
   saveAttachment,
   selectAttachment,
+  selectNext,
   selectConversation,
   setInboxFilter,
-  setInboxSearch,
   setInboxUntrustedState,
-  setInitialConversation,
   setLoaded,
   setNotifications,
   setPreviousConversation,
   setSelectedRouteState,
   setTypers,
-  setUnboxing,
   setupChatHandlers,
   showEditor,
-  stageUserForSearch,
   startConversation,
   threadLoadedOffline,
   toggleChannelWideNotifications,
   unboxConversations,
   unboxMore,
-  unstageUserForSearch,
-  untrustedInboxVisible,
   updateBadging,
   updateBrokenTracker,
-  updateConversationUnreadCounts,
   updateFinalizedState,
-  updateInbox,
   updateInboxComplete,
   updateInboxRekeyOthers,
   updateInboxRekeySelf,
   updateLatestMessage,
   updateMetadata,
   updatePaginationNext,
+  updatePaginationPrev,
   updateSnippet,
   updateSupersededByState,
   updateSupersedesState,

@@ -16,7 +16,7 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
   [getAllDevicesSelector, getDeviceEntitiesSelector],
   (allDevices, deviceEntities) => {
     const split = allDevices.groupBy(
-      id => (deviceEntities.get(id).revokedAt ? 'revokedDeviceIDs' : 'deviceIDs')
+      id => (deviceEntities.getIn([id, 'revokedAt']) ? 'revokedDeviceIDs' : 'deviceIDs')
     )
     const deviceIDs = split.get('deviceIDs', List())
     const revokedDeviceIDs = split.get('revokedDeviceIDs', List())
@@ -28,7 +28,7 @@ const getDevicesAndRevokedDevicesSelector = createSelector(
 )
 
 const mapStateToProps = (state: TypedState, {routeState}) => {
-  const {showingRevoked} = routeState
+  const {showingRevoked} = routeState.toObject()
   const {deviceIDs, revokedDeviceIDs} = getDevicesAndRevokedDevicesSelector(state)
   const waitingForServer = state.devices.get('waitingForServer')
 
@@ -47,7 +47,7 @@ const mapDispatchToProps = (dispatch: any, {routeState, setRouteState, navigateU
   loadDevices: () => dispatch(load()),
   onBack: () => dispatch(navigateUp()),
   onToggleShowRevoked: () => {
-    setRouteState({showingRevoked: !routeState.showingRevoked})
+    setRouteState({showingRevoked: !routeState.get('showingRevoked')})
   },
   title: 'Devices',
 })

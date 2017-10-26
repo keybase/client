@@ -383,22 +383,30 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				s.Debug(ctx, "identifyTLF: not performing identify because we stored a clean identify")
 				return nil
 			}
+			if !haveMode {
+				idMode = keybase1.TLFIdentifyBehavior_CHAT_GUI
+			}
 
 			tlfName := msg.Valid().ClientHeader.TLFNameExpanded(conv.Metadata.FinalizeInfo)
 
+			var names []string
 			switch conv.GetMembersType() {
+			case chat1.ConversationMembersType_KBFS:
+				names = utils.SplitTLFName(tlfName)
 			case chat1.ConversationMembersType_TEAM:
 				// early out of team convs
 				return nil
 			case chat1.ConversationMembersType_IMPTEAM:
 				s.Debug(ctx, "identifyTLF: implicit team TLF, looking up display name for %s", tlfName)
-
 				tlfID := msg.Valid().ClientHeader.Conv.Tlfid
 				teamID, err := keybase1.TeamIDFromString(tlfID.String())
 				if err != nil {
 					return err
 				}
-				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{ID: teamID})
+				team, err := teams.Load(ctx, s.G().ExternalG(), keybase1.LoadTeamArg{
+					ID:     teamID,
+					Public: conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC,
+				})
 				if err != nil {
 					return err
 				}
@@ -406,16 +414,16 @@ func (s *HybridConversationSource) identifyTLF(ctx context.Context, conv chat1.C
 				if err != nil {
 					return err
 				}
-				tlfName = display.String()
+				names = utils.SplitTLFName(display.String())
 			}
 
-			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d name: %s convID: %s",
-				msg.GetMessageID(), tlfName, conv.GetConvID())
-
-			_, err := CtxKeyFinder(ctx, s.G()).Find(ctx, tlfName, conv.GetMembersType(),
-				msg.Valid().ClientHeader.TlfPublic)
+			s.Debug(ctx, "identifyTLF: identifying from msg ID: %d names: %v convID: %s",
+				msg.GetMessageID(), names, conv.GetConvID())
+			_, err := NewNameIdentifier(s.G()).Identify(ctx, names, !msg.Valid().ClientHeader.TlfPublic,
+				idMode)
 			if err != nil {
-				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s", tlfName, conv.GetConvID())
+				s.Debug(ctx, "identifyTLF: failure: name: %s convID: %s err: %s", tlfName, conv.GetConvID(),
+					err)
 				return err
 			}
 
@@ -519,7 +527,8 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		if err == nil {
 			// Since we are using the "holey" collector, we need to resolve any placeholder
 			// messages that may have been fetched.
-			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d", convID, uid, rc.Holes())
+			s.Debug(ctx, "Pull: cache hit: convID: %s uid: %s holes: %d msgs: %d", convID, uid, rc.Holes(),
+				len(thread.Messages))
 			err = s.resolveHoles(ctx, uid, &thread, conv)
 		}
 		if err == nil {
@@ -565,9 +574,6 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	} else {
 		s.Debug(ctx, "Pull: error fetching conv metadata: convID: %s uid: %s err: %s", convID, uid,
 			err.Error())
-		// Assume this is a public convo for unbox purposes, since it is the only way any unboxing
-		// will succeed here since we don't know the members type.
-		unboxConv = newPublicUnboxConverstionInfo(convID)
 	}
 
 	// Insta fail if we are offline
@@ -585,6 +591,12 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	rl = append(rl, boxed.RateLimit)
 	if err != nil {
 		return chat1.ThreadView{}, rl, err
+	}
+
+	// Set up public inbox info if we don't have one with members type from remote call. Assume this is a
+	// public chat here, since it is the only chance we have to unbox it.
+	if unboxConv == nil {
+		unboxConv = newPublicUnboxConverstionInfo(convID, boxed.MembersType)
 	}
 
 	// Unbox

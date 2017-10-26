@@ -30,7 +30,14 @@ const (
 	SigchainV2TypePGPUpdate                   SigchainV2Type = 13
 	SigchainV2TypePerUserKey                  SigchainV2Type = 14
 
-	// teams link types
+	// Team link types
+	// If you add a new one be sure to get all of these too:
+	// - A corresponding libkb.LinkType in constants.go
+	// - SigchainV2TypeFromV1TypeTeams
+	// - SigChainV2Type.IsTeamType
+	// - SigChainV2Type.RequiresAdminPermission
+	// - SigChainV2Type.TeamAllowStub
+	// - TeamSigChainPlayer.addInnerLink (add a case)
 	SigchainV2TypeTeamRoot             SigchainV2Type = 33
 	SigchainV2TypeTeamNewSubteam       SigchainV2Type = 34
 	SigchainV2TypeTeamChangeMembership SigchainV2Type = 35
@@ -43,6 +50,8 @@ const (
 	SigchainV2TypeTeamDeleteRoot       SigchainV2Type = 42
 	SigchainV2TypeTeamDeleteSubteam    SigchainV2Type = 43
 	SigchainV2TypeTeamDeleteUpPointer  SigchainV2Type = 44
+	SigchainV2TypeTeamLegacyTLFUpgrade SigchainV2Type = 45
+	SigchainV2TypeTeamSettings         SigchainV2Type = 46
 )
 
 func (t SigchainV2Type) NeedsSignature() bool {
@@ -54,6 +63,7 @@ func (t SigchainV2Type) NeedsSignature() bool {
 	}
 }
 
+// Whether a type is for team sigchains.
 func (t SigchainV2Type) IsTeamType() bool {
 	switch t {
 	case SigchainV2TypeTeamRoot,
@@ -64,10 +74,30 @@ func (t SigchainV2Type) IsTeamType() bool {
 		SigchainV2TypeTeamSubteamHead,
 		SigchainV2TypeTeamRenameSubteam,
 		SigchainV2TypeTeamInvite,
-		SigchainV2TypeTeamRenameUpPointer:
+		SigchainV2TypeTeamRenameUpPointer,
+		SigchainV2TypeTeamDeleteRoot,
+		SigchainV2TypeTeamDeleteSubteam,
+		SigchainV2TypeTeamDeleteUpPointer,
+		SigchainV2TypeTeamLegacyTLFUpgrade,
+		SigchainV2TypeTeamSettings:
 		return true
 	default:
 		return false
+	}
+}
+
+func (t SigchainV2Type) RequiresAdminPermission() bool {
+	if !t.IsTeamType() {
+		return false
+	}
+	switch t {
+	case SigchainV2TypeTeamRoot,
+		SigchainV2TypeTeamRotateKey,
+		SigchainV2TypeTeamLeave,
+		SigchainV2TypeTeamLegacyTLFUpgrade:
+		return false
+	default:
+		return true
 	}
 }
 
@@ -79,46 +109,34 @@ func (t SigchainV2Type) TeamAllowStubWithAdminFlag(isAdmin bool) bool {
 	return t.TeamAllowStub(role)
 }
 
-func (t SigchainV2Type) RequiresAdminPermission() bool {
-	if !t.IsTeamType() {
+// Whether the type can be stubbed for a team member with role
+func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
+	if role.IsAdminOrAbove() {
+		// Links cannot be stubbed for owners and admins
 		return false
 	}
 	switch t {
-	case SigchainV2TypeTeamLeave, SigchainV2TypeTeamRotateKey, SigchainV2TypeTeamRoot:
-		return false
-	default:
+	case SigchainV2TypeTeamNewSubteam,
+		SigchainV2TypeTeamRenameSubteam,
+		SigchainV2TypeTeamDeleteSubteam,
+		SigchainV2TypeTeamInvite:
 		return true
-	}
-}
-
-// whether the type can be stubbed for a team member with role
-func (t SigchainV2Type) TeamAllowStub(role keybase1.TeamRole) bool {
-	switch role {
-	case keybase1.TeamRole_OWNER:
+	default:
+		// Disallow stubbing of other including unknown links
+		// TODO CORE-6274 allow stubbing of unknown types
 		return false
-	case keybase1.TeamRole_ADMIN:
-		return false
-	case keybase1.TeamRole_NONE, keybase1.TeamRole_READER, keybase1.TeamRole_WRITER:
-		switch t {
-		case SigchainV2TypeTeamNewSubteam, SigchainV2TypeTeamRenameSubteam, SigchainV2TypeTeamDeleteSubteam, SigchainV2TypeTeamInvite:
-			return true
-		default:
-			// disallow stubbing of other including unknown links
-			return false
-		}
 	}
-	// Should never happen. Just disallow stubs.
-	return false
 }
 
 // OuterLinkV2 is the second version of Keybase sigchain signatures.
 type OuterLinkV2 struct {
-	_struct  bool           `codec:",toarray"`
-	Version  int            `codec:"version"`
-	Seqno    keybase1.Seqno `codec:"seqno"`
-	Prev     LinkID         `codec:"prev"`
-	Curr     LinkID         `codec:"curr"`
-	LinkType SigchainV2Type `codec:"type"`
+	_struct  bool             `codec:",toarray"`
+	Version  int              `codec:"version"`
+	Seqno    keybase1.Seqno   `codec:"seqno"`
+	Prev     LinkID           `codec:"prev"`
+	Curr     LinkID           `codec:"curr"`
+	LinkType SigchainV2Type   `codec:"type"`
+	SeqType  keybase1.SeqType `codec:"seqtype"`
 }
 
 type OuterLinkV2WithMetadata struct {
@@ -268,6 +286,10 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 		ret = SigchainV2TypeTeamDeleteSubteam
 	case LinkTypeDeleteUpPointer:
 		ret = SigchainV2TypeTeamDeleteUpPointer
+	case LinkTypeLegacyTLFUpgrade:
+		ret = SigchainV2TypeTeamLegacyTLFUpgrade
+	case LinkTypeSettings:
+		ret = SigchainV2TypeTeamSettings
 	default:
 		return SigchainV2TypeNone, ChainLinkError{fmt.Sprintf("Unknown team sig v1 type: %s", s)}
 	}

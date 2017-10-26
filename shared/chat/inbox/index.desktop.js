@@ -1,10 +1,11 @@
 // @flow
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
-import {Text, Icon, Box, ErrorBoundary} from '../../common-adapters'
+import {Text, Icon, ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
-import Row from './row/container'
-import {Divider, FloatingDivider, BigTeamsLabel} from './row/divider'
+import {makeRow} from './row'
+import FloatingDivider from './row/floating-divider/container'
+import Divider from './row/divider/container'
 import ChatFilterRow from './row/chat-filter-row'
 import debounce from 'lodash/debounce'
 import {isDarwin} from '../../constants/platform'
@@ -71,7 +72,7 @@ class Inbox extends PureComponent<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (
-      (this.props.rows !== prevProps.rows && prevProps.rows.count()) ||
+      (this.props.rows !== prevProps.rows && prevProps.rows.length) ||
       this.props.smallTeamsHiddenRowCount > 0 !== prevProps.smallTeamsHiddenRowCount > 0
     ) {
       this._updateShowFloating()
@@ -79,7 +80,7 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _itemSizeGetter = index => {
-    const row = this.props.rows.get(index)
+    const row = this.props.rows[index]
     switch (row.type) {
       case 'small':
         return 56
@@ -93,42 +94,25 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _itemRenderer = index => {
-    const row = this.props.rows.get(index)
+    const row = this.props.rows[index]
     if (row.type === 'divider') {
       return (
         <Divider
-          badgeCount={this.props.smallTeamsHiddenBadgeCount}
           key="divider"
-          hiddenCount={this.props.smallTeamsHiddenRowCount}
           toggle={this.props.toggleSmallTeamsExpanded}
+          smallIDsHidden={this.props.smallIDsHidden}
         />
       )
     }
 
-    if (row.type === 'bigTeamsLabel') {
-      return (
-        <Box style={_bigTeamLabelStyle} key="bigTeamsLabel">
-          <BigTeamsLabel isFiltered={row.isFiltered} />
-        </Box>
-      )
-    }
-
-    const key =
-      (row.type === 'small' && row.conversationIDKey) ||
-      (row.type === 'bigHeader' && row.teamname) ||
-      (row.type === 'big' && `${row.teamname}:${row.channelname}`) ||
-      'missingkey'
-    return (
-      <Row
-        conversationIDKey={row.conversationIDKey}
-        key={key}
-        filtered={!!this.props.filter}
-        isActiveRoute={true}
-        teamname={row.teamname}
-        channelname={row.channelname}
-        type={row.type}
-      />
-    )
+    return makeRow({
+      channelname: row.channelname,
+      conversationIDKey: row.conversationIDKey,
+      filtered: !!this.props.filter,
+      isActiveRoute: true,
+      teamname: row.teamname,
+      type: row.type,
+    })
   }
 
   _updateShowFloating = () => {
@@ -136,7 +120,7 @@ class Inbox extends PureComponent<Props, State> {
     if (this._list) {
       const [, last] = this._list.getVisibleRange()
       if (typeof last === 'number') {
-        const row = this.props.rows.get(last)
+        const row = this.props.rows[last]
 
         if (!row || row.type !== 'small') {
           showFloating = false
@@ -161,10 +145,9 @@ class Inbox extends PureComponent<Props, State> {
 
     const [first, end] = this._list.getVisibleRange()
     if (typeof first === 'number') {
-      const row = this.props.rows.get(first)
-      if (row && row.type === 'small') {
-        this.props.onUntrustedInboxVisible(row.conversationIDKey, end - first)
-      }
+      const toUnbox = this.props.rows.slice(first, end).filter(r => r.type === 'small' && r.conversationIDKey)
+      // $FlowIssue doesn't understand that we filtered out the nulls
+      this.props.onUntrustedInboxVisible(toUnbox.map(r => r.conversationIDKey))
     }
   }, 200)
 
@@ -198,17 +181,14 @@ class Inbox extends PureComponent<Props, State> {
               ref={this._setRef}
               useTranslate3d={true}
               itemRenderer={this._itemRenderer}
-              length={this.props.rows.count()}
+              length={this.props.rows.length}
               type="variable"
               itemSizeGetter={this._itemSizeGetter}
             />
           </div>
           {this.state.showFloating &&
             this.props.showSmallTeamsExpandDivider &&
-            <FloatingDivider
-              toggle={this.props.toggleSmallTeamsExpanded}
-              badgeCount={this.props.bigTeamsBadgeCount}
-            />}
+            <FloatingDivider toggle={this.props.toggleSmallTeamsExpanded} />}
           {/*
             // TODO when the teams tab exists
             this.props.showBuildATeam &&
@@ -224,6 +204,7 @@ const _containerStyle = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.blue5,
   borderRight: `1px solid ${globalColors.black_05}`,
+  contain: 'strict',
   height: '100%',
   maxWidth: 240,
   minWidth: 240,
@@ -234,13 +215,6 @@ const _scrollableStyle = {
   flex: 1,
   overflowY: 'auto',
   willChange: 'transform',
-}
-
-const _bigTeamLabelStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  height: 24,
-  marginLeft: globalMargins.tiny,
 }
 
 export default Inbox

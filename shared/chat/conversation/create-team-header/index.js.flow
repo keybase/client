@@ -1,0 +1,8 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {
+  onShowNewTeamDialog: () => void,
+}
+
+export default class CreateTeamHeader extends React.Component<Props> {}

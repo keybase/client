@@ -25,6 +25,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	clockwork "github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -72,12 +73,14 @@ type configGetter interface {
 	GetTorMode() (TorMode, error)
 	GetTorProxy() string
 	GetUPAKCacheSize() (int, bool)
+	GetUIDMapFullNameCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
 	GetFeatureFlags() (FeatureFlags, error)
 	GetLevelDBNumFiles() (int, bool)
+	GetChatInboxSourceLocalizeThreads() (int, bool)
 }
 
 type CommandLine interface {
@@ -442,7 +445,7 @@ type Clock interface {
 }
 
 type GregorDismisser interface {
-	DismissItem(id gregor.MsgID) error
+	DismissItem(cli gregor1.IncomingInterface, id gregor.MsgID) error
 }
 
 type GregorInBandMessageHandler interface {
@@ -593,6 +596,8 @@ type TeamLoader interface {
 	MapIDToName(ctx context.Context, id keybase1.TeamID) (keybase1.TeamName, error)
 	NotifyTeamRename(ctx context.Context, id keybase1.TeamID, newName string) error
 	Load(context.Context, keybase1.LoadTeamArg) (*keybase1.TeamData, error)
+	// Delete the cache entry. Does not error if there is no cache entry.
+	Delete(ctx context.Context, teamID keybase1.TeamID) error
 	OnLogout()
 }
 
@@ -600,10 +605,27 @@ type KVStoreContext interface {
 	GetKVStore() KVStorer
 }
 
+type ClockContext interface {
+	GetClock() clockwork.Clock
+}
+
 type UIDMapperContext interface {
-	LogContext
+	VLogContext
 	APIContext
 	KVStoreContext
+	ClockContext
+}
+
+type UsernamePackage struct {
+	NormalizedUsername NormalizedUsername
+	FullName           *keybase1.FullNamePackage
+}
+
+type SkinnyLogger interface {
+	// Error logs a message at error level, with formatting args
+	Errorf(format string, args ...interface{})
+	// Debug logs a message at debug level, with formatting args.
+	Debug(format string, args ...interface{})
 }
 
 type UIDMapper interface {
@@ -612,8 +634,42 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
-	// MapUIDToUsernames maps the given set of UIDs to the normalized usernames. It can check
-	// caches or go to the server, but guarantees that any names returned pass the check
-	// as in CheckUIDAgainstUsername
-	MapUIDsToUsernames(ctx context.Context, g UIDMapperContext, uids []keybase1.UID) ([]NormalizedUsername, error)
+	// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
+	// a username and a fullname, and when the mapping was loaded from the server. It blocks
+	// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
+	// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
+	// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
+	// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
+	// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
+	// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
+	// with an empty fullName field means that the user just hasn't supplied a fullName.
+	//
+	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
+	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
+	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+
+	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
+	// for use in tests*
+	SetTestingNoCachingMode(enabled bool)
+}
+
+type ChatHelper interface {
+	SendTextByID(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, text string) error
+	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, text string) error
+	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
+		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+	SendTextByName(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+	SendMsgByName(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+		msgType chat1.MessageType) error
+	SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
+		msgType chat1.MessageType) error
 }
