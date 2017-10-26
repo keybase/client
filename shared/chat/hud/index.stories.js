@@ -78,7 +78,7 @@ const load = () => {
       const Hud = UpDownFilterHoc(({upCounter, downCounter, filter}) => (
         <Box style={{height: 100, width: 240, ...globalStyles.flexBoxColumn}}>
           <MentionHud
-            userIds={['marcopolo', 'trex']}
+            users={[['marcopolo', 'Marco Munizaga'], ['trex', '']]}
             onPickUser={action('onPickUser')}
             onSelectUser={action('onSelectUser')}
             selectUpCounter={upCounter}

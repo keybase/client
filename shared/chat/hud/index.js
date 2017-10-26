@@ -76,7 +76,7 @@ const hudStyle = {
 }
 
 type MentionHudProps = {
-  userIds: Array<string>,
+  users: Array<[string, string]>,
   onPickUser: (user: string) => void,
   onSelectUser: (user: string) => void,
   pickSelectedUserCounter: number,
@@ -87,16 +87,20 @@ type MentionHudProps = {
 }
 
 // TODO figure typing out
-const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {userIds, selectedIndex, filter}) => ({
+const mapStateToProps: MapStateToProps<*, *, *> = (state: TypedState, {users, selectedIndex, filter}) => ({
   following: state.config.following,
   you: state.config.username || '',
-  data: userIds
+  data: users
     .map((u, i) => ({
-      username: u,
-      fullName: '', // TODO
-      key: u,
+      username: u[0],
+      fullName: u[1], // TODO
+      key: u[0],
     }))
-    .filter(u => u.username.indexOf(filter) >= 0)
+    .filter(
+      u =>
+        u.username.toLowerCase().indexOf(filter.toLowerCase()) >= 0 ||
+        u.fullName.toLowerCase().indexOf(filter.toLowerCase()) >= 0
+    )
     .map((u, i) => ({...u, selected: i === selectedIndex})),
 })
 const MentionHud: Class<React.Component<MentionHudProps, void>> = compose(
