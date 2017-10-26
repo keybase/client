@@ -29,9 +29,9 @@ export type ContactDisplayProps = {
 export type ContactRowProps = {
   contact: ContactDisplayProps,
   id: string,
-  loading: boolean,
-  onClick: () => void,
-  selected: boolean,
+  loading?: boolean,
+  onClick?: () => void,
+  selected?: boolean,
 }
 
 export type Props = {
@@ -57,7 +57,8 @@ export type MobileProps = {
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   onRoleChange: (role: TeamRoleType) => void,
   role: TeamRoleType,
-  contacts: Array<any>,
+  contacts: Array<ContactProps>,
+  contactRowProps: Array<ContactRowProps>,
   hasPermission: boolean,
 }
 

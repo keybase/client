@@ -4,7 +4,6 @@ import {Avatar, Box, Button, ClickableBox, Icon, Input, List, Text} from '../../
 import {globalStyles, globalMargins, globalColors} from '../../styles'
 import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import {Linking, StyleSheet} from 'react-native'
-import {isAndroid} from '../../constants/platform'
 import type {MobileProps, ContactRowProps, ContactDisplayProps} from './index'
 import {type TeamRoleType} from '../../constants/teams'
 
@@ -111,15 +110,15 @@ class InviteByEmail extends React.Component<MobileProps, State> {
   }
 
   _onSelectContact(contact: ContactDisplayProps) {
-    if (this._isSelected(contact)) {
+    if (this._isSelected(contact.recordID)) {
       this._removeInvitee(contact)
     } else {
       this._addInvitee(contact)
     }
   }
 
-  _isSelected(contact: ContactDisplayProps): boolean {
-    return this.props.invited.findIndex(rec => rec.contactID === contact.recordID) >= 0
+  _isSelected(id: string): boolean {
+    return this.props.invited.findIndex(rec => rec.contactID === id) >= 0
   }
 
   _addInvitee(contact: ContactDisplayProps) {
@@ -141,43 +140,8 @@ class InviteByEmail extends React.Component<MobileProps, State> {
   }
 
   render() {
-    const contactRowProps = this.props.contacts.reduce((res, contact) => {
-      const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
-      contact.emailAddresses.forEach(email => {
-        const cData = {
-          name: contactName,
-          email: email.email,
-          label: email.label,
-          thumbnailPath: contact.thumbnailPath,
-          recordID: contact.recordID + email.email,
-        }
-        res.push({
-          id: contact.recordID + email.email,
-          onClick: () => this._onSelectContact(cData),
-          selected: this._isSelected(cData),
-          loading: this.props.loadingInvites.get(email.email),
-          contact: cData,
-        })
-      })
-      contact.phoneNumbers.forEach(phoneNo => {
-        const cData = {
-          name: contactName,
-          phoneNo: phoneNo.number,
-          label: phoneNo.label,
-          thumbnailPath: contact.thumbnailPath,
-          recordID: contact.recordID + phoneNo.number,
-        }
-        res.push({
-          id: contact.recordID + phoneNo.number,
-          onClick: () => this._onSelectContact(cData),
-          selected: this._isSelected(cData),
-          loading: this.props.loadingInvites.get(phoneNo.number),
-          contact: cData,
-        })
-      })
-      return res
-    }, [])
-    const filteredContactRows = contactRowProps.filter(contact => {
+    // Filter before adding props to avoid a long map fcn
+    const filteredContactRows = this.props.contactRowProps.filter(contact => {
       let {filter} = this.state
       filter = this._trim(filter)
       if (filter.length === 0) {
@@ -189,6 +153,13 @@ class InviteByEmail extends React.Component<MobileProps, State> {
         this._trim(contact.contact.phoneNo).includes(filter)
       )
     })
+    // Add dynamic rowprops here
+    const contactRowProps = filteredContactRows.map(props => ({
+      ...props,
+      selected: this._isSelected(props.id),
+      onClick: () => this._onSelectContact(props.contact),
+      loading: this.props.loadingInvites.get(props.contact.email || props.contact.phoneNo),
+    }))
     let contents
     if (this.props.hasPermission) {
       contents = (
@@ -232,7 +203,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
           </ClickableBox>
           <List
             keyProperty="id"
-            items={filteredContactRows}
+            items={contactRowProps}
             fixedHeight={56}
             renderItem={contactRow}
             style={{alignSelf: 'stretch'}}

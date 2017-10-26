@@ -100,6 +100,43 @@ export default compose(
         }
       },
     }),
+    withPropsOnChange(['contacts'], props => {
+      // Create static contact row props here
+      const contactRowProps = props.contacts.reduce((res, contact) => {
+        const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
+        contact.emailAddresses.forEach(email => {
+          const cData = {
+            name: contactName,
+            email: email.email,
+            label: email.label,
+            thumbnailPath: contact.thumbnailPath,
+            recordID: contact.recordID + email.email,
+          }
+          res.push({
+            id: contact.recordID + email.email,
+            loading: props.loadingInvites.get(email.email),
+            contact: cData,
+          })
+        })
+        contact.phoneNumbers.forEach(phoneNo => {
+          const cData = {
+            name: contactName,
+            phoneNo: phoneNo.number,
+            label: phoneNo.label,
+            thumbnailPath: contact.thumbnailPath,
+            recordID: contact.recordID + phoneNo.number,
+          }
+          res.push({
+            id: contact.recordID + phoneNo.number,
+            loading: props.loadingInvites.get(phoneNo.number),
+            contact: cData,
+          })
+        })
+        return res
+      }, [])
+
+      return {contactRowProps}
+    }),
     withPropsOnChange(['contacts', '_pendingInvites'], props => {
       const invited = []
 
