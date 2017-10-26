@@ -2340,7 +2340,7 @@ func consumeJoinConv(t *testing.T, listener *serverChatListener) {
 	select {
 	case <-listener.joinedConv:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get team type notification")
+		require.Fail(t, "failed to get join conv notification")
 	}
 }
 
@@ -2348,7 +2348,7 @@ func consumeLeaveConv(t *testing.T, listener *serverChatListener) {
 	select {
 	case <-listener.leftConv:
 	case <-time.After(20 * time.Second):
-		require.Fail(t, "failed to get team type notification")
+		require.Fail(t, "failed to get leave conv notification")
 	}
 }
 
