@@ -20,28 +20,13 @@ type mounter struct {
 	c       *fuse.Conn
 }
 
-const darwinInstallerPath = "/Applications/Keybase.app/Contents/Resources/" +
-	"KeybaseInstaller.app/Contents/MacOS/Keybase"
-
-func (m *mounter) reinstallMountDirForDarwin() {
-	args := []string{
-		"--app-path=/Applications/Keybase.app",
-		"--run-mode=prod",
-		"--timeout=60",
-	}
-	exec.Command(darwinInstallerPath,
-		append(args, "--uninstall-mountdir")...).Run()
-	exec.Command(darwinInstallerPath,
-		append(args, "--install-mountdir")...).Run()
-}
-
 // fuseMount tries to mount the mountpoint.
 // On a force mount then unmount, re-mount if unsuccessful
 func (m *mounter) Mount() (err error) {
 	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
 	// Exit if we were succesful. Otherwise, try unmounting and mounting again.
 	if err == nil {
-		return nil
+		return err
 	}
 
 	// Mount failed, let's try to unmount and then try mounting again, even
@@ -49,22 +34,6 @@ func (m *mounter) Mount() (err error) {
 	m.Unmount()
 
 	m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
-
-	if err == nil {
-		return nil
-	}
-
-	if runtime.GOOS == "darwin" {
-		// Mount failed again, and we are on darwin. So ask the installer to
-		// reinstall the mount dir and try again as the last resort. This
-		// specifically fixes a situation where /keybase gets created and owned
-		// by root after Keybase app is started, and `kbfs` later fails to
-		// mount because of a permission error.
-		m.Unmount()
-		m.reinstallMountDirForDarwin()
-		m.c, err = fuseMountDir(m.options.MountPoint, m.options.PlatformParams)
-	}
-
 	return err
 }
 
