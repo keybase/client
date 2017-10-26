@@ -503,7 +503,13 @@ export type LeaveConversation = NoErrorTypedAction<
 export type LoadInbox = NoErrorTypedAction<'chat:loadInbox', void>
 export type LoadMoreMessages = NoErrorTypedAction<
   'chat:loadMoreMessages',
-  {conversationIDKey: ConversationIDKey, onlyIfUnloaded: boolean}
+  {
+    conversationIDKey: ConversationIDKey,
+    onlyIfUnloaded: boolean,
+    fromUser: boolean,
+    wantNewer: boolean,
+    numberOverride: ?number,
+  }
 >
 export type LoadingMessages = NoErrorTypedAction<
   'chat:loadingMessages',
@@ -546,8 +552,6 @@ export type PrependMessages = NoErrorTypedAction<
     conversationIDKey: ConversationIDKey,
     messages: Array<Message>,
     moreToLoad: boolean,
-    paginationNext: ?string,
-    paginationPrevious: ?string,
   }
 >
 export type RemoveOutboxMessage = NoErrorTypedAction<
@@ -1092,6 +1096,10 @@ function messageKeyConversationIDKey(key: MessageKey): ConversationIDKey {
   return key.split(':')[0]
 }
 
+function messageKeyKindIsMessageID(key: MessageKey): boolean {
+  return messageKeyKind(key).startsWith('messageID')
+}
+
 function messageKeyKind(key: MessageKey): MessageKeyKind {
   const [, kind] = key.split(':')
   switch (kind) {
@@ -1390,6 +1398,7 @@ export {
   makeTeamTitle,
   messageKey,
   messageKeyKind,
+  messageKeyKindIsMessageID,
   messageKeyValue,
   messageKeyConversationIDKey,
   splitMessageIDKey,
