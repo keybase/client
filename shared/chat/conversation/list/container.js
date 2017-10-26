@@ -26,10 +26,12 @@ const getValidatedState = (state: TypedState) => {
   return untrustedState === 'unboxed'
 }
 
+const getMoreToLoadOfSelected = (state: TypedState) =>
+  Constants.getMoreToLoad(state, Constants.getSelectedConversation(state) || '')
+
 const supersedesIfNoMoreToLoadSelector = createSelector(
-  [Constants.getSelectedConversationStates, Constants.getSupersedes],
-  (conversationState, _supersedes) =>
-    conversationState && !conversationState.moreToLoad ? _supersedes : null
+  [getMoreToLoadOfSelected, Constants.getSupersedes],
+  (moreToLoad, _supersedes) => (!moreToLoad ? _supersedes : null)
 )
 
 const ownPropsSelector = (_, {editLastMessageCounter, listScrollDownCounter, onFocusInput}: OwnProps) => ({

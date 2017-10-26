@@ -56,9 +56,17 @@ type PaginationState = I.RecordOf<{
   prev: I.Map<ChatConstants.ConversationIDKey, string>, // For when we want to get newer messages
 }>
 
+type ConversationState = I.RecordOf<{
+  moreToLoad: I.Map<ChatConstants.ConversationIDKey, boolean>,
+}>
+
 const makePaginationState = I.Record({
   next: I.Map(),
   prev: I.Map(),
+})
+
+const makeConversationState = I.Record({
+  moreToLoad: I.Map(),
 })
 
 // State
@@ -91,6 +99,7 @@ type _State = {
   >,
   messages: I.Map<ChatConstants.MessageKey, ChatConstants.Message>,
   pagination: PaginationState,
+  conversation: ConversationState,
   search: SearchSubState,
   searchQueryToResult: I.Map<SearchConstants.SearchQuery, I.List<SearchConstants.SearchResultId>>,
   searchResults: I.Map<SearchConstants.SearchResultId, SearchConstants.SearchResult>,
@@ -128,4 +137,5 @@ export const makeState: I.RecordFactory<_State> = I.Record({
   searchResults: I.Map(),
   teams: Teams.makeState(),
   pagination: makePaginationState(),
+  conversation: makeConversationState(),
 })

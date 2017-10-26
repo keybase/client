@@ -7,8 +7,8 @@ import flags from '../../../../util/feature-flags'
 import {type OwnProps} from './container'
 
 const mapStateToProps = (state: TypedState, {messageKey}: OwnProps) => {
-  const conversationState = Constants.getSelectedConversationStates(state)
-  const moreToLoad = conversationState && conversationState.get('moreToLoad')
+  const conversationIDKey = Constants.getSelectedConversation(state)
+  const moreToLoad = Constants.getMoreToLoad(state, conversationIDKey || '')
   const inbox = Constants.getSelectedInbox(state)
 
   // If it's a multi-user chat that isn't a team, offer to make a new team.
