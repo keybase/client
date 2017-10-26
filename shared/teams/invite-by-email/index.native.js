@@ -163,7 +163,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
     let contents
     if (this.props.hasPermission) {
       contents = (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
           <Box
             style={{
               ...globalStyles.flexBoxRow,
@@ -177,9 +177,14 @@ class InviteByEmail extends React.Component<MobileProps, State> {
               onChangeText={filter => this.setState({filter})}
               hintText="Search"
               hideUnderline={true}
+              small={true}
               style={{width: '100%'}}
               errorStyle={{minHeight: 14}}
-              inputStyle={{textAlign: 'left', paddingLeft: globalMargins.small, fontSize: 16}}
+              inputStyle={{
+                textAlign: 'left',
+                margin: globalMargins.small,
+                fontSize: 16,
+              }}
             />
           </Box>
           <ClickableBox
@@ -194,6 +199,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
               padding: globalMargins.small,
               borderBottomWidth: StyleSheet.hairlineWidth,
               borderBottomColor: globalColors.black_05,
+              marginBottom: globalMargins.xtiny,
             }}
           >
             <Text type="BodySmall" style={{textAlign: 'center'}}>
