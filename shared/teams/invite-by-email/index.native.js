@@ -87,6 +87,7 @@ const contactRow = (i: number, props: ContactRowProps) => {
           <Button
             type={props.selected ? 'Following' : 'Primary'}
             label={props.selected ? 'Invited!' : 'Invite'}
+            waiting={props.loading}
             small={true}
             onClick={props.onClick}
             style={{width: 100, paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}
@@ -111,7 +112,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
 
   _onSelectContact(contact: ContactDisplayProps) {
     if (this._isSelected(contact)) {
-      this._removeInvitee(contact) // TODO: wire up to revoke invite RPC
+      this._removeInvitee(contact)
     } else {
       this._addInvitee(contact)
     }
@@ -123,7 +124,9 @@ class InviteByEmail extends React.Component<MobileProps, State> {
 
   _addInvitee(contact: ContactDisplayProps) {
     if (contact.email) {
-      this.props.onInvite(contact.email)
+      this.props.onInviteEmail(contact.email)
+    } else if (contact.phoneNo) {
+      this.props.onInvitePhone(contact.phoneNo)
     }
   }
 
@@ -152,6 +155,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
           id: contact.recordID + email.email,
           onClick: () => this._onSelectContact(cData),
           selected: this._isSelected(cData),
+          loading: this.props.loadingInvites.get(email.email),
           contact: cData,
         })
       })
@@ -167,6 +171,7 @@ class InviteByEmail extends React.Component<MobileProps, State> {
           id: contact.recordID + phoneNo.number,
           onClick: () => this._onSelectContact(cData),
           selected: this._isSelected(cData),
+          loading: this.props.loadingInvites.get(phoneNo.number),
           contact: cData,
         })
       })

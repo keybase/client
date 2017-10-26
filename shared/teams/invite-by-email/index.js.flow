@@ -29,6 +29,7 @@ export type ContactDisplayProps = {
 export type ContactRowProps = {
   contact: ContactDisplayProps,
   id: string,
+  loading: boolean,
   onClick: () => void,
   selected: boolean,
 }
@@ -47,9 +48,11 @@ export type Props = {
 export type MobileProps = {
   invitee: string,
   invited: Array<{contactID: string, address?: string}>,
+  loadingInvites: any, // TODO typing
   name: string,
   onClose: () => void,
-  onInvite: (invitee: string) => void,
+  onInviteEmail: (invitee: string) => void,
+  onInvitePhone: (invitee: string) => void,
   onUninvite: (invitee: string) => void,
   onOpenRolePicker: (currentSelectedRole: TeamRoleType, selectedRoleCallback: (TeamRoleType) => void) => void,
   onRoleChange: (role: TeamRoleType) => void,

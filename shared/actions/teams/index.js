@@ -16,6 +16,7 @@ import {usernameSelector} from '../../constants/selectors'
 import {isMobile} from '../../constants/platform'
 import {navigateTo} from '../route-tree'
 import {chatTab, teamsTab} from '../../constants/tabs'
+import openSMS from '../../util/sms'
 
 import type {AnnotatedTeamList} from '../../constants/types/flow-types'
 import type {SagaGenerator} from '../../constants/types/saga'
@@ -82,6 +83,9 @@ const _addPeopleToTeam = function*(action: Constants.AddPeopleToTeam) {
 const _inviteByEmail = function*(action: Constants.InviteToTeamByEmail) {
   const {payload: {invitees, role, teamname}} = action
   yield put(replaceEntity(['teams', 'teamNameToLoading'], I.Map([[teamname, true]])))
+  yield put(
+    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[invitees, true]])]]))
+  )
   try {
     yield call(RpcTypes.teamsTeamAddEmailsBulkRpcPromise, {
       param: {
@@ -93,6 +97,7 @@ const _inviteByEmail = function*(action: Constants.InviteToTeamByEmail) {
   } finally {
     // TODO handle error, but for now make sure loading is unset
     yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(teamname))) // getDetails will unset loading
+    yield put(replaceEntity(['teams', 'teamNameToLoadingInvites', teamname], I.Map([[invitees, false]])))
   }
 }
 
@@ -130,6 +135,10 @@ const _editMembership = function*(action: Constants.EditMembership) {
 const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrPendingInvite) {
   const {payload: {name, username, email}} = action
 
+  yield put(
+    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[name, I.Map([[username || email, true]])]]))
+  )
+
   // disallow call with both username & email
   if (!!username && !!email) {
     const errMsg = 'Supplied both email and username to removeMemberOrPendingInvite'
@@ -142,7 +151,24 @@ const _removeMemberOrPendingInvite = function*(action: Constants.RemoveMemberOrP
     yield call(RpcTypes.teamsTeamRemoveMemberRpcPromise, {param: {email, name, username}})
   } finally {
     yield put((dispatch: Dispatch) => dispatch(Creators.getDetails(name))) // getDetails will unset loading
+    yield put(
+      replaceEntity(
+        ['teams', 'teamNameToLoadingInvites'],
+        I.Map([[name, I.Map([[username || email, false]])]])
+      )
+    )
   }
+}
+
+const _inviteToTeamByPhone = function*(action: Constants.InviteToTeamByPhone) {
+  const {payload: {teamname, phoneNumber}} = action
+  yield put(
+    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, true]])]]))
+  )
+  openSMS(phoneNumber, 'delicious seitan') // TODO replace with token from seitan call
+  yield put(
+    replaceEntity(['teams', 'teamNameToLoadingInvites'], I.Map([[teamname, I.Map([[phoneNumber, false]])]]))
+  )
 }
 
 const _ignoreRequest = function*(action: Constants.IgnoreRequest) {
@@ -461,6 +487,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
+  yield Saga.safeTakeEvery('teams:inviteToTeamByPhone', _inviteToTeamByPhone)
 }
 
 export default teamsSaga

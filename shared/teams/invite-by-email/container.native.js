@@ -1,6 +1,6 @@
 // @flow
 import * as Creators from '../../actions/teams/creators'
-import {Set} from 'immutable'
+import {Set, Map} from 'immutable'
 import InviteByEmailMobile from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
@@ -23,12 +23,20 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({
     ['teams', 'teamNameToInvites', routeProps.get('teamname') || ''],
     Set()
   ),
+  loadingInvites: state.entities.getIn(
+    ['teams', 'teamNameToLoadingInvites', routeProps.get('teamname') || ''],
+    Map()
+  ),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
-  onInvite: ({invitee, role}) => {
+  onInviteEmail: ({invitee, role}) => {
     dispatch(Creators.inviteToTeamByEmail(routeProps.get('teamname'), role, invitee))
+    dispatch(Creators.getTeams())
+  },
+  onInvitePhone: ({invitee, role}) => {
+    dispatch(Creators.inviteToTeamByPhone(routeProps.get('teamname'), role, invitee))
     dispatch(Creators.getTeams())
   },
   onUninvite: (invitee: string) => {
@@ -116,7 +124,8 @@ export default compose(
       return {invited}
     }),
     withHandlers({
-      onInvite: ({onInvite, role}) => (invitee: string) => role && onInvite({invitee, role}),
+      onInviteEmail: ({onInviteEmail, role}) => (invitee: string) => role && onInviteEmail({invitee, role}),
+      onInvitePhone: ({onInvitePhone, role}) => (invitee: string) => role && onInvitePhone({invitee, role}),
       onUninvite: ({onUninvite}) => (invitee: string) => onUninvite(invitee),
     }),
     HeaderHoc
