@@ -2348,12 +2348,27 @@ func (o ThreadView) DeepCopy() ThreadView {
 	}
 }
 
+type MessageIDControl struct {
+	Pivot  MessageID `codec:"pivot" json:"pivot"`
+	Recent bool      `codec:"recent" json:"recent"`
+	Num    int       `codec:"num" json:"num"`
+}
+
+func (o MessageIDControl) DeepCopy() MessageIDControl {
+	return MessageIDControl{
+		Pivot:  o.Pivot.DeepCopy(),
+		Recent: o.Recent,
+		Num:    o.Num,
+	}
+}
+
 type GetThreadQuery struct {
-	MarkAsRead               bool          `codec:"markAsRead" json:"markAsRead"`
-	MessageTypes             []MessageType `codec:"messageTypes" json:"messageTypes"`
-	DisableResolveSupersedes bool          `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
-	Before                   *gregor1.Time `codec:"before,omitempty" json:"before,omitempty"`
-	After                    *gregor1.Time `codec:"after,omitempty" json:"after,omitempty"`
+	MarkAsRead               bool              `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes             []MessageType     `codec:"messageTypes" json:"messageTypes"`
+	DisableResolveSupersedes bool              `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
+	Before                   *gregor1.Time     `codec:"before,omitempty" json:"before,omitempty"`
+	After                    *gregor1.Time     `codec:"after,omitempty" json:"after,omitempty"`
+	MessageIDControl         *MessageIDControl `codec:"messageIDControl,omitempty" json:"messageIDControl,omitempty"`
 }
 
 func (o GetThreadQuery) DeepCopy() GetThreadQuery {
@@ -2385,6 +2400,13 @@ func (o GetThreadQuery) DeepCopy() GetThreadQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.After),
+		MessageIDControl: (func(x *MessageIDControl) *MessageIDControl {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MessageIDControl),
 	}
 }
 

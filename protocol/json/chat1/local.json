@@ -1248,6 +1248,24 @@
     },
     {
       "type": "record",
+      "name": "MessageIDControl",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "pivot"
+        },
+        {
+          "type": "boolean",
+          "name": "recent"
+        },
+        {
+          "type": "int",
+          "name": "num"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "GetThreadQuery",
       "fields": [
         {
@@ -1278,6 +1296,13 @@
             "gregor1.Time"
           ],
           "name": "after"
+        },
+        {
+          "type": [
+            null,
+            "MessageIDControl"
+          ],
+          "name": "messageIDControl"
         }
       ]
     },

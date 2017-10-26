@@ -430,6 +430,12 @@ protocol local {
     union { null, Pagination } pagination;
   }
 
+  record MessageIDControl {
+    MessageID pivot;
+    boolean recent;
+    int num;
+  }
+
   GetThreadLocalRes getThreadLocal(ConversationID conversationID, union { null, GetThreadQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
   record GetThreadQuery {
     boolean markAsRead;
@@ -438,6 +444,8 @@ protocol local {
 
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
+    union { null, MessageIDControl } messageIDControl;
+
   }
   record GetThreadLocalRes {
     ThreadView thread;

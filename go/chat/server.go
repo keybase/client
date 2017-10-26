@@ -422,6 +422,11 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 		return chat1.GetThreadLocalRes{}, err
 	}
 
+	// Xlate pager control into pagination if given
+	if arg.Query != nil {
+		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+	}
+
 	// Get messages from the source
 	uid := h.G().Env.GetUID()
 	thread, rl, err := h.G().ConvSource.Pull(ctx, arg.ConversationID,
@@ -478,6 +483,11 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	pagination, err := utils.DecodePagination(arg.Pagination)
 	if err != nil {
 		return res, err
+	}
+
+	// Xlate pager control into pagination if given
+	if arg.Query != nil {
+		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
 	// Grab local copy first
