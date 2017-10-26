@@ -261,12 +261,21 @@ function updateSupersededByState(
 
 function updatePaginationNext(
   conversationIDKey: Constants.ConversationIDKey,
-  paginationNext: ?string,
-  paginationPrevious: ?string
+  paginationNext: ?string
 ): Constants.UpdatePaginationNext {
   return {
-    payload: {conversationIDKey, paginationNext, paginationPrevious},
+    payload: {conversationIDKey, paginationNext},
     type: 'chat:updatePaginationNext',
+  }
+}
+
+function updatePaginationPrev(
+  conversationIDKey: Constants.ConversationIDKey,
+  paginationPrev: ?string
+): Constants.UpdatePaginationPrev {
+  return {
+    payload: {conversationIDKey, paginationPrev},
+    type: 'chat:updatePaginationPrev',
   }
 }
 
@@ -699,6 +708,7 @@ export {
   updateLatestMessage,
   updateMetadata,
   updatePaginationNext,
+  updatePaginationPrev,
   updateSnippet,
   updateSupersededByState,
   updateSupersedesState,
