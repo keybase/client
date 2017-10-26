@@ -19,6 +19,8 @@ import (
 	"syscall"
 	"time"
 
+	"golang.org/x/sys/unix"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -257,24 +259,76 @@ func (s Service) Install(p Plist, wait time.Duration) error {
 	return s.install(p, wait)
 }
 
-func (s Service) savePlist(p Plist) error {
-	plistDest := s.plistDestination()
-
-	if _, ferr := os.Stat(p.binPath); os.IsNotExist(ferr) {
-		return fmt.Errorf("%s doesn't exist", p.binPath)
-	} else if ferr != nil {
-		s.log.Info("unexpected os.Stat error on binPath %s: %s", p.binPath, ferr)
-		return ferr
+func (s Service) checkPlistPaths(p Plist) error {
+	if err := libkb.CanExec(p.binPath); err != nil {
+		s.log.Info("cannot exec binPath %s: %s", p.binPath, err)
+		return err
 	}
 
-	plist := p.plistXML()
+	if p.logPath != "" {
+		// make sure the log directory is writable
+		logDir := filepath.Dir(p.logPath)
+		fi, err := os.Stat(logDir)
+		if err != nil {
+			s.log.Info("log directory %q stat error: %s", logDir, err)
+			return err
+		}
+		if !fi.IsDir() {
+			s.log.Info("log directory %q is not a directory", logDir)
+			return fmt.Errorf("plist logPath error: not a directory %q (full logPath = %q)", logDir, p.logPath)
+		}
+
+		if !writable(logDir) {
+			s.log.Info("log directory %q is not writable by current user", logDir)
+			return fmt.Errorf("log directory %q is not writable by current user (full logPath = %q)", logDir, p.logPath)
+		}
+
+		// log directory looks ok
+		s.log.Info("log directory %q is writable by current user", logDir)
+
+		// make sure the log file is writable if it exists
+		_, err = os.Stat(p.logPath)
+		if err == nil {
+			if !writable(p.logPath) {
+				s.log.Info("log path %q exists but isn't writable by current user", p.logPath)
+				return fmt.Errorf("log path %q exists but isn't writable by current user", p.logPath)
+			}
+			s.log.Info("log path %q exists and is writable by current user", p.logPath)
+		} else if os.IsNotExist(err) {
+			s.log.Info("log path file %q doesn't exist yet (should be ok)", p.logPath)
+		} else {
+			s.log.Info("unexpected stat error on %q: %s", p.logPath, err)
+			return err
+		}
+	}
 
 	// Plist directory (~/Library/LaunchAgents/) might not exist on clean OS installs
 	// See GH issue: https://github.com/keybase/client/pull/1399#issuecomment-164810645
+	plistDest := s.plistDestination()
 	if err := libkb.MakeParentDirs(s.log, plistDest); err != nil {
 		s.log.Info("error making parent directories for %s: %s", plistDest, err)
 		return err
 	}
+
+	plistDir := filepath.Dir(plistDest)
+	if !writable(plistDir) {
+		s.log.Info("plist destination %q is not writable by current user", plistDir)
+		return fmt.Errorf("plist destination dir %q is not writable by current user (full filename = %q)", plistDir, plistDest)
+	}
+
+	s.log.Info("paths in plist look ok and have valid permissions")
+
+	return nil
+}
+
+func (s Service) savePlist(p Plist) error {
+	if err := s.checkPlistPaths(p); err != nil {
+		return err
+	}
+
+	plistDest := s.plistDestination()
+
+	plist := p.plistXML()
 
 	s.log.Info("Saving %s", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
@@ -620,3 +674,7 @@ type emptyLog struct{}
 func (l emptyLog) Debug(s string, args ...interface{})  {}
 func (l emptyLog) Info(s string, args ...interface{})   {}
 func (l emptyLog) Errorf(s string, args ...interface{}) {}
+
+func writable(path string) bool {
+	return unix.Access(path, unix.W_OK) == nil
+}
