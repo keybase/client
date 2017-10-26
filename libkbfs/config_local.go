@@ -175,13 +175,13 @@ func (m DiskCacheMode) String() string {
 // and outputs the mode value corresponding to that string. Defaults to
 // DiskCacheModeOff.
 func (m *DiskCacheMode) Set(s string) error {
+	*m = DiskCacheModeOff
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "local":
 		*m = DiskCacheModeLocal
 	case "remote":
 		*m = DiskCacheModeRemote
 	}
-	*m = DiskCacheModeOff
 	return nil
 }
 
@@ -1384,7 +1384,8 @@ func (c *ConfigLocal) SetTlfSyncState(tlfID tlf.ID, isSynced bool) error {
 	if isSynced {
 		diskCacheWrapped, ok := c.diskBlockCache.(*diskBlockCacheWrapped)
 		if !ok {
-			return errors.New("invalid disk cache type to set TLF sync state")
+			return fmt.Errorf("invalid disk cache type to set TLF sync "+
+				"state: %T", c.diskBlockCache)
 		}
 		if !diskCacheWrapped.IsSyncCacheEnabled() {
 			return errors.New("sync block cache is not enabled")

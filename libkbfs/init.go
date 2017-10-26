@@ -628,8 +628,9 @@ func doInit(
 			ErrorType:        keybase1.FSErrorType_DISK_CACHE_ERROR_LOG_SEND,
 		}
 		defer config.Reporter().Notify(ctx10s, notification)
-	} else if params.DiskCacheMode != DiskCacheModeOff {
-		log.CDebugf(ctx, "Disk cache enabled")
+	} else {
+		log.CDebugf(ctx, "Disk cache of type \"%s\" enabled",
+			params.DiskCacheMode.String())
 	}
 
 	if config.Mode() == InitDefault {
