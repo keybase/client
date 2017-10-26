@@ -500,31 +500,43 @@ func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
+	ptrCh := make(chan BlockPointer, len(ptrs))
 	sumCh := make(chan uint32, len(ptrs))
 	eg, groupCtx := errgroup.WithContext(ctx)
 	for _, ptr := range ptrs {
-		ptr := ptr // capture range variable
-		eg.Go(func() error {
-			size, err := fbo.getCleanEncodedBlockSizeLocked(groupCtx, nil,
-				kmd, ptr, branch, blockReadParallel)
-			// TODO: we might be able to recover the size of the
-			// top-most block of a removed file using the merged
-			// directory entry, the same way we do in
-			// `folderBranchOps.unrefEntry`.
-			if isRecoverableBlockErrorForRemoval(err) &&
-				ignoreRecoverableForRemovalErrors[ptr] {
-				fbo.log.CDebugf(groupCtx, "Hit an ignorable, recoverable "+
-					"error for block %v: %v", ptr, err)
-				return nil
-			}
+		ptrCh <- ptr
+	}
 
-			if err != nil {
-				return err
+	numWorkers := 50
+	if len(ptrs) < numWorkers {
+		numWorkers = len(ptrs)
+	}
+
+	for i := 0; i < numWorkers; i++ {
+		eg.Go(func() error {
+			for ptr := range ptrCh {
+				size, err := fbo.getCleanEncodedBlockSizeLocked(groupCtx, nil,
+					kmd, ptr, branch, blockReadParallel)
+				// TODO: we might be able to recover the size of the
+				// top-most block of a removed file using the merged
+				// directory entry, the same way we do in
+				// `folderBranchOps.unrefEntry`.
+				if isRecoverableBlockErrorForRemoval(err) &&
+					ignoreRecoverableForRemovalErrors[ptr] {
+					fbo.log.CDebugf(groupCtx, "Hit an ignorable, recoverable "+
+						"error for block %v: %v", ptr, err)
+					continue
+				}
+
+				if err != nil {
+					return err
+				}
+				sumCh <- size
 			}
-			sumCh <- size
 			return nil
 		})
 	}
+	close(ptrCh)
 
 	if err := eg.Wait(); err != nil {
 		return 0, err
