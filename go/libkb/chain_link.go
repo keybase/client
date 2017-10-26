@@ -88,6 +88,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
+	seqType                            keybase1.SeqType
 	payloadJSONStr                     string
 	ctime, etime                       int64
 	pgpFingerprint                     *PGPFingerprint
@@ -281,7 +282,8 @@ func (c *ChainLink) GetPayloadJSON() *jsonw.Wrapper {
 
 func (c *ChainLink) ToSigChainLocation() keybase1.SigChainLocation {
 	return keybase1.SigChainLocation{
-		Seqno:   c.GetSeqno(),
+		Seqno: c.GetSeqno(),
+		// This code is meant only for user chains
 		SeqType: keybase1.SeqType_PUBLIC,
 	}
 }
@@ -436,6 +438,16 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(payloadJSON *jsonw.Wrapper, payl
 
 	payloadJSON.AtKey("seqno").GetInt64Void(&sq, &err)
 
+	// Assume public unless specified
+	tmp.seqType = keybase1.SeqType_PUBLIC
+	if jw := payloadJSON.AtKey("seq_type"); !jw.IsNil() {
+		seqTypeInt, err := payloadJSON.AtKey("seq_type").GetInt()
+		if err != nil {
+			return err
+		}
+		tmp.seqType = keybase1.SeqType(seqTypeInt)
+	}
+
 	var ei int64
 	payloadJSON.AtKey("expire_in").GetInt64Void(&ei, &err)
 
@@ -493,6 +505,7 @@ func (c *ChainLink) unpackStubbed(raw string, err error) error {
 	c.unpacked = &ChainLinkUnpacked{
 		prev:        ol.Prev,
 		seqno:       ol.Seqno,
+		seqType:     ol.SeqType,
 		sigVersion:  ol.Version,
 		outerLinkV2: ol,
 		stubbed:     true,
@@ -728,12 +741,12 @@ func (c *ChainLink) verifyPayloadV2() error {
 	prev := c.getPrevFromPayload()
 	curr := c.getPayloadHash()
 	linkType, err := c.GetSigchainV2Type()
-
 	if err != nil {
 		return err
 	}
+	seqType := c.unpacked.seqType
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType); err != nil {
 		return err
 	}
 
