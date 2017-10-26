@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState) => {
 
   return {
     prevConversationIDKey: supersedes.conversationIDKey,
-    username: supersedes.finalizeInfo.resetUser,
+    username: supersedes.finalizeInfo && supersedes.finalizeInfo.resetUser,
   }
 }
 
