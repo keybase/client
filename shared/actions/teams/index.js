@@ -443,6 +443,8 @@ function* _setupTeamHandlers(): SagaGenerator<any, any> {
   })
 }
 
+function* _badgeAppForTeams(action: Constants.BadgeAppForTeams) {}
+
 const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure('teams:leaveTeam', _leaveTeam)
   yield Saga.safeTakeEveryPure('teams:createNewTeam', _createNewTeam)
@@ -461,6 +463,7 @@ const teamsSaga = function*(): SagaGenerator<any, any> {
   yield Saga.safeTakeEvery('teams:ignoreRequest', _ignoreRequest)
   yield Saga.safeTakeEvery('teams:editMembership', _editMembership)
   yield Saga.safeTakeEvery('teams:removeMemberOrPendingInvite', _removeMemberOrPendingInvite)
+  yield Saga.safeTakeEvery('teams:badgeAppForTeams', _badgeAppForTeams)
 }
 
 export default teamsSaga
