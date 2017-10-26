@@ -7768,9 +7768,9 @@ react-native-compat@^1.0.0:
   dependencies:
     prop-types "^15.5.10"
 
-react-native-contacts@^1.0.2:
+"react-native-contacts@git://github.com/Clarizen/react-native-contacts#c0881ed6077c29e5d08442aec24439d5f4db8f81":
   version "1.0.2"
-  resolved "https://registry.yarnpkg.com/react-native-contacts/-/react-native-contacts-1.0.2.tgz#58b3b0572e3972a320c731ff639091b013a3c4b0"
+  resolved "git://github.com/Clarizen/react-native-contacts#c0881ed6077c29e5d08442aec24439d5f4db8f81"
 
 react-native-dismiss-keyboard@1.0.0:
   version "1.0.0"

@@ -75,9 +75,42 @@ export default compose(
       componentWillMount() {
         // TODO test this permission flow on a real build
         if (isAndroid) {
-          Contacts.requestPermission((_, granted) => {
-            this.props._setHasPermission(false)
-            if (granted) {
+          Contacts.checkPermission((err, permission) => {
+            // Check the existing system settings, see if we need to ask
+            if (err) {
+              console.warn('Error determining Android contact permissions: ', err)
+              this.props._setHasPermission(false)
+              return
+            }
+            if (permission === 'undefined' || permission === 'denied') {
+              // Now we need to show the request dialog
+              Contacts.requestPermission((err, _) => {
+                // second param is supposed to be granted, but is buggy, so we checkPermission again
+                if (err) {
+                  console.warn('Error determining Android contact permissions: ', err)
+                }
+                Contacts.checkPermission((err, permission) => {
+                  // Check to see what the user said
+                  if (err) {
+                    console.warn('Error determining Android contact permissions: ', err)
+                  }
+                  if (permission === 'authorized') {
+                    Contacts.getAll((err, contacts) => {
+                      if (err) {
+                        this.props._setHasPermission(false)
+                      } else {
+                        this.props._setHasPermission(true)
+                        this.props._setContacts(contacts)
+                      }
+                    })
+                  } else {
+                    // If not authorized, then we tried and they said no.
+                    this.props._setHasPermission(false)
+                  }
+                })
+              })
+            } else if (permission === 'authorized') {
+              // If we're already authorized, go ahead and fetch contacts
               Contacts.getAll((err, contacts) => {
                 if (err) {
                   this.props._setHasPermission(false)
@@ -86,6 +119,8 @@ export default compose(
                   this.props._setContacts(contacts)
                 }
               })
+            } else {
+              this.props._setHasPermission(false)
             }
           })
         } else {

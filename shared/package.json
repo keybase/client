@@ -112,7 +112,7 @@
     "react-list": "0.8.8",
     "react-native": "0.49.3",
     "react-native-camera": "0.10.0",
-    "react-native-contacts": "^1.0.2",
+    "react-native-contacts": "git://github.com/Clarizen/react-native-contacts#c0881ed6077c29e5d08442aec24439d5f4db8f81",
     "react-native-fetch-blob": "0.10.8",
     "react-native-image-picker": "0.26.7",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-300",

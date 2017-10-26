@@ -6,6 +6,7 @@ import {NativeImage} from '../../common-adapters/native-wrappers.native'
 import {Linking, StyleSheet} from 'react-native'
 import type {MobileProps, ContactRowProps, ContactDisplayProps} from './index'
 import {type TeamRoleType} from '../../constants/teams'
+import {isAndroid} from '../../constants/platform'
 
 const settingsURL = 'app-settings:'
 const openSettings = () => {
@@ -43,7 +44,7 @@ const AccessDenied = () => (
       <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
-      <Button type="Primary" label="Open settings" onClick={openSettings} />
+      {!isAndroid && <Button type="Primary" label="Open settings" onClick={openSettings} />}
     </Box>
   </Box>
 )
