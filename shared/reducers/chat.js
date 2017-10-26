@@ -47,14 +47,11 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
       return state.set('conversationStates', newConversationStates)
     }
     case 'chat:prependMessages': {
-      const {moreToLoad, paginationNext, conversationIDKey, paginationPrevious} = action.payload
+      const {moreToLoad, conversationIDKey} = action.payload
       const newConversationStates = state
         .get('conversationStates')
         .update(conversationIDKey, initialConversation, conversation => {
-          return conversation
-            .set('moreToLoad', moreToLoad)
-            .set('paginationNext', paginationNext)
-            .set('paginationPrevious', paginationPrevious)
+          return conversation.set('moreToLoad', moreToLoad)
         })
 
       return state.set('conversationStates', newConversationStates)
@@ -131,15 +128,6 @@ function reducer(state: Constants.State = initialState, action: Constants.Action
         .get('conversationStates')
         .update(conversationIDKey, initialConversation, conversation =>
           conversation.set('isRequesting', isRequesting)
-        )
-      return state.set('conversationStates', newConversationStates)
-    }
-    case 'chat:updatePaginationNext': {
-      const {conversationIDKey, paginationNext, paginationPrevious} = action.payload
-      const newConversationStates = state
-        .get('conversationStates')
-        .update(conversationIDKey, initialConversation, conversation =>
-          conversation.set('paginationNext', paginationNext).set('paginationPrevious', paginationPrevious)
         )
       return state.set('conversationStates', newConversationStates)
     }
